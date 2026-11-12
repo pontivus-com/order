@@ -24,3 +24,5 @@ jobs:
       - run: node node_modules/vitest/vitest.mjs run tests/markdown-source-formatting.test.ts
       - run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
       - run: node node_modules/vitest/vitest.mjs run tests/certification.test.ts
+
+# rerun after Markdown range correction
