@@ -94,10 +94,26 @@ export const StageDialogue = ({
     [events],
   );
 
-  if (runsQuery.isPending) return <WorkbenchEmptyState compact title="Loading dialogue…" />;
-  if (!run) return <WorkbenchEmptyState title="No active interactive run" description="Use Context to start or resume governed stage work." />;
+  if (runsQuery.isPending) {
+    return (
+      <section className="order-workspace-section order-dialogue" data-testid="dialogue-workspace">
+        <WorkbenchEmptyState compact title="Loading dialogue…" />
+      </section>
+    );
+  }
+  if (!run) {
+    return (
+      <section className="order-workspace-section order-dialogue" data-testid="dialogue-workspace">
+        <WorkbenchEmptyState title="No active interactive run" description="Use Context to start or resume governed stage work." />
+      </section>
+    );
+  }
   if (eventsQuery.isError) {
-    return <WorkbenchErrorState title="Dialogue unavailable" description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} />;
+    return (
+      <section className="order-workspace-section order-dialogue" data-testid="dialogue-workspace">
+        <WorkbenchErrorState title="Dialogue unavailable" description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} />
+      </section>
+    );
   }
 
   return (
