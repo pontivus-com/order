@@ -61,13 +61,18 @@ const backToQueue = async (page: Page): Promise<void> => {
 
 const markdownSourceValue = async (editor: Locator): Promise<string> =>
   editor.evaluate((node) =>
-    (node as HTMLElement).innerText.replace(/\u200b/g, ""));
+    Array.from(node.querySelectorAll(".cm-line"))
+      .map((line) => line.textContent ?? "")
+      .join("\n"));
 
 const replaceMarkdownSource = async (
+  page: Page,
   editor: Locator,
   markdown: string,
 ): Promise<void> => {
-  await editor.fill(markdown);
+  await editor.click();
+  await editor.press("Control+A");
+  await page.keyboard.insertText(markdown);
   await expect.poll(() => markdownSourceValue(editor)).toBe(markdown);
 };
 
@@ -196,7 +201,7 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
 
   const initial = await markdownSourceValue(editor);
   const unsaved = initial + "\n# Preview continuity\n";
-  await replaceMarkdownSource(editor, unsaved);
+  await replaceMarkdownSource(page, editor, unsaved);
   await expect(page.getByText("Unsaved", { exact: true })).toBeVisible();
 
   await page.getByRole("radio", { name: "Preview" }).click();
@@ -228,14 +233,14 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await page.getByRole("radio", { name: "Edit" }).click();
   const formatEditor = page.getByLabel("PLAN lifecycle document Markdown source");
   for (const [label, source, expected] of formattingCases) {
-    await replaceMarkdownSource(formatEditor, source);
-    await formatEditor.press("ControlOrMeta+A");
+    await replaceMarkdownSource(page, formatEditor, source);
+    await formatEditor.press("Control+A");
     await page.getByRole("button", { name: label }).click();
     await expect.poll(() => markdownSourceValue(formatEditor)).toBe(expected);
   }
 
-  await replaceMarkdownSource(formatEditor, "alpha");
-  await formatEditor.press("ControlOrMeta+A");
+  await replaceMarkdownSource(page, formatEditor, "alpha");
+  await formatEditor.press("Control+A");
   await page.getByRole("button", { name: "Bold" }).click();
   await expect.poll(() => markdownSourceValue(formatEditor)).toBe("**alpha**");
   await page.getByRole("button", { name: "Undo" }).click();
@@ -243,7 +248,7 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await page.getByRole("button", { name: "Redo" }).click();
   await expect.poll(() => markdownSourceValue(formatEditor)).toBe("**alpha**");
 
-  await replaceMarkdownSource(formatEditor, "- item");
+  await replaceMarkdownSource(page, formatEditor, "- item");
   await formatEditor.press("End");
   await formatEditor.press("Enter");
   await formatEditor.type("next");
@@ -253,7 +258,7 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await expect(page.locator(".cm-panel.cm-search")).toBeVisible();
   await formatEditor.press("Escape");
 
-  await replaceMarkdownSource(formatEditor, "# Heading");
+  await replaceMarkdownSource(page, formatEditor, "# Heading");
   const cm = page.locator(".order-markdown-source-editor .cm-editor");
   const gutter = page.locator(".order-markdown-source-editor .cm-gutters");
   const headingToken = page.locator(".order-markdown-source-editor .cm-content span")
@@ -525,7 +530,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await expect(sourceEditor).toBeVisible();
   const original = await markdownSourceValue(sourceEditor);
 
-  await replaceMarkdownSource(sourceEditor, original + "\nlocal unsaved buffer\n");
+  await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
   const item = await workItemForTitle(page, "Source editing workbench");
   const sourceResponse = await page.context().request.get(
     "/api/work-items/" + item.id + "/source",
@@ -548,11 +553,11 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("# Source editing externally changed");
   const current = await markdownSourceValue(sourceEditor);
 
-  await replaceMarkdownSource(sourceEditor, current + "\nwill be cancelled\n");
+  await replaceMarkdownSource(page, sourceEditor, current + "\nwill be cancelled\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect.poll(() => markdownSourceValue(sourceEditor)).toBe(current);
 
-  await replaceMarkdownSource(sourceEditor, current + "\nsaved through browser workbench\n");
+  await replaceMarkdownSource(page, sourceEditor, current + "\nsaved through browser workbench\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("saved through browser workbench");
   await expect.poll(() => readFileSync(sourcePath, "utf8")).toContain(
@@ -583,7 +588,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   const planEditor = page.getByLabel("PLAN lifecycle document Markdown source");
   await expect(planEditor).toBeVisible();
   const initial = await markdownSourceValue(planEditor);
-  await replaceMarkdownSource(planEditor, initial + "\nunsaved guard\n");
+  await replaceMarkdownSource(page, planEditor, initial + "\nunsaved guard\n");
 
   await page.getByRole("button", { name: "Back to work queue" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
@@ -611,11 +616,11 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
     .click();
   const editablePlan = page.getByLabel("PLAN lifecycle document Markdown source");
   const fresh = await markdownSourceValue(editablePlan);
-  await replaceMarkdownSource(editablePlan, fresh + "\ncancelled plan edit\n");
+  await replaceMarkdownSource(page, editablePlan, fresh + "\ncancelled plan edit\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect.poll(() => markdownSourceValue(editablePlan)).toBe(fresh);
 
-  await replaceMarkdownSource(editablePlan, fresh + "\nsaved plan edit\n");
+  await replaceMarkdownSource(page, editablePlan, fresh + "\nsaved plan edit\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => markdownSourceValue(editablePlan)).toContain("saved plan edit");
   await expect(page.getByTestId("work-item-context").getByText("PLAN", { exact: true }).first()).toBeVisible();
