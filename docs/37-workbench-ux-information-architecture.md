@@ -1006,7 +1006,7 @@ The manager also exposes **Add OpenCode account**.
 
 Adding an account is an account-login flow, not provider setup.
 
-The flow asks first for an **Account label**, with guidance to use the OpenCode account's login email address. Order then starts OpenCode's own Console device/OAuth flow and presents:
+The flow asks first for an **Account label**, with guidance to use the OpenCode account's login email address. New/renamed labels must be unique among saved OpenCode login accounts so account identity is never ambiguous. Order then starts OpenCode's own Console device/OAuth flow and presents:
 
 - the external OpenCode authorization URL as the primary **Open OpenCode sign-in** action;
 - OpenCode's one-time instructions/code;
