@@ -12,6 +12,7 @@ import {
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
+import { lifecycleArtifactRoleRank } from "./workbench-presentation.ts";
 
 const resultText = (workItem: WorkItem): string => {
   switch (workItem.outcome) {
@@ -23,14 +24,6 @@ const resultText = (workItem: WorkItem): string => {
     case "CANDIDATE_DONE": return "A verified candidate is available in the Execution workspace.";
     default: return "The WorkItem is complete.";
   }
-};
-
-const roleOrder: Readonly<Record<string, number>> = {
-  R1: 1,
-  R2: 2,
-  DESIGN: 3,
-  PLAN: 4,
-  R3: 5,
 };
 
 const decode = (
@@ -66,7 +59,7 @@ export const TerminalResult = ({ workItem }: Readonly<{ workItem: WorkItem }>) =
 
   const artifacts = useMemo(
     () => [...(artifactsQuery.data ?? [])].sort(
-      (left, right) => (roleOrder[left.role] ?? 99) - (roleOrder[right.role] ?? 99),
+      (left, right) => lifecycleArtifactRoleRank(left.role) - lifecycleArtifactRoleRank(right.role),
     ),
     [artifactsQuery.data],
   );
