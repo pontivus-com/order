@@ -259,6 +259,25 @@ It:
 
 Workflow dependencies/actions must be immutable-pinned and added to the external-facts/certification owner before productive reliance.
 
+
+
+## 10.1 Temporary GitHub Actions scaffolding during PR work
+
+The agent-only temporary GitHub Actions exception owned by `GW-DOC-AGENT-OPERATING-RULES-V1` remains valid under this public-delivery model.
+
+Temporary workflows may be added to the current PR branch when an already-authorized implementation or verification action cannot be performed through the available local/runtime/connectors.
+
+They are distinct from the permanent `.github/workflows/ci.yml` and `.github/workflows/release.yml` owned by this standard:
+
+- temporary workflows may execute only the already-authorized task/verification;
+- they must not broaden implementation scope or create a second build/release path;
+- they must not contain secrets in workflow source;
+- they are removed from the branch tree before the PR is ready to merge;
+- their historical branch commits/evidence may remain as PR provenance;
+- the final merge candidate must contain only permanent workflows explicitly authorized by canonical architecture/P7.
+
+Using temporary Actions does not permit direct commits to `master`, bypass required PR review/status checks, or publish a release outside the governed release workflow.
+
 ## 11. Repository protection
 
 The public repository should maintain active GitHub rulesets for:
