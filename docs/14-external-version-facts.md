@@ -647,6 +647,11 @@ Relied-upon official facts:
 - `--no-checkout` prevents checkout during clone;
 - `git rev-parse --verify --end-of-options <rev>^{commit}` verifies exactly one revision and requires it to resolve to a commit-ish while protecting an untrusted revision from option parsing;
 - `git status -z` implies porcelain v1 when no other format is selected, and porcelain v1 is stable for scripts;
+- `git check-ignore --no-index` evaluates ignore rules without suppressing paths merely because they are already tracked; exit status 0 means at least one supplied path is ignored and 1 means none is ignored;
+- `git add --intent-to-add -- <path>` records only an intent-to-add index entry for a new path, allowing that path to become known to Git without staging its complete content;
+- `git commit --only -- <path>...` records the current working-tree contents of the named paths while disregarding contents staged for other paths; supplying path arguments is the same default commit mode even without spelling `--only`;
+- `git commit --dry-run` can report what the same path-scoped commit invocation would include without creating the commit;
+- ordinary `git commit` executes the repository's configured commit hooks unless explicitly bypassed; Order does not use `--no-verify`;
 - `GIT_CONFIG_NOSYSTEM` skips system Git config and `GIT_CONFIG_GLOBAL` selects the global config file.
 
 Sources:
@@ -654,6 +659,9 @@ Sources:
 - https://git-scm.com/docs/git-clone
 - https://git-scm.com/docs/git-rev-parse
 - https://git-scm.com/docs/git-status
+- https://git-scm.com/docs/git-check-ignore
+- https://git-scm.com/docs/git-add
+- https://git-scm.com/docs/git-commit
 - https://git-scm.com/docs/git-config
 - https://git-scm.com/docs/git
 
