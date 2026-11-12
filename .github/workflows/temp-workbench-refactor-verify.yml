@@ -93,3 +93,5 @@ jobs:
           node node_modules/@playwright/test/cli.js test
 
 # rerun after typed proposal narrowing fix
+
+# rerun after certification owner update
