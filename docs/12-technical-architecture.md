@@ -1702,11 +1702,11 @@ Order therefore treats the OpenCode-owned credential label as the account's huma
 
 For Add account:
 
-1. the operator supplies a non-empty account label; the UI recommends the exact OpenCode login email;
+1. the operator supplies a non-empty account label that is unique among the current OAuth account labels; the UI recommends the exact OpenCode login email;
 2. Order starts the OpenCode Console `device` OAuth method for integration `opencode` and supplies that label;
 3. OpenCode persists the resulting credential under that label and makes the new credential active.
 
-Rename uses only OpenCode's credential-label update operation. The credential id remains the stable account reference regardless of label changes.
+Rename uses only OpenCode's credential-label update operation and rejects a label already used by another current OAuth account. The credential id remains the stable account reference regardless of label changes.
 
 Order does not read secret-bearing credential metadata merely to auto-discover email.
 
