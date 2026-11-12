@@ -1815,3 +1815,117 @@ An account switch does not invalidate WorkItem domain queries because it mutates
 
 **Failure/negative behavior:** normal browser login must not require a terminal, secret-bearing provider API response or Order-owned OAuth token persistence.
 
+## 32. WorkItem management, API-error and provider-diagnostic architecture (2026-11-13)
+
+This section closes the former P7 prerequisite placeholders for title/archive semantics, typed API failure classification and provider diagnostic evidence.
+
+### 32.1 Direct title edit realization
+
+Title edit reuses the canonical source path rather than creating a management store.
+
+`src/core/work-item-source.ts` owns one pure helper:
+
+```text
+rewriteWorkItemTitle(markdown, title) -> exact Markdown
+```
+
+It parses through the existing source grammar, replaces only the first canonical H1 line, preserves every other byte/line exactly, and returns bytes that reparse to the same WorkItem id/project/schema/concerns except for title.
+
+The daemon title command reuses the existing expected-source-hash write/reconciliation path. Browser code never parses/rebuilds front matter or Markdown to perform a rename.
+
+### 32.2 Portable archive owner
+
+One pure path owner computes:
+
+```text
+<workItems.root>/<WorkItemId>/.order-archived
+```
+
+The marker bytes are exactly `archived\n`.
+
+The source filesystem shell owns marker existence/create/remove under the same repository containment/symlink rules as WorkItem source files. Reconciliation derives `WorkItem.archived` from marker existence.
+
+Archive state is therefore a portable projection, not independent SQLite authority. SQLite may persist the projection for query efficiency but startup/refresh reconciliation corrects it from repository facts.
+
+Default WorkItem listing excludes archived items; an explicit include-archived query exposes them for restore.
+
+### 32.3 Archive and Git status composition
+
+The existing WorkItem documentation Git-status owner expands its governed path set to include the deterministic archive marker.
+
+The status model must distinguish:
+
+- marker absent both in working tree and HEAD: no archive Git change;
+- marker present in working tree but absent at HEAD: `UNTRACKED`;
+- marker present and equal at HEAD: `MATCHES_HEAD`;
+- marker absent in working tree but present at HEAD: `DELETED`.
+
+`DELETED` is a committable WorkItem-management/documentation change. The path-scoped documentation commit operation may therefore contain expected paths whose working-tree hash is null only for an exact tracked deletion.
+
+This keeps archive/restore inside the same explicit **Save documentation to Git** mechanism and preserves unrelated index/working-tree state.
+
+### 32.4 HTTP error classification owner
+
+Add one canonical daemon error classification boundary; route handlers do not decide status ad hoc.
+
+The classifier maps:
+
+- malformed JSON/schema/path/query input -> HTTP 400;
+- canonical entity absent -> HTTP 404;
+- source-boundary, lifecycle, optimistic-concurrency and current-state conflicts -> HTTP 409;
+- unexpected daemon defect -> HTTP 500.
+
+A source-boundary conflict carries the exact canonical `WorkItemSourceDiagnostic` that caused the rejection.
+
+The server's outer API catch uses this classifier. It must not collapse unexpected defects to 400 and must not discard a known source diagnostic.
+
+The browser HTTP helper parses the canonical error response once. Feature components receive the typed canonical error and render the human message/diagnostic; they do not parse status-specific ad hoc JSON.
+
+### 32.5 Provider diagnostic evidence owner
+
+Provider diagnostics reuse existing immutable Run evidence plus RunEvent references. No logging database, telemetry model or second Run history is introduced.
+
+For every provider turn, the OpenCode shell/daemon may persist one bounded diagnostic JSON evidence file containing only observable execution metadata required for debugging:
+
+- configured provider id/model id;
+- provider session id;
+- deterministic prompt/admission id;
+- turn start/end timestamps and terminal provider outcome;
+- format-repair attempted/result;
+- parse/admission/transport failure classification and safe exception text;
+- public provider-session/tool/action/result metadata already observable through the pinned OpenCode API.
+
+Provider stderr is captured into a separate bounded text EvidenceRef when non-empty.
+
+Before evidence persistence, Order removes/replaces any occurrence of secrets known to Order, including the private OpenCode password, daemon/browser tokens and credential values available to the shell. A line containing a known secret is replaced rather than partially echoed. Hidden chain-of-thought/reasoning is never requested, inferred or persisted.
+
+The coordinator emits one coordinator-owned `PROVIDER_DIAGNOSTICS_RECORDED` RunEvent referencing those EvidenceRefs. A later `PROVIDER_FAILED` event references the same diagnostic evidence when the diagnostics explain that failure.
+
+Evidence size is bounded by the existing Run-evidence policy; stderr capture uses a fixed tail/head bound rather than unbounded process logging.
+
+### 32.6 Technical requirements
+
+#### GW-TR-054-WORKITEM-MANAGEMENT-CANONICALITY
+
+**Required behavior:** direct title edit rewrites only the canonical source H1 and archive/restore derives from the deterministic repository marker.
+
+**Acceptance criterion:** no second title/archive semantic owner exists and clone/reconciliation restores archive state.
+
+**Failure/negative behavior:** browser Markdown reconstruction, DB-only archive flags, source deletion and signed-Markdown archive mutation are prohibited.
+
+#### GW-TR-055-TYPED-API-FAILURE-CLASSIFICATION
+
+**Required behavior:** one daemon classifier preserves 400/404/409/500 meaning and source diagnostics through the HTTP/browser boundary.
+
+**Acceptance criterion:** known source/current-state conflicts are actionable 409 responses and unexpected defects are 500 rather than generic 400.
+
+**Failure/negative behavior:** feature routes/components must not invent competing error taxonomies or discard canonical diagnostics.
+
+#### GW-TR-056-RUN-SCOPED-PROVIDER-DIAGNOSTIC-EVIDENCE
+
+**Required behavior:** observable provider diagnostic material is persisted only through existing Run evidence and referenced by coordinator-owned RunEvents.
+
+**Acceptance criterion:** Activity/Evidence can inspect provider/session/timing/outcome/format-repair/parse/transport/stderr evidence without a second log store.
+
+**Failure/negative behavior:** hidden reasoning, credential secrets, unbounded stderr capture or an independent observability database is prohibited.
+
