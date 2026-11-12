@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Run, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
-const activeStatuses = new Set<Run["status"]>(["RUNNING", "WAITING_FOR_INPUT"]);
 const preSignoff = new Set<WorkItem["stage"]>(["IDEA", "R1", "R2", "DESIGN", "PLAN", "R3"]);
 
 export const WorkItemContext = ({
@@ -23,9 +23,9 @@ export const WorkItemContext = ({
   const runsQuery = useQuery({
     queryKey: ["runs", workItem.id],
     queryFn: () => api.listRuns(workItem.id),
-    refetchInterval: (query) => query.state.data?.some((run) => activeStatuses.has(run.status)) === true ? 1000 : false,
+    refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false,
   });
-  const activeRun = (runsQuery.data ?? []).find((run) => run.role === "STAGE" && activeStatuses.has(run.status)) ?? null;
+  const activeRun = (runsQuery.data ?? []).find((run) => run.role === "STAGE" && runIsActive(run)) ?? null;
   const packageQuery = useQuery({
     queryKey: ["signoffPackage", workItem.id],
     queryFn: () => api.getSignoffPackage(workItem.id),
