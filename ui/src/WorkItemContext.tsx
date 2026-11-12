@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Run, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
@@ -18,28 +19,28 @@ export const WorkItemContext = ({
 }>) => {
   const queryClient = useQueryClient();
   const [approvedBy, setApprovedBy] = useState("");
-  const schemasQuery = useQuery({ queryKey: ["workItemSchemas"], queryFn: api.listWorkItemSchemas });
-  const diagnosticsQuery = useQuery({ queryKey: ["workItemSourceDiagnostics"], queryFn: api.listWorkItemSourceDiagnostics });
+  const schemasQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSchemas, queryFn: api.listWorkItemSchemas });
+  const diagnosticsQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSourceDiagnostics, queryFn: api.listWorkItemSourceDiagnostics });
   const runsQuery = useQuery({
-    queryKey: ["runs", workItem.id],
+    queryKey: workbenchQueryKeys.runs(workItem.id),
     queryFn: () => api.listRuns(workItem.id),
     refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false,
   });
   const activeRun = (runsQuery.data ?? []).find((run) => run.role === "STAGE" && runIsActive(run)) ?? null;
   const packageQuery = useQuery({
-    queryKey: ["signoffPackage", workItem.id],
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
     queryFn: () => api.getSignoffPackage(workItem.id),
     enabled: workItem.stage === "AWAITING_SIGNOFF" && workItem.status === "ACTIVE",
   });
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["workItems"] }),
-      queryClient.invalidateQueries({ queryKey: ["runs", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["runEvents"] }),
-      queryClient.invalidateQueries({ queryKey: ["lifecycleArtifacts", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["tasks", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["signoffPackage", workItem.id] }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runEventsRoot }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.tasks(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
     ]);
   };
 
