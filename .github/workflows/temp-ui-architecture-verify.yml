@@ -17,3 +17,5 @@ jobs:
       - run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
       - run: node node_modules/vitest/vitest.mjs run
       - run: node node_modules/vite/bin/vite.js build
+
+# rerun after UI architecture sensor fixes
