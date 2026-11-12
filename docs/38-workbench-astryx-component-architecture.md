@@ -942,9 +942,116 @@ The initial Order configuration should remain document-oriented and minimum suff
 - active selection/cursor accessibility;
 - fenced-code syntax recognition available through the Markdown language support.
 
-Order-specific presentation uses a small `EditorView.theme(...)` extension driven by Order/Astryx semantic CSS variables. It must not establish a separate product theme or hard-code lifecycle/status semantics.
-
 Line numbers may be retained from `basicSetup` only if browser UX review confirms they support document navigation rather than dominate the prose surface. P7 may remove that one extension without changing this architecture.
+
+### 19.5.1 Markdown formatting command owner
+
+Formatting buttons do not come from CodeMirror as a rich-text toolbar. Order owns a small typed Markdown-source command layer colocated with the source-editor feature.
+
+P7 should introduce one pure command owner, for example:
+
+```text
+ui/src/markdown-source-formatting.ts
+```
+
+It owns deterministic selection/block transformations only.
+
+The command surface is a closed typed union:
+
+```ts
+type MarkdownFormatCommand =
+  | "UNDO"
+  | "REDO"
+  | "HEADING_1"
+  | "HEADING_2"
+  | "HEADING_3"
+  | "BOLD"
+  | "ITALIC"
+  | "INLINE_CODE"
+  | "BLOCKQUOTE"
+  | "BULLET_LIST"
+  | "NUMBERED_LIST"
+  | "LINK"
+  | "FENCED_CODE"
+  | "HORIZONTAL_RULE";
+```
+
+Responsibilities are split as follows:
+
+- `MarkdownSourceEditor` owns CodeMirror `EditorView`, selection access and transaction dispatch;
+- the pure formatting owner calculates the exact text replacement/selection result for source-format commands;
+- `MarkdownEditor` owns toolbar composition and decides whether actions are available from the current editable/read-only state;
+- shared `WorkbenchAction`/Astryx button/icon primitives provide button presentation.
+
+Formatting helpers must receive/return plain source positions/text or a small presentation-only result. They must not expose CodeMirror state as a domain model and must not create a Markdown AST/DTO.
+
+Required deterministic transformations:
+
+- Bold -> wrap/toggle `**selection**`;
+- Italic -> wrap/toggle `*selection*`;
+- Inline code -> wrap/toggle backticks;
+- H1/H2/H3 -> replace/toggle the current line's ATX heading prefix;
+- Blockquote -> add/remove `> ` for selected lines;
+- Bullet list -> add/remove `- ` for selected lines;
+- Numbered list -> add/remove ordered-list markers across selected lines with deterministic sequential numbering;
+- Link -> wrap selection as `[label](url)` or insert a deterministic empty-link template with the URL portion selected;
+- Fenced code -> wrap/toggle the selected block with triple backticks without inventing a language identifier;
+- Horizontal rule -> insert a standalone `---` block at a valid line boundary;
+- Undo/Redo -> dispatch CodeMirror's existing history commands rather than reimplementing history.
+
+Source transformations must preserve unrelated bytes and line endings outside the affected selection/range.
+
+### 19.5.2 Formatting toolbar presentation
+
+The toolbar is part of `MarkdownEditor`, immediately associated with the editable source surface and above the source/preview body.
+
+It uses the existing Order action grammar:
+
+- icon + accessible label/title for compact actions;
+- grouped Undo/Redo;
+- grouped block structure (H1/H2/H3, quote, lists, code block, rule);
+- grouped inline formatting (bold, italic, inline code, link);
+- responsive overflow/collapse for low-frequency actions on narrow widths.
+
+Toolbar actions are disabled when the document is read-only, saving/conflicted where mutation is not admissible, or when a command cannot apply safely to the current selection.
+
+The toolbar must not become a second global application toolbar and must not consume a permanent row in Preview-only read-only presentation.
+
+### 19.5.3 Order CodeMirror theme
+
+Order owns a dedicated CodeMirror editor theme rather than shipping the raw CodeMirror default appearance.
+
+The theme has two coordinated parts:
+
+1. **editor chrome theme** — implemented with `EditorView.theme(...)`, covering:
+   - editor/background surface;
+   - foreground text;
+   - caret;
+   - active line;
+   - selection;
+   - search match/current search match;
+   - gutters/line numbers when enabled;
+   - focus boundary;
+   - tooltip/search-panel surfaces;
+   - scroller/content sizing.
+
+2. **Markdown syntax theme** — CodeMirror syntax highlighting must visibly distinguish at minimum:
+   - headings;
+   - emphasis/strong emphasis;
+   - links/URLs;
+   - inline/fenced code;
+   - block quotes;
+   - list markers;
+   - Markdown punctuation/markers;
+   - comments/HTML tokens where the language mode exposes them.
+
+The theme follows the existing Order System/Light/Dark preference. It is reconfigured when the effective theme changes; it does not create another persisted preference.
+
+Order/Astryx semantic variables remain the color authority. CodeMirror-specific theme values are derived from those variables or from one colocated Order theme mapping. Light and Dark must each provide intentional syntax contrast; a raw upstream default theme is not the finished UI.
+
+CodeMirror's documented theming model uses `EditorView.theme` for editor chrome and syntax highlighters for token styling; the implementation may use the language package's supported highlight facilities, but any package imported directly by Order production code must be deliberately pinned as a direct dependency rather than relied on through an undeclared transitive import.
+
+The editor theme must preserve the spatial contract already closed by `GW-TR-015`: CodeMirror root/scroller/content fill the available authoring region rather than introducing their own page width or fixed height.
 
 ### 19.6 Preview composition
 
@@ -1024,8 +1131,11 @@ Behavior/browser tests must prove:
 9. read-only R3 still exposes no mutation path;
 10. responsive mode changes do not lose the buffer;
 11. keyboard search/undo/redo and Markdown list continuation operate;
-12. the CodeMirror viewport consumes the primary authoring canvas;
-13. light/dark/system theme changes preserve readable editor contrast.
+12. every required formatting toolbar action applies the specified exact-source transformation and leaves unrelated source unchanged;
+13. toolbar actions preserve/update selection and dirty state correctly and remain disabled for read-only documents;
+14. the CodeMirror viewport consumes the primary authoring canvas;
+15. light/dark/system theme changes produce the explicit editor-chrome and Markdown-syntax theme with readable contrast;
+16. selection, caret, search matches, gutters and focus treatment remain legible in both explicit Light/Dark and System-derived modes.
 
 ### 19.11 Stop conditions
 
@@ -1066,19 +1176,19 @@ Return to P3/P4 instead of expanding implementation if:
 
 ### GW-TR-030-DOCUMENT-EDITOR-ERGONOMIC-CONFIGURATION
 
-**Required behavior:** the CodeMirror configuration supplies Markdown language support, soft wrapping, history, search and Markdown-aware key behavior while remaining a document source editor.
+**Required behavior:** the CodeMirror configuration supplies Markdown language support, soft wrapping, history, search and Markdown-aware key behavior, and `MarkdownEditor` exposes the §19.5.2 formatting toolbar backed by one deterministic Markdown-source command owner.
 
-**Acceptance criterion:** configuration is owned once by `MarkdownSourceEditor`, works with keyboard/focus requirements and does not add repository/code-intelligence behavior.
+**Acceptance criterion:** configuration and formatting command semantics each have one owner; toolbar actions operate on the exact CodeMirror source selection/buffer, preserve unrelated bytes and remain accessible without adding repository/code-intelligence behavior.
 
-**Failure/negative behavior:** editor extensions must not expand Order into an IDE or duplicate command/configuration owners across screens.
+**Failure/negative behavior:** editor extensions/toolbar actions must not expand Order into an IDE, create rich-text/AST authority, normalize unrelated source or duplicate command/configuration owners across screens.
 
 ### GW-TR-031-CODEMIRROR-THEME-SPATIAL-INTEGRATION
 
-**Required behavior:** CodeMirror derives visual presentation from Order/Astryx theme variables and fills the existing primary-canvas editor region.
+**Required behavior:** CodeMirror uses the explicit Order editor-chrome and Markdown-syntax theme in §19.5.3, derived from Order/Astryx theme authority, and fills the existing primary-canvas editor region.
 
-**Acceptance criterion:** System/Light/Dark remain legible; the CodeMirror root/scroller/content participate in the existing flex-height/width contract.
+**Acceptance criterion:** System/Light/Dark produce intentional editor chrome and Markdown syntax contrast; selection/caret/search/gutter/focus states remain legible and the CodeMirror root/scroller/content participate in the existing flex-height/width contract.
 
-**Failure/negative behavior:** CodeMirror must not create a second product theme, fixed page container or independent preference owner.
+**Failure/negative behavior:** CodeMirror must not ship as an unthemed/default-looking surface, create a second product theme, fixed page container or independent preference owner.
 
 ### GW-TR-032-EXACT-SOURCE-EDITOR-CERTIFICATION
 
