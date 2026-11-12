@@ -145,6 +145,7 @@ type WorkItem = Readonly<{
   status: WorkStatus;
   outcome: WorkOutcome | null;
   concernIds: readonly ConcernId[];
+  archived: boolean;
   createdAt: IsoDateTime;
 }>;
 ```
@@ -160,6 +161,7 @@ Invariants:
 - blocked work retains the owning stage;
 - `kind` is never persisted beside `schemaId`; it is derived through the canonical WorkItem schema catalog;
 - `sourcePath`, `sourceSha256`, `schemaId`, `derivedFromWorkItemId`, title/project/concerns and stable id are projections of the currently reconciled portable source, not independent authority;
+- `archived` is the projection of the deterministic repository-native archive marker defined in §34; it is not lifecycle state and is not sourced from Work request Markdown;
 - R1 `CONFIRMED` promotes to R2 only for `CHANGE`/`DEFECT`;
 - R1 `INVESTIGATION_COMPLETE` and `AUDIT_COMPLETE` terminalize their matching kinds directly without R2/DESIGN/PLAN/R3/EXECUTION;
 - R1/R2 `NEEDS_DECISION` or `BLOCKED` leaves the item at its owning stage with `status = "BLOCKED"`.
@@ -514,6 +516,7 @@ type RunEventPayload =
       summary: string;
       evidence: readonly EvidenceRef[];
     }
+  | { tag: "PROVIDER_DIAGNOSTICS_RECORDED"; evidence: readonly EvidenceRef[] }
   | { tag: "PROVIDER_FAILED"; detail: string; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_PASSED"; gateId: GateId; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_FAILED"; gateId: GateId; classification: ValidationClassification; evidence: readonly EvidenceRef[] }
@@ -822,6 +825,7 @@ CREATE TABLE workItems (
   status TEXT NOT NULL,
   outcome TEXT,
   concernIdsJson TEXT NOT NULL CHECK (json_valid(concernIdsJson)),
+  archived INTEGER NOT NULL CHECK (archived IN (0, 1)),
   createdAt TEXT NOT NULL
 ) STRICT;
 
@@ -2149,6 +2153,7 @@ const WorkItemDocumentGitStateSchema = z.enum([
   "MATCHES_HEAD",
   "MODIFIED",
   "UNTRACKED",
+  "DELETED",
   "MISSING",
   "IGNORED",
   "UNMERGED",
@@ -2185,7 +2190,7 @@ const WorkItemDocumentationGitStatusSchema = z.strictObject({
 
 The path set is exactly the current canonical WorkItem source plus current lifecycle Markdown ArtifactRefs. It is unique and repository-path sorted.
 
-`MATCHES_HEAD` means exact current working-tree bytes equal the exact blob bytes at current `HEAD`. `UNTRACKED` means the current governed file has no `HEAD` blob. `MODIFIED` means both exist and differ. Missing/ignored/unmerged states are blocking for documentation commit.
+`MATCHES_HEAD` means exact current working-tree bytes equal the exact blob bytes at current `HEAD`. `UNTRACKED` means the current governed file has no `HEAD` blob. `MODIFIED` means both exist and differ. `DELETED` means the governed path is absent in the working tree but has a tracked `HEAD` blob and is intentionally part of the current WorkItem management/document set. Missing/ignored/unmerged states are blocking for documentation commit.
 
 Unrelated repository paths are not returned.
 
@@ -2198,7 +2203,9 @@ Unrelated repository paths are not returned.
 ```ts
 const WorkItemDocumentationExpectedPathSchema = z.strictObject({
   repositoryPath: RepositoryPathSchema,
-  sha256: Sha256Schema,
+  sha256: Sha256Schema.nullable(),
+}).superRefine((value, ctx) => {
+  // null is admitted only when the current canonical path state is an exact tracked deletion.
 });
 
 const CommitWorkItemDocumentationSchema = z.strictObject({
@@ -2215,7 +2222,7 @@ const WorkItemDocumentationCommitSchema = z.strictObject({
 });
 ```
 
-`expectedPaths` must equal the complete current set whose state is `MODIFIED` or `UNTRACKED`, sorted by repository path. Each SHA-256 is the operator-reviewed current working-tree hash.
+`expectedPaths` must equal the complete current set whose state is `MODIFIED`, `UNTRACKED` or `DELETED`, sorted by repository path. Each non-null SHA-256 is the operator-reviewed current working-tree hash. `sha256 = null` is valid only for an exact tracked deletion such as restore removing the committed archive marker.
 
 The daemon rejects the command without Git mutation when:
 
@@ -2599,4 +2606,200 @@ Permanent integration/browser tests must prove:
 - read-only account listing remains available during active Runs;
 - switch/add affects only subsequently created OpenCode provider sessions;
 - a configured-model preflight still fails normally when the selected account cannot use that model.
+
+## 34. WorkItem management, API failure and provider diagnostic contracts
+
+This section is the binding P6 closure for `GW-FR-077..078` and `GW-TR-054..056`.
+
+### 34.1 Deterministic archive marker
+
+The archive marker path is:
+
+```text
+<workItems.root>/<WorkItemId>/.order-archived
+```
+
+Valid present bytes are exactly UTF-8:
+
+```text
+archived\n
+```
+
+A different/non-regular/symlink value at that path is a source-management conflict and blocks archive-state reconciliation for that WorkItem.
+
+`WorkItem.archived` is derived from valid marker presence.
+
+Fresh v3 SQLite initialization includes the `archived INTEGER NOT NULL CHECK (archived IN (0,1))` projection column in `workItems`. The v2→v3 installer initializes it from repository marker facts after source/document materialization; absence means false.
+
+### 34.2 Direct title command
+
+```ts
+const UpdateWorkItemTitleSchema = z.strictObject({
+  expectedSourceSha256: Sha256Schema,
+  title: WorkItemTitleSchema,
+});
+```
+
+```text
+PATCH /api/work-items/:workItemId/title
+body { expectedSourceSha256, title }
+-> ExpectedHashWriteResult
+```
+
+The daemon:
+
+1. resolves/revalidates the deterministic Work request;
+2. rejects `EXECUTION`/`COMPLETE`;
+3. requires current source hash equal `expectedSourceSha256`;
+4. calls the canonical pure source-title rewrite;
+5. requires all parsed source identity/classification fields except title to remain identical;
+6. writes through the existing guarded source replacement;
+7. read-back/hash/parses/reconciles;
+8. applies the existing source-change lifecycle reaction.
+
+No title persistence occurs outside the Work request projection.
+
+### 34.3 Archive command
+
+```ts
+const SetWorkItemArchivedSchema = z.strictObject({
+  expectedArchived: z.boolean(),
+  archived: z.boolean(),
+});
+```
+
+```text
+PATCH /api/work-items/:workItemId/archive
+body { expectedArchived, archived }
+-> WorkItem
+```
+
+Admission requires:
+
+- current canonical `WorkItem.archived === expectedArchived`;
+- `archived !== expectedArchived`;
+- no Run for that WorkItem has status `RUNNING` or `WAITING_FOR_INPUT`;
+- WorkItem stage is not `EXECUTION`.
+
+For archive, the shell exclusively creates the exact marker and read-back verifies it. For restore, it removes only that exact validated regular marker. The daemon then refreshes the projection and returns the same WorkItem id/stage/status/outcome with only `archived` changed.
+
+No lifecycle transition or source/artifact mutation occurs.
+
+```text
+GET /api/work-items
+-> non-archived WorkItem[]
+
+GET /api/work-items?includeArchived=true
+-> all WorkItem[]
+```
+
+The query value accepts only exact `true` or absence.
+
+### 34.4 Archive marker in documentation Git status
+
+The canonical governed WorkItem Git path set is:
+
+- deterministic Work request;
+- current deterministic lifecycle documents/ArtifactRefs;
+- deterministic archive marker when either the working tree or `HEAD` contains it.
+
+For the marker:
+
+- absent/absent -> omitted;
+- present/absent -> `UNTRACKED`;
+- present/present identical -> `MATCHES_HEAD`;
+- absent/present -> `DELETED`.
+
+A `DELETED` expected path uses `sha256 = null`. Path-scoped commit verifies absence before committing the deletion.
+
+No other canonical WorkItem document may use null expected hash.
+
+### 34.5 Canonical HTTP error response
+
+```ts
+const StableHttpErrorCodeSchema = z.string()
+  .regex(/^[A-Z][A-Z0-9_]*$/);
+
+const OrderHttpErrorSchema = z.strictObject({
+  code: StableHttpErrorCodeSchema,
+  message: z.string().min(1),
+  sourceDiagnostic: WorkItemSourceDiagnosticSchema.nullable(),
+});
+```
+
+Every JSON API failure uses this one shape.
+
+Status classification is:
+
+- **400** — malformed JSON/request schema/path/query;
+- **401/403** — existing authentication/origin failures;
+- **404** — requested canonical entity/resource does not exist;
+- **409** — optimistic concurrency, source-boundary, lifecycle/current-state or other known operation conflict;
+- **500** — unexpected daemon defect.
+
+A source-boundary 409 sets `sourceDiagnostic` to the exact diagnostic. All other errors set it null.
+
+The outer server API catch must classify rather than converting every exception to 400. Unexpected 500 responses use a stable generic public message and do not expose stack traces/secrets; full safe diagnostic detail may be retained in daemon/provider evidence where governed.
+
+### 34.6 Provider diagnostic evidence payload
+
+```ts
+const ProviderTurnOutcomeSchema = z.enum([
+  "SUCCEEDED",
+  "FAILED",
+  "INTERRUPTED",
+  "TIMEOUT",
+  "TRANSPORT_ERROR",
+  "INVALID_OUTPUT",
+]);
+
+const ProviderDiagnosticRecordSchema = z.strictObject({
+  providerId: z.string().min(1),
+  modelId: z.string().min(1),
+  providerSessionId: z.string().min(1),
+  promptId: z.string().min(1),
+  startedAt: IsoDateTimeSchema,
+  endedAt: IsoDateTimeSchema,
+  outcome: ProviderTurnOutcomeSchema,
+  formatRepairAttempted: z.boolean(),
+  formatRepairSucceeded: z.boolean().nullable(),
+  failurePhase: z.enum([
+    "ADMISSION",
+    "TRANSPORT",
+    "PROVIDER",
+    "COMPLETION",
+    "PARSE",
+    "FORMAT_REPAIR",
+  ]).nullable(),
+  exceptionMessage: z.string().min(1).nullable(),
+});
+```
+
+The JSON record is canonical diagnostic evidence. Observable OpenCode public tool/action/result material that is useful for diagnosis may be retained as additional bounded EvidenceRefs, but never hidden reasoning.
+
+The coordinator-owned event is:
+
+```ts
+{ tag: "PROVIDER_DIAGNOSTICS_RECORDED"; evidence: readonly EvidenceRef[] }
+```
+
+It is not provider-emittable.
+
+Every provider turn persists the diagnostic record before final turn reaction where possible. Non-empty bounded/redacted stderr is another EvidenceRef in the same event. On provider failure, `PROVIDER_FAILED.evidence` includes the diagnostic EvidenceRefs.
+
+Known Order secrets are never persisted. Hidden chain-of-thought is never requested or recorded.
+
+### 34.7 Required certification
+
+Permanent tests prove:
+
+- title edit changes only the canonical H1 and uses source expected-hash/freshness behavior;
+- archive creates exactly the marker, default queue hides it, Show archived returns it, restore removes it, and lifecycle/history is unchanged;
+- clone/reconciliation derives `archived` from the marker;
+- documentation Git status/commit handles archive marker add and tracked deletion without unrelated Git changes;
+- malformed/absent/conflict/unexpected failures map to 400/404/409/500 respectively;
+- source conflict returns the exact canonical diagnostic;
+- provider diagnostic event/evidence is inspectable from Run history;
+- stderr is bounded and known secrets are absent;
+- no hidden reasoning or second diagnostic/log database is introduced.
 
