@@ -1441,3 +1441,113 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 **Failure/negative behavior:** presentation-local mode state must not outlive the canonical eligibility/state it is meant to display.
 
+## 21. Global OpenCode account-control component architecture (2026-11-13)
+
+This section is the P4 UI realization of `GW-FR-073..076` and the daemon/account contracts in `GW-DOC-TECHNICAL-ARCHITECTURE-V1 §31` / `GW-DOC-CANONICAL-CONTRACTS-V1 §33`.
+
+### 21.1 Application-shell ownership
+
+The OpenCode account control is owned by the application shell, not by Queue, WorkItemWorkspace, Activity, Documents or provider/model configuration components.
+
+One compact shell control renders the current account projection in both queue and WorkItem states. It may move into an application-level utilities menu/drawer on narrow viewports, but ownership does not move into WorkItem Context.
+
+### 21.2 Query/mutation ownership
+
+One cohesive OpenCode-account UI owner consumes:
+
+- `GET /api/opencode/accounts`;
+- Add-account login start/status/cancel;
+- Activate account;
+- Rename account.
+
+TanStack Query owns server state. There is no separate React context/global store for active-account identity.
+
+Successful Activate/Rename and terminal successful Add invalidate/refetch the account-state query. Account state is never inferred from prior mutation arguments.
+
+### 21.3 Account manager composition
+
+The manager is a compact popover/dialog on wide layouts and a drawer/dialog on narrow layouts.
+
+Recommended composition:
+
+```text
+OpenCodeAccountControl
+  └── OpenCodeAccountManager
+        ├── active-account summary
+        ├── saved-account rows
+        │     ├── label
+        │     ├── active / needs-auth state
+        │     ├── Switch
+        │     └── Rename
+        └── AddOpenCodeAccountFlow
+```
+
+Names are illustrative; the ownership boundaries are binding.
+
+Account rows receive only canonical Order safe-account values. Components never receive raw OpenCode connection/credential objects.
+
+### 21.4 Add-account interaction
+
+`AddOpenCodeAccountFlow` is a bounded stateful UI over one daemon login attempt:
+
+1. collect validated account label;
+2. call start-login;
+3. display OpenCode external authorization URL/instructions;
+4. poll the Order attempt status;
+5. on terminal success, close/refresh account manager;
+6. on failed/expired/cancelled, preserve the human-readable terminal detail and allow retry.
+
+The browser opens the external authorization URL using normal safe external navigation. It does not navigate to or embed the private OpenCode loopback server.
+
+No access/refresh token, OAuth provider attempt id, private provider URL/password or OpenCode credential metadata enters component props/state.
+
+### 21.5 Mutation blocking presentation
+
+The account-state query's mutation blockers drive disabled Add/Switch/Rename controls.
+
+When `ACTIVE_RUN` is present, the manager renders the functional explanation owned by P3 and may use existing Run/WorkItem queries to provide navigation to the blocking activity. It does not reproduce Run-state logic in the account component.
+
+A pending login attempt keeps other account mutations disabled until terminal/cancelled.
+
+### 21.6 Account/provider distinction
+
+The account control must remain visually and semantically distinct from model/provider selection.
+
+The compact label is account-oriented, for example:
+
+```text
+OpenCode: user@example.com
+```
+
+not:
+
+```text
+Provider: OpenCode Go
+```
+
+A configured-model surface may separately show `OpenCode Go / <model>`. Switching account does not optimistically alter that surface.
+
+### 21.7 Browser certification
+
+Permanent browser tests prove:
+
+- the global account control is reachable from queue and WorkItem states;
+- wide/narrow recomposition preserves the same account state and in-progress login UI;
+- three saved labels render without exposing credential values;
+- active account is visually unambiguous;
+- A -> B -> A switching updates only after daemon-confirmed account state;
+- Add account keeps authorization instructions/status visible through polling;
+- active-Run blocker disables Add/Switch/Rename and remains understandable;
+- model/provider UI does not change when account selection changes;
+- no account-manager interaction steals primary WorkItem canvas space.
+
+### 21.8 Technical requirement
+
+#### GW-TR-053-OPENCODE-ACCOUNT-CONTROL-UI
+
+**Required behavior:** one application-shell-owned account-control component tree renders canonical safe account state and drives Add/Switch/Rename exclusively through daemon endpoints/TanStack Query.
+
+**Acceptance criterion:** account management remains globally reachable and responsive without a second client-state owner or leakage of raw OpenCode credential/provider shapes.
+
+**Failure/negative behavior:** account switching must not be implemented inside provider/model selection, WorkItem Context, a global ad-hoc store or browser-direct OpenCode API access.
+
