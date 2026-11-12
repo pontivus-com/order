@@ -21,9 +21,15 @@ describe("Order cross-boundary certification", () => {
     expect(packageJson.dependencies).toEqual({
       "@astryxdesign/core": "0.7.13",
       "@astryxdesign/theme-neutral": "0.7.13",
+      "@codemirror/commands": "6.11.1",
+      "@codemirror/lang-markdown": "6.5.2",
+      "@codemirror/language": "6.13.1",
+      "@codemirror/state": "6.7.6",
+      "@lezer/highlight": "1.2.5",
       "@opencode/client": "2.2.6",
       "@stylexjs/stylex": "0.19.1",
       "@tanstack/react-query": "5.105.0",
+      codemirror: "6.0.2",
       react: "19.3.1",
       "react-dom": "19.3.1",
       zod: "4.6.7",
@@ -61,6 +67,11 @@ describe("Order cross-boundary certification", () => {
       "react-router-dom",
       "zustand",
       "lexical",
+      "@uiw/react-codemirror",
+      "monaco-editor",
+      "@mdxeditor/editor",
+      "prosemirror-state",
+      "prosemirror-view",
     ]) {
       expect(allDependencies.has(forbidden)).toBe(false);
     }
