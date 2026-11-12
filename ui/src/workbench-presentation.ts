@@ -2,6 +2,7 @@ import type {
   ArtifactRef,
   EvidencePath,
   Run,
+  RunEvent,
   RunEventId,
   WorkItem,
 } from "../../src/core/contracts.ts";
@@ -30,6 +31,33 @@ export type EvidenceSelection =
       runId: Run["id"];
       relativePath: EvidencePath;
     }>;
+
+export const proposalDispositionFor = (
+  events: readonly RunEvent[],
+  proposalId: RunEventId,
+): "ADOPTED" | "REJECTED" | null => {
+  const found = events.find((event) =>
+    event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+    event.event.proposalEventId === proposalId);
+  return found?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+    ? found.event.disposition
+    : null;
+};
+
+const lifecycleArtifactRoleOrder: Readonly<Record<ArtifactRef["role"], number>> = {
+  PROJECT_MANIFEST: 0,
+  R1: 1,
+  R2: 2,
+  DESIGN: 3,
+  PLAN: 4,
+  R3: 5,
+  GOVERNANCE: 6,
+  VERIFICATION_MATERIAL: 7,
+};
+
+export const lifecycleArtifactRoleRank = (
+  role: ArtifactRef["role"],
+): number => lifecycleArtifactRoleOrder[role];
 
 export const runIsActive = (
   run: Pick<Run, "status">,
