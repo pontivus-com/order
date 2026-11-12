@@ -131,7 +131,7 @@ Mode/document/evidence selection is presentation-local and need not become addit
 | Terminal non-delivery result | `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED`, investigation result or audit result with supporting evidence | primary Result canvas | document/review | inspect terminal classification/result/evidence |
 | Investigation/audit remediation | linked follow-up from an evidence-backed investigation/audit result | contextual creation drawer/inspector | compact context | create separately governed linked CHANGE/DEFECT |
 | Linked remediation creation | small seeded CHANGE/DEFECT creation form | contextual creation drawer/inspector | compact context | choose type/title/concerns, create |
-| Application toolbar | state-aware app/workspace actions | top toolbar | full width | queue state: search/refresh/create; WorkItem state: compact create/appearance utilities plus current workspace controls |
+| Application toolbar | state-aware app/workspace actions | top toolbar | full width | queue state: search/refresh/create plus global OpenCode-account control; WorkItem state: compact create/appearance/OpenCode-account utilities plus current workspace controls |
 | Session/error/empty state | explain unavailable/local state | primary canvas | centered readable region | retry/recover |
 
 ## 6. Document workspace
@@ -961,4 +961,122 @@ After success, the WorkItem/document status shows the resulting Git-saved state.
 **Acceptance criterion:** an operator editing/reviewing WorkItem Markdown can see whether it is recorded in Git and can invoke the exact documentation-save operation without leaving the WorkItem or opening developer tooling.
 
 **Failure/negative behavior:** documentation Git controls must not become a global repository toolbar, be hidden only in Technical details, or compete with Implementation controls.
+
+## 23. Global OpenCode account switching (2026-11-13)
+
+OpenCode authentication is installation-global and therefore belongs to the **application shell**, not to one WorkItem, project, workflow stage or provider/model selector.
+
+### 23.1 Primary account control
+
+The application toolbar exposes one compact OpenCode account control in both queue and WorkItem states.
+
+Wide presentation:
+
+```text
+[Order / current work context]                         [OpenCode: user@example.com ▾] [appearance]
+```
+
+The control shows:
+
+- **OpenCode** as the service/account boundary;
+- the active saved account label, normally the OpenCode login email entered when that account was added;
+- a concise disconnected/attention state when there is no usable active account or the active connection requires authentication.
+
+It must not present the account label as a provider/model choice. Changing this control does not change the configured `opencode-go` model/provider.
+
+On medium/narrow layouts the same control moves into the application-level utilities/menu before consuming primary WorkItem canvas width. It must remain reachable from both queue and WorkItem states.
+
+### 23.2 Account manager
+
+Activating the toolbar control opens one bounded account-management popover/dialog/drawer appropriate to viewport size.
+
+The account manager lists the saved OpenCode accounts in the private Order OpenCode namespace. Each row shows:
+
+- human account label;
+- **Active** marker for the current account;
+- authentication attention state when OpenCode reports that account needs authentication;
+- **Switch** for an inactive account;
+- secondary **Rename** for correcting/assigning the human label.
+
+Credential ids are not ordinary account names. They may be shown only in Technical details or as a short disambiguator when legacy duplicate labels would otherwise make two rows indistinguishable.
+
+The manager also exposes **Add OpenCode account**.
+
+### 23.3 Add-account flow
+
+Adding an account is an account-login flow, not provider setup.
+
+The flow asks first for an **Account label**, with guidance to use the OpenCode account's login email address. Order then starts OpenCode's own Console device/OAuth flow and presents:
+
+- the external OpenCode authorization URL as the primary **Open OpenCode sign-in** action;
+- OpenCode's one-time instructions/code;
+- waiting/completed/failed/expired state;
+- Cancel.
+
+The user authenticates the intended OpenCode account on OpenCode's external authorization page. Order does not embed the OpenCode private server UI and never asks the browser to handle access/refresh tokens.
+
+When OpenCode reports completion, the new saved account appears in the account list and becomes active.
+
+### 23.4 Switch behavior
+
+Selecting **Switch** changes the active saved OpenCode account for the installation.
+
+The UI confirms the new active label immediately after the daemon proves the OpenCode activation succeeded. Subsequent Order/OpenCode Runs use the new active account through the existing provider preflight.
+
+Account switching does not:
+
+- change the configured provider/model;
+- rewrite historical Run identity/evidence;
+- apply only to the currently selected WorkItem;
+- require deleting or logging out the other saved accounts.
+
+Saved accounts remain available for later switching.
+
+### 23.5 Active-work blocker
+
+Account-state viewing remains available while agent work is active.
+
+Add, Switch and Rename are disabled while any Order Run in the installation is `RUNNING` or `WAITING_FOR_INPUT`.
+
+The account manager explains the blocker in normal language:
+
+> Finish or cancel active agent work before changing the OpenCode account.
+
+Where useful, it identifies/links the active WorkItem activity rather than exposing only an internal Run id.
+
+The UI must not allow an account mutation and then rely on a provider failure to reveal that a Run was already using another identity.
+
+### 23.6 Functional requirements
+
+#### GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY
+
+**Required behavior:** the global application shell shows the active saved OpenCode account and provides one account-management entry point independent of WorkItem/project state.
+
+**Acceptance criterion:** the operator can tell which saved OpenCode login will be used by subsequent OpenCode Go work without opening a terminal or inspecting OpenCode state files.
+
+**Failure/negative behavior:** the active account must not be hidden inside a provider/model picker, WorkItem Context panel or developer-only diagnostics.
+
+#### GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING
+
+**Required behavior:** all saved OpenCode accounts remain available and the operator can switch the active account without deleting/re-authenticating the others.
+
+**Acceptance criterion:** switching from account A to B and later back to A changes only the active saved OpenCode account; the configured model/provider remains unchanged.
+
+**Failure/negative behavior:** account switching must not be implemented as provider switching, destructive logout/re-login, per-WorkItem credential state or an Order-owned duplicate credential store.
+
+#### GW-FR-075-OPENCODE-ACCOUNT-LOGIN
+
+**Required behavior:** the browser can add another OpenCode account through OpenCode's own external device/OAuth login flow while Order stores no credential secret.
+
+**Acceptance criterion:** the operator supplies a human label (email recommended), completes OpenCode authentication externally, and the resulting saved account becomes available/active in the account manager.
+
+**Failure/negative behavior:** Order must not expose the private OpenCode server UI/listener, render secret-bearing credential values, or require terminal login for the normal browser workflow.
+
+#### GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY
+
+**Required behavior:** account Add/Switch/Rename is blocked while any Order Run is RUNNING or WAITING_FOR_INPUT and only one account mutation/login attempt may be active at a time.
+
+**Acceptance criterion:** no productive Order Run can straddle an OpenCode account identity change.
+
+**Failure/negative behavior:** account mutation must not race active provider work or use provider failure as the mechanism for detecting an unsafe switch.
 
