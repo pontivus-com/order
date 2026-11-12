@@ -33,6 +33,8 @@ There are no remaining design prerequisites. A contradiction stops implementatio
 
 No task in this plan may be committed directly to `master`.
 
+The existing temporary GitHub Actions exception remains available during any task PR. Temporary workflow YAML may be committed to the task branch solely to execute already-authorized implementation/verification when local/runtime/connectors are insufficient, but it must be removed from the PR tree before merge. This is separate from the permanent CI/release workflows introduced by P7-T00.
+
 ### 2.1 Work PRs
 
 Each implementation task is delivered through a short-lived PR to `master`.
@@ -124,7 +126,8 @@ Implementation must not:
 - make browser state lifecycle authority;
 - publish releases from unmerged PR heads;
 - move/rebuild an existing release tag/version;
-- retain unpinned GitHub Action dependencies.
+- retain unpinned GitHub Action dependencies;
+- leave temporary GitHub Actions scaffolding in a merge candidate or use it as a PR/release-governance bypass.
 
 ## 5. Ordered implementation tasks
 
