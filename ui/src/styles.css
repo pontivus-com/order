@@ -1,0 +1,13 @@
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+@import "@astryxdesign/theme-neutral/theme.css";
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "./theme.css";
+
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: var(--order-workbench-bg); color: var(--order-workbench-text); }
+* { box-sizing: border-box; }

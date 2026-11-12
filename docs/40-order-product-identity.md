@@ -1,6 +1,9 @@
-# Order product identity
+# 40 — Order product identity
 
 **Status:** Canonical product identity and positioning baseline for this repository.  
+**Canonical concern ID:** `GW-DOC-PRODUCT-IDENTITY`  
+**Versioned concern ID:** `GW-DOC-PRODUCT-IDENTITY-V1`  
+**Pyramid layer:** P2 user/product intent  
 **Scope:** Naming, descriptors, family relationship, and approved product-language hierarchy only.  
 **Non-scope:** Runtime architecture, lifecycle contracts, persistence, transport, execution semantics, or implementation planning.
 

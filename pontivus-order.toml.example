@@ -1,0 +1,55 @@
+version = 1
+projectId = "example"
+
+[authority]
+p1 = ["AGENTS.md", "docs/principles.md"]
+p2 = ["docs/product.md"]
+p3 = ["docs/requirements.md"]
+p4 = ["docs/architecture.md", "docs/legacy-architecture.md"]
+p5 = ["docs/adr/*.md"]
+p6 = ["docs/contracts/*.md"]
+
+[refs]
+P2-CONTROLLED-WORK = "docs/product.md"
+FR-1 = "docs/requirements.md"
+ADR-2 = "docs/adr/0002.md"
+SPEC-3 = "docs/contracts/example.md"
+
+[precedence]
+p4 = ["docs/architecture.md", "docs/legacy-architecture.md"]
+
+[[governance.overrides]]
+defaultRuleId = "GW-P1-STRICT-TYPING"
+source = "docs/principles.md"
+authorityRef = "P1-TYPING-01"
+gates = ["architecture"]
+
+[[governance.extensions]]
+defaultRuleId = "GW-P1-FCIS"
+source = "AGENTS.md"
+authorityRef = "P1-FCIS-EXT-01"
+gates = ["architecture"]
+
+[governance.fitness]
+GW-P1-FCIS = ["architecture"]
+GW-P1-SOC = ["architecture"]
+GW-P1-STRICT-TYPING = ["architecture"]
+
+[concerns.ui]
+authority = ["docs/ui/design-system.md", "docs/ui/accessibility.md"]
+paths = ["ui/**"]
+gates = ["architecture"]
+
+[verification.architecture]
+argv = ["./scripts/verify-architecture"]
+cwd = "."
+timeoutSeconds = 600
+inheritEnv = []
+materialRefs = ["scripts/verify-architecture"]
+
+[verification.backend-regression]
+argv = ["./scripts/verify-backend"]
+cwd = "."
+timeoutSeconds = 1800
+inheritEnv = []
+materialRefs = ["scripts/verify-backend", "bun.lock"]

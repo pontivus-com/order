@@ -1,0 +1,668 @@
+import { Database } from "bun:sqlite";
+import {
+  existsSync,
+  lstatSync,
+  readFileSync,
+  realpathSync,
+} from "node:fs";
+import { fileURLToPath } from "node:url";
+import { extname, resolve, sep } from "node:path";
+
+import {
+  ArtifactRefIdSchema,
+  CreateWorkItemSourceSchema,
+  ExpectedHashMarkdownWriteSchema,
+  RunEventIdSchema,
+  RunIdSchema,
+  RunModeSchema,
+  Sha256Schema,
+  WorkItemIdSchema,
+} from "../core/contracts.ts";
+import { readOrderConfig } from "../shell/config.ts";
+import { loadConfiguredProjects } from "../shell/project.ts";
+import {
+  isoDateTimeFromEpochMillis,
+  loadOrCreateDaemonToken,
+  resolveStateRoot,
+  secureTokenHex,
+} from "../shell/runtime.ts";
+import { openOrderDatabase } from "../shell/sqlite.ts";
+import { gitVersion } from "../shell/repository.ts";
+import {
+  startOpenCodeServer,
+  stopOpenCodeServer,
+} from "../shell/opencode.ts";
+import {
+  adoptArtifactProposal,
+  cancelRun,
+  createCoordinatorRuntime,
+  createWorkItem,
+  getRun,
+  getWorkItem,
+  getWorkItemSource,
+  getWorkItemSourceDiagnostics,
+  listArtifacts,
+  listCurrentLifecycleArtifacts,
+  listExecutionTasks,
+  listProjects,
+  listWorkItemSchemas,
+  listRunEvents,
+  listRuns,
+  listWorkItems,
+  signoffPackageForWorkItem,
+  readArtifactContent,
+  readReferencedEvidence,
+  reconcileSources,
+  rejectArtifactProposal,
+  resumeWorkItem,
+  runCoordinatorTick,
+  saveArtifactContent,
+  saveSource,
+  signOffWorkItem,
+  startCoordinatorScheduler,
+  startStageRun,
+  stopCoordinatorScheduler,
+  submitRunInput,
+  type CoordinatorRuntime,
+} from "./coordinator.ts";
+
+export const orderVersion = "0.1.0";
+const connectTokenLifetimeMillis = 60_000;
+const tokenPattern = /^[0-9a-f]{64}$/;
+
+type BindAddress = Readonly<{
+  hostname: "127.0.0.1" | "::1";
+  port: number;
+  origin: string;
+}>;
+
+export const resolveDaemonBind = (
+  value = process.env.PONTIVUS_ORDER_BIND ?? "127.0.0.1:7347",
+): BindAddress => {
+  const ipv4 = /^(127\.0\.0\.1):([0-9]+)$/.exec(value);
+  const ipv6 = /^\[::1\]:([0-9]+)$/.exec(value);
+  const hostname: BindAddress["hostname"] | undefined =
+    ipv4 ? "127.0.0.1" : ipv6 ? "::1" : undefined;
+  const rawPort = ipv4?.[2] ?? ipv6?.[1];
+  if (hostname === undefined || rawPort === undefined) {
+    throw new TypeError("PONTIVUS_ORDER_BIND must be loopback 127.0.0.1:<port> or [::1]:<port>");
+  }
+  const port = Number(rawPort);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new TypeError("PONTIVUS_ORDER_BIND port must be an integer from 1 through 65535");
+  }
+  return {
+    hostname,
+    port,
+    origin: hostname === "::1"
+      ? `http://[::1]:${port}`
+      : `http://127.0.0.1:${port}`,
+  };
+};
+
+type LocalSessions = {
+  readonly daemonToken: string;
+  readonly browserSessions: Set<string>;
+  readonly connectTokens: Map<string, number>;
+};
+
+const commonHeaders = (): Headers => {
+  const headers = new Headers();
+  headers.set("Referrer-Policy", "no-referrer");
+  return headers;
+};
+
+const jsonResponse = (
+  value: unknown,
+  status = 200,
+  extra?: HeadersInit,
+): Response => {
+  const headers = commonHeaders();
+  headers.set("Content-Type", "application/json; charset=utf-8");
+  if (extra) {
+    for (const [name, value] of new Headers(extra)) headers.set(name, value);
+  }
+  return new Response(JSON.stringify(value), { status, headers });
+};
+
+const rawResponse = (bytes: Uint8Array): Response => {
+  const headers = commonHeaders();
+  headers.set("Content-Type", "application/octet-stream");
+  const body = new Uint8Array(bytes.byteLength);
+  body.set(bytes);
+  return new Response(body.buffer, { status: 200, headers });
+};
+
+const errorResponse = (
+  status: number,
+  code: string,
+  message: string,
+): Response => jsonResponse({ code, message }, status);
+
+const parseCookie = (request: Request, name: string): string | null => {
+  const cookie = request.headers.get("cookie");
+  if (!cookie) return null;
+  for (const part of cookie.split(";")) {
+    const separator = part.indexOf("=");
+    if (separator <= 0) continue;
+    if (part.slice(0, separator).trim() === name) {
+      return part.slice(separator + 1).trim();
+    }
+  }
+  return null;
+};
+
+const hasBrowserSession = (
+  request: Request,
+  sessions: LocalSessions,
+): boolean => {
+  const session = parseCookie(request, "pontivus_order_session");
+  return session !== null &&
+    tokenPattern.test(session) &&
+    sessions.browserSessions.has(session);
+};
+
+const hasDaemonBearer = (
+  request: Request,
+  sessions: LocalSessions,
+): boolean =>
+  request.headers.get("authorization") === `Bearer ${sessions.daemonToken}`;
+
+const requireBrowserQuery = (
+  request: Request,
+  sessions: LocalSessions,
+): Response | null =>
+  hasBrowserSession(request, sessions)
+    ? null
+    : errorResponse(401, "UNAUTHORIZED", "browser session required");
+
+const requireBrowserMutation = (
+  request: Request,
+  sessions: LocalSessions,
+  origin: string,
+): Response | null => {
+  if (!hasBrowserSession(request, sessions)) {
+    return errorResponse(401, "UNAUTHORIZED", "browser session required");
+  }
+  if (request.headers.get("origin") !== origin) {
+    return errorResponse(403, "ORIGIN_REJECTED", "exact daemon Origin required");
+  }
+  return null;
+};
+
+const requireCliBearer = (
+  request: Request,
+  sessions: LocalSessions,
+): Response | null =>
+  hasDaemonBearer(request, sessions)
+    ? null
+    : errorResponse(401, "UNAUTHORIZED", "daemon Bearer token required");
+
+const readJsonBody = async (request: Request): Promise<Record<string, unknown>> => {
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("application/json")) {
+    throw new TypeError("Content-Type must be application/json");
+  }
+  const value: unknown = await request.json();
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new TypeError("request body must be a JSON object");
+  }
+  return value as Record<string, unknown>;
+};
+
+const requireKeys = (
+  value: Record<string, unknown>,
+  required: readonly string[],
+): void => {
+  const actual = Object.keys(value).sort();
+  const expected = [...required].sort();
+  if (
+    actual.length !== expected.length ||
+    actual.some((key, index) => key !== expected[index])
+  ) {
+    throw new TypeError(`request body must contain exactly: ${expected.join(", ")}`);
+  }
+};
+
+const requireString = (
+  body: Record<string, unknown>,
+  key: string,
+): string => {
+  const value = body[key];
+  if (typeof value !== "string") throw new TypeError(`${key} must be a string`);
+  return value;
+};
+
+const staticRoot = (): string => {
+  const root = fileURLToPath(new URL("../../dist/", import.meta.url));
+  if (!existsSync(root) || !lstatSync(root).isDirectory()) {
+    throw new TypeError("production dist/ directory does not exist");
+  }
+  const index = resolve(root, "index.html");
+  if (
+    !existsSync(index) ||
+    !lstatSync(index).isFile() ||
+    lstatSync(index).isSymbolicLink()
+  ) {
+    throw new TypeError("dist/index.html must exist as a regular file");
+  }
+  return realpathSync(root);
+};
+
+const mimeType = (path: string): string => {
+  switch (extname(path)) {
+    case ".html": return "text/html; charset=utf-8";
+    case ".js": return "text/javascript; charset=utf-8";
+    case ".css": return "text/css; charset=utf-8";
+    case ".json": return "application/json; charset=utf-8";
+    case ".svg": return "image/svg+xml";
+    case ".png": return "image/png";
+    case ".ico": return "image/x-icon";
+    default: return "application/octet-stream";
+  }
+};
+
+const staticResponse = (
+  root: string,
+  pathname: string,
+): Response => {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch {
+    return errorResponse(400, "INVALID_PATH", "invalid static path encoding");
+  }
+  const relative = decoded === "/" ? "index.html" : decoded.replace(/^\/+/, "");
+  const candidate = resolve(root, relative);
+  const inside = candidate === root || candidate.startsWith(`${root}${sep}`);
+  let target = inside ? candidate : resolve(root, "index.html");
+  if (
+    !inside ||
+    !existsSync(target) ||
+    !lstatSync(target).isFile() ||
+    lstatSync(target).isSymbolicLink()
+  ) {
+    target = resolve(root, "index.html");
+  }
+  const real = realpathSync(target);
+  if (real !== root && !real.startsWith(`${root}${sep}`)) {
+    return errorResponse(404, "NOT_FOUND", "static resource not found");
+  }
+  const headers = commonHeaders();
+  headers.set("Content-Type", mimeType(real));
+  return new Response(readFileSync(real), { status: 200, headers });
+};
+
+const purgeExpiredConnectTokens = (
+  sessions: LocalSessions,
+  now = Date.now(),
+): void => {
+  for (const [token, expiresAt] of sessions.connectTokens) {
+    if (expiresAt <= now) sessions.connectTokens.delete(token);
+  }
+};
+
+const mintConnectToken = (
+  sessions: LocalSessions,
+): Readonly<{ token: string; expiresAt: string }> => {
+  purgeExpiredConnectTokens(sessions);
+  const token = secureTokenHex();
+  const expiresAtMillis = Date.now() + connectTokenLifetimeMillis;
+  sessions.connectTokens.set(token, expiresAtMillis);
+  return {
+    token,
+    expiresAt: isoDateTimeFromEpochMillis(expiresAtMillis),
+  };
+};
+
+const consumeConnectToken = (
+  sessions: LocalSessions,
+  token: string | null,
+): string | null => {
+  purgeExpiredConnectTokens(sessions);
+  if (token === null || !tokenPattern.test(token)) return null;
+  const expiresAt = sessions.connectTokens.get(token);
+  sessions.connectTokens.delete(token);
+  if (expiresAt === undefined || expiresAt <= Date.now()) return null;
+  const browserSession = secureTokenHex();
+  sessions.browserSessions.add(browserSession);
+  return browserSession;
+};
+
+const apiPath = (url: URL): string[] =>
+  url.pathname.split("/").filter((part) => part.length > 0);
+
+const routeApi = async (
+  runtime: CoordinatorRuntime,
+  sessions: LocalSessions,
+  bind: BindAddress,
+  request: Request,
+  url: URL,
+): Promise<Response> => {
+  if (request.method === "GET" && url.pathname === "/api/health") {
+    return jsonResponse({ status: "ok", version: orderVersion });
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/api/auth/connect-token"
+  ) {
+    const auth = requireCliBearer(request, sessions);
+    if (auth) return auth;
+    const body = await readJsonBody(request);
+    requireKeys(body, []);
+    return jsonResponse(mintConnectToken(sessions));
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/tick") {
+    const auth = hasDaemonBearer(request, sessions)
+      ? null
+      : requireBrowserMutation(request, sessions, bind.origin);
+    if (auth) return auth;
+    const body = await readJsonBody(request);
+    requireKeys(body, []);
+    try {
+      return jsonResponse(await runCoordinatorTick(runtime));
+    } catch (error) {
+      if (error instanceof TypeError && error.message === "TICK_ALREADY_ACTIVE") {
+        return errorResponse(409, "TICK_ALREADY_ACTIVE", "coordinator tick already active");
+      }
+      throw error;
+    }
+  }
+
+  const parts = apiPath(url);
+  const browserAuth = request.method === "GET"
+    ? requireBrowserQuery(request, sessions)
+    : requireBrowserMutation(request, sessions, bind.origin);
+  if (browserAuth) return browserAuth;
+
+  if (request.method === "GET" && url.pathname === "/api/work-items") {
+    return jsonResponse(listWorkItems(runtime));
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/work-item-schemas") {
+    return jsonResponse(listWorkItemSchemas());
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/projects") {
+    return jsonResponse(await listProjects(runtime));
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/work-item-sources/diagnostics") {
+    return jsonResponse(await getWorkItemSourceDiagnostics(runtime));
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/work-item-sources/reconcile") {
+    const body = await readJsonBody(request);
+    requireKeys(body, []);
+    return jsonResponse(await reconcileSources(runtime));
+  }
+
+  if (
+    request.method === "POST" &&
+    url.pathname === "/api/work-items"
+  ) {
+    const body = CreateWorkItemSourceSchema.parse(await readJsonBody(request));
+    return jsonResponse(await createWorkItem(runtime, body), 201);
+  }
+
+  if (parts[0] === "api" && parts[1] === "work-items" && parts[2]) {
+    const workItemId = WorkItemIdSchema.parse(parts[2]);
+
+    if (parts.length === 3 && request.method === "GET") {
+      return jsonResponse(getWorkItem(runtime, workItemId));
+    }
+    if (parts[3] === "artifacts" && parts.length === 4 && request.method === "GET") {
+      return jsonResponse(listArtifacts(runtime, workItemId));
+    }
+    if (
+      parts[3] === "lifecycle-artifacts" &&
+      parts.length === 4 &&
+      request.method === "GET"
+    ) {
+      return jsonResponse(await listCurrentLifecycleArtifacts(runtime, workItemId));
+    }
+    if (parts[3] === "source" && parts.length === 4 && request.method === "GET") {
+      return jsonResponse(await getWorkItemSource(runtime, workItemId));
+    }
+    if (parts[3] === "source" && parts.length === 4 && request.method === "PUT") {
+      const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
+      return jsonResponse(await saveSource(runtime, workItemId, body));
+    }
+    if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
+      return jsonResponse(await listExecutionTasks(runtime, workItemId));
+    }
+    if (parts[3] === "signoff-package" && parts.length === 4 && request.method === "GET") {
+      return jsonResponse(await signoffPackageForWorkItem(runtime, workItemId));
+    }
+    if (parts[3] === "runs" && parts.length === 4) {
+      if (request.method === "GET") {
+        return jsonResponse(listRuns(runtime, workItemId));
+      }
+      if (request.method === "POST") {
+        const body = await readJsonBody(request);
+        requireKeys(body, ["mode"]);
+        const mode = RunModeSchema.parse(body.mode);
+        return jsonResponse(await startStageRun(runtime, workItemId, mode), 201);
+      }
+    }
+    if (parts[3] === "resume" && parts.length === 4 && request.method === "POST") {
+      const body = await readJsonBody(request);
+      requireKeys(body, []);
+      return jsonResponse(await resumeWorkItem(runtime, workItemId));
+    }
+    if (parts[3] === "signoff" && parts.length === 4 && request.method === "POST") {
+      const body = await readJsonBody(request);
+      requireKeys(body, ["expectedPackageHash", "approvedBy"]);
+      return jsonResponse(await signOffWorkItem(
+        runtime,
+        workItemId,
+        Sha256Schema.parse(body.expectedPackageHash),
+        requireString(body, "approvedBy"),
+      ));
+    }
+  }
+
+  if (parts[0] === "api" && parts[1] === "runs" && parts[2]) {
+    const runId = RunIdSchema.parse(parts[2]);
+    if (parts[3] === "events" && parts.length === 4 && request.method === "GET") {
+      const raw = url.searchParams.get("afterSequence") ?? "0";
+      if (!/^[0-9]+$/.test(raw)) throw new TypeError("afterSequence must be a non-negative integer");
+      return jsonResponse(listRunEvents(runtime, runId, Number(raw)));
+    }
+    if (parts[3] === "evidence" && parts.length === 4 && request.method === "GET") {
+      const path = url.searchParams.get("path");
+      if (path === null) throw new TypeError("evidence path query parameter is required");
+      return rawResponse(readReferencedEvidence(runtime, runId, path));
+    }
+    if (parts[3] === "input" && parts.length === 4 && request.method === "POST") {
+      const body = await readJsonBody(request);
+      requireKeys(body, ["text", "requestEventId"]);
+      const rawEventId = body.requestEventId;
+      const requestEventId = rawEventId === null ? null : RunEventIdSchema.parse(rawEventId);
+      return jsonResponse(await submitRunInput(
+        runtime,
+        runId,
+        requireString(body, "text"),
+        requestEventId,
+      ));
+    }
+    if (parts[3] === "cancel" && parts.length === 4 && request.method === "POST") {
+      const body = await readJsonBody(request);
+      requireKeys(body, []);
+      return jsonResponse(await cancelRun(runtime, runId));
+    }
+  }
+
+  if (
+    parts[0] === "api" &&
+    parts[1] === "run-events" &&
+    parts[2] &&
+    parts.length === 4 &&
+    request.method === "POST"
+  ) {
+    const proposalEventId = RunEventIdSchema.parse(parts[2]);
+    const body = await readJsonBody(request);
+    requireKeys(body, []);
+    if (parts[3] === "adopt") {
+      return jsonResponse(await adoptArtifactProposal(runtime, proposalEventId));
+    }
+    if (parts[3] === "reject") {
+      return jsonResponse(rejectArtifactProposal(runtime, proposalEventId));
+    }
+  }
+
+  if (
+    parts[0] === "api" &&
+    parts[1] === "artifacts" &&
+    parts[2] &&
+    parts[3] === "content" &&
+    parts.length === 4 &&
+    request.method === "GET"
+  ) {
+    return rawResponse(await readArtifactContent(
+      runtime,
+      ArtifactRefIdSchema.parse(parts[2]),
+    ));
+  }
+
+  if (
+    parts[0] === "api" &&
+    parts[1] === "artifacts" &&
+    parts[2] &&
+    parts[3] === "content" &&
+    parts.length === 4 &&
+    request.method === "PUT"
+  ) {
+    const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
+    return jsonResponse(await saveArtifactContent(
+      runtime,
+      ArtifactRefIdSchema.parse(parts[2]),
+      body,
+    ));
+  }
+
+  return errorResponse(404, "NOT_FOUND", "API route not found");
+};
+
+export type DaemonServer = Readonly<{
+  server: Bun.Server<unknown>;
+  bind: BindAddress;
+  sessions: LocalSessions;
+}>;
+
+export const startDaemonServer = (
+  runtime: CoordinatorRuntime,
+  daemonToken: string,
+  bind = resolveDaemonBind(runtime.environment.PONTIVUS_ORDER_BIND),
+): DaemonServer => {
+  if (!tokenPattern.test(daemonToken)) {
+    throw new TypeError("daemon token is malformed");
+  }
+  const root = staticRoot();
+  const sessions: LocalSessions = {
+    daemonToken,
+    browserSessions: new Set(),
+    connectTokens: new Map(),
+  };
+
+  const server = Bun.serve({
+    hostname: bind.hostname,
+    port: bind.port,
+    development: false,
+    async fetch(request) {
+      const url = new URL(request.url);
+
+      if (request.method === "GET" && url.pathname === "/connect") {
+        const browserSession = consumeConnectToken(
+          sessions,
+          url.searchParams.get("token"),
+        );
+        if (browserSession === null) {
+          return errorResponse(401, "CONNECT_TOKEN_INVALID", "connect token is invalid or expired");
+        }
+        const headers = commonHeaders();
+        headers.set("Location", "/");
+        headers.set("Cache-Control", "no-store");
+        headers.set(
+          "Set-Cookie",
+          `pontivus_order_session=${browserSession}; Path=/; HttpOnly; SameSite=Strict`,
+        );
+        return new Response(null, { status: 303, headers });
+      }
+
+      if (url.pathname.startsWith("/api/")) {
+        try {
+          return await routeApi(runtime, sessions, bind, request, url);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          return errorResponse(400, "INVALID_REQUEST", message);
+        }
+      }
+
+      if (request.method !== "GET" && request.method !== "HEAD") {
+        return errorResponse(405, "METHOD_NOT_ALLOWED", "method not allowed");
+      }
+      const response = staticResponse(root, url.pathname);
+      return request.method === "HEAD"
+        ? new Response(null, { status: response.status, headers: response.headers })
+        : response;
+    },
+  });
+  return { server, bind, sessions };
+};
+
+export type RunningDaemon = Readonly<{
+  database: Database;
+  coordinator: CoordinatorRuntime;
+  http: DaemonServer;
+  stop: () => Promise<void>;
+}>;
+
+export const startOrderDaemon = async (
+  environment: NodeJS.ProcessEnv = process.env,
+): Promise<RunningDaemon> => {
+  if (Bun.version !== "1.4.4") {
+    throw new TypeError(`Order requires Bun 1.4.4; found ${Bun.version}`);
+  }
+  const stateRoot = resolveStateRoot(environment);
+  const config = readOrderConfig(stateRoot);
+  const database = openOrderDatabase(stateRoot);
+  const daemonToken = loadOrCreateDaemonToken(stateRoot);
+  const coordinator = createCoordinatorRuntime(database, stateRoot, environment, config);
+
+  try {
+    const git = await gitVersion();
+    if (!/^git version [0-9]+\.[0-9]+\.[0-9]+/.test(git)) {
+      throw new TypeError("Git version probe returned an unexpected result");
+    }
+    await loadConfiguredProjects(config.repositoryRoots);
+
+    const provider = await startOpenCodeServer(
+      stateRoot,
+      config.repositoryRoots[0]!,
+      config.model,
+      environment,
+    );
+    await stopOpenCodeServer(provider);
+
+    await reconcileSources(coordinator);
+    const http = startDaemonServer(coordinator, daemonToken);
+    await startCoordinatorScheduler(coordinator);
+    return {
+      database,
+      coordinator,
+      http,
+      stop: async () => {
+        await stopCoordinatorScheduler(coordinator);
+        http.server.stop(true);
+        database.close();
+      },
+    };
+  } catch (error) {
+    await stopCoordinatorScheduler(coordinator).catch(() => undefined);
+    database.close();
+    throw error;
+  }
+};

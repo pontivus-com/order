@@ -1,0 +1,469 @@
+import {
+  CreateWorkItemSourceSchema,
+  ExpectedHashMarkdownWriteSchema,
+  ExpectedHashWriteResultSchema,
+  WorkItemSchema,
+  WorkItemSourceDiagnosticSchema,
+  WorkItemSourceSnapshotSchema,
+  WorkItemSourceReconciliationSchema,
+  type CreateWorkItemSource,
+  type ExpectedHashMarkdownWrite,
+  type ExpectedHashWriteResult,
+  type WorkItem,
+  type WorkItemId,
+  type WorkItemSourceDiagnostic,
+  type WorkItemSourceReconciliation,
+  type WorkItemSourceSnapshot,
+} from "../core/contracts.ts";
+import {
+  classifyExistingWorkItemSource,
+  duplicateWorkItemSourceIds,
+  linkedRemediationIsAllowed,
+  parseWorkItemSourceMarkdown,
+  renderWorkItemSourceMarkdown,
+  unresolvedConcernIdsForProject,
+  type WorkItemSourceDisposition,
+} from "../core/work-item-source.ts";
+import { sourceChangeLifecycleState } from "../core/lifecycle.ts";
+import {
+  loadConfiguredProjects,
+  resolveConfiguredProject,
+  type ConfiguredProject,
+} from "../shell/project.ts";
+import {
+  createWorkItemSourceFile,
+  isWorkItemRootAccessFailure,
+  readWorkItemSource,
+  replaceWorkItemSourceFile,
+  scanWorkItemSources,
+  type ParsedWorkItemSource,
+} from "../shell/work-item-source.ts";
+import { newWorkItemId, nowIsoDateTime, sha256 } from "../shell/runtime.ts";
+import {
+  blockExecutionTasksForApproval,
+  loadCurrentApprovalForWorkItem,
+  loadRunsForWorkItem,
+  loadWorkItem,
+  loadWorkItems,
+  storeWorkItem,
+  updateWorkItemSourceProjection,
+  withTransaction,
+} from "../shell/sqlite.ts";
+import { type CoordinatorRuntime } from "./runtime.ts";
+
+const SOURCE_BOUNDARY_FAILURE = "WORK_ITEM_SOURCE_BOUNDARY";
+
+type SourceBoundaryFailure = TypeError & Readonly<{
+  orderCode: typeof SOURCE_BOUNDARY_FAILURE;
+}>;
+
+const sourceBoundaryFailureMarker: Readonly<{
+  orderCode: typeof SOURCE_BOUNDARY_FAILURE;
+}> = {
+  orderCode: SOURCE_BOUNDARY_FAILURE,
+};
+
+const sourceBoundaryFailure = (detail: string): SourceBoundaryFailure =>
+  Object.assign(new TypeError(detail), sourceBoundaryFailureMarker);
+
+const operationalSourceReadFailure = (error: unknown): boolean => {
+  if (typeof error !== "object" || error === null || !("code" in error)) return false;
+  return typeof error.code === "string" &&
+    ["EACCES", "EPERM", "EIO", "EMFILE", "ENFILE"].includes(error.code);
+};
+
+export const isSourceBoundaryFailure = (
+  error: unknown,
+): error is SourceBoundaryFailure =>
+  error instanceof TypeError &&
+  "orderCode" in error &&
+  (error as { orderCode?: unknown }).orderCode === SOURCE_BOUNDARY_FAILURE;
+
+type QueuePlan = Readonly<{
+  disposition: "REGISTERED" | WorkItemSourceDisposition;
+  source: ParsedWorkItemSource;
+  workItem: WorkItem;
+}>;
+
+const diagnostic = (
+  source: ParsedWorkItemSource | null,
+  code: WorkItemSourceDiagnostic["code"],
+  detail: string,
+  workItemId: WorkItemId | null = source?.metadata.id ?? null,
+): WorkItemSourceDiagnostic =>
+  WorkItemSourceDiagnosticSchema.parse({
+    path: source?.path ?? null,
+    workItemId,
+    code,
+    detail,
+  });
+
+const resolveSourceProject = async (
+  runtime: CoordinatorRuntime,
+  source: ParsedWorkItemSource,
+): Promise<ConfiguredProject> =>
+  resolveConfiguredProject(
+    runtime.config.repositoryRoots,
+    source.metadata.projectId,
+  );
+
+const requireResolvedConcerns = (
+  project: ConfiguredProject,
+  concernIds: readonly WorkItem["concernIds"][number][],
+): void => {
+  const unresolved = unresolvedConcernIdsForProject(concernIds, project.manifest);
+  if (unresolved[0] !== undefined) {
+    throw new TypeError(`unresolved concern id: ${unresolved[0]}`);
+  }
+};
+
+const planExistingSource = (
+  runtime: CoordinatorRuntime,
+  existing: WorkItem,
+  source: ParsedWorkItemSource,
+  project: ConfiguredProject,
+): Readonly<{ plan: QueuePlan | null; diagnostic: WorkItemSourceDiagnostic | null }> => {
+  const classification = classifyExistingWorkItemSource(
+    existing,
+    source,
+    loadRunsForWorkItem(runtime.database, existing.id).some((run) => run.role === "STAGE"),
+  );
+  if (classification.tag === "REJECT") {
+    return {
+      plan: null,
+      diagnostic: diagnostic(source, classification.code, classification.detail),
+    };
+  }
+
+  const disposition = classification.disposition;
+  const lifecycle = disposition === "UPDATED"
+    ? sourceChangeLifecycleState(existing)
+    : { stage: existing.stage, status: existing.status, outcome: existing.outcome };
+
+  return {
+    diagnostic: null,
+    plan: {
+      disposition,
+      source,
+      workItem: WorkItemSchema.parse({
+        ...existing,
+        projectId: source.metadata.projectId,
+        repositoryRoot: project.repositoryRoot,
+        title: source.title,
+        schemaId: source.metadata.schemaId,
+        sourcePath: source.path,
+        sourceSha256: source.sha256,
+        derivedFromWorkItemId: source.metadata.derivedFromWorkItemId ?? null,
+        concernIds: source.metadata.concernIds,
+        ...lifecycle,
+      }),
+    },
+  };
+};
+
+const inspectQueue = async (
+  runtime: CoordinatorRuntime,
+): Promise<Readonly<{
+  plans: readonly QueuePlan[];
+  diagnostics: readonly WorkItemSourceDiagnostic[];
+}>> => {
+  const scanned = scanWorkItemSources(runtime.config.workItemRoot);
+  const diagnostics: WorkItemSourceDiagnostic[] = [...scanned.diagnostics];
+  const existing = new Map(loadWorkItems(runtime.database).map((item) => [item.id, item] as const));
+  const duplicateIds = new Set(duplicateWorkItemSourceIds(scanned.sources));
+  const seen = new Set<WorkItemId>();
+  const plans: QueuePlan[] = [];
+
+  for (const source of scanned.sources) {
+    seen.add(source.metadata.id);
+    if (duplicateIds.has(source.metadata.id)) {
+      diagnostics.push(diagnostic(
+        source,
+        "DUPLICATE_WORK_ITEM_ID",
+        `duplicate WorkItem id: ${source.metadata.id}`,
+      ));
+      continue;
+    }
+
+    let project: ConfiguredProject;
+    try {
+      project = await resolveSourceProject(runtime, source);
+    } catch (error) {
+      diagnostics.push(diagnostic(
+        source,
+        "UNRESOLVED_PROJECT",
+        error instanceof Error ? error.message : String(error),
+      ));
+      continue;
+    }
+    const unresolvedConcerns = unresolvedConcernIdsForProject(
+      source.metadata.concernIds,
+      project.manifest,
+    );
+    if (unresolvedConcerns[0] !== undefined) {
+      diagnostics.push(diagnostic(
+        source,
+        "UNRESOLVED_CONCERN",
+        `unresolved concern id: ${unresolvedConcerns[0]}`,
+      ));
+      continue;
+    }
+
+    const prior = existing.get(source.metadata.id);
+    if (prior === undefined) {
+      plans.push({
+        disposition: "REGISTERED",
+        source,
+        workItem: WorkItemSchema.parse({
+          id: source.metadata.id,
+          projectId: source.metadata.projectId,
+          repositoryRoot: project.repositoryRoot,
+          title: source.title,
+          origin: "DISCOVERED",
+          schemaId: source.metadata.schemaId,
+          sourcePath: source.path,
+          sourceSha256: source.sha256,
+          derivedFromWorkItemId: source.metadata.derivedFromWorkItemId ?? null,
+          stage: "IDEA",
+          status: "ACTIVE",
+          outcome: null,
+          concernIds: source.metadata.concernIds,
+          createdAt: nowIsoDateTime(),
+        }),
+      });
+      continue;
+    }
+
+    const planned = planExistingSource(runtime, prior, source, project);
+    if (planned.diagnostic !== null) diagnostics.push(planned.diagnostic);
+    if (planned.plan !== null) plans.push(planned.plan);
+  }
+
+  for (const workItem of existing.values()) {
+    if (seen.has(workItem.id)) continue;
+    diagnostics.push(diagnostic(
+      null,
+      workItem.stage === "COMPLETE" ? "COMPLETED_SOURCE_MISSING" : "MISSING_SOURCE",
+      `source is missing for WorkItem ${workItem.id}`,
+      workItem.id,
+    ));
+  }
+
+  return { plans, diagnostics };
+};
+
+const applyPlan = (
+  runtime: CoordinatorRuntime,
+  plan: QueuePlan,
+): void => {
+  if (plan.disposition === "REGISTERED") {
+    storeWorkItem(runtime.database, plan.workItem);
+    return;
+  }
+  if (plan.disposition === "UNCHANGED") return;
+
+  updateWorkItemSourceProjection(runtime.database, plan.workItem);
+  if (plan.disposition === "UPDATED") {
+    const approval = loadCurrentApprovalForWorkItem(runtime.database, plan.workItem.id);
+    if (approval !== null) {
+      blockExecutionTasksForApproval(runtime.database, approval.id);
+    }
+  }
+};
+
+export const workItemSourceDiagnostics = async (
+  runtime: CoordinatorRuntime,
+): Promise<readonly WorkItemSourceDiagnostic[]> =>
+  (await inspectQueue(runtime)).diagnostics;
+
+export const reconcileWorkItemSources = async (
+  runtime: CoordinatorRuntime,
+): Promise<WorkItemSourceReconciliation> => {
+  const inspected = await inspectQueue(runtime);
+  withTransaction(runtime.database, () => {
+    for (const plan of inspected.plans) applyPlan(runtime, plan);
+  });
+  const byDisposition = (
+    disposition: "REGISTERED" | WorkItemSourceDisposition,
+  ): readonly WorkItemId[] =>
+    inspected.plans
+      .filter((plan) => plan.disposition === disposition)
+      .map((plan) => plan.workItem.id)
+      .sort();
+  return WorkItemSourceReconciliationSchema.parse({
+    registered: byDisposition("REGISTERED"),
+    updated: byDisposition("UPDATED"),
+    moved: byDisposition("MOVED"),
+    unchanged: byDisposition("UNCHANGED"),
+    diagnostics: inspected.diagnostics,
+  });
+};
+
+export const revalidateWorkItemSource = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<Readonly<{ workItem: WorkItem; source: WorkItemSourceSnapshot }>> => {
+  const before = loadWorkItem(runtime.database, workItemId);
+  let current: ParsedWorkItemSource;
+  try {
+    current = readWorkItemSource(runtime.config.workItemRoot, before.sourcePath);
+  } catch (error) {
+    if (isWorkItemRootAccessFailure(error) || operationalSourceReadFailure(error)) {
+      throw error;
+    }
+    throw sourceBoundaryFailure(error instanceof Error ? error.message : String(error));
+  }
+
+  let project: ConfiguredProject;
+  try {
+    project = await resolveSourceProject(runtime, current);
+    requireResolvedConcerns(project, current.metadata.concernIds);
+  } catch (error) {
+    throw sourceBoundaryFailure(error instanceof Error ? error.message : String(error));
+  }
+
+  const planned = planExistingSource(runtime, before, current, project);
+  if (planned.diagnostic !== null) {
+    throw sourceBoundaryFailure(planned.diagnostic.detail);
+  }
+  const plan = planned.plan;
+  if (plan === null) {
+    throw sourceBoundaryFailure("WorkItem source revalidation produced no valid source plan");
+  }
+
+  withTransaction(runtime.database, () => applyPlan(runtime, plan));
+  return {
+    workItem: loadWorkItem(runtime.database, workItemId),
+    source: WorkItemSourceSnapshotSchema.parse({
+      path: current.path,
+      sha256: current.sha256,
+      metadata: current.metadata,
+      markdown: current.markdown,
+    }),
+  };
+};
+
+export const currentWorkItemSource = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<WorkItemSourceSnapshot> => {
+  const source = (await revalidateWorkItemSource(runtime, workItemId)).source;
+  return WorkItemSourceSnapshotSchema.parse({
+    path: source.path,
+    sha256: source.sha256,
+    metadata: source.metadata,
+    markdown: source.markdown,
+  });
+};
+
+export const createWorkItemFromSource = async (
+  runtime: CoordinatorRuntime,
+  input: CreateWorkItemSource,
+): Promise<WorkItem> => {
+  const command = CreateWorkItemSourceSchema.parse(input);
+  const project = await resolveConfiguredProject(runtime.config.repositoryRoots, command.projectId);
+  requireResolvedConcerns(project, command.concernIds);
+
+  const parentId = command.derivedFromWorkItemId ?? null;
+  if (parentId !== null) {
+    const parent = loadWorkItem(runtime.database, parentId);
+    if (!linkedRemediationIsAllowed(parent, command.projectId, command.schemaId)) {
+      throw new TypeError(
+        "derived remediation requires a completed same-project investigation/audit parent and CHANGE/DEFECT child",
+      );
+    }
+  }
+
+  const id = newWorkItemId();
+  const metadata = {
+    formatVersion: 1 as const,
+    id,
+    projectId: command.projectId,
+    concernIds: [...command.concernIds].sort(),
+    schemaId: command.schemaId,
+    ...(parentId === null ? {} : { derivedFromWorkItemId: parentId }),
+  };
+  const markdown = renderWorkItemSourceMarkdown(metadata, command.title);
+  const created = createWorkItemSourceFile(runtime.config.workItemRoot, id, markdown);
+  const source = readWorkItemSource(runtime.config.workItemRoot, created.path);
+  const value = WorkItemSchema.parse({
+    id,
+    projectId: command.projectId,
+    repositoryRoot: project.repositoryRoot,
+    title: source.title,
+    origin: "CREATED",
+    schemaId: command.schemaId,
+    sourcePath: source.path,
+    sourceSha256: source.sha256,
+    derivedFromWorkItemId: parentId,
+    stage: "IDEA",
+    status: "ACTIVE",
+    outcome: null,
+    concernIds: source.metadata.concernIds,
+    createdAt: nowIsoDateTime(),
+  });
+  storeWorkItem(runtime.database, value);
+  return value;
+};
+
+export const saveWorkItemSource = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: ExpectedHashMarkdownWrite,
+): Promise<ExpectedHashWriteResult> => {
+  const command = ExpectedHashMarkdownWriteSchema.parse(input);
+  const validated = await revalidateWorkItemSource(runtime, workItemId);
+  const existing = validated.workItem;
+  if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
+    throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
+  }
+  if (command.expectedSha256 !== existing.sourceSha256) {
+    return ExpectedHashWriteResultSchema.parse({
+      tag: "STALE",
+      currentSha256: existing.sourceSha256,
+    });
+  }
+
+  const proposedHash = sha256(new TextEncoder().encode(command.markdown));
+  const proposed = parseWorkItemSourceMarkdown(
+    existing.sourcePath,
+    proposedHash,
+    command.markdown,
+  );
+  const project = await resolveSourceProject(runtime, proposed);
+  requireResolvedConcerns(project, proposed.metadata.concernIds);
+  const classification = classifyExistingWorkItemSource(
+    existing,
+    proposed,
+    loadRunsForWorkItem(runtime.database, existing.id).some((run) => run.role === "STAGE"),
+  );
+  if (classification.tag === "REJECT") {
+    throw new TypeError(classification.detail);
+  }
+
+  const result = replaceWorkItemSourceFile(
+    runtime.config.workItemRoot,
+    existing.sourcePath,
+    command.expectedSha256,
+    command.markdown,
+  );
+  if (result.tag === "STALE") return result;
+
+  const source = readWorkItemSource(runtime.config.workItemRoot, existing.sourcePath);
+  const lifecycle = classification.disposition === "UPDATED"
+    ? sourceChangeLifecycleState(existing)
+    : { stage: existing.stage, status: existing.status, outcome: existing.outcome };
+  const next = WorkItemSchema.parse({
+    ...existing,
+    projectId: source.metadata.projectId,
+    repositoryRoot: project.repositoryRoot,
+    title: source.title,
+    schemaId: source.metadata.schemaId,
+    sourceSha256: source.sha256,
+    derivedFromWorkItemId: source.metadata.derivedFromWorkItemId ?? null,
+    concernIds: source.metadata.concernIds,
+    ...lifecycle,
+  });
+  updateWorkItemSourceProjection(runtime.database, next);
+  return result;
+};

@@ -1,0 +1,228 @@
+version = 1
+projectId = "order"
+
+[authority]
+p1 = ["AGENTS.md", "docs/08-minimum-change-standard.md", "docs/10-systems-governance-pyramid.md"]
+p2 = ["docs/00-system-brief.md", "docs/40-order-product-identity.md"]
+p3 = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/09-project-governance-integration.md", "docs/11-lifecycle-context-resolution.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md"]
+p4 = ["docs/02-execution-control-plane.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/14-external-version-facts.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+p5 = ["docs/04-open-decisions.md"]
+p6 = ["docs/13-canonical-contracts.md"]
+
+[refs]
+GW-P1-DOD = "docs/10-systems-governance-pyramid.md"
+GW-P1-FCIS = "docs/10-systems-governance-pyramid.md"
+GW-P1-SOC = "docs/10-systems-governance-pyramid.md"
+GW-P1-DRY = "docs/10-systems-governance-pyramid.md"
+GW-P1-STRICT-TYPING = "docs/10-systems-governance-pyramid.md"
+GW-P1-CANONICAL-OWNERSHIP = "docs/10-systems-governance-pyramid.md"
+GW-P1-EXPLICIT-FLOW = "docs/10-systems-governance-pyramid.md"
+GW-P1-MINIMUM-CHANGE = "docs/10-systems-governance-pyramid.md"
+GW-P1-AUTHORITY-BEFORE-INFERENCE = "docs/10-systems-governance-pyramid.md"
+GW-P1-DOC-CANONICALITY = "docs/10-systems-governance-pyramid.md"
+GW-DOC-AGENT-OPERATING-RULES = "AGENTS.md"
+GW-DOC-AGENT-OPERATING-RULES-V1 = "AGENTS.md"
+GW-DOC-SYSTEM-BRIEF = "docs/00-system-brief.md"
+GW-DOC-SYSTEM-BRIEF-V1 = "docs/00-system-brief.md"
+GW-DOC-PRODUCT-IDENTITY = "docs/40-order-product-identity.md"
+GW-DOC-PRODUCT-IDENTITY-V1 = "docs/40-order-product-identity.md"
+GW-DOC-WORK-LIFECYCLE = "docs/01-work-lifecycle.md"
+GW-DOC-WORK-LIFECYCLE-V1 = "docs/01-work-lifecycle.md"
+GW-DOC-EXECUTION-CONTROL-PLANE = "docs/02-execution-control-plane.md"
+GW-DOC-EXECUTION-CONTROL-PLANE-V1 = "docs/02-execution-control-plane.md"
+GW-DOC-TECHNICAL-DECISIONS = "docs/04-open-decisions.md"
+GW-DOC-TECHNICAL-DECISIONS-V1 = "docs/04-open-decisions.md"
+GW-DOC-SPECIFICATION-STANDARD = "docs/05-specification-standard.md"
+GW-DOC-SPECIFICATION-STANDARD-V1 = "docs/05-specification-standard.md"
+GW-DOC-VALIDATION-STANDARD = "docs/06-validation-standard.md"
+GW-DOC-VALIDATION-STANDARD-V1 = "docs/06-validation-standard.md"
+GW-DOC-OPENCODE-INTEGRATION = "docs/07-opencode-integration-standard.md"
+GW-DOC-OPENCODE-INTEGRATION-V1 = "docs/07-opencode-integration-standard.md"
+GW-DOC-MINIMUM-CHANGE = "docs/08-minimum-change-standard.md"
+GW-DOC-MINIMUM-CHANGE-V1 = "docs/08-minimum-change-standard.md"
+GW-DOC-PROJECT-GOVERNANCE-INTEGRATION = "docs/09-project-governance-integration.md"
+GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1 = "docs/09-project-governance-integration.md"
+GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID = "docs/10-systems-governance-pyramid.md"
+GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1 = "docs/10-systems-governance-pyramid.md"
+GW-DOC-LIFECYCLE-CONTEXT = "docs/11-lifecycle-context-resolution.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/11-lifecycle-context-resolution.md"
+GW-DOC-TECHNICAL-ARCHITECTURE = "docs/12-technical-architecture.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V1 = "docs/12-technical-architecture.md"
+GW-DOC-CANONICAL-CONTRACTS = "docs/13-canonical-contracts.md"
+GW-DOC-CANONICAL-CONTRACTS-V1 = "docs/13-canonical-contracts.md"
+GW-DOC-EXTERNAL-FACTS = "docs/14-external-version-facts.md"
+GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 = "docs/14-external-version-facts.md"
+GW-DOC-REF-OPENSPEC = "docs/27-reference-openspec.md"
+GW-DOC-REF-OPENSPEC-V1-2026-11-12 = "docs/27-reference-openspec.md"
+GW-DOC-REF-SPEC-KIT = "docs/28-reference-spec-kit.md"
+GW-DOC-REF-SPEC-KIT-V1-2026-11-12 = "docs/28-reference-spec-kit.md"
+GW-DOC-REF-KIRO-SPECS = "docs/29-reference-kiro-specs.md"
+GW-DOC-REF-KIRO-SPECS-V1-2026-11-12 = "docs/29-reference-kiro-specs.md"
+GW-DOC-REF-BMAD = "docs/30-reference-bmad.md"
+GW-DOC-REF-BMAD-V1-2026-11-12 = "docs/30-reference-bmad.md"
+GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM = "docs/31-work-item-document-system.md"
+GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1 = "docs/31-work-item-document-system.md"
+GW-DOC-MARKDOWN-WORKBENCH = "docs/32-operator-markdown-workbench.md"
+GW-DOC-MARKDOWN-WORKBENCH-V1 = "docs/32-operator-markdown-workbench.md"
+GW-DOC-WORKBENCH-UX = "docs/37-workbench-ux-information-architecture.md"
+GW-DOC-WORKBENCH-UX-V1 = "docs/37-workbench-ux-information-architecture.md"
+GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE = "docs/38-workbench-astryx-component-architecture.md"
+GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 = "docs/38-workbench-astryx-component-architecture.md"
+GW-DOC-ORDER-TECHNICAL-IDENTITY = "docs/41-order-technical-identity-cutover.md"
+GW-DOC-ORDER-TECHNICAL-IDENTITY-V1 = "docs/41-order-technical-identity-cutover.md"
+GW-P2-CONTROLLED-WORK = "docs/00-system-brief.md"
+GW-FR-001-GOVERNED-LIFECYCLE = "docs/01-work-lifecycle.md"
+GW-FR-002-REPRODUCIBLE-AUTHORITY = "docs/01-work-lifecycle.md"
+GW-FR-003-DURABLE-BOUNDED-EXECUTION = "docs/01-work-lifecycle.md"
+GW-FR-004-INDEPENDENT-VALIDATION = "docs/01-work-lifecycle.md"
+GW-FR-005-LOCAL-WORKBENCH = "docs/01-work-lifecycle.md"
+GW-FR-006-MINIMUM-VERIFIED-CANDIDATE = "docs/01-work-lifecycle.md"
+GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP = "docs/01-work-lifecycle.md"
+GW-FR-008-GOVERNED-REPOSITORY-ACCESS = "docs/01-work-lifecycle.md"
+GW-FR-009-PORTABLE-WORK-ITEM-SOURCE = "docs/31-work-item-document-system.md"
+GW-FR-010-GOVERNED-WORK-KIND-CATALOG = "docs/31-work-item-document-system.md"
+GW-FR-011-VERSIONED-AUTHORING-SCHEMAS = "docs/31-work-item-document-system.md"
+GW-FR-012-CATALOG-DRIVEN-AUTHORING = "docs/31-work-item-document-system.md"
+GW-FR-013-PORTABLE-QUEUE-RECONCILIATION = "docs/31-work-item-document-system.md"
+GW-FR-014-SOURCE-FRESHNESS = "docs/31-work-item-document-system.md"
+GW-FR-015-SOURCE-CONTEXT-PROJECTION = "docs/31-work-item-document-system.md"
+GW-FR-016-SOURCE-CONFORMANCE-IDENTITY = "docs/31-work-item-document-system.md"
+GW-FR-017-SOURCE-SIGNOFF-BINDING = "docs/31-work-item-document-system.md"
+GW-FR-018-SOURCE-CONSUMER-CLOSURE = "docs/31-work-item-document-system.md"
+GW-FR-019-SOURCE-CLARIFICATION-DURABILITY = "docs/31-work-item-document-system.md"
+GW-FR-020-WORKBENCH-SOURCE-OPERATIONS = "docs/32-operator-markdown-workbench.md"
+GW-FR-021-MARKDOWN-WORKSPACE = "docs/32-operator-markdown-workbench.md"
+GW-FR-022-GOVERNED-MARKDOWN-EDITING = "docs/32-operator-markdown-workbench.md"
+GW-FR-023-MARKDOWN-SOURCE-FIDELITY = "docs/32-operator-markdown-workbench.md"
+GW-FR-024-LIFECYCLE-FRESHNESS-VISIBILITY = "docs/32-operator-markdown-workbench.md"
+GW-FR-025-DURABLE-INTENT-INTERACTION = "docs/32-operator-markdown-workbench.md"
+GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION = "docs/32-operator-markdown-workbench.md"
+GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY = "docs/32-operator-markdown-workbench.md"
+GW-FR-028-NONDELIVERY-TERMINAL-VIEW = "docs/32-operator-markdown-workbench.md"
+GW-FR-029-NO-IDE-SCOPE = "docs/32-operator-markdown-workbench.md"
+GW-FR-030-WORKBENCH-PRIMARY-CANVAS = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-031-CONTEXT-INSPECTOR-BOUNDARY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-032-SURFACE-SPACE-FIT = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-033-RESPONSIVE-WORKSPACE-CONTINUITY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-034-SEMANTIC-CONTROL-AFFORDANCES = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-035-DOCUMENT-REVIEW-READABILITY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-036-DIALOGUE-EXECUTION-EVIDENCE-PRESENTATION = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-037-WORKBENCH-NAVIGATION-CONTINUITY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-038-ICON-AND-ACTION-SEMANTICS = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-039-WORKSPACE-ENTRY-EXIT-HISTORY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-040-UNSAVED-MARKDOWN-NAVIGATION-SAFETY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-041-KEYBOARD-FOCUS-CONTINUITY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-042-WORKSPACE-STATE-FEEDBACK = "docs/37-workbench-ux-information-architecture.md"
+GW-P4-V1-ARCHITECTURE = "docs/12-technical-architecture.md"
+GW-TR-001-FCIS-CANONICAL-OWNERSHIP = "docs/12-technical-architecture.md"
+GW-TR-002-LOCAL-LINUX-RUNTIME = "docs/12-technical-architecture.md"
+GW-TR-003-REPRODUCIBLE-AUTHORITY-STATE = "docs/12-technical-architecture.md"
+GW-TR-004-ISOLATED-BOUNDED-EXECUTION = "docs/12-technical-architecture.md"
+GW-TR-005-LOCAL-SECURE-WORKBENCH = "docs/12-technical-architecture.md"
+GW-TR-006-CLOSED-INTEGRATION-CERTIFICATION = "docs/12-technical-architecture.md"
+GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP = "docs/12-technical-architecture.md"
+GW-TR-008-GOVERNED-FILESYSTEM-ACCESS = "docs/12-technical-architecture.md"
+GW-TR-009-WORKBENCH-SPATIAL-ARCHITECTURE = "docs/38-workbench-astryx-component-architecture.md"
+GW-TR-010-ASTRYX-INTERACTION-BOUNDARY = "docs/38-workbench-astryx-component-architecture.md"
+GW-TR-011-ASTRYX-THEME-ICON-INTEGRATION = "docs/38-workbench-astryx-component-architecture.md"
+GW-TR-012-WORKBENCH-RESPONSIVE-COMPONENT-ARCHITECTURE = "docs/38-workbench-astryx-component-architecture.md"
+GW-TR-013-ASTRYX-THEME-CASCADE-INTEGRATION = "docs/38-workbench-astryx-component-architecture.md"
+GW-TR-014-WORKSPACE-PRESENTATION-NAVIGATION-SAFETY = "docs/38-workbench-astryx-component-architecture.md"
+D1 = "docs/04-open-decisions.md"
+D2 = "docs/04-open-decisions.md"
+D3 = "docs/04-open-decisions.md"
+D4 = "docs/04-open-decisions.md"
+D5 = "docs/04-open-decisions.md"
+D6 = "docs/04-open-decisions.md"
+D7 = "docs/04-open-decisions.md"
+D8 = "docs/04-open-decisions.md"
+D9 = "docs/04-open-decisions.md"
+D10 = "docs/04-open-decisions.md"
+D11 = "docs/04-open-decisions.md"
+D12 = "docs/04-open-decisions.md"
+D13 = "docs/04-open-decisions.md"
+D14 = "docs/04-open-decisions.md"
+D15 = "docs/04-open-decisions.md"
+D16 = "docs/04-open-decisions.md"
+D17 = "docs/04-open-decisions.md"
+GW-P6-V1-CONTRACTS = "docs/13-canonical-contracts.md"
+
+[governance.fitness]
+GW-P1-FCIS = ["architecture"]
+GW-P1-SOC = ["architecture"]
+GW-P1-DRY = ["architecture"]
+GW-P1-STRICT-TYPING = ["typecheck", "architecture"]
+GW-P1-CANONICAL-OWNERSHIP = ["architecture"]
+GW-P1-DOC-CANONICALITY = ["architecture"]
+
+[concerns.foundation]
+authority = ["docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+paths = [".bun-version", ".node-version", ".gitignore", "package.json", "bun.lock", "tsconfig.json", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "pontivus-order.toml.example", "install.sh", "src/installer.ts", "README.md"]
+gates = ["dependency-lock", "typecheck", "architecture", "test", "build"]
+
+[concerns.core]
+authority = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/08-minimum-change-standard.md", "docs/09-project-governance-integration.md", "docs/10-systems-governance-pyramid.md", "docs/11-lifecycle-context-resolution.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
+paths = ["src/core/**"]
+gates = ["typecheck", "architecture", "test"]
+
+[concerns.shell]
+authority = ["docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/09-project-governance-integration.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
+paths = ["src/shell/**"]
+gates = ["typecheck", "architecture", "test"]
+
+[concerns.daemon]
+authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
+paths = ["src/daemon/**", "src/cli.ts"]
+gates = ["typecheck", "architecture", "test"]
+
+[concerns.ui]
+authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+paths = ["index.html", "ui/**"]
+gates = ["typecheck", "architecture", "test", "build", "browser"]
+
+[concerns.verification]
+authority = ["docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+paths = ["tests/**", "playwright.config.ts"]
+gates = ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"]
+
+[verification.dependency-lock]
+argv = ["bun", "ci"]
+cwd = "."
+timeoutSeconds = 600
+inheritEnv = ["PATH", "HOME", "TMPDIR"]
+materialRefs = []
+
+[verification.typecheck]
+argv = ["bun", "run", "tsc", "--noEmit"]
+cwd = "."
+timeoutSeconds = 600
+inheritEnv = ["PATH", "HOME", "TMPDIR"]
+materialRefs = []
+
+[verification.architecture]
+argv = ["node", "node_modules/vitest/vitest.mjs", "run", "tests/architecture.test.ts"]
+cwd = "."
+timeoutSeconds = 600
+inheritEnv = ["PATH", "HOME", "TMPDIR"]
+materialRefs = ["tests/architecture.test.ts"]
+
+[verification.test]
+argv = ["node", "node_modules/vitest/vitest.mjs", "run"]
+cwd = "."
+timeoutSeconds = 1800
+inheritEnv = ["PATH", "HOME", "TMPDIR", "PONTIVUS_ORDER_TEST_STATE_ROOT", "PONTIVUS_ORDER_OPENCODE_BIN", "PONTIVUS_ORDER_OPENCODE_MODEL"]
+materialRefs = []
+
+[verification.build]
+argv = ["node", "node_modules/vite/bin/vite.js", "build"]
+cwd = "."
+timeoutSeconds = 600
+inheritEnv = ["PATH", "HOME", "TMPDIR"]
+materialRefs = []
+
+[verification.browser]
+argv = ["node", "node_modules/@playwright/test/cli.js", "test"]
+cwd = "."
+timeoutSeconds = 1800
+inheritEnv = ["PATH", "HOME", "TMPDIR", "PONTIVUS_ORDER_TEST_STATE_ROOT", "PONTIVUS_ORDER_OPENCODE_BIN", "PONTIVUS_ORDER_OPENCODE_MODEL"]
+materialRefs = []
