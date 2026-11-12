@@ -1,5 +1,6 @@
 import type {
   ArtifactRef,
+  EvidencePath,
   Run,
   RunEventId,
   WorkItem,
@@ -27,7 +28,7 @@ export type EvidenceSelection =
   | Readonly<{
       kind: "EVIDENCE";
       runId: Run["id"];
-      relativePath: string;
+      relativePath: EvidencePath;
     }>;
 
 export const runIsActive = (
