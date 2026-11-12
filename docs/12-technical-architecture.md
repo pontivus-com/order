@@ -108,7 +108,8 @@ For the normal user-local install it must:
 - make the default user-local launcher directory available to future login shells idempotently;
 - run the installer's own guided configuration phase before daemon activation through the installer-only `runInstallerGuidedSetup` adapter. The ordinary `order setup` adapter remains current-config-only. Both reuse the same internal provider/model/root orchestration, but only the installer adapter may parse a supported immediately preceding config. It preserves the existing model/reference choices. For an already-configured v1 target that proves to be the exact Git top-level root, missing `pontivus-order.toml` is treated as a newly introduced integration artifact rather than changed operator intent: the installer writes a minimal manifest whose `projectId` is derived from the existing root basename and whose P1 authority contains only root `AGENTS.md` when present, validates it through the canonical project-manifest owner, and retains the same target. It does not infer refs, concerns, verification gates or other authority layers. The installer records any manifest it creates so a later update failure removes that file during rollback. For a legacy broad target that is not itself an exact Git root, the installer may read the quiesced v1 database only to obtain distinct persisted WorkItem `repositoryRoot` values; each candidate is handled by the same exact-root/manifest rule and must remain contained by an old configured target. This is bounded state-derived migration evidence, not recursive filesystem discovery. Only when no exact Git target can be established does guided update ask for the exact target-repository field before persisting canonical v2; newly introduced defaultable fields still come from P6;
 - collect and persist at least one exact target Git repository, validating its Git top-level realpath, root `pontivus-order.toml` and unique `projectId`; broad parent roots are never recursively crawled or treated as a project catalog;
-- collect one WorkItem root, defaulting to `$HOME/.local/share/pontivus-order-work-items` or allowing an existing queue; prove it is canonically path-disjoint from every target repository, every STAGE reference root and the Order state root;
+- resolve each target repository's project-local WorkItem documentation root from its validated `pontivus-order.toml`, defaulting to repository-relative `docs/order/work-items`; the installer does not collect an installation-global WorkItem root;
+- when upgrading the immediately preceding config/source layout, migrate external WorkItem source Markdown into the deterministic selected-repository location under the P6 v2→v3 migration contract before activating the new daemon; the old external root is migration input only and is never a productive v3 source boundary;
 - collect optional read-only STAGE reference roots separately, defaulting to none; choosing `$HOME` or another broad reference root is an explicit operator decision and never a target-project discovery mechanism;
 - install/update one user-level `pontivus-order.service` in the standard user-unit configuration location, reload the user manager, enable it, then restart it so both first install and update run the newly activated application; systemd remains limited to process supervision;
 - treat application/config/state activation as one rollback boundary: on update failure, restore the prior application/launcher/config and any installer-archived legacy database, remove any project manifest created by that failed update attempt, then restore the prior service activity state where host supervision remains available;
@@ -1327,3 +1328,200 @@ Before the implementation is implementation-ready, the refreshed external-facts 
 #### Explicit exclusions
 
 The architecture above does not authorize implementation by itself. It is the binding P4 target that the subsequent P7 plan must realize without adding a second source parser/catalog, filesystem writer, lifecycle, transport, browser state store, DTO family, OOP service layer or generic document/IDE subsystem.
+
+## 30. Repository-native WorkItem documentation architecture (2026-11-13)
+
+This section is the current P4 architecture for `GW-FR-060..064`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
+
+### 30.1 Boundary model
+
+The target Git repository is the durable documentation boundary for a WorkItem.
+
+```text
+OrderConfig
+  exact target repositories
+          |
+          v
+project pontivus-order.toml
+  resolved WorkItem documentation root
+          |
+          v
+<repository>/<documents-root>/<WorkItemId>/
+  work-request.md
+  research.md
+  requirements.md
+  solution-design.md
+  implementation-plan.md
+  readiness-review.md
+```
+
+Order runtime state remains outside the project repository under the existing Order state root. Runs, RunEvents, provider sessions, execution workspaces and transient diagnostics do not become Git documents merely because WorkItem Markdown is repository-native.
+
+### 30.2 Productive configuration
+
+Productive `OrderConfig` advances to v3 and contains only:
+
+- model;
+- exact target repository roots;
+- optional STAGE reference roots.
+
+It has no `workItemRoot`.
+
+Repository selection remains finite and explicit. Order never scans a parent directory looking for projects.
+
+The project manifest resolves the repository-relative WorkItem documentation root. Absence of a project override means the canonical default `docs/order/work-items`.
+
+### 30.3 Deterministic document-path owner
+
+One pure core owner computes WorkItem documentation paths from:
+
+- validated project manifest;
+- WorkItem id;
+- lifecycle document role.
+
+The path mapping is deterministic and shared by source creation, source reconciliation, stage prompting, proposal admission, document navigation and Git persistence.
+
+The stage provider receives the exact canonical target path in its prompt. A provider-emitted proposal whose `targetPath` or unified-diff path differs from the computed path is rejected as invalid provider output before repository mutation. The provider therefore supplies content/diff, not placement policy.
+
+Existing pre-v3 lifecycle ArtifactRefs remain valid at their already-governed repository paths. Migration does not relocate them merely for layout uniformity. The deterministic layout governs new WorkItems and a lifecycle role when Order creates that role under v3. The external pre-v3 WorkItem source has no such exception: it is migrated into the repository because v3 has no productive external source root.
+
+### 30.4 Source discovery and mutation
+
+`src/shell/work-item-source.ts` remains the dedicated source filesystem boundary, but its root input becomes the selected repository plus resolved project documentation root.
+
+It:
+
+- inspects only direct `<WorkItemId>/work-request.md` candidates beneath the resolved documentation root;
+- rejects symlink escape/non-regular source files;
+- reads/writes through the shared exact-hash atomic file writer;
+- never recursively scans unrelated repository Markdown;
+- never accepts an alternate installation-local root.
+
+`src/daemon/work-item-source.ts` aggregates reconciliation across the exact configured repositories. It resolves each validated project manifest first, then invokes the shell boundary for that project. Source diagnostics therefore carry project identity in addition to repository-relative path.
+
+### 30.5 Documentation Git-state owner
+
+Add one cohesive daemon documentation owner for the current WorkItem document set.
+
+Its inputs are canonical state only:
+
+- current WorkItem source path;
+- current lifecycle ArtifactRefs;
+- selected repository/head.
+
+It does not search for semantically similar Markdown.
+
+It calls the existing Git shell boundary to obtain exact path-scoped Git status and to create an explicit documentation commit. UI modules never invoke Git directly.
+
+### 30.6 Exact path-scoped documentation commit
+
+The Git shell implements one explicit documentation-commit operation.
+
+Preconditions:
+
+- `HEAD` equals the operator-confirmed expected commit;
+- every included document still has the expected working-tree SHA-256;
+- every path is a canonical current document of that WorkItem;
+- no included path is unmerged or ignored;
+- the repository remains the exact WorkItem target.
+
+The effect is path-scoped. Unrelated staged and unstaged paths are legal and must remain excluded.
+
+For already tracked documents, `git commit --only -- <exact paths>` records current working-tree content while disregarding other staged paths.
+
+For a governed new/untracked document, the shell may first use `git add --intent-to-add -- <exact new paths>` so Git recognizes those paths, then executes the same path-scoped commit. If the commit fails, the shell removes only intent-to-add entries that it introduced for paths that were untracked before the operation; it must not reset or rewrite unrelated index entries.
+
+The commit uses the repository's normal hooks. Order never supplies `--no-verify`.
+
+The operation never performs push, pull, fetch, rebase, merge, branch checkout, branch creation or remote mutation.
+
+### 30.7 Git status semantics
+
+Documentation Git state compares current governed document bytes with the selected repository `HEAD`, independently of the browser editor dirty flag.
+
+The daemon reports enough canonical information for the UI to distinguish:
+
+- working-tree bytes equal `HEAD`;
+- tracked working-tree bytes differ from `HEAD`;
+- governed document is not yet tracked by `HEAD`;
+- governed path is missing/ignored/unmerged and therefore not committable.
+
+Unrelated repository changes are not part of this status result.
+
+### 30.8 Sign-off consequence
+
+The source no longer needs a separate filesystem authority boundary.
+
+At sign-off:
+
+- current `work-request.md` must exist at its deterministic repository path;
+- its working-tree bytes must equal the selected Git baseline bytes;
+- `sourceSha256` remains the exact source-byte binding in the Approval package;
+- current lifecycle ArtifactRefs retain their existing committed-baseline requirement.
+
+A package with WorkItem documentation that differs from `HEAD` is not signable.
+
+This preserves the existing Approval/domain shape while making its originating source provably project-Git-backed.
+
+### 30.9 v2 → v3 bounded migration
+
+The productive installer is the only migration boundary.
+
+Before activating v3 it:
+
+1. quiesces the old daemon;
+2. reads the exact v2 config and external `workItemRoot`;
+3. scans/validates every v2 source through the existing canonical source parser;
+4. resolves each source `projectId` to exactly one configured target repository;
+5. computes `<project-doc-root>/<WorkItemId>/work-request.md`;
+6. fails before file mutation if any project is unresolved, any source id is duplicated, or a destination contains different bytes;
+7. writes/copies the exact source bytes atomically to the project repository and verifies the resulting hash;
+8. transactionally migrates persisted source paths to repository-relative v3 paths and advances SQLite `user_version`;
+9. writes config v3 without `workItemRoot`;
+10. starts v3 and requires normal health/source reconciliation before declaring success.
+
+The former external directory is retained as non-productive migration backup; v3 never reads it during ordinary operation. No dual source path exists after activation.
+
+Existing repository lifecycle ArtifactRefs are not moved by this migration.
+
+### 30.10 Architecture ownership
+
+The change preserves FCIS/SoC/DRY:
+
+- core source/document path policy remains pure;
+- `src/shell/work-item-source.ts` owns source filesystem effects;
+- `src/shell/repository.ts` owns Git effects;
+- the daemon source owner resolves/reconciles project-local sources;
+- a cohesive daemon documentation owner composes current source/lifecycle document identity with Git status/commit;
+- `server.ts` remains transport only;
+- `ui/src/http.ts` remains HTTP only;
+- UI consumes canonical typed state and never reconstructs repository paths or Git eligibility.
+
+No repository/document DTO family, Git service object, browser Git state store or second source scanner is introduced.
+
+### 30.11 Technical requirements
+
+#### GW-TR-036-REPOSITORY-NATIVE-WORKITEM-DOCUMENTS
+
+**Required behavior:** the selected target repository is the sole productive filesystem boundary for WorkItem source/lifecycle Markdown, with paths derived from one project-local documentation-root policy.
+
+**Acceptance criterion:** no productive `workItemRoot` exists outside target repositories; new Work requests and lifecycle roles resolve to deterministic repository-relative paths.
+
+**Failure/negative behavior:** an installation-local queue must not remain an alternate source reader/writer after v3 activation.
+
+#### GW-TR-037-PATH-SCOPED-DOCUMENTATION-GIT-PERSISTENCE
+
+**Required behavior:** explicit documentation Git save commits only the current WorkItem's canonical document paths using exact expected HEAD/document preconditions.
+
+**Acceptance criterion:** unrelated staged/unstaged repository changes remain unchanged and absent from the documentation commit; normal Git hooks execute.
+
+**Failure/negative behavior:** Order must not use `git add -A`, `git add .`, `git commit -a`, an unrestricted index commit, `--no-verify`, or any command that can sweep unrelated repository changes into the commit.
+
+#### GW-TR-038-PROJECT-SCOPED-SOURCE-DISCOVERY
+
+**Required behavior:** startup/refresh source discovery iterates exact configured repositories and only their resolved deterministic WorkItem source locations.
+
+**Acceptance criterion:** source discovery requires no parent-directory crawl, global source root or arbitrary repository Markdown scan.
+
+**Failure/negative behavior:** path search/inference must not substitute for the project manifest + deterministic WorkItem path owner.
+
