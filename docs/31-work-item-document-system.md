@@ -217,16 +217,17 @@ This is the portability boundary: cloning/configuring the project repository is 
 
 ### 10.1 Existing repository lifecycle artifacts during v2→v3 migration
 
-The repository-native correction does not require already-valid lifecycle ArtifactRefs to be moved merely for directory uniformity. Existing R1/R2/DESIGN/PLAN/R3 files are already project-Git artifacts and retain their canonical paths/history.
+Pre-v3 lifecycle ArtifactRefs remain immutable historical snapshots at their recorded repository paths, but productive v3 current-document placement is deterministic.
 
-The migration requirement is therefore asymmetric:
+During v2→v3 migration:
 
-- the external WorkItem source **must** move into the selected repository because v3 removes the external productive source boundary;
-- existing lifecycle artifacts remain at their recorded repository paths;
-- every newly created WorkItem uses the deterministic §9 layout;
-- for a migrated WorkItem, a lifecycle role that already has a current ArtifactRef may retain that repository path; a lifecycle role created for the first time under v3 uses the deterministic §9 path.
+- the external WorkItem source **must** be copied into the selected repository because v3 removes the external productive source boundary;
+- the current bytes for each existing lifecycle role are copied byte-identically to the deterministic §9 path when the historical path differs;
+- historical ArtifactRefs/RunEvents remain unchanged as provenance;
+- deterministic copies are rediscovered as drafts and must pass normal lifecycle revalidation before becoming current authority;
+- every newly created WorkItem and every lifecycle role first created under v3 uses the deterministic §9 layout.
 
-This bounded compatibility rule does not authorize model-chosen paths for new lifecycle documents.
+This bounded migration preserves history without retaining model-chosen/legacy paths as productive current-document ownership.
 
 ## 11. Source freshness and reclassification
 
