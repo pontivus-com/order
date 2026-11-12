@@ -816,10 +816,12 @@ Order adds exactly these direct runtime dependencies:
 codemirror                    6.0.2
 @codemirror/lang-markdown    6.5.2
 @codemirror/language         6.13.1
+@codemirror/commands         6.11.1
+@codemirror/state            6.7.6
 @lezer/highlight             1.2.5
 ```
 
-`@codemirror/language` is a deliberate direct dependency because Order imports `HighlightStyle` / `syntaxHighlighting` for its owned Markdown syntax theme. `@lezer/highlight` is a deliberate direct dependency because Order imports semantic highlight tags for that same theme. Although both are reachable transitively through CodeMirror packages, Order does not directly import undeclared transitives.
+`@codemirror/language` is a deliberate direct dependency because Order imports `HighlightStyle` / `syntaxHighlighting` for its owned Markdown syntax theme. `@codemirror/commands` is a deliberate direct dependency because toolbar Undo/Redo invoke the canonical CodeMirror history commands. `@codemirror/state` is a deliberate direct dependency because the source-editor owner uses `Compartment` to reconfigure editability without rebuilding editor state. `@lezer/highlight` is a deliberate direct dependency because Order imports semantic highlight tags for that same theme. Although these are reachable transitively through CodeMirror packages, Order does not directly import undeclared transitives.
 
 The `codemirror` package supplies the supported CodeMirror 6 basic editor configuration and typed editor APIs through its dependency graph. `@codemirror/lang-markdown` supplies Markdown language support and Markdown-specific key behavior.
 
