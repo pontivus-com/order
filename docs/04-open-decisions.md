@@ -230,10 +230,32 @@ The bounded v2→v3 migration cannot rebind an old Approval to a repository base
 
 CodeMirror remains the already-adopted exact-source Markdown editor implementation. Repository-native storage/Git persistence changes its backing path/status/mutation environment only; they do not replace its source-buffer, preview, formatting, theme or editor-state contracts.
 
+
+
+## D19 — Global OpenCode saved-account switching
+
+**Status:** RESOLVED
+
+Order treats the active OpenCode login as a global saved-account selection inside the installation's existing private OpenCode credential namespace.
+
+This is **not** provider/model switching. The configured Order model/provider remains unchanged. For OpenCode Go work, the active saved OpenCode Console account is the authentication identity used by subsequent provider/session creation.
+
+OpenCode remains the sole credential owner. Order does not duplicate access tokens, refresh tokens, API keys or active-account state into Order SQLite/configuration.
+
+The browser exposes one application-shell account control that shows the active saved account label, lists all saved OpenCode OAuth login accounts, supports Add/Switch/Rename, and remains independent of WorkItem/project state.
+
+The normal account label is the login email supplied by the operator during Add-account. Order deliberately does not consume OpenCode's secret-bearing credential-list response merely to auto-discover the internally stored email.
+
+Account mutation is installation-global and cannot overlap productive provider work. Add/Switch/Rename requires zero Runs in `RUNNING` or `WAITING_FOR_INPUT` and at most one account mutation/login attempt.
+
+Browser login uses OpenCode's own pinned Console device/OAuth flow through a private Order-owned OpenCode control process. The browser sees only the external authorization URL/instructions and normalized status, never the private OpenCode listener/password or credential material.
+
+The selected account persists because it remains OpenCode-owned state. Saved accounts can be switched A -> B -> A without destructive logout/re-login and without changing `OrderConfig.model`.
+
 ## Implementation state
 
 The CodeMirror Markdown editor extension and earlier v1 workbench/runtime baseline are materialized in the current Order implementation.
 
-The repository-native WorkItem v3 design, explicit documentation-Git persistence and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed P7 package is executed and independently verified. The stale earlier remediation plan remains non-authoritative for execution until regenerated against current P3-P6 authority.
+The repository-native WorkItem v3 design, explicit documentation-Git persistence, global OpenCode saved-account switching and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed P7 package is executed and independently verified. The stale earlier remediation plan remains non-authoritative for execution until regenerated against current P3-P6 authority.
 
 P7/R3 task records remain implementation provenance rather than standing semantic authority. Future changes continue to follow the lifecycle and authority model owned by the canonical P1-P6 documents; this register does not independently authorize or broaden any later implementation scope.
