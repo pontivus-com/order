@@ -840,7 +840,7 @@ The direct integration is intentionally small so Order owns one editor boundary 
 
 ### 19.2 Cross-application reference and adopted pattern
 
-The connected Pontivus Legal implementation was inspected before this design.
+A prior Markdown-document editor implementation was inspected before this design.
 
 Its Markdown-document editor is currently **ProseMirror-based**, with:
 
