@@ -1,6 +1,6 @@
 # 43 — User-facing workflow and agent-execution visibility remediation plan
 
-**Status:** **Not implementation-ready after the repository-native WorkItem documentation authority change.** The user-facing workflow/activity scope remains valid, but this P7 package must be revised against `GW-FR-060..064`, `GW-TR-036..038` and `GW-DOC-CANONICAL-CONTRACTS-V1 §32` before implementation; canonical P3/P4 placement and sizing requirements are established by `GW-DOC-WORKBENCH-UX-V1` §21 and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` §20. P6/title/archive/provider-diagnostic contract amendments listed below must land before their dependent code phases.  
+**Status:** **Not implementation-ready after the repository-native WorkItem documentation and OpenCode saved-account authority changes.** The user-facing workflow/activity scope remains valid, but this P7 package must be revised against `GW-FR-060..076`, `GW-TR-036..053`, `GW-DOC-CANONICAL-CONTRACTS-V1 §§32–33` and the current OpenCode integration contract before implementation; canonical P3/P4 placement and sizing requirements are established by `GW-DOC-WORKBENCH-UX-V1` §21 and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` §20. P6/title/archive/provider-diagnostic contract amendments listed below must land before their dependent code phases.  
 **Target repository:** `pontivus-com/order`  
 **Pyramid layer:** P7 implementation plan  
 **Prepared:** 2026-11-13  
@@ -54,6 +54,21 @@ Implementation must not preserve or build further dependency on the former insta
 - `GW-DOC-CANONICAL-CONTRACTS-V1` §32.
 
 This status note prevents the earlier P7 package from acting as stale implementation authority. A refreshed P7 task set is required after design review; this document does not independently restate the new contracts.
+
+
+## 2.2 OpenCode saved-account dependency (2026-11-13)
+
+The refreshed P7 package must include the global OpenCode saved-account UI and daemon/shell work now owned by:
+
+- `GW-DOC-OPENCODE-INTEGRATION-V1 §12`;
+- `GW-DOC-WORKBENCH-UX-V1 §23 / GW-FR-073..076`;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1 §31 / GW-TR-049..052`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §21 / GW-TR-053`;
+- `GW-DOC-CANONICAL-CONTRACTS-V1 §33`;
+- D19.
+
+The requirement is saved **OpenCode account switching**, not provider/model switching. The configured Order model remains unchanged. Implementation must preserve OpenCode credential ownership and must not use the secret-bearing credential-list endpoint as browser account data.
+
 
 ## 3. Current proven defects
 
