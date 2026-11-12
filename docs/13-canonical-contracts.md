@@ -2347,3 +2347,256 @@ Permanent integration tests must prove:
 - migration refuses active execution, materializes current lifecycle drafts at deterministic paths, and never rebinds a v2 Approval;
 - sign-off rejects WorkItem documentation not represented by the selected baseline commit.
 
+## 33. OpenCode saved-account management canonical contracts
+
+This section is the binding P6 contract for `GW-FR-073..076` / `GW-TR-049..052`.
+
+It manages saved **OpenCode Console login accounts** used by subsequent OpenCode work. It does not define provider/model selection and does not persist credential secrets in Order.
+
+### 33.1 Canonical safe account projection
+
+```ts
+const OpenCodeAccountIdSchema = z.string()
+  .min(1)
+  .refine((value) => !value.includes("\0"), "account id must not contain NUL");
+
+const OpenCodeAccountLabelSchema = z.string()
+  .min(1)
+  .max(320)
+  .refine((value) => value === value.trim(), "account label must not have outer whitespace")
+  .refine((value) => !value.includes("\0"), "account label must not contain NUL")
+  .refine((value) => !value.includes("\n") && !value.includes("\r"), "account label must be one line");
+
+const OpenCodeAccountStatusSchema = z.discriminatedUnion("status", [
+  z.strictObject({ status: z.literal("READY") }),
+  z.strictObject({
+    status: z.literal("NEEDS_AUTH"),
+    message: z.string().min(1),
+    url: z.string().url().nullable(),
+  }),
+]);
+
+const OpenCodeAccountSchema = z.strictObject({
+  id: OpenCodeAccountIdSchema,
+  label: OpenCodeAccountLabelSchema,
+  active: z.boolean(),
+  status: OpenCodeAccountStatusSchema,
+});
+
+const OpenCodeAccountMutationBlockerSchema = z.enum([
+  "ACTIVE_RUN",
+  "LOGIN_ATTEMPT_ACTIVE",
+  "ACCOUNT_MUTATION_ACTIVE",
+]);
+
+const OpenCodeAccountStateSchema = z.strictObject({
+  accounts: z.array(OpenCodeAccountSchema).readonly(),
+  activeAccountId: OpenCodeAccountIdSchema.nullable(),
+  mutationBlockers: z.array(OpenCodeAccountMutationBlockerSchema).readonly(),
+});
+```
+
+This is one canonical Order-side safe projection of OpenCode account state, not a persistence DTO.
+
+Projection rules are exact:
+
+1. query pinned OpenCode integration `opencode`;
+2. inspect the returned connections in their OpenCode-defined order;
+3. the first connection overall is the active OpenCode connection under the pinned contract;
+4. include as `accounts` only stored credential connections whose method is `oauth`;
+5. mark an included account active only when its credential id equals the first connection's credential id;
+6. `activeAccountId` is that id or `null` when the active connection is not an OAuth login account;
+7. map an absent connection status to `READY`; map pinned `needs_auth` to `NEEDS_AUTH`;
+8. sort the returned account list with the active account first, then by label/id for deterministic presentation.
+
+The projection contains no OpenCode credential value or metadata.
+
+Order never calls the pinned `credential.list` endpoint for this feature because its response includes secret credential material.
+
+### 33.2 Account-label ownership
+
+The account label is owned/persisted by OpenCode with the saved credential.
+
+Order recommends that the operator use the exact login email as the label. Order does not claim that the label is independently verified against the authenticated email.
+
+Credential id is immutable technical identity. Label changes do not create a new account.
+
+### 33.3 Account-state query
+
+```text
+GET /api/opencode/accounts
+-> OpenCodeAccountState
+```
+
+The query is read-only and allowed while Runs are active.
+
+It starts/uses only the bounded private account-control process defined by P4 and returns the safe projection above.
+
+### 33.4 Switch account
+
+```ts
+const ActivateOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+```
+
+```text
+POST /api/opencode/accounts/:accountId/activate
+body { expectedActiveAccountId }
+-> OpenCodeAccountState
+```
+
+Admission requires:
+
+- zero Runs with status `RUNNING` or `WAITING_FOR_INPUT`;
+- no pending OpenCode account login attempt;
+- no other account mutation in progress;
+- current `activeAccountId` equals `expectedActiveAccountId`;
+- `:accountId` is present in the freshly resolved safe account projection.
+
+A target already active is an idempotent success.
+
+The daemon passes only the proven credential id to the pinned OpenCode credential-activation operation, then refreshes the safe projection and requires `activeAccountId === accountId` before returning success.
+
+No Order model/configuration field changes.
+
+### 33.5 Rename account
+
+```ts
+const RenameOpenCodeAccountSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+```
+
+```text
+PATCH /api/opencode/accounts/:accountId
+body { label }
+-> OpenCodeAccountState
+```
+
+Admission uses the same global no-active-Run/no-other-account-mutation boundary as Switch.
+
+The daemon refreshes the safe account projection and proves the id is one of its OAuth login accounts before calling the pinned credential-label update operation.
+
+After mutation it refreshes and proves the exact new label.
+
+### 33.6 Add-account login
+
+```ts
+const StartOpenCodeAccountLoginSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+
+const OpenCodeAccountLoginAttemptIdSchema = z.string().uuid();
+
+const OpenCodeAccountLoginAttemptSchema = z.strictObject({
+  id: OpenCodeAccountLoginAttemptIdSchema,
+  authorizationUrl: z.string().url(),
+  instructions: z.string().min(1),
+  expiresAt: IsoDateTimeSchema,
+  status: z.enum(["PENDING", "COMPLETED", "FAILED", "EXPIRED", "CANCELLED"]),
+  message: z.string().min(1).nullable(),
+});
+```
+
+```text
+POST /api/opencode/accounts/login
+body { label }
+-> OpenCodeAccountLoginAttempt
+
+GET /api/opencode/accounts/login/:attemptId
+-> OpenCodeAccountLoginAttempt
+
+DELETE /api/opencode/accounts/login/:attemptId
+-> 204
+```
+
+Start admission requires the same global mutation eligibility as Switch/Rename.
+
+The daemon creates one Order UUID attempt id and internally binds it to exactly one pinned OpenCode OAuth attempt plus its retained private control process.
+
+The OpenCode operation is fixed to:
+
+```text
+integrationID = "opencode"
+methodID      = "device"
+label         = requested account label
+custom form/server answer = absent
+```
+
+The returned authorization URL must be HTTPS and have the same origin as the pinned default OpenCode Console endpoint. Otherwise the login start fails and the control process is terminated.
+
+The browser never receives the OpenCode provider attempt id, loopback endpoint, process password or credential values.
+
+### 33.7 Login attempt lifecycle
+
+Only one login attempt may exist at a time.
+
+`GET` polls the bound pinned OpenCode attempt and normalizes:
+
+- OpenCode `pending` -> `PENDING`;
+- `complete` -> refresh safe account state, prove one account with the requested label is now active, then `COMPLETED`;
+- `failed` -> `FAILED` with OpenCode's safe failure message;
+- `expired` -> `EXPIRED`.
+
+On terminal state the daemon terminates/releases the private account-control process after recording enough transient terminal detail to return the terminal response for the current browser interaction. No durable login-attempt table is introduced.
+
+DELETE cancels a pending OpenCode attempt and terminates the process, producing no account mutation unless OpenCode had already completed before cancellation won the race; in that race the daemon refreshes account state and reports the actual completed outcome rather than claiming cancellation.
+
+Daemon restart loses any unfinished login attempt. The browser then receives not-found/expired recovery and can start a new login. Already completed OpenCode credentials remain durable in OpenCode's database.
+
+### 33.8 Global account-mutation invariant
+
+For this section, an **active Order Run** is any Run whose status is:
+
+```text
+RUNNING
+WAITING_FOR_INPUT
+```
+
+Before every Add/Switch/Rename mutation the daemon queries canonical Run state and proves no active Run exists across **all** WorkItems.
+
+The check is repeated immediately before the OpenCode mutation/admission after acquiring the daemon's account-mutation serialization guard.
+
+This is an installation-global invariant, not a selected-WorkItem check.
+
+### 33.9 HTTP/security boundary
+
+All endpoints use the existing authenticated same-origin Order browser contract.
+
+Account ids and labels are inert data. The browser cannot supply:
+
+- OpenCode integration id;
+- OAuth method id;
+- OpenCode server URL;
+- credential value/metadata;
+- provider/model override;
+- private OpenCode process endpoint/password.
+
+OpenCode-specific secret-bearing responses terminate in the shell and are not canonical Order values.
+
+### 33.10 Provider preflight consequence
+
+A successful Switch/Add does not prove that the new account is entitled to every configured model.
+
+The next productive Run still executes the existing exact model/authentication availability proof. Failure remains `PROVIDER_FAILURE`/the current canonical provider-preflight failure path; Order never silently changes the configured model/provider to compensate.
+
+### 33.11 Required certification
+
+Permanent integration/browser tests must prove:
+
+- three saved OAuth accounts can coexist in the private OpenCode namespace;
+- account query returns all three labels/opaque ids and exactly one active account when an OAuth account is active;
+- switching A -> B -> A preserves all accounts and never changes `OrderConfig.model`;
+- no secret credential value/metadata reaches Order HTTP/browser state;
+- implementation never calls `credential.list` for the account manager;
+- Add account drives the pinned `opencode`/`device` OAuth attempt and stores the requested label;
+- successful Add makes the new account active;
+- account login URL is validated before browser exposure;
+- Rename changes label without changing credential id;
+- Add/Switch/Rename all reject while any Run is RUNNING or WAITING_FOR_INPUT;
+- concurrent account mutations/login attempts are rejected deterministically;
+- read-only account listing remains available during active Runs;
+- switch/add affects only subsequently created OpenCode provider sessions;
+- a configured-model preflight still fails normally when the selected account cannot use that model.
+
