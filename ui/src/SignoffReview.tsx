@@ -32,11 +32,11 @@ export const SignoffReview = ({
         <h2>Exact sign-off package</h2>
         <button type="button" onClick={onOpenDocuments}>Open governed documents</button>
       </div>
-      <div className="order-review-grid">
-        <div><span>Package hash</span><code data-testid="signoff-package-hash">{query.data.packageHash}</code></div>
-        <div><span>Source binding</span><code>{query.data.sourceSha256}</code></div>
-        <div><span>Baseline</span><code>{query.data.baselineCommit}</code></div>
-      </div>
+      <dl className="order-review-metadata">
+        <div><dt>Package</dt><dd><code data-testid="signoff-package-hash">{query.data.packageHash}</code></dd></div>
+        <div><dt>Source</dt><dd><code>{query.data.sourceSha256}</code></dd></div>
+        <div><dt>Baseline</dt><dd><code>{query.data.baselineCommit}</code></dd></div>
+      </dl>
       <h3>Governed documents</h3>
       <div className="order-review-documents" data-testid="review-documents">
         {(artifactsQuery.data ?? []).map((artifact) => (
@@ -47,14 +47,16 @@ export const SignoffReview = ({
         ))}
       </div>
       <h3>Signed tasks</h3>
-      <div className="order-task-list">
+      <div className="order-signed-task-list">
         {query.data.taskBlock.tasks.map((task) => (
-          <article key={task.id} className="order-task-card">
-            <code>{task.id}</code>
-            <strong>{task.objective}</strong>
+          <details key={task.id} className="order-signed-task">
+            <summary>
+              <code>{task.id}</code>
+              <strong>{task.objective}</strong>
+            </summary>
             <div>Gates: {task.gateIds.join(", ")}</div>
             <div>Change surface: {task.changeSurface.join(", ")}</div>
-          </article>
+          </details>
         ))}
       </div>
     </section>
