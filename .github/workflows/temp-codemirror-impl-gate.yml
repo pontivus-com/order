@@ -22,7 +22,74 @@ jobs:
       - run: bun ci
       - run: bun run tsc --noEmit
       - run: node node_modules/vitest/vitest.mjs run tests/markdown-source-formatting.test.ts
-      - run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+      - name: Editor architecture ownership
+        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts -t "enforces typed, acyclic and cohesive UI presentation ownership"
+      - name: Workbench owner architecture
+        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts -t "enforces the canonical core and daemon module ownership/dependency graph"
       - run: node node_modules/vitest/vitest.mjs run tests/certification.test.ts
-
-# rerun after Markdown range correction
+      - run: node node_modules/vitest/vitest.mjs run
+      - run: node node_modules/vite/bin/vite.js build
+      - name: Browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          node node_modules/@playwright/test/cli.js install chromium
+          fake="$RUNNER_TEMP/fake-opencode.ts"
+          cat > "$fake" <<'EOF'
+          #!/usr/bin/env bun
+          const args = process.argv.slice(2);
+          if (args.length === 1 && args[0] === "--version") {
+            console.log("opencode v2.2.6");
+            process.exit(0);
+          }
+          if (
+            args.length !== 5 ||
+            args[0] !== "serve" ||
+            args[1] !== "--hostname" ||
+            args[2] !== "127.0.0.1" ||
+            args[3] !== "--port" ||
+            args[4] !== "0"
+          ) {
+            console.error("unexpected argv", JSON.stringify(args));
+            process.exit(2);
+          }
+          const json = (value, status = 200) =>
+            new Response(JSON.stringify(value), {
+              status,
+              headers: { "content-type": "application/json" },
+            });
+          const server = Bun.serve({
+            hostname: "127.0.0.1",
+            port: 0,
+            fetch(request) {
+              if (!request.headers.get("authorization")?.startsWith("Basic ")) {
+                return json({ message: "unauthorized" }, 401);
+              }
+              const url = new URL(request.url);
+              if (request.method === "GET" && url.pathname === "/api/info") {
+                return json({ version: "2.2.6" });
+              }
+              if (request.method === "GET" && url.pathname === "/api/model") {
+                return json({
+                  location: { directory: process.cwd() },
+                  data: [{ providerID: "openai", id: "gpt-5.6", enabled: true }],
+                });
+              }
+              return json({ message: "not found" }, 404);
+            },
+          });
+          console.log("server listening on http://127.0.0.1:" + server.port);
+          await new Promise(() => {});
+          EOF
+          chmod 755 "$fake"
+          state="$RUNNER_TEMP/order-browser-state"
+          rm -rf "$state" "$state-e2e-project" "$state-work-items"
+          mkdir -p "$state"
+          PONTIVUS_ORDER_TEST_STATE_ROOT="$state" \
+          PONTIVUS_ORDER_OPENCODE_BIN="$fake" \
+          PONTIVUS_ORDER_BIND="127.0.0.1:17347" \
+          node node_modules/@playwright/test/cli.js test
+      - name: Full architecture diagnostic
+        if: always()
+        continue-on-error: true
+        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
