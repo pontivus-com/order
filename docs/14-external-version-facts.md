@@ -652,6 +652,10 @@ Relied-upon official facts:
 - `git commit --only -- <path>...` records the current working-tree contents of the named paths while disregarding contents staged for other paths; supplying path arguments is the same default commit mode even without spelling `--only`;
 - `git commit --dry-run` can report what the same path-scoped commit invocation would include without creating the commit;
 - ordinary `git commit` executes the repository's configured commit hooks unless explicitly bypassed; Order does not use `--no-verify`;
+- commit author/committer identity is taken first from `GIT_AUTHOR_NAME`/`GIT_AUTHOR_EMAIL` and `GIT_COMMITTER_NAME`/`GIT_COMMITTER_EMAIL`, otherwise from Git configuration such as `user.name`/`user.email` and then other documented fallbacks;
+- `git config --local --get <name>` reads the repository-local configuration scope;
+- `git symbolic-ref -q HEAD` exits non-zero without output when `HEAD` is detached rather than a symbolic branch ref;
+- `git rev-parse --git-path <path>` resolves a Git-internal path while honoring Git path relocation variables; Git documents `MERGE_HEAD`, `REBASE_HEAD`, `REVERT_HEAD` and `CHERRY_PICK_HEAD` as operation-state refs;
 - `GIT_CONFIG_NOSYSTEM` skips system Git config and `GIT_CONFIG_GLOBAL` selects the global config file.
 
 Sources:
@@ -662,6 +666,8 @@ Sources:
 - https://git-scm.com/docs/git-check-ignore
 - https://git-scm.com/docs/git-add
 - https://git-scm.com/docs/git-commit
+- https://git-scm.com/docs/git-symbolic-ref
+- https://git-scm.com/docs/git-rev-parse
 - https://git-scm.com/docs/git-config
 - https://git-scm.com/docs/git
 
