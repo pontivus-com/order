@@ -529,6 +529,7 @@ describe("architecture fitness", () => {
       "ui/src/EvidenceViewer.tsx",
       "ui/src/TerminalResult.tsx",
       "ui/src/workbench-presentation.ts",
+      "ui/src/query-keys.ts",
       "ui/src/primitives/WorkbenchAction.tsx",
       "ui/src/primitives/WorkbenchIcon.tsx",
       "ui/src/primitives/WorkbenchLayout.tsx",
@@ -698,6 +699,36 @@ describe("architecture fitness", () => {
             );
           }
         }
+      }
+    }
+
+    const queryKeyOwner = sourceText("ui/src/query-keys.ts");
+    for (const requiredOwner of [
+      "export const workbenchQueryKeys",
+      "workItems:",
+      "runs:",
+      "runEvents:",
+      "artifactContent:",
+      "evidence:",
+    ]) {
+      if (!queryKeyOwner.includes(requiredOwner)) {
+        violations.push(
+          "ui/src/query-keys.ts must own shared typed query identity " + requiredOwner,
+        );
+      }
+    }
+
+    for (const sourcePath of uiFiles.filter((path) => path !== "ui/src/query-keys.ts")) {
+      const source = sourceText(sourcePath);
+      if (/queryKey:\s*\[\s*["']/.test(source)) {
+        violations.push(
+          sourcePath + ": TanStack query identity must use ui/src/query-keys.ts",
+        );
+      }
+      if (/invalidateQueries\(\{\s*queryKey:\s*\[\s*["']/.test(source)) {
+        violations.push(
+          sourcePath + ": query invalidation identity must use ui/src/query-keys.ts",
+        );
       }
     }
 
