@@ -21,3 +21,5 @@ jobs:
           echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
       - run: bun ci
       - run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+
+# rerun after external-facts canonical-id correction
