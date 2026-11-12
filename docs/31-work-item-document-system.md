@@ -210,6 +210,20 @@ For every supported Markdown source:
 
 A fresh installation with no prior Order state registers valid discovered repository-local source WorkItems as source-backed IDEA/intake records. Cloning/configuring the project repository is therefore sufficient to recover the durable WorkItem documents; Order does not infer completed stages, approvals or execution history from those Markdown files.
 
+
+### 10.1 Existing repository lifecycle artifacts during v2→v3 migration
+
+The repository-native correction does not require already-valid lifecycle ArtifactRefs to be moved merely for directory uniformity. Existing R1/R2/DESIGN/PLAN/R3 files are already project-Git artifacts and retain their canonical paths/history.
+
+The migration requirement is therefore asymmetric:
+
+- the external WorkItem source **must** move into the selected repository because v3 removes the external productive source boundary;
+- existing lifecycle artifacts remain at their recorded repository paths;
+- every newly created WorkItem uses the deterministic §9 layout;
+- for a migrated WorkItem, a lifecycle role that already has a current ArtifactRef may retain that repository path; a lifecycle role created for the first time under v3 uses the deterministic §9 path.
+
+This bounded compatibility rule does not authorize model-chosen paths for new lifecycle documents.
+
 ## 11. Source freshness and reclassification
 
 The WorkItem source participates in lifecycle freshness.
