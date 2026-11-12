@@ -446,3 +446,233 @@ A P7 implementation plan must:
 - preserve the existing WorkItem URL/history contract and add the local dirty-navigation/focus behavior without a router/global store;
 - retain safe escaped rendering for arbitrary evidence and the existing XSS regression;
 - stop if implementation requires a new daemon/HTTP semantic contract, new state owner or rich-text authority.
+
+## 17. Improvement addendum — interaction-pattern technical realization (2026-11-12)
+
+This addendum is the P4 realization of `GW-DOC-WORKBENCH-UX-V1` §§19-20. It refines the current React/Astryx presentation architecture only. It does not authorize daemon/HTTP/domain changes, a new router/global store, rich-text authority, new lifecycle semantics or a second UI framework.
+
+### 17.1 Shell and primary-canvas sizing
+
+The WorkItem shell must use a viewport-sized flex/grid composition in which:
+
+- application/workspace chrome occupies only intrinsic compact rows;
+- the primary mode canvas is `min-width: 0`, `min-height: 0` and owns remaining width/height;
+- wide Context remains bounded to the existing compact-context budget and is removed from flow below the rail breakpoint;
+- primary-mode workspaces may establish their own internal master/detail grids but must not introduce another persistent outer rail;
+- document/evidence/execution bodies use flex/grid remaining-height ownership rather than fixed `min-height` values as the main sizing mechanism.
+
+The current `.order-markdown-editor { max-width: 72rem; }` outer cap must be removed or relocated to read-only prose content only. Full-width authoring/review/raw-material surfaces retain modest workstation gutters rather than centered page-width containers.
+
+### 17.2 Compact WorkItem toolbar and navigation
+
+`WorkItemWorkspace` keeps one compact orientation/navigation header that owns:
+
+- Back to work queue;
+- WorkItem title;
+- concise stage/status orientation;
+- the mode selector/control;
+- Context toggle only in drawer/single-pane layouts.
+
+Detailed project/schema/concern/source metadata remains in `WorkItemContext`.
+
+The full-width mode `TabList` must not remain stacked above the Documents `TabList`. P7 may use an Astryx segmented/navigation/selector primitive or a small Order semantic wrapper, but mode choice remains typed browser-local presentation state and must preserve the existing dirty-navigation guard.
+
+Documents retain their Source/R1/R2/DESIGN/PLAN/R3 content navigation as the normal content-edge strip.
+
+### 17.3 State-aware application toolbar
+
+`app.tsx` may retain one toolbar composition owner, but toolbar content must be derived from the current presentation state:
+
+- queue state exposes queue Search and Refresh sources;
+- selected-WorkItem state removes or demotes queue-only controls;
+- New WorkItem remains reachable but may use a compact global action in deep-work state;
+- appearance moves to a compact utility/menu/icon treatment while preserving the existing System/Light/Dark preference and `pontivus-order-theme` persistence.
+
+No new global browser store is introduced. Existing React state is sufficient.
+
+### 17.4 Markdown workspace realization
+
+`DocumentWorkspace` + `MarkdownEditor` implement one reusable full-canvas authoring shell:
+
+- the document navigation row is compact;
+- the editor wrapper fills available width;
+- the textarea/control grows to the remaining height of the mode canvas;
+- editor actions/state use a sticky or otherwise persistently reachable compact action bar;
+- exact hash/path metadata is available through secondary metadata/context disclosure rather than forcing a wide/tall primary heading;
+- read-only `Markdown` retains a ~readable-prose inner content width while its outer container remains full-canvas;
+- stale/conflict and dirty-buffer semantics remain unchanged.
+
+This is a presentation-only change; save contracts and expected-hash behavior remain canonical and unchanged.
+
+### 17.5 Proposal-review realization
+
+`StageDialogue` continues to render the persisted proposal event in conversation, but the full proposal review must use Review-class primary space.
+
+P7 must implement a typed presentation selection that can open proposal review without changing Run/RunEvent/domain state. The review surface contains:
+
+- target identity;
+- rationale;
+- full-width diff/code viewer using remaining height where practical;
+- current disposition;
+- explicit Adopt/Reject controls.
+
+The existing proposal mutation APIs remain unchanged. The proposal's diff must no longer be limited by the current chat-bubble `maxHeight="28rem"` treatment as its only substantive review surface.
+
+### 17.6 Sign-off review realization
+
+`SignoffReview` remains a primary Review workspace.
+
+Implementation should replace identity-card-style layout for package hash/source binding/baseline with a compact metadata list/strip/disclosure. The visual priority is:
+
+1. package currentness/blockers;
+2. governed documents;
+3. signed task objective/scope/gates;
+4. exact identity metadata.
+
+Repeated tasks use a compact selectable/expandable list/table or equivalent scan-efficient treatment rather than unbounded stacked cards when multiple tasks exist. Approver input and final sign-off action remain in Context where the complete review surface is simultaneously visible.
+
+### 17.7 Execution master/detail realization
+
+`ExecutionWorkspace` becomes a bounded operational layout rather than a long vertical page:
+
+- task summaries use a compact selector/list/table;
+- selected task/operational summary occupies only the detail needed for orientation;
+- Run selection remains a compact master list;
+- selected Run/event timeline receives the flexible remaining region;
+- task/Run/event regions must not be separated by arbitrary vertical card stacks;
+- artifact/evidence references use a shared structured resource-row/list primitive or semantic component;
+- opening evidence continues to move the primary canvas into Evidence mode.
+
+The current `15rem + minmax(0, 1fr)` Run/detail concept may be retained, but it must participate in remaining-height layout rather than sit below all task cards.
+
+### 17.8 Queue responsive realization
+
+`WorkItemQueue` remains table-like on wide operational widths. Below the width where all columns remain useful, P7 must recompose lower-priority data rather than depend on uncontrolled table compression.
+
+Acceptable implementation shapes include:
+
+- responsive column hiding plus secondary metadata inside the WorkItem cell; or
+- an Astryx/local compact row/list presentation below the breakpoint.
+
+Title, stage/status and row activation remain immediately available. Project/kind remain discoverable. Concerns and utilities may move to secondary row content. The queue container must not use clipping as a substitute for responsive composition.
+
+### 17.9 Shared action/resource primitives
+
+P7 should extend existing Order semantic primitives only where they remove repeated divergent presentation behavior.
+
+At minimum:
+
+- recurring mutations/utilities continue through `WorkbenchAction` or a same-owner extension;
+- Run/task/resource selection uses a consistent selected-state treatment;
+- evidence/artifact resources use one small structured row/list primitive where repeated;
+- raw `<button>` use is retained only where native semantics are intentionally sufficient and it does not create another action hierarchy.
+
+This does not authorize a generic design-system abstraction layer.
+
+### 17.10 Compact terminal/loading presentation
+
+`TerminalResult` uses a compact outcome header; investigation/audit material remains the substantive content below it. Decorative vertical margin must not materially reduce evidence space.
+
+Each primary mode retains its owning shell while loading/error/empty content changes. Loading placeholders fill or preserve the expected workspace region rather than collapsing the mode into a small unrelated block.
+
+### 17.11 CSS/layout deletion obligations
+
+The implementation package must remove or supersede conflicting rules rather than layer new exceptions over them, including as applicable:
+
+- the outer `.order-markdown-editor max-width: 72rem` authoring cap;
+- the `.order-markdown-textarea min-height: 34rem` rule as the primary height strategy;
+- stacked full-width WorkItem-mode + document navigation;
+- always-visible Context action on persistent-rail layouts;
+- queue `overflow: hidden` behavior that clips constrained content;
+- page-like spacing that exists only to compensate for the old stacked chrome;
+- proposal diff height constraints that make chat the only usable review surface;
+- execution task-card stacking that blocks access to the Run/event workspace.
+
+Do not retain old and new spatial grammars simultaneously.
+
+### 17.12 Permanent browser geometry verification
+
+Browser verification must assert observable geometry/behavior, not only element presence.
+
+At representative widths/heights it must prove:
+
+1. editable Markdown width closely tracks the available primary canvas rather than a centered 72rem cap;
+2. editor/evidence/operational bodies consume the remaining usable viewport height within reasonable toolbar/nav gutters;
+3. Documents does not render stacked full-width mode and document tab rows;
+4. queue Search/Refresh are absent or demoted from active deep-work toolbar state;
+5. Context toggle is absent when the persistent Context rail is already visible and present when Context is drawer-owned;
+6. proposal diff review opens in Review-class primary space and remains associated with its Adopt/Reject actions;
+7. multiple execution tasks do not push Run/event detail below an arbitrarily long card stack;
+8. narrow queue presentation keeps title and stage/status visible without clipped essential content;
+9. sticky/reachable editor actions remain available while editing long Markdown;
+10. loading states preserve the owning mode's spatial shell;
+11. existing dirty-buffer, focus, URL/history, light/dark, XSS and read-only execution regressions continue to pass.
+
+Tests should compare bounding boxes/visibility or equivalent stable geometry signals where appropriate; they must avoid pixel-perfect screenshot coupling to incidental styling.
+
+## 18. Addendum technical requirements
+
+### GW-TR-015-PRIMARY-CANVAS-FLEX-SIZING
+
+**Required behavior:** primary workspaces use intrinsic compact chrome plus flexible remaining-width/height task regions.
+
+**Acceptance criterion:** Markdown authoring, raw evidence, proposal diff review and operational detail use the available canvas; only inner prose rendering retains a readable line-length cap.
+
+**Failure/negative behavior:** fixed/max-width page containers or fixed/minimum-height substitutes must not leave substantial usable primary-canvas area idle.
+
+### GW-TR-016-COMPACT-WORKITEM-NAVIGATION
+
+**Required behavior:** WorkItem mode navigation is integrated into the compact WorkItem toolbar/header while Documents retains its own within-mode document navigation.
+
+**Acceptance criterion:** the active Documents surface presents one normal content-edge navigation strip and preserves existing typed mode/document state, dirty guards and focus behavior.
+
+**Failure/negative behavior:** full-width mode tabs must not remain stacked directly above full-width document tabs.
+
+### GW-TR-017-STATE-AWARE-TOOLBAR-COMPOSITION
+
+**Required behavior:** application-toolbar contents are projected from queue versus selected-WorkItem presentation state.
+
+**Acceptance criterion:** queue-only Search/Refresh controls do not remain prominent while the queue is hidden; creation remains reachable; appearance is compact; no domain/global-store change is introduced.
+
+**Failure/negative behavior:** persistent controls must not imply an actionable scope that is absent from the visible primary canvas.
+
+### GW-TR-018-PROPOSAL-REVIEW-PRIMARY-SURFACE
+
+**Required behavior:** proposal events remain part of Dialogue history while full rationale/diff/disposition review is renderable in Review-class primary space.
+
+**Acceptance criterion:** the proposal can be opened from conversation, inspected at full review width/height and adopted/rejected through the existing mutation boundary.
+
+**Failure/negative behavior:** a chat bubble with a fixed-height diff must not remain the sole substantive proposal-review surface.
+
+### GW-TR-019-EXECUTION-MASTER-DETAIL-LAYOUT
+
+**Required behavior:** Execution uses compact task and Run masters plus a flexible selected operational detail/event region.
+
+**Acceptance criterion:** multiple tasks/runs remain scan-efficient, the active event timeline receives remaining workspace height, and resource references use structured rows/lists.
+
+**Failure/negative behavior:** repeated task cards must not create an unbounded vertical preamble before Run/event inspection.
+
+### GW-TR-020-RESPONSIVE-QUEUE-COMPOSITION
+
+**Required behavior:** WorkItem queue columns/secondary fields recompose below operational-table width.
+
+**Acceptance criterion:** title and stage/status remain visible and usable on narrow/tablet viewports without clipping essential meaning.
+
+**Failure/negative behavior:** `overflow: hidden` or uncontrolled table compression must not be relied upon as the responsive strategy.
+
+### GW-TR-021-SHARED-ACTION-RESOURCE-PRESENTATION
+
+**Required behavior:** recurring actions and evidence/artifact resources use Order-owned shared semantic presentation primitives where doing so removes divergent screen-local behavior.
+
+**Acceptance criterion:** selection, utility, primary/destructive mutation and resource-opening affordances remain consistent and accessible across Review, Execution, Evidence entry points and Documents.
+
+**Failure/negative behavior:** the remediation must not create a generic abstraction layer, DTO/view-model family or second design system merely to normalize controls.
+
+### GW-TR-022-GEOMETRY-REGRESSION-CERTIFICATION
+
+**Required behavior:** permanent browser tests certify the interaction-space invariants in §17.12 in addition to existing semantic/browser regressions.
+
+**Acceptance criterion:** representative wide, medium and narrow viewport runs prove primary-canvas utilization, navigation/chrome economy, responsive queue behavior, reachable authoring actions and stable mode shells.
+
+**Failure/negative behavior:** presence-only tests must not be treated as sufficient evidence that space allocation and interaction-pattern realization remain correct.
+
