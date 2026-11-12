@@ -43,6 +43,12 @@ Order must fail closed when it cannot resolve the canonical owner required for a
 24. [GW-DOC-PRODUCT-IDENTITY-V1](40-order-product-identity.md) — canonical Order / Pontivus Order naming, descriptor, proposition, product-language hierarchy, positioning boundaries and Span-family wording.
 25. [GW-DOC-ORDER-TECHNICAL-IDENTITY-V1](41-order-technical-identity-cutover.md) — binding P4 owner for the Order live technical namespace, one-way predecessor cutover and repository-migration boundary.
 
+## Active implementation plans
+
+The following P7 plans are current implementation authority for their bounded work package. They do not replace the P1-P6 semantic owners they reference.
+
+- [GW-P7-CODEMIRROR-MARKDOWN-EDITOR-V1-2026-11-13](43-codemirror-markdown-editor-implementation-plan.md) — implement the exact-source CodeMirror Markdown editor, deterministic formatting toolbar, Edit/Preview/Split composition, and native Order Light/Dark/System editor theming required by `GW-FR-051..055` and `GW-TR-027..032`.
+
 ## Completed implementation provenance
 
 The following P7 records document completed implementation packages. They are navigation/provenance records, not additional P1-P6 semantic owners and not standing authorization for future changes.
