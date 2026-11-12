@@ -19,12 +19,28 @@ export const SignoffReview = ({
     enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
 
-  if (query.isPending || artifactsQuery.isPending) return <WorkbenchEmptyState compact title="Resolving exact package…" />;
+  if (query.isPending || artifactsQuery.isPending) {
+    return (
+      <section className="order-workspace-section" data-testid="review-workspace">
+        <WorkbenchEmptyState compact title="Resolving exact package…" />
+      </section>
+    );
+  }
   if (query.isError || artifactsQuery.isError) {
     const error = query.error ?? artifactsQuery.error;
-    return <WorkbenchErrorState title="Package is not current" description={error instanceof Error ? error.message : String(error)} />;
+    return (
+      <section className="order-workspace-section" data-testid="review-workspace">
+        <WorkbenchErrorState title="Package is not current" description={error instanceof Error ? error.message : String(error)} />
+      </section>
+    );
   }
-  if (!query.data) return <WorkbenchEmptyState title="No sign-off package" />;
+  if (!query.data) {
+    return (
+      <section className="order-workspace-section" data-testid="review-workspace">
+        <WorkbenchEmptyState title="No sign-off package" />
+      </section>
+    );
+  }
 
   return (
     <section className="order-workspace-section" data-testid="review-workspace">
