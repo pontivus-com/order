@@ -18,6 +18,7 @@ import {
   type WorkItemSchemaId,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
@@ -95,22 +96,22 @@ export const App = () => {
   const [pendingSelection, setPendingSelection] = useState<WorkItemId | null | undefined>(undefined);
   const originatingRowId = useRef<WorkItemId | null>(null);
 
-  const workItemsQuery = useQuery({ queryKey: ["workItems"], queryFn: api.listWorkItems });
-  const projectsQuery = useQuery({ queryKey: ["projects"], queryFn: api.listProjects });
-  const schemasQuery = useQuery({ queryKey: ["workItemSchemas"], queryFn: api.listWorkItemSchemas });
+  const workItemsQuery = useQuery({ queryKey: workbenchQueryKeys.workItems, queryFn: api.listWorkItems });
+  const projectsQuery = useQuery({ queryKey: workbenchQueryKeys.projects, queryFn: api.listProjects });
+  const schemasQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSchemas, queryFn: api.listWorkItemSchemas });
   const diagnosticsQuery = useQuery({
-    queryKey: ["workItemSourceDiagnostics"],
+    queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
     queryFn: api.listWorkItemSourceDiagnostics,
   });
   const refresh = useMutation({
     mutationFn: api.reconcileWorkItemSources,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["workItems"] }),
-        queryClient.invalidateQueries({ queryKey: ["workItemSourceDiagnostics"] }),
-        queryClient.invalidateQueries({ queryKey: ["workItemSource"] }),
-        queryClient.invalidateQueries({ queryKey: ["lifecycleArtifacts"] }),
-        queryClient.invalidateQueries({ queryKey: ["signoffPackage"] }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceDiagnostics }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceRoot }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifactsRoot }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackageRoot }),
       ]);
     },
   });
@@ -207,8 +208,8 @@ export const App = () => {
     },
     onSuccess: async (created) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["workItems"] }),
-        queryClient.invalidateQueries({ queryKey: ["workItemSourceDiagnostics"] }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceDiagnostics }),
       ]);
       resetCreate();
       setCreateOpen(false);
