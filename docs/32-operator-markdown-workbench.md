@@ -371,7 +371,7 @@ On constrained widths, Split may be unavailable or collapse to Edit/Preview swit
 
 Read-only documents open in Preview by default and may expose exact-source inspection where useful, but no editing action is added.
 
-### 17.4 Source-editing ergonomics
+### 17.4 Source-editing ergonomics and formatting toolbar
 
 The editor must provide the following ordinary Markdown-authoring behavior:
 
@@ -383,6 +383,37 @@ The editor must provide the following ordinary Markdown-authoring behavior:
 - Markdown-aware list/blockquote continuation and deletion behavior;
 - fenced-code and inline-code syntax recognition;
 - accessible focus and keyboard operation.
+
+The editable source surface also provides a compact **Markdown formatting toolbar**. The toolbar is a source-editing affordance, not a rich-text model. Its actions transform the exact current Markdown buffer and selection directly.
+
+The required toolbar actions are:
+
+- Undo;
+- Redo;
+- Heading level 1;
+- Heading level 2;
+- Heading level 3;
+- Bold;
+- Italic;
+- Inline code;
+- Blockquote;
+- Bulleted list;
+- Numbered list;
+- Link;
+- Fenced code block;
+- Horizontal rule.
+
+The toolbar may group structurally related actions and may collapse lower-frequency actions into an overflow/menu treatment on constrained widths, but the actions remain keyboard accessible and discoverable.
+
+Formatting behavior must be deterministic and reversible:
+
+- inline actions wrap the current selection with the appropriate Markdown delimiters and select/place the caret predictably when the selection is empty;
+- block actions add, replace or remove only the relevant Markdown line/block prefix/fence;
+- repeated application should toggle/remove the formatting where that can be determined mechanically from the immediate source selection;
+- formatting actions operate on the same source string used by Save;
+- no formatting action may parse the whole document into another editable authority or normalize unrelated Markdown.
+
+The toolbar must respect the same editability rules as the source editor and is absent/disabled for read-only documents.
 
 Line numbers may be used when they improve source navigation but must remain visually secondary to the document itself.
 
@@ -460,11 +491,11 @@ This extension does not authorize:
 
 ### GW-FR-053-MARKDOWN-AUTHORING-ERGONOMICS
 
-**Required behavior:** the source editor provides syntax highlighting, soft wrapping, undo/redo, search/replace and Markdown-aware keyboard editing appropriate for ordinary document authoring.
+**Required behavior:** the source editor provides syntax highlighting, soft wrapping, undo/redo, search/replace, Markdown-aware keyboard editing and the formatting toolbar defined in §17.4.
 
-**Acceptance criterion:** common Markdown editing can be performed without a plain-textarea experience while remaining source-first and keyboard accessible.
+**Acceptance criterion:** common Markdown structure and emphasis can be authored through either keyboard/source editing or explicit toolbar actions without a plain-textarea experience; every toolbar action changes the same exact Markdown buffer and remains keyboard accessible.
 
-**Failure/negative behavior:** authoring ergonomics must not expand into a generic IDE, repository editor, LSP/code-intelligence environment or multi-file workspace.
+**Failure/negative behavior:** authoring ergonomics must not create rich-text/AST authority or expand into a generic IDE, repository editor, LSP/code-intelligence environment or multi-file workspace.
 
 ### GW-FR-054-LIVE-SAFE-MARKDOWN-PREVIEW
 
