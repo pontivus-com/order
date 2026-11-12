@@ -137,7 +137,7 @@ It provides at minimum:
 
 The editor must not transform the operator's Markdown into an alternate rich-text authority or hide the exact source being saved.
 
-Rendered Markdown preview, syntax highlighting, code completion, repository-aware navigation and IDE-style editing are not required v1 behavior.
+Rendered Markdown preview and syntax-aware source editing are now part of the editor extension in §17. Code completion, repository-aware navigation and IDE-style editing remain outside the required behavior.
 
 ## 8. Interactive runs and durable intent
 
@@ -327,3 +327,158 @@ This workbench extension does not authorize:
 8. the read-only execution/candidate presentation using existing canonical Run/RunEvent/EvidenceRef/ExecutionTask state;
 9. a UI decomposition that does not accumulate these new responsibilities into `ui/src/app.tsx`;
 10. permanent architecture/browser tests proving no DB-only source bypass, no stale overwrite, no R3/code-editor path and correct source/lifecycle invalidation.
+
+## 17. Functional addendum — exact-source Markdown editor extension (2026-11-13)
+
+The governed Markdown workspace remains source-authoritative. This addendum improves the authoring and reading experience without changing what is canonical, editable, signable or persisted.
+
+### 17.1 Operator outcome
+
+A governed Markdown document must feel like a proper document-authoring surface rather than a plain multiline form field.
+
+For every editable WorkItem/R1/R2/DESIGN/PLAN document:
+
+- the operator edits the exact Markdown source;
+- Markdown structure is visually distinguishable while editing;
+- ordinary Markdown authoring actions such as list continuation, undo/redo, search and selection behave as expected;
+- the rendered document can be inspected without leaving the selected lifecycle document;
+- Save, Cancel, conflict handling, dirty-state admission and expected-hash semantics remain unchanged.
+
+R3 and any other read-only Markdown remain non-editable under the existing lifecycle rules.
+
+### 17.2 Canonical-source invariant
+
+The Markdown string remains the only editable document authority.
+
+The editor may maintain ephemeral browser-local editor state for cursor, selection, undo history, syntax tree or viewport state, but:
+
+- that state is never persisted as document content;
+- it is never signed, hashed or submitted instead of Markdown;
+- it must not silently normalize or reserialize untouched Markdown;
+- Save submits the exact current source string visible in the source editor.
+
+Switching between document presentation modes must not alter the source buffer.
+
+### 17.3 Document presentation modes
+
+The selected document supports these presentation modes:
+
+1. **Edit** — full primary-canvas exact-source Markdown editor.
+2. **Preview** — rendered Markdown using Order's existing safe read-only Markdown presentation.
+3. **Split** — source editor and rendered preview side by side when the available width can support both without making either unusable.
+
+On constrained widths, Split may be unavailable or collapse to Edit/Preview switching. Responsive behavior must preserve the current document, dirty buffer, cursor/selection where practical, and Save/Cancel/conflict state.
+
+Read-only documents open in Preview by default and may expose exact-source inspection where useful, but no editing action is added.
+
+### 17.4 Source-editing ergonomics
+
+The editor must provide the following ordinary Markdown-authoring behavior:
+
+- Markdown syntax highlighting;
+- soft line wrapping suitable for prose;
+- undo/redo;
+- search and replace;
+- keyboard selection/navigation expected of a source editor;
+- Markdown-aware list/blockquote continuation and deletion behavior;
+- fenced-code and inline-code syntax recognition;
+- accessible focus and keyboard operation.
+
+Line numbers may be used when they improve source navigation but must remain visually secondary to the document itself.
+
+These capabilities are source-editing aids only. They must not introduce repository autocomplete, language servers, code intelligence, multi-file editing or other IDE behavior.
+
+### 17.5 Preview behavior
+
+Preview renders the current in-memory Markdown buffer, not merely the last saved bytes, so the operator can inspect the document before saving.
+
+Preview is presentation only:
+
+- it cannot mutate the source;
+- it cannot become a second document state;
+- clicking or interacting with rendered Markdown must not rewrite source;
+- arbitrary raw HTML does not gain an execution/rendering channel beyond the existing safe Markdown renderer.
+
+The Preview surface should preserve readable prose width inside the full primary canvas. Split allocates sufficient width to both source and rendered document; it must not recreate a cramped inspector/editor layout.
+
+### 17.6 Save, external refresh and conflict continuity
+
+The existing optimistic expected-hash save contract remains authoritative.
+
+While an editable document has unsaved browser-local changes:
+
+- server/query refresh must not overwrite the source buffer;
+- a changed canonical hash is surfaced through the existing conflict state;
+- switching Edit/Preview/Split does not clear dirty state;
+- Cancel restores the loaded source snapshot;
+- Reload current replaces the buffer only through the explicit existing conflict-recovery action.
+
+A successful save updates the loaded source baseline and keeps the editor synchronized with the canonical refetched bytes without producing a false external-conflict state.
+
+### 17.7 Cross-application reference finding
+
+The connected Pontivus Legal application was inspected as a reference implementation. Its Markdown-oriented document editor uses ProseMirror, not CodeMirror. The reusable lesson is architectural rather than technological:
+
+- one cohesive hook owns editor mount/destroy and external-value synchronization;
+- the feature surface owns feature-specific toolbar/actions;
+- editor mechanics are separated from wire/domain persistence.
+
+Order adopts that ownership pattern.
+
+Order does **not** adopt the Legal application's Markdown parse/serialize approach because Order's stricter source-fidelity contract requires the exact Markdown source string itself to remain continuously authoritative.
+
+### 17.8 Explicit non-goals
+
+This extension does not authorize:
+
+- rich-text/WYSIWYG document authority;
+- AST/ProseMirror/Lexical state as persisted document content;
+- automatic formatting/normalization on load, mode switch or save;
+- arbitrary repository-file editing;
+- code completion, LSP, repository symbol navigation or IDE workspace behavior;
+- collaborative editing;
+- a second Markdown rendering stack;
+- a new daemon, persistence, HTTP or lifecycle contract.
+
+## 18. Markdown editor extension functional requirements
+
+### GW-FR-051-EXACT-SOURCE-MARKDOWN-EDITOR
+
+**Required behavior:** editable governed documents use a syntax-aware source editor while the visible Markdown string remains the exact editable/persisted authority.
+
+**Acceptance criterion:** the operator can author Markdown with syntax-aware editing ergonomics and Save submits exactly the source string currently represented by the editor.
+
+**Failure/negative behavior:** the editor must not persist, sign or substitute an AST/rich-text/editor-state representation for Markdown or normalize untouched source.
+
+### GW-FR-052-DOCUMENT-EDIT-PREVIEW-MODES
+
+**Required behavior:** governed Markdown supports Edit and Preview, plus Split where sufficient width exists, without changing the selected document or source buffer.
+
+**Acceptance criterion:** mode changes preserve dirty/conflict/save state; Preview renders the current in-memory buffer; Split keeps both source and rendered document usable.
+
+**Failure/negative behavior:** presentation-mode switching must not save, normalize, discard or replace Markdown.
+
+### GW-FR-053-MARKDOWN-AUTHORING-ERGONOMICS
+
+**Required behavior:** the source editor provides syntax highlighting, soft wrapping, undo/redo, search/replace and Markdown-aware keyboard editing appropriate for ordinary document authoring.
+
+**Acceptance criterion:** common Markdown editing can be performed without a plain-textarea experience while remaining source-first and keyboard accessible.
+
+**Failure/negative behavior:** authoring ergonomics must not expand into a generic IDE, repository editor, LSP/code-intelligence environment or multi-file workspace.
+
+### GW-FR-054-LIVE-SAFE-MARKDOWN-PREVIEW
+
+**Required behavior:** Preview renders the current browser-local Markdown buffer through the existing safe Order Markdown renderer before or after save.
+
+**Acceptance criterion:** unsaved source changes can be inspected as rendered Markdown and the renderer has no mutation authority over the source.
+
+**Failure/negative behavior:** the extension must not introduce a second Markdown renderer/source of truth or enable raw-content execution.
+
+### GW-FR-055-EDITOR-STATE-CONTINUITY
+
+**Required behavior:** document refresh, responsive presentation changes and Edit/Preview/Split transitions preserve the existing dirty/save/conflict contract and do not overwrite unsaved source.
+
+**Acceptance criterion:** external canonical changes surface as conflicts, successful saves synchronize cleanly, and mode/layout changes do not clear or replace the active buffer.
+
+**Failure/negative behavior:** editor lifecycle or query refresh must not silently reset a dirty buffer or manufacture a false clean/conflict state.
+
