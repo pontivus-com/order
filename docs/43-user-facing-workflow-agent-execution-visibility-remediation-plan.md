@@ -1,363 +1,589 @@
-# 43 — User-facing workflow and agent-execution visibility remediation plan
+# 43 — Repository-native workbench, execution visibility and OpenCode account implementation plan
 
-**Status:** **Not implementation-ready after the repository-native WorkItem documentation and OpenCode saved-account authority changes.** The user-facing workflow/activity scope remains valid, but this P7 package must be revised against `GW-FR-060..076`, `GW-TR-036..053`, `GW-DOC-CANONICAL-CONTRACTS-V1 §§32–33` and the current OpenCode integration contract before implementation; canonical P3/P4 placement and sizing requirements are established by `GW-DOC-WORKBENCH-UX-V1` §21 and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` §20. P6/title/archive/provider-diagnostic contract amendments listed below must land before their dependent code phases.  
+**Status:** Implementation-ready P7 plan  
 **Target repository:** `pontivus-com/order`  
 **Pyramid layer:** P7 implementation plan  
 **Prepared:** 2026-11-13  
-**Purpose:** correct the browser product model so operators see the human workflow rather than backend lifecycle codes and have exact, continuously accessible visibility into agent execution, failure and recovery.
+**Purpose:** implement the now-closed P3/P4/P6 design for repository-native WorkItems and Git persistence, human-facing workflow/Activity, WorkItem management, typed failures/provider diagnostics, and global saved OpenCode account switching.
 
-This document is an implementation plan. It does not redefine lifecycle semantics, UX placement/sizing or canonical contracts owned by higher layers.
+This plan is execution authority only. It does not redefine the functional/technical contracts it cites.
 
 ## 1. Governing authority
 
-Implementation must conform to:
+Implementation must conform to the current canonical owners, including:
 
-- `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`;
 - `GW-DOC-WORK-LIFECYCLE-V1`;
 - `GW-DOC-LIFECYCLE-CONTEXT-V1`;
-- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`;
-- `GW-DOC-MARKDOWN-WORKBENCH-V1`;
-- `GW-DOC-WORKBENCH-UX-V1` including §21 / `GW-FR-051..059`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` including §20 / `GW-TR-027..035`;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V1`;
-- `GW-DOC-CANONICAL-CONTRACTS-V1`;
-- `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW` and `GW-P1-MINIMUM-CHANGE`.
-
-The existing canonical WorkItem lifecycle, Run, RunEvent, ArtifactRef, source, approval, task and evidence owners remain authoritative.
-
-## 2. Remediation outcomes
-
-The package is complete only when:
-
-1. the primary UI uses Work request → Research → Requirements → Solution design → Implementation plan → Readiness review → Approval → Implementation → Complete;
-2. internal values such as `R1`, `R2`, `R3`, `STAGE`, raw Run roles and raw event tags are secondary Technical details only;
-3. every current and historical agent Run is inspectable in Activity regardless of terminal status;
-4. every persisted material RunEvent is visible through the Activity timeline;
-5. running/waiting/failed/blocked/completed state and exact failure detail are visible without browser developer tools;
-6. agent failure cannot disappear when a Run ceases to be active;
-7. source-boundary errors are classified/actionable rather than generic 400s;
-8. provider-level observable diagnostics needed to debug execution are retained as Run-scoped evidence rather than discarded;
-9. title editing and removal/restoration are discoverable WorkItem management interactions;
-10. Activity, workflow orientation and management interactions use the placement/sizing rules already owned by P3/P4.
-
-
-## 2.1 Repository-native documentation dependency (2026-11-13)
-
-The canonical WorkItem document-location model changed after this plan was first written.
-
-Implementation must not preserve or build further dependency on the former installation-global `workItemRoot`. The revised implementation package must incorporate the repository-native source/discovery/config/migration/Git-save contracts now owned by:
-
-- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §§9–10.1 / `GW-FR-060..061`;
-- `GW-DOC-MARKDOWN-WORKBENCH-V1` §14 / `GW-FR-062..063`;
-- `GW-DOC-WORKBENCH-UX-V1` §22 / `GW-FR-064`;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` §30 / `GW-TR-036..038`;
-- `GW-DOC-CANONICAL-CONTRACTS-V1` §32.
-
-This status note prevents the earlier P7 package from acting as stale implementation authority. A refreshed P7 task set is required after design review; this document does not independently restate the new contracts.
-
-
-## 2.2 OpenCode saved-account dependency (2026-11-13)
-
-The refreshed P7 package must include the global OpenCode saved-account UI and daemon/shell work now owned by:
-
+- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`, including `GW-FR-060..061`, `GW-FR-070`, `GW-FR-077..078`;
+- `GW-DOC-MARKDOWN-WORKBENCH-V1`, including `GW-FR-062..063`, `GW-FR-065..069`, `GW-FR-071..072`;
+- `GW-DOC-WORKBENCH-UX-V1`, including `GW-FR-051..059`, `GW-FR-064`, `GW-FR-073..076`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`, including `GW-TR-027..035`, `GW-TR-039..044`, `GW-TR-053`;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, including `GW-TR-036..038`, `GW-TR-045..052`, `GW-TR-054..056`;
+- `GW-DOC-CANONICAL-CONTRACTS-V1 §§32–34`;
 - `GW-DOC-OPENCODE-INTEGRATION-V1 §12`;
-- `GW-DOC-WORKBENCH-UX-V1 §23 / GW-FR-073..076`;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V1 §31 / GW-TR-049..052`;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §21 / GW-TR-053`;
-- `GW-DOC-CANONICAL-CONTRACTS-V1 §33`;
-- D19.
+- `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
+- D18 and D19;
+- `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW`, `GW-P1-MINIMUM-CHANGE`.
 
-The requirement is saved **OpenCode account switching**, not provider/model switching. The configured Order model remains unchanged. Implementation must preserve OpenCode credential ownership and must not use the secret-bearing credential-list endpoint as browser account data.
+There are **no remaining documentation/design prerequisites** for this package. If implementation encounters a contradiction in these current authorities, it stops and returns to the defective layer rather than inventing a local interpretation.
 
+## 2. Required end state
 
-## 3. Current proven defects
+The implementation is complete only when all of the following are simultaneously true:
 
-Current implementation evidence establishes:
+1. every new WorkItem and ordinary lifecycle Markdown file lives at its deterministic path inside the selected project repository;
+2. productive configuration/database behavior is v3; the external global `workItemRoot` is migration input only and never a productive source owner;
+3. a fresh installation rediscovers Work requests plus deterministic lifecycle Markdown as drafts without fabricating Runs/conformance/Approval/history;
+4. the Documents surface distinguishes editor-dirty, repository-working-tree and Git-persisted state;
+5. **Save documentation to Git** creates an exact path-scoped commit, including archive-marker add/deletion where applicable, without absorbing unrelated repository state;
+6. repository-local Git identity, attached-branch state and in-progress Git-operation blockers are enforced before commit;
+7. title editing mutates only the canonical source H1;
+8. remove/restore is portable archive/restore using the deterministic `.order-archived` marker, never deletion or a DB-only hide flag;
+9. the browser presents Work request → Research → Requirements → Solution design → Implementation plan → Readiness review → Approval → Implementation → Complete instead of requiring backend lifecycle codes;
+10. all current and terminal Runs remain inspectable in one Activity workspace, including failures and recovery;
+11. material RunEvents and provider diagnostic evidence are inspectable without developer tooling;
+12. source/current-state failures preserve typed 400/404/409/500 semantics and source diagnostics;
+13. the already-implemented CodeMirror exact-source editor remains the Markdown editing surface and retains its current formatting/preview/state-continuity contracts;
+14. the application shell shows the active saved OpenCode login account;
+15. multiple OpenCode login accounts can remain saved and be switched A → B → A without changing `OrderConfig.model`;
+16. Add OpenCode account runs the pinned OpenCode Console device/OAuth flow through Order without exposing credential secrets/private OpenCode listener state;
+17. Add/Switch/Rename account mutations cannot overlap any RUNNING/WAITING_FOR_INPUT Order Run.
 
-- `WorkItemContext` labels the action `Start R1 run`;
-- Documents exposes raw R1/R2/DESIGN/PLAN/R3 labels;
-- `StageDialogue` selects only active STAGE Runs and filters event rendering to messages/questions/proposals;
-- terminal `PROVIDER_FAILED`, `CONFORMANCE_FAILED`, `STAGE_BLOCKED` and `STAGE_COMPLETED` are therefore hidden from the ordinary pre-signoff activity surface;
-- a terminal failed STAGE Run can result in `No active interactive run`;
-- `ExecutionWorkspace` contains fuller Run/event inspection but is only available for post-signoff execution/candidate states;
-- `WorkItemWorkspace` automatically moves Documents → Dialogue when an active Run appears but has no symmetric terminal/stage-transition reconciliation;
-- the daemon maps every thrown `/api/*` error to HTTP 400 `INVALID_REQUEST`;
-- source diagnostics exist canonically but are not preserved through the failing source request as a typed actionable response;
-- OpenCode process stderr is drained with a no-op callback;
-- there is no direct title-edit interaction;
-- there is no governed remove/archive/restore interaction.
+## 3. Preservation/non-regression constraints
 
-## 4. Placement and sizing implementation map
+Implementation must **not**:
 
-Implement exactly against `GW-DOC-WORKBENCH-UX-V1` §21 and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` §20.
+- reintroduce an installation-global productive WorkItem source path;
+- create DTO/domain/view-model duplicates of canonical schemas;
+- add a second repository/document/Run/account state store;
+- replace CodeMirror with a textarea, rich-text editor or another Markdown model;
+- make account switching a provider/model selector;
+- read OpenCode's secret-bearing `credential.list` endpoint for browser account presentation;
+- capture hidden model reasoning/chain-of-thought;
+- create a generic observability/logging platform;
+- use `git add -A`, `git add .`, `git commit -a`, unrestricted commit, `--no-verify`, stash, checkout, push, pull, fetch, merge or rebase for documentation persistence;
+- delete WorkItem documentation/history as the meaning of Remove;
+- let browser-local state promote lifecycle stages or decide canonical eligibility.
 
-| Interaction | Owning surface | Size/placement |
-|---|---|---|
-| current workflow step + full progression | WorkItem header | compact orientation row; never another full-width content tab bar |
-| current agent status | Activity summary | primary-canvas compact summary above timeline |
-| current status mirror | Context | concise only; no logs/timeline |
-| Run/attempt selection | Activity | 14–18 rem master on wide; compact selector/drawer on medium/narrow |
-| RunEvent timeline | Activity | flexible remaining width and remaining viewport height |
-| pending question/composer | Activity | attached/sticky bottom of selected Activity detail only while input accepted |
-| proposal diff | Review | full Review-class primary canvas |
-| exact raw logs/provider diagnostics | Evidence | full Evidence-class primary canvas |
-| exact IDs/raw payloads | Activity Technical details | secondary disclosure/drawer; no permanent third column |
-| source blocker | current primary WorkItem surface + compact Context mirror | visible before productive action; link to Work request/Activity/Technical details |
-| edit title | WorkItem header/title affordance | compact input/popover/dialog |
-| remove/archive/restore | WorkItem header overflow or compact management section | secondary action + confirmation; never primary workflow CTA |
-| signed implementation tasks | Implementation | existing task-centric master/detail workspace |
-| chronological agent history during Implementation | Activity | remains separately accessible |
+## 4. Ordered implementation sequence
 
-Context must collapse before Activity detail is compressed below the P3/P4 functional minimum. Activity owns the viewport; debug material never gets squeezed into the Context rail.
+### P7-T01 — Repository-native v3 source/config/database cutover
 
-## 5. Workflow interaction sequence
+Implement the productive v3 storage boundary first.
 
-### Work request / Research entry
+Required changes:
 
-- WorkItem opens with user-facing workflow orientation.
-- Work request remains the canonical source document.
-- primary action is `Start research`, not `Start R1 run`.
-- starting Research opens Activity unless blocked by unsaved Markdown.
+- remove productive `workItemRoot` from config/runtime;
+- add/consume project `[workItems].root` with canonical default `docs/order/work-items`;
+- implement deterministic WorkItem/source/lifecycle path calculation in the core;
+- make source creation/discovery/revalidation operate only inside exact configured target repositories;
+- implement deterministic lifecycle-draft rediscovery into ArtifactRefs without fabricated lifecycle/conformance history;
+- implement SQLite v3 source-path semantics;
+- implement installer-owned v2→v3 migration, including active-execution refusal, byte-identical source/current lifecycle materialization and R1 revalidation behavior;
+- preserve historical ArtifactRefs/RunEvents/Approvals as specified by P6;
+- update guided setup/example config only as required by the v3 contract.
 
-### Research/Requirements/Solution design/Implementation planning
+No UI/workflow presentation changes belong in this task.
 
-- Activity shows the selected Run immediately with Running state.
-- WAITING_FOR_INPUT keeps Activity primary and exposes the pending question/composer.
-- proposed document changes appear as timeline events and open Proposal Review.
-- after adoption/rejection, return to the owning Activity/state with the next allowed action explicit.
-- direct document edits visibly return ownership to the corresponding workflow step and require revalidation through the canonical stage path.
+### P7-T02 — Canonical title/archive management
 
-### Failure
+Implement the now-closed WorkItem management semantics:
 
-- failed/blocked/cancelled activity remains visible and selectable;
-- primary failure receipt shows exact canonical detail and retry/recovery action;
-- Technical details/evidence are optional deeper inspection, never the sole failure explanation.
+- pure canonical H1 rewrite helper;
+- expected-hash direct title command;
+- deterministic `.order-archived` marker create/read/remove;
+- derive/persist `WorkItem.archived` projection;
+- default list excludes archived; explicit include-archived query restores discoverability;
+- archive/restore eligibility: no active Run, never during Implementation;
+- no lifecycle/source/artifact mutation from archive itself.
 
-### Successful transition
+### P7-T03 — Documentation Git status and exact path-scoped commit
 
-- canonical WorkItem transition immediately updates the workflow header;
-- Activity history remains inspectable;
-- browser-local mode cannot remain on an invalid/stale surface.
+Implement one daemon documentation owner and Git shell effect:
 
-### Approval and Implementation
+- compute current governed WorkItem path set;
+- include Work request, current lifecycle docs and archive marker;
+- states: MATCHES_HEAD/MODIFIED/UNTRACKED/DELETED/MISSING/IGNORED/UNMERGED;
+- exact expected HEAD + path/hash preconditions;
+- repository-local `user.name`/`user.email`;
+- attached local `refs/heads/*` requirement;
+- reject merge/rebase/cherry-pick/revert/bisect/sequencer state;
+- path-scoped dry-run proof;
+- intent-to-add only for exact untracked governed files;
+- tracked deletion commit for restore marker;
+- normal Git hooks remain enabled;
+- post-commit blob/hash verification;
+- refetch/invalidate Git/document/signoff state after success.
 
-- Approval remains Review-class work;
-- post-signoff user-facing mode is Implementation;
-- task/candidate/validation inspection remains in Implementation;
-- Activity remains the chronological agent-execution view for builder/reviewer/remediator Runs.
+### P7-T04 — Typed API failure boundary
 
-## 6. Documentation prerequisite phase
+Replace generic API error collapse with the canonical P6 classifier.
 
-These changes are required before dependent code. They must amend canonical owners rather than this plan becoming their semantic authority.
+Required changes:
 
-### D1 — WorkItem management authority
-
-Amend `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and, where needed, `GW-DOC-MARKDOWN-WORKBENCH-V1` to own:
-
-- direct user-facing title-edit semantics while preserving the WorkItem source H1 as canonical title owner;
-- exact remove-from-active-work/restore semantics;
-- portability/reconciliation consequence of removal/restoration;
-- prohibition on an installation-local-only hide flag that would be lost on source rediscovery.
-
-### D2 — Canonical P6 management contract
-
-Amend `GW-DOC-CANONICAL-CONTRACTS-V1` to define the exact typed mutation/persistence/source grammar for D1.
-
-No browser-local title/archive authority and no second WorkItem representation may be introduced.
-
-### D3 — API failure classification
-
-Amend `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1` so:
-
-- malformed request/input is 400;
+- one server/daemon classification boundary for 400/401/403/404/409/500;
+- preserve exact `WorkItemSourceDiagnostic` on source 409;
+- malformed request remains 400;
 - absent canonical entity is 404;
-- source/lifecycle/current-state conflict is 409;
-- unexpected daemon defect is 500;
-- source-boundary failures preserve the existing canonical `WorkItemSourceDiagnostic` code/path/workItem/detail instead of collapsing to generic `INVALID_REQUEST`.
+- source/lifecycle/optimistic/current-state conflict is 409;
+- unexpected defect is 500 with non-secret public message;
+- browser HTTP helper parses one canonical `OrderHttpError` shape;
+- primary UI surfaces render known diagnostic/failure detail rather than generic status text.
+
+### P7-T05 — Run-scoped provider diagnostic evidence
+
+Implement diagnostic evidence across **both** pre-signoff STAGE and post-signoff BUILDER/REVIEWER/REMEDIATOR provider turns.
+
+Required changes:
+
+- stop discarding useful OpenCode process stderr;
+- build bounded/redacted `ProviderDiagnosticRecord` evidence for every provider turn;
+- retain configured provider/model, session id, prompt id, timing/outcome, format-repair status, failure phase and safe exception text;
+- retain bounded public provider action/result evidence where useful;
+- emit coordinator-owned `PROVIDER_DIAGNOSTICS_RECORDED`;
+- attach the same evidence to `PROVIDER_FAILED` when causal;
+- known Order secrets must not persist;
+- no hidden reasoning capture;
+- Activity Technical details/Evidence can retrieve these existing EvidenceRefs.
+
+### P7-T06 — Human workflow projection and Activity workspace
+
+Implement the P3/P4 workflow/UI correction as one cohesive presentation change.
+
+Required changes:
+
+- extend `workbench-presentation.ts` as the single workflow/status/event language owner;
+- compact persistent workflow orientation in WorkItem header;
+- replace pre-signoff `StageDialogue` ownership with `ActivityWorkspace`;
+- Activity lists all Runs for the WorkItem, including terminal Runs;
+- one shared RunEvent timeline/presentation owner;
+- pending input stays attached to selected Activity;
+- proposal review round-trips back to owning Activity;
+- terminal failure/block/cancel remains visible;
+- symmetric presentation-mode reconciliation after completion/failure/stage advancement;
+- post-signoff user label is **Implementation**, canonical backend `EXECUTION` unchanged;
+- Technical details exposes raw ids/tags only secondarily;
+- existing Implementation task workspace remains task-centric while Activity remains chronological history.
+
+### P7-T07 — Documents/Git/title/archive UI integration with CodeMirror preservation
+
+Integrate the backend capabilities into the existing Documents/queue/workspace UI.
+
+Required changes:
+
+- preserve `MarkdownSourceEditor`/CodeMirror as exact-source editor;
+- project-first creation shows resolved repository-local document root;
+- Documents state strip shows repository-relative path plus Unsaved / Saved to project, not Git / Saved to Git;
+- exact **Save documentation to Git** confirmation/status/failure UI;
+- title edit from the WorkItem header uses the daemon title command, not browser Markdown parsing;
+- remove/restore from WorkItem management uses archive endpoint;
+- queue exposes an explicit Show archived view and restore path;
+- archive/Git operations do not compete with lifecycle primary CTA;
+- dirty-buffer/focus/history guards remain intact.
+
+### P7-T08 — OpenCode saved-account daemon/shell implementation
+
+Implement the installation-global account boundary without changing provider/model configuration.
+
+Required changes:
+
+- safe account projection from OpenCode `integration.get("opencode")` only;
+- never use `credential.list` for the account manager;
+- opaque saved credential id + label + active/status projection;
+- account-control process uses exact pinned binary/private HOME/XDG/DB/password/version checks;
+- Add login fixes integration=`opencode`, method=`device`, no browser-controlled provider/server;
+- retain one private control process for one process-local OAuth attempt;
+- same-origin HTTPS authorization URL validation;
+- start/status/cancel login endpoints;
+- activate and rename endpoints;
+- unique account labels;
+- global mutation guard: zero RUNNING/WAITING_FOR_INPUT Runs and one mutation/login attempt maximum;
+- successful Add/Switch proves fresh active account projection;
+- `OrderConfig.model` is never mutated.
+
+### P7-T09 — Global OpenCode account UI
+
+Implement one application-shell account control.
 
-### D4 — Provider diagnostic evidence
+Required changes:
+
+- visible from queue and selected WorkItem states;
+- compact active label, normally login email label;
+- list all saved OAuth accounts;
+- Active/Needs authentication state;
+- Switch and Rename;
+- Add OpenCode account flow with label → external sign-in URL/instructions → polling → terminal state;
+- active-Run blocker explains why account mutation is disabled;
+- narrow layout moves the control into application utilities without consuming primary WorkItem canvas;
+- account state uses TanStack Query only; no new global client store;
+- provider/model presentation does not change when account selection changes.
+
+### P7-T10 — Full certification and architecture closure
+
+Add/update permanent tests proving the entire package.
+
+Required proof includes:
+
+- config/database v3 and bounded migration;
+- no productive external `workItemRoot`;
+- deterministic WorkItem/lifecycle paths and lifecycle-draft rediscovery without fabricated workflow history;
+- title edit exact H1-only behavior;
+- portable archive marker, active/default/archived queue behavior and Git persistence of marker add/deletion;
+- documentation Git path isolation against unrelated staged/unstaged changes;
+- detached/in-progress Git operation and missing identity blockers;
+- 400/404/409/500 mapping and source diagnostic preservation;
+- provider diagnostics for STAGE and post-signoff Runs, bounded/redacted stderr, no secret evidence;
+- Activity terminal Run/event visibility and responsive geometry;
+- CodeMirror exact-source/formatting/preview/state-continuity regressions remain green;
+- OpenCode three-account coexistence, A→B→A switching, Add/Rename, active-Run mutation rejection, no secret-bearing account API use;
+- architecture dependency/FCIS/SoC/DRY/strict-typing/no-DTO/no-second-store constraints;
+- all configured verification gates pass.
+
+## 5. Exact implementation change map
 
-Amend P4/P6 to define Run-scoped diagnostic evidence for observable provider execution.
+### T01
 
-It must cover the observable information required to diagnose agent execution, including provider/model/session identity, turn timing/outcome, format-repair use, parse/admission failure, observable tool/action/result material supplied by the provider SDK, process stderr and transport/provider exception text.
+Modify:
 
-It must explicitly exclude hidden model reasoning/chain-of-thought and secrets.
+- `src/installer.ts`
+- `src/core/contracts.ts`
+- `src/core/work-item-source.ts`
+- `src/shell/config.ts`
+- `src/shell/setup.ts`
+- `src/shell/sqlite.ts`
+- `src/shell/work-item-source.ts`
+- `src/daemon/runtime.ts`
+- `src/daemon/work-item-source.ts`
+- `pontivus-order.toml.example`
 
-The implementation must reuse the existing Evidence architecture; no second logging database is authorized.
+### T02
 
-## 7. Code implementation phases
+Modify:
 
-### I1 — Canonical presentation projection
+- `src/core/contracts.ts`
+- `src/core/lifecycle.ts`
+- `src/core/work-item-source.ts`
+- `src/shell/sqlite.ts`
+- `src/shell/work-item-source.ts`
+- `src/daemon/work-item-source.ts`
+- `src/daemon/server.ts`
 
-Extend `ui/src/workbench-presentation.ts` as required by `GW-TR-027`.
+### T03
 
-Remove component-local internal-code presentation where replaced by the shared projection.
+Add:
 
-### I2 — Workflow orientation
+- `src/daemon/work-item-documentation.ts`
 
-Implement the compact WorkItem header workflow orientation under `GW-TR-028`.
+Modify:
 
-Do not add another full-width mode/navigation row.
+- `src/core/contracts.ts`
+- `src/shell/repository.ts`
+- `src/daemon/runtime.ts`
+- `src/daemon/server.ts`
 
-### I3 — Activity workspace
+### T04
 
-Create the Activity workspace under `GW-TR-029..031`.
+Modify:
 
-Replace the current StageDialogue-only execution presentation rather than retaining two competing pre-signoff Run surfaces.
+- `src/core/contracts.ts`
+- `src/daemon/server.ts`
+- `src/daemon/work-item-source.ts`
+- `ui/src/http.ts`
 
-Activity must query all WorkItem Runs, select active when present else most-recent/history selection, and retain terminal Runs.
+### T05
 
-### I4 — Shared RunEvent rendering
+Modify:
 
-Create one cohesive Run/event renderer under `GW-TR-030`.
+- `src/core/contracts.ts`
+- `src/shell/opencode.ts`
+- `src/daemon/run.ts`
+- `src/daemon/stage.ts`
+- `src/daemon/execution.ts`
 
-It must render every canonical event material to understanding execution. Conversation, question and proposal events remain first-class, but failure/completion/conformance events are no longer filtered away.
+### T06
 
-Implementation may reuse the exact same renderer inside the task-centric Implementation workspace where semantics match.
+Add:
 
-### I5 — Failure/recovery receipts
+- `ui/src/ActivityWorkspace.tsx`
+- `ui/src/RunEventTimeline.tsx`
 
-Implement `GW-FR-055` / `GW-TR-033`.
+Modify/delete as appropriate:
 
-Provider/conformance/stage/source failure detail is visible in the primary owning surface with the canonical recovery action.
+- `ui/src/workbench-presentation.ts`
+- `ui/src/WorkItemWorkspace.tsx`
+- `ui/src/WorkItemContext.tsx`
+- `ui/src/StageDialogue.tsx`
+- `ui/src/ExecutionWorkspace.tsx`
+- `ui/src/ProposalReview.tsx`
+- `ui/src/EvidenceViewer.tsx`
+- `ui/src/query-keys.ts`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
 
-### I6 — Presentation-mode reconciliation
+`StageDialogue.tsx` is deleted once Activity owns its responsibilities; retaining both as competing pre-signoff Run surfaces is prohibited.
 
-Replace the one-way active-Run auto-navigation with the symmetric state reconciliation required by `GW-TR-035`.
+### T07
 
-Cover active → waiting/completed/failed/blocked/cancelled and WorkItem stage advancement/return.
+Modify:
 
-Preserve dirty Markdown, focus and URL/history rules.
+- `ui/src/CreateWorkItem.tsx`
+- `ui/src/DocumentWorkspace.tsx`
+- `ui/src/MarkdownEditor.tsx`
+- `ui/src/MarkdownSourceEditor.tsx`
+- `ui/src/WorkItemQueue.tsx`
+- `ui/src/WorkItemWorkspace.tsx`
+- `ui/src/WorkItemContext.tsx`
+- `ui/src/http.ts`
+- `ui/src/query-keys.ts`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
 
-### I7 — API/source failure correction
+CodeMirror implementation is preservation authority: changes here may integrate state/actions only; they must not replace the editor substrate or duplicate Markdown source state.
 
-Implement D3.
+### T08
 
-Update `ui/src/http.ts` to parse the canonical typed error response and make source diagnostic information available to primary UI surfaces.
+Add:
 
-### I8 — Provider diagnostic evidence
+- `src/daemon/opencode-account.ts`
 
-Implement D4 at the OpenCode shell/Run evidence boundary.
+Modify:
 
-Stop discarding useful stderr.
+- `src/core/contracts.ts`
+- `src/shell/opencode.ts`
+- `src/daemon/runtime.ts`
+- `src/daemon/server.ts`
 
-Expose diagnostic evidence from Activity Technical details/Evidence.
+### T09
 
-### I9 — Technical details
+Add:
 
-Implement `GW-TR-032`.
+- `ui/src/OpenCodeAccountControl.tsx`
 
-Raw internal stage/role/status/ids/event payloads are visible on demand, not primary workflow language.
+Modify:
 
-### I10 — Title management
+- `ui/src/app.tsx`
+- `ui/src/http.ts`
+- `ui/src/query-keys.ts`
+- `ui/src/primitives/WorkbenchToolbar.tsx`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
 
-Implement D1/D2 title semantics through the canonical source owner with expected-hash protection and canonical refetch.
+### T10
 
-Place the control according to `GW-TR-034`.
+Modify:
 
-### I11 — Remove/restore management
-
-Implement D1/D2 remove/restore semantics.
-
-Place the control according to `GW-TR-034`.
-
-Do not implement raw deletion or installation-local hiding unless the canonical D1/D2 authority explicitly chooses it.
-
-### I12 — User-facing naming closure
-
-Audit every primary browser surface and remove ordinary dependence on internal lifecycle/run/event code words.
-
-Rename the user-facing post-signoff Execution workspace to Implementation while keeping canonical `EXECUTION` state unchanged.
-
-## 8. Expected change surface
-
-Documentation:
-
-- `docs/31-work-item-document-system.md`;
-- `docs/32-operator-markdown-workbench.md`;
-- `docs/37-workbench-ux-information-architecture.md`;
-- `docs/38-workbench-astryx-component-architecture.md`;
-- `docs/12-technical-architecture.md`;
-- `docs/13-canonical-contracts.md`.
-
-Likely production surface:
-
-- `src/core/contracts.ts`;
-- `src/core/work-item-source.ts`;
-- `src/daemon/server.ts`;
-- `src/daemon/work-item-source.ts`;
-- `src/daemon/run.ts`;
-- `src/daemon/stage.ts` only where canonical diagnostic evidence/event binding requires it;
-- `src/shell/opencode.ts`;
-- `ui/src/workbench-presentation.ts`;
-- `ui/src/WorkItemWorkspace.tsx`;
-- `ui/src/WorkItemContext.tsx`;
-- `ui/src/DocumentWorkspace.tsx`;
-- current `ui/src/StageDialogue.tsx` replaced/deleted when Activity takes ownership;
-- new Activity cohesive modules;
-- `ui/src/ExecutionWorkspace.tsx`;
-- `ui/src/ProposalReview.tsx`;
-- `ui/src/WorkItemQueue.tsx`;
-- `ui/src/http.ts`;
-- `ui/src/theme.css`.
-
-Verification:
-
-- `tests/architecture.test.ts`;
-- `tests/core.test.ts`;
-- `tests/daemon.test.ts`;
-- `tests/opencode.test.ts`;
-- `tests/browser.spec.ts`.
-
-This is a forecast, not authorization for unrelated changes.
-
-## 9. Verification requirements
-
-Permanent verification must prove:
-
-1. no primary WorkItem surface requires `R1`, `R2`, `R3`, `STAGE` or raw RunEvent terminology to understand the workflow;
-2. workflow orientation remains compact and does not create redundant navigation chrome;
-3. Activity is available for active and terminal pre-signoff Runs;
-4. provider failure remains visible after the Run becomes FAILED;
-5. `CONFORMANCE_FAILED`, `STAGE_BLOCKED`, `STAGE_COMPLETED` and other material events are inspectable;
-6. Activity wide geometry preserves a 14–18 rem Run master and flexible selected detail;
-7. Context collapses before Activity detail violates its minimum useful width;
-8. Activity timeline/composer own remaining viewport height on representative wide/medium/narrow sizes;
-9. pending human input remains adjacent to the requesting Activity;
-10. proposal Review and Evidence round-trips preserve selected activity;
-11. workflow transition updates orientation and valid presentation mode without reload;
-12. source-boundary failure is classified/actionable rather than generic unexplained 400;
-13. Technical details exposes exact internal state without making it primary product language;
-14. provider diagnostic evidence is retained/openable and no hidden reasoning or credential material is intentionally captured;
-15. title edit changes the canonical source title and no second title authority exists;
-16. remove/restore obeys the canonical D1/D2 semantics and remains secondary to lifecycle actions;
-17. existing dirty-buffer, focus, URL/history, sign-off, validation and evidence-safety regressions remain green;
-18. architecture tests retain FCIS/SoC/DRY/strict typing/no-DTO/no-second-store invariants.
-
-## 10. Explicit exclusions
-
-This remediation does not authorize:
-
-- a new lifecycle or lifecycle ordering;
-- browser-owned promotion/state;
-- a second WorkItem/Run/RunEvent representation;
-- DTO/view-model families;
-- a second server-state store;
-- WebSocket/SSE merely for Activity;
-- hidden model reasoning/chain-of-thought capture;
-- a generic observability/logging platform;
-- arbitrary repository editing;
-- a new IDE/file explorer;
-- unrelated visual redesign.
-
-## 11. Completion criterion
-
-The package is finished when an operator can open any WorkItem and, without knowing Order's backend vocabulary:
-
-- understand the current workflow step and what it means;
-- see exactly whether an agent is running, waiting, complete, blocked or failed;
-- inspect what happened in chronological order;
-- inspect exact technical evidence when needed;
-- recover from a failure through an explicit allowed action;
-- manage the WorkItem title and active-queue presence through governed controls;
-- continue through Approval and Implementation without presentation state becoming stale or ambiguous.
+- `tests/architecture.test.ts`
+- `tests/core.test.ts`
+- `tests/daemon.test.ts`
+- `tests/e2e-server.ts`
+- `tests/shell.test.ts`
+- `tests/sqlite.test.ts`
+- `tests/order-migration.test.ts`
+- `tests/opencode.test.ts`
+- `tests/browser.spec.ts`
+- `tests/certification.test.ts`
+- `tests/markdown-source-formatting.test.ts` only if integration changes require preserving existing formatting assertions.
+
+No dependency change is expected.
+
+## 6. Required deletions/replacements
+
+The implementation must remove obsolete productive behavior rather than preserving compatibility branches:
+
+- productive `workItemRoot` configuration/runtime path;
+- global-root-relative WorkItem source semantics;
+- movable-source adoption behavior;
+- one-way Documents→Dialogue presentation reconciliation;
+- pre-signoff Run visibility limited to active STAGE Runs;
+- RunEvent allow-list that hides terminal/conformance/provider events;
+- top-level API catch that turns unexpected defects into 400;
+- stderr drain-to-no-op behavior where diagnostic evidence requires capture;
+- any raw `Start R1 run`/R1/R2/R3 primary user terminology replaced by the shared user-facing projection.
+
+No dual v2/v3 productive source path, dual StageDialogue/Activity execution UI or dual OpenCode account store may remain.
+
+## 7. Migration execution order
+
+For an existing installation:
+
+1. quiesce old daemon;
+2. preflight complete v2 source/runtime state;
+3. refuse migration if any WorkItem is in active execution;
+4. resolve each project manifest/document root;
+5. preflight all deterministic source/lifecycle destinations;
+6. copy source/current lifecycle bytes and verify exact hashes;
+7. migrate SQLite source semantics/projections to v3;
+8. write config v3 without `workItemRoot`;
+9. activate new application;
+10. reconcile repository-native WorkItems/lifecycle drafts;
+11. require health plus source reconciliation before success;
+12. retain old external source root only as non-productive backup.
+
+Do not attempt a live dual-read transition.
+
+## 8. Verification sequence
+
+Implementation completion requires the repository's configured gates in this order:
+
+1. `dependency-lock`
+2. `typecheck`
+3. `architecture`
+4. `test`
+5. `build`
+6. `browser`
+
+Failures are corrected at their owning implementation layer; tests are not weakened to accept old behavior.
+
+In addition, manual browser review must demonstrate:
+
+- Work request → Research → Requirements → Solution design → Implementation plan → Readiness review → Approval → Implementation → Complete;
+- CodeMirror document editing remains functional;
+- Activity shows a failed terminal Run with failure and Technical details;
+- Save documentation to Git visibly changes from working-tree-only to Git-persisted;
+- title edit and archive/restore are discoverable but secondary;
+- three saved OpenCode account labels can be viewed and switched, with provider/model unchanged.
+
+## 9. Completion criterion
+
+This P7 package is complete when the implementation and permanent verification prove that a normal operator can:
+
+- select a project and create work whose complete durable documentation lives in that repository;
+- edit documents in CodeMirror and commit only those governed documents to Git without shell work;
+- understand the workflow without knowing R1/R2/R3;
+- see exactly what every agent Run is doing/did and why it failed;
+- recover using the canonical next action;
+- rename/archive/restore work without creating parallel authority;
+- switch among saved OpenCode login accounts directly in the Order UI while keeping the same configured OpenCode Go model;
+- clone/reconfigure a project repository and recover its durable WorkItem/document drafts without fabricating runtime history.
+
+There are no open design decisions in this plan.
+
+## 10. Canonical task block
+
+```order-tasks
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "P7-T01",
+      "objective": "Cut productive Order configuration, persistence, source discovery and installer migration to repository-native WorkItem v3 semantics.",
+      "dependsOn": [],
+      "scope": ["src/installer.ts", "src/core/**", "src/shell/**", "src/daemon/**", "pontivus-order.toml.example"],
+      "exclusions": ["docs/**", "ui/**", "tests/**", "pontivus-order.toml"],
+      "acceptanceRefs": ["GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION", "GW-FR-061-DETERMINISTIC-WORKITEM-DOCUMENT-LAYOUT", "GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY", "GW-TR-036-REPOSITORY-NATIVE-WORKITEM-DOCUMENTS", "GW-TR-038-PROJECT-SCOPED-SOURCE-DISCOVERY", "GW-TR-045-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY", "GW-TR-048-V2-V3-APPROVAL-MIGRATION-SAFETY"],
+      "changeSurface": ["src/installer.ts", "src/core/contracts.ts", "src/core/work-item-source.ts", "src/shell/config.ts", "src/shell/setup.ts", "src/shell/sqlite.ts", "src/shell/work-item-source.ts", "src/daemon/runtime.ts", "src/daemon/work-item-source.ts", "pontivus-order.toml.example"],
+      "gateIds": ["dependency-lock", "typecheck", "architecture", "test", "build"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-FCIS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["foundation", "core", "shell", "daemon"]
+    },
+    {
+      "id": "P7-T02",
+      "objective": "Implement canonical WorkItem title editing and repository-native archive/restore semantics.",
+      "dependsOn": ["P7-T01"],
+      "scope": ["src/core/**", "src/shell/**", "src/daemon/**"],
+      "exclusions": ["docs/**", "ui/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT", "GW-FR-078-PORTABLE-WORKITEM-ARCHIVE", "GW-TR-054-WORKITEM-MANAGEMENT-CANONICALITY"],
+      "changeSurface": ["src/core/contracts.ts", "src/core/lifecycle.ts", "src/core/work-item-source.ts", "src/shell/sqlite.ts", "src/shell/work-item-source.ts", "src/daemon/work-item-source.ts", "src/daemon/server.ts"],
+      "gateIds": ["typecheck", "architecture", "test"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-FCIS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["core", "shell", "daemon"]
+    },
+    {
+      "id": "P7-T03",
+      "objective": "Implement WorkItem documentation Git status and exact path-scoped commits including archive-marker add/deletion.",
+      "dependsOn": ["P7-T01", "P7-T02"],
+      "scope": ["src/core/**", "src/shell/**", "src/daemon/**"],
+      "exclusions": ["docs/**", "ui/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE", "GW-FR-063-DOCUMENTATION-GIT-STATUS", "GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY", "GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY", "GW-TR-037-PATH-SCOPED-DOCUMENTATION-GIT-PERSISTENCE", "GW-TR-046-DOCUMENTATION-GIT-ELIGIBILITY", "GW-TR-047-REPOSITORY-LOCAL-GIT-IDENTITY"],
+      "changeSurface": ["src/core/contracts.ts", "src/shell/repository.ts", "src/daemon/work-item-documentation.ts", "src/daemon/runtime.ts", "src/daemon/server.ts"],
+      "gateIds": ["typecheck", "architecture", "test"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-FCIS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["core", "shell", "daemon"]
+    },
+    {
+      "id": "P7-T04",
+      "objective": "Implement the canonical typed HTTP failure boundary and preserve source/current-state diagnostics through the browser.",
+      "dependsOn": ["P7-T01"],
+      "scope": ["src/core/**", "src/daemon/**", "ui/src/http.ts"],
+      "exclusions": ["docs/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-055-ACTIONABLE-FAILURE-RECOVERY", "GW-TR-055-TYPED-API-FAILURE-CLASSIFICATION"],
+      "changeSurface": ["src/core/contracts.ts", "src/daemon/server.ts", "src/daemon/work-item-source.ts", "ui/src/http.ts"],
+      "gateIds": ["typecheck", "architecture", "test", "build", "browser"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-SOC", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["core", "daemon", "ui"]
+    },
+    {
+      "id": "P7-T05",
+      "objective": "Persist bounded secret-safe provider diagnostics as existing Run evidence for pre-signoff and post-signoff provider turns.",
+      "dependsOn": ["P7-T04"],
+      "scope": ["src/core/**", "src/shell/**", "src/daemon/**"],
+      "exclusions": ["docs/**", "ui/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY", "GW-FR-055-ACTIONABLE-FAILURE-RECOVERY", "GW-FR-057-TECHNICAL-DETAILS-BOUNDARY", "GW-TR-056-RUN-SCOPED-PROVIDER-DIAGNOSTIC-EVIDENCE"],
+      "changeSurface": ["src/core/contracts.ts", "src/shell/opencode.ts", "src/daemon/run.ts", "src/daemon/stage.ts", "src/daemon/execution.ts"],
+      "gateIds": ["typecheck", "architecture", "test"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-FCIS", "GW-P1-SOC", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["core", "shell", "daemon"]
+    },
+    {
+      "id": "P7-T06",
+      "objective": "Replace backend-code/active-only dialogue presentation with the canonical human workflow and all-Run Activity workspace.",
+      "dependsOn": ["P7-T04", "P7-T05"],
+      "scope": ["ui/**"],
+      "exclusions": ["docs/**", "src/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-051-USER-FACING-WORKFLOW-LANGUAGE", "GW-FR-052-WORKFLOW-ORIENTATION", "GW-FR-053-ACTIVITY-WORKSPACE", "GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY", "GW-FR-055-ACTIONABLE-FAILURE-RECOVERY", "GW-FR-056-WORKFLOW-ACTION-PLACEMENT", "GW-FR-057-TECHNICAL-DETAILS-BOUNDARY", "GW-FR-059-RESPONSIVE-ACTIVITY-CONTINUITY", "GW-TR-027-WORKFLOW-PRESENTATION-PROJECTION", "GW-TR-028-WORKFLOW-HEADER-GEOMETRY", "GW-TR-029-ACTIVITY-MASTER-DETAIL-LAYOUT", "GW-TR-030-SINGLE-RUN-EVENT-PRESENTATION", "GW-TR-031-ACTIVITY-INPUT-PLACEMENT", "GW-TR-032-TECHNICAL-DETAILS-PRESENTATION", "GW-TR-033-PRIMARY-FAILURE-PRESENTATION", "GW-TR-035-CANONICAL-MODE-RECONCILIATION"],
+      "changeSurface": ["ui/src/ActivityWorkspace.tsx", "ui/src/RunEventTimeline.tsx", "ui/src/workbench-presentation.ts", "ui/src/WorkItemWorkspace.tsx", "ui/src/WorkItemContext.tsx", "ui/src/StageDialogue.tsx", "ui/src/ExecutionWorkspace.tsx", "ui/src/ProposalReview.tsx", "ui/src/EvidenceViewer.tsx", "ui/src/query-keys.ts", "ui/src/styles.css", "ui/src/theme.css"],
+      "gateIds": ["typecheck", "architecture", "test", "build", "browser"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["ui"]
+    },
+    {
+      "id": "P7-T07",
+      "objective": "Integrate repository-native document/Git state and WorkItem management into the existing CodeMirror workbench without replacing its source model.",
+      "dependsOn": ["P7-T02", "P7-T03", "P7-T04", "P7-T06"],
+      "scope": ["ui/**"],
+      "exclusions": ["docs/**", "src/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-058-WORKITEM-MANAGEMENT-DISCOVERABILITY", "GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE", "GW-FR-063-DOCUMENTATION-GIT-STATUS", "GW-FR-064-DOCUMENTATION-GIT-CONTROL-PLACEMENT", "GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR", "GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES", "GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS", "GW-FR-068-LIVE-SAFE-MARKDOWN-PREVIEW", "GW-FR-069-EDITOR-STATE-CONTINUITY", "GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT", "GW-FR-078-PORTABLE-WORKITEM-ARCHIVE", "GW-TR-034-WORKITEM-MANAGEMENT-CONTROL-PLACEMENT", "GW-TR-039-CODEMIRROR-SOURCE-EDITOR-BOUNDARY", "GW-TR-040-EXACT-SOURCE-EDITOR-SYNCHRONIZATION", "GW-TR-041-MARKDOWN-PREVIEW-COMPOSITION", "GW-TR-042-DOCUMENT-EDITOR-ERGONOMIC-CONFIGURATION", "GW-TR-043-CODEMIRROR-THEME-SPATIAL-INTEGRATION", "GW-TR-044-EXACT-SOURCE-EDITOR-CERTIFICATION", "GW-TR-054-WORKITEM-MANAGEMENT-CANONICALITY"],
+      "changeSurface": ["ui/src/CreateWorkItem.tsx", "ui/src/DocumentWorkspace.tsx", "ui/src/MarkdownEditor.tsx", "ui/src/MarkdownSourceEditor.tsx", "ui/src/WorkItemQueue.tsx", "ui/src/WorkItemWorkspace.tsx", "ui/src/WorkItemContext.tsx", "ui/src/http.ts", "ui/src/query-keys.ts", "ui/src/styles.css", "ui/src/theme.css"],
+      "gateIds": ["typecheck", "architecture", "test", "build", "browser"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["ui"]
+    },
+    {
+      "id": "P7-T08",
+      "objective": "Implement safe installation-global OpenCode saved-account listing, Add/Switch/Rename and mutation serialization without provider/model changes.",
+      "dependsOn": ["P7-T04"],
+      "scope": ["src/core/**", "src/shell/**", "src/daemon/**"],
+      "exclusions": ["docs/**", "ui/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY", "GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING", "GW-FR-075-OPENCODE-ACCOUNT-LOGIN", "GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY", "GW-TR-049-OPENCODE-SAFE-ACCOUNT-PROJECTION", "GW-TR-050-OPENCODE-ACCOUNT-CONTROL-PROCESS", "GW-TR-051-OPENCODE-ACCOUNT-MUTATION-SERIALIZATION", "GW-TR-052-OPENCODE-BROWSER-OAUTH-ACCOUNT-LOGIN"],
+      "changeSurface": ["src/core/contracts.ts", "src/shell/opencode.ts", "src/daemon/opencode-account.ts", "src/daemon/runtime.ts", "src/daemon/server.ts"],
+      "gateIds": ["typecheck", "architecture", "test"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-FCIS", "GW-P1-SOC", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["core", "shell", "daemon"]
+    },
+    {
+      "id": "P7-T09",
+      "objective": "Expose saved OpenCode login accounts through one global application-shell account control and browser OAuth flow.",
+      "dependsOn": ["P7-T08"],
+      "scope": ["ui/**"],
+      "exclusions": ["docs/**", "src/**", "tests/**"],
+      "acceptanceRefs": ["GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY", "GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING", "GW-FR-075-OPENCODE-ACCOUNT-LOGIN", "GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY", "GW-TR-053-OPENCODE-ACCOUNT-CONTROL-UI"],
+      "changeSurface": ["ui/src/OpenCodeAccountControl.tsx", "ui/src/app.tsx", "ui/src/http.ts", "ui/src/query-keys.ts", "ui/src/primitives/WorkbenchToolbar.tsx", "ui/src/styles.css", "ui/src/theme.css"],
+      "gateIds": ["typecheck", "architecture", "test", "build", "browser"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["ui"]
+    },
+    {
+      "id": "P7-T10",
+      "objective": "Certify the complete repository-native workbench, Git persistence, Activity, CodeMirror preservation and OpenCode multi-account implementation.",
+      "dependsOn": ["P7-T01", "P7-T02", "P7-T03", "P7-T04", "P7-T05", "P7-T06", "P7-T07", "P7-T08", "P7-T09"],
+      "scope": ["tests/**"],
+      "exclusions": ["docs/**", "src/**", "ui/**"],
+      "acceptanceRefs": ["GW-FR-051-USER-FACING-WORKFLOW-LANGUAGE", "GW-FR-053-ACTIVITY-WORKSPACE", "GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY", "GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION", "GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE", "GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR", "GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY", "GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY", "GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING", "GW-FR-075-OPENCODE-ACCOUNT-LOGIN", "GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY", "GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT", "GW-FR-078-PORTABLE-WORKITEM-ARCHIVE", "GW-TR-037-PATH-SCOPED-DOCUMENTATION-GIT-PERSISTENCE", "GW-TR-044-EXACT-SOURCE-EDITOR-CERTIFICATION", "GW-TR-045-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY", "GW-TR-048-V2-V3-APPROVAL-MIGRATION-SAFETY", "GW-TR-049-OPENCODE-SAFE-ACCOUNT-PROJECTION", "GW-TR-051-OPENCODE-ACCOUNT-MUTATION-SERIALIZATION", "GW-TR-053-OPENCODE-ACCOUNT-CONTROL-UI", "GW-TR-054-WORKITEM-MANAGEMENT-CANONICALITY", "GW-TR-055-TYPED-API-FAILURE-CLASSIFICATION", "GW-TR-056-RUN-SCOPED-PROVIDER-DIAGNOSTIC-EVIDENCE"],
+      "changeSurface": ["tests/architecture.test.ts", "tests/core.test.ts", "tests/daemon.test.ts", "tests/e2e-server.ts", "tests/shell.test.ts", "tests/sqlite.test.ts", "tests/order-migration.test.ts", "tests/opencode.test.ts", "tests/browser.spec.ts", "tests/certification.test.ts", "tests/markdown-source-formatting.test.ts"],
+      "gateIds": ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"],
+      "authorityRefs": ["GW-P4-V1-ARCHITECTURE", "GW-P6-V1-CONTRACTS", "GW-P1-FCIS", "GW-P1-SOC", "GW-P1-DRY", "GW-P1-STRICT-TYPING", "GW-P1-CANONICAL-OWNERSHIP"],
+      "concernIds": ["verification"]
+    }
+  ]
+}
+```
