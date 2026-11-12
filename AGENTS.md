@@ -81,13 +81,16 @@ This file canonically owns this agent-only operational exception.
 
 Temporary GitHub Actions workflows may be used only as execution scaffolding when an already-authorized implementation or verification activity cannot be run through the available local/runtime/connectors.
 
+Under public PR delivery, this exception remains valid **inside the current short-lived PR branch**. Temporary workflows are branch-scoped execution scaffolding; they are not a bypass around pull-request delivery and are not themselves required to survive merge.
+
 - the workflow may perform only the already-authorized task or verification command;
 - use the exact pinned versions, commands, inputs and repository baseline required by the canonical authority;
 - do not add product/runtime dependencies, production source, alternate build paths or persistent CI architecture through the temporary workflow;
 - retained artifacts must already be authorized implementation surface or ordinary verification evidence;
 - temporary workflow YAML under `.github/workflows/**` is scaffolding only and is not implementation change surface;
 - remove temporary workflow YAML immediately after the required artifact/evidence is obtained or the attempt fails;
-- before candidate validation/handoff, prove no temporary workflow/scaffolding remains in the candidate tree/diff;
+- before the PR is marked ready for merge, prove no temporary workflow/scaffolding remains in the PR diff;
+- temporary workflow commits may remain in the PR branch history, but the merge candidate tree must not contain them;
 - do not retain temporary workflows for possible future reuse;
 - do not place credentials or secrets in workflow source.
 
