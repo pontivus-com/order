@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 export const SignoffReview = ({
@@ -8,12 +9,12 @@ export const SignoffReview = ({
   onOpenDocuments,
 }: Readonly<{ workItem: WorkItem; onOpenDocuments: () => void }>) => {
   const query = useQuery({
-    queryKey: ["signoffPackage", workItem.id],
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
     queryFn: () => api.getSignoffPackage(workItem.id),
     enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
   const artifactsQuery = useQuery({
-    queryKey: ["lifecycleArtifacts", workItem.id],
+    queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
     enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
