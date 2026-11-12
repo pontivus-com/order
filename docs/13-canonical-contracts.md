@@ -1168,11 +1168,10 @@ type OpenCodeModelRef = Readonly<{
 }>;
 
 type OrderConfig = Readonly<{
-  version: 2;
+  version: 3;
   model: OpenCodeModelRef;
   repositoryRoots: readonly AbsoluteDirectoryPath[];
   referenceRoots: readonly AbsoluteDirectoryPath[];
-  workItemRoot: AbsoluteDirectoryPath;
 }>;
 ```
 
@@ -1180,18 +1179,16 @@ The canonical Zod schemas for these concepts live in `src/core/contracts.ts`; no
 
 The productive config is UTF-8 JSON at `<order-state>/config.json`. It is written only through the canonical guided-configuration function and owner-only atomic replacement. Missing or invalid config is a startup/setup failure, never an environment/default fallback.
 
-Config v2 invariants:
+Config v3 invariants:
 
 - `providerID` and `id` are non-empty and contain no NUL;
 - `repositoryRoots` contains at least one unique exact canonical Git top-level realpath;
 - every target entry contains a valid root `pontivus-order.toml` and configured targets have unique `ProjectManifest.projectId` values;
-- a WorkItem repository must equal one configured target repository exactly; descendant containment is not a v2 WorkItem-selection rule;
+- a WorkItem repository must equal one configured target repository exactly; descendant containment is not a WorkItem-selection rule;
 - `referenceRoots` remains a unique list of canonical directories with STAGE-only read semantics;
-- `workItemRoot` is one canonical absolute directory used only for portable WorkItem-source discovery/mutation;
-- after realpath resolution, `workItemRoot` is path-disjoint from every target repository, every reference root and the Order state root;
-- the productive WorkItem-root default is `$HOME/.local/share/pontivus-order-work-items`, outside the replaceable application root and runtime state root.
+- WorkItem source/document location is resolved inside each selected repository through §32, never through OrderConfig.
 
-Only config v2 is productive at daemon/ordinary CLI runtime. Legacy v1 config is rejected there; the productive installer is the sole compatibility boundary permitted to parse it under the beta-update contract defined later in this document. Fresh setup/configuration writes the complete v2 model from explicit current operator choices; broad parent roots are never recursively crawled or guessed into a project catalog.
+Only config v3 is productive at daemon/ordinary CLI runtime. Config v2 is accepted only by the installer-owned bounded v2→v3 migration in §32.10. Fresh setup/configuration writes v3 from explicit current operator choices; broad parent roots are never recursively crawled or guessed into a project catalog.
 
 For each STAGE OpenCode session, reference-root permissions retain the existing deny-first exact `external_directory` semantics. Target repositories and the WorkItem root do not become generic external-reference permissions.
 
@@ -1374,9 +1371,9 @@ A P7 implementation plan may decompose these contracts into repository changes, 
 Any required change to those items returns to DESIGN/P6.
 
 
-## 31. Source-backed WorkItem v2 canonical contracts
+## 31. Historical source-backed WorkItem v2 contracts
 
-This section is the current binding P6 contract for source-backed WorkItems and the governed Markdown workbench. Any earlier v1 shape retained elsewhere in this document is historical context only and creates no migration or compatibility obligation; this section governs productive v2 behavior. No transport/persistence/UI DTO family is introduced; these remain the canonical semantic contracts.
+This section is retained only as the immediately preceding source-backed contract used by the bounded v2→v3 migration. Productive behavior is governed by §32. No productive code may choose between §31 and §32 at runtime. No transport/persistence/UI DTO family is introduced.
 
 #### Exact WorkItem source grammar (P6)
 
