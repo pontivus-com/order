@@ -226,7 +226,7 @@ When the WorkItem has repository documentation whose current bytes are not recor
 That action:
 
 - is explicitly human-triggered and is therefore not an automatic commit;
-- applies only to the current WorkItem's governed document paths under its resolved WorkItem directory;
+- applies only to the current WorkItem's canonical governed document set: its repository-local Work request plus current lifecycle ArtifactRefs; for new v3 WorkItems these paths are under the resolved WorkItem directory, while bounded migrated lifecycle ArtifactRefs may retain their existing repository paths;
 - shows which governed document paths will be recorded before confirmation;
 - creates one Git commit containing the exact current governed WorkItem documentation and no unrelated repository path;
 - must not include unrelated staged changes or unrelated unstaged changes;
