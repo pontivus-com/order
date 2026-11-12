@@ -740,6 +740,8 @@ describe("architecture fitness", () => {
       "export type WorkItemMode",
       "export type EvidenceSelection",
       "export const runIsActive",
+      "export const proposalDispositionFor",
+      "export const lifecycleArtifactRoleRank",
       "export const workItemInitialMode",
     ]) {
       if (!presentationPolicy.includes(requiredOwner)) {
@@ -759,6 +761,16 @@ describe("architecture fitness", () => {
       if (/from ["']\.\/EvidenceViewer\.tsx["']/.test(source)) {
         violations.push(
           sourcePath + ": presentation selection types must not be owned by a sibling Evidence workspace",
+        );
+      }
+      if (/\bconst\s+proposalDisposition\s*=/.test(source)) {
+        violations.push(
+          sourcePath + ": proposal disposition projection must use the shared presentation owner",
+        );
+      }
+      if (/\bconst\s+roleOrder\s*:/.test(source)) {
+        violations.push(
+          sourcePath + ": lifecycle artifact ordering must use the shared presentation owner",
         );
       }
     }
