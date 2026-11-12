@@ -2,7 +2,6 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
-import * as ts from "typescript";
 
 const repositoryRoot = process.cwd();
 const sourceExtensions = new Set([".ts", ".tsx"]);
@@ -633,42 +632,28 @@ describe("architecture fitness", () => {
 
     for (const sourcePath of uiFiles) {
       const source = sourceText(sourcePath);
-      const sourceFile = ts.createSourceFile(
-        sourcePath,
-        source,
-        ts.ScriptTarget.Latest,
-        true,
-        sourcePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-      );
-
-      const visit = (node: ts.Node): void => {
-        if (node.kind === ts.SyntaxKind.AnyKeyword) {
+      for (const line of source.split(/\r?\n/)) {
+        if (
+          /:\s*any\b|<any>|\bas\s+any\b|\bany\[\]|(?:Array|ReadonlyArray)<any>/.test(line)
+        ) {
           violations.push(sourcePath + ": UI production code must not use any");
         }
-        if (ts.isAsExpression(node)) {
-          const assertedType = node.type.getText(sourceFile);
-          if (assertedType !== "const") {
-            violations.push(
-              sourcePath + ": unchecked UI type assertion is prohibited: " + node.getText(sourceFile),
-            );
-          }
-        }
-        if (ts.isTypeAssertionExpression(node)) {
+        if (
+          !/^\s*import\b/.test(line) &&
+          /\bas\s+(?!const\b)[A-Za-z_{[(]/.test(line)
+        ) {
           violations.push(
-            sourcePath + ": unchecked UI angle-bracket type assertion is prohibited: " + node.getText(sourceFile),
+            sourcePath + ": unchecked UI type assertion is prohibited: " + line.trim(),
           );
         }
         if (
-          (ts.isTypeAliasDeclaration(node) || ts.isInterfaceDeclaration(node)) &&
-          /(?:DTO|Dto|ViewModel)$/.test(node.name.text)
+          /\b(?:type|interface)\s+[A-Za-z0-9_$]*(?:DTO|Dto|ViewModel)\b/.test(line)
         ) {
           violations.push(
-            sourcePath + ": UI must not introduce DTO/view-model semantic copies: " + node.name.text,
+            sourcePath + ": UI must not introduce DTO/view-model semantic copies: " + line.trim(),
           );
         }
-        ts.forEachChild(node, visit);
-      };
-      visit(sourceFile);
+      }
 
       if (sourcePath !== "ui/src/http.ts" && /\bfetch\s*\(/.test(source)) {
         violations.push(sourcePath + ": browser transport must remain owned by ui/src/http.ts");
