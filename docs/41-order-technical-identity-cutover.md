@@ -15,21 +15,21 @@ Stable `GW-*` canonical authority identifiers are intentionally retained. They a
 
 ## 2. Sequencing invariant
 
-The identity cutover is a **separate final origin-repository implementation package**.
+The public repository represents the **completed post-cutover state**. The implementation packages that performed the UX/Astryx work and the final identity cutover remain private-origin provenance records and are not part of the public authority graph.
 
-The required order is:
+The cutover sequence was:
 
 ```text
-1. complete and independently verify the UX/Astryx implementation package (docs/39)
-2. sign and execute the Order identity-cutover package (docs/36)
+1. complete and independently verify the UX/Astryx implementation package
+2. sign and execute the Order identity-cutover package
 3. prove the origin-repository Order candidate complete
 4. publish the verified, public-safe Order source snapshot into the existing `pontivus-com/order` repository without importing the private origin history
 5. run post-publication repository/install certification from the public repository
 ```
 
-The identity cutover must not be merged into the UX/Astryx candidate.
+That sequencing remains a provenance invariant: the identity cutover was not merged into the UX/Astryx candidate, and publication occurred only after the origin-repository Order candidate was complete.
 
-The identity-cutover task is the last productive task interpreted by the Gateweft-named runtime in the origin repository. The repository transfer is an external administration/rollout action, not application implementation and not part of that ExecutionTask.
+The identity-cutover task was the last productive task interpreted by the Gateweft-named runtime in the origin repository. Repository publication was an external administration/rollout action, not application implementation and not part of that ExecutionTask.
 
 ## 3. Live product and technical namespace after cutover
 
