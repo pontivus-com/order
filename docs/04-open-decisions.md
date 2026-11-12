@@ -256,6 +256,6 @@ The selected account persists because it remains OpenCode-owned state. Saved acc
 
 The CodeMirror Markdown editor extension and earlier v1 workbench/runtime baseline are materialized in the current Order implementation.
 
-The repository-native WorkItem v3 design, explicit documentation-Git persistence, global OpenCode saved-account switching and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed P7 package is executed and independently verified. The stale earlier remediation plan remains non-authoritative for execution until regenerated against current P3-P6 authority.
+The repository-native WorkItem v3 design, explicit documentation-Git persistence, global OpenCode saved-account switching and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed implementation-ready P7 package in `docs/43-user-facing-workflow-agent-execution-visibility-remediation-plan.md` is executed and independently verified.
 
 P7/R3 task records remain implementation provenance rather than standing semantic authority. Future changes continue to follow the lifecycle and authority model owned by the canonical P1-P6 documents; this register does not independently authorize or broaden any later implementation scope.
