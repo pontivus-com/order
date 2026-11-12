@@ -41,7 +41,7 @@ export const EvidenceViewer = ({ selection }: Readonly<{ selection: EvidenceSele
     <section className="order-workspace-section" data-testid="evidence-workspace">
       <div className="order-section-heading"><h2>{title}</h2><span>Read-only exact material</span></div>
       <div data-testid="raw-content-view" className="order-code-view">
-        <CodeBlock code={value} language="plaintext" hasCopyButton width="100%" maxHeight="calc(100vh - 13rem)" />
+        <CodeBlock code={value} language="plaintext" hasCopyButton width="100%" />
       </div>
     </section>
   );
