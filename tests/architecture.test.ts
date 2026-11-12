@@ -519,6 +519,8 @@ describe("architecture fitness", () => {
     const requiredUiOwners = [
       "ui/src/WorkItemWorkspace.tsx",
       "ui/src/MarkdownEditor.tsx",
+      "ui/src/MarkdownSourceEditor.tsx",
+      "ui/src/markdown-source-formatting.ts",
       "ui/src/CreateWorkItem.tsx",
       "ui/src/WorkItemQueue.tsx",
       "ui/src/WorkItemContext.tsx",
@@ -619,6 +621,7 @@ describe("architecture fitness", () => {
       "ui/src/EvidenceViewer.tsx",
       "ui/src/ExecutionWorkspace.tsx",
       "ui/src/MarkdownEditor.tsx",
+      "ui/src/MarkdownSourceEditor.tsx",
       "ui/src/ProposalReview.tsx",
       "ui/src/SignoffReview.tsx",
       "ui/src/ProposalReview.tsx",
@@ -630,9 +633,18 @@ describe("architecture fitness", () => {
 
     const allowedSubstantiveDependencies: Readonly<Record<string, readonly string[]>> = {
       "ui/src/DocumentWorkspace.tsx": ["ui/src/MarkdownEditor.tsx"],
+      "ui/src/MarkdownEditor.tsx": ["ui/src/MarkdownSourceEditor.tsx"],
     };
 
     const localUiDependencies = new Map<string, readonly string[]>();
+    const codeMirrorPackages = new Set([
+      "codemirror",
+      "@codemirror/commands",
+      "@codemirror/lang-markdown",
+      "@codemirror/language",
+      "@codemirror/state",
+      "@lezer/highlight",
+    ]);
 
     for (const sourcePath of uiFiles) {
       const source = sourceText(sourcePath);
@@ -681,6 +693,14 @@ describe("architecture fitness", () => {
         if (/^(?:zustand|redux|@reduxjs\/|jotai|mobx)(?:\/|$)/.test(specifier)) {
           violations.push(sourcePath + ": second UI state-store dependency is prohibited: " + specifier);
         }
+        if (
+          codeMirrorPackages.has(specifier) &&
+          sourcePath !== "ui/src/MarkdownSourceEditor.tsx"
+        ) {
+          violations.push(
+            sourcePath + ": CodeMirror production imports must remain isolated to ui/src/MarkdownSourceEditor.tsx: " + specifier,
+          );
+        }
       }
 
       const dependencies = importSpecifiers(source)
@@ -716,6 +736,41 @@ describe("architecture fitness", () => {
             );
           }
         }
+      }
+    }
+
+    const sourceEditor = sourceText("ui/src/MarkdownSourceEditor.tsx");
+    for (const required of [
+      'from "codemirror"',
+      'from "@codemirror/lang-markdown"',
+      'from "@codemirror/language"',
+      'from "@codemirror/commands"',
+      'from "@codemirror/state"',
+      'from "@lezer/highlight"',
+      "applyMarkdownFormat",
+      "EditorView.updateListener",
+    ]) {
+      if (!sourceEditor.includes(required)) {
+        violations.push(
+          "ui/src/MarkdownSourceEditor.tsx must own CodeMirror source-editor mechanic " + required,
+        );
+      }
+    }
+
+    const formattingOwner = sourceText("ui/src/markdown-source-formatting.ts");
+    for (const forbiddenImport of [
+      "react",
+      "codemirror",
+      "@codemirror/",
+      "@astryxdesign/",
+      "@tanstack/",
+      "./http",
+      "../../src/core/",
+    ]) {
+      if (formattingOwner.includes("from \"" + forbiddenImport)) {
+        violations.push(
+          "ui/src/markdown-source-formatting.ts must remain a pure source-transform owner: " + forbiddenImport,
+        );
       }
     }
 
