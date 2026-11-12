@@ -100,6 +100,7 @@ export const MarkdownEditor = ({
             isDisabled={conflicted}
             rows={12}
             width="100%"
+            containerClassName="order-markdown-field"
             controlClassName="order-markdown-textarea"
           />
         )}
