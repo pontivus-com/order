@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 
-import type { RunEvent, WorkItem } from "../../src/core/contracts.ts";
+import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -9,19 +9,7 @@ import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
 } from "./primitives/WorkbenchState.tsx";
-import type { ProposalSelection } from "./workbench-presentation.ts";
-
-const proposalDisposition = (
-  events: readonly RunEvent[],
-  proposalId: RunEvent["id"],
-): "ADOPTED" | "REJECTED" | null => {
-  const found = events.find((event) =>
-    event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
-    event.event.proposalEventId === proposalId);
-  return found?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
-    ? found.event.disposition
-    : null;
-};
+import { proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
 
 export const ProposalReview = ({
   workItem,
@@ -43,7 +31,7 @@ export const ProposalReview = ({
   const proposalPayload =
     proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposal.event : null;
   const disposition = proposalPayload
-    ? proposalDisposition(events, selection.eventId)
+    ? proposalDispositionFor(events, selection.eventId)
     : null;
 
   const invalidate = async (): Promise<void> => {
