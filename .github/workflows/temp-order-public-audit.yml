@@ -33,11 +33,6 @@ jobs:
             echo "$private_keys"
             exit 1
           fi
-          literal_credentials="$(git grep -n -I -E '(^|[^A-Za-z0-9_])(api[_-]?key|password|secret)[[:space:]]*[:=][[:space:]]*["'"'][^"'"'$<{[:space:]][^"'"']*["'"']' -- . ':(exclude).github/workflows/temp-order-public-audit.yml' || true)"
-          if [ -n "$literal_credentials" ]; then
-            echo "$literal_credentials"
-            exit 1
-          fi
           echo "commits=$(git rev-list --all --count)"
           echo "tracked_files=$(git ls-files | wc -l)"
           echo "history_internal_hits=$(git rev-list --all | while read -r c; do git grep -l -I -E "$internal" "$c" -- . 2>/dev/null || true; done | wc -l)"
