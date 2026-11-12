@@ -1,0 +1,40 @@
+name: temporary Order public leak audit
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - name: Verify public snapshot provenance boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          internal='pontivus-awb|/home/vagrant|/home/oai|projects/pontivus|pontivus_legal|customer_acquisition_framework|github\.com/rpstreef|\.context/'
+          current="$(git grep -n -I -E "$internal" -- . ':(exclude).github/workflows/temp-order-public-audit.yml' ':(exclude).github/workflows/temp-order-public-verification.yml' || true)"
+          if [ -n "$current" ]; then
+            echo "$current"
+            exit 1
+          fi
+          pontivus_internal='Pontivus AWB|Pontivus Legal|pontivus_legal|pontivus-awb|pontivus-com/legal|@pontivus/|panel-foundation|projects/pontivus|/home/vagrant/pontivus'
+          current_pontivus="$(git grep -n -I -E "$pontivus_internal" -- . ':(exclude).github/workflows/temp-order-public-audit.yml' ':(exclude).github/workflows/temp-order-public-verification.yml' || true)"
+          if [ -n "$current_pontivus" ]; then
+            echo "$current_pontivus"
+            exit 1
+          fi
+          credentials="$(git grep -n -I -E '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|api[_-]?key[[:space:]]*[:=][[:space:]]*[^$<{[:space:]]|password[[:space:]]*[:=][[:space:]]*[^$<{[:space:]]|secret[[:space:]]*[:=][[:space:]]*[^$<{[:space:]])' -- . ':(exclude).github/workflows/temp-order-public-audit.yml' || true)"
+          if [ -n "$credentials" ]; then
+            echo "$credentials"
+            exit 1
+          fi
+          echo "commits=$(git rev-list --all --count)"
+          echo "tracked_files=$(git ls-files | wc -l)"
+          echo "history_internal_hits=$(git rev-list --all | while read -r c; do git grep -l -I -E "$internal" "$c" -- . 2>/dev/null || true; done | wc -l)"
+          echo "author_emails:"
+          git log --all --format='%ae' | sort -u
