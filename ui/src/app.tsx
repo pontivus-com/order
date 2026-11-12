@@ -3,10 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Badge } from "@astryxdesign/core/Badge";
 import { Drawer } from "@astryxdesign/core/Drawer";
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from "@astryxdesign/core/SegmentedControl";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 
@@ -22,7 +18,7 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchLayout, useWideWorkbench } from "./primitives/WorkbenchLayout.tsx";
 import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
@@ -82,6 +78,7 @@ const updateSelectedUrl = (
 
 export const App = () => {
   const queryClient = useQueryClient();
+  const wideWorkbench = useWideWorkbench();
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<WorkItemId | null>(selectedIdFromUrl);
   const [search, setSearch] = useState("");
   const [themePreference, setThemePreference] = useState<ThemePreference>(savedThemePreference);
@@ -254,42 +251,50 @@ export const App = () => {
         <WorkbenchToolbarGroup>
           <div className="order-brand">
             <strong>Order</strong>
-            <span>Governed work queue</span>
+            <span>{selectedWorkItem ? "Governed work item" : "Governed work queue"}</span>
           </div>
           <WorkbenchAction
             label="New work item"
             icon={<WorkbenchIcon name="add" />}
+            iconOnly={selectedWorkItem !== null}
             onClick={() => {
               resetCreate();
               setCreateOpen(true);
             }}
           />
-          <WorkbenchAction
-            label={refresh.isPending ? "Refreshing…" : "Refresh sources"}
-            icon={<WorkbenchIcon name="refresh" />}
-            loading={refresh.isPending}
-            onClick={() => refresh.mutate()}
-          />
+          {selectedWorkItem === null ? (
+            <WorkbenchAction
+              label={refresh.isPending ? "Refreshing…" : "Refresh sources"}
+              icon={<WorkbenchIcon name="refresh" />}
+              loading={refresh.isPending}
+              onClick={() => refresh.mutate()}
+            />
+          ) : null}
         </WorkbenchToolbarGroup>
       }
       end={
         <>
-          <WorkbenchToolbarSearch
-            aria-label="Search work items"
-            placeholder="Search work items"
-            value={search}
-            onChange={(event) => setSearch(event.currentTarget.value)}
-          />
-          <SegmentedControl
-            label="Theme"
-            value={themePreference}
-            onChange={selectTheme}
-            size="sm"
-          >
-            <SegmentedControlItem value="system" label="System" icon={<WorkbenchIcon name="system" />} />
-            <SegmentedControlItem value="light" label="Light" icon={<WorkbenchIcon name="light" />} />
-            <SegmentedControlItem value="dark" label="Dark" icon={<WorkbenchIcon name="dark" />} />
-          </SegmentedControl>
+          {selectedWorkItem === null ? (
+            <WorkbenchToolbarSearch
+              aria-label="Search work items"
+              placeholder="Search work items"
+              value={search}
+              onChange={(event) => setSearch(event.currentTarget.value)}
+            />
+          ) : null}
+          <label className="order-theme-control">
+            <WorkbenchIcon name={themePreference} />
+            <span className="order-visually-hidden">Theme</span>
+            <select
+              aria-label="Theme"
+              value={themePreference}
+              onChange={(event) => selectTheme(event.currentTarget.value)}
+            >
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
         </>
       }
     />
@@ -320,6 +325,7 @@ export const App = () => {
         workItem={selectedWorkItem}
         onBack={() => requestSelection(null)}
         onOpenContext={() => setContextOpen(true)}
+        showContextAction={!wideWorkbench}
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>
