@@ -13,6 +13,7 @@ import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { lifecycleArtifactRoleRank } from "./workbench-presentation.ts";
+import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 type SelectedDocument =
@@ -145,7 +146,7 @@ export const DocumentWorkspace = ({
           <div className="order-state">
             <strong>Lifecycle document is not canonical editable Markdown</strong>
             <div>The exact bytes remain inspection-only and will not be normalized or overwritten.</div>
-            <button type="button" onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}>Inspect exact bytes</button>
+            <WorkbenchAction label="Inspect exact bytes" onClick={() => onOpenArtifactEvidence(selectedArtifact.id)} />
           </div>
         ) : contentQuery.data && markdown !== null ? (
           <MarkdownEditor
