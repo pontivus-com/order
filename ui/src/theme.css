@@ -381,6 +381,11 @@
 .order-markdown-textarea {
   min-height: 100% !important;
   height: 100% !important;
+}
+.order-markdown-textarea textarea {
+  min-height: 100% !important;
+  height: 100% !important;
+  resize: none !important;
   font-family: ui-monospace,SFMono-Regular,Menlo,monospace !important;
   font-size: .78rem !important;
   line-height: 1.5 !important;
