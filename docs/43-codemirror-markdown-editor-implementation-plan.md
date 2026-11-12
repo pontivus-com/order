@@ -124,6 +124,8 @@ Add exact runtime pins to `dependencies`:
 codemirror                 6.0.2
 @codemirror/lang-markdown 6.5.2
 @codemirror/language      6.13.1
+@codemirror/commands      6.11.1
+@codemirror/state         6.7.6
 @lezer/highlight          1.2.5
 ```
 
@@ -149,7 +151,7 @@ The forbidden dependency assertions must continue to reject:
 
 Extend `tests/architecture.test.ts` to establish the eventual boundary before later phases complete:
 
-- only `ui/src/MarkdownSourceEditor.tsx` may import `codemirror`, `@codemirror/lang-markdown`, `@codemirror/language` or `@lezer/highlight` in production code;
+- only `ui/src/MarkdownSourceEditor.tsx` may import `codemirror`, `@codemirror/lang-markdown`, `@codemirror/language`, `@codemirror/commands`, `@codemirror/state` or `@lezer/highlight` in production code;
 - no CodeMirror import in `app.tsx`, `WorkItemWorkspace.tsx`, `DocumentWorkspace.tsx`, `MarkdownEditor.tsx`, primitives or other workspaces;
 - no `EditorState` / `EditorView` application-state ownership outside `MarkdownSourceEditor`;
 - the new modules in this plan must be registered in the permanent cohesive-owner set when they are created.
@@ -521,6 +523,8 @@ Use:
 
 ```text
 @codemirror/language 6.13.1
+@codemirror/commands 6.11.1
+@codemirror/state    6.7.6
 @lezer/highlight      1.2.5
 ```
 
@@ -581,7 +585,7 @@ Extend `tests/architecture.test.ts` to enforce:
 
 ### Certification
 
-Update `tests/certification.test.ts` exact package inventory to include the four approved dependencies.
+Update `tests/certification.test.ts` exact package inventory to include the six approved dependencies.
 
 Add explicit forbidden checks for likely architecture regressions:
 
