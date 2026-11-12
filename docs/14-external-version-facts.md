@@ -147,6 +147,41 @@ The same immutable `anomalyco/opencode@v2.2.6` source additionally establishes t
 - `packages/core/src/util/wildcard.ts` implements `*` as `.*`, so an allow for `/root/*` matches descendant external-directory resources beneath that exact root.
 
 Order therefore can expose configured external reference roots without opening arbitrary external access and can keep post-signoff roles external-directory denied. These are pinned-provider facts; the decision to grant them only to STAGE is owned by `GW-DOC-OPENCODE-INTEGRATION-V1`/P4/P6.
+
+
+### OpenCode 2.2.6 saved-account and Console-login facts
+
+The immutable `anomalyco/opencode@v2.2.6` source was additionally audited for the Order multi-account UI requirement.
+
+The pinned source establishes:
+
+- `packages/core/src/plugin/provider/opencode.ts` registers the OpenCode Console authentication integration as integration id `opencode` with OAuth method id `device`;
+- the Console OAuth flow retrieves the authenticated user and stores `accountID` and `email` inside credential metadata together with organization metadata;
+- an operator-supplied OAuth `label` is persisted with the saved credential; absent an explicit label, OpenCode may derive another human label such as organization name;
+- `packages/protocol/src/groups/integration.ts` exposes released integration list/get plus OAuth start/status/complete/cancel operations;
+- `packages/schema/src/connection.ts` defines the safe integration connection projection: a stored credential connection contains only credential id, label, method and optional authentication status;
+- `packages/protocol/src/groups/credential.ts` exposes activate/update/remove operations by credential id, but its `credential.list` endpoint explicitly returns complete credential entries including the secret value;
+- `packages/core/src/credential.ts` stores multiple credentials per integration and maintains one active credential; creation activates the new credential by default unless explicitly suppressed by lower-level creation input;
+- the credential-list ordering puts the active credential last before the integration layer reverses the saved list in `packages/core/src/integration.ts`; the resulting integration connection list therefore puts the active stored credential first;
+- `Integration.connection.active(id)` returns the first connection from that same ordered projection;
+- activating a stored credential switches the integration's active credential without deleting the others;
+- `credential.update` can change only the credential label for the account-management use case;
+- OpenCode OAuth attempt state is process-local and has a bounded attempt lifetime, so a browser-driven login using the released API must retain the same private OpenCode server process until terminal attempt state;
+- successful OpenCode Console login credentials remain durable in OpenCode's own credential database.
+
+Security consequence for Order: account presentation must use the safe integration/connection projection. The secret-bearing `credential.list` response is not an admissible browser-account data source merely to obtain the internally stored email. Order may ask the operator to use the email as the OpenCode-owned account label instead.
+
+Sources are the exact `v2.2.6` files:
+
+- `packages/core/src/plugin/provider/opencode.ts`;
+- `packages/core/src/integration.ts`;
+- `packages/core/src/credential.ts`;
+- `packages/protocol/src/groups/integration.ts`;
+- `packages/protocol/src/groups/credential.ts`;
+- `packages/schema/src/connection.ts`.
+
+These facts are part of the exact pinned capability contract. Any OpenCode upgrade must re-certify the safe account projection, active-connection ordering, OAuth attempt lifecycle and saved-credential switching semantics before Order exposes account management productively.
+
 ## 3. Bun 1.4.4 capability facts used by Order
 
 Order uses Bun as a concrete runtime, not as a generic Node replacement. The following are the specific upstream facts relied upon.
