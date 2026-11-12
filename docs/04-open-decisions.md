@@ -252,6 +252,24 @@ Browser login uses OpenCode's own pinned Console device/OAuth flow through a pri
 
 The selected account persists because it remains OpenCode-owned state. Saved accounts can be switched A -> B -> A without destructive logout/re-login and without changing `OrderConfig.model`.
 
+
+
+## D20 — Public repository PR and release delivery
+
+**Status:** RESOLVED
+
+Order is a public repository and no longer uses direct-to-`master` delivery.
+
+All repository changes, including documentation/governance changes, are delivered through short-lived branches and pull requests. Ordinary work PRs update `CHANGELOG.md [Unreleased]` and declare release impact/target train. Version bumps occur only in dedicated `release/vX.Y.Z` PRs.
+
+`package.json.version` is the release-version owner. Runtime/build/version surfaces derive from it.
+
+After a release PR merges, permanent release automation re-verifies the exact `master` commit, builds/checksums the Order release bundle, creates immutable `vX.Y.Z` tag semantics and publishes the matching GitHub Release/assets. Public installation/update consumes release assets, not arbitrary `master`.
+
+The current repository-native workbench/OpenCode-account implementation package targets `0.2.0`.
+
+The complete governance/automation contract is owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` and `GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION`.
+
 ## Implementation state
 
 The CodeMirror Markdown editor extension and earlier v1 workbench/runtime baseline are materialized in the current Order implementation.
