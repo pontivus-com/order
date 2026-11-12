@@ -1,5 +1,7 @@
 import { createInterface } from "node:readline/promises";
 
+import { orderVersion } from "./version.ts";
+
 import {
   loadDaemonToken,
   resolveStateRoot,
@@ -75,7 +77,7 @@ const terminalQuestion: Question = async (prompt) => {
 };
 
 const usage =
-  "usage: order daemon | setup [--reconfigure] | open | status | tick | provider login <provider>";
+  "usage: order --version | daemon | setup [--reconfigure] | open | status | tick | provider login <provider>";
 
 export const runCli = async (
   argv: readonly string[],
@@ -84,6 +86,11 @@ export const runCli = async (
   writeStderr: (value: string) => void = (value) => process.stderr.write(value),
   question: Question = terminalQuestion,
 ): Promise<number> => {
+  if (argv.length === 1 && argv[0] === "--version") {
+    writeStdout(`${orderVersion}\n`);
+    return 0;
+  }
+
   if (
     (argv.length === 1 && argv[0] === "setup") ||
     (argv.length === 2 && argv[0] === "setup" && argv[1] === "--reconfigure")
