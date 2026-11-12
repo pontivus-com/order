@@ -4,11 +4,8 @@ import { Badge } from "@astryxdesign/core/Badge";
 
 import type { EvidenceRef, ExecutionTask, Run, RunEvent, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
-import type { EvidenceSelection } from "./EvidenceViewer.tsx";
+import { runIsActive, type EvidenceSelection } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
-
-const activeStatuses = new Set<Run["status"]>(["RUNNING", "WAITING_FOR_INPUT"]);
-const isActiveRun = (run: Run): boolean => activeStatuses.has(run.status);
 
 const eventDetail = (event: RunEvent): string => {
   const payload = event.event;
@@ -67,7 +64,7 @@ export const ExecutionWorkspace = ({
   const runsQuery = useQuery({
     queryKey: ["runs", workItem.id],
     queryFn: () => api.listRuns(workItem.id),
-    refetchInterval: (query) => query.state.data?.some(isActiveRun) === true ? 1000 : false,
+    refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false,
   });
   const artifactsQuery = useQuery({ queryKey: ["artifacts", workItem.id], queryFn: () => api.listArtifacts(workItem.id) });
   const runs = runsQuery.data ?? [];
@@ -75,7 +72,7 @@ export const ExecutionWorkspace = ({
 
   useEffect(() => {
     if (selectedRunId !== null && runs.some((run) => run.id === selectedRunId)) return;
-    setSelectedRunId((runs.find(isActiveRun) ?? runs.at(-1) ?? null)?.id ?? null);
+    setSelectedRunId((runs.find(runIsActive) ?? runs.at(-1) ?? null)?.id ?? null);
   }, [runs, selectedRunId]);
 
   const eventKey = ["runEvents", selectedRunId] as const;
@@ -89,7 +86,7 @@ export const ExecutionWorkspace = ({
       return after === 0 ? next : [...current, ...next];
     },
     enabled: selectedRunId !== null,
-    refetchInterval: selectedRun && isActiveRun(selectedRun) ? 1000 : false,
+    refetchInterval: selectedRun && runIsActive(selectedRun) ? 1000 : false,
   });
 
   if (tasksQuery.isError || runsQuery.isError || artifactsQuery.isError) {
