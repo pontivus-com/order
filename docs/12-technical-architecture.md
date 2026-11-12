@@ -1625,3 +1625,193 @@ This avoids a dual approval semantic and ensures every new v3 Approval is formed
 
 **Failure/negative behavior:** migration must not rebind a v2 Approval, preserve pre-signoff readiness as if paths/baseline were unchanged, or maintain dual v2/v3 approval semantics.
 
+## 31. OpenCode saved-account management architecture (2026-11-13)
+
+This section is the P4 realization of `GW-FR-073..076`. It governs switching among multiple saved OpenCode login accounts in Order's private OpenCode namespace. It does **not** introduce provider/model routing.
+
+### 31.1 Ownership boundary
+
+OpenCode remains the sole credential owner.
+
+```text
+Order browser
+    |
+    v
+Order daemon account-control boundary
+    |
+    v
+private pinned OpenCode v2.2.6 control process
+    |
+    v
+OpenCode private credential database
+```
+
+Order SQLite/configuration stores neither credential secrets nor a duplicate active-account selection.
+
+The active account is read from OpenCode each time account state is queried. The configured Order model remains owned by `OrderConfig.model` and is not rewritten by account activation.
+
+### 31.2 Account-control process
+
+Account management uses the same pinned OpenCode binary and the same private HOME/XDG/DB environment as productive provider execution, including the same system-config refusal and exact-version readiness checks.
+
+It uses a dedicated Order-owned account-control working directory below the Order state root rather than a project repository. Project configuration is disabled exactly as for productive OpenCode processes.
+
+Read-only account queries and bounded Switch/Rename mutations use a short-lived private foreground OpenCode server:
+
+```text
+opencode serve --hostname 127.0.0.1 --port 0
+```
+
+The listener remains private/random-loopback/password-authenticated and is never forwarded to the browser.
+
+An Add-account OAuth flow must keep its control process alive for the lifetime of the OpenCode OAuth attempt because the pinned attempt state is process-local. The daemon owns at most one transient account-login attempt:
+
+```ts
+type OpenCodeAccountLoginControl = Readonly<{
+  id: OpenCodeAccountLoginAttemptId;
+  providerAttemptId: string;
+  process: OpenCodeProviderProcess;
+  expiresAt: IsoDateTime;
+}>;
+```
+
+This is transient imperative-shell state, not durable workflow/domain state. Daemon restart cancels/loses an unfinished login attempt; already completed/saved OpenCode accounts remain durable in OpenCode's own database.
+
+### 31.3 Safe account projection
+
+The shell queries only OpenCode integration `opencode` through `integration.get` / the equivalent released client operation.
+
+It projects only credential connections:
+
+- credential id;
+- user-facing label;
+- method;
+- connection authentication status.
+
+The shell never calls `credential.list` for account presentation because the pinned endpoint returns complete secret credential values.
+
+The pinned OpenCode credential ordering + integration projection put the active stored credential first. The shell maps the first credential connection to `active = true` and all remaining credential connections to `false`. Startup/CI capability certification proves that exact ordering before this feature is productive.
+
+The canonical Order account projection contains no access token, refresh token, API key, OpenCode credential value/metadata, organization secret or provider configuration.
+
+### 31.4 Account identity/labels
+
+The safe OpenCode connection projection does not expose the authenticated email even though the underlying OpenCode OAuth credential records it internally.
+
+Order therefore treats the OpenCode-owned credential label as the account's human identity.
+
+For Add account:
+
+1. the operator supplies a non-empty account label; the UI recommends the exact OpenCode login email;
+2. Order starts the OpenCode Console `device` OAuth method for integration `opencode` and supplies that label;
+3. OpenCode persists the resulting credential under that label and makes the new credential active.
+
+Rename uses only OpenCode's credential-label update operation. The credential id remains the stable account reference regardless of label changes.
+
+Order does not read secret-bearing credential metadata merely to auto-discover email.
+
+### 31.5 OAuth flow
+
+The daemon invokes the released pinned integration OAuth operations, fixed to:
+
+- integration: `opencode`;
+- method: `device`;
+- no caller-provided custom Console server/form override;
+- operator-provided account label.
+
+The shell validates the returned authorization URL as HTTPS and same-origin with the pinned default OpenCode Console endpoint before returning it through the Order API.
+
+The browser receives only:
+
+- Order login-attempt id;
+- external authorization URL;
+- OpenCode instructions/device code;
+- expiry;
+- normalized attempt status/failure detail.
+
+It never receives the private OpenCode loopback endpoint/password or any credential material.
+
+The daemon polls OpenCode attempt status through the retained control process. On complete/failed/expired/cancelled it releases the attempt process. Successful completion is followed by a fresh safe account projection; the new account must appear active before Order reports success.
+
+### 31.6 Global mutation serialization
+
+Account mutations are installation-global because every productive OpenCode process uses the same private credential database.
+
+The daemon permits Add/Switch/Rename only when:
+
+- no Run anywhere in Order has status `RUNNING` or `WAITING_FOR_INPUT`;
+- no other account mutation is executing;
+- no account-login attempt is pending.
+
+The daemon performs the eligibility check before starting the OpenCode control process and repeats it immediately before the credential mutation/OAuth-start admission.
+
+Read-only account queries are not blocked.
+
+No provider session can therefore straddle a successful account identity mutation.
+
+### 31.7 Switch behavior
+
+Switch receives an opaque canonical account id from the current safe account projection.
+
+Before passing the id to OpenCode, the daemon refreshes the projection and proves:
+
+- the id still exists;
+- it refers to a stored credential connection for integration `opencode`;
+- it is not already active unless the operation is treated as idempotent no-op.
+
+The shell calls only the pinned credential-activation operation. It then refreshes the integration projection and proves that the target id is now the first/active stored credential.
+
+The operation does not change `OrderConfig.model`.
+
+A future productive Run starts a fresh provider process/session and performs the ordinary configured-model authentication/availability proof. Account switching does not bypass that preflight.
+
+### 31.8 Rename behavior
+
+Rename is a label-only OpenCode credential mutation.
+
+The daemon proves the account id belongs to the current safe `opencode` projection and passes a validated non-empty label to the pinned credential-label update operation. It then refreshes the projection and proves the new label.
+
+No account secret is read or rewritten by Order.
+
+### 31.9 UI data flow
+
+TanStack Query remains the sole browser server-state owner.
+
+The global account control reads one account-state query. Add/Switch/Rename mutations invalidate/refetch that query after success. No global client store is introduced.
+
+An account switch does not invalidate WorkItem domain queries because it mutates no WorkItem/lifecycle state. It may invalidate provider/model availability presentation if that presentation is currently visible.
+
+### 31.10 Technical requirements
+
+#### GW-TR-049-OPENCODE-SAFE-ACCOUNT-PROJECTION
+
+**Required behavior:** Order projects saved OpenCode accounts only from the pinned safe integration/connection surface and never exposes or consumes secret-bearing credential values for account presentation.
+
+**Acceptance criterion:** account query returns opaque id, label, active flag and safe connection status only; no credential token/key/value crosses the shell boundary.
+
+**Failure/negative behavior:** `credential.list`, OpenCode DB reads or browser-visible credential metadata must not become the account-list implementation.
+
+#### GW-TR-050-OPENCODE-ACCOUNT-CONTROL-PROCESS
+
+**Required behavior:** account management uses a private exact-version OpenCode control process in the existing isolated credential namespace, with transient process retention only for an active OAuth attempt.
+
+**Acceptance criterion:** browser account management works without exposing the OpenCode listener/UI and without a second credential store/service.
+
+**Failure/negative behavior:** Order must not use ambient OpenCode state, the managed background service, a public provider listener or a project working tree as account-management authority.
+
+#### GW-TR-051-OPENCODE-ACCOUNT-MUTATION-SERIALIZATION
+
+**Required behavior:** Add/Switch/Rename is serialized globally and admitted only when no Order Run is RUNNING/WAITING_FOR_INPUT and no other account mutation/login attempt is active.
+
+**Acceptance criterion:** a successful account mutation cannot overlap a productive OpenCode session.
+
+**Failure/negative behavior:** account identity changes must not be permitted concurrently with active provider work or reconciled after the fact.
+
+#### GW-TR-052-OPENCODE-BROWSER-OAUTH-ACCOUNT-LOGIN
+
+**Required behavior:** Add account drives the pinned `opencode`/`device` OAuth attempt through the Order daemon, retains the private control process until terminal attempt state, and persists only through OpenCode's credential store.
+
+**Acceptance criterion:** the browser receives external authorization instructions/status but no credential secrets/private OpenCode endpoint; successful completion yields a new active saved account in the safe projection.
+
+**Failure/negative behavior:** normal browser login must not require a terminal, secret-bearing provider API response or Order-owned OAuth token persistence.
+
