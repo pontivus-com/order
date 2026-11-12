@@ -8,12 +8,11 @@ import {
   ChatMessageList,
   ChatSystemMessage,
 } from "@astryxdesign/core/Chat";
-import { CodeBlock } from "@astryxdesign/core/CodeBlock";
-
-import type { Run, RunEvent, RunEventId, WorkItem } from "../../src/core/contracts.ts";
+import type { RunEvent, RunEventId, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import type { ProposalSelection } from "./workbench-presentation.ts";
 import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
@@ -43,7 +42,13 @@ const proposalDisposition = (
     : null;
 };
 
-export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) => {
+export const StageDialogue = ({
+  workItem,
+  onOpenProposalReview,
+}: Readonly<{
+  workItem: WorkItem;
+  onOpenProposalReview: (selection: ProposalSelection) => void;
+}>) => {
   const queryClient = useQueryClient();
   const runsQuery = useQuery({
     queryKey: workbenchQueryKeys.runs(workItem.id),
@@ -76,14 +81,6 @@ export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) =>
     mutationFn: (text: string) => {
       if (!run) throw new TypeError("active STAGE Run required");
       return api.submitRunInput(run.id, text.trim(), pending?.id ?? null);
-    },
-    onSuccess: invalidate,
-  });
-
-  const proposal = useMutation({
-    mutationFn: async (value: Readonly<{ id: RunEventId; action: "ADOPT" | "REJECT" }>) => {
-      if (value.action === "ADOPT") await api.adoptProposal(value.id);
-      else await api.rejectProposal(value.id);
     },
     onSuccess: invalidate,
   });
@@ -143,15 +140,14 @@ export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) =>
                           <strong>Artifact proposal</strong>
                           <div>{event.event.targetPath}</div>
                         </div>
-                        {state ? <strong>{state}</strong> : (
-                          <div className="order-inline-actions">
-                            <WorkbenchAction label="Adopt" tone="primary" disabled={proposal.isPending} onClick={() => proposal.mutate({ id: event.id, action: "ADOPT" })} />
-                            <WorkbenchAction label="Reject" tone="destructive" disabled={proposal.isPending} onClick={() => proposal.mutate({ id: event.id, action: "REJECT" })} />
-                          </div>
-                        )}
+                        {state ? <strong>{state}</strong> : <span>Pending review</span>}
                       </div>
                       <p>{event.event.rationale}</p>
-                      <CodeBlock code={event.event.unifiedDiff} language="diff" isDiff hasCopyButton width="100%" maxHeight="28rem" />
+                      <WorkbenchAction
+                        label="Review proposal"
+                        tone="primary"
+                        onClick={() => onOpenProposalReview({ runId: run.id, eventId: event.id })}
+                      />
                     </div>
                   </ChatMessageBubble>
                 </ChatMessage>
