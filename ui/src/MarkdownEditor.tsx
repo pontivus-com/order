@@ -84,25 +84,26 @@ export const MarkdownEditor = ({
           <h2>{title}</h2>
           {description ? <p>{description}</p> : null}
         </div>
-        <code>{loadedSha256}</code>
       </div>
 
-      {readOnly ? (
-        <div data-testid="markdown-readonly" className="order-markdown-readonly">
-          <Markdown contentWidth="52rem" contentAlign="start">{buffer}</Markdown>
-        </div>
-      ) : (
-        <TextArea
-          label={title + " Markdown"}
-          isLabelHidden
-          value={buffer}
-          onChange={(value) => setBuffer(value)}
-          isDisabled={conflicted}
-          rows={24}
-          width="100%"
-          controlClassName="order-markdown-textarea"
-        />
-      )}
+      <div className="order-editor-body">
+        {readOnly ? (
+          <div data-testid="markdown-readonly" className="order-markdown-readonly">
+            <Markdown contentWidth="52rem" contentAlign="start">{buffer}</Markdown>
+          </div>
+        ) : (
+          <TextArea
+            label={title + " Markdown"}
+            isLabelHidden
+            value={buffer}
+            onChange={(value) => setBuffer(value)}
+            isDisabled={conflicted}
+            rows={12}
+            width="100%"
+            controlClassName="order-markdown-textarea"
+          />
+        )}
+      </div>
 
       {conflicted ? (
         <div role="alert" className="order-warning">
@@ -112,12 +113,19 @@ export const MarkdownEditor = ({
       ) : null}
       {saveError ? <div role="alert" className="order-error">{saveError}</div> : null}
 
-      {!readOnly ? (
-        <div className="order-inline-actions">
-          <WorkbenchAction type="submit" label={saving ? "Saving…" : "Save"} tone="primary" disabled={!dirty || conflicted || saving} />
-          <WorkbenchAction label="Cancel" disabled={!dirty || saving} onClick={cancel} />
-        </div>
-      ) : null}
+      <div className="order-editor-actionbar">
+        <details className="order-editor-identity">
+          <summary>Identity</summary>
+          <code>{loadedSha256}</code>
+        </details>
+        {!readOnly ? (
+          <div className="order-inline-actions">
+            <span className="order-editor-dirty-state">{dirty ? "Unsaved" : "Current"}</span>
+            <WorkbenchAction type="submit" label={saving ? "Saving…" : "Save"} tone="primary" disabled={!dirty || conflicted || saving} />
+            <WorkbenchAction label="Cancel" disabled={!dirty || saving} onClick={cancel} />
+          </div>
+        ) : null}
+      </div>
     </form>
   );
 };
