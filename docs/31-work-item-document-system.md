@@ -36,12 +36,12 @@ Order's own lifecycle and authority model remain controlling where any external 
 
 A queued WorkItem has two different owners that must not be conflated:
 
-1. **portable source** — the operator-owned Markdown WorkItem that records the originating software-work intent and stable portable classification;
+1. **project-local portable source** — the operator-owned Markdown WorkItem stored inside the selected target Git repository and recording the originating software-work intent and stable portable classification;
 2. **Order runtime state** — the durable lifecycle/run/approval/execution/evidence state owned by Order.
 
 The Markdown source is not a second lifecycle database. Order runtime state is not a substitute for the originating source document.
 
-A new installation that is pointed at an existing valid WorkItem queue must rediscover the same portable WorkItem identities without requiring the operator to recreate them through the UI. Rediscovery of source documents does not fabricate historical Runs, approvals, sign-offs or execution evidence that are absent from Order durable state.
+A new installation configured for an existing target repository must rediscover that repository's valid project-local WorkItem identities without requiring the operator to recreate them through the UI. The Git repository therefore carries the durable WorkItem documentation; Order runtime state still carries Runs, approvals, sign-offs and execution evidence. Rediscovery of repository documents does not fabricate historical runtime state that is absent from Order durable state.
 
 ## 4. WorkItem kinds
 
@@ -130,12 +130,15 @@ A template may leave sections empty when the operator does not know the answer. 
 
 The ordinary "new WorkItem" interaction must not ask the operator to type process identifiers that Order or the selected project already owns.
 
-The authoring surface provides:
+The authoring surface begins with **Project** selection because repository selection determines the durable documentation boundary and the available concern catalog.
+
+After the project is selected, the surface provides:
 
 - **Title** — free text;
 - **WorkItem kind** — single selection from the Order work-kind catalog;
-- **Project** — selection from the finite catalog of exact configured, validated target repositories; each target's validated `pontivus-order.toml` supplies its stable project identity;
 - **Concerns** — zero-or-more selection from the selected project's `pontivus-order.toml` concern catalog.
+
+The surface shows the resolved repository-relative documentation root before creation. The operator never selects an installation-global source directory for a project WorkItem.
 
 The following are derived and are not free-text operator fields:
 
@@ -151,33 +154,61 @@ Creating a WorkItem from the UI creates the Markdown source from the selected go
 
 The document body remains ordinary Markdown so a human or tool may edit the actual work narrative without editing raw database state.
 
-## 9. WorkItem queue location
+## 9. Repository-native WorkItem documentation location
 
-Order has one configured WorkItem root used for portable source discovery.
+Every WorkItem belongs to exactly one selected target Git repository. Its durable Order-authored Markdown is stored inside that repository.
 
-First-run setup must offer a documented default and allow the operator to select an existing directory instead. The default must be outside the replaceable application installation and outside ephemeral execution workspaces, and reinstall must preserve the selected queue and its documents.
+Each target project resolves one repository-relative **Order documentation root**:
 
-The exact default path and configuration field are P4/P6 decisions.
+- default: `docs/order/work-items`;
+- a project may explicitly replace that root through its validated `pontivus-order.toml`;
+- the root must remain inside the selected repository and must not resolve through symlinks outside it;
+- installation-local Order state/configuration does not choose a different document location for the same project.
 
-Selecting an existing queue must not initialize over, rename, rewrite or duplicate valid existing WorkItems merely because the current Order installation has no local projection for them.
+Each new WorkItem owns one deterministic directory:
+
+```text
+<repository>/<resolved Order documentation root>/<WorkItemId>/
+```
+
+The standard document set is:
+
+```text
+work-request.md
+research.md
+requirements.md
+solution-design.md
+implementation-plan.md
+readiness-review.md
+```
+
+`work-request.md` is the portable WorkItem source defined by this document. The later files are the ordinary repository-local outputs of R1/R2/DESIGN/PLAN/R3 respectively when those stages apply.
+
+The stable WorkItem id, not the mutable title, owns the directory name. Renaming a WorkItem therefore does not move its directory.
+
+Order computes these default lifecycle-document paths. A stage agent may propose document content, but it does not choose an arbitrary repository location for Order-owned lifecycle output. Project authority outside this WorkItem document set remains independently referenceable through the normal authority/artifact model and is not copied into the WorkItem directory merely to centralize files.
+
+The former installation-wide WorkItem-source root is not a valid productive owner for new project WorkItems under this design. A project WorkItem must not have its originating request outside the repository while its downstream lifecycle documents are inside it.
 
 ## 10. Discovery and reconciliation
 
-Order reconciles the configured WorkItem root on daemon startup and on an explicit operator refresh.
+Order reconciles the resolved WorkItem-document roots of the exact configured target repositories on daemon startup and on an explicit operator refresh. It does not recursively search arbitrary parent directories for repositories or WorkItems.
 
-Directory-wide reconciliation is not sufficient evidence for a later productive action. Before stage start/resume, stage promotion, readiness/sign-off, or post-signoff V0/V1 preflight consumes a source-backed WorkItem, Order must revalidate that WorkItem's currently reconciled source identity/snapshot through the same source owner. This boundary check does not require a filesystem watcher or a full queue rescan.
+For each configured repository, reconciliation inspects only the project-local WorkItem layout owned by §9. A valid WorkItem source must resolve to `<documentation-root>/<WorkItemId>/work-request.md` and its source metadata id must match the directory id.
+
+Repository-wide reconciliation is not sufficient evidence for a later productive action. Before stage start/resume, stage promotion, readiness/sign-off, or post-signoff V0/V1 preflight consumes a source-backed WorkItem, Order must revalidate that WorkItem's currently reconciled repository source identity/snapshot through the same source owner. This boundary check does not require a filesystem watcher or a full multi-repository rescan.
 
 For every supported Markdown source:
 
-- valid unknown stable ID -> register the local runtime projection for that same WorkItem ID;
+- valid unknown stable ID at its deterministic project-local path -> register the local runtime projection for that same WorkItem ID;
 - known stable ID with unchanged source -> no-op;
-- known stable ID found at a different path -> preserve identity and reconcile the source location;
-- duplicate stable ID in more than one source -> visible blocking queue error;
+- source outside its deterministic project-local WorkItem directory -> visible blocking source diagnostic rather than path adoption;
+- duplicate stable ID in more than one configured repository/source -> visible blocking queue error;
 - invalid/unsupported metadata -> visible source diagnostic; do not silently invent or partially import the WorkItem;
 - source removed/unavailable -> preserve historical Order state but block source-dependent progression until resolved;
 - source changed -> do not silently continue against stale downstream work.
 
-A fresh installation with no prior Order state registers valid discovered source WorkItems as source-backed IDEA/intake records. It does not infer completed stages, approvals or execution history from the Markdown files.
+A fresh installation with no prior Order state registers valid discovered repository-local source WorkItems as source-backed IDEA/intake records. Cloning/configuring the project repository is therefore sufficient to recover the durable WorkItem documents; Order does not infer completed stages, approvals or execution history from those Markdown files.
 
 ## 11. Source freshness and reclassification
 
@@ -331,6 +362,22 @@ This preserves restartability: after provider/session loss, Order must be able t
 
 **Failure/negative behavior:** Order must not let a human chat answer silently redefine WorkItem intent for later stages or sign-off while the portable source remains unchanged.
 
+### GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION
+
+**Required behavior:** every new WorkItem source and its ordinary Order-owned lifecycle Markdown live inside the selected target Git repository under that project's resolved Order documentation root.
+
+**Acceptance criterion:** cloning/configuring the selected repository makes the WorkItem source and lifecycle Markdown available from repository files without an installation-global WorkItem source directory.
+
+**Failure/negative behavior:** Order must not split one WorkItem's originating request into a home-directory/global queue while placing its lifecycle output in the project repository.
+
+### GW-FR-061-DETERMINISTIC-WORKITEM-DOCUMENT-LAYOUT
+
+**Required behavior:** each new WorkItem owns the deterministic repository-relative directory and standard document names defined by §9, with project selection resolving the root before creation.
+
+**Acceptance criterion:** the WorkItem id deterministically identifies the directory; title edits do not move it; stage agents cannot select arbitrary target paths for Order-owned lifecycle documents.
+
+**Failure/negative behavior:** lifecycle-document placement must not depend on model-chosen filenames, installation-local path preferences, title slugs or filesystem search.
+
 ## 13. Explicit non-goals
 
 This functional extension does not authorize:
@@ -342,14 +389,15 @@ This functional extension does not authorize:
 - arbitrary user-defined WorkItem kinds in v1;
 - a generic ticket/backlog system;
 - automatic reconstruction of missing approval/run history from files;
+- automatic/background Git commits, pushes, pull requests or merges; explicit human-triggered documentation commits are governed by `GW-DOC-MARKDOWN-WORKBENCH-V1`;
 - new post-sign-off implementation/testing/review document types where the current signed task, RunEvent and validation evidence contracts already own the semantics.
 
 ## 14. Downstream design obligations
 
 P4/P5/P6 work following this document must resolve, without changing these functional requirements:
 
-1. exact WorkItem-root configuration/default and installer interaction;
-2. exact Markdown/front-matter grammar and source identity/hash contract;
+1. exact project-manifest grammar for the repository-relative documentation-root override, the default `docs/order/work-items`, and removal of the installation-global productive WorkItem root;
+2. exact Markdown/front-matter grammar, deterministic WorkItem directory/file paths and source identity/hash contract;
 3. the canonical typed catalog representation and where built-in schemas/templates are packaged;
 4. source scanner/reconciliation effect boundary and persisted projection;
 5. database schema-version consequence and migration from the current DB-created WorkItem model;
@@ -362,4 +410,5 @@ P4/P5/P6 work following this document must resolve, without changing these funct
 12. one canonical source parser/reconciliation result consumed by UI, context, approval and execution paths rather than parallel source readers;
 13. productive-boundary source revalidation so a source edit while the daemon is running is observed without requiring a watcher/full queue scan;
 14. durable adoption path for material interactive clarification of originating intent;
-15. tests proving fresh-install discovery, reinstall preservation, duplicate/invalid/moved/changed/missing-source behavior, exact R1 source projection, context invalidation on source change, approval staleness after source change, mid-daemon source-edit detection, material-clarification restartability and no DB-only/source-bypass path.
+15. tests proving fresh-install repository discovery, reinstall preservation, duplicate/invalid/misplaced/changed/missing-source behavior, exact R1 source projection, context invalidation on source change, approval staleness after source change, mid-daemon source-edit detection, material-clarification restartability and no DB-only/source-bypass path;
+16. one bounded migration from the current external WorkItem-source root into deterministic project-local `work-request.md` paths without creating a second productive source path.

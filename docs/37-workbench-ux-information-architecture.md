@@ -925,3 +925,40 @@ Presentation must track canonical transitions without losing operational history
 
 **Failure/negative behavior:** responsive layout must not move the live activity below unrelated metadata, discard activity selection or hide the pending human interaction.
 
+## 22. Repository-native documentation and Git-save interaction addendum (2026-11-13)
+
+This section owns only the spatial/interaction consequences of `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §§8–10 and `GW-DOC-MARKDOWN-WORKBENCH-V1` §14.
+
+### 22.1 Creation
+
+Project selection is the first creation decision because it resolves the repository-local WorkItem documentation root.
+
+The compact creation surface shows the selected project and resolved repository-relative documentation root before Create. It does not show or request an installation-global WorkItem directory.
+
+### 22.2 Documents workspace
+
+The Documents primary canvas includes one compact document-state strip associated with the selected WorkItem/document navigation. It may show:
+
+- project-relative WorkItem directory;
+- current document working-tree state;
+- WorkItem documentation Git state;
+- **Save documentation to Git** when governed WorkItem paths differ from `HEAD`.
+
+The path/status strip is secondary to the Markdown content and must not materially reduce document width/height.
+
+`Save documentation to Git` is WorkItem/documentation-scoped, not a global toolbar action and not an Implementation action.
+
+### 22.3 Commit review and feedback
+
+When more than one governed document path will be committed, the confirmation surface must make the exact path set readable before mutation. A compact confirmation is sufficient for a small set; a Review-class surface/drawer is used if the path/diff material requires sustained inspection.
+
+After success, the WorkItem/document status shows the resulting Git-saved state. On failure, the current working-tree document remains visible and the failure is actionable; the UI must not report `Saved to Git`.
+
+### GW-FR-064-DOCUMENTATION-GIT-CONTROL-PLACEMENT
+
+**Required behavior:** project-local documentation path/status and explicit Git-save controls are placed with the selected WorkItem's Documents/workflow state, with only a compact mirror permitted in Context.
+
+**Acceptance criterion:** an operator editing/reviewing WorkItem Markdown can see whether it is recorded in Git and can invoke the exact documentation-save operation without leaving the WorkItem or opening developer tooling.
+
+**Failure/negative behavior:** documentation Git controls must not become a global repository toolbar, be hidden only in Technical details, or compete with Implementation controls.
+

@@ -19,7 +19,8 @@ This document owns only the **new operator interaction consequences of source-ba
 - source/artifact freshness impact visibility;
 - source-bound integration into the existing R3/sign-off review;
 - the read-only boundary between editable Markdown and existing execution/candidate surfaces;
-- terminal Markdown/result presentation for non-delivery investigation/audit completion.
+- terminal Markdown/result presentation for non-delivery investigation/audit completion;
+- repository-local documentation location/status and explicit human-triggered Git persistence for governed WorkItem Markdown.
 
 It does not own the generic queue, Run dialogue, artifact-proposal lifecycle, sign-off command, execution scheduler, validation semantics, candidate semantics, WorkItem-source identity/schema/reconciliation policy, lifecycle transitions, stage decision boundaries, technical architecture, persistence, or HTTP contracts. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`.
 
@@ -55,7 +56,7 @@ Each valid WorkItem row exposes enough information to decide what needs attentio
 - concerns;
 - source health/freshness state when it is not current.
 
-The queue provides an explicit **Refresh sources** action. That action invokes the canonical reconciliation behavior owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`; the UI does not scan or interpret files independently.
+The queue provides an explicit **Refresh sources** action. That action invokes canonical reconciliation across the resolved WorkItem-document roots of the configured target repositories under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`; the UI does not scan or interpret files independently.
 
 Source failures that cannot be represented as valid WorkItems remain visible through a queue-level diagnostics surface. At minimum it distinguishes:
 
@@ -69,9 +70,9 @@ A diagnostic identifies the source path and the actionable reason. Order must no
 
 ## 4. Governed WorkItem creation
 
-`GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` owns the catalog-driven authoring choices and derived metadata. The local workbench renders those canonical project/kind/concern choices plus the title input; it does not maintain another option list or add free-text process identifiers.
+`GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` owns the catalog-driven authoring choices and derived metadata. The local workbench requires **Project** selection first because that choice resolves the repository and project-local Order documentation root. It then renders the canonical kind/concern choices plus the title input; it does not maintain another option list or add free-text process identifiers.
 
-After the existing create command materializes/reconciles the canonical Markdown WorkItem, the workbench opens that exact source in the Markdown workspace for further authoring. Browser creation and externally authored Markdown therefore converge on the same source-backed workspace.
+Before creation, the workbench shows the selected project and resolved repository-relative documentation root. After the create command materializes/reconciles `<documentation-root>/<WorkItemId>/work-request.md`, the workbench opens that exact source for further authoring. Browser creation and repository-authored Markdown therefore converge on the same project-local source-backed workspace.
 
 ## 5. Markdown workspace
 
@@ -80,12 +81,12 @@ Opening a WorkItem exposes a document-oriented workspace rather than an undiffer
 The workspace presents the current package in lifecycle order where those documents exist:
 
 ```text
-WorkItem source
-R1 research
-R2 requirements
-DESIGN
-PLAN
-R3 readiness
+Work request
+Research
+Requirements
+Solution design
+Implementation plan
+Readiness review
 ```
 
 The workspace must make document identity and lifecycle ownership clear. Selecting a document exposes its current Markdown content and current/fresh/stale state.
@@ -214,7 +215,47 @@ For an audit, the operator can inspect the terminal verdict/findings/evidence.
 
 The terminal view provides an explicit **Create linked remediation** action that lets the operator choose `CHANGE` or `DEFECT`. That action creates a distinct source-backed WorkItem in the same project through the normal authoring catalog and preserves the portable linkage required by the canonical WorkItem-source contract. Cross-project follow-up is created separately rather than overloading this remediation lineage. The action must not silently convert the completed investigation/audit into implementation work.
 
-## 14. Functional requirements
+## 14. Repository-native Git history
+
+Editing/saving Markdown and recording that documentation in Git are distinct explicit operator actions.
+
+A normal editor **Save** writes the canonical document bytes to the selected repository working tree using the existing expected-hash protection. It does not silently create a Git commit.
+
+When the WorkItem has repository documentation whose current bytes are not recorded at the current project `HEAD`, the workbench exposes **Save documentation to Git**.
+
+That action:
+
+- is explicitly human-triggered and is therefore not an automatic commit;
+- applies only to the current WorkItem's governed document paths under its resolved WorkItem directory;
+- shows which governed document paths will be recorded before confirmation;
+- creates one Git commit containing the exact current governed WorkItem documentation and no unrelated repository path;
+- must not include unrelated staged changes or unrelated unstaged changes;
+- never pushes, opens a pull request, merges or changes branches;
+- reports the resulting commit or the exact failure;
+- leaves the working-tree document bytes intact if the commit fails.
+
+The workbench exposes repository-document status separately from editor dirty state:
+
+- **Unsaved edits** — browser buffer differs from the current working-tree document;
+- **Saved to project, not Git** — working-tree bytes are current but differ from the current Git `HEAD`;
+- **Saved to Git** — current governed WorkItem document bytes equal the bytes recorded at `HEAD`.
+
+This distinction is required because a successful Markdown Save does not by itself create Git history.
+
+The operator may create Git documentation commits throughout Research/Requirements/Design/Plan/Readiness work. Order does not require an automatic commit after every edit or every stage turn. Before Approval, however, the complete current source/lifecycle package must already satisfy the existing committed-baseline/sign-off rules, so an unsaved-to-Git WorkItem package is not signable.
+
+Git save is a documentation operation, not implementation authority. It does not make a document conformant, promote a lifecycle stage, approve work or authorize execution.
+
+### 14.1 Git-save placement
+
+The Git status/action belongs to the selected WorkItem's Documents/workflow context rather than the global application toolbar.
+
+- the Documents surface shows the resolved project-relative WorkItem directory and current Git status;
+- **Save documentation to Git** is a WorkItem-level secondary/primary mutation when repository changes exist, placed near document/workflow state rather than hidden in Technical details;
+- the confirmation/review material lists exact governed paths and uses Review/safety space when necessary;
+- compact Context may mirror `Saved to Git` / `Not saved to Git`, but it must not become the only place from which the operator can understand or perform the operation.
+
+## 15. Functional requirements
 
 ### GW-FR-020-WORKBENCH-SOURCE-OPERATIONS
 
@@ -296,7 +337,23 @@ The terminal view provides an explicit **Create linked remediation** action that
 
 **Failure/negative behavior:** no generic file explorer/editor, IDE workspace, production-code mutation path or repository-wide save operation is introduced.
 
-## 15. Explicit non-goals
+### GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE
+
+**Required behavior:** the workbench provides an explicit human-triggered operation that records only the current WorkItem's governed Markdown paths in the selected project's Git history.
+
+**Acceptance criterion:** unrelated staged/unstaged repository changes are excluded; the resulting commit is visible; no push/PR/merge occurs.
+
+**Failure/negative behavior:** editor Save must not silently commit, and documentation commit must not sweep unrelated working-tree/index state into the commit.
+
+### GW-FR-063-DOCUMENTATION-GIT-STATUS
+
+**Required behavior:** the workbench distinguishes unsaved browser edits, repository-working-tree document changes and documentation already recorded at Git `HEAD`.
+
+**Acceptance criterion:** the operator can tell whether the current WorkItem package exists only in the editor, only in the working tree, or durably in Git without using a shell.
+
+**Failure/negative behavior:** one generic `Saved` state must not imply Git persistence when only working-tree bytes were written.
+
+## 16. Explicit non-goals
 
 This workbench extension does not authorize:
 
@@ -308,17 +365,17 @@ This workbench extension does not authorize:
 - automatic chat-to-Markdown rewriting;
 - changing lifecycle stage semantics or R3 independence;
 - replacing project artifacts with Order-owned duplicate documents;
-- commit/push/PR/merge/deployment controls;
+- automatic/background commit, push, PR, merge or deployment controls; the explicit path-scoped documentation commit in §14 is the only Git-write interaction added by this concern;
 - WebSocket/SSE/provider token streaming;
 - a second browser state store;
 - user-defined WorkItem kinds or lifecycle stages.
 
-## 16. Downstream design obligations
+## 17. Downstream design obligations
 
 `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1` must resolve, without changing the behavior above:
 
-1. one canonical Markdown source/catalog parser and one filesystem effect owner for portable WorkItem files;
-2. the source/document query and optimistic-save command contracts;
+1. one canonical Markdown source/catalog parser and one filesystem effect owner for repository-local WorkItem files;
+2. the source/document query, optimistic-save, documentation-Git-status and exact path-scoped commit command contracts;
 3. which ArtifactRef roles are directly human-editable and how save returns the WorkItem to the owning stage without bypassing conformance;
 4. exact source diagnostics/reconciliation query behavior;
 5. catalog/project/concern query behavior for controlled creation;
@@ -326,7 +383,8 @@ This workbench extension does not authorize:
 7. kind-aware non-delivery terminal outcomes without new lifecycle stages;
 8. the read-only execution/candidate presentation using existing canonical Run/RunEvent/EvidenceRef/ExecutionTask state;
 9. a UI decomposition that does not accumulate these new responsibilities into `ui/src/app.tsx`;
-10. permanent architecture/browser tests proving no DB-only source bypass, no stale overwrite, no R3/code-editor path and correct source/lifecycle invalidation.
+10. permanent architecture/browser tests proving no DB-only source bypass, no stale overwrite, no R3/code-editor path and correct source/lifecycle invalidation;
+11. project-first authoring, resolved repository-local document path presentation, and Git status/commit behavior that cannot include unrelated repository changes.
 
 ## 17. Functional addendum — exact-source Markdown editor extension (2026-11-13)
 
