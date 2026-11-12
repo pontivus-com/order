@@ -40,10 +40,10 @@ export const ProposalReview = ({
   });
   const events = eventsQuery.data ?? [];
   const proposal = events.find((event) => event.id === selection.eventId);
-  const proposalEvent =
-    proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposal : null;
-  const disposition = proposalEvent
-    ? proposalDisposition(events, proposalEvent.id)
+  const proposalPayload =
+    proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposal.event : null;
+  const disposition = proposalPayload
+    ? proposalDisposition(events, selection.eventId)
     : null;
 
   const invalidate = async (): Promise<void> => {
@@ -90,7 +90,7 @@ export const ProposalReview = ({
       </section>
     );
   }
-  if (!proposalEvent) {
+  if (!proposalPayload) {
     return (
       <section className="order-workspace-section order-review-workspace" data-testid="proposal-review-workspace">
         <WorkbenchEmptyState
@@ -106,7 +106,7 @@ export const ProposalReview = ({
       <div className="order-section-heading order-review-heading">
         <div>
           <h2>Artifact proposal review</h2>
-          <span>{proposalEvent.event.targetPath}</span>
+          <span>{proposalPayload.targetPath}</span>
         </div>
         <WorkbenchAction
           label="Back to dialogue"
@@ -116,13 +116,13 @@ export const ProposalReview = ({
       </div>
 
       <div className="order-proposal-review-summary">
-        <p>{proposalEvent.event.rationale}</p>
+        <p>{proposalPayload.rationale}</p>
         <span>{disposition ?? "PENDING"}</span>
       </div>
 
       <div className="order-proposal-review-diff" data-testid="proposal-review-diff">
         <CodeBlock
-          code={proposalEvent.event.unifiedDiff}
+          code={proposalPayload.unifiedDiff}
           language="diff"
           isDiff
           hasCopyButton
