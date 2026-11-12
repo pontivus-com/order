@@ -124,7 +124,7 @@ Browser verification must validate behavior rather than merely CSS class presenc
 | Creation | `Drawer`, `Selector`/`Typeahead`, `RadioList` or `SelectableCard`, `MultiSelector`, `TextInput` | project/type/concern semantics and canonical create mutation |
 | WorkItem mode navigation | compact `SegmentedControl`/selector/navigation primitive or Order semantic wrapper | available modes from canonical state; presentation-only selection integrated into the compact WorkItem toolbar/header |
 | Lifecycle document navigation | `TabList` or compact `Outline` | Source/R1/R2/DESIGN/PLAN/R3 ordering/currentness |
-| Editable Markdown | `TextArea` within Order editor composition | exact source buffer, dirty/conflict/save semantics |
+| Editable Markdown | Order-owned `MarkdownSourceEditor` backed by CodeMirror 6 | exact source buffer, editor lifecycle, syntax-aware source editing; dirty/conflict/save semantics remain in `MarkdownEditor` |
 | Read-only Markdown/raw content | `Markdown`, `CodeBlock`, `ScrollableArea` as appropriate | exact bytes remain canonical; rendering never becomes authority |
 | Stage dialogue | `ChatLayout`, `ChatMessage`, `ChatSystemMessage`, `ChatToolCalls`, `ChatComposer` | Run/RunEvent projection and mutation commands |
 | Artifact proposal | `Section`, `CodeBlock`, `Toolbar`, `Button` | proposal identity/rationale/disposition |
@@ -144,7 +144,7 @@ The implementation may choose the smallest Astryx primitive that satisfies the b
 
 Astryx `RichTextEditor` is prohibited for governed WorkItem/lifecycle documents.
 
-`GW-DOC-MARKDOWN-WORKBENCH-V1` requires the exact Markdown source to remain the editable authority. Order therefore uses a controlled semantic textarea path; Astryx `TextArea` may provide the input primitive, but no Lexical/rich-text/AST representation becomes document authority.
+`GW-DOC-MARKDOWN-WORKBENCH-V1` requires the exact Markdown source to remain the editable authority. Order therefore uses a controlled exact-source editor path. CodeMirror may provide source-editing mechanics, but no Lexical/rich-text/AST/editor-state representation becomes document authority.
 
 ### 6.2 State/transport invention
 
@@ -496,7 +496,7 @@ No new global browser store is introduced. Existing React state is sufficient.
 
 - the document navigation row is compact;
 - the editor wrapper fills available width;
-- the textarea/control grows to the remaining height of the mode canvas;
+- the exact-source editor grows to the remaining height of the mode canvas;
 - editor actions/state use a sticky or otherwise persistently reachable compact action bar;
 - exact hash/path metadata is available through secondary metadata/context disclosure rather than forcing a wide/tall primary heading;
 - read-only `Markdown` retains a ~readable-prose inner content width while its outer container remains full-canvas;
@@ -801,4 +801,290 @@ Architecture tests should enforce stable ownership/dependency propositions, not 
 **Acceptance criterion:** workspace siblings do not coordinate through each other's internal modules/state, primitives do not depend on substantive workspaces, circular dependencies are absent, and cross-mode navigation is requested through the owning composition boundary.
 
 **Failure/negative behavior:** loose coupling must not be simulated through service objects, dependency-injection containers, global stores, wrapper proliferation or cross-module internal-state imports.
+
+## 19. Technical addendum — CodeMirror exact-source Markdown editor (2026-11-13)
+
+This addendum realizes `GW-DOC-MARKDOWN-WORKBENCH-V1` §§17-18 inside the existing React/Astryx workbench architecture.
+
+The selected editor substrate is **CodeMirror 6**. CodeMirror is used only as an ephemeral browser source-editor engine. The canonical persisted value remains the Markdown `string`.
+
+### 19.1 Dependency decision
+
+Order adds exactly these direct runtime dependencies:
+
+```text
+codemirror                    6.0.2
+@codemirror/lang-markdown    6.5.2
+```
+
+The `codemirror` package supplies the supported CodeMirror 6 basic editor configuration and typed editor APIs through its dependency graph. `@codemirror/lang-markdown` supplies Markdown language support and Markdown-specific key behavior.
+
+Order does not add:
+
+- `@uiw/react-codemirror`;
+- Monaco;
+- ProseMirror;
+- Lexical;
+- MDXEditor;
+- Milkdown;
+- another Markdown renderer;
+- another React state store.
+
+The direct integration is intentionally small so Order owns one editor boundary rather than depending on a wrapper's state/lifecycle abstraction.
+
+### 19.2 Cross-application reference and adopted pattern
+
+The connected Pontivus Legal implementation was inspected before this design.
+
+Its Markdown-document editor is currently **ProseMirror-based**, with:
+
+- `useMarkdownDocumentEditor.ts` owning EditorView mount/destroy, editability, external Markdown synchronization and command dispatch;
+- feature-specific editor components owning toolbar/presentation;
+- `markdown-serialization.ts` parsing Markdown into a ProseMirror document and serializing editor state back to Markdown.
+
+Order adopts the **ownership decomposition** only:
+
+```text
+feature/editor shell
+        ↓
+single editor lifecycle owner
+        ↓
+third-party editor mechanics
+```
+
+Order rejects the ProseMirror serialization model because `defaultMarkdownSerializer.serialize(...)` creates Markdown from an editor document. That is suitable for Legal's wire-as-Markdown feature but does not satisfy Order's stricter byte/source-fidelity rule.
+
+CodeMirror avoids that authority mismatch because the editor document itself is text; `view.state.doc.toString()` is the current source rather than a serialization of a separate rich document model.
+
+### 19.3 Component ownership
+
+Add one production owner:
+
+```text
+ui/src/MarkdownSourceEditor.tsx
+```
+
+Its sole responsibility is CodeMirror mechanics:
+
+- mount/destroy one `EditorView`;
+- initialize from a caller-owned Markdown `string`;
+- emit caller-visible source changes as `string`;
+- apply editable/read-only configuration;
+- reconfigure light/dark presentation;
+- synchronize an externally replaced source value without creating a second source owner;
+- preserve editor-local selection/scroll/undo state when an update does not require replacement;
+- expose focus only if the parent needs it for existing focus continuity.
+
+It must not know about:
+
+- WorkItem or ArtifactRef;
+- lifecycle stage/editability policy;
+- SHA-256 values;
+- Save/Cancel/conflict rules;
+- TanStack Query;
+- HTTP;
+- sign-off/freshness;
+- Markdown preview mode ownership.
+
+`MarkdownEditor.tsx` remains the one interaction owner for:
+
+- loaded SHA/source baseline;
+- editable buffer;
+- dirty state;
+- Save;
+- Cancel;
+- stale/conflict handling;
+- editor presentation mode;
+- composition of source and preview.
+
+`DocumentWorkspace.tsx` remains the document/lifecycle selection owner.
+
+### 19.4 Controlled source synchronization
+
+The integration must distinguish two directions explicitly.
+
+#### Editor -> parent
+
+For a user transaction with `docChanged`:
+
+```text
+EditorView.state.doc.toString()
+        ↓
+onChange(markdown: string)
+        ↓
+MarkdownEditor buffer
+```
+
+No parser/serializer or intermediate domain shape is introduced.
+
+#### Parent -> editor
+
+When the caller supplies a genuinely replaced canonical/buffer value:
+
+- compare the external string with the current CodeMirror document string;
+- if equal, do nothing;
+- if replacement is required, dispatch one explicit full-document change or recreate editor state only when the integration proves that is necessary;
+- tag/suppress the programmatic update so it does not re-emit itself as a user edit;
+- do not replace a dirty buffer merely because a query refetched.
+
+The existing `MarkdownEditor` remains responsible for deciding when an external canonical value is admissible. `MarkdownSourceEditor` only synchronizes the value it is given.
+
+### 19.5 CodeMirror configuration
+
+The initial Order configuration should remain document-oriented and minimum sufficient:
+
+- `basicSetup`;
+- `markdown()` from `@codemirror/lang-markdown`;
+- soft line wrapping;
+- Markdown keymap behavior supplied by the Markdown language package;
+- search/replace from the standard CodeMirror setup;
+- undo/redo/history;
+- active selection/cursor accessibility;
+- fenced-code syntax recognition available through the Markdown language support.
+
+Order-specific presentation uses a small `EditorView.theme(...)` extension driven by Order/Astryx semantic CSS variables. It must not establish a separate product theme or hard-code lifecycle/status semantics.
+
+Line numbers may be retained from `basicSetup` only if browser UX review confirms they support document navigation rather than dominate the prose surface. P7 may remove that one extension without changing this architecture.
+
+### 19.6 Preview composition
+
+No new preview dependency is added.
+
+`MarkdownEditor` renders the current source buffer using the already-owned Astryx Markdown renderer:
+
+```tsx
+<Markdown>{buffer}</Markdown>
+```
+
+Presentation state is a small typed local union:
+
+```ts
+type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
+```
+
+This union is presentation-only and does not duplicate a canonical domain record.
+
+Wide layout may offer all three modes. Medium/narrow layouts may omit or collapse Split while preserving the current buffer and selected document.
+
+### 19.7 Read-only documents
+
+Read-only governed documents continue to use the rendered Astryx Markdown surface as the normal presentation.
+
+CodeMirror read-only mode is not required merely to display an R3 document. Exact source inspection may reuse the source editor in a non-editable presentation only if a concrete UX need is proven; it must not create a second default read-only document surface.
+
+### 19.8 SoC, DRY, typing and coupling
+
+The existing UI architecture rules remain binding.
+
+Specific consequences:
+
+- only `MarkdownSourceEditor.tsx` imports CodeMirror production APIs;
+- `MarkdownEditor.tsx` consumes a narrow typed `value/onChange/disabled` source-editor boundary;
+- no CodeMirror `EditorState` or `EditorView` escapes as application/domain state;
+- no CodeMirror state is stored in TanStack Query or another store;
+- no Markdown AST/view-model/DTO is introduced;
+- preview consumes the same `buffer: string`;
+- editor commands/extensions are defined once at the source-editor owner, not repeated by document screens;
+- app/workspace/document components must not import CodeMirror directly.
+
+### 19.9 Theme and CSS integration
+
+CodeMirror is visually integrated through the Order source-editor owner and `ui/src/theme.css`.
+
+Required behavior:
+
+- editor background, foreground, selection, caret, gutters and syntax colors remain legible in System/Light/Dark;
+- colors derive from Order/Astryx semantic variables where possible;
+- editor content uses a source-appropriate monospace stack;
+- the CodeMirror root/scroller/content fill the existing flexing primary editor region;
+- no fixed page-width or fixed-height CodeMirror wrapper reintroduces the spatial defects closed by `GW-TR-015`.
+
+### 19.10 Permanent verification
+
+P7 must add permanent tests proving the editor is an exact-source integration rather than merely proving that CodeMirror mounted.
+
+Architecture/certification must prove:
+
+- the two exact approved direct dependency pins;
+- no prohibited rich-text/WYSIWYG/editor framework is introduced;
+- CodeMirror production imports are isolated to `MarkdownSourceEditor.tsx`;
+- no React CodeMirror wrapper is introduced;
+- the existing no-DTO/no-`any`/dependency-direction rules continue to hold.
+
+Behavior/browser tests must prove:
+
+1. initial Markdown appears byte-for-byte in the source editor;
+2. user edits update the parent buffer without parse/serialize normalization;
+3. Edit -> Preview -> Edit preserves unsaved source exactly;
+4. Split preview renders the same current buffer;
+5. Save sends the exact edited string through the existing expected-hash mutation;
+6. Cancel restores the exact loaded source;
+7. external canonical change while dirty produces the existing conflict state instead of replacing the buffer;
+8. successful save/refetch does not manufacture a conflict;
+9. read-only R3 still exposes no mutation path;
+10. responsive mode changes do not lose the buffer;
+11. keyboard search/undo/redo and Markdown list continuation operate;
+12. the CodeMirror viewport consumes the primary authoring canvas;
+13. light/dark/system theme changes preserve readable editor contrast.
+
+### 19.11 Stop conditions
+
+Return to P3/P4 instead of expanding implementation if:
+
+- CodeMirror requires Markdown normalization to support the selected behavior;
+- exact buffer preservation cannot be maintained across controlled React synchronization;
+- Split requires a second document state rather than rendering the same buffer;
+- an implementation needs domain/API/persistence changes;
+- a proposed toolbar/extension expands the product into repository/IDE editing;
+- editor state must become a global/store/server-owned value.
+
+## 20. Markdown editor extension technical requirements
+
+### GW-TR-027-CODEMIRROR-SOURCE-EDITOR-BOUNDARY
+
+**Required behavior:** CodeMirror 6 is encapsulated by one Order-owned `MarkdownSourceEditor` that exchanges Markdown strings only with `MarkdownEditor`.
+
+**Acceptance criterion:** CodeMirror lifecycle/configuration/imports are isolated to that owner and application/domain components do not depend on CodeMirror state or APIs.
+
+**Failure/negative behavior:** CodeMirror must not become an application-state, domain-model or cross-workspace dependency.
+
+### GW-TR-028-EXACT-SOURCE-EDITOR-SYNCHRONIZATION
+
+**Required behavior:** user and external source synchronization operates directly on Markdown text without Markdown parse/serialize normalization or feedback loops.
+
+**Acceptance criterion:** user edits emit `view.state.doc.toString()`; equal external values are no-ops; explicit replacements do not re-emit as user changes; dirty canonical refresh remains governed by `MarkdownEditor`.
+
+**Failure/negative behavior:** the integration must not silently reformat source, overwrite dirty content or create a second synchronized Markdown representation.
+
+### GW-TR-029-MARKDOWN-PREVIEW-COMPOSITION
+
+**Required behavior:** Edit/Preview/Split are composed by `MarkdownEditor` from one `buffer: string` using CodeMirror for source and existing Astryx `Markdown` for rendered preview.
+
+**Acceptance criterion:** all presentation modes resolve from the same buffer and mode switching is presentation-only.
+
+**Failure/negative behavior:** no second Markdown renderer, AST store or persisted preview representation may be introduced.
+
+### GW-TR-030-DOCUMENT-EDITOR-ERGONOMIC-CONFIGURATION
+
+**Required behavior:** the CodeMirror configuration supplies Markdown language support, soft wrapping, history, search and Markdown-aware key behavior while remaining a document source editor.
+
+**Acceptance criterion:** configuration is owned once by `MarkdownSourceEditor`, works with keyboard/focus requirements and does not add repository/code-intelligence behavior.
+
+**Failure/negative behavior:** editor extensions must not expand Order into an IDE or duplicate command/configuration owners across screens.
+
+### GW-TR-031-CODEMIRROR-THEME-SPATIAL-INTEGRATION
+
+**Required behavior:** CodeMirror derives visual presentation from Order/Astryx theme variables and fills the existing primary-canvas editor region.
+
+**Acceptance criterion:** System/Light/Dark remain legible; the CodeMirror root/scroller/content participate in the existing flex-height/width contract.
+
+**Failure/negative behavior:** CodeMirror must not create a second product theme, fixed page container or independent preference owner.
+
+### GW-TR-032-EXACT-SOURCE-EDITOR-CERTIFICATION
+
+**Required behavior:** permanent architecture, unit/browser and certification tests prove exact-source preservation, dependency isolation, save/conflict continuity, presentation-mode continuity and usable editor geometry.
+
+**Acceptance criterion:** the test set in §19.10 passes on the final candidate alongside all existing workbench regressions.
+
+**Failure/negative behavior:** a mount-only or syntax-highlighting-only test is insufficient evidence that the governed Markdown contract remains intact.
 
