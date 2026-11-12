@@ -93,3 +93,5 @@ jobs:
         if: always()
         continue-on-error: true
         run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+
+# rerun after public provenance cleanup
