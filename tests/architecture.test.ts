@@ -662,6 +662,20 @@ describe("architecture fitness", () => {
       if (sourcePath !== "ui/src/http.ts" && /\bfetch\s*\(/.test(source)) {
         violations.push(sourcePath + ": browser transport must remain owned by ui/src/http.ts");
       }
+      if (
+        substantiveOwners.has(sourcePath) &&
+        !new Set([
+          "ui/src/ExecutionWorkspace.tsx",
+          "ui/src/WorkItemQueue.tsx",
+        ]).has(sourcePath) &&
+        /<button\b/.test(source)
+      ) {
+        violations.push(
+          sourcePath +
+          ": substantive actions must use the shared workbench action grammar; native buttons are reserved for selectable task/run/queue rows",
+        );
+      }
+
 
       for (const specifier of importSpecifiers(source)) {
         if (/^(?:zustand|redux|@reduxjs\/|jotai|mobx)(?:\/|$)/.test(specifier)) {
