@@ -123,7 +123,7 @@ test("browser bootstrap is local, one-time, exact-cookie, origin-bound, and expi
   expect(expired.status()).toBe(401);
 });
 
-test("appearance uses the Astryx theme control, follows system mode, and persists explicit overrides", async ({
+test("appearance uses a compact theme utility, follows system mode, and persists explicit overrides", async ({
   page,
   request,
 }) => {
@@ -254,7 +254,29 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
 }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await authenticate(page, request);
+
+  const loadingItem = await workItemForTitle(page, "Lifecycle editing workbench");
+  await page.route(
+    "**/api/work-items/" + loadingItem.id + "/source",
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      await route.continue();
+    },
+  );
+  await page.route(
+    "**/api/work-items/" + loadingItem.id + "/lifecycle-artifacts",
+    async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 700));
+      await route.continue();
+    },
+  );
+
   await openWorkItem(page, "Lifecycle editing workbench");
+  const loadingWorkspace = page.getByTestId("document-workspace");
+  await expect(loadingWorkspace).toBeVisible();
+  const loadingBox = await loadingWorkspace.boundingBox();
+  expect(loadingBox).not.toBeNull();
+  expect(loadingBox!.height).toBeGreaterThan(500);
 
   await expect(page.getByRole("button", { name: "Context" })).toHaveCount(0);
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
@@ -318,8 +340,15 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await expect(page.getByLabel("Message input")).toBeVisible();
 
   await page.getByRole("button", { name: "Review proposal" }).click();
-  await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-  await expect(page.getByTestId("proposal-review-diff")).toBeVisible();
+  const proposalReview = page.getByTestId("proposal-review-workspace");
+  const proposalDiff = page.getByTestId("proposal-review-diff");
+  await expect(proposalReview).toBeVisible();
+  await expect(proposalDiff).toBeVisible();
+  const proposalReviewBox = await proposalReview.boundingBox();
+  const proposalDiffBox = await proposalDiff.boundingBox();
+  expect(proposalReviewBox).not.toBeNull();
+  expect(proposalDiffBox).not.toBeNull();
+  expect(proposalDiffBox!.width).toBeGreaterThan(proposalReviewBox!.width * 0.85);
   await expect(page.getByRole("button", { name: "Adopt" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reject" })).toBeVisible();
 
