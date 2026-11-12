@@ -1369,7 +1369,7 @@ An external upgrade invalidating any certification item is P4/P6 material.
 
 ## 30. Implementation contract
 
-A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v2 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE-V1](12-technical-architecture.md).
+A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v3 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE-V1](12-technical-architecture.md).
 
 Any required change to those items returns to DESIGN/P6.
 
@@ -1980,3 +1980,302 @@ PUT is valid only for editable lifecycle Markdown roles defined in the lifecycle
 Existing sign-off package queries return `SignoffPackage.sourceSha256`; sign-off returns an `Approval` with the same required non-null `sourceSha256`.
 
 No generated HTTP client, generic mutation envelope or alternate API model is introduced.
+
+## 32. Repository-native WorkItem v3 canonical contracts
+
+This section is the current binding P6 contract for repository-native WorkItems and explicit documentation Git persistence. It supersedes §31 wherever §31 depends on an installation-global `workItemRoot`, movable source paths, config v2 or SQLite v2 source-path semantics. Other §31 source grammar/catalog/lifecycle rules remain unchanged.
+
+### 32.1 Project WorkItem-document root
+
+`ProjectManifestSchema` remains manifest `version = 1` and gains one backward-compatible optional field whose absence has a canonical default:
+
+```ts
+const ProjectWorkItemsSchema = z.strictObject({
+  root: RepositoryPathSchema.default("docs/order/work-items"),
+});
+
+const ProjectManifestSchema = z.strictObject({
+  version: z.literal(1),
+  projectId: ProjectIdSchema,
+  authority: ...,
+  refs: ...,
+  precedence: ...,
+  governance: ...,
+  concerns: ...,
+  verification: ...,
+  workItems: ProjectWorkItemsSchema.optional()
+    .default({ root: "docs/order/work-items" }),
+});
+```
+
+The resolved `workItems.root`:
+
+- is a normalized repository-relative literal path, not a glob;
+- is not `.`;
+- must not equal `.git` or begin `.git/`;
+- contains no `.`/`..`/empty segment, backslash or NUL under `RepositoryPathSchema`;
+- is interpreted only relative to the validated exact target repository.
+
+Existing v1 manifests without `[workItems]` remain semantically valid and resolve to the default. A project that wants a different location declares, for example:
+
+```toml
+[workItems]
+root = ".context/order"
+```
+
+No installation-local configuration overrides this project-owned choice.
+
+### 32.2 Deterministic WorkItem document paths
+
+One canonical core function resolves:
+
+```text
+<workItems.root>/<WorkItemId>/work-request.md
+<workItems.root>/<WorkItemId>/research.md
+<workItems.root>/<WorkItemId>/requirements.md
+<workItems.root>/<WorkItemId>/solution-design.md
+<workItems.root>/<WorkItemId>/implementation-plan.md
+<workItems.root>/<WorkItemId>/readiness-review.md
+```
+
+The exact role mapping is:
+
+```text
+SOURCE  -> work-request.md
+R1      -> research.md
+R2      -> requirements.md
+DESIGN  -> solution-design.md
+PLAN    -> implementation-plan.md
+R3      -> readiness-review.md
+```
+
+The directory component is exactly the stable `WorkItemId`; title is never part of the path.
+
+`WorkItemSourcePath` is now a repository-relative source-path scalar and must equal the computed `SOURCE` path for that WorkItem/project. Productive v3 does not adopt a moved source location.
+
+For v3-created WorkItems, an `ARTIFACT_PROPOSAL_CREATED` for R1/R2/DESIGN/PLAN/R3 is admitted only when `targetPath` equals the computed path for its role and the unified diff addresses that same path. The provider cannot select a different lifecycle-document path.
+
+Pre-v3 lifecycle ArtifactRefs already inside the repository retain their recorded paths and remain valid historical/current artifacts until superseded by normal lifecycle work; this is bounded migration compatibility, not a second source root.
+
+### 32.3 WorkItem source diagnostics
+
+`WorkItemSourceDiagnostic` adds required project identity because the same repository-relative path may occur in multiple configured projects:
+
+```ts
+const WorkItemSourceDiagnosticSchema = z.strictObject({
+  projectId: ProjectIdSchema,
+  path: WorkItemSourcePathSchema.nullable(),
+  workItemId: WorkItemIdSchema.nullable(),
+  code: WorkItemSourceDiagnosticCodeSchema,
+  detail: z.string().min(1),
+});
+```
+
+Productive reconciliation scans only:
+
+```text
+<resolved workItems.root>/<direct WorkItemId directory>/work-request.md
+```
+
+A directory/source id mismatch is `INVALID_SOURCE`. A known expected path that is absent is `MISSING_SOURCE`. v3 does not emit/adopt a productive `MOVED` source disposition.
+
+### 32.4 OrderConfig v3
+
+```ts
+const OrderConfigSchema = z.strictObject({
+  version: z.literal(3),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema).min(1).refine(unique).readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema).refine(unique).readonly(),
+});
+```
+
+All existing repository/reference-root invariants remain. `workItemRoot` is removed.
+
+Ordinary productive runtime accepts only config v3. Config v2 is accepted only by the installer-owned bounded v2→v3 migration.
+
+### 32.5 SQLite schema v3
+
+`PRAGMA user_version = 3` is the productive schema marker.
+
+The physical `workItemSources` columns remain:
+
+```sql
+CREATE TABLE workItemSources (
+  workItemId TEXT PRIMARY KEY REFERENCES workItems(id),
+  schemaId TEXT NOT NULL,
+  sourcePath TEXT NOT NULL,
+  sourceSha256 TEXT NOT NULL,
+  derivedFromWorkItemId TEXT
+) STRICT;
+```
+
+The semantic change is that `sourcePath` is repository-relative and validated against the WorkItem/project's deterministic v3 source path. The old global-root-relative meaning is invalid under schema v3.
+
+The unique constraint on source path alone is removed because two distinct target repositories may legitimately contain the same relative WorkItem path; WorkItem ids remain globally unique and reconciliation rejects duplicate ids across configured repositories.
+
+Fresh initialization creates schema v3 directly.
+
+Installer migration from schema v2:
+
+- reads each existing WorkItem/project/source binding while the v2 daemon is stopped;
+- performs the filesystem migration in §32.10;
+- updates each persisted `sourcePath` to the computed repository-relative destination only after exact byte/hash verification;
+- advances `user_version = 3` in the same SQLite migration transaction;
+- preserves Run/RunEvent/ArtifactRef/Approval/ExecutionTask history.
+
+Ordinary daemon startup rejects schema v2; no productive dual interpretation of `sourcePath` exists.
+
+### 32.6 Documentation Git-status contracts
+
+```ts
+const WorkItemDocumentGitStateSchema = z.enum([
+  "MATCHES_HEAD",
+  "MODIFIED",
+  "UNTRACKED",
+  "MISSING",
+  "IGNORED",
+  "UNMERGED",
+]);
+
+const WorkItemDocumentGitPathStatusSchema = z.strictObject({
+  repositoryPath: RepositoryPathSchema,
+  workingTreeSha256: Sha256Schema.nullable(),
+  headSha256: Sha256Schema.nullable(),
+  state: WorkItemDocumentGitStateSchema,
+});
+
+const WorkItemDocumentationGitStatusSchema = z.strictObject({
+  workItemId: WorkItemIdSchema,
+  headCommit: GitCommitSchema,
+  paths: z.array(WorkItemDocumentGitPathStatusSchema).readonly(),
+});
+```
+
+The path set is exactly the current canonical WorkItem source plus current lifecycle Markdown ArtifactRefs. It is unique and repository-path sorted.
+
+`MATCHES_HEAD` means exact current working-tree bytes equal the exact blob bytes at current `HEAD`. `UNTRACKED` means the current governed file has no `HEAD` blob. `MODIFIED` means both exist and differ. Missing/ignored/unmerged states are blocking for documentation commit.
+
+Unrelated repository paths are not returned.
+
+### 32.7 Documentation commit command
+
+```ts
+const WorkItemDocumentationExpectedPathSchema = z.strictObject({
+  repositoryPath: RepositoryPathSchema,
+  sha256: Sha256Schema,
+});
+
+const CommitWorkItemDocumentationSchema = z.strictObject({
+  expectedHeadCommit: GitCommitSchema,
+  expectedPaths: z.array(WorkItemDocumentationExpectedPathSchema)
+    .min(1)
+    .readonly(),
+});
+
+const WorkItemDocumentationCommitSchema = z.strictObject({
+  workItemId: WorkItemIdSchema,
+  gitCommit: GitCommitSchema,
+  repositoryPaths: z.array(RepositoryPathSchema).min(1).readonly(),
+});
+```
+
+`expectedPaths` must equal the complete current set whose state is `MODIFIED` or `UNTRACKED`, sorted by repository path. Each SHA-256 is the operator-reviewed current working-tree hash.
+
+The daemon rejects the command with conflict semantics when:
+
+- current `HEAD` differs from `expectedHeadCommit`;
+- the current changed/untracked governed path set differs from `expectedPaths`;
+- any expected working-tree hash differs;
+- any current governed path is missing, ignored or unmerged;
+- no governed path requires a commit.
+
+The commit message is deterministic:
+
+```text
+docs(order): save <WorkItemId> documentation
+```
+
+No operator-controlled commit-message field is introduced in v3.
+
+### 32.8 Git effect contract
+
+The shell owns the effect.
+
+For tracked expected paths it executes a path-scoped `git commit --only` using only those exact literal repository paths.
+
+For expected paths that are genuinely untracked, it first makes only those paths known with `git add --intent-to-add -- <paths>`, then executes the same path-scoped commit. It records which intent-to-add entries it introduced. If commit creation fails, it removes only those newly introduced intent-to-add entries, leaving pre-existing index state untouched.
+
+The shell:
+
+- uses argv arrays and `--` before literal paths;
+- performs a dry-run/path-set proof before mutation;
+- does not use `git add -A`, `git add .`, `git commit -a`, unrestricted `git commit`, `--no-verify`, reset of unrelated paths, stash, checkout, branch creation, push, pull, fetch, merge or rebase;
+- lets normal Git hooks run;
+- resolves the resulting `HEAD` commit and verifies each committed path's blob hash after success.
+
+A commit-hook or Git failure leaves WorkItem lifecycle authority unchanged and returns a typed failure; working-tree document bytes are not reverted.
+
+### 32.9 HTTP additions
+
+```text
+GET /api/work-items/:workItemId/documentation-git-status
+-> WorkItemDocumentationGitStatus
+
+POST /api/work-items/:workItemId/documentation-commit
+body { expectedHeadCommit, expectedPaths: [{ repositoryPath, sha256 }] }
+-> WorkItemDocumentationCommit
+```
+
+The browser never supplies repository root or arbitrary path inputs to these commands.
+
+Existing source/lifecycle Markdown GET/PUT endpoints continue to operate, but all source paths now resolve under the selected repository and project documentation-root contract.
+
+### 32.10 v2 external-source migration contract
+
+Installer migration is all-or-nothing with respect to productive activation.
+
+Preflight every v2 source before copying any:
+
+1. parse through the v2 canonical source grammar;
+2. resolve `projectId` to exactly one configured target repository;
+3. load/validate that repository's manifest and resolved `workItems.root`;
+4. compute the v3 destination;
+5. reject duplicate ids;
+6. if destination exists, require exact identical bytes or fail.
+
+After complete preflight, write absent destinations through the same atomic writer and read-back/hash each.
+
+Only after all repository writes verify may the SQLite/config migration commit. If later installer activation fails, installer rollback restores the prior config/database/application; repository copies that exactly duplicate migrated source intent may remain as explicit operator-visible files rather than being destructively removed from the project.
+
+The old external source directory is never deleted automatically. It is reported as a retained legacy backup and is ignored by productive v3.
+
+### 32.11 Approval/source binding
+
+`Approval.sourceSha256` remains required.
+
+At sign-off, `computeSignoffPackage()` proves the current `work-request.md` working-tree bytes equal the blob at the selected `baselineCommit` and that its SHA-256 equals `sourceSha256`.
+
+V1 execution preflight resolves the deterministic current source path in the selected repository and compares its exact bytes with `Approval.sourceSha256`. A project-manifest/document-root change participates in ordinary project-manifest freshness and therefore cannot silently redirect approval to another source path.
+
+Raw source Markdown remains omitted from execution prompts unless independently required by lifecycle context.
+
+### 32.12 Required certification
+
+Permanent integration tests must prove:
+
+- absent project override resolves to `docs/order/work-items`;
+- explicit project override resolves one repository-contained root;
+- source creation/discovery uses only deterministic direct WorkItem paths;
+- two configured repositories may use the same relative source path without persistence collision but may not contain the same WorkItem id;
+- provider proposal with a non-canonical lifecycle path is rejected before mutation;
+- v2 external sources migrate byte-identically to their selected repositories and productive v3 never reads the old root;
+- documentation Git status is independent from unrelated repository changes;
+- path-scoped documentation commit excludes unrelated staged and unstaged paths;
+- untracked governed documents are committed successfully;
+- a failing commit hook produces no commit and cleanup does not disturb pre-existing unrelated index entries;
+- stale expected HEAD/document hashes reject without Git mutation;
+- ignored/unmerged/missing governed documents reject;
+- Git save never pushes or changes branches;
+- sign-off rejects WorkItem documentation not represented by the selected baseline commit.
+
