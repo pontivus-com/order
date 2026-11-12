@@ -1202,3 +1202,240 @@ Return to P3/P4 instead of expanding implementation if:
 
 **Failure/negative behavior:** a mount-only or syntax-highlighting-only test is insufficient evidence that the governed Markdown contract remains intact.
 
+## 20. User-facing workflow and Activity technical realization (2026-11-13)
+
+This addendum is the P4 realization of `GW-DOC-WORKBENCH-UX-V1` §21. It changes presentation architecture only where possible and requires explicit P6 changes only for error/diagnostic/WorkItem-management contracts identified by the implementation plan. It does not introduce a second lifecycle, browser workflow store, DTO/view-model family, transport protocol or agent framework.
+
+### 20.1 Canonical workflow presentation projection
+
+`ui/src/workbench-presentation.ts` remains the one pure presentation-policy owner and is extended to map canonical WorkItem/Run/RunEvent values to:
+
+- user-facing workflow label and purpose;
+- user-facing Run status/role label;
+- user-facing event label/detail;
+- presentation eligibility for Activity/Implementation/Review/Result modes.
+
+Components consume those projections. They must not duplicate lifecycle label/status/event tables locally.
+
+The projection does not persist state and does not determine lifecycle eligibility/promotion.
+
+### 20.2 WorkItem header geometry
+
+`WorkItemWorkspace` retains one compact orientation header.
+
+The header may use at most two compact intrinsic rows before the primary mode canvas:
+
+1. title/back/context/mode-management row;
+2. workflow-orientation row containing current step/purpose/progression.
+
+Documents may then use their existing one within-mode document navigation strip. Activity uses its own internal master/detail selection and must not add another full-width outer navigation row.
+
+Exact hash, project/schema/concern/source metadata and Technical details do not expand this header.
+
+### 20.3 Activity workspace ownership and decomposition
+
+Add a substantive `ActivityWorkspace` owner.
+
+Its responsibility is Run selection + chronological activity inspection + current human interaction. It consumes existing canonical `Run` and `RunEvent` values through TanStack Query.
+
+The current pre-signoff `StageDialogue` responsibility is absorbed/replaced rather than retained as a second competing Run presentation.
+
+Shared cohesive child ownership should be decomposed only where required, for example:
+
+- `ActivityRunList` — compact Run/attempt master;
+- `RunTimeline` — shared canonical RunEvent rendering usable by Activity and Implementation where the semantic presentation is identical;
+- `ActivityComposer` — pending human-input interaction only;
+- `TechnicalDetails` — secondary exact canonical state/raw event disclosure.
+
+Names are illustrative; P7 may choose equivalent cohesive module names while preserving the responsibilities.
+
+### 20.4 Activity wide-layout geometry
+
+On wide workbench layouts, the Activity primary canvas uses:
+
+```text
+Activity canvas
+├── activity summary / current state        intrinsic compact row
+└── master-detail                           min-height: 0; flex: 1
+    ├── Run/attempt master                  minmax(14rem, 18rem)
+    └── selected activity detail            minmax(0, 1fr)
+        ├── event timeline                  min-height: 0; flex: 1
+        └── composer/current action          intrinsic/sticky bottom when applicable
+```
+
+Requirements:
+
+- the selected detail region has `min-width: 0` and `min-height: 0`;
+- Activity owns remaining mode-canvas height;
+- the event list scrolls inside the detail region rather than forcing the whole WorkItem page to grow indefinitely;
+- if persistent Context plus the Run master would reduce selected detail below approximately 640 px usable width, the existing responsive Context mechanism must switch Context to drawer/overlay before Activity is compressed further;
+- a normal wide desktop target should leave approximately 760–960+ px for selected activity detail where the viewport permits;
+- Technical details must not reserve a permanent third column.
+
+### 20.5 Medium and narrow Activity geometry
+
+Below the width where master + detail + optional Context remain usable:
+
+- Context becomes temporary under the existing workbench rule;
+- the Run/attempt master collapses to a compact selector, drawer or temporary master pane;
+- selected Activity detail remains the primary viewport;
+- timeline and composer keep remaining-height ownership;
+- Technical details opens as disclosure/drawer/full secondary pane and does not permanently split the Activity detail;
+- proposal/evidence navigation retains the selected Run identity when returning.
+
+No mobile-only domain state is introduced.
+
+### 20.6 Workflow/status/action placement
+
+The WorkItem composition owner derives current presentation from canonical state.
+
+- workflow orientation is always in the WorkItem header;
+- Activity summary owns running/waiting/failed/blocked/completed agent status;
+- a compact Context summary may mirror state but does not duplicate a task-specific primary action;
+- start/retry/continue actions are rendered by the primary owning surface when that surface is visible;
+- proposal Review owns Adopt/Reject;
+- document reconformance action is associated with the edited document/current workflow step;
+- Approval owns sign-off;
+- Implementation owns signed task operations.
+
+Cross-mode navigation is requested upward through typed callbacks/selections; sibling workspaces do not import each other's state.
+
+### 20.7 Terminal Run retention and mode reconciliation
+
+`WorkItemWorkspace` must derive Activity availability from **Run history**, not only active Run presence.
+
+Presentation reconciliation must handle:
+
+- active Run appearing;
+- active Run becoming waiting;
+- active Run completing;
+- active Run failing;
+- active Run blocking/cancelling;
+- WorkItem advancing or returning to another lifecycle stage.
+
+A terminal Run keeps Activity valid and selectable.
+
+The current one-way Documents → Dialogue switch is replaced with a symmetric projection that cannot leave the browser in a mode no longer valid for canonical state. Dirty Markdown guards remain authoritative and may defer automatic mode movement until the operator resolves the buffer.
+
+### 20.8 Failure and source-blocker presentation
+
+Known canonical failure detail is rendered in the owning primary workspace.
+
+Activity must render persisted provider/conformance/stage failure events without an allow-list that drops terminal semantics.
+
+A WorkItem source failure may render a compact blocker strip in the current primary surface plus Context summary, with an action to open the Work request/source or Activity/Technical details as appropriate.
+
+Generic HTTP failure text is a fallback only when the daemon has no more specific canonical classification.
+
+### 20.9 Technical details and Evidence promotion
+
+Technical details uses compact disclosure for small exact values:
+
+- Run id;
+- internal stage/role/status;
+- attempt;
+- baseline/context identities;
+- provider session id;
+- terminal classification;
+- exact raw RunEvent tag/payload.
+
+Large provider diagnostics/logs/tool traces are Evidence resources and open the existing Evidence primary workspace. They are never rendered in the Context rail or a permanently visible Activity side column.
+
+### 20.10 WorkItem management controls
+
+The WorkItem header owns management entry points because title/removal apply to the WorkItem independently of current mode.
+
+- title editing is an inline/popover/dialog interaction anchored to the title, sized as compact structured input;
+- remove/archive/restore is a secondary overflow/management action with confirmation;
+- neither control creates another primary-canvas mode;
+- actual mutation semantics and typed transport remain P6-owned.
+
+### 20.11 Browser verification geometry
+
+Permanent browser tests must prove at representative wide/medium/narrow sizes:
+
+1. the workflow header remains compact and does not create a third full-width navigation band;
+2. Activity detail receives the majority of remaining mode-canvas height;
+3. wide Activity uses a bounded 14–18 rem Run master and flexible detail;
+4. Context collapses before Activity detail becomes narrower than the functional minimum;
+5. medium/narrow Activity keeps timeline + pending input in the primary viewport;
+6. terminal failed Runs remain visible/selectable;
+7. Technical details does not permanently consume primary width;
+8. proposal Review/Evidence round-trips preserve the selected activity;
+9. lifecycle transition updates workflow orientation without stale mode presentation;
+10. existing dirty-buffer, focus, URL/history and responsive regressions continue to pass.
+
+### 20.12 Technical requirements
+
+#### GW-TR-027-WORKFLOW-PRESENTATION-PROJECTION
+
+**Required behavior:** one pure presentation owner maps canonical lifecycle/Run/RunEvent state to user-facing workflow/status/event language.
+
+**Acceptance criterion:** substantive UI modules consume the shared projection and canonical types directly.
+
+**Failure/negative behavior:** screen-local workflow/status/event mapping tables or browser-owned lifecycle DTOs are prohibited.
+
+#### GW-TR-028-WORKFLOW-HEADER-GEOMETRY
+
+**Required behavior:** user-facing workflow orientation fits within the compact WorkItem header without adding another full-width primary navigation row.
+
+**Acceptance criterion:** header geometry follows §20.2 and leaves the primary task with remaining viewport space.
+
+**Failure/negative behavior:** workflow explanation must not become page-like chrome above every workspace.
+
+#### GW-TR-029-ACTIVITY-MASTER-DETAIL-LAYOUT
+
+**Required behavior:** Activity uses the remaining-height master/detail geometry in §§20.4–20.5.
+
+**Acceptance criterion:** Run selection stays scan-efficient while the selected event timeline receives flexible width/height.
+
+**Failure/negative behavior:** activity history must not become an unbounded vertical stack before the selected Run detail.
+
+#### GW-TR-030-SINGLE-RUN-EVENT-PRESENTATION
+
+**Required behavior:** one cohesive Run/event presentation owner renders canonical events wherever the same operational meaning is shown.
+
+**Acceptance criterion:** Activity and Implementation do not maintain divergent event-label/detail/evidence logic.
+
+**Failure/negative behavior:** pre-signoff failure/completion events must not be hidden by a narrower Dialogue-specific allow-list.
+
+#### GW-TR-031-ACTIVITY-INPUT-PLACEMENT
+
+**Required behavior:** pending human input is attached to the selected Activity detail and consumes intrinsic/sticky bottom space only while input is accepted.
+
+**Acceptance criterion:** questions and composer remain adjacent to the event context that requested them across responsive layouts.
+
+**Failure/negative behavior:** the composer must not appear active for terminal/non-input Runs or move below unrelated metadata.
+
+#### GW-TR-032-TECHNICAL-DETAILS-PRESENTATION
+
+**Required behavior:** exact internal state is available through secondary disclosure while large diagnostics promote to Evidence-class primary space.
+
+**Acceptance criterion:** ordinary Activity retains its width while exact raw identifiers/payloads remain inspectable on demand.
+
+**Failure/negative behavior:** a permanent debug column or Context-rail log viewer is prohibited.
+
+#### GW-TR-033-PRIMARY-FAILURE-PRESENTATION
+
+**Required behavior:** known agent/source/conformance failures are rendered in the primary owning surface from canonical state.
+
+**Acceptance criterion:** failed terminal Runs remain selectable and display persisted failure detail plus recovery action.
+
+**Failure/negative behavior:** terminalization must not collapse the failed activity into an empty/no-active-run state.
+
+#### GW-TR-034-WORKITEM-MANAGEMENT-CONTROL-PLACEMENT
+
+**Required behavior:** title and remove/archive/restore controls are WorkItem-header/management interactions using compact input/safety patterns.
+
+**Acceptance criterion:** the controls remain discoverable from every WorkItem mode without taking over the primary canvas.
+
+**Failure/negative behavior:** management must not require raw Markdown structure manipulation or compete with the current lifecycle action.
+
+#### GW-TR-035-CANONICAL-MODE-RECONCILIATION
+
+**Required behavior:** browser-local mode selection is reconciled against changing canonical WorkItem/Run state while preserving dirty-buffer and focus/history protections.
+
+**Acceptance criterion:** Run completion/failure/stage advancement cannot strand the operator in an invalid or misleading primary mode.
+
+**Failure/negative behavior:** presentation-local mode state must not outlive the canonical eligibility/state it is meant to display.
+

@@ -684,3 +684,244 @@ These are presentation defects only. Their correction must preserve all existing
 
 **Failure/negative behavior:** raw screen-specific buttons must not create conflicting action priorities or make resource identity/actions materially different between Review, Execution and Evidence entry points.
 
+## 21. User-facing workflow and agent-activity visibility addendum (2026-11-13)
+
+This addendum closes a usability gap exposed by the current implementation: Order's canonical lifecycle and Run state are sound, but the browser currently requires operators to understand internal lifecycle codes and hides material agent-execution state during pre-signoff work.
+
+This section owns the **user-facing workflow projection, placement and space allocation** for those interactions. It does not rename or replace canonical lifecycle values, create another state machine, or change the decision boundaries owned by `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+
+### 21.1 Product-language workflow
+
+Primary browser surfaces use ordinary workflow language:
+
+| Canonical lifecycle value | Primary user-facing label | Purpose shown to the operator |
+|---|---|---|
+| `IDEA` | Work request | Define the work that needs attention |
+| `R1` | Research | Establish what is actually true |
+| `R2` | Requirements | Define the required outcome |
+| `DESIGN` | Solution design | Decide the correct technical solution |
+| `PLAN` | Implementation plan | Define exactly how the change will be made |
+| `R3` | Readiness review | Independently verify that the work is ready |
+| `AWAITING_SIGNOFF` | Approval | Review and authorize the exact package |
+| `EXECUTION` | Implementation | Execute and verify the approved change |
+| `COMPLETE` | Complete | Inspect the final outcome |
+
+`R1`, `R2`, `R3`, `STAGE`, Run-role identifiers and raw RunEvent tags are internal/technical identifiers. They may be exposed in Technical details, but they must not be required to understand the ordinary workflow.
+
+The workflow projection is derived from canonical WorkItem state. It does not persist another lifecycle value and does not make presentation navigation capable of promotion.
+
+### 21.2 Persistent workflow orientation placement
+
+A selected WorkItem has one compact workflow-orientation treatment in the WorkItem header.
+
+It must show:
+
+- the current user-facing workflow step;
+- the one-sentence purpose of that step;
+- current user-facing state where material;
+- the complete workflow progression as compact orientation.
+
+The orientation belongs in the existing WorkItem header because it answers "where am I in this work?" independently of the selected primary workspace mode.
+
+It must **not** become:
+
+- another full-width content-edge tab bar;
+- a clickable lifecycle wizard;
+- a second state machine;
+- a third persistent navigation row above Documents/Activity/Review content.
+
+The selected primary workspace continues to own its own within-mode navigation.
+
+### 21.3 Activity is a first-class primary workspace
+
+Order exposes **Activity** as the primary operational view of agent work across the complete WorkItem lifecycle.
+
+Activity answers:
+
+> What is Order doing, what has happened, what failed, what needs me, and what can happen next?
+
+Activity is available whenever the WorkItem has one or more Runs, including terminal Runs. It does not disappear when no Run is currently active.
+
+Activity combines the interaction classes previously split between pre-signoff Dialogue and post-signoff Run/event inspection:
+
+- Run/attempt selection;
+- chronological RunEvent timeline;
+- agent/operator messages;
+- pending human questions;
+- proposed-document-change entry points;
+- status and terminal result;
+- failure detail;
+- evidence/resource links;
+- current allowed recovery/continue action;
+- secondary Technical details.
+
+The post-approval **Implementation** workspace remains distinct and task-centric. It owns signed tasks, task state, validation/candidate inspection and implementation-oriented Run grouping. Activity remains available from the same WorkItem for exact chronological agent inspection.
+
+### 21.4 Activity placement and sizing
+
+Activity is **primary-canvas material**, never contextual-inspector material.
+
+On a wide workbench, Activity uses a bounded master/detail composition:
+
+- compact activity/attempt master at approximately 14–18 rem;
+- flexible detail/timeline region using the remaining primary-canvas width;
+- the timeline/detail region must retain at least the Document/Dialogue minimum useful width; if a persistent Context rail would reduce it below approximately 640 px, Context collapses to its drawer/overlay presentation;
+- the event timeline consumes remaining viewport height after compact WorkItem/header/activity-summary chrome;
+- the human-input composer occupies intrinsic/sticky bottom space only while the selected current activity accepts input.
+
+The contextual inspector may mirror only compact facts:
+
+- current workflow step;
+- current activity state;
+- concise blocker/failure summary;
+- a compact current action when the active primary surface does not already own that action.
+
+It must never contain the full event timeline, raw logs, provider diagnostics, proposal diffs or sustained failure/debug material.
+
+On medium/narrow viewports:
+
+- the primary Activity detail keeps the viewport;
+- the activity/attempt master collapses to a compact selector/list drawer or equivalent temporary control;
+- Context is temporary;
+- Technical details is temporary or in-flow secondary disclosure;
+- the composer remains attached to the current Activity detail and is not moved below unrelated metadata.
+
+### 21.5 Status, failure and recovery placement
+
+Current agent status is visible in two levels:
+
+1. **primary Activity summary** — authoritative operator-facing execution state, timestamps, current/last meaningful event and allowed next action;
+2. **compact WorkItem orientation/context** — enough state to tell whether work is running, waiting, blocked, failed or complete without opening Activity.
+
+A material failure must be visible in the primary WorkItem experience even when the current mode is Documents or Review. The compact summary may link/open Activity, but it must include the human-readable failure class and immediate recovery direction.
+
+A failed terminal Run must remain selectable in Activity. Replacing a failed Run with an empty state such as "No active interactive run" is prohibited.
+
+Source-boundary failures that prevent productive work are WorkItem-level blockers. They must not be discoverable only through the Source editor or browser developer tools.
+
+### 21.6 Workflow-action placement
+
+Only one primary instance of a consequential current action should dominate the visible task.
+
+Placement follows scope:
+
+- **Start Research / Start Requirements / Start Solution design / Start Implementation planning / Start Readiness review** — attached to the current workflow-step summary in the primary WorkItem surface when no agent activity is active;
+- **Answer / Continue** — Activity composer/action region;
+- **Review proposed document change** — Activity event opens Review-class primary space;
+- **Adopt / Reject** — Proposal Review;
+- **Continue after adoption** — Proposal Review completion state returns to/opens Activity with the owning workflow action explicit;
+- **Retry after agent failure** — Activity terminal failure receipt;
+- **Revalidate after direct Markdown edit** — document/current-step state strip associated with the edited document and owning workflow step;
+- **Approve exact package** — Review/Approval surface under existing sign-off rules;
+- **Implementation controls** — Implementation workspace only.
+
+Context may carry the action when it is the only compact action for the current state, but it must not create a competing second primary action while the active primary workspace already owns the same decision.
+
+### 21.7 WorkItem management placement
+
+WorkItem management is distinct from lifecycle progression.
+
+- **Edit title** is reachable from the WorkItem title/header treatment and edits the canonical source-owned title under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`; it must not require finding and manually editing an H1 in the document editor.
+- **Remove from active work / restore** is a secondary WorkItem-level management action, placed in the WorkItem header overflow/management affordance or compact Context management section. It must not compete visually with the current workflow action.
+- destructive or archival confirmation uses the existing safety/exception interaction class.
+
+Exact title/archive mutation semantics remain owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`; this UX owner governs placement and discoverability only.
+
+### 21.8 Technical details boundary
+
+Technical details is secondary inspection, not the ordinary workflow language.
+
+From Activity, the operator can disclose/open exact technical material including canonical Run identity, internal stage/role/status, context/baseline identity, raw RunEvent type/payload and diagnostic evidence references.
+
+Large raw diagnostics, logs and evidence open in Evidence-class primary space. Technical details must not steal permanent width from the Activity timeline on ordinary use.
+
+A failure reason required to understand or recover from the workflow must never exist only inside Technical details.
+
+### 21.9 Workflow transition behavior
+
+Presentation must track canonical transitions without losing operational history.
+
+- opening a WorkItem with no active agent work opens the current substantive workflow surface under the existing deterministic-entry rules;
+- starting agent work opens Activity unless doing so would destroy unsaved Markdown;
+- while waiting for input, Activity remains primary and exposes the pending question/composer;
+- proposal review temporarily promotes the proposal to Review-class primary space;
+- after proposal disposition, the operator returns to the owning Activity/state rather than an unrelated empty mode;
+- when a workflow step completes, the workflow header advances immediately from canonical WorkItem state while completed Activity remains inspectable;
+- when a Run fails/blocks/cancels, Activity remains valid and shows the terminal receipt/recovery path;
+- post-approval, Implementation becomes available while Activity remains the cross-lifecycle execution history;
+- completion does not erase Activity history.
+
+### 21.10 Functional requirements
+
+#### GW-FR-051-USER-FACING-WORKFLOW-LANGUAGE
+
+**Required behavior:** primary browser surfaces present the lifecycle using the ordinary-language workflow labels and purposes in §21.1 while canonical internal values remain unchanged.
+
+**Acceptance criterion:** an operator can understand the complete workflow without knowing the meanings of `R1`, `R2`, `R3`, `STAGE` or internal Run-role/event identifiers.
+
+**Failure/negative behavior:** backend identifiers must not be the sole or dominant labels for ordinary workflow navigation, status or actions.
+
+#### GW-FR-052-WORKFLOW-ORIENTATION
+
+**Required behavior:** every selected WorkItem exposes compact, persistent current-step and complete-workflow orientation in the WorkItem header without creating another workflow/navigation state machine.
+
+**Acceptance criterion:** changing Documents/Activity/Review/Implementation presentation modes never obscures the canonical workflow position.
+
+**Failure/negative behavior:** workflow orientation must not become another full-width tab row or clickable promotion control.
+
+#### GW-FR-053-ACTIVITY-WORKSPACE
+
+**Required behavior:** all current and historical agent Runs are inspectable through one Activity primary workspace across pre-signoff and post-signoff states.
+
+**Acceptance criterion:** active, waiting, completed, blocked, failed and cancelled Runs remain selectable with their chronological persisted events and evidence.
+
+**Failure/negative behavior:** terminal pre-signoff Runs must not disappear merely because they are no longer "active".
+
+#### GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY
+
+**Required behavior:** Activity presents exact canonical agent-execution state including attempt, timestamps, status, chronological RunEvents, messages/questions/proposals, failure detail and evidence/recovery links.
+
+**Acceptance criterion:** an operator can determine what the agent is doing or why it stopped without browser developer tools or direct database inspection.
+
+**Failure/negative behavior:** a presentation filter must not silently omit persisted failure, completion, blocking or conformance events material to understanding execution.
+
+#### GW-FR-055-ACTIONABLE-FAILURE-RECOVERY
+
+**Required behavior:** agent/source/conformance failures are visible in the primary WorkItem experience with human-readable cause and the canonical next recovery action.
+
+**Acceptance criterion:** a failed Research activity remains visible as failed, with its persisted failure detail and retry/recovery path.
+
+**Failure/negative behavior:** generic empty states or generic HTTP errors must not replace a known canonical failure classification/detail.
+
+#### GW-FR-056-WORKFLOW-ACTION-PLACEMENT
+
+**Required behavior:** current workflow actions appear adjacent to the task/state they affect according to §21.6 and do not compete through duplicated primary actions.
+
+**Acceptance criterion:** the operator never needs to infer that a hidden Context control is required to continue a visibly active primary task.
+
+**Failure/negative behavior:** consequential actions must not be buried in unrelated chrome, duplicated with conflicting prominence, or presented outside the scope they mutate.
+
+#### GW-FR-057-TECHNICAL-DETAILS-BOUNDARY
+
+**Required behavior:** internal lifecycle/Run identifiers and raw diagnostic payloads remain available through secondary Technical details/Evidence inspection without becoming ordinary product language.
+
+**Acceptance criterion:** normal workflow understanding uses human terminology while exact technical state remains one explicit disclosure away.
+
+**Failure/negative behavior:** hiding internal codes must not remove exact diagnostic inspection, and exposing diagnostics must not require users to understand those codes for normal operation.
+
+#### GW-FR-058-WORKITEM-MANAGEMENT-DISCOVERABILITY
+
+**Required behavior:** title editing and removal/restoration of active work are reachable as WorkItem-level management actions separate from lifecycle progression.
+
+**Acceptance criterion:** title management is available from the WorkItem title/header context and removal/restoration is available from a secondary management affordance without competing with the current workflow action.
+
+**Failure/negative behavior:** operators must not have to edit raw source structure merely to rename work or manipulate filesystem/database internals merely to remove it from the active queue.
+
+#### GW-FR-059-RESPONSIVE-ACTIVITY-CONTINUITY
+
+**Required behavior:** Activity preserves the selected Run, timeline, pending input and failure/recovery context across wide/medium/narrow recomposition.
+
+**Acceptance criterion:** secondary masters, Context and Technical details collapse before the Activity detail loses usable width/height.
+
+**Failure/negative behavior:** responsive layout must not move the live activity below unrelated metadata, discard activity selection or hide the pending human interaction.
+
