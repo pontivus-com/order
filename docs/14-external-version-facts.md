@@ -2,8 +2,9 @@
 
 **Status:** Binding factual reference  
 **Canonical concern ID:** `GW-DOC-EXTERNAL-FACTS`  
-**Versioned concern ID:** `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`  
-**Verified:** 2026-11-12  
+**Versioned concern ID:** `GW-DOC-EXTERNAL-FACTS-V1-2026-11-13`  
+**Verified:** 2026-11-13  
+**2026-11-13 CodeMirror Markdown-editor refresh:** verified CodeMirror 6 as an MIT-licensed exact-text editor substrate. The `codemirror` package current published version is `6.0.2` and provides the standard CodeMirror 6 basic setup; `@codemirror/lang-markdown` current published version is `6.5.2` and provides Markdown language support plus Markdown-specific Enter/Backspace key behavior. Order selects exact pins `codemirror@6.0.2` and `@codemirror/lang-markdown@6.5.2` for the governed exact-source Markdown editor. CodeMirror editor state remains browser-local presentation state; the relied-upon current source is the editor document text, not a Markdown AST/serialization. Sources: https://www.npmjs.com/package/codemirror, https://www.npmjs.com/package/@codemirror/lang-markdown.  
 **2026-11-12 Astryx workbench refresh:** verified Astryx as an MIT-licensed beta React 19+ design system; the supported Vite consumer path can use the precompiled `@astryxdesign/core` distribution without adding a StyleX build plugin, Babel or PostCSS; Astryx publishes accessible layout, table/list, drawer, chat, Markdown/code, selector/multi-selector, segmented-control, icon and status primitives used by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`. The current stable fixed-group package line observed from the publisher is `0.7.13` for `@astryxdesign/core` and `@astryxdesign/theme-neutral`; `@stylexjs/stylex` is `0.19.1`. Order uses exact stable pins, not canaries. The neutral theme may fall back to the system font stack; Order does not load its optional Google-hosted Figtree font. Sources: https://astryx.atmeta.com/components, https://astryx.atmeta.com/docs/theme, https://github.com/meta/astryx, https://www.npmjs.com/package/@astryxdesign/core, https://www.npmjs.com/package/@stylexjs/stylex.  
 **2026-11-12 Astryx integration-detail refresh:** the pinned v0.7.13 source confirms `@astryxdesign/core` peers on React/React DOM >=19 and `@stylexjs/stylex ^0.19.0`; the root `Theme` provider accepts `mode = system | light | dark`, synchronizes root `data-theme` / `data-astryx-theme`, and removes the explicit `data-theme` in system mode. The published Vite/Tailwind consumer guidance requires the layer order to be declared before the existing Tailwind import and consumes reset/astryx/theme CSS without a build plugin. `Drawer` owns Escape/focus-return behavior for inspector detail surfaces. The pinned Markdown implementation has no raw-HTML rendering channel in its supported profile and rejects raw-markup channels in its Remark compatibility boundary; arbitrary evidence still remains escaped text in Order. The neutral theme package 0.7.13 depends on Lucide internally, so Order does not add a direct Lucide dependency merely for Astryx icons. Sources: https://github.com/meta/astryx/blob/v0.7.13/packages/core/README.md, https://github.com/meta/astryx/blob/v0.7.13/packages/core/src/theme/Theme.tsx, https://astryx.atmeta.com/components/Drawer, https://github.com/meta/astryx/blob/v0.7.13/packages/core/src/Markdown/Markdown.tsx, https://github.com/meta/astryx/blob/v0.7.13/packages/core/src/Markdown/remark.ts, https://github.com/meta/astryx/blob/v0.7.13/packages/themes/neutral/package.json.
 **2026-11-12 clean-build/update refresh:** verified against the pinned tool families that Vite exposes underlying Rolldown configuration through `build.rolldownOptions`; Rolldown exposes `checks.moduleLevelDirective` as the narrow switch for warnings about non-`use strict` module directives; and Bun SQLite supports read-only, non-creating database opens with `{ readonly: true, create: false }`. Order relies on these capabilities only for the client-SPA build diagnostic policy and installer-side legacy-schema probing. No dependency pin changed. Sources: https://vite.dev/config/build-options, https://rolldown.rs/reference/InputOptions.checks, https://bun.sh/docs/runtime/sqlite.  
@@ -63,6 +64,8 @@ The following is the complete **designed direct dependency set** authorized for 
 | `@astryxdesign/core` | 0.7.13 | 0.7.13 stable published package; upstream project currently beta | https://www.npmjs.com/package/@astryxdesign/core |
 | `@astryxdesign/theme-neutral` | 0.7.13 | Astryx published packages use the same fixed release group | https://github.com/meta/astryx |
 | `@stylexjs/stylex` | 0.19.1 | 0.19.1 published package | https://www.npmjs.com/package/@stylexjs/stylex |
+| `codemirror` | 6.0.2 | 6.0.2 npm `latest`; standard CodeMirror 6 basic setup package | https://www.npmjs.com/package/codemirror |
+| `@codemirror/lang-markdown` | 6.5.2 | 6.5.2 npm `latest`; Markdown language support package | https://www.npmjs.com/package/@codemirror/lang-markdown |
 
 The direct browser-test dependency is **`@playwright/test`**, not `playwright`. The former is the Playwright Test runner and declares `playwright` as its dependency. Order does not add a second direct `playwright` dependency unless a later approved requirement directly imports the automation library outside Playwright Test.
 
@@ -78,6 +81,8 @@ dependencies
   react                       19.3.1
   react-dom                   19.3.1
   zod                         4.6.7
+  codemirror                  6.0.2
+  @codemirror/lang-markdown  6.5.2
 
 devDependencies
   @playwright/test       1.64.1
