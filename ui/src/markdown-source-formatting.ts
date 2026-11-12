@@ -96,7 +96,9 @@ const selectedLineRange = (
   selection: MarkdownSourceSelection,
 ): LineRange => {
   const current = normalizedSelection(markdown, selection);
-  const from = markdown.lastIndexOf("\n", Math.max(0, current.from - 1)) + 1;
+  const from = current.from === 0
+    ? 0
+    : markdown.lastIndexOf("\n", current.from - 1) + 1;
   const target = current.to > current.from ? current.to - 1 : current.to;
   const newline = markdown.indexOf("\n", target);
   const to = newline === -1 ? markdown.length : newline;
