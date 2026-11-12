@@ -5,6 +5,7 @@ import { Tab, TabList } from "@astryxdesign/core/TabList";
 
 import type { ArtifactRef, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import {
   runIsActive,
   workItemInitialMode,
@@ -42,7 +43,7 @@ export const WorkItemWorkspace = ({
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const runsQuery = useQuery({
-    queryKey: ["runs", workItem.id],
+    queryKey: workbenchQueryKeys.runs(workItem.id),
     queryFn: () => api.listRuns(workItem.id),
     refetchInterval: (query) =>
       query.state.data?.some(runIsActive) === true ? 1000 : false,
