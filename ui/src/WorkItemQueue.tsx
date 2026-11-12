@@ -31,10 +31,10 @@ export const WorkItemQueue = ({
       <TableHeader>
         <TableRow>
           <TableHeaderCell>Work item</TableHeaderCell>
-          <TableHeaderCell>Kind</TableHeaderCell>
-          <TableHeaderCell>Stage</TableHeaderCell>
-          <TableHeaderCell>Status</TableHeaderCell>
-          <TableHeaderCell>Concerns</TableHeaderCell>
+          <TableHeaderCell className="order-queue-secondary-column">Kind</TableHeaderCell>
+          <TableHeaderCell className="order-queue-stage-column">Stage</TableHeaderCell>
+          <TableHeaderCell className="order-queue-status-column">Status</TableHeaderCell>
+          <TableHeaderCell className="order-queue-secondary-column">Concerns</TableHeaderCell>
           <TableHeaderCell> </TableHeaderCell>
         </TableRow>
       </TableHeader>
@@ -57,14 +57,21 @@ export const WorkItemQueue = ({
               <div className="order-queue-title">
                 <strong>{item.title}</strong>
                 <span>{item.projectId}</span>
+                <span className="order-queue-mobile-meta">
+                  {(schemas.find((schema) => schema.schemaId === item.schemaId)?.kind ?? item.schemaId) +
+                    " · " + item.stage + " · " + item.status}
+                </span>
+                <span className="order-queue-mobile-concerns">
+                  {item.concernIds.join(", ") || "No concerns"}
+                </span>
               </div>
             </TableCell>
-            <TableCell>
+            <TableCell className="order-queue-secondary-column">
               {schemas.find((schema) => schema.schemaId === item.schemaId)?.kind ?? item.schemaId}
             </TableCell>
-            <TableCell>{item.stage}</TableCell>
-            <TableCell>{item.status}</TableCell>
-            <TableCell>{item.concernIds.join(", ") || "—"}</TableCell>
+            <TableCell className="order-queue-stage-column">{item.stage}</TableCell>
+            <TableCell className="order-queue-status-column">{item.status}</TableCell>
+            <TableCell className="order-queue-secondary-column">{item.concernIds.join(", ") || "—"}</TableCell>
             <TableCell>
               <WorkbenchAction
                 label={"Copy work item id for " + item.title}
