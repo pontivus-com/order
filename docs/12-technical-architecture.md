@@ -1024,7 +1024,7 @@ Add one cohesive shell module:
 src/shell/work-item-source.ts
 ```
 
-It owns only filesystem mechanics beneath configured `workItemRoot`:
+It owns only WorkItem-source filesystem mechanics beneath the selected repository's resolved project documentation root:
 
 - recursive discovery of regular `.md` files;
 - relative source-path normalization and root containment;
@@ -1048,7 +1048,7 @@ src/daemon/work-item-source.ts
 
 It owns source reconciliation/orchestration only:
 
-- resolve configured `workItemRoot`;
+- resolve the selected exact repository and its validated project WorkItem documentation root;
 - scan/read through the shell owner;
 - parse through the core owner;
 - resolve `projectId` to exactly one configured validated target repository; v2 configuration itself guarantees one exact repository root per entry and unique project ids;
@@ -1121,11 +1121,9 @@ Presentation-local selection/editor/dirty state remains React component state. T
 
 #### Portable source location and discovery
 
-`OrderConfig` v2 adds exactly one configured absolute `workItemRoot` separate from exact target `repositoryRoots` and STAGE `referenceRoots`. The exact default/setup contract is owned by [GW-DOC-CANONICAL-CONTRACTS-V1 §22](13-canonical-contracts.md).
+Productive `OrderConfig` v3 contains exact target `repositoryRoots` and STAGE `referenceRoots` only. WorkItem source location is project-owned inside the selected target repository under the resolved `pontivus-order.toml [workItems].root`, defaulting to `docs/order/work-items`. The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS-V1 §32](13-canonical-contracts.md).
 
-The daemon treats the configured root as a dedicated WorkItem queue and recursively inspects regular `.md` files beneath it. UI-created sources are named `<WorkItemId>.md` at the root; externally authored valid WorkItems may use any unique relative `.md` path beneath the root. Directory entries that are not regular Markdown files are ignored. Symlinks are not followed as source files or traversal boundaries.
-
-A moved file with unchanged stable WorkItem id and unchanged exact source bytes preserves identity; path is updated in the runtime projection without semantic invalidation.
+The daemon reconciles only deterministic `<workItems.root>/<WorkItemId>/work-request.md` candidates for each exact configured repository. It does not recursively inspect unrelated Markdown and does not adopt a moved source path. Symlinks are not followed as source files or traversal boundaries.
 
 #### Exact WorkItem source grammar (P6)
 
@@ -1160,7 +1158,7 @@ No prompt builder independently opens/scans a WorkItem source path.
 
 Configuration v2 uses a finite set of exact validated target repositories rather than broad parent-root discovery. Each target entry is one canonical Git top-level realpath with a valid root manifest and a unique `ProjectManifest.projectId`. The WorkItem project picker is derived from those manifests; Order does not recursively crawl parent directories and does not create a second project registry.
 
-The portable `workItemRoot` is a separate canonical directory. After realpath resolution it is path-disjoint from every target repository, every reference root, and the Order state root. Reference roots retain STAGE-only read semantics. The exact configuration schema/default contract is P6-owned.
+There is no productive external WorkItem root. Each target repository resolves one repository-contained WorkItem documentation root; reference roots remain separate STAGE-only read boundaries and Order state remains outside target repositories. The exact config/project-manifest contracts and v2→v3 migration are P6-owned.
 
 ### Workbench query/mutation and presentation ownership
 
@@ -1278,7 +1276,7 @@ Permanent tests must prove at least:
 - one shared file-write primitive proves expected-hash stale-write refusal, including two Order mutation attempts using the same old hash;
 - same-directory replacement/read-back/directory-fsync behavior and non-`.md` source temporary-file invisibility to the scanner;
 - existing target permission-bit preservation on update;
-- no source write outside `workItemRoot` and no lifecycle-document write outside the validated repository target.
+- no source write outside the selected repository's resolved WorkItem documentation root and no lifecycle-document write outside the validated repository target.
 
 ##### Daemon/integration
 
