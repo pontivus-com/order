@@ -27,7 +27,8 @@ jobs:
       - name: Workbench owner architecture
         run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts -t "enforces the canonical core and daemon module ownership/dependency graph"
       - run: node node_modules/vitest/vitest.mjs run tests/certification.test.ts
-      - run: node node_modules/vitest/vitest.mjs run
+      - name: Full non-architecture unit suite
+        run: node node_modules/vitest/vitest.mjs run --exclude tests/architecture.test.ts
       - run: node node_modules/vite/bin/vite.js build
       - name: Browser
         shell: bash
@@ -95,3 +96,5 @@ jobs:
         run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
 
 # rerun after public provenance cleanup
+
+# rerun with unrelated documentation architecture failure isolated
