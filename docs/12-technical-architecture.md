@@ -1549,7 +1549,7 @@ Eligibility requires:
 - WorkItem stage is one of `IDEA`, `R1`, `R2`, `DESIGN`, `PLAN`, `R3` or `AWAITING_SIGNOFF`;
 - WorkItem has no active Run;
 - current canonical documentation status has at least one `MODIFIED` or `UNTRACKED` path and no `MISSING`, `IGNORED` or `UNMERGED` path;
-- `HEAD` is attached to one local branch, proven by `git symbolic-ref -q HEAD`;
+- `HEAD` is attached to one local branch, proven by `git symbolic-ref -q HEAD` returning a ref under `refs/heads/`;
 - no Git operation is in progress.
 
 The Git shell proves the operation-state condition by resolving Git-internal paths through `git rev-parse --git-path` and rejecting presence of merge/cherry-pick/revert/rebase/sequencer/bisect state, including `MERGE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`, `REBASE_HEAD`, `rebase-merge`, `rebase-apply`, `sequencer` and `BISECT_LOG`.
