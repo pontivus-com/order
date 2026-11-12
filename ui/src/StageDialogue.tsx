@@ -12,8 +12,11 @@ import type { RunEvent, RunEventId, WorkItem } from "../../src/core/contracts.ts
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import type { ProposalSelection } from "./workbench-presentation.ts";
-import { runIsActive } from "./workbench-presentation.ts";
+import {
+  proposalDispositionFor,
+  runIsActive,
+  type ProposalSelection,
+} from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 const unresolvedRequest = (events: readonly RunEvent[]): RunEvent | null => {
@@ -28,18 +31,6 @@ const unresolvedRequest = (events: readonly RunEvent[]): RunEvent | null => {
     if (event?.event.tag === "HUMAN_INPUT_REQUESTED" && !received.has(event.id)) return event;
   }
   return null;
-};
-
-const proposalDisposition = (
-  events: readonly RunEvent[],
-  proposalId: RunEventId,
-): "ADOPTED" | "REJECTED" | null => {
-  const found = events.find((event) =>
-    event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
-    event.event.proposalEventId === proposalId);
-  return found?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
-    ? found.event.disposition
-    : null;
 };
 
 export const StageDialogue = ({
@@ -146,7 +137,7 @@ export const StageDialogue = ({
               return <ChatSystemMessage key={event.id}>{event.event.question}</ChatSystemMessage>;
             }
             if (event.event.tag === "ARTIFACT_PROPOSAL_CREATED") {
-              const state = proposalDisposition(events, event.id);
+              const state = proposalDispositionFor(events, event.id);
               return (
                 <ChatMessage key={event.id} sender="assistant">
                   <ChatMessageBubble variant="ghost" width="100%">
