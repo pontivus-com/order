@@ -1,6 +1,7 @@
 import type {
   ArtifactRef,
   Run,
+  RunEventId,
   WorkItem,
 } from "../../src/core/contracts.ts";
 
@@ -11,6 +12,11 @@ export type WorkItemMode =
   | "EXECUTION"
   | "EVIDENCE"
   | "RESULT";
+
+export type ProposalSelection = Readonly<{
+  runId: Run["id"];
+  eventId: RunEventId;
+}>;
 
 export type EvidenceSelection =
   | Readonly<{
