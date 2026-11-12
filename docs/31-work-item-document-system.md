@@ -11,12 +11,12 @@ Order must accept and govern software work as portable Markdown WorkItems instea
 
 This document owns the functional behavior for:
 
-- a configured/default WorkItem document queue;
+- repository-native WorkItem document roots selected through configured target projects;
 - portable WorkItem identity and metadata;
 - governed software-work kinds;
 - versioned WorkItem schemas/templates;
 - catalog-driven operator choices rather than free-text process metadata;
-- discovery and reconciliation of an existing queue on a new installation;
+- repository-local source and lifecycle-document discovery/reconciliation on a new installation;
 - source-change freshness behavior.
 
 It does not own the existing lifecycle stage semantics, stage decision boundaries, specification quality rules, post-sign-off execution policy, validation branches, persistence schema, HTTP contracts or exact filesystem/configuration grammar. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V1`, `GW-DOC-SPECIFICATION-STANDARD-V1`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`.
@@ -208,7 +208,11 @@ For every supported Markdown source:
 - source removed/unavailable -> preserve historical Order state but block source-dependent progression until resolved;
 - source changed -> do not silently continue against stale downstream work.
 
-A fresh installation with no prior Order state registers valid discovered repository-local source WorkItems as source-backed IDEA/intake records. Cloning/configuring the project repository is therefore sufficient to recover the durable WorkItem documents; Order does not infer completed stages, approvals or execution history from those Markdown files.
+A fresh installation with no prior Order state registers valid discovered repository-local source WorkItems as source-backed IDEA/intake records. After a valid `work-request.md` is established, Order also inspects only that WorkItem's deterministic lifecycle-document paths from §9.
+
+A present deterministic lifecycle file is rediscovered as a **repository draft for its canonical role**. Rediscovery makes the Markdown visible/editable under the normal stage rules, but does not fabricate a Run, `STAGE_COMPLETED`, conformance result, lifecycle promotion, readiness verdict, Approval or execution history. The WorkItem therefore still enters at IDEA on a fresh runtime projection and must traverse/revalidate the governed lifecycle before any rediscovered draft can become current authority.
+
+This is the portability boundary: cloning/configuring the project repository is sufficient to recover the durable Work request and deterministic lifecycle Markdown, while Order runtime state remains the sole owner of historical workflow/execution facts.
 
 
 ### 10.1 Existing repository lifecycle artifacts during v2→v3 migration
@@ -230,7 +234,9 @@ The WorkItem source participates in lifecycle freshness.
 
 A changed validated source snapshot after downstream artifacts or decisions exist must make affected downstream context stale and return through the existing lifecycle re-resolution mechanism instead of letting implementation continue under old intent.
 
-V1 does not ask deterministic code or an agent to decide that changed source bytes are "probably immaterial" to approved intent. Once the canonical P6 snapshot identity changes, source-backed conformance is stale. Moving the same stable WorkItem to another path without changing its validated source snapshot preserves identity and does not by itself change intent.
+V1 does not ask deterministic code or an agent to decide that changed source bytes are "probably immaterial" to approved intent. Once the canonical P6 snapshot identity changes, source-backed conformance is stale.
+
+The productive source path is part of the deterministic project-local WorkItem layout. Moving `work-request.md` away from its computed §9 location is therefore an invalid/missing-source condition, not an identity-preserving relocation. The stable WorkItem ID remains identity, but productive discovery never adopts an alternate path for that ID.
 
 The stable WorkItem ID is identity and must not be repurposed for unrelated work.
 
@@ -290,9 +296,9 @@ This preserves restartability: after provider/session loss, Order must be able t
 
 ### GW-FR-009-PORTABLE-WORK-ITEM-SOURCE
 
-**Required behavior:** every queued WorkItem is grounded in a portable Markdown source under the configured WorkItem root, with stable machine-readable identity/classification and a human-readable title/body.
+**Required behavior:** every queued WorkItem is grounded in a portable Markdown source at its deterministic path inside the selected target Git repository, with stable machine-readable identity/classification and a human-readable title/body.
 
-**Acceptance criterion:** a new Order installation pointed at an existing valid queue rediscovers the same WorkItem IDs without browser re-entry or regenerated identities.
+**Acceptance criterion:** a new Order installation configured for an existing valid target repository rediscovers the same WorkItem IDs from the project-local documentation root without browser re-entry, regenerated identities or an installation-global WorkItem directory.
 
 **Failure/negative behavior:** Order must not make an installation-local form/SQLite row the sole source of WorkItem identity or originating intent.
 
@@ -324,15 +330,15 @@ This preserves restartability: after provider/session loss, Order must be able t
 
 **Required behavior:** startup/refresh reconciles valid WorkItem sources by stable identity and preserves source-backed work across reinstall or loss of installation-local projection state; every productive lifecycle/sign-off/execution boundary also revalidates the affected WorkItem source before relying on a prior projection.
 
-**Acceptance criterion:** unknown, moved, unchanged, invalid, duplicate, changed and missing sources receive deterministic visible dispositions without duplicate WorkItem creation, and a Markdown edit made while the daemon is running cannot remain invisible until the next full queue scan.
+**Acceptance criterion:** unknown, unchanged, misplaced, invalid, duplicate, changed and missing sources receive deterministic visible dispositions without duplicate WorkItem creation, and a Markdown edit made while the daemon is running cannot remain invisible until the next repository-source refresh/revalidation boundary.
 
-**Failure/negative behavior:** discovery must not rewrite an existing queue, silently drop invalid files, assign new identities to known WorkItems or fabricate historical execution state.
+**Failure/negative behavior:** discovery must not adopt a moved source path, rewrite repository documents merely to make them discoverable, silently drop invalid files, assign new identities to known WorkItems or fabricate historical execution state.
 
 ### GW-FR-014-SOURCE-FRESHNESS
 
 **Required behavior:** the originating WorkItem source participates in context freshness and a changed canonical source snapshot cannot be ignored after downstream work exists.
 
-**Acceptance criterion:** downstream authority/execution cannot proceed on stale intent after a source snapshot identity change; an unchanged snapshot moved to another path retains the same WorkItem identity without semantic invalidation.
+**Acceptance criterion:** downstream authority/execution cannot proceed on stale intent after a source snapshot identity change; a source moved away from its deterministic project-local path is blocked as missing/misplaced rather than silently rebound.
 
 **Failure/negative behavior:** source edits must not be absorbed by mutating runtime history to appear consistent with old approvals.
 
@@ -392,6 +398,14 @@ This preserves restartability: after provider/session loss, Order must be able t
 
 **Failure/negative behavior:** lifecycle-document placement must not depend on model-chosen filenames, installation-local path preferences, title slugs or filesystem search.
 
+### GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY
+
+**Required behavior:** after a valid repository-local Work request is discovered, Order rediscovers lifecycle Markdown only from that WorkItem's deterministic Research/Requirements/Solution-design/Implementation-plan/Readiness paths and exposes present files as repository drafts.
+
+**Acceptance criterion:** a fresh Order runtime configured for a repository can reopen the durable lifecycle Markdown stored there, while the WorkItem itself still starts at IDEA and must re-run/revalidate the lifecycle before any rediscovered draft becomes conformant/current authority.
+
+**Failure/negative behavior:** discovering a lifecycle Markdown file must not fabricate a Run, completion event, conformance result, lifecycle stage, readiness decision, Approval or execution history, and Order must not scan arbitrary repository Markdown to infer lifecycle roles.
+
 ## 13. Explicit non-goals
 
 This functional extension does not authorize:
@@ -424,5 +438,5 @@ P4/P5/P6 work following this document must resolve, without changing these funct
 12. one canonical source parser/reconciliation result consumed by UI, context, approval and execution paths rather than parallel source readers;
 13. productive-boundary source revalidation so a source edit while the daemon is running is observed without requiring a watcher/full queue scan;
 14. durable adoption path for material interactive clarification of originating intent;
-15. tests proving fresh-install repository discovery, reinstall preservation, duplicate/invalid/misplaced/changed/missing-source behavior, exact R1 source projection, context invalidation on source change, approval staleness after source change, mid-daemon source-edit detection, material-clarification restartability and no DB-only/source-bypass path;
+15. tests proving fresh-install repository discovery, deterministic lifecycle-draft rediscovery without fabricated runtime state, reinstall preservation, duplicate/invalid/misplaced/changed/missing-source behavior, exact R1 source projection, context invalidation on source change, approval staleness after source change, mid-daemon source-edit detection, material-clarification restartability and no DB-only/source-bypass path;
 16. one bounded migration from the current external WorkItem-source root into deterministic project-local `work-request.md` paths without creating a second productive source path.
