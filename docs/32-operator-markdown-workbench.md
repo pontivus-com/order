@@ -506,7 +506,7 @@ A successful save updates the loaded source baseline and keeps the editor synchr
 
 ### 17.7 Cross-application reference finding
 
-The connected Pontivus Legal application was inspected as a reference implementation. Its Markdown-oriented document editor uses ProseMirror, not CodeMirror. The reusable lesson is architectural rather than technological:
+A prior Markdown-document editor implementation was inspected as an architectural reference. Its reusable lesson is ownership-oriented rather than technological:
 
 - one cohesive hook owns editor mount/destroy and external-value synchronization;
 - the feature surface owns feature-specific toolbar/actions;
