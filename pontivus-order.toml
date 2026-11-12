@@ -2,7 +2,7 @@ version = 1
 projectId = "order"
 
 [authority]
-p1 = ["AGENTS.md", "docs/08-minimum-change-standard.md", "docs/10-systems-governance-pyramid.md"]
+p1 = ["AGENTS.md", "docs/08-minimum-change-standard.md", "docs/10-systems-governance-pyramid.md", "docs/15-public-repository-delivery-and-release.md"]
 p2 = ["docs/00-system-brief.md", "docs/40-order-product-identity.md"]
 p3 = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/09-project-governance-integration.md", "docs/11-lifecycle-context-resolution.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md"]
 p4 = ["docs/02-execution-control-plane.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/14-external-version-facts.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
@@ -52,6 +52,9 @@ GW-DOC-CANONICAL-CONTRACTS = "docs/13-canonical-contracts.md"
 GW-DOC-CANONICAL-CONTRACTS-V1 = "docs/13-canonical-contracts.md"
 GW-DOC-EXTERNAL-FACTS = "docs/14-external-version-facts.md"
 GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 = "docs/14-external-version-facts.md"
+GW-DOC-PUBLIC-REPOSITORY-DELIVERY = "docs/15-public-repository-delivery-and-release.md"
+GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1 = "docs/15-public-repository-delivery-and-release.md"
+GW-P1-PUBLIC-REPOSITORY-DELIVERY = "docs/15-public-repository-delivery-and-release.md"
 GW-DOC-REF-OPENSPEC = "docs/27-reference-openspec.md"
 GW-DOC-REF-OPENSPEC-V1-2026-11-12 = "docs/27-reference-openspec.md"
 GW-DOC-REF-SPEC-KIT = "docs/28-reference-spec-kit.md"
@@ -210,6 +213,7 @@ GW-TR-053-OPENCODE-ACCOUNT-CONTROL-UI = "docs/38-workbench-astryx-component-arch
 GW-TR-054-WORKITEM-MANAGEMENT-CANONICALITY = "docs/12-technical-architecture.md"
 GW-TR-055-TYPED-API-FAILURE-CLASSIFICATION = "docs/12-technical-architecture.md"
 GW-TR-056-RUN-SCOPED-PROVIDER-DIAGNOSTIC-EVIDENCE = "docs/12-technical-architecture.md"
+GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION = "docs/12-technical-architecture.md"
 D1 = "docs/04-open-decisions.md"
 D2 = "docs/04-open-decisions.md"
 D3 = "docs/04-open-decisions.md"
@@ -229,6 +233,7 @@ D16 = "docs/04-open-decisions.md"
 D17 = "docs/04-open-decisions.md"
 D18 = "docs/04-open-decisions.md"
 D19 = "docs/04-open-decisions.md"
+D20 = "docs/04-open-decisions.md"
 GW-P6-V1-CONTRACTS = "docs/13-canonical-contracts.md"
 
 [governance.fitness]
@@ -240,8 +245,8 @@ GW-P1-CANONICAL-OWNERSHIP = ["architecture"]
 GW-P1-DOC-CANONICALITY = ["architecture"]
 
 [concerns.foundation]
-authority = ["docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
-paths = [".bun-version", ".node-version", ".gitignore", "package.json", "bun.lock", "tsconfig.json", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "pontivus-order.toml.example", "install.sh", "src/installer.ts", "README.md"]
+authority = ["docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/15-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+paths = [".bun-version", ".node-version", ".gitignore", ".github/**", "CHANGELOG.md", "CONTRIBUTING.md", "package.json", "bun.lock", "scripts/**", "tsconfig.json", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "pontivus-order.toml.example", "install.sh", "src/installer.ts", "README.md"]
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build"]
 
 [concerns.core]
@@ -265,7 +270,7 @@ paths = ["index.html", "ui/**"]
 gates = ["typecheck", "architecture", "test", "build", "browser"]
 
 [concerns.verification]
-authority = ["docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/15-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
 paths = ["tests/**", "playwright.config.ts"]
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"]
 
