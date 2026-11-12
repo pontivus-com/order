@@ -453,3 +453,232 @@ P4 must implement this design while preserving:
 - dirty-buffer navigation protection without implicit saves;
 - keyboard/focus continuity and per-mode state feedback;
 - permanent browser verification for spatial allocation, responsive continuity and semantic control behavior.
+
+## 19. Improvement addendum — interaction-pattern and spatial-efficiency closure (2026-11-12)
+
+This addendum strengthens the existing workbench information architecture after implementation review. It does not introduce a new workflow, lifecycle state, domain contract, browser state owner or visual-design system. It makes the existing UX contract explicit at the **interaction-pattern** level so that equivalent work receives one consistent spatial/view solution across the application.
+
+### 19.1 Canonical interaction-pattern set
+
+Order's current workbench interactions fall into the following presentation classes:
+
+| Pattern | Current examples | Required view solution |
+|---|---|---|
+| **Global scanning** | WorkItem queue, source diagnostics | dense full-width operational table/list; title/current state remain scan-dominant |
+| **Compact structured input** | create WorkItem, linked remediation | bounded drawer/sheet/form; no primary-canvas takeover |
+| **Context/status/action** | WorkItem metadata, source health, current lifecycle action, approver input | compact inspector on wide layouts, temporary drawer/sheet when the inspector cannot coexist without stealing task space |
+| **Long-form authoring** | Source, R1, R2, DESIGN, PLAN Markdown | primary canvas; nearly all available width and remaining viewport height; exact Markdown remains visible/editable |
+| **Long-form reading** | R3, governed read-only Markdown, conclusion/verdict narratives | primary canvas with a readable inner prose measure; outer workspace may remain full-width |
+| **Conversation** | interactive STAGE Run | primary canvas with message history and an adjacent/anchored composer using remaining height |
+| **Review/comparison** | proposal rationale/diff, sign-off package, task/scope review | primary review canvas with enough horizontal width for structural comparison; concise decision controls remain adjacent without constraining the review material |
+| **Operational inspection** | execution tasks, Runs, V0-V7 events | dense master/detail primary workspace optimized for task/run/event scanning rather than a long stack of cards |
+| **Raw evidence** | logs, patches, exact bytes, arbitrary evidence | full primary canvas; read-only monospaced/raw viewer consuming remaining height and preserving formatting |
+| **Terminal result** | disproven/duplicate/already-satisfied/investigation/audit outcomes | compact terminal classification plus readable result narrative and full evidence/material area where applicable |
+| **Safety/exception** | unsaved-navigation confirmation, stale-write conflict, errors | dialog/inline state tied to the owning action; never a competing primary workflow surface |
+
+A new UI treatment is justified only when the interaction shape is materially different from these classes. Similar interactions must not receive screen-specific one-off layout grammars.
+
+### 19.2 Spatial-efficiency invariant
+
+The workbench is a productivity surface. The dominant task must consume the available primary canvas after only the minimum persistent chrome needed for orientation, navigation and the current action.
+
+The following are binding consequences:
+
+- **Editable Markdown, raw evidence, diffs and operational detail must not inherit prose-reading width caps.**
+- A prose line-length constraint may exist **inside** a full-width reading surface; it must not cap the entire primary workspace.
+- Long-lived primary surfaces use **remaining viewport height**, not merely a fixed/minimum content height.
+- Persistent global/workspace/document chrome must not accumulate into multiple redundant rows when the same hierarchy can be represented more compactly.
+- Metadata, hashes and paths remain available for exactness but are secondary to the work being authored/reviewed/inspected.
+- A control must not occupy persistent premium toolbar space when it does not act on the currently visible primary task.
+- Responsive behavior may recompose the same information, but it must preserve the interaction class and primary-task priority.
+
+### 19.3 Navigation hierarchy and chrome economy
+
+The current WorkItem workspace has two presentation hierarchies:
+
+1. primary workspace **mode**: Documents, Dialogue, Review, Execution, Evidence, Result;
+2. selection **within** a mode, such as Source/R1/R2/DESIGN/PLAN/R3 or selected Run/evidence.
+
+These hierarchies must remain semantically distinct but must not default to two stacked full-width tab bars.
+
+Required presentation rules:
+
+- only one content-edge tab/list navigation strip should normally occupy the primary canvas at a time;
+- WorkItem mode switching belongs in the compact WorkItem toolbar/header or an equivalently economical mode control;
+- document tabs/list remain the Documents-mode content navigation;
+- the WorkItem header contains only orientation-critical state and actions; detailed project/schema/concern/source metadata belongs in Context;
+- Context toggle is shown only when Context is not already persistently visible;
+- exact SHA-256/path metadata remains accessible but must not force the authoring/review header to grow materially.
+
+### 19.4 Scope-local toolbar controls
+
+Toolbar controls follow the scope of the surface they affect.
+
+- WorkItem search is a queue operation and must not remain a prominent active-looking control while the queue is hidden.
+- Source refresh is a queue/source-management operation and should be colocated with queue/source context rather than permanently consuming deep-work toolbar space.
+- WorkItem creation must remain globally reachable, but its presentation may compact when a selected WorkItem owns the primary task.
+- appearance/theme is a low-frequency utility and must not consume more persistent toolbar area than high-frequency workflow controls.
+
+The application may retain one shell toolbar, but its contents must be state-aware so visible controls remain relevant to the current primary surface.
+
+### 19.5 Authoring pattern
+
+Governed Markdown authoring uses one reusable workspace pattern:
+
+- compact document identity/navigation/action chrome;
+- editable textarea occupying nearly all available primary width;
+- editor body flexing to remaining viewport height;
+- Save/Cancel/dirty/conflict controls kept visible through a compact sticky/anchored action region or equivalent;
+- read-only rendered Markdown may constrain its **inner prose measure** while preserving the outer workspace;
+- hash/path identity is available as secondary metadata, not as dominant heading content.
+
+A governed editor must feel like the primary work surface, not a large form field placed inside a conventional content page.
+
+### 19.6 Review pattern
+
+All structurally significant material being judged uses the same review-space principle.
+
+For artifact proposals:
+
+- the dialogue records that a proposal exists and preserves conversational context;
+- the rationale and unified diff are review-class content;
+- substantive diff inspection must not be constrained to a chat bubble or short fixed-height block;
+- adopting/rejecting remains explicit and associated with that proposal.
+
+For sign-off:
+
+- package identity remains available but secondary;
+- governed documents, task objectives, gates, change surface and blockers are the primary review information;
+- repeated tasks use a scan-efficient list/table/master-detail treatment when card stacking would make comparison or access to later material inefficient.
+
+### 19.7 Operational inspection pattern
+
+Execution must optimize scanning rather than page-length accumulation.
+
+- task selection/summary is compact;
+- the selected operational context receives detail space;
+- Run selection and chronological event detail form a master/detail region;
+- the master/detail region consumes the remaining primary height where practical;
+- evidence/resource references use a structured resource-list pattern rather than an unstructured wrapping set of buttons;
+- task cards must not form an arbitrarily long barrier above the active Run/event workspace.
+
+No new task/run domain relationship is introduced by this presentation rule.
+
+### 19.8 Queue responsive pattern
+
+The queue remains a dense operational list at every supported width.
+
+On narrower viewports:
+
+- title remains dominant;
+- stage/status remain immediately scannable;
+- project/kind remain secondary;
+- concerns and low-priority metadata may collapse into the dominant row cell or a secondary line;
+- row utility actions remain available without forcing a desktop six-column geometry;
+- essential information must not be clipped by an `overflow: hidden` container or unreadably compressed merely to preserve all desktop columns.
+
+Horizontal scrolling is acceptable only where preserving tabular structure is more usable than responsive recomposition; it is not the default substitute for a deliberate narrow-row design.
+
+### 19.9 Shared control/resource grammar
+
+Equivalent actions use one consistent visual/interaction grammar:
+
+- selection/navigation;
+- secondary utility;
+- primary mutation;
+- destructive mutation.
+
+Evidence/artifact/resource links use a repeatable structured row/list treatment with role/type, identity/path and open action. Screen-specific raw buttons must not create a second action hierarchy.
+
+### 19.10 Current implementation issues this addendum closes
+
+The next implementation package must close the following observed deficiencies without redesigning the domain model:
+
+1. the editable Markdown workspace is capped by the current `72rem` outer editor width;
+2. the editor uses a fixed/minimum-height approach instead of owning remaining viewport height;
+3. Save/Cancel can fall below long editable content instead of remaining immediately available;
+4. full-width workspace-mode tabs are stacked above full-width document tabs;
+5. the WorkItem header duplicates metadata already owned by Context;
+6. Context remains presented as an action even when the wide inspector is already visible;
+7. queue Search remains prominent while a selected WorkItem hides the queue;
+8. Refresh sources remains persistent during unrelated deep-work modes;
+9. low-frequency appearance controls consume persistent premium toolbar space;
+10. global-toolbar, WorkItem-header, mode-navigation, document-navigation and document-heading chrome accumulate excessive vertical height;
+11. SHA/path metadata is more visually prominent than its diagnostic role requires;
+12. artifact proposal diff review is constrained inside the conversation presentation instead of receiving review-class space;
+13. sign-off identity metadata uses more card/grid area than its importance warrants relative to the package meaning;
+14. repeated execution tasks stack vertically ahead of the Run/event workspace;
+15. execution artifacts/evidence are exposed as an unstructured wrapping button collection;
+16. queue rows retain desktop column geometry without an explicit narrow-view composition and the queue container may clip constrained content;
+17. terminal result presentation uses more decorative vertical whitespace than necessary before substantive material;
+18. repeated navigation/resource/mutation controls are not consistently expressed through the shared action grammar;
+19. primary-mode loading states may collapse to small placeholders instead of retaining the owning workspace geometry.
+
+These are presentation defects only. Their correction must preserve all existing lifecycle, mutation, polling, HTTP, evidence-safety, approval and state-ownership semantics.
+
+## 20. Addendum functional requirements
+
+### GW-FR-043-INTERACTION-PATTERN-CONSISTENCY
+
+**Required behavior:** every current workbench interaction is projected through the canonical interaction class in §19.1, and materially equivalent interactions reuse the same spatial/view grammar.
+
+**Acceptance criterion:** authoring, reading, conversation, review, operational inspection, evidence, compact input/context and safety interactions are recognizably consistent across all WorkItem states without screen-specific layout inventions.
+
+**Failure/negative behavior:** individual screens must not create one-off panel/card/tab structures that contradict the interaction class merely for local convenience.
+
+### GW-FR-044-PRIMARY-CANVAS-SPACE-EFFICIENCY
+
+**Required behavior:** the active primary task consumes the available horizontal width and remaining viewport height appropriate to its interaction class.
+
+**Acceptance criterion:** editable Markdown, raw evidence, diffs and operational detail are not capped by prose-reading widths; prose itself retains a readable inner measure; persistent chrome does not materially crowd out the task.
+
+**Failure/negative behavior:** a fixed/max-width page container, fixed/minimum-height substitute, or unrelated permanent control must not leave substantial usable primary-canvas space idle.
+
+### GW-FR-045-NAVIGATION-CHROME-ECONOMY
+
+**Required behavior:** WorkItem mode navigation and within-mode navigation remain distinct without stacking redundant full-width navigation rows.
+
+**Acceptance criterion:** the selected WorkItem retains orientation and mode access while the active mode exposes at most one normal content-edge navigation strip; Context and metadata controls appear only where they perform useful work.
+
+**Failure/negative behavior:** mode tabs, document tabs, duplicate metadata headers and diagnostic identity rows must not accumulate into avoidable vertical chrome before the active task.
+
+### GW-FR-046-SCOPE-LOCAL-CONTROLS
+
+**Required behavior:** persistent controls are displayed according to the surface whose state/action they affect.
+
+**Acceptance criterion:** queue search/source refresh are queue-scoped, Context toggle appears only when Context is hidden, global creation remains reachable without dominating deep work, and appearance remains a low-priority utility.
+
+**Failure/negative behavior:** a prominent control must not remain active-looking while its affected surface is absent or while it performs no visible action on the current task.
+
+### GW-FR-047-REVIEW-MATERIAL-PROMOTION
+
+**Required behavior:** proposal diffs, sign-off package meaning and other structurally significant review material receive Review-class primary space independent of the compact decision control that acts on them.
+
+**Acceptance criterion:** proposal conversation remains visible as context but full diff inspection is not constrained to a chat bubble; sign-off/task review prioritizes objectives/scope/gates/documents over hash-card chrome.
+
+**Failure/negative behavior:** large review material must not be embedded inside compact conversation/context containers merely because the action originated there.
+
+### GW-FR-048-EXECUTION-MASTER-DETAIL-EFFICIENCY
+
+**Required behavior:** Execution presents tasks, Runs, chronological events and evidence references as a scan-efficient operational workspace.
+
+**Acceptance criterion:** repeated task summaries do not create an arbitrarily long vertical barrier before active Run/event detail; Run selection/detail receives remaining workspace space; resources use structured rows/lists.
+
+**Failure/negative behavior:** operational inspection must not degrade into sequential card stacks followed by an unrelated event section and loose button collection.
+
+### GW-FR-049-RESPONSIVE-QUEUE-EFFICIENCY
+
+**Required behavior:** queue presentation recomposes lower-priority fields on constrained widths while preserving title, current state and row activation.
+
+**Acceptance criterion:** narrow/tablet views remain scan-usable without clipping essential fields or preserving all desktop columns at unreadable widths.
+
+**Failure/negative behavior:** `overflow: hidden`, uncontrolled compression or a desktop-only column layout must not silently hide or destroy queue meaning.
+
+### GW-FR-050-SHARED-ACTION-RESOURCE-GRAMMAR
+
+**Required behavior:** navigation/selection, secondary utility, primary mutation, destructive mutation and resource-opening interactions use consistent reusable affordances across modes.
+
+**Acceptance criterion:** equivalent controls have consistent hierarchy, accessibility and focus behavior, and evidence/artifact resources expose a structured identity plus open action.
+
+**Failure/negative behavior:** raw screen-specific buttons must not create conflicting action priorities or make resource identity/actions materially different between Review, Execution and Evidence entry points.
+
