@@ -32,14 +32,16 @@ Order has one workbench with two presentation states:
 
 ```text
 QUEUE STATE
-toolbar
+state-aware application toolbar
 └── primary canvas: work queue / diagnostics / creation entry
 
 WORKITEM STATE
-toolbar
+compact WorkItem toolbar/header within the application shell
 ├── primary canvas: the selected WorkItem working surface
 └── contextual inspector: concise status / metadata / compact inputs / current action
 ```
+
+The application-toolbar composition is state-aware: queue-only search/source-refresh controls are not treated as navigation-independent controls while a selected WorkItem owns the primary task.
 
 Selecting a WorkItem changes the **primary canvas** from queue-level work to the selected WorkItem workspace. It does not move the complete WorkItem into the contextual inspector.
 
@@ -121,7 +123,7 @@ Mode/document/evidence selection is presentation-local and need not become addit
 | WorkItem source Markdown | originating work definition, potentially long and editable | primary Documents canvas | document | edit/save/cancel/reload conflict |
 | R1/R2/DESIGN/PLAN/R3 Markdown | governed lifecycle documents in lifecycle order | primary Documents canvas | document | navigate, edit when allowed, inspect read-only |
 | Interactive STAGE dialogue | multi-turn messages, questions, operator response | primary Dialogue canvas | dialogue | respond/continue/cancel, inspect history |
-| Artifact proposal | rationale + unified diff + disposition | primary Dialogue/Review canvas | review | inspect diff, adopt/reject |
+| Artifact proposal | proposal event/context in Dialogue; rationale + unified diff + disposition in Review-class primary space | Dialogue event + primary Review canvas | review | open proposal review, inspect diff, adopt/reject |
 | Sign-off package | hashes, source binding, signed tasks, exact documents | primary Review canvas | review | inspect package/docs, enter approver, sign off |
 | Execution task overview | task objective/state/gates/change surface | primary Execution canvas | operational table/review | select task, inspect scope/state |
 | Runs/validation history | run selection, chronological events, V0–V7, statuses | primary Execution canvas | review | select run/event/evidence |
@@ -129,7 +131,7 @@ Mode/document/evidence selection is presentation-local and need not become addit
 | Terminal non-delivery result | `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED`, investigation result or audit result with supporting evidence | primary Result canvas | document/review | inspect terminal classification/result/evidence |
 | Investigation/audit remediation | linked follow-up from an evidence-backed investigation/audit result | contextual creation drawer/inspector | compact context | create separately governed linked CHANGE/DEFECT |
 | Linked remediation creation | small seeded CHANGE/DEFECT creation form | contextual creation drawer/inspector | compact context | choose type/title/concerns, create |
-| Global toolbar | navigation-independent app actions | top toolbar | full width | new item, refresh, search, appearance |
+| Application toolbar | state-aware app/workspace actions | top toolbar | full width | queue state: search/refresh/create; WorkItem state: compact create/appearance utilities plus current workspace controls |
 | Session/error/empty state | explain unavailable/local state | primary canvas | centered readable region | retry/recover |
 
 ## 6. Document workspace
@@ -223,11 +225,11 @@ Control form must match the decision being made.
 
 | Decision | Required interaction pattern |
 |---|---|
-| Appearance: System / Light / Dark | direct segmented choice with semantic icon + label; not a generic select |
+| Appearance: System / Light / Dark | compact three-way utility control/menu preserving explicit semantic labels/icons; not a generic entity select |
 | WorkItem type | direct icon + label single-choice options; not a text-only select |
 | Project | selector/typeahead/select because this is an entity choice |
 | Concerns | searchable/toggleable multi-choice chips/list; not native multi-select |
-| Document/mode navigation | tabs/navigation items with icon + label where useful |
+| Document navigation | tabs/navigation items with icon + label where useful; workspace mode uses a compact WorkItem-toolbar control rather than a second stacked full-width tab row |
 | Boolean/toggle state | checkbox/switch/toggle according to semantics |
 | Destructive disposition | explicit destructive action, never hidden in a generic menu when immediately consequential |
 
