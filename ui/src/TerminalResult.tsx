@@ -158,7 +158,6 @@ export const TerminalResult = ({ workItem }: Readonly<{ workItem: WorkItem }>) =
                         language="plaintext"
                         hasCopyButton
                         width="100%"
-                        maxHeight="calc(100vh - 16rem)"
                       />
                     </div>
                   );
