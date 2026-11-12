@@ -6,7 +6,7 @@
 **Plan baseline:** `0daf814c3ddabc87cf6a69c98f51e87eec07faf8`  
 **Verified candidate:** `e164a738e5cc900fe13f3e1ab2dcb628326d19d3`  
 **Verification run:** GitHub Actions run `43323285962` — completed successfully  
-**Purpose:** implement the governed exact-source CodeMirror Markdown editor extension defined by `GW-FR-051..055` and `GW-TR-027..032`, including a native Order formatting toolbar and fully Order-themed CodeMirror chrome/syntax presentation.
+**Purpose:** implement the governed exact-source CodeMirror Markdown editor extension defined by `GW-FR-065..069` and `GW-TR-039..044`, including a native Order formatting toolbar and fully Order-themed CodeMirror chrome/syntax presentation.
 
 This document is now completed implementation provenance, not standing authorization for further editor changes. It does not redefine the P3/P4 behavior owned by `GW-DOC-MARKDOWN-WORKBENCH-V1` and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`.
 
