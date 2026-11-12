@@ -272,6 +272,7 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   );
 
   await openWorkItem(page, "Lifecycle editing workbench");
+  await page.getByRole("radio", { name: "Documents" }).click();
   const loadingWorkspace = page.getByTestId("document-workspace");
   await expect(loadingWorkspace).toBeVisible();
   const loadingBox = await loadingWorkspace.boundingBox();
@@ -394,8 +395,8 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await expect(page.getByTestId("review-documents")).toContainText("PLAN");
   await expect(page.getByTestId("review-documents")).toContainText("R3");
   await expect(page.getByText("Signed tasks", { exact: true })).toBeVisible();
-  await expect(page.getByTestId("execution-task-detail").getByText("T1", { exact: true })).toBeVisible();
-  await expect(page.getByText("Prove the browser candidate surface", { exact: true })).toBeVisible();
+  await expect(page.locator(".order-signed-task-list").getByText("T1", { exact: true })).toBeVisible();
+  await expect(page.locator(".order-signed-task-list").getByText("Prove the browser candidate surface", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Approved by")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
 });
@@ -608,7 +609,7 @@ test("candidate surface exposes task, V0-V7, exact evidence bytes, and never exe
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await page.getByRole("button", { name: /REVIEWER #1/ }).click();
   await expect(page.getByText("CANDIDATE_DONE", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("T1", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("execution-task-detail").getByText("T1", { exact: true })).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
 
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
