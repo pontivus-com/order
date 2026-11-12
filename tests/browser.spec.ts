@@ -132,11 +132,9 @@ test("appearance uses the Astryx theme control, follows system mode, and persist
 
   const root = page.locator("html");
   const layout = page.getByTestId("workbench-layout");
-  const system = page.getByRole("radio", { name: "System" });
-  const light = page.getByRole("radio", { name: "Light" });
-  const dark = page.getByRole("radio", { name: "Dark" });
+  const theme = page.getByLabel("Theme");
 
-  await expect(system).toHaveAttribute("aria-checked", "true");
+  await expect(theme).toHaveValue("system");
   await expect(root).not.toHaveAttribute("data-theme");
   await expect(root).toHaveAttribute("data-astryx-theme");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
@@ -145,26 +143,26 @@ test("appearance uses the Astryx theme control, follows system mode, and persist
     "rgb(17, 26, 41)",
   );
 
-  await light.click();
+  await theme.selectOption("light");
   await expect(root).toHaveAttribute("data-theme", "light");
   await expect(layout).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await page.reload();
-  await expect(page.getByRole("radio", { name: "Light" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByLabel("Theme")).toHaveValue("light");
 
-  await page.getByRole("radio", { name: "Dark" }).click();
+  await page.getByLabel("Theme").selectOption("dark");
   await expect(root).toHaveAttribute("data-theme", "dark");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
-  await expect(page.getByRole("radio", { name: "Dark" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByLabel("Theme")).toHaveValue("dark");
 
-  await page.getByRole("radio", { name: "System" }).click();
+  await page.getByLabel("Theme").selectOption("system");
   await expect(root).not.toHaveAttribute("data-theme");
   await page.emulateMedia({ colorScheme: "light" });
   await expect(layout).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
-  await expect(page.getByRole("radio", { name: "System" })).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByLabel("Theme")).toHaveValue("system");
 });
 
 test("queue opens a primary workspace, keeps context compact, preserves URL history, responds with a Drawer, and creates real WorkItems", async ({
@@ -201,6 +199,9 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 
   const context = page.getByTestId("work-item-context");
   await expect(context).toBeVisible();
+  await expect(page.getByRole("button", { name: "Context" })).toHaveCount(0);
+  await expect(page.getByTestId("workbench-search")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
   await expect(context.locator(
     '[data-testid="document-workspace"], [data-testid="dialogue-workspace"], [data-testid="review-workspace"], [data-testid="execution-workspace"], [data-testid="evidence-workspace"]',
   )).toHaveCount(0);
@@ -255,9 +256,16 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await openWorkItem(page, "Proposal review");
 
   await expect(page.getByTestId("dialogue-workspace")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Review proposal" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
+  await expect(page.getByLabel("Message input")).toBeVisible();
+
+  await page.getByRole("button", { name: "Review proposal" }).click();
+  await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
+  await expect(page.getByTestId("proposal-review-diff")).toBeVisible();
   await expect(page.getByRole("button", { name: "Adopt" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reject" })).toBeVisible();
-  await expect(page.getByLabel("Message input")).toBeVisible();
 
   const contextRequest = page.context().request;
   const workItemsResponse = await contextRequest.get("/api/work-items");
@@ -313,7 +321,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Source editing workbench");
-  await page.getByRole("tab", { name: "Documents" }).click();
+  await page.getByRole("radio", { name: "Documents" }).click();
 
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
   const sourceEditor = page.getByLabel("WorkItem source Markdown");
@@ -370,7 +378,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Lifecycle editing workbench");
-  await page.getByRole("tab", { name: "Documents" }).click();
+  await page.getByRole("radio", { name: "Documents" }).click();
 
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "PLAN" })
@@ -394,7 +402,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(rowFor(page, "Lifecycle editing workbench")).toBeFocused();
 
   await openWorkItem(page, "Lifecycle editing workbench");
-  await page.getByRole("tab", { name: "Documents" }).click();
+  await page.getByRole("radio", { name: "Documents" }).click();
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "R3" })
     .click();
@@ -457,7 +465,7 @@ test("terminal investigation and audit results remain closed and linked remediat
   await expect(page.getByTestId("result-material")).toContainText(
     "Evidence-backed conclusion.",
   );
-  await page.getByRole("tab", { name: "Documents" }).click();
+  await page.getByRole("radio", { name: "Documents" }).click();
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "R1" })
     .click();
