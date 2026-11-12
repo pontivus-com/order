@@ -10,6 +10,7 @@ import {
 } from "../../src/core/contracts.ts";
 import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
@@ -44,8 +45,8 @@ export const DocumentWorkspace = ({
   const [dirty, setDirty] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<SelectedDocument | null>(null);
 
-  const sourceQuery = useQuery({ queryKey: ["workItemSource", workItem.id], queryFn: () => api.getWorkItemSource(workItem.id) });
-  const artifactsQuery = useQuery({ queryKey: ["lifecycleArtifacts", workItem.id], queryFn: () => api.listLifecycleArtifacts(workItem.id) });
+  const sourceQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSource(workItem.id), queryFn: () => api.getWorkItemSource(workItem.id) });
+  const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id), queryFn: () => api.listLifecycleArtifacts(workItem.id) });
   const artifacts = useMemo(
     () => [...(artifactsQuery.data ?? [])].sort((a, b) => (roleOrder[a.role] ?? 99) - (roleOrder[b.role] ?? 99)),
     [artifactsQuery.data],
@@ -68,7 +69,7 @@ export const DocumentWorkspace = ({
 
   const selectedArtifact = selected.kind === "ARTIFACT" ? artifacts.find((item) => item.id === selected.id) ?? null : null;
   const contentQuery = useQuery({
-    queryKey: ["artifactContent", selectedArtifact?.id ?? null],
+    queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
       if (!selectedArtifact) throw new TypeError("lifecycle artifact selection required");
       return api.readArtifactContent(selectedArtifact.id);
@@ -79,11 +80,11 @@ export const DocumentWorkspace = ({
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["workItems"] }),
-      queryClient.invalidateQueries({ queryKey: ["workItemSource", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["lifecycleArtifacts", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["artifacts", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["signoffPackage", workItem.id] }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSource(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.artifacts(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
     ]);
   };
 
