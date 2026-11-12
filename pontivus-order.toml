@@ -246,7 +246,7 @@ GW-P1-DOC-CANONICALITY = ["architecture"]
 
 [concerns.foundation]
 authority = ["docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/15-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
-paths = [".bun-version", ".node-version", ".gitignore", ".github/**", "CHANGELOG.md", "CONTRIBUTING.md", "package.json", "bun.lock", "scripts/**", "tsconfig.json", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "pontivus-order.toml.example", "install.sh", "src/installer.ts", "README.md"]
+paths = [".bun-version", ".node-version", ".gitignore", ".github/**", "CHANGELOG.md", "CONTRIBUTING.md", "package.json", "bun.lock", "scripts/**", "tsconfig.json", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "pontivus-order.toml.example", "install.sh", "src/installer.ts", "src/version.ts", "README.md"]
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build"]
 
 [concerns.core]
