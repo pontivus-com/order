@@ -7,7 +7,7 @@ import {
   WorkItemSchema,
   WorkItemSourceSnapshotSchema,
 } from "../src/core/contracts.ts";
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Locator, type Page } from "@playwright/test";
 
 const baseURL = "http://127.0.0.1:17347";
 const stateRoot = process.env.PONTIVUS_ORDER_TEST_STATE_ROOT;
@@ -57,6 +57,18 @@ const openWorkItem = async (page: Page, title: string): Promise<void> => {
 const backToQueue = async (page: Page): Promise<void> => {
   await page.getByRole("button", { name: "Back to work queue" }).click();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
+};
+
+const markdownSourceValue = async (editor: Locator): Promise<string> =>
+  editor.evaluate((node) =>
+    (node as HTMLElement).innerText.replace(/\u200b/g, ""));
+
+const replaceMarkdownSource = async (
+  editor: Locator,
+  markdown: string,
+): Promise<void> => {
+  await editor.fill(markdown);
+  await expect.poll(() => markdownSourceValue(editor)).toBe(markdown);
 };
 
 const workItemForTitle = async (
@@ -163,6 +175,105 @@ test("appearance uses a compact theme utility, follows system mode, and persists
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
   await expect(page.getByLabel("Theme")).toHaveValue("system");
+});
+
+test("CodeMirror editor preserves exact source, formats Markdown, previews one buffer, and follows the Order theme", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await authenticate(page, request);
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await page.getByRole("radio", { name: "Documents" }).click();
+  await page.getByTestId("governed-document-nav")
+    .getByRole("tab", { name: "PLAN" })
+    .click();
+
+  const editor = page.getByLabel("PLAN lifecycle document Markdown source");
+  await expect(editor).toBeVisible();
+  await expect(page.getByTestId("markdown-format-toolbar")).toBeVisible();
+  await expect(page.locator("textarea")).toHaveCount(0);
+
+  const initial = await markdownSourceValue(editor);
+  const unsaved = initial + "\n# Preview continuity\n";
+  await replaceMarkdownSource(editor, unsaved);
+  await expect(page.getByText("Unsaved", { exact: true })).toBeVisible();
+
+  await page.getByRole("radio", { name: "Preview" }).click();
+  await expect(page.getByTestId("markdown-preview")).toContainText("Preview continuity");
+  await page.getByRole("radio", { name: "Edit" }).click();
+  const editAgain = page.getByLabel("PLAN lifecycle document Markdown source");
+  await expect.poll(() => markdownSourceValue(editAgain)).toBe(unsaved);
+
+  await page.getByRole("radio", { name: "Split" }).click();
+  const splitEditor = page.getByLabel("PLAN lifecycle document Markdown source");
+  await expect(splitEditor).toBeVisible();
+  await expect(page.getByTestId("markdown-preview")).toContainText("Preview continuity");
+
+  const formattingCases = [
+    ["Heading 1", "alpha", "# alpha"],
+    ["Heading 2", "alpha", "## alpha"],
+    ["Heading 3", "alpha", "### alpha"],
+    ["Bold", "alpha", "**alpha**"],
+    ["Italic", "alpha", "*alpha*"],
+    ["Inline code", "alpha", "`alpha`"],
+    ["Blockquote", "alpha", "> alpha"],
+    ["Bulleted list", "alpha\nbeta", "- alpha\n- beta"],
+    ["Numbered list", "alpha\nbeta", "1. alpha\n2. beta"],
+    ["Link", "alpha", "[alpha](url)"],
+    ["Fenced code block", "alpha", "```\nalpha\n```"],
+    ["Horizontal rule", "alpha", "alpha\n---"],
+  ] as const;
+
+  await page.getByRole("radio", { name: "Edit" }).click();
+  const formatEditor = page.getByLabel("PLAN lifecycle document Markdown source");
+  for (const [label, source, expected] of formattingCases) {
+    await replaceMarkdownSource(formatEditor, source);
+    await formatEditor.press("ControlOrMeta+A");
+    await page.getByRole("button", { name: label }).click();
+    await expect.poll(() => markdownSourceValue(formatEditor)).toBe(expected);
+  }
+
+  await replaceMarkdownSource(formatEditor, "alpha");
+  await formatEditor.press("ControlOrMeta+A");
+  await page.getByRole("button", { name: "Bold" }).click();
+  await expect.poll(() => markdownSourceValue(formatEditor)).toBe("**alpha**");
+  await page.getByRole("button", { name: "Undo" }).click();
+  await expect.poll(() => markdownSourceValue(formatEditor)).toBe("alpha");
+  await page.getByRole("button", { name: "Redo" }).click();
+  await expect.poll(() => markdownSourceValue(formatEditor)).toBe("**alpha**");
+
+  await replaceMarkdownSource(formatEditor, "- item");
+  await formatEditor.press("End");
+  await formatEditor.press("Enter");
+  await formatEditor.type("next");
+  await expect.poll(() => markdownSourceValue(formatEditor)).toBe("- item\n- next");
+
+  await formatEditor.press("ControlOrMeta+f");
+  await expect(page.locator(".cm-panel.cm-search")).toBeVisible();
+  await formatEditor.press("Escape");
+
+  await replaceMarkdownSource(formatEditor, "# Heading");
+  const cm = page.locator(".order-markdown-source-editor .cm-editor");
+  const gutter = page.locator(".order-markdown-source-editor .cm-gutters");
+  const headingToken = page.locator(".order-markdown-source-editor .cm-content span")
+    .filter({ hasText: "Heading" })
+    .first();
+
+  await page.getByLabel("Theme").selectOption("light");
+  await expect(cm).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(gutter).toHaveCSS("background-color", "rgb(248, 250, 252)");
+  await expect(headingToken).toHaveCSS("color", "rgb(30, 58, 138)");
+
+  await page.getByLabel("Theme").selectOption("dark");
+  await expect(cm).toHaveCSS("background-color", "rgb(17, 26, 41)");
+  await expect(gutter).toHaveCSS("background-color", "rgb(23, 34, 51)");
+  await expect(headingToken).toHaveCSS("color", "rgb(147, 180, 255)");
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(formatEditor).toBeVisible();
+  await expect.poll(() => markdownSourceValue(formatEditor)).toBe("# Heading");
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
 });
 
 test("queue opens a primary workspace, keeps context compact, preserves URL history, responds with a Drawer, and creates real WorkItems", async ({
@@ -290,7 +401,7 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
     .click();
 
   const workspace = page.getByTestId("document-workspace");
-  const editor = page.getByLabel("PLAN lifecycle document Markdown");
+  const editor = page.getByTestId("markdown-source-editor");
   const save = page.getByRole("button", { name: "Save", exact: true });
   await expect(workspace).toBeVisible();
   await expect(editor).toBeVisible();
@@ -410,11 +521,11 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await page.getByRole("radio", { name: "Documents" }).click();
 
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
-  const sourceEditor = page.getByLabel("WorkItem source Markdown");
+  const sourceEditor = page.getByLabel("WorkItem source Markdown source");
   await expect(sourceEditor).toBeVisible();
-  const original = await sourceEditor.inputValue();
+  const original = await markdownSourceValue(sourceEditor);
 
-  await sourceEditor.fill(original + "\nlocal unsaved buffer\n");
+  await replaceMarkdownSource(sourceEditor, original + "\nlocal unsaved buffer\n");
   const item = await workItemForTitle(page, "Source editing workbench");
   const sourceResponse = await page.context().request.get(
     "/api/work-items/" + item.id + "/source",
@@ -430,20 +541,20 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/canonical file changed while this buffer was open/i)).toBeVisible();
-  expect(await sourceEditor.inputValue()).toContain("local unsaved buffer");
+  expect(await markdownSourceValue(sourceEditor)).toContain("local unsaved buffer");
   expect(readFileSync(sourcePath, "utf8")).toBe(external);
 
   await page.getByRole("button", { name: "Reload current" }).click();
-  await expect(sourceEditor).toHaveValue(/# Source editing externally changed/);
-  const current = await sourceEditor.inputValue();
+  await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("# Source editing externally changed");
+  const current = await markdownSourceValue(sourceEditor);
 
-  await sourceEditor.fill(current + "\nwill be cancelled\n");
+  await replaceMarkdownSource(sourceEditor, current + "\nwill be cancelled\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(sourceEditor).toHaveValue(current);
+  await expect.poll(() => markdownSourceValue(sourceEditor)).toBe(current);
 
-  await sourceEditor.fill(current + "\nsaved through browser workbench\n");
+  await replaceMarkdownSource(sourceEditor, current + "\nsaved through browser workbench\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(sourceEditor).toHaveValue(/saved through browser workbench/);
+  await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("saved through browser workbench");
   await expect.poll(() => readFileSync(sourcePath, "utf8")).toContain(
     "saved through browser workbench",
   );
@@ -455,7 +566,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
     .getByRole("tab", { name: "PLAN" })
     .click();
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
-  await expect(page.getByLabel("PLAN lifecycle document Markdown")).toHaveCount(0);
+  await expect(page.getByLabel("PLAN lifecycle document Markdown source")).toHaveCount(0);
 });
 
 test("dirty Markdown navigation is explicit, preserves the buffer when cancelled, restores queue focus when discarded, and PLAN/R3 editing remains correct", async ({
@@ -469,16 +580,16 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "PLAN" })
     .click();
-  const planEditor = page.getByLabel("PLAN lifecycle document Markdown");
+  const planEditor = page.getByLabel("PLAN lifecycle document Markdown source");
   await expect(planEditor).toBeVisible();
-  const initial = await planEditor.inputValue();
-  await planEditor.fill(initial + "\nunsaved guard\n");
+  const initial = await markdownSourceValue(planEditor);
+  await replaceMarkdownSource(planEditor, initial + "\nunsaved guard\n");
 
   await page.getByRole("button", { name: "Back to work queue" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await expect(guard).toBeVisible();
   await guard.getByRole("button", { name: "Continue editing" }).click();
-  await expect(planEditor).toHaveValue(/unsaved guard/);
+  await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
 
   await page.getByRole("button", { name: "Back to work queue" }).click();
   await page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })
@@ -493,20 +604,20 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
     .getByRole("tab", { name: "R3" })
     .click();
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
-  await expect(page.getByLabel("R3 lifecycle document Markdown")).toHaveCount(0);
+  await expect(page.getByLabel("R3 lifecycle document Markdown source")).toHaveCount(0);
 
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "PLAN" })
     .click();
-  const editablePlan = page.getByLabel("PLAN lifecycle document Markdown");
-  const fresh = await editablePlan.inputValue();
-  await editablePlan.fill(fresh + "\ncancelled plan edit\n");
+  const editablePlan = page.getByLabel("PLAN lifecycle document Markdown source");
+  const fresh = await markdownSourceValue(editablePlan);
+  await replaceMarkdownSource(editablePlan, fresh + "\ncancelled plan edit\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect(editablePlan).toHaveValue(fresh);
+  await expect.poll(() => markdownSourceValue(editablePlan)).toBe(fresh);
 
-  await editablePlan.fill(fresh + "\nsaved plan edit\n");
+  await replaceMarkdownSource(editablePlan, fresh + "\nsaved plan edit\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(editablePlan).toHaveValue(/saved plan edit/);
+  await expect.poll(() => markdownSourceValue(editablePlan)).toContain("saved plan edit");
   await expect(page.getByTestId("work-item-context").getByText("PLAN", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
@@ -524,7 +635,7 @@ test("invalid lifecycle Markdown stays inspection-only and exact bytes open in t
   await expect(
     page.getByText("Lifecycle document is not canonical editable Markdown", { exact: true }),
   ).toBeVisible();
-  await expect(page.getByLabel("R1 lifecycle document Markdown")).toHaveCount(0);
+  await expect(page.getByLabel("R1 lifecycle document Markdown source")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Inspect exact bytes" }).click();
   await expect(page.getByTestId("evidence-workspace")).toBeVisible();
