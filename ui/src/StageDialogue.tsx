@@ -13,9 +13,8 @@ import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import type { Run, RunEvent, RunEventId, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
-
-const activeStatuses = new Set<Run["status"]>(["RUNNING", "WAITING_FOR_INPUT"]);
 
 const unresolvedRequest = (events: readonly RunEvent[]): RunEvent | null => {
   const received = new Set(
