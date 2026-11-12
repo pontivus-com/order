@@ -2417,7 +2417,7 @@ Order never calls the pinned `credential.list` endpoint for this feature because
 
 The account label is owned/persisted by OpenCode with the saved credential.
 
-Order recommends that the operator use the exact login email as the label. Order does not claim that the label is independently verified against the authenticated email.
+Order recommends that the operator use the exact login email as the label. Add/Rename requires the label to be unique among the current safe OAuth-account projection. Order does not claim that the label is independently verified against the authenticated email.
 
 Credential id is immutable technical identity. Label changes do not create a new account.
 
@@ -2476,7 +2476,7 @@ body { label }
 
 Admission uses the same global no-active-Run/no-other-account-mutation boundary as Switch.
 
-The daemon refreshes the safe account projection and proves the id is one of its OAuth login accounts before calling the pinned credential-label update operation.
+The daemon refreshes the safe account projection, proves the id is one of its OAuth login accounts, and rejects a label already used by any other account before calling the pinned credential-label update operation.
 
 After mutation it refreshes and proves the exact new label.
 
@@ -2511,7 +2511,7 @@ DELETE /api/opencode/accounts/login/:attemptId
 -> 204
 ```
 
-Start admission requires the same global mutation eligibility as Switch/Rename.
+Start admission requires the same global mutation eligibility as Switch/Rename and rejects a label already present in the current safe account projection.
 
 The daemon creates one Order UUID attempt id and internally binds it to exactly one pinned OpenCode OAuth attempt plus its retained private control process.
 
@@ -2593,7 +2593,7 @@ Permanent integration/browser tests must prove:
 - Add account drives the pinned `opencode`/`device` OAuth attempt and stores the requested label;
 - successful Add makes the new account active;
 - account login URL is validated before browser exposure;
-- Rename changes label without changing credential id;
+- Add/Rename reject duplicate account labels and Rename changes label without changing credential id;
 - Add/Switch/Rename all reject while any Run is RUNNING or WAITING_FOR_INPUT;
 - concurrent account mutations/login attempts are rejected deterministically;
 - read-only account listing remains available during active Runs;
