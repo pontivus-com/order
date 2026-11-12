@@ -3,7 +3,7 @@ import { Drawer } from "@astryxdesign/core/Drawer";
 
 const RAIL_QUERY = "(min-width: 1200px)";
 
-const useWideWorkbench = (): boolean => {
+export const useWideWorkbench = (): boolean => {
   const [wide, setWide] = useState(() =>
     typeof window === "undefined" || typeof window.matchMedia !== "function"
       ? true
