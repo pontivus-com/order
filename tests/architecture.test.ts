@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import * as ts from "typescript";
 
 const repositoryRoot = process.cwd();
 const sourceExtensions = new Set([".ts", ".tsx"]);
@@ -528,6 +529,7 @@ describe("architecture fitness", () => {
       "ui/src/ExecutionWorkspace.tsx",
       "ui/src/EvidenceViewer.tsx",
       "ui/src/TerminalResult.tsx",
+      "ui/src/workbench-presentation.ts",
       "ui/src/primitives/WorkbenchAction.tsx",
       "ui/src/primitives/WorkbenchIcon.tsx",
       "ui/src/primitives/WorkbenchLayout.tsx",
@@ -605,6 +607,165 @@ describe("architecture fitness", () => {
 
     expect(violations).toEqual([]);
   });
+  it("enforces typed, acyclic and cohesive UI presentation ownership", () => {
+    const violations: string[] = [];
+    const uiFiles = productionFiles.filter((path) => path.startsWith("ui/src/"));
+    const uiFileSet = new Set(uiFiles);
+
+    const substantiveOwners = new Set([
+      "ui/src/CreateWorkItem.tsx",
+      "ui/src/DocumentWorkspace.tsx",
+      "ui/src/EvidenceViewer.tsx",
+      "ui/src/ExecutionWorkspace.tsx",
+      "ui/src/MarkdownEditor.tsx",
+      "ui/src/SignoffReview.tsx",
+      "ui/src/StageDialogue.tsx",
+      "ui/src/TerminalResult.tsx",
+      "ui/src/WorkItemContext.tsx",
+      "ui/src/WorkItemQueue.tsx",
+    ]);
+
+    const allowedSubstantiveDependencies: Readonly<Record<string, readonly string[]>> = {
+      "ui/src/DocumentWorkspace.tsx": ["ui/src/MarkdownEditor.tsx"],
+    };
+
+    const localUiDependencies = new Map<string, readonly string[]>();
+
+    for (const sourcePath of uiFiles) {
+      const source = sourceText(sourcePath);
+      const sourceFile = ts.createSourceFile(
+        sourcePath,
+        source,
+        ts.ScriptTarget.Latest,
+        true,
+        sourcePath.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+      );
+
+      const visit = (node: ts.Node): void => {
+        if (node.kind === ts.SyntaxKind.AnyKeyword) {
+          violations.push(sourcePath + ": UI production code must not use any");
+        }
+        if (ts.isAsExpression(node)) {
+          const assertedType = node.type.getText(sourceFile);
+          if (assertedType !== "const") {
+            violations.push(
+              sourcePath + ": unchecked UI type assertion is prohibited: " + node.getText(sourceFile),
+            );
+          }
+        }
+        if (ts.isTypeAssertionExpression(node)) {
+          violations.push(
+            sourcePath + ": unchecked UI angle-bracket type assertion is prohibited: " + node.getText(sourceFile),
+          );
+        }
+        if (
+          (ts.isTypeAliasDeclaration(node) || ts.isInterfaceDeclaration(node)) &&
+          /(?:DTO|Dto|ViewModel)$/.test(node.name.text)
+        ) {
+          violations.push(
+            sourcePath + ": UI must not introduce DTO/view-model semantic copies: " + node.name.text,
+          );
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sourceFile);
+
+      if (sourcePath !== "ui/src/http.ts" && /\bfetch\s*\(/.test(source)) {
+        violations.push(sourcePath + ": browser transport must remain owned by ui/src/http.ts");
+      }
+
+      for (const specifier of importSpecifiers(source)) {
+        if (/^(?:zustand|redux|@reduxjs\/|jotai|mobx)(?:\/|$)/.test(specifier)) {
+          violations.push(sourcePath + ": second UI state-store dependency is prohibited: " + specifier);
+        }
+      }
+
+      const dependencies = importSpecifiers(source)
+        .map((specifier) => resolvedRepositoryImport(sourcePath, specifier))
+        .filter((targetPath): targetPath is string =>
+          targetPath !== null && targetPath.startsWith("ui/src/") && uiFileSet.has(targetPath),
+        );
+      localUiDependencies.set(sourcePath, dependencies);
+
+      if (sourcePath.startsWith("ui/src/primitives/")) {
+        for (const targetPath of dependencies) {
+          if (
+            substantiveOwners.has(targetPath) ||
+            targetPath === "ui/src/app.tsx" ||
+            targetPath === "ui/src/WorkItemWorkspace.tsx" ||
+            targetPath === "ui/src/http.ts"
+          ) {
+            violations.push(
+              sourcePath + " -> " + targetPath +
+              ": primitive boundary must not depend on substantive workspace/application owners",
+            );
+          }
+        }
+      }
+
+      if (substantiveOwners.has(sourcePath)) {
+        const allowed = new Set(allowedSubstantiveDependencies[sourcePath] ?? []);
+        for (const targetPath of dependencies) {
+          if (substantiveOwners.has(targetPath) && !allowed.has(targetPath)) {
+            violations.push(
+              sourcePath + " -> " + targetPath +
+              ": substantive workspace siblings must coordinate through the composition boundary",
+            );
+          }
+        }
+      }
+    }
+
+    const presentationPolicy = sourceText("ui/src/workbench-presentation.ts");
+    for (const requiredOwner of [
+      "export type WorkItemMode",
+      "export type EvidenceSelection",
+      "export const runIsActive",
+      "export const workItemInitialMode",
+    ]) {
+      if (!presentationPolicy.includes(requiredOwner)) {
+        violations.push(
+          "ui/src/workbench-presentation.ts must own shared typed presentation rule " + requiredOwner,
+        );
+      }
+    }
+
+    for (const sourcePath of uiFiles.filter((path) => path !== "ui/src/workbench-presentation.ts")) {
+      const source = sourceText(sourcePath);
+      if (/new Set<Run\["status"\]>\(\["RUNNING", "WAITING_FOR_INPUT"\]\)/.test(source)) {
+        violations.push(
+          sourcePath + ": active Run classification must use the shared presentation owner",
+        );
+      }
+      if (/from ["']\.\/EvidenceViewer\.tsx["']/.test(source)) {
+        violations.push(
+          sourcePath + ": presentation selection types must not be owned by a sibling Evidence workspace",
+        );
+      }
+    }
+
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+    const visitDependency = (sourcePath: string, stack: readonly string[]): void => {
+      if (visiting.has(sourcePath)) {
+        violations.push(
+          "UI dependency cycle: " + [...stack, sourcePath].join(" -> "),
+        );
+        return;
+      }
+      if (visited.has(sourcePath)) return;
+      visiting.add(sourcePath);
+      for (const targetPath of localUiDependencies.get(sourcePath) ?? []) {
+        visitDependency(targetPath, [...stack, sourcePath]);
+      }
+      visiting.delete(sourcePath);
+      visited.add(sourcePath);
+    };
+    for (const sourcePath of uiFiles) visitDependency(sourcePath, []);
+
+    expect(violations).toEqual([]);
+  });
+
   it("enforces canonical documentation concern ownership and identifier references", () => {
     const violations: string[] = [];
     const docsDirectory = join(repositoryRoot, "docs");
