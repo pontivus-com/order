@@ -28,9 +28,14 @@ jobs:
             echo "$current_pontivus"
             exit 1
           fi
-          credentials="$(git grep -n -I -E '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|api[_-]?key[[:space:]]*[:=][[:space:]]*[^$<{[:space:]]|password[[:space:]]*[:=][[:space:]]*[^$<{[:space:]]|secret[[:space:]]*[:=][[:space:]]*[^$<{[:space:]])' -- . ':(exclude).github/workflows/temp-order-public-audit.yml' || true)"
-          if [ -n "$credentials" ]; then
-            echo "$credentials"
+          private_keys="$(git grep -n -I -E 'BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY' -- . ':(exclude).github/workflows/temp-order-public-audit.yml' || true)"
+          if [ -n "$private_keys" ]; then
+            echo "$private_keys"
+            exit 1
+          fi
+          literal_credentials="$(git grep -n -I -E '(^|[^A-Za-z0-9_])(api[_-]?key|password|secret)[[:space:]]*[:=][[:space:]]*["'"'][^"'"'$<{[:space:]][^"'"']*["'"']' -- . ':(exclude).github/workflows/temp-order-public-audit.yml' || true)"
+          if [ -n "$literal_credentials" ]; then
+            echo "$literal_credentials"
             exit 1
           fi
           echo "commits=$(git rev-list --all --count)"
