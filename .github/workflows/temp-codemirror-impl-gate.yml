@@ -1,0 +1,26 @@
+name: temporary CodeMirror implementation gate
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/temp-codemirror-impl-gate.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Simulate final tree
+        run: rm -f .github/workflows/temp-codemirror-impl-gate.yml
+      - name: Install exact pinned Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL https://bun.com/install | bash -s -- bun-v1.4.4
+          echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+      - run: bun ci
+      - run: bun run tsc --noEmit
+      - run: node node_modules/vitest/vitest.mjs run tests/markdown-source-formatting.test.ts
+      - run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+      - run: node node_modules/vitest/vitest.mjs run tests/certification.test.ts
