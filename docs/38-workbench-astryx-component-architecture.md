@@ -1156,7 +1156,7 @@ Return to P3/P4 instead of expanding implementation if:
 
 ## 20. Markdown editor extension technical requirements
 
-### GW-TR-027-CODEMIRROR-SOURCE-EDITOR-BOUNDARY
+### GW-TR-039-CODEMIRROR-SOURCE-EDITOR-BOUNDARY
 
 **Required behavior:** CodeMirror 6 is encapsulated by one Order-owned `MarkdownSourceEditor` that exchanges Markdown strings only with `MarkdownEditor`.
 
@@ -1164,7 +1164,7 @@ Return to P3/P4 instead of expanding implementation if:
 
 **Failure/negative behavior:** CodeMirror must not become an application-state, domain-model or cross-workspace dependency.
 
-### GW-TR-028-EXACT-SOURCE-EDITOR-SYNCHRONIZATION
+### GW-TR-040-EXACT-SOURCE-EDITOR-SYNCHRONIZATION
 
 **Required behavior:** user and external source synchronization operates directly on Markdown text without Markdown parse/serialize normalization or feedback loops.
 
@@ -1172,7 +1172,7 @@ Return to P3/P4 instead of expanding implementation if:
 
 **Failure/negative behavior:** the integration must not silently reformat source, overwrite dirty content or create a second synchronized Markdown representation.
 
-### GW-TR-029-MARKDOWN-PREVIEW-COMPOSITION
+### GW-TR-041-MARKDOWN-PREVIEW-COMPOSITION
 
 **Required behavior:** Edit/Preview/Split are composed by `MarkdownEditor` from one `buffer: string` using CodeMirror for source and existing Astryx `Markdown` for rendered preview.
 
@@ -1180,7 +1180,7 @@ Return to P3/P4 instead of expanding implementation if:
 
 **Failure/negative behavior:** no second Markdown renderer, AST store or persisted preview representation may be introduced.
 
-### GW-TR-030-DOCUMENT-EDITOR-ERGONOMIC-CONFIGURATION
+### GW-TR-042-DOCUMENT-EDITOR-ERGONOMIC-CONFIGURATION
 
 **Required behavior:** the CodeMirror configuration supplies Markdown language support, soft wrapping, history, search and Markdown-aware key behavior, and `MarkdownEditor` exposes the §19.5.2 formatting toolbar backed by one deterministic Markdown-source command owner.
 
@@ -1188,7 +1188,7 @@ Return to P3/P4 instead of expanding implementation if:
 
 **Failure/negative behavior:** editor extensions/toolbar actions must not expand Order into an IDE, create rich-text/AST authority, normalize unrelated source or duplicate command/configuration owners across screens.
 
-### GW-TR-031-CODEMIRROR-THEME-SPATIAL-INTEGRATION
+### GW-TR-043-CODEMIRROR-THEME-SPATIAL-INTEGRATION
 
 **Required behavior:** CodeMirror uses the explicit Order editor-chrome and Markdown-syntax theme in §19.5.3, derived from Order/Astryx theme authority, and fills the existing primary-canvas editor region.
 
@@ -1196,7 +1196,7 @@ Return to P3/P4 instead of expanding implementation if:
 
 **Failure/negative behavior:** CodeMirror must not ship as an unthemed/default-looking surface, create a second product theme, fixed page container or independent preference owner.
 
-### GW-TR-032-EXACT-SOURCE-EDITOR-CERTIFICATION
+### GW-TR-044-EXACT-SOURCE-EDITOR-CERTIFICATION
 
 **Required behavior:** permanent architecture, unit/browser and certification tests prove exact-source preservation, dependency isolation, save/conflict continuity, presentation-mode continuity and usable editor geometry.
 
