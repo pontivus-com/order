@@ -189,6 +189,7 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchAction.tsx",
       "WorkbenchIcon.tsx",
       "WorkbenchLayout.tsx",
+      "WorkbenchResourceRow.tsx",
       "WorkbenchState.tsx",
       "WorkbenchToolbar.tsx",
     ]);
