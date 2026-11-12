@@ -50,7 +50,7 @@ export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) =>
     refetchInterval: 1000,
   });
   const run = (runsQuery.data ?? []).find(
-    (item) => item.role === "STAGE" && activeStatuses.has(item.status),
+    (item) => item.role === "STAGE" && runIsActive(item),
   ) ?? null;
   const eventsQuery = useQuery({
     queryKey: ["runEvents", run?.id ?? null],
