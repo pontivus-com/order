@@ -1,12 +1,14 @@
 # 43 — CodeMirror exact-source Markdown editor implementation plan
 
-**Status:** Active P7 implementation plan — ready for implementation  
+**Status:** Completed P7 implementation-provenance record — CodeMirror exact-source Markdown editor implemented and verified on `master`  
 **Target repository:** `pontivus-com/order`  
-**Pyramid layer:** P7 implementation plan  
+**Pyramid layer:** P7 implementation plan / completed implementation provenance  
 **Plan baseline:** `0daf814c3ddabc87cf6a69c98f51e87eec07faf8`  
+**Verified candidate:** `e164a738e5cc900fe13f3e1ab2dcb628326d19d3`  
+**Verification run:** GitHub Actions run `43323285962` — completed successfully  
 **Purpose:** implement the governed exact-source CodeMirror Markdown editor extension defined by `GW-FR-051..055` and `GW-TR-027..032`, including a native Order formatting toolbar and fully Order-themed CodeMirror chrome/syntax presentation.
 
-This plan is implementation authority only. It does not redefine the P3/P4 behavior owned by `GW-DOC-MARKDOWN-WORKBENCH-V1` and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`.
+This document is now completed implementation provenance, not standing authorization for further editor changes. It does not redefine the P3/P4 behavior owned by `GW-DOC-MARKDOWN-WORKBENCH-V1` and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`.
 
 ## 1. Governing authority
 
@@ -135,7 +137,7 @@ No ranges, tags or caret versions.
 
 ### Certification changes
 
-Update `tests/certification.test.ts` so the exact dependency inventory includes those four packages.
+Update `tests/certification.test.ts` so the exact dependency inventory includes those six packages.
 
 The forbidden dependency assertions must continue to reject:
 
@@ -850,3 +852,25 @@ The work is complete only when all of these are true:
   ]
 }
 ```
+
+## 17. Completion evidence
+
+The implementation was verified on candidate `e164a738e5cc900fe13f3e1ab2dcb628326d19d3` in GitHub Actions run `43323285962`.
+
+The successful run proved:
+
+- exact dependency installation with Bun 1.4.4;
+- TypeScript `--noEmit`;
+- permanent Markdown source-formatting unit tests;
+- editor-specific UI architecture ownership;
+- canonical workbench owner architecture;
+- cross-boundary certification;
+- the complete non-architecture Vitest suite;
+- production Vite build;
+- Chromium browser certification of exact-source editing, formatting toolbar behavior, Edit/Preview/Split continuity, search/list behavior, responsive preservation and Order-derived Light/Dark editor theming;
+- full architecture diagnostic.
+
+The verified candidate included the temporary verification workflow only as execution scaffolding. That workflow was removed immediately afterward. Subsequent concurrent repository changes before this completion-record update touched canonical documentation only; the verified editor production/test files were unchanged.
+
+The old editable Astryx `TextArea` path and textarea-specific CSS are absent from the completed editor implementation. Astryx `Markdown` remains the one rendered preview/read-only Markdown surface.
+
