@@ -1381,7 +1381,7 @@ The path mapping is deterministic and shared by source creation, source reconcil
 
 The stage provider receives the exact canonical target path in its prompt. A provider-emitted proposal whose `targetPath` or unified-diff path differs from the computed path is rejected as invalid provider output before repository mutation. The provider therefore supplies content/diff, not placement policy.
 
-Existing pre-v3 lifecycle ArtifactRefs remain valid at their already-governed repository paths. Migration does not relocate them merely for layout uniformity. The deterministic layout governs new WorkItems and a lifecycle role when Order creates that role under v3. The external pre-v3 WorkItem source has no such exception: it is migrated into the repository because v3 has no productive external source root.
+Existing pre-v3 lifecycle ArtifactRefs remain immutable historical records at their already-governed repository paths. Migration materializes the current bytes for each lifecycle role at the deterministic v3 path and treats those deterministic copies as drafts requiring normal revalidation. Productive v3 therefore has one current placement policy for both migrated and new WorkItems. The external pre-v3 WorkItem source is likewise copied to the deterministic repository path because v3 has no productive external source root.
 
 ### 30.4 Source discovery and mutation
 
