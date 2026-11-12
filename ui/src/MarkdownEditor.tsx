@@ -36,7 +36,7 @@ export const MarkdownEditor = ({
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
   useEffect(() => {
-    if (sha256 === loadedSha256) return;
+    if (sha256 === loadedSha256 || saving) return;
     if (dirty || conflicted) {
       setConflicted(true);
       return;
@@ -44,7 +44,7 @@ export const MarkdownEditor = ({
     setLoadedSha256(sha256);
     setLoadedMarkdown(markdown);
     setBuffer(markdown);
-  }, [conflicted, dirty, loadedSha256, markdown, sha256]);
+  }, [conflicted, dirty, loadedSha256, markdown, saving, sha256]);
 
   const reloadCurrent = (): void => {
     setLoadedSha256(sha256);
@@ -52,10 +52,12 @@ export const MarkdownEditor = ({
     setBuffer(markdown);
     setConflicted(false);
     setSaveError(null);
+    onDirtyChange?.(false);
   };
   const cancel = (): void => {
     setBuffer(loadedMarkdown);
     setSaveError(null);
+    onDirtyChange?.(false);
   };
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -70,6 +72,7 @@ export const MarkdownEditor = ({
       }
       setLoadedSha256(result.sha256);
       setLoadedMarkdown(buffer);
+      onDirtyChange?.(false);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : String(error));
     } finally {
