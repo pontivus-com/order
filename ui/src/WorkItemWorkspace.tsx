@@ -1,7 +1,10 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { Tab, TabList } from "@astryxdesign/core/TabList";
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "@astryxdesign/core/SegmentedControl";
 
 import type { ArtifactRef, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
@@ -12,6 +15,7 @@ import {
   workItemModeIsKnown,
   workItemModeLabel,
   type EvidenceSelection,
+  type ProposalSelection,
   type WorkItemMode,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -24,6 +28,8 @@ const StageDialogue = lazy(() =>
   import("./StageDialogue.tsx").then((module) => ({ default: module.StageDialogue })));
 const SignoffReview = lazy(() =>
   import("./SignoffReview.tsx").then((module) => ({ default: module.SignoffReview })));
+const ProposalReview = lazy(() =>
+  import("./ProposalReview.tsx").then((module) => ({ default: module.ProposalReview })));
 const ExecutionWorkspace = lazy(() =>
   import("./ExecutionWorkspace.tsx").then((module) => ({ default: module.ExecutionWorkspace })));
 const EvidenceViewer = lazy(() =>
@@ -35,11 +41,13 @@ export const WorkItemWorkspace = ({
   workItem,
   onBack,
   onOpenContext,
+  showContextAction,
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
   onBack: () => void;
   onOpenContext: () => void;
+  showContextAction: boolean;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const runsQuery = useQuery({
@@ -53,6 +61,7 @@ export const WorkItemWorkspace = ({
   const [dirty, setDirty] = useState(false);
   const [pendingMode, setPendingMode] = useState<WorkItemMode | null>(null);
   const [evidence, setEvidence] = useState<EvidenceSelection | null>(null);
+  const [proposal, setProposal] = useState<ProposalSelection | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -95,12 +104,17 @@ export const WorkItemWorkspace = ({
     });
   };
 
+  const openProposalReview = (selection: ProposalSelection): void => {
+    setProposal(selection);
+    navigate("REVIEW");
+  };
+
   const visibleModes: readonly WorkItemMode[] = [
     "DOCUMENTS",
     ...((runsQuery.data ?? []).some((run) => run.role === "STAGE" && runIsActive(run))
       ? ["DIALOGUE" as const]
       : []),
-    ...(workItem.stage === "AWAITING_SIGNOFF" ? ["REVIEW" as const] : []),
+    ...(workItem.stage === "AWAITING_SIGNOFF" || proposal ? ["REVIEW" as const] : []),
     ...(workItem.stage === "EXECUTION" || workItem.outcome === "CANDIDATE_DONE"
       ? ["EXECUTION" as const]
       : []),
@@ -120,17 +134,37 @@ export const WorkItemWorkspace = ({
             icon={<WorkbenchIcon name="back" />}
             onClick={onBack}
           />
-          <WorkbenchAction
-            label="Context"
-            tone="ghost"
-            icon={<WorkbenchIcon name="context" />}
-            onClick={onOpenContext}
-          />
+          {showContextAction ? (
+            <WorkbenchAction
+              label="Context"
+              tone="ghost"
+              icon={<WorkbenchIcon name="context" />}
+              onClick={onOpenContext}
+            />
+          ) : null}
         </div>
-        <div>
+        <div className="order-workitem-heading-block">
           <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
-          <span>{workItem.projectId} · {workItem.stage} · {workItem.status}</span>
+          <span>{workItem.stage} · {workItem.status}</span>
         </div>
+        {mode !== null ? (
+          <SegmentedControl
+            label="Workspace mode"
+            value={mode}
+            onChange={(value) => {
+              if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
+            }}
+            size="sm"
+          >
+            {visibleModes.map((item) => (
+              <SegmentedControlItem
+                key={item}
+                value={item}
+                label={workItemModeLabel(item)}
+              />
+            ))}
+          </SegmentedControl>
+        ) : null}
       </div>
 
       {mode === null ? (
@@ -138,21 +172,7 @@ export const WorkItemWorkspace = ({
           <WorkbenchEmptyState compact title="Resolving workspace…" />
         </div>
       ) : (
-        <>
-          <TabList
-            value={mode}
-            onChange={(value) => {
-              if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
-            }}
-            role="tablist"
-            overflow="scroll"
-          >
-            {visibleModes.map((item) => (
-              <Tab key={item} value={item} label={workItemModeLabel(item)} />
-            ))}
-          </TabList>
-
-          <div className="order-mode-canvas" role="tabpanel">
+          <div className="order-mode-canvas" role="region" aria-label={workItemModeLabel(mode) + " workspace"}>
             <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
               {mode === "DOCUMENTS" ? (
                 <DocumentWorkspace
@@ -161,9 +181,25 @@ export const WorkItemWorkspace = ({
                   onOpenArtifactEvidence={openArtifactEvidence}
                 />
               ) : null}
-              {mode === "DIALOGUE" ? <StageDialogue workItem={workItem} /> : null}
+              {mode === "DIALOGUE" ? (
+                <StageDialogue
+                  workItem={workItem}
+                  onOpenProposalReview={openProposalReview}
+                />
+              ) : null}
               {mode === "REVIEW" ? (
-                <SignoffReview workItem={workItem} onOpenDocuments={() => navigate("DOCUMENTS")} />
+                proposal ? (
+                  <ProposalReview
+                    workItem={workItem}
+                    selection={proposal}
+                    onBackToDialogue={() => navigate("DIALOGUE")}
+                  />
+                ) : (
+                  <SignoffReview
+                    workItem={workItem}
+                    onOpenDocuments={() => navigate("DOCUMENTS")}
+                  />
+                )
               ) : null}
               {mode === "EXECUTION" ? (
                 <ExecutionWorkspace workItem={workItem} onOpenEvidence={openEvidence} />
@@ -172,7 +208,6 @@ export const WorkItemWorkspace = ({
               {mode === "RESULT" ? <TerminalResult workItem={workItem} /> : null}
             </Suspense>
           </div>
-        </>
       )}
 
       <AlertDialog
