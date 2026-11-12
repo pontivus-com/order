@@ -1,6 +1,6 @@
 # 43 — User-facing workflow and agent-execution visibility remediation plan
 
-**Status:** Implementation-ready P7 remediation plan; canonical P3/P4 placement and sizing requirements are established by `GW-DOC-WORKBENCH-UX-V1` §21 and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` §20. P6/title/archive/provider-diagnostic contract amendments listed below must land before their dependent code phases.  
+**Status:** **Not implementation-ready after the repository-native WorkItem documentation authority change.** The user-facing workflow/activity scope remains valid, but this P7 package must be revised against `GW-FR-060..064`, `GW-TR-036..038` and `GW-DOC-CANONICAL-CONTRACTS-V1 §32` before implementation; canonical P3/P4 placement and sizing requirements are established by `GW-DOC-WORKBENCH-UX-V1` §21 and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1` §20. P6/title/archive/provider-diagnostic contract amendments listed below must land before their dependent code phases.  
 **Target repository:** `pontivus-com/order`  
 **Pyramid layer:** P7 implementation plan  
 **Prepared:** 2026-11-13  
@@ -39,6 +39,21 @@ The package is complete only when:
 8. provider-level observable diagnostics needed to debug execution are retained as Run-scoped evidence rather than discarded;
 9. title editing and removal/restoration are discoverable WorkItem management interactions;
 10. Activity, workflow orientation and management interactions use the placement/sizing rules already owned by P3/P4.
+
+
+## 2.1 Repository-native documentation dependency (2026-11-13)
+
+The canonical WorkItem document-location model changed after this plan was first written.
+
+Implementation must not preserve or build further dependency on the former installation-global `workItemRoot`. The revised implementation package must incorporate the repository-native source/discovery/config/migration/Git-save contracts now owned by:
+
+- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §§9–10.1 / `GW-FR-060..061`;
+- `GW-DOC-MARKDOWN-WORKBENCH-V1` §14 / `GW-FR-062..063`;
+- `GW-DOC-WORKBENCH-UX-V1` §22 / `GW-FR-064`;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` §30 / `GW-TR-036..038`;
+- `GW-DOC-CANONICAL-CONTRACTS-V1` §32.
+
+This status note prevents the earlier P7 package from acting as stale implementation authority. A refreshed P7 task set is required after design review; this document does not independently restate the new contracts.
 
 ## 3. Current proven defects
 
