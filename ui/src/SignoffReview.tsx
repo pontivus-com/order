@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
+import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 export const SignoffReview = ({
@@ -46,7 +47,7 @@ export const SignoffReview = ({
     <section className="order-workspace-section" data-testid="review-workspace">
       <div className="order-section-heading">
         <h2>Exact sign-off package</h2>
-        <button type="button" onClick={onOpenDocuments}>Open governed documents</button>
+        <WorkbenchAction label="Open governed documents" tone="ghost" onClick={onOpenDocuments} />
       </div>
       <dl className="order-review-metadata">
         <div><dt>Package</dt><dd><code data-testid="signoff-package-hash">{query.data.packageHash}</code></dd></div>
