@@ -533,6 +533,7 @@ describe("architecture fitness", () => {
       "ui/src/primitives/WorkbenchAction.tsx",
       "ui/src/primitives/WorkbenchIcon.tsx",
       "ui/src/primitives/WorkbenchLayout.tsx",
+      "ui/src/primitives/WorkbenchResourceRow.tsx",
       "ui/src/primitives/WorkbenchToolbar.tsx",
     ] as const;
 
@@ -618,7 +619,9 @@ describe("architecture fitness", () => {
       "ui/src/EvidenceViewer.tsx",
       "ui/src/ExecutionWorkspace.tsx",
       "ui/src/MarkdownEditor.tsx",
+      "ui/src/ProposalReview.tsx",
       "ui/src/SignoffReview.tsx",
+      "ui/src/ProposalReview.tsx",
       "ui/src/StageDialogue.tsx",
       "ui/src/TerminalResult.tsx",
       "ui/src/WorkItemContext.tsx",
