@@ -2,7 +2,7 @@
 
 **Status:** Binding factual reference  
 **Canonical concern ID:** `GW-DOC-EXTERNAL-FACTS`  
-**Versioned concern ID:** `GW-DOC-EXTERNAL-FACTS-V1-2026-11-13`  
+**Versioned concern ID:** `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`  
 **Verified:** 2026-11-13  
 **2026-11-13 CodeMirror Markdown-editor refresh:** verified CodeMirror 6 as an MIT-licensed exact-text editor substrate. The `codemirror` package current published version is `6.0.2` and provides the standard CodeMirror 6 basic setup; `@codemirror/lang-markdown` current published version is `6.5.2` and provides Markdown language support plus Markdown-specific Enter/Backspace key behavior. Order selects exact pins `codemirror@6.0.2` and `@codemirror/lang-markdown@6.5.2` for the governed exact-source Markdown editor. CodeMirror editor state remains browser-local presentation state; the relied-upon current source is the editor document text, not a Markdown AST/serialization. Sources: https://www.npmjs.com/package/codemirror, https://www.npmjs.com/package/@codemirror/lang-markdown.  
 **2026-11-12 Astryx workbench refresh:** verified Astryx as an MIT-licensed beta React 19+ design system; the supported Vite consumer path can use the precompiled `@astryxdesign/core` distribution without adding a StyleX build plugin, Babel or PostCSS; Astryx publishes accessible layout, table/list, drawer, chat, Markdown/code, selector/multi-selector, segmented-control, icon and status primitives used by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`. The current stable fixed-group package line observed from the publisher is `0.7.13` for `@astryxdesign/core` and `@astryxdesign/theme-neutral`; `@stylexjs/stylex` is `0.19.1`. Order uses exact stable pins, not canaries. The neutral theme may fall back to the system font stack; Order does not load its optional Google-hosted Figtree font. Sources: https://astryx.atmeta.com/components, https://astryx.atmeta.com/docs/theme, https://github.com/meta/astryx, https://www.npmjs.com/package/@astryxdesign/core, https://www.npmjs.com/package/@stylexjs/stylex.  
@@ -40,7 +40,7 @@ No Order document or implementation may infer an external dependency behavior fr
 
 ## 2. Direct v1 dependency inventory
 
-The following is the complete **designed direct dependency set** authorized for Order v1. Step A has now materialized `package.json` and `bun.lock` under the approved plan; this table remains the binding direct-dependency set. Transitive packages are lockfile facts, not additional Order design dependencies.
+The following is the complete **designed direct dependency set** authorized for Order v1. The existing package set is materialized in `package.json` and `bun.lock`; the CodeMirror rows are the approved next implementation pins for the Markdown-editor extension and remain design authority until P7 materializes them together with the lockfile. Transitive packages are lockfile facts, not additional Order design dependencies.
 
 | Integration | Order v1 pin | Upstream fact verified 2026-11-11 | Primary version evidence |
 |---|---:|---:|---|
