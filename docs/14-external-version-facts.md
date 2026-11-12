@@ -1019,3 +1019,68 @@ The implementation/certification suite must exercise the exact pinned runtime an
 - source temporary files do not match WorkItem `.md` discovery.
 
 The tests prove Order's use of the documented primitives; they do not claim to simulate power-loss durability beyond the documented host/filesystem contract.
+
+## 15. Public GitHub delivery and Semantic Versioning facts (2026-11-13)
+
+Order's public-repository delivery contract relies on the following current external facts.
+
+### 15.1 Semantic Versioning 2.0.0
+
+Semantic Versioning 2.0.0 defines versions as `MAJOR.MINOR.PATCH`.
+
+For stable `1.x+` releases:
+
+- MAJOR increments for incompatible public-API changes;
+- MINOR increments for backward-compatible functionality;
+- PATCH increments for backward-compatible bug fixes.
+
+SemVer explicitly defines `0.y.z` as initial development. Order therefore owns its more specific pre-1.0 release-impact policy in `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` while retaining the SemVer numeric/version grammar.
+
+A released version's contents are immutable; a changed build requires a new version.
+
+Source:
+
+- https://semver.org/
+
+### 15.2 GitHub pull-request/ruleset facts
+
+Current GitHub repository rulesets can:
+
+- require changes to a target branch to arrive through pull requests;
+- require status checks before merge;
+- optionally require the branch to be up to date;
+- require conversation resolution;
+- disallow force pushes/deletion;
+- target branches and tags separately.
+
+Public repositories support repository rulesets. Repository administrators/edit-rules roles configure them.
+
+Sources:
+
+- https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository
+- https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets
+
+### 15.3 GitHub Releases/tags/assets
+
+GitHub Releases are based on Git tags and may contain uploaded release assets in addition to GitHub's automatic source ZIP/tarball.
+
+GitHub supports a stable latest-release asset URL:
+
+```text
+https://github.com/<owner>/<repo>/releases/latest/download/<asset>
+```
+
+When immutable releases are enabled, GitHub recommends creating the release as a draft, attaching all assets, then publishing.
+
+Sources:
+
+- https://docs.github.com/en/repositories/releasing-projects-on-github/about-releases
+- https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository
+- https://docs.github.com/en/repositories/releasing-projects-on-github/linking-to-releases
+
+### 15.4 GitHub Actions consequence
+
+GitHub Actions may execute verification for pull requests and release/publication work after merges/releases. Pull-request workflows from forks have restricted token/secret access, so Order's PR verification must not require repository secrets for ordinary contributor verification.
+
+Any third-party/official action used by retained workflows is an external dependency for Order and must be immutable-pinned/certified before productive reliance.
+
