@@ -28,7 +28,7 @@ It must ensure that:
 
 Current public naming, endorsed identity, category, proposition, family wording and approved product-language hierarchy are owned by `GW-DOC-PRODUCT-IDENTITY-V1`.
 
-The former name **Order** is retained only for migration/provenance and stable `GW-*` machine identifiers. It is not the current public product name.
+The former name **Gateweft** is retained only as migration/provenance terminology. Stable `GW-*` machine identifiers are intentionally unchanged and are not current public product naming.
 
 ## 3. Product boundary
 
