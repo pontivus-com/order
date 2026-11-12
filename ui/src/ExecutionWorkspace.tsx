@@ -4,6 +4,7 @@ import { Badge } from "@astryxdesign/core/Badge";
 
 import type { EvidenceRef, ExecutionTask, Run, RunEvent, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { runIsActive, type EvidenceSelection } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
@@ -60,13 +61,13 @@ export const ExecutionWorkspace = ({
 }>) => {
   const queryClient = useQueryClient();
   const [selectedRunId, setSelectedRunId] = useState<Run["id"] | null>(null);
-  const tasksQuery = useQuery({ queryKey: ["tasks", workItem.id], queryFn: () => api.listExecutionTasks(workItem.id) });
+  const tasksQuery = useQuery({ queryKey: workbenchQueryKeys.tasks(workItem.id), queryFn: () => api.listExecutionTasks(workItem.id) });
   const runsQuery = useQuery({
-    queryKey: ["runs", workItem.id],
+    queryKey: workbenchQueryKeys.runs(workItem.id),
     queryFn: () => api.listRuns(workItem.id),
     refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false,
   });
-  const artifactsQuery = useQuery({ queryKey: ["artifacts", workItem.id], queryFn: () => api.listArtifacts(workItem.id) });
+  const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.artifacts(workItem.id), queryFn: () => api.listArtifacts(workItem.id) });
   const runs = runsQuery.data ?? [];
   const selectedRun = runs.find((run) => run.id === selectedRunId) ?? null;
 
@@ -75,7 +76,7 @@ export const ExecutionWorkspace = ({
     setSelectedRunId((runs.find(runIsActive) ?? runs.at(-1) ?? null)?.id ?? null);
   }, [runs, selectedRunId]);
 
-  const eventKey = ["runEvents", selectedRunId] as const;
+  const eventKey = workbenchQueryKeys.runEvents(selectedRunId);
   const eventsQuery = useQuery({
     queryKey: eventKey,
     queryFn: async () => {
