@@ -12,6 +12,7 @@ import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 
 import type { Run, RunEvent, RunEventId, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
@@ -45,7 +46,7 @@ const proposalDisposition = (
 export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) => {
   const queryClient = useQueryClient();
   const runsQuery = useQuery({
-    queryKey: ["runs", workItem.id],
+    queryKey: workbenchQueryKeys.runs(workItem.id),
     queryFn: () => api.listRuns(workItem.id),
     refetchInterval: 1000,
   });
@@ -53,7 +54,7 @@ export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) =>
     (item) => item.role === "STAGE" && runIsActive(item),
   ) ?? null;
   const eventsQuery = useQuery({
-    queryKey: ["runEvents", run?.id ?? null],
+    queryKey: workbenchQueryKeys.runEvents(run?.id ?? null),
     queryFn: () => run ? api.listRunEvents(run.id, 0) : Promise.resolve([]),
     enabled: run !== null,
     refetchInterval: run ? 1000 : false,
@@ -63,11 +64,11 @@ export const StageDialogue = ({ workItem }: Readonly<{ workItem: WorkItem }>) =>
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["runs", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["runEvents", run?.id ?? null] }),
-      queryClient.invalidateQueries({ queryKey: ["workItems"] }),
-      queryClient.invalidateQueries({ queryKey: ["lifecycleArtifacts", workItem.id] }),
-      queryClient.invalidateQueries({ queryKey: ["signoffPackage", workItem.id] }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runEvents(run?.id ?? null) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
     ]);
   };
 
