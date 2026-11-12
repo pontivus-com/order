@@ -365,7 +365,7 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await expect(page.getByTestId("review-documents")).toContainText("PLAN");
   await expect(page.getByTestId("review-documents")).toContainText("R3");
   await expect(page.getByText("Signed tasks", { exact: true })).toBeVisible();
-  await expect(page.getByText("T1", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("execution-task-detail").getByText("T1", { exact: true })).toBeVisible();
   await expect(page.getByText("Prove the browser candidate surface", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Approved by")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
