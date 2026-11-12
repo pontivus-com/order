@@ -3,9 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Tab, TabList } from "@astryxdesign/core/TabList";
 
-import type { ArtifactRef, Run, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
-import type { EvidenceSelection } from "./EvidenceViewer.tsx";
+import {
+  runIsActive,
+  workItemInitialMode,
+  workItemModeIsKnown,
+  workItemModeLabel,
+  type EvidenceSelection,
+  type WorkItemMode,
+} from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
@@ -23,23 +30,6 @@ const EvidenceViewer = lazy(() =>
 const TerminalResult = lazy(() =>
   import("./TerminalResult.tsx").then((module) => ({ default: module.TerminalResult })));
 
-export type WorkItemMode = "DOCUMENTS" | "DIALOGUE" | "REVIEW" | "EXECUTION" | "EVIDENCE" | "RESULT";
-
-const activeStatuses = new Set<Run["status"]>(["RUNNING", "WAITING_FOR_INPUT"]);
-const isMode = (value: string): value is WorkItemMode =>
-  value === "DOCUMENTS" || value === "DIALOGUE" || value === "REVIEW" ||
-  value === "EXECUTION" || value === "EVIDENCE" || value === "RESULT";
-
-const initialMode = (workItem: WorkItem): WorkItemMode => {
-  if (workItem.stage === "AWAITING_SIGNOFF") return "REVIEW";
-  if (workItem.stage === "EXECUTION") return "EXECUTION";
-  if (workItem.stage === "COMPLETE") return workItem.outcome === "CANDIDATE_DONE" ? "EXECUTION" : "RESULT";
-  return "DOCUMENTS";
-};
-
-const modeLabel = (mode: WorkItemMode): string =>
-  mode[0] + mode.slice(1).toLowerCase();
-
 export const WorkItemWorkspace = ({
   workItem,
   onBack,
@@ -55,7 +45,7 @@ export const WorkItemWorkspace = ({
     queryKey: ["runs", workItem.id],
     queryFn: () => api.listRuns(workItem.id),
     refetchInterval: (query) =>
-      query.state.data?.some((run) => activeStatuses.has(run.status)) === true ? 1000 : false,
+      query.state.data?.some(runIsActive) === true ? 1000 : false,
   });
 
   const [mode, setMode] = useState<WorkItemMode | null>(null);
@@ -70,10 +60,10 @@ export const WorkItemWorkspace = ({
 
   useEffect(() => {
     const activeStage = (runsQuery.data ?? []).some(
-      (run) => run.role === "STAGE" && activeStatuses.has(run.status),
+      (run) => run.role === "STAGE" && runIsActive(run),
     );
     if (mode === null && !runsQuery.isPending) {
-      setMode(activeStage ? "DIALOGUE" : initialMode(workItem));
+      setMode(activeStage ? "DIALOGUE" : workItemInitialMode(workItem));
       return;
     }
     if (activeStage && mode === "DOCUMENTS" && !dirty) setMode("DIALOGUE");
@@ -106,7 +96,7 @@ export const WorkItemWorkspace = ({
 
   const visibleModes: readonly WorkItemMode[] = [
     "DOCUMENTS",
-    ...((runsQuery.data ?? []).some((run) => run.role === "STAGE" && activeStatuses.has(run.status))
+    ...((runsQuery.data ?? []).some((run) => run.role === "STAGE" && runIsActive(run))
       ? ["DIALOGUE" as const]
       : []),
     ...(workItem.stage === "AWAITING_SIGNOFF" ? ["REVIEW" as const] : []),
@@ -151,13 +141,13 @@ export const WorkItemWorkspace = ({
           <TabList
             value={mode}
             onChange={(value) => {
-              if (isMode(value) && visibleModes.includes(value)) navigate(value);
+              if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
             }}
             role="tablist"
             overflow="scroll"
           >
             {visibleModes.map((item) => (
-              <Tab key={item} value={item} label={modeLabel(item)} />
+              <Tab key={item} value={item} label={workItemModeLabel(item)} />
             ))}
           </TabList>
 
