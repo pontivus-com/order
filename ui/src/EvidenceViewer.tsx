@@ -32,9 +32,27 @@ export const EvidenceViewer = ({ selection }: Readonly<{ selection: EvidenceSele
     enabled: selection !== null,
   });
 
-  if (!selection) return <WorkbenchEmptyState title="No evidence selected" description="Select an artifact or evidence reference from Execution." />;
-  if (query.isPending) return <WorkbenchEmptyState compact title="Loading evidence…" />;
-  if (query.isError) return <WorkbenchErrorState title="Evidence could not be read" description={query.error instanceof Error ? query.error.message : String(query.error)} />;
+  if (!selection) {
+    return (
+      <section className="order-workspace-section" data-testid="evidence-workspace">
+        <WorkbenchEmptyState title="No evidence selected" description="Select an artifact or evidence reference from Execution." />
+      </section>
+    );
+  }
+  if (query.isPending) {
+    return (
+      <section className="order-workspace-section" data-testid="evidence-workspace">
+        <WorkbenchEmptyState compact title="Loading evidence…" />
+      </section>
+    );
+  }
+  if (query.isError) {
+    return (
+      <section className="order-workspace-section" data-testid="evidence-workspace">
+        <WorkbenchErrorState title="Evidence could not be read" description={query.error instanceof Error ? query.error.message : String(query.error)} />
+      </section>
+    );
+  }
   const value = decodeBytes(query.data);
   const title = selection.kind === "ARTIFACT" ? selection.label : selection.relativePath;
   return (
