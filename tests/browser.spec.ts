@@ -248,6 +248,62 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   expect(eventStreamUrls).toEqual([]);
 });
 
+test("workbench geometry gives the active task the canvas and recomposes narrow queue rows", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await authenticate(page, request);
+  await openWorkItem(page, "Lifecycle editing workbench");
+
+  await expect(page.getByRole("button", { name: "Context" })).toHaveCount(0);
+  await expect(page.getByTestId("workbench-search")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
+  await page.getByRole("radio", { name: "Documents" }).click();
+  await expect(page.getByRole("tablist")).toHaveCount(1);
+
+  await page.getByTestId("governed-document-nav")
+    .getByRole("tab", { name: "PLAN" })
+    .click();
+
+  const workspace = page.getByTestId("document-workspace");
+  const editor = page.getByLabel("PLAN lifecycle document Markdown");
+  const save = page.getByRole("button", { name: "Save", exact: true });
+  await expect(workspace).toBeVisible();
+  await expect(editor).toBeVisible();
+  await expect(save).toBeVisible();
+
+  const workspaceBox = await workspace.boundingBox();
+  const editorBox = await editor.boundingBox();
+  const saveBox = await save.boundingBox();
+  expect(workspaceBox).not.toBeNull();
+  expect(editorBox).not.toBeNull();
+  expect(saveBox).not.toBeNull();
+  expect(editorBox!.width).toBeGreaterThan(workspaceBox!.width * 0.88);
+  expect(editorBox!.height).toBeGreaterThan(workspaceBox!.height * 0.5);
+  expect(saveBox!.y + saveBox!.height).toBeLessThanOrEqual(900);
+
+  await backToQueue(page);
+  await page.setViewportSize({ width: 700, height: 800 });
+  const item = await workItemForTitle(page, "Lifecycle editing workbench");
+  const row = rowFor(page, "Lifecycle editing workbench");
+  const mobileMeta = row.locator(".order-queue-mobile-meta");
+  await expect(mobileMeta).toBeVisible();
+  await expect(mobileMeta).toContainText(item.stage + " · " + item.status);
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await openWorkItem(page, "Verified candidate");
+  const taskMaster = page.getByTestId("execution-task-master");
+  const taskDetail = page.getByTestId("execution-task-detail");
+  await expect(taskMaster).toBeVisible();
+  await expect(taskDetail).toBeVisible();
+  const masterBox = await taskMaster.boundingBox();
+  const detailBox = await taskDetail.boundingBox();
+  expect(masterBox).not.toBeNull();
+  expect(detailBox).not.toBeNull();
+  expect(Math.abs(masterBox!.y - detailBox!.y)).toBeLessThan(80);
+});
+
 test("persisted proposal disposition is caught by polling and sign-off review remains explicit", async ({
   page,
   request,
