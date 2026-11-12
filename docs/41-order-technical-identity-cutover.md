@@ -44,7 +44,7 @@ The identity-cutover task was the last productive task interpreted by the Gatewe
 | systemd description | `Pontivus Order local daemon` |
 | install root | `$HOME/.local/share/pontivus-order` |
 | state root | `$XDG_STATE_HOME/pontivus-order` or `$HOME/.local/state/pontivus-order` |
-| default WorkItem root | `$HOME/.local/share/pontivus-order-work-items` |
+| default project WorkItem documentation root | `docs/order/work-items` (repository-relative) |
 | project manifest | `pontivus-order.toml` |
 | project-manifest example | `pontivus-order.toml.example` |
 | executable task fence after cutover | `order-tasks` |
