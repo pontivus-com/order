@@ -7,7 +7,11 @@ export type WorkbenchIconName =
   | "change" | "defect" | "investigation" | "audit"
   | "document" | "locked" | "dialogue" | "review"
   | "success" | "warning" | "failure" | "evidence"
-  | "execution" | "back" | "context";
+  | "execution" | "back" | "context"
+  | "undo" | "redo" | "heading1" | "heading2" | "heading3"
+  | "bold" | "italic" | "inlineCode" | "quote"
+  | "bulletList" | "numberedList" | "link"
+  | "codeBlock" | "horizontalRule";
 
 const astryxIcons: Partial<Record<WorkbenchIconName, IconName>> = {
   refresh: "arrowsUpDown",
@@ -35,6 +39,20 @@ const fallback: Partial<Record<WorkbenchIconName, string>> = {
   light: "☀",
   dark: "☾",
   document: "▤",
+  undo: "↶",
+  redo: "↷",
+  heading1: "H1",
+  heading2: "H2",
+  heading3: "H3",
+  bold: "B",
+  italic: "I",
+  inlineCode: "`",
+  quote: "❝",
+  bulletList: "•",
+  numberedList: "1.",
+  link: "↗",
+  codeBlock: "</>",
+  horizontalRule: "—",
 };
 
 export const WorkbenchIcon = ({
