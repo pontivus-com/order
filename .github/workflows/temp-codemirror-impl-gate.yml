@@ -98,3 +98,5 @@ jobs:
 # rerun after public provenance cleanup
 
 # rerun with unrelated documentation architecture failure isolated
+
+# rerun with CodeMirror-native browser input driver
