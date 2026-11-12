@@ -234,6 +234,12 @@ That action:
 - reports the resulting commit or the exact failure;
 - leaves the working-tree document bytes intact if the commit fails.
 
+Documentation Git save is available only while the WorkItem remains pre-signoff (`IDEA`, Research, Requirements, Solution design, Implementation plan, Readiness review or Approval) and no Run for that WorkItem is currently active. It is unavailable in Implementation/Complete because those states treat the signed lifecycle package as inspection-only.
+
+Order creates documentation commits only on an attached local branch and only when no merge/rebase/cherry-pick/revert/bisect/sequencer operation is in progress. A detached HEAD or in-progress Git operation is shown as an actionable repository-state blocker rather than being passed through as an unexplained commit failure.
+
+Commit attribution comes from the selected repository's **repository-local Git identity** (`user.name` and `user.email`). Order does not invent an author identity and does not re-enable ambient system/global Git configuration merely to make a commit succeed. When the repository-local identity is absent, the workbench reports that exact blocker and the required repository setup; the documentation remains saved in the working tree and no commit is attempted.
+
 The workbench exposes repository-document status separately from editor dirty state:
 
 - **Unsaved edits** — browser buffer differs from the current working-tree document;
@@ -352,6 +358,22 @@ The Git status/action belongs to the selected WorkItem's Documents/workflow cont
 **Acceptance criterion:** the operator can tell whether the current WorkItem package exists only in the editor, only in the working tree, or durably in Git without using a shell.
 
 **Failure/negative behavior:** one generic `Saved` state must not imply Git persistence when only working-tree bytes were written.
+
+### GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY
+
+**Required behavior:** explicit documentation Git save is available only for a pre-signoff WorkItem with no active Run, on an attached local branch, with no in-progress Git operation and with a committable canonical WorkItem document set.
+
+**Acceptance criterion:** Implementation/Complete, detached HEAD, active Run and merge/rebase/cherry-pick/revert/bisect/sequencer states present a specific blocker and perform no Git commit.
+
+**Failure/negative behavior:** the browser must not treat a generic Git process failure as the normal eligibility mechanism or permit documentation commits to mutate signed/historical package state during Implementation/Complete.
+
+### GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY
+
+**Required behavior:** automated documentation commits use the selected repository's explicit repository-local Git `user.name` and `user.email` and expose missing identity as an actionable blocker.
+
+**Acceptance criterion:** the commit author/committer is attributable without depending on Order-disabled ambient system/global Git configuration, and missing identity causes no commit side effect.
+
+**Failure/negative behavior:** Order must not fabricate an identity, silently fall back to host/user/hostname-derived identity, or require the operator to re-enter author information for every documentation commit.
 
 ## 16. Explicit non-goals
 
@@ -531,7 +553,7 @@ This extension does not authorize:
 
 ## 18. Markdown editor extension functional requirements
 
-### GW-FR-051-EXACT-SOURCE-MARKDOWN-EDITOR
+### GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR
 
 **Required behavior:** editable governed documents use a syntax-aware source editor while the visible Markdown string remains the exact editable/persisted authority.
 
@@ -539,7 +561,7 @@ This extension does not authorize:
 
 **Failure/negative behavior:** the editor must not persist, sign or substitute an AST/rich-text/editor-state representation for Markdown or normalize untouched source.
 
-### GW-FR-052-DOCUMENT-EDIT-PREVIEW-MODES
+### GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES
 
 **Required behavior:** governed Markdown supports Edit and Preview, plus Split where sufficient width exists, without changing the selected document or source buffer.
 
@@ -547,7 +569,7 @@ This extension does not authorize:
 
 **Failure/negative behavior:** presentation-mode switching must not save, normalize, discard or replace Markdown.
 
-### GW-FR-053-MARKDOWN-AUTHORING-ERGONOMICS
+### GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS
 
 **Required behavior:** the source editor provides syntax highlighting, soft wrapping, undo/redo, search/replace, Markdown-aware keyboard editing and the formatting toolbar defined in §17.4.
 
@@ -555,7 +577,7 @@ This extension does not authorize:
 
 **Failure/negative behavior:** authoring ergonomics must not create rich-text/AST authority or expand into a generic IDE, repository editor, LSP/code-intelligence environment or multi-file workspace.
 
-### GW-FR-054-LIVE-SAFE-MARKDOWN-PREVIEW
+### GW-FR-068-LIVE-SAFE-MARKDOWN-PREVIEW
 
 **Required behavior:** Preview renders the current browser-local Markdown buffer through the existing safe Order Markdown renderer before or after save.
 
@@ -563,7 +585,7 @@ This extension does not authorize:
 
 **Failure/negative behavior:** the extension must not introduce a second Markdown renderer/source of truth or enable raw-content execution.
 
-### GW-FR-055-EDITOR-STATE-CONTINUITY
+### GW-FR-069-EDITOR-STATE-CONTINUITY
 
 **Required behavior:** document refresh, responsive presentation changes and Edit/Preview/Split transitions preserve the existing dirty/save/conflict contract and do not overwrite unsaved source.
 
