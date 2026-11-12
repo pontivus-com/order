@@ -441,3 +441,70 @@ P4/P5/P6 work following this document must resolve, without changing these funct
 14. durable adoption path for material interactive clarification of originating intent;
 15. tests proving fresh-install repository discovery, deterministic lifecycle-draft rediscovery without fabricated runtime state, reinstall preservation, duplicate/invalid/misplaced/changed/missing-source behavior, exact R1 source projection, context invalidation on source change, approval staleness after source change, mid-daemon source-edit detection, material-clarification restartability and no DB-only/source-bypass path;
 16. one bounded migration from the current external WorkItem-source root into deterministic project-local `work-request.md` paths without creating a second productive source path.
+
+## 14. WorkItem title and active-queue management
+
+### 14.1 Direct title edit
+
+The WorkItem source H1 remains the sole canonical human-readable title.
+
+The WorkItem header may offer **Edit title** without forcing the operator to locate/edit the H1 manually. That interaction is only a convenience mutation over the same source owner:
+
+- it requires the current source SHA-256;
+- Order rewrites only the canonical H1 line through the source core owner;
+- every other source byte remains unchanged;
+- the resulting source is parsed/read-back/hash-verified through the normal source-write boundary;
+- title change follows the existing source-change lifecycle reaction; it does not create a second title field/owner;
+- it is unavailable in `EXECUTION` and `COMPLETE`, matching direct source editing.
+
+### 14.2 Remove from active work / restore
+
+Removing a WorkItem from the active queue means **archive**, not deletion.
+
+Archive state is repository-native but semantically separate from the Work request/lifecycle Markdown. Each WorkItem owns one optional deterministic marker:
+
+```text
+<workItems.root>/<WorkItemId>/.order-archived
+```
+
+When present, the file bytes are exactly:
+
+```text
+archived
+```
+
+with one trailing LF.
+
+The marker owns only active-queue membership. It contains no title, lifecycle stage, outcome, reason, timestamp or other duplicated WorkItem semantics.
+
+Archive/restore:
+
+- is permitted only when no Run for the WorkItem is active;
+- is prohibited during `EXECUTION`;
+- does not delete source/lifecycle Markdown, Runs, evidence, approvals or history;
+- does not change lifecycle stage/status/outcome;
+- does not change source/lifecycle artifact hashes;
+- is discovered with the repository on a fresh installation;
+- is visible through an explicit **Show archived** queue view;
+- restore removes the marker and returns the same WorkItem identity to the active queue.
+
+A completed WorkItem may be archived/restored because the marker does not modify its signed source/artifact bytes.
+
+Archive-marker creation/deletion participates in the existing WorkItem Git-status/Git-save surface so the operator can make the visibility choice durable in project history without committing unrelated repository changes.
+
+### GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT
+
+**Required behavior:** Edit title mutates only the canonical Work request H1 through the source owner using expected-hash protection.
+
+**Acceptance criterion:** the WorkItem/header title and source H1 remain one authority and normal source freshness/lifecycle reactions occur after the edit.
+
+**Failure/negative behavior:** no independent title field, browser-only override or source-bypassing rename store is permitted.
+
+### GW-FR-078-PORTABLE-WORKITEM-ARCHIVE
+
+**Required behavior:** remove/restore active work is a repository-native archive-marker operation over the same stable WorkItem identity.
+
+**Acceptance criterion:** archived work disappears from the default active queue, remains recoverable through Show archived, survives clone/reinstallation when committed, and leaves source/lifecycle/history bytes intact.
+
+**Failure/negative behavior:** removal must not delete the WorkItem, use an installation-local hide flag, rewrite signed Markdown, or introduce a second lifecycle/status value.
+
