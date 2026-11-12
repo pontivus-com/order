@@ -1,13 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 
-import type { ArtifactRef, Run } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import type { EvidenceSelection } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
-
-export type EvidenceSelection =
-  | Readonly<{ kind: "ARTIFACT"; artifactId: ArtifactRef["id"]; label: string }>
-  | Readonly<{ kind: "EVIDENCE"; runId: Run["id"]; relativePath: string }>;
 
 const decodeBytes = (bytes: Uint8Array): string => {
   try {
