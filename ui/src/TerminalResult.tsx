@@ -10,6 +10,7 @@ import {
   type WorkItem,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 const resultText = (workItem: WorkItem): string => {
@@ -56,7 +57,7 @@ const decode = (
 
 export const TerminalResult = ({ workItem }: Readonly<{ workItem: WorkItem }>) => {
   const artifactsQuery = useQuery({
-    queryKey: ["lifecycleArtifacts", workItem.id],
+    queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
     enabled:
       workItem.outcome === "INVESTIGATION_COMPLETE" ||
@@ -76,7 +77,7 @@ export const TerminalResult = ({ workItem }: Readonly<{ workItem: WorkItem }>) =
     null;
 
   const contentQuery = useQuery({
-    queryKey: ["artifactContent", selectedArtifact?.id ?? null],
+    queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
       if (!selectedArtifact) throw new TypeError("terminal result artifact required");
       return api.readArtifactContent(selectedArtifact.id);
