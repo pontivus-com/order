@@ -12,6 +12,7 @@ import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
+import { lifecycleArtifactRoleRank } from "./workbench-presentation.ts";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 type SelectedDocument =
@@ -19,8 +20,6 @@ type SelectedDocument =
   | Readonly<{ kind: "ARTIFACT"; id: ArtifactRef["id"] }>;
 
 const errorText = (value: unknown): string => value instanceof Error ? value.message : String(value);
-const roleOrder: Readonly<Record<string, number>> = { R1: 1, R2: 2, DESIGN: 3, PLAN: 4, R3: 5 };
-
 const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
   try {
     const parsed = MarkdownTextSchema.safeParse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
@@ -48,7 +47,7 @@ export const DocumentWorkspace = ({
   const sourceQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSource(workItem.id), queryFn: () => api.getWorkItemSource(workItem.id) });
   const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id), queryFn: () => api.listLifecycleArtifacts(workItem.id) });
   const artifacts = useMemo(
-    () => [...(artifactsQuery.data ?? [])].sort((a, b) => (roleOrder[a.role] ?? 99) - (roleOrder[b.role] ?? 99)),
+    () => [...(artifactsQuery.data ?? [])].sort((a, b) => lifecycleArtifactRoleRank(a.role) - lifecycleArtifactRoleRank(b.role)),
     [artifactsQuery.data],
   );
 
