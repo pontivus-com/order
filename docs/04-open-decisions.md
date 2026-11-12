@@ -214,8 +214,26 @@ The identity change is a semantic-preserving product/technical rename, not a lif
 
 The workbench UX/Astryx package completed before the Order identity cutover. The verified public-safe Order source is published to the existing `pontivus-com/order` repository as a sanitized snapshot without importing private-origin history.
 
+
+
+## D18 — Repository-native WorkItem documentation and explicit Git persistence
+
+**Status:** RESOLVED
+
+Project selection is the durable documentation boundary. New Work requests and Order-owned lifecycle Markdown live under one deterministic WorkItem directory inside the selected target Git repository, with the repository-relative root resolved from `pontivus-order.toml` and defaulting to `docs/order/work-items`.
+
+Order may automate the mechanical Git commit for those governed documents only after explicit human action. The commit is path-scoped to the current WorkItem document set, requires an attached branch, no in-progress Git operation, no active WorkItem Run and pre-signoff lifecycle eligibility, and uses only repository-local `user.name`/`user.email` for attribution under Order's system/global-Git-config-disabled environment. It never pushes, changes branches, merges, rebases or absorbs unrelated repository changes.
+
+Repository lifecycle files are portable content, not portable runtime history. A fresh installation may rediscover deterministic lifecycle Markdown as drafts, but file presence never fabricates RunEvents, conformance, readiness, Approval or execution history.
+
+The bounded v2→v3 migration cannot rebind an old Approval to a repository baseline that did not contain the Work request. Active execution blocks migration; pre-signoff material is copied to deterministic paths and revalidated; completed history remains terminal provenance.
+
+CodeMirror remains the already-adopted exact-source Markdown editor implementation. Repository-native storage/Git persistence changes its backing path/status/mutation environment only; they do not replace its source-buffer, preview, formatting, theme or editor-state contracts.
+
 ## Implementation state
 
-The v1 functional, governance and technical design is materialized in the current Order implementation. P7/R3 task records remain implementation provenance rather than standing semantic authority.
+The CodeMirror Markdown editor extension and earlier v1 workbench/runtime baseline are materialized in the current Order implementation.
 
-Future changes continue to follow the lifecycle and authority model owned by the canonical P1-P6 documents; this register does not independently authorize or broaden any later implementation scope.
+The repository-native WorkItem v3 design, explicit documentation-Git persistence and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed P7 package is executed and independently verified. The stale earlier remediation plan remains non-authoritative for execution until regenerated against current P3-P6 authority.
+
+P7/R3 task records remain implementation provenance rather than standing semantic authority. Future changes continue to follow the lifecycle and authority model owned by the canonical P1-P6 documents; this register does not independently authorize or broaden any later implementation scope.
