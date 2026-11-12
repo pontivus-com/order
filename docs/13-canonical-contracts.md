@@ -2250,7 +2250,7 @@ For expected paths that are genuinely untracked, it first makes only those paths
 
 Before mutation, the shell:
 
-- proves attached branch with `git symbolic-ref -q HEAD`;
+- proves attached branch with `git symbolic-ref -q HEAD` and requires the returned symbolic ref to begin `refs/heads/`;
 - resolves repository-local `user.name` and `user.email` with `git config --local --get`;
 - resolves Git operation markers through `git rev-parse --git-path` and rejects active `MERGE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`, `REBASE_HEAD`, `rebase-merge`, `rebase-apply`, `sequencer` or `BISECT_LOG`.
 
@@ -2281,6 +2281,8 @@ body { expectedHeadCommit, expectedPaths: [{ repositoryPath, sha256 }] }
 The browser never supplies repository root or arbitrary path inputs to these commands.
 
 Existing source/lifecycle Markdown GET/PUT endpoints continue to operate, but all source paths now resolve under the selected repository and project documentation-root contract.
+
+A successful documentation commit does not itself mutate WorkItem lifecycle state. It advances repository `HEAD`, so the browser invalidates/refetches documentation Git status, current source/lifecycle ArtifactRefs and the sign-off package query when that query is eligible. Any previously displayed sign-off package/hash is stale after the commit and cannot be reused for Approval.
 
 ### 32.10 v2 external-source migration contract
 
