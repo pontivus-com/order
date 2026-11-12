@@ -815,7 +815,11 @@ Order adds exactly these direct runtime dependencies:
 ```text
 codemirror                    6.0.2
 @codemirror/lang-markdown    6.5.2
+@codemirror/language         6.13.1
+@lezer/highlight             1.2.5
 ```
+
+`@codemirror/language` is a deliberate direct dependency because Order imports `HighlightStyle` / `syntaxHighlighting` for its owned Markdown syntax theme. `@lezer/highlight` is a deliberate direct dependency because Order imports semantic highlight tags for that same theme. Although both are reachable transitively through CodeMirror packages, Order does not directly import undeclared transitives.
 
 The `codemirror` package supplies the supported CodeMirror 6 basic editor configuration and typed editor APIs through its dependency graph. `@codemirror/lang-markdown` supplies Markdown language support and Markdown-specific key behavior.
 
