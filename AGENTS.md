@@ -33,18 +33,24 @@ For every governed concern:
 - never create a shadow specification for convenience.
 
 
-## Master-only repository delivery
+## Public repository pull-request delivery
 
-Order uses `master` as the normal and sole agent working branch.
+Public repository delivery is governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
 
-- do not create or retain task, governance, implementation, verification, review, temporary, or other sub-branches/worktrees unless the current user request explicitly requires a branch;
-- a user request to create, update, correct, or otherwise change a repository document is itself authorization to write and commit that exact documentation scope directly to `master` immediately when repository write access is available; do not require a separate proposal, adoption, approval, or commit-confirmation turn first;
-- for non-documentation repository changes, an explicit user request to apply a defined work package or change set authorizes the agent to write and commit exactly that requested scope directly to `master`; no separate commit-confirmation turn is required;
-- authorization is scope-bounded: it does not authorize adjacent changes, history rewriting, force-pushes, or later unrelated work;
-- before writing, verify that the target/local branch is `master`, preserve any existing user-authored working-tree state, and verify that no unmerged branch-only work would be lost;
-- do not use ChatGPT chat, generated attachments, pasted patches, or temporary branches as the delivery location for a requested repository document or other authorized repository change when repository write access is available; write the change into the repository first and keep chat output to a concise status/result;
-- only provide a full document, patch, or substitute delivery artifact in ChatGPT when the user explicitly asks for that form or repository write access is unavailable;
-- verification scaffolding does not create a branch exception. When temporary GitHub Actions scaffolding is necessary under the rule below, it is added and removed on `master` within the authorized work.
+Operational consequences for agents:
+
+- do not commit, push or otherwise deliver repository changes directly to `master`;
+- create/use a short-lived branch from current `master` for every documentation, governance, code, test, dependency, configuration or release-metadata change;
+- update `CHANGELOG.md` under `[Unreleased]` in every ordinary work PR and declare the exact release impact/target train in the PR body;
+- open a pull request targeting `master`; repository write access or a user request to apply a change authorizes the scoped branch/PR work, not bypass of the PR boundary;
+- do not merge until required verification/status checks for the PR are green and material review discussion is resolved;
+- version bumps occur only in dedicated `release/vX.Y.Z` PRs under the canonical release standard;
+- after a release PR merges, tags/GitHub Releases/assets are produced only through the governed release path; never tag an unmerged PR head or move an existing release tag;
+- preserve any user-authored branch state and never force-push/rewrite history unless the user explicitly requests a recovery operation permitted by repository governance;
+- requested repository documents/changes still belong in the repository rather than in ChatGPT attachments or pasted substitute patches; the delivery location is now the PR branch rather than `master`;
+- if repository ruleset/administration cannot be modified through the available connection, report that limitation; it does not create permission to bypass the PR process.
+
+Short-lived branch prefixes are limited to the canonical public-delivery set (`feat/`, `fix/`, `docs/`, `chore/`, `release/`, `revert/`).
 
 ## Continuous conformance and decision boundaries
 
@@ -75,13 +81,16 @@ This file canonically owns this agent-only operational exception.
 
 Temporary GitHub Actions workflows may be used only as execution scaffolding when an already-authorized implementation or verification activity cannot be run through the available local/runtime/connectors.
 
+Under public PR delivery, this exception remains valid **inside the current short-lived PR branch**. Temporary workflows are branch-scoped execution scaffolding; they are not a bypass around pull-request delivery and are not themselves required to survive merge.
+
 - the workflow may perform only the already-authorized task or verification command;
 - use the exact pinned versions, commands, inputs and repository baseline required by the canonical authority;
 - do not add product/runtime dependencies, production source, alternate build paths or persistent CI architecture through the temporary workflow;
 - retained artifacts must already be authorized implementation surface or ordinary verification evidence;
 - temporary workflow YAML under `.github/workflows/**` is scaffolding only and is not implementation change surface;
 - remove temporary workflow YAML immediately after the required artifact/evidence is obtained or the attempt fails;
-- before candidate validation/handoff, prove no temporary workflow/scaffolding remains in the candidate tree/diff;
+- before the PR is marked ready for merge, prove no temporary workflow/scaffolding remains in the PR diff;
+- temporary workflow commits may remain in the PR branch history, but the merge candidate tree must not contain them;
 - do not retain temporary workflows for possible future reuse;
 - do not place credentials or secrets in workflow source.
 

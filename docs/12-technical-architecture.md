@@ -38,6 +38,7 @@ These ids classify the existing material P4 constraints; the detailed contracts 
 - **GW-TR-006-CLOSED-INTEGRATION-CERTIFICATION** — the exact direct dependency/runtime set and every relied-upon external behavior are closed by the dated facts/certification contract. **Acceptance:** §§2, 21, 27–28 and [GW-DOC-CANONICAL-CONTRACTS-V1 §29](13-canonical-contracts.md) pass with no extra direct dependency or ungrounded external behavior.
 - **GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP** — the one-command installer establishes the complete usable local system, including private-provider authentication, exact model binding, persistent access configuration, user-level daemon supervision and health verification. **Acceptance:** §2 productive installation, §19 and P6 §§22–26 pass with no mandatory post-install setup command or model environment variable.
 - **GW-TR-008-GOVERNED-FILESYSTEM-ACCESS** — exact target repositories, the portable WorkItem root, Order state and STAGE-only reference roots are distinct least-authority boundaries. **Acceptance:** §§9, 16, 20, 29 and P6 §§22,31 reject alternate source/repository mutation paths, prove root disjointness, and certify that only STAGE receives exact configured external-directory read access.
+- **GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION** — public repository delivery is PR-only and releases are version/changelog/tag/asset-bound to one exact master commit. **Acceptance:** §33 and `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` pass; no direct-master release path, mutable release tag or master-clone public distribution remains.
 
 This document does not create a second lifecycle or governance system. Functional ownership remains:
 
@@ -1928,4 +1929,173 @@ Evidence size is bounded by the existing Run-evidence policy; stderr capture use
 **Acceptance criterion:** Activity/Evidence can inspect provider/session/timing/outcome/format-repair/parse/transport/stderr evidence without a second log store.
 
 **Failure/negative behavior:** hidden reasoning, credential secrets, unbounded stderr capture or an independent observability database is prohibited.
+
+## 33. Public repository delivery and release architecture (2026-11-13)
+
+This section is the P4 realization of `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+
+### 33.1 Version owner
+
+`package.json.version` is the only hand-edited release version.
+
+Runtime code must not retain a second literal such as `orderVersion = "0.x.y"`. One tiny version adapter reads/imports the package version and supplies it to:
+
+- `order --version`;
+- daemon `GET /api/health`;
+- release bundle manifest generation;
+- installer/version reporting where required.
+
+Permanent tests prove these surfaces equal the package version.
+
+### 33.2 PR verification workflow
+
+Retain one permanent workflow:
+
+```text
+.github/workflows/ci.yml
+```
+
+It runs for pull requests targeting `master` and may also run on `master` for post-merge signal.
+
+PR execution must be secret-free. It:
+
+1. checks out the candidate;
+2. establishes the exact locked toolchain/dependencies through immutable-pinned/certified Actions or repository-owned bootstrap;
+3. validates PR release metadata/changelog rules;
+4. runs the logical verification gates owned by `pontivus-order.toml`:
+   - dependency-lock;
+   - typecheck;
+   - architecture;
+   - test;
+   - build;
+   - browser.
+
+One stable required status/check name is used by the repository ruleset.
+
+The workflow does not publish a release or mutate tags.
+
+### 33.3 Release metadata verifier
+
+Add one repository-owned deterministic verifier under `scripts/`.
+
+For an ordinary work PR it proves:
+
+- `CHANGELOG.md` contains an `[Unreleased]` change compared with base;
+- PR metadata supplies release impact/target release;
+- `package.json.version` is unchanged.
+
+For a release PR it proves:
+
+- branch/declared target is `release/vX.Y.Z`;
+- package version is exactly `X.Y.Z`;
+- changelog contains `[X.Y.Z] - YYYY-MM-DD`;
+- `[Unreleased]` remains present;
+- candidate version is greater than the prior published version;
+- no production behavior is changed by the release PR.
+
+The verifier has no GitHub-token dependency for local use; workflow-only checks may additionally inspect PR event metadata.
+
+### 33.4 Release workflow
+
+Retain one permanent workflow:
+
+```text
+.github/workflows/release.yml
+```
+
+Normal trigger is a `master` push whose merged candidate changes the canonical package version. An exact manual retry mode may accept the same immutable commit/version after a failed publication; it must not target a different commit for an existing version.
+
+Before any tag/publication effect it:
+
+1. proves the checkout commit equals the intended `master` release commit;
+2. validates package/changelog version agreement;
+3. proves the release tag is absent or already points to this exact commit for retry;
+4. establishes the exact locked toolchain;
+5. runs all configured verification gates;
+6. builds production `dist/`;
+7. creates the release bundle;
+8. verifies its internal version/commit manifest;
+9. computes SHA-256.
+
+Only then may it create annotated tag `vX.Y.Z`.
+
+Publication sequence:
+
+1. create/reuse draft GitHub Release for exact tag;
+2. upload `pontivus-order.tar.gz`;
+3. upload `pontivus-order.tar.gz.sha256`;
+4. set notes from the committed changelog version section;
+5. publish.
+
+The workflow uses minimum `contents: write` permission only for tag/release publication. PR CI remains read-only.
+
+### 33.5 Release bundle
+
+A repository-owned packaging script creates deterministic release content from the verified checkout.
+
+The archive top level is `order/` and contains the supported installation/runtime source plus production `dist/`, package/lock/config material, installer, documentation required by the installed product, and:
+
+```text
+order/RELEASE.json
+```
+
+with exact:
+
+```json
+{
+  "version": "X.Y.Z",
+  "gitCommit": "<40-lowercase-hex>"
+}
+```
+
+Test/e2e fixtures and `.git` are not required in the public install bundle unless the installer explicitly consumes them.
+
+The packaging implementation sorts paths and normalizes archive ownership/timestamps from the release commit so rebuilding the same release candidate produces the same archive bytes where the host toolchain permits. The checksum is computed after archive construction.
+
+### 33.6 Public install/update path
+
+The supported README/install path consumes the GitHub Release asset rather than cloning `master`.
+
+Normal latest installation uses the stable latest-release asset URL. A version-pinned installation substitutes the immutable `vX.Y.Z` release URL.
+
+The installer verifies `RELEASE.json`/package-version agreement before activation. When the checksum file is used by the bootstrap, the archive checksum is verified before executing `install.sh`.
+
+Contributor instructions may still clone `master` for development; that path is clearly distinct from public installation/update.
+
+### 33.7 Repository protection
+
+A repository ruleset targeting `master` must require:
+
+- pull request before merge;
+- canonical PR verification status;
+- conversation resolution;
+- no force push;
+- no branch deletion;
+- linear/squash history.
+
+A tag ruleset protects `v*` against ordinary update/deletion.
+
+Repository-administration configuration is an external GitHub setting rather than repository source. The implementation task records evidence that it was applied. If the current integration cannot mutate admin rules, a repository administrator performs that one administrative step; source implementation does not emulate branch protection.
+
+### 33.8 Dependency/certification rule
+
+Permanent workflows may depend on GitHub-hosted Actions, but every referenced action is pinned to an immutable commit SHA and recorded in the external-facts/certification owner.
+
+Floating `@main`, `@master` and mutable major-only action tags are not accepted correctness dependencies.
+
+### 33.9 Target release for the current package
+
+The repository currently declares `0.1.0` and has no tag/GitHub Release.
+
+The implementation package governed by P7 is target release `0.2.0`.
+
+All implementation PRs remain work PRs against `master`, add `[Unreleased]` entries and declare `minor / target 0.2.0`. After implementation/certification is merged, a dedicated `release/v0.2.0` PR changes the package version and freezes the changelog release section. Its merge is the only commit eligible for `v0.2.0` publication.
+
+### GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION
+
+**Required behavior:** permanent PR/release automation binds verification, package version, changelog, exact master commit, immutable tag and published release assets into one release chain.
+
+**Acceptance criterion:** ordinary PRs cannot mutate version; release publication occurs only after a release PR merge and full re-verification; public install uses the release asset; package/runtime/tag/release versions agree.
+
+**Failure/negative behavior:** direct-master delivery, master-clone release distribution, unverified tag creation, tag movement, mutable-version rebuild, unpinned workflow dependency or release notes that diverge from the committed changelog are prohibited.
 

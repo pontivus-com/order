@@ -10,17 +10,21 @@ Order turns engineering intent into explicitly approved work, runs coding agents
 
 ## Install
 
-Order v1 is Linux-only. Productive installation is **one command** from the public repository:
+Order is currently in public pre-release development. No certified GitHub Release has been published yet.
+
+The supported public installation channel is being established by the `0.2.0` implementation/release package governed by [the public repository delivery standard](docs/15-public-repository-delivery-and-release.md). Once `0.2.0` is published, normal installation/update will consume the certified GitHub Release asset rather than arbitrary `master`.
+
+Cloning `master` is therefore a **contributor/development path**, not an immutable public release installation.
+
+For repository development, the current bootstrap remains:
 
 ```bash
-sh -c 'd=$(mktemp -d); git clone --depth 1 https://github.com/pontivus-com/order.git "$d/order" && "$d/order/install.sh"; rc=$?; rm -rf "$d"; exit $rc'
+git clone https://github.com/pontivus-com/order.git
+cd order
+./install.sh
 ```
 
-`install.sh` is only the minimal bootstrap. It verifies the source checkout, obtains exact Bun 1.4.4 in a temporary bootstrap root, and transfers control to Order's purpose-built `src/installer.ts`; it does not perform the product setup workflow itself.
-
-The purpose-built installer then installs and verifies the exact pinned Bun, Node and OpenCode runtimes under `~/.local/share/pontivus-order`, installs the committed dependency graph, builds production `dist/`, installs `~/.local/bin/order`, guides private OpenCode provider authentication and exact model selection when required, persists target-repository and optional STAGE reference roots, installs/enables the user-level `pontivus-order.service`, and refuses success until `order status` is healthy. Re-running the same command is also the supported update path.
-
-For the immediately preceding supported Gateweft beta only, the installer performs a bounded one-way predecessor migration: it stops the old service, moves the previous default install/state/provider namespace when the Order destination is absent, renames the database while quiesced, preserves valid configuration/credentials, proves the Order service healthy, and only then removes old launcher/service/install artifacts. Mixed old/new productive roots fail before mutation. A configured target repository that still has only `gateweft.toml` is blocked with an actionable instruction to adopt `pontivus-order.toml` under that repository's own authority; Order does not silently rename or rewrite target governance.
+The purpose-built installer installs and verifies the exact pinned Bun, Node and OpenCode runtimes under `~/.local/share/pontivus-order`, installs the committed dependency graph, builds production `dist/`, installs `~/.local/bin/order`, guides private OpenCode authentication/model selection when required, persists target-repository/reference configuration, installs/enables the user-level `pontivus-order.service`, and refuses success until `order status` is healthy.
 
 Install-time host prerequisites are Linux, a usable systemd user manager, Git, `curl`, `tar`, `xz`, Bash/POSIX shell support, and ordinary core file utilities. The installer never invokes `sudo` or a distro package manager.
 
@@ -93,3 +97,9 @@ node node_modules/@playwright/test/cli.js install chromium
 ```
 
 Browser/e2e verification must use a dedicated absolute `PONTIVUS_ORDER_TEST_STATE_ROOT`. It must never point at the operator daemon state root.
+
+## Contributing and releases
+
+All public changes are delivered through pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) and [the canonical public repository delivery and release standard](docs/15-public-repository-delivery-and-release.md).
+
+`CHANGELOG.md` records unreleased and published changes. Version bumps, tags, GitHub Releases and release assets follow the canonical release process; direct-to-`master` delivery is not supported.

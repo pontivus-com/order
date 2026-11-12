@@ -252,10 +252,28 @@ Browser login uses OpenCode's own pinned Console device/OAuth flow through a pri
 
 The selected account persists because it remains OpenCode-owned state. Saved accounts can be switched A -> B -> A without destructive logout/re-login and without changing `OrderConfig.model`.
 
+
+
+## D20 — Public repository PR and release delivery
+
+**Status:** RESOLVED
+
+Order is a public repository and no longer uses direct-to-`master` delivery.
+
+All repository changes, including documentation/governance changes, are delivered through short-lived branches and pull requests. Ordinary work PRs update `CHANGELOG.md [Unreleased]` and declare release impact/target train. Version bumps occur only in dedicated `release/vX.Y.Z` PRs.
+
+`package.json.version` is the release-version owner. Runtime/build/version surfaces derive from it.
+
+After a release PR merges, permanent release automation re-verifies the exact `master` commit, builds/checksums the Order release bundle, creates immutable `vX.Y.Z` tag semantics and publishes the matching GitHub Release/assets. Public installation/update consumes release assets, not arbitrary `master`.
+
+The current repository-native workbench/OpenCode-account implementation package targets `0.2.0`.
+
+The complete governance/automation contract is owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` and `GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION`.
+
 ## Implementation state
 
 The CodeMirror Markdown editor extension and earlier v1 workbench/runtime baseline are materialized in the current Order implementation.
 
-The repository-native WorkItem v3 design, explicit documentation-Git persistence, global OpenCode saved-account switching and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed implementation-ready P7 package in `docs/43-user-facing-workflow-agent-execution-visibility-remediation-plan.md` is executed and independently verified.
+The repository-native WorkItem v3 design, explicit documentation-Git persistence, global OpenCode saved-account switching, public PR/release delivery automation and the user-facing workflow/Activity remediation are **binding design ahead of implementation**. The current implementation must not be described as conformant to those later contracts until the refreshed implementation-ready P7 package in `docs/43-user-facing-workflow-agent-execution-visibility-remediation-plan.md` is executed, released as `0.2.0`, and independently verified.
 
 P7/R3 task records remain implementation provenance rather than standing semantic authority. Future changes continue to follow the lifecycle and authority model owned by the canonical P1-P6 documents; this register does not independently authorize or broaden any later implementation scope.
