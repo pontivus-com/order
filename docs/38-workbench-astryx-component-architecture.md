@@ -122,7 +122,7 @@ Browser verification must validate behavior rather than merely CSS class presenc
 | WorkItem queue | `Table`, `StatusDot`, `Badge`, `IconButton` | canonical rows/columns/status mapping |
 | Diagnostics | `Table`/ `List`, `Banner`, `StatusDot` | diagnostic meaning/actionability |
 | Creation | `Drawer`, `Selector`/`Typeahead`, `RadioList` or `SelectableCard`, `MultiSelector`, `TextInput` | project/type/concern semantics and canonical create mutation |
-| WorkItem mode navigation | `TabList` | available modes from canonical state; presentation-only selection |
+| WorkItem mode navigation | compact `SegmentedControl`/selector/navigation primitive or Order semantic wrapper | available modes from canonical state; presentation-only selection integrated into the compact WorkItem toolbar/header |
 | Lifecycle document navigation | `TabList` or compact `Outline` | Source/R1/R2/DESIGN/PLAN/R3 ordering/currentness |
 | Editable Markdown | `TextArea` within Order editor composition | exact source buffer, dirty/conflict/save semantics |
 | Read-only Markdown/raw content | `Markdown`, `CodeBlock`, `ScrollableArea` as appropriate | exact bytes remain canonical; rendering never becomes authority |
@@ -132,7 +132,7 @@ Browser verification must validate behavior rather than merely CSS class presenc
 | Execution tasks | `Table`/`List`, `Badge`, `StatusDot` | ExecutionTask semantics |
 | Runs/validation | `List`, `MetadataList`, `StatusDot`, `ProgressBar` only where semantically honest | Run/RunEvent/V0-V7 state |
 | Evidence viewer | `CodeBlock`, `ScrollableArea`, `IconButton` | exact evidence bytes/content type |
-| Theme | `SegmentedControl`, icon support | System/Light/Dark browser-local preference |
+| Theme | compact menu/utility control with icon support; `SegmentedControl` permitted only where it does not consume persistent premium toolbar width | System/Light/Dark browser-local preference |
 | Global actions | `Toolbar`, `Button`, `IconButton` | action hierarchy and canonical mutations |
 | Notifications | `Banner`, `Toast` | error/blocker semantics; no hidden critical state |
 
@@ -286,7 +286,7 @@ The current text-select-heavy creation surface is replaced according to `GW-FR-0
 - WorkItem type: `RadioList` or compact `SelectableCard` group with semantic icon + label;
 - concerns: `MultiSelector` or equivalent searchable multi-choice control;
 - title: `TextInput`;
-- appearance: `SegmentedControl` with System/Light/Dark icons/labels.
+- appearance: compact utility/menu/icon treatment preserving explicit System/Light/Dark semantics; a `SegmentedControl` is acceptable only when its placement does not consume persistent premium toolbar width.
 
 The browser continues to consume the existing canonical project/schema/concern catalogs. No local duplicated option tables are introduced.
 
