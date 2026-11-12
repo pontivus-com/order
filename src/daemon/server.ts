@@ -8,6 +8,7 @@ import {
 import { fileURLToPath } from "node:url";
 import { extname, resolve, sep } from "node:path";
 
+import { orderVersion } from "../version.ts";
 import {
   ArtifactRefIdSchema,
   CreateWorkItemSourceSchema,
@@ -66,7 +67,6 @@ import {
   type CoordinatorRuntime,
 } from "./coordinator.ts";
 
-export const orderVersion = "0.1.0";
 const connectTokenLifetimeMillis = 60_000;
 const tokenPattern = /^[0-9a-f]{64}$/;
 
