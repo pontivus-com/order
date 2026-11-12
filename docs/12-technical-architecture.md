@@ -1288,7 +1288,7 @@ Permanent tests must prove at least:
 - source hash participates in context identity;
 - source edit during active daemon invalidates promotion/approval as required;
 - source-bound sign-off/V0/V1 freshness with required non-null Approval source binding;
-- fresh SQLite initialization creates the complete current schema with `user_version = 2`;
+- fresh SQLite initialization creates the complete current schema with `user_version = 3`;
 - unsupported legacy SQLite schema versions fail before mutation and no migration/backfill path is present;
 - current lifecycle-artifact query selects only canonical current role snapshots and excludes superseded history;
 - direct R1/R2/DESIGN/PLAN Markdown save is hash-guarded and returns to owner;
@@ -1522,4 +1522,106 @@ No repository/document DTO family, Git service object, browser Git state store o
 **Acceptance criterion:** source discovery requires no parent-directory crawl, global source root or arbitrary repository Markdown scan.
 
 **Failure/negative behavior:** path search/inference must not substitute for the project manifest + deterministic WorkItem path owner.
+
+### 30.12 Deterministic lifecycle-draft rediscovery
+
+Repository-native portability includes the deterministic lifecycle Markdown, not only `work-request.md`.
+
+After the daemon establishes one valid WorkItem source, the same project-document path owner resolves the five lifecycle paths for that WorkItem. The source shell inspects those exact paths only; it does not glob/scan arbitrary Markdown.
+
+For each present regular lifecycle file:
+
+- hash the exact working-tree bytes;
+- resolve whether those exact bytes exist at current `HEAD`;
+- materialize/reuse one ArtifactRef for the role/path/hash snapshot, with `gitCommit = HEAD` only when the bytes exactly match the `HEAD` blob and otherwise `null`;
+- classify that ArtifactRef as a repository **draft**, with no conformance event/dependency closure implied by discovery.
+
+A fresh runtime projection still starts the WorkItem at IDEA. Repository-draft ArtifactRefs become available to Documents and, when their owning stage is actually reached, to `currentStageDraftArtifacts`/stage prompting. They never cause lifecycle promotion by themselves.
+
+This uses the existing ArtifactRef owner rather than introducing a document DTO/index.
+
+### 30.13 Documentation-commit eligibility and repository state
+
+The daemon computes documentation-commit eligibility before the Git shell effect.
+
+Eligibility requires:
+
+- WorkItem stage is one of `IDEA`, `R1`, `R2`, `DESIGN`, `PLAN`, `R3` or `AWAITING_SIGNOFF`;
+- WorkItem has no active Run;
+- current canonical documentation status has at least one `MODIFIED` or `UNTRACKED` path and no `MISSING`, `IGNORED` or `UNMERGED` path;
+- `HEAD` is attached to one local branch, proven by `git symbolic-ref -q HEAD`;
+- no Git operation is in progress.
+
+The Git shell proves the operation-state condition by resolving Git-internal paths through `git rev-parse --git-path` and rejecting presence of merge/cherry-pick/revert/rebase/sequencer/bisect state, including `MERGE_HEAD`, `CHERRY_PICK_HEAD`, `REVERT_HEAD`, `REBASE_HEAD`, `rebase-merge`, `rebase-apply`, `sequencer` and `BISECT_LOG`.
+
+Detached HEAD and in-progress Git operations are ordinary typed blockers. Order does not attempt to finish, abort or otherwise manipulate the external Git operation.
+
+Implementation/Complete are always ineligible even if WorkItem Markdown happens to differ in the working tree.
+
+### 30.14 Repository-local Git identity
+
+Order deliberately keeps Git system/global configuration disabled on its correctness path.
+
+Documentation commits therefore require both non-empty repository-local:
+
+- `user.name`;
+- `user.email`.
+
+The Git shell reads them with `git config --local --get ...` under the same explicit Git environment used for the commit. Order does not synthesize author/committer values from login name, hostname, `EMAIL` or ambient global/system config.
+
+The same resolved repository-local identity supplies author and committer identity for the documentation commit. Missing identity is returned as a typed, actionable blocker before any index/commit mutation.
+
+Order v3 does not add a second Git-identity store or silently edit `.git/config`. Repository-local Git identity remains repository-local operator setup.
+
+### 30.15 v2 approval/execution migration boundary
+
+The v2→v3 migration must not reinterpret a v2 Approval as if its baseline had already contained repository-local `work-request.md`.
+
+Migration therefore fails before repository/config/database mutation when any WorkItem is currently in `EXECUTION` or has an active post-signoff Run/task. The operator must finish/resolve that execution under the existing v2 installation before upgrading.
+
+For pre-signoff/Awaiting-signoff WorkItems, migration may proceed but their previous stage conformance/readiness cannot be used as v3 authority after document-path materialization. The installer:
+
+- copies the external Work request byte-identically to its deterministic v3 path;
+- for each current lifecycle role ArtifactRef, copies the exact current bytes to the corresponding deterministic v3 path when that differs, requiring destination absence or exact-identical bytes;
+- preserves all old ArtifactRefs/RunEvents as immutable history;
+- does not copy their conformance events/dependency closure onto the new deterministic-path ArtifactRefs;
+- after v3 startup/reconciliation, returns any non-IDE/non-COMPLETE pre-signoff WorkItem to `R1 / ACTIVE` for governed revalidation, with the deterministic lifecycle files available as drafts.
+
+A `COMPLETE` WorkItem remains terminal. Its historical Approval/Run state is preserved as provenance and is not rebound to the new repository source path. Deterministic document copies may be rediscovered on a future fresh installation as drafts, but that still does not reconstruct historical completion.
+
+This avoids a dual approval semantic and ensures every new v3 Approval is formed only after the complete deterministic WorkItem package has been committed to the selected Git baseline.
+
+### 30.16 Additional technical requirements
+
+#### GW-TR-045-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY
+
+**Required behavior:** deterministic lifecycle Markdown is rediscovered through one project-path owner into existing ArtifactRef snapshots without fabricating lifecycle/conformance state.
+
+**Acceptance criterion:** fresh installation can display and reuse repository lifecycle drafts while the WorkItem still starts at IDEA and must traverse normal stage admission/completion.
+
+**Failure/negative behavior:** discovery must not scan arbitrary Markdown, synthesize RunEvents or infer stage completion from file presence.
+
+#### GW-TR-046-DOCUMENTATION-GIT-ELIGIBILITY
+
+**Required behavior:** daemon eligibility plus Git-shell repository-state probes reject documentation commits outside the permitted pre-signoff/no-active-Run/attached-clean-operation-state boundary.
+
+**Acceptance criterion:** detached HEAD, in-progress Git operations, active Run, Implementation/Complete and noncommittable document states cause no Git mutation and return a specific blocker.
+
+**Failure/negative behavior:** `git commit` process failure must not be used as the primary eligibility check.
+
+#### GW-TR-047-REPOSITORY-LOCAL-GIT-IDENTITY
+
+**Required behavior:** documentation commits use only explicit repository-local Git identity under Order's global/system-config-disabled environment.
+
+**Acceptance criterion:** missing `user.name` or `user.email` is detected before mutation; successful commits carry that exact repository-local identity for author and committer.
+
+**Failure/negative behavior:** Order must not fabricate identity or fall back to ambient host/global Git configuration.
+
+#### GW-TR-048-V2-V3-APPROVAL-MIGRATION-SAFETY
+
+**Required behavior:** v2→v3 migration never allows an old Approval to authorize v3 execution under a baseline that lacked the deterministic repository-local Work request.
+
+**Acceptance criterion:** active execution blocks migration; pre-signoff material is copied to deterministic paths as drafts and revalidated; completed history remains terminal provenance.
+
+**Failure/negative behavior:** migration must not rebind a v2 Approval, preserve pre-signoff readiness as if paths/baseline were unchanged, or maintain dual v2/v3 approval semantics.
 
