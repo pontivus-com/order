@@ -610,6 +610,100 @@ At representative widths/heights it must prove:
 
 Tests should compare bounding boxes/visibility or equivalent stable geometry signals where appropriate; they must avoid pixel-perfect screenshot coupling to incidental styling.
 
+
+### 17.13 UI architecture discipline: SoC, semantic DRY, strict typing and loose coupling
+
+The spatial refactor must preserve the same P1 engineering constitution as the rest of Order. UI code is not exempt from `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP` or `GW-P1-EXPLICIT-FLOW`.
+
+#### Responsibility ownership
+
+Each production UI module owns one current presentation responsibility:
+
+- `app.tsx` owns application-shell composition, queue-vs-WorkItem selection, URL selection, global presentation preference and top-level query/mutation orchestration only;
+- `WorkItemWorkspace.tsx` owns selected-WorkItem presentation composition, mode selection, dirty-navigation admission and cross-mode presentation navigation only;
+- each workspace module owns only its substantive interaction class;
+- `MarkdownEditor.tsx` owns only exact editor-buffer/dirty/save/cancel/conflict presentation behavior;
+- `ui/src/http.ts` owns browser HTTP transport/parsing only and must not become a presentation-policy or domain-policy owner;
+- `ui/src/primitives/**` owns repeated Order UI semantics/layout mechanics only and must not own WorkItem lifecycle/domain policy.
+
+If a module would acquire a second independently testable present responsibility during this refactor, P7 must perform the minimum same-layer decomposition rather than grow a catch-all component.
+
+#### Canonical semantic ownership and DRY
+
+UI modules consume canonical browser-safe Order contracts and policy functions directly where those semantics already have an owner.
+
+The UI must not introduce:
+
+- DTO/view-model/domain copies of WorkItem, Run, ExecutionTask, ArtifactRef, status, stage, outcome or other canonical semantic shapes;
+- duplicated stage/status/outcome ordering, editability, sign-off, remediation or lifecycle policy in component-local switches when a canonical owner already exists;
+- repeated screen-local mappings for the same semantic presentation rule when one cohesive pure presentation owner can serve them;
+- duplicate query/cache/state representations of daemon-owned state.
+
+Presentation-only values are legitimate when they represent **presentation state rather than domain meaning**, for example selected workspace mode, selected document, selected Run/evidence item, drawer visibility, dirty state or a resource-row visual variant. Such values remain local, typed and derived from canonical state; they do not become a parallel semantic model.
+
+DRY is applied by **semantic ownership**, not by extracting every repeated JSX fragment. A shared primitive/helper is introduced only when the repeated behavior has one stable presentation meaning. Similar-looking markup with different semantics may remain separate.
+
+#### Strict typed presentation boundaries
+
+Meaningful UI boundaries use explicit static types.
+
+Required rules:
+
+- props and callbacks carry canonical types/IDs or small explicit presentation-only tagged unions;
+- callbacks express semantic intent rather than passing untyped event/shape bags between owners;
+- browser HTTP ingress is parsed/narrowed by the canonical contract boundary before workspace modules consume the value;
+- no `any`, unchecked shape guessing, stringly typed lifecycle reconstruction or assertion-based coercion may substitute for a canonical type;
+- `unknown` may exist only at genuine external/error ingress and must be narrowed before semantic use;
+- component-local mode/selection unions are exhaustive and remain presentation-only;
+- type-only imports are preferred when only a type dependency exists.
+
+A typed presentation selection such as evidence/proposal selection is not a DTO when it contains only browser-local navigation identity and does not duplicate a canonical domain record.
+
+#### Loose coupling and dependency direction
+
+UI modules communicate through narrow typed data/callback boundaries and explicit composition.
+
+- parent/composition owners may depend on child workspace modules;
+- workspace siblings must not coordinate by importing each other's internal state or mutation implementation;
+- cross-workspace navigation is requested upward through typed callbacks/presentation selections owned by the composition boundary;
+- server state remains in TanStack Query; components must not mirror canonical server collections into a second persistent React store;
+- presentation state lives at the lowest owner that must coordinate it and is lifted only when multiple child surfaces genuinely require the same state;
+- generic Astryx components remain implementation dependencies, not state/semantic owners;
+- circular UI dependencies are prohibited;
+- a shared helper/primitive must not import a substantive workspace module;
+- direct sibling imports are permitted only for a genuine cohesive child/subcomponent relationship, not as a shortcut for cross-workspace coordination.
+
+Loose coupling does not mean adding interfaces, service objects, dependency-injection containers or wrapper layers. The preferred boundary is explicit typed function/prop composition over canonical data.
+
+#### Pure presentation projections
+
+Non-trivial derived presentation logic should be expressed as small pure functions colocated with its semantic presentation owner or, when reused with exactly the same meaning, in one shared presentation helper.
+
+Examples include:
+
+- canonical state -> available workspace modes;
+- canonical status -> semantic badge/action presentation;
+- RunEvent -> human-readable event detail/evidence links;
+- canonical resource -> shared resource-row presentation.
+
+These functions must not persist alternate state, reinterpret domain rules, or manufacture DTO/view-model families.
+
+#### Architecture fitness obligations
+
+The P7 refactor must extend the existing permanent architecture sensor where the current mechanical checks are insufficient. At minimum it must mechanically protect:
+
+- the required cohesive UI owner set;
+- no class/service/repository/controller/DTO/view-model architecture in UI production code;
+- no `any` or unchecked semantic casts/shape guessing at UI boundaries;
+- canonical lifecycle/policy functions are consumed rather than locally reimplemented where mechanically identifiable;
+- no circular or unauthorized sibling-workspace dependency path;
+- TanStack Query remains the sole server-state owner;
+- `app.tsx` and `WorkItemWorkspace.tsx` do not reclaim substantive workspace responsibilities;
+- primitives do not import substantive workspace modules or domain orchestration;
+- no second UI state/store/framework owner is introduced.
+
+Architecture tests should enforce stable ownership/dependency propositions, not freeze incidental JSX structure or exact line/file counts.
+
 ## 18. Addendum technical requirements
 
 ### GW-TR-015-PRIMARY-CANVAS-FLEX-SIZING
@@ -675,4 +769,36 @@ Tests should compare bounding boxes/visibility or equivalent stable geometry sig
 **Acceptance criterion:** representative wide, medium and narrow viewport runs prove primary-canvas utilization, navigation/chrome economy, responsive queue behavior, reachable authoring actions and stable mode shells.
 
 **Failure/negative behavior:** presence-only tests must not be treated as sufficient evidence that space allocation and interaction-pattern realization remain correct.
+
+### GW-TR-023-UI-SEPARATION-OF-CONCERNS
+
+**Required behavior:** each UI production module remains cohesive to one current presentation responsibility, with application/workspace composition separated from substantive workspace behavior, transport and reusable primitives.
+
+**Acceptance criterion:** `app.tsx`, `WorkItemWorkspace.tsx`, workspace modules, `MarkdownEditor.tsx`, `ui/src/http.ts` and primitives retain the ownership boundaries in §17.13; any new independently testable responsibility is decomposed at the same layer rather than accumulated in a catch-all.
+
+**Failure/negative behavior:** the spatial refactor must not concentrate unrelated queue, navigation, document, review, execution, transport or domain-policy responsibilities into one component/module merely to minimize file count.
+
+### GW-TR-024-UI-CANONICAL-SEMANTIC-OWNERSHIP
+
+**Required behavior:** UI code consumes canonical Order semantic types/policy owners and shares repeated presentation semantics through one cohesive owner without creating parallel semantic representations.
+
+**Acceptance criterion:** no DTO/view-model/domain copies, duplicate lifecycle policy tables, duplicate daemon-state caches or screen-local copies of the same presentation rule are introduced; presentation-only state remains explicitly local and derived.
+
+**Failure/negative behavior:** DRY must not be implemented by either duplicating canonical meaning across screens or by creating a generic abstraction layer that erases distinct semantics.
+
+### GW-TR-025-UI-STRICT-TYPED-BOUNDARIES
+
+**Required behavior:** props, callbacks, selections and browser-ingress values use canonical types or explicit small presentation-only tagged unions with exhaustive narrowing.
+
+**Acceptance criterion:** UI production code contains no `any`, unchecked semantic casts, lifecycle/status shape guessing or stringly reconstruction at meaningful boundaries; external `unknown` values are narrowed before use.
+
+**Failure/negative behavior:** type assertions, mapper-owned DTO shapes or untyped event/shape bags must not be used to bypass canonical contracts or avoid modelling a real presentation state explicitly.
+
+### GW-TR-026-UI-LOOSE-COUPLING-DEPENDENCY-DIRECTION
+
+**Required behavior:** UI owners communicate through narrow typed props/callbacks and explicit parent composition with server state owned only by TanStack Query and presentation state owned by the lowest coordinating component.
+
+**Acceptance criterion:** workspace siblings do not coordinate through each other's internal modules/state, primitives do not depend on substantive workspaces, circular dependencies are absent, and cross-mode navigation is requested through the owning composition boundary.
+
+**Failure/negative behavior:** loose coupling must not be simulated through service objects, dependency-injection containers, global stores, wrapper proliferation or cross-module internal-state imports.
 
