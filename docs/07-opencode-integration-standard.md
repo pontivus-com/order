@@ -168,22 +168,78 @@ Its `triggerEventId` identifies the exact repairable validation/review failure. 
 
 Semantic repair remains bounded by [GW-DOC-VALIDATION-STANDARD-V1](06-validation-standard.md). Provider/transport/coordinator recovery is operational and uses the separate bounded action-key policy in [GW-DOC-CANONICAL-CONTRACTS-V1 §21](13-canonical-contracts.md).
 
-## 12. Provider credentials
+## 12. OpenCode account authentication and switching
 
-Order exposes only:
+Order's OpenCode authentication concern is the **saved OpenCode account**, not the configured model/provider selection.
+
+For an Order installation, all OpenCode accounts live in the same private OpenCode HOME/XDG/database namespace established by §3. OpenCode remains the credential owner. Order does not copy access tokens, refresh tokens or API keys into Order configuration/SQLite and does not create a parallel credential vault.
+
+The bound OpenCode `v2.2.6` account model supports multiple saved credentials for the OpenCode Console integration and one active credential. A successful OpenCode Console OAuth login stores a new credential and makes it active. Activating another stored credential changes the active account without deleting the other saved accounts.
+
+For Order's configured OpenCode Go work, account switching therefore means:
 
 ```text
-order provider login <provider>
+configured model/provider remains unchanged
+                +
+active saved OpenCode Console account changes
+                ↓
+subsequent OpenCode Go provider use authenticates with the newly active account
 ```
 
-This executes exactly `opencode --standalone auth login <provider>` inside the same private Order provider HOME/XDG/database namespace. The bound OpenCode build's `--standalone` prevents the auth CLI from attaching to or autostarting OpenCode's managed background service; the command-scoped standalone server is owned by the auth CLI and exits with it. The login process is the one v1 external-process exception to bounded captured stdout/stderr because pinned key/form/code authentication explicitly requires an interactive stdin/stdout TTY. Order passes through the operator terminal, supplies the same explicit provider environment, does not parse login output as semantic evidence, and does not duplicate credential storage.
+Account selection is installation-global because the private OpenCode credential namespace is installation-global. It is not stored per project or per WorkItem.
 
-A productive Run fails preflight if the configured provider/model cannot be authenticated and resolved exactly.
+### 12.1 Safe account projection
+
+The browser must never receive OpenCode credential values.
+
+Order reads the pinned OpenCode **integration/connection projection** for integration `opencode`, which exposes only stored credential id, user-facing label, authentication method and connection status. Order does not call the secret-bearing `credential.list` endpoint merely to discover account metadata because that endpoint includes credential secret values.
+
+The pinned integration projection orders the active stored credential first. Order treats the first stored credential connection as the active OpenCode account and capability-certifies that behavior against the exact pinned build.
+
+The OpenCode OAuth credential internally contains the authenticated account email, but the safe integration projection does not expose it. Order therefore uses the OpenCode-owned credential **label** as the browser identity. When adding an account, Order requires a human-readable account label and the UI instructs the operator to use the OpenCode login email address. That label is persisted by OpenCode with the credential. Existing saved accounts may be relabeled through the safe credential-label update operation.
+
+Credential id is opaque technical identity only. It may be used to disambiguate duplicate legacy labels but is not ordinary UI language.
+
+### 12.2 Browser account manager
+
+Order exposes a global OpenCode-account control in its own browser UI.
+
+The operator can:
+
+- see the currently active saved OpenCode account;
+- see all saved OpenCode accounts in the private Order OpenCode namespace;
+- add another OpenCode account through the OpenCode Console device/OAuth flow;
+- switch the active account;
+- rename an account label so saved accounts can be identified by their login email.
+
+These operations do not change the configured Order model.
+
+The login flow remains OpenCode-owned. Order starts the pinned OpenCode integration OAuth attempt in the private namespace, exposes only the returned external authorization URL/instructions through the Order UI, polls the attempt through the Order daemon, and stops/cancels the attempt on completion/cancellation/expiry. Order never exposes or forwards the private OpenCode server listener or embedded Web UI.
+
+The pinned OpenCode Console device flow is automatic after browser authorization; the operator authenticates to the intended OpenCode account on the external OpenCode authorization page. The supplied Order account label is stored with the resulting OpenCode credential. A successful new login becomes the active account, matching the pinned OpenCode credential semantics.
+
+### 12.3 Account mutation safety
+
+Viewing account state is always read-only and may occur while work is active.
+
+Adding, activating or relabeling a saved OpenCode account is permitted only while **no Order Run is active** in the installation. `RUNNING` and `WAITING_FOR_INPUT` are active for this purpose. This prevents one Order Run/OpenCode session from straddling an authentication-identity change.
+
+At most one OpenCode account mutation/login attempt may be active at a time.
+
+A successful account switch affects only subsequent provider/session creation. Existing completed Run evidence is never relabeled as having used the new account.
+
+A productive Run continues to perform the existing exact configured model/authentication preflight. If the newly selected account cannot use the configured OpenCode Go model, the Run fails preflight with the normal provider-auth/model-availability failure rather than silently changing provider/model.
+
+### 12.4 CLI compatibility
+
+The existing interactive CLI login remains available as a compatibility/recovery surface inside the same private namespace. It is not the primary account-switching UX once the browser account manager exists.
+
+Order does not add a second account store merely to support the browser.
 
 ## 13. Upgrade tolerance
 
 An OpenCode upgrade is never transparent.
 
-Before changing the pinned server/client version, Order re-verifies V2 authenticated server-info readiness/version, session create/get/prompt/context, deterministic prompt-id admission/idempotency, monotonic `Session.Info.time.idle`/outcome completion semantics, final context retrieval, foreground-`serve` restart behavior, exact model switch/read-back, session permission enforcement, interrupt, auth namespace and final message retrieval.
+Before changing the pinned server/client version, Order re-verifies V2 authenticated server-info readiness/version, session create/get/prompt/context, deterministic prompt-id admission/idempotency, monotonic `Session.Info.time.idle`/outcome completion semantics, final context retrieval, foreground-`serve` restart behavior, exact model switch/read-back, session permission enforcement, interrupt, auth namespace, OpenCode Console integration/account projection, OAuth attempt lifecycle, saved-credential activation/label update behavior and final message retrieval.
 
 OpenCode-specific shapes stay in the imperative shell and never enter Order's domain model.
