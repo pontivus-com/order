@@ -91,3 +91,5 @@ jobs:
           PONTIVUS_ORDER_OPENCODE_BIN="$fake" \
           PONTIVUS_ORDER_BIND="127.0.0.1:17347" \
           node node_modules/@playwright/test/cli.js test
+
+# rerun after typed proposal narrowing fix
