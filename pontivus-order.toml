@@ -4,8 +4,8 @@ projectId = "order"
 [authority]
 p1 = ["AGENTS.md", "docs/08-minimum-change-standard.md", "docs/10-systems-governance-pyramid.md", "docs/44-public-repository-delivery-and-release.md"]
 p2 = ["docs/00-system-brief.md", "docs/40-order-product-identity.md"]
-p3 = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/09-project-governance-integration.md", "docs/11-lifecycle-context-resolution.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
-p4 = ["docs/02-execution-control-plane.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/14-external-version-facts.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+p3 = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/09-project-governance-integration.md", "docs/11-lifecycle-context-resolution.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/45-installation-readiness-and-configuration-continuity.md", "docs/47-opencode-productive-workspace-and-instruction-boundary.md"]
+p4 = ["docs/02-execution-control-plane.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/14-external-version-facts.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/47-opencode-productive-workspace-and-instruction-boundary.md"]
 p5 = ["docs/04-open-decisions.md"]
 p6 = ["docs/13-canonical-contracts.md"]
 
@@ -75,6 +75,8 @@ GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE = "docs/38-workbench-astryx-component-ar
 GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 = "docs/38-workbench-astryx-component-architecture.md"
 GW-DOC-ORDER-TECHNICAL-IDENTITY = "docs/41-order-technical-identity-cutover.md"
 GW-DOC-ORDER-TECHNICAL-IDENTITY-V1 = "docs/41-order-technical-identity-cutover.md"
+GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1 = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
 GW-P7-WORKBENCH-INTERACTION-SPATIAL-REFACTOR = "docs/42-workbench-interaction-spatial-refactor-implementation-addendum.md"
 GW-P7-WORKBENCH-INTERACTION-SPATIAL-REFACTOR-V1-2026-11-12 = "docs/42-workbench-interaction-spatial-refactor-implementation-addendum.md"
 GW-P7-CODEMIRROR-MARKDOWN-EDITOR = "docs/43-codemirror-markdown-editor-implementation-plan.md"
@@ -180,6 +182,12 @@ GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS = "docs/45-installation-readiness-and
 GW-FR-096-SEMANTIC-VIEWPORT-ZONING = "docs/37-workbench-ux-information-architecture.md"
 GW-FR-097-LOGICAL-READING-FLOW = "docs/37-workbench-ux-information-architecture.md"
 GW-FR-098-APPEARANCE-MODE-DIRECT-CONTROL = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-FR-104-STAGE-WORKSPACE-FRESHNESS = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
 GW-P4-V1-ARCHITECTURE = "docs/12-technical-architecture.md"
 GW-TR-001-FCIS-CANONICAL-OWNERSHIP = "docs/12-technical-architecture.md"
 GW-TR-002-LOCAL-LINUX-RUNTIME = "docs/12-technical-architecture.md"
@@ -253,6 +261,13 @@ GW-TR-069-SETTINGS-ACCOUNT-PRESENTATION-OWNERSHIP = "docs/38-workbench-astryx-co
 GW-TR-070-CONFIGURATION-CAPABLE-DAEMON-BOOT = "docs/12-technical-architecture.md"
 GW-TR-071-OPENCODE-ACCOUNT-INTEGRATION-READINESS = "docs/12-technical-architecture.md"
 GW-TR-072-OPENCODE-ACCOUNT-REMOVAL = "docs/12-technical-architecture.md"
+GW-TR-073-STAGE-INSPECTION-WORKSPACE-MATERIALIZATION = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-074-PROVIDER-INSTRUCTION-CLOSURE = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-075-PROVIDER-WORKSPACE-ESCAPE-PREVENTION = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-076-SHARED-PRODUCTIVE-PROVIDER-ADMISSION = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-077-PRODUCTIVE-INVOCATION-FAILURE-BOUNDARY = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-078-PRODUCTIVE-PROVIDER-WORKSPACE-FRESHNESS = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
 D1 = "docs/04-open-decisions.md"
 D2 = "docs/04-open-decisions.md"
 D3 = "docs/04-open-decisions.md"
@@ -289,27 +304,27 @@ paths = [".bun-version", ".node-version", ".gitignore", ".github/**", "CHANGELOG
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build"]
 
 [concerns.core]
-authority = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/08-minimum-change-standard.md", "docs/09-project-governance-integration.md", "docs/10-systems-governance-pyramid.md", "docs/11-lifecycle-context-resolution.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/47-opencode-productive-workspace-and-instruction-boundary.md", "docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/08-minimum-change-standard.md", "docs/09-project-governance-integration.md", "docs/10-systems-governance-pyramid.md", "docs/11-lifecycle-context-resolution.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
 paths = ["src/core/**"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.shell]
-authority = ["docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/09-project-governance-integration.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
+authority = ["docs/47-opencode-productive-workspace-and-instruction-boundary.md", "docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/09-project-governance-integration.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["src/shell/**"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.daemon]
-authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
+authority = ["docs/47-opencode-productive-workspace-and-instruction-boundary.md", "docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["src/daemon/**", "src/cli.ts"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.ui]
-authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
+authority = ["docs/47-opencode-productive-workspace-and-instruction-boundary.md", "docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["index.html", "ui/**"]
 gates = ["typecheck", "architecture", "test", "build", "browser"]
 
 [concerns.verification]
-authority = ["docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/44-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
+authority = ["docs/47-opencode-productive-workspace-and-instruction-boundary.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/44-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["tests/**", "playwright.config.ts"]
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"]
 
