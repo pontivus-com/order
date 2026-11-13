@@ -337,8 +337,9 @@ export const requireExecutionReadiness = async (
 
 export const runReadyCoordinatorTick = async (
   owner: CoordinatorRuntimeOwner,
+  allowDuringSettingsMutation = false,
 ): Promise<TickResult> => {
-  if (owner.settingsMutationActive) {
+  if (owner.settingsMutationActive && !allowDuringSettingsMutation) {
     return { result: "NO_WORK", executionTaskId: null, runId: null };
   }
   const roots = await executionReadyRepositoryRoots(owner);
@@ -459,7 +460,11 @@ const activateConfiguration = async (
     owner.current = candidate;
 
     const readiness = await installationReadiness(owner);
-    await startCoordinatorScheduler(candidate, () => runReadyCoordinatorTick(owner));
+    await startCoordinatorScheduler(
+      candidate,
+      () => runReadyCoordinatorTick(owner),
+      () => runReadyCoordinatorTick(owner, true),
+    );
     return { configState: persisted, readiness };
   } catch (error) {
     if (candidate !== null) {
