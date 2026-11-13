@@ -126,9 +126,10 @@ const diagnostic = (
 const resolveSourceProject = async (
   runtime: CoordinatorRuntime,
   source: ParsedWorkItemSource,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<ConfiguredProject> =>
   resolveConfiguredProject(
-    runtime.config.repositoryRoots,
+    repositoryRoots,
     source.metadata.projectId,
   );
 
@@ -433,7 +434,7 @@ export const revalidateWorkItemSource = async (
 ): Promise<Readonly<{ workItem: WorkItem; source: WorkItemSourceSnapshot }>> => {
   const before = loadWorkItem(runtime.database, workItemId);
   const projectForPath = await resolveConfiguredProject(
-    runtime.config.repositoryRoots,
+    [before.repositoryRoot],
     before.projectId,
   );
   const expectedPath = workItemDocumentPath(
@@ -486,7 +487,7 @@ export const revalidateWorkItemSource = async (
 
   let project: ConfiguredProject;
   try {
-    project = await resolveSourceProject(runtime, current);
+    project = await resolveSourceProject(runtime, current, [before.repositoryRoot]);
   } catch (error) {
     throw sourceBoundaryFailure(diagnostic(
       before.projectId,
@@ -571,9 +572,10 @@ export const currentWorkItemSource = async (
 export const createWorkItemFromSource = async (
   runtime: CoordinatorRuntime,
   input: CreateWorkItemSource,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<WorkItem> => {
   const command = CreateWorkItemSourceSchema.parse(input);
-  const project = await resolveConfiguredProject(runtime.config.repositoryRoots, command.projectId);
+  const project = await resolveConfiguredProject(repositoryRoots, command.projectId);
   requireResolvedConcerns(project, command.concernIds);
 
   const parentId = command.derivedFromWorkItemId ?? null;
@@ -739,7 +741,7 @@ export const setWorkItemArchived = async (
     throw new TypeError("WorkItem archive state may not change while a Run is active");
   }
   const project = await resolveConfiguredProject(
-    runtime.config.repositoryRoots,
+    [workItem.repositoryRoot],
     workItem.projectId,
   );
   setWorkItemArchivedFile(
