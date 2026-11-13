@@ -139,6 +139,8 @@ These facts are certified against the exact 2.2.6 pin. A provider upgrade requir
 
 The same pinned source also exposes `OPENCODE_CONFIG_CONTENT` to foreground `serve` and loads that inline JSON as a high-priority process configuration layer. This gives Order a supported native access point for Run-specific explicit instructions/skills/references/MCP configuration without mutating the persistent private OpenCode account namespace.
 
+The pinned configuration discovery also includes the global `~/.agents` root when global discovery is enabled, and the compatibility plugin scans `~/.agents/skills`. The Claude-disable option suppresses Claude compatibility roots but does not itself remove the global `.agents` root. Consequently a fresh productive HOME/config root is the supported Order-side way to exclude accumulated filesystem-global compatibility skills while retaining the separately configured persistent `OPENCODE_DB` credential/database state.
+
 ### OpenCode 2.2.6 setup/model/external-directory facts
 
 The same immutable `anomalyco/opencode@v2.2.6` source additionally establishes the capabilities required by guided bootstrap and configured STAGE reference roots:
