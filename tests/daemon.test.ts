@@ -740,6 +740,17 @@ describe("daemon control plane", () => {
         const reused = await fetch(origin + "/connect?token=" + tokenBody.token, { redirect: "manual" });
 
         const listed = await fetch(origin + "/api/work-items", { headers: { cookie } });
+        const malformed = await fetch(origin + "/api/work-items", {
+          method: "POST",
+          headers: { cookie, origin, "content-type": "application/json" },
+          body: "{",
+        });
+        const malformedBody = await malformed.json();
+        const absent = await fetch(
+          origin + "/api/work-items/work_00000000-0000-4000-8000-000000000000",
+          { headers: { cookie } },
+        );
+        const absentBody = await absent.json();
         const missingOrigin = await fetch(origin + "/api/tick", {
           method: "POST",
           headers: { cookie, "content-type": "application/json" },
@@ -778,6 +789,10 @@ describe("daemon control plane", () => {
           cookie,
           reused: reused.status,
           listed: listed.status,
+          malformedStatus: malformed.status,
+          malformedBody,
+          absentStatus: absent.status,
+          absentBody,
           missingOrigin: missingOrigin.status,
           wrongOrigin: wrongOrigin.status,
           tickStatus: tick.status,
@@ -803,6 +818,18 @@ describe("daemon control plane", () => {
     );
     expect(output.reused).toBe(401);
     expect(output.listed).toBe(200);
+    expect(output.malformedStatus).toBe(400);
+    expect(output.malformedBody).toEqual({
+      code: "INVALID_REQUEST",
+      message: "request body must contain valid JSON",
+      sourceDiagnostic: null,
+    });
+    expect(output.absentStatus).toBe(404);
+    expect(output.absentBody).toEqual({
+      code: "NOT_FOUND",
+      message: "WorkItem does not exist",
+      sourceDiagnostic: null,
+    });
     expect(output.missingOrigin).toBe(403);
     expect(output.wrongOrigin).toBe(403);
     expect(output.tickStatus).toBe(200);
