@@ -122,8 +122,8 @@ Browser verification must validate behavior rather than merely CSS class presenc
 | WorkItem queue | `Table`, `StatusDot`, `Badge`, `IconButton` | canonical rows/columns/status mapping |
 | Diagnostics | `Table`/ `List`, `Banner`, `StatusDot` | diagnostic meaning/actionability |
 | Creation | `Drawer`, `Selector`/`Typeahead`, `RadioList` or `SelectableCard`, `MultiSelector`, `TextInput` | project/type/concern semantics and canonical create mutation |
-| WorkItem mode navigation | compact `SegmentedControl`/selector/navigation primitive or Order semantic wrapper | available modes from canonical state; presentation-only selection integrated into the compact WorkItem toolbar/header |
-| Lifecycle document navigation | `TabList` or compact `Outline` | Source/R1/R2/DESIGN/PLAN/R3 ordering/currentness |
+| WorkItem workspace-view navigation | compact `SegmentedControl`/selector/navigation primitive or Order semantic wrapper | available views from canonical state; presentation-only selection at the primary-canvas boundary below the workflow rail |
+| Lifecycle document navigation | `TabList` or compact `Outline` | Work request/Research/Requirements/Solution design/Implementation plan/Readiness review presentation over canonical document roles |
 | Editable Markdown | Order-owned `MarkdownSourceEditor` backed by CodeMirror 6 | exact source buffer, editor lifecycle, syntax-aware source editing; dirty/conflict/save semantics remain in `MarkdownEditor` |
 | Read-only Markdown/raw content | `Markdown`, `CodeBlock`, `ScrollableArea` as appropriate | exact bytes remain canonical; rendering never becomes authority |
 | Stage dialogue | `ChatLayout`, `ChatMessage`, `ChatSystemMessage`, `ChatToolCalls`, `ChatComposer` | Run/RunEvent projection and mutation commands |
@@ -457,27 +457,25 @@ The WorkItem shell must use a viewport-sized flex/grid composition in which:
 
 - application/workspace chrome occupies only intrinsic compact rows;
 - the primary mode canvas is `min-width: 0`, `min-height: 0` and owns remaining width/height;
-- wide Context remains bounded to the existing compact-context budget and is removed from flow below the rail breakpoint;
+- wide contextual inspection is closed by default; when explicitly opened it remains bounded to the compact-context budget and switches to drawer/overlay before it would materially compress the primary task;
 - primary-mode workspaces may establish their own internal master/detail grids but must not introduce another persistent outer rail;
 - document/evidence/execution bodies use flex/grid remaining-height ownership rather than fixed `min-height` values as the main sizing mechanism.
 
 The current `.order-markdown-editor { max-width: 72rem; }` outer cap must be removed or relocated to read-only prose content only. Full-width authoring/review/raw-material surfaces retain modest workstation gutters rather than centered page-width containers.
 
-### 17.2 Compact WorkItem toolbar and navigation
+### 17.2 WorkItem orientation and view navigation
 
-`WorkItemWorkspace` keeps one compact orientation/navigation header that owns:
+`WorkItemWorkspace` owns three explicit presentation levels:
 
-- Back to work queue;
-- WorkItem title;
-- concise stage/status orientation;
-- the mode selector/control;
-- Context toggle only in drawer/single-pane layouts.
+1. compact identity/header row — Back, WorkItem title/current state, WorkItem-level actions and Details/Context access;
+2. compact workflow-process rail — ordinary-language lifecycle progression/current step and non-mutating inspection navigation;
+3. workspace-view selector at the primary-canvas boundary — Documents / Activity / Review / Implementation / Evidence / Result as applicable.
 
-Detailed project/schema/concern/source metadata remains in `WorkItemContext`.
+Detailed project/schema/concern/source metadata remains in on-demand `WorkItemContext`/Details rather than reserving permanent width.
 
-The full-width mode `TabList` must not remain stacked above the Documents `TabList`. P7 may use an Astryx segmented/navigation/selector primitive or a small Order semantic wrapper, but mode choice remains typed browser-local presentation state and must preserve the existing dirty-navigation guard.
+Workspace-view choice remains typed browser-local presentation state and preserves the existing dirty-navigation guard. It must not be merged with the lifecycle workflow rail.
 
-Documents retain their Source/R1/R2/DESIGN/PLAN/R3 content navigation as the normal content-edge strip.
+Documents retain one human-labelled lifecycle document content-navigation strip as the normal content edge.
 
 ### 17.3 State-aware application toolbar
 
@@ -600,7 +598,7 @@ At representative widths/heights it must prove:
 2. editor/evidence/operational bodies consume the remaining usable viewport height within reasonable toolbar/nav gutters;
 3. Documents does not render stacked full-width mode and document tab rows;
 4. queue Search/Refresh are absent or demoted from active deep-work toolbar state;
-5. Context toggle is absent when the persistent Context rail is already visible and present when Context is drawer-owned;
+5. the primary WorkItem opens without a permanent Context rail; Details/Context opens a bounded inspector on sufficiently wide layouts or a drawer/overlay where width is constrained, and closing it restores the full primary width;
 6. proposal diff review opens in Review-class primary space and remains associated with its Adopt/Reject actions;
 7. multiple execution tasks do not push Run/event detail below an arbitrarily long card stack;
 8. narrow queue presentation keeps title and stage/status visible without clipped essential content;
@@ -716,11 +714,11 @@ Architecture tests should enforce stable ownership/dependency propositions, not 
 
 ### GW-TR-016-COMPACT-WORKITEM-NAVIGATION
 
-**Required behavior:** WorkItem mode navigation is integrated into the compact WorkItem toolbar/header while Documents retains its own within-mode document navigation.
+**Required behavior:** WorkItem presentation separates the compact identity row, dedicated workflow-process rail, workspace-view selection at the primary-canvas boundary and one within-view navigation strip where the selected view needs it.
 
-**Acceptance criterion:** the active Documents surface presents one normal content-edge navigation strip and preserves existing typed mode/document state, dirty guards and focus behavior.
+**Acceptance criterion:** the active Documents surface presents one human-labelled content-edge document selector, workspace-view selection remains presentation-only and distinct from workflow inspection, and existing typed view/document state, dirty guards and focus behavior are preserved.
 
-**Failure/negative behavior:** full-width mode tabs must not remain stacked directly above full-width document tabs.
+**Failure/negative behavior:** workflow progression, workspace-view selection and document selection must not be collapsed into one ambiguous control or rendered as redundant competing full-width tab stacks.
 
 ### GW-TR-017-STATE-AWARE-TOOLBAR-COMPOSITION
 
@@ -1751,7 +1749,7 @@ The following current implementation structures are explicitly superseded and mu
 1. full `OpenCodeAccountControl` manager behavior in the global toolbar;
 2. theme `<select>` in `app.tsx`;
 3. implicit first-project/repository context as the only global repository indication;
-4. separate WorkItem heading + workflow-orientation persistent rows;
+4. the mixed 0.2.1 WorkItem rail that combines identity, workflow progression, workspace-view selection and unrelated actions into one overloaded row;
 5. separate document-state + editor-format + editor-action persistent full-width bars when controls can be composed coherently;
 6. complete WorkItem source technical Markdown as the normal editable buffer;
 7. any configuration mutation retained only in installer/CLI after equivalent Settings support is implemented.
