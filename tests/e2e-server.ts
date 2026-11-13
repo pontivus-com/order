@@ -101,7 +101,7 @@ const workItemRoot = join(repositoryRoot, "docs", "order", "work-items");
 mkdirSync(workItemRoot, { recursive: true });
 
 const orderConfig = writeOrderConfig(stateRoot, {
-  version: 3,
+  version: 4,
   model: { providerID: "opencode", id: "glm-5.3-flash-free" },
   repositoryRoots: [repositoryRoot],
   referenceRoots: [],
