@@ -44,6 +44,7 @@ import {
 } from "../shell/opencode.ts";
 import {
   adoptArtifactProposal,
+  armScheduler,
   cancelRun,
   commitDocumentation,
   createCoordinatorRuntime,
@@ -450,6 +451,43 @@ const consumeConnectToken = (
 const apiPath = (url: URL): string[] =>
   url.pathname.split("/").filter((part) => part.length > 0);
 
+
+const requireOpenCodeAccountStableForRunStart = (
+  runtime: CoordinatorRuntime,
+): void => {
+  if (runtime.openCodeAccountMutationActive || runtime.openCodeAccountLogin !== null) {
+    throw new TypeError(
+      "Run start is blocked while OpenCode account state is changing",
+    );
+  }
+};
+
+const pauseSchedulerForOpenCodeAccountMutation = (
+  runtime: CoordinatorRuntime,
+): void => {
+  if (runtime.tickActive) {
+    throw new TypeError(
+      "OpenCode account mutation is blocked while coordinator work is being admitted",
+    );
+  }
+  if (runtime.schedulerTimer !== null) {
+    clearTimeout(runtime.schedulerTimer);
+    runtime.schedulerTimer = null;
+  }
+};
+
+const resumeSchedulerAfterOpenCodeAccountMutation = (
+  runtime: CoordinatorRuntime,
+): void => {
+  if (
+    !runtime.schedulerStopped &&
+    runtime.openCodeAccountLogin === null &&
+    !runtime.openCodeAccountMutationActive
+  ) {
+    armScheduler(runtime);
+  }
+};
+
 const routeApi = async (
   runtime: CoordinatorRuntime,
   sessions: LocalSessions,
@@ -480,6 +518,7 @@ const routeApi = async (
     const body = await readJsonBody(request);
     requireKeys(body, []);
     try {
+      requireOpenCodeAccountStableForRunStart(runtime);
       return jsonResponse(await runCoordinatorTick(runtime));
     } catch (error) {
       if (error instanceof TypeError && error.message === "TICK_ALREADY_ACTIVE") {
@@ -503,7 +542,13 @@ const routeApi = async (
     const body = await parseRequest(async () =>
       StartOpenCodeAccountLoginSchema.parse(await readJsonBody(request))
     );
-    return jsonResponse(await startSavedOpenCodeAccountLogin(runtime, body), 201);
+    pauseSchedulerForOpenCodeAccountMutation(runtime);
+    try {
+      return jsonResponse(await startSavedOpenCodeAccountLogin(runtime, body), 201);
+    } catch (error) {
+      resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+      throw error;
+    }
   }
 
   if (
@@ -518,10 +563,15 @@ const routeApi = async (
       OpenCodeAccountLoginAttemptIdSchema.parse(parts[4])
     );
     if (request.method === "GET") {
-      return jsonResponse(await pollSavedOpenCodeAccountLogin(runtime, attemptId));
+      const attempt = await pollSavedOpenCodeAccountLogin(runtime, attemptId);
+      if (attempt.status !== "PENDING") {
+        resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+      }
+      return jsonResponse(attempt);
     }
     if (request.method === "DELETE") {
       await cancelSavedOpenCodeAccountLogin(runtime, attemptId);
+      resumeSchedulerAfterOpenCodeAccountMutation(runtime);
       return new Response(null, { status: 204, headers: commonHeaders() });
     }
   }
@@ -538,7 +588,12 @@ const routeApi = async (
       const body = await parseRequest(async () =>
         RenameOpenCodeAccountSchema.parse(await readJsonBody(request))
       );
-      return jsonResponse(await renameSavedOpenCodeAccount(runtime, accountId, body));
+      pauseSchedulerForOpenCodeAccountMutation(runtime);
+      try {
+        return jsonResponse(await renameSavedOpenCodeAccount(runtime, accountId, body));
+      } finally {
+        resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+      }
     }
     if (
       parts.length === 5 &&
@@ -548,7 +603,12 @@ const routeApi = async (
       const body = await parseRequest(async () =>
         ActivateOpenCodeAccountSchema.parse(await readJsonBody(request))
       );
-      return jsonResponse(await activateSavedOpenCodeAccount(runtime, accountId, body));
+      pauseSchedulerForOpenCodeAccountMutation(runtime);
+      try {
+        return jsonResponse(await activateSavedOpenCodeAccount(runtime, accountId, body));
+      } finally {
+        resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+      }
     }
   }
 
@@ -659,6 +719,7 @@ const routeApi = async (
         const body = await readJsonBody(request);
         requireKeys(body, ["mode"]);
         const mode = await parseRequest(() => RunModeSchema.parse(body.mode));
+        requireOpenCodeAccountStableForRunStart(runtime);
         return jsonResponse(await startStageRun(runtime, workItemId, mode), 201);
       }
     }
