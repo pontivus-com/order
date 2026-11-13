@@ -6,6 +6,7 @@ import {
   readdirSync,
   realpathSync,
   statSync,
+  unlinkSync,
 } from "node:fs";
 import { join, relative, resolve, sep } from "node:path";
 
@@ -26,6 +27,7 @@ import {
 import {
   isUnsupportedWorkItemSchemaFailure,
   parseWorkItemSourceMarkdown,
+  workItemArchiveMarkerPath,
   workItemSourcePathForId,
 } from "../core/work-item-source.ts";
 import { createRegularFileExclusive, replaceRegularFileExpectedHash } from "./file-write.ts";
@@ -256,6 +258,85 @@ export const createWorkItemSourceFile = (
   const target = absoluteSourcePath(repositoryRoot, path, false);
   const bytes = new TextEncoder().encode(MarkdownTextSchema.parse(markdown));
   return { path, sha256: createRegularFileExclusive(target, bytes) };
+};
+
+const archiveMarkerBytes = new TextEncoder().encode("archived\n");
+
+const archiveMarkerTarget = (
+  repositoryRoot: string,
+  workItemsRoot: RepositoryPath,
+  workItemId: Parameters<typeof workItemArchiveMarkerPath>[1],
+): string => {
+  const repository = canonicalRoot(repositoryRoot);
+  const markerPath = workItemArchiveMarkerPath(workItemsRoot, workItemId);
+  const target = resolve(repository, markerPath);
+  if (!target.startsWith(repository + sep)) {
+    throw new TypeError("WorkItem archive marker escapes repository");
+  }
+  const parent = resolve(target, "..");
+  if (existsSync(parent)) {
+    const parentStat = lstatSync(parent);
+    if (parentStat.isSymbolicLink() || !parentStat.isDirectory()) {
+      throw new TypeError("WorkItem archive marker parent must be a regular directory");
+    }
+  }
+  return target;
+};
+
+const requireArchiveMarkerParent = (target: string): void => {
+  const parent = resolve(target, "..");
+  if (!existsSync(parent)) {
+    throw new TypeError("WorkItem directory does not exist for archive marker");
+  }
+  const parentStat = lstatSync(parent);
+  if (parentStat.isSymbolicLink() || !parentStat.isDirectory()) {
+    throw new TypeError("WorkItem archive marker parent must be a regular directory");
+  }
+};
+
+export const readWorkItemArchived = (
+  repositoryRoot: string,
+  workItemsRoot: RepositoryPath,
+  workItemId: Parameters<typeof workItemArchiveMarkerPath>[1],
+): boolean => {
+  const target = archiveMarkerTarget(repositoryRoot, workItemsRoot, workItemId);
+  if (!existsSync(target)) return false;
+  const stat = lstatSync(target);
+  if (stat.isSymbolicLink() || !stat.isFile()) {
+    throw new TypeError("WorkItem archive marker must be a regular non-symlink file");
+  }
+  const bytes = new Uint8Array(readFileSync(target));
+  if (
+    bytes.byteLength !== archiveMarkerBytes.byteLength ||
+    bytes.some((value, index) => value !== archiveMarkerBytes[index])
+  ) {
+    throw new TypeError("WorkItem archive marker bytes are invalid");
+  }
+  return true;
+};
+
+export const setWorkItemArchivedFile = (
+  repositoryRoot: string,
+  workItemsRoot: RepositoryPath,
+  workItemId: Parameters<typeof workItemArchiveMarkerPath>[1],
+  archived: boolean,
+): void => {
+  const target = archiveMarkerTarget(repositoryRoot, workItemsRoot, workItemId);
+  const current = readWorkItemArchived(repositoryRoot, workItemsRoot, workItemId);
+  if (archived) {
+    requireArchiveMarkerParent(target);
+    if (current) throw new TypeError("WorkItem is already archived");
+    createRegularFileExclusive(target, archiveMarkerBytes);
+    if (!readWorkItemArchived(repositoryRoot, workItemsRoot, workItemId)) {
+      throw new TypeError("WorkItem archive marker creation did not persist");
+    }
+    return;
+  }
+  if (!current) throw new TypeError("WorkItem is not archived");
+  unlinkSync(target);
+  if (existsSync(target)) {
+    throw new TypeError("WorkItem archive marker removal did not persist");
+  }
 };
 
 export const replaceWorkItemSourceFile = (

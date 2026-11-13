@@ -37,7 +37,10 @@ import {
   readLegacyWorkItemRepositoryRootsForInstall,
   readOrderV2MigrationStateForInstall,
 } from "./sqlite.ts";
-import { scanLegacyV2WorkItemSourcesForInstall } from "./work-item-source.ts";
+import {
+  readWorkItemArchived,
+  scanLegacyV2WorkItemSourcesForInstall,
+} from "./work-item-source.ts";
 
 export type SetupQuestion = (prompt: string) => Promise<string>;
 
@@ -224,12 +227,35 @@ export const migrateRepositoryNativeV2StateForInstall = async (
     }
   }
 
+  const archivedById = new Map<
+    import("../core/contracts.ts").WorkItemId,
+    boolean
+  >();
+  for (const [workItem] of migrationState) {
+    const project = projectById.get(workItem.projectId);
+    if (project === undefined) {
+      throw new TypeError(
+        "v2→v3 migration cannot resolve archive project for WorkItem: " +
+          workItem.id,
+      );
+    }
+    archivedById.set(
+      workItem.id,
+      readWorkItemArchived(
+        project.repositoryRoot,
+        project.manifest.workItems.root,
+        workItem.id,
+      ),
+    );
+  }
+
   migrateOrderDatabaseV2ToV3(
     stateRoot,
     sourcePaths as ReadonlyMap<
       import("../core/contracts.ts").WorkItemId,
       WorkItemSourcePath
     >,
+    archivedById,
   );
 };
 

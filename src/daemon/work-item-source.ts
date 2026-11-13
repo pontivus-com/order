@@ -3,6 +3,8 @@ import {
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWriteResultSchema,
+  SetWorkItemArchivedSchema,
+  UpdateWorkItemTitleSchema,
   WorkItemSchema,
   WorkItemSourceDiagnosticSchema,
   WorkItemSourceSnapshotSchema,
@@ -11,6 +13,8 @@ import {
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWriteResult,
   type ProjectId,
+  type SetWorkItemArchived,
+  type UpdateWorkItemTitle,
   type WorkItem,
   type WorkItemId,
   type WorkItemSourceDiagnostic,
@@ -23,6 +27,7 @@ import {
   linkedRemediationIsAllowed,
   parseWorkItemSourceMarkdown,
   renderWorkItemSourceMarkdown,
+  rewriteWorkItemSourceTitle,
   workItemDocumentPath,
   unresolvedConcernIdsForProject,
   type WorkItemSourceDisposition,
@@ -36,9 +41,11 @@ import {
 import {
   createWorkItemSourceFile,
   isWorkItemRootAccessFailure,
+  readWorkItemArchived,
   readWorkItemSource,
   replaceWorkItemSourceFile,
   scanWorkItemSources,
+  setWorkItemArchivedFile,
   type ParsedWorkItemSource,
 } from "../shell/work-item-source.ts";
 import { readCommittedFile, readWorkingTreeFile, resolveHeadCommit } from "../shell/repository.ts";
@@ -52,6 +59,7 @@ import {
   loadWorkItems,
   storeArtifact,
   storeWorkItem,
+  updateWorkItemArchivedProjection,
   updateWorkItemSourceProjection,
   withTransaction,
 } from "../shell/sqlite.ts";
@@ -130,6 +138,7 @@ const planExistingSource = (
   existing: WorkItem,
   source: ParsedWorkItemSource,
   project: ConfiguredProject,
+  archived: boolean,
 ): Readonly<{ plan: QueuePlan | null; diagnostic: WorkItemSourceDiagnostic | null }> => {
   const classification = classifyExistingWorkItemSource(
     existing,
@@ -163,6 +172,7 @@ const planExistingSource = (
         sourceSha256: source.sha256,
         derivedFromWorkItemId: source.metadata.derivedFromWorkItemId ?? null,
         concernIds: source.metadata.concernIds,
+        archived,
         ...lifecycle,
       }),
     },
@@ -288,6 +298,23 @@ const inspectQueue = async (
       continue;
     }
 
+    let archived: boolean;
+    try {
+      archived = readWorkItemArchived(
+        project.repositoryRoot,
+        project.manifest.workItems.root,
+        source.metadata.id,
+      );
+    } catch (error) {
+      diagnostics.push(diagnostic(
+        project.manifest.projectId,
+        source,
+        "INVALID_SOURCE",
+        error instanceof Error ? error.message : String(error),
+      ));
+      continue;
+    }
+
     const prior = existing.get(source.metadata.id);
     if (prior === undefined) {
       plans.push({
@@ -307,13 +334,14 @@ const inspectQueue = async (
           status: "ACTIVE",
           outcome: null,
           concernIds: source.metadata.concernIds,
+          archived,
           createdAt: nowIsoDateTime(),
         }),
       });
       continue;
     }
 
-    const planned = planExistingSource(runtime, prior, source, project);
+    const planned = planExistingSource(runtime, prior, source, project, archived);
     if (planned.diagnostic !== null) {
       diagnostics.push(WorkItemSourceDiagnosticSchema.parse({
         ...planned.diagnostic,
@@ -345,8 +373,6 @@ const applyPlan = (
     storeWorkItem(runtime.database, plan.workItem);
     return;
   }
-  if (plan.disposition === "UNCHANGED") return;
-
   updateWorkItemSourceProjection(runtime.database, plan.workItem);
   if (plan.disposition === "UPDATED") {
     const approval = loadCurrentApprovalForWorkItem(runtime.database, plan.workItem.id);
@@ -425,7 +451,12 @@ export const revalidateWorkItemSource = async (
     throw sourceBoundaryFailure(error instanceof Error ? error.message : String(error));
   }
 
-  const planned = planExistingSource(runtime, before, current, project);
+  const archived = readWorkItemArchived(
+    project.repositoryRoot,
+    project.manifest.workItems.root,
+    before.id,
+  );
+  const planned = planExistingSource(runtime, before, current, project, archived);
   if (planned.diagnostic !== null) {
     throw sourceBoundaryFailure(planned.diagnostic.detail);
   }
@@ -508,6 +539,7 @@ export const createWorkItemFromSource = async (
     status: "ACTIVE",
     outcome: null,
     concernIds: source.metadata.concernIds,
+    archived: false,
     createdAt: nowIsoDateTime(),
   });
   storeWorkItem(runtime.database, value);
@@ -574,4 +606,73 @@ export const saveWorkItemSource = async (
   });
   updateWorkItemSourceProjection(runtime.database, next);
   return result;
+};
+
+export const updateWorkItemTitle = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: UpdateWorkItemTitle,
+): Promise<ExpectedHashWriteResult> => {
+  const command = UpdateWorkItemTitleSchema.parse(input);
+  const validated = await revalidateWorkItemSource(runtime, workItemId);
+  if (
+    validated.workItem.stage === "EXECUTION" ||
+    validated.workItem.stage === "COMPLETE"
+  ) {
+    throw new TypeError("WorkItem title is read-only in EXECUTION/COMPLETE");
+  }
+  if (validated.workItem.sourceSha256 !== command.expectedSourceSha256) {
+    return ExpectedHashWriteResultSchema.parse({
+      tag: "STALE",
+      currentSha256: validated.workItem.sourceSha256,
+    });
+  }
+  const markdown = rewriteWorkItemSourceTitle(
+    validated.source.markdown,
+    command.title,
+  );
+  return saveWorkItemSource(runtime, workItemId, {
+    expectedSha256: command.expectedSourceSha256,
+    markdown,
+  });
+};
+
+export const setWorkItemArchived = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: SetWorkItemArchived,
+): Promise<WorkItem> => {
+  const command = SetWorkItemArchivedSchema.parse(input);
+  const validated = await revalidateWorkItemSource(runtime, workItemId);
+  const workItem = validated.workItem;
+  if (workItem.archived !== command.expectedArchived) {
+    throw new TypeError("WorkItem archive state changed");
+  }
+  if (command.archived === command.expectedArchived) {
+    throw new TypeError("WorkItem archive command must change archive state");
+  }
+  if (workItem.stage === "EXECUTION") {
+    throw new TypeError("WorkItem may not be archived or restored during EXECUTION");
+  }
+  if (
+    loadRunsForWorkItem(runtime.database, workItem.id)
+      .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
+  ) {
+    throw new TypeError("WorkItem archive state may not change while a Run is active");
+  }
+  const project = await resolveConfiguredProject(
+    runtime.config.repositoryRoots,
+    workItem.projectId,
+  );
+  setWorkItemArchivedFile(
+    project.repositoryRoot,
+    project.manifest.workItems.root,
+    workItem.id,
+    command.archived,
+  );
+  return updateWorkItemArchivedProjection(
+    runtime.database,
+    workItem.id,
+    command.archived,
+  );
 };

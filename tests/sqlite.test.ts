@@ -39,6 +39,7 @@ describe("SQLite shell", () => {
         foreignKeys: db.query("PRAGMA foreign_keys").get().foreign_keys,
         busy: db.query("PRAGMA busy_timeout").get().timeout,
         tables: db.query("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all().map(x => x.name),
+        workItemColumns: db.query("PRAGMA table_info(workItems)").all().map(x => x.name),
       };
       db.close();
       const reopened = s.openOrderDatabase(${JSON.stringify(root)});
@@ -63,6 +64,7 @@ describe("SQLite shell", () => {
       "workItems",
     ]);
     expect(parsed.reopenedVersion).toBe(3);
+    expect(parsed.first.workItemColumns).toContain("archived");
   });
 
   it("reads distinct v1 WorkItem repository roots as installer migration evidence", () => {
@@ -138,22 +140,26 @@ describe("SQLite shell", () => {
       const db = s.openOrderDatabase(${JSON.stringify(root)});
       const work = "work_11111111-1111-4111-8111-111111111111";
       const run = "run_11111111-1111-4111-8111-111111111111";
+      db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
       db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','PLAN','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
         .run(work, "sha256:" + "a".repeat(64));
       db.query("INSERT INTO runs VALUES (?1,?2,NULL,'PLAN','INTERACTIVE','STAGE',NULL,'COMPLETED',1,?3,?4,NULL,NULL,'2026-11-11T03:30:00.000Z','2026-11-11T03:31:00.000Z')")
         .run(run, work, "b".repeat(40), "sha256:" + "c".repeat(64));
-      db.exec("PRAGMA user_version = 2;");
       db.close();
 
       const archive = s.prepareOrderDatabaseForInstall(${JSON.stringify(root)});
       if (archive === null) throw new Error("expected v2 rollback archive");
       const paths = new Map([[work, "docs/order/work-items/" + work + "/work-request.md"]]);
-      s.migrateOrderDatabaseV2ToV3(${JSON.stringify(root)}, paths);
+      s.migrateOrderDatabaseV2ToV3(
+        ${JSON.stringify(root)},
+        paths,
+        new Map([[work, true]]),
+      );
       const migrated = s.openOrderDatabase(${JSON.stringify(root)});
       const version = migrated.query("PRAGMA user_version").get().user_version;
       const sourcePath = migrated.query("SELECT sourcePath FROM workItemSources WHERE workItemId=?1").get(work).sourcePath;
-      const lifecycle = migrated.query("SELECT stage,status,outcome FROM workItems WHERE id=?1").get(work);
+      const lifecycle = migrated.query("SELECT stage,status,outcome,archived FROM workItems WHERE id=?1").get(work);
       const runCount = migrated.query("SELECT count(*) AS value FROM runs WHERE id=?1").get(run).value;
       migrated.close();
       console.log(JSON.stringify({ version, sourcePath, lifecycle, runCount, archive: archive.archiveDatabase }));
@@ -163,7 +169,7 @@ describe("SQLite shell", () => {
     expect(parsed.sourcePath).toBe(
       "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
     );
-    expect(parsed.lifecycle).toEqual({ stage: "R1", status: "ACTIVE", outcome: null });
+    expect(parsed.lifecycle).toEqual({ stage: "R1", status: "ACTIVE", outcome: null, archived: 1 });
     expect(parsed.runCount).toBe(1);
     expect(parsed.archive).toContain(".legacy-v2.");
   });
@@ -174,10 +180,10 @@ describe("SQLite shell", () => {
       const s = await import("./src/shell/sqlite.ts");
       const db = s.openOrderDatabase(${JSON.stringify(root)});
       const work = "work_11111111-1111-4111-8111-111111111111";
+      db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
       db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
         .run(work, "sha256:" + "a".repeat(64));
-      db.exec("PRAGMA user_version = 2;");
       db.close();
       s.readOrderV2MigrationStateForInstall(${JSON.stringify(root)});
     `, true);
@@ -221,7 +227,7 @@ describe("SQLite shell", () => {
       const planBytes = new TextEncoder().encode(${JSON.stringify(plan)});
       const planHash = r.sha256(planBytes);
       const sourceHash = "sha256:" + "d".repeat(64);
-      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]',0,'2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1',?2,?3,NULL)").run(work, work + ".md", sourceHash);
       db.query("INSERT INTO artifactRefs VALUES (?1,?2,'docs/plan.md','PLAN','P7',?3,?4)").run(planId, work, planHash, commit);
       db.query("INSERT INTO artifactRefs VALUES (?1,?2,'docs/r3.md','R3',NULL,?3,?4)").run(r3Id, work, "sha256:" + "b".repeat(64), commit);

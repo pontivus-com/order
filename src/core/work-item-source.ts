@@ -1,5 +1,6 @@
 import {
   MarkdownTextSchema,
+  RepositoryPathSchema,
   WorkItemSchemaCatalogEntrySchema,
   WorkItemSchemaIdSchema,
   WorkItemSourceMetadataSchema,
@@ -363,6 +364,12 @@ export const workItemSourcePathForId = (
 ): WorkItemSourcePath =>
   WorkItemSourcePathSchema.parse(workItemDocumentPath(workItemsRoot, id, "SOURCE"));
 
+export const workItemArchiveMarkerPath = (
+  workItemsRoot: RepositoryPath,
+  id: WorkItemSourceMetadata["id"],
+): RepositoryPath =>
+  RepositoryPathSchema.parse(`${workItemsRoot}/${id}/.order-archived`);
+
 const titleFromBody = (body: string): WorkItemTitle => {
   const first = body.split("\n").find((line) => line.trim().length > 0);
   if (!first || !first.startsWith("# ") || first.startsWith("## ")) {
@@ -438,6 +445,26 @@ export const parseWorkItemSourceMarkdown = (
     markdown: canonicalMarkdown,
   });
   return { ...snapshot, title };
+};
+
+export const rewriteWorkItemSourceTitle = (
+  markdown: string,
+  title: WorkItemTitle,
+): string => {
+  const canonicalMarkdown = MarkdownTextSchema.parse(markdown);
+  const canonicalTitle = WorkItemTitleSchema.parse(title);
+  const lines = canonicalMarkdown.split("\n");
+  if (lines[0] !== "---") throw new TypeError("WorkItem source must begin with ---");
+  const close = lines.indexOf("---", 1);
+  if (close < 2) throw new TypeError("WorkItem source metadata terminator is missing");
+  const titleIndex = lines.findIndex(
+    (line, index) => index > close && line.trim().length > 0,
+  );
+  if (titleIndex < 0 || !lines[titleIndex]!.startsWith("# ") || lines[titleIndex]!.startsWith("## ")) {
+    throw new TypeError("WorkItem source body must begin with a level-1 title");
+  }
+  lines[titleIndex] = `# ${canonicalTitle}`;
+  return MarkdownTextSchema.parse(lines.join("\n"));
 };
 
 export const renderWorkItemSourceMarkdown = (

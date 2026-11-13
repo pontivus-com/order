@@ -52,6 +52,7 @@ CREATE TABLE workItems (
   status TEXT NOT NULL,
   outcome TEXT,
   concernIdsJson TEXT NOT NULL CHECK (json_valid(concernIdsJson)),
+  archived INTEGER NOT NULL CHECK (archived IN (0, 1)),
   createdAt TEXT NOT NULL
 ) STRICT;
 
@@ -226,9 +227,21 @@ const verifyCapabilities = (database: Database): void => {
 const userVersion = (database: Database): number =>
   queryIntegerScalar(database, "PRAGMA user_version;", "user_version");
 
+const ensureV3ArchivedProjection = (database: Database): void => {
+  const columns = database.query("PRAGMA table_info(workItems);").all()
+    .map((row) => recordRow(row).name);
+  if (columns.includes("archived")) return;
+  database.exec(
+    "ALTER TABLE workItems ADD COLUMN archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1));",
+  );
+};
+
 const initializeSchema = (database: Database): void => {
   const version = userVersion(database);
-  if (version === 3) return;
+  if (version === 3) {
+    ensureV3ArchivedProjection(database);
+    return;
+  }
   if (version !== 0) {
     throw new TypeError(`unsupported Order SQLite schema version: ${version}`);
   }
@@ -433,7 +446,7 @@ const persistedJson = (value: unknown): unknown => {
 const workItemSelect =
   `SELECT w.id, w.projectId, w.repositoryRoot, w.title, w.origin,
           s.schemaId, s.sourcePath, s.sourceSha256, s.derivedFromWorkItemId,
-          w.stage, w.status, w.outcome, w.concernIdsJson, w.createdAt
+          w.stage, w.status, w.outcome, w.concernIdsJson, w.archived, w.createdAt
    FROM workItems w
    JOIN workItemSources s ON s.workItemId = w.id`;
 const artifactSelect =
@@ -445,10 +458,14 @@ const runSelect =
 
 const parseWorkItemRow = (value: unknown): WorkItem => {
   const row = recordRow(value);
-  const { concernIdsJson, ...fields } = row;
+  const { concernIdsJson, archived, ...fields } = row;
+  if (archived !== 0 && archived !== 1) {
+    throw new TypeError("persisted WorkItem archived projection must be 0 or 1");
+  }
   return WorkItemSchema.parse({
     ...fields,
     concernIds: persistedJson(concernIdsJson),
+    archived: archived === 1,
   });
 };
 
@@ -489,8 +506,22 @@ export const readOrderV2MigrationStateForInstall = (
     if (executionWorkItems !== 0 || runningTasks !== 0 || activePostSignoffRuns !== 0) {
       throw new TypeError("v2→v3 migration is prohibited while post-signoff execution is active");
     }
-    const workItems = database.query(`${workItemSelect} ORDER BY createdAt, id;`).all()
-      .map(parseWorkItemRow);
+    const legacyWorkItemSelect =
+      `SELECT w.id, w.projectId, w.repositoryRoot, w.title, w.origin,
+              s.schemaId, s.sourcePath, s.sourceSha256, s.derivedFromWorkItemId,
+              w.stage, w.status, w.outcome, w.concernIdsJson, w.createdAt
+       FROM workItems w
+       JOIN workItemSources s ON s.workItemId = w.id`;
+    const workItems = database.query(`${legacyWorkItemSelect} ORDER BY createdAt, id;`).all()
+      .map((row) => {
+        const value = recordRow(row);
+        const { concernIdsJson, ...fields } = value;
+        return WorkItemSchema.parse({
+          ...fields,
+          concernIds: persistedJson(concernIdsJson),
+          archived: false,
+        });
+      });
     return workItems.map((workItem) => {
       const artifactsById = new Map(
         database
@@ -528,6 +559,7 @@ export const readOrderV2MigrationStateForInstall = (
 export const migrateOrderDatabaseV2ToV3 = (
   stateRoot: string,
   sourcePaths: ReadonlyMap<WorkItemId, WorkItemSourcePath>,
+  archivedById: ReadonlyMap<WorkItemId, boolean>,
 ): void => {
   const path = statePaths(stateRoot).database;
   if (!existsSync(path)) return;
@@ -567,8 +599,17 @@ export const migrateOrderDatabaseV2ToV3 = (
     ) {
       throw new TypeError("v2→v3 migration source-path map must cover every WorkItem exactly");
     }
+    if (
+      archivedById.size !== workItemIds.length ||
+      workItemIds.some((id) => !archivedById.has(id))
+    ) {
+      throw new TypeError("v2→v3 migration archive-state map must cover every WorkItem exactly");
+    }
 
     database.transaction(() => {
+      database.exec(
+        "ALTER TABLE workItems ADD COLUMN archived INTEGER NOT NULL DEFAULT 0 CHECK (archived IN (0, 1));",
+      );
       database.exec(`
         CREATE TABLE workItemSources_v3 (
           workItemId TEXT PRIMARY KEY REFERENCES workItems(id),
@@ -585,6 +626,8 @@ export const migrateOrderDatabaseV2ToV3 = (
       for (const id of workItemIds) {
         database.query("UPDATE workItemSources SET sourcePath=?2 WHERE workItemId=?1;")
           .run(id, WorkItemSourcePathSchema.parse(sourcePaths.get(id)));
+        database.query("UPDATE workItems SET archived=?2 WHERE id=?1;")
+          .run(id, archivedById.get(id) === true ? 1 : 0);
       }
       database.exec(`
         UPDATE workItems
@@ -967,7 +1010,7 @@ const insertWorkItemRows = (
 ): void => {
   database
     .query(
-      "INSERT INTO workItems(id, projectId, repositoryRoot, title, origin, stage, status, outcome, concernIdsJson, createdAt) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10);",
+      "INSERT INTO workItems(id, projectId, repositoryRoot, title, origin, stage, status, outcome, concernIdsJson, archived, createdAt) VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11);",
     )
     .run(
       value.id,
@@ -979,6 +1022,7 @@ const insertWorkItemRows = (
       value.status,
       value.outcome,
       canonicalJson(value.concernIds),
+      value.archived ? 1 : 0,
       value.createdAt,
     );
   database
@@ -1009,7 +1053,7 @@ export const updateWorkItemSourceProjection = (
   const value = WorkItemSchema.parse(workItem);
   database.transaction(() => {
     database.query(
-      "UPDATE workItems SET projectId=?2, repositoryRoot=?3, title=?4, origin=?5, stage=?6, status=?7, outcome=?8, concernIdsJson=?9 WHERE id=?1;",
+      "UPDATE workItems SET projectId=?2, repositoryRoot=?3, title=?4, origin=?5, stage=?6, status=?7, outcome=?8, concernIdsJson=?9, archived=?10 WHERE id=?1;",
     ).run(
       value.id,
       value.projectId,
@@ -1020,6 +1064,7 @@ export const updateWorkItemSourceProjection = (
       value.status,
       value.outcome,
       canonicalJson(value.concernIds),
+      value.archived ? 1 : 0,
     );
     database.query(
       "UPDATE workItemSources SET schemaId=?2, sourcePath=?3, sourceSha256=?4, derivedFromWorkItemId=?5 WHERE workItemId=?1;",
@@ -1031,6 +1076,16 @@ export const updateWorkItemSourceProjection = (
       value.derivedFromWorkItemId,
     );
   })();
+};
+
+export const updateWorkItemArchivedProjection = (
+  database: Database,
+  workItemId: WorkItemId,
+  archived: boolean,
+): WorkItem => {
+  database.query("UPDATE workItems SET archived=?2 WHERE id=?1;")
+    .run(WorkItemIdSchema.parse(workItemId), archived ? 1 : 0);
+  return loadWorkItem(database, workItemId);
 };
 
 export const loadWorkItemSourceProjection = (

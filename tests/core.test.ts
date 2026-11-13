@@ -58,7 +58,9 @@ import {
   linkedRemediationIsAllowed,
   parseWorkItemSourceMarkdown,
   renderWorkItemSourceMarkdown,
+  rewriteWorkItemSourceTitle,
   unresolvedConcernIdsForProject,
+  workItemArchiveMarkerPath,
   workItemDocumentPath,
   workItemKindForSchema,
   workItemSchemaCatalog,
@@ -207,6 +209,25 @@ describe("canonical scalar and strict ingress contracts", () => {
     expect(RepositoryPathSchema.safeParse("/src/x.ts").success).toBe(false);
     expect(RepositoryPatternSchema.safeParse("src/**/*.ts").success).toBe(true);
     expect(() => normalizeRepositoryPath("src/**")).toThrow();
+  });
+
+  it("rewrites only the canonical WorkItem H1 and derives the archive marker path", () => {
+    const id = `work_${uuidA}`;
+    const metadata = {
+      formatVersion: 1 as const,
+      id,
+      projectId: "order",
+      concernIds: ["core"],
+      schemaId: "change-v1" as const,
+    };
+    const original = renderWorkItemSourceMarkdown(metadata, "Original title")
+      .replace("## Current context\n", "## Current context\n# Nested heading remains\n");
+    const rewritten = rewriteWorkItemSourceTitle(original, "Renamed title");
+    expect(rewritten).toContain("# Renamed title\n");
+    expect(rewritten).toContain("# Nested heading remains\n");
+    expect(rewritten.replace("# Renamed title", "# Original title")).toBe(original);
+    expect(workItemArchiveMarkerPath("docs/order/work-items", id))
+      .toBe(`docs/order/work-items/${id}/.order-archived`);
   });
 
   it("derives deterministic repository-native WorkItem document paths", () => {
