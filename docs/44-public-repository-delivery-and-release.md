@@ -176,6 +176,8 @@ The release PR must prove:
 
 Merge of the release PR creates the exact release candidate commit. Tags/releases are created **after** that merge and point to that exact `master` commit.
 
+Before any tag exists, a failed or invalid release candidate may be replaced at the same version through a new dedicated `release/vX.Y.Z` PR. That replacement is permitted only when `vX.Y.Z` is absent, the base already declares `X.Y.Z`, non-empty `[Unreleased]` content is re-frozen into the matching release section, and the replacement candidate passes the complete release gates. Once the tag exists, same-version replacement is prohibited.
+
 ## 7. Tag and GitHub Release contract
 
 Release automation runs only for a merged release/version change on `master`.

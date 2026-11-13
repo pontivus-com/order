@@ -1993,7 +1993,7 @@ For a release PR it proves:
 - candidate version is greater than the prior published version;
 - no production behavior is changed by the release PR.
 
-The verifier has no GitHub-token dependency for local use; workflow-only checks may additionally inspect PR event metadata.
+The verifier has no GitHub-token dependency for local use; workflow-only checks may additionally inspect PR event metadata. For an unpublished same-version replacement, the verifier fails closed unless the matching remote tag is absent and the candidate moves a non-empty base `[Unreleased]` section into the existing matching release section.
 
 ### 33.4 Release workflow
 
