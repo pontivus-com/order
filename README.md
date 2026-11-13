@@ -148,6 +148,18 @@ To deliberately change the selected model or filesystem roots later:
 order setup --reconfigure
 ```
 
+`install.sh` is the minimal bootstrap. It transfers installation work to the purpose-built installer in `src/installer.ts`, which installs Order under `~/.local/share/pontivus-order` and exposes the launcher at `~/.local/bin/order`. The default state root may be overridden with `PONTIVUS_ORDER_STATE_ROOT`.
+
+Useful operator commands include:
+
+```bash
+order daemon
+order tick
+order provider login <provider>
+```
+
+The guided installation manages the user-level `pontivus-order.service`; `order status` remains the supported health check.
+
 Once a certified GitHub Release is published, normal installation and update will consume the Order-owned release bundle rather than arbitrary `master`. See the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
 
 ## Work from one place
