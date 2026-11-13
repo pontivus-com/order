@@ -804,20 +804,16 @@ test("workflow progression inspects reached material, exposes unreached steps, p
     page.getByTestId("governed-document-nav").getByRole("tab", { name: "Source" }),
   ).toHaveAttribute("aria-selected", "true");
 
-  await rail.getByRole("button", { name: "Implementation plan" }).click();
-  await expect(
-    page.getByTestId("governed-document-nav").getByRole("tab", { name: "PLAN" }),
-  ).toHaveAttribute("aria-selected", "true");
-  const planEditor = page.getByLabel("PLAN lifecycle document Markdown source");
-  await expect(planEditor).toBeVisible();
-  const initial = await markdownSourceValue(planEditor);
-  await replaceMarkdownSource(page, planEditor, initial + "\nworkflow inspection guard\n");
+  const sourceEditor = page.getByLabel("WorkItem source Markdown source");
+  await expect(sourceEditor).toBeVisible();
+  const initial = await markdownSourceValue(sourceEditor);
+  await replaceMarkdownSource(page, sourceEditor, initial + "\nworkflow inspection guard\n");
 
-  await rail.getByRole("button", { name: "Readiness review" }).click();
+  await rail.getByRole("button", { name: "Approval" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await expect(guard).toBeVisible();
   await guard.getByRole("button", { name: "Continue editing" }).click();
-  await expect.poll(() => markdownSourceValue(planEditor)).toContain("workflow inspection guard");
+  await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("workflow inspection guard");
 
   await rail.getByRole("button", { name: "Approval" }).click();
   await expect(page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })).toBeVisible();
