@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="assets/order-logo-plate-dark.svg" alt="Order — Ideas in. Results out." width="640">
+  <img src="assets/order-logo-plate-dark.svg" alt="Order" width="360">
 </h1>
 
 <p align="center">
@@ -7,12 +7,15 @@
 </p>
 
 <p align="center">
-  Order is an open-source software factory that carries software work from idea to verified result.
+  From idea to verified result. Order carries software work through definition,
+  implementation, testing, review, remediation, and independent verification.
 </p>
 
 <p align="center">
+  <img src="https://img.shields.io/badge/software-factory-111A29?style=flat-square" alt="Software factory">
   <a href="https://github.com/pontivus-com/order/actions/workflows/ci.yml"><img src="https://github.com/pontivus-com/order/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/pontivus-com/order/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="Apache-2.0"></a>
+  <img src="https://img.shields.io/badge/Bun-1.4.4-blue?style=flat-square" alt="Bun 1.4.4">
   <img src="https://img.shields.io/badge/platform-Linux%20verified-lightgrey?style=flat-square" alt="Linux verified">
   <img src="https://img.shields.io/badge/status-pre--release-orange?style=flat-square" alt="Pre-release">
   <a href="https://github.com/pontivus-com/order/stargazers"><img src="https://img.shields.io/github/stars/pontivus-com/order?style=flat-square" alt="GitHub stars"></a>
@@ -21,7 +24,6 @@
 <p align="center">
   <a href="#quick-start"><strong>Quick start</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
-  <a href="#see-the-factory"><strong>See the factory</strong></a> ·
   <a href="https://github.com/pontivus-com/order/tree/master/docs"><strong>Docs</strong></a>
 </p>
 
