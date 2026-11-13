@@ -132,7 +132,7 @@ describe("runtime shell", () => {
     const reference = tempDir("order-reference-");
     const workItems = tempDir("pontivus-order-work-items-");
     const config = buildOrderConfig(
-      { providerID: "openai", id: "gpt-5.6" },
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
       [repositories, repositories],
       [reference],
       workItems,
@@ -151,7 +151,7 @@ describe("runtime shell", () => {
     const workItems = tempDir("order-workitems-disjoint-");
 
     expect(() => buildOrderConfig(
-      { providerID: "openai", id: "gpt-5.6" },
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
       [target],
       [reference],
       target,
@@ -160,7 +160,7 @@ describe("runtime shell", () => {
     const nestedReference = join(target, "reference");
     mkdirSync(nestedReference);
     expect(() => buildOrderConfig(
-      { providerID: "openai", id: "gpt-5.6" },
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
       [target],
       [nestedReference],
       workItems,
@@ -169,7 +169,7 @@ describe("runtime shell", () => {
     const stateInsideTarget = join(target, "state");
     mkdirSync(stateInsideTarget);
     const config = buildOrderConfig(
-      { providerID: "openai", id: "gpt-5.6" },
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
       [target],
       [reference],
       workItems,
