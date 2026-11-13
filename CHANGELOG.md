@@ -16,6 +16,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Enforce the 0.2.2 productive-invocation contract at the canonical task/event boundary: local admission failures now have a dedicated typed event shape, signed change surfaces cannot name `AGENTS.md`, and candidate validation independently rejects repository-instruction mutation.
 - Correct the `0.2.1` release history so it describes only work shipped in that version, removes stale `0.2.0` publication residue, and records the complete Settings/account/readiness, repository migration, Source-authoring, workbench and certification scope.
 
 ## [0.2.1] - 2026-11-13

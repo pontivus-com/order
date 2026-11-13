@@ -11,7 +11,33 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { ExecutionTaskSchema } from "../src/core/contracts.ts";
+import { validateChangedPaths } from "../src/daemon/validation.ts";
 import { orderVersion } from "../src/version.ts";
+
+describe("candidate changed-path instruction immutability", () => {
+  const task = ExecutionTaskSchema.parse({
+    id: "task_11111111-1111-4111-8111-111111111111",
+    approvalId: "approval_22222222-2222-4222-8222-222222222222",
+    planTaskId: "T1",
+    objective: "fixture",
+    dependsOn: [],
+    scope: ["**"],
+    exclusions: [],
+    acceptanceRefs: [],
+    changeSurface: ["src/target.ts"],
+    gateIds: ["test"],
+    authorityRefs: [],
+    concernIds: ["shell"],
+    state: "RUNNING",
+  });
+
+  it("rejects AGENTS.md independently before ordinary signed-scope acceptance", () => {
+    expect(validateChangedPaths(task, ["AGENTS.md"])).toMatch(/immutable repository instruction/);
+    expect(validateChangedPaths(task, ["nested/AGENTS.md"])).toMatch(/immutable repository instruction/);
+    expect(validateChangedPaths(task, ["src/target.ts"])).toBeNull();
+  });
+});
 
 const temporary: string[] = [];
 let distOwned = false;
