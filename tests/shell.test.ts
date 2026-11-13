@@ -80,6 +80,89 @@ const initGitRepo = (root: string): string => {
 };
 
 describe("runtime shell", () => {
+  it("initializes fresh installs as valid incomplete v4 without terminal configuration prompts", () => {
+    const home = tempDir("order-setup-home-");
+    const stateRoot = tempDir("order-setup-state-");
+    const output = JSON.parse(bunEval(`
+      const setup = await import("./src/shell/setup.ts");
+      const cfg = await import("./src/shell/config.ts");
+      const stdout = [];
+      let prompts = 0;
+      const code = await setup.runInstallerGuidedSetup(
+        {
+          ...process.env,
+          HOME: ${JSON.stringify(home)},
+          PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(stateRoot)},
+        },
+        (value) => stdout.push(value),
+        async () => {
+          prompts += 1;
+          return "";
+        },
+      );
+      console.log(JSON.stringify({
+        code,
+        prompts,
+        config: cfg.readOrderConfig(${JSON.stringify(stateRoot)}),
+        stdout: stdout.join(""),
+      }));
+    `, process.cwd())) as {
+      code: number;
+      prompts: number;
+      config: unknown;
+      stdout: string;
+    };
+
+    expect(output.code).toBe(0);
+    expect(output.prompts).toBe(0);
+    expect(output.config).toEqual(buildOrderConfig(null, [], []));
+    expect(output.stdout).toContain("complete repository, OpenCode account and model setup in browser Settings");
+  });
+
+  it("retains current incomplete v4 exactly during installer update without prompting", () => {
+    const home = tempDir("order-update-home-");
+    const stateRoot = tempDir("order-update-state-");
+    const referenceRoot = tempDir("order-reference-root-");
+    const config = buildOrderConfig(null, [], [referenceRoot]);
+    writeOrderConfig(stateRoot, config);
+    const before = readOrderConfigState(stateRoot);
+
+    const output = JSON.parse(bunEval(`
+      const setup = await import("./src/shell/setup.ts");
+      const cfg = await import("./src/shell/config.ts");
+      const stdout = [];
+      let prompts = 0;
+      const code = await setup.runInstallerGuidedSetup(
+        {
+          ...process.env,
+          HOME: ${JSON.stringify(home)},
+          PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(stateRoot)},
+        },
+        (value) => stdout.push(value),
+        async () => {
+          prompts += 1;
+          return "";
+        },
+      );
+      console.log(JSON.stringify({
+        code,
+        prompts,
+        state: cfg.readOrderConfigState(${JSON.stringify(stateRoot)}),
+        stdout: stdout.join(""),
+      }));
+    `, process.cwd())) as {
+      code: number;
+      prompts: number;
+      state: unknown;
+      stdout: string;
+    };
+
+    expect(output.code).toBe(0);
+    expect(output.prompts).toBe(0);
+    expect(output.state).toEqual(before);
+    expect(output.stdout).toContain("requires operator action");
+  });
+
   it("resolves state-root precedence exactly and rejects relative configured bases", () => {
     expect(resolveStateRoot({
       PONTIVUS_ORDER_STATE_ROOT: "/explicit",

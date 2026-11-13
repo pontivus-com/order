@@ -1274,3 +1274,193 @@
     flex-direction: column;
   }
 }
+
+
+.order-settings-workspace {
+  min-height: 100%;
+  display: grid;
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
+  background: var(--order-workbench-bg);
+}
+.order-settings-workspace > aside {
+  padding: 1rem;
+  border-right: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+}
+.order-settings-workspace > aside h1,
+.order-settings-workspace > aside p,
+.order-settings-section h2,
+.order-settings-section h3,
+.order-settings-section p {
+  margin: 0;
+}
+.order-settings-workspace > aside p {
+  margin-top: .25rem;
+  color: var(--order-workbench-muted);
+  font-size: .8rem;
+}
+.order-settings-navigation {
+  display: grid;
+  gap: .25rem;
+  margin-top: 1rem;
+}
+.order-settings-navigation button {
+  min-height: 2.2rem;
+  border: 0;
+  border-radius: .35rem;
+  background: transparent;
+  color: var(--order-workbench-text);
+  text-align: left;
+  padding: .4rem .55rem;
+  cursor: pointer;
+}
+.order-settings-navigation button[aria-current="page"] {
+  background: var(--order-workbench-subtle);
+  font-weight: 650;
+}
+.order-settings-workspace > main {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: .85rem;
+  padding: 1rem;
+}
+.order-settings-readiness {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  align-items: center;
+  padding: .7rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-subtle);
+}
+.order-settings-readiness button {
+  border: 0;
+  background: transparent;
+  color: var(--order-workbench-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.order-settings-ready {
+  border-color: color-mix(in srgb, var(--order-workbench-accent) 30%, var(--order-workbench-border));
+}
+.order-settings-section {
+  display: grid;
+  gap: 1rem;
+  max-width: 72rem;
+}
+.order-settings-section > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--order-workbench-border);
+}
+.order-settings-section > header p,
+.order-settings-inline-form > p {
+  margin-top: .25rem;
+  color: var(--order-workbench-muted);
+  font-size: .8rem;
+}
+.order-settings-list {
+  display: grid;
+  gap: .65rem;
+}
+.order-settings-card,
+.order-settings-inline-form {
+  display: grid;
+  gap: .7rem;
+  padding: .8rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+}
+.order-settings-card > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.order-settings-card > div:first-child span {
+  color: var(--order-workbench-muted);
+  font-size: .75rem;
+}
+.order-settings-card dl {
+  display: grid;
+  gap: .3rem;
+  margin: 0;
+}
+.order-settings-card dl div {
+  display: grid;
+  grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+  gap: .75rem;
+}
+.order-settings-card dt {
+  color: var(--order-workbench-muted);
+  font-size: .75rem;
+}
+.order-settings-card dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.order-settings-section label,
+.order-settings-context-selector {
+  display: grid;
+  gap: .3rem;
+  font-size: .8rem;
+  font-weight: 600;
+}
+.order-settings-section input,
+.order-settings-section select,
+.order-settings-section textarea,
+.order-settings-context-selector select {
+  width: 100%;
+  min-height: 2.1rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+  color: var(--order-workbench-text);
+  padding: .35rem .5rem;
+  font: inherit;
+}
+.order-settings-section textarea {
+  resize: vertical;
+}
+.order-setup-required {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  align-items: center;
+  padding: .7rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-subtle);
+}
+.order-setup-required > div {
+  display: grid;
+  gap: .15rem;
+}
+.order-setup-required span {
+  color: var(--order-workbench-muted);
+  font-size: .8rem;
+}
+@media (max-width: 799px) {
+  .order-settings-workspace {
+    grid-template-columns: 1fr;
+  }
+  .order-settings-workspace > aside {
+    border-right: 0;
+    border-bottom: 1px solid var(--order-workbench-border);
+  }
+  .order-settings-navigation {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .order-settings-navigation button {
+    text-align: center;
+  }
+  .order-settings-card > div:first-child,
+  .order-setup-required {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .order-settings-card dl div {
+    grid-template-columns: 1fr;
+    gap: .1rem;
+  }
+}
