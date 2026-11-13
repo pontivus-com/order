@@ -116,16 +116,35 @@ if (mode === "pr") {
     if (!changedFiles.includes("CHANGELOG.md")) {
       fail("ordinary work PRs must update CHANGELOG.md [Unreleased]");
     }
+    const baseChangelog = git("show", `${base}:CHANGELOG.md`) + "\n";
+    const currentUnreleased = sectionBody(changelog, "## [Unreleased]");
+    const baseUnreleased = sectionBody(baseChangelog, "## [Unreleased]");
+    if (
+      currentUnreleased === null ||
+      baseUnreleased === null ||
+      currentUnreleased === baseUnreleased
+    ) {
+      fail("ordinary work PRs must change the CHANGELOG.md [Unreleased] section");
+    }
+
     const body = pullRequestBody();
-    const impact = /SemVer impact:\s*\*\*(patch|minor|major)\*\*/i.exec(body)?.[1];
-    if (impact === undefined) {
+    const impactValue = /SemVer impact:\s*\*\*(patch|minor|major)\*\*/i.exec(body)?.[1]?.toLowerCase();
+    if (
+      impactValue !== "patch" &&
+      impactValue !== "minor" &&
+      impactValue !== "major"
+    ) {
       fail("PR body must declare SemVer impact: **patch|minor|major**");
     }
     const target = /Target release:\s*\*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*/i.exec(body)?.[1];
     if (target === undefined) {
       fail("PR body must declare Target release: **X.Y.Z**");
     }
-    parseVersion(target);
+    const targetVersion = parseVersion(target);
+    const minimum = minimumTargetForImpact(parseVersion(baseVersion), impactValue);
+    if (compareVersions(targetVersion, minimum) < 0) {
+      fail(`target release ${target} is below the minimum ${minimum.join(".")} for ${impactValue} impact`);
+    }
   }
 } else if (mode === "release-commit") {
   const baseVersion = packageVersionFromText(git("show", `${base}:package.json`));
