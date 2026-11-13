@@ -2055,37 +2055,28 @@ describe("daemon control plane", () => {
     expect(readFileSync(join(repository, "docs", "r3.md"), "utf8")).toBe("r3 before\n");
   });
 
-  it("reconciles a pending adopted proposal from repository facts on the next coordinator pass", () => {
+  it("reconciles a pending deterministic-path proposal from repository facts on the next coordinator pass", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-proposal-reconcile-");
-    const workItemRoot = join(repository, "docs", "order", "work-items");
-    mkdirSync(workItemRoot, { recursive: true });
-    writeFileSync(join(repository, "docs", "proposal.md"), "accepted\n");
-    const proposalDiff = spawnSync(
-      "git",
-      ["diff", "--no-index", "--binary", "--", "/dev/null", "docs/proposal.md"],
-      { cwd: repository, encoding: "utf8" },
-    );
-    expect(proposalDiff.status).toBe(1);
-    const diff = proposalDiff.stdout;
-    rmSync(join(repository, "docs", "proposal.md"));
 
-    const output = bunEval(`
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
       const repo = await import("./src/shell/repository.ts");
       const coord = await import("./src/daemon/coordinator.ts");
       const runStore = await import("./src/daemon/run.ts");
 
-      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        ${JSON.stringify(state)},
+        \${JSON.stringify(state)},
         process.env,
         {
           version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [${JSON.stringify(repository)}],
+          repositoryRoots: [\${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -2096,7 +2087,25 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
       });
       sql.promoteIdeaToR1(database, workItem.id);
-      const baseline = await repo.resolveHeadCommit(${JSON.stringify(repository)});
+      const proposalPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      const absoluteProposal = path.join(\${JSON.stringify(repository)}, proposalPath);
+      fs.writeFileSync(absoluteProposal, "accepted\\n");
+      const proposalDiff = Bun.spawnSync(
+        ["git", "diff", "--no-index", "--binary", "--", "/dev/null", proposalPath],
+        {
+          cwd: \${JSON.stringify(repository)},
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      );
+      if (proposalDiff.exitCode !== 1) {
+        throw new TypeError("failed to create proposal diff");
+      }
+      const diff = new TextDecoder().decode(proposalDiff.stdout);
+      fs.rmSync(absoluteProposal);
+
+      const baseline = await repo.resolveHeadCommit(\${JSON.stringify(repository)});
       const run = runStore.insertRun(runtime, {
         id: rt.newRunId(),
         workItemId: workItem.id,
@@ -2116,11 +2125,11 @@ describe("daemon control plane", () => {
       });
       const proposal = runStore.appendRunEvent(runtime, run.id, {
         tag: "ARTIFACT_PROPOSAL_CREATED",
-        targetPath: "docs/proposal.md",
+        targetPath: proposalPath,
         baseSha256: null,
         role: "R1",
         authorityLayer: "P1",
-        unifiedDiff: ${JSON.stringify(diff)},
+        unifiedDiff: diff,
         rationale: "test proposal",
       });
       runStore.appendRunEvent(runtime, run.id, {
@@ -2128,10 +2137,10 @@ describe("daemon control plane", () => {
         proposalEventId: proposal.id,
       });
       await repo.adoptProposalPatch(
-        ${JSON.stringify(repository)},
-        "docs/proposal.md",
+        \${JSON.stringify(repository)},
+        proposalPath,
         null,
-        ${JSON.stringify(diff)},
+        diff,
       );
 
       const tick = await coord.runCoordinatorTick(runtime);
@@ -2142,15 +2151,17 @@ describe("daemon control plane", () => {
       console.log(JSON.stringify({
         tick,
         disposition: disposition?.event ?? null,
-        content: await Bun.file(${JSON.stringify(repository)} + "/docs/proposal.md").text(),
+        content: await Bun.file(absoluteProposal).text(),
         stage: coord.getWorkItem(runtime, workItem.id).stage,
+        proposalPath,
       }));
       database.close();
-    `) as {
+    \`) as {
       tick: { result: string };
       disposition: { tag: string; disposition: string } | null;
       content: string;
       stage: string;
+      proposalPath: string;
     };
 
     expect(output.tick.result).toBe("NO_WORK");
@@ -2158,7 +2169,8 @@ describe("daemon control plane", () => {
       tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
       disposition: "ADOPTED",
     });
-    expect(output.content).toBe("accepted\n");
+    expect(output.content).toBe("accepted\\n");
+    expect(output.proposalPath).toMatch(/\/research\.md$/);
     expect(output.stage).toBe("R1");
   }, 30_000);
 
