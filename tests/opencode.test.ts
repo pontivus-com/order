@@ -751,7 +751,10 @@ describe("OpenCode shell", () => {
             authorityLayer: "P1",
             repositoryPath: "AGENTS.md",
             sha256: (await import("./src/shell/runtime.ts")).sha256(
-              new TextEncoder().encode("# authority\n"),
+              (await import("./src/shell/repository.ts")).readWorkingTreeFile(
+                ${JSON.stringify(workspace)},
+                "AGENTS.md",
+              ),
             ),
           }],
           [],
@@ -874,7 +877,10 @@ describe("OpenCode shell", () => {
             authorityLayer: "P1",
             repositoryPath: "AGENTS.md",
             sha256: (await import("./src/shell/runtime.ts")).sha256(
-              new TextEncoder().encode("# authority\n"),
+              (await import("./src/shell/repository.ts")).readWorkingTreeFile(
+                ${JSON.stringify(workspace)},
+                "AGENTS.md",
+              ),
             ),
           }],
           [],
@@ -976,7 +982,10 @@ describe("OpenCode shell", () => {
             authorityLayer: "P1",
             repositoryPath: "AGENTS.md",
             sha256: (await import("./src/shell/runtime.ts")).sha256(
-              new TextEncoder().encode("# authority\n"),
+              (await import("./src/shell/repository.ts")).readWorkingTreeFile(
+                ${JSON.stringify(workspace)},
+                "AGENTS.md",
+              ),
             ),
           }],
           [],

@@ -506,6 +506,7 @@ const startOpenCodeProviderProcess = async (
   const binary = resolveOpenCodeBinary(sourceEnvironment);
   const password = secureTokenHex();
   const persistentRoot = join(requireAbsoluteStateRoot(stateRoot), "opencode");
+  mkdirSync(persistentRoot, { recursive: true, mode: 0o700 });
   const processRoot = productiveConfig === undefined
     ? undefined
     : mkdtempSync(join(persistentRoot, "productive-"));
