@@ -247,7 +247,7 @@ It validates at minimum:
 
 ### Release verification/publication
 
-Triggered only by the merged release-version change on `master` (or an equivalent exact manual retry bound to the same commit/version).
+Triggered only by the merged release-version change on `master` or an equivalent exact retry bound to the same commit/version. An exact retry may be requested through `workflow_dispatch` or, when dispatch is unavailable, by merging an ordinary governed PR that adds exactly one `.github/release-retries/*.txt` request containing the 40-character release commit SHA; that request invokes the same permanent release workflow and does not create a second release path.
 
 It:
 

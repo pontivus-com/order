@@ -631,8 +631,12 @@ describe("public release delivery certification", () => {
     expect(release).toContain("pontivus-order.tar.gz.sha256");
     expect(release).toContain("git tag -a");
     expect(release).toContain("/releases/");
-    expect(release).toContain('test "$(git rev-parse HEAD)" = "${TARGET_SHA}"');
-    expect(release).toContain('git merge-base --is-ancestor "${TARGET_SHA}" refs/remotes/origin/master');
+    expect(release).toContain(".github/release-retries/**");
+    expect(release).toContain('mapfile -t retry_files');
+    expect(release).toContain('target_sha="$(tr -d');
+    expect(release).toContain('echo "TARGET_SHA=${target_sha}" >> "${GITHUB_ENV}"');
+    expect(release).toContain('test "$(git rev-parse HEAD)" = "${target_sha}"');
+    expect(release).toContain('git merge-base --is-ancestor "${target_sha}" refs/remotes/origin/master');
     expect(release).not.toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
     expect(release).toContain('Accept: application/octet-stream');
     expect(release).toContain('cmp -s "release/${asset}" "${existing_asset}"');

@@ -2003,7 +2003,7 @@ Retain one permanent workflow:
 .github/workflows/release.yml
 ```
 
-Normal trigger is a `master` push whose merged candidate changes the canonical package version. An exact manual retry mode may accept the same immutable commit/version after a failed publication; it must not target a different commit for an existing version.
+Normal trigger is a `master` push whose merged candidate changes the canonical package version. An exact retry may accept the same immutable commit/version after a failed publication; it must not target a different commit for an existing version. Retry admission is either `workflow_dispatch` with the exact commit or a merged governed PR adding exactly one `.github/release-retries/*.txt` request containing that commit. Both enter the same permanent release job and validation chain.
 
 Before any tag/publication effect it:
 
