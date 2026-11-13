@@ -1259,3 +1259,74 @@ Always-visible callouts are reserved for actionable operational states such as:
 **Acceptance criterion:** adding repository/account configuration and workflow/editor controls does not create redundant persistent bands, duplicate context or repeated explanatory panels; primary work surfaces retain the majority of usable viewport space.
 
 **Failure/negative behavior:** screens must not accumulate independently styled headers, breadcrumbs, status strips, helper banners, action bars or technical-data rows when those concerns can be composed into existing shell/control surfaces.
+
+
+## 26. Semantic viewport zoning and reading order (2026-11-13)
+
+Every persistent viewport region has one semantic job. Information is placed according to that job rather than according to whichever component happens to have free space.
+
+For left-to-right Order presentation, the default reading hierarchy is:
+
+```text
+global orientation / current installation context
+↓
+page or WorkItem orientation and local navigation
+↓
+primary task/content
+→ secondary contextual inspection
+↓
+task-local actions / recovery where needed
+```
+
+Horizontal placement follows the same hierarchy:
+
+- **left / leading edge** — where the operator is: navigation, Back, current object/page identity;
+- **centre / primary canvas** — what the operator is reading, editing, reviewing or operating on;
+- **right / trailing context** — supporting context, inspection, secondary evidence/actions that should not interrupt the primary reading flow;
+- **top/global shell** — installation-global current state and entry points, including Settings;
+- **settings navigation region** — application-level configuration categories;
+- **bottom/task-local action region** — actions whose scope is the current document/task when persistent placement is required.
+
+A region must not become a generic dumping ground. For example:
+
+- full account management does not belong in a WorkItem inspector;
+- repository configuration does not belong beside Markdown editing controls;
+- workflow progression does not belong in Settings;
+- document formatting does not belong in the global application header;
+- raw technical diagnostics do not occupy the primary reading path unless they are the selected evidence.
+
+The viewport therefore communicates hierarchy before the user reads labels.
+
+### 26.1 Location stability
+
+The same information class should appear in the same semantic region across states.
+
+When responsive layout collapses a region, its semantic role is preserved in the replacement presentation. A right-side inspector becoming a drawer remains contextual inspection; Settings moving into an application menu remains application-level navigation. Responsive recomposition must not relocate a concern into a semantically different surface merely because space is constrained.
+
+### 26.2 Reading-flow protection
+
+Primary long-form content and active work must not be fragmented by unrelated configuration, diagnostics or repeated context.
+
+Persistent elements above the primary content are limited to what is required to:
+
+1. establish global/page/work-item orientation;
+2. navigate within the current information hierarchy;
+3. expose an immediate blocker or current action that cannot be understood elsewhere.
+
+Everything else belongs beside, behind or outside the primary reading path according to its semantic role.
+
+### GW-FR-096-SEMANTIC-VIEWPORT-ZONING
+
+**Required behavior:** each persistent viewport region has a defined semantic purpose and information is placed consistently according to global orientation, local navigation, primary work, contextual inspection, settings/navigation and task-local action roles.
+
+**Acceptance criterion:** a user can predict where to look for application settings, current object identity, primary document/workflow content, supporting context and task-local actions across queue, WorkItem and Settings states.
+
+**Failure/negative behavior:** controls and information must not migrate between semantically unrelated regions, be duplicated simply to increase visibility, or create ad-hoc bars/rails whose purpose overlaps an existing region.
+
+### GW-FR-097-LOGICAL-READING-FLOW
+
+**Required behavior:** persistent chrome follows a stable logical reading order and protects the primary content path from unrelated configuration, diagnostics and duplicate context.
+
+**Acceptance criterion:** the visual hierarchy establishes where the user is, then what they are doing/reading, then secondary context/actions; long-form Markdown remains the dominant content surface.
+
+**Failure/negative behavior:** settings, technical detail, secondary status or redundant helper content must not interrupt the primary reading flow or consume persistent vertical space without a task-critical reason.
