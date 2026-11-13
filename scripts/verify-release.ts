@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 type Version = readonly [number, number, number];
@@ -16,6 +16,17 @@ const fail = (message: string): never => {
 
 const git = (...args: readonly string[]): string =>
   execFileSync("git", args, { encoding: "utf8" }).trim();
+
+const publishedTagExists = (version: string): boolean => {
+  const result = spawnSync(
+    "git",
+    ["ls-remote", "--exit-code", "--tags", "origin", `refs/tags/v${version}`],
+    { encoding: "utf8" },
+  );
+  if (result.status === 0) return true;
+  if (result.status === 2) return false;
+  fail(`could not determine whether v${version} is already published`);
+};
 
 const parseVersion = (value: string): Version => {
   const match = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.exec(value);
@@ -117,8 +128,20 @@ if (mode === "pr") {
     if (packageVersion !== target) {
       fail("release PR package.json version must equal its branch version");
     }
-    if (compareVersions(parseVersion(packageVersion), parseVersion(baseVersion)) <= 0) {
-      fail("release PR version must be greater than the base version");
+    const versionComparison = compareVersions(parseVersion(packageVersion), parseVersion(baseVersion));
+    if (versionComparison < 0) {
+      fail("release PR version must not be lower than the base version");
+    }
+    if (versionComparison === 0) {
+      if (publishedTagExists(packageVersion)) {
+        fail("published versions cannot be replaced");
+      }
+      const baseChangelog = git("show", `${base}:CHANGELOG.md`) + "\n";
+      const baseUnreleased = sectionBody(baseChangelog, "## [Unreleased]");
+      const currentUnreleased = sectionBody(changelog, "## [Unreleased]");
+      if (baseUnreleased === null || baseUnreleased === "" || currentUnreleased !== "") {
+        fail("unpublished same-version release replacement must move non-empty [Unreleased] content into the release section");
+      }
     }
     if (!releasedSectionExists(packageVersion)) {
       fail("release PR changelog must contain the matching released version section");
@@ -169,8 +192,20 @@ if (mode === "pr") {
   }
 } else if (mode === "release-commit") {
   const baseVersion = packageVersionFromText(git("show", `${base}:package.json`));
-  if (compareVersions(parseVersion(packageVersion), parseVersion(baseVersion)) <= 0) {
-    fail("release commit must increase package.json.version");
+  const versionComparison = compareVersions(parseVersion(packageVersion), parseVersion(baseVersion));
+  if (versionComparison < 0) {
+    fail("release commit must not decrease package.json.version");
+  }
+  if (versionComparison === 0) {
+    if (publishedTagExists(packageVersion)) {
+      fail("published versions cannot be replaced");
+    }
+    const baseChangelog = git("show", `${base}:CHANGELOG.md`) + "\n";
+    const baseUnreleased = sectionBody(baseChangelog, "## [Unreleased]");
+    const currentUnreleased = sectionBody(changelog, "## [Unreleased]");
+    if (baseUnreleased === null || baseUnreleased === "" || currentUnreleased !== "") {
+      fail("unpublished same-version release replacement must move non-empty [Unreleased] content into the release section");
+    }
   }
   if (!releasedSectionExists(packageVersion)) {
     fail("release commit changelog must contain the matching released version section");
