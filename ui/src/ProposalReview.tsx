@@ -14,11 +14,11 @@ import { proposalDispositionFor, type ProposalSelection } from "./workbench-pres
 export const ProposalReview = ({
   workItem,
   selection,
-  onBackToDialogue,
+  onBackToActivity,
 }: Readonly<{
   workItem: WorkItem;
   selection: ProposalSelection;
-  onBackToDialogue: () => void;
+  onBackToActivity: () => void;
 }>) => {
   const queryClient = useQueryClient();
   const eventsQuery = useQuery({
@@ -97,9 +97,9 @@ export const ProposalReview = ({
           <span>{proposalPayload.targetPath}</span>
         </div>
         <WorkbenchAction
-          label="Back to dialogue"
+          label="Back to Activity"
           tone="ghost"
-          onClick={onBackToDialogue}
+          onClick={onBackToActivity}
         />
       </div>
 
