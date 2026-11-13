@@ -108,7 +108,11 @@ export const listWorkItems = (
     .filter((workItem) => runtime.config.repositoryRoots.includes(workItem.repositoryRoot))
     .filter((workItem) => includeArchived || !workItem.archived);
 
-export const createWorkItem = createWorkItemFromSource;
+export const createWorkItem = (
+  runtime: CoordinatorRuntime,
+  input: Parameters<typeof createWorkItemFromSource>[1],
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
+) => createWorkItemFromSource(runtime, input, repositoryRoots);
 
 export const sourceDiagnosticForFailure = sourceDiagnosticForSourceFailure;
 
