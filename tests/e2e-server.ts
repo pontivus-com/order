@@ -401,6 +401,17 @@ const lifecycleEditorItem = workItem(
 storeWorkItem(database, lifecycleEditorItem);
 await seedLifecycle(lifecycleEditorItem);
 
+for (const title of [
+  "Long source editing workbench wide",
+  "Long source editing workbench narrow",
+  "Long lifecycle editing workbench wide",
+  "Long lifecycle editing workbench narrow",
+]) {
+  const item = workItem(title, "AWAITING_SIGNOFF", "ACTIVE", null);
+  storeWorkItem(database, item);
+  await seedLifecycle(item);
+}
+
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);

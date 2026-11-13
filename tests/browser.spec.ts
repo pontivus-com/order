@@ -788,34 +788,40 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await page.getByRole("radio", { name: "Documents" }).click();
     await page.getByTestId("governed-document-nav").getByRole("tab", { name: tabName }).click();
     const reloaded = page.getByLabel(editorName);
-    await expect.poll(() => markdownSourceValue(reloaded)).toContain(marker + " persisted");
+    await expect(reloaded).toBeVisible();
+    await reloaded.evaluate((node) => {
+      const scroller = node.closest(".cm-scroller");
+      if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
+      scroller.scrollTop = scroller.scrollHeight;
+    });
+    await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
     await backToQueue(page);
   };
 
   await exercise(
     1440,
-    "Source editing workbench",
+    "Long source editing workbench wide",
     "Work request",
     "WorkItem source Markdown source",
     "WIDE_SOURCE_FINAL",
   );
   await exercise(
     1440,
-    "Lifecycle editing workbench",
+    "Long lifecycle editing workbench wide",
     "Implementation plan",
     "Implementation plan document Markdown source",
     "WIDE_PLAN_FINAL",
   );
   await exercise(
     700,
-    "Source editing workbench",
+    "Long source editing workbench narrow",
     "Work request",
     "WorkItem source Markdown source",
     "NARROW_SOURCE_FINAL",
   );
   await exercise(
     700,
-    "Lifecycle editing workbench",
+    "Long lifecycle editing workbench narrow",
     "Implementation plan",
     "Implementation plan document Markdown source",
     "NARROW_PLAN_FINAL",
@@ -1178,7 +1184,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect.poll(() => markdownSourceValue(editablePlan)).toContain("saved plan edit");
   await page.getByRole("button", { name: "Context" }).click();
   await expect(page.getByTestId("selected-view-context")).toContainText("Documents details");
-  await expect(page.getByTestId("selected-view-context")).toContainText("implementation-plan.md");
+  await expect(page.getByTestId("selected-view-context")).toContainText("docs/plan.md");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
