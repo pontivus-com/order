@@ -61,6 +61,24 @@ const releasedSectionExists = (version: string): boolean =>
     "m",
   ).test(changelog);
 
+const sectionBody = (text: string, heading: string): string | null => {
+  const marker = heading + "\n";
+  const start = text.indexOf(marker);
+  if (start === -1) return null;
+  const bodyStart = start + marker.length;
+  const next = text.indexOf("\n## [", bodyStart);
+  return text.slice(bodyStart, next === -1 ? text.length : next).trim();
+};
+
+const minimumTargetForImpact = (
+  baseVersion: Version,
+  impact: "patch" | "minor" | "major",
+): Version => {
+  if (impact === "patch") return [baseVersion[0], baseVersion[1], baseVersion[2] + 1] as const;
+  if (impact === "minor") return [baseVersion[0], baseVersion[1] + 1, 0] as const;
+  return [baseVersion[0] + 1, 0, 0] as const;
+};
+
 const pullRequestBody = (): string => {
   const eventPath = process.env.GITHUB_EVENT_PATH;
   if (eventPath === undefined || eventPath === "") return "";
