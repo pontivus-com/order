@@ -40,12 +40,14 @@ jobs:
           git fetch --tags --force origin "+refs/heads/master:refs/remotes/origin/master"
 
           target_sha="${REQUESTED_TARGET_SHA}"
+          release_retry=false
           if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
             git checkout --detach "${GITHUB_SHA}"
             if git diff --quiet HEAD^ HEAD -- package.json; then
               mapfile -t retry_files < <(git diff --name-only --diff-filter=AM HEAD^ HEAD -- '.github/release-retries/*.txt')
               test "${#retry_files[@]}" -eq 1
               target_sha="$(tr -d '\r\n' < "${retry_files[0]}")"
+              release_retry=true
             else
               target_sha="${GITHUB_SHA}"
             fi
@@ -56,6 +58,7 @@ jobs:
           test "$(git rev-parse HEAD)" = "${target_sha}"
           git merge-base --is-ancestor "${target_sha}" refs/remotes/origin/master
           echo "TARGET_SHA=${target_sha}" >> "${GITHUB_ENV}"
+          echo "RELEASE_RETRY=${release_retry}" >> "${GITHUB_ENV}"
 
       - name: Install exact Node and Bun
         shell: bash
@@ -99,7 +102,7 @@ jobs:
           current="$(bun -e 'process.stdout.write(JSON.parse(await Bun.file("package.json").text()).version)')"
           parent="$(git rev-parse HEAD^)"
           previous="$(git show "${parent}:package.json" | bun -e 'let s=""; const d=new TextDecoder(); for await (const c of Bun.stdin.stream()) s+=d.decode(c,{stream:true}); s+=d.decode(); process.stdout.write(JSON.parse(s).version)')"
-          if [[ "${current}" == "${previous}" && "${{ github.event_name }}" != "workflow_dispatch" ]]; then
+          if [[ "${current}" == "${previous}" && "${{ github.event_name }}" != "workflow_dispatch" && "${RELEASE_RETRY}" != "true" ]]; then
             echo "changed=false" >> "${GITHUB_OUTPUT}"
           else
             echo "changed=true" >> "${GITHUB_OUTPUT}"

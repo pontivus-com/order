@@ -10,6 +10,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 - Finalize publication recovery for the first public release from the certified replacement `0.2.0` candidate.
 
+### Fixed
+
+- Ensure repository-triggered exact release retries execute the full publication path even when the certified replacement candidate keeps the same package version as its parent.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
