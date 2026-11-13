@@ -634,6 +634,7 @@ describe("daemon control plane", () => {
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
       const server = await import("./src/daemon/server.ts");
+      const repository = ${JSON.stringify(repository)};
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
