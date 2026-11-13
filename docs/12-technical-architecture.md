@@ -2222,9 +2222,10 @@ Inputs are:
 - current `OrderConfig`;
 - validated connected repository states;
 - configured model preflight facts;
-- current safe `OpenCodeAccountState`.
+- current safe `OpenCodeAccountState`;
+- exact installed-provider effective-instruction isolation capability required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`.
 
-Output is the canonical `InstallationReadiness`.
+Output is the canonical `InstallationReadiness`. A usable account does not imply productive readiness when the active provider/account path can inject semantic instructions that Order cannot disable or completely preflight before inference.
 
 The work queue/workbench may render while readiness is incomplete, but productive actions that require a missing concern are blocked by the owning daemon command as well as reflected in readiness UI.
 
@@ -2344,11 +2345,11 @@ Permanent tests must cover:
 
 #### GW-TR-059-CANONICAL-SETTINGS-READINESS-PROJECTION
 
-**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners.
+**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners plus the exact installed-provider instruction-isolation capability required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`.
 
-**Acceptance criterion:** browser Settings can render repository/document-root/readiness state without reconstructing it from unrelated APIs.
+**Acceptance criterion:** browser Settings can render repository/document-root/readiness state, including `PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE`, without reconstructing it from unrelated APIs or assuming authentication success implies provider governance readiness.
 
-**Failure/negative behavior:** no settings database, browser readiness policy or duplicate repository registry is permitted.
+**Failure/negative behavior:** no settings database, browser readiness policy, duplicate repository registry or browser-owned provider-instruction inference is permitted.
 
 #### GW-TR-060-FOCUSED-REPOSITORY-CONFIG-MUTATION
 
