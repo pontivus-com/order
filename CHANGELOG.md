@@ -9,9 +9,6 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 ### Changed
 
 - Add the canonical Settings/readiness daemon owner with drift-safe repository projection, valid-incomplete v4 daemon boot, focused configuration mutations, and serialized immutable runtime activation/rollback.
-
-### Changed
-
 - Introduce `OrderConfig` v4 with valid incomplete configuration, deterministic v3→v4 migration, persisted config SHA identity, expected-hash replacement, and drift-tolerant stored path reads as the foundation for centralized Settings.
 
 ### Fixed
