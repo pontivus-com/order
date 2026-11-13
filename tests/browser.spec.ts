@@ -516,12 +516,12 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
     .filter({ hasText: "Heading" })
     .first();
 
-  await page.getByLabel("Theme").selectOption("light");
+  await page.getByRole("radio", { name: "Light" }).click();
   await expect(cm).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(gutter).toHaveCSS("background-color", "rgb(248, 250, 252)");
   await expect(headingToken).toHaveCSS("color", "rgb(30, 58, 138)");
 
-  await page.getByLabel("Theme").selectOption("dark");
+  await page.getByRole("radio", { name: "Dark" }).click();
   await expect(cm).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await expect(gutter).toHaveCSS("background-color", "rgb(23, 34, 51)");
   await expect(headingToken).toHaveCSS("color", "rgb(147, 180, 255)");
