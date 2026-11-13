@@ -1047,7 +1047,7 @@ materialRefs = ["AGENTS.md"]
       first: number;
       second: number;
       config: {
-        version: 3;
+        version: 4;
         model: { providerID: string; id: string };
         repositoryRoots: string[];
         referenceRoots: string[];
@@ -1116,7 +1116,7 @@ materialRefs = ["AGENTS.md"]
       code: number;
       created: string[];
       config: {
-        version: 3;
+        version: 4;
         model: { providerID: string; id: string };
         repositoryRoots: string[];
         referenceRoots: string[];
@@ -1142,7 +1142,7 @@ materialRefs = ["AGENTS.md"]
     expect(output.manifest.projectId).toBe(basename(workspace).toLowerCase());
     expect(output.manifest.authority.p1).toEqual(["AGENTS.md"]);
     expect(output.stdout.join("")).toContain("created missing project manifest");
-    expect(output.stdout.join("")).toContain("configuration upgraded to version 3");
+    expect(output.stdout.join("")).toContain("configuration upgraded to version 4");
   });
 
   it("upgrades broad v1 target roots from persisted WorkItem repository evidence", () => {
@@ -1248,7 +1248,7 @@ materialRefs = ["AGENTS.md"]
       code: number;
       cliLegacyError: string | null;
       config: {
-        version: 3;
+        version: 4;
         model: { providerID: string; id: string };
         repositoryRoots: string[];
         referenceRoots: string[];
@@ -1264,7 +1264,7 @@ materialRefs = ["AGENTS.md"]
       repositoryRoots: [workspace],
       referenceRoots: [],
     });
-    expect(output.stdout.join("")).toContain("configuration upgraded to version 3");
+    expect(output.stdout.join("")).toContain("configuration upgraded to version 4");
   });
 
   it("executes provider login through exact standalone argv in the private namespace", () => {
