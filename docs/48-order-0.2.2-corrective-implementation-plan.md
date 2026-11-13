@@ -215,6 +215,7 @@ For 0.2.2:
 - each entry is local/path-based with a concise non-authoritative read-only description;
 - BUILDER/REVIEWER/REMEDIATOR omit external references;
 - do not copy credentials into this configuration;
+- do not inherit OPENCODE_CONFIG, OPENCODE_CONFIG_CONTENT or other OpenCode configuration values from the host environment; the existing runtime environment allowlist remains the ingress boundary and OPENCODE_CONFIG_CONTENT, when present, is only the deterministic Order-generated value;
 - do not add OrderConfig fields for skills or MCPs;
 - do not create an Order skill/MCP registry;
 - ambient project/global/Claude skill/config discovery remains disabled exactly as today.
@@ -678,20 +679,45 @@ The following is the only machine-readable P7 task authority in this document.
         "ui/src/http.ts"
       ],
       "acceptanceRefs": [
+        "GW-FR-030-WORKBENCH-PRIMARY-CANVAS",
+        "GW-FR-031-CONTEXT-INSPECTOR-BOUNDARY",
+        "GW-FR-032-SURFACE-SPACE-FIT",
+        "GW-FR-033-RESPONSIVE-WORKSPACE-CONTINUITY",
+        "GW-FR-034-SEMANTIC-CONTROL-AFFORDANCES",
+        "GW-FR-035-DOCUMENT-REVIEW-READABILITY",
+        "GW-FR-037-WORKBENCH-NAVIGATION-CONTINUITY",
+        "GW-FR-040-UNSAVED-MARKDOWN-NAVIGATION-SAFETY",
+        "GW-FR-041-KEYBOARD-FOCUS-CONTINUITY",
+        "GW-FR-043-INTERACTION-PATTERN-CONSISTENCY",
+        "GW-FR-044-PRIMARY-CANVAS-SPACE-EFFICIENCY",
+        "GW-FR-045-NAVIGATION-CHROME-ECONOMY",
+        "GW-FR-046-SCOPE-LOCAL-CONTROLS",
+        "GW-FR-048-EXECUTION-MASTER-DETAIL-EFFICIENCY",
+        "GW-FR-050-SHARED-ACTION-RESOURCE-GRAMMAR",
         "GW-FR-051-USER-FACING-WORKFLOW-LANGUAGE",
+        "GW-FR-052-WORKFLOW-ORIENTATION",
         "GW-FR-053-ACTIVITY-WORKSPACE",
         "GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY",
         "GW-FR-055-ACTIONABLE-FAILURE-RECOVERY",
+        "GW-FR-056-WORKFLOW-ACTION-PLACEMENT",
         "GW-FR-057-TECHNICAL-DETAILS-BOUNDARY",
         "GW-FR-059-RESPONSIVE-ACTIVITY-CONTINUITY",
+        "GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE",
+        "GW-FR-063-DOCUMENTATION-GIT-STATUS",
+        "GW-FR-064-DOCUMENTATION-GIT-CONTROL-PLACEMENT",
+        "GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR",
+        "GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES",
         "GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS",
         "GW-FR-069-EDITOR-STATE-CONTINUITY",
+        "GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY",
         "GW-FR-083-CURRENT-REPOSITORY-CONTEXT",
         "GW-FR-084-WORKFLOW-STEP-INSPECTION-NAVIGATION",
         "GW-FR-085-WORKBENCH-CHROME-CONSOLIDATION",
         "GW-FR-086-PRIMARY-TECHNICAL-DETAIL-ECONOMY",
+        "GW-FR-089-HUMAN-FIRST-WORKITEM-SOURCE-EDITOR",
         "GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION",
         "GW-FR-094-INFORMATION-PLACEMENT-ECONOMY",
+        "GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS",
         "GW-FR-096-SEMANTIC-VIEWPORT-ZONING",
         "GW-FR-097-LOGICAL-READING-FLOW",
         "GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT",
