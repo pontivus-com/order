@@ -257,10 +257,10 @@ describe("architecture fitness", () => {
           sourcePath + ": productive config.json path access must remain owned by src/shell/config.ts",
         );
       }
-      if (/\b(?:runtime|owner\.current)\.config\s*=/.test(source)) {
+      if (/\b(?:runtime|owner\.current)\.config\s*=(?!=)/.test(source)) {
         violations.push(sourcePath + ": CoordinatorRuntime.config must never be reassigned");
       }
-      if (/\.config\.(?:model|repositoryRoots|referenceRoots)\s*=/.test(source)) {
+      if (/\.config\.(?:model|repositoryRoots|referenceRoots)\s*=(?!=)/.test(source)) {
         violations.push(sourcePath + ": canonical runtime config fields must never be mutated in place");
       }
       if (
