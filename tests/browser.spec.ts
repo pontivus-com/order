@@ -342,7 +342,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
   await expect(context.locator(
-    '[data-testid="document-workspace"], [data-testid="dialogue-workspace"], [data-testid="review-workspace"], [data-testid="execution-workspace"], [data-testid="evidence-workspace"]',
+    '[data-testid="document-workspace"], [data-testid="activity-workspace"], [data-testid="review-workspace"], [data-testid="execution-workspace"], [data-testid="evidence-workspace"]',
   )).toHaveCount(0);
 
   await page.goBack();
@@ -354,7 +354,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await expect(page.getByTestId("work-item-context")).toHaveCount(0);
   await page.getByRole("button", { name: "Context" }).click();
   await expect(page.getByTestId("work-item-context-drawer")).toBeVisible();
-  await expect(page.getByTestId("work-item-context-drawer").locator('[data-testid="dialogue-workspace"]')).toHaveCount(0);
+  await expect(page.getByTestId("work-item-context-drawer").locator('[data-testid="activity-workspace"]')).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("work-item-context-drawer")).toBeHidden();
 
@@ -466,6 +466,60 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   expect(Math.abs(masterBox!.y - detailBox!.y)).toBeLessThan(80);
 });
 
+test("Activity keeps all Run history, human workflow orientation, responsive master-detail, and secondary technical details", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await authenticate(page, request);
+  await openWorkItem(page, "Proposal review");
+
+  await expect(page.getByTestId("workflow-orientation")).toContainText("Implementation plan");
+  await expect(page.getByTestId("workflow-orientation")).toContainText(
+    "Define exactly how the change will be made",
+  );
+  await expect(page.getByTestId("activity-workspace")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Activity" })).toBeChecked();
+
+  const master = page.getByTestId("activity-run-master");
+  const detail = page.getByTestId("activity-detail");
+  const masterBox = await master.boundingBox();
+  const detailBox = await detail.boundingBox();
+  expect(masterBox).not.toBeNull();
+  expect(detailBox).not.toBeNull();
+  expect(masterBox!.width).toBeGreaterThanOrEqual(14 * 16 - 4);
+  expect(masterBox!.width).toBeLessThanOrEqual(18 * 16 + 4);
+  expect(detailBox!.width).toBeGreaterThan(640);
+
+  await expect(detail.getByText("Your input is needed", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Message input")).toBeVisible();
+  await expect(page.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeHidden();
+  const technical = detail.getByText("Technical details", { exact: true }).first();
+  await technical.click();
+  await expect(detail.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeVisible();
+
+  await page.setViewportSize({ width: 1000, height: 800 });
+  await expect(page.getByTestId("work-item-context")).toHaveCount(0);
+  await expect(page.getByTestId("activity-detail")).toBeVisible();
+  const mediumDetail = await page.getByTestId("activity-detail").boundingBox();
+  expect(mediumDetail).not.toBeNull();
+  expect(mediumDetail!.width).toBeGreaterThan(640);
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("activity-detail")).toBeVisible();
+  await expect(page.getByTestId("activity-run-master")).toBeVisible();
+  await expect(page.getByText("Your input is needed", { exact: true })).toBeVisible();
+
+  await backToQueue(page);
+  await openWorkItem(page, "Completed investigation");
+  await expect(page.getByTestId("result-workspace")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Activity" })).toBeVisible();
+  await page.getByRole("radio", { name: "Activity" }).click();
+  await expect(page.getByTestId("activity-workspace")).toBeVisible();
+  await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Workflow step completed", { exact: true })).toBeVisible();
+});
+
 test("persisted proposal disposition is caught by polling and sign-off review remains explicit", async ({
   page,
   request,
@@ -473,13 +527,13 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await authenticate(page, request);
   await openWorkItem(page, "Proposal review");
 
-  await expect(page.getByTestId("dialogue-workspace")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Review proposal" })).toBeVisible();
+  await expect(page.getByTestId("activity-workspace")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Review proposed document change" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
   await expect(page.getByLabel("Message input")).toBeVisible();
 
-  await page.getByRole("button", { name: "Review proposal" }).click();
+  await page.getByRole("button", { name: "Review proposed document change" }).click();
   const proposalReview = page.getByTestId("proposal-review-workspace");
   const proposalDiff = page.getByTestId("proposal-review-diff");
   await expect(proposalReview).toBeVisible();
@@ -587,7 +641,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
     "saved through browser workbench",
   );
 
-  await expect(page.getByTestId("work-item-context").getByText("R1", { exact: true }).first()).toBeVisible();
+  await expect(page.getByTestId("work-item-context").getByText("Research", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 
   await page.getByTestId("governed-document-nav")
@@ -746,8 +800,8 @@ test("candidate surface exposes task, V0-V7, exact evidence bytes, and never exe
   await openWorkItem(page, "Verified candidate");
 
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  await page.getByRole("button", { name: /REVIEWER #1/ }).click();
-  await expect(page.getByText("CANDIDATE_DONE", { exact: true }).first()).toBeVisible();
+  await page.getByRole("button", { name: /Independent review · Attempt 1/ }).click();
+  await expect(page.getByText("Verified candidate recorded", { exact: true }).first()).toBeVisible();
   await expect(page.getByTestId("execution-task-detail").getByText("T1", { exact: true })).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
 
