@@ -633,8 +633,9 @@ describe("public release delivery certification", () => {
     expect(release).toContain("pontivus-order.tar.gz.sha256");
     expect(release).toContain("git tag -a");
     expect(release).toContain("/releases/");
-    expect(release).toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
-    expect(release).not.toContain("git merge-base --is-ancestor");
+    expect(release).toContain('test "$(git rev-parse HEAD)" = "${TARGET_SHA}"');
+    expect(release).toContain('git merge-base --is-ancestor "${TARGET_SHA}" refs/remotes/origin/master');
+    expect(release).not.toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
     expect(release).toContain('Accept: application/octet-stream');
     expect(release).toContain('cmp -s "release/${asset}" "${existing_asset}"');
     expect(release).not.toContain("uses:");
