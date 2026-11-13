@@ -395,6 +395,46 @@ describe("Order cross-boundary certification", () => {
     expect(sqlite).not.toContain("telemetry");
   });
 
+  it("certifies one owner per P7 cross-boundary concern with no browser-side semantic duplication", () => {
+    const documentWorkspace = read("ui/src/DocumentWorkspace.tsx");
+    const accountControl = read("ui/src/OpenCodeAccountControl.tsx");
+    const markdownSource = read("ui/src/MarkdownSourceEditor.tsx");
+    const contracts = read("src/core/contracts.ts");
+    const server = read("src/daemon/server.ts");
+    const run = read("src/daemon/run.ts");
+    const sqlite = read("src/shell/sqlite.ts");
+
+    expect(documentWorkspace).toContain("api.getWorkItemDocumentationGitStatus");
+    expect(documentWorkspace).toContain("api.commitWorkItemDocumentation");
+    expect(documentWorkspace).not.toMatch(/spawnSync|execFile|git\s+(?:add|commit|status)/);
+
+    expect(accountControl).toContain("useQuery");
+    expect(accountControl).toContain("useMutation");
+    expect(accountControl).toContain("api.activateOpenCodeAccount");
+    expect(accountControl).toContain("api.renameOpenCodeAccount");
+    expect(accountControl).toContain("api.startOpenCodeAccountLogin");
+    expect(accountControl).not.toContain("localStorage");
+    expect(accountControl).not.toContain("sessionStorage");
+    expect(accountControl).not.toContain("providerID");
+    expect(accountControl).not.toContain("updateOrderConfig");
+
+    expect(markdownSource).toContain("EditorView");
+    expect(markdownSource).toContain("EditorState");
+    expect(markdownSource).not.toContain("<textarea");
+
+    expect(contracts).toContain("OrderHttpErrorSchema");
+    expect(server).toContain("classifyHttpFailure");
+    expect(server).toContain("OrderHttpErrorSchema.parse");
+
+    expect(run).toContain("recordProviderDiagnostics");
+    expect(run).toContain("writeRunEvidence(");
+    expect(run).toContain('tag: "PROVIDER_DIAGNOSTICS_RECORDED"');
+
+    expect(sqlite).not.toContain("openCodeAccount");
+    expect(sqlite).not.toContain("opencodeAccount");
+    expect(sqlite).not.toContain("credentialSecret");
+  });
+
   it("keeps the one-command productive installer purpose-built and bootstrap-only", () => {
     const bootstrap = read("install.sh");
     const installer = read("src/installer.ts");
