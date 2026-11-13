@@ -22,7 +22,6 @@ import {
   writeOrderConfig,
   writeOrderConfigExpected,
 } from "../src/shell/config.ts";
-import { runInstallerGuidedSetup } from "../src/shell/setup.ts";
 import {
   filesystemTypeIsSupported,
   loadOrCreateDaemonToken,
@@ -81,57 +80,87 @@ const initGitRepo = (root: string): string => {
 };
 
 describe("runtime shell", () => {
-  it("initializes fresh installs as valid incomplete v4 without terminal configuration prompts", async () => {
+  it("initializes fresh installs as valid incomplete v4 without terminal configuration prompts", () => {
     const home = tempDir("order-setup-home-");
     const stateRoot = tempDir("order-setup-state-");
-    const output: string[] = [];
-    let prompts = 0;
+    const output = JSON.parse(bunEval(`
+      const setup = await import("./src/shell/setup.ts");
+      const cfg = await import("./src/shell/config.ts");
+      const stdout = [];
+      let prompts = 0;
+      const code = await setup.runInstallerGuidedSetup(
+        {
+          ...process.env,
+          HOME: ${JSON.stringify(home)},
+          PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(stateRoot)},
+        },
+        (value) => stdout.push(value),
+        async () => {
+          prompts += 1;
+          return "";
+        },
+      );
+      console.log(JSON.stringify({
+        code,
+        prompts,
+        config: cfg.readOrderConfig(${JSON.stringify(stateRoot)}),
+        stdout: stdout.join(""),
+      }));
+    `, process.cwd())) as {
+      code: number;
+      prompts: number;
+      config: unknown;
+      stdout: string;
+    };
 
-    const code = await runInstallerGuidedSetup(
-      {
-        ...process.env,
-        HOME: home,
-        PONTIVUS_ORDER_STATE_ROOT: stateRoot,
-      },
-      (value) => output.push(value),
-      async () => {
-        prompts += 1;
-        return "";
-      },
-    );
-
-    expect(code).toBe(0);
-    expect(prompts).toBe(0);
-    expect(readOrderConfig(stateRoot)).toEqual(buildOrderConfig(null, [], []));
-    expect(output.join("")).toContain("complete repository, OpenCode account and model setup in browser Settings");
+    expect(output.code).toBe(0);
+    expect(output.prompts).toBe(0);
+    expect(output.config).toEqual(buildOrderConfig(null, [], []));
+    expect(output.stdout).toContain("complete repository, OpenCode account and model setup in browser Settings");
   });
 
-  it("retains current incomplete v4 exactly during installer update without prompting", async () => {
+  it("retains current incomplete v4 exactly during installer update without prompting", () => {
     const home = tempDir("order-update-home-");
     const stateRoot = tempDir("order-update-state-");
-    const config = buildOrderConfig(null, [], ["/reference/retained"]);
+    const referenceRoot = tempDir("order-reference-root-");
+    const config = buildOrderConfig(null, [], [referenceRoot]);
     writeOrderConfig(stateRoot, config);
     const before = readOrderConfigState(stateRoot);
-    const output: string[] = [];
-    let prompts = 0;
 
-    const code = await runInstallerGuidedSetup(
-      {
-        ...process.env,
-        HOME: home,
-        PONTIVUS_ORDER_STATE_ROOT: stateRoot,
-      },
-      (value) => output.push(value),
-      async () => {
-        prompts += 1;
-        return "";
-      },
-    );
+    const output = JSON.parse(bunEval(`
+      const setup = await import("./src/shell/setup.ts");
+      const cfg = await import("./src/shell/config.ts");
+      const stdout = [];
+      let prompts = 0;
+      const code = await setup.runInstallerGuidedSetup(
+        {
+          ...process.env,
+          HOME: ${JSON.stringify(home)},
+          PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(stateRoot)},
+        },
+        (value) => stdout.push(value),
+        async () => {
+          prompts += 1;
+          return "";
+        },
+      );
+      console.log(JSON.stringify({
+        code,
+        prompts,
+        state: cfg.readOrderConfigState(${JSON.stringify(stateRoot)}),
+        stdout: stdout.join(""),
+      }));
+    `, process.cwd())) as {
+      code: number;
+      prompts: number;
+      state: unknown;
+      stdout: string;
+    };
 
-    expect(code).toBe(0);
-    expect(prompts).toBe(0);
-    expect(readOrderConfigState(stateRoot)).toEqual(before);
-    expect(output.join("")).toContain("requires operator action");
+    expect(output.code).toBe(0);
+    expect(output.prompts).toBe(0);
+    expect(output.state).toEqual(before);
+    expect(output.stdout).toContain("requires operator action");
   });
 
   it("resolves state-root precedence exactly and rejects relative configured bases", () => {
