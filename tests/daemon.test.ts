@@ -141,12 +141,14 @@ const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
 const sessions = new Map();
 let nextSession = 0;
 let nextAssistant = 0;
-let accountConnections = [{
-  type: "credential",
-  id: "credential_fixture",
-  method: "oauth",
-  label: "fixture@example.com",
-}];
+let accountConnections = existsSync(join(own, "account-removed"))
+  ? []
+  : [{
+      type: "credential",
+      id: "credential_fixture",
+      method: "oauth",
+      label: "fixture@example.com",
+    }];
 
 const json = (value, status = 200) =>
   new Response(JSON.stringify(value), {
@@ -183,6 +185,7 @@ const server = Bun.serve({
       const index = accountConnections.findIndex((connection) => connection.id === id);
       if (index < 0) return json({ message: "credential not found" }, 404);
       accountConnections.splice(index, 1);
+      writeFileSync(join(own, "account-removed"), "removed");
       return new Response(null, { status: 204 });
     }
     if (request.method === "GET" && url.pathname === "/api/model") {
