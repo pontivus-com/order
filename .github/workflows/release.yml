@@ -153,8 +153,8 @@ jobs:
             "${api}/releases/tags/${tag}")"
 
           if [[ "${code}" == "404" ]]; then
-            bun -e 'const body=await Bun.file("release/release-notes.md").text(); await Bun.write(process.argv[2], JSON.stringify({tag_name:process.argv[3],target_commitish:process.argv[4],name:process.argv[3],body,draft:true,prerelease:false}));' \
-              "${RUNNER_TEMP}/create-release.json" "${tag}" "${TARGET_SHA}"
+            CREATE_RELEASE_JSON="${RUNNER_TEMP}/create-release.json" RELEASE_TAG="${tag}" RELEASE_SHA="${TARGET_SHA}" \
+              bun -e 'const body=await Bun.file("release/release-notes.md").text(); const tag=process.env.RELEASE_TAG; await Bun.write(process.env.CREATE_RELEASE_JSON, JSON.stringify({tag_name:tag,target_commitish:process.env.RELEASE_SHA,name:tag,body,draft:true,prerelease:false}));'
             curl -fsS -H "${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
               -H "Content-Type: application/vnd.github+json" \
               -d @"${RUNNER_TEMP}/create-release.json" "${api}/releases" > "${RUNNER_TEMP}/release.json"
@@ -165,14 +165,14 @@ jobs:
             exit 1
           fi
 
-          release_id="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); process.stdout.write(String(r.id));' "${RUNNER_TEMP}/release.json")"
-          is_draft="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); process.stdout.write(String(r.draft));' "${RUNNER_TEMP}/release.json")"
+          release_id="$(RELEASE_JSON="${RUNNER_TEMP}/release.json" bun -e 'const r=JSON.parse(await Bun.file(process.env.RELEASE_JSON).text()); process.stdout.write(String(r.id));')"
+          is_draft="$(RELEASE_JSON="${RUNNER_TEMP}/release.json" bun -e 'const r=JSON.parse(await Bun.file(process.env.RELEASE_JSON).text()); process.stdout.write(String(r.draft));')"
           if [[ "${is_draft}" != "true" ]]; then
             exit 0
           fi
 
           for asset in pontivus-order.tar.gz pontivus-order.tar.gz.sha256; do
-            existing_size="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); const a=(r.assets??[]).find(x=>x.name===process.argv[3]); process.stdout.write(a?String(a.size):"");' "${RUNNER_TEMP}/release.json" "${asset}")"
+            existing_size="$(RELEASE_JSON="${RUNNER_TEMP}/release.json" ASSET_NAME="${asset}" bun -e 'const r=JSON.parse(await Bun.file(process.env.RELEASE_JSON).text()); const a=(r.assets??[]).find(x=>x.name===process.env.ASSET_NAME); process.stdout.write(a?String(a.size):"");')"
             actual_size="$(stat -c %s "release/${asset}")"
             if [[ -n "${existing_size}" ]]; then
               test "${existing_size}" = "${actual_size}"
