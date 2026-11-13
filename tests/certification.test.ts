@@ -495,7 +495,15 @@ describe("public release delivery certification", () => {
     expect(release).toContain("pontivus-order.tar.gz.sha256");
     expect(release).toContain("git tag -a");
     expect(release).toContain("/releases/");
+    expect(release).toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
+    expect(release).not.toContain("git merge-base --is-ancestor");
+    expect(release).toContain('Accept: application/octet-stream');
+    expect(release).toContain('cmp -s "release/${asset}" "${existing_asset}"');
     expect(release).not.toContain("uses:");
+
+    const browserHarness = read("tests/e2e-server.ts");
+    expect(browserHarness).toContain('providerID: "opencode", id: "glm-5.3-flash-free"');
+    expect(browserHarness).not.toContain('id: "gpt-5.6"');
 
     expect(read("scripts/verify-release.ts")).toContain(
       "ordinary work PRs must not change package.json.version",
