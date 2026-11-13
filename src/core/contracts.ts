@@ -251,15 +251,6 @@ export const SetWorkItemArchivedSchema = z.strictObject({
   archived: z.boolean(),
 });
 
-export const StableHttpErrorCodeSchema = z.string()
-  .regex(/^[A-Z][A-Z0-9_]*$/);
-
-export const OrderHttpErrorSchema = z.strictObject({
-  code: StableHttpErrorCodeSchema,
-  message: z.string().min(1),
-  sourceDiagnostic: WorkItemSourceDiagnosticSchema.nullable(),
-});
-
 export const WorkItemDocumentGitStateSchema = z.enum([
   "MATCHES_HEAD",
   "MODIFIED",
@@ -345,6 +336,15 @@ export const WorkItemSourceDiagnosticSchema = z.strictObject({
   workItemId: WorkItemIdSchema.nullable(),
   code: WorkItemSourceDiagnosticCodeSchema,
   detail: z.string().min(1),
+});
+
+export const StableHttpErrorCodeSchema = z.string()
+  .regex(/^[A-Z][A-Z0-9_]*$/);
+
+export const OrderHttpErrorSchema = z.strictObject({
+  code: StableHttpErrorCodeSchema,
+  message: z.string().min(1),
+  sourceDiagnostic: WorkItemSourceDiagnosticSchema.nullable(),
 });
 
 export const WorkItemSourceReconciliationSchema = z.strictObject({
