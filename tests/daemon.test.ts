@@ -2781,6 +2781,39 @@ describe("daemon control plane", () => {
       const architectureGatePasses = finalEvents.filter((event) =>
         event.event.tag === "GATE_PASSED" && event.event.gateId === "architecture"
       ).length;
+      const providerDiagnostics = runs.flatMap((run) =>
+        runEvents[run.id]
+          .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+          .flatMap((event) =>
+            event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED"
+              ? event.event.evidence
+                  .filter((ref) => ref.relativePath.endsWith("/diagnostic.json"))
+                  .map((ref) =>
+                    JSON.parse(new TextDecoder().decode(
+                      rt.readRunEvidenceBytes(runtime.stateRoot, run.id, ref.relativePath),
+                    ))
+                  )
+              : []
+          )
+      );
+      const diagnosticsBeforeProviderEvents = runs.every((run) => {
+        const events = runEvents[run.id];
+        const diagnosticIndex = events.findIndex(
+          (event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED",
+        );
+        const providerEventIndex = events.findIndex((event) =>
+          [
+            "AGENT_MESSAGE_FINAL",
+            "REVIEW_PASSED",
+            "REVIEW_FAILED",
+            "TASK_ALREADY_SATISFIED",
+            "STAGE_BLOCKED",
+          ].includes(event.event.tag)
+        );
+        return diagnosticIndex >= 0 &&
+          providerEventIndex >= 0 &&
+          diagnosticIndex < providerEventIndex;
+      });
       console.log(JSON.stringify({
         tick,
         workItem,
@@ -2800,6 +2833,8 @@ describe("daemon control plane", () => {
         passes,
         reviewPassBeforeV4: reviewPassIndex >= 0 && reviewPassIndex < v4Index,
         architectureGatePasses,
+        providerDiagnostics,
+        diagnosticsBeforeProviderEvents,
         remediationCount: runs.filter((run) => run.role === "REMEDIATOR").length,
       }));
       database.close();
@@ -2813,6 +2848,18 @@ describe("daemon control plane", () => {
       passes: string[];
       reviewPassBeforeV4: boolean;
       architectureGatePasses: number;
+      providerDiagnostics: Array<{
+        providerId: string;
+        modelId: string;
+        providerSessionId: string;
+        promptId: string;
+        outcome: string;
+        formatRepairAttempted: boolean;
+        formatRepairSucceeded: boolean | null;
+        failurePhase: string | null;
+        exceptionMessage: string | null;
+      }>;
+      diagnosticsBeforeProviderEvents: boolean;
       remediationCount: number;
     };
 
@@ -2829,6 +2876,15 @@ describe("daemon control plane", () => {
     expect(output.passes).toEqual(["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]);
     expect(output.reviewPassBeforeV4).toBe(true);
     expect(output.architectureGatePasses).toBe(1);
+    expect(output.providerDiagnostics).toHaveLength(4);
+    expect(output.providerDiagnostics.every((record) =>
+      record.providerId === "opencode" &&
+      record.modelId === "glm-5.3-flash-free" &&
+      record.outcome === "SUCCEEDED" &&
+      record.failurePhase === null &&
+      record.exceptionMessage === null
+    )).toBe(true);
+    expect(output.diagnosticsBeforeProviderEvents).toBe(true);
   }, 30_000);
 
   it("classifies a failed V5 governance fitness gate as GOVERNANCE_BREACH", () => {
