@@ -1,6 +1,7 @@
 import type {
   ArtifactRefId,
   EvidencePath,
+  OpenCodeAccountLoginAttemptId,
   RunId,
   WorkItemId,
 } from "../../src/core/contracts.ts";
@@ -12,6 +13,7 @@ export const workbenchQueryKeys = {
   workItemSourceDiagnostics: ["workItemSourceDiagnostics"] as const,
   workItemSourceRoot: ["workItemSource"] as const,
   workItemDocumentationGitStatusRoot: ["workItemDocumentationGitStatus"] as const,
+  openCodeAccountState: ["openCodeAccountState"] as const,
   lifecycleArtifactsRoot: ["lifecycleArtifacts"] as const,
   signoffPackageRoot: ["signoffPackage"] as const,
   runEventsRoot: ["runEvents"] as const,
@@ -21,6 +23,8 @@ export const workbenchQueryKeys = {
   workItemDocumentationGitStatus: (workItemId: WorkItemId) =>
     ["workItemDocumentationGitStatus", workItemId] as const,
   workItemsIncludingArchived: ["workItems", "includeArchived"] as const,
+  openCodeAccountLogin: (attemptId: OpenCodeAccountLoginAttemptId | null) =>
+    ["openCodeAccountLogin", attemptId] as const,
   lifecycleArtifacts: (workItemId: WorkItemId) =>
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>
