@@ -155,7 +155,7 @@ export const runEventPresentation = (
     case "CONFORMANCE_FAILED":
       return { label: "Conformance check failed", detail: payload.summary, tone: "error" };
     case "PROVIDER_DIAGNOSTICS_RECORDED":
-      return { label: "Technical diagnostics recorded", detail: "Provider diagnostics are available as evidence.", tone: "neutral" };
+      return { label: "Technical diagnostics recorded", detail: "Provider diagnostic evidence is available.", tone: "neutral" };
     case "PROVIDER_FAILED":
       return { label: "Agent execution failed", detail: payload.detail, tone: "error" };
     case "GATE_PASSED":
