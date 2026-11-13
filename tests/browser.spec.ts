@@ -304,12 +304,18 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
       return;
     }
 
-    if (path === "/api/opencode/accounts/cred_gamma" && method === "DELETE") {
+    const removeMatch = /^\/api\/opencode\/accounts\/([^/]+)$/.exec(path);
+    if (removeMatch !== null && method === "DELETE") {
       const body = requestForRoute.postDataJSON() as { expectedActiveAccountId?: unknown };
-      expect(body.expectedActiveAccountId).toBe("cred_beta");
+      expect(body.expectedActiveAccountId).toBe(state.activeAccountId);
+      const accountId = removeMatch[1]!;
+      const removingActive = state.activeAccountId === accountId;
       state = OpenCodeAccountStateSchema.parse({
         ...state,
-        accounts: state.accounts.filter((account) => account.id !== "cred_gamma"),
+        accounts: state.accounts
+          .filter((account) => account.id !== accountId)
+          .map((account) => removingActive ? { ...account, active: false } : account),
+        activeAccountId: removingActive ? null : state.activeAccountId,
       });
       await fulfillJson(state);
       return;
@@ -415,6 +421,19 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
   await expect(attempt).toContainText("OpenCode sign-in complete.");
   await attempt.getByRole("button", { name: "Done" }).click();
   await expect(trigger).toContainText("delta@example.com");
+
+  await panel.getByRole("button", { name: "Remove delta@example.com" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Remove account" }).click();
+  await expect(trigger).toContainText("No account");
+
+  await panel.getByRole("button", { name: "Remove beta+renamed@example.com" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Remove account" }).click();
+  await expect(panel).not.toContainText("beta+renamed@example.com");
+
+  await panel.getByRole("button", { name: "Remove alpha@example.com" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Remove account" }).click();
+  await expect(panel).toContainText("No saved OpenCode accounts.");
+  await expect(trigger).toContainText("No account");
 
   state = OpenCodeAccountStateSchema.parse({
     ...state,

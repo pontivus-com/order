@@ -937,6 +937,49 @@ describe("architecture fitness", () => {
     expect(violations).toEqual([]);
   });
 
+  it("locks the 0.2.1 Settings, source-authoring and workbench owner boundaries", () => {
+    const runtime = sourceText("src/daemon/runtime.ts");
+    const config = sourceText("src/shell/config.ts");
+    const projectConfig = sourceText("src/shell/project-config.ts");
+    const accountUtility = sourceText("ui/src/OpenCodeAccountControl.tsx");
+    const accountSettings = sourceText("ui/src/OpenCodeAccountSettings.tsx");
+    const documentWorkspace = sourceText("ui/src/DocumentWorkspace.tsx");
+    const application = sourceText("ui/src/app.tsx");
+    const theme = sourceText("ui/src/theme.css");
+
+    expect(runtime).toContain("readonly config: OrderConfig");
+    expect(config).toContain("export const writeOrderConfig");
+    expect(config).toContain("export const writeOrderConfigExpected");
+
+    expect(projectConfig).toContain("mutateWorkItemsRootText");
+    expect(projectConfig).toContain("activateWorkItemsRootManifest");
+    expect(projectConfig).toContain("rollbackWorkItemsRootMigration");
+
+    expect(accountUtility).toContain("useQuery");
+    expect(accountUtility).not.toContain("useMutation");
+    expect(accountUtility).not.toContain("api.activateOpenCodeAccount");
+    expect(accountUtility).not.toContain("api.renameOpenCodeAccount");
+    expect(accountUtility).not.toContain("api.removeOpenCodeAccount");
+    for (const requiredMutation of [
+      "api.activateOpenCodeAccount",
+      "api.renameOpenCodeAccount",
+      "api.removeOpenCodeAccount",
+      "api.startOpenCodeAccountLogin",
+    ]) {
+      expect(accountSettings).toContain(requiredMutation);
+    }
+
+    expect(documentWorkspace).not.toContain("parseWorkItemSourceMarkdown");
+    expect(documentWorkspace).not.toContain("recomposeWorkItemSourceBody");
+    expect(documentWorkspace).toContain("api.saveWorkItemSourceBody");
+
+    expect(application).not.toMatch(/<select[^>]*aria-label=["']Theme["']/);
+    expect(theme).not.toContain("order-theme-control select");
+    expect(theme).not.toContain("order-workflow-orientation");
+    expect(theme).not.toContain("order-document-state-strip");
+    expect(theme).not.toContain("order-editor-actionbar");
+  });
+
   it("enforces canonical documentation concern ownership and identifier references", () => {
     const violations: string[] = [];
     const docsDirectory = join(repositoryRoot, "docs");
