@@ -168,7 +168,7 @@ git("config", "user.name", "Order browser certification");
 git("config", "user.email", "order-e2e@example.invalid");
 git("add", ".");
 git("commit", "-q", "-m", "browser fixture");
-const baselineCommit = await resolveHeadCommit(repositoryRoot);
+let baselineCommit = await resolveHeadCommit(repositoryRoot);
 
 const build = Bun.spawnSync(
   ["node", "node_modules/vite/bin/vite.js", "build"],
@@ -400,6 +400,10 @@ const lifecycleEditorItem = workItem(
 );
 storeWorkItem(database, lifecycleEditorItem);
 await seedLifecycle(lifecycleEditorItem);
+
+git("add", "--", workItemsRoot);
+git("commit", "-q", "-m", "browser WorkItem sources");
+baselineCommit = await resolveHeadCommit(repositoryRoot);
 
 const invalidLifecycleItem = workItem(
   "Invalid lifecycle Markdown",
