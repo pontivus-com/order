@@ -51,7 +51,7 @@ const importSpecifiers = (source: string): readonly string[] => {
   return specifiers;
 };
 
-type Layer = "core" | "shell" | "daemon" | "cli" | "installer" | "ui" | "other";
+type Layer = "core" | "shell" | "daemon" | "cli" | "installer" | "version" | "ui" | "other";
 
 const layerOf = (path: string): Layer => {
   if (path.startsWith("src/core/")) return "core";
@@ -59,6 +59,7 @@ const layerOf = (path: string): Layer => {
   if (path.startsWith("src/daemon/")) return "daemon";
   if (path === "src/cli.ts") return "cli";
   if (path === "src/installer.ts") return "installer";
+  if (path === "src/version.ts") return "version";
   if (path.startsWith("ui/src/")) return "ui";
   return "other";
 };
@@ -98,6 +99,18 @@ describe("architecture fitness", () => {
           continue;
         }
         const targetLayer = layerOf(targetPath);
+
+        if (
+          targetLayer === "version" &&
+          sourceLayer !== "version" &&
+          sourceLayer !== "cli" &&
+          sourceLayer !== "daemon"
+        ) {
+          violations.push(`${sourcePath} -> ${targetPath}: package version may be consumed only by CLI/daemon`);
+        }
+        if (sourceLayer === "version" && targetLayer !== "other") {
+          violations.push(`${sourcePath} -> ${targetPath}: version owner may depend only on package metadata`);
+        }
 
         if (sourceLayer === "core" && targetLayer !== "core" && targetLayer !== "other") {
           violations.push(`${sourcePath} -> ${targetPath}: core may not depend on ${targetLayer}`);
