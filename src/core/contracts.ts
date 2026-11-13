@@ -107,7 +107,7 @@ export const LegacyPredecessorConfigV1Schema = z.strictObject({
     .readonly(),
 });
 
-export const OrderConfigSchema = z.strictObject({
+export const LegacyOrderConfigV2Schema = z.strictObject({
   version: z.literal(2),
   model: OpenCodeModelRefSchema,
   repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
@@ -118,6 +118,18 @@ export const OrderConfigSchema = z.strictObject({
     .refine(unique, "referenceRoots must be unique")
     .readonly(),
   workItemRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const OrderConfigSchema = z.strictObject({
+  version: z.literal(3),
+  model: OpenCodeModelRefSchema,
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
 });
 const UnifiedDiffSchema = z.string().min(1).refine(
   (value) => value.endsWith("\n"),
@@ -143,6 +155,7 @@ export type IsoDateTime = z.infer<typeof IsoDateTimeSchema>;
 export type EvidencePath = z.infer<typeof EvidencePathSchema>;
 export type OpenCodeModelRef = Readonly<z.infer<typeof OpenCodeModelRefSchema>>;
 export type LegacyPredecessorConfigV1 = Readonly<z.infer<typeof LegacyPredecessorConfigV1Schema>>;
+export type LegacyOrderConfigV2 = Readonly<z.infer<typeof LegacyOrderConfigV2Schema>>;
 export type OrderConfig = Readonly<z.infer<typeof OrderConfigSchema>>;
 export type WorkItemId = z.infer<typeof WorkItemIdSchema>;
 export type ArtifactRefId = z.infer<typeof ArtifactRefIdSchema>;
@@ -254,6 +267,7 @@ export const WorkItemSourceDiagnosticCodeSchema = z.enum([
 ]);
 
 export const WorkItemSourceDiagnosticSchema = z.strictObject({
+  projectId: ProjectIdSchema,
   path: WorkItemSourcePathSchema.nullable(),
   workItemId: WorkItemIdSchema.nullable(),
   code: WorkItemSourceDiagnosticCodeSchema,
@@ -263,7 +277,6 @@ export const WorkItemSourceDiagnosticSchema = z.strictObject({
 export const WorkItemSourceReconciliationSchema = z.strictObject({
   registered: z.array(WorkItemIdSchema).readonly(),
   updated: z.array(WorkItemIdSchema).readonly(),
-  moved: z.array(WorkItemIdSchema).readonly(),
   unchanged: z.array(WorkItemIdSchema).readonly(),
   diagnostics: z.array(WorkItemSourceDiagnosticSchema).readonly(),
 });
@@ -806,6 +819,15 @@ const VerificationSchema = z.strictObject({
   materialRefs: z.array(RepositoryPatternSchema).readonly(),
 });
 
+const ProjectWorkItemsRootSchema = RepositoryPathSchema.refine(
+  (value) => value !== "." && value !== ".git" && !value.startsWith(".git/"),
+  "workItems.root must be a repository-contained non-Git directory",
+);
+
+export const ProjectWorkItemsSchema = z.strictObject({
+  root: ProjectWorkItemsRootSchema.default("docs/order/work-items"),
+});
+
 export const ProjectManifestSchema = z
   .strictObject({
     version: z.literal(1),
@@ -823,6 +845,8 @@ export const ProjectManifestSchema = z
       .default({ overrides: [], extensions: [], fitness: {} }),
     concerns: z.record(ConcernIdSchema, ConcernSchema).optional().default({}),
     verification: z.record(GateIdSchema, VerificationSchema).optional().default({}),
+    workItems: ProjectWorkItemsSchema.optional()
+      .default({ root: "docs/order/work-items" }),
   })
   .superRefine((value, ctx) => {
     const overrideIds = value.governance.overrides.map((rule) => rule.defaultRuleId);
@@ -836,6 +860,7 @@ export const ProjectManifestSchema = z
     }
   });
 
+export type ProjectWorkItems = Readonly<z.infer<typeof ProjectWorkItemsSchema>>;
 export type ProjectManifest = Readonly<z.infer<typeof ProjectManifestSchema>>;
 export type GovernanceRule = Readonly<z.infer<typeof GovernanceRuleSchema>>;
 export type Concern = Readonly<z.infer<typeof ConcernSchema>>;
