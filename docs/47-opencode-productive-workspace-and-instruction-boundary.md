@@ -393,8 +393,8 @@ The approved technical contract is:
 2. **Order role/canonical context channel** — supplied by the existing deterministic prompt/context assembly and remains canonical authority;
 3. **Run-specific OpenCode configuration** — Order starts the productive provider with an Order-generated `OPENCODE_CONFIG_CONTENT` layer containing only explicit configuration required for that Run; project/global compatibility discovery remains disabled;
 4. **reference channel** — configured Order reference roots are explicit read-only context and never become project authority merely by being readable;
-5. **skill channel** — Order-owned skills may be supplied through explicit Run configuration, while skills supplied by the selected OpenCode Console account are admitted as trusted Console integration context; unselected host/global skills are excluded;
-6. **MCP channel** — MCP servers supplied through Order's explicit Run configuration or the selected trusted Console integration are allowed according to the role permission profile. Their provider-native server instructions are trusted integration context rather than byte-reproducible Order authority;
+5. **skill channel** — skills visible through the selected trusted Console integration, plus any skill source already explicitly governed and supplied by Order for the Run, are admitted capabilities. After provider startup Order lists the exact visible skill ids and allows the `skill` permission only for those ids; unselected host/global skills are excluded;
+6. **MCP channel** — the MCP server set visible after startup is admitted only because ambient config is excluded and the remaining sources are the selected trusted Console integration plus any explicit Order Run configuration. Order lists the exact server names and permits each server namespace's generated MCP tool actions. The selected server is the trust boundary: Order does not invent a read/write semantic classifier for arbitrary MCP tool names. Provider-native server instructions are trusted integration context rather than byte-reproducible Order authority. `execute` remains denied, so the pinned provider exposes permitted MCP tools directly rather than opening shell/Code Mode execution;
 7. **Console/workspace channel** — the active saved OpenCode Console account is an explicit trusted integration boundary. Its Library instructions/skills and allowed remote configuration may influence the agent. Account switching remains prohibited while a Run is active, preserving stable integration identity for the Run;
 8. **API-managed session instruction channel** — Order production code does not write arbitrary session instruction entries unless a future governed design explicitly adopts that mechanism.
 
@@ -418,9 +418,9 @@ For each Run, the shell combines:
 - the selected trusted OpenCode Console account/integration contribution;
 - the exact model and session permission profile.
 
-Order-owned provider configuration is supplied through the pinned process-level `OPENCODE_CONFIG_CONTENT` mechanism. Saved account credentials remain in the installation's existing private OpenCode credential namespace and are not copied into the Run configuration.
+Order-owned provider configuration is supplied through the pinned process-level `OPENCODE_CONFIG_CONTENT` mechanism. For 0.2.2, existing configured STAGE reference roots are projected there as explicit local references. No new Order skill registry, MCP registry, or OrderConfig field is introduced merely to mirror the selected Console integration; if a future product requirement adds independently Order-managed skills/MCPs, that returns through P3/P4/P6. Saved account credentials remain in the installation's existing private OpenCode credential namespace and are not copied into the Run configuration.
 
-This is a closed admission model, not a closed capability model: required context and tools are deliberately available, while unselected ambient host/user configuration is not.
+This is a closed admission model, not a closed capability model: required context and tools are deliberately available, while unselected ambient host/user configuration is not. The selected trusted integration/server set is itself the operator trust decision; Order does not attempt to infer external MCP side-effect semantics from tool names.
 
 ## 8. Provider-visible file-set law
 
@@ -652,4 +652,4 @@ The functional/P4/P6 design baseline is complete because:
 3. the P6 failure/workspace identity consequences are exact;
 4. complete model-context instruction ingress is enumerated and governed by GW-FR-105 / GW-TR-080.
 
-Implementation readiness additionally requires (a) a provider pin/capability that satisfies GW-TR-080 for the intended authenticated productive path and (b) a P7 0.2.2 plan that maps every requirement and every test family to bounded tasks and leaves no implementer decision about provider-visible project material, `AGENTS.md` authority, failure origin, workspace freshness or verification coverage.
+Implementation readiness requires a P7 0.2.2 plan that maps every requirement and every test family to bounded implementation work and leaves no implementer decision about provider-visible project material, `AGENTS.md` authority, trusted integration admission, failure origin, workspace freshness or verification coverage. The pinned OpenCode 2.2.6 behaviors relied upon by GW-TR-080/081 are implementation-certification obligations under that plan; implementation does not wait for a future provider feature or a complete external-instruction byte manifest.
