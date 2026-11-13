@@ -8,6 +8,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Force GitHub to render the corrected centered README logo plate from a new asset path instead of a stale cached SVG.
+
+### Fixed
+
 - Correct the horizontal Order logo canvas crop so the visible mark and wordmark render centered in the GitHub README and other fixed-width placements.
 
 ### Changed
