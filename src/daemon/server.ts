@@ -14,6 +14,7 @@ import {
   CommitWorkItemDocumentationSchema,
   ConnectRepositorySchema,
   DisconnectRepositorySchema,
+  MigrateWorkItemDocumentRootSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   ActivateOpenCodeAccountSchema,
@@ -93,6 +94,7 @@ import {
   createCoordinatorRuntimeOwner,
   disconnectRepository,
   installationReadiness,
+  migrateWorkItemDocumentRoot,
   orderConfigState,
   readyRepositoryRoots,
   requireExecutionReadiness,
@@ -584,6 +586,15 @@ const routeApi = async (
       DisconnectRepositorySchema.parse(await readJsonBody(request))
     );
     return jsonResponse(await disconnectRepository(owner, body));
+  }
+  if (
+    request.method === "PUT" &&
+    url.pathname === "/api/settings/repositories/document-root"
+  ) {
+    const body = await parseRequest(async () =>
+      MigrateWorkItemDocumentRootSchema.parse(await readJsonBody(request))
+    );
+    return jsonResponse(await migrateWorkItemDocumentRoot(owner, body));
   }
   if (request.method === "PUT" && url.pathname === "/api/settings/model") {
     const body = await parseRequest(async () =>

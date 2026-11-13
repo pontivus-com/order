@@ -3,11 +3,13 @@ import { join } from "node:path";
 
 import {
   InstallationReadinessSchema,
+  MigrateWorkItemDocumentRootSchema,
   OrderConfigSchema,
   type ConnectedRepositoryState,
   type ConnectRepository,
   type DisconnectRepository,
   type InstallationReadiness,
+  type MigrateWorkItemDocumentRoot,
   type OpenCodeModelRef,
   type OrderConfig,
   type OrderConfigState,
@@ -27,16 +29,27 @@ import {
 import {
   readValidatedProjectManifestSnapshot,
 } from "../shell/project.ts";
+import {
+  activateWorkItemsRootManifest,
+  finalizeWorkItemsRootMigration,
+  prepareWorkItemsRootMigration,
+  rollbackWorkItemsRootMigration,
+  stageWorkItemsRootMigration,
+  verifyWorkItemsRootMigration,
+  type StagedWorkItemsRootMigration,
+} from "../shell/project-config.ts";
 import { proveRepositoryRoot } from "../shell/repository.ts";
 import {
   loadRunsForWorkItem,
   loadWorkItems,
+  migrateWorkItemSourcePathsForRepository,
 } from "../shell/sqlite.ts";
 import {
   createCoordinatorRuntime,
   type CoordinatorRuntime,
 } from "./runtime.ts";
 import {
+  listCurrentLifecycleArtifacts,
   reconcileSources,
   runCoordinatorTick,
   startCoordinatorScheduler,
@@ -62,6 +75,28 @@ const activeRunExists = (runtime: CoordinatorRuntime): boolean =>
     loadRunsForWorkItem(runtime.database, workItem.id)
       .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
   );
+
+const repositoryWorkItems = (
+  runtime: CoordinatorRuntime,
+  repositoryRoot: string,
+) => loadWorkItems(runtime.database)
+  .filter((workItem) => workItem.repositoryRoot === repositoryRoot);
+
+const activeRunExistsForRepository = (
+  runtime: CoordinatorRuntime,
+  repositoryRoot: string,
+): boolean =>
+  repositoryWorkItems(runtime, repositoryRoot).some((workItem) =>
+    loadRunsForWorkItem(runtime.database, workItem.id)
+      .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
+  );
+
+const executionWorkItemExistsForRepository = (
+  runtime: CoordinatorRuntime,
+  repositoryRoot: string,
+): boolean =>
+  repositoryWorkItems(runtime, repositoryRoot)
+    .some((workItem) => workItem.stage === "EXECUTION");
 
 const repositoryState = async (
   repositoryRoot: string,
@@ -586,6 +621,166 @@ export const updateReferenceRoots = async (
     input.expectedConfigSha256,
     OrderConfigSchema.parse({ ...current.config, referenceRoots: references }),
   );
+};
+
+const beginDocumentRootMigration = (
+  owner: CoordinatorRuntimeOwner,
+  repositoryRoot: string,
+): CoordinatorRuntime => {
+  const runtime = owner.current;
+  if (owner.settingsMutationActive) {
+    throw new TypeError("Settings configuration mutation is already active");
+  }
+  if (runtime.tickActive) {
+    throw new TypeError(
+      "WorkItem document-root migration is blocked while coordinator work is being admitted",
+    );
+  }
+  if (executionWorkItemExistsForRepository(runtime, repositoryRoot)) {
+    throw new TypeError(
+      "WorkItem document-root migration is blocked while repository work is in EXECUTION",
+    );
+  }
+  if (activeRunExistsForRepository(runtime, repositoryRoot)) {
+    throw new TypeError(
+      "WorkItem document-root migration is blocked while the repository has an active Run",
+    );
+  }
+  if (runtime.openCodeAccountLogin !== null) {
+    throw new TypeError(
+      "WorkItem document-root migration is blocked while OpenCode login is active",
+    );
+  }
+  if (runtime.openCodeAccountMutationActive) {
+    throw new TypeError(
+      "WorkItem document-root migration is blocked while OpenCode account state is changing",
+    );
+  }
+  owner.settingsMutationActive = true;
+  return runtime;
+};
+
+const resumeAfterDocumentRootMigration = async (
+  owner: CoordinatorRuntimeOwner,
+  runtime: CoordinatorRuntime,
+  wasStopped: boolean,
+): Promise<void> => {
+  if (wasStopped) {
+    runtime.schedulerStopped = true;
+    return;
+  }
+  await startCoordinatorScheduler(
+    runtime,
+    () => runReadyCoordinatorTick(owner),
+    () => runReadyCoordinatorTick(owner, true),
+  );
+};
+
+export const migrateWorkItemDocumentRoot = async (
+  owner: CoordinatorRuntimeOwner,
+  input: MigrateWorkItemDocumentRoot,
+): Promise<ConnectedRepositoryState> => {
+  const command = MigrateWorkItemDocumentRootSchema.parse(input);
+  const runtime = owner.current;
+  if (!runtime.config.repositoryRoots.includes(command.repositoryRoot)) {
+    throw new TypeError("configured repository does not exist");
+  }
+  const beforeRepository = await repositoryState(command.repositoryRoot);
+  if (beforeRepository.status !== "READY" || beforeRepository.workItemsRoot === null) {
+    throw new TypeError("repository must be READY before its WorkItem document root can migrate");
+  }
+
+  const activeRuntime = beginDocumentRootMigration(owner, command.repositoryRoot);
+  const schedulerWasStopped = activeRuntime.schedulerStopped;
+  let staged: StagedWorkItemsRootMigration | null = null;
+  let sourcePathsMigrated = false;
+
+  try {
+    const prepared = await prepareWorkItemsRootMigration(
+      command.repositoryRoot,
+      command.expectedManifestSha256,
+      command.targetWorkItemsRoot,
+    );
+    if (prepared.oldWorkItemsRoot !== beforeRepository.workItemsRoot) {
+      throw new TypeError("repository WorkItem root changed during migration admission");
+    }
+
+    await stopCoordinatorScheduler(activeRuntime);
+    staged = stageWorkItemsRootMigration(prepared);
+    activateWorkItemsRootManifest(staged);
+
+    const affectedWorkItemIds = migrateWorkItemSourcePathsForRepository(
+      activeRuntime.database,
+      command.repositoryRoot,
+      staged.oldWorkItemsRoot,
+      staged.targetWorkItemsRoot,
+    );
+    sourcePathsMigrated = true;
+
+    await verifyWorkItemsRootMigration(staged);
+    await reconcileSources(
+      activeRuntime,
+      await readyRepositoryRoots(activeRuntime.config),
+    );
+    for (const workItemId of affectedWorkItemIds) {
+      await listCurrentLifecycleArtifacts(activeRuntime, workItemId);
+    }
+
+    finalizeWorkItemsRootMigration(staged);
+    const afterRepository = await repositoryState(command.repositoryRoot);
+    if (
+      afterRepository.status !== "READY" ||
+      afterRepository.workItemsRoot !== staged.targetWorkItemsRoot ||
+      afterRepository.manifestSha256 !== staged.afterManifestSha256
+    ) {
+      throw new TypeError("document-root migration did not activate one coherent repository state");
+    }
+
+    await resumeAfterDocumentRootMigration(
+      owner,
+      activeRuntime,
+      schedulerWasStopped,
+    );
+    return afterRepository;
+  } catch (error) {
+    if (staged !== null) {
+      if (sourcePathsMigrated) {
+        try {
+          migrateWorkItemSourcePathsForRepository(
+            activeRuntime.database,
+            command.repositoryRoot,
+            staged.targetWorkItemsRoot,
+            staged.oldWorkItemsRoot,
+          );
+        } catch (rollbackError) {
+          throw new TypeError(
+            "failed to restore WorkItem source paths after document-root migration failure",
+            { cause: rollbackError },
+          );
+        }
+      }
+      try {
+        rollbackWorkItemsRootMigration(staged);
+      } catch (rollbackError) {
+        throw new TypeError(
+          "failed to restore repository bytes after document-root migration failure",
+          { cause: rollbackError },
+        );
+      }
+      await reconcileSources(
+        activeRuntime,
+        await readyRepositoryRoots(activeRuntime.config),
+      ).catch(() => undefined);
+    }
+    await resumeAfterDocumentRootMigration(
+      owner,
+      activeRuntime,
+      schedulerWasStopped,
+    ).catch(() => undefined);
+    throw error;
+  } finally {
+    owner.settingsMutationActive = false;
+  }
 };
 
 export const resumeSchedulerForReadiness = async (

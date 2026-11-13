@@ -41,6 +41,7 @@ import {
   materializeExecutionTasks,
   parseSignedTaskBlockFromPlan,
 } from "../core/execution.ts";
+import { workItemDocumentPath } from "../core/work-item-source.ts";
 import {
   expandRepositoryPatterns,
   loadValidatedProjectManifest,
@@ -418,8 +419,31 @@ export const currentLifecycleArtifacts = async (
           candidate.role,
           candidate.authorityLayer,
         ));
+        continue;
       } catch {
-        // Missing/non-regular lifecycle Markdown is not a current snapshot.
+        // A document-root migration leaves historical ArtifactRefs immutable.
+      }
+
+      const suffix = `/${workItem.id}/work-request.md`;
+      if (!workItem.sourcePath.endsWith(suffix)) continue;
+      const workItemsRoot = workItem.sourcePath.slice(0, -suffix.length);
+      if (workItemsRoot.length === 0) continue;
+      const migratedPath = workItemDocumentPath(
+        workItemsRoot,
+        workItem.id,
+        role,
+      );
+      if (migratedPath === candidate.repositoryPath) continue;
+      try {
+        materialized.push(await currentFileArtifact(
+          runtime,
+          workItem,
+          migratedPath,
+          candidate.role,
+          candidate.authorityLayer,
+        ));
+      } catch {
+        // Missing/non-regular lifecycle Markdown has no current migrated draft.
       }
     }
   }

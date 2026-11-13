@@ -1422,6 +1422,412 @@ describe("daemon control plane", () => {
     expect(output.after.config.repositoryRoots).toEqual([repository]);
   });
 
+  it("migrates a repository WorkItem document root without rewriting history or bytes", () => {
+    const repository = createRepository("document-root");
+    const state = tempDir("order-document-root-migration-");
+    const targetRoot = "docs/order/migrated-work-items";
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const core = await import("./src/core/work-item-source.ts");
+      const project = await import("./src/shell/project.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const daemonRuntime = await import("./src/daemon/runtime.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = daemonRuntime.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: null,
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "document-root",
+        schemaId: "change-v1",
+        title: "Migrate document root",
+        concernIds: ["shell"],
+      });
+
+      const oldRoot = "docs/order/work-items";
+      const planPath = core.workItemDocumentPath(oldRoot, created.id, "PLAN");
+      fs.mkdirSync(path.dirname(path.join(${JSON.stringify(repository)}, planPath)), { recursive: true });
+      const planBytes = "# migration plan\\nexact bytes\\n";
+      fs.writeFileSync(path.join(${JSON.stringify(repository)}, planPath), planBytes);
+      const historical = await authority.currentFileArtifact(
+        runtime,
+        created,
+        planPath,
+        "PLAN",
+        "P7",
+      );
+      const baseline = await repo.resolveHeadCommit(${JSON.stringify(repository)});
+      const run = runStore.insertRun(runtime, {
+        id: shellRuntime.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "PLAN",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: baseline,
+        contextHash: "sha256:" + "c".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-13T08:00:00.000Z",
+        endedAt: "2026-11-13T08:00:00.000Z",
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "CONFORMANCE_PASSED",
+        stage: "PLAN",
+        outputArtifactRefIds: [historical.id],
+        contextHash: run.contextHash,
+        evidence: [],
+      });
+
+      const beforeManifest = await project.readValidatedProjectManifestSnapshot(
+        ${JSON.stringify(repository)},
+      );
+      const beforeManifestBytes = fs.readFileSync(
+        path.join(${JSON.stringify(repository)}, "pontivus-order.toml"),
+        "utf8",
+      );
+      const beforeSource = await coord.getWorkItemSource(runtime, created.id);
+      const beforeSourceBytes = fs.readFileSync(
+        path.join(${JSON.stringify(repository)}, beforeSource.path),
+        "utf8",
+      );
+
+      const migrated = await settings.migrateWorkItemDocumentRoot(owner, {
+        repositoryRoot: ${JSON.stringify(repository)},
+        expectedManifestSha256: beforeManifest.sha256,
+        targetWorkItemsRoot: ${JSON.stringify(targetRoot)},
+      });
+
+      const after = coord.getWorkItem(runtime, created.id);
+      const afterSource = await coord.getWorkItemSource(runtime, created.id);
+      const afterSourceBytes = fs.readFileSync(
+        path.join(${JSON.stringify(repository)}, afterSource.path),
+        "utf8",
+      );
+      const afterPlanPath = core.workItemDocumentPath(
+        ${JSON.stringify(targetRoot)},
+        created.id,
+        "PLAN",
+      );
+      const afterPlanBytes = fs.readFileSync(
+        path.join(${JSON.stringify(repository)}, afterPlanPath),
+        "utf8",
+      );
+      const diagnostics = (await coord.getWorkItemSourceDiagnostics(runtime))
+        .filter((diagnostic) => diagnostic.workItemId === created.id);
+      const currentLifecycle = await coord.listCurrentLifecycleArtifacts(runtime, created.id);
+      const allArtifacts = coord.listArtifacts(runtime, created.id);
+      const afterManifest = await project.readValidatedProjectManifestSnapshot(
+        ${JSON.stringify(repository)},
+      );
+      const afterManifestBytes = fs.readFileSync(
+        path.join(${JSON.stringify(repository)}, "pontivus-order.toml"),
+        "utf8",
+      );
+
+      console.log(JSON.stringify({
+        migrated,
+        createdId: created.id,
+        afterSourcePath: after.sourcePath,
+        sourceBytesEqual: beforeSourceBytes === afterSourceBytes,
+        planBytesEqual: planBytes === afterPlanBytes,
+        oldRootExists: fs.existsSync(path.join(${JSON.stringify(repository)}, oldRoot)),
+        targetRootExists: fs.existsSync(path.join(${JSON.stringify(repository)}, ${JSON.stringify(targetRoot)})),
+        diagnostics,
+        historical: { id: historical.id, path: historical.repositoryPath },
+        allArtifacts: allArtifacts.map((artifact) => ({ id: artifact.id, path: artifact.repositoryPath, role: artifact.role })),
+        currentLifecycle: currentLifecycle.map((artifact) => ({ id: artifact.id, path: artifact.repositoryPath, role: artifact.role })),
+        beforeManifestBytes,
+        afterManifestBytes,
+        afterManifestRoot: afterManifest.manifest.workItems.root,
+      }));
+      database.close();
+    `) as {
+      migrated: { status: string; workItemsRoot: string; manifestSha256: string };
+      createdId: string;
+      afterSourcePath: string;
+      sourceBytesEqual: boolean;
+      planBytesEqual: boolean;
+      oldRootExists: boolean;
+      targetRootExists: boolean;
+      diagnostics: unknown[];
+      historical: { id: string; path: string };
+      allArtifacts: Array<{ id: string; path: string; role: string }>;
+      currentLifecycle: Array<{ id: string; path: string; role: string }>;
+      beforeManifestBytes: string;
+      afterManifestBytes: string;
+      afterManifestRoot: string;
+    };
+
+    expect(output.migrated).toMatchObject({ status: "READY", workItemsRoot: targetRoot });
+    expect(output.afterSourcePath).toBe(
+      `${targetRoot}/${output.createdId}/work-request.md`,
+    );
+    expect(output.sourceBytesEqual).toBe(true);
+    expect(output.planBytesEqual).toBe(true);
+    expect(output.oldRootExists).toBe(false);
+    expect(output.targetRootExists).toBe(true);
+    expect(output.diagnostics).toEqual([]);
+    expect(output.afterManifestRoot).toBe(targetRoot);
+    expect(output.beforeManifestBytes).toContain('projectId = "document-root"');
+    expect(output.afterManifestBytes).toContain('projectId = "document-root"');
+    expect(output.allArtifacts).toContainEqual(expect.objectContaining(output.historical));
+    expect(output.currentLifecycle).toContainEqual(expect.objectContaining({
+      path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
+      role: "PLAN",
+    }));
+    const migratedPlan = output.currentLifecycle.find((artifact) => artifact.role === "PLAN");
+    expect(migratedPlan?.id).not.toBe(output.historical.id);
+  });
+
+  it("rejects stale/conflicting document-root changes and active repository work without mutation", () => {
+    const repository = createRepository("document-root-admission");
+    const state = tempDir("order-document-root-admission-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const project = await import("./src/shell/project.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+      const daemonRuntime = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const settings = await import("./src/daemon/settings.ts");
+      const repo = await import("./src/shell/repository.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = daemonRuntime.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: null,
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "document-root-admission",
+        schemaId: "change-v1",
+        title: "Migration admission",
+        concernIds: ["shell"],
+      });
+      const manifest = await project.readValidatedProjectManifestSnapshot(
+        ${JSON.stringify(repository)},
+      );
+      const manifestPath = path.join(${JSON.stringify(repository)}, "pontivus-order.toml");
+      const originalManifest = fs.readFileSync(manifestPath, "utf8");
+
+      let stale = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: "sha256:" + "0".repeat(64),
+          targetWorkItemsRoot: "docs/order/stale-target",
+        });
+      } catch (error) {
+        stale = error instanceof Error ? error.message : String(error);
+      }
+
+      const conflictRoot = path.join(${JSON.stringify(repository)}, "docs/order/conflict-target");
+      fs.mkdirSync(conflictRoot, { recursive: true });
+      fs.writeFileSync(path.join(conflictRoot, "conflict.txt"), "not the governed tree\\n");
+      let conflict = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: manifest.sha256,
+          targetWorkItemsRoot: "docs/order/conflict-target",
+        });
+      } catch (error) {
+        conflict = error instanceof Error ? error.message : String(error);
+      }
+      fs.rmSync(conflictRoot, { recursive: true, force: true });
+
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "EXECUTION",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      let execution = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: manifest.sha256,
+          targetWorkItemsRoot: "docs/order/execution-target",
+        });
+      } catch (error) {
+        execution = error instanceof Error ? error.message : String(error);
+      }
+
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "PLAN",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const baseline = await repo.resolveHeadCommit(${JSON.stringify(repository)});
+      sql.storeRun(database, {
+        id: shellRuntime.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "PLAN",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "WAITING_FOR_INPUT",
+        attempt: 1,
+        baselineCommit: baseline,
+        contextHash: "sha256:" + "d".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-13T08:00:00.000Z",
+        endedAt: null,
+      });
+      let activeRun = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: manifest.sha256,
+          targetWorkItemsRoot: "docs/order/run-target",
+        });
+      } catch (error) {
+        activeRun = error instanceof Error ? error.message : String(error);
+      }
+
+      console.log(JSON.stringify({
+        stale,
+        conflict,
+        execution,
+        activeRun,
+        manifestUnchanged: fs.readFileSync(manifestPath, "utf8") === originalManifest,
+        oldRootExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/work-items")),
+        staleTargetExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/stale-target")),
+        executionTargetExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/execution-target")),
+        runTargetExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/run-target")),
+      }));
+      database.close();
+    `) as Record<string, unknown>;
+
+    expect(String(output.stale)).toContain("manifest changed");
+    expect(String(output.conflict)).toContain("conflicting bytes");
+    expect(String(output.execution)).toContain("EXECUTION");
+    expect(String(output.activeRun)).toContain("active Run");
+    expect(output.manifestUnchanged).toBe(true);
+    expect(output.oldRootExists).toBe(true);
+    expect(output.staleTargetExists).toBe(false);
+    expect(output.executionTargetExists).toBe(false);
+    expect(output.runTargetExists).toBe(false);
+  });
+
+  it("rolls back repository bytes when activation fails after manifest mutation", () => {
+    const repository = createRepository("document-root-rollback");
+    const state = tempDir("order-document-root-rollback-");
+    const targetRoot = "docs/order/rollback-target";
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const project = await import("./src/shell/project.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const daemonRuntime = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = daemonRuntime.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: null,
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "document-root-rollback",
+        schemaId: "change-v1",
+        title: "Rollback migration",
+        concernIds: ["shell"],
+      });
+      const beforeManifest = await project.readValidatedProjectManifestSnapshot(
+        ${JSON.stringify(repository)},
+      );
+      const manifestPath = path.join(${JSON.stringify(repository)}, "pontivus-order.toml");
+      const beforeManifestBytes = fs.readFileSync(manifestPath, "utf8");
+      const beforeSource = coord.getWorkItem(runtime, created.id);
+      database.query(
+        "UPDATE workItemSources SET sourcePath='docs/order/work-items/wrong/work-request.md' WHERE workItemId=?1",
+      ).run(created.id);
+
+      let failure = null;
+      try {
+        await settings.migrateWorkItemDocumentRoot(owner, {
+          repositoryRoot: ${JSON.stringify(repository)},
+          expectedManifestSha256: beforeManifest.sha256,
+          targetWorkItemsRoot: ${JSON.stringify(targetRoot)},
+        });
+      } catch (error) {
+        failure = error instanceof Error ? error.message : String(error);
+      }
+
+      console.log(JSON.stringify({
+        failure,
+        manifestRestored: fs.readFileSync(manifestPath, "utf8") === beforeManifestBytes,
+        oldRootExists: fs.existsSync(path.join(${JSON.stringify(repository)}, "docs/order/work-items")),
+        targetExists: fs.existsSync(path.join(${JSON.stringify(repository)}, ${JSON.stringify(targetRoot)})),
+        mutationActive: owner.settingsMutationActive,
+        storedPath: database.query("SELECT sourcePath FROM workItemSources WHERE workItemId=?1")
+          .get(created.id).sourcePath,
+        beforeSourcePath: beforeSource.sourcePath,
+      }));
+      database.close();
+    `) as {
+      failure: string | null;
+      manifestRestored: boolean;
+      oldRootExists: boolean;
+      targetExists: boolean;
+      mutationActive: boolean;
+      storedPath: string;
+      beforeSourcePath: string;
+    };
+
+    expect(output.failure).toContain("persisted WorkItem source path");
+    expect(output.manifestRestored).toBe(true);
+    expect(output.oldRootExists).toBe(true);
+    expect(output.targetExists).toBe(false);
+    expect(output.mutationActive).toBe(false);
+    // The injected corrupt projection is intentionally retained; rollback must not invent its prior value.
+    expect(output.storedPath).toContain("/wrong/work-request.md");
+  });
+
   it("enforces public-health-only, one-time connect, cookie auth, Origin, and no CORS", () => {
     const state = tempDir("order-daemon-http-");
         mkdirSync(join(process.cwd(), "dist"), { recursive: true });

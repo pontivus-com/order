@@ -30,6 +30,7 @@ import {
   type RunEvent,
   type RunEventId,
   type RunId,
+  type RepositoryPath,
   type Sha256,
   type WorkItem,
   type WorkItemId,
@@ -39,6 +40,7 @@ import {
 } from "../core/contracts.ts";
 import { canonicalJson } from "../core/canonical.ts";
 import { parseSignedTaskBlockFromPlan } from "../core/execution.ts";
+import { workItemSourcePathForId } from "../core/work-item-source.ts";
 import { ensureSupportedStateRoot, sha256, statePaths } from "./runtime.ts";
 
 const schemaSql = `
@@ -649,6 +651,32 @@ export const loadWorkItems = (
   database: Database,
 ): readonly WorkItem[] =>
   database.query(`${workItemSelect} ORDER BY createdAt, id;`).all().map(parseWorkItemRow);
+
+export const migrateWorkItemSourcePathsForRepository = (
+  database: Database,
+  repositoryRoot: string,
+  fromWorkItemsRoot: RepositoryPath,
+  toWorkItemsRoot: RepositoryPath,
+): readonly WorkItemId[] => withTransaction(database, () => {
+  const workItems = loadWorkItems(database)
+    .filter((workItem) => workItem.repositoryRoot === repositoryRoot);
+  const update = database.query(
+    "UPDATE workItemSources SET sourcePath=?2 WHERE workItemId=?1;",
+  );
+  for (const workItem of workItems) {
+    const expected = workItemSourcePathForId(fromWorkItemsRoot, workItem.id);
+    if (workItem.sourcePath !== expected) {
+      throw new TypeError(
+        `persisted WorkItem source path does not match current document root: ${workItem.id}`,
+      );
+    }
+    update.run(
+      workItem.id,
+      workItemSourcePathForId(toWorkItemsRoot, workItem.id),
+    );
+  }
+  return workItems.map((workItem) => workItem.id);
+});
 
 export const loadWorkItem = (
   database: Database,
