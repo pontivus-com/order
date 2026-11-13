@@ -136,7 +136,7 @@ It provides at minimum:
 - validation feedback when the edited WorkItem source no longer satisfies its canonical source/schema contract;
 - read-only presentation for documents that are not editable under §6.
 
-The editor must not transform the operator's Markdown into an alternate rich-text authority or hide the exact source being saved.
+The editor must not transform the operator's Markdown into an alternate rich-text authority. For lifecycle Markdown and other wholly human-authored governed documents, the exact source being saved remains visible/editable. For the portable WorkItem source, the system-owned metadata envelope follows `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` and `GW-FR-088-WORKITEM-METADATA-PRESERVATION`: ordinary authoring may present only the human-authored body while exact complete-file inspection remains available as a secondary technical surface.
 
 Rendered Markdown preview and syntax-aware source editing are now part of the editor extension in §17. Code completion, repository-aware navigation and IDE-style editing remain outside the required behavior.
 
@@ -428,16 +428,25 @@ R3 and any other read-only Markdown remain non-editable under the existing lifec
 
 ### 17.2 Canonical-source invariant
 
-The Markdown string remains the only editable document authority.
+The canonical Markdown repository file remains the only persisted document authority.
+
+For lifecycle documents and other wholly human-authored Markdown, the editor buffer is the exact complete source string.
+
+For the portable WorkItem source, the ordinary editor buffer may be the human-authored body defined by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §15. In that case Order composes the saved canonical file from:
+
+- the current validated system-owned metadata envelope, preserved unchanged; and
+- the exact current human-authored body buffer.
+
+The complete recomposed file, not an editor AST or hidden browser model, is hashed/persisted/reconciled as the canonical source. Exact complete-file inspection remains available through a secondary technical/source disclosure.
 
 The editor may maintain ephemeral browser-local editor state for cursor, selection, undo history, syntax tree or viewport state, but:
 
 - that state is never persisted as document content;
 - it is never signed, hashed or submitted instead of Markdown;
-- it must not silently normalize or reserialize untouched Markdown;
-- Save submits the exact current source string visible in the source editor.
+- it must not silently normalize or reserialize untouched Markdown/body content;
+- body-only WorkItem editing must not silently regenerate or normalize the preserved metadata envelope.
 
-Switching between document presentation modes must not alter the source buffer.
+Switching between document presentation modes must not alter the active authoring buffer.
 
 ### 17.3 Document presentation modes
 
@@ -555,11 +564,11 @@ This extension does not authorize:
 
 ### GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR
 
-**Required behavior:** editable governed documents use a syntax-aware source editor while the visible Markdown string remains the exact editable/persisted authority.
+**Required behavior:** editable governed Markdown uses a syntax-aware source editor over the exact human-authored Markdown authority: the complete file for wholly human-authored documents and the body region for a WorkItem source whose metadata envelope is system-owned under `GW-FR-087`.
 
-**Acceptance criterion:** the operator can author Markdown with syntax-aware editing ergonomics and Save submits exactly the source string currently represented by the editor.
+**Acceptance criterion:** the operator authors exact Markdown text with syntax-aware ergonomics; Save persists the exact authored text and, for WorkItem body editing, recomposes it with the unchanged validated metadata envelope into the one canonical repository source.
 
-**Failure/negative behavior:** the editor must not persist, sign or substitute an AST/rich-text/editor-state representation for Markdown or normalize untouched source.
+**Failure/negative behavior:** the editor must not persist, sign or substitute an AST/rich-text/editor-state representation for Markdown, normalize untouched author content, or silently mutate WorkItem metadata while saving a body edit.
 
 ### GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES
 
@@ -593,3 +602,40 @@ This extension does not authorize:
 
 **Failure/negative behavior:** editor lifecycle or query refresh must not silently reset a dirty buffer or manufacture a false clean/conflict state.
 
+
+
+## 19. WorkItem source authoring presentation addendum (2026-11-13)
+
+This section owns only the editor/presentation consequence of `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §15.
+
+### 19.1 Normal authoring surface
+
+When Source is selected for a WorkItem, the ordinary Edit/Preview/Split experience presents the human-authored Markdown body, beginning with the canonical H1.
+
+The machine metadata envelope is not rendered as ordinary prose and is not placed in the normal formatting/editing surface.
+
+A secondary **Technical source** or equivalent disclosure provides exact complete-file inspection for diagnostics/audit. That disclosure is not a second editable authority.
+
+### 19.2 Save and conflict behavior
+
+Body-only editing retains the existing expected-hash/conflict contract against the **complete canonical file**.
+
+A save succeeds only when the loaded complete-file identity is still current. Order then combines the unchanged validated metadata envelope with the exact body buffer and persists/reconciles that full file.
+
+If the metadata envelope or body changed externally while the buffer was open, the operator receives the normal conflict/reload path; Order does not merge hidden metadata changes into an old body buffer silently.
+
+### GW-FR-089-HUMAN-FIRST-WORKITEM-SOURCE-EDITOR
+
+**Required behavior:** the normal WorkItem Source editor presents the human-authored Markdown body rather than machine metadata while preserving exact complete-file inspection and canonical single-file persistence.
+
+**Acceptance criterion:** an operator can read/edit the originating request without seeing/editing strict JSON metadata in the ordinary authoring canvas, and the repository file remains fully portable and inspectable.
+
+**Failure/negative behavior:** hiding metadata visually must not create an invisible second source, weaken exact-file conflict detection, or make the complete canonical file unavailable for technical inspection.
+
+### GW-FR-090-WORKITEM-BODY-CONFLICT-SAFETY
+
+**Required behavior:** body-only editing uses complete-file optimistic identity so external metadata/body changes cannot be overwritten by a stale editor buffer.
+
+**Acceptance criterion:** any external change to the canonical WorkItem source after load causes conflict/reload rather than silent recomposition over newer bytes.
+
+**Failure/negative behavior:** the body editor must not compare only body text/hash or preserve stale metadata after the canonical source changed.

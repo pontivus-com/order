@@ -225,7 +225,7 @@ Control form must match the decision being made.
 
 | Decision | Required interaction pattern |
 |---|---|
-| Appearance: System / Light / Dark | compact three-way utility control/menu preserving explicit semantic labels/icons; not a generic entity select |
+| Appearance: System / Light / Dark | compact three-way segmented switcher or equivalent direct mode control with explicit System/Light/Dark semantics; never a select/dropdown form field |
 | WorkItem type | direct icon + label single-choice options; not a text-only select |
 | Project | selector/typeahead/select because this is an entity choice |
 | Concerns | searchable/toggleable multi-choice chips/list; not native multi-select |
@@ -234,6 +234,16 @@ Control form must match the decision being made.
 | Destructive disposition | explicit destructive action, never hidden in a generic menu when immediately consequential |
 
 Native/select-style controls remain valid when the choice is genuinely an arbitrary entity list rather than a small semantic mode set.
+
+
+
+### GW-FR-098-APPEARANCE-MODE-DIRECT-CONTROL
+
+**Required behavior:** System / Light / Dark is exposed as a direct compact mode switcher whose options are immediately visible or one-tap conventional utility states; it is not modeled as an arbitrary-value form select.
+
+**Acceptance criterion:** the operator can identify and change the active appearance mode directly from the application utility area without opening a select-style field or settings form merely to cycle among the three fixed modes.
+
+**Failure/negative behavior:** appearance mode must not use a native/select-box interaction, an entity picker, or another control whose interaction grammar implies arbitrary configuration values.
 
 ## 12. Icon semantics
 
@@ -726,9 +736,11 @@ The orientation belongs in the existing WorkItem header because it answers "wher
 It must **not** become:
 
 - another full-width content-edge tab bar;
-- a clickable lifecycle wizard;
+- a lifecycle-promotion wizard;
 - a second state machine;
 - a third persistent navigation row above Documents/Activity/Review content.
+
+The compact workflow steps may be interactive as **presentation navigation**. Selecting a workflow step changes only what historical/current/future-step material the primary canvas is inspecting; it never changes lifecycle stage, promotion state, approval or execution authority.
 
 The selected primary workspace continues to own its own within-mode navigation.
 
@@ -867,7 +879,7 @@ Presentation must track canonical transitions without losing operational history
 
 **Acceptance criterion:** changing Documents/Activity/Review/Implementation presentation modes never obscures the canonical workflow position.
 
-**Failure/negative behavior:** workflow orientation must not become another full-width tab row or clickable promotion control.
+**Failure/negative behavior:** workflow orientation must not become another full-width tab row or a clickable promotion control; inspection navigation must never mutate lifecycle state.
 
 #### GW-FR-053-ACTIVITY-WORKSPACE
 
@@ -986,6 +998,8 @@ It must not present the account label as a provider/model choice. Changing this 
 
 On medium/narrow layouts the same control moves into the application-level utilities/menu before consuming primary WorkItem canvas width. It must remain reachable from both queue and WorkItem states.
 
+When no usable saved account exists, the control presents a clear setup-required state and direct Add-account action governed by `GW-DOC-INSTALLATION-READINESS-V1`; the operator must not encounter an unexplained internal error merely by opening account management.
+
 ### 23.2 Account manager
 
 Activating the toolbar control opens one bounded account-management popover/dialog/drawer appropriate to viewport size.
@@ -1080,3 +1094,249 @@ The UI must not allow an account mutation and then rely on a provider failure to
 
 **Failure/negative behavior:** account mutation must not race active provider work or use provider failure as the mechanism for detecting an unsafe switch.
 
+
+
+## 24. Configuration-aware compact workbench addendum (2026-11-13)
+
+This section owns the workbench presentation/navigation consequences of `GW-DOC-INSTALLATION-READINESS-V1` and the spatial refinements required for the 0.2.1 workbench.
+
+### 24.1 Global repository context
+
+The application shell exposes the current target repository/project context alongside the global OpenCode account identity.
+
+The operator must be able to answer, without opening Context or a terminal:
+
+- which target repository is currently selected for queue/creation context;
+- which repository owns the selected WorkItem;
+- whether repository configuration requires attention.
+
+For one configured repository, the shell may present it as compact context without a selector.
+
+For multiple configured repositories, the queue/creation state exposes an explicit repository/project selector. Changing this selection changes presentation/creation scope only; it does not move an existing WorkItem or rewrite its project identity. Opening a WorkItem always shows the repository/project that canonically owns that WorkItem.
+
+Repository labels should prefer human project identity/name with the filesystem path demoted to a secondary/technical disclosure unless needed to disambiguate two configured repositories.
+
+### 24.2 Workflow-step inspection navigation
+
+The compact workflow progression is interactive.
+
+Every user-facing workflow step is a presentation navigation target:
+
+- a completed/past step opens the canonical document/activity/review/result material for that step;
+- the current step opens its normal primary workspace;
+- a future/unreached step may open a lightweight unavailable/not-yet-reached presentation explaining what the step represents and that no canonical material exists yet.
+
+The interaction is never promotion. It must not create Runs, change stage/status, sign off, start execution or fabricate artifacts.
+
+This lets the operator move laterally across the complete workflow history without confusing navigation with state transition.
+
+### 24.3 Single WorkItem top rail
+
+The selected WorkItem uses one compact top rail for persistent orientation and global WorkItem controls.
+
+That rail contains, as space permits:
+
+- Back to queue;
+- WorkItem title/current state;
+- compact workflow progression;
+- current primary workspace/mode control;
+- WorkItem-level/contextual actions.
+
+The current workflow purpose may appear as concise supporting text/tooltip/accessible description rather than requiring a second permanent full-width row.
+
+The design must not stack a separate breadcrumb/header row and a separate workflow-orientation row when the same orientation can be communicated in one rail.
+
+### 24.4 Document/editor chrome consolidation
+
+Documents retain one content-edge Source/R1/R2/DESIGN/PLAN/R3 selector because that is meaningful within-mode document navigation.
+
+Other persistent document/editor controls must be consolidated to protect vertical authoring space:
+
+- document Git/working-tree state appears as compact state within the document/editor control rail;
+- branch, HEAD, exact repository paths and detailed path state are secondary Technical details;
+- Save documentation to Git remains directly reachable when actionable;
+- Markdown formatting, Edit/Preview/Split, dirty/current state, Save/Cancel and compact document status should compose into the minimum practical number of persistent rails;
+- exact SHA identity is technical detail rather than dominant persistent chrome.
+
+A second full-width editor action bar or document-state strip is not justified when its controls can remain understandable and accessible in the existing editor rail.
+
+### 24.5 Technical-detail economy
+
+Ordinary authoring/navigation surfaces show information needed to understand or act.
+
+Internal ids, hashes, exact filesystem paths, Git HEAD values, raw diagnostics and system-owned WorkItem metadata are secondary technical material. They remain inspectable but do not permanently consume primary-canvas height.
+
+This rule does not authorize loss of diagnostic evidence or concealment of a required operator decision.
+
+### GW-FR-083-CURRENT-REPOSITORY-CONTEXT
+
+**Required behavior:** the application shell makes the current configured repository/project context visible and, when multiple targets exist, provides explicit presentation/creation-scope selection.
+
+**Acceptance criterion:** the operator can identify the current repository context and the repository owning an open WorkItem without inspecting configuration files or filesystem paths.
+
+**Failure/negative behavior:** repository context must not remain an implicit `repositoryRoots[0]` convention, be visible only during WorkItem creation, or allow a presentation selection to rewrite existing WorkItem ownership.
+
+### GW-FR-084-WORKFLOW-STEP-INSPECTION-NAVIGATION
+
+**Required behavior:** each user-facing workflow step is usable as non-mutating presentation navigation to its available canonical material or an explicit not-yet-reached state.
+
+**Acceptance criterion:** the operator can traverse Research, Requirements, Solution design, Implementation plan, Readiness, Approval, Implementation and Complete material without changing lifecycle state.
+
+**Failure/negative behavior:** clicking workflow orientation must never promote, sign off, create a Run, start execution or fabricate missing step material.
+
+### GW-FR-085-WORKBENCH-CHROME-CONSOLIDATION
+
+**Required behavior:** persistent WorkItem/document/editor chrome is consolidated so orientation and controls remain available while primary-canvas vertical space is maximized.
+
+**Acceptance criterion:** WorkItem orientation uses one top rail and document editing does not stack redundant full-width state/action rows when equivalent controls fit coherently in existing rails.
+
+**Failure/negative behavior:** breadcrumbs, workflow orientation, Git state, formatting controls and save controls must not accumulate as independent permanent rows merely because each is locally useful.
+
+### GW-FR-086-PRIMARY-TECHNICAL-DETAIL-ECONOMY
+
+**Required behavior:** technical identity/diagnostic material remains accessible through secondary disclosure while ordinary authoring/navigation prioritizes human-meaningful content and actions.
+
+**Acceptance criterion:** hashes, exact paths, raw ids/diagnostics and system-owned source metadata remain inspectable without occupying permanent primary authoring space.
+
+**Failure/negative behavior:** compression must not remove information needed for recovery/audit, and technical details must not dominate ordinary workflow understanding.
+
+
+
+## 25. Application information-placement discipline (2026-11-13)
+
+Order's workbench and Configuration surfaces use one information-placement discipline.
+
+### 25.1 One shell grammar
+
+The application composes persistent information in this order:
+
+```text
+compact application/top rail
+└── primary work surface
+    └── optional contextual inspector / secondary disclosure
+```
+
+New functionality must fit that grammar before adding another persistent horizontal band or vertical rail.
+
+A new bar/rail is justified only when the information has independent navigation/context ownership that cannot remain understandable in an existing shell cell.
+
+### 25.2 Compact chrome, readable content
+
+Chrome and content have separate density needs.
+
+- navigation, status, metadata and control chrome use compact density;
+- Markdown/document reading uses comfortable reading measure/line spacing;
+- operational queues/tables use information-dense rows;
+- changing content readability must not require oversized surrounding chrome.
+
+Long-form content gets the space. Controls orient the operator without competing with the document/work surface.
+
+### 25.3 Zero duplicate context
+
+A fact has one primary presentation location.
+
+Concise mirrors are allowed only when they answer a different immediate context question, such as:
+
+- active OpenCode account in the global shell while full account inventory lives in Configuration;
+- current repository/project in the shell while repository inventory/document-root management lives in Configuration;
+- current workflow step in the top rail while full stage material lives in the primary canvas.
+
+The same explanatory text, path, status or action must not be repeated in multiple persistent bands merely for visibility.
+
+### 25.4 Guidance on demand
+
+Routine instructional copy should not consume permanent primary-canvas space.
+
+Use compact labels plus on-demand help/secondary disclosure for:
+
+- what a configuration field means;
+- format hints;
+- exact technical paths/ids;
+- explanations that are not currently blocking work.
+
+Always-visible callouts are reserved for actionable operational states such as:
+
+- missing required configuration;
+- failed migration;
+- invalid repository/project configuration;
+- unsaved/conflicted document state where action is required;
+- active-work blocker preventing a requested account/repository mutation.
+
+### GW-FR-094-INFORMATION-PLACEMENT-ECONOMY
+
+**Required behavior:** Order uses one compact shell grammar, presents each fact in one primary location, separates compact chrome density from readable document density, and moves routine guidance/technical detail to on-demand secondary presentation.
+
+**Acceptance criterion:** adding repository/account configuration and workflow/editor controls does not create redundant persistent bands, duplicate context or repeated explanatory panels; primary work surfaces retain the majority of usable viewport space.
+
+**Failure/negative behavior:** screens must not accumulate independently styled headers, breadcrumbs, status strips, helper banners, action bars or technical-data rows when those concerns can be composed into existing shell/control surfaces.
+
+
+## 26. Semantic viewport zoning and reading order (2026-11-13)
+
+Every persistent viewport region has one semantic job. Information is placed according to that job rather than according to whichever component happens to have free space.
+
+For left-to-right Order presentation, the default reading hierarchy is:
+
+```text
+global orientation / current installation context
+↓
+page or WorkItem orientation and local navigation
+↓
+primary task/content
+→ secondary contextual inspection
+↓
+task-local actions / recovery where needed
+```
+
+Horizontal placement follows the same hierarchy:
+
+- **left / leading edge** — where the operator is: navigation, Back, current object/page identity;
+- **centre / primary canvas** — what the operator is reading, editing, reviewing or operating on;
+- **right / trailing context** — supporting context, inspection, secondary evidence/actions that should not interrupt the primary reading flow;
+- **top/global shell** — installation-global current state and entry points, including Settings;
+- **settings navigation region** — application-level configuration categories;
+- **bottom/task-local action region** — actions whose scope is the current document/task when persistent placement is required.
+
+A region must not become a generic dumping ground. For example:
+
+- full account management does not belong in a WorkItem inspector;
+- repository configuration does not belong beside Markdown editing controls;
+- workflow progression does not belong in Settings;
+- document formatting does not belong in the global application header;
+- raw technical diagnostics do not occupy the primary reading path unless they are the selected evidence.
+
+The viewport therefore communicates hierarchy before the user reads labels.
+
+### 26.1 Location stability
+
+The same information class should appear in the same semantic region across states.
+
+When responsive layout collapses a region, its semantic role is preserved in the replacement presentation. A right-side inspector becoming a drawer remains contextual inspection; Settings moving into an application menu remains application-level navigation. Responsive recomposition must not relocate a concern into a semantically different surface merely because space is constrained.
+
+### 26.2 Reading-flow protection
+
+Primary long-form content and active work must not be fragmented by unrelated configuration, diagnostics or repeated context.
+
+Persistent elements above the primary content are limited to what is required to:
+
+1. establish global/page/work-item orientation;
+2. navigate within the current information hierarchy;
+3. expose an immediate blocker or current action that cannot be understood elsewhere.
+
+Everything else belongs beside, behind or outside the primary reading path according to its semantic role.
+
+### GW-FR-096-SEMANTIC-VIEWPORT-ZONING
+
+**Required behavior:** each persistent viewport region has a defined semantic purpose and information is placed consistently according to global orientation, local navigation, primary work, contextual inspection, settings/navigation and task-local action roles.
+
+**Acceptance criterion:** a user can predict where to look for application settings, current object identity, primary document/workflow content, supporting context and task-local actions across queue, WorkItem and Settings states.
+
+**Failure/negative behavior:** controls and information must not migrate between semantically unrelated regions, be duplicated simply to increase visibility, or create ad-hoc bars/rails whose purpose overlaps an existing region.
+
+### GW-FR-097-LOGICAL-READING-FLOW
+
+**Required behavior:** persistent chrome follows a stable logical reading order and protects the primary content path from unrelated configuration, diagnostics and duplicate context.
+
+**Acceptance criterion:** the visual hierarchy establishes where the user is, then what they are doing/reading, then secondary context/actions; long-form Markdown remains the dominant content surface.
+
+**Failure/negative behavior:** settings, technical detail, secondary status or redundant helper content must not interrupt the primary reading flow or consume persistent vertical space without a task-critical reason.

@@ -42,6 +42,7 @@ Order must fail closed when it cannot resolve the canonical owner required for a
 23. [GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1](38-workbench-astryx-component-architecture.md) — binding P4 technical design mapping the workbench UX onto the local UI boundary and a selectively adopted, pinned Astryx component substrate.
 24. [GW-DOC-PRODUCT-IDENTITY-V1](40-order-product-identity.md) — canonical Order / Pontivus Order naming, descriptor, proposition, product-language hierarchy, positioning boundaries and Span-family wording.
 25. [GW-DOC-ORDER-TECHNICAL-IDENTITY-V1](41-order-technical-identity-cutover.md) — binding P4 owner for the Order live technical namespace, one-way predecessor cutover and repository-migration boundary.
+26. [GW-DOC-INSTALLATION-READINESS-V1](45-installation-readiness-and-configuration-continuity.md) — binding P3 functional design for productive installation readiness, account/repository configuration continuity, bounded upgrade migration and explicit setup/recovery states.
 
 ## Completed implementation provenance
 

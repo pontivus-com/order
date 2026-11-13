@@ -4,7 +4,7 @@ projectId = "order"
 [authority]
 p1 = ["AGENTS.md", "docs/08-minimum-change-standard.md", "docs/10-systems-governance-pyramid.md", "docs/44-public-repository-delivery-and-release.md"]
 p2 = ["docs/00-system-brief.md", "docs/40-order-product-identity.md"]
-p3 = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/09-project-governance-integration.md", "docs/11-lifecycle-context-resolution.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md"]
+p3 = ["docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/09-project-governance-integration.md", "docs/11-lifecycle-context-resolution.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 p4 = ["docs/02-execution-control-plane.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/14-external-version-facts.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
 p5 = ["docs/04-open-decisions.md"]
 p6 = ["docs/13-canonical-contracts.md"]
@@ -69,6 +69,8 @@ GW-DOC-MARKDOWN-WORKBENCH = "docs/32-operator-markdown-workbench.md"
 GW-DOC-MARKDOWN-WORKBENCH-V1 = "docs/32-operator-markdown-workbench.md"
 GW-DOC-WORKBENCH-UX = "docs/37-workbench-ux-information-architecture.md"
 GW-DOC-WORKBENCH-UX-V1 = "docs/37-workbench-ux-information-architecture.md"
+GW-DOC-INSTALLATION-READINESS = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-DOC-INSTALLATION-READINESS-V1 = "docs/45-installation-readiness-and-configuration-continuity.md"
 GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE = "docs/38-workbench-astryx-component-architecture.md"
 GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 = "docs/38-workbench-astryx-component-architecture.md"
 GW-DOC-ORDER-TECHNICAL-IDENTITY = "docs/41-order-technical-identity-cutover.md"
@@ -156,6 +158,26 @@ GW-FR-075-OPENCODE-ACCOUNT-LOGIN = "docs/37-workbench-ux-information-architectur
 GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY = "docs/37-workbench-ux-information-architecture.md"
 GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT = "docs/31-work-item-document-system.md"
 GW-FR-078-PORTABLE-WORKITEM-ARCHIVE = "docs/31-work-item-document-system.md"
+GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-080-CONFIGURATION-CONTINUITY = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-083-CURRENT-REPOSITORY-CONTEXT = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-084-WORKFLOW-STEP-INSPECTION-NAVIGATION = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-085-WORKBENCH-CHROME-CONSOLIDATION = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-086-PRIMARY-TECHNICAL-DETAIL-ECONOMY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP = "docs/31-work-item-document-system.md"
+GW-FR-088-WORKITEM-METADATA-PRESERVATION = "docs/31-work-item-document-system.md"
+GW-FR-089-HUMAN-FIRST-WORKITEM-SOURCE-EDITOR = "docs/32-operator-markdown-workbench.md"
+GW-FR-090-WORKITEM-BODY-CONFLICT-SAFETY = "docs/32-operator-markdown-workbench.md"
+GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-094-INFORMATION-PLACEMENT-ECONOMY = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS = "docs/45-installation-readiness-and-configuration-continuity.md"
+GW-FR-096-SEMANTIC-VIEWPORT-ZONING = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-097-LOGICAL-READING-FLOW = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-098-APPEARANCE-MODE-DIRECT-CONTROL = "docs/37-workbench-ux-information-architecture.md"
 GW-P4-V1-ARCHITECTURE = "docs/12-technical-architecture.md"
 GW-TR-001-FCIS-CANONICAL-OWNERSHIP = "docs/12-technical-architecture.md"
 GW-TR-002-LOCAL-LINUX-RUNTIME = "docs/12-technical-architecture.md"
@@ -245,7 +267,7 @@ GW-P1-CANONICAL-OWNERSHIP = ["architecture"]
 GW-P1-DOC-CANONICALITY = ["architecture"]
 
 [concerns.foundation]
-authority = ["docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/44-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/44-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = [".bun-version", ".node-version", ".gitignore", ".github/**", "CHANGELOG.md", "CONTRIBUTING.md", "package.json", "bun.lock", "scripts/**", "tsconfig.json", "vite.config.ts", "vitest.config.ts", "playwright.config.ts", "pontivus-order.toml.example", "install.sh", "src/installer.ts", "src/version.ts", "README.md"]
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build"]
 
@@ -255,22 +277,22 @@ paths = ["src/core/**"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.shell]
-authority = ["docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/09-project-governance-integration.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/09-project-governance-integration.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["src/shell/**"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.daemon]
-authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/02-execution-control-plane.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["src/daemon/**", "src/cli.ts"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.ui]
-authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/00-system-brief.md", "docs/01-work-lifecycle.md", "docs/05-specification-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["index.html", "ui/**"]
 gates = ["typecheck", "architecture", "test", "build", "browser"]
 
 [concerns.verification]
-authority = ["docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/44-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md"]
+authority = ["docs/05-specification-standard.md", "docs/06-validation-standard.md", "docs/07-opencode-integration-standard.md", "docs/08-minimum-change-standard.md", "docs/12-technical-architecture.md", "docs/13-canonical-contracts.md", "docs/14-external-version-facts.md", "docs/44-public-repository-delivery-and-release.md", "docs/31-work-item-document-system.md", "docs/32-operator-markdown-workbench.md", "docs/37-workbench-ux-information-architecture.md", "docs/38-workbench-astryx-component-architecture.md", "docs/41-order-technical-identity-cutover.md", "docs/45-installation-readiness-and-configuration-continuity.md"]
 paths = ["tests/**", "playwright.config.ts"]
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build", "browser"]
 
