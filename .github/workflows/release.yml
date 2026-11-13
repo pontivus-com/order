@@ -25,37 +25,37 @@ jobs:
     timeout-minutes: 60
     env:
       CI: "1"
-      TARGET_SHA: \${{ github.event_name == 'workflow_dispatch' && inputs.commit || github.sha }}
-      GH_TOKEN: \${{ github.token }}
+      TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.commit || github.sha }}
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout exact release candidate
         shell: bash
         run: |
           set -euo pipefail
           git init .
-          git remote add origin "https://github.com/\${GITHUB_REPOSITORY}.git"
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch --tags --force origin "+refs/heads/master:refs/remotes/origin/master"
-          git checkout --detach "\${TARGET_SHA}"
-          git merge-base --is-ancestor "\${TARGET_SHA}" refs/remotes/origin/master
+          git checkout --detach "${TARGET_SHA}"
+          git merge-base --is-ancestor "${TARGET_SHA}" refs/remotes/origin/master
 
       - name: Install exact Node and Bun
         shell: bash
         run: |
           set -euo pipefail
-          node_root="\${RUNNER_TEMP}/node"
-          mkdir -p "\${node_root}"
-          curl -fsSLo "\${RUNNER_TEMP}/node.tar.xz" \
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" \
             "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
-          tar -xJf "\${RUNNER_TEMP}/node.tar.xz" -C "\${node_root}" --strip-components=1
-          echo "\${node_root}/bin" >> "\${GITHUB_PATH}"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
 
-          curl -fsSLo "\${RUNNER_TEMP}/bun.zip" \
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" \
             "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
-          unzip -q "\${RUNNER_TEMP}/bun.zip" -d "\${RUNNER_TEMP}/bun-unpack"
-          mkdir -p "\${RUNNER_TEMP}/bun-bin"
-          cp "\${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "\${RUNNER_TEMP}/bun-bin/bun"
-          chmod +x "\${RUNNER_TEMP}/bun-bin/bun"
-          echo "\${RUNNER_TEMP}/bun-bin" >> "\${GITHUB_PATH}"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
 
       - name: Verify toolchain
         shell: bash
@@ -71,18 +71,18 @@ jobs:
           set -euo pipefail
           current="$(bun -e 'process.stdout.write(JSON.parse(await Bun.file("package.json").text()).version)')"
           parent="$(git rev-parse HEAD^)"
-          previous="$(git show "\${parent}:package.json" | bun -e 'let s=""; const d=new TextDecoder(); for await (const c of Bun.stdin.stream()) s+=d.decode(c,{stream:true}); s+=d.decode(); process.stdout.write(JSON.parse(s).version)')"
-          if [[ "\${current}" == "\${previous}" && "\${{ github.event_name }}" != "workflow_dispatch" ]]; then
-            echo "changed=false" >> "\${GITHUB_OUTPUT}"
+          previous="$(git show "${parent}:package.json" | bun -e 'let s=""; const d=new TextDecoder(); for await (const c of Bun.stdin.stream()) s+=d.decode(c,{stream:true}); s+=d.decode(); process.stdout.write(JSON.parse(s).version)')"
+          if [[ "${current}" == "${previous}" && "${{ github.event_name }}" != "workflow_dispatch" ]]; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
           else
-            echo "changed=true" >> "\${GITHUB_OUTPUT}"
-            echo "version=\${current}" >> "\${GITHUB_OUTPUT}"
-            echo "parent=\${parent}" >> "\${GITHUB_OUTPUT}"
+            echo "changed=true" >> "${GITHUB_OUTPUT}"
+            echo "version=${current}" >> "${GITHUB_OUTPUT}"
+            echo "parent=${parent}" >> "${GITHUB_OUTPUT}"
           fi
 
       - name: Verify release metadata
         if: steps.release-change.outputs.changed == 'true'
-        run: bun scripts/verify-release.ts --mode release-commit --base "\${{ steps.release-change.outputs.parent }}"
+        run: bun scripts/verify-release.ts --mode release-commit --base "${{ steps.release-change.outputs.parent }}"
 
       - name: dependency-lock
         if: steps.release-change.outputs.changed == 'true'
@@ -126,16 +126,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="\${{ steps.release-change.outputs.version }}"
-          tag="v\${version}"
-          if git rev-parse -q --verify "refs/tags/\${tag}" >/dev/null; then
-            test "$(git rev-list -n1 "\${tag}")" = "\${TARGET_SHA}"
+          version="${{ steps.release-change.outputs.version }}"
+          tag="v${version}"
+          if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            test "$(git rev-list -n1 "${tag}")" = "${TARGET_SHA}"
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git tag -a "\${tag}" "\${TARGET_SHA}" -m "Order \${version}"
-            git remote set-url origin "https://x-access-token:\${GH_TOKEN}@github.com/\${GITHUB_REPOSITORY}.git"
-            git push origin "refs/tags/\${tag}"
+            git tag -a "${tag}" "${TARGET_SHA}" -m "Order ${version}"
+            git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git push origin "refs/tags/${tag}"
           fi
 
       - name: Create upload and publish GitHub Release
@@ -143,48 +143,48 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="\${{ steps.release-change.outputs.version }}"
-          tag="v\${version}"
-          api="https://api.github.com/repos/\${GITHUB_REPOSITORY}"
-          auth_header="Authorization: Bearer \${GH_TOKEN}"
+          version="${{ steps.release-change.outputs.version }}"
+          tag="v${version}"
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}"
+          auth_header="Authorization: Bearer ${GH_TOKEN}"
 
-          code="$(curl -sS -o "\${RUNNER_TEMP}/existing-release.json" -w '%{http_code}' \
-            -H "\${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
-            "\${api}/releases/tags/\${tag}")"
+          code="$(curl -sS -o "${RUNNER_TEMP}/existing-release.json" -w '%{http_code}' \
+            -H "${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${api}/releases/tags/${tag}")"
 
-          if [[ "\${code}" == "404" ]]; then
+          if [[ "${code}" == "404" ]]; then
             bun -e 'const body=await Bun.file("release/release-notes.md").text(); await Bun.write(process.argv[2], JSON.stringify({tag_name:process.argv[3],target_commitish:process.argv[4],name:process.argv[3],body,draft:true,prerelease:false}));' \
-              "\${RUNNER_TEMP}/create-release.json" "\${tag}" "\${TARGET_SHA}"
-            curl -fsS -H "\${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
+              "${RUNNER_TEMP}/create-release.json" "${tag}" "${TARGET_SHA}"
+            curl -fsS -H "${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
               -H "Content-Type: application/vnd.github+json" \
-              -d @"\${RUNNER_TEMP}/create-release.json" "\${api}/releases" > "\${RUNNER_TEMP}/release.json"
-          elif [[ "\${code}" == "200" ]]; then
-            cp "\${RUNNER_TEMP}/existing-release.json" "\${RUNNER_TEMP}/release.json"
+              -d @"${RUNNER_TEMP}/create-release.json" "${api}/releases" > "${RUNNER_TEMP}/release.json"
+          elif [[ "${code}" == "200" ]]; then
+            cp "${RUNNER_TEMP}/existing-release.json" "${RUNNER_TEMP}/release.json"
           else
-            cat "\${RUNNER_TEMP}/existing-release.json" >&2
+            cat "${RUNNER_TEMP}/existing-release.json" >&2
             exit 1
           fi
 
-          release_id="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); process.stdout.write(String(r.id));' "\${RUNNER_TEMP}/release.json")"
-          is_draft="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); process.stdout.write(String(r.draft));' "\${RUNNER_TEMP}/release.json")"
-          if [[ "\${is_draft}" != "true" ]]; then
+          release_id="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); process.stdout.write(String(r.id));' "${RUNNER_TEMP}/release.json")"
+          is_draft="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); process.stdout.write(String(r.draft));' "${RUNNER_TEMP}/release.json")"
+          if [[ "${is_draft}" != "true" ]]; then
             exit 0
           fi
 
           for asset in pontivus-order.tar.gz pontivus-order.tar.gz.sha256; do
-            existing_size="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); const a=(r.assets??[]).find(x=>x.name===process.argv[3]); process.stdout.write(a?String(a.size):"");' "\${RUNNER_TEMP}/release.json" "\${asset}")"
-            actual_size="$(stat -c %s "release/\${asset}")"
-            if [[ -n "\${existing_size}" ]]; then
-              test "\${existing_size}" = "\${actual_size}"
+            existing_size="$(bun -e 'const r=JSON.parse(await Bun.file(process.argv[2]).text()); const a=(r.assets??[]).find(x=>x.name===process.argv[3]); process.stdout.write(a?String(a.size):"");' "${RUNNER_TEMP}/release.json" "${asset}")"
+            actual_size="$(stat -c %s "release/${asset}")"
+            if [[ -n "${existing_size}" ]]; then
+              test "${existing_size}" = "${actual_size}"
               continue
             fi
             content_type="application/octet-stream"
-            [[ "\${asset}" == *.sha256 ]] && content_type="text/plain"
-            curl -fsS -H "\${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
-              -H "Content-Type: \${content_type}" --data-binary @"release/\${asset}" \
-              "https://uploads.github.com/repos/\${GITHUB_REPOSITORY}/releases/\${release_id}/assets?name=\${asset}" >/dev/null
+            [[ "${asset}" == *.sha256 ]] && content_type="text/plain"
+            curl -fsS -H "${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
+              -H "Content-Type: ${content_type}" --data-binary @"release/${asset}" \
+              "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/${release_id}/assets?name=${asset}" >/dev/null
           done
 
-          curl -fsS -X PATCH -H "\${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
+          curl -fsS -X PATCH -H "${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
             -H "Content-Type: application/vnd.github+json" \
-            -d '{"draft":false}' "\${api}/releases/\${release_id}" >/dev/null
+            -d '{"draft":false}' "${api}/releases/${release_id}" >/dev/null
