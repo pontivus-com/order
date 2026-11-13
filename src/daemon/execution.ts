@@ -1043,6 +1043,7 @@ export const currentRunningTask = async (
 
 export const startEligibleTask = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<Readonly<{
   workItem: WorkItem;
   approval: Approval;
@@ -1053,6 +1054,7 @@ export const startEligibleTask = async (
 
   for (const approval of approvals) {
     const workItem = getWorkItem(runtime, approval.workItemId);
+    if (!repositoryRoots.includes(workItem.repositoryRoot)) continue;
     if (workItem.stage !== "EXECUTION" || workItem.status !== "ACTIVE") continue;
     const tasks = await canonicalTasksForApproval(runtime, approval);
     const task = tasks.find((candidate) => executionTaskIsEligible(candidate, tasks));
