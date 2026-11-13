@@ -90,12 +90,17 @@ import {
   reconcileWorkItemSources,
   revalidateWorkItemSource,
   saveWorkItemSource,
+  setWorkItemArchived,
+  updateWorkItemTitle,
   workItemSourceDiagnostics,
 } from "./work-item-source.ts";
 
 export const listWorkItems = (
   runtime: CoordinatorRuntime,
-): readonly WorkItem[] => loadWorkItems(runtime.database);
+  includeArchived = false,
+): readonly WorkItem[] =>
+  loadWorkItems(runtime.database)
+    .filter((workItem) => includeArchived || !workItem.archived);
 
 export const createWorkItem = createWorkItemFromSource;
 
@@ -116,6 +121,8 @@ export const getWorkItemSource = currentWorkItemSource;
 export const getWorkItemSourceDiagnostics = workItemSourceDiagnostics;
 export const reconcileSources = reconcileWorkItemSources;
 export const saveSource = saveWorkItemSource;
+export const updateTitle = updateWorkItemTitle;
+export const setArchived = setWorkItemArchived;
 
 export type TickResult = Readonly<{
   result: "NO_WORK" | "STARTED";
