@@ -1192,7 +1192,7 @@ describe("daemon control plane", () => {
       const defaultQueue = coord.listWorkItems(runtime).map((item) => item.id);
       const allQueue = coord.listWorkItems(runtime, true).map((item) => item.id);
       const marker = sourceShell.readWorkItemArchived(
-        repository,
+        runtime.config.repositoryRoots[0],
         "docs/order/work-items",
         created.id,
       );
