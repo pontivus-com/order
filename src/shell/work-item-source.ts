@@ -7,7 +7,7 @@ import {
   realpathSync,
   statSync,
 } from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
 import {
   MarkdownTextSchema,
@@ -137,6 +137,40 @@ const workItemsDirectory = (
     throw new TypeError("project WorkItem root must be a regular directory");
   }
   return target;
+};
+
+export const scanLegacyV2WorkItemSourcesForInstall = (
+  legacyRoot: string,
+): readonly ParsedWorkItemSource[] => {
+  const canonical = canonicalRoot(legacyRoot);
+  const paths: WorkItemSourcePath[] = [];
+  const visit = (absolute: string): void => {
+    for (const entry of readdirSync(absolute, { withFileTypes: true })) {
+      const target = join(absolute, entry.name);
+      if (entry.isSymbolicLink()) continue;
+      if (entry.isDirectory()) {
+        visit(target);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
+      paths.push(
+        WorkItemSourcePathSchema.parse(
+          relative(canonical, target).split(sep).join("/"),
+        ),
+      );
+    }
+  };
+  visit(canonical);
+  return paths.sort().map((path) => {
+    try {
+      return readWorkItemSource(canonical, path);
+    } catch (error) {
+      throw new TypeError(
+        `legacy v2 WorkItem source is invalid: ${path}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      );
+    }
+  });
 };
 
 export const scanWorkItemSources = (
