@@ -19,7 +19,9 @@ const git = (...args: readonly string[]): string =>
 
 const parseVersion = (value: string): Version => {
   const match = /^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.exec(value);
-  if (match === null) fail(`invalid semantic version: ${value}`);
+  if (match === null) {
+    throw new TypeError(`invalid semantic version: ${value}`);
+  }
   return [Number(match[1]), Number(match[2]), Number(match[3])] as const;
 };
 
@@ -33,16 +35,15 @@ const compareVersions = (left: Version, right: Version): number => {
 
 const packageVersionFromText = (text: string): string => {
   const value: unknown = JSON.parse(text);
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    !("version" in value) ||
-    typeof value.version !== "string"
-  ) {
-    fail("package.json must contain a string version");
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("package.json must contain an object");
   }
-  parseVersion(value.version);
-  return value.version;
+  const version = (value as Readonly<Record<string, unknown>>).version;
+  if (typeof version !== "string") {
+    throw new TypeError("package.json must contain a string version");
+  }
+  parseVersion(version);
+  return version;
 };
 
 const escapeRegExp = (value: string): string =>
@@ -146,17 +147,19 @@ if (mode === "pr") {
     }
 
     const body = pullRequestBody();
-    const impactValue = /SemVer impact:\s*\*\*(patch|minor|major)\*\*/i.exec(body)?.[1]?.toLowerCase();
+    const impactValue = /SemVer impact:\s*\*\*(patch|minor|major)\*\*/i
+      .exec(body)?.[1]?.toLowerCase();
     if (
       impactValue !== "patch" &&
       impactValue !== "minor" &&
       impactValue !== "major"
     ) {
-      fail("PR body must declare SemVer impact: **patch|minor|major**");
+      throw new TypeError("PR body must declare SemVer impact: **patch|minor|major**");
     }
-    const target = /Target release:\s*\*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*/i.exec(body)?.[1];
+    const target = /Target release:\s*\*\*([0-9]+\.[0-9]+\.[0-9]+)\*\*/i
+      .exec(body)?.[1];
     if (target === undefined) {
-      fail("PR body must declare Target release: **X.Y.Z**");
+      throw new TypeError("PR body must declare Target release: **X.Y.Z**");
     }
     const targetVersion = parseVersion(target);
     const minimum = minimumTargetForImpact(parseVersion(baseVersion), impactValue);
