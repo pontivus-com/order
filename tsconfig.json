@@ -27,6 +27,7 @@
     "src/**/*.ts",
     "ui/src/**/*.ts",
     "ui/src/**/*.tsx",
-    "tests/**/*.ts"
+    "tests/**/*.ts",
+    "scripts/**/*.ts"
   ]
 }
