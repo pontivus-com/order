@@ -1,4 +1,5 @@
 import {
+  repositoryPathNamesAgentInstruction,
   type Approval,
   type EvidenceRef,
   type ExecutionTask,
@@ -157,6 +158,9 @@ export const validateChangedPaths = (
   changedPaths: readonly RepositoryPath[],
 ): string | null => {
   for (const path of changedPaths) {
+    if (repositoryPathNamesAgentInstruction(path)) {
+      return `candidate changed immutable repository instruction path: ${path}`;
+    }
     if (!task.changeSurface.includes(path)) {
       return `candidate changed path outside signed changeSurface: ${path}`;
     }

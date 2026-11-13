@@ -13,6 +13,136 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { orderVersion } from "../src/version.ts";
 
+describe("productive invocation failure origin", () => {
+  it("persists local admission failure without fabricating PROVIDER_FAILED", () => {
+    const state = tempDir("order-daemon-local-admission-");
+    const repository = createRepository();
+
+    const output = JSON.parse(execFileSync("bun", ["-e", `
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const workItem = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "Local admission failure origin",
+        concernIds: ["shell"],
+      });
+      const run = runStore.insertRun(runtime, {
+        id: shellRuntime.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: "sha256:" + "a".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-14T00:00:00.000Z",
+        endedAt: null,
+      });
+      const failed = runStore.failRunForProductiveInvocation(
+        runtime,
+        run.id,
+        "PRECONDITION_FAILED",
+        new TypeError("instruction closure mismatch"),
+      );
+      const events = runStore.listRunEvents(runtime, run.id).map((event) => event.event);
+      console.log(JSON.stringify({
+        status: failed.status,
+        terminalClassification: failed.terminalClassification,
+        productive: events.find((event) => event.tag === "PRODUCTIVE_INVOCATION_FAILED") ?? null,
+        provider: events.find((event) => event.tag === "PROVIDER_FAILED") ?? null,
+      }));
+      database.close();
+    `], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: "pipe",
+    })) as {
+      status: string;
+      terminalClassification: string | null;
+      productive: {
+        tag: string;
+        classification: string;
+        detail: string;
+        evidence: unknown[];
+      } | null;
+      provider: unknown | null;
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.terminalClassification).toBe("PRECONDITION_FAILED");
+    expect(output.productive).toEqual({
+      tag: "PRODUCTIVE_INVOCATION_FAILED",
+      classification: "PRECONDITION_FAILED",
+      detail: "instruction closure mismatch",
+      evidence: [],
+    });
+    expect(output.provider).toBeNull();
+  });
+});
+
+describe("candidate changed-path instruction immutability", () => {
+  it("rejects AGENTS.md through the production validator under the Bun runtime", () => {
+    const script = `
+      import { ExecutionTaskSchema } from "./src/core/contracts.ts";
+      import { validateChangedPaths } from "./src/daemon/validation.ts";
+
+      const task = ExecutionTaskSchema.parse({
+        id: "task_11111111-1111-4111-8111-111111111111",
+        approvalId: "approval_22222222-2222-4222-8222-222222222222",
+        planTaskId: "T1",
+        objective: "fixture",
+        dependsOn: [],
+        scope: ["**"],
+        exclusions: [],
+        acceptanceRefs: [],
+        changeSurface: ["src/target.ts"],
+        gateIds: ["test"],
+        authorityRefs: [],
+        concernIds: ["shell"],
+        state: "RUNNING",
+      });
+
+      for (const path of ["AGENTS.md", "nested/AGENTS.md"]) {
+        const result = validateChangedPaths(task, [path]);
+        if (result === null || !result.includes("immutable repository instruction")) process.exit(1);
+      }
+      if (validateChangedPaths(task, ["src/target.ts"]) !== null) process.exit(2);
+    `;
+
+    expect(() =>
+      execFileSync("bun", ["-e", script], {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        stdio: "pipe",
+      })
+    ).not.toThrow();
+  });
+});
+
 const temporary: string[] = [];
 let distOwned = false;
 
@@ -193,6 +323,12 @@ const server = Bun.serve({
         location: { directory: process.cwd() },
         data: [{ ...model, enabled: true }],
       });
+    }
+    if (request.method === "GET" && url.pathname === "/api/skill") {
+      return json({ location: { directory: process.cwd() }, data: [] });
+    }
+    if (request.method === "GET" && url.pathname === "/api/mcp") {
+      return json({ location: { directory: process.cwd() }, data: [] });
     }
     if (request.method === "POST" && url.pathname === "/api/session") {
       const body = await request.json();
@@ -3303,6 +3439,92 @@ describe("daemon control plane", () => {
     expect(output.runStatus).toBe("BLOCKED");
     expect(output.receivedCount).toBe(0);
     expect(output.conformanceFailures).toBe(1);
+  });
+
+  it("rejects a resumed STAGE session after a clean source HEAD advance", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stage-head-freshness-");
+
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const stageOwner = await import("./src/daemon/stage.ts");
+      sql.updateWorkItemLifecycle(database, work, {
+        stage: "PLAN",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const planWorkItem = coord.getWorkItem(runtime, work);
+      const context = await authority.resolveStageContext(runtime, planWorkItem, "PLAN");
+      const waiting = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: work,
+        executionTaskId: null,
+        stage: "PLAN",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: runStore.nextAttempt(runtime, work, "PLAN", null),
+        baselineCommit: approval.baselineCommit,
+        contextHash: context.contextHash,
+        providerSessionId: "session_existing",
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      const trigger = runStore.appendRunEvent(runtime, waiting.id, {
+        tag: "OBSERVATION_RECORDED",
+        title: "RESUME",
+        detail: "resume after external commit",
+        evidence: [],
+      });
+      runtime.activeProviders.set(waiting.id, {
+        server: {
+          process: { terminate: async () => undefined },
+        },
+        sessionId: "session_existing",
+        trustedAccountId: "cred_existing",
+        stageMaterialIdentity: "sha256:" + "a".repeat(64),
+      });
+
+      Bun.spawnSync(["git", "config", "user.email", "fixture@example.com"], { cwd: ${JSON.stringify(repository)} });
+      Bun.spawnSync(["git", "config", "user.name", "Fixture"], { cwd: ${JSON.stringify(repository)} });
+      await Bun.write(${JSON.stringify(repository)} + "/head-advance.txt", "committed change\\n");
+      Bun.spawnSync(["git", "add", "head-advance.txt"], { cwd: ${JSON.stringify(repository)} });
+      const committed = Bun.spawnSync(["git", "commit", "-m", "advance head"], { cwd: ${JSON.stringify(repository)} });
+      if (committed.exitCode !== 0) {
+        throw new Error(new TextDecoder().decode(committed.stderr));
+      }
+
+      const result = await stageOwner.runStageTurn(runtime, waiting, trigger.id, context);
+      const events = runStore.listRunEvents(runtime, waiting.id);
+      console.log(JSON.stringify({
+        status: result.status,
+        classification: result.terminalClassification,
+        productiveFailures: events
+          .filter((event) => event.event.tag === "PRODUCTIVE_INVOCATION_FAILED")
+          .map((event) => event.event),
+        providerFailures: events.filter((event) => event.event.tag === "PROVIDER_FAILED").length,
+        activeProvider: runtime.activeProviders.has(waiting.id),
+      }));
+      database.close();
+    `) as {
+      status: string;
+      classification: string | null;
+      productiveFailures: Array<{ classification: string; detail: string }>;
+      providerFailures: number;
+      activeProvider: boolean;
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.classification).toBe("PRECONDITION_FAILED");
+    expect(output.productiveFailures).toEqual([
+      expect.objectContaining({
+        classification: "PRECONDITION_FAILED",
+        detail: expect.stringContaining("source HEAD no longer equals the Run baseline"),
+      }),
+    ]);
+    expect(output.providerFailures).toBe(0);
+    expect(output.activeProvider).toBe(false);
   });
 
   it("routes an externally changed source through approval staleness to R1", () => {

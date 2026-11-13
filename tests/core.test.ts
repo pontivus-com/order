@@ -6,6 +6,7 @@ import { orderVersion } from "../src/version.ts";
 import {
   ArtifactRefSchema,
   EvidencePathSchema,
+  ExecutionTaskSchema,
   OrderConfigSchema,
   IsoDateTimeSchema,
   ProjectManifestSchema,
@@ -391,6 +392,39 @@ describe("canonical scalar and strict ingress contracts", () => {
 
     expect(
       RunEventPayloadSchema.safeParse({
+        tag: "PRODUCTIVE_INVOCATION_FAILED",
+        classification: "PRECONDITION_FAILED",
+        detail: "repository instruction closure failed",
+        evidence: [],
+      }).success,
+    ).toBe(true);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "PRODUCTIVE_INVOCATION_FAILED",
+        classification: "ENVIRONMENT_BLOCKED",
+        detail: "configured model is unavailable",
+        evidence: [],
+      }).success,
+    ).toBe(true);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "PRODUCTIVE_INVOCATION_FAILED",
+        classification: "PROVIDER_FAILURE",
+        detail: "wrong taxonomy",
+        evidence: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "PRODUCTIVE_INVOCATION_FAILED",
+        classification: "PRECONDITION_FAILED",
+        detail: "",
+        evidence: [],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      RunEventPayloadSchema.safeParse({
         tag: "CANDIDATE_STATE_RECORDED",
         patch: { relativePath: "candidate.patch", sha256: hashA, mediaType: "text/x-diff" },
         changedPaths: ["b.ts", "a.ts"],
@@ -412,6 +446,30 @@ describe("signed task and manifest contracts", () => {
     authorityRefs: ["FR-1"],
     concernIds: ["core"],
   };
+
+  it("rejects AGENTS.md changeSurface paths in signed and materialized task contracts", () => {
+    for (const path of ["AGENTS.md", "nested/AGENTS.md"]) {
+      expect(
+        SignedTaskBlockSchema.safeParse({
+          version: 1,
+          tasks: [{ ...task, changeSurface: [path] }],
+        }).success,
+      ).toBe(false);
+      expect(
+        ExecutionTaskSchema.safeParse({
+          ...baseTask("task_" + uuidA, "TODO"),
+          changeSurface: [path],
+        }).success,
+      ).toBe(false);
+    }
+
+    expect(
+      SignedTaskBlockSchema.safeParse({
+        version: 1,
+        tasks: [{ ...task, changeSurface: ["nested/AGENTS.md.bak"] }],
+      }).success,
+    ).toBe(true);
+  });
 
   it("rejects duplicate, non-local and cyclic task dependencies", () => {
     expect(SignedTaskBlockSchema.safeParse({ version: 1, tasks: [task, task] }).success).toBe(false);

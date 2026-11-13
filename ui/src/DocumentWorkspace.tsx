@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Tab, TabList } from "@astryxdesign/core/TabList";
@@ -6,6 +6,7 @@ import { Tab, TabList } from "@astryxdesign/core/TabList";
 import {
   MarkdownTextSchema,
   type ArtifactRef,
+  type Sha256,
   type WorkItem,
 } from "../../src/core/contracts.ts";
 import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
@@ -13,6 +14,7 @@ import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import {
+  lifecycleArtifactLabel,
   lifecycleArtifactRoleRank,
   type WorkflowDocumentTarget,
 } from "./workbench-presentation.ts";
@@ -21,7 +23,7 @@ import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/Workbench
 
 type SelectedDocument =
   | Readonly<{ kind: "SOURCE" }>
-  | Readonly<{ kind: "ARTIFACT"; id: ArtifactRef["id"] }>;
+  | Readonly<{ kind: "ARTIFACT"; role: ArtifactRef["role"] }>;
 
 const errorText = (value: unknown): string => value instanceof Error ? value.message : String(value);
 
@@ -61,6 +63,8 @@ export const DocumentWorkspace = ({
   onDirtyChange,
   onOpenArtifactEvidence,
   requestedDocument,
+  onRequestedDocumentHandled,
+  onContextDocumentChange,
 }: Readonly<{
   workItem: WorkItem;
   onDirtyChange: (dirty: boolean) => void;
@@ -69,6 +73,8 @@ export const DocumentWorkspace = ({
     document: WorkflowDocumentTarget;
     requestId: number;
   }> | null;
+  onRequestedDocumentHandled: (requestId: number) => void;
+  onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<SelectedDocument>({ kind: "SOURCE" });
@@ -78,6 +84,7 @@ export const DocumentWorkspace = ({
   const [confirmGitSave, setConfirmGitSave] = useState(false);
   const [requestedUnavailable, setRequestedUnavailable] =
     useState<WorkflowDocumentTarget | null>(null);
+  const handledDocumentRequestId = useRef<number | null>(null);
 
   const sourceQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSource(workItem.id), queryFn: () => api.getWorkItemSource(workItem.id) });
   const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id), queryFn: () => api.listLifecycleArtifacts(workItem.id) });
@@ -100,12 +107,12 @@ export const DocumentWorkspace = ({
       workItem.stage === "R3"
     ) {
       const current = artifacts.find((artifact) => artifact.role === workItem.stage);
-      if (current) setSelected({ kind: "ARTIFACT", id: current.id });
+      if (current) setSelected({ kind: "ARTIFACT", role: current.role });
     }
     setSelectionInitialized(true);
   }, [artifacts, artifactsQuery.isPending, selectionInitialized, workItem.stage]);
 
-  const selectedArtifact = selected.kind === "ARTIFACT" ? artifacts.find((item) => item.id === selected.id) ?? null : null;
+  const selectedArtifact = selected.kind === "ARTIFACT" ? artifacts.find((item) => item.role === selected.role) ?? null : null;
   const contentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
@@ -179,7 +186,10 @@ export const DocumentWorkspace = ({
 
   useEffect(() => {
     if (requestedDocument === null || requestedDocument === undefined) return;
+    if (handledDocumentRequestId.current === requestedDocument.requestId) return;
     if (artifactsQuery.isPending) return;
+    handledDocumentRequestId.current = requestedDocument.requestId;
+    onRequestedDocumentHandled(requestedDocument.requestId);
     setRequestedUnavailable(null);
     if (requestedDocument.document === "SOURCE") {
       select({ kind: "SOURCE" });
@@ -192,11 +202,30 @@ export const DocumentWorkspace = ({
       setRequestedUnavailable(requestedDocument.document);
       return;
     }
-    select({ kind: "ARTIFACT", id: artifact.id });
+    select({ kind: "ARTIFACT", role: artifact.role });
   }, [
     artifacts,
     artifactsQuery.isPending,
-    requestedDocument?.requestId,
+    onRequestedDocumentHandled,
+    requestedDocument,
+  ]);
+
+  useEffect(() => {
+    if (selected.kind === "SOURCE") {
+      onContextDocumentChange(workItem.sourcePath, sourceQuery.data?.sha256 ?? null);
+      return;
+    }
+    onContextDocumentChange(
+      selectedArtifact?.repositoryPath ?? null,
+      selectedArtifact?.sha256 ?? null,
+    );
+  }, [
+    onContextDocumentChange,
+    selected.kind,
+    selectedArtifact?.repositoryPath,
+    selectedArtifact?.sha256,
+    sourceQuery.data?.sha256,
+    workItem.sourcePath,
   ]);
 
   const sourceReadOnly = workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
@@ -221,40 +250,34 @@ export const DocumentWorkspace = ({
           onClick={() => setConfirmGitSave(true)}
         />
       ) : null}
-      <details className="order-document-git-details">
-        <summary>Documentation details</summary>
-        <div><span>Selected path</span><code>{selectedRepositoryPath ?? workItemDirectory}</code></div>
-        {selectedGitPath ? (
-          <div>
-            <span>Working tree</span>
-            <code>{selectedGitPath.state.replaceAll("_", " ").toLowerCase()}</code>
-          </div>
-        ) : null}
-        <div><span>WorkItem directory</span><code>{workItemDirectory}</code></div>
-        {gitStatusQuery.data ? (
-          <>
-            <div><span>Branch</span><code>{gitStatusQuery.data.branch ?? "detached HEAD"}</code></div>
-            <div><span>HEAD</span><code>{gitStatusQuery.data.headCommit}</code></div>
-            <ul>
-              {gitStatusQuery.data.paths.map((path) => (
-                <li key={path.repositoryPath}>
-                  <code>{path.repositoryPath}</code>
-                  <span>{path.state.replaceAll("_", " ").toLowerCase()}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : null}
-        {gitStatusQuery.isError ? (
-          <span className="order-error-text">{errorText(gitStatusQuery.error)}</span>
-        ) : null}
-        {gitStatusQuery.data?.blockers.map((blocker) => (
-          <span key={blocker} className="order-warning-text">{gitBlockerText(blocker)}</span>
-        ))}
-        {commitDocumentation.error ? (
-          <span className="order-error-text">{errorText(commitDocumentation.error)}</span>
-        ) : null}
-      </details>
+      {gitStatusQuery.isError ? (
+        <span className="order-error-text">{errorText(gitStatusQuery.error)}</span>
+      ) : null}
+      {gitStatusQuery.data?.blockers.map((blocker) => (
+        <span key={blocker} className="order-warning-text">{gitBlockerText(blocker)}</span>
+      ))}
+      {commitDocumentation.error ? (
+        <span className="order-error-text">{errorText(commitDocumentation.error)}</span>
+      ) : null}
+    </div>
+  );
+
+  const documentationTechnicalDetails = (
+    <div className="order-document-technical-details">
+      <div><span>Selected path</span><code>{selectedRepositoryPath ?? workItemDirectory}</code></div>
+      {selectedGitPath ? (
+        <div>
+          <span>Working tree</span>
+          <code>{selectedGitPath.state.replaceAll("_", " ").toLowerCase()}</code>
+        </div>
+      ) : null}
+      <div><span>WorkItem directory</span><code>{workItemDirectory}</code></div>
+      {gitStatusQuery.data ? (
+        <>
+          <div><span>Branch</span><code>{gitStatusQuery.data.branch ?? "detached HEAD"}</code></div>
+          <div><span>HEAD</span><code>{gitStatusQuery.data.headCommit}</code></div>
+        </>
+      ) : null}
     </div>
   );
 
@@ -262,19 +285,21 @@ export const DocumentWorkspace = ({
     <section className="order-workspace-section" data-testid="document-workspace">
       <div className="order-document-nav" data-testid="governed-document-nav">
         <TabList
-          value={selected.kind === "SOURCE" ? "SOURCE" : selected.id}
+          value={selected.kind === "SOURCE" ? "SOURCE" : selected.role}
           onChange={(value) => {
             if (value === "SOURCE") select({ kind: "SOURCE" });
             else {
-              const artifact = artifacts.find((item) => item.id === value);
-              if (artifact) select({ kind: "ARTIFACT", id: artifact.id });
+              const artifact = artifacts.find((item) => item.role === value);
+              if (artifact) select({ kind: "ARTIFACT", role: artifact.role });
             }
           }}
           role="tablist"
           overflow="scroll"
         >
-          <Tab value="SOURCE" label="Source" />
-          {artifacts.map((artifact) => <Tab key={artifact.id} value={artifact.id} label={artifact.role} />)}
+          <Tab value="SOURCE" label="Work request" />
+          {artifacts.map((artifact) => (
+            <Tab key={artifact.id} value={artifact.role} label={lifecycleArtifactLabel(artifact.role)} />
+          ))}
         </TabList>
       </div>
 
@@ -308,10 +333,13 @@ export const DocumentWorkspace = ({
                 }}
                 toolbarAccessory={documentationControls}
                 technicalDetails={
-                  <div className="order-source-technical">
-                    <strong>Complete portable source</strong>
-                    <pre><code>{sourceQuery.data.markdown}</code></pre>
-                  </div>
+                  <>
+                    {documentationTechnicalDetails}
+                    <div className="order-source-technical">
+                      <strong>Complete portable source</strong>
+                      <pre><code>{sourceQuery.data.markdown}</code></pre>
+                    </div>
+                  </>
                 }
               />
             </div>
@@ -334,7 +362,7 @@ export const DocumentWorkspace = ({
         ) : contentQuery.data && markdown !== null ? (
           <MarkdownEditor
             key={selectedArtifact.id}
-            title={selectedArtifact.role + " lifecycle document"}
+            title={lifecycleArtifactLabel(selectedArtifact.role) + " document"}
             description={artifactReadOnly ? "Read-only in the current lifecycle state." : selectedArtifact.repositoryPath}
             sha256={selectedArtifact.sha256}
             markdown={markdown}
@@ -346,6 +374,7 @@ export const DocumentWorkspace = ({
               return result;
             }}
             toolbarAccessory={documentationControls}
+            technicalDetails={documentationTechnicalDetails}
           />
         ) : null}
       </div>

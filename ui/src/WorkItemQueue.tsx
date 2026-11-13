@@ -18,6 +18,7 @@ import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
+import { workflowPresentation } from "./workbench-presentation.ts";
 
 export const WorkItemQueue = ({
   workItems,
@@ -95,7 +96,7 @@ export const WorkItemQueue = ({
                   <span>{item.projectId}{item.archived ? " · Archived" : ""}</span>
                   <span className="order-queue-mobile-meta">
                     {(schemas.find((schema) => schema.schemaId === item.schemaId)?.kind ?? item.schemaId) +
-                      " · " + item.stage + " · " + item.status}
+                      " · " + workflowPresentation(item.stage).label + " · " + item.status}
                   </span>
                   <span className="order-queue-mobile-concerns">
                     {item.concernIds.join(", ") || "No concerns"}
@@ -105,7 +106,7 @@ export const WorkItemQueue = ({
               <TableCell className="order-queue-secondary-column">
                 {schemas.find((schema) => schema.schemaId === item.schemaId)?.kind ?? item.schemaId}
               </TableCell>
-              <TableCell className="order-queue-stage-column">{item.stage}</TableCell>
+              <TableCell className="order-queue-stage-column">{workflowPresentation(item.stage).label}</TableCell>
               <TableCell className="order-queue-status-column">{item.status}</TableCell>
               <TableCell className="order-queue-secondary-column">{item.concernIds.join(", ") || "—"}</TableCell>
               <TableCell>

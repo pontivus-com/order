@@ -39,7 +39,7 @@ export const WorkbenchLayout = ({
       {toolbar ? <header className="order-workbench-toolbar">{toolbar}</header> : null}
       <div className="order-workbench-body">
         <main className="order-workbench-main">{children}</main>
-        {wide && hasInspector ? (
+        {wide && hasInspector && inspectorOpen ? (
           <aside className="order-workbench-context" data-testid="work-item-context">{inspector}</aside>
         ) : null}
       </div>

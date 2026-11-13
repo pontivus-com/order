@@ -136,6 +136,12 @@ const server = Bun.serve({
         ],
       });
     }
+    if (request.method === "GET" && url.pathname === "/api/skill") {
+      return json({ location: { directory: process.cwd() }, data: config.skills ?? [] });
+    }
+    if (request.method === "GET" && url.pathname === "/api/mcp") {
+      return json({ location: { directory: process.cwd() }, data: config.mcps ?? [] });
+    }
 
     const accountIntegration = {
       id: "opencode",
@@ -425,6 +431,47 @@ describe("OpenCode shell", () => {
     });
   });
 
+  it("requires exact ArtifactRef bytes for every admitted AGENTS.md", () => {
+    const workspace = tempDir("order-opencode-agent-bytes-");
+    writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
+
+    const output = bunEval(`
+      const o = await import("./src/shell/opencode.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const path = ${JSON.stringify(workspace)};
+      const good = {
+        authorityLayer: "P1",
+        repositoryPath: "AGENTS.md",
+        sha256: rt.sha256(new TextEncoder().encode("# authority\\n")),
+      };
+      let matched = true;
+      let mismatchRejected = false;
+      let absentRejected = false;
+      try { await o.assertAgentInstructionsResolved(path, [good], null); } catch { matched = false; }
+      try {
+        await o.assertAgentInstructionsResolved(
+          path,
+          [{ ...good, sha256: "sha256:" + "0".repeat(64) }],
+          null,
+        );
+      } catch { mismatchRejected = true; }
+      try {
+        await o.assertAgentInstructionsResolved(
+          path,
+          [{ ...good, repositoryPath: "nested/AGENTS.md" }],
+          null,
+        );
+      } catch { absentRejected = true; }
+      console.log(JSON.stringify({ matched, mismatchRejected, absentRejected }));
+    `) as Record<string, boolean>;
+
+    expect(output).toEqual({
+      matched: true,
+      mismatchRejected: true,
+      absentRejected: true,
+    });
+  });
+
   it("creates deny-first exact-path permission rules for multi-resource patch authorization", () => {
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
@@ -436,9 +483,44 @@ describe("OpenCode shell", () => {
       { action: "read", resource: "*", effect: "allow" },
       { action: "glob", resource: "*", effect: "allow" },
       { action: "grep", resource: "*", effect: "allow" },
+      { action: "read", resource: ".git", effect: "deny" },
+      { action: "read", resource: ".git/*", effect: "deny" },
       { action: "edit", resource: "src/a.ts", effect: "allow" },
       { action: "edit", resource: "src/b.ts", effect: "allow" },
     ]);
+  });
+
+  it("derives exact pinned MCP namespaces and trusted integration permissions", () => {
+    const output = bunEval(`
+      const o = await import("./src/shell/opencode.ts");
+      console.log(JSON.stringify({
+        normalized: [
+          o.normalizeOpenCodeMcpNamespace("docs/search"),
+          o.normalizeOpenCodeMcpNamespace("alpha.beta gamma"),
+        ],
+        rules: o.openCodePermissionRules(
+          "STAGE",
+          null,
+          [],
+          ["z-skill", "a_skill", "z-skill"],
+          ["docs/search", "alpha.beta gamma", "docs/search"],
+        ),
+      }));
+    `) as { normalized: string[]; rules: unknown[] };
+    expect(output.normalized).toEqual(["docs_search", "alpha_beta_gamma"]);
+    expect(output.rules).toEqual([
+      { action: "*", resource: "*", effect: "deny" },
+      { action: "read", resource: "*", effect: "allow" },
+      { action: "glob", resource: "*", effect: "allow" },
+      { action: "grep", resource: "*", effect: "allow" },
+      { action: "read", resource: ".git", effect: "deny" },
+      { action: "read", resource: ".git/*", effect: "deny" },
+      { action: "skill", resource: "a_skill", effect: "allow" },
+      { action: "skill", resource: "z-skill", effect: "allow" },
+      { action: "alpha_beta_gamma_*", resource: "*", effect: "allow" },
+      { action: "docs_search_*", resource: "*", effect: "allow" },
+    ]);
+    expect(output.rules).not.toContainEqual(expect.objectContaining({ action: "execute" }));
   });
 
   it("lists only enabled exact models from the private V2 catalog", () => {
@@ -690,25 +772,47 @@ describe("OpenCode shell", () => {
     const state = tempDir("order-opencode-state-");
     writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
     const binary = createFakeOpenCode(workspace, {
+      accountConnections: [{
+        type: "credential",
+        id: "cred_productive",
+        label: "productive@example.com",
+        method: "oauth",
+      }],
+      skills: [
+        { id: "review", name: "Review", path: "/trusted/review", content: "review" },
+        { id: "write-doc", name: "Write doc", path: "/trusted/write", content: "write" },
+      ],
+      mcps: [
+        { name: "docs/search", status: { status: "connected" } },
+        { name: "safe-server", status: { status: "connected" } },
+      ],
       outputs: ['[{"tag":"AGENT_MESSAGE_FINAL","text":"done","evidence":[]}]'],
     });
 
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      const server = await o.startOpenCodeServer(
+      const admission = await o.admitProductiveOpenCode(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
         { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
+        "STAGE",
+        null,
+          [{
+            authorityLayer: "P1",
+            repositoryPath: "AGENTS.md",
+            sha256: (await import("./src/shell/runtime.ts")).sha256(
+              (await import("./src/shell/repository.ts")).readWorkingTreeFile(
+                ${JSON.stringify(workspace)},
+                "AGENTS.md",
+              ),
+            ),
+          }],
+        [],
       );
-      try {
-        const sessionID = await o.createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
-          ["AGENTS.md"],
-          [],
-        );
+        const server = admission.server;
+        try {
+          const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),
@@ -789,6 +893,12 @@ describe("OpenCode shell", () => {
       { action: "read", resource: "*", effect: "allow" },
       { action: "glob", resource: "*", effect: "allow" },
       { action: "grep", resource: "*", effect: "allow" },
+      { action: "read", resource: ".git", effect: "deny" },
+      { action: "read", resource: ".git/*", effect: "deny" },
+      { action: "skill", resource: "review", effect: "allow" },
+      { action: "skill", resource: "write-doc", effect: "allow" },
+      { action: "docs_search_*", resource: "*", effect: "allow" },
+      { action: "safe-server_*", resource: "*", effect: "allow" },
     ]);
     expect(output.exposedKeys).toEqual([
       "client",
@@ -804,6 +914,12 @@ describe("OpenCode shell", () => {
     const state = tempDir("order-opencode-repair-state-");
     writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
     const binary = createFakeOpenCode(workspace, {
+      accountConnections: [{
+        type: "credential",
+        id: "cred_productive",
+        label: "productive@example.com",
+        method: "oauth",
+      }],
       outputs: [
         '[{"tag":"ARTIFACT_PROPOSAL_CREATED","targetPath":"docs/r1.md","baseSha256":null,"role":"R1","authorityLayer":"P1","unifiedDiff":"--- /dev/null\\n+++ b/docs/r1.md\\n@@ -0,0 +1 @@\\n+# R1","rationale":"Create R1"}]',
         '[{"tag":"ARTIFACT_PROPOSAL_CREATED","targetPath":"docs/r1.md","baseSha256":null,"role":"R1","authorityLayer":"P1","unifiedDiff":"--- /dev/null\\n+++ b/docs/r1.md\\n@@ -0,0 +1 @@\\n+# R1\\n","rationale":"Create R1"}]',
@@ -812,20 +928,28 @@ describe("OpenCode shell", () => {
 
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      const server = await o.startOpenCodeServer(
+      const admission = await o.admitProductiveOpenCode(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
         { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
+        "STAGE",
+        null,
+          [{
+            authorityLayer: "P1",
+            repositoryPath: "AGENTS.md",
+            sha256: (await import("./src/shell/runtime.ts")).sha256(
+              (await import("./src/shell/repository.ts")).readWorkingTreeFile(
+                ${JSON.stringify(workspace)},
+                "AGENTS.md",
+              ),
+            ),
+          }],
+        [],
       );
-      try {
-        const sessionID = await o.createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
-          ["AGENTS.md"],
-          [],
-        );
+        const server = admission.server;
+        try {
+          const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),
@@ -889,6 +1013,8 @@ describe("OpenCode shell", () => {
       { action: "read", resource: "*", effect: "allow" },
       { action: "glob", resource: "*", effect: "allow" },
       { action: "grep", resource: "*", effect: "allow" },
+      { action: "read", resource: ".git", effect: "deny" },
+      { action: "read", resource: ".git/*", effect: "deny" },
     ]);
     expect(output.userPrompts).toBe(2);
   });
@@ -899,6 +1025,12 @@ describe("OpenCode shell", () => {
     writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
     const longTail = "x".repeat(30_000);
     const binary = createFakeOpenCode(workspace, {
+      accountConnections: [{
+        type: "credential",
+        id: "cred_productive",
+        label: "productive@example.com",
+        method: "oauth",
+      }],
       outputs: ["not-json", "still-not-json"],
       stderr: [
         "provider emitted must-not-leak",
@@ -908,20 +1040,28 @@ describe("OpenCode shell", () => {
 
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      const server = await o.startOpenCodeServer(
+      const admission = await o.admitProductiveOpenCode(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
         { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
+        "STAGE",
+        null,
+          [{
+            authorityLayer: "P1",
+            repositoryPath: "AGENTS.md",
+            sha256: (await import("./src/shell/runtime.ts")).sha256(
+              (await import("./src/shell/repository.ts")).readWorkingTreeFile(
+                ${JSON.stringify(workspace)},
+                "AGENTS.md",
+              ),
+            ),
+          }],
+        [],
       );
-      try {
-        const sessionID = await o.createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
-          ["AGENTS.md"],
-          [],
-        );
+        const server = admission.server;
+        try {
+          const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),

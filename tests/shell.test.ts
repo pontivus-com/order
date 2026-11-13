@@ -492,6 +492,170 @@ describe("repository shell", () => {
     expect(parsed.patchSha256).toMatch(/^sha256:[0-9a-f]{64}$/);
   });
 
+  it("materializes the exact Git-visible STAGE workspace without copying ignored physical state", () => {
+    const root = tempDir("order-stage-source-");
+    const baseline = initGitRepo(root);
+    mkdirSync(join(root, "ignored"), { recursive: true });
+    writeFileSync(join(root, ".gitignore"), "ignored/\n");
+    run(["git", "add", ".gitignore"], root);
+    run(["git", "commit", "-qm", "ignore fixture"], root);
+    const currentBaseline = run(["git", "rev-parse", "HEAD"], root).stdout.trim();
+
+    writeFileSync(join(root, "file.txt"), "changed\n");
+    writeFileSync(join(root, "visible-untracked.txt"), "visible\n");
+    writeFileSync(join(root, "ignored", "ambient.txt"), "must not materialize\n");
+
+    const workspace = join(tempDir("order-stage-workspace-"), "run");
+    const result = JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const fs = await import("node:fs");
+      const root = ${JSON.stringify(root)};
+      const workspace = ${JSON.stringify(workspace)};
+      const patchSha256 = await repo.materializeStageInspectionWorkspace(
+        root,
+        workspace,
+        ${JSON.stringify(currentBaseline)},
+      );
+      repo.proveWorkspaceEscapeConstraints(workspace);
+      const capture = await repo.captureCandidate(workspace);
+      console.log(JSON.stringify({
+        patchSha256,
+        changedPaths: capture.changedPaths,
+        tracked: fs.readFileSync(workspace + "/file.txt", "utf8"),
+        visible: fs.readFileSync(workspace + "/visible-untracked.txt", "utf8"),
+        ignoredExists: fs.existsSync(workspace + "/ignored/ambient.txt"),
+      }));
+    `, process.cwd()));
+
+    expect(result.patchSha256).toMatch(/^sha256:[0-9a-f]{64}$/);
+    expect(result.changedPaths).toEqual(["file.txt", "visible-untracked.txt"]);
+    expect(result.tracked).toBe("changed\n");
+    expect(result.visible).toBe("visible\n");
+    expect(result.ignoredExists).toBe(false);
+    expect(run(["git", "status", "--porcelain=v1"], root).stdout).toContain("file.txt");
+  });
+
+  it("excludes ignored dependency and arbitrary physical AGENTS.md while preserving tracked ignored-looking material", () => {
+    const root = tempDir("order-stage-ignored-agents-");
+    initGitRepo(root);
+    writeFileSync(join(root, ".gitignore"), "node_modules/\nambient/\n");
+    mkdirSync(join(root, "node_modules"), { recursive: true });
+    writeFileSync(join(root, "node_modules", "tracked.txt"), "tracked through Git\n");
+    run(["git", "add", ".gitignore"], root);
+    run(["git", "add", "-f", "node_modules/tracked.txt"], root);
+    run(["git", "commit", "-qm", "tracked ignored-looking material"], root);
+    const baseline = run(["git", "rev-parse", "HEAD"], root).stdout.trim();
+
+    const dependencyAgents = join(
+      root,
+      "node_modules",
+      ".pnpm",
+      "recharts@3.3.0",
+      "node_modules",
+      "recharts",
+      "AGENTS.md",
+    );
+    mkdirSync(join(dependencyAgents, ".."), { recursive: true });
+    writeFileSync(dependencyAgents, "# dependency instruction that must not enter productive context\n");
+    const ambientAgents = join(root, "ambient", "vendor", "A", "AGENTS.md");
+    mkdirSync(join(ambientAgents, ".."), { recursive: true });
+    writeFileSync(ambientAgents, "# arbitrary ignored physical instruction\n");
+
+    const workspace = join(tempDir("order-stage-ignored-agents-workspace-"), "run");
+    const output = JSON.parse(bunEval(`
+      const fs = await import("node:fs");
+      const repo = await import("./src/shell/repository.ts");
+      const root = ${JSON.stringify(root)};
+      const workspace = ${JSON.stringify(workspace)};
+      await repo.materializeStageInspectionWorkspace(
+        root,
+        workspace,
+        ${JSON.stringify(baseline)},
+      );
+      console.log(JSON.stringify({
+        agents: await repo.enumerateAgentInstructions(workspace),
+        tracked: fs.readFileSync(workspace + "/node_modules/tracked.txt", "utf8"),
+        dependencyAgentsExists: fs.existsSync(
+          workspace + "/node_modules/.pnpm/recharts@3.3.0/node_modules/recharts/AGENTS.md",
+        ),
+        ambientAgentsExists: fs.existsSync(workspace + "/ambient/vendor/A/AGENTS.md"),
+      }));
+    `, process.cwd())) as {
+      agents: string[];
+      tracked: string;
+      dependencyAgentsExists: boolean;
+      ambientAgentsExists: boolean;
+    };
+
+    expect(output.agents).toEqual(["AGENTS.md", "nested/AGENTS.md"]);
+    expect(output.agents).not.toContain(
+      "node_modules/.pnpm/recharts@3.3.0/node_modules/recharts/AGENTS.md",
+    );
+    expect(output.agents).not.toContain("ambient/vendor/A/AGENTS.md");
+    expect(output.tracked).toBe("tracked through Git\n");
+    expect(output.dependencyAgentsExists).toBe(false);
+    expect(output.ambientAgentsExists).toBe(false);
+  });
+
+  it("rejects STAGE materialization from a source HEAD different from the Run baseline", () => {
+    const root = tempDir("order-stage-baseline-");
+    const baseline = initGitRepo(root);
+    writeFileSync(join(root, "file.txt"), "new commit\n");
+    run(["git", "add", "file.txt"], root);
+    run(["git", "commit", "-qm", "advance source"], root);
+    const workspace = join(tempDir("order-stage-workspace-"), "run");
+
+    expect(() => bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      await repo.materializeStageInspectionWorkspace(
+        ${JSON.stringify(root)},
+        ${JSON.stringify(workspace)},
+        ${JSON.stringify(baseline)},
+      );
+    `, process.cwd())).toThrow(/source HEAD does not equal/);
+  });
+
+  it("proves workspace symlink containment and rejects AGENTS.md or edit-path symlink redirects", () => {
+    const root = tempDir("order-escape-");
+    mkdirSync(join(root, "nested"), { recursive: true });
+    writeFileSync(join(root, "AGENTS.md"), "# authority\n");
+    writeFileSync(join(root, "nested", "target.txt"), "ok\n");
+    const outside = tempDir("order-outside-");
+    writeFileSync(join(outside, "outside.txt"), "outside\n");
+
+    run(["ln", "-s", "target.txt", "inside-link"], join(root, "nested"));
+    expect(() => bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      repo.proveWorkspaceEscapeConstraints(${JSON.stringify(root)});
+    `, process.cwd())).not.toThrow();
+
+    run(["ln", "-s", join(outside, "outside.txt"), "escape-link"], join(root, "nested"));
+    expect(() => bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      repo.proveWorkspaceEscapeConstraints(${JSON.stringify(root)});
+    `, process.cwd())).toThrow(/symlink escapes/);
+    rmSync(join(root, "nested", "escape-link"));
+
+    rmSync(join(root, "AGENTS.md"));
+    run(["ln", "-s", "nested/target.txt", "AGENTS.md"], root);
+    expect(() => bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      repo.proveWorkspaceEscapeConstraints(${JSON.stringify(root)});
+    `, process.cwd())).toThrow(/AGENTS.md must be a regular/);
+    rmSync(join(root, "AGENTS.md"));
+    writeFileSync(join(root, "AGENTS.md"), "# authority\n");
+
+    mkdirSync(join(root, "editable"), { recursive: true });
+    run(["ln", "-s", "../nested", "redirect"], join(root, "editable"));
+    expect(() => bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      repo.proveWorkspaceEscapeConstraints(
+        ${JSON.stringify(root)},
+        ["editable/redirect/target.txt"],
+      );
+    `, process.cwd())).toThrow(/edit path traverses a symlink/);
+  });
+
   it("reports and commits only exact governed documentation paths while preserving unrelated index state", () => {
     const root = tempDir("order-doc-git-");
     initGitRepo(root);

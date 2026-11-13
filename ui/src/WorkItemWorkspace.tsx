@@ -6,7 +6,7 @@ import {
   SegmentedControlItem,
 } from "@astryxdesign/core/SegmentedControl";
 
-import type { ArtifactRef, Run, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -58,13 +58,17 @@ export const WorkItemWorkspace = ({
   workItem,
   onBack,
   onOpenContext,
-  showContextAction,
+  onContextModeChange,
+  onContextDocumentChange,
+  onCreateRemediation,
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
   onBack: () => void;
   onOpenContext: () => void;
-  showContextAction: boolean;
+  onContextModeChange: (mode: WorkItemMode, runId: Run["id"] | null) => void;
+  onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onCreateRemediation: (workItem: WorkItem) => void;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -78,8 +82,14 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
     queryFn: api.listWorkItemSourceDiagnostics,
   });
+  const signoffPackageQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+    queryFn: () => api.getSignoffPackage(workItem.id),
+    enabled: workItem.stage === "AWAITING_SIGNOFF" && workItem.status === "ACTIVE",
+  });
 
   const [mode, setMode] = useState<WorkItemMode | null>(null);
+  const [approvedBy, setApprovedBy] = useState("");
   const [dirty, setDirty] = useState(false);
   const [pendingMode, setPendingMode] = useState<WorkItemMode | null>(null);
   const [evidence, setEvidence] = useState<EvidenceSelection | null>(null);
@@ -129,6 +139,10 @@ export const WorkItemWorkspace = ({
   useEffect(() => {
     headingRef.current?.focus();
   }, [workItem.id]);
+
+  useEffect(() => {
+    if (mode !== null) onContextModeChange(mode, selectedActivityRunId);
+  }, [mode, onContextModeChange, selectedActivityRunId]);
 
   useEffect(() => {
     if (runsQuery.isPending) return;
@@ -198,6 +212,29 @@ export const WorkItemWorkspace = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
+      ]);
+    },
+  });
+
+  const signoffMutation = useMutation({
+    mutationFn: () => {
+      if (!signoffPackageQuery.data) {
+        throw new TypeError("current sign-off package is unavailable");
+      }
+      return api.signOffWorkItem(
+        workItem.id,
+        signoffPackageQuery.data.packageHash,
+        approvedBy.trim(),
+      );
+    },
+    onSuccess: async () => {
+      setApprovedBy("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.tasks(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
       ]);
     },
   });
@@ -300,14 +337,12 @@ export const WorkItemWorkspace = ({
               icon={<WorkbenchIcon name="back" />}
               onClick={onBack}
             />
-            {showContextAction ? (
-              <WorkbenchAction
-                label="Context"
-                tone="ghost"
-                icon={<WorkbenchIcon name="context" />}
-                onClick={onOpenContext}
-              />
-            ) : null}
+            <WorkbenchAction
+              label="Context"
+              tone="ghost"
+              icon={<WorkbenchIcon name="context" />}
+              onClick={onOpenContext}
+            />
           </div>
           <div className="order-workitem-heading-block">
             {titleEditing ? (
@@ -358,30 +393,48 @@ export const WorkItemWorkspace = ({
                 {titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}
               </span>
             ) : null}
+            {signoffMutation.error ? (
+              <span role="alert" className="order-error-text">
+                {signoffMutation.error instanceof Error
+                  ? signoffMutation.error.message
+                  : String(signoffMutation.error)}
+              </span>
+            ) : null}
           </div>
-          <nav
-            className="order-workflow-progression"
-            aria-label="Workflow progression"
-            data-testid="workflow-progression"
-          >
-            {workflowSteps.map((step) => {
-              const target = workflowInspectionTarget(workItem, step);
-              return (
-                <button
-                  key={step.stage}
-                  type="button"
-                  aria-current={step.stage === workItem.stage ? "step" : undefined}
-                  aria-disabled={target.kind === "UNREACHED" ? "true" : undefined}
-                  data-reached={target.kind === "UNREACHED" ? "false" : "true"}
-                  title={step.purpose}
-                  onClick={() => inspectWorkflowStep(step)}
-                >
-                  {step.label}
-                </button>
-              );
-            })}
-          </nav>
           <div className="order-workitem-rail-actions">
+            {workItem.stage === "AWAITING_SIGNOFF" ? (
+              <div className="order-signoff-action">
+                <label className="order-field">
+                  <span>Approved by</span>
+                  <input
+                    value={approvedBy}
+                    onChange={(event) => setApprovedBy(event.currentTarget.value)}
+                    placeholder="Local operator identity"
+                  />
+                </label>
+                <WorkbenchAction
+                  label="Sign off exact package"
+                  tone="primary"
+                  loading={signoffMutation.isPending}
+                  disabled={
+                    !signoffPackageQuery.data ||
+                    approvedBy.trim().length === 0 ||
+                    signoffMutation.isPending
+                  }
+                  onClick={() => signoffMutation.mutate()}
+                />
+              </div>
+            ) : null}
+            {workItem.stage === "COMPLETE" && (
+              workItem.outcome === "INVESTIGATION_COMPLETE" ||
+              workItem.outcome === "AUDIT_COMPLETE"
+            ) ? (
+              <WorkbenchAction
+                label="Create linked remediation"
+                tone="primary"
+                onClick={() => onCreateRemediation(workItem)}
+              />
+            ) : null}
             <WorkbenchAction
               label={workItem.archived ? "Restore work item" : "Archive work item"}
               tone="ghost"
@@ -397,27 +450,53 @@ export const WorkItemWorkspace = ({
                 onClick={() => start.mutate()}
               />
             ) : null}
-            {mode !== null ? (
-              <SegmentedControl
-                label="Workspace mode"
-                value={mode}
-                onChange={(value) => {
-                  if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
-                }}
-                size="sm"
-              >
-                {visibleModes.map((item) => (
-                  <SegmentedControlItem
-                    key={item}
-                    value={item}
-                    label={workItemModeLabel(item)}
-                  />
-                ))}
-              </SegmentedControl>
-            ) : null}
           </div>
         </div>
       </header>
+
+      <nav
+        className="order-workflow-progression"
+        aria-label="Workflow progression"
+        data-testid="workflow-progression"
+      >
+        {workflowSteps.map((step) => {
+          const target = workflowInspectionTarget(workItem, step);
+          return (
+            <button
+              key={step.stage}
+              type="button"
+              aria-current={step.stage === workItem.stage ? "step" : undefined}
+              aria-disabled={target.kind === "UNREACHED" ? "true" : undefined}
+              data-reached={target.kind === "UNREACHED" ? "false" : "true"}
+              title={step.purpose}
+              onClick={() => inspectWorkflowStep(step)}
+            >
+              {step.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {mode !== null ? (
+        <div className="order-workspace-view-selector" data-testid="workspace-view-selector">
+          <SegmentedControl
+            label="Workspace view"
+            value={mode}
+            onChange={(value) => {
+              if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
+            }}
+            size="sm"
+          >
+            {visibleModes.map((item) => (
+              <SegmentedControlItem
+                key={item}
+                value={item}
+                label={workItemModeLabel(item)}
+              />
+            ))}
+          </SegmentedControl>
+        </div>
+      ) : null}
 
       {sourceDiagnostics.length > 0 ? (
         <div className="order-primary-blocker" role="alert" data-testid="work-item-source-blocker">
@@ -463,6 +542,12 @@ export const WorkItemWorkspace = ({
                 onDirtyChange={setDirtyState}
                 onOpenArtifactEvidence={openArtifactEvidence}
                 requestedDocument={requestedDocument}
+                onRequestedDocumentHandled={(requestId) => {
+                  setRequestedDocument((current) =>
+                    current?.requestId === requestId ? null : current
+                  );
+                }}
+                onContextDocumentChange={onContextDocumentChange}
               />
             ) : null}
             {mode === "ACTIVITY" ? (

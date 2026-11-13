@@ -136,6 +136,8 @@ writeFileSync(join(repositoryRoot, "docs", "r1.md"), "# R1 confirmed\n");
 writeFileSync(join(repositoryRoot, "docs", "r2.md"), "# R2 accepted\n");
 writeFileSync(join(repositoryRoot, "docs", "design.md"), "# DESIGN accepted\n");
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+writeFileSync(join(repositoryRoot, "docs", "long-wide-plan.md"), planText);
+writeFileSync(join(repositoryRoot, "docs", "long-narrow-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "r3.md"), r3Text);
 writeFileSync(
   join(repositoryRoot, "docs", "invalid-lifecycle.md"),
@@ -363,12 +365,15 @@ const seedConformance = async (
   });
 };
 
-const seedLifecycle = async (item: ReturnType<typeof workItem>) => {
+const seedLifecycle = async (
+  item: ReturnType<typeof workItem>,
+  planPath: "docs/plan.md" | "docs/long-wide-plan.md" | "docs/long-narrow-plan.md" = "docs/plan.md",
+) => {
   const outputs = {
     R1: await currentFileArtifact(seedRuntime, item, "docs/r1.md", "R1", "P1"),
     R2: await currentFileArtifact(seedRuntime, item, "docs/r2.md", "R2", "P3"),
     DESIGN: await currentFileArtifact(seedRuntime, item, "docs/design.md", "DESIGN", "P6"),
-    PLAN: await currentFileArtifact(seedRuntime, item, "docs/plan.md", "PLAN", "P7"),
+    PLAN: await currentFileArtifact(seedRuntime, item, planPath, "PLAN", "P7"),
     R3: await currentFileArtifact(seedRuntime, item, "docs/r3.md", "R3", "P7"),
   };
   await seedConformance(item, "R1", outputs.R1);
@@ -400,6 +405,17 @@ const lifecycleEditorItem = workItem(
 );
 storeWorkItem(database, lifecycleEditorItem);
 await seedLifecycle(lifecycleEditorItem);
+
+for (const [title, planPath] of [
+  ["Long source editing workbench wide", "docs/plan.md"],
+  ["Long source editing workbench narrow", "docs/plan.md"],
+  ["Long lifecycle editing workbench wide", "docs/long-wide-plan.md"],
+  ["Long lifecycle editing workbench narrow", "docs/long-narrow-plan.md"],
+] as const) {
+  const item = workItem(title, "AWAITING_SIGNOFF", "ACTIVE", null);
+  storeWorkItem(database, item);
+  await seedLifecycle(item, planPath);
+}
 
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");

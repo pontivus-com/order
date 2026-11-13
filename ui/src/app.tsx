@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Badge } from "@astryxdesign/core/Badge";
@@ -13,6 +13,8 @@ import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import {
   WorkItemIdSchema,
   type ProjectManifest,
+  type Run,
+  type Sha256,
   type WorkItem,
   type WorkItemId,
   type WorkItemSchemaId,
@@ -20,11 +22,12 @@ import {
 import * as api from "./http.ts";
 import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
+import type { WorkItemMode } from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchLayout, useWideWorkbench } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
 import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
@@ -119,7 +122,6 @@ const updateDestinationUrl = (
 
 export const App = () => {
   const queryClient = useQueryClient();
-  const wideWorkbench = useWideWorkbench();
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<WorkItemId | null>(selectedIdFromUrl);
   const [settingsSection, setSettingsSection] = useState<SettingsSection | null>(settingsSectionFromUrl);
   const [queueProjectId, setQueueProjectId] = useState("");
@@ -127,6 +129,10 @@ export const App = () => {
   const [themePreference, setThemePreference] = useState<ThemePreference>(savedThemePreference);
   const [createOpen, setCreateOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
+  const [contextMode, setContextMode] = useState<WorkItemMode>("DOCUMENTS");
+  const [contextRunId, setContextRunId] = useState<Run["id"] | null>(null);
+  const [contextDocumentPath, setContextDocumentPath] = useState<string | null>(null);
+  const [contextDocumentSha256, setContextDocumentSha256] = useState<Sha256 | null>(null);
   const [projectId, setProjectId] = useState("");
   const [schemaId, setSchemaId] = useState<WorkItemSchemaId | "">("");
   const [title, setTitle] = useState("");
@@ -224,6 +230,10 @@ export const App = () => {
     setSettingsSection(destination.settingsSection);
     setWorkspaceDirty(false);
     setContextOpen(false);
+    setContextMode("DOCUMENTS");
+    setContextRunId(null);
+    setContextDocumentPath(null);
+    setContextDocumentSha256(null);
     updateDestinationUrl(destination);
     if (returningFrom !== null || (
       destination.workItemId === null && destination.settingsSection === null
@@ -288,6 +298,22 @@ export const App = () => {
     setTitle("");
     setCreateOpen(true);
   };
+
+  const updateContextMode = useCallback((
+    nextMode: WorkItemMode,
+    runId: Run["id"] | null,
+  ): void => {
+    setContextMode(nextMode);
+    setContextRunId(runId);
+  }, []);
+
+  const updateContextDocument = useCallback((
+    path: string | null,
+    sha256: Sha256 | null,
+  ): void => {
+    setContextDocumentPath(path);
+    setContextDocumentSha256(sha256);
+  }, []);
 
   const filtered = useMemo(() => {
     const scoped = queueProjectId.length === 0
@@ -428,7 +454,9 @@ export const App = () => {
         workItem={selectedWorkItem}
         onBack={() => requestSelection(null)}
         onOpenContext={() => setContextOpen(true)}
-        showContextAction={!wideWorkbench}
+        onContextModeChange={updateContextMode}
+        onContextDocumentChange={updateContextDocument}
+        onCreateRemediation={startRemediation}
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>
@@ -484,7 +512,13 @@ export const App = () => {
         selectedWorkItem && settingsSection === null
           ? (
             <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
-              <WorkItemContext workItem={selectedWorkItem} onCreateRemediation={startRemediation} />
+              <WorkItemContext
+                workItem={selectedWorkItem}
+                mode={contextMode}
+                selectedRunId={contextRunId}
+                selectedDocumentPath={contextDocumentPath}
+                selectedDocumentSha256={contextDocumentSha256}
+              />
             </Suspense>
           )
           : null

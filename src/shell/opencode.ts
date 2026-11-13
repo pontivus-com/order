@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { isAbsolute, join } from "node:path";
 
 import {
@@ -17,12 +17,14 @@ import {
   ProviderTurnOutcomeSchema,
   RunEventPayloadJsonSchemaText,
   RunEventPayloadSchema,
+  type ArtifactRef,
   type ExecutionTask,
   type OpenCodeAccount,
   type OpenCodeAccountId,
   type OpenCodeModelRef,
   type ProviderDiagnosticRecord,
   type ProviderTurnOutcome,
+  repositoryPathNamesAgentInstruction,
   type RepositoryPath,
   type Run,
   type RunEventId,
@@ -36,7 +38,11 @@ import {
   reviewerProviderTags,
   stageProviderTags,
 } from "../core/execution.ts";
-import { enumerateAgentInstructions } from "./repository.ts";
+import {
+  enumerateAgentInstructions,
+  proveWorkspaceEscapeConstraints,
+  readWorkingTreeFile,
+} from "./repository.ts";
 import {
   processOutputLimitBytes,
   runProcess,
@@ -45,7 +51,7 @@ import {
   type ManagedProcess,
   type TerminalProcessResult,
 } from "./process.ts";
-import { nowIsoDateTime, secureTokenHex, sha256TextHex } from "./runtime.ts";
+import { nowIsoDateTime, secureTokenHex, sha256, sha256TextHex } from "./runtime.ts";
 
 const openCodeVersion = "2.2.6";
 const openCodeVersionOutput = `opencode v${openCodeVersion}`;
@@ -242,12 +248,20 @@ export const buildOpenCodeEnvironment = (
   stateRoot: string,
   source: NodeJS.ProcessEnv = process.env,
   password?: string,
+  processPrivateRoot?: string,
+  inlineConfig?: string,
 ): Readonly<Record<string, string>> => {
   const paths = prepareOpenCodeState(stateRoot);
+  const home = processPrivateRoot === undefined ? paths.home : join(processPrivateRoot, "home");
+  const config = processPrivateRoot === undefined ? paths.config : join(processPrivateRoot, "config");
+  if (processPrivateRoot !== undefined) {
+    mkdirSync(home, { recursive: true, mode: 0o700 });
+    mkdirSync(config, { recursive: true, mode: 0o700 });
+  }
   return {
     ...copyRuntimeEnvironment(source),
-    HOME: paths.home,
-    XDG_CONFIG_HOME: paths.config,
+    HOME: home,
+    XDG_CONFIG_HOME: config,
     XDG_DATA_HOME: paths.data,
     XDG_STATE_HOME: paths.state,
     XDG_CACHE_HOME: paths.cache,
@@ -256,9 +270,30 @@ export const buildOpenCodeEnvironment = (
     OPENCODE_DISABLE_CLAUDE_CODE: "1",
     OPENCODE_DISABLE_CLAUDE_CODE_SKILLS: "1",
     OPENCODE_DISABLE_AUTOUPDATE: "1",
+    ...(processPrivateRoot === undefined ? {} : { OPENCODE_CONFIG_DIR: config }),
+    ...(inlineConfig === undefined ? {} : { OPENCODE_CONFIG_CONTENT: inlineConfig }),
     ...(password === undefined ? {} : { OPENCODE_PASSWORD: password }),
   };
 };
+
+export const productiveOpenCodeConfig = (
+  role: RunRole,
+  referenceRoots: readonly string[],
+): string => canonicalJson(
+  role === "STAGE"
+    ? {
+        references: Object.fromEntries(
+          [...referenceRoots].sort().map((path, index) => [
+            `order-reference-${String(index + 1).padStart(3, "0")}`,
+            {
+              path,
+              description: "Order STAGE external reference; non-authoritative read-only evidence.",
+            },
+          ]),
+        ),
+      }
+    : {},
+);
 
 export const assertNoOpenCodeSystemConfig = (
   path = "/etc/opencode",
@@ -465,11 +500,23 @@ const startOpenCodeProviderProcess = async (
   stateRoot: string,
   workspace: string,
   sourceEnvironment: NodeJS.ProcessEnv,
+  productiveConfig?: string,
 ): Promise<OpenCodeProviderProcess> => {
   assertNoOpenCodeSystemConfig();
   const binary = resolveOpenCodeBinary(sourceEnvironment);
   const password = secureTokenHex();
-  const environment = buildOpenCodeEnvironment(stateRoot, sourceEnvironment, password);
+  const persistentRoot = join(requireAbsoluteStateRoot(stateRoot), "opencode");
+  mkdirSync(persistentRoot, { recursive: true, mode: 0o700 });
+  const processRoot = productiveConfig === undefined
+    ? undefined
+    : mkdtempSync(join(persistentRoot, "productive-"));
+  const environment = buildOpenCodeEnvironment(
+    stateRoot,
+    sourceEnvironment,
+    password,
+    processRoot,
+    productiveConfig,
+  );
   await assertOpenCodeBinaryVersion(binary, workspace, environment);
 
   const child = startManagedProcess(
@@ -502,9 +549,25 @@ const startOpenCodeProviderProcess = async (
       headers: { Authorization: basicAuthorization(password) },
     });
     await waitForServerInfo(client, deadline);
-    return { client, process: child, workspace, deadline, diagnosticStderr };
+    if (processRoot === undefined) {
+      return { client, process: child, workspace, deadline, diagnosticStderr };
+    }
+    const cleanup = (): void => rmSync(processRoot, { recursive: true, force: true });
+    void child.exited.finally(cleanup);
+    const process: ManagedProcess = {
+      ...child,
+      terminate: async () => {
+        try {
+          return await child.terminate();
+        } finally {
+          cleanup();
+        }
+      },
+    };
+    return { client, process, workspace, deadline, diagnosticStderr };
   } catch (error) {
     await child.terminate().catch(() => undefined);
+    if (processRoot !== undefined) rmSync(processRoot, { recursive: true, force: true });
     throw error;
   }
 };
@@ -746,12 +809,14 @@ export const startOpenCodeServer = async (
   workspace: string,
   model: OpenCodeModelRef,
   sourceEnvironment: NodeJS.ProcessEnv = process.env,
+  productiveConfig = canonicalJson({}),
 ): Promise<OpenCodeServer> => {
   const configuredModel = OpenCodeModelRefSchema.parse(model);
   const provider = await startOpenCodeProviderProcess(
     stateRoot,
     workspace,
     sourceEnvironment,
+    productiveConfig,
   );
   try {
     await requireConfiguredModel(
@@ -784,10 +849,15 @@ const denyAllRule = (): PermissionRule => ({
   effect: "deny",
 });
 
+export const normalizeOpenCodeMcpNamespace = (serverName: string): string =>
+  serverName.replace(/[^A-Za-z0-9_-]/g, "_");
+
 export const openCodePermissionRules = (
   role: RunRole,
   task: ExecutionTask | null,
   referenceRoots: readonly string[],
+  skillIds: readonly string[] = [],
+  mcpServerNames: readonly string[] = [],
 ): readonly PermissionRule[] => {
   if (role !== "STAGE" && task === null) {
     throw new TypeError("post-signoff OpenCode permissions require an ExecutionTask");
@@ -798,6 +868,8 @@ export const openCodePermissionRules = (
     { action: "read", resource: "*", effect: "allow" },
     { action: "glob", resource: "*", effect: "allow" },
     { action: "grep", resource: "*", effect: "allow" },
+    { action: "read", resource: ".git", effect: "deny" },
+    { action: "read", resource: ".git/*", effect: "deny" },
   ];
 
   if (role === "STAGE") {
@@ -818,6 +890,17 @@ export const openCodePermissionRules = (
       rules.push({ action: "edit", resource: path, effect: "allow" });
     }
   }
+
+  for (const skillId of [...new Set(skillIds)].sort()) {
+    rules.push({ action: "skill", resource: skillId, effect: "allow" });
+  }
+  for (const serverName of [...new Set(mcpServerNames)].sort()) {
+    rules.push({
+      action: normalizeOpenCodeMcpNamespace(serverName) + "_*",
+      resource: "*",
+      effect: "allow",
+    });
+  }
   return rules;
 };
 
@@ -828,18 +911,36 @@ const samePermissions = (
 
 export const assertAgentInstructionsResolved = async (
   workspace: string,
-  resolvedP1Paths: readonly RepositoryPath[],
+  resolvedArtifacts: readonly ArtifactRef[],
   task: ExecutionTask | null,
 ): Promise<void> => {
+  proveWorkspaceEscapeConstraints(workspace, task?.changeSurface ?? []);
   const instructions = await enumerateAgentInstructions(workspace);
-  const resolved = new Set(resolvedP1Paths);
-  const surface = new Set(task?.changeSurface ?? []);
-
+  const actual = new Set(instructions);
+  const resolved = new Map(
+    resolvedArtifacts
+      .filter((artifact) =>
+        artifact.authorityLayer === "P1" &&
+        repositoryPathNamesAgentInstruction(artifact.repositoryPath)
+      )
+      .map((artifact) => [artifact.repositoryPath, artifact] as const),
+  );
   for (const path of instructions) {
-    if (!resolved.has(path)) {
+    const artifact = resolved.get(path);
+    if (artifact === undefined) {
       throw new TypeError(`repository instruction is not resolved material P1 authority: ${path}`);
     }
-    if (surface.has(path)) {
+    if (sha256(readWorkingTreeFile(workspace, path)) !== artifact.sha256) {
+      throw new TypeError(`repository instruction bytes do not match resolved P1 authority: ${path}`);
+    }
+  }
+  for (const path of resolved.keys()) {
+    if (!actual.has(path)) {
+      throw new TypeError(`resolved P1 repository instruction is absent from admitted workspace: ${path}`);
+    }
+  }
+  for (const path of task?.changeSurface ?? []) {
+    if (repositoryPathNamesAgentInstruction(path)) {
       throw new TypeError(`ExecutionTask changeSurface contains signed repository instruction: ${path}`);
     }
   }
@@ -861,15 +962,76 @@ const requireSessionBinding = (
   }
 };
 
-export const createOpenCodeSession = async (
+type ProductiveInvocationClassification = Extract<
+  NonNullable<Run["terminalClassification"]>,
+  "PRECONDITION_FAILED" | "ENVIRONMENT_BLOCKED"
+>;
+
+type ProductiveInvocationError = TypeError & Readonly<{
+  productiveInvocationClassification: ProductiveInvocationClassification;
+}>;
+
+export const productiveInvocationFailure = (
+  classification: ProductiveInvocationClassification,
+  error: unknown,
+): ProductiveInvocationError =>
+  Object.assign(
+    new TypeError(error instanceof Error ? error.message : String(error)),
+    { productiveInvocationClassification: classification } as const,
+  );
+
+export const productiveInvocationFailureClassification = (
+  error: unknown,
+): ProductiveInvocationClassification | null =>
+  error instanceof TypeError &&
+  "productiveInvocationClassification" in error &&
+  (
+    (error as { productiveInvocationClassification?: unknown }).productiveInvocationClassification ===
+      "PRECONDITION_FAILED" ||
+    (error as { productiveInvocationClassification?: unknown }).productiveInvocationClassification ===
+      "ENVIRONMENT_BLOCKED"
+  )
+    ? (error as ProductiveInvocationError).productiveInvocationClassification
+    : null;
+
+const productiveIntegrationAdmission = async (
   server: OpenCodeServer,
-  role: RunRole,
-  task: ExecutionTask | null,
-  resolvedP1Paths: readonly RepositoryPath[],
-  referenceRoots: readonly string[],
+): Promise<Readonly<{
+  trustedAccountId: OpenCodeAccountId;
+  skillIds: readonly string[];
+  mcpServerNames: readonly string[];
+}>> => {
+  const [accounts, skills, mcps] = await Promise.all([
+    listOpenCodeAccounts({
+      client: server.client,
+      process: server.process,
+      workspace: server.workspace,
+      deadline: Date.now() + startupTimeoutMillis,
+      diagnosticStderr: server.diagnosticStderr,
+    }),
+    server.client.skill.list({ location: { directory: server.workspace } }),
+    server.client.mcp.list({ location: { directory: server.workspace } }),
+  ]);
+  const active = accounts.find((account) =>
+    account.active && account.status.status === "READY"
+  );
+  if (active === undefined) {
+    throw productiveInvocationFailure(
+      "ENVIRONMENT_BLOCKED",
+      new TypeError("productive OpenCode admission requires a usable active Console account"),
+    );
+  }
+  return {
+    trustedAccountId: active.id,
+    skillIds: [...new Set(skills.data.map((skill) => skill.id))].sort(),
+    mcpServerNames: [...new Set(mcps.data.map((serverInfo) => serverInfo.name))].sort(),
+  };
+};
+
+const createBoundOpenCodeSession = async (
+  server: OpenCodeServer,
+  permissions: readonly PermissionRule[],
 ): Promise<string> => {
-  await assertAgentInstructionsResolved(server.workspace, resolvedP1Paths, task);
-  const permissions = openCodePermissionRules(role, task, referenceRoots);
   const created = await server.client.session.create({
     location: { directory: server.workspace },
   });
@@ -884,6 +1046,61 @@ export const createOpenCodeSession = async (
   const rebound = await server.client.session.get({ sessionID: created.id });
   requireSessionBinding(rebound, server.model, permissions);
   return created.id;
+};
+
+export type ProductiveOpenCodeAdmission = Readonly<{
+  server: OpenCodeServer;
+  sessionId: string;
+  trustedAccountId: OpenCodeAccountId;
+}>;
+
+export const admitProductiveOpenCode = async (
+  stateRoot: string,
+  workspace: string,
+  model: OpenCodeModelRef,
+  sourceEnvironment: NodeJS.ProcessEnv,
+  role: RunRole,
+  task: ExecutionTask | null,
+  resolvedArtifacts: readonly ArtifactRef[],
+  referenceRoots: readonly string[],
+): Promise<ProductiveOpenCodeAdmission> => {
+  let basePermissions: readonly PermissionRule[];
+  try {
+    await assertAgentInstructionsResolved(workspace, resolvedArtifacts, task);
+    basePermissions = openCodePermissionRules(role, task, referenceRoots);
+  } catch (error) {
+    throw productiveInvocationFailure("PRECONDITION_FAILED", error);
+  }
+
+  const server = await startOpenCodeServer(
+    stateRoot,
+    workspace,
+    model,
+    sourceEnvironment,
+    productiveOpenCodeConfig(role, role === "STAGE" ? referenceRoots : []),
+  );
+  try {
+    const integration = await productiveIntegrationAdmission(server);
+    const permissions = [
+      ...basePermissions,
+      ...openCodePermissionRules(
+        role,
+        task,
+        referenceRoots,
+        integration.skillIds,
+        integration.mcpServerNames,
+      ).slice(basePermissions.length),
+    ];
+    const sessionId = await createBoundOpenCodeSession(server, permissions);
+    return {
+      server,
+      sessionId,
+      trustedAccountId: integration.trustedAccountId,
+    };
+  } catch (error) {
+    await stopOpenCodeServer(server).catch(() => undefined);
+    throw error;
+  }
 };
 
 export const openCodePromptId = (

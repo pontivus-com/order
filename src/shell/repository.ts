@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   realpathSync,
   rmSync,
 } from "node:fs";
@@ -442,6 +443,97 @@ export const captureCandidate = async (
     };
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+};
+
+const candidateCaptureIdentityMatches = (
+  left: Pick<CandidateCapture, "patchSha256" | "changedPaths">,
+  right: Pick<CandidateCapture, "patchSha256" | "changedPaths">,
+): boolean =>
+  left.patchSha256 === right.patchSha256 &&
+  left.changedPaths.length === right.changedPaths.length &&
+  left.changedPaths.every((path, index) => path === right.changedPaths[index]);
+
+export const materializeStageInspectionWorkspace = async (
+  sourceRepositoryRoot: string,
+  workspace: string,
+  baselineCommit: GitCommit,
+): Promise<Sha256> => {
+  const source = await proveRepositoryRoot(sourceRepositoryRoot);
+  const baseline = GitCommitSchema.parse(baselineCommit);
+  const sourceHead = await resolveHeadCommit(source);
+  if (sourceHead !== baseline) {
+    throw new TypeError("STAGE source HEAD does not equal the Run baseline");
+  }
+
+  const admitted = await captureCandidate(source);
+  await createFreshCheckout(source, workspace, baseline);
+  if (admitted.patch.byteLength > 0) {
+    await runGit(workspace, ["apply", "--binary", "-"], admitted.patch);
+  }
+
+  const regenerated = await captureCandidate(workspace);
+  if (!candidateCaptureIdentityMatches(admitted, regenerated)) {
+    throw new TypeError("STAGE workspace does not reproduce the exact admitted Git-visible delta");
+  }
+
+  const sourceAfterMaterialization = await captureCandidate(source);
+  if (!candidateCaptureIdentityMatches(admitted, sourceAfterMaterialization)) {
+    throw new TypeError("STAGE source repository drifted while materializing the inspection workspace");
+  }
+  if (await resolveHeadCommit(source) !== baseline) {
+    throw new TypeError("STAGE source HEAD drifted while materializing the inspection workspace");
+  }
+
+  return admitted.patchSha256;
+};
+
+const pathIsInside = (root: string, target: string): boolean => {
+  const delta = relative(root, target);
+  return delta === "" || (delta !== ".." && !delta.startsWith(`..${sep}`) && !delta.startsWith("/"));
+};
+
+export const proveWorkspaceEscapeConstraints = (
+  workspace: string,
+  editPaths: readonly RepositoryPath[] = [],
+): void => {
+  const root = realpathSync(workspace);
+
+  const visit = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const absolute = join(directory, entry.name);
+      const stat = lstatSync(absolute);
+      if (entry.name === "AGENTS.md" && (!stat.isFile() || stat.isSymbolicLink())) {
+        throw new TypeError("AGENTS.md must be a regular non-symlink file in the admitted workspace");
+      }
+      if (stat.isSymbolicLink()) {
+        const target = realpathSync(absolute);
+        if (!pathIsInside(root, target)) {
+          throw new TypeError(`workspace symlink escapes admitted workspace: ${relative(root, absolute)}`);
+        }
+        continue;
+      }
+      if (stat.isDirectory()) visit(absolute);
+    }
+  };
+  visit(root);
+
+  for (const rawPath of editPaths) {
+    const repositoryPath = RepositoryPathSchema.parse(rawPath);
+    const segments = repositoryPath.split("/");
+    let current = root;
+    for (const segment of segments) {
+      current = join(current, segment);
+      if (!existsSync(current)) break;
+      const stat = lstatSync(current);
+      if (stat.isSymbolicLink()) {
+        throw new TypeError(`signed edit path traverses a symlink: ${repositoryPath}`);
+      }
+    }
+    const parent = resolve(root, dirname(repositoryPath));
+    if (!pathIsInside(root, parent)) {
+      throw new TypeError(`signed edit path escapes admitted workspace: ${repositoryPath}`);
+    }
   }
 };
 

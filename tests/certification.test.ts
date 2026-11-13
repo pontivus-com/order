@@ -291,6 +291,64 @@ describe("Order cross-boundary certification", () => {
     expect(lifecycle).not.toContain("work-item-source");
   });
 
+  it("certifies the Order 0.2.2 productive context and failure contract end to end", () => {
+    const contracts = read("src/core/contracts.ts");
+    const repository = read("src/shell/repository.ts");
+    const openCode = read("src/shell/opencode.ts");
+    const run = read("src/daemon/run.ts");
+    const stage = read("src/daemon/stage.ts");
+    const execution = read("src/daemon/execution.ts");
+    const validation = read("src/daemon/validation.ts");
+    const context = read("ui/src/WorkItemContext.tsx");
+    const documents = read("ui/src/DocumentWorkspace.tsx");
+    const settings = read("ui/src/SettingsWorkspace.tsx");
+
+    expect(contracts).toContain('z.literal("PRODUCTIVE_INVOCATION_FAILED")');
+    expect(contracts).toContain("ChangeSurfacePathSchema");
+    expect(contracts).toContain("repositoryPathNamesAgentInstruction");
+
+    for (const mechanic of [
+      "GIT_INDEX_FILE",
+      '"read-tree", "HEAD"',
+      '"add", "--intent-to-add", "--all"',
+      '"diff"',
+      '"--binary"',
+      '"--full-index"',
+      "materializeStageInspectionWorkspace",
+      "source repository drifted while materializing",
+    ]) {
+      expect(repository).toContain(mechanic);
+    }
+
+    for (const mechanic of [
+      "OPENCODE_CONFIG_CONTENT",
+      "OPENCODE_CONFIG_DIR",
+      "OPENCODE_DB",
+      "client.skill.list",
+      "client.mcp.list",
+      "normalizeOpenCodeMcpNamespace",
+      "admitProductiveOpenCode",
+      "productiveInvocationFailureClassification",
+    ]) {
+      expect(openCode).toContain(mechanic);
+    }
+    expect(openCode.match(/client\.session\.create\s*\(/g) ?? []).toHaveLength(1);
+    expect(openCode).not.toContain("session.instruction");
+
+    expect(run).toContain("failRunForProductiveInvocation");
+    expect(run).toContain('tag: "PRODUCTIVE_INVOCATION_FAILED"');
+    expect(stage).toContain("stageMaterialIdentity");
+    expect(stage).toContain("materializeStageInspectionWorkspace");
+    expect(stage).toContain("failRunForProductiveInvocation");
+    expect(execution).toContain("failRunForProductiveInvocation");
+    expect(validation).toContain("repositoryPathNamesAgentInstruction");
+
+    expect(context).toContain('data-testid="selected-view-context"');
+    expect(documents).toContain('data-testid="document-git-controls"');
+    expect(settings).toContain('label="Add repository"');
+    expect(settings).toContain('title="Disconnect repository?"');
+  });
+
   it("keeps guarded Markdown replacement on one exact effect path", () => {
     const writer = read("src/shell/file-write.ts");
     const sourceShell = read("src/shell/work-item-source.ts");

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 
 import {
   type ConnectedRepositoryState,
@@ -100,6 +101,8 @@ const RepositorySettings = ({
 }>) => {
   const queryClient = useQueryClient();
   const [repositoryRoot, setRepositoryRoot] = useState("");
+  const [addRepositoryOpen, setAddRepositoryOpen] = useState(false);
+  const [disconnectRepositoryRoot, setDisconnectRepositoryRoot] = useState<string | null>(null);
   const [referenceRootsText, setReferenceRootsText] = useState("");
   const [migrationRepository, setMigrationRepository] = useState<string | null>(null);
   const [targetWorkItemsRoot, setTargetWorkItemsRoot] = useState("");
@@ -129,6 +132,7 @@ const RepositorySettings = ({
     },
     onSuccess: async () => {
       setRepositoryRoot("");
+      setAddRepositoryOpen(false);
       await invalidateSettings(queryClient);
     },
   });
@@ -142,7 +146,10 @@ const RepositorySettings = ({
         repositoryRoot: root,
       });
     },
-    onSuccess: async () => invalidateSettings(queryClient),
+    onSuccess: async () => {
+      setDisconnectRepositoryRoot(null);
+      await invalidateSettings(queryClient);
+    },
   });
 
   const updateReferences = useMutation({
@@ -227,7 +234,7 @@ const RepositorySettings = ({
                 tone="ghost"
                 loading={disconnect.isPending && disconnect.variables === repository.repositoryRoot}
                 disabled={disconnect.isPending}
-                onClick={() => disconnect.mutate(repository.repositoryRoot)}
+                onClick={() => setDisconnectRepositoryRoot(repository.repositoryRoot)}
               />
             </div>
             {migrationRepository === repository.repositoryRoot ? (
@@ -262,23 +269,43 @@ const RepositorySettings = ({
         ))}
       </div>
 
-      <div className="order-settings-inline-form">
-        <h3>Connect target repository</h3>
-        <label>
-          Exact Git root
-          <input
-            value={repositoryRoot}
-            onChange={(event) => setRepositoryRoot(event.currentTarget.value)}
-            placeholder="/absolute/path/to/repository"
-          />
-        </label>
+      <div className="order-settings-add-repository">
         <WorkbenchAction
-          label="Connect repository"
+          label="Add repository"
           tone="primary"
-          loading={connect.isPending}
-          disabled={connect.isPending || repositoryRoot.trim().length === 0}
-          onClick={() => connect.mutate()}
+          onClick={() => setAddRepositoryOpen(true)}
         />
+        {addRepositoryOpen ? (
+          <div className="order-settings-inline-form" data-testid="add-repository-form">
+            <h3>Add repository</h3>
+            <p>Connect an existing exact Git root. Order does not create or initialize repositories here.</p>
+            <label>
+              Exact Git root
+              <input
+                value={repositoryRoot}
+                onChange={(event) => setRepositoryRoot(event.currentTarget.value)}
+                placeholder="/absolute/path/to/repository"
+              />
+            </label>
+            <div className="order-inline-actions">
+              <WorkbenchAction
+                label="Connect repository"
+                tone="primary"
+                loading={connect.isPending}
+                disabled={connect.isPending || repositoryRoot.trim().length === 0}
+                onClick={() => connect.mutate()}
+              />
+              <WorkbenchAction
+                label="Cancel add repository"
+                disabled={connect.isPending}
+                onClick={() => {
+                  setRepositoryRoot("");
+                  setAddRepositoryOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {readyProjects.length > 1 ? (
@@ -311,6 +338,24 @@ const RepositorySettings = ({
           onClick={() => updateReferences.mutate()}
         />
       </div>
+
+      <AlertDialog
+        isOpen={disconnectRepositoryRoot !== null}
+        onOpenChange={(open) => { if (!open) setDisconnectRepositoryRoot(null); }}
+        title="Disconnect repository?"
+        description={
+          disconnectRepositoryRoot === null
+            ? ""
+            : "Remove only Order's connection to " + disconnectRepositoryRoot +
+              ". Repository files, WorkItem Markdown, Git history, and authority documents are not deleted."
+        }
+        cancelLabel="Cancel"
+        actionLabel="Disconnect repository"
+        actionVariant="destructive"
+        onAction={() => {
+          if (disconnectRepositoryRoot !== null) disconnect.mutate(disconnectRepositoryRoot);
+        }}
+      />
 
       {[connect.error, disconnect.error, migrate.error, updateReferences.error]
         .filter((error) => error !== null)

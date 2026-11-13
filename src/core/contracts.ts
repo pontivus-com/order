@@ -78,6 +78,12 @@ export const ConcernIdSchema = z.string().regex(projectIdPattern);
 export const GateIdSchema = z.string().regex(projectIdPattern);
 export const AuthorityRefSchema = z.string();
 export const RepositoryPathSchema = z.string().refine(isRepositoryPath, "invalid RepositoryPath");
+export const repositoryPathNamesAgentInstruction = (value: string): boolean =>
+  value.split("/").at(-1) === "AGENTS.md";
+const ChangeSurfacePathSchema = RepositoryPathSchema.refine(
+  (value) => !repositoryPathNamesAgentInstruction(value),
+  "changeSurface must not name AGENTS.md",
+);
 export const RepositoryPatternSchema = z.string().refine(isRepositoryPattern, "invalid RepositoryPattern");
 export const GitCommitSchema = z.string().regex(gitCommitPattern);
 export const Sha256Schema = z.string().regex(sha256Pattern);
@@ -663,7 +669,7 @@ export const ExecutionTaskSchema = z.strictObject({
   scope: z.array(RepositoryPatternSchema).refine(unique, "duplicate scope patterns").readonly(),
   exclusions: z.array(RepositoryPatternSchema).refine(unique, "duplicate exclusion patterns").readonly(),
   acceptanceRefs: z.array(AuthorityRefSchema).refine(unique, "duplicate acceptance refs").readonly(),
-  changeSurface: z.array(RepositoryPathSchema).refine(unique, "duplicate change-surface paths").readonly(),
+  changeSurface: z.array(ChangeSurfacePathSchema).refine(unique, "duplicate change-surface paths").readonly(),
   gateIds: z.array(GateIdSchema).refine(unique, "duplicate gate ids").readonly(),
   authorityRefs: z.array(AuthorityRefSchema).refine(unique, "duplicate authority refs").readonly(),
   concernIds: z.array(ConcernIdSchema).refine(unique, "duplicate concern ids").readonly(),
@@ -887,6 +893,12 @@ const RunEventPayloadBaseSchema = z.union([
     evidence: evidenceArray,
   }),
   z.strictObject({ tag: z.literal("PROVIDER_DIAGNOSTICS_RECORDED"), evidence: evidenceArray }),
+  z.strictObject({
+    tag: z.literal("PRODUCTIVE_INVOCATION_FAILED"),
+    classification: z.enum(["PRECONDITION_FAILED", "ENVIRONMENT_BLOCKED"]),
+    detail: NonEmptyNoNulStringSchema,
+    evidence: evidenceArray,
+  }),
   z.strictObject({ tag: z.literal("PROVIDER_FAILED"), detail: z.string(), evidence: evidenceArray }),
   z.strictObject({ tag: z.literal("GATE_PASSED"), gateId: GateIdSchema, evidence: evidenceArray }),
   z.strictObject({
@@ -989,7 +1001,7 @@ const SignedTaskDefinitionSchema = z.strictObject({
   scope: uniqueStringArray(RepositoryPatternSchema),
   exclusions: uniqueStringArray(RepositoryPatternSchema),
   acceptanceRefs: uniqueStringArray(AuthorityRefSchema),
-  changeSurface: uniqueStringArray(RepositoryPathSchema),
+  changeSurface: uniqueStringArray(ChangeSurfacePathSchema),
   gateIds: uniqueStringArray(GateIdSchema),
   authorityRefs: uniqueStringArray(AuthorityRefSchema),
   concernIds: uniqueStringArray(ConcernIdSchema),

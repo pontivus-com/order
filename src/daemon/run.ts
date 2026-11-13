@@ -266,6 +266,34 @@ export const stopActiveProvider = async (
   await stopOpenCodeServer(active.server).catch(() => undefined);
 };
 
+export const failRunForProductiveInvocation = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+  classification: Extract<
+    NonNullable<Run["terminalClassification"]>,
+    "PRECONDITION_FAILED" | "ENVIRONMENT_BLOCKED"
+  >,
+  error: unknown,
+  evidence: readonly EvidenceRef[] = [],
+): Run => {
+  const current = getRun(runtime, runId);
+  if (current.status === "CANCELLED") return current;
+  const detail = error instanceof Error ? error.message : String(error);
+  return withTransaction(runtime.database, () => {
+    appendRunEvent(runtime, runId, {
+      tag: "PRODUCTIVE_INVOCATION_FAILED",
+      classification,
+      detail: detail.length === 0 ? classification : detail,
+      evidence,
+    });
+    return updateRun(runtime, runId, {
+      status: "FAILED",
+      terminalClassification: classification,
+      endedAt: nowIsoDateTime(),
+    });
+  });
+};
+
 export const failRunForProvider = (
   runtime: CoordinatorRuntime,
   runId: RunId,
