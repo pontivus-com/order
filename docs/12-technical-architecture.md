@@ -2148,6 +2148,7 @@ Config/repository mutations are admitted only when they cannot invalidate active
 
 At minimum, reconfiguration is blocked while:
 
+- the coordinator tick is active/admitting work;
 - any Run is `RUNNING` or `WAITING_FOR_INPUT`;
 - an OpenCode account login attempt is active;
 - an OpenCode account mutation is active;
