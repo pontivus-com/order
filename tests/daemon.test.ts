@@ -13,6 +13,90 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { orderVersion } from "../src/version.ts";
 
+describe("productive invocation failure origin", () => {
+  it("persists local admission failure without fabricating PROVIDER_FAILED", () => {
+    const state = tempDir("order-daemon-local-admission-");
+    const repository = createRepository();
+
+    const output = JSON.parse(execFileSync("bun", ["-e", `
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const run = runStore.insertRun(runtime, {
+        id: shellRuntime.newRunId(),
+        workItemId: "work_11111111-1111-4111-8111-111111111111",
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: "sha256:" + "a".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-14T00:00:00.000Z",
+        endedAt: null,
+      });
+      const failed = runStore.failRunForProductiveInvocation(
+        runtime,
+        run.id,
+        "PRECONDITION_FAILED",
+        new TypeError("instruction closure mismatch"),
+      );
+      const events = runStore.listRunEvents(runtime, run.id).map((event) => event.event);
+      console.log(JSON.stringify({
+        status: failed.status,
+        terminalClassification: failed.terminalClassification,
+        productive: events.find((event) => event.tag === "PRODUCTIVE_INVOCATION_FAILED") ?? null,
+        provider: events.find((event) => event.tag === "PROVIDER_FAILED") ?? null,
+      }));
+      database.close();
+    `], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: "pipe",
+    })) as {
+      status: string;
+      terminalClassification: string | null;
+      productive: {
+        tag: string;
+        classification: string;
+        detail: string;
+        evidence: unknown[];
+      } | null;
+      provider: unknown | null;
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.terminalClassification).toBe("PRECONDITION_FAILED");
+    expect(output.productive).toEqual({
+      tag: "PRODUCTIVE_INVOCATION_FAILED",
+      classification: "PRECONDITION_FAILED",
+      detail: "instruction closure mismatch",
+      evidence: [],
+    });
+    expect(output.provider).toBeNull();
+  });
+});
+
 describe("candidate changed-path instruction immutability", () => {
   it("rejects AGENTS.md through the production validator under the Bun runtime", () => {
     const script = `

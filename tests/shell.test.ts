@@ -535,6 +535,64 @@ describe("repository shell", () => {
     expect(run(["git", "status", "--porcelain=v1"], root).stdout).toContain("file.txt");
   });
 
+  it("excludes ignored dependency and arbitrary physical AGENTS.md while preserving tracked ignored-looking material", () => {
+    const root = tempDir("order-stage-ignored-agents-");
+    initGitRepo(root);
+    writeFileSync(join(root, ".gitignore"), "node_modules/\nambient/\n");
+    mkdirSync(join(root, "node_modules"), { recursive: true });
+    writeFileSync(join(root, "node_modules", "tracked.txt"), "tracked through Git\n");
+    run(["git", "add", ".gitignore"], root);
+    run(["git", "add", "-f", "node_modules/tracked.txt"], root);
+    run(["git", "commit", "-qm", "tracked ignored-looking material"], root);
+    const baseline = run(["git", "rev-parse", "HEAD"], root).stdout.trim();
+
+    const dependencyAgents = join(
+      root,
+      "node_modules",
+      ".pnpm",
+      "recharts@3.3.0",
+      "node_modules",
+      "recharts",
+      "AGENTS.md",
+    );
+    mkdirSync(join(dependencyAgents, ".."), { recursive: true });
+    writeFileSync(dependencyAgents, "# dependency instruction that must not enter productive context\n");
+    const ambientAgents = join(root, "ambient", "vendor", "A", "AGENTS.md");
+    mkdirSync(join(ambientAgents, ".."), { recursive: true });
+    writeFileSync(ambientAgents, "# arbitrary ignored physical instruction\n");
+
+    const workspace = join(tempDir("order-stage-ignored-agents-workspace-"), "run");
+    const output = JSON.parse(bunEval(`
+      const fs = await import("node:fs");
+      const repo = await import("./src/shell/repository.ts");
+      const root = ${JSON.stringify(root)};
+      const workspace = ${JSON.stringify(workspace)};
+      await repo.materializeStageInspectionWorkspace(
+        root,
+        workspace,
+        ${JSON.stringify(baseline)},
+      );
+      console.log(JSON.stringify({
+        agents: await repo.enumerateAgentInstructions(workspace),
+        tracked: fs.readFileSync(workspace + "/node_modules/tracked.txt", "utf8"),
+        dependencyAgentsExists: fs.existsSync(
+          workspace + "/node_modules/.pnpm/recharts@3.3.0/node_modules/recharts/AGENTS.md",
+        ),
+        ambientAgentsExists: fs.existsSync(workspace + "/ambient/vendor/A/AGENTS.md"),
+      }));
+    `, process.cwd())) as {
+      agents: string[];
+      tracked: string;
+      dependencyAgentsExists: boolean;
+      ambientAgentsExists: boolean;
+    };
+
+    expect(output.agents).toEqual(["AGENTS.md"]);
+    expect(output.tracked).toBe("tracked through Git\n");
+    expect(output.dependencyAgentsExists).toBe(false);
+    expect(output.ambientAgentsExists).toBe(false);
+  });
+
   it("rejects STAGE materialization from a source HEAD different from the Run baseline", () => {
     const root = tempDir("order-stage-baseline-");
     const baseline = initGitRepo(root);
