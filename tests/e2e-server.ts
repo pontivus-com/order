@@ -96,16 +96,15 @@ rmSync(repositoryRoot, { recursive: true, force: true });
 mkdirSync(join(repositoryRoot, "docs"), { recursive: true });
 mkdirSync(join(repositoryRoot, "src"), { recursive: true });
 
-const workItemRoot = stateRoot + "-work-items";
-rmSync(workItemRoot, { recursive: true, force: true });
+const workItemsRoot = "docs/order/work-items";
+const workItemRoot = join(repositoryRoot, "docs", "order", "work-items");
 mkdirSync(workItemRoot, { recursive: true });
 
 const orderConfig = writeOrderConfig(stateRoot, {
-  version: 2,
+  version: 3,
   model: { providerID: "opencode", id: "glm-5.3-flash-free" },
   repositoryRoots: [repositoryRoot],
   referenceRoots: [],
-  workItemRoot,
 });
 
 const planText = `# Browser certification plan
@@ -215,8 +214,13 @@ const workItem = (
     },
     title,
   );
-  const created = createWorkItemSourceFile(workItemRoot, id, markdown);
-  const source = readWorkItemSource(workItemRoot, created.path);
+  const created = createWorkItemSourceFile(
+    repositoryRoot,
+    workItemsRoot,
+    id,
+    markdown,
+  );
+  const source = readWorkItemSource(repositoryRoot, created.path);
   return WorkItemSchema.parse({
     id,
     projectId: "order-e2e",
@@ -307,13 +311,15 @@ persistEvent(proposalRun.id, 2, {
   text: "The plan is ready for operator review.",
   evidence: [],
 });
+const proposalPath = `${workItemsRoot}/${proposalItem.id}/implementation-plan.md`;
 const proposal = persistEvent(proposalRun.id, 3, {
   tag: "ARTIFACT_PROPOSAL_CREATED",
-  targetPath: "docs/proposed.md",
+  targetPath: proposalPath,
   baseSha256: null,
   role: "PLAN",
   authorityLayer: "P7",
-  unifiedDiff: "--- /dev/null\n+++ b/docs/proposed.md\n@@ -0,0 +1 @@\n+proposal\n",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
   rationale: "Exercise the canonical proposal disposition surface.",
 });
 const seedRuntime = createCoordinatorRuntime(database, stateRoot, process.env, orderConfig);
@@ -630,7 +636,8 @@ persistEvent(reviewerRun.id, 10, {
 
 const discoveredId = newWorkItemId();
 createWorkItemSourceFile(
-  workItemRoot,
+  repositoryRoot,
+  workItemsRoot,
   discoveredId,
   renderWorkItemSourceMarkdown(
     {
@@ -643,8 +650,10 @@ createWorkItemSourceFile(
     "Discovered on startup",
   ),
 );
+const invalidId = newWorkItemId();
+mkdirSync(join(workItemRoot, invalidId), { recursive: true });
 writeFileSync(
-  join(workItemRoot, "invalid-source.md"),
+  join(workItemRoot, invalidId, "work-request.md"),
   "This file is intentionally not valid WorkItem source Markdown.\n",
 );
 
