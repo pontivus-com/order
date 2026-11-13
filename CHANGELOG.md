@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Establish the governed 0.2.1 functional design for installation/account/repository continuity, explicit setup readiness, navigable workflow inspection, compact workbench/editor chrome, and human-first WorkItem Markdown authoring with preserved system metadata.
+
 ### Internal
 
 - Trigger governed publication of the final certified `0.2.0` release candidate.
