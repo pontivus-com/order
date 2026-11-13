@@ -61,6 +61,16 @@ const canonicalRoots = (
   return roots;
 };
 
+export const proveConfiguredDirectoryRoots = (
+  values: readonly string[],
+): readonly string[] => {
+  const roots = values.map(canonicalDirectory);
+  if (new Set(roots).size !== roots.length) {
+    throw new TypeError("configured directory roots must resolve uniquely");
+  }
+  return [...roots].sort();
+};
+
 const rootsOverlap = (left: string, right: string): boolean =>
   canonicalAbsolutePathIsWithinRoot(left, right) ||
   canonicalAbsolutePathIsWithinRoot(right, left);
