@@ -14,6 +14,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Define the Order software-factory product identity, aperture-based brand assets, and public README messaging around ideas becoming verified results.
 - Add structured GitHub issue intake for bug reports, feature requests, and private security reporting.
 - Add adversarial cross-boundary certification for repository-native Git admission, three-account OpenCode identity switching, and canonical UI/runtime ownership.
 - Add a responsive global OpenCode saved-account utility for safe switching, rename, external device sign-in, auth attention, and active-Run mutation blocking.
@@ -30,5 +31,6 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Replace the incorrect Order logo construction with the approved six-blade aperture mark across every repository brand asset.
 - Make the first certified `0.2.0` release archive directly installable without Git metadata while preserving exact release commit/version provenance and the packaged production build.
 - Corrected the canonical public-release governance document path so it participates in active documentation ownership checks.
