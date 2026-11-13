@@ -1006,3 +1006,119 @@
   .order-run-technical-details { max-width: 80vw; }
 }
 
+
+
+/* Repository-native WorkItem documentation and management integration. */
+.order-queue-actions {
+  min-height: 2.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+  padding: .25rem .45rem;
+  border-bottom: 1px solid var(--order-workbench-border);
+}
+.order-create-location {
+  display: grid;
+  gap: .25rem;
+  padding: .5rem .6rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-subtle);
+  font-size: .72rem;
+}
+.order-create-location span { color: var(--order-workbench-muted); }
+.order-create-location code { overflow-wrap: anywhere; }
+
+.order-document-state-strip {
+  flex: 0 0 auto;
+  min-height: 2.35rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .35rem .1rem;
+  border-bottom: 1px solid var(--order-workbench-border);
+  font-size: .7rem;
+}
+.order-document-state-summary {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.order-document-state-summary code {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.order-document-state-summary > span:last-child {
+  color: var(--order-workbench-muted);
+  white-space: nowrap;
+}
+.order-document-git-details {
+  flex: 0 1 auto;
+  max-width: min(42rem, 50vw);
+  color: var(--order-workbench-muted);
+}
+.order-document-git-details summary { cursor: pointer; white-space: nowrap; }
+.order-document-git-details > div {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: .4rem;
+  margin-top: .25rem;
+}
+.order-document-git-details code { overflow-wrap: anywhere; }
+.order-document-git-details ul {
+  margin: .35rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: .2rem;
+}
+.order-document-git-details li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .5rem;
+}
+.order-document-git-details li code { overflow-wrap: anywhere; }
+.order-document-git-details li span { color: var(--order-workbench-muted); }
+
+.order-workitem-title-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+.order-workitem-title-row h1 { flex: 1; min-width: 0; }
+.order-workitem-title-edit {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: .5rem;
+}
+.order-workitem-title-edit input {
+  width: 100%;
+  min-width: 0;
+  min-height: 2rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+  color: var(--order-workbench-text);
+  padding: .25rem .5rem;
+}
+
+@media (max-width: 799px) {
+  .order-document-state-strip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .order-document-state-summary { flex-wrap: wrap; }
+  .order-document-git-details { max-width: 100%; }
+  .order-workitem-title-edit { grid-template-columns: auto auto; }
+  .order-workitem-title-edit input {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+}

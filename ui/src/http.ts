@@ -1,16 +1,21 @@
 import {
   ApprovalSchema,
   ArtifactRefSchema,
+  CommitWorkItemDocumentationSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWriteResultSchema,
   ExecutionTaskSchema,
+  SetWorkItemArchivedSchema,
   OrderHttpErrorSchema,
   RunEventSchema,
   ProjectManifestSchema,
   RunSchema,
   Sha256Schema,
   SignoffPackageSchema,
+  UpdateWorkItemTitleSchema,
+  WorkItemDocumentationCommitSchema,
+  WorkItemDocumentationGitStatusSchema,
   WorkItemSchema,
   WorkItemSchemaCatalogEntrySchema,
   WorkItemSourceDiagnosticSchema,
@@ -18,6 +23,7 @@ import {
   WorkItemSourceSnapshotSchema,
   type Approval,
   type ArtifactRef,
+  type CommitWorkItemDocumentation,
   type CreateWorkItemSource,
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWriteResult,
@@ -29,7 +35,11 @@ import {
   type RunEventId,
   type RunId,
   type SignoffPackage,
+  type SetWorkItemArchived,
+  type UpdateWorkItemTitle,
   type WorkItem,
+  type WorkItemDocumentationCommit,
+  type WorkItemDocumentationGitStatus,
   type WorkItemId,
   type WorkItemSchemaCatalogEntry,
   type WorkItemSourceDiagnostic,
@@ -87,7 +97,7 @@ const json = async (path: string, init?: RequestInit): Promise<unknown> =>
   (await request(path, init)).json();
 
 const mutation = (
-  method: "POST" | "PUT",
+  method: "PATCH" | "POST" | "PUT",
   body: unknown,
 ): RequestInit => ({
   method,
@@ -97,6 +107,9 @@ const mutation = (
 
 export const listWorkItems = async (): Promise<readonly WorkItem[]> =>
   WorkItemSchema.array().parse(await json("/api/work-items"));
+
+export const listWorkItemsIncludingArchived = async (): Promise<readonly WorkItem[]> =>
+  WorkItemSchema.array().parse(await json("/api/work-items?includeArchived=true"));
 
 export const listWorkItemSchemas = async (): Promise<readonly WorkItemSchemaCatalogEntry[]> =>
   WorkItemSchemaCatalogEntrySchema.array().parse(await json("/api/work-item-schemas"));
@@ -135,6 +148,40 @@ export const saveWorkItemSource = async (
   ExpectedHashWriteResultSchema.parse(await json(
     `/api/work-items/${encodeURIComponent(workItemId)}/source`,
     mutation("PUT", ExpectedHashMarkdownWriteSchema.parse(input)),
+  ));
+
+export const updateWorkItemTitle = async (
+  workItemId: WorkItemId,
+  input: UpdateWorkItemTitle,
+): Promise<ExpectedHashWriteResult> =>
+  ExpectedHashWriteResultSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/title`,
+    mutation("PATCH", UpdateWorkItemTitleSchema.parse(input)),
+  ));
+
+export const setWorkItemArchived = async (
+  workItemId: WorkItemId,
+  input: SetWorkItemArchived,
+): Promise<WorkItem> =>
+  WorkItemSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/archive`,
+    mutation("PATCH", SetWorkItemArchivedSchema.parse(input)),
+  ));
+
+export const getWorkItemDocumentationGitStatus = async (
+  workItemId: WorkItemId,
+): Promise<WorkItemDocumentationGitStatus> =>
+  WorkItemDocumentationGitStatusSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/documentation-git-status`,
+  ));
+
+export const commitWorkItemDocumentation = async (
+  workItemId: WorkItemId,
+  input: CommitWorkItemDocumentation,
+): Promise<WorkItemDocumentationCommit> =>
+  WorkItemDocumentationCommitSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/documentation-commit`,
+    mutation("POST", CommitWorkItemDocumentationSchema.parse(input)),
   ));
 
 export const listArtifacts = async (

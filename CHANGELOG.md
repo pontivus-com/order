@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Integrate repository-native documentation Git state/save, direct title management, archive/restore, archived queue visibility, and project-local creation paths into the existing CodeMirror workbench.
 - Add installation-global saved OpenCode account discovery, activation, rename, and retained device-login control behind the authenticated daemon API without exposing credential secrets.
 - Replace active-only Dialogue with an all-Run Activity workspace and human workflow orientation across the WorkItem surface.
 - Persist bounded, secret-safe provider turn diagnostics as canonical Run evidence with failure linkage.

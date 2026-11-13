@@ -47,6 +47,7 @@ export const CreateWorkItem = ({
 }>) => {
   const eligibleSchemas = schemas.filter((schema) =>
     derivedFromWorkItemId === null || schema.kind === "CHANGE" || schema.kind === "DEFECT");
+  const selectedProject = projects.find((project) => project.projectId === projectId) ?? null;
 
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -61,6 +62,13 @@ export const CreateWorkItem = ({
           {projects.map((project) => <option key={project.projectId} value={project.projectId}>{project.projectId}</option>)}
         </select>
       </label>
+
+      {selectedProject ? (
+        <div className="order-create-location" data-testid="create-work-item-location">
+          <span>Repository documentation root</span>
+          <code>{selectedProject.workItems.root}</code>
+        </div>
+      ) : null}
 
       <RadioList
         label="Work item type"
