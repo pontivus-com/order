@@ -4,7 +4,7 @@
 **Versioned concern ID:** GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1  
 **Target correction train:** Order 0.2.2  
 **Authority layers:** P3 functional requirements + P4 technical architecture  
-**Status:** functional/P4/P6 design baseline complete; P7 implementation plan required before code changes
+**Status:** functional/P4/P6 boundary design complete; productive connected-account implementation is blocked until the pinned OpenCode integration provides a certifiable external-instruction isolation capability
 
 ## 1. Purpose
 
@@ -97,6 +97,34 @@ The pinned permission evaluator uses the last matching permission rule. Order ca
 
 STAGE external reference reads use the external_directory boundary. The pinned read tool skips nearby AGENTS.md injection for those external reads. External reference material remains evidence/context and never becomes project P1 merely because the model reads it.
 
+## 4.5 Complete effective instruction ingress audit
+
+Repository `AGENTS.md` is only one instruction source in the pinned provider.
+
+The exact OpenCode 2.2.6 request-context assembly combines multiple instruction owners before model inference:
+
+1. Code Mode/tool-catalog instructions;
+2. MCP-server instructions;
+3. OpenCode reference instructions;
+4. skill instructions;
+5. `InstructionDiscovery` sources;
+6. built-in date/environment instructions;
+7. API-managed per-session `InstructionEntry` values.
+
+Read-triggered nested `AGENTS.md` is an additional synthetic-message path after internal reads.
+
+For Order, only provider-internal invariant framing that has been explicitly capability-certified may remain ambient. Project/user/remote semantic instructions must either resolve through Order authority before inference or be absent.
+
+The exact OpenCode Console plugin creates a separate critical ingress. When a saved Console connection is active, it can download workspace Library instructions and add their bytes directly to `InstructionDiscovery`. This contribution is independent of repository `AGENTS.md` and is not exposed through the session instruction-entry API.
+
+The pinned public API exposes API-managed `/api/experimental/session/:id/instructions/entries`, but no pre-inference endpoint that returns the complete effective `InstructionDiscovery`/MCP/reference/skill/Console instruction set with exact source bytes. The pinned configuration API does not expose Console Library instruction bytes.
+
+The Console integration can be withheld only by `integration.use` managed policy. In the pinned config implementation, ordinary user/project/private config cannot act as that managed-policy lockdown. Order's foreground-server contract does not expose a supported per-process option that disables Console Library instructions while retaining the connected account/provider authentication.
+
+A forward check against OpenCode 2.3.0, released 2026-11-13, does not close this gap: it still loads connected-workspace Console instructions into `InstructionDiscovery`, and its public session protocol still exposes only API-managed instruction entries rather than a complete pre-inference effective-instruction manifest. A pin bump to 2.3.0 is therefore not, by itself, a remediation.
+
+This is a release-critical provider-capability gap. Order must not claim complete productive instruction authority while this ingress is unbounded.
+
 ## 5. Functional design
 
 ### GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT
@@ -152,6 +180,28 @@ At minimum:
 **Acceptance criterion:** a subsequent productive turn may continue the same provider session only while the current source/context and provider-workspace material identity still match the admitted snapshot. Material repository drift requires normal re-resolution/retry rather than letting the old provider session inspect a different repository state. Changes only to excluded ambient ignored material do not invalidate the admitted project snapshot.
 
 **Failure/negative behavior:** Order must not keep a provider conversation alive while silently changing the internal repository bytes or instruction set beneath that session.
+
+
+### GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE
+
+**Required behavior:** before any productive model inference, Order can prove the complete semantic instruction context that may influence the model. Every non-invariant instruction source is either (a) exact Order-resolved authority/rendering admitted for this Run or (b) absent.
+
+The closure covers, at minimum:
+
+- repository/read-triggered `AGENTS.md`;
+- configured/global/project instruction discovery;
+- OpenCode Console workspace/Library instructions;
+- API-managed session instruction entries;
+- MCP instructions;
+- reference instructions;
+- skill instructions.
+
+Provider-internal built-in date/environment/tool-catalog framing may remain only where its exact behavior is part of the pinned capability contract and does not introduce project/product authority.
+
+**Acceptance criterion:** Order has a pre-inference proof for each instruction channel. A connected account or provider configuration that can inject semantic instructions whose exact bytes/source cannot be disabled or inspected before inference makes productive readiness false. No productive prompt is sent in that state.
+
+**Failure/negative behavior:** successful model output, an empty current Console Library observed manually, denial of model tools, `OPENCODE_DISABLE_PROJECT_CONFIG`, `OPENCODE_PURE`, or the absence of repository `AGENTS.md` is not proof of complete instruction closure.
+
 
 ## 6. Technical design overview
 
@@ -326,6 +376,28 @@ Certification is layered:
 
 Tests must exercise the actual production functions. Copying the intended algorithm into a test helper and proving the copy is prohibited.
 
+
+### GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT
+
+The productive-provider admission boundary must prove all model-context instruction channels before the first productive inference.
+
+The approved technical contract is capability-based:
+
+1. **repository instruction channel** — closed by GW-TR-073..075;
+2. **ordinary OpenCode config instruction channel** — Order's private provider namespace contains no configured `instructions`; project/global compatibility discovery remains disabled and is capability-certified;
+3. **API-managed session instruction channel** — immediately after session creation Order proves the session instruction-entry list is empty; Order production code has no path that writes instruction entries;
+4. **MCP/reference/skill instruction channels** — the effective productive role configuration proves these channels contribute no semantic instructions unless a future governed design explicitly adopts them;
+5. **Console/workspace instruction channel** — the provider pin must offer one of the following before productive connected-account use is legal:
+   - a supported per-process/configuration capability that disables Console/workspace instruction contribution while retaining the selected provider/account authentication; or
+   - a supported pre-inference API that returns the complete effective external instruction manifest with stable source identity and exact bytes, allowing Order to admit only explicitly resolved authority and fail closed otherwise.
+
+Order must not read OpenCode credential secrets, call Console private endpoints using copied credentials, scrape internal provider databases, infer Library emptiness from UI state, or patch hidden provider state to manufacture this proof.
+
+For the currently pinned OpenCode 2.2.6—and for the audited 2.3.0 forward candidate—neither permitted Console capability is available. Therefore **productive use with an active OpenCode Console connection is a known blocked condition under this design** until the external provider capability changes or a separately governed provider-integration decision replaces the current constraint.
+
+Unconnected/free-provider execution may remain eligible only when the complete channel matrix above is mechanically proven for that exact process state.
+
+
 ## 8. Provider-visible file-set law
 
 The productive internal workspace is intentionally narrower than the physical source directory.
@@ -476,6 +548,22 @@ The following cases are minimum certification, not examples to sample from.
 59. architecture test proves task instruction-path mutation rejection remains wired;
 60. release/certification run executes the full opencode integration test set on the final candidate.
 
+### 11.9 Complete model-context instruction closure
+
+61. fresh productive session has zero API-managed instruction entries before first prompt;
+62. production source has no instruction-entry write/remove call path;
+63. private provider config contains no configured `instructions` source and project/global instruction discovery stays disabled;
+64. no productive MCP configuration contributes server instructions;
+65. no productive reference configuration contributes OpenCode reference instructions;
+66. denied/absent skill capability contributes no skill instructions, including Console-downloaded skills;
+67. mock connected Console account with non-empty Library instructions is rejected before productive inference by the certified provider-isolation mechanism;
+68. mock connected Console account with empty Library still passes only because the same mechanism proves the channel, not because a test fixture happens to be empty;
+69. provider refresh/config polling cannot introduce a new external instruction after initial admission without invalidating/halting productive use before the next inference;
+70. the exact installed provider pin exposes the certified disable or complete pre-inference manifest capability required by GW-TR-080;
+71. a pin candidate lacking that capability fails provider certification and cannot be released as productive;
+72. OpenCode 2.2.6 regression fixture proves connected-account productive readiness is blocked rather than silently executing with an unprovable instruction context;
+73. OpenCode 2.3.0 forward-candidate fixture/contract audit proves a version bump alone does not satisfy GW-TR-080.
+
 ## 12. Browser/operator consequence
 
 The workbench already requires human-readable execution visibility under GW-FR-054..057.
@@ -537,6 +625,7 @@ The functional/P4/P6 design baseline is complete because:
 
 1. the new FR/TR identifiers are registered in `pontivus-order.toml`;
 2. the existing canonical owners listed in §14 are aligned with this concern;
-3. the P6 failure/workspace identity consequences are exact.
+3. the P6 failure/workspace identity consequences are exact;
+4. complete model-context instruction ingress is enumerated and governed by GW-FR-105 / GW-TR-080.
 
-Implementation readiness additionally requires a P7 0.2.2 plan that maps every requirement and every test family to bounded tasks and leaves no implementer decision about provider-visible project material, `AGENTS.md` authority, failure origin, workspace freshness or verification coverage.
+Implementation readiness additionally requires (a) a provider pin/capability that satisfies GW-TR-080 for the intended authenticated productive path and (b) a P7 0.2.2 plan that maps every requirement and every test family to bounded tasks and leaves no implementer decision about provider-visible project material, `AGENTS.md` authority, failure origin, workspace freshness or verification coverage.
