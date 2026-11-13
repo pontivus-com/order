@@ -347,7 +347,6 @@ const seedSignoffScript = (
       referenceRoots: [],
     },
   );
-  const baseline = await repo.resolveHeadCommit(repositoryRoot);
   const work = "work_11111111-1111-4111-8111-111111111111";
   const timestamp = "2026-11-11T04:00:00.000Z";
 
@@ -371,6 +370,23 @@ const seedSignoffScript = (
     repositoryRoot,
     createdSource.path,
   );
+  for (const argv of [
+    ["git", "add", "--", createdSource.path],
+    ["git", "commit", "-qm", "seed WorkItem source"],
+  ]) {
+    const result = Bun.spawnSync(argv, {
+      cwd: repositoryRoot,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    if (result.exitCode !== 0) {
+      throw new TypeError(
+        "failed to commit WorkItem source fixture: " +
+          new TextDecoder().decode(result.stderr),
+      );
+    }
+  }
+  const baseline = await repo.resolveHeadCommit(repositoryRoot);
   sql.storeWorkItem(database, {
     id: work,
     projectId: "fixture",
