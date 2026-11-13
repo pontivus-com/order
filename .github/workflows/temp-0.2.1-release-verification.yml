@@ -126,5 +126,5 @@ jobs:
           RELEASE_MANIFEST="${RUNNER_TEMP}/release.json" bun -e '
             const r = JSON.parse(await Bun.file(process.env.RELEASE_MANIFEST).text());
             if (r.version !== "0.2.1") process.exit(1);
-            if (r.commit !== process.env.EXPECTED_RELEASE_SHA) process.exit(1);
+            if (r.gitCommit !== process.env.EXPECTED_RELEASE_SHA) process.exit(1);
           '
