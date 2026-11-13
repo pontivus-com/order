@@ -1883,6 +1883,132 @@ describe("daemon control plane", () => {
   });
 
 
+  it("saves only WorkItem body Markdown while preserving exact metadata and complete-file concurrency", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-source-body-save-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "body-only source",
+        concernIds: ["shell"],
+      });
+      const initial = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], created.sourcePath);
+      const exactEnvelope = "---\\n" + JSON.stringify(initial.metadata) + "\\n---\\n";
+      const externallyFormatted = exactEnvelope + initial.bodyMarkdown;
+      const reformatted = sourceShell.replaceWorkItemSourceFile(
+        runtime.config.repositoryRoots[0],
+        initial.path,
+        initial.sha256,
+        externallyFormatted,
+      );
+      if (reformatted.tag !== "UPDATED") throw new Error("fixture metadata reformat failed");
+      const current = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], initial.path);
+      const proposedBody = current.bodyMarkdown.replace(
+        "## Current context\\n",
+        "## Current context\\nBody-only edit remains human Markdown.\\n",
+      );
+      const saved = await coord.saveSourceBody(runtime, created.id, {
+        expectedSha256: current.sha256,
+        bodyMarkdown: proposedBody,
+      });
+      const savedBytes = fs.readFileSync(
+        path.join(runtime.config.repositoryRoots[0], current.path),
+        "utf8",
+      );
+
+      let invalid = null;
+      try {
+        await coord.saveSourceBody(runtime, created.id, {
+          expectedSha256: saved.tag === "UPDATED" ? saved.sha256 : current.sha256,
+          bodyMarkdown: proposedBody.replace("## Evidence/references", "## Removed evidence"),
+        });
+      } catch (error) {
+        invalid = error instanceof Error ? error.message : String(error);
+      }
+      const afterInvalid = fs.readFileSync(
+        path.join(runtime.config.repositoryRoots[0], current.path),
+        "utf8",
+      );
+
+      const beforeExternal = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], current.path);
+      const externalBytes = beforeExternal.markdown.replace(
+        "# body-only source",
+        "# externally changed body-only source",
+      );
+      const external = sourceShell.replaceWorkItemSourceFile(
+        runtime.config.repositoryRoots[0],
+        current.path,
+        beforeExternal.sha256,
+        externalBytes,
+      );
+      if (external.tag !== "UPDATED") throw new Error("fixture external update failed");
+      const stale = await coord.saveSourceBody(runtime, created.id, {
+        expectedSha256: beforeExternal.sha256,
+        bodyMarkdown: proposedBody,
+      });
+      const finalBytes = fs.readFileSync(
+        path.join(runtime.config.repositoryRoots[0], current.path),
+        "utf8",
+      );
+
+      console.log(JSON.stringify({
+        exactEnvelope,
+        currentBody: current.bodyMarkdown,
+        saved,
+        savedBytes,
+        invalid,
+        unchangedAfterInvalid: afterInvalid === savedBytes,
+        external,
+        stale,
+        finalBytes,
+      }));
+      database.close();
+    `) as {
+      exactEnvelope: string;
+      currentBody: string;
+      saved: { tag: string; sha256: string };
+      savedBytes: string;
+      invalid: string | null;
+      unchangedAfterInvalid: boolean;
+      external: { tag: string; sha256: string };
+      stale: { tag: string; currentSha256: string };
+      finalBytes: string;
+    };
+
+    expect(output.currentBody).toMatch(/^# body-only source/);
+    expect(output.currentBody).not.toContain('"formatVersion"');
+    expect(output.saved.tag).toBe("UPDATED");
+    expect(output.savedBytes.startsWith(output.exactEnvelope)).toBe(true);
+    expect(output.savedBytes).toContain("Body-only edit remains human Markdown.");
+    expect(output.invalid).toContain("missing ordered section");
+    expect(output.unchangedAfterInvalid).toBe(true);
+    expect(output.stale).toEqual({
+      tag: "STALE",
+      currentSha256: output.external.sha256,
+    });
+    expect(output.finalBytes).toContain("# externally changed body-only source");
+    expect(output.finalBytes).not.toContain("Removed evidence");
+  });
+
   it("revalidates a waiting STAGE Run before recording human input", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-resume-source-freshness-");
