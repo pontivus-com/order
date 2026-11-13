@@ -34,7 +34,7 @@ Productive readiness requires, at minimum:
 1. at least one valid configured target repository;
 2. a valid configured model/provider selection;
 3. when the selected productive model requires an authenticated OpenCode account, at least one usable saved OpenCode account in Order's private OpenCode namespace;
-4. the exact provider/account process must satisfy the complete productive instruction-isolation contract in `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`; an authenticated connection that can inject uninspectable external semantic instructions is not productive-ready;
+4. the selected OpenCode account/integration and exact provider pin must satisfy the trusted-integration/admission contract in `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`;
 5. repository-local project/WorkItem configuration required by the selected target repository to be valid or to have an explicit recovery path.
 
 Readiness is derived from canonical configuration and integration state. It is not a second lifecycle state and need not be persisted as an independent status value.
@@ -220,7 +220,6 @@ The first productive workbench experience must make readiness obvious.
 When configuration is incomplete, the workbench presents a bounded setup/recovery surface identifying each unresolved concern and its direct action. At minimum:
 
 - **OpenCode account required** → Add OpenCode account;
-- **Provider instruction isolation unavailable** → productive agent work remains blocked until the installed OpenCode integration can disable or completely preflight external instruction sources for the active account/process;
 - **Target repository required** → configure/select target repository;
 - **Repository configuration needs attention** → inspect and resolve the specific repository/project problem.
 
@@ -247,11 +246,11 @@ A successful update reports any configuration that still requires operator actio
 
 ### GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS
 
-**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration or unavailable provider-instruction isolation before productive work is attempted.
+**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration before productive work is attempted. The selected OpenCode account is an explicit trusted integration under `GW-FR-105`; provider-native Library/MCP semantics do not create a separate readiness blocker.
 
-**Acceptance criterion:** an installation lacking a required OpenCode account, valid target repository, or certifiable complete provider-instruction boundary opens a usable setup/recovery experience and cannot start affected productive Runs. `PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE` is explicit when the exact installed provider/account path cannot prove `GW-FR-105`.
+**Acceptance criterion:** an installation lacking a required OpenCode account, valid target repository or valid model selection opens a usable setup/recovery experience and cannot start affected productive Runs. A usable selected account may contribute its trusted Console integration context without additional operator setup.
 
-**Failure/negative behavior:** unresolved setup must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state based solely on successful authentication/model listing.
+**Failure/negative behavior:** unresolved setup must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state.
 
 ### GW-FR-080-CONFIGURATION-CONTINUITY
 
