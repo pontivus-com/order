@@ -404,6 +404,7 @@ describe("Order cross-boundary certification", () => {
   it("certifies one owner per P7 cross-boundary concern with no browser-side semantic duplication", () => {
     const documentWorkspace = read("ui/src/DocumentWorkspace.tsx");
     const accountControl = read("ui/src/OpenCodeAccountControl.tsx");
+    const accountSettings = read("ui/src/OpenCodeAccountSettings.tsx");
     const markdownSource = read("ui/src/MarkdownSourceEditor.tsx");
     const contracts = read("src/core/contracts.ts");
     const server = read("src/daemon/server.ts");
@@ -415,14 +416,21 @@ describe("Order cross-boundary certification", () => {
     expect(documentWorkspace).not.toMatch(/spawnSync|execFile|git\s+(?:add|commit|status)/);
 
     expect(accountControl).toContain("useQuery");
-    expect(accountControl).toContain("useMutation");
-    expect(accountControl).toContain("api.activateOpenCodeAccount");
-    expect(accountControl).toContain("api.renameOpenCodeAccount");
-    expect(accountControl).toContain("api.startOpenCodeAccountLogin");
+    expect(accountControl).not.toContain("useMutation");
+    expect(accountControl).toContain("onOpenSettings");
+    expect(accountSettings).toContain("useMutation");
+    expect(accountSettings).toContain("api.activateOpenCodeAccount");
+    expect(accountSettings).toContain("api.renameOpenCodeAccount");
+    expect(accountSettings).toContain("api.removeOpenCodeAccount");
+    expect(accountSettings).toContain("api.startOpenCodeAccountLogin");
     expect(accountControl).not.toContain("localStorage");
+    expect(accountSettings).not.toContain("localStorage");
     expect(accountControl).not.toContain("sessionStorage");
+    expect(accountSettings).not.toContain("sessionStorage");
     expect(accountControl).not.toContain("providerID");
+    expect(accountSettings).not.toContain("providerID");
     expect(accountControl).not.toContain("updateOrderConfig");
+    expect(accountSettings).not.toContain("updateOrderConfig");
 
     expect(markdownSource).toContain("EditorView");
     expect(markdownSource).toContain("Compartment");
