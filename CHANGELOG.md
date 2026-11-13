@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Added
+
+- Add canonical WorkItem documentation Git status and exact path-scoped commit persistence with repository-local identity and conflict blockers.
+
 ### Changed
 
 - Add canonical WorkItem title editing and repository-native archive/restore projection semantics.
