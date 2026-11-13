@@ -23,7 +23,7 @@ import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/Workbench
 
 type SelectedDocument =
   | Readonly<{ kind: "SOURCE" }>
-  | Readonly<{ kind: "ARTIFACT"; id: ArtifactRef["id"] }>;
+  | Readonly<{ kind: "ARTIFACT"; role: ArtifactRef["role"] }>;
 
 const errorText = (value: unknown): string => value instanceof Error ? value.message : String(value);
 
@@ -107,12 +107,12 @@ export const DocumentWorkspace = ({
       workItem.stage === "R3"
     ) {
       const current = artifacts.find((artifact) => artifact.role === workItem.stage);
-      if (current) setSelected({ kind: "ARTIFACT", id: current.id });
+      if (current) setSelected({ kind: "ARTIFACT", role: current.role });
     }
     setSelectionInitialized(true);
   }, [artifacts, artifactsQuery.isPending, selectionInitialized, workItem.stage]);
 
-  const selectedArtifact = selected.kind === "ARTIFACT" ? artifacts.find((item) => item.id === selected.id) ?? null : null;
+  const selectedArtifact = selected.kind === "ARTIFACT" ? artifacts.find((item) => item.role === selected.role) ?? null : null;
   const contentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
@@ -202,7 +202,7 @@ export const DocumentWorkspace = ({
       setRequestedUnavailable(requestedDocument.document);
       return;
     }
-    select({ kind: "ARTIFACT", id: artifact.id });
+    select({ kind: "ARTIFACT", role: artifact.role });
   }, [
     artifacts,
     artifactsQuery.isPending,
@@ -285,12 +285,12 @@ export const DocumentWorkspace = ({
     <section className="order-workspace-section" data-testid="document-workspace">
       <div className="order-document-nav" data-testid="governed-document-nav">
         <TabList
-          value={selected.kind === "SOURCE" ? "SOURCE" : selected.id}
+          value={selected.kind === "SOURCE" ? "SOURCE" : selected.role}
           onChange={(value) => {
             if (value === "SOURCE") select({ kind: "SOURCE" });
             else {
-              const artifact = artifacts.find((item) => item.id === value);
-              if (artifact) select({ kind: "ARTIFACT", id: artifact.id });
+              const artifact = artifacts.find((item) => item.role === value);
+              if (artifact) select({ kind: "ARTIFACT", role: artifact.role });
             }
           }}
           role="tablist"
@@ -298,7 +298,7 @@ export const DocumentWorkspace = ({
         >
           <Tab value="SOURCE" label="Work request" />
           {artifacts.map((artifact) => (
-            <Tab key={artifact.id} value={artifact.id} label={lifecycleArtifactLabel(artifact.role)} />
+            <Tab key={artifact.id} value={artifact.role} label={lifecycleArtifactLabel(artifact.role)} />
           ))}
         </TabList>
       </div>

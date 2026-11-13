@@ -759,7 +759,8 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
 
     const editor = page.getByLabel(editorName);
     await expect(editor).toBeVisible();
-    const longMarkdown = Array.from(
+    const currentMarkdown = await markdownSourceValue(editor);
+    const longMarkdown = currentMarkdown + "\n" + Array.from(
       { length: 260 },
       (_, index) => "line " + String(index + 1).padStart(3, "0"),
     ).join("\n") + "\n" + marker;
