@@ -456,3 +456,50 @@ describe("Order cross-boundary certification", () => {
 
 
 });
+
+
+describe("public release delivery certification", () => {
+  it("keeps one package-derived version owner and retained PR/release automation", () => {
+    const packageJson = JSON.parse(read("package.json")) as {
+      version: string;
+      scripts: Record<string, string>;
+    };
+    expect(packageJson.version).toMatch(/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/);
+    expect(packageJson.scripts).toEqual({
+      "verify:release": "bun scripts/verify-release.ts",
+      "package:release": "bun scripts/package-release.ts",
+    });
+
+    const version = read("src/version.ts");
+    expect(version).toContain('../package.json');
+    expect(version).toContain("orderVersion");
+
+    const cli = read("src/cli.ts");
+    expect(cli).toContain('argv[0] === "--version"');
+    expect(cli).toContain("orderVersion");
+
+    const server = read("src/daemon/server.ts");
+    expect(server).toContain('from "../version.ts"');
+    expect(server).not.toContain('orderVersion = "');
+
+    const ci = read(".github/workflows/ci.yml");
+    const release = read(".github/workflows/release.yml");
+    expect(ci).toContain("pull_request:");
+    expect(ci).toContain("name: verify");
+    expect(ci).toContain("scripts/verify-release.ts --mode pr");
+    expect(ci).not.toContain("uses:");
+
+    expect(release).toContain("name: Release");
+    expect(release).toContain("scripts/verify-release.ts --mode release-commit");
+    expect(release).toContain("pontivus-order.tar.gz.sha256");
+    expect(release).toContain("git tag -a");
+    expect(release).toContain("/releases/");
+    expect(release).not.toContain("uses:");
+
+    expect(read("scripts/verify-release.ts")).toContain(
+      "ordinary work PRs must not change package.json.version",
+    );
+    expect(read("scripts/package-release.ts")).toContain('"RELEASE.json"');
+    expect(read("CHANGELOG.md")).toContain("## [Unreleased]");
+  });
+});
