@@ -1,15 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" role="img" aria-labelledby="title">
-<title>Order — Ideas in. Results out.</title>
-<rect width="1280" height="420" rx="34" fill="#111a29"/>
-<g transform="translate(70 82) scale(.78)">
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" role="img" aria-labelledby="title">
+<title>Order</title>
+<rect width="720" height="240" rx="28" fill="#111a29"/>
 <defs>
   <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
     <stop offset="0" stop-color="#1e3a8a"/>
     <stop offset="1" stop-color="#2563eb"/>
   </linearGradient>
 </defs>
-<g fill="url(#g)">
+<g transform="translate(40 24) scale(.75)" fill="url(#g)">
   <path d="M128 16c20 0 38 5 55 14l-36 62c-6-4-12-6-19-6V16z"/>
   <path d="M183 30c17 10 31 24 41 41l-62 36c-3-6-8-11-15-15l36-62z"/>
   <path d="M224 71c10 17 16 36 16 57h-72c0-8-2-15-6-21l62-36z"/>
@@ -23,8 +21,5 @@
   <path d="M31 71c10-17 24-31 41-41l36 62c-7 4-12 9-15 15L31 71z"/>
   <path d="M72 30c17-9 36-14 56-14v70c-7 0-14 2-20 6L72 30z"/>
 </g>
-</g>
-<text x="330" y="176" font-family="Inter,Arial,sans-serif" font-size="112" font-weight="700" fill="#ffffff">Order</text>
-<text x="334" y="256" font-family="Inter,Arial,sans-serif" font-size="47" font-weight="700" fill="#60a5fa">Ideas in. Results out.</text>
-<text x="334" y="322" font-family="Inter,Arial,sans-serif" font-size="39" font-weight="400" fill="#cbd5e1">From idea to verified result.</text>
+<text x="270" y="154" font-family="Inter,Arial,sans-serif" font-size="112" font-weight="700" fill="#ffffff">Order</text>
 </svg>
