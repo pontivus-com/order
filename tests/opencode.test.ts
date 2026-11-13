@@ -858,11 +858,10 @@ materialRefs = ["AGENTS.md"]
     expect(output.code).toBe(0);
     expect(output.cliLegacyError).not.toBeNull();
     expect(output.config).toEqual({
-      version: 2,
+      version: 3,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [workspace],
       referenceRoots: [],
-      workItemRoot: join(home, ".local", "share", "pontivus-order-work-items"),
     });
     expect(output.stdout.join("")).toContain("resolved v2 exact target repositories");
     expect(output.stdout.join("")).toContain("configuration upgraded to version 3");
