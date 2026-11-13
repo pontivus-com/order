@@ -2960,6 +2960,7 @@ Migration admission requires:
 - matching `expectedManifestSha256`;
 - target path is repository-contained, non-Git and valid under the existing project-manifest contract;
 - no active Run for any WorkItem in the repository;
+- no WorkItem in the repository is in `EXECUTION`;
 - destination contains no conflicting governed WorkItem bytes;
 - no Git operation or filesystem condition makes the move untrustworthy.
 
@@ -2969,11 +2970,14 @@ The shell project/document owner then performs one bounded operation:
 2. verify file identities/hashes;
 3. produce project-manifest bytes whose only semantic change is the effective `workItems.root`;
 4. atomically activate the new document tree and manifest;
-5. remove the former productive tree only after activation succeeds;
-6. re-read/parse/hash the manifest and governed sources;
-7. reconcile the daemon projection.
+5. transactionally update the persisted current WorkItem source-path projections for every affected WorkItem from the old deterministic root to the new deterministic root, without changing WorkItem id/source hash/lifecycle history;
+6. remove the former productive tree only after the manifest/tree/database path projections all agree;
+7. re-read/parse/hash the manifest and governed sources;
+8. reconcile the daemon projection and materialize current lifecycle files at their new deterministic paths as new draft ArtifactRefs where needed.
 
 On failure, either the old root remains the sole productive root or the operation rolls back before returning failure. Two productive roots are never accepted as success.
+
+Existing ArtifactRefs and Approval/Run history are immutable historical records and are not path-rewritten. Repository draft discovery after migration may create new ArtifactRefs for the same unchanged lifecycle bytes at the new deterministic paths. Existing freshness/project-manifest rules then determine whether pre-signoff material requires revalidation; migration itself does not fabricate conformance or approval continuity.
 
 The manifest mutation must preserve unrelated project configuration/authority. A generic parse-and-reserialize rewrite that changes unrelated manifest semantics/text is not an acceptable correctness mechanism.
 
