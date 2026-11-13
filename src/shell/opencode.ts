@@ -10,10 +10,13 @@ import {
 } from "@opencode/client";
 import {
   OpenCodeModelRefSchema,
+  ProviderDiagnosticRecordSchema,
   RunEventPayloadJsonSchemaText,
   RunEventPayloadSchema,
   type ExecutionTask,
   type OpenCodeModelRef,
+  type ProviderDiagnosticRecord,
+  type ProviderTurnOutcome,
   type RepositoryPath,
   type Run,
   type RunEventId,
@@ -36,7 +39,7 @@ import {
   type ManagedProcess,
   type TerminalProcessResult,
 } from "./process.ts";
-import { secureTokenHex, sha256TextHex } from "./runtime.ts";
+import { nowIsoDateTime, secureTokenHex, sha256TextHex } from "./runtime.ts";
 
 const openCodeVersion = "2.2.6";
 const openCodeVersionOutput = `opencode v${openCodeVersion}`;
@@ -44,6 +47,12 @@ const startupTimeoutMillis = 60_000;
 const productiveTurnTimeoutMillis = 3_600_000;
 const terminalPollMillis = 250;
 const postInterruptPollMillis = 5_000;
+const diagnosticStderrHeadBytes = 8 * 1024;
+const diagnosticStderrTailBytes = 8 * 1024;
+const diagnosticLineCharacterLimit = 16 * 1024;
+const diagnosticTruncationMarker = new TextEncoder().encode("\n...[stderr truncated]...\n");
+const diagnosticEncoder = new TextEncoder();
+const sensitiveEnvironmentName = /(?:TOKEN|SECRET|PASSWORD|API_?KEY|CREDENTIAL|AUTH)/i;
 
 const runtimeEnvironmentNames = [
   "PATH",
@@ -58,12 +67,113 @@ const runtimeEnvironmentNames = [
   "NO_COLOR",
 ] as const;
 
+type DiagnosticStderrCapture = Readonly<{
+  reset: () => void;
+  record: (line: string) => void;
+  snapshot: () => Uint8Array | null;
+  redact: (text: string) => string;
+}>;
+
 export type OpenCodeServer = Readonly<{
   client: OpenCodeClient;
   process: ManagedProcess;
   model: OpenCodeModelRef;
   workspace: string;
+  diagnosticStderr: DiagnosticStderrCapture;
 }>;
+
+const concatBytes = (
+  left: Uint8Array,
+  right: Uint8Array,
+): Uint8Array => {
+  const result = new Uint8Array(left.byteLength + right.byteLength);
+  result.set(left);
+  result.set(right, left.byteLength);
+  return result;
+};
+
+const knownDiagnosticSecrets = (
+  sourceEnvironment: NodeJS.ProcessEnv,
+  password: string,
+): readonly string[] =>
+  [...new Set([
+    password,
+    basicAuthorization(password),
+    ...Object.entries(sourceEnvironment)
+      .filter(([name, value]) =>
+        sensitiveEnvironmentName.test(name) &&
+        value !== undefined &&
+        value.length > 0
+      )
+      .map(([, value]) => value as string),
+  ])].filter((value) => value.length > 0);
+
+const redactDiagnosticText = (
+  text: string,
+  secrets: readonly string[],
+): string =>
+  text
+    .split(/\r?\n/)
+    .map((line) =>
+      secrets.some((secret) => line.includes(secret))
+        ? "[REDACTED SECRET LINE]"
+        : line
+    )
+    .join("\n");
+
+const boundedDiagnosticLine = (line: string): string => {
+  if (line.length <= diagnosticLineCharacterLimit) return line;
+  const half = Math.floor(diagnosticLineCharacterLimit / 2);
+  return `${line.slice(0, half)}...[line truncated]...${line.slice(-half)}`;
+};
+
+const createDiagnosticStderrCapture = (
+  secrets: readonly string[],
+): DiagnosticStderrCapture => {
+  let complete = new Uint8Array();
+  let head = new Uint8Array();
+  let tail = new Uint8Array();
+  let truncated = false;
+
+  const reset = (): void => {
+    complete = new Uint8Array();
+    head = new Uint8Array();
+    tail = new Uint8Array();
+    truncated = false;
+  };
+
+  const record = (line: string): void => {
+    const redacted = redactDiagnosticText(boundedDiagnosticLine(line), secrets);
+    const chunk = diagnosticEncoder.encode(redacted + "\n");
+    if (!truncated) {
+      const combined = concatBytes(complete, chunk);
+      if (combined.byteLength <= diagnosticStderrHeadBytes + diagnosticStderrTailBytes) {
+        complete = combined;
+        return;
+      }
+      head = combined.slice(0, diagnosticStderrHeadBytes);
+      tail = combined.slice(-diagnosticStderrTailBytes);
+      complete = new Uint8Array();
+      truncated = true;
+      return;
+    }
+    tail = concatBytes(tail, chunk).slice(-diagnosticStderrTailBytes);
+  };
+
+  const snapshot = (): Uint8Array | null => {
+    const bytes = truncated
+      ? concatBytes(concatBytes(head, diagnosticTruncationMarker), tail)
+      : complete;
+    return bytes.byteLength === 0 ? null : bytes.slice();
+  };
+
+  return {
+    reset,
+    record,
+    snapshot,
+    redact: (text) => redactDiagnosticText(text, secrets),
+  };
+};
 
 const sleep = (milliseconds: number): Promise<void> =>
   new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
@@ -238,6 +348,7 @@ const consumeTextStream = async (
 
 const startOutputDrain = (
   child: ManagedProcess,
+  diagnosticStderr: DiagnosticStderrCapture,
 ): Readonly<{ endpoint: Promise<string> }> => {
   let settled = false;
   let resolveEndpoint!: (endpoint: string) => void;
@@ -258,7 +369,10 @@ const startOutputDrain = (
       }
     },
   );
-  const stderr = consumeTextStream(requireReadable(child.stderr, "stderr"), () => {});
+  const stderr = consumeTextStream(
+    requireReadable(child.stderr, "stderr"),
+    diagnosticStderr.record,
+  );
 
   const fail = (error: unknown): void => {
     if (!settled) {
@@ -337,6 +451,7 @@ type OpenCodeProviderProcess = Readonly<{
   process: ManagedProcess;
   workspace: string;
   deadline: number;
+  diagnosticStderr: DiagnosticStderrCapture;
 }>;
 
 const startOpenCodeProviderProcess = async (
@@ -355,7 +470,10 @@ const startOpenCodeProviderProcess = async (
     workspace,
     environment,
   );
-  const drain = startOutputDrain(child);
+  const diagnosticStderr = createDiagnosticStderrCapture(
+    knownDiagnosticSecrets(sourceEnvironment, password),
+  );
+  const drain = startOutputDrain(child, diagnosticStderr);
   const deadline = Date.now() + startupTimeoutMillis;
 
   try {
@@ -377,7 +495,7 @@ const startOpenCodeProviderProcess = async (
       headers: { Authorization: basicAuthorization(password) },
     });
     await waitForServerInfo(client, deadline);
-    return { client, process: child, workspace, deadline };
+    return { client, process: child, workspace, deadline, diagnosticStderr };
   } catch (error) {
     await child.terminate().catch(() => undefined);
     throw error;
@@ -440,6 +558,7 @@ export const startOpenCodeServer = async (
       process: provider.process,
       model: configuredModel,
       workspace,
+      diagnosticStderr: provider.diagnosticStderr,
     };
   } catch (error) {
     await provider.process.terminate().catch(() => undefined);
