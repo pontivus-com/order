@@ -9,6 +9,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 ### Changed
 
 - Establish the governed 0.2.1 functional design for first-class connected-repository/document-location and OpenCode-account configuration, installation continuity/readiness, navigable workflow inspection, compact information placement, and human-first WorkItem Markdown authoring with preserved system metadata.
+- Define the 0.2.1 technical refactor architecture for centralized Settings, immutable runtime configuration activation, repository/document-root migration, canonical readiness, human-first Source recomposition, compact semantic viewport composition, and direct appearance switching.
 
 ### Internal
 

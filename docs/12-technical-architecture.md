@@ -1358,7 +1358,9 @@ Order runtime state remains outside the project repository under the existing Or
 
 ### 30.2 Productive configuration
 
-Productive `OrderConfig` advances to v3 and contains only:
+> Historical v3 cutover contract. The current configuration contract is v4 under §34.13; v3 remains migration input only.
+
+The v3 cutover advanced `OrderConfig` to contain only:
 
 - model;
 - exact target repository roots;
@@ -2099,3 +2101,321 @@ All implementation PRs remain work PRs against `master`, add `[Unreleased]` entr
 
 **Failure/negative behavior:** direct-master delivery, master-clone release distribution, unverified tag creation, tag movement, mutable-version rebuild, unpinned workflow dependency or release notes that diverge from the committed changelog are prohibited.
 
+
+
+## 34. Settings/configuration refactor architecture (0.2.1)
+
+This section is the P4 realization of `GW-FR-079..098` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
+
+The design deliberately refactors ownership rather than layering Settings behavior over the current installer-only configuration path.
+
+### 34.1 Why refactoring is required
+
+The current implementation has four architectural mismatches with the functional design:
+
+1. `config.json` is effectively installer-owned and read once into an immutable daemon runtime, so browser Settings cannot safely mutate productive repository/model configuration.
+2. repository identity/document-root information is available to shell/daemon code but is not exposed through one canonical installation-level projection.
+3. OpenCode account mechanics are canonical, but their full management presentation is currently shell-popover oriented rather than Settings-owned.
+4. WorkItem Source editing treats the complete technical file as the ordinary editor buffer, which conflicts with the new human/system authoring boundary.
+
+These are owner-boundary problems. P7 must refactor the owners first and then realize the UI; it must not patch the existing screens with independent state or file writes.
+
+### 34.2 Configuration owner and immutable runtime handoff
+
+`src/core/contracts.ts` remains the only `OrderConfig` shape owner.
+
+`src/shell/config.ts` remains the sole productive `config.json` read/write effect owner and gains only the atomic expected-hash operations required by §35. It must not become a daemon/service object.
+
+A new cohesive daemon settings owner (for example `src/daemon/settings.ts`) composes:
+
+- current config identity;
+- readiness;
+- connected-repository projection;
+- focused repository/model/reference-root commands;
+- runtime reconfiguration admission.
+
+The daemon does **not** mutate `CoordinatorRuntime.config`. Instead, the process-level daemon composition owns one replaceable reference to an otherwise immutable `CoordinatorRuntime`.
+
+All request handlers obtain the current runtime through that process-level owner. Configuration activation builds a candidate runtime, proves/reconciles it, persists the config and swaps the runtime reference only after the candidate is trustworthy.
+
+The swap is serialized with all settings mutations and scheduler ownership. No request may observe a half-updated config/runtime pair.
+
+This is the only new mutability introduced by Settings: one process-level pointer to the current immutable runtime snapshot. It is not domain state and is not persisted.
+
+### 34.3 Reconfiguration admission
+
+Config/repository mutations are admitted only when they cannot invalidate active productive work.
+
+At minimum, reconfiguration is blocked while:
+
+- the coordinator tick is active/admitting work;
+- any Run is `RUNNING` or `WAITING_FOR_INPUT`;
+- an OpenCode account login attempt is active;
+- an OpenCode account mutation is active;
+- another settings activation/document-root migration is active.
+
+The blocker computation is owned once in the daemon and reused by readiness/settings responses. UI must not reimplement it.
+
+### 34.4 Connected repository owner
+
+`src/shell/project.ts` continues to prove exact Git roots and validated project manifests.
+
+The daemon settings owner derives `ConnectedRepositoryState` directly from:
+
+```text
+OrderConfig.repositoryRoots
+  -> loadConfiguredProjects()
+  -> exact repository root + validated ProjectManifest
+  -> effective workItems.root
+```
+
+No repository registry/database table is added.
+
+Reference-root changes remain ordinary `OrderConfig.referenceRoots` mutations through the same expected-hash activation boundary. They are validated as canonical directories and retain STAGE-only read semantics; they never become target repositories or WorkItem source roots.
+
+Connect repository:
+
+- prove exact canonical Git root;
+- prepare/validate the repository manifest through the existing project owner;
+- append the exact root to a proposed `OrderConfig`;
+- run the canonical activation boundary.
+
+Disconnect repository:
+
+- resolve the exact configured root directly from `OrderConfig.repositoryRoots`, even when its current project manifest is invalid;
+- block if productive work is active there;
+- remove only that root from proposed config;
+- activate through the same boundary;
+- retain repository files and historical SQLite records.
+
+Ordinary queue/source projection uses current configured roots as its visibility/admission boundary so disconnected repository records do not remain falsely productive.
+
+### 34.5 Repository-owned document-root migration owner
+
+The document-root change is not a config mutation.
+
+A cohesive shell effect owner in the project/document boundary owns the bounded repository mutation. It may be implemented in `src/shell/project.ts` or one narrowly named sibling if the operation would otherwise give `project.ts` two independent responsibilities.
+
+It owns:
+
+- exact manifest byte read/hash;
+- current/target root proof;
+- governed-document move staging;
+- byte/hash verification;
+- minimal manifest `[workItems].root` mutation;
+- atomic activation/rollback.
+
+`src/shell/work-item-source.ts` remains the WorkItem source/path effect owner and supplies deterministic governed paths; it does not become a TOML writer.
+
+`src/shell/repository.ts` remains Git effect owner and supplies operation-state/repository facts where migration admission needs them.
+
+The daemon settings owner composes these existing/new shell effects and invokes normal source reconciliation afterward.
+
+Because current WorkItem source paths are persisted, the migration also uses the existing SQLite effect owner for one transaction that updates only the affected `workItemSources.sourcePath` values to the new deterministic paths. This happens as part of the migration activation boundary before normal reconciliation. Historical ArtifactRefs are not rewritten; new-path lifecycle files are rediscovered as current drafts through the existing ArtifactRef owner.
+
+### 34.6 Readiness architecture
+
+Readiness is a pure daemon projection, not persisted state.
+
+Inputs are:
+
+- current `OrderConfig`;
+- validated connected repository states;
+- configured model preflight facts;
+- current safe `OpenCodeAccountState`.
+
+Output is the canonical `InstallationReadiness`.
+
+The work queue/workbench may render while readiness is incomplete, but productive actions that require a missing concern are blocked by the owning daemon command as well as reflected in readiness UI.
+
+This avoids turning readiness into a second lifecycle state or a browser-only gate.
+
+### 34.7 OpenCode account architecture after Settings centralization
+
+The existing shell/daemon OpenCode account owner remains authoritative:
+
+```text
+src/shell/opencode.ts
+  -> safe pinned OpenCode integration effects
+src/daemon/opencode-account.ts
+  -> canonical account query/mutations/login admission
+```
+
+No account-management backend refactor is required beyond:
+
+- account-control readiness correction;
+- readiness composition using the canonical account projection;
+- exposing full manager UI in Settings.
+
+The account-control process has a stronger readiness predicate than the generic OpenCode provider process. Generic server readiness (including a successful `/api/info`) is insufficient. Account control is ready only after the pinned OpenCode integration list contains integration id `opencode`; only then may Order call the account projection/mutation operations. A bounded timeout terminates the private control process and returns a typed failure rather than surfacing the transient upstream 404 as an internal daemon error.
+
+The shell utility becomes a concise active-account/status shortcut that navigates to Settings. It must not maintain a second full manager implementation.
+
+### 34.8 Model configuration architecture
+
+The configured model remains `OrderConfig.model`.
+
+Settings model changes use the same canonical OpenCode model listing/preflight capability already used by guided setup; they do not introduce a browser-maintained provider catalog.
+
+A proposed model is preflighted before runtime activation. Account selection remains semantically separate from model selection.
+
+### 34.9 WorkItem source authoring architecture
+
+The exact source parser in `src/core/work-item-source.ts` gains pure operations for:
+
+- locating/projecting the exact body region from a validated complete source;
+- validating a proposed body;
+- recomposing the complete source from the unchanged exact metadata envelope plus proposed body.
+
+The shell source writer remains unchanged in authority: it writes exact complete source bytes under expected-hash protection.
+
+The daemon source command adds a body-write operation that:
+
+1. reloads the current exact source snapshot;
+2. proves `expectedSha256`;
+3. delegates body validation/recomposition to the core owner;
+4. writes the recomposed complete source through the existing shell effect;
+5. re-reads/reconciles the canonical source.
+
+The browser never parses/reassembles the metadata envelope itself.
+
+### 34.10 Daemon/server decomposition
+
+Durable ownership target:
+
+```text
+src/core/contracts.ts
+  canonical Settings/readiness/source-authoring schemas
+
+src/core/work-item-source.ts
+  pure source body projection/recomposition
+
+src/shell/config.ts
+  config read/hash/atomic write effects
+
+src/shell/project*.ts
+  exact repository/project-manifest and document-root migration effects
+
+src/shell/opencode.ts
+  OpenCode provider/account effects
+
+src/daemon/settings.ts
+  settings/readiness/reconfiguration composition
+
+src/daemon/opencode-account.ts
+  account composition
+
+src/daemon/work-item-source.ts
+  source query/body-save composition
+
+src/daemon/server.ts
+  authenticated HTTP transport only
+```
+
+Do not create configuration/repository/account service classes, repositories, mappers, DTO layers or event buses.
+
+### 34.11 Verification consequences
+
+Permanent tests must cover:
+
+- config expected-hash stale rejection;
+- candidate-runtime activation succeeds and requests thereafter observe the new config snapshot;
+- activation failure resumes/reconciles the old runtime;
+- connect/disconnect repository visibility with historical DB retention;
+- active-run/account-login blockers;
+- model preflight failure leaves config/runtime unchanged;
+- document-root migration success, conflict, rollback and unrelated-manifest preservation;
+- readiness blocker combinations;
+- full-source body projection/recomposition preserving metadata bytes exactly;
+- stale body-save conflict after external metadata/body edit;
+- retained account upgrade and missing-account readiness;
+- no second config writer/repository registry/source parser.
+
+### 34.12 Technical requirements
+
+#### GW-TR-058-IMMUTABLE-CONFIG-RUNTIME-ACTIVATION
+
+**Required behavior:** Settings changes productive config through one serialized candidate-runtime activation boundary while each `CoordinatorRuntime.config` remains immutable.
+
+**Acceptance criterion:** after successful mutation every daemon request observes one coherent new config/runtime snapshot; failed activation leaves/resumes the old snapshot.
+
+**Failure/negative behavior:** in-place config mutation, partially refreshed consumers, restart-required manual recovery or independent config writers are prohibited.
+
+#### GW-TR-059-CANONICAL-SETTINGS-READINESS-PROJECTION
+
+**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners.
+
+**Acceptance criterion:** browser Settings can render repository/document-root/readiness state without reconstructing it from unrelated APIs.
+
+**Failure/negative behavior:** no settings database, browser readiness policy or duplicate repository registry is permitted.
+
+#### GW-TR-060-FOCUSED-REPOSITORY-CONFIG-MUTATION
+
+**Required behavior:** connect/disconnect repository, model and STAGE reference-root changes are focused expected-hash commands over canonical `OrderConfig`.
+
+**Acceptance criterion:** successful commands produce one validated new config snapshot; stale/blocked/invalid commands mutate nothing.
+
+**Failure/negative behavior:** arbitrary replacement-config POSTs or UI writes to config files are prohibited.
+
+#### GW-TR-061-ATOMIC-DOCUMENT-ROOT-MIGRATION
+
+**Required behavior:** repository document-root changes preserve governed bytes/identities and manifest authority through one bounded atomic/rollback-capable shell operation.
+
+**Acceptance criterion:** success leaves one productive root, matching validated manifest, matching persisted current source paths and rediscovered current lifecycle drafts; failure leaves the old root authoritative.
+
+**Failure/negative behavior:** path-only edits, dual productive roots, whole-manifest semantic rewrites or orphaned WorkItems are prohibited.
+
+#### GW-TR-062-WORKITEM-BODY-AUTHORING-CORE
+
+**Required behavior:** core source parsing owns body projection/recomposition while the shell continues to persist complete exact source bytes.
+
+**Acceptance criterion:** normal Source editing can save body-only changes with complete-file expected-hash protection and unchanged metadata bytes.
+
+**Failure/negative behavior:** browser metadata parsing/recomposition or a second body/source persistence path is prohibited.
+
+
+### 34.13 Configuration-capable daemon startup and installer continuity
+
+The daemon must be able to serve authenticated Settings while configuration is valid but not productively ready.
+
+Config loading therefore does not fail merely because a previously proven external repository/reference path is currently missing or no longer proves the same Git/project identity. Stored v4 path identities remain readable; the settings/readiness owner performs live proof and classifies unavailable/invalid repositories/reference roots as attention/blocker state. Only malformed config bytes, invalid stored path syntax/duplication or state-root security violations are config-load failures.
+
+For `OrderConfig v4`:
+
+- zero configured repositories is valid configuration state;
+- `model = null` is valid configuration state;
+- repository/source reconciliation runs only for currently READY repositories;
+- provider/model preflight runs only when a model exists and a repository context required by that preflight can be resolved;
+- productive Run start/tick commands enforce readiness and return a canonical configuration blocker instead of crashing startup.
+
+The installer/update path reuses the same config owner.
+
+Update from 0.2.0/v3:
+
+1. preserve existing repository/model/reference choices exactly;
+2. convert config version 3 -> 4 deterministically;
+3. preserve the installation-owned OpenCode private state directory as part of state-root continuity;
+4. never import ambient/global OpenCode secrets;
+5. retain the existing v2 repository-document migration before final v4 activation where applicable;
+6. start the daemon even when post-update account readiness requires operator action;
+7. expose unresolved readiness through Settings instead of treating it as installation corruption.
+
+Fresh install may complete with an incomplete v4 config and route the operator into Settings. Guided terminal setup remains available, but it is no longer the only way to reach a valid daemon.
+
+Permanent migration tests must prove v3 choices survive byte-for-semantic-value conversion, retained private OpenCode state remains in place, and missing account/repository/model conditions reach Settings rather than daemon startup failure.
+
+#### GW-TR-070-CONFIGURATION-CAPABLE-DAEMON-BOOT
+
+**Required behavior:** the daemon starts from structurally valid OrderConfig v4 even when repository/model productive prerequisites are absent, and exposes canonical readiness/Settings while blocking only affected productive commands.
+
+**Acceptance criterion:** fresh or upgraded installations can reach authenticated Settings with zero repositories and/or no configured model; existing valid v3 choices migrate unchanged.
+
+**Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force account/model/repository completion exclusively through installer prompts.
+
+#### GW-TR-071-OPENCODE-ACCOUNT-INTEGRATION-READINESS
+
+**Required behavior:** the private OpenCode account-control process waits for registration of integration id `opencode` before account queries/mutations.
+
+**Acceptance criterion:** clean-start account listing succeeds when generic OpenCode HTTP readiness precedes integration registration; the process remains bounded by the existing startup deadline.
+
+**Failure/negative behavior:** generic `/api/info` readiness must not authorize an immediate account integration query that can return a transient upstream 404/internal daemon error.
