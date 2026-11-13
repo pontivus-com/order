@@ -2729,17 +2729,40 @@ describe("daemon control plane", () => {
       console.log(JSON.stringify({
         workItem: coord.getWorkItem(runtime, work),
         taskState: tasks[0]?.state ?? null,
-        failures: postRuns.map((run) => ({
-          role: run.role,
-          status: run.status,
-          terminalClassification: run.terminalClassification,
-        })),
+        failures: postRuns.map((run) => {
+          const events = coord.listRunEvents(runtime, run.id);
+          const diagnostics = events.find(
+            (event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED",
+          );
+          const providerFailure = events.find(
+            (event) => event.event.tag === "PROVIDER_FAILED",
+          );
+          return {
+            role: run.role,
+            status: run.status,
+            terminalClassification: run.terminalClassification,
+            diagnosticEvidence:
+              diagnostics?.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED"
+                ? diagnostics.event.evidence.map((ref) => ref.relativePath)
+                : [],
+            failureEvidence:
+              providerFailure?.event.tag === "PROVIDER_FAILED"
+                ? providerFailure.event.evidence.map((ref) => ref.relativePath)
+                : [],
+          };
+        }),
       }));
       database.close();
     `, providerEnvironment(rejectedBinary, rejectedState), 180_000) as {
       workItem: { stage: string; status: string; outcome: string | null };
       taskState: string | null;
-      failures: Array<{ role: string; status: string; terminalClassification: string | null }>;
+      failures: Array<{
+        role: string;
+        status: string;
+        terminalClassification: string | null;
+        diagnosticEvidence: string[];
+        failureEvidence: string[];
+      }>;
     };
 
     expect(rejected.workItem).toMatchObject({
@@ -2748,9 +2771,15 @@ describe("daemon control plane", () => {
       outcome: null,
     });
     expect(rejected.taskState).toBe("BLOCKED");
-    expect(
-      rejected.failures.filter((run) => run.terminalClassification === "PROVIDER_FAILURE"),
-    ).toHaveLength(2);
+    const providerFailures = rejected.failures.filter(
+      (run) => run.terminalClassification === "PROVIDER_FAILURE",
+    );
+    expect(providerFailures).toHaveLength(2);
+    expect(providerFailures.every((run) =>
+      run.diagnosticEvidence.length > 0 &&
+      run.failureEvidence.length > 0 &&
+      JSON.stringify(run.failureEvidence) === JSON.stringify(run.diagnosticEvidence)
+    )).toBe(true);
   }, 30_000);
 
   it("executes sign-off through BUILDER, one REMEDIATOR, final REVIEWER V0-V7, and aggregate completion", () => {
