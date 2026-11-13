@@ -3,6 +3,7 @@ import {
   chmodSync,
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -13,6 +14,12 @@ import {
 import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import type {
+  LegacyOrderConfigV2,
+  OrderConfig,
+  RepositoryPath,
+  WorkItemSourcePath,
+} from "./core/contracts.ts";
 import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
 
 const bunVersion = "1.4.4";
@@ -378,6 +385,192 @@ const buildApplication = (
     fail("production build did not create dist/index.html");
   }
   writeFileSync(join(staging, "SOURCE_COMMIT"), sourceCommit + "\n", "utf8");
+};
+
+const bytesEqual = (left: Uint8Array, right: Uint8Array): boolean => {
+  if (left.byteLength !== right.byteLength) return false;
+  for (let index = 0; index < left.byteLength; index += 1) {
+    if (left[index] !== right[index]) return false;
+  }
+  return true;
+};
+
+const ensureMigrationParent = (
+  repositoryRoot: string,
+  repositoryPath: RepositoryPath,
+): string => {
+  const segments = repositoryPath.split("/");
+  let current = repositoryRoot;
+  for (const segment of segments.slice(0, -1)) {
+    current = join(current, segment);
+    if (!existsSync(current)) mkdirSync(current, { mode: 0o755 });
+    const stat = lstatSync(current);
+    if (stat.isSymbolicLink() || !stat.isDirectory()) {
+      fail("repository-native WorkItem migration may not traverse a symlink/non-directory");
+    }
+  }
+  return join(repositoryRoot, ...segments);
+};
+
+const migrateRepositoryNativeV2State = async (
+  locations: InstallerLocations,
+  legacyConfig: LegacyOrderConfigV2,
+  currentConfig: OrderConfig,
+  sqliteModule: typeof import("./shell/sqlite.ts"),
+): Promise<void> => {
+  const moduleUrl = (path: string): string =>
+    pathToFileURL(join(locations.installRoot, "app", "src", path)).href;
+  const [projectModule, sourceShell, sourceCore, repositoryModule, runtimeModule, fileWriteModule] =
+    await Promise.all([
+      import(moduleUrl("shell/project.ts")) as Promise<typeof import("./shell/project.ts")>,
+      import(moduleUrl("shell/work-item-source.ts")) as Promise<typeof import("./shell/work-item-source.ts")>,
+      import(moduleUrl("core/work-item-source.ts")) as Promise<typeof import("./core/work-item-source.ts")>,
+      import(moduleUrl("shell/repository.ts")) as Promise<typeof import("./shell/repository.ts")>,
+      import(moduleUrl("shell/runtime.ts")) as Promise<typeof import("./shell/runtime.ts")>,
+      import(moduleUrl("shell/file-write.ts")) as Promise<typeof import("./shell/file-write.ts")>,
+    ]);
+
+  const projects = await projectModule.loadConfiguredProjects(currentConfig.repositoryRoots);
+  const projectById = new Map(
+    projects.map((project) => [project.manifest.projectId, project] as const),
+  );
+
+  const legacySources = sourceShell.scanLegacyV2WorkItemSourcesForInstall(
+    legacyConfig.workItemRoot,
+  );
+  const duplicates = sourceCore.duplicateWorkItemSourceIds(legacySources);
+  if (duplicates.length !== 0) {
+    fail("v2→v3 migration found duplicate WorkItem ids: " + duplicates.join(", "));
+  }
+  const sourceById = new Map(
+    legacySources.map((source) => [source.metadata.id, source] as const),
+  );
+
+  const migrationState = sqliteModule.readOrderV2MigrationStateForInstall(
+    locations.stateRoot,
+  );
+  const sourcePaths = new Map<string, WorkItemSourcePath>();
+  const planned = new Map<string, Readonly<{
+    repositoryRoot: string;
+    repositoryPath: RepositoryPath;
+    bytes: Uint8Array;
+  }>>();
+
+  const planCopy = (
+    repositoryRoot: string,
+    repositoryPath: RepositoryPath,
+    bytes: Uint8Array,
+  ): void => {
+    const target = join(repositoryRoot, repositoryPath);
+    const prior = planned.get(target);
+    if (prior !== undefined) {
+      if (!bytesEqual(prior.bytes, bytes)) {
+        fail("v2→v3 migration maps different bytes to the same repository path: " + repositoryPath);
+      }
+      return;
+    }
+    if (existsSync(target)) {
+      const stat = lstatSync(target);
+      if (stat.isSymbolicLink() || !stat.isFile()) {
+        fail("v2→v3 migration destination is not a regular file: " + repositoryPath);
+      }
+      if (!bytesEqual(new Uint8Array(readFileSync(target)), bytes)) {
+        fail("v2→v3 migration destination already exists with different bytes: " + repositoryPath);
+      }
+    }
+    planned.set(target, { repositoryRoot, repositoryPath, bytes });
+  };
+
+  for (const source of legacySources) {
+    const project = projectById.get(source.metadata.projectId);
+    if (project === undefined) {
+      fail("v2→v3 migration cannot resolve projectId: " + source.metadata.projectId);
+    }
+    const destination = sourceCore.workItemDocumentPath(
+      project.manifest.workItems.root,
+      source.metadata.id,
+      "SOURCE",
+    );
+    planCopy(
+      project.repositoryRoot,
+      destination,
+      new TextEncoder().encode(source.markdown),
+    );
+  }
+
+  for (const [workItem, lifecycleArtifacts] of migrationState) {
+    const source = sourceById.get(workItem.id);
+    if (source === undefined) {
+      fail("v2→v3 migration is missing persisted WorkItem source: " + workItem.id);
+    }
+    if (
+      source.path !== workItem.sourcePath ||
+      source.sha256 !== workItem.sourceSha256 ||
+      source.metadata.projectId !== workItem.projectId
+    ) {
+      fail("v2→v3 persisted WorkItem source projection is stale: " + workItem.id);
+    }
+    const project = projectById.get(workItem.projectId);
+    if (project === undefined || project.repositoryRoot !== workItem.repositoryRoot) {
+      fail("v2→v3 migration cannot resolve exact repository for WorkItem: " + workItem.id);
+    }
+    const destination = sourceCore.workItemDocumentPath(
+      project.manifest.workItems.root,
+      workItem.id,
+      "SOURCE",
+    );
+    sourcePaths.set(workItem.id, destination as WorkItemSourcePath);
+
+    for (const artifact of lifecycleArtifacts) {
+      if (
+        artifact.role !== "R1" &&
+        artifact.role !== "R2" &&
+        artifact.role !== "DESIGN" &&
+        artifact.role !== "PLAN" &&
+        artifact.role !== "R3"
+      ) {
+        continue;
+      }
+      const bytes = repositoryModule.readWorkingTreeFile(
+        workItem.repositoryRoot,
+        artifact.repositoryPath,
+      );
+      if (runtimeModule.sha256(bytes) !== artifact.sha256) {
+        fail(
+          "v2→v3 lifecycle source bytes differ from current ArtifactRef: " +
+            artifact.repositoryPath,
+        );
+      }
+      const lifecycleDestination = sourceCore.workItemDocumentPath(
+        project.manifest.workItems.root,
+        workItem.id,
+        artifact.role,
+      );
+      planCopy(project.repositoryRoot, lifecycleDestination, bytes);
+    }
+  }
+
+  for (const copy of planned.values()) {
+    const target = join(copy.repositoryRoot, copy.repositoryPath);
+    if (!existsSync(target)) {
+      ensureMigrationParent(copy.repositoryRoot, copy.repositoryPath);
+      fileWriteModule.createRegularFileExclusive(target, copy.bytes);
+    }
+    const verified = new Uint8Array(readFileSync(target));
+    if (!bytesEqual(verified, copy.bytes)) {
+      fail("v2→v3 repository copy failed read-back verification: " + copy.repositoryPath);
+    }
+  }
+
+  sqliteModule.migrateOrderDatabaseV2ToV3(
+    locations.stateRoot,
+    sourcePaths as ReadonlyMap<import("./core/contracts.ts").WorkItemId, WorkItemSourcePath>,
+  );
+  process.stdout.write(
+    "Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
+      legacyConfig.workItemRoot +
+      "\n",
+  );
 };
 
 const configureOrder = async (
