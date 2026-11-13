@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Persist bounded, secret-safe provider turn diagnostics as canonical Run evidence with failure linkage.
 - Add the canonical typed HTTP failure boundary with actionable source/current-state diagnostics.
 
 ### Changed
