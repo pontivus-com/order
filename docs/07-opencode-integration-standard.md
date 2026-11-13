@@ -58,7 +58,7 @@ The bound OpenCode foreground `serve` always composes the V2 API with its embedd
 
 The bound OpenCode build still has a Linux system-config source at `/etc/opencode`, while the foreground `serve` command does not expose the programmatic `system: false` switch. Order therefore fails provider startup/certification when `/etc/opencode` exists rather than reimplementing OpenCode's config parser to guess that it is harmless.
 
-The bound OpenCode build's model-facing `read` tool can discover and inject nested repository `AGENTS.md` files after successful reads. Order therefore enumerates every regular repository `AGENTS.md` reachable in the active snapshot before productive provider use, requires every one to resolve through the project's P1 authority selection/precedence, and includes their exact bytes in the resolved context (and post-signoff signed material closure). A task `changeSurface` may not include those signed instruction files. OpenCode's read-triggered injection is thus only a rendering of already-resolved authority; an unresolvable file blocks invocation.
+The bound OpenCode build's model-facing `read` tool can discover and inject nested repository `AGENTS.md` after successful internal reads, and direct `read` does not share ripgrep search-ignore filtering. Productive repository-byte containment, provider-workspace materialization, complete instruction closure, instruction-path mutation prohibition and the all-role certification law are therefore owned by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`. The user's physical repository directory is not itself the provider-visible project-material boundary. OpenCode instruction injection is permitted only as a rendering of P1 authority Order already resolved and byte-proved for the admitted provider workspace.
 
 The provider shell supplies only required runtime basics such as `PATH`, locale and temp values in addition to the private values above. Provider login and guided setup use the same private HOME/XDG/database namespace. Order never reads or edits OpenCode credential rows directly.
 
@@ -74,7 +74,8 @@ A session may continue across ordinary interactive turns only when all are true:
 - same lifecycle stage;
 - same resolved `contextHash`;
 - same configured provider/model;
-- same effective stage permission profile.
+- same effective stage permission profile;
+- for STAGE, the same admitted provider-workspace material identity required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`.
 
 If material authority changes, artifact adoption changes resolved context, permissions materially change, or Order cannot prove the provider session is current, Order replaces the OpenCode session before the next productive turn.
 
@@ -100,11 +101,11 @@ Every productive profile begins with:
 deny action="*" resource="*"
 ```
 
-`STAGE` allows `read`, `glob` and `grep` with resource `*`. For each configured canonical reference root `R`, STAGE additionally receives one `external_directory` allow with resource `R/*`. Because the pinned provider wildcard treats `*` as spanning path separators, that one rule covers descendants of that exact root. External reads remain read-only and the pinned OpenCode read implementation skips its nearby-`AGENTS.md` injection path for external-directory targets.
+`STAGE` allows `read`, `glob` and `grep` with resource `*` **inside the already admitted provider workspace**. A later matching `read` deny for `.git/*` keeps Git implementation metadata outside ordinary productive model reads. For each configured canonical reference root `R`, STAGE additionally receives one `external_directory` allow with resource `R/*`. Because the pinned provider wildcard treats `*` as spanning path separators, that one rule covers descendants of that exact root. External reads remain read-only and the pinned OpenCode read implementation skips its nearby-`AGENTS.md` injection path for external-directory targets.
 
-`REVIEWER` allows only target-workspace `read`, `glob` and `grep` with resource `*` and receives no external-directory allow.
+`REVIEWER` allows only admitted target-workspace `read`, `glob` and `grep` with resource `*`, followed by the same `.git/*` read deny, and receives no external-directory allow.
 
-`BUILDER` and `REMEDIATOR` allow the same target-workspace read-only actions and add one `edit` allow for each exact literal `ExecutionTask.changeSurface` path. `changeSurface` is a `RepositoryPath[]`, not a glob, so Order does not translate Bun.Glob semantics into OpenCode permission semantics. They receive no external-directory allow.
+`BUILDER` and `REMEDIATOR` allow the same admitted target-workspace read-only actions and `.git/*` read deny, then add one `edit` allow for each exact literal `ExecutionTask.changeSurface` path. `changeSurface` is a `RepositoryPath[]`, not a glob, so Order does not translate Bun.Glob semantics into OpenCode permission semantics. `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1` additionally prohibits any changeSurface path naming `AGENTS.md`, including a path that does not yet exist. They receive no external-directory allow.
 
 All unlisted capabilities remain denied, including shell/execute, external-directory access outside the exact STAGE reference-root rules, skills, subagents, web and schedule operations. `write` and the bound OpenCode build's multi-file `patch` use OpenCode's canonical `edit` permission action; certification proves every patch source/destination resource is included in the permission assertion before mutation. Order never uses `ask` as a hidden human-interaction path.
 
@@ -112,7 +113,7 @@ The format-repair turn uses a deny-all profile with zero tools.
 
 Pre-signoff **provider/agent-proposed** canonical artifact mutation remains exclusively Order's proposal/adoption boundary. The governed Markdown workbench's explicit direct-human Save is a separate daemon-owned mutation ingress defined by `GW-DOC-MARKDOWN-WORKBENCH-V1`; it grants no additional OpenCode edit permission and never lets provider conversation mutate authority directly. The STAGE prompt includes the exact configured reference-root paths in a separately labeled non-authoritative read-only section so the model can deliberately inspect them; Order does not preload their bytes into resolved canonical context. Readable reference-root bytes are evidence/context only and do not become Order/project authority without the normal governed artifact/adoption path. Post-signoff model mutation is limited to exact signed `changeSurface` paths. Destructive Git, commit, push, merge, deployment and external-directory mutation are not provider capabilities in v1.
 
-Capability certification proves the deny-first rule, exact-path edit allows, multi-resource patch authorization, exact STAGE reference-root external-directory allows, and denied external access for all post-signoff roles before Order permits productive use.
+Capability certification proves the deny-first rule, `.git/*` read denial, exact-path edit allows, multi-resource patch authorization, exact STAGE reference-root external-directory allows, denied external access for all post-signoff roles, and the productive workspace/instruction-closure matrix required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1` before Order permits productive use.
 
 ## 7. Prompt admission and serialization
 
