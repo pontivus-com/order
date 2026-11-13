@@ -1122,3 +1122,155 @@
     min-width: 0;
   }
 }
+
+
+/* Installation-global saved OpenCode account control. */
+.order-toolbar-utilities {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+}
+.order-opencode-account-trigger {
+  min-height: 2rem;
+  max-width: min(24rem, 36vw);
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+  color: var(--order-workbench-text);
+  padding: 0 .55rem;
+  cursor: pointer;
+}
+.order-opencode-account-trigger strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .75rem;
+}
+.order-opencode-account-trigger > span {
+  flex: 0 0 auto;
+  color: var(--order-workbench-muted);
+  font-size: .72rem;
+}
+.order-opencode-account-trigger:focus-visible,
+.order-external-action:focus-visible {
+  outline: 2px solid var(--order-workbench-accent);
+  outline-offset: 2px;
+}
+.order-opencode-account-panel {
+  min-height: 100%;
+  padding: 1rem;
+  display: grid;
+  align-content: start;
+  gap: .9rem;
+  background: var(--order-workbench-surface);
+  color: var(--order-workbench-text);
+}
+.order-opencode-account-panel > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: .75rem;
+  border-bottom: 1px solid var(--order-workbench-border);
+  padding-bottom: .75rem;
+}
+.order-opencode-account-panel h2,
+.order-opencode-account-panel h3,
+.order-opencode-account-panel p {
+  margin: 0;
+}
+.order-opencode-account-panel header p,
+.order-opencode-account-footnote,
+.order-muted-text {
+  color: var(--order-workbench-muted);
+  font-size: .75rem;
+}
+.order-opencode-account-list {
+  display: grid;
+  gap: .55rem;
+}
+.order-opencode-account-row {
+  display: grid;
+  gap: .5rem;
+  padding: .65rem;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-subtle);
+}
+.order-opencode-account-row-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.order-opencode-account-row-heading > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: .12rem;
+}
+.order-opencode-account-row-heading strong {
+  overflow-wrap: anywhere;
+}
+.order-opencode-account-row-heading span {
+  color: var(--order-workbench-muted);
+  font-size: .72rem;
+}
+.order-opencode-account-edit,
+.order-opencode-add-account,
+.order-opencode-login-attempt {
+  display: grid;
+  gap: .6rem;
+}
+.order-opencode-account-edit label,
+.order-opencode-add-account label {
+  display: grid;
+  gap: .3rem;
+  font-size: .75rem;
+  font-weight: 600;
+}
+.order-opencode-account-edit input,
+.order-opencode-add-account input {
+  min-height: 2rem;
+  width: 100%;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+  color: var(--order-workbench-text);
+  padding: .25rem .5rem;
+}
+.order-opencode-add-account {
+  border-top: 1px solid var(--order-workbench-border);
+  padding-top: .8rem;
+}
+.order-external-action {
+  width: fit-content;
+  color: var(--order-workbench-accent);
+  text-decoration: underline;
+  text-underline-offset: .18rem;
+}
+.order-opencode-account-footnote {
+  border-top: 1px solid var(--order-workbench-border);
+  padding-top: .65rem;
+}
+
+@media (max-width: 999px) {
+  .order-opencode-account-trigger {
+    max-width: 16rem;
+  }
+}
+@media (max-width: 799px) {
+  .order-toolbar-utilities {
+    margin-left: auto;
+  }
+  .order-opencode-account-trigger {
+    max-width: min(12rem, 58vw);
+  }
+  .order-opencode-account-prefix {
+    display: none;
+  }
+  .order-opencode-account-row-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
