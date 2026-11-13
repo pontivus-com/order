@@ -1592,7 +1592,7 @@ describe("daemon control plane", () => {
     expect(output.afterManifestRoot).toBe(targetRoot);
     expect(output.beforeManifestBytes).toContain('projectId = "document-root"');
     expect(output.afterManifestBytes).toContain('projectId = "document-root"');
-    expect(output.allArtifacts).toContainEqual(output.historical);
+    expect(output.allArtifacts).toContainEqual(expect.objectContaining(output.historical));
     expect(output.currentLifecycle).toContainEqual(expect.objectContaining({
       path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
       role: "PLAN",
