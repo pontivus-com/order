@@ -1,0 +1,92 @@
+name: PR Verification
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-verify-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CI: "1"
+    steps:
+      - name: Checkout exact PR merge candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=50 origin \
+            "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}" \
+            "+refs/pull/${{ github.event.pull_request.number }}/merge:refs/remotes/origin/pr-merge"
+          git checkout --detach refs/remotes/origin/pr-merge
+
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" \
+            "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" \
+            "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+
+      - name: Verify toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v26.13.0"
+          test "$(bun --version)" = "1.4.4"
+
+      - name: Verify PR release metadata
+        run: bun scripts/verify-release.ts --mode pr --base "refs/remotes/origin/${GITHUB_BASE_REF}"
+
+      - name: dependency-lock
+        run: bun ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      - name: typecheck
+        run: bun run tsc --noEmit
+
+      - name: architecture
+        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+
+      - name: test
+        run: node node_modules/vitest/vitest.mjs run
+
+      - name: build
+        run: node node_modules/vite/bin/vite.js build
+
+      - name: Verify release packager
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun scripts/package-release.ts
+          test -s release/pontivus-order.tar.gz
+          test -s release/pontivus-order.tar.gz.sha256
+          sha256sum -c release/pontivus-order.tar.gz.sha256
+          tar -xOf release/pontivus-order.tar.gz order/RELEASE.json > "${RUNNER_TEMP}/release.json"
+          bun -e 'const v=JSON.parse(await Bun.file("package.json").text()).version; const r=JSON.parse(await Bun.file(process.argv[2]).text()); if(r.version!==v) process.exit(1);' "${RUNNER_TEMP}/release.json"
+
+      - name: browser
+        run: node node_modules/@playwright/test/cli.js test
