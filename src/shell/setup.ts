@@ -1,5 +1,4 @@
-import { mkdirSync } from "node:fs";
-import { isAbsolute, join, relative, sep } from "node:path";
+import { isAbsolute, relative, sep } from "node:path";
 
 import {
   buildOrderConfig,
@@ -117,14 +116,14 @@ const runGuidedSetupInternal = async (
 ): Promise<number> => {
   const stateRoot = resolveStateRoot(environment);
   const home = requireSetupHome(environment);
-  const defaultWorkItemRoot = join(home, ".local", "share", "pontivus-order-work-items");
   const configured = allowLegacyUpdate
     ? readOrderConfigForUpgradeIfPresent(stateRoot)
     : readOrderConfigIfPresent(stateRoot);
-  let existing = configured?.version === 2 ? configured : null;
+
+  let existing = configured?.version === 3 ? configured : null;
+  let upgrading = false;
 
   if (allowLegacyUpdate && configured?.version === 1) {
-    mkdirSync(defaultWorkItemRoot, { recursive: true });
     let repositoryRoots = await legacyTargetRootsForUpgrade(
       stateRoot,
       configured.repositoryRoots,
@@ -134,7 +133,7 @@ const runGuidedSetupInternal = async (
 
     if (repositoryRoots.length === 0) {
       writeStdout(
-        "Order v1 target roots cannot be represented directly by the v2 exact-repository contract.\n",
+        "Order v1 target roots cannot be represented directly by the exact-repository contract.\n",
       );
       writeStdout(
         "Previous v1 target roots: " + configured.repositoryRoots.join(", ") + "\n",
@@ -152,27 +151,22 @@ const runGuidedSetupInternal = async (
         "target repository",
         question,
       );
-      await loadConfiguredProjects(repositoryRoots);
-    } else if (
-      repositoryRoots.join("\n") !== configured.repositoryRoots.slice().sort().join("\n")
-    ) {
-      writeStdout(
-        "Order update resolved v2 exact target repositories from persisted v1 WorkItem evidence: " +
-          repositoryRoots.join(", ") +
-          "\n",
-      );
     }
-
-    const migrated = buildOrderConfig(
+    await loadConfiguredProjects(repositoryRoots);
+    existing = buildOrderConfig(
       configured.model,
       repositoryRoots,
       configured.referenceRoots,
-      defaultWorkItemRoot,
     );
-    existing = writeOrderConfig(stateRoot, migrated);
-    writeStdout(
-      "Order configuration upgraded to version 2; existing provider/model/reference choices retained.\n",
+    upgrading = true;
+  } else if (allowLegacyUpdate && configured?.version === 2) {
+    await loadConfiguredProjects(configured.repositoryRoots);
+    existing = buildOrderConfig(
+      configured.model,
+      configured.repositoryRoots,
+      configured.referenceRoots,
     );
+    upgrading = true;
   }
 
   const workspace = existing?.repositoryRoots[0] ?? home;
@@ -188,7 +182,14 @@ const runGuidedSetupInternal = async (
 
   if (existing !== null && existingModelIndex >= 0 && !reconfigure) {
     await loadConfiguredProjects(existing.repositoryRoots);
-    writeStdout("Order configuration is already valid; existing choices retained.\n");
+    if (upgrading) {
+      writeOrderConfig(stateRoot, existing);
+      writeStdout(
+        "Order configuration upgraded to version 3; existing provider/model/repository/reference choices retained.\n",
+      );
+    } else {
+      writeStdout("Order configuration is already valid; existing choices retained.\n");
+    }
     return 0;
   }
 
@@ -229,11 +230,9 @@ const runGuidedSetupInternal = async (
 
   let repositoryRoots: readonly string[];
   let referenceRoots: readonly string[];
-  let workItemRoot: string;
   if (existing !== null && !reconfigure) {
     repositoryRoots = existing.repositoryRoots;
     referenceRoots = existing.referenceRoots;
-    workItemRoot = existing.workItemRoot;
   } else if (existing !== null) {
     writeStdout("Current target repository roots: " + existing.repositoryRoots.join(", ") + "\n");
     const target = (await question("New first target root (blank keeps current roots): ")).trim();
@@ -252,11 +251,6 @@ const runGuidedSetupInternal = async (
       : reference === "-"
         ? []
         : await collectAdditionalRoots(reference, "STAGE reference", question);
-
-    const sourceRoot = (
-      await question("WorkItem root [" + existing.workItemRoot + "]: ")
-    ).trim();
-    workItemRoot = sourceRoot.length === 0 ? existing.workItemRoot : sourceRoot;
   } else {
     const target = (await question("Target repository root: ")).trim();
     if (target.length === 0) throw new TypeError("an exact target repository root is required");
@@ -265,20 +259,20 @@ const runGuidedSetupInternal = async (
     referenceRoots = reference.length === 0
       ? []
       : await collectAdditionalRoots(reference, "STAGE reference", question);
-    const sourceRoot = (await question("WorkItem root [" + defaultWorkItemRoot + "]: ")).trim();
-    workItemRoot = sourceRoot.length === 0 ? defaultWorkItemRoot : sourceRoot;
   }
 
-  mkdirSync(workItemRoot, { recursive: true });
   await loadConfiguredProjects(repositoryRoots);
   const config = buildOrderConfig(
     selectedModel,
     repositoryRoots,
     referenceRoots,
-    workItemRoot,
   );
   writeOrderConfig(stateRoot, config);
-  writeStdout("Order configuration complete.\n");
+  writeStdout(
+    upgrading
+      ? "Order configuration upgraded to version 3.\n"
+      : "Order configuration complete.\n",
+  );
   return 0;
 };
 
