@@ -6,33 +6,26 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-13
+
 ### Changed
 
 - Strengthen final 0.2.1 certification with immutable runtime/config ownership sensors and daemon-level final-account readiness/removal admission proofs.
-
 - Add final 0.2.1 cross-boundary architecture and installed-state certification, including active/final OpenCode account removal and obsolete-path absence.
-
 - Consolidate WorkItem workflow/document/editor chrome, make workflow steps non-mutating inspection navigation, and replace the theme select with a direct System/Light/Dark switcher.
-
 - Make normal WorkItem Source authoring body-only while preserving exact portable metadata bytes, complete-file concurrency identity, and read-only technical source disclosure.
-
 - Centralize repository, OpenCode account, model/runtime and readiness configuration under browser Settings, make fresh installation start from valid empty OrderConfig v4, and reduce the shell account control to a Settings shortcut.
-
 - Add bounded repository-owned WorkItem document-root migration with exact-byte tree staging, minimal manifest mutation, transactional current-source path updates, rollback, and lifecycle draft rediscovery.
-
 - Add the canonical Settings/readiness daemon owner with drift-safe repository projection, valid-incomplete v4 daemon boot, focused configuration mutations, and serialized immutable runtime activation/rollback.
 - Introduce `OrderConfig` v4 with valid incomplete configuration, deterministic v3→v4 migration, persisted config SHA identity, expected-hash replacement, and drift-tolerant stored path reads as the foundation for centralized Settings.
-
-### Fixed
-
-- Wait for the pinned OpenCode account integration to finish registering before querying saved accounts, preventing a clean installation from surfacing a transient upstream 404 as an internal daemon error.
-
-### Changed
-
 - Establish the governed 0.2.1 functional design for first-class connected-repository/document-location and OpenCode-account configuration, installation continuity/readiness, navigable workflow inspection, compact information placement, and human-first WorkItem Markdown authoring with preserved system metadata.
 - Define the 0.2.1 technical refactor architecture for centralized Settings, immutable runtime configuration activation, repository/document-root migration, canonical readiness, human-first Source recomposition, compact semantic viewport composition, and direct appearance switching.
 - Define the bounded 0.2.1 implementation plan with explicit refactor necessity, owner-boundary changes, ordered work PRs, permanent verification and release closure.
 - Close the 0.2.1 design/plan audit gaps by governing safe OpenCode account removal and explicitly certifying current-version update continuity, ambiguous repository recovery, installer rollback, and unresolved-readiness update reporting.
+
+### Fixed
+
+- Wait for the pinned OpenCode account integration to finish registering before querying saved accounts, preventing a clean installation from surfacing a transient upstream 404 as an internal daemon error.
 
 ### Internal
 
