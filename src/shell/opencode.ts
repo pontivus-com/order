@@ -132,9 +132,9 @@ const boundedDiagnosticLine = (line: string): string => {
 const createDiagnosticStderrCapture = (
   secrets: readonly string[],
 ): DiagnosticStderrCapture => {
-  let complete = new Uint8Array();
-  let head = new Uint8Array();
-  let tail = new Uint8Array();
+  let complete: Uint8Array = new Uint8Array();
+  let head: Uint8Array = new Uint8Array();
+  let tail: Uint8Array = new Uint8Array();
   let truncated = false;
 
   const reset = (): void => {
