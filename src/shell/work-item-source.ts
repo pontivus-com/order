@@ -1,17 +1,22 @@
 import {
+  existsSync,
   lstatSync,
+  mkdirSync,
   readFileSync,
   readdirSync,
   realpathSync,
   statSync,
 } from "node:fs";
-import { join, relative, resolve, sep } from "node:path";
+import { join, resolve, sep } from "node:path";
 
 import {
   MarkdownTextSchema,
+  WorkItemIdSchema,
   WorkItemSourceDiagnosticSchema,
   WorkItemSourcePathSchema,
   type ExpectedHashWriteResult,
+  type ProjectId,
+  type RepositoryPath,
   type Sha256,
   type WorkItemSourceDiagnostic,
   type WorkItemSourcePath,
@@ -110,37 +115,65 @@ export const readWorkItemSource = (
   return parseWorkItemSourceMarkdown(path, sha256(bytes), markdown);
 };
 
-const scanPaths = (root: string): readonly WorkItemSourcePath[] => {
-  const canonical = canonicalRoot(root);
-  const output: WorkItemSourcePath[] = [];
-  const visit = (absolute: string): void => {
-    for (const entry of readdirSync(absolute, { withFileTypes: true })) {
-      const target = join(absolute, entry.name);
-      if (entry.isSymbolicLink()) continue;
-      if (entry.isDirectory()) {
-        visit(target);
-        continue;
-      }
-      if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
-      const path = relative(canonical, target).split(sep).join("/");
-      output.push(WorkItemSourcePathSchema.parse(path));
-    }
-  };
-  visit(canonical);
-  return output.sort();
+const workItemsDirectory = (
+  repositoryRoot: string,
+  workItemsRoot: RepositoryPath,
+  create: boolean,
+): string => {
+  const repository = canonicalRoot(repositoryRoot);
+  const relativeRoot = WorkItemSourcePathSchema.parse(
+    workItemsRoot + "/placeholder.md",
+  ).slice(0, -"/placeholder.md".length);
+  const target = resolve(repository, relativeRoot);
+  if (!target.startsWith(repository + sep)) {
+    throw new TypeError("WorkItem document root escapes repository");
+  }
+  if (create && !existsSync(target)) {
+    mkdirSync(target, { recursive: true, mode: 0o755 });
+  }
+  if (!existsSync(target)) return target;
+  const stat = lstatSync(target);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    throw new TypeError("project WorkItem root must be a regular directory");
+  }
+  return target;
 };
 
 export const scanWorkItemSources = (
-  root: string,
+  repositoryRoot: string,
+  projectId: ProjectId,
+  workItemsRoot: RepositoryPath,
 ): Readonly<{
   sources: readonly ParsedWorkItemSource[];
   diagnostics: readonly WorkItemSourceDiagnostic[];
 }> => {
+  const root = workItemsDirectory(repositoryRoot, workItemsRoot, false);
+  if (!existsSync(root)) return { sources: [], diagnostics: [] };
+
   const sources: ParsedWorkItemSource[] = [];
   const diagnostics: WorkItemSourceDiagnostic[] = [];
-  for (const path of scanPaths(root)) {
+  for (const entry of readdirSync(root, { withFileTypes: true }).sort((a, b) =>
+    a.name.localeCompare(b.name)
+  )) {
+    if (!entry.isDirectory() || entry.isSymbolicLink()) continue;
+    const id = WorkItemIdSchema.safeParse(entry.name);
+    if (!id.success) continue;
+    const path = workItemSourcePathForId(workItemsRoot, id.data);
+    const target = resolve(repositoryRoot, path);
+    if (!existsSync(target)) continue;
     try {
-      sources.push(readWorkItemSource(root, path));
+      const source = readWorkItemSource(repositoryRoot, path);
+      if (source.metadata.id !== id.data) {
+        diagnostics.push(WorkItemSourceDiagnosticSchema.parse({
+          projectId,
+          path,
+          workItemId: source.metadata.id,
+          code: "INVALID_SOURCE",
+          detail: "WorkItem source id does not match its deterministic directory",
+        }));
+        continue;
+      }
+      sources.push(source);
     } catch (error) {
       const code = typeof error === "object" &&
         error !== null &&
@@ -148,9 +181,7 @@ export const scanWorkItemSources = (
         typeof (error as { code?: unknown }).code === "string"
           ? (error as { code: string }).code
           : null;
-      if (code === "ENOENT") {
-        continue;
-      }
+      if (code === "ENOENT") continue;
       if (
         code === "EACCES" ||
         code === "EPERM" ||
@@ -160,15 +191,14 @@ export const scanWorkItemSources = (
       ) {
         throw error;
       }
-
-      const detail = error instanceof Error ? error.message : String(error);
       diagnostics.push(WorkItemSourceDiagnosticSchema.parse({
+        projectId,
         path,
-        workItemId: null,
+        workItemId: id.data,
         code: isUnsupportedWorkItemSchemaFailure(error)
           ? "UNSUPPORTED_SCHEMA"
           : "INVALID_SOURCE",
-        detail,
+        detail: error instanceof Error ? error.message : String(error),
       }));
     }
   }
@@ -176,12 +206,20 @@ export const scanWorkItemSources = (
 };
 
 export const createWorkItemSourceFile = (
-  root: string,
-  workItemId: Parameters<typeof workItemSourcePathForId>[0],
+  repositoryRoot: string,
+  workItemsRoot: RepositoryPath,
+  workItemId: Parameters<typeof workItemSourcePathForId>[1],
   markdown: string,
 ): Readonly<{ path: WorkItemSourcePath; sha256: Sha256 }> => {
-  const path = workItemSourcePathForId(workItemId);
-  const target = absoluteSourcePath(root, path, false);
+  const path = workItemSourcePathForId(workItemsRoot, workItemId);
+  const root = workItemsDirectory(repositoryRoot, workItemsRoot, true);
+  const directory = join(root, workItemId);
+  if (!existsSync(directory)) mkdirSync(directory, { mode: 0o755 });
+  const stat = lstatSync(directory);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    throw new TypeError("WorkItem directory must be a regular directory");
+  }
+  const target = absoluteSourcePath(repositoryRoot, path, false);
   const bytes = new TextEncoder().encode(MarkdownTextSchema.parse(markdown));
   return { path, sha256: createRegularFileExclusive(target, bytes) };
 };
