@@ -126,11 +126,30 @@ const diagnostic = (
 const resolveSourceProject = async (
   runtime: CoordinatorRuntime,
   source: ParsedWorkItemSource,
-): Promise<ConfiguredProject> =>
-  resolveConfiguredProject(
-    runtime.config.repositoryRoots,
-    source.metadata.projectId,
-  );
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
+): Promise<ConfiguredProject> => {
+  const matches: ConfiguredProject[] = [];
+  for (const repositoryRoot of repositoryRoots) {
+    try {
+      matches.push(await resolveConfiguredProject(
+        [repositoryRoot],
+        source.metadata.projectId,
+      ));
+    } catch {
+      // A source reclassification depends only on the uniquely matching
+      // healthy configured project; unrelated unavailable/invalid roots
+      // remain Settings attention rather than becoming a hidden blocker.
+    }
+  }
+  if (matches.length !== 1) {
+    throw new TypeError(
+      matches.length === 0
+        ? `unresolved configured projectId: ${source.metadata.projectId}`
+        : `configured projectId is not unique: ${source.metadata.projectId}`,
+    );
+  }
+  return matches[0]!;
+};
 
 const requireResolvedConcerns = (
   project: ConfiguredProject,
@@ -240,12 +259,13 @@ const materializeLifecycleDrafts = async (
 
 const inspectQueue = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<Readonly<{
   plans: readonly QueuePlan[];
   diagnostics: readonly WorkItemSourceDiagnostic[];
   projects: ReadonlyMap<ProjectId, ConfiguredProject>;
 }>> => {
-  const configuredProjects = await loadConfiguredProjects(runtime.config.repositoryRoots);
+  const configuredProjects = await loadConfiguredProjects(repositoryRoots);
   const projects = new Map(
     configuredProjects.map((project) => [project.manifest.projectId, project] as const),
   );
@@ -393,13 +413,15 @@ const applyPlan = (
 
 export const workItemSourceDiagnostics = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<readonly WorkItemSourceDiagnostic[]> =>
-  (await inspectQueue(runtime)).diagnostics;
+  (await inspectQueue(runtime, repositoryRoots)).diagnostics;
 
 export const reconcileWorkItemSources = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<WorkItemSourceReconciliation> => {
-  const inspected = await inspectQueue(runtime);
+  const inspected = await inspectQueue(runtime, repositoryRoots);
   withTransaction(runtime.database, () => {
     for (const plan of inspected.plans) applyPlan(runtime, plan);
   });
@@ -430,7 +452,7 @@ export const revalidateWorkItemSource = async (
 ): Promise<Readonly<{ workItem: WorkItem; source: WorkItemSourceSnapshot }>> => {
   const before = loadWorkItem(runtime.database, workItemId);
   const projectForPath = await resolveConfiguredProject(
-    runtime.config.repositoryRoots,
+    [before.repositoryRoot],
     before.projectId,
   );
   const expectedPath = workItemDocumentPath(
@@ -568,9 +590,10 @@ export const currentWorkItemSource = async (
 export const createWorkItemFromSource = async (
   runtime: CoordinatorRuntime,
   input: CreateWorkItemSource,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<WorkItem> => {
   const command = CreateWorkItemSourceSchema.parse(input);
-  const project = await resolveConfiguredProject(runtime.config.repositoryRoots, command.projectId);
+  const project = await resolveConfiguredProject(repositoryRoots, command.projectId);
   requireResolvedConcerns(project, command.concernIds);
 
   const parentId = command.derivedFromWorkItemId ?? null;
@@ -736,7 +759,7 @@ export const setWorkItemArchived = async (
     throw new TypeError("WorkItem archive state may not change while a Run is active");
   }
   const project = await resolveConfiguredProject(
-    runtime.config.repositoryRoots,
+    [workItem.repositoryRoot],
     workItem.projectId,
   );
   setWorkItemArchivedFile(

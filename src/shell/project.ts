@@ -16,6 +16,7 @@ import {
   type RepositoryPattern,
 } from "../core/contracts.ts";
 import { resolveConcernIds } from "../core/governance.ts";
+import { sha256Text } from "./runtime.ts";
 import { proveRepositoryRoot } from "./repository.ts";
 
 const authorityLayers = ["p1", "p2", "p3", "p4", "p5", "p6"] as const;
@@ -166,6 +167,15 @@ export const loadValidatedProjectManifest = async (
   const manifest = readProjectManifest(repositoryRoot);
   await validateProjectManifestResolution(repositoryRoot, manifest);
   return manifest;
+};
+
+export const readValidatedProjectManifestSnapshot = async (
+  repositoryRoot: string,
+): Promise<Readonly<{ manifest: ProjectManifest; sha256: import("../core/contracts.ts").Sha256 }>> => {
+  const text = readFileSync(join(repositoryRoot, "pontivus-order.toml"), "utf8");
+  const manifest = parseProjectManifestText(text);
+  await validateProjectManifestResolution(repositoryRoot, manifest);
+  return { manifest, sha256: sha256Text(text) };
 };
 
 const bootstrapProjectId = (repositoryRoot: string): string => {

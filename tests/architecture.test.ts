@@ -307,10 +307,16 @@ describe("architecture fitness", () => {
       "src/daemon/opencode-account.ts": [
         "src/daemon/runtime.ts",
       ],
+      "src/daemon/settings.ts": [
+        "src/daemon/runtime.ts",
+        "src/daemon/coordinator.ts",
+        "src/daemon/opencode-account.ts",
+      ],
       "src/daemon/server.ts": [
         "src/daemon/runtime.ts",
         "src/daemon/coordinator.ts",
         "src/daemon/opencode-account.ts",
+        "src/daemon/settings.ts",
       ],
     };
 
