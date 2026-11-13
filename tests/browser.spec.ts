@@ -142,7 +142,7 @@ test("browser bootstrap is local, one-time, exact-cookie, origin-bound, and expi
   expect(expired.status()).toBe(401);
 });
 
-test("appearance uses a compact theme utility, follows system mode, and persists explicit overrides", async ({
+test("appearance uses a direct compact mode switcher, follows system mode, and persists explicit overrides", async ({
   page,
   request,
 }) => {
@@ -151,9 +151,12 @@ test("appearance uses a compact theme utility, follows system mode, and persists
 
   const root = page.locator("html");
   const layout = page.getByTestId("workbench-layout");
-  const theme = page.getByLabel("Theme");
+  const system = page.getByRole("radio", { name: "System" });
+  const light = page.getByRole("radio", { name: "Light" });
+  const dark = page.getByRole("radio", { name: "Dark" });
 
-  await expect(theme).toHaveValue("system");
+  await expect(page.locator(".order-theme-control select")).toHaveCount(0);
+  await expect(system).toBeChecked();
   await expect(root).not.toHaveAttribute("data-theme");
   await expect(root).toHaveAttribute("data-astryx-theme");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
@@ -162,26 +165,26 @@ test("appearance uses a compact theme utility, follows system mode, and persists
     "rgb(17, 26, 41)",
   );
 
-  await theme.selectOption("light");
+  await light.click();
   await expect(root).toHaveAttribute("data-theme", "light");
   await expect(layout).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await page.reload();
-  await expect(page.getByLabel("Theme")).toHaveValue("light");
+  await expect(page.getByRole("radio", { name: "Light" })).toBeChecked();
 
-  await page.getByLabel("Theme").selectOption("dark");
+  await page.getByRole("radio", { name: "Dark" }).click();
   await expect(root).toHaveAttribute("data-theme", "dark");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
-  await expect(page.getByLabel("Theme")).toHaveValue("dark");
+  await expect(page.getByRole("radio", { name: "Dark" })).toBeChecked();
 
-  await page.getByLabel("Theme").selectOption("system");
+  await page.getByRole("radio", { name: "System" }).click();
   await expect(root).not.toHaveAttribute("data-theme");
   await page.emulateMedia({ colorScheme: "light" });
   await expect(layout).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await page.emulateMedia({ colorScheme: "dark" });
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await page.reload();
-  await expect(page.getByLabel("Theme")).toHaveValue("system");
+  await expect(page.getByRole("radio", { name: "System" })).toBeChecked();
 });
 
 test("Settings uses stable native-history destinations and daemon-owned readiness", async ({
@@ -658,7 +661,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await expect(page.getByTestId("work-item-heading"))
     .toHaveText("Repository-native management");
 
-  const documentState = page.getByTestId("document-state-strip");
+  const documentState = page.getByTestId("document-git-state");
   await expect(documentState).toContainText("Saved to project, not Git");
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
   const gitDialog = page.getByRole("alertdialog", {
@@ -734,6 +737,9 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
   await page.getByRole("radio", { name: "Documents" }).click();
   await expect(page.getByRole("tablist")).toHaveCount(1);
+  await expect(page.getByTestId("document-state-strip")).toHaveCount(0);
+  await expect(page.locator(".order-editor-actionbar")).toHaveCount(0);
+  await expect(page.getByTestId("workflow-orientation")).toHaveCount(0);
 
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "PLAN" })
@@ -777,7 +783,50 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   expect(Math.abs(masterBox!.y - detailBox!.y)).toBeLessThan(80);
 });
 
-test("Activity keeps all Run history, human workflow orientation, responsive master-detail, and secondary technical details", async ({
+test("workflow progression inspects reached material, exposes unreached steps, preserves dirty admission, and never mutates lifecycle", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Proposal review");
+
+  const mutationRequests: string[] = [];
+  page.on("request", (browserRequest) => {
+    if (browserRequest.method() !== "GET") {
+      mutationRequests.push(browserRequest.method() + " " + new URL(browserRequest.url()).pathname);
+    }
+  });
+
+  const rail = page.getByTestId("workflow-progression");
+  await rail.getByRole("button", { name: "Requirements" }).click();
+  await expect(page.getByRole("radio", { name: "Documents" })).toBeChecked();
+  await expect(
+    page.getByTestId("governed-document-nav").getByRole("tab", { name: "R2" }),
+  ).toHaveAttribute("aria-selected", "true");
+
+  await rail.getByRole("button", { name: "Implementation plan" }).click();
+  const planEditor = page.getByLabel("PLAN lifecycle document Markdown source");
+  await expect(planEditor).toBeVisible();
+  const initial = await markdownSourceValue(planEditor);
+  await replaceMarkdownSource(page, planEditor, initial + "\nworkflow inspection guard\n");
+
+  await rail.getByRole("button", { name: "Readiness review" }).click();
+  const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
+  await expect(guard).toBeVisible();
+  await guard.getByRole("button", { name: "Continue editing" }).click();
+  await expect.poll(() => markdownSourceValue(planEditor)).toContain("workflow inspection guard");
+
+  await rail.getByRole("button", { name: "Approval" }).click();
+  await expect(page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })).toBeVisible();
+  await page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })
+    .getByRole("button", { name: "Discard unsaved changes" })
+    .click();
+  await expect(page.getByText("Approval has not been reached", { exact: true })).toBeVisible();
+
+  expect(mutationRequests).toEqual([]);
+});
+
+test("Activity keeps all Run history, consolidated workflow orientation, responsive master-detail, and secondary technical details", async ({
   page,
   request,
 }) => {
@@ -785,10 +834,11 @@ test("Activity keeps all Run history, human workflow orientation, responsive mas
   await authenticate(page, request);
   await openWorkItem(page, "Proposal review");
 
-  await expect(page.getByTestId("workflow-orientation")).toContainText("Implementation plan");
-  await expect(page.getByTestId("workflow-orientation")).toContainText(
-    "Define exactly how the change will be made",
-  );
+  const workflowRail = page.getByTestId("workflow-progression");
+  await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
+    .toHaveAttribute("aria-current", "step");
+  await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
+    .toHaveAttribute("title", "Define exactly how the change will be made");
   await expect(page.getByTestId("activity-workspace")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Activity" })).toBeChecked();
 
@@ -921,10 +971,11 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   const original = await markdownSourceValue(sourceEditor);
   expect(original).toContain("# Source editing workbench");
   expect(original).not.toContain('"formatVersion"');
-  const technicalSource = page.getByText("Technical source", { exact: true });
+  const technicalSource = page.getByText("Technical details", { exact: true }).first();
   await expect(technicalSource).toBeVisible();
   await technicalSource.click();
-  await expect(page.locator(".order-source-authoring details pre")).toContainText('"formatVersion": 1');
+  await expect(page.locator(".order-source-authoring .order-source-technical pre"))
+    .toContainText('"formatVersion": 1');
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
   const item = await workItemForTitle(page, "Source editing workbench");
