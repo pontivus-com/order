@@ -17,7 +17,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   buildOrderConfig,
   readOrderConfig,
+  readOrderConfigForUpgrade,
+  readOrderConfigState,
   writeOrderConfig,
+  writeOrderConfigExpected,
 } from "../src/shell/config.ts";
 import {
   filesystemTypeIsSupported,
@@ -140,6 +143,74 @@ describe("runtime shell", () => {
     expect(statSync(statePaths(state).config).mode & 0o777).toBe(0o600);
 
     chmodSync(statePaths(state).config, 0o644);
+    expect(() => readOrderConfig(state)).toThrow();
+  });
+
+  it("keeps configured v4 path identities readable after an external root disappears", () => {
+    const state = tempDir("order-config-drift-");
+    const repository = tempDir("order-config-drift-repository-");
+    const config = buildOrderConfig(
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
+      [repository],
+      [],
+    );
+    writeOrderConfig(state, config);
+    rmSync(repository, { recursive: true, force: true });
+
+    expect(readOrderConfig(state)).toEqual(config);
+  });
+
+  it("supports valid incomplete v4 configuration and expected-hash replacement", () => {
+    const state = tempDir("order-config-v4-incomplete-");
+    const incomplete = buildOrderConfig(null, [], []);
+    expect(incomplete).toEqual({
+      version: 4,
+      model: null,
+      repositoryRoots: [],
+      referenceRoots: [],
+    });
+    writeOrderConfig(state, incomplete);
+    const current = readOrderConfigState(state);
+
+    const stale = writeOrderConfigExpected(
+      state,
+      ("sha256:" + "0".repeat(64)),
+      incomplete,
+    );
+    expect(stale.tag).toBe("STALE");
+    expect(readOrderConfigState(state)).toEqual(current);
+
+    const repository = tempDir("order-config-v4-repository-");
+    const replacement = buildOrderConfig(
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
+      [repository],
+      [],
+    );
+    const updated = writeOrderConfigExpected(state, current.sha256, replacement);
+    expect(updated.tag).toBe("UPDATED");
+    if (updated.tag !== "UPDATED") throw new Error("expected config update");
+    expect(updated.state.config).toEqual(replacement);
+    expect(updated.state.sha256).not.toBe(current.sha256);
+  });
+
+  it("reads v3 only through the upgrade boundary", () => {
+    const state = tempDir("order-config-v3-upgrade-");
+    const repository = tempDir("order-config-v3-repository-");
+    const path = statePaths(state).config;
+    writeFileSync(path, JSON.stringify({
+      version: 3,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [repository],
+      referenceRoots: [],
+    }) + "\n", { mode: 0o600 });
+    chmodSync(path, 0o600);
+
+    expect(readOrderConfigForUpgrade(state)).toEqual({
+      version: 3,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [repository],
+      referenceRoots: [],
+    });
     expect(() => readOrderConfig(state)).toThrow();
   });
 

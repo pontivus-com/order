@@ -13,21 +13,26 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { dirname } from "node:path";
+import { dirname, normalize } from "node:path";
 
 import { canonicalAbsolutePathIsWithinRoot } from "../core/governance.ts";
 
 import {
   OrderConfigSchema,
+  OrderConfigStateSchema,
   LegacyOrderConfigV2Schema,
+  LegacyOrderConfigV3Schema,
   LegacyPredecessorConfigV1Schema,
   OpenCodeModelRefSchema,
   type OrderConfig,
+  type OrderConfigState,
   type LegacyOrderConfigV2,
+  type LegacyOrderConfigV3,
   type LegacyPredecessorConfigV1,
   type OpenCodeModelRef,
+  type Sha256,
 } from "../core/contracts.ts";
-import { ensureSupportedStateRoot, statePaths } from "./runtime.ts";
+import { ensureSupportedStateRoot, sha256, statePaths } from "./runtime.ts";
 
 const asErrorCode = (error: unknown): string | null =>
   typeof error === "object" &&
@@ -81,24 +86,43 @@ const assertDisjointRoots = (
   }
 };
 
+const canonicalStoredPath = (value: string): string => {
+  const canonical = normalize(value);
+  if (!canonical.startsWith("/") || canonical !== value) {
+    throw new TypeError("configured root must use canonical absolute path syntax: " + value);
+  }
+  return value;
+};
+
+const storedRoots = (values: readonly string[]): readonly string[] => {
+  const roots = values.map(canonicalStoredPath);
+  if (new Set(roots).size !== roots.length) {
+    throw new TypeError("configured roots must be unique");
+  }
+  return roots;
+};
+
 export const buildOrderConfig = (
-  model: OpenCodeModelRef,
+  model: OpenCodeModelRef | null,
   repositoryRoots: readonly string[],
   referenceRoots: readonly string[],
 ): OrderConfig => {
-  const targets = canonicalRoots(repositoryRoots, true);
+  const targets = canonicalRoots(repositoryRoots, false);
   const references = canonicalRoots(referenceRoots, false);
   assertDisjointRoots(targets, references);
   return OrderConfigSchema.parse({
-    version: 3,
-    model: OpenCodeModelRefSchema.parse(model),
+    version: 4,
+    model: model === null ? null : OpenCodeModelRefSchema.parse(model),
     repositoryRoots: targets,
     referenceRoots: references,
   });
 };
 
 const assertStateRootDisjoint = (
-  config: OrderConfig,
+  config: Readonly<{
+    repositoryRoots: readonly string[];
+    referenceRoots: readonly string[];
+  }>,
   stateRoot: string,
 ): void => {
   const canonicalStateRoot = realpathSync(stateRoot);
@@ -120,18 +144,24 @@ const validateConfigDescriptor = (descriptor: number): void => {
   }
 };
 
-const readConfigValue = (stateRoot: string): unknown => {
+const readConfigBytes = (stateRoot: string): Uint8Array => {
   const descriptor = openSync(
     statePaths(stateRoot).config,
     constants.O_RDONLY | constants.O_NOFOLLOW,
   );
   try {
     validateConfigDescriptor(descriptor);
-    return JSON.parse(readFileSync(descriptor, "utf8"));
+    return new Uint8Array(readFileSync(descriptor));
   } finally {
     closeSync(descriptor);
   }
 };
+
+const parseConfigBytes = (bytes: Uint8Array): unknown =>
+  JSON.parse(new TextDecoder().decode(bytes));
+
+const readConfigValue = (stateRoot: string): unknown =>
+  parseConfigBytes(readConfigBytes(stateRoot));
 
 const canonicalLegacyOrderConfig = (value: unknown): LegacyPredecessorConfigV1 => {
   const parsed = LegacyPredecessorConfigV1Schema.parse(value);
@@ -152,14 +182,33 @@ const canonicalCurrentOrderConfig = (
   value: unknown,
 ): OrderConfig => {
   const parsed = OrderConfigSchema.parse(value);
-  const canonical = buildOrderConfig(
-    parsed.model,
-    parsed.repositoryRoots,
-    parsed.referenceRoots,
-  );
+  const canonical = OrderConfigSchema.parse({
+    version: 4,
+    model: parsed.model,
+    repositoryRoots: storedRoots(parsed.repositoryRoots),
+    referenceRoots: storedRoots(parsed.referenceRoots),
+  });
   assertStateRootDisjoint(canonical, stateRoot);
   if (JSON.stringify(canonical) !== JSON.stringify(parsed)) {
-    throw new TypeError("config.json roots must remain canonical realpaths");
+    throw new TypeError("config.json must preserve canonical stored path identities");
+  }
+  return canonical;
+};
+
+const canonicalLegacyOrderConfigV3 = (
+  stateRoot: string,
+  value: unknown,
+): LegacyOrderConfigV3 => {
+  const parsed = LegacyOrderConfigV3Schema.parse(value);
+  const canonical = LegacyOrderConfigV3Schema.parse({
+    version: 3,
+    model: OpenCodeModelRefSchema.parse(parsed.model),
+    repositoryRoots: storedRoots(parsed.repositoryRoots),
+    referenceRoots: storedRoots(parsed.referenceRoots),
+  });
+  assertStateRootDisjoint(canonical, stateRoot);
+  if (JSON.stringify(canonical) !== JSON.stringify(parsed)) {
+    throw new TypeError("legacy v3 config.json must preserve canonical stored path identities");
   }
   return canonical;
 };
@@ -195,10 +244,12 @@ const canonicalLegacyOrderConfigV2 = (
 
 export const readOrderConfigForUpgrade = (
   stateRoot: string,
-): OrderConfig | LegacyOrderConfigV2 | LegacyPredecessorConfigV1 => {
+): OrderConfig | LegacyOrderConfigV3 | LegacyOrderConfigV2 | LegacyPredecessorConfigV1 => {
   const value = readConfigValue(stateRoot);
   const current = OrderConfigSchema.safeParse(value);
   if (current.success) return canonicalCurrentOrderConfig(stateRoot, current.data);
+  const v3 = LegacyOrderConfigV3Schema.safeParse(value);
+  if (v3.success) return canonicalLegacyOrderConfigV3(stateRoot, v3.data);
   const v2 = LegacyOrderConfigV2Schema.safeParse(value);
   return v2.success
     ? canonicalLegacyOrderConfigV2(stateRoot, v2.data)
@@ -207,7 +258,7 @@ export const readOrderConfigForUpgrade = (
 
 export const readOrderConfigForUpgradeIfPresent = (
   stateRoot: string,
-): OrderConfig | LegacyOrderConfigV2 | LegacyPredecessorConfigV1 | null => {
+): OrderConfig | LegacyOrderConfigV3 | LegacyOrderConfigV2 | LegacyPredecessorConfigV1 | null => {
   try {
     return readOrderConfigForUpgrade(stateRoot);
   } catch (error) {
@@ -218,6 +269,14 @@ export const readOrderConfigForUpgradeIfPresent = (
 
 export const readOrderConfig = (stateRoot: string): OrderConfig =>
   canonicalCurrentOrderConfig(stateRoot, readConfigValue(stateRoot));
+
+export const readOrderConfigState = (stateRoot: string): OrderConfigState => {
+  const bytes = readConfigBytes(stateRoot);
+  return OrderConfigStateSchema.parse({
+    config: canonicalCurrentOrderConfig(stateRoot, parseConfigBytes(bytes)),
+    sha256: sha256(bytes),
+  });
+};
 
 export const readOrderConfigIfPresent = (
   stateRoot: string,
@@ -235,8 +294,7 @@ export const writeOrderConfig = (
   config: OrderConfig,
 ): OrderConfig => {
   ensureSupportedStateRoot(stateRoot);
-  const canonical = OrderConfigSchema.parse(config);
-  assertStateRootDisjoint(canonical, stateRoot);
+  const canonical = canonicalCurrentOrderConfig(stateRoot, config);
   const target = statePaths(stateRoot).config;
   const temporary = target + ".tmp." + process.pid + "." + crypto.randomUUID();
   const descriptor = openSync(
@@ -273,4 +331,21 @@ export const writeOrderConfig = (
     closeSync(parentDescriptor);
   }
   return readOrderConfig(stateRoot);
+};
+
+export type OrderConfigExpectedWriteResult =
+  | Readonly<{ tag: "UPDATED"; state: OrderConfigState }>
+  | Readonly<{ tag: "STALE"; current: OrderConfigState }>;
+
+export const writeOrderConfigExpected = (
+  stateRoot: string,
+  expectedSha256: Sha256,
+  config: OrderConfig,
+): OrderConfigExpectedWriteResult => {
+  const current = readOrderConfigState(stateRoot);
+  if (current.sha256 !== expectedSha256) {
+    return { tag: "STALE", current };
+  }
+  writeOrderConfig(stateRoot, config);
+  return { tag: "UPDATED", state: readOrderConfigState(stateRoot) };
 };

@@ -87,7 +87,7 @@ const NonEmptyNoNulStringSchema = z.string().min(1).refine(
   (value) => !value.includes("\\0"),
   "value must not contain NUL",
 );
-const AbsoluteDirectoryPathSchema = NonEmptyNoNulStringSchema.refine(
+export const AbsoluteDirectoryPathSchema = NonEmptyNoNulStringSchema.refine(
   (value) => value.startsWith("/"),
   "directory root must be absolute",
 );
@@ -175,7 +175,7 @@ export const LegacyOrderConfigV2Schema = z.strictObject({
   workItemRoot: AbsoluteDirectoryPathSchema,
 });
 
-export const OrderConfigSchema = z.strictObject({
+export const LegacyOrderConfigV3Schema = z.strictObject({
   version: z.literal(3),
   model: OpenCodeModelRefSchema,
   repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
@@ -185,6 +185,82 @@ export const OrderConfigSchema = z.strictObject({
   referenceRoots: z.array(AbsoluteDirectoryPathSchema)
     .refine(unique, "referenceRoots must be unique")
     .readonly(),
+});
+
+export const OrderConfigSchema = z.strictObject({
+  version: z.literal(4),
+  model: OpenCodeModelRefSchema.nullable(),
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "repositoryRoots must be unique")
+    .readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const OrderConfigStateSchema = z.strictObject({
+  config: OrderConfigSchema,
+  sha256: Sha256Schema,
+});
+
+export const ConnectedRepositoryStateSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  status: z.enum(["READY", "ATTENTION"]),
+  projectId: ProjectIdSchema.nullable(),
+  workItemsRoot: RepositoryPathSchema.nullable(),
+  manifestSha256: Sha256Schema.nullable(),
+  attention: z.array(z.enum([
+    "REPOSITORY_UNAVAILABLE",
+    "REPOSITORY_IDENTITY_INVALID",
+    "PROJECT_MANIFEST_MISSING",
+    "PROJECT_MANIFEST_INVALID",
+    "WORKITEM_ROOT_INVALID",
+  ])).readonly(),
+});
+
+export const InstallationReadinessBlockerSchema = z.enum([
+  "REPOSITORY_REQUIRED",
+  "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
+  "MODEL_INVALID",
+  "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
+  "OPENCODE_ACCOUNT_REQUIRED",
+]);
+
+export const InstallationReadinessSchema = z.strictObject({
+  ready: z.boolean(),
+  blockers: z.array(InstallationReadinessBlockerSchema).readonly(),
+}).superRefine((value, ctx) => {
+  if (value.ready !== (value.blockers.length === 0)) {
+    ctx.addIssue({ code: "custom", message: "ready must equal blockers.length === 0" });
+  }
+});
+
+export const ConnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const DisconnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+export const UpdateConfiguredModelSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  model: OpenCodeModelRefSchema,
+});
+
+export const UpdateReferenceRootsSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema)
+    .refine(unique, "referenceRoots must be unique")
+    .readonly(),
+});
+
+export const MigrateWorkItemDocumentRootSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  expectedManifestSha256: Sha256Schema,
+  targetWorkItemsRoot: RepositoryPathSchema,
 });
 const UnifiedDiffSchema = z.string().min(1).refine(
   (value) => value.endsWith("\n"),
@@ -222,7 +298,17 @@ export type OpenCodeAccountLoginAttemptId = z.infer<typeof OpenCodeAccountLoginA
 export type OpenCodeAccountLoginAttempt = Readonly<z.infer<typeof OpenCodeAccountLoginAttemptSchema>>;
 export type LegacyPredecessorConfigV1 = Readonly<z.infer<typeof LegacyPredecessorConfigV1Schema>>;
 export type LegacyOrderConfigV2 = Readonly<z.infer<typeof LegacyOrderConfigV2Schema>>;
+export type LegacyOrderConfigV3 = Readonly<z.infer<typeof LegacyOrderConfigV3Schema>>;
 export type OrderConfig = Readonly<z.infer<typeof OrderConfigSchema>>;
+export type OrderConfigState = Readonly<z.infer<typeof OrderConfigStateSchema>>;
+export type ConnectedRepositoryState = Readonly<z.infer<typeof ConnectedRepositoryStateSchema>>;
+export type InstallationReadinessBlocker = z.infer<typeof InstallationReadinessBlockerSchema>;
+export type InstallationReadiness = Readonly<z.infer<typeof InstallationReadinessSchema>>;
+export type ConnectRepository = Readonly<z.infer<typeof ConnectRepositorySchema>>;
+export type DisconnectRepository = Readonly<z.infer<typeof DisconnectRepositorySchema>>;
+export type UpdateConfiguredModel = Readonly<z.infer<typeof UpdateConfiguredModelSchema>>;
+export type UpdateReferenceRoots = Readonly<z.infer<typeof UpdateReferenceRootsSchema>>;
+export type MigrateWorkItemDocumentRoot = Readonly<z.infer<typeof MigrateWorkItemDocumentRootSchema>>;
 export type WorkItemId = z.infer<typeof WorkItemIdSchema>;
 export type ArtifactRefId = z.infer<typeof ArtifactRefIdSchema>;
 export type ApprovalId = z.infer<typeof ApprovalIdSchema>;

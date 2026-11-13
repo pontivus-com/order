@@ -320,10 +320,14 @@ export const runStageTurn = async (
     const workItem = getWorkItem(runtime, run.workItemId);
     let active = runtime.activeProviders.get(run.id);
     if (active === undefined) {
+      const configuredModel = runtime.config.model;
+      if (configuredModel === null) {
+        throw new TypeError("a configured OpenCode model is required for productive stage work");
+      }
       const server = await startOpenCodeServer(
         runtime.stateRoot,
         workItem.repositoryRoot,
-        runtime.config.model,
+        configuredModel,
         runtime.environment,
       );
       try {

@@ -253,7 +253,7 @@ describe("Order cross-boundary certification", () => {
     expect(http).not.toContain("EventSource");
   });
 
-  it("keeps repository-native v3 as the only productive persistence and transport path", () => {
+  it("keeps repository-native v4 as the only productive config persistence and v3 as migration input", () => {
     const contracts = read("src/core/contracts.ts");
     const sqlite = read("src/shell/sqlite.ts");
     const server = read("src/daemon/server.ts");
@@ -262,7 +262,8 @@ describe("Order cross-boundary certification", () => {
     const sourceShell = read("src/shell/work-item-source.ts");
     const lifecycle = read("src/core/lifecycle.ts");
 
-    expect(contracts).toMatch(/OrderConfigSchema = z\.strictObject\(\{\s*version: z\.literal\(3\)/);
+    expect(contracts).toMatch(/OrderConfigSchema = z\.strictObject\(\{\s*version: z\.literal\(4\)/);
+    expect(contracts).toContain("LegacyOrderConfigV3Schema");
     expect(contracts).toContain("LegacyOrderConfigV2Schema");
     const productiveConfig = contracts.slice(
       contracts.indexOf("export const OrderConfigSchema"),
