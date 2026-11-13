@@ -1,5 +1,6 @@
 import {
   MarkdownTextSchema,
+  RepositoryPathSchema,
   WorkItemSchemaCatalogEntrySchema,
   WorkItemSchemaIdSchema,
   WorkItemSourceMetadataSchema,
@@ -367,7 +368,7 @@ export const workItemArchiveMarkerPath = (
   workItemsRoot: RepositoryPath,
   id: WorkItemSourceMetadata["id"],
 ): RepositoryPath =>
-  WorkItemSourcePathSchema.parse(`${workItemsRoot}/${id}/.order-archived`);
+  RepositoryPathSchema.parse(`${workItemsRoot}/${id}/.order-archived`);
 
 const titleFromBody = (body: string): WorkItemTitle => {
   const first = body.split("\n").find((line) => line.trim().length > 0);
