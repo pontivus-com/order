@@ -253,7 +253,9 @@ On the productive provider process itself, query the released opencode integrati
 
 - require a usable active account where current readiness says one is required;
 - bind only the safe account id transiently to ActiveProvider;
+- this is a transient admission/freshness binding, not a new durable evidence requirement; do not extend ProviderDiagnosticRecord or another persisted model merely to store account/config identity;
 - do not persist credential bytes/tokens or create a new account table/model;
+- existing durable Run/provider diagnostics remain unchanged;
 - existing active-Run account-mutation guards remain the concurrency owner.
 
 ### C5. Shared productive admission
@@ -266,12 +268,14 @@ The shared operation owns, in order:
 
 1. workspace escape proof;
 2. exact repository instruction closure;
-3. Run-specific inline config selection;
+3. Run-specific inline config selection plus deterministic base role-policy derivation;
 4. start/version/model readiness of pinned OpenCode;
-5. visible trusted skill/MCP/account preflight;
-6. exact role permission derivation;
+5. visible trusted skill/MCP/account preflight against that exact live process;
+6. exact effective permission derivation from the base role policy plus the admitted live skill/MCP set;
 7. session creation/model switch/permission update;
 8. exact model + permission read-back binding.
+
+Do not finalize skill/MCP-dependent permissions before step 5. Only the base role policy is pre-provider deterministic; the effective profile is live-provider-dependent by GW-TR-080.
 
 Only this shared operation may create a productive session. Account-control/model-listing non-productive processes remain separate and must not run project instruction admission.
 

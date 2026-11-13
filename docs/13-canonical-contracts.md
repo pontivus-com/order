@@ -3201,18 +3201,20 @@ V2/scope-governance candidate validation must reject any candidate whose changed
 
 ### 36.5 Productive admission ordering
 
-For every STAGE/BUILDER/REVIEWER/REMEDIATOR session, Order completes the following local steps before admitting the first productive prompt:
+For every STAGE/BUILDER/REVIEWER/REMEDIATOR session, Order completes the following admission sequence before the first productive prompt:
 
 1. productive readiness for the role;
 2. exact provider workspace materialization/proof;
 3. workspace escape/symlink checks required by P4;
 4. instruction closure;
-5. exact role permission derivation;
+5. deterministic Run configuration and base role-policy derivation from Order-owned inputs;
 6. pinned provider process readiness;
-7. session creation;
-8. exact model/permission read-back binding.
+7. trusted-integration preflight against that exact live process, including selected account identity plus exact visible skill ids and MCP server names;
+8. derivation of the exact effective permission profile from the base role policy plus the admitted live trusted-integration set;
+9. session creation;
+10. exact model/permission read-back binding.
 
-A failure at steps 1-5 is not a provider failure. A failure at provider-owned steps 6-8 is classified by the existing integration/failure contract according to the actual failing boundary. Productive turn failures after step 8 remain ordinary provider failures.
+The distinction between step 5 and step 8 is normative: permissions that depend on provider-visible skills/MCPs cannot be finalized before the exact provider process has started and exposed those identities. Steps 1-5 are local Order admission and are not provider failures. Failures from step 6 onward are classified by the existing integration/failure contract according to the actual failing boundary; provider startup/readiness/session failures remain provider-origin where applicable, while a deterministic Order-side rejection of the returned integration set remains a local admission failure. Productive turn failures after step 10 remain ordinary provider failures.
 
 ### 36.6 External integration certification extension
 
@@ -3248,6 +3250,6 @@ Before the first productive inference Order proves, for the exact live provider 
 
 Trusted integration semantics may influence model execution, but they do not enlarge `ExecutionTask.changeSurface`, mutate `AGENTS.md`, override canonical P1-P7 authority, bypass permissions, adopt artifacts or satisfy validation/signoff.
 
-The productive evidence boundary records the selected integration/account identity plus exact Order-owned repository/context/config identities. It does not fabricate hashes for provider-native semantic bytes that OpenCode does not expose through its public API.
+The productive admission boundary proves and binds the selected integration/account identity plus exact Order-owned repository/context/config identities for the lifetime of the live provider binding. For 0.2.2 these identities are transient admission/freshness state, not a new durable evidence contract. Existing Run/provider diagnostics remain the durable execution evidence already owned elsewhere; this section does not require adding account/config identity fields to ProviderDiagnosticRecord or another persisted model. Order does not fabricate hashes for provider-native semantic bytes that OpenCode does not expose through its public API.
 
 No new persisted instruction-domain model is introduced. The shell derives this admission from existing repository/context/account/config/permission owners.

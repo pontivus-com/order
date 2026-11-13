@@ -319,12 +319,16 @@ prepareProductiveProvider(...)
   -> prove/materialize exact workspace
   -> prove workspace escape constraints
   -> prove repository instruction closure
-  -> derive exact role permissions
+  -> derive deterministic Run config + base role policy
   -> start/verify pinned provider
+  -> list/bind selected account + visible skills + visible MCP servers
+  -> derive exact effective permissions
   -> create session
   -> bind exact model + permissions
   -> return admitted provider/session
 ~~~
+
+The base role policy is derivable before provider startup, but the exact effective permission profile is not: trusted skill/MCP permissions depend on identities returned by the exact live pinned provider. No implementation may precompute or guess that live set.
 
 Names are illustrative. The implementation must preserve current FCIS/SoC ownership rather than create a service object or second runtime abstraction.
 
@@ -400,7 +404,7 @@ The approved technical contract is:
 
 The process still uses Order's private HOME/XDG/database namespace, so trusting the selected Console integration does **not** mean inheriting the user's ambient global OpenCode installation.
 
-The productive evidence boundary records/proves the selected account/integration identity and Order-owned configuration/context identities. It does not fabricate hashes for provider-native semantic material that the pinned public API does not expose.
+The productive admission boundary proves and binds the selected account/integration identity and Order-owned configuration/context identities to the live provider/session. In 0.2.2 this binding is transient runtime admission/freshness state, not a new persisted evidence schema; existing provider/run diagnostics remain the durable evidence already governed elsewhere. It does not fabricate hashes for provider-native semantic material that the pinned public API does not expose.
 
 A change to the selected account, configured integration set, role permissions, repository material identity or Order canonical context invalidates continuation under the existing session-freshness/replacement laws. Provider-native content refresh within an unchanged explicitly trusted integration remains that integration's responsibility and is not promoted to Order authority.
 
