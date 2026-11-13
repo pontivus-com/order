@@ -21,6 +21,7 @@ import {
   OpenCodeAccountIdSchema,
   OpenCodeAccountLoginAttemptIdSchema,
   OrderHttpErrorSchema,
+  RemoveOpenCodeAccountSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
   UpdateConfiguredModelSchema,
@@ -83,6 +84,7 @@ import {
   cancelSavedOpenCodeAccountLogin,
   openCodeAccountState,
   pollSavedOpenCodeAccountLogin,
+  removeSavedOpenCodeAccount,
   renameSavedOpenCodeAccount,
   startSavedOpenCodeAccountLogin,
   stopSavedOpenCodeAccountControl,
@@ -659,6 +661,17 @@ const routeApi = async (
     parts[3] !== "login"
   ) {
     const accountId = await parseRequest(() => OpenCodeAccountIdSchema.parse(parts[3]));
+    if (parts.length === 4 && request.method === "DELETE") {
+      const body = await parseRequest(async () =>
+        RemoveOpenCodeAccountSchema.parse(await readJsonBody(request))
+      );
+      pauseSchedulerForOpenCodeAccountMutation(owner);
+      try {
+        return jsonResponse(await removeSavedOpenCodeAccount(runtime, accountId, body));
+      } finally {
+        await resumeSchedulerAfterOpenCodeAccountMutation(owner);
+      }
+    }
     if (parts.length === 4 && request.method === "PATCH") {
       const body = await parseRequest(async () =>
         RenameOpenCodeAccountSchema.parse(await readJsonBody(request))
