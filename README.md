@@ -29,26 +29,15 @@
 
 ## Turn ideas into verified results
 
-Order `0.2.0` is the first certified public release. Normal installation and update consume the Order-owned GitHub Release bundle rather than arbitrary `master`.
+Start with something that needs to happen: a feature, defect, change, investigation, audit, documentation update, infrastructure change, UI change, or other repository-governed work.
 
-Latest certified release (**one command**):
+Order carries that work through the production process. It establishes what is actually true, defines the required outcome, resolves the solution and implementation plan, checks readiness, requires explicit sign-off before productive implementation, runs coding agents against the authorized work, tests and independently reviews the result, performs bounded remediation where appropriate, and produces a verified candidate.
 
-```bash
-tmp="$(mktemp -d)" && cd "$tmp" && \
-curl -fsSLO https://github.com/pontivus-com/order/releases/latest/download/pontivus-order.tar.gz && \
-curl -fsSLO https://github.com/pontivus-com/order/releases/latest/download/pontivus-order.tar.gz.sha256 && \
-sha256sum -c pontivus-order.tar.gz.sha256 && \
-tar -xzf pontivus-order.tar.gz && \
-./order/install.sh
-```
+The user manages **what work should happen**. Order manages **how that work is carried through**.
 
-Version-pinned `0.2.0` installation uses the same flow with `/releases/download/v0.2.0/` in place of `/releases/latest/download/`.
+Coding agents operate inside the factory. They do not get to silently redefine the assignment, broaden their own execution scope, or certify their own work as complete.
 
-The supported installation channel and release assets are governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Cloning `master` is a **contributor/development path**, not an immutable public release installation.
-
-`install.sh` is only the minimal bootstrap; it verifies the checkout or certified release-bundle provenance/runtime prerequisites and transfers control to the purpose-built `src/installer.ts` installer.
-
-For repository development, the bootstrap remains:
+Some work correctly ends without implementation. An investigation can conclude that no change is required; an idea can be disproven, duplicate, or already satisfied. Order does not manufacture code merely because work entered the system.
 
 ## How it works
 
@@ -134,7 +123,7 @@ Order stops at the verified candidate boundary. It does not commit, push, merge,
 
 ## Quick start
 
-Order is currently in public pre-release development. No certified GitHub Release has been published yet, so cloning `master` is a contributor/development path rather than an immutable public installation channel.
+The repository is currently versioned at `0.2.0`, but there is no published GitHub Release yet. Until a certified release is published, cloning `master` is the contributor/development installation path rather than an immutable public release channel.
 
 ```bash
 git clone https://github.com/pontivus-com/order.git
@@ -159,7 +148,7 @@ To deliberately change the selected model or filesystem roots later:
 order setup --reconfigure
 ```
 
-The supported public release path for normal users will consume the certified GitHub Release bundle once the first release is published; see the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
+Once a certified GitHub Release is published, normal installation and update will consume the Order-owned release bundle rather than arbitrary `master`. See the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
 
 ## Work from one place
 
@@ -193,7 +182,7 @@ The intended benefit is a software-production system that can carry recurring en
 
 ## Status and documentation
 
-Order is in public pre-release development. The repository version is currently `0.1.0`, with the next public release train targeting `0.2.0`.
+This checkout is version `0.2.0`. No GitHub Release has been published yet.
 
 The canonical design set begins at [docs/README.md](docs/README.md).
 

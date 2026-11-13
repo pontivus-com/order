@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Reorder the public README around product value, lifecycle, result semantics, installation, operating context, and repository documentation; remove contradictory pre-release/release installation copy.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
