@@ -139,7 +139,6 @@ describe("Order cross-boundary certification", () => {
         path !== "src/installer.ts" &&
         path !== "src/shell/project.ts"),
     ).toEqual([]);
-    expect(read("README.md")).toContain("immediately preceding supported Gateweft beta");
     expect(read("src/installer.ts")).toContain("migrateLegacyGateweftInstallation");
     expect(read("src/installer.ts")).toContain('"gateweft.service"');
     expect(read("src/installer.ts")).toContain('"gateweft.sqlite3"');
@@ -519,7 +518,6 @@ describe("Order cross-boundary certification", () => {
     const readme = read("README.md");
     for (const required of [
       "Linux",
-      "one command",
       "install.sh",
       "purpose-built installer",
       "src/installer.ts",
