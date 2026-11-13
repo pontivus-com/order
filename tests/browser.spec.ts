@@ -2,6 +2,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  OpenCodeAccountLoginAttemptSchema,
+  OpenCodeAccountStateSchema,
   RunEventSchema,
   RunSchema,
   WorkItemSchema,
@@ -181,6 +183,200 @@ test("appearance uses a compact theme utility, follows system mode, and persists
   await page.reload();
   await expect(page.getByLabel("Theme")).toHaveValue("system");
 });
+
+test("global OpenCode account utility switches, renames, signs in, blocks during active Runs, and remains responsive", async ({
+  page,
+  request,
+}) => {
+  const loginAttemptId = "00000000-0000-4000-8000-000000000001";
+  let pollCount = 0;
+  let state = OpenCodeAccountStateSchema.parse({
+    accounts: [
+      {
+        id: "cred_alpha",
+        label: "alpha@example.com",
+        active: true,
+        status: { status: "READY" },
+      },
+      {
+        id: "cred_beta",
+        label: "beta@example.com",
+        active: false,
+        status: { status: "READY" },
+      },
+      {
+        id: "cred_gamma",
+        label: "gamma@example.com",
+        active: false,
+        status: {
+          status: "NEEDS_AUTH",
+          message: "Reconnect account",
+          url: "https://opencode.ai/console/reconnect",
+        },
+      },
+    ],
+    activeAccountId: "cred_alpha",
+    mutationBlockers: [],
+  });
+
+  await page.route("**/api/opencode/accounts**", async (route) => {
+    const requestForRoute = route.request();
+    const url = new URL(requestForRoute.url());
+    const path = url.pathname;
+    const method = requestForRoute.method();
+
+    const fulfillJson = async (value: unknown, status = 200): Promise<void> => {
+      await route.fulfill({
+        status,
+        contentType: "application/json",
+        body: JSON.stringify(value),
+      });
+    };
+
+    if (path === "/api/opencode/accounts" && method === "GET") {
+      await fulfillJson(state);
+      return;
+    }
+
+    if (path === "/api/opencode/accounts/cred_beta/activate" && method === "POST") {
+      const body = requestForRoute.postDataJSON() as { expectedActiveAccountId?: unknown };
+      expect(body.expectedActiveAccountId).toBe("cred_alpha");
+      state = OpenCodeAccountStateSchema.parse({
+        ...state,
+        accounts: state.accounts.map((account) => ({
+          ...account,
+          active: account.id === "cred_beta",
+        })),
+        activeAccountId: "cred_beta",
+      });
+      await fulfillJson(state);
+      return;
+    }
+
+    if (path === "/api/opencode/accounts/cred_beta" && method === "PATCH") {
+      const body = requestForRoute.postDataJSON() as { label?: unknown };
+      expect(body.label).toBe("beta+renamed@example.com");
+      state = OpenCodeAccountStateSchema.parse({
+        ...state,
+        accounts: state.accounts.map((account) =>
+          account.id === "cred_beta"
+            ? { ...account, label: "beta+renamed@example.com" }
+            : account),
+      });
+      await fulfillJson(state);
+      return;
+    }
+
+    if (path === "/api/opencode/accounts/login" && method === "POST") {
+      const body = requestForRoute.postDataJSON() as { label?: unknown };
+      expect(body.label).toBe("delta@example.com");
+      await fulfillJson(OpenCodeAccountLoginAttemptSchema.parse({
+        id: loginAttemptId,
+        authorizationUrl: "https://opencode.ai/console/device",
+        instructions: "Open the verification page and continue.",
+        expiresAt: "2026-11-13T04:00:00.000Z",
+        status: "PENDING",
+        message: null,
+      }), 201);
+      return;
+    }
+
+    if (path === `/api/opencode/accounts/login/${loginAttemptId}` && method === "GET") {
+      pollCount += 1;
+      if (pollCount < 2) {
+        await fulfillJson(OpenCodeAccountLoginAttemptSchema.parse({
+          id: loginAttemptId,
+          authorizationUrl: "https://opencode.ai/console/device",
+          instructions: "Open the verification page and continue.",
+          expiresAt: "2026-11-13T04:00:00.000Z",
+          status: "PENDING",
+          message: null,
+        }));
+        return;
+      }
+      state = OpenCodeAccountStateSchema.parse({
+        accounts: [
+          ...state.accounts.map((account) => ({ ...account, active: false })),
+          {
+            id: "cred_delta",
+            label: "delta@example.com",
+            active: true,
+            status: { status: "READY" },
+          },
+        ],
+        activeAccountId: "cred_delta",
+        mutationBlockers: [],
+      });
+      await fulfillJson(OpenCodeAccountLoginAttemptSchema.parse({
+        id: loginAttemptId,
+        authorizationUrl: "https://opencode.ai/console/device",
+        instructions: "Open the verification page and continue.",
+        expiresAt: "2026-11-13T04:00:00.000Z",
+        status: "COMPLETED",
+        message: null,
+      }));
+      return;
+    }
+
+    if (path === `/api/opencode/accounts/login/${loginAttemptId}` && method === "DELETE") {
+      await route.fulfill({ status: 204 });
+      return;
+    }
+
+    await route.fallback();
+  });
+
+  await authenticate(page, request);
+  const trigger = page.getByTestId("opencode-account-trigger");
+  await expect(trigger).toContainText("alpha@example.com");
+  await trigger.click();
+
+  const drawer = page.getByTestId("opencode-account-drawer");
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByTestId("opencode-account-list")).toContainText("alpha@example.com");
+  await expect(drawer.getByTestId("opencode-account-list")).toContainText("beta@example.com");
+  await expect(drawer.getByTestId("opencode-account-list")).toContainText("gamma@example.com");
+  await expect(drawer).toContainText("Needs sign-in");
+  await expect(drawer).not.toContainText("cred_alpha");
+
+  await drawer.getByRole("button", { name: "Switch to beta@example.com" }).click();
+  await expect(trigger).toContainText("beta@example.com");
+
+  await drawer.getByRole("button", { name: "Rename beta@example.com" }).click();
+  await drawer.getByLabel("Account label").fill("beta+renamed@example.com");
+  await drawer.getByRole("button", { name: "Save account label" }).click();
+  await expect(drawer).toContainText("beta+renamed@example.com");
+  await expect(trigger).toContainText("beta+renamed@example.com");
+
+  await drawer.getByRole("button", { name: "Add account" }).click();
+  await drawer.getByLabel("Account label").fill("delta@example.com");
+  await drawer.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
+
+  const attempt = drawer.getByTestId("opencode-login-attempt");
+  const external = attempt.getByRole("link", { name: "Open OpenCode sign-in" });
+  await expect(external).toHaveAttribute("href", "https://opencode.ai/console/device");
+  await expect(external).toHaveAttribute("target", "_blank");
+  await expect(attempt).toContainText("Waiting for OpenCode sign-in");
+  await expect(attempt).toContainText("OpenCode sign-in complete.");
+  await attempt.getByRole("button", { name: "Done" }).click();
+  await expect(trigger).toContainText("delta@example.com");
+
+  state = OpenCodeAccountStateSchema.parse({
+    ...state,
+    mutationBlockers: ["ACTIVE_RUN"],
+  });
+  await page.reload();
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+  await expect(page.getByTestId("opencode-account-drawer"))
+    .toContainText("Finish or cancel active agent work before changing the OpenCode account.");
+  await expect(page.getByRole("button", { name: "Add account" })).toBeDisabled();
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("workbench-utilities")).toBeVisible();
+  await expect(trigger).toBeVisible();
+});
+
 
 test("CodeMirror editor preserves exact source, formats Markdown, previews one buffer, and follows the Order theme", async ({
   page,
