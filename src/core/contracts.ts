@@ -241,6 +241,16 @@ export const ExpectedHashMarkdownWriteSchema = z.strictObject({
   markdown: MarkdownTextSchema,
 });
 
+export const UpdateWorkItemTitleSchema = z.strictObject({
+  expectedSourceSha256: Sha256Schema,
+  title: WorkItemTitleSchema,
+});
+
+export const SetWorkItemArchivedSchema = z.strictObject({
+  expectedArchived: z.boolean(),
+  archived: z.boolean(),
+});
+
 export const CreateWorkItemSourceSchema = z.strictObject({
   projectId: ProjectIdSchema,
   schemaId: WorkItemSchemaIdSchema,
@@ -290,6 +300,8 @@ export type WorkItemSourceMetadata = Readonly<z.infer<typeof WorkItemSourceMetad
 export type WorkItemSourceSnapshot = Readonly<z.infer<typeof WorkItemSourceSnapshotSchema>>;
 export type ExpectedHashWriteResult = Readonly<z.infer<typeof ExpectedHashWriteResultSchema>>;
 export type ExpectedHashMarkdownWrite = Readonly<z.infer<typeof ExpectedHashMarkdownWriteSchema>>;
+export type UpdateWorkItemTitle = Readonly<z.infer<typeof UpdateWorkItemTitleSchema>>;
+export type SetWorkItemArchived = Readonly<z.infer<typeof SetWorkItemArchivedSchema>>;
 export type CreateWorkItemSource = Readonly<z.infer<typeof CreateWorkItemSourceSchema>>;
 export type WorkItemSchemaCatalogEntry = Readonly<z.infer<typeof WorkItemSchemaCatalogEntrySchema>>;
 export type WorkItemSourceDiagnosticCode = z.infer<typeof WorkItemSourceDiagnosticCodeSchema>;
@@ -332,6 +344,7 @@ export const WorkItemSchema = z
     status: WorkStatusSchema,
     outcome: WorkOutcomeSchema.nullable(),
     concernIds: z.array(ConcernIdSchema).refine(unique, "duplicate concernIds").readonly(),
+    archived: z.boolean().default(false),
     createdAt: IsoDateTimeSchema,
   })
   .superRefine((value, ctx) => {
