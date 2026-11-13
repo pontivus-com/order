@@ -67,7 +67,7 @@ The package is complete only when all of the following are true.
 6. Repository connection/disconnection does not create a second repository registry or delete repository-owned data.
 7. A repository document-root change is a bounded migration that updates filesystem, manifest and persisted current WorkItem source paths consistently.
 8. OpenCode account-control waits for the pinned `opencode` integration to register before querying accounts.
-9. Full OpenCode account management lives in Settings; the application shell exposes only concise current-account state and navigation.
+9. Full OpenCode account management lives in Settings, including safe Remove account; the application shell exposes only concise current-account state and navigation.
 10. Productive readiness is one daemon-derived projection, not persisted/browser-reconstructed state.
 11. WorkItem Source ordinary authoring edits the human Markdown body only; exact complete source remains available for technical inspection.
 12. Body save preserves the exact current metadata envelope and uses complete-file optimistic concurrency.
@@ -90,7 +90,7 @@ The following refactors are mandatory because the current implementation cannot 
 | **R2 — Immutable runtime activation** | daemon/server consumers close over one startup `CoordinatorRuntime.config` | FR-091/092; TR-058/060 | Writing `config.json` from a page would leave live consumers on stale config or require ad-hoc reload logic | process-level current-runtime handoff over immutable runtime snapshots |
 | **R3 — Central Settings ownership** | repository/model setup is CLI/installer-centric; account management is toolbar-centric; no Settings workspace exists | FR-091/095/096; TR-063/064/069 | Adding more drawers/popovers would preserve scattered ownership | one Settings presentation owner + canonical settings daemon query/command owner |
 | **R4 — Repository/document-root management** | target roots are config state; document root is repository-manifest state; current UI exposes neither coherently | FR-082/092/093; TR-059/061 | A path input cannot safely move governed documents or update persisted source paths | canonical connected-repository projection + bounded manifest/filesystem/SQLite migration |
-| **R5 — OpenCode account readiness/placement** | generic OpenCode readiness can precede `opencode` integration registration; full manager lives in shell utility | FR-081/095; TR-071/069 | Retrying UI calls or moving JSX does not fix upstream readiness or ownership | account-control integration readiness + move full presentation to Settings while reusing canonical backend |
+| **R5 — OpenCode account readiness/placement** | generic OpenCode readiness can precede `opencode` integration registration; full manager lives in shell utility; pinned safe credential removal is not exposed | FR-081/095; TR-071/072/069 | Retrying UI calls or moving JSX does not fix upstream readiness, ownership, or the missing supported mutation | account-control integration readiness + safe Remove-account effect + move full presentation to Settings while reusing canonical backend |
 | **R6 — Human-first Source authoring** | browser edits full technical `work-request.md`, including system JSON metadata | FR-087..090; TR-062/067 | CSS hiding/front-matter stripping in browser would create invisible mutation/concurrency hazards | core body projection/recomposition + body-specific daemon save over full-file hash |
 | **R7 — Workbench chrome/navigation** | separate WorkItem header, workflow row, document state strip, editor heading/format/action rows consume primary space | FR-084..086/094/096/097; TR-064..066 | CSS compression alone preserves duplicated context and ownership | recompose into one WorkItem top rail + compact document/editor control ownership; delete old rows |
 | **R8 — Appearance affordance** | fixed three-state appearance uses a select field | FR-098; TR-068 | Styling the select does not change its wrong interaction grammar | replace only the presentation control; preserve the existing browser-local preference owner |
@@ -143,6 +143,9 @@ This defect is independent of the Settings refactor: moving account UI without r
 ### Required implementation
 
 In `src/shell/opencode.ts`:
+
+0. retain this task's narrow startup-readiness scope; account removal itself lands in T04 with the centralized Settings/account manager because it requires the canonical UI/API mutation surface;
+
 
 1. keep generic provider-process startup unchanged for ordinary provider uses;
 2. make `startOpenCodeAccountControl()` additionally wait until the released integration-list operation contains exactly the required `opencode` integration;
@@ -528,10 +531,12 @@ For multiple READY target repositories, expose one explicit queue/creation conte
 
 Refactor the existing account UI so:
 
-- full Add/Switch/Rename/login flow lives in Settings;
+- full Add/Switch/Rename/Remove/login flow lives in Settings;
 - existing canonical TanStack Query/mutation behavior is reused;
 - shell utility becomes only active-account/attention summary + navigation to `/settings/opencode`;
-- no parallel account manager remains.
+- no parallel account manager remains;
+- Remove account uses the canonical proven account id + expected active-account identity, destructive confirmation, the existing global mutation guard, and refreshed `OpenCodeAccountState`;
+- removing the final account immediately produces the account-required readiness state without changing configured model.
 
 #### 9.5 Model/runtime Settings
 
@@ -587,10 +592,14 @@ Browser:
 Installed-state:
 
 - fresh empty v4 → healthy daemon → Settings setup;
+- current v4/current-version update preserves config, project/document state and private OpenCode state without unnecessary prompts;
 - v3 upgrade preserves choices;
 - predecessor/private OpenCode state retained;
 - missing account yields account-required Settings state, not daemon error;
-- v1/v2 document migration still runs before final v4 activation.
+- v1/v2 document migration still runs before final v4 activation;
+- ambiguous predecessor repository evidence is surfaced for explicit operator resolution and never guessed;
+- injected installation failure after config conversion/document migration restores the prior config, database/projection, created-manifest state, application/launcher and predecessor state according to the existing installer rollback boundary;
+- successful update output explicitly reports any remaining `requires operator action` readiness concerns before productive use.
 
 ### Exit criterion
 
@@ -845,12 +854,22 @@ At minimum:
    - existing account inventory remains;
 8. no account:
    - account-required state, no internal error;
-9. account-control startup:
+9. account removal:
+   - non-active removal preserves current active account;
+   - active removal returns actual refreshed active state;
+   - final-account removal yields account-required readiness;
+   - all removal paths are blocked during active Runs;
+10. current-version update and recovery reporting:
+   - current v4 update preserves valid config/doc/account state;
+   - ambiguous predecessor repository mapping requires operator action rather than guessing;
+   - successful update reports unresolved readiness concerns;
+   - injected post-migration installer failure restores the prior installation/config/database/document authority;
+11. account-control startup:
    - real pinned OpenCode clean-state integration readiness;
-10. source body:
+12. source body:
    - metadata bytes preserved;
    - external-change conflict;
-11. browser:
+13. browser:
    - Settings ownership, workflow navigation, chrome geometry, direct theme switcher.
 
 ### Full gates
@@ -904,7 +923,7 @@ A failed publication retries the same exact candidate under existing release gov
 |---|---|---|
 | FR-079 readiness | TR-059, TR-070 | T01, T02, T04, T07 |
 | FR-080 config continuity | TR-058, TR-060, TR-070 | T01, T02, T04, T07 |
-| FR-081 account continuity | TR-071, existing account owner | T00, T04, T07 |
+| FR-081 account continuity | TR-071, TR-072, existing account owner | T00, T04, T07 |
 | FR-082 repository/document continuity | TR-059..061 | T01..T04, T07 |
 | FR-083 current repository context | TR-063/064 | T04, T06 |
 | FR-084 workflow navigation | TR-065 | T06 |
