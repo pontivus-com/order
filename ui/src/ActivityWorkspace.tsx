@@ -172,8 +172,7 @@ export const ActivityWorkspace = ({
   const canResume = workItem.status === "BLOCKED";
   const canAnswer =
     selectedRun.role === "STAGE" &&
-    selectedRun.status === "WAITING_FOR_INPUT" &&
-    pending?.event.tag === "HUMAN_INPUT_REQUESTED";
+    runIsActive(selectedRun);
   const actionError = input.error ?? cancel.error ?? retry.error ?? resume.error;
 
   return (
@@ -286,8 +285,8 @@ export const ActivityWorkspace = ({
           {canAnswer ? (
             <div className="order-activity-composer" data-testid="activity-composer">
               <div>
-                <strong>Your input is needed</strong>
-                <span>{pending.event.question}</span>
+                <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your input is needed" : "Continue current work"}</strong>
+                <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.event.question : "Send the next instruction or answer for this interactive activity."}</span>
               </div>
               <ChatComposer
                 onSubmit={(value) => {
