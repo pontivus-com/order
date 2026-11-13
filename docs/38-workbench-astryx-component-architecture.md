@@ -1619,6 +1619,8 @@ The main workbench and Settings do not share a generic content dump. Entering Se
 
 Repository Settings consumes canonical `ConnectedRepositoryState[]`, `OrderConfigState` and `InstallationReadiness`.
 
+Settings must render valid empty/unconfigured states as first-class setup states. Zero connected repositories and `model = null` are not transport errors; they produce the relevant setup action in the owning Settings section.
+
 Each repository row/card remains compact and exposes:
 
 - project identity;
