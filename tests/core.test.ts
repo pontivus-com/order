@@ -879,8 +879,9 @@ describe("source-backed WorkItem core", () => {
       { ...unchanged, path: "nested/moved.md" },
       false,
     )).toEqual({
-      tag: "ACCEPT",
-      disposition: "MOVED",
+      tag: "REJECT",
+      code: "INVALID_SOURCE",
+      detail: "WorkItem source is not at its deterministic repository path",
     });
     expect(classifyExistingWorkItemSource(
       existing,
