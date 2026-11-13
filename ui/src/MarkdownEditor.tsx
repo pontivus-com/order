@@ -3,6 +3,7 @@ import {
   useRef,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import { Markdown } from "@astryxdesign/core/Markdown";
 import {
@@ -30,6 +31,8 @@ export type MarkdownEditorProps = Readonly<{
   readOnly: boolean;
   onSave: (expectedSha256: Sha256, markdown: string) => Promise<ExpectedHashWriteResult>;
   onDirtyChange?: (dirty: boolean) => void;
+  toolbarAccessory?: ReactNode;
+  technicalDetails?: ReactNode;
 }>;
 
 type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
@@ -71,6 +74,8 @@ export const MarkdownEditor = ({
   readOnly,
   onSave,
   onDirtyChange,
+  toolbarAccessory,
+  technicalDetails,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
   const [loadedSha256, setLoadedSha256] = useState(sha256);
@@ -155,78 +160,109 @@ export const MarkdownEditor = ({
 
   return (
     <form className="order-markdown-editor" onSubmit={(event) => void submit(event)}>
-      <div className="order-editor-heading">
-        <div>
-          <h2>{title}</h2>
-          {description ? <p>{description}</p> : null}
-        </div>
-        {!readOnly ? (
-          <SegmentedControl
-            label="Document presentation"
-            value={presentationMode}
-            onChange={(value) => {
-              if (value === "EDIT" || value === "PREVIEW" || value === "SPLIT") {
-                setPresentationMode(value);
-              }
-            }}
-            size="sm"
-          >
-            <SegmentedControlItem value="EDIT" label="Edit" />
-            <SegmentedControlItem value="PREVIEW" label="Preview" />
-            <SegmentedControlItem value="SPLIT" label="Split" />
-          </SegmentedControl>
-        ) : null}
-      </div>
+      <div className="order-editor-toolbar" data-testid="markdown-editor-toolbar">
+        <div className="order-editor-toolbar-main">
+          <div className="order-editor-heading">
+            <div>
+              <h2>{title}</h2>
+              {description ? <p>{description}</p> : null}
+            </div>
+            {!readOnly ? (
+              <SegmentedControl
+                label="Document presentation"
+                value={presentationMode}
+                onChange={(value) => {
+                  if (value === "EDIT" || value === "PREVIEW" || value === "SPLIT") {
+                    setPresentationMode(value);
+                  }
+                }}
+                size="sm"
+              >
+                <SegmentedControlItem value="EDIT" label="Edit" />
+                <SegmentedControlItem value="PREVIEW" label="Preview" />
+                <SegmentedControlItem value="SPLIT" label="Split" />
+              </SegmentedControl>
+            ) : null}
+          </div>
 
-      {!readOnly ? (
-        <div
-          className="order-markdown-format-toolbar"
-          role="toolbar"
-          aria-label="Markdown formatting"
-          data-testid="markdown-format-toolbar"
-        >
-          <div className="order-markdown-format-group" aria-label="History">
-            <WorkbenchAction
-              label={historyActions[0].label}
-              icon={<WorkbenchIcon name={historyActions[0].icon} />}
-              iconOnly
-              disabled={formattingDisabled}
-              onClick={() => sourceEditorRef.current?.undo()}
-            />
-            <WorkbenchAction
-              label={historyActions[1].label}
-              icon={<WorkbenchIcon name={historyActions[1].icon} />}
-              iconOnly
-              disabled={formattingDisabled}
-              onClick={() => sourceEditorRef.current?.redo()}
-            />
-          </div>
-          <div className="order-markdown-format-group" aria-label="Inline formatting">
-            {inlineActions.map((action) => (
-              <WorkbenchAction
-                key={action.command}
-                label={action.label}
-                icon={<WorkbenchIcon name={action.icon} />}
-                iconOnly
-                disabled={formattingDisabled}
-                onClick={() => format(action.command)}
-              />
-            ))}
-          </div>
-          <div className="order-markdown-format-group" aria-label="Block formatting">
-            {structureActions.map((action) => (
-              <WorkbenchAction
-                key={action.command}
-                label={action.label}
-                icon={<WorkbenchIcon name={action.icon} />}
-                iconOnly
-                disabled={formattingDisabled}
-                onClick={() => format(action.command)}
-              />
-            ))}
-          </div>
+          {!readOnly ? (
+            <div
+              className="order-markdown-format-toolbar"
+              role="toolbar"
+              aria-label="Markdown formatting"
+              data-testid="markdown-format-toolbar"
+            >
+              <div className="order-markdown-format-group" aria-label="History">
+                <WorkbenchAction
+                  label={historyActions[0].label}
+                  icon={<WorkbenchIcon name={historyActions[0].icon} />}
+                  iconOnly
+                  disabled={formattingDisabled}
+                  onClick={() => sourceEditorRef.current?.undo()}
+                />
+                <WorkbenchAction
+                  label={historyActions[1].label}
+                  icon={<WorkbenchIcon name={historyActions[1].icon} />}
+                  iconOnly
+                  disabled={formattingDisabled}
+                  onClick={() => sourceEditorRef.current?.redo()}
+                />
+              </div>
+              <div className="order-markdown-format-group" aria-label="Inline formatting">
+                {inlineActions.map((action) => (
+                  <WorkbenchAction
+                    key={action.command}
+                    label={action.label}
+                    icon={<WorkbenchIcon name={action.icon} />}
+                    iconOnly
+                    disabled={formattingDisabled}
+                    onClick={() => format(action.command)}
+                  />
+                ))}
+              </div>
+              <div className="order-markdown-format-group" aria-label="Block formatting">
+                {structureActions.map((action) => (
+                  <WorkbenchAction
+                    key={action.command}
+                    label={action.label}
+                    icon={<WorkbenchIcon name={action.icon} />}
+                    iconOnly
+                    disabled={formattingDisabled}
+                    onClick={() => format(action.command)}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+
+        <div className="order-editor-toolbar-actions">
+          {toolbarAccessory}
+          <details className="order-editor-identity">
+            <summary>Technical details</summary>
+            <div className="order-editor-technical-content">
+              <div><span>SHA-256</span><code>{loadedSha256}</code></div>
+              {technicalDetails}
+            </div>
+          </details>
+          {!readOnly ? (
+            <div className="order-inline-actions">
+              <span className="order-editor-dirty-state">{dirty ? "Unsaved" : "Current"}</span>
+              <WorkbenchAction
+                type="submit"
+                label={saving ? "Saving…" : "Save"}
+                tone="primary"
+                disabled={!dirty || conflicted || saving}
+              />
+              <WorkbenchAction
+                label="Cancel"
+                disabled={!dirty || saving}
+                onClick={cancel}
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
 
       <div
         className={"order-editor-body order-editor-mode-" + presentationMode.toLowerCase()}
@@ -262,28 +298,6 @@ export const MarkdownEditor = ({
       ) : null}
       {saveError ? <div role="alert" className="order-error">{saveError}</div> : null}
 
-      <div className="order-editor-actionbar">
-        <details className="order-editor-identity">
-          <summary>Identity</summary>
-          <code>{loadedSha256}</code>
-        </details>
-        {!readOnly ? (
-          <div className="order-inline-actions">
-            <span className="order-editor-dirty-state">{dirty ? "Unsaved" : "Current"}</span>
-            <WorkbenchAction
-              type="submit"
-              label={saving ? "Saving…" : "Save"}
-              tone="primary"
-              disabled={!dirty || conflicted || saving}
-            />
-            <WorkbenchAction
-              label="Cancel"
-              disabled={!dirty || saving}
-              onClick={cancel}
-            />
-          </div>
-        ) : null}
-      </div>
     </form>
   );
 };
