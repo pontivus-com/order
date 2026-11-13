@@ -6,6 +6,14 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Define the Order 0.2.2 corrective functional/P4/P6 design for productive OpenCode workspace containment and model-context admission across every productive agent role, including local-vs-provider failure classification, adversarial certification of ignored dependencies/direct reads/symlink and metadata escape/external references/mutation safety/freshness/restart behavior, a Run-specific `OPENCODE_CONFIG_CONTENT` agent environment, and an explicit trusted-integration boundary for the selected OpenCode Console account, skills and MCP semantics without promoting them into canonical Order authority.
+- Correct the canonical WorkItem information hierarchy to separate WorkItem identity, workflow-process navigation, workspace-view selection and within-view navigation; make contextual inspection on-demand; consolidate document/editor/Git controls; and remove raw lifecycle identifiers from ordinary browser labels.
+- Strengthen Markdown editor geometry requirements with final-line long-document scrolling certification and clarify repository Settings around explicit Add repository plus confirmed, non-destructive Disconnect.
+- Add the governed Order 0.2.2 P7 implementation plan as one cumulative signed task with exact code/test change surface, trusted Console/skill/MCP admission mechanics, workspace/instruction/failure/freshness implementation steps, and the complete dependency-lock/typecheck/architecture/test/build/browser gate union.
+
+
 ### Fixed
 
 - Correct the `0.2.1` release history so it describes only work shipped in that version, removes stale `0.2.0` publication residue, and records the complete Settings/account/readiness, repository migration, Source-authoring, workbench and certification scope.

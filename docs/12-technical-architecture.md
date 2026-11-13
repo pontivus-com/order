@@ -790,7 +790,7 @@ Local clone can race with a concurrently changing source repository, so exact po
 
 Order does not promote a candidate workspace into a new execution baseline and does not share a workspace across post-signoff Runs. Every builder, reviewer and remediator Run starts from a fresh isolated checkout at the Approval baseline. Candidate bytes cross Run boundaries only as the hash-addressed candidate patch evidence defined in §24/P6; the receiving Run replays and verifies that exact patch in its own fresh checkout. No later ExecutionTask automatically sees candidate bytes. This is why cumulative changes belong in one signed task rather than a chain of dependent candidate workspaces.
 
-Interactive pre-signoff Runs operate against the user's repository only through the explicit repository shell and proposal/adoption mechanism.
+Interactive pre-signoff Runs no longer use the user's physical repository directory as the OpenCode Location. `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1` requires an Order-materialized inspection workspace containing the exact admitted current project state and complete resolved repository-instruction closure. The configured repository remains canonical: source/context resolution and artifact proposal/adoption operate through the existing repository shell, while the STAGE provider receives only the isolated read-only execution projection.
 
 ## 21. Verification execution
 
@@ -902,7 +902,7 @@ P7/CI/startup certification covers:
 
 | Integration | Verified v1 contract | Required proof |
 |---|---|---|
-| OpenCode | exact server/client pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` | authenticated server-info readiness/version, sessions, exact model, permissions, deterministic prompt-id idempotency, monotonic `time.idle` + outcome completion proof, final context retrieval, foreground-`serve` restart behavior, interrupt |
+| OpenCode | exact server/client pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; productive workspace/instruction boundary in `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1` | authenticated server-info readiness/version, sessions, exact model, permissions, deterministic prompt-id idempotency, monotonic `time.idle` + outcome completion proof, final context retrieval, foreground-`serve` restart behavior, interrupt, isolated STAGE materialization, all-role instruction closure, direct-read containment, external-reference isolation and correct local-vs-provider failure classification |
 | Bun/Linux host | exact Bun/declaration pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; productive host Linux | explicit-env detached spawn + negative-pgid TERM/KILL cancellation, `Bun.serve` production mode/loopback, TOML parse, Glob options, CSPRNG/SHA-256/UUID, Linux filesystem allowlist + SQLite binding, timer non-overlap |
 | Node/Linux guarded Markdown replacement | `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §14` | exclusive create/symlink refusal, stale-hash no-write, same-directory temp + file fsync + atomic rename + parent-directory fsync + exact read-back/hash; two Order mutations with one old hash cannot both succeed |
 | SQLite | embedded, required >=3.37 features | WAL, FULL sync, FK, JSON, STRICT |
@@ -2222,9 +2222,10 @@ Inputs are:
 - current `OrderConfig`;
 - validated connected repository states;
 - configured model preflight facts;
-- current safe `OpenCodeAccountState`.
+- current safe `OpenCodeAccountState`;
+- exact installed-provider effective-instruction isolation capability required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`.
 
-Output is the canonical `InstallationReadiness`.
+Output is the canonical `InstallationReadiness`. A usable account does not imply productive readiness when the active provider/account path can inject semantic instructions that Order cannot disable or completely preflight before inference.
 
 The work queue/workbench may render while readiness is incomplete, but productive actions that require a missing concern are blocked by the owning daemon command as well as reflected in readiness UI.
 
@@ -2344,11 +2345,11 @@ Permanent tests must cover:
 
 #### GW-TR-059-CANONICAL-SETTINGS-READINESS-PROJECTION
 
-**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners.
+**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners. Productive OpenCode trust/admission follows `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`: exact Order authority is closed separately from explicitly selected trusted integration context.
 
-**Acceptance criterion:** browser Settings can render repository/document-root/readiness state without reconstructing it from unrelated APIs.
+**Acceptance criterion:** browser Settings can render repository/document-root/account/model/readiness state without reconstructing it from unrelated APIs. A selected usable OpenCode Console account is a valid trusted integration input; its provider-native Library/MCP semantics are not a separate readiness blocker.
 
-**Failure/negative behavior:** no settings database, browser readiness policy or duplicate repository registry is permitted.
+**Failure/negative behavior:** no settings database, browser readiness policy, duplicate repository registry or browser-owned provider-instruction inference is permitted.
 
 #### GW-TR-060-FOCUSED-REPOSITORY-CONFIG-MUTATION
 

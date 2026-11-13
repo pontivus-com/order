@@ -328,7 +328,7 @@ type ExecutionTask = Readonly<{
 
 Task content other than `state` is immutable after materialization.
 
-`changeSurface` contains exact literal `RepositoryPath` values. Every value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, and be disjoint from the material authority/project-manifest/verification sources in the Approval closure. A worker never mutates the authority that authorizes its own execution.
+`changeSurface` contains exact literal `RepositoryPath` values. Every value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, be disjoint from the material authority/project-manifest/verification sources in the Approval closure, and have a final path segment other than `AGENTS.md`. The instruction-path prohibition is existence-independent: a signed task cannot authorize creation of a new `AGENTS.md` merely because the path did not exist when the Approval was materialized. A worker never mutates the authority that authorizes its own execution.
 
 A post-signoff task remains `RUNNING` through implementation and V2-V7 validation; validation progress belongs to its Run/RunEvents and does not create another task state.
 
@@ -517,6 +517,12 @@ type RunEventPayload =
       evidence: readonly EvidenceRef[];
     }
   | { tag: "PROVIDER_DIAGNOSTICS_RECORDED"; evidence: readonly EvidenceRef[] }
+  | {
+      tag: "PRODUCTIVE_INVOCATION_FAILED";
+      classification: "PRECONDITION_FAILED" | "ENVIRONMENT_BLOCKED";
+      detail: string;
+      evidence: readonly EvidenceRef[];
+    }
   | { tag: "PROVIDER_FAILED"; detail: string; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_PASSED"; gateId: GateId; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_FAILED"; gateId: GateId; classification: ValidationClassification; evidence: readonly EvidenceRef[] }
@@ -622,7 +628,7 @@ type SignedTaskBlock = Readonly<{
 }>;
 ```
 
-Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
 
 Every `acceptanceRefs` and `authorityRefs` value must resolve through the same manifest's `refs` map described in §14. An unresolved reference is `SPEC_INVALID`; runtime never scans arbitrary prose or invents an alias/source mapping.
 
@@ -1192,6 +1198,7 @@ Config v4 invariants:
 - every currently READY target has a valid root `pontivus-order.toml` and READY targets have unique `ProjectManifest.projectId` values;
 - a WorkItem repository must equal one configured target repository exactly; descendant containment is not a WorkItem-selection rule;
 - `referenceRoots` remains a unique list of stored canonical path identities with STAGE-only read semantics; live availability is validated by readiness before productive use;
+- every configured target repository and reference root is pairwise path-disjoint after canonical resolution, so STAGE external-reference permission cannot re-enter a target repository outside its admitted provider workspace;
 - WorkItem source/document location is resolved inside each selected repository through §32, never through OrderConfig.
 
 Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. Fresh setup may write a valid but non-productive v4 configuration with `model = null` and/or no target repositories so the authenticated browser can open Settings and complete configuration. Broad parent roots are never recursively crawled or guessed into a project catalog.
@@ -1271,7 +1278,7 @@ Provider-emittable tags by Run role are:
 | `REMEDIATOR` | `AGENT_MESSAGE_FINAL`, `STAGE_BLOCKED` with `owningStage = EXECUTION`, `OBSERVATION_RECORDED` |
 | `REVIEWER` | `REVIEW_PASSED`, `REVIEW_FAILED`, `OBSERVATION_RECORDED` |
 
-All other RunEvent tags are coordinator/human-owned, including `STAGE_STARTED`, `HUMAN_INPUT_RECEIVED`, proposal disposition, conformance, provider failure, gates, authority/repository drift, `VALIDATION_*` and `CANDIDATE_*`. A valid-shaped but role-forbidden provider event is invalid provider output.
+All other RunEvent tags are coordinator/human-owned, including `STAGE_STARTED`, `HUMAN_INPUT_RECEIVED`, proposal disposition, conformance, `PRODUCTIVE_INVOCATION_FAILED`, provider failure, gates, authority/repository drift, `VALIDATION_*` and `CANDIDATE_*`. A valid-shaped but role-forbidden provider event is invalid provider output.
 
 One deny-all/tool-disabled format-repair turn may re-encode only an event that would have been allowed for the original Run role. A second invalid result is `PROVIDER_FAILED / OUTPUT`.
 
@@ -1348,7 +1355,7 @@ Before `orderd` becomes ready it validates the deterministic local portion of th
 CI/integration tests additionally prove:
 
 - **State-root/XDG + daemon-token boundary:** an absolute `PONTIVUS_ORDER_STATE_ROOT` wins; relative `PONTIVUS_ORDER_STATE_ROOT` is rejected; absent override uses an absolute `XDG_STATE_HOME/pontivus-order`; absent XDG uses absolute `HOME/.local/state/pontivus-order`; relative XDG/HOME values are rejected rather than resolved against cwd; no usable absolute base fails startup. A missing daemon-token file is created as a non-symlink owner-only file containing exactly one 64-lowercase-hex `secureTokenHex()`; an existing unsafe, symlinked, incorrectly permissioned or malformed token file fails startup rather than being accepted or silently replaced.
-- **OpenCode:** exact `opencode serve --hostname 127.0.0.1 --port 0` foreground bootstrap; bounded parsing of the loopback startup endpoint; 60-second authenticated exact-version readiness against `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; private HOME/XDG/DB; failure when `/etc/opencode` exists; pinned project/Claude discovery-disable flags; repository `AGENTS.md` pre-resolution/read-trigger projection proof; deny-first role permissions with exact literal edit paths; multi-resource patch authorization; exact deterministic `msg_` prompt-id derivation; same-session/same-type same-id admission does not create a second user input; strictly advanced `time.idle` plus `succeeded | failed | interrupted`; successful final context retrieval; 3600-second productive-turn bound/interrupt; no `session.active`, experimental wait or event-stream correctness dependency.
+- **OpenCode:** exact `opencode serve --hostname 127.0.0.1 --port 0` foreground bootstrap; bounded parsing of the loopback startup endpoint; 60-second authenticated exact-version readiness against `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; private HOME/XDG/DB; failure when `/etc/opencode` exists; pinned project/Claude discovery-disable flags; admitted provider-workspace/instruction closure under `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`; deny-first role permissions including `.git` and `.git/*` read denial plus exact literal edit paths; multi-resource patch authorization; exact deterministic `msg_` prompt-id derivation; same-session/same-type same-id admission does not create a second user input; strictly advanced `time.idle` plus `succeeded | failed | interrupted`; successful final context retrieval; 3600-second productive-turn bound/interrupt; no `session.active`, experimental wait or event-stream correctness dependency.
 - **Bun/Linux runtime boundary:** startup rejects any `process.platform` other than `"linux"`; the installed Bun and `@types/bun` exactly match `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; `Bun.serve` binds only the configured loopback address with `development: false`; `Bun.TOML.parse` parses a UTF-8 manifest string that is then rejected on canonical-schema failure; `Bun.Glob` uses exactly the §14 options; UUID generation matches the canonical prefixed UUIDv4 grammar; the secure-token helper returns exactly 64 lowercase hexadecimal characters from a 32-byte `crypto.getRandomValues` call and no secret/token path uses `Math.random`; `Bun.CryptoHasher("sha256")` matches known SHA-256 vectors while `Bun.hash` is absent from canonical identity code; `statfsSync(stateRoot).type` accepts only the four §15 Linux filesystem magic values and the SQLite smoke test also passes; the one-shot/re-armed timer tests prove one immediate startup tick, exactly 3600 seconds between re-arms and no overlapping coordinator ticks.
 - **Process cancellation boundary:** every spawned external command receives explicit argv/cwd/allowlisted env and is started with `detached: true`; unattended/correctness-bearing commands use bounded captured output, while the sole operator-facing provider-login path inherits the TTY and produces no parsed semantic evidence; Order does not pass Bun `timeout`/AbortSignal as cancellation authority. The integration fixture starts a child that itself starts a long-lived descendant, then proves both timeout and explicit cancellation follow the same Linux group path: `process.kill(-pgid, "SIGTERM")`, at most 5 seconds of bounded wait, signal-`0` existence check, `process.kill(-pgid, "SIGKILL")` if still present, child settlement, and final group nonexistence before the operation settles.
 - **Git:** registered root equals `git rev-parse --show-toplevel`; every execution Run uses `git clone --no-local --no-checkout -- <source> <workspace>`, exact baseline verification/detached checkout/clean start, with Git system/global config and prompting disabled; candidate capture proves NUL-delimited no-rename changed paths including untracked files, temporary-index `--intent-to-add` inclusion of new files, binary/full-index/no-renames patch hashing, replay into a separate fresh checkout, and exact regenerated patch-hash/changed-path equality; gitlinks/submodules are not traversed automatically.
@@ -2905,6 +2912,7 @@ const InstallationReadinessSchema = z.strictObject({
 
 `ready === true` iff `blockers.length === 0`.
 
+
 The daemon is the single readiness-policy owner. The browser does not reconstruct readiness from separate repository/account/model queries.
 
 ### 35.4 Focused Settings commands
@@ -3137,3 +3145,111 @@ Daemon startup under incomplete v4 configuration:
 - rejects productive commands whose prerequisites are absent with canonical 409 recovery errors.
 
 It must not fabricate defaults merely to reach ready state.
+
+
+## 36. Productive OpenCode workspace and instruction-boundary contracts
+
+This section is the P6 realization of `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`. It extends the existing Run/RunEvent/task/provider contracts without introducing a second workspace or failure domain model.
+
+### 36.1 Productive invocation failure event
+
+`PRODUCTIVE_INVOCATION_FAILED` is coordinator-owned and is emitted only when Order's own deterministic productive-invocation admission fails before the failing action can correctly be attributed to an admitted provider turn.
+
+Its classification is limited to existing terminal classifications `PRECONDITION_FAILED` and `ENVIRONMENT_BLOCKED`.
+
+- repository snapshot/materialization failure, unresolved/stale provider-visible `AGENTS.md`, instruction symlink/escape, or another project admission invariant -> `PRECONDITION_FAILED`;
+- missing/broken required local runtime/provider readiness that is not an admitted provider turn failure -> `ENVIRONMENT_BLOCKED` where the owning readiness/integration contract assigns that class.
+
+The event detail is a non-empty human-actionable explanation. Evidence is the ordinary immutable `EvidenceRef[]` and defaults to empty when no additional evidence artifact is required.
+
+`PROVIDER_FAILED` remains coordinator-owned but is reserved for an OpenCode process/session/productive-turn failure after Order has completed its local workspace/instruction admission for that action. A local pre-admission exception must not be persisted as `PROVIDER_FAILED` merely because the admitting shell function lives in `opencode.ts`.
+
+### 36.2 STAGE provider-workspace material identity
+
+No new persisted Run field is required.
+
+For one live STAGE provider session the daemon carries one transient `Sha256` material identity derived through the existing canonical serializer/hash owner from:
+
+~~~text
+{
+  baselineCommit: Run.baselineCommit,
+  currentProjectDeltaSha256: <exact admitted working-tree projection hash>,
+  contextHash: Run.contextHash
+}
+~~~
+
+The identity belongs to the live `ActiveProvider` runtime binding only. It is not durable workflow authority. A daemon restart already terminalizes the lost live Run as `COORDINATOR_INTERRUPTED`, so no persisted provider-workspace record is introduced merely to reconstruct a lost provider process.
+
+Before a resumed productive STAGE turn, Order recomputes/revalidates the current project delta and context. A mismatch prevents reuse of the existing session/workspace and follows the current stale/precondition reaction. Excluded ignored ambient bytes are absent from the admitted project delta and cannot invalidate this identity.
+
+### 36.3 Instruction closure
+
+For every productive provider workspace:
+
+1. enumerate regular `AGENTS.md` paths inside the admitted workspace without following symlinks;
+2. require every path to equal a resolved P1 repository path in the Run context/approval closure;
+3. require provider-workspace bytes to hash exactly to the resolved ArtifactRef bytes;
+4. reject a resolved repository instruction that should exist in the workspace but is missing or byte-different;
+5. reject symlink/non-regular `AGENTS.md`;
+6. reject any task `changeSurface` path whose final segment is `AGENTS.md`, regardless of current path existence.
+
+This closure uses existing `RepositoryPath`, `ArtifactRef`, `Sha256` and authority-resolution owners. There is no `ProviderInstruction` DTO/domain type.
+
+### 36.4 Candidate instruction immutability
+
+V2/scope-governance candidate validation must reject any candidate whose changed-path set adds, removes or modifies an `AGENTS.md` path. The signed task grammar already prevents such a path from being authorized; candidate validation is the independent enforcement sensor, not a second permission source.
+
+### 36.5 Productive admission ordering
+
+For every STAGE/BUILDER/REVIEWER/REMEDIATOR session, Order completes the following admission sequence before the first productive prompt:
+
+1. productive readiness for the role;
+2. exact provider workspace materialization/proof;
+3. workspace escape/symlink checks required by P4;
+4. instruction closure;
+5. deterministic Run configuration and base role-policy derivation from Order-owned inputs;
+6. pinned provider process readiness;
+7. trusted-integration preflight against that exact live process, including selected account identity plus exact visible skill ids and MCP server names;
+8. derivation of the exact effective permission profile from the base role policy plus the admitted live trusted-integration set;
+9. session creation;
+10. exact model/permission read-back binding.
+
+The distinction between step 5 and step 8 is normative: permissions that depend on provider-visible skills/MCPs cannot be finalized before the exact provider process has started and exposed those identities. Steps 1-5 are local Order admission and are not provider failures. Failures from step 6 onward are classified by the existing integration/failure contract according to the actual failing boundary; provider startup/readiness/session failures remain provider-origin where applicable, while a deterministic Order-side rejection of the returned integration set remains a local admission failure. Productive turn failures after step 10 remain ordinary provider failures.
+
+### 36.6 External integration certification extension
+
+The §29 OpenCode certification must additionally prove the complete test matrix owned by `GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION`, including at minimum:
+
+- ignored dependency `AGENTS.md` is absent from the provider workspace and cannot be reached by a guessed direct read;
+- non-ignored/tracked nested project `AGENTS.md` is admitted only when resolved P1 bytes match;
+- instruction symlinks/escapes fail closed;
+- STAGE R1/R2/DESIGN/PLAN/R3 plus BUILDER/REVIEWER/REMEDIATOR all pass through one shared productive admission owner;
+- external STAGE reference-root `AGENTS.md` remains non-authoritative and does not enter project instruction closure;
+- existing and not-yet-existing `AGENTS.md` changeSurface paths are rejected;
+- local admission failures persist `PRODUCTIVE_INVOCATION_FAILED`, not `PROVIDER_FAILED`;
+- real admitted process/session/turn failure still persists `PROVIDER_FAILED` and retains the existing bounded operational recovery law;
+- format repair remains deny-all;
+- account-control operations remain isolated from project instruction scanning.
+
+
+### 36.7 Effective model-context and trusted-integration closure
+
+The productive admission contract realizes `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` / `GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT`.
+
+Before the first productive inference Order proves, for the exact live provider process/session:
+
+- repository/read-triggered `AGENTS.md` satisfies §36.3 with exact canonical path/bytes;
+- Order role/canonical context comes only from the existing resolved context/prompt owners;
+- ordinary host/global/project OpenCode configuration and compatibility discovery cannot contribute ambient instructions/skills;
+- the generated Run-specific `OPENCODE_CONFIG_CONTENT` contains only Order-owned configuration explicitly admitted for the Run;
+- configured reference roots are explicit non-authoritative context;
+- any Order-configured skill or MCP is explicitly admitted and permissioned for the role;
+- the active saved OpenCode Console account, when required, is the explicitly selected trusted integration identity for the Run. Its provider-native Library instructions/skills and allowed remote MCP/provider configuration are accepted as trusted integration context and are not promoted into Order canonical authority;
+- account mutation/switching remains impossible while the Run is active;
+- arbitrary API-managed session instruction entries are absent unless a future governed contract explicitly introduces them.
+
+Trusted integration semantics may influence model execution, but they do not enlarge `ExecutionTask.changeSurface`, mutate `AGENTS.md`, override canonical P1-P7 authority, bypass permissions, adopt artifacts or satisfy validation/signoff.
+
+The productive admission boundary proves and binds the selected integration/account identity plus exact Order-owned repository/context/config identities for the lifetime of the live provider binding. For 0.2.2 these identities are transient admission/freshness state, not a new durable evidence contract. Existing Run/provider diagnostics remain the durable execution evidence already owned elsewhere; this section does not require adding account/config identity fields to ProviderDiagnosticRecord or another persisted model. Order does not fabricate hashes for provider-native semantic bytes that OpenCode does not expose through its public API.
+
+No new persisted instruction-domain model is introduced. The shell derives this admission from existing repository/context/account/config/permission owners.

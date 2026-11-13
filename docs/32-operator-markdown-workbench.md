@@ -580,11 +580,11 @@ This extension does not authorize:
 
 ### GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS
 
-**Required behavior:** the source editor provides syntax highlighting, soft wrapping, undo/redo, search/replace, Markdown-aware keyboard editing and the formatting toolbar defined in §17.4.
+**Required behavior:** the source editor provides syntax highlighting, soft wrapping, undo/redo, search/replace, Markdown-aware keyboard editing and the formatting toolbar defined in §17.4. Long Source and lifecycle Markdown remain vertically scrollable through the exact final source line inside the primary editor viewport.
 
-**Acceptance criterion:** common Markdown structure and emphasis can be authored through either keyboard/source editing or explicit toolbar actions without a plain-textarea experience; every toolbar action changes the same exact Markdown buffer and remains keyboard accessible.
+**Acceptance criterion:** common Markdown structure and emphasis can be authored through either keyboard/source editing or explicit toolbar actions without a plain-textarea experience; every toolbar action changes the same exact Markdown buffer and remains keyboard accessible; and the operator can scroll to, edit and save/cancel the final line of a long document without losing access to the document controls.
 
-**Failure/negative behavior:** authoring ergonomics must not create rich-text/AST authority or expand into a generic IDE, repository editor, LSP/code-intelligence environment or multi-file workspace.
+**Failure/negative behavior:** authoring ergonomics must not create rich-text/AST authority or expand into a generic IDE, repository editor, LSP/code-intelligence environment or multi-file workspace. A layout wrapper that clips/traps the CodeMirror scroller or makes lower document content unreachable is a functional editor failure, not a cosmetic defect.
 
 ### GW-FR-068-LIVE-SAFE-MARKDOWN-PREVIEW
 
@@ -596,11 +596,11 @@ This extension does not authorize:
 
 ### GW-FR-069-EDITOR-STATE-CONTINUITY
 
-**Required behavior:** document refresh, responsive presentation changes and Edit/Preview/Split transitions preserve the existing dirty/save/conflict contract and do not overwrite unsaved source.
+**Required behavior:** document refresh, responsive presentation changes and Edit/Preview/Split transitions preserve the existing dirty/save/conflict contract and do not overwrite unsaved source. Responsive/layout recomposition must also preserve usable access to the active editor content and controls.
 
-**Acceptance criterion:** external canonical changes surface as conflicts, successful saves synchronize cleanly, and mode/layout changes do not clear or replace the active buffer.
+**Acceptance criterion:** external canonical changes surface as conflicts, successful saves synchronize cleanly, mode/layout changes do not clear or replace the active buffer, and changing supported viewport width does not make previously reachable source lines inaccessible.
 
-**Failure/negative behavior:** editor lifecycle or query refresh must not silently reset a dirty buffer or manufacture a false clean/conflict state.
+**Failure/negative behavior:** editor lifecycle or query refresh must not silently reset a dirty buffer, manufacture a false clean/conflict state, or strand the active buffer behind a clipped/unsized layout region.
 
 
 
