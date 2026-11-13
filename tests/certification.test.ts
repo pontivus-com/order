@@ -338,6 +338,7 @@ describe("Order cross-boundary certification", () => {
     expect(openCode).not.toContain("client.credential.list");
     expect(openCode).toContain("client.credential.activate");
     expect(openCode).toContain("client.credential.update");
+    expect(openCode).toContain("client.credential.remove");
     expect(openCode).toContain("client.integration.oauth.connect");
     expect(openCode).toContain("client.integration.oauth.status");
     expect(openCode).toContain("client.integration.oauth.cancel");
