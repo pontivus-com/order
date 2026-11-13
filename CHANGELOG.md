@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Internal
+
+- Trigger governed publication of the final certified `0.2.0` release candidate.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
