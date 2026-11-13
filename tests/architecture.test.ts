@@ -978,6 +978,64 @@ describe("architecture fitness", () => {
     expect(theme).not.toContain("order-workflow-orientation");
     expect(theme).not.toContain("order-document-state-strip");
     expect(theme).not.toContain("order-editor-actionbar");
+
+    const ownershipViolations: string[] = [];
+    for (const sourcePath of productionFiles) {
+      const source = sourceText(sourcePath);
+      if (
+        sourcePath !== "src/shell/config.ts" &&
+        sourcePath !== "src/installer.ts" &&
+        /statePaths\([^)]*\)\.config/.test(source)
+      ) {
+        ownershipViolations.push(
+          sourcePath + ": productive config.json path access must remain owned by src/shell/config.ts",
+        );
+      }
+      if (/\b(?:runtime|owner\.current)\.config\s*=(?!=)/.test(source)) {
+        ownershipViolations.push(sourcePath + ": CoordinatorRuntime.config must never be reassigned");
+      }
+      if (/\.config\.(?:model|repositoryRoots|referenceRoots)\s*=(?!=)/.test(source)) {
+        ownershipViolations.push(sourcePath + ": canonical runtime config fields must never be mutated in place");
+      }
+      if (
+        /\.config\.(?:repositoryRoots|referenceRoots)\.(?:copyWithin|fill|pop|push|reverse|shift|sort|splice|unshift)\s*\(/.test(source)
+      ) {
+        ownershipViolations.push(sourcePath + ": canonical runtime config arrays must remain immutable snapshots");
+      }
+
+      if (layerOf(sourcePath) === "ui") {
+        if (/\b(?:settings|config)(?:Store|Context|Reducer)\b/i.test(source)) {
+          ownershipViolations.push(sourcePath + ": browser configuration must not introduce a global store owner");
+        }
+        for (const forbidden of [
+          "parseWorkItemSourceMarkdown",
+          "recomposeWorkItemSourceBody",
+          "WorkItemSourceMetadataSchema",
+        ]) {
+          if (source.includes(forbidden)) {
+            ownershipViolations.push(
+              sourcePath + ": browser must not parse or recompose WorkItem source metadata: " + forbidden,
+            );
+          }
+        }
+      }
+    }
+
+    for (const required of [
+      "statePaths(stateRoot).config",
+      "O_NOFOLLOW",
+      "fsyncSync",
+      "renameSync",
+    ]) {
+      if (!config.includes(required)) {
+        ownershipViolations.push("src/shell/config.ts must retain canonical config writer mechanic " + required);
+      }
+    }
+    if (/api\.saveWorkItemSource\s*\(/.test(documentWorkspace)) {
+      ownershipViolations.push("ordinary Source authoring must not retain the complete-source save path");
+    }
+
+    expect(ownershipViolations).toEqual([]);
   });
 
   it("enforces canonical documentation concern ownership and identifier references", () => {
