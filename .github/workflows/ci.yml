@@ -84,7 +84,7 @@ jobs:
           bun scripts/package-release.ts
           test -s release/pontivus-order.tar.gz
           test -s release/pontivus-order.tar.gz.sha256
-          sha256sum -c release/pontivus-order.tar.gz.sha256
+          (cd release && sha256sum -c pontivus-order.tar.gz.sha256)
           tar -xOf release/pontivus-order.tar.gz order/RELEASE.json > "${RUNNER_TEMP}/release.json"
           bun -e 'const v=JSON.parse(await Bun.file("package.json").text()).version; const r=JSON.parse(await Bun.file(process.argv[2]).text()); if(r.version!==v) process.exit(1);' "${RUNNER_TEMP}/release.json"
 
