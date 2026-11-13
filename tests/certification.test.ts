@@ -419,7 +419,8 @@ describe("Order cross-boundary certification", () => {
     expect(accountControl).not.toContain("updateOrderConfig");
 
     expect(markdownSource).toContain("EditorView");
-    expect(markdownSource).toContain("EditorState");
+    expect(markdownSource).toContain("Compartment");
+    expect(markdownSource).toContain("markdown()");
     expect(markdownSource).not.toContain("<textarea");
 
     expect(contracts).toContain("OrderHttpErrorSchema");
