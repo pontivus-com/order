@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Make normal WorkItem Source authoring body-only while preserving exact portable metadata bytes, complete-file concurrency identity, and read-only technical source disclosure.
+
 - Add the canonical Settings/readiness daemon owner with drift-safe repository projection, valid-incomplete v4 daemon boot, focused configuration mutations, and serialized immutable runtime activation/rollback.
 - Introduce `OrderConfig` v4 with valid incomplete configuration, deterministic v3→v4 migration, persisted config SHA identity, expected-hash replacement, and drift-tolerant stored path reads as the foundation for centralized Settings.
 
