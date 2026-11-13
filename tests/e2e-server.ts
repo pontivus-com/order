@@ -102,7 +102,7 @@ mkdirSync(workItemRoot, { recursive: true });
 
 const orderConfig = writeOrderConfig(stateRoot, {
   version: 2,
-  model: { providerID: "openai", id: "gpt-5.6" },
+  model: { providerID: "opencode", id: "glm-5.3-flash-free" },
   repositoryRoots: [repositoryRoot],
   referenceRoots: [],
   workItemRoot,
