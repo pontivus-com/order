@@ -2,11 +2,13 @@ import {
   Database,
 } from "bun:sqlite";
 import {
+  type OpenCodeAccountId,
   type OpenCodeAccountLabel,
   type OpenCodeAccountLoginAttempt,
   type OpenCodeAccountLoginAttemptId,
   type OrderConfig,
   type RunId,
+  type Sha256,
 } from "../core/contracts.ts";
 import {
   type OpenCodeProviderProcess,
@@ -16,6 +18,8 @@ import {
 export type ActiveProvider = Readonly<{
   server: OpenCodeServer;
   sessionId: string;
+  trustedAccountId: OpenCodeAccountId;
+  stageMaterialIdentity: Sha256 | null;
 }>;
 
 export type OpenCodeAccountLoginControl = {

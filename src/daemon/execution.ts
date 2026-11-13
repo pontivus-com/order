@@ -316,15 +316,20 @@ export const startProviderForExecutionRun = async (
     productiveOpenCodeConfig(run.role, []),
   );
   try {
-    const sessionId = await createOpenCodeSession(
+    const admission = await createOpenCodeSession(
       server,
       run.role,
       task,
       context.artifacts,
       runtime.config.referenceRoots,
     );
-    updateRun(runtime, run.id, { providerSessionId: sessionId });
-    const active = { server, sessionId };
+    updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
+    const active: ActiveProvider = {
+      server,
+      sessionId: admission.sessionId,
+      trustedAccountId: admission.trustedAccountId,
+      stageMaterialIdentity: null,
+    };
     runtime.activeProviders.set(run.id, active);
     return active;
   } catch (error) {

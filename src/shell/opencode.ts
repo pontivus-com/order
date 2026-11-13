@@ -849,10 +849,15 @@ const denyAllRule = (): PermissionRule => ({
   effect: "deny",
 });
 
+export const normalizeOpenCodeMcpNamespace = (serverName: string): string =>
+  serverName.replace(/[^A-Za-z0-9_-]/g, "_");
+
 export const openCodePermissionRules = (
   role: RunRole,
   task: ExecutionTask | null,
   referenceRoots: readonly string[],
+  skillIds: readonly string[] = [],
+  mcpServerNames: readonly string[] = [],
 ): readonly PermissionRule[] => {
   if (role !== "STAGE" && task === null) {
     throw new TypeError("post-signoff OpenCode permissions require an ExecutionTask");
@@ -863,6 +868,8 @@ export const openCodePermissionRules = (
     { action: "read", resource: "*", effect: "allow" },
     { action: "glob", resource: "*", effect: "allow" },
     { action: "grep", resource: "*", effect: "allow" },
+    { action: "read", resource: ".git", effect: "deny" },
+    { action: "read", resource: ".git/*", effect: "deny" },
   ];
 
   if (role === "STAGE") {
@@ -882,6 +889,17 @@ export const openCodePermissionRules = (
     for (const path of task.changeSurface) {
       rules.push({ action: "edit", resource: path, effect: "allow" });
     }
+  }
+
+  for (const skillId of [...new Set(skillIds)].sort()) {
+    rules.push({ action: "skill", resource: skillId, effect: "allow" });
+  }
+  for (const serverName of [...new Set(mcpServerNames)].sort()) {
+    rules.push({
+      action: normalizeOpenCodeMcpNamespace(serverName) + "_*",
+      resource: "*",
+      effect: "allow",
+    });
   }
   return rules;
 };
@@ -944,15 +962,58 @@ const requireSessionBinding = (
   }
 };
 
+export type ProductiveOpenCodeSession = Readonly<{
+  sessionId: string;
+  trustedAccountId: OpenCodeAccountId;
+}>;
+
+const productiveIntegrationAdmission = async (
+  server: OpenCodeServer,
+): Promise<Readonly<{
+  trustedAccountId: OpenCodeAccountId;
+  skillIds: readonly string[];
+  mcpServerNames: readonly string[];
+}>> => {
+  const [accounts, skills, mcps] = await Promise.all([
+    listOpenCodeAccounts({
+      client: server.client,
+      process: server.process,
+      workspace: server.workspace,
+      deadline: Date.now() + startupTimeoutMillis,
+      diagnosticStderr: server.diagnosticStderr,
+    }),
+    server.client.skill.list({ location: { directory: server.workspace } }),
+    server.client.mcp.list({ location: { directory: server.workspace } }),
+  ]);
+  const active = accounts.find((account) =>
+    account.active && account.status.status === "READY"
+  );
+  if (active === undefined) {
+    throw new TypeError("productive OpenCode admission requires a usable active Console account");
+  }
+  return {
+    trustedAccountId: active.id,
+    skillIds: [...new Set(skills.data.map((skill) => skill.id))].sort(),
+    mcpServerNames: [...new Set(mcps.data.map((serverInfo) => serverInfo.name))].sort(),
+  };
+};
+
 export const createOpenCodeSession = async (
   server: OpenCodeServer,
   role: RunRole,
   task: ExecutionTask | null,
   resolvedArtifacts: readonly ArtifactRef[],
   referenceRoots: readonly string[],
-): Promise<string> => {
+): Promise<ProductiveOpenCodeSession> => {
   await assertAgentInstructionsResolved(server.workspace, resolvedArtifacts, task);
-  const permissions = openCodePermissionRules(role, task, referenceRoots);
+  const integration = await productiveIntegrationAdmission(server);
+  const permissions = openCodePermissionRules(
+    role,
+    task,
+    referenceRoots,
+    integration.skillIds,
+    integration.mcpServerNames,
+  );
   const created = await server.client.session.create({
     location: { directory: server.workspace },
   });
@@ -966,7 +1027,7 @@ export const createOpenCodeSession = async (
   });
   const rebound = await server.client.session.get({ sessionID: created.id });
   requireSessionBinding(rebound, server.model, permissions);
-  return created.id;
+  return { sessionId: created.id, trustedAccountId: integration.trustedAccountId };
 };
 
 export const openCodePromptId = (

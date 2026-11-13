@@ -233,6 +233,12 @@ const server = Bun.serve({
         data: [{ ...model, enabled: true }],
       });
     }
+    if (request.method === "GET" && url.pathname === "/api/skill") {
+      return json({ location: { directory: process.cwd() }, data: [] });
+    }
+    if (request.method === "GET" && url.pathname === "/api/mcp") {
+      return json({ location: { directory: process.cwd() }, data: [] });
+    }
     if (request.method === "POST" && url.pathname === "/api/session") {
       const body = await request.json();
       const id = "ses_" + (++nextSession);

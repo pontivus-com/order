@@ -333,15 +333,20 @@ export const runStageTurn = async (
         productiveOpenCodeConfig("STAGE", runtime.config.referenceRoots),
       );
       try {
-        const sessionId = await createOpenCodeSession(
+        const admission = await createOpenCodeSession(
           server,
           "STAGE",
           null,
           context.artifacts,
           runtime.config.referenceRoots,
         );
-        updateRun(runtime, run.id, { providerSessionId: sessionId });
-        active = { server, sessionId };
+        updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
+        active = {
+          server,
+          sessionId: admission.sessionId,
+          trustedAccountId: admission.trustedAccountId,
+          stageMaterialIdentity: null,
+        };
         runtime.activeProviders.set(run.id, active);
       } catch (error) {
         await stopOpenCodeServer(server).catch(() => undefined);
