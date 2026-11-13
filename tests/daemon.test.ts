@@ -322,7 +322,8 @@ const seedSignoffScript = (
   stateRoot: string,
   beforeSignoff = "",
 ): string => {
-  const workItemRoot = tempDir("order-daemon-work-items-");
+  const workItemRoot = join(repositoryRoot, "docs", "order", "work-items");
+  mkdirSync(workItemRoot, { recursive: true });
   return `
   const sql = await import("./src/shell/sqlite.ts");
   const sourceCore = await import("./src/core/work-item-source.ts");
@@ -340,11 +341,10 @@ const seedSignoffScript = (
     ${JSON.stringify(stateRoot)},
     process.env,
     {
-      version: 2,
+      version: 3,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [repositoryRoot],
       referenceRoots: [],
-      workItemRoot: ${JSON.stringify(workItemRoot)},
     },
   );
   const baseline = await repo.resolveHeadCommit(repositoryRoot);
@@ -362,12 +362,13 @@ const seedSignoffScript = (
     "fixture",
   );
   const createdSource = sourceShell.createWorkItemSourceFile(
-    ${JSON.stringify(workItemRoot)},
+    repositoryRoot,
+    "docs/order/work-items",
     work,
     sourceMarkdown,
   );
   const source = sourceShell.readWorkItemSource(
-    ${JSON.stringify(workItemRoot)},
+    repositoryRoot,
     createdSource.path,
   );
   sql.storeWorkItem(database, {
@@ -550,8 +551,7 @@ describe("daemon control plane", () => {
 
   it("enforces public-health-only, one-time connect, cookie auth, Origin, and no CORS", () => {
     const state = tempDir("order-daemon-http-");
-    const workItemRoot = tempDir("order-daemon-http-work-items-");
-    mkdirSync(join(process.cwd(), "dist"), { recursive: true });
+        mkdirSync(join(process.cwd(), "dist"), { recursive: true });
     writeFileSync(join(process.cwd(), "dist", "index.html"), "<!doctype html><title>Order</title>");
     distOwned = true;
 
@@ -569,11 +569,10 @@ describe("daemon control plane", () => {
         state,
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [state],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const probe = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: () => new Response("x") });
@@ -756,7 +755,8 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const allowed = createRepository("allowed");
     const state = tempDir("order-daemon-root-policy-");
-    const workItemRoot = tempDir("order-daemon-root-policy-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
@@ -767,11 +767,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(allowed)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       let rejected = false;
@@ -798,7 +797,8 @@ describe("daemon control plane", () => {
     const originalRepository = createRepository("original");
     const reclassifiedRepository = createRepository("reclassified");
     const state = tempDir("order-daemon-r1-reclassification-");
-    const workItemRoot = tempDir("order-daemon-r1-reclassification-work-items-");
+    const workItemRoot = join(originalRepository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
     const binary = createFakeOpenCode("fix");
 
     const output = bunEval(`
@@ -813,14 +813,13 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [
             ${JSON.stringify(originalRepository)},
             ${JSON.stringify(reclassifiedRepository)},
           ],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -829,17 +828,13 @@ describe("daemon control plane", () => {
         title: "reclassify before R1",
         concernIds: ["shell"],
       });
-      const source = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        created.sourcePath,
+      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], created.sourcePath,
       );
       const changedMarkdown = sourceCore.renderWorkItemSourceMarkdown(
         { ...source.metadata, projectId: "reclassified" },
         source.title,
       );
-      sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        source.path,
+      sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], source.path,
         source.sha256,
         changedMarkdown,
       );
@@ -877,7 +872,8 @@ describe("daemon control plane", () => {
   it("enforces same-project terminal investigation/audit lineage and delivery-only remediation", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-remediation-");
-    const workItemRoot = tempDir("order-daemon-remediation-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
@@ -891,11 +887,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
 
@@ -907,14 +902,10 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
         schemaId: "investigation-v1",
       }, "finished investigation");
-      const created = sourceShell.createWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        parentId,
+      const created = sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", parentId,
         parentMarkdown,
       );
-      const parentSource = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        created.path,
+      const parentSource = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], created.path,
       );
       sql.storeWorkItem(database, {
         id: parentId,
@@ -963,7 +954,7 @@ describe("daemon control plane", () => {
         schemaId: "change-v1",
         derivedFromWorkItemId: selfId,
       }, "self linked");
-      sourceShell.createWorkItemSourceFile(runtime.config.workItemRoot, selfId, selfMarkdown);
+      sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", selfId, selfMarkdown);
       const reconciliation = await coord.reconcileSources(runtime);
 
       console.log(JSON.stringify({
@@ -990,7 +981,8 @@ describe("daemon control plane", () => {
   it("blocks a schema-invalid R1 completion as semantic conformance failure", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-kind-invalid-r1-");
-    const workItemRoot = tempDir("order-daemon-kind-invalid-r1-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
@@ -1007,11 +999,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1122,8 +1113,8 @@ describe("daemon control plane", () => {
 
     const output = bunEval(seedSignoffScript(repository, state) + `
       const fsForFailure = await import("node:fs");
-      fsForFailure.rmSync(runtime.config.workItemRoot, { recursive: true, force: true });
-      fsForFailure.writeFileSync(runtime.config.workItemRoot, "not a directory");
+      fsForFailure.rmSync((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), { recursive: true, force: true });
+      fsForFailure.writeFileSync((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "not a directory");
       let threw = false;
       let message = "";
       try {
@@ -1143,7 +1134,8 @@ describe("daemon control plane", () => {
   it("discovers an existing source and binds its exact hash into R1 context", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-discovery-");
-    const workItemRoot = tempDir("order-daemon-source-discovery-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const core = await import("./src/core/work-item-source.ts");
@@ -1158,11 +1150,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
 
@@ -1174,9 +1165,7 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
         schemaId: "change-v1",
       }, "discovered source");
-      const created = sourceShell.createWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        id,
+      const created = sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", id,
         markdown,
       );
       const reconciliation = await coord.reconcileSources(runtime);
@@ -1185,17 +1174,13 @@ describe("daemon control plane", () => {
       const r1 = coord.getWorkItem(runtime, id);
       const before = await authority.resolveStageContext(runtime, r1, "R1");
 
-      const source = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        discovered.sourcePath,
+      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], discovered.sourcePath,
       );
       const changedMarkdown = source.markdown.replace(
         "# discovered source",
         "# externally changed source",
       );
-      const changed = sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        source.path,
+      const changed = sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], source.path,
         source.sha256,
         changedMarkdown,
       );
@@ -1254,7 +1239,8 @@ describe("daemon control plane", () => {
   it("blocks productive stage start when the canonical source is missing without changing lifecycle state", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-missing-boundary-");
-    const workItemRoot = tempDir("order-daemon-source-missing-boundary-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const fs = await import("node:fs");
@@ -1267,11 +1253,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1280,7 +1265,7 @@ describe("daemon control plane", () => {
         title: "missing source boundary",
         concernIds: ["shell"],
       });
-      fs.unlinkSync(path.join(runtime.config.workItemRoot, created.sourcePath));
+      fs.unlinkSync(path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), created.sourcePath));
       let rejected = false;
       try {
         await coord.startStageRun(runtime, created.id, "INTERACTIVE");
@@ -1316,7 +1301,8 @@ describe("daemon control plane", () => {
   it("keeps completed source changes diagnostic-only and preserves terminal history", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-completed-source-");
-    const workItemRoot = tempDir("order-daemon-completed-source-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const sourceShell = await import("./src/shell/work-item-source.ts");
@@ -1328,11 +1314,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1347,13 +1332,9 @@ describe("daemon control plane", () => {
         outcome: "DUPLICATE",
       });
       const terminal = coord.getWorkItem(runtime, created.id);
-      const source = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        terminal.sourcePath,
+      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], terminal.sourcePath,
       );
-      const write = sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        source.path,
+      const write = sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], source.path,
         source.sha256,
         source.markdown.replace(
           "# completed immutable source",
@@ -1395,7 +1376,8 @@ describe("daemon control plane", () => {
   it("does not invalidate lifecycle state for an identical-byte source save", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-noop-save-");
-    const workItemRoot = tempDir("order-daemon-source-noop-save-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const sourceShell = await import("./src/shell/work-item-source.ts");
@@ -1407,11 +1389,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1426,9 +1407,7 @@ describe("daemon control plane", () => {
         outcome: null,
       });
       const before = coord.getWorkItem(runtime, created.id);
-      const source = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        before.sourcePath,
+      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], before.sourcePath,
       );
       const saved = await coord.saveSource(runtime, before.id, {
         expectedSha256: source.sha256,
@@ -1460,7 +1439,8 @@ describe("daemon control plane", () => {
   it("returns STALE before parsing a stale source-save buffer and never overwrites newer bytes", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-save-stale-");
-    const workItemRoot = tempDir("order-daemon-source-save-stale-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const fs = await import("node:fs");
@@ -1474,11 +1454,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1487,14 +1466,10 @@ describe("daemon control plane", () => {
         title: "source stale",
         concernIds: ["shell"],
       });
-      const source = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        created.sourcePath,
+      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], created.sourcePath,
       );
       const newerMarkdown = source.markdown.replace("# source stale", "# newer source");
-      const external = sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        source.path,
+      const external = sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], source.path,
         source.sha256,
         newerMarkdown,
       );
@@ -1503,7 +1478,7 @@ describe("daemon control plane", () => {
         markdown: "this is not valid WorkItem Markdown",
       });
       const exact = fs.readFileSync(
-        path.join(runtime.config.workItemRoot, source.path),
+        path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), source.path),
         "utf8",
       );
       const after = coord.getWorkItem(runtime, created.id);
@@ -1569,13 +1544,9 @@ describe("daemon control plane", () => {
         category: "INFORMATION",
         question: "clarify",
       });
-      const waitingSource = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        planWorkItem.sourcePath,
+      const waitingSource = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], planWorkItem.sourcePath,
       );
-      sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        waitingSource.path,
+      sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], waitingSource.path,
         waitingSource.sha256,
         waitingSource.markdown.replace("# fixture", "# changed while waiting"),
       );
@@ -1618,11 +1589,9 @@ describe("daemon control plane", () => {
     const output = bunEval(seedSignoffScript(repository, state) + `
       const before = await authority.approvalFreshness(runtime, approval);
       const current = coord.getWorkItem(runtime, work);
-      const currentSource = sourceShell.readWorkItemSource(runtime.config.workItemRoot, current.sourcePath);
+      const currentSource = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], current.sourcePath);
       const changed = currentSource.markdown.replace("# fixture", "# changed fixture");
-      const write = sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        currentSource.path,
+      const write = sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], currentSource.path,
         currentSource.sha256,
         changed,
       );
@@ -1658,7 +1627,8 @@ describe("daemon control plane", () => {
   it("keeps unresolved project and concern diagnostics as distinct typed source conditions", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-resolution-");
-    const workItemRoot = tempDir("order-daemon-source-resolution-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const sourceCore = await import("./src/core/work-item-source.ts");
@@ -1672,18 +1642,15 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
 
       const unknownProjectId = rt.newWorkItemId();
-      sourceShell.createWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        unknownProjectId,
+      sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", unknownProjectId,
         sourceCore.renderWorkItemSourceMarkdown({
           formatVersion: 1,
           id: unknownProjectId,
@@ -1694,9 +1661,7 @@ describe("daemon control plane", () => {
       );
 
       const unknownConcernId = rt.newWorkItemId();
-      sourceShell.createWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        unknownConcernId,
+      sourceShell.createWorkItemSourceFile(runtime.config.repositoryRoots[0], "docs/order/work-items", unknownConcernId,
         sourceCore.renderWorkItemSourceMarkdown({
           formatVersion: 1,
           id: unknownConcernId,
@@ -1721,7 +1686,8 @@ describe("daemon control plane", () => {
   it("requires explicit full reconciliation to discover a moved source path", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-targeted-boundary-");
-    const workItemRoot = tempDir("order-daemon-source-targeted-boundary-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const fs = await import("node:fs");
@@ -1734,11 +1700,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1747,9 +1712,9 @@ describe("daemon control plane", () => {
         title: "targeted source boundary",
         concernIds: ["shell"],
       });
-      const original = path.join(runtime.config.workItemRoot, created.sourcePath);
-      fs.mkdirSync(path.join(runtime.config.workItemRoot, "moved"), { recursive: true });
-      const movedPath = path.join(runtime.config.workItemRoot, "moved", "item.md");
+      const original = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), created.sourcePath);
+      fs.mkdirSync(path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved"), { recursive: true });
+      const movedPath = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved", "item.md");
       fs.renameSync(original, movedPath);
 
       let rejected = false;
@@ -1788,7 +1753,8 @@ describe("daemon control plane", () => {
   it("classifies moved, duplicate and missing portable sources without duplicate WorkItems", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-reconcile-");
-    const workItemRoot = tempDir("order-daemon-source-reconcile-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
 
     const output = bunEval(`
       const fs = await import("node:fs");
@@ -1801,11 +1767,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const created = await coord.createWorkItem(runtime, {
@@ -1814,14 +1779,14 @@ describe("daemon control plane", () => {
         title: "reconcile",
         concernIds: ["shell"],
       });
-      const original = path.join(runtime.config.workItemRoot, created.sourcePath);
-      fs.mkdirSync(path.join(runtime.config.workItemRoot, "moved"), { recursive: true });
-      const movedPath = path.join(runtime.config.workItemRoot, "moved", "item.md");
+      const original = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), created.sourcePath);
+      fs.mkdirSync(path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved"), { recursive: true });
+      const movedPath = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved", "item.md");
       fs.renameSync(original, movedPath);
       const moved = await coord.reconcileSources(runtime);
       const afterMove = coord.getWorkItem(runtime, created.id);
 
-      const duplicatePath = path.join(runtime.config.workItemRoot, "duplicate.md");
+      const duplicatePath = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "duplicate.md");
       fs.copyFileSync(movedPath, duplicatePath);
       const duplicate = await coord.reconcileSources(runtime);
       const afterDuplicateCount = coord.listWorkItems(runtime).length;
@@ -1858,7 +1823,8 @@ describe("daemon control plane", () => {
   it("materializes current lifecycle Markdown snapshots from latest STAGE lineage", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-current-lifecycle-");
-    const workItemRoot = tempDir("order-daemon-current-lifecycle-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
     writeFileSync(join(repository, "docs", "plan.md"), "plan original\n");
 
     const output = bunEval(`
@@ -1873,11 +1839,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const workItem = await coord.createWorkItem(runtime, {
@@ -1953,7 +1918,8 @@ describe("daemon control plane", () => {
   it("returns direct PLAN Markdown edits to PLAN and rejects direct R3 mutation", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-direct-edit-");
-    const workItemRoot = tempDir("order-daemon-direct-edit-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
     writeFileSync(join(repository, "docs", "plan.md"), "plan before\n");
     writeFileSync(join(repository, "docs", "r3.md"), "r3 before\n");
 
@@ -1970,11 +1936,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const workItem = await coord.createWorkItem(runtime, {
@@ -2096,7 +2061,8 @@ describe("daemon control plane", () => {
   it("reconciles a pending adopted proposal from repository facts on the next coordinator pass", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-proposal-reconcile-");
-    const workItemRoot = tempDir("order-daemon-proposal-work-items-");
+    const workItemRoot = join(repository, "docs", "order", "work-items");
+    mkdirSync(workItemRoot, { recursive: true });
     writeFileSync(join(repository, "docs", "proposal.md"), "accepted\n");
     const proposalDiff = spawnSync(
       "git",
@@ -2120,11 +2086,10 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 2,
+          version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
-          workItemRoot: ${JSON.stringify(workItemRoot)},
         },
       );
       const workItem = await coord.createWorkItem(runtime, {
@@ -2299,13 +2264,9 @@ describe("daemon control plane", () => {
       }
 
       const beforeDrift = coord.getWorkItem(runtime, work);
-      const driftSource = sourceShell.readWorkItemSource(
-        runtime.config.workItemRoot,
-        beforeDrift.sourcePath,
+      const driftSource = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], beforeDrift.sourcePath,
       );
-      sourceShell.replaceWorkItemSourceFile(
-        runtime.config.workItemRoot,
-        driftSource.path,
+      sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], driftSource.path,
         driftSource.sha256,
         driftSource.markdown.replace("# fixture", "# changed during builder"),
       );
