@@ -33,7 +33,6 @@ import {
   WorkItemIdSchema,
 } from "../core/contracts.ts";
 import { readOrderConfig } from "../shell/config.ts";
-import { loadConfiguredProjects } from "../shell/project.ts";
 import {
   isoDateTimeFromEpochMillis,
   loadOrCreateDaemonToken,
@@ -43,12 +42,7 @@ import {
 import { openOrderDatabase } from "../shell/sqlite.ts";
 import { gitVersion } from "../shell/repository.ts";
 import {
-  startOpenCodeServer,
-  stopOpenCodeServer,
-} from "../shell/opencode.ts";
-import {
   adoptArtifactProposal,
-  armScheduler,
   cancelRun,
   commitDocumentation,
   createCoordinatorRuntime,
@@ -992,45 +986,43 @@ export const startOrderDaemon = async (
   const config = readOrderConfig(stateRoot);
   const database = openOrderDatabase(stateRoot);
   const daemonToken = loadOrCreateDaemonToken(stateRoot);
-  const coordinator = createCoordinatorRuntime(database, stateRoot, environment, config);
+  const initial = createCoordinatorRuntime(database, stateRoot, environment, config);
+  const owner = createCoordinatorRuntimeOwner(initial);
 
   try {
     const git = await gitVersion();
     if (!/^git version [0-9]+\.[0-9]+\.[0-9]+/.test(git)) {
       throw new TypeError("Git version probe returned an unexpected result");
     }
-    await loadConfiguredProjects(config.repositoryRoots);
 
-    if (config.repositoryRoots.length === 0 || config.model === null) {
-      throw new TypeError(
-        "productive daemon startup requires at least one configured repository and model",
-      );
+    const readyRoots = await readyRepositoryRoots(config);
+    await reconcileSources(initial, readyRoots);
+    const readiness = await installationReadiness(owner);
+    if (readiness.ready) {
+      await startCoordinatorScheduler(initial);
+    } else {
+      initial.schedulerStopped = true;
     }
-    const provider = await startOpenCodeServer(
-      stateRoot,
-      config.repositoryRoots[0]!,
-      config.model,
-      environment,
-    );
-    await stopOpenCodeServer(provider);
 
-    await reconcileSources(coordinator);
-    const http = startDaemonServer(coordinator, daemonToken);
-    await startCoordinatorScheduler(coordinator);
+    const http = startDaemonServer(owner, daemonToken);
     return {
       database,
-      coordinator,
+      get coordinator() {
+        return owner.current;
+      },
       http,
       stop: async () => {
-        await stopCoordinatorScheduler(coordinator);
-        await stopSavedOpenCodeAccountControl(coordinator);
+        const current = owner.current;
+        await stopCoordinatorScheduler(current);
+        await stopSavedOpenCodeAccountControl(current);
         http.server.stop(true);
         database.close();
       },
     };
   } catch (error) {
-    await stopCoordinatorScheduler(coordinator).catch(() => undefined);
-    await stopSavedOpenCodeAccountControl(coordinator).catch(() => undefined);
+    const current = owner.current;
+    await stopCoordinatorScheduler(current).catch(() => undefined);
+    await stopSavedOpenCodeAccountControl(current).catch(() => undefined);
     database.close();
     throw error;
   }
