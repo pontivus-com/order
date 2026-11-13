@@ -2102,6 +2102,8 @@ Browser/source creation writes exactly the computed `SOURCE` path; it never acce
 
 ### 32.4 OrderConfig v3
 
+> Historical v3 cutover contract. The current runtime configuration contract is v4 under §35.11; this section remains authoritative only for v3 migration input.
+
 ```ts
 const OrderConfigSchema = z.strictObject({
   version: z.literal(3),
@@ -2113,7 +2115,7 @@ const OrderConfigSchema = z.strictObject({
 
 All existing repository/reference-root invariants remain. `workItemRoot` is removed.
 
-Ordinary productive runtime accepts only config v3. Config v2 is accepted only by the installer-owned bounded v2→v3 migration.
+At the v3 cutover, ordinary productive runtime accepted only config v3 and v2 was installer-owned migration input. Current runtime behavior is superseded by §35.11.
 
 ### 32.5 SQLite schema v3
 
