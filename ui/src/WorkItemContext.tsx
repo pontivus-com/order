@@ -5,7 +5,6 @@ import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { workflowPresentation } from "./workbench-presentation.ts";
 import { WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 export const WorkItemContext = ({
@@ -60,19 +59,11 @@ export const WorkItemContext = ({
   const kind =
     schemasQuery.data?.find((schema) => schema.schemaId === workItem.schemaId)?.kind ??
     workItem.schemaId;
-  const workflow = workflowPresentation(workItem.stage);
-
   return (
     <div className="order-context-panel">
       <div className="order-context-heading">
-        <strong>{workItem.title}</strong>
-        <span>{workItem.repositoryRoot}</span>
-      </div>
-
-      <div className="order-context-section" data-testid="context-workflow-summary">
-        <strong>{workflow.label}</strong>
-        <span>{workflow.purpose}</span>
-        <span>{workItem.status === "ACTIVE" ? "Active" : workItem.status.toLowerCase()}</span>
+        <strong>Technical context</strong>
+        <span>Inspection details for the selected WorkItem workspace.</span>
       </div>
 
       <div className="order-context-section">

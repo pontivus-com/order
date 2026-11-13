@@ -58,13 +58,11 @@ export const WorkItemWorkspace = ({
   workItem,
   onBack,
   onOpenContext,
-  showContextAction,
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
   onBack: () => void;
   onOpenContext: () => void;
-  showContextAction: boolean;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -300,14 +298,12 @@ export const WorkItemWorkspace = ({
               icon={<WorkbenchIcon name="back" />}
               onClick={onBack}
             />
-            {showContextAction ? (
-              <WorkbenchAction
-                label="Context"
-                tone="ghost"
-                icon={<WorkbenchIcon name="context" />}
-                onClick={onOpenContext}
-              />
-            ) : null}
+            <WorkbenchAction
+              label="Context"
+              tone="ghost"
+              icon={<WorkbenchIcon name="context" />}
+              onClick={onOpenContext}
+            />
           </div>
           <div className="order-workitem-heading-block">
             {titleEditing ? (
@@ -359,28 +355,6 @@ export const WorkItemWorkspace = ({
               </span>
             ) : null}
           </div>
-          <nav
-            className="order-workflow-progression"
-            aria-label="Workflow progression"
-            data-testid="workflow-progression"
-          >
-            {workflowSteps.map((step) => {
-              const target = workflowInspectionTarget(workItem, step);
-              return (
-                <button
-                  key={step.stage}
-                  type="button"
-                  aria-current={step.stage === workItem.stage ? "step" : undefined}
-                  aria-disabled={target.kind === "UNREACHED" ? "true" : undefined}
-                  data-reached={target.kind === "UNREACHED" ? "false" : "true"}
-                  title={step.purpose}
-                  onClick={() => inspectWorkflowStep(step)}
-                >
-                  {step.label}
-                </button>
-              );
-            })}
-          </nav>
           <div className="order-workitem-rail-actions">
             <WorkbenchAction
               label={workItem.archived ? "Restore work item" : "Archive work item"}
@@ -397,27 +371,53 @@ export const WorkItemWorkspace = ({
                 onClick={() => start.mutate()}
               />
             ) : null}
-            {mode !== null ? (
-              <SegmentedControl
-                label="Workspace mode"
-                value={mode}
-                onChange={(value) => {
-                  if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
-                }}
-                size="sm"
-              >
-                {visibleModes.map((item) => (
-                  <SegmentedControlItem
-                    key={item}
-                    value={item}
-                    label={workItemModeLabel(item)}
-                  />
-                ))}
-              </SegmentedControl>
-            ) : null}
           </div>
         </div>
       </header>
+
+      <nav
+        className="order-workflow-progression"
+        aria-label="Workflow progression"
+        data-testid="workflow-progression"
+      >
+        {workflowSteps.map((step) => {
+          const target = workflowInspectionTarget(workItem, step);
+          return (
+            <button
+              key={step.stage}
+              type="button"
+              aria-current={step.stage === workItem.stage ? "step" : undefined}
+              aria-disabled={target.kind === "UNREACHED" ? "true" : undefined}
+              data-reached={target.kind === "UNREACHED" ? "false" : "true"}
+              title={step.purpose}
+              onClick={() => inspectWorkflowStep(step)}
+            >
+              {step.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      {mode !== null ? (
+        <div className="order-workspace-view-selector" data-testid="workspace-view-selector">
+          <SegmentedControl
+            label="Workspace view"
+            value={mode}
+            onChange={(value) => {
+              if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
+            }}
+            size="sm"
+          >
+            {visibleModes.map((item) => (
+              <SegmentedControlItem
+                key={item}
+                value={item}
+                label={workItemModeLabel(item)}
+              />
+            ))}
+          </SegmentedControl>
+        </div>
+      ) : null}
 
       {sourceDiagnostics.length > 0 ? (
         <div className="order-primary-blocker" role="alert" data-testid="work-item-source-blocker">

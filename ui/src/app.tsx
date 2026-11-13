@@ -24,7 +24,7 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchLayout, useWideWorkbench } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
 import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
@@ -119,7 +119,6 @@ const updateDestinationUrl = (
 
 export const App = () => {
   const queryClient = useQueryClient();
-  const wideWorkbench = useWideWorkbench();
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<WorkItemId | null>(selectedIdFromUrl);
   const [settingsSection, setSettingsSection] = useState<SettingsSection | null>(settingsSectionFromUrl);
   const [queueProjectId, setQueueProjectId] = useState("");
@@ -428,7 +427,6 @@ export const App = () => {
         workItem={selectedWorkItem}
         onBack={() => requestSelection(null)}
         onOpenContext={() => setContextOpen(true)}
-        showContextAction={!wideWorkbench}
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>

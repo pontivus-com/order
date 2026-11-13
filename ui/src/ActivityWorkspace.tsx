@@ -177,45 +177,6 @@ export const ActivityWorkspace = ({
 
   return (
     <section className="order-workspace-section order-activity-workspace" data-testid="activity-workspace">
-      <div className="order-activity-summary" data-testid="activity-summary">
-        <div>
-          <span className="order-eyebrow">Activity</span>
-          <h2>{selectedStep.label}</h2>
-          <p>{selectedStep.purpose}</p>
-        </div>
-        <div className="order-activity-state">
-          <Badge variant={statusVariant(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
-          <span>{runRoleLabel(selectedRun.role)} · Attempt {selectedRun.attempt}</span>
-          <time>{new Date(selectedRun.startedAt).toLocaleString()}</time>
-        </div>
-        <div className="order-inline-actions">
-          {runIsActive(selectedRun) ? (
-            <WorkbenchAction
-              label="Cancel current activity"
-              tone="destructive"
-              loading={cancel.isPending}
-              onClick={() => cancel.mutate()}
-            />
-          ) : null}
-          {canRetry ? (
-            <WorkbenchAction
-              label={"Retry " + workflowPresentation(workItem.stage).label}
-              tone="primary"
-              loading={retry.isPending}
-              onClick={() => retry.mutate()}
-            />
-          ) : null}
-          {canResume ? (
-            <WorkbenchAction
-              label="Resume resolved blocker"
-              tone="primary"
-              loading={resume.isPending}
-              onClick={() => resume.mutate()}
-            />
-          ) : null}
-        </div>
-      </div>
-
       {actionError ? (
         <WorkbenchErrorState
           title="Activity action failed"
@@ -242,10 +203,40 @@ export const ActivityWorkspace = ({
         </aside>
 
         <div className="order-activity-detail" data-testid="activity-detail">
-          <div className="order-activity-run-heading">
+          <div className="order-activity-run-heading" data-testid="selected-run-header">
             <div>
-              <strong>{runSummaryLabel(selectedRun)}</strong>
-              <span>{runStatusLabel(selectedRun.status)}</span>
+              <strong>{selectedStep.label} · {runRoleLabel(selectedRun.role)}</strong>
+              <span>
+                <Badge variant={statusVariant(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
+                {" · Attempt " + selectedRun.attempt + " · "}
+                <time>{new Date(selectedRun.startedAt).toLocaleString()}</time>
+              </span>
+            </div>
+            <div className="order-inline-actions">
+              {runIsActive(selectedRun) ? (
+                <WorkbenchAction
+                  label="Cancel current activity"
+                  tone="destructive"
+                  loading={cancel.isPending}
+                  onClick={() => cancel.mutate()}
+                />
+              ) : null}
+              {canRetry ? (
+                <WorkbenchAction
+                  label={"Retry " + workflowPresentation(workItem.stage).label}
+                  tone="primary"
+                  loading={retry.isPending}
+                  onClick={() => retry.mutate()}
+                />
+              ) : null}
+              {canResume ? (
+                <WorkbenchAction
+                  label="Resume resolved blocker"
+                  tone="primary"
+                  loading={resume.isPending}
+                  onClick={() => resume.mutate()}
+                />
+              ) : null}
             </div>
             <details className="order-technical-details order-run-technical-details">
               <summary>Technical details</summary>

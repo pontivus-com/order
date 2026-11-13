@@ -13,6 +13,7 @@ import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import {
+  lifecycleArtifactLabel,
   lifecycleArtifactRoleRank,
   type WorkflowDocumentTarget,
 } from "./workbench-presentation.ts";
@@ -273,8 +274,10 @@ export const DocumentWorkspace = ({
           role="tablist"
           overflow="scroll"
         >
-          <Tab value="SOURCE" label="Source" />
-          {artifacts.map((artifact) => <Tab key={artifact.id} value={artifact.id} label={artifact.role} />)}
+          <Tab value="SOURCE" label="Work request" />
+          {artifacts.map((artifact) => (
+            <Tab key={artifact.id} value={artifact.id} label={lifecycleArtifactLabel(artifact.role)} />
+          ))}
         </TabList>
       </div>
 
@@ -334,7 +337,7 @@ export const DocumentWorkspace = ({
         ) : contentQuery.data && markdown !== null ? (
           <MarkdownEditor
             key={selectedArtifact.id}
-            title={selectedArtifact.role + " lifecycle document"}
+            title={lifecycleArtifactLabel(selectedArtifact.role) + " document"}
             description={artifactReadOnly ? "Read-only in the current lifecycle state." : selectedArtifact.repositoryPath}
             sha256={selectedArtifact.sha256}
             markdown={markdown}

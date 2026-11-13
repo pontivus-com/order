@@ -283,6 +283,21 @@ export const lifecycleArtifactRoleRank = (
   role: ArtifactRef["role"],
 ): number => lifecycleArtifactRoleOrder[role];
 
+export const lifecycleArtifactLabel = (
+  role: ArtifactRef["role"],
+): string => {
+  switch (role) {
+    case "PROJECT_MANIFEST": return "Project manifest";
+    case "R1": return workflowPresentation("R1").label;
+    case "R2": return workflowPresentation("R2").label;
+    case "DESIGN": return workflowPresentation("DESIGN").label;
+    case "PLAN": return workflowPresentation("PLAN").label;
+    case "R3": return workflowPresentation("R3").label;
+    case "GOVERNANCE": return "Governance";
+    case "VERIFICATION_MATERIAL": return "Verification material";
+  }
+};
+
 export const workItemInitialMode = (
   workItem: Pick<WorkItem, "stage" | "outcome">,
   runs: readonly Pick<Run, "status">[] = [],
