@@ -184,6 +184,40 @@ test("appearance uses a compact theme utility, follows system mode, and persists
   await expect(page.getByLabel("Theme")).toHaveValue("system");
 });
 
+test("Settings uses stable native-history destinations and daemon-owned readiness", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page).toHaveURL(baseURL + "/settings/repositories");
+  const settings = page.getByTestId("settings-workspace");
+  await expect(settings).toBeVisible();
+  await expect(page.getByTestId("settings-repositories")).toBeVisible();
+  await expect(settings).toContainText("WorkItem documents");
+
+  await settings.getByRole("button", { name: "Model & runtime" }).click();
+  await expect(page).toHaveURL(baseURL + "/settings/model");
+  await expect(page.getByTestId("settings-model")).toBeVisible();
+
+  await settings.getByRole("button", { name: "OpenCode" }).click();
+  await expect(page).toHaveURL(baseURL + "/settings/opencode");
+  await expect(page.getByTestId("settings-opencode")).toBeVisible();
+
+  await page.goBack();
+  await expect(page).toHaveURL(baseURL + "/settings/model");
+  await page.goBack();
+  await expect(page).toHaveURL(baseURL + "/settings/repositories");
+  await page.goBack();
+  await expect(page).toHaveURL(baseURL + "/");
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
+  await page.goForward();
+  await expect(page).toHaveURL(baseURL + "/settings/repositories");
+  await expect(page.getByTestId("settings-workspace")).toBeVisible();
+});
+
 test("global OpenCode account utility switches, renames, signs in, blocks during active Runs, and remains responsive", async ({
   page,
   request,
