@@ -101,12 +101,13 @@ const knownDiagnosticSecrets = (
     password,
     basicAuthorization(password),
     ...Object.entries(sourceEnvironment)
-      .filter(([name, value]) =>
+      .flatMap(([name, value]) =>
         sensitiveEnvironmentName.test(name) &&
         value !== undefined &&
         value.length > 0
-      )
-      .map(([, value]) => value as string),
+          ? [value]
+          : []
+      ),
   ])].filter((value) => value.length > 0);
 
 const redactDiagnosticText = (
