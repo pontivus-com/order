@@ -8,6 +8,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Add the canonical typed HTTP failure boundary with actionable source/current-state diagnostics.
+
+### Changed
+
 - Add canonical WorkItem documentation Git status and exact path-scoped commit persistence.
 
 ### Changed
