@@ -163,21 +163,21 @@ describe("productive configuration policy", () => {
   it("keeps configuration strict and path containment component-safe", () => {
     expect(OrderConfigSchema.safeParse({
       version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: ["/home/test/projects"],
       referenceRoots: [],
       workItemRoot: "/home/test/work-items",
     }).success).toBe(true);
     expect(OrderConfigSchema.safeParse({
       version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [],
       referenceRoots: [],
       workItemRoot: "/home/test/work-items",
     }).success).toBe(false);
     expect(OrderConfigSchema.safeParse({
       version: 1,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: ["/home/test/projects"],
       referenceRoots: [],
     }).success).toBe(false);
