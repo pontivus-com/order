@@ -6,14 +6,6 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
-### Internal
-
-- Finalize publication recovery for the first public release from the certified replacement `0.2.0` candidate.
-
-### Fixed
-
-- Ensure repository-triggered exact release retries execute the full publication path even when the certified replacement candidate keeps the same package version as its parent.
-
 ## [0.2.0] - 2026-11-13
 
 ### Added
@@ -40,6 +32,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Finalize publication recovery for the first public release from the certified replacement `0.2.0` candidate.
+- Ensure repository-triggered exact release retries execute the full publication path even when the certified replacement candidate keeps the same package version as its parent.
 - Replace the incorrect Order logo construction with the approved six-blade aperture mark across every repository brand asset.
 - Correct the horizontal Order logo canvas crop so the visible mark and wordmark render centered in the GitHub README and other fixed-width placements.
 - Force GitHub to render the corrected centered README logo plate from a new asset path instead of a stale cached SVG.
