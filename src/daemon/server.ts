@@ -14,7 +14,12 @@ import {
   CommitWorkItemDocumentationSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
+  ActivateOpenCodeAccountSchema,
+  OpenCodeAccountIdSchema,
+  OpenCodeAccountLoginAttemptIdSchema,
   OrderHttpErrorSchema,
+  RenameOpenCodeAccountSchema,
+  StartOpenCodeAccountLoginSchema,
   SetWorkItemArchivedSchema,
   UpdateWorkItemTitleSchema,
   RunEventIdSchema,
@@ -75,6 +80,15 @@ import {
   updateTitle,
   type CoordinatorRuntime,
 } from "./coordinator.ts";
+import {
+  activateSavedOpenCodeAccount,
+  cancelSavedOpenCodeAccountLogin,
+  openCodeAccountState,
+  pollSavedOpenCodeAccountLogin,
+  renameSavedOpenCodeAccount,
+  startSavedOpenCodeAccountLogin,
+  stopSavedOpenCodeAccountControl,
+} from "./opencode-account.ts";
 
 const connectTokenLifetimeMillis = 60_000;
 const tokenPattern = /^[0-9a-f]{64}$/;
@@ -211,7 +225,7 @@ export const classifyHttpFailure = (
 
   if (
     error instanceof TypeError &&
-    /(?:WorkItem|ArtifactRef|Approval|Run|RunEvent|execution task) does not exist/.test(error.message)
+    /(?:WorkItem|ArtifactRef|Approval|Run|RunEvent|execution task|OpenCode account(?: login attempt)?) does not exist/.test(error.message)
   ) {
     return {
       status: 404,
@@ -480,6 +494,63 @@ const routeApi = async (
     ? requireBrowserQuery(request, sessions)
     : requireBrowserMutation(request, sessions, bind.origin);
   if (browserAuth) return browserAuth;
+
+  if (request.method === "GET" && url.pathname === "/api/opencode/accounts") {
+    return jsonResponse(await openCodeAccountState(runtime));
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/opencode/accounts/login") {
+    const body = await parseRequest(async () =>
+      StartOpenCodeAccountLoginSchema.parse(await readJsonBody(request))
+    );
+    return jsonResponse(await startSavedOpenCodeAccountLogin(runtime, body), 201);
+  }
+
+  if (
+    parts[0] === "api" &&
+    parts[1] === "opencode" &&
+    parts[2] === "accounts" &&
+    parts[3] === "login" &&
+    parts[4] &&
+    parts.length === 5
+  ) {
+    const attemptId = await parseRequest(() =>
+      OpenCodeAccountLoginAttemptIdSchema.parse(parts[4])
+    );
+    if (request.method === "GET") {
+      return jsonResponse(await pollSavedOpenCodeAccountLogin(runtime, attemptId));
+    }
+    if (request.method === "DELETE") {
+      await cancelSavedOpenCodeAccountLogin(runtime, attemptId);
+      return new Response(null, { status: 204, headers: commonHeaders() });
+    }
+  }
+
+  if (
+    parts[0] === "api" &&
+    parts[1] === "opencode" &&
+    parts[2] === "accounts" &&
+    parts[3] &&
+    parts[3] !== "login"
+  ) {
+    const accountId = await parseRequest(() => OpenCodeAccountIdSchema.parse(parts[3]));
+    if (parts.length === 4 && request.method === "PATCH") {
+      const body = await parseRequest(async () =>
+        RenameOpenCodeAccountSchema.parse(await readJsonBody(request))
+      );
+      return jsonResponse(await renameSavedOpenCodeAccount(runtime, accountId, body));
+    }
+    if (
+      parts.length === 5 &&
+      parts[4] === "activate" &&
+      request.method === "POST"
+    ) {
+      const body = await parseRequest(async () =>
+        ActivateOpenCodeAccountSchema.parse(await readJsonBody(request))
+      );
+      return jsonResponse(await activateSavedOpenCodeAccount(runtime, accountId, body));
+    }
+  }
 
   if (request.method === "GET" && url.pathname === "/api/work-items") {
     const includeArchived = url.searchParams.get("includeArchived");
@@ -809,12 +880,14 @@ export const startOrderDaemon = async (
       http,
       stop: async () => {
         await stopCoordinatorScheduler(coordinator);
+        await stopSavedOpenCodeAccountControl(coordinator);
         http.server.stop(true);
         database.close();
       },
     };
   } catch (error) {
     await stopCoordinatorScheduler(coordinator).catch(() => undefined);
+    await stopSavedOpenCodeAccountControl(coordinator).catch(() => undefined);
     database.close();
     throw error;
   }
