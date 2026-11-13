@@ -13,6 +13,8 @@ import {
   ArtifactRefIdSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
+  SetWorkItemArchivedSchema,
+  UpdateWorkItemTitleSchema,
   RunEventIdSchema,
   RunIdSchema,
   RunModeSchema,
@@ -59,11 +61,13 @@ import {
   runCoordinatorTick,
   saveArtifactContent,
   saveSource,
+  setArchived,
   signOffWorkItem,
   startCoordinatorScheduler,
   startStageRun,
   stopCoordinatorScheduler,
   submitRunInput,
+  updateTitle,
   type CoordinatorRuntime,
 } from "./coordinator.ts";
 
@@ -378,7 +382,14 @@ const routeApi = async (
   if (browserAuth) return browserAuth;
 
   if (request.method === "GET" && url.pathname === "/api/work-items") {
-    return jsonResponse(listWorkItems(runtime));
+    const includeArchived = url.searchParams.get("includeArchived");
+    if (
+      (includeArchived !== null && includeArchived !== "true") ||
+      [...url.searchParams.keys()].some((key) => key !== "includeArchived")
+    ) {
+      throw new TypeError("includeArchived query must be exact true or absent");
+    }
+    return jsonResponse(listWorkItems(runtime, includeArchived === "true"));
   }
 
   if (request.method === "GET" && url.pathname === "/api/work-item-schemas") {
@@ -429,6 +440,14 @@ const routeApi = async (
     if (parts[3] === "source" && parts.length === 4 && request.method === "PUT") {
       const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
       return jsonResponse(await saveSource(runtime, workItemId, body));
+    }
+    if (parts[3] === "title" && parts.length === 4 && request.method === "PATCH") {
+      const body = UpdateWorkItemTitleSchema.parse(await readJsonBody(request));
+      return jsonResponse(await updateTitle(runtime, workItemId, body));
+    }
+    if (parts[3] === "archive" && parts.length === 4 && request.method === "PATCH") {
+      const body = SetWorkItemArchivedSchema.parse(await readJsonBody(request));
+      return jsonResponse(await setArchived(runtime, workItemId, body));
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));
