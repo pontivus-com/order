@@ -92,7 +92,7 @@ if (
   process.exit(2);
 }
 
-const modelText = config.model ?? "openai/gpt-5.6";
+const modelText = config.model ?? "opencode/glm-5.3-flash-free";
 const slash = modelText.indexOf("/");
 const model = {
   providerID: modelText.slice(0, slash),
@@ -372,7 +372,7 @@ describe("OpenCode shell", () => {
 
     expect(output).toEqual([
       { providerID: "anthropic", id: "claude" },
-      { providerID: "openai", id: "gpt-5.6" },
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
     ]);
   });
 
@@ -408,7 +408,7 @@ describe("OpenCode shell", () => {
       const server = await o.startOpenCodeServer(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
-        { providerID: "openai", id: "gpt-5.6" },
+        { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
       );
       try {
@@ -488,7 +488,7 @@ describe("OpenCode shell", () => {
       const server = await o.startOpenCodeServer(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
-        { providerID: "openai", id: "gpt-5.6" },
+        { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
       );
       try {
@@ -658,7 +658,7 @@ materialRefs = ["AGENTS.md"]
 
     expect(output.first).toBe(0);
     expect(output.second).toBe(0);
-    expect(output.config.model).toEqual({ providerID: "openai", id: "gpt-5.6" });
+    expect(output.config.model).toEqual({ providerID: "opencode", id: "glm-5.3-flash-free" });
     expect(output.config.version).toBe(2);
     expect(output.config.repositoryRoots).toEqual([workspace]);
     expect(output.config.referenceRoots).toEqual([]);
@@ -683,7 +683,7 @@ materialRefs = ["AGENTS.md"]
     const configPath = join(state, "config.json");
     writeFileSync(configPath, JSON.stringify({
       version: 1,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [workspace],
       referenceRoots: [],
     }) + "\n", { mode: 0o600 });
@@ -796,7 +796,7 @@ materialRefs = ["AGENTS.md"]
     const configPath = join(state, "config.json");
     writeFileSync(configPath, JSON.stringify({
       version: 1,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [legacyRoot],
       referenceRoots: [],
     }) + "\n", { mode: 0o600 });
@@ -865,7 +865,7 @@ materialRefs = ["AGENTS.md"]
     expect(output.cliLegacyError).not.toBeNull();
     expect(output.config).toEqual({
       version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [workspace],
       referenceRoots: [],
       workItemRoot: join(home, ".local", "share", "pontivus-order-work-items"),
