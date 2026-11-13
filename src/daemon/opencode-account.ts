@@ -360,3 +360,16 @@ export const cancelSavedOpenCodeAccountLogin = async (
     message: null,
   }));
 };
+
+
+export const stopSavedOpenCodeAccountControl = async (
+  runtime: CoordinatorRuntime,
+): Promise<void> => {
+  const control = runtime.openCodeAccountLogin;
+  runtime.openCodeAccountLogin = null;
+  runtime.openCodeAccountLoginTerminal = null;
+  runtime.openCodeAccountMutationActive = false;
+  if (control !== null) {
+    await stopOpenCodeAccountControl(control.process).catch(() => undefined);
+  }
+};
