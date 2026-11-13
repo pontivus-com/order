@@ -496,12 +496,6 @@ describe("OpenCode shell", () => {
       id: "glm-5.3-flash-free",
       variant: "default",
     });
-    expect(output.diagnostics).toMatchObject({
-      outcome: "SUCCEEDED",
-      formatRepairAttempted: true,
-      formatRepairSucceeded: true,
-      failurePhase: null,
-    });
     expect(output.permissions).toEqual([
       { action: "*", resource: "*", effect: "deny" },
       { action: "read", resource: "*", effect: "allow" },
@@ -596,6 +590,12 @@ describe("OpenCode shell", () => {
         rationale: "Create R1",
       },
     ]);
+    expect(output.diagnostics).toMatchObject({
+      outcome: "SUCCEEDED",
+      formatRepairAttempted: true,
+      formatRepairSucceeded: true,
+      failurePhase: null,
+    });
     expect(output.permissions).toEqual([
       { action: "*", resource: "*", effect: "deny" },
       { action: "read", resource: "*", effect: "allow" },
