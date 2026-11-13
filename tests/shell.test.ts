@@ -415,6 +415,72 @@ describe("repository shell", () => {
     expect(run(["git", "diff", "--cached", "--name-only"], root).stdout.trim()).toBe("file.txt");
   });
 
+  it("fail-closes documentation Git persistence on missing local identity, detached HEAD, and active Git operations", () => {
+    const prepare = (prefix: string): string => {
+      const root = tempDir(prefix);
+      initGitRepo(root);
+      mkdirSync(join(root, "docs"), { recursive: true });
+      writeFileSync(join(root, "docs", "tracked.md"), "before\n");
+      run(["git", "add", "docs/tracked.md"], root);
+      run(["git", "commit", "-qm", "documentation baseline"], root);
+      writeFileSync(join(root, "docs", "tracked.md"), "after\n");
+      return root;
+    };
+
+    const attemptCommit = (root: string): {
+      readonly status: {
+        readonly branch: string | null;
+        readonly authorName: string | null;
+        readonly authorEmail: string | null;
+        readonly operationActive: boolean;
+      };
+      readonly error: string | null;
+    } => JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const root = ${JSON.stringify(root)};
+      const status = await repo.inspectDocumentationGit(root, ["docs/tracked.md"]);
+      const path = status.paths[0];
+      let error = null;
+      try {
+        await repo.commitDocumentationPaths(
+          root,
+          status.headCommit,
+          [{ repositoryPath: path.repositoryPath, sha256: path.workingTreeSha256 }],
+          "docs(order): adversarial persistence proof",
+        );
+      } catch (cause) {
+        error = cause instanceof Error ? cause.message : String(cause);
+      }
+      console.log(JSON.stringify({ status, error }));
+    `, process.cwd()));
+
+    const identityRoot = prepare("order-doc-git-identity-");
+    run(["git", "config", "--local", "--unset", "user.name"], identityRoot);
+    run(["git", "config", "--local", "--unset", "user.email"], identityRoot);
+    const missingIdentity = attemptCommit(identityRoot);
+    expect(missingIdentity.status.authorName).toBeNull();
+    expect(missingIdentity.status.authorEmail).toBeNull();
+    expect(missingIdentity.error).toBe(
+      "documentation commit requires repository-local Git identity",
+    );
+
+    const detachedRoot = prepare("order-doc-git-detached-");
+    run(["git", "checkout", "--detach", "-q", "HEAD"], detachedRoot);
+    const detached = attemptCommit(detachedRoot);
+    expect(detached.status.branch).toBeNull();
+    expect(detached.error).toBe(
+      "documentation commit requires attached local branch",
+    );
+
+    const operationRoot = prepare("order-doc-git-operation-");
+    writeFileSync(join(operationRoot, ".git", "MERGE_HEAD"), "0".repeat(40) + "\n");
+    const operation = attemptCommit(operationRoot);
+    expect(operation.status.operationActive).toBe(true);
+    expect(operation.error).toBe(
+      "documentation commit is blocked by active Git operation",
+    );
+  });
+
   it("adopts exactly one proposal target and rejects symlink targets", () => {
     const root = tempDir("order-adopt-");
     initGitRepo(root);
