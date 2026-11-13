@@ -86,7 +86,7 @@ jobs:
           test -s release/pontivus-order.tar.gz.sha256
           (cd release && sha256sum -c pontivus-order.tar.gz.sha256)
           tar -xOf release/pontivus-order.tar.gz order/RELEASE.json > "${RUNNER_TEMP}/release.json"
-          bun -e 'const v=JSON.parse(await Bun.file("package.json").text()).version; const r=JSON.parse(await Bun.file(process.argv[2]).text()); if(r.version!==v) process.exit(1);' "${RUNNER_TEMP}/release.json"
+          RELEASE_MANIFEST="${RUNNER_TEMP}/release.json" bun -e 'const v=JSON.parse(await Bun.file("package.json").text()).version; const r=JSON.parse(await Bun.file(process.env.RELEASE_MANIFEST).text()); if(r.version!==v) process.exit(1);'
 
       - name: browser
         run: node node_modules/@playwright/test/cli.js test
