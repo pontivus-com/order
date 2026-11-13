@@ -137,7 +137,7 @@ if (
   process.exit(2);
 }
 
-const model = { providerID: "openai", id: "gpt-5.6" };
+const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
 const sessions = new Map();
 let nextSession = 0;
 let nextAssistant = 0;
@@ -314,7 +314,7 @@ const providerEnvironment = (
 ): Record<string, string> => ({
   PONTIVUS_ORDER_STATE_ROOT: stateRoot,
   PONTIVUS_ORDER_OPENCODE_BIN: binary,
-  PONTIVUS_ORDER_OPENCODE_MODEL: "openai/gpt-5.6",
+  PONTIVUS_ORDER_OPENCODE_MODEL: "opencode/glm-5.3-flash-free",
 });
 
 const seedSignoffScript = (
@@ -341,7 +341,7 @@ const seedSignoffScript = (
     process.env,
     {
       version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [repositoryRoot],
       referenceRoots: [],
       workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -570,7 +570,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [state],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -768,7 +768,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(allowed)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -814,7 +814,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [
             ${JSON.stringify(originalRepository)},
             ${JSON.stringify(reclassifiedRepository)},
@@ -892,7 +892,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1008,7 +1008,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1159,7 +1159,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1268,7 +1268,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1329,7 +1329,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1408,7 +1408,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1475,7 +1475,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1673,7 +1673,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1735,7 +1735,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1802,7 +1802,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1874,7 +1874,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -1971,7 +1971,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
@@ -2121,7 +2121,7 @@ describe("daemon control plane", () => {
         process.env,
         {
           version: 2,
-          model: { providerID: "openai", id: "gpt-5.6" },
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
           workItemRoot: ${JSON.stringify(workItemRoot)},
