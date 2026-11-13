@@ -36,9 +36,14 @@ state-aware application toolbar
 └── primary canvas: work queue / diagnostics / creation entry
 
 WORKITEM STATE
-compact WorkItem toolbar/header within the application shell
-├── primary canvas: the selected WorkItem working surface
-└── contextual inspector: concise status / metadata / compact inputs / current action
+compact WorkItem identity/header row
+↓
+compact workflow-process rail
+↓
+workspace-view selector at primary-canvas boundary
+↓
+primary canvas: selected WorkItem working surface
+→ on-demand contextual inspector when explicitly opened
 ```
 
 The application-toolbar composition is state-aware: queue-only search/source-refresh controls are not treated as navigation-independent controls while a selected WorkItem owns the primary task.
@@ -506,20 +511,22 @@ The following are binding consequences:
 
 ### 19.3 Navigation hierarchy and chrome economy
 
-The current WorkItem workspace has two presentation hierarchies:
+The current WorkItem workspace has three distinct presentation hierarchies:
 
-1. primary workspace **mode**: Documents, Dialogue, Review, Execution, Evidence, Result;
-2. selection **within** a mode, such as Source/R1/R2/DESIGN/PLAN/R3 or selected Run/evidence.
+1. **workflow inspection**: Research → Requirements → Solution design → Implementation plan → Readiness review → Approval → Implementation → Complete;
+2. primary workspace **view**: Documents, Activity, Review, Implementation, Evidence, Result as applicable;
+3. selection **within** a view, such as Work request/Research/Requirements/Solution design/Implementation plan/Readiness review or selected Run/evidence.
 
-These hierarchies must remain semantically distinct but must not default to two stacked full-width tab bars.
+These hierarchies remain semantically distinct and must not be compressed into one overloaded control row or expanded into several redundant full-width tab bars.
 
 Required presentation rules:
 
-- only one content-edge tab/list navigation strip should normally occupy the primary canvas at a time;
-- WorkItem mode switching belongs in the compact WorkItem toolbar/header or an equivalently economical mode control;
-- document tabs/list remain the Documents-mode content navigation;
-- the WorkItem header contains only orientation-critical state and actions; detailed project/schema/concern/source metadata belongs in Context;
-- Context toggle is shown only when Context is not already persistently visible;
+- workflow inspection owns the dedicated compact second header rail;
+- workspace-view switching belongs immediately at the primary-canvas boundary and never implies lifecycle transition;
+- only one within-view content-edge tab/list navigation strip should normally occupy the primary canvas at a time;
+- document tabs/list remain the Documents-view content navigation and use ordinary-language lifecycle labels;
+- the WorkItem identity row contains only object orientation and true WorkItem-level actions; detailed project/schema/concern/source metadata belongs in on-demand Context/Details;
+- Context/Details access is available whenever contextual inspection is closed, including wide layouts;
 - exact SHA-256/path metadata remains accessible but must not force the authoring/review header to grow materially.
 
 ### 19.4 Scope-local toolbar controls
@@ -722,7 +729,7 @@ The workflow projection is derived from canonical WorkItem state. It does not pe
 
 ### 21.2 Persistent workflow orientation placement
 
-A selected WorkItem has one compact workflow-orientation treatment in the WorkItem header.
+A selected WorkItem has one dedicated compact **workflow-process rail** immediately below the WorkItem identity/header row.
 
 It must show:
 
@@ -731,14 +738,15 @@ It must show:
 - current user-facing state where material;
 - the complete workflow progression as compact orientation.
 
-The orientation belongs in the existing WorkItem header because it answers "where am I in this work?" independently of the selected primary workspace mode.
+The rail is the second and final WorkItem orientation row because it answers "where am I in this work?" independently of the selected primary workspace view. Workspace-view selection begins at the primary-canvas boundary below it.
 
 It must **not** become:
 
-- another full-width content-edge tab bar;
+- a workspace-view tab row;
+- another within-view content-edge document selector;
 - a lifecycle-promotion wizard;
 - a second state machine;
-- a third persistent navigation row above Documents/Activity/Review content.
+- explanatory page chrome that expands beyond the compact process rail.
 
 The compact workflow steps may be interactive as **presentation navigation**. Selecting a workflow step changes only what historical/current/future-step material the primary canvas is inspecting; it never changes lifecycle stage, promotion state, approval or execution authority.
 
@@ -777,8 +785,8 @@ On a wide workbench, Activity uses a bounded master/detail composition:
 
 - compact activity/attempt master at approximately 14–18 rem;
 - flexible detail/timeline region using the remaining primary-canvas width;
-- the timeline/detail region must retain at least the Document/Dialogue minimum useful width; if a persistent Context rail would reduce it below approximately 640 px, Context collapses to its drawer/overlay presentation;
-- the event timeline consumes remaining viewport height after compact WorkItem/header/activity-summary chrome;
+- the contextual inspector is closed by default and consumes no Activity width; when explicitly opened it may use a collapsible trailing inspector only while the selected detail retains approximately 640 px or more, otherwise it uses drawer/overlay presentation;
+- the event timeline consumes remaining viewport height after compact WorkItem identity/workflow/view chrome and the selected-Run detail header;
 - the human-input composer occupies intrinsic/sticky bottom space only while the selected current activity accepts input.
 
 The contextual inspector may mirror only compact facts:
@@ -1130,25 +1138,34 @@ The interaction is never promotion. It must not create Runs, change stage/status
 
 This lets the operator move laterally across the complete workflow history without confusing navigation with state transition.
 
-### 24.3 Single WorkItem top rail
+### 24.3 WorkItem orientation and workspace-view hierarchy
 
-The selected WorkItem uses one compact top rail for persistent orientation and global WorkItem controls.
+The selected WorkItem uses exactly two compact orientation rows followed by workspace-view selection at the primary-canvas boundary.
 
-That rail contains, as space permits:
+**Row 1 — WorkItem identity/header**
 
 - Back to queue;
 - WorkItem title/current state;
-- compact workflow progression;
-- current primary workspace/mode control;
-- WorkItem-level/contextual actions.
+- true WorkItem-level actions;
+- one Details/Context affordance when secondary inspection is available and closed.
 
-The current workflow purpose may appear as concise supporting text/tooltip/accessible description rather than requiring a second permanent full-width row.
+**Row 2 — workflow-process rail**
 
-The design must not stack a separate breadcrumb/header row and a separate workflow-orientation row when the same orientation can be communicated in one rail.
+- complete ordinary-language workflow progression;
+- current workflow position;
+- non-mutating workflow-step inspection;
+- concise purpose through label/tooltip/accessible description without page-like explanatory chrome.
+
+**Primary-canvas boundary — workspace-view selector**
+
+- Documents / Activity / Review / Implementation / Evidence / Result as applicable;
+- presentation-only selection, independent of lifecycle promotion.
+
+These levels must not be collapsed into one overloaded rail and must not be duplicated elsewhere as a second header/navigation system.
 
 ### 24.4 Document/editor chrome consolidation
 
-Documents retain one content-edge Source/R1/R2/DESIGN/PLAN/R3 selector because that is meaningful within-mode document navigation.
+Documents retain one content-edge Work request/Research/Requirements/Solution design/Implementation plan/Readiness review selector because that is meaningful within-view document navigation. Canonical R1/R2/DESIGN/PLAN/R3 values remain technical details only.
 
 Other persistent document/editor controls must be consolidated to protect vertical authoring space:
 
