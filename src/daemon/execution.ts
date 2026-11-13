@@ -303,10 +303,14 @@ export const startProviderForExecutionRun = async (
   context: ResolvedContext,
   workspace: string,
 ): Promise<ActiveProvider> => {
+  const configuredModel = runtime.config.model;
+  if (configuredModel === null) {
+    throw new TypeError("a configured OpenCode model is required for productive execution work");
+  }
   const server = await startOpenCodeServer(
     runtime.stateRoot,
     workspace,
-    runtime.config.model,
+    configuredModel,
     runtime.environment,
   );
   try {
