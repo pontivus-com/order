@@ -168,8 +168,9 @@ Add one repository-shell operation used by STAGE that:
 3. creates the run workspace from the exact baseline through existing createFreshCheckout;
 4. applies the captured binary delta;
 5. re-captures the workspace delta and requires exact patch hash + changed-path equality with the source capture;
-6. returns the captured delta SHA-256 needed for transient material identity;
-7. never copies ignored physical directories, never parses .gitignore, never mutates the user's index and never initializes/fetches submodules.
+6. immediately re-captures the physical source repository delta and requires it still equals the admitted capture before productive provider admission; source drift during materialization therefore cannot silently start a session on stale bytes;
+7. returns the captured delta SHA-256 needed for transient material identity;
+8. never copies ignored physical directories, never parses .gitignore, never mutates the user's index and never initializes/fetches submodules.
 
 The source repository remains canonical; the run workspace is transient execution projection.
 
@@ -206,19 +207,26 @@ For each admitted workspace:
 
 ### C2. Run-specific OpenCode configuration
 
-Extend the existing private provider environment builder in src/shell/opencode.ts to accept an optional deterministic inline JSON configuration and set OPENCODE_CONFIG_CONTENT only for that process.
+Extend the existing provider environment builder/process lifecycle in src/shell/opencode.ts to accept an optional deterministic inline JSON configuration and set OPENCODE_CONFIG_CONTENT only for that process.
 
-For 0.2.2:
+For every productive process:
+
+- create a fresh process-private HOME/config directory under Order's state root; it must be empty before OpenCode starts and must be removed when that process terminates;
+- set HOME, XDG_CONFIG_HOME and OPENCODE_CONFIG_DIR to that process-private root/config directory so global config, ~/.agents/skills and other filesystem-global compatibility material cannot accumulate into productive context;
+- retain the existing installation-owned OPENCODE_DB and the private data/state/cache needed by OpenCode so the selected saved Console account remains available without reauthentication;
+- preserve the existing runtime environment allowlist; do not inherit OPENCODE_CONFIG, OPENCODE_CONFIG_CONTENT or other OpenCode configuration values from the host environment;
+- set OPENCODE_CONFIG_CONTENT, when present, only to the deterministic Order-generated value;
+- keep OPENCODE_DISABLE_PROJECT_CONFIG and the Claude compatibility-disable flags as defense in depth.
+
+For 0.2.2 inline configuration:
 
 - STAGE projects runtime.config.referenceRoots into local OpenCode references;
 - sort roots deterministically and assign deterministic aliases such as order-reference-001, order-reference-002;
 - each entry is local/path-based with a concise non-authoritative read-only description;
 - BUILDER/REVIEWER/REMEDIATOR omit external references;
-- do not copy credentials into this configuration;
-- do not inherit OPENCODE_CONFIG, OPENCODE_CONFIG_CONTENT or other OpenCode configuration values from the host environment; the existing runtime environment allowlist remains the ingress boundary and OPENCODE_CONFIG_CONTENT, when present, is only the deterministic Order-generated value;
+- do not copy credential bytes into this configuration;
 - do not add OrderConfig fields for skills or MCPs;
-- do not create an Order skill/MCP registry;
-- ambient project/global/Claude skill/config discovery remains disabled exactly as today.
+- do not create an Order skill/MCP registry.
 
 ### C3. Trusted skill and MCP admission
 
@@ -457,7 +465,7 @@ Cover matrix cases 1-23 and relevant 47-55:
 Against exact v2.2.6:
 
 - one productive session owner;
-- OPENCODE_CONFIG_CONTENT reaches the provider process and project/global/Claude ambient sources remain excluded;
+- OPENCODE_CONFIG_CONTENT reaches the provider process, the productive HOME/config root is fresh/empty, persistent OPENCODE_DB authentication still works, and host/global ~/.agents/Claude/project ambient sources remain excluded;
 - STAGE reference projection appears as expected;
 - exact skill.list ids become exact skill permission resources;
 - MCP server names become the pinned normalized namespace wildcard;
