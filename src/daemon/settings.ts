@@ -54,14 +54,6 @@ export const createCoordinatorRuntimeOwner = (
   settingsMutationActive: false,
 });
 
-const errorCode = (error: unknown): string | null =>
-  typeof error === "object" &&
-  error !== null &&
-  "code" in error &&
-  typeof (error as { code?: unknown }).code === "string"
-    ? (error as { code: string }).code
-    : null;
-
 const activeRunExists = (runtime: CoordinatorRuntime): boolean =>
   loadWorkItems(runtime.database).some((workItem) =>
     loadRunsForWorkItem(runtime.database, workItem.id)
@@ -342,6 +334,7 @@ const activateConfiguration = async (
   proposed: OrderConfig,
 ): Promise<SettingsActivationResult> => {
   const oldRuntime = beginSettingsMutation(owner);
+  const oldSchedulerStopped = oldRuntime.schedulerStopped;
   const oldState = readOrderConfigState(oldRuntime.stateRoot);
   let candidate: CoordinatorRuntime | null = null;
   let persisted: OrderConfigState | null = null;
@@ -400,7 +393,11 @@ const activateConfiguration = async (
     owner.current = oldRuntime;
     const oldRoots = await readyRepositoryRoots(oldRuntime.config);
     await reconcileSources(oldRuntime, oldRoots).catch(() => undefined);
-    await startCoordinatorScheduler(oldRuntime).catch(() => undefined);
+    if (oldSchedulerStopped) {
+      oldRuntime.schedulerStopped = true;
+    } else {
+      await startCoordinatorScheduler(oldRuntime).catch(() => undefined);
+    }
     throw error;
   } finally {
     owner.settingsMutationActive = false;
