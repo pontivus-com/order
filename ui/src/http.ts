@@ -5,6 +5,7 @@ import {
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWriteResultSchema,
   ExecutionTaskSchema,
+  OrderHttpErrorSchema,
   RunEventSchema,
   ProjectManifestSchema,
   RunSchema,
@@ -21,6 +22,7 @@ import {
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWriteResult,
   type ExecutionTask,
+  type OrderHttpError,
   type ProjectManifest,
   type Run,
   type RunEvent,
@@ -35,6 +37,31 @@ import {
   type WorkItemSourceSnapshot,
 } from "../../src/core/contracts.ts";
 
+export type OrderHttpRequestFailure = Error & Readonly<{
+  status: number;
+  orderError: OrderHttpError;
+}>;
+
+export const isOrderHttpRequestFailure = (
+  error: unknown,
+): error is OrderHttpRequestFailure =>
+  error instanceof Error &&
+  "status" in error &&
+  typeof (error as { status?: unknown }).status === "number" &&
+  "orderError" in error &&
+  OrderHttpErrorSchema.safeParse(
+    (error as { orderError?: unknown }).orderError,
+  ).success;
+
+const requestFailure = (
+  status: number,
+  orderError: OrderHttpError,
+): OrderHttpRequestFailure =>
+  Object.assign(new Error(orderError.message), {
+    status,
+    orderError: OrderHttpErrorSchema.parse(orderError),
+  });
+
 const request = async (path: string, init: RequestInit = {}): Promise<Response> => {
   if (!path.startsWith("/api/")) {
     throw new TypeError("Order browser requests must use relative /api paths");
@@ -45,21 +72,17 @@ const request = async (path: string, init: RequestInit = {}): Promise<Response> 
   });
   if (response.ok) return response;
 
-  let detail = `HTTP ${response.status}`;
+  let value: unknown;
   try {
-    const value: unknown = await response.json();
-    if (
-      typeof value === "object" &&
-      value !== null &&
-      "message" in value &&
-      typeof value.message === "string"
-    ) {
-      detail = value.message;
-    }
-  } catch {
-    // Preserve the HTTP status when the daemon did not return its JSON error envelope.
+    value = await response.json();
+  } catch (error) {
+    throw new TypeError(
+      `Order daemon returned non-JSON API failure HTTP ${response.status}`,
+      { cause: error },
+    );
   }
-  throw new Error(detail);
+  const orderError = OrderHttpErrorSchema.parse(value);
+  throw requestFailure(response.status, orderError);
 };
 
 const json = async (path: string, init?: RequestInit): Promise<unknown> =>
