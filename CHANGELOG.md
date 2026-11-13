@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Make normal WorkItem Source authoring body-only while preserving exact portable metadata bytes, complete-file concurrency identity, and read-only technical source disclosure.
+
 - Centralize repository, OpenCode account, model/runtime and readiness configuration under browser Settings, make fresh installation start from valid empty OrderConfig v4, and reduce the shell account control to a Settings shortcut.
 
 - Add bounded repository-owned WorkItem document-root migration with exact-byte tree staging, minimal manifest mutation, transactional current-source path updates, rollback, and lifecycle draft rediscovery.
