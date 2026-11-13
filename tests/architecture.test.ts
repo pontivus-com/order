@@ -850,12 +850,45 @@ describe("architecture fitness", () => {
       "export const proposalDispositionFor",
       "export const lifecycleArtifactRoleRank",
       "export const workItemInitialMode",
+      "export const workflowInspectionTarget",
     ]) {
       if (!presentationPolicy.includes(requiredOwner)) {
         violations.push(
           "ui/src/workbench-presentation.ts must own shared typed presentation rule " + requiredOwner,
         );
       }
+    }
+
+    const workItemChrome = sourceText("ui/src/WorkItemWorkspace.tsx");
+    const documentChrome = sourceText("ui/src/DocumentWorkspace.tsx");
+    const markdownChrome = sourceText("ui/src/MarkdownEditor.tsx");
+    const applicationChrome = sourceText("ui/src/app.tsx");
+    const themeStyles = sourceText("ui/src/theme.css");
+    for (const [owner, source, forbidden] of [
+      ["WorkItemWorkspace", workItemChrome, "order-workflow-orientation"],
+      ["DocumentWorkspace", documentChrome, "order-document-state-strip"],
+      ["MarkdownEditor", markdownChrome, "order-editor-actionbar"],
+      ["app", applicationChrome, 'aria-label="Theme"'],
+      ["theme.css", themeStyles, "order-workflow-orientation"],
+      ["theme.css", themeStyles, "order-document-state-strip"],
+      ["theme.css", themeStyles, "order-editor-actionbar"],
+      ["theme.css", themeStyles, "order-theme-control select"],
+    ] as const) {
+      if (source.includes(forbidden)) {
+        violations.push(
+          owner + ": superseded T06 chrome must not remain: " + forbidden,
+        );
+      }
+    }
+    if (!workItemChrome.includes("workflowInspectionTarget")) {
+      violations.push(
+        "ui/src/WorkItemWorkspace.tsx must use the pure workflow inspection projection",
+      );
+    }
+    if (!markdownChrome.includes("toolbarAccessory")) {
+      violations.push(
+        "ui/src/MarkdownEditor.tsx must expose the narrow document-control slot",
+      );
     }
 
     for (const sourcePath of uiFiles.filter((path) => path !== "ui/src/workbench-presentation.ts")) {
