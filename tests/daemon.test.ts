@@ -141,6 +141,12 @@ const model = { providerID: "opencode", id: "glm-5.3-flash-free" };
 const sessions = new Map();
 let nextSession = 0;
 let nextAssistant = 0;
+let accountConnections = [{
+  type: "credential",
+  id: "credential_fixture",
+  method: "oauth",
+  label: "fixture@example.com",
+}];
 
 const json = (value, status = 200) =>
   new Response(JSON.stringify(value), {
@@ -163,18 +169,21 @@ const server = Bun.serve({
       id: "opencode",
       name: "OpenCode",
       methods: [{ id: "device", type: "oauth", name: "Device" }],
-      connections: [{
-        type: "credential",
-        id: "credential_fixture",
-        method: "oauth",
-        label: "fixture@example.com",
-      }],
+      connections: accountConnections,
     };
     if (request.method === "GET" && url.pathname === "/api/integration") {
       return json({ location: { directory: process.cwd() }, data: [accountIntegration] });
     }
     if (request.method === "GET" && url.pathname === "/api/integration/opencode") {
       return json({ location: { directory: process.cwd() }, data: accountIntegration });
+    }
+    const credentialMatch = /^\\/api\\/credential\\/([^/]+)$/.exec(url.pathname);
+    if (credentialMatch && request.method === "DELETE") {
+      const id = decodeURIComponent(credentialMatch[1]);
+      const index = accountConnections.findIndex((connection) => connection.id === id);
+      if (index < 0) return json({ message: "credential not found" }, 404);
+      accountConnections.splice(index, 1);
+      return new Response(null, { status: 204 });
     }
     if (request.method === "GET" && url.pathname === "/api/model") {
       return json({
@@ -795,6 +804,103 @@ describe("daemon control plane", () => {
       attention: ["REPOSITORY_UNAVAILABLE"],
     })]);
     expect(drift.schedulerStopped).toBe(false);
+  });
+
+  it("blocks account removal during active Runs and reports account-required readiness after final removal", () => {
+    const repository = createRepository("account-removal");
+    const state = tempDir("order-account-removal-");
+    const binary = createFakeOpenCode();
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+      const daemonRuntime = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const accounts = await import("./src/daemon/opencode-account.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const config = cfg.buildOrderConfig(
+        { providerID: "opencode", id: "glm-5.3-flash-free" },
+        [${JSON.stringify(repository)}],
+        [],
+      );
+      cfg.writeOrderConfig(${JSON.stringify(state)}, config);
+      const runtime = daemonRuntime.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        {
+          ...process.env,
+          PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)},
+        },
+        config,
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "account-removal",
+        schemaId: "change-v1",
+        title: "Account removal admission",
+        concernIds: ["shell"],
+      });
+      const baseline = await repo.resolveHeadCommit(${JSON.stringify(repository)});
+      const active = runStore.insertRun(runtime, {
+        id: shellRuntime.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: baseline,
+        contextHash: "sha256:" + "a".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-13T09:00:00.000Z",
+        endedAt: null,
+      });
+
+      let blocked = null;
+      try {
+        await accounts.removeSavedOpenCodeAccount(runtime, "credential_fixture", {
+          expectedActiveAccountId: "credential_fixture",
+        });
+      } catch (error) {
+        blocked = error instanceof Error ? error.message : String(error);
+      }
+      const afterBlocked = await accounts.openCodeAccountState(runtime);
+
+      runStore.updateRun(runtime, active.id, {
+        status: "CANCELLED",
+        endedAt: "2026-11-13T09:01:00.000Z",
+      });
+      const removed = await accounts.removeSavedOpenCodeAccount(
+        runtime,
+        "credential_fixture",
+        { expectedActiveAccountId: "credential_fixture" },
+      );
+      const readiness = await settings.installationReadiness(owner);
+      console.log(JSON.stringify({ blocked, afterBlocked, removed, readiness }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      blocked: string | null;
+      afterBlocked: { accounts: unknown[]; activeAccountId: string | null };
+      removed: { accounts: unknown[]; activeAccountId: string | null };
+      readiness: { ready: boolean; blockers: string[] };
+    };
+
+    expect(output.blocked).toContain("ACTIVE_RUN");
+    expect(output.afterBlocked.accounts).toHaveLength(1);
+    expect(output.afterBlocked.activeAccountId).toBe("credential_fixture");
+    expect(output.removed.accounts).toEqual([]);
+    expect(output.removed.activeAccountId).toBeNull();
+    expect(output.readiness.ready).toBe(false);
+    expect(output.readiness.blockers).toContain("OPENCODE_ACCOUNT_REQUIRED");
   });
 
   it("keeps ready repository work admissible when an unrelated configured repository needs attention", () => {
