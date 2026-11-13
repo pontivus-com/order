@@ -4,7 +4,7 @@
 **Versioned concern ID:** GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1  
 **Target correction train:** Order 0.2.2  
 **Authority layers:** P3 functional requirements + P4 technical architecture  
-**Status:** functional/P4/P6 boundary design complete; ready for P7 translation under the explicit trusted-integration boundary defined below
+**Status:** functional/P4/P6 boundary design complete; implementation-ready through GW-P7-ORDER-0.2.2-CORRECTIVE-IMPLEMENTATION-V1-2026-11-13
 
 ## 1. Purpose
 
@@ -652,4 +652,4 @@ The functional/P4/P6 design baseline is complete because:
 3. the P6 failure/workspace identity consequences are exact;
 4. complete model-context instruction ingress is enumerated and governed by GW-FR-105 / GW-TR-080.
 
-Implementation readiness requires a P7 0.2.2 plan that maps every requirement and every test family to bounded implementation work and leaves no implementer decision about provider-visible project material, `AGENTS.md` authority, trusted integration admission, failure origin, workspace freshness or verification coverage. The pinned OpenCode 2.2.6 behaviors relied upon by GW-TR-080/081 are implementation-certification obligations under that plan; implementation does not wait for a future provider feature or a complete external-instruction byte manifest.
+Implementation readiness is supplied by GW-P7-ORDER-0.2.2-CORRECTIVE-IMPLEMENTATION-V1-2026-11-13, which maps every requirement and test family to one cumulative signed implementation task with an exact change surface and complete gate union. The pinned OpenCode 2.2.6 behaviors relied upon by GW-TR-080/081 are implementation-certification obligations under that plan; implementation does not wait for a future provider feature or a complete external-instruction byte manifest.
