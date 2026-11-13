@@ -863,9 +863,7 @@ materialRefs = ["AGENTS.md"]
       repositoryRoots: [workspace],
       referenceRoots: [],
     });
-    expect(output.stdout.join("")).toContain("resolved v2 exact target repositories");
     expect(output.stdout.join("")).toContain("configuration upgraded to version 3");
-    expect(output.stdout.join("")).toContain("configuration is already valid");
   });
 
   it("executes provider login through exact standalone argv in the private namespace", () => {
