@@ -159,6 +159,23 @@ const server = Bun.serve({
     if (request.method === "GET" && url.pathname === "/api/info") {
       return json({ version: "2.2.6" });
     }
+    const accountIntegration = {
+      id: "opencode",
+      name: "OpenCode",
+      methods: [{ id: "device", type: "oauth", name: "Device" }],
+      connections: [{
+        type: "credential",
+        id: "credential_fixture",
+        method: "oauth",
+        label: "fixture@example.com",
+      }],
+    };
+    if (request.method === "GET" && url.pathname === "/api/integration") {
+      return json({ location: { directory: process.cwd() }, data: [accountIntegration] });
+    }
+    if (request.method === "GET" && url.pathname === "/api/integration/opencode") {
+      return json({ location: { directory: process.cwd() }, data: accountIntegration });
+    }
     if (request.method === "GET" && url.pathname === "/api/model") {
       return json({
         location: { directory: process.cwd() },
@@ -701,6 +718,7 @@ describe("daemon control plane", () => {
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
       const coord = await import("./src/daemon/coordinator.ts");
+      const settings = await import("./src/daemon/settings.ts");
       const srv = await import("./src/daemon/server.ts");
 
       const state = ${JSON.stringify(state)};
@@ -721,7 +739,8 @@ describe("daemon control plane", () => {
       const port = probe.port;
       probe.stop(true);
       const bind = srv.resolveDaemonBind("127.0.0.1:" + port);
-      const http = srv.startDaemonServer(runtime, daemonToken, bind);
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const http = srv.startDaemonServer(owner, daemonToken, bind);
       const origin = bind.origin;
       try {
         const health = await fetch(origin + "/api/health");
@@ -833,11 +852,9 @@ describe("daemon control plane", () => {
     });
     expect(output.missingOrigin).toBe(403);
     expect(output.wrongOrigin).toBe(403);
-    expect(output.tickStatus).toBe(200);
-    expect(output.tickBody).toEqual({
-      result: "NO_WORK",
-      executionTaskId: null,
-      runId: null,
+    expect(output.tickStatus).toBe(409);
+    expect(output.tickBody).toMatchObject({
+      code: "CURRENT_STATE_CONFLICT",
     });
     expect(output.expired).toBe(401);
     expect(output.cors).toBeNull();
