@@ -317,6 +317,38 @@ describe("Order cross-boundary certification", () => {
     expect(repositoryShell).not.toContain("renameSync");
   });
 
+  it("keeps provider diagnostics bounded, secret-safe, coordinator-owned, and on existing Run evidence", () => {
+    const contracts = read("src/core/contracts.ts");
+    const executionCore = read("src/core/execution.ts");
+    const openCode = read("src/shell/opencode.ts");
+    const run = read("src/daemon/run.ts");
+    const stage = read("src/daemon/stage.ts");
+    const execution = read("src/daemon/execution.ts");
+    const sqlite = read("src/shell/sqlite.ts");
+
+    expect(contracts).toContain("ProviderDiagnosticRecordSchema");
+    expect(contracts).toContain('z.literal("PROVIDER_DIAGNOSTICS_RECORDED")');
+    expect(executionCore).not.toContain('"PROVIDER_DIAGNOSTICS_RECORDED"');
+
+    expect(openCode).toContain("diagnosticStderrHeadBytes");
+    expect(openCode).toContain("diagnosticStderrTailBytes");
+    expect(openCode).toContain("[REDACTED SECRET LINE]");
+    expect(openCode).toContain("onDiagnostics");
+    expect(openCode.toLowerCase()).not.toContain("chain of thought");
+    expect(openCode.toLowerCase()).not.toContain("hidden reasoning");
+
+    expect(run).toContain("recordProviderDiagnostics");
+    expect(run).toContain('tag: "PROVIDER_DIAGNOSTICS_RECORDED"');
+    expect(run).toContain("writeRunEvidence(");
+    expect(stage).toContain("recordProviderDiagnostics");
+    expect(execution).toContain("recordProviderDiagnostics");
+    expect(execution).toContain("diagnosticEvidence");
+
+    expect(sqlite).not.toContain("providerDiagnostics");
+    expect(sqlite).not.toContain("provider_diagnostics");
+    expect(sqlite).not.toContain("telemetry");
+  });
+
   it("keeps the one-command productive installer purpose-built and bootstrap-only", () => {
     const bootstrap = read("install.sh");
     const installer = read("src/installer.ts");
