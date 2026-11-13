@@ -2179,7 +2179,7 @@ Connect repository:
 
 Disconnect repository:
 
-- resolve the exact configured project/root;
+- resolve the exact configured root directly from `OrderConfig.repositoryRoots`, even when its current project manifest is invalid;
 - block if productive work is active there;
 - remove only that root from proposed config;
 - activate through the same boundary;
