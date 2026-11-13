@@ -112,20 +112,39 @@ Migration must:
 
 If document migration cannot map an item unambiguously to a configured target repository/project, that item must be reported as unresolved rather than silently assigned.
 
-## 7. Configuration as a first-class product surface
+## 7. Settings as the single application-level configuration home
 
-Order exposes one globally reachable **Configuration** surface for the installation-level concerns that determine whether productive work can run.
+Order exposes one globally reachable **Settings** area for application-level configuration.
 
-The surface has two primary configuration areas:
+Application-level configuration must not be scattered across workflow pages, WorkItem inspectors, account popovers, installer-only prompts or unrelated drawers. Those surfaces may show concise current state or a shortcut into Settings, but they do not own the configuration itself.
 
-1. **Connected repositories** — which exact Git repositories Order may operate on and where each repository owns its WorkItem/lifecycle documents.
-2. **OpenCode accounts** — which saved OpenCode login accounts exist in Order's private OpenCode namespace and which one is active.
+Settings is the expected home for:
 
-The same canonical state powers installer/update readiness, the normal Configuration surface, and first-run/recovery guidance. Configuration must not be duplicated into a browser-only store or a second installer-only authority.
+1. **Repositories** — connected exact Git repositories, project identity, repository-owned WorkItem/lifecycle document location and repository readiness.
+2. **OpenCode accounts** — saved OpenCode login accounts in Order's private namespace, active account and account-management actions.
+3. **Model/provider configuration** — the productive model/provider selection and any future installation-global runtime choices owned by canonical configuration.
 
-The global application shell may expose concise shortcuts/status for the current repository and active OpenCode account, but the complete configuration inventory and mutation controls belong to the Configuration surface.
+The same canonical state powers installer/update readiness, Settings, shell current-state mirrors and first-run/recovery guidance. Settings must not introduce a browser-local duplicate configuration authority.
 
-### 7.1 Connected repositories
+First-run and recovery do not create a separate wizard-owned configuration model. They deep-link or route the operator directly to the relevant Settings concern, with the unresolved state already identified.
+
+### 7.1 Settings information architecture
+
+Settings is a distinct application area with stable navigation.
+
+Its primary sub-areas are:
+
+- **Repositories**
+- **OpenCode accounts**
+- **Model & runtime** (or the equivalent current provider/model concern)
+
+These concerns are related because they determine installation-level productive capability, but they are not mixed into one long undifferentiated form.
+
+The Settings navigation remains in the settings/navigation region of the shell. Selecting a Settings sub-area changes only the primary settings content; it does not create WorkItem lifecycle state or alter unrelated configuration.
+
+The shell/header may expose concise status such as the current repository and active OpenCode account. Activating a management/settings affordance from those mirrors routes to the owning Settings area rather than opening a competing full-management implementation in-place.
+
+### 7.2 Connected repositories
 
 Each connected repository entry shows, in ordinary operator language:
 
@@ -142,11 +161,11 @@ Connecting a repository is an explicit operator action. Order must validate the 
 
 Disconnecting a repository removes it from the installation's productive repository set only. It must not delete repository-owned WorkItem/lifecycle Markdown, Git history or project authority. Disconnect is blocked while productive work in that repository is active. Reconnecting the same valid repository rediscovers its portable WorkItems and lifecycle documents through the normal canonical source path.
 
-### 7.2 Repository-owned document location
+### 7.3 Repository-owned document location
 
 The WorkItem/lifecycle document destination is a **repository-owned project setting**, not a second installation-global folder preference.
 
-The Configuration surface exposes the effective document root resolved from the repository's canonical project manifest, including the default when no explicit override exists.
+The Settings repository detail exposes the effective document root resolved from the repository's canonical project manifest, including the default when no explicit override exists.
 
 For a repository with no governed WorkItem/lifecycle documents yet, an operator may choose a valid repository-contained document root through the repository configuration flow.
 
@@ -161,9 +180,9 @@ For a repository that already contains governed WorkItem/lifecycle documents, ch
 
 If those guarantees cannot be satisfied, Order must block the root change rather than update configuration and strand existing documents.
 
-### 7.3 OpenCode account configuration
+### 7.4 OpenCode account configuration
 
-The Configuration surface exposes the complete saved-account inventory from Order's private OpenCode namespace.
+The Settings OpenCode accounts area exposes the complete saved-account inventory from Order's private OpenCode namespace.
 
 It shows:
 
@@ -175,13 +194,13 @@ It shows:
 - Rename;
 - any safe disconnect/removal capability only when supported by the pinned OpenCode contract.
 
-The compact account control in the application shell is a status/quick-access affordance, not a second account-management implementation. Full account configuration belongs to this surface.
+The compact account control in the application shell is a current-state/quick-access affordance, not a second account-management implementation. Full account configuration belongs to Settings.
 
 Account configuration does not change repository selection or configured model/provider identity.
 
-### 7.4 Configuration information hierarchy
+### 7.5 Configuration information hierarchy
 
-Configuration uses a compact settings/inventory presentation:
+Settings uses a compact settings/inventory presentation:
 
 - persistent chrome contains only identity, state and actions needed for the current decision;
 - routine explanatory guidance is available on demand rather than repeated as permanent instructional bands;
@@ -189,7 +208,7 @@ Configuration uses a compact settings/inventory presentation:
 - actionable blockers remain visible and explicit;
 - the same fact has one primary presentation location, with shell mirrors limited to concise current-state context.
 
-This keeps setup discoverable without turning configuration into a vertically stacked collection of explanatory panels.
+This keeps setup discoverable without turning Settings into a vertically stacked collection of explanatory panels.
 
 ## 8. First-run and recovery experience
 
@@ -257,11 +276,19 @@ A successful update reports any configuration that still requires operator actio
 
 ### GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION
 
-**Required behavior:** Order provides one globally reachable Configuration surface for connected repositories/document locations and saved OpenCode accounts, backed by the same canonical state used by install/update/runtime readiness.
+**Required behavior:** Order provides one globally reachable Settings area as the sole ordinary application-level home for connected repositories/document locations, saved OpenCode accounts and model/provider configuration, backed by the same canonical state used by install/update/runtime readiness.
 
-**Acceptance criterion:** an operator can inspect and configure both productive repository connections and OpenCode account connections without returning to an installer-only terminal flow or editing hidden state files.
+**Acceptance criterion:** an operator can predictably inspect and configure installation-level productive settings from one application area without returning to installer-only terminal flows, hunting across workflow screens or editing hidden state files.
 
-**Failure/negative behavior:** essential configuration must not be split across unrelated drawers, implicit defaults, installer-only prompts or browser-local duplicate state.
+**Failure/negative behavior:** essential configuration must not be split across unrelated drawers, WorkItem screens, implicit defaults, installer-only prompts, shell popovers with competing management logic or browser-local duplicate state.
+
+### GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS
+
+**Required behavior:** every installation-global configurable concern has one primary owner under Settings; other surfaces may display current state or navigate to Settings but do not provide duplicate full-management flows.
+
+**Acceptance criterion:** repository, account and model/runtime management are discoverable from a stable Settings navigation structure, and a user can predict where future application-level configuration belongs.
+
+**Failure/negative behavior:** application-level settings must not be independently managed from WorkItem inspectors, workflow pages, transient popovers, first-run-only screens or duplicated settings dialogs.
 
 ### GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION
 
