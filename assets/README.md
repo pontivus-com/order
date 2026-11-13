@@ -51,3 +51,7 @@ Do not add:
 - camera bodies, lenses, or other literal photographic details.
 
 For GitHub README use, prefer `order-logo-plate-dark.svg` because its fixed background renders consistently in both GitHub light and dark modes.
+
+## Optical crop
+
+Horizontal logo canvases must be cropped to the visible mark + wordmark with approximately balanced left/right visual padding. Do not preserve surplus transparent/background canvas merely because the underlying artwork was authored on a wider board. The README plate is centered by the visible artwork, not by an oversized source canvas.
