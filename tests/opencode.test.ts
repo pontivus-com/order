@@ -811,7 +811,8 @@ describe("OpenCode shell", () => {
         [],
       );
         const server = admission.server;
-        const sessionID = admission.sessionId;
+        try {
+          const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),
@@ -947,7 +948,8 @@ describe("OpenCode shell", () => {
         [],
       );
         const server = admission.server;
-        const sessionID = admission.sessionId;
+        try {
+          const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),
@@ -1058,7 +1060,8 @@ describe("OpenCode shell", () => {
         [],
       );
         const server = admission.server;
-        const sessionID = admission.sessionId;
+        try {
+          const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),
