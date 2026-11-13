@@ -2244,6 +2244,7 @@ src/daemon/opencode-account.ts
 No account-management backend refactor is required beyond:
 
 - account-control readiness correction;
+- adding the pinned safe credential-remove effect to the existing account owner;
 - readiness composition using the canonical account projection;
 - exposing full manager UI in Settings.
 
@@ -2419,3 +2420,11 @@ Permanent migration tests must prove v3 choices survive byte-for-semantic-value 
 **Acceptance criterion:** clean-start account listing succeeds when generic OpenCode HTTP readiness precedes integration registration; the process remains bounded by the existing startup deadline.
 
 **Failure/negative behavior:** generic `/api/info` readiness must not authorize an immediate account integration query that can return a transient upstream 404/internal daemon error.
+
+#### GW-TR-072-OPENCODE-ACCOUNT-REMOVAL
+
+**Required behavior:** the existing OpenCode account owner exposes safe credential removal using only credential ids proven by the canonical safe OAuth-account projection and the existing installation-global mutation guard.
+
+**Acceptance criterion:** Settings can remove saved accounts, including the active/final account, and the returned refreshed `OpenCodeAccountState` plus readiness accurately reflect the resulting OpenCode-owned state without changing model configuration.
+
+**Failure/negative behavior:** Order must not use secret-bearing credential listing, infer a replacement active account, remove an unproven credential id, or permit removal to straddle active productive Runs.
