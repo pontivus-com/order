@@ -119,7 +119,10 @@ export const buildOrderConfig = (
 };
 
 const assertStateRootDisjoint = (
-  config: OrderConfig,
+  config: Readonly<{
+    repositoryRoots: readonly string[];
+    referenceRoots: readonly string[];
+  }>,
   stateRoot: string,
 ): void => {
   const canonicalStateRoot = realpathSync(stateRoot);
