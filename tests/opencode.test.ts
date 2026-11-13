@@ -429,10 +429,10 @@ describe("OpenCode shell", () => {
     const workspace = tempDir("order-opencode-agent-bytes-");
     writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
       const rt = await import("./src/shell/runtime.ts");
-      const path = \${JSON.stringify(workspace)};
+      const path = ${JSON.stringify(workspace)};
       const good = {
         authorityLayer: "P1",
         repositoryPath: "AGENTS.md",
@@ -457,7 +457,7 @@ describe("OpenCode shell", () => {
         );
       } catch { absentRejected = true; }
       console.log(JSON.stringify({ matched, mismatchRejected, absentRejected }));
-    \`) as Record<string, boolean>;
+    `) as Record<string, boolean>;
 
     expect(output).toEqual({
       matched: true,
