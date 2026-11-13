@@ -143,6 +143,7 @@ export type TickResult = Readonly<{
 
 export const runCoordinatorTick = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<TickResult> => {
   if (runtime.tickActive) throw new TypeError("TICK_ALREADY_ACTIVE");
   runtime.tickActive = true;
@@ -152,8 +153,11 @@ export const runCoordinatorTick = async (
   try {
     await reconcilePendingArtifactProposals(runtime);
     let current = await currentRunningTask(runtime);
+    if (current !== null && !repositoryRoots.includes(current.workItem.repositoryRoot)) {
+      return { result: "NO_WORK", executionTaskId: null, runId: null };
+    }
     if (current === null) {
-      const started = await startEligibleTask(runtime);
+      const started = await startEligibleTask(runtime, repositoryRoots);
       if (started === null) {
         return { result: "NO_WORK", executionTaskId: null, runId: null };
       }
@@ -176,7 +180,11 @@ export const runCoordinatorTick = async (
 
     while (true) {
       const refreshed = await currentRunningTask(runtime);
-      if (refreshed === null || refreshed.task.id !== startedTaskId) break;
+      if (
+        refreshed === null ||
+        refreshed.task.id !== startedTaskId ||
+        !repositoryRoots.includes(refreshed.workItem.repositoryRoot)
+      ) break;
       const active = activeExecutionRun(runtime, refreshed.task.id);
       if (active !== null) {
         if (active.id !== firstRunId) firstRunId ??= active.id;
@@ -304,8 +312,15 @@ export const resumeWorkItem = async (
 
 export const schedulerIntervalMillis = 3_600_000;
 
+export type CoordinatorTick = () => Promise<TickResult>;
+
+const defaultCoordinatorTick = (
+  runtime: CoordinatorRuntime,
+): CoordinatorTick => () => runCoordinatorTick(runtime);
+
 export const armScheduler = (
   runtime: CoordinatorRuntime,
+  tick: CoordinatorTick = defaultCoordinatorTick(runtime),
 ): void => {
   if (runtime.schedulerStopped || runtime.schedulerTimer !== null) return;
   runtime.schedulerTimer = setTimeout(() => {
@@ -313,18 +328,19 @@ export const armScheduler = (
     if (runtime.schedulerStopped) return;
     const run = runtime.tickActive
       ? Promise.resolve()
-      : runCoordinatorTick(runtime).then(() => undefined, () => undefined);
-    void run.finally(() => armScheduler(runtime));
+      : tick().then(() => undefined, () => undefined);
+    void run.finally(() => armScheduler(runtime, tick));
   }, schedulerIntervalMillis);
 };
 
 export const startCoordinatorScheduler = async (
   runtime: CoordinatorRuntime,
+  tick: CoordinatorTick = defaultCoordinatorTick(runtime),
 ): Promise<void> => {
   runtime.schedulerStopped = false;
   await recoverInterruptedRuns(runtime);
-  await runCoordinatorTick(runtime);
-  armScheduler(runtime);
+  await tick();
+  armScheduler(runtime, tick);
 };
 
 export const stopCoordinatorScheduler = async (
