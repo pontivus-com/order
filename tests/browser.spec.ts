@@ -267,6 +267,17 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
       return;
     }
 
+    if (path === "/api/opencode/accounts/cred_gamma" && method === "DELETE") {
+      const body = requestForRoute.postDataJSON() as { expectedActiveAccountId?: unknown };
+      expect(body.expectedActiveAccountId).toBe("cred_beta");
+      state = OpenCodeAccountStateSchema.parse({
+        ...state,
+        accounts: state.accounts.filter((account) => account.id !== "cred_gamma"),
+      });
+      await fulfillJson(state);
+      return;
+    }
+
     if (path === "/api/opencode/accounts/login" && method === "POST") {
       const body = requestForRoute.postDataJSON() as { label?: unknown };
       expect(body.label).toBe("delta@example.com");
@@ -330,29 +341,36 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
   const trigger = page.getByTestId("opencode-account-trigger");
   await expect(trigger).toContainText("alpha@example.com");
   await trigger.click();
+  await expect(page).toHaveURL(baseURL + "/settings/opencode");
 
-  const drawer = page.getByTestId("opencode-account-drawer");
-  await expect(drawer).toBeVisible();
-  await expect(drawer.getByTestId("opencode-account-list")).toContainText("alpha@example.com");
-  await expect(drawer.getByTestId("opencode-account-list")).toContainText("beta@example.com");
-  await expect(drawer.getByTestId("opencode-account-list")).toContainText("gamma@example.com");
-  await expect(drawer).toContainText("Needs sign-in");
-  await expect(drawer).not.toContainText("cred_alpha");
+  const panel = page.getByTestId("settings-opencode");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByTestId("opencode-account-list")).toContainText("alpha@example.com");
+  await expect(panel.getByTestId("opencode-account-list")).toContainText("beta@example.com");
+  await expect(panel.getByTestId("opencode-account-list")).toContainText("gamma@example.com");
+  await expect(panel).toContainText("Needs sign-in");
+  await expect(panel).not.toContainText("cred_alpha");
 
-  await drawer.getByRole("button", { name: "Switch to beta@example.com" }).click();
+  await panel.getByRole("button", { name: "Switch to beta@example.com" }).click();
   await expect(trigger).toContainText("beta@example.com");
 
-  await drawer.getByRole("button", { name: "Rename beta@example.com" }).click();
-  await drawer.getByLabel("Account label").fill("beta+renamed@example.com");
-  await drawer.getByRole("button", { name: "Save account label" }).click();
-  await expect(drawer).toContainText("beta+renamed@example.com");
+  await panel.getByRole("button", { name: "Rename beta@example.com" }).click();
+  await panel.getByLabel("Account label").fill("beta+renamed@example.com");
+  await panel.getByRole("button", { name: "Save account label" }).click();
+  await expect(panel).toContainText("beta+renamed@example.com");
   await expect(trigger).toContainText("beta+renamed@example.com");
 
-  await drawer.getByRole("button", { name: "Add account" }).click();
-  await drawer.getByLabel("Account label").fill("delta@example.com");
-  await drawer.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
+  await panel.getByRole("button", { name: "Remove gamma@example.com" }).click();
+  const removeDialog = page.getByRole("dialog");
+  await expect(removeDialog).toContainText("Remove gamma@example.com");
+  await removeDialog.getByRole("button", { name: "Remove account" }).click();
+  await expect(panel).not.toContainText("gamma@example.com");
 
-  const attempt = drawer.getByTestId("opencode-login-attempt");
+  await panel.getByRole("button", { name: "Add account" }).click();
+  await panel.getByLabel("Account label").fill("delta@example.com");
+  await panel.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
+
+  const attempt = panel.getByTestId("opencode-login-attempt");
   const external = attempt.getByRole("link", { name: "Open OpenCode sign-in" });
   await expect(external).toHaveAttribute("href", "https://opencode.ai/console/device");
   await expect(external).toHaveAttribute("target", "_blank");
@@ -367,14 +385,14 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
   });
   await page.reload();
   await expect(trigger).toBeVisible();
-  await trigger.click();
-  await expect(page.getByTestId("opencode-account-drawer"))
+  await expect(page.getByTestId("settings-opencode"))
     .toContainText("Finish or cancel active agent work before changing the OpenCode account.");
   await expect(page.getByRole("button", { name: "Add account" })).toBeDisabled();
 
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("workbench-utilities")).toBeVisible();
   await expect(trigger).toBeVisible();
+  await expect(page.getByTestId("settings-workspace")).toBeVisible();
 });
 
 
