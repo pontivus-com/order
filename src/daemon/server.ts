@@ -65,6 +65,7 @@ import {
   runCoordinatorTick,
   saveArtifactContent,
   saveSource,
+  sourceDiagnosticForFailure,
   setArchived,
   signOffWorkItem,
   startCoordinatorScheduler,
@@ -74,7 +75,6 @@ import {
   updateTitle,
   type CoordinatorRuntime,
 } from "./coordinator.ts";
-import { sourceDiagnosticForFailure } from "./work-item-source.ts";
 
 const connectTokenLifetimeMillis = 60_000;
 const tokenPattern = /^[0-9a-f]{64}$/;
