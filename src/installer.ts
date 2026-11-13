@@ -484,7 +484,9 @@ const migrateRepositoryNativeV2State = async (
   for (const source of legacySources) {
     const project = projectById.get(source.metadata.projectId);
     if (project === undefined) {
-      fail("v2→v3 migration cannot resolve projectId: " + source.metadata.projectId);
+      throw new TypeError(
+        "v2→v3 migration cannot resolve projectId: " + source.metadata.projectId,
+      );
     }
     const destination = sourceCore.workItemDocumentPath(
       project.manifest.workItems.root,
@@ -501,7 +503,9 @@ const migrateRepositoryNativeV2State = async (
   for (const [workItem, lifecycleArtifacts] of migrationState) {
     const source = sourceById.get(workItem.id);
     if (source === undefined) {
-      fail("v2→v3 migration is missing persisted WorkItem source: " + workItem.id);
+      throw new TypeError(
+        "v2→v3 migration is missing persisted WorkItem source: " + workItem.id,
+      );
     }
     if (
       source.path !== workItem.sourcePath ||
@@ -511,8 +515,15 @@ const migrateRepositoryNativeV2State = async (
       fail("v2→v3 persisted WorkItem source projection is stale: " + workItem.id);
     }
     const project = projectById.get(workItem.projectId);
-    if (project === undefined || project.repositoryRoot !== workItem.repositoryRoot) {
-      fail("v2→v3 migration cannot resolve exact repository for WorkItem: " + workItem.id);
+    if (project === undefined) {
+      throw new TypeError(
+        "v2→v3 migration cannot resolve project for WorkItem: " + workItem.id,
+      );
+    }
+    if (project.repositoryRoot !== workItem.repositoryRoot) {
+      throw new TypeError(
+        "v2→v3 migration repository does not match persisted WorkItem: " + workItem.id,
+      );
     }
     const destination = sourceCore.workItemDocumentPath(
       project.manifest.workItems.root,
