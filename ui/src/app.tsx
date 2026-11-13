@@ -13,6 +13,8 @@ import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import {
   WorkItemIdSchema,
   type ProjectManifest,
+  type Run,
+  type Sha256,
   type WorkItem,
   type WorkItemId,
   type WorkItemSchemaId,
@@ -20,6 +22,7 @@ import {
 import * as api from "./http.ts";
 import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
+import type { WorkItemMode } from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -126,6 +129,10 @@ export const App = () => {
   const [themePreference, setThemePreference] = useState<ThemePreference>(savedThemePreference);
   const [createOpen, setCreateOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
+  const [contextMode, setContextMode] = useState<WorkItemMode>("DOCUMENTS");
+  const [contextRunId, setContextRunId] = useState<Run["id"] | null>(null);
+  const [contextDocumentPath, setContextDocumentPath] = useState<string | null>(null);
+  const [contextDocumentSha256, setContextDocumentSha256] = useState<Sha256 | null>(null);
   const [projectId, setProjectId] = useState("");
   const [schemaId, setSchemaId] = useState<WorkItemSchemaId | "">("");
   const [title, setTitle] = useState("");
@@ -223,6 +230,10 @@ export const App = () => {
     setSettingsSection(destination.settingsSection);
     setWorkspaceDirty(false);
     setContextOpen(false);
+    setContextMode("DOCUMENTS");
+    setContextRunId(null);
+    setContextDocumentPath(null);
+    setContextDocumentSha256(null);
     updateDestinationUrl(destination);
     if (returningFrom !== null || (
       destination.workItemId === null && destination.settingsSection === null
@@ -427,6 +438,14 @@ export const App = () => {
         workItem={selectedWorkItem}
         onBack={() => requestSelection(null)}
         onOpenContext={() => setContextOpen(true)}
+        onContextModeChange={(nextMode, runId) => {
+          setContextMode(nextMode);
+          setContextRunId(runId);
+        }}
+        onContextDocumentChange={(path, sha256) => {
+          setContextDocumentPath(path);
+          setContextDocumentSha256(sha256);
+        }}
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>
@@ -482,7 +501,14 @@ export const App = () => {
         selectedWorkItem && settingsSection === null
           ? (
             <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
-              <WorkItemContext workItem={selectedWorkItem} onCreateRemediation={startRemediation} />
+              <WorkItemContext
+                workItem={selectedWorkItem}
+                mode={contextMode}
+                selectedRunId={contextRunId}
+                selectedDocumentPath={contextDocumentPath}
+                selectedDocumentSha256={contextDocumentSha256}
+                onCreateRemediation={startRemediation}
+              />
             </Suspense>
           )
           : null

@@ -1,17 +1,31 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { WorkItem } from "../../src/core/contracts.ts";
+import type { Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
+import {
+  runRoleLabel,
+  runStatusLabel,
+  workItemModeLabel,
+  type WorkItemMode,
+} from "./workbench-presentation.ts";
 
 export const WorkItemContext = ({
   workItem,
+  mode,
+  selectedRunId,
+  selectedDocumentPath,
+  selectedDocumentSha256,
   onCreateRemediation,
 }: Readonly<{
   workItem: WorkItem;
+  mode: WorkItemMode;
+  selectedRunId: Run["id"] | null;
+  selectedDocumentPath: string | null;
+  selectedDocumentSha256: Sha256 | null;
   onCreateRemediation: (workItem: WorkItem) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -20,13 +34,14 @@ export const WorkItemContext = ({
     queryKey: workbenchQueryKeys.workItemSchemas,
     queryFn: api.listWorkItemSchemas,
   });
+  const runsQuery = useQuery({
+    queryKey: workbenchQueryKeys.runs(workItem.id),
+    queryFn: () => api.listRuns(workItem.id),
+    enabled: mode === "ACTIVITY",
+  });
   const diagnosticsQuery = useQuery({
     queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
     queryFn: api.listWorkItemSourceDiagnostics,
-  });
-  const documentationGitQuery = useQuery({
-    queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id),
-    queryFn: () => api.getWorkItemDocumentationGitStatus(workItem.id),
   });
   const packageQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
@@ -59,6 +74,8 @@ export const WorkItemContext = ({
   const kind =
     schemasQuery.data?.find((schema) => schema.schemaId === workItem.schemaId)?.kind ??
     workItem.schemaId;
+  const selectedRun =
+    (runsQuery.data ?? []).find((run) => run.id === selectedRunId) ?? null;
   return (
     <div className="order-context-panel">
       <div className="order-context-heading">
@@ -66,17 +83,28 @@ export const WorkItemContext = ({
         <span>Inspection details for the selected WorkItem workspace.</span>
       </div>
 
-      <div className="order-context-section">
-        <strong>Source</strong>
-        <code>{workItem.sourcePath}</code>
-        {diagnostics.length > 0
-          ? <span className="order-warning-text">{diagnostics.length} source issue{diagnostics.length === 1 ? "" : "s"} require attention</span>
-          : <span>Current</span>}
-        {documentationGitQuery.data ? (
-          <span data-testid="context-documentation-git-state">
-            {documentationGitQuery.data.paths.every((path) => path.state === "MATCHES_HEAD")
-              ? "Saved to Git"
-              : "Not saved to Git"}
+      <div className="order-context-section" data-testid="selected-view-context">
+        <strong>{workItemModeLabel(mode)} details</strong>
+        {mode === "DOCUMENTS" ? (
+          <>
+            <span>Selected document</span>
+            <code>{selectedDocumentPath ?? workItem.sourcePath}</code>
+            <span>Exact SHA</span>
+            <code>{selectedDocumentSha256 ?? "Resolving…"}</code>
+          </>
+        ) : mode === "ACTIVITY" && selectedRun ? (
+          <>
+            <span>{runRoleLabel(selectedRun.role)} · {runStatusLabel(selectedRun.status)}</span>
+            <code>{selectedRun.id}</code>
+            <span>Attempt {selectedRun.attempt}</span>
+            <span>{new Date(selectedRun.startedAt).toLocaleString()}</span>
+          </>
+        ) : (
+          <span>Technical inspection for the selected {workItemModeLabel(mode).toLowerCase()} view.</span>
+        )}
+        {diagnostics.length > 0 ? (
+          <span className="order-warning-text">
+            {diagnostics.length} source issue{diagnostics.length === 1 ? "" : "s"} require attention
           </span>
         ) : null}
       </div>

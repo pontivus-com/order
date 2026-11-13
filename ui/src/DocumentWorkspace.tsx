@@ -6,6 +6,7 @@ import { Tab, TabList } from "@astryxdesign/core/TabList";
 import {
   MarkdownTextSchema,
   type ArtifactRef,
+  type Sha256,
   type WorkItem,
 } from "../../src/core/contracts.ts";
 import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
@@ -62,6 +63,7 @@ export const DocumentWorkspace = ({
   onDirtyChange,
   onOpenArtifactEvidence,
   requestedDocument,
+  onContextDocumentChange,
 }: Readonly<{
   workItem: WorkItem;
   onDirtyChange: (dirty: boolean) => void;
@@ -70,6 +72,7 @@ export const DocumentWorkspace = ({
     document: WorkflowDocumentTarget;
     requestId: number;
   }> | null;
+  onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<SelectedDocument>({ kind: "SOURCE" });
@@ -198,6 +201,24 @@ export const DocumentWorkspace = ({
     artifacts,
     artifactsQuery.isPending,
     requestedDocument?.requestId,
+  ]);
+
+  useEffect(() => {
+    if (selected.kind === "SOURCE") {
+      onContextDocumentChange(workItem.sourcePath, sourceQuery.data?.sha256 ?? null);
+      return;
+    }
+    onContextDocumentChange(
+      selectedArtifact?.repositoryPath ?? null,
+      selectedArtifact?.sha256 ?? null,
+    );
+  }, [
+    onContextDocumentChange,
+    selected.kind,
+    selectedArtifact?.repositoryPath,
+    selectedArtifact?.sha256,
+    sourceQuery.data?.sha256,
+    workItem.sourcePath,
   ]);
 
   const sourceReadOnly = workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";

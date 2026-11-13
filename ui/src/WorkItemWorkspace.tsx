@@ -6,7 +6,7 @@ import {
   SegmentedControlItem,
 } from "@astryxdesign/core/SegmentedControl";
 
-import type { ArtifactRef, Run, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
@@ -58,11 +58,15 @@ export const WorkItemWorkspace = ({
   workItem,
   onBack,
   onOpenContext,
+  onContextModeChange,
+  onContextDocumentChange,
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
   onBack: () => void;
   onOpenContext: () => void;
+  onContextModeChange: (mode: WorkItemMode, runId: Run["id"] | null) => void;
+  onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -127,6 +131,10 @@ export const WorkItemWorkspace = ({
   useEffect(() => {
     headingRef.current?.focus();
   }, [workItem.id]);
+
+  useEffect(() => {
+    if (mode !== null) onContextModeChange(mode, selectedActivityRunId);
+  }, [mode, onContextModeChange, selectedActivityRunId]);
 
   useEffect(() => {
     if (runsQuery.isPending) return;
@@ -463,6 +471,7 @@ export const WorkItemWorkspace = ({
                 onDirtyChange={setDirtyState}
                 onOpenArtifactEvidence={openArtifactEvidence}
                 requestedDocument={requestedDocument}
+                onContextDocumentChange={onContextDocumentChange}
               />
             ) : null}
             {mode === "ACTIVITY" ? (
