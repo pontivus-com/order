@@ -341,7 +341,7 @@ const seedSignoffScript = (
     ${JSON.stringify(stateRoot)},
     process.env,
     {
-      version: 3,
+      version: 4,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [repositoryRoot],
       referenceRoots: [],
@@ -641,7 +641,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -711,7 +711,7 @@ describe("daemon control plane", () => {
         state,
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [state],
           referenceRoots: [],
@@ -936,7 +936,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(allowed)}],
           referenceRoots: [],
@@ -982,7 +982,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [
             ${JSON.stringify(originalRepository)},
@@ -1056,7 +1056,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1168,7 +1168,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1313,7 +1313,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1425,7 +1425,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1523,7 +1523,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1626,7 +1626,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1687,7 +1687,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1762,7 +1762,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -1827,7 +1827,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -2015,7 +2015,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -2071,7 +2071,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -2140,7 +2140,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: repositories,
           referenceRoots: [],
@@ -2193,7 +2193,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -2290,7 +2290,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
@@ -2431,7 +2431,7 @@ describe("daemon control plane", () => {
         ${JSON.stringify(state)},
         process.env,
         {
-          version: 3,
+          version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
           repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
