@@ -11,12 +11,16 @@ export const workbenchQueryKeys = {
   workItemSchemas: ["workItemSchemas"] as const,
   workItemSourceDiagnostics: ["workItemSourceDiagnostics"] as const,
   workItemSourceRoot: ["workItemSource"] as const,
+  workItemDocumentationGitStatusRoot: ["workItemDocumentationGitStatus"] as const,
   lifecycleArtifactsRoot: ["lifecycleArtifacts"] as const,
   signoffPackageRoot: ["signoffPackage"] as const,
   runEventsRoot: ["runEvents"] as const,
 
   workItemSource: (workItemId: WorkItemId) =>
     ["workItemSource", workItemId] as const,
+  workItemDocumentationGitStatus: (workItemId: WorkItemId) =>
+    ["workItemDocumentationGitStatus", workItemId] as const,
+  workItemsIncludingArchived: ["workItems", "includeArchived"] as const,
   lifecycleArtifacts: (workItemId: WorkItemId) =>
     ["lifecycleArtifacts", workItemId] as const,
   signoffPackage: (workItemId: WorkItemId) =>

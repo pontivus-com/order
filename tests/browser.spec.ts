@@ -387,6 +387,69 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   expect(eventStreamUrls).toEqual([]);
 });
 
+
+test("repository-native WorkItem management keeps project, Git, title, and archive state explicit", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  await page.getByRole("button", { name: "New work item" }).click();
+  const createDialog = page.getByRole("dialog", { name: "Create work item" });
+  await expect(createDialog).toBeVisible();
+  await createDialog.getByLabel("Project").selectOption("order-e2e");
+  await expect(createDialog.getByTestId("create-work-item-location"))
+    .toContainText("docs/order/work-items");
+  await createDialog.getByRole("radio", { name: "CHANGE" }).click();
+  await createDialog.getByLabel("Title").fill("Repository-native management");
+  await createDialog.getByLabel("Concern IDs").click();
+  await page.getByRole("option", { name: "browser" }).click();
+  await page.keyboard.press("Escape");
+  await createDialog.getByRole("button", { name: "Create work item" }).click();
+
+  await expect(page.getByTestId("work-item-heading"))
+    .toHaveText("Repository-native management");
+
+  const documentState = page.getByTestId("document-state-strip");
+  await expect(documentState).toContainText("Saved to project, not Git");
+  await page.getByRole("button", { name: "Save documentation to Git" }).click();
+  const gitDialog = page.getByRole("alertdialog", {
+    name: "Save WorkItem documentation to Git?",
+  });
+  await expect(gitDialog).toContainText("work-request.md");
+  await gitDialog.getByRole("button", { name: "Save documentation to Git" }).click();
+  await expect(documentState).toContainText("Saved to Git");
+
+  await page.getByRole("button", { name: "Edit title" }).click();
+  await page.getByLabel("Work item title").fill("Repository-native management renamed");
+  await page.getByRole("button", { name: "Save title" }).click();
+  await expect(page.getByTestId("work-item-heading"))
+    .toHaveText("Repository-native management renamed");
+  await expect(documentState).toContainText("Saved to project, not Git");
+
+  await page.getByRole("button", { name: "Save documentation to Git" }).click();
+  await page.getByRole("alertdialog", {
+    name: "Save WorkItem documentation to Git?",
+  }).getByRole("button", { name: "Save documentation to Git" }).click();
+  await expect(documentState).toContainText("Saved to Git");
+
+  await page.getByRole("button", { name: "Archive work item" }).click();
+  await page.getByRole("alertdialog", { name: "Archive work item?" })
+    .getByRole("button", { name: "Archive work item" }).click();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  await expect(rowFor(page, "Repository-native management renamed")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Show archived" }).click();
+  const archivedRow = rowFor(page, "Repository-native management renamed");
+  await expect(archivedRow).toContainText("Archived");
+  await archivedRow.getByRole("button", {
+    name: "Restore Repository-native management renamed",
+  }).click();
+  await expect(archivedRow).not.toContainText("Archived");
+  await page.getByRole("button", { name: "Hide archived" }).click();
+  await expect(rowFor(page, "Repository-native management renamed"))
+    .toContainText("browser");
+});
 test("workbench geometry gives the active task the canvas and recomposes narrow queue rows", async ({
   page,
   request,

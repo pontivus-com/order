@@ -83,6 +83,10 @@ export const WorkItemWorkspace = ({
   const [proposal, setProposal] = useState<ProposalSelection | null>(null);
   const [returnMode, setReturnMode] = useState<WorkItemMode | null>(null);
   const [selectedActivityRunId, setSelectedActivityRunId] = useState<Run["id"] | null>(null);
+  const [titleEditing, setTitleEditing] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(workItem.title);
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [confirmArchive, setConfirmArchive] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const runs = runsQuery.data ?? [];
   const workflow = workflowPresentation(workItem.stage);
@@ -141,6 +145,42 @@ export const WorkItemWorkspace = ({
       queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runEventsRoot }),
     ]);
   };
+
+  const titleMutation = useMutation({
+    mutationFn: () => api.updateWorkItemTitle(workItem.id, {
+      expectedSourceSha256: workItem.sourceSha256,
+      title: titleDraft.trim(),
+    }),
+    onSuccess: async (result) => {
+      if (result.tag === "STALE") {
+        setTitleError("The WorkItem source changed. Reload the current title before editing again.");
+        return;
+      }
+      setTitleEditing(false);
+      setTitleError(null);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSource(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
+      ]);
+    },
+  });
+
+  const archiveMutation = useMutation({
+    mutationFn: () => api.setWorkItemArchived(workItem.id, {
+      expectedArchived: workItem.archived,
+      archived: !workItem.archived,
+    }),
+    onSuccess: async () => {
+      setConfirmArchive(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
+      ]);
+    },
+  });
 
   const start = useMutation({
     mutationFn: () => api.startInteractiveRun(workItem.id),
@@ -219,9 +259,61 @@ export const WorkItemWorkspace = ({
             ) : null}
           </div>
           <div className="order-workitem-heading-block">
-            <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
+            {titleEditing ? (
+              <div className="order-workitem-title-edit">
+                <input
+                  aria-label="Work item title"
+                  value={titleDraft}
+                  autoFocus
+                  onChange={(event) => setTitleDraft(event.currentTarget.value)}
+                />
+                <WorkbenchAction
+                  label="Save title"
+                  tone="primary"
+                  loading={titleMutation.isPending}
+                  disabled={titleDraft.trim().length === 0 || titleMutation.isPending}
+                  onClick={() => titleMutation.mutate()}
+                />
+                <WorkbenchAction
+                  label="Cancel title edit"
+                  disabled={titleMutation.isPending}
+                  onClick={() => {
+                    setTitleDraft(workItem.title);
+                    setTitleError(null);
+                    setTitleEditing(false);
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="order-workitem-title-row">
+                <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
+                {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
+                  <WorkbenchAction
+                    label="Edit title"
+                    tone="ghost"
+                    onClick={() => {
+                      setTitleDraft(workItem.title);
+                      setTitleError(null);
+                      setTitleEditing(true);
+                    }}
+                  />
+                ) : null}
+              </div>
+            )}
             <span>{workflow.label} · {workItem.status === "ACTIVE" ? "Active" : workItem.status.toLowerCase()}</span>
+            {titleError ? <span role="alert" className="order-error-text">{titleError}</span> : null}
+            {titleMutation.error ? (
+              <span role="alert" className="order-error-text">
+                {titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}
+              </span>
+            ) : null}
           </div>
+          <WorkbenchAction
+            label={workItem.archived ? "Restore work item" : "Archive work item"}
+            tone="ghost"
+            disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+            onClick={() => setConfirmArchive(true)}
+          />
           {canStart && runs.length === 0 ? (
             <WorkbenchAction
               label={"Start " + workflow.label}
@@ -357,6 +449,26 @@ export const WorkItemWorkspace = ({
           </Suspense>
         </div>
       )}
+
+      <AlertDialog
+        isOpen={confirmArchive}
+        onOpenChange={setConfirmArchive}
+        title={workItem.archived ? "Restore work item?" : "Archive work item?"}
+        description={
+          workItem.archived
+            ? "Restore this WorkItem to the active queue. Its lifecycle and history are unchanged."
+            : "Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact."
+        }
+        cancelLabel="Cancel"
+        actionLabel={workItem.archived ? "Restore work item" : "Archive work item"}
+        onAction={() => archiveMutation.mutate()}
+      />
+
+      {archiveMutation.error ? (
+        <div className="order-primary-action-error" role="alert">
+          {archiveMutation.error instanceof Error ? archiveMutation.error.message : String(archiveMutation.error)}
+        </div>
+      ) : null}
 
       <AlertDialog
         isOpen={pendingMode !== null}

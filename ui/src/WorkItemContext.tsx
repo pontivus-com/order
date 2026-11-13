@@ -25,6 +25,10 @@ export const WorkItemContext = ({
     queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
     queryFn: api.listWorkItemSourceDiagnostics,
   });
+  const documentationGitQuery = useQuery({
+    queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id),
+    queryFn: () => api.getWorkItemDocumentationGitStatus(workItem.id),
+  });
   const packageQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
     queryFn: () => api.getSignoffPackage(workItem.id),
@@ -77,6 +81,13 @@ export const WorkItemContext = ({
         {diagnostics.length > 0
           ? <span className="order-warning-text">{diagnostics.length} source issue{diagnostics.length === 1 ? "" : "s"} require attention</span>
           : <span>Current</span>}
+        {documentationGitQuery.data ? (
+          <span data-testid="context-documentation-git-state">
+            {documentationGitQuery.data.paths.every((path) => path.state === "MATCHES_HEAD")
+              ? "Saved to Git"
+              : "Not saved to Git"}
+          </span>
+        ) : null}
       </div>
 
       <details className="order-technical-details order-context-technical-details">

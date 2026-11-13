@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Tab, TabList } from "@astryxdesign/core/TabList";
 
@@ -21,6 +21,29 @@ type SelectedDocument =
   | Readonly<{ kind: "ARTIFACT"; id: ArtifactRef["id"] }>;
 
 const errorText = (value: unknown): string => value instanceof Error ? value.message : String(value);
+
+const gitBlockerText = (blocker: string): string => {
+  switch (blocker) {
+    case "LIFECYCLE_INELIGIBLE":
+      return "Documentation can only be saved to Git before Implementation or Complete.";
+    case "ACTIVE_RUN":
+      return "Finish or cancel the active activity before saving documentation to Git.";
+    case "DETACHED_HEAD":
+      return "Check out a local branch before saving documentation to Git.";
+    case "GIT_OPERATION_ACTIVE":
+      return "Finish the in-progress Git operation before saving documentation to Git.";
+    case "MISSING_GIT_IDENTITY":
+      return "Set repository-local Git user.name and user.email before saving documentation to Git.";
+    case "MISSING_DOCUMENT":
+      return "A governed WorkItem document is missing.";
+    case "IGNORED_DOCUMENT":
+      return "A governed WorkItem document is ignored by Git.";
+    case "UNMERGED_DOCUMENT":
+      return "Resolve the unmerged governed document before saving documentation to Git.";
+    default:
+      return blocker;
+  }
+};
 const decodeCanonicalMarkdown = (bytes: Uint8Array): string | null => {
   try {
     const parsed = MarkdownTextSchema.safeParse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
@@ -44,9 +67,14 @@ export const DocumentWorkspace = ({
   const [selectionInitialized, setSelectionInitialized] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [pendingSelection, setPendingSelection] = useState<SelectedDocument | null>(null);
+  const [confirmGitSave, setConfirmGitSave] = useState(false);
 
   const sourceQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSource(workItem.id), queryFn: () => api.getWorkItemSource(workItem.id) });
   const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id), queryFn: () => api.listLifecycleArtifacts(workItem.id) });
+  const gitStatusQuery = useQuery({
+    queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id),
+    queryFn: () => api.getWorkItemDocumentationGitStatus(workItem.id),
+  });
   const artifacts = useMemo(
     () => [...(artifactsQuery.data ?? [])].sort((a, b) => lifecycleArtifactRoleRank(a.role) - lifecycleArtifactRoleRank(b.role)),
     [artifactsQuery.data],
@@ -77,6 +105,25 @@ export const DocumentWorkspace = ({
     enabled: selectedArtifact !== null,
   });
   const markdown = contentQuery.data === undefined ? null : decodeCanonicalMarkdown(contentQuery.data);
+  const selectedRepositoryPath = selected.kind === "SOURCE"
+    ? sourceQuery.data?.path ?? null
+    : selectedArtifact?.repositoryPath ?? null;
+  const selectedGitPath = selectedRepositoryPath === null
+    ? null
+    : gitStatusQuery.data?.paths.find((path) => path.repositoryPath === selectedRepositoryPath) ?? null;
+  const changedGitPaths = gitStatusQuery.data?.paths.filter((path) => path.state !== "MATCHES_HEAD") ?? [];
+  const workItemDirectory = sourceQuery.data?.path.includes("/")
+    ? sourceQuery.data.path.slice(0, sourceQuery.data.path.lastIndexOf("/"))
+    : sourceQuery.data?.path ?? workItem.sourcePath.slice(0, Math.max(0, workItem.sourcePath.lastIndexOf("/")));
+  const gitStateLabel = dirty
+    ? "Unsaved edits"
+    : gitStatusQuery.isPending
+      ? "Checking Git…"
+      : gitStatusQuery.isError || gitStatusQuery.data === undefined
+        ? "Git state unavailable"
+        : changedGitPaths.length === 0
+          ? "Saved to Git"
+          : "Saved to project, not Git";
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
@@ -86,7 +133,34 @@ export const DocumentWorkspace = ({
       queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.artifacts(workItem.id) }),
       queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
     ]);
+    void queryClient.invalidateQueries({
+      queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id),
+    });
   };
+
+  const commitDocumentation = useMutation({
+    mutationFn: async () => {
+      const status = gitStatusQuery.data;
+      if (!status) throw new TypeError("Documentation Git status is unavailable");
+      return api.commitWorkItemDocumentation(workItem.id, {
+        expectedHeadCommit: status.headCommit,
+        expectedPaths: status.paths
+          .filter((path) =>
+            path.state === "MODIFIED" ||
+            path.state === "UNTRACKED" ||
+            path.state === "DELETED"
+          )
+          .map((path) => ({
+            repositoryPath: path.repositoryPath,
+            sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+          })),
+      });
+    },
+    onSuccess: async () => {
+      setConfirmGitSave(false);
+      await invalidate();
+    },
+  });
 
   const select = (next: SelectedDocument): void => {
     if (dirty) setPendingSelection(next);
@@ -114,6 +188,58 @@ export const DocumentWorkspace = ({
           <Tab value="SOURCE" label="Source" />
           {artifacts.map((artifact) => <Tab key={artifact.id} value={artifact.id} label={artifact.role} />)}
         </TabList>
+      </div>
+
+      <div className="order-document-state-strip" data-testid="document-state-strip">
+        <div className="order-document-state-summary">
+          <span><strong>{gitStateLabel}</strong></span>
+          <code>{selectedRepositoryPath ?? workItemDirectory}</code>
+          {selectedGitPath ? <span>{selectedGitPath.state.replaceAll("_", " ").toLowerCase()}</span> : null}
+        </div>
+        <details className="order-document-git-details">
+          <summary>Documentation Git state</summary>
+          <div>
+            <span>WorkItem directory</span>
+            <code>{workItemDirectory}</code>
+          </div>
+          {gitStatusQuery.data ? (
+            <>
+              <div><span>Branch</span><code>{gitStatusQuery.data.branch ?? "detached HEAD"}</code></div>
+              <div><span>HEAD</span><code>{gitStatusQuery.data.headCommit}</code></div>
+              <ul>
+                {gitStatusQuery.data.paths.map((path) => (
+                  <li key={path.repositoryPath}>
+                    <code>{path.repositoryPath}</code>
+                    <span>{path.state.replaceAll("_", " ").toLowerCase()}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : null}
+        </details>
+        {gitStatusQuery.isError ? (
+          <span className="order-error-text">{errorText(gitStatusQuery.error)}</span>
+        ) : null}
+        {gitStatusQuery.data?.blockers.map((blocker) => (
+          <span key={blocker} className="order-warning-text">{gitBlockerText(blocker)}</span>
+        ))}
+        {changedGitPaths.length > 0 ? (
+          <WorkbenchAction
+            label="Save documentation to Git"
+            tone="primary"
+            disabled={
+              dirty ||
+              gitStatusQuery.data === undefined ||
+              gitStatusQuery.data.blockers.length > 0 ||
+              commitDocumentation.isPending
+            }
+            loading={commitDocumentation.isPending}
+            onClick={() => setConfirmGitSave(true)}
+          />
+        ) : null}
+        {commitDocumentation.error ? (
+          <span className="order-error-text">{errorText(commitDocumentation.error)}</span>
+        ) : null}
       </div>
 
       <div className="order-document-canvas">
@@ -165,6 +291,21 @@ export const DocumentWorkspace = ({
           />
         ) : null}
       </div>
+
+      <AlertDialog
+        isOpen={confirmGitSave}
+        onOpenChange={setConfirmGitSave}
+        title="Save WorkItem documentation to Git?"
+        description={
+          changedGitPaths.length === 0
+            ? "No governed WorkItem paths differ from HEAD."
+            : "Only these governed paths will be committed: " +
+              changedGitPaths.map((path) => path.repositoryPath).join(", ")
+        }
+        cancelLabel="Cancel"
+        actionLabel="Save documentation to Git"
+        onAction={() => commitDocumentation.mutate()}
+      />
 
       <AlertDialog
         isOpen={pendingSelection !== null}
