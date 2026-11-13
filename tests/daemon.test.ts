@@ -1152,19 +1152,19 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-title-archive-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
       const sourceShell = await import("./src/shell/work-item-source.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -1211,7 +1211,7 @@ describe("daemon control plane", () => {
         restored,
       }));
       database.close();
-    \`) as {
+    `) as {
       titleWrite: { tag: string; sha256: string };
       renamed: { title: string; stage: string; status: string; outcome: string | null };
       beforeArchiveLifecycle: { stage: string; status: string; outcome: string | null };
