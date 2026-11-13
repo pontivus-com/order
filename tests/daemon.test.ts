@@ -566,6 +566,120 @@ describe("daemon control plane", () => {
     expect(output.nonLoopbackRejected).toBe(true);
   });
 
+  it("classifies canonical HTTP failures without leaking unexpected daemon detail", () => {
+    const output = bunEval(`
+      const contracts = await import("./src/core/contracts.ts");
+      const server = await import("./src/daemon/server.ts");
+
+      let malformed;
+      try {
+        contracts.WorkItemIdSchema.parse("not-a-work-item-id");
+      } catch (error) {
+        malformed = server.classifyHttpFailure(error);
+      }
+      const absent = server.classifyHttpFailure(new TypeError("WorkItem does not exist"));
+      const conflict = server.classifyHttpFailure(new TypeError("WorkItem is not awaiting sign-off"));
+      const unexpected = server.classifyHttpFailure(new Error("secret internal detail"));
+      console.log(JSON.stringify({ malformed, absent, conflict, unexpected }));
+    `) as {
+      malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      absent: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+    };
+
+    expect(output.malformed).toMatchObject({
+      status: 400,
+      code: "INVALID_REQUEST",
+      sourceDiagnostic: null,
+    });
+    expect(output.absent).toEqual({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "WorkItem does not exist",
+      sourceDiagnostic: null,
+    });
+    expect(output.conflict).toEqual({
+      status: 409,
+      code: "CURRENT_STATE_CONFLICT",
+      message: "WorkItem is not awaiting sign-off",
+      sourceDiagnostic: null,
+    });
+    expect(output.unexpected).toEqual({
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: "Internal daemon error",
+      sourceDiagnostic: null,
+    });
+    expect(output.unexpected.message).not.toContain("secret internal detail");
+  });
+
+  it("preserves the exact canonical source diagnostic on HTTP conflict classification", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-http-source-conflict-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const server = await import("./src/daemon/server.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 3,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "source conflict",
+        concernIds: ["shell"],
+      });
+      fs.unlinkSync(path.join(repository, created.sourcePath));
+      let classified = null;
+      try {
+        await coord.getWorkItemSource(runtime, created.id);
+      } catch (error) {
+        classified = server.classifyHttpFailure(error);
+      }
+      console.log(JSON.stringify({ created, classified }));
+      database.close();
+    `) as {
+      created: { id: string; projectId: string; sourcePath: string };
+      classified: {
+        status: number;
+        code: string;
+        message: string;
+        sourceDiagnostic: {
+          projectId: string;
+          path: string;
+          workItemId: string;
+          code: string;
+          detail: string;
+        };
+      };
+    };
+
+    expect(output.classified).toMatchObject({
+      status: 409,
+      code: "WORK_ITEM_SOURCE_CONFLICT",
+      sourceDiagnostic: {
+        projectId: output.created.projectId,
+        path: output.created.sourcePath,
+        workItemId: output.created.id,
+        code: "INVALID_SOURCE",
+      },
+    });
+    expect(output.classified.message).toBe(output.classified.sourceDiagnostic.detail);
+  });
+
   it("enforces public-health-only, one-time connect, cookie auth, Origin, and no CORS", () => {
     const state = tempDir("order-daemon-http-");
         mkdirSync(join(process.cwd(), "dist"), { recursive: true });
