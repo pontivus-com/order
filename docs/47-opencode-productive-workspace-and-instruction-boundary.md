@@ -1,7 +1,7 @@
 # OpenCode productive workspace and instruction boundary — functional and technical design
 
-**Canonical concern ID:** GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE  
-**Versioned concern ID:** GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1  
+**Canonical concern ID:** `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE`  
+**Versioned concern ID:** `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`  
 **Target correction train:** Order 0.2.2  
 **Authority layers:** P3 functional requirements + P4 technical architecture  
 **Status:** functional/P4/P6 boundary design complete; implementation-ready through GW-P7-ORDER-0.2.2-CORRECTIVE-IMPLEMENTATION-V1-2026-11-13
