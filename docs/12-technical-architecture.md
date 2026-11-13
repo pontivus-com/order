@@ -2376,11 +2376,13 @@ Permanent tests must cover:
 
 The daemon must be able to serve authenticated Settings while configuration is valid but not productively ready.
 
+Config loading therefore does not fail merely because a previously proven external repository/reference path is currently missing or no longer proves the same Git/project identity. Stored v4 path identities remain readable; the settings/readiness owner performs live proof and classifies unavailable/invalid repositories/reference roots as attention/blocker state. Only malformed config bytes, invalid stored path syntax/duplication or state-root security violations are config-load failures.
+
 For `OrderConfig v4`:
 
 - zero configured repositories is valid configuration state;
 - `model = null` is valid configuration state;
-- repository/source reconciliation runs only when repositories exist;
+- repository/source reconciliation runs only for currently READY repositories;
 - provider/model preflight runs only when a model exists and a repository context required by that preflight can be resolved;
 - productive Run start/tick commands enforce readiness and return a canonical configuration blocker instead of crashing startup.
 
