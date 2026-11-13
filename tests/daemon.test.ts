@@ -939,6 +939,240 @@ describe("daemon control plane", () => {
     expect(output.same).toBe(true);
   });
 
+  it("restores the old config/runtime when activation fails after candidate reconciliation", () => {
+    const repository = createRepository("settings-rollback");
+    const state = tempDir("order-settings-rollback-");
+    const missingBinary = join(state, "missing-opencode");
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      cfg.writeOrderConfig(${JSON.stringify(state)}, cfg.buildOrderConfig(null, [], []));
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        { ...process.env, PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(missingBinary)} },
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const before = cfg.readOrderConfigState(${JSON.stringify(state)});
+      let failure = null;
+      try {
+        await settings.connectRepository(owner, {
+          expectedConfigSha256: before.sha256,
+          repositoryRoot: ${JSON.stringify(repository)},
+        });
+      } catch (error) {
+        failure = error instanceof Error ? error.message : String(error);
+      }
+      const after = cfg.readOrderConfigState(${JSON.stringify(state)});
+      console.log(JSON.stringify({
+        failure,
+        sameRuntime: owner.current === runtime,
+        sameConfig: JSON.stringify(after) === JSON.stringify(before),
+        mutationActive: owner.settingsMutationActive,
+        schedulerStopped: runtime.schedulerStopped,
+      }));
+      database.close();
+    `) as {
+      failure: string | null;
+      sameRuntime: boolean;
+      sameConfig: boolean;
+      mutationActive: boolean;
+      schedulerStopped: boolean;
+    };
+
+    expect(output.failure).not.toBeNull();
+    expect(output.sameRuntime).toBe(true);
+    expect(output.sameConfig).toBe(true);
+    expect(output.mutationActive).toBe(false);
+    expect(output.schedulerStopped).toBe(true);
+  });
+
+  it("rejects unavailable model changes without mutating canonical config", () => {
+    const state = tempDir("order-settings-model-preflight-");
+    const binary = createFakeOpenCode();
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      cfg.writeOrderConfig(${JSON.stringify(state)}, cfg.buildOrderConfig(null, [], []));
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        { ...process.env, PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)} },
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const before = cfg.readOrderConfigState(${JSON.stringify(state)});
+      let failure = null;
+      try {
+        await settings.updateConfiguredModel(owner, {
+          expectedConfigSha256: before.sha256,
+          model: { providerID: "opencode", id: "not-available" },
+        });
+      } catch (error) {
+        failure = error instanceof Error ? error.message : String(error);
+      }
+      const after = cfg.readOrderConfigState(${JSON.stringify(state)});
+      console.log(JSON.stringify({
+        failure,
+        same: JSON.stringify(before) === JSON.stringify(after),
+        sameRuntime: owner.current === runtime,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      failure: string | null;
+      same: boolean;
+      sameRuntime: boolean;
+    };
+
+    expect(output.failure).toContain("not currently available");
+    expect(output.same).toBe(true);
+    expect(output.sameRuntime).toBe(true);
+  });
+
+  it("blocks Settings activation during OpenCode login/account mutation", () => {
+    const repository = createRepository("settings-account-blocker");
+    const state = tempDir("order-settings-account-blocker-");
+    const binary = createFakeOpenCode();
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      cfg.writeOrderConfig(${JSON.stringify(state)}, cfg.buildOrderConfig(null, [], []));
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        { ...process.env, PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)} },
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const before = cfg.readOrderConfigState(${JSON.stringify(state)});
+
+      runtime.openCodeAccountMutationActive = true;
+      let mutationFailure = null;
+      try {
+        await settings.connectRepository(owner, {
+          expectedConfigSha256: before.sha256,
+          repositoryRoot: ${JSON.stringify(repository)},
+        });
+      } catch (error) {
+        mutationFailure = error instanceof Error ? error.message : String(error);
+      }
+      runtime.openCodeAccountMutationActive = false;
+
+      runtime.openCodeAccountLogin = {
+        id: "00000000-0000-4000-8000-000000000001",
+        providerAttemptId: "provider-attempt",
+        process: {},
+        label: "fixture@example.com",
+        authorizationUrl: "https://opencode.ai/console",
+        instructions: "fixture",
+        expiresAt: "2026-11-13T08:00:00.000Z",
+      };
+      let loginFailure = null;
+      try {
+        await settings.connectRepository(owner, {
+          expectedConfigSha256: before.sha256,
+          repositoryRoot: ${JSON.stringify(repository)},
+        });
+      } catch (error) {
+        loginFailure = error instanceof Error ? error.message : String(error);
+      }
+      runtime.openCodeAccountLogin = null;
+
+      const after = cfg.readOrderConfigState(${JSON.stringify(state)});
+      console.log(JSON.stringify({
+        mutationFailure,
+        loginFailure,
+        same: JSON.stringify(before) === JSON.stringify(after),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      mutationFailure: string | null;
+      loginFailure: string | null;
+      same: boolean;
+    };
+
+    expect(output.mutationFailure).toContain("OpenCode account state is changing");
+    expect(output.loginFailure).toContain("OpenCode login is active");
+    expect(output.same).toBe(true);
+  });
+
+  it("rediscovers retained WorkItems after reconnecting the same repository", () => {
+    const repository = createRepository("settings-reconnect");
+    const state = tempDir("order-settings-reconnect-");
+    const binary = createFakeOpenCode();
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      cfg.writeOrderConfig(
+        ${JSON.stringify(state)},
+        cfg.buildOrderConfig(null, [${JSON.stringify(repository)}], []),
+      );
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        { ...process.env, PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)} },
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "settings-reconnect",
+        schemaId: "change-v1",
+        title: "Reconnect retained work",
+        concernIds: ["shell"],
+      });
+
+      const first = cfg.readOrderConfigState(${JSON.stringify(state)});
+      await settings.disconnectRepository(owner, {
+        expectedConfigSha256: first.sha256,
+        repositoryRoot: ${JSON.stringify(repository)},
+      });
+      const hidden = coord.listWorkItems(owner.current).map((item) => item.id);
+
+      const second = cfg.readOrderConfigState(${JSON.stringify(state)});
+      await settings.connectRepository(owner, {
+        expectedConfigSha256: second.sha256,
+        repositoryRoot: ${JSON.stringify(repository)},
+      });
+      const visible = coord.listWorkItems(owner.current).map((item) => item.id);
+      console.log(JSON.stringify({ createdId: created.id, hidden, visible }));
+      await coord.stopCoordinatorScheduler(owner.current);
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      createdId: string;
+      hidden: string[];
+      visible: string[];
+    };
+
+    expect(output.hidden).toEqual([]);
+    expect(output.visible).toEqual([output.createdId]);
+  });
+
   it("enforces public-health-only, one-time connect, cookie auth, Origin, and no CORS", () => {
     const state = tempDir("order-daemon-http-");
         mkdirSync(join(process.cwd(), "dist"), { recursive: true });
