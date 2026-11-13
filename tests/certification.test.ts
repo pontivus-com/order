@@ -318,6 +318,47 @@ describe("Order cross-boundary certification", () => {
     expect(repositoryShell).not.toContain("renameSync");
   });
 
+  it("keeps saved OpenCode accounts safe, installation-global, and OpenCode-owned", () => {
+    const contracts = read("src/core/contracts.ts");
+    const openCode = read("src/shell/opencode.ts");
+    const account = read("src/daemon/opencode-account.ts");
+    const runtime = read("src/daemon/runtime.ts");
+    const server = read("src/daemon/server.ts");
+    const sqlite = read("src/shell/sqlite.ts");
+
+    expect(contracts).toContain("OpenCodeAccountStateSchema");
+    expect(contracts).toContain("OpenCodeAccountLoginAttemptSchema");
+    expect(contracts).not.toMatch(/OpenCodeAccount[^\n]*(?:token|secret|credentialValue)/i);
+
+    expect(openCode).toContain('openCodeAccountIntegrationId = "opencode"');
+    expect(openCode).toContain('openCodeAccountMethodId = "device"');
+    expect(openCode).toContain('openCodeConsoleDefaultEndpoint = "https://opencode.ai/console"');
+    expect(openCode).toContain("client.integration.get");
+    expect(openCode).not.toContain("client.credential.list");
+    expect(openCode).toContain("client.credential.activate");
+    expect(openCode).toContain("client.credential.update");
+    expect(openCode).toContain("client.integration.oauth.connect");
+    expect(openCode).toContain("client.integration.oauth.status");
+    expect(openCode).toContain("client.integration.oauth.cancel");
+    expect(openCode).toContain('"account-control"');
+
+    expect(account).toContain('run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"');
+    expect(account).toContain("runtime.openCodeAccountMutationActive");
+    expect(account).toContain("runtime.openCodeAccountLogin");
+    expect(account).toContain("expectedActiveAccountId");
+    expect(account).not.toContain(".query(");
+
+    expect(runtime).toContain("openCodeAccountLogin");
+    expect(runtime).toContain("openCodeAccountMutationActive");
+    expect(server).toContain('"/api/opencode/accounts"');
+    expect(server).toContain('"/api/opencode/accounts/login"');
+    expect(server).toContain("stopSavedOpenCodeAccountControl");
+
+    expect(sqlite).not.toContain("openCodeAccount");
+    expect(sqlite).not.toContain("opencodeAccount");
+    expect(sqlite).not.toContain("credentialSecret");
+  });
+
   it("keeps provider diagnostics bounded, secret-safe, coordinator-owned, and on existing Run evidence", () => {
     const contracts = read("src/core/contracts.ts");
     const executionCore = read("src/core/execution.ts");
