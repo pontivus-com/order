@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Fixed
+
+- Wait for the pinned OpenCode account integration to finish registering before querying saved accounts, preventing a clean installation from surfacing a transient upstream 404 as an internal daemon error.
+
 ### Internal
 
 - Trigger governed publication of the final certified `0.2.0` release candidate.
