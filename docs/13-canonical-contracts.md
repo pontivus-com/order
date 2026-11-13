@@ -2834,17 +2834,19 @@ The browser consumes one canonical projection derived from `OrderConfig.reposito
 ```ts
 const ConnectedRepositoryStateSchema = z.strictObject({
   repositoryRoot: AbsoluteDirectoryPathSchema,
-  projectId: ProjectIdSchema,
-  workItemsRoot: RepositoryPathSchema,
-  ready: z.boolean(),
+  status: z.enum(["READY", "ATTENTION"]),
+  projectId: ProjectIdSchema.nullable(),
+  workItemsRoot: RepositoryPathSchema.nullable(),
+  manifestSha256: Sha256Schema.nullable(),
   attention: z.array(z.enum([
+    "PROJECT_MANIFEST_MISSING",
     "PROJECT_MANIFEST_INVALID",
     "WORKITEM_ROOT_INVALID",
   ])).readonly(),
 });
 ```
 
-`repositoryRoot` is exact canonical Git top-level identity. `workItemsRoot` is the effective repository-relative root after applying the manifest default/override. The projection does not copy the full project manifest into a new settings-owned shape.
+`repositoryRoot` is exact canonical Git top-level identity and remains available even when the manifest has drifted invalid. When `status === "READY"`, `projectId`, `workItemsRoot` and `manifestSha256` are non-null and describe the current validated manifest/effective document root. In `ATTENTION`, fields that cannot be proven are null and `attention` identifies the configuration defect. The projection does not copy the full project manifest into a new settings-owned shape.
 
 The existing project catalog remains authoritative for project concerns/authority/verification. Settings uses this projection only for installation-level connection/document-location management.
 
@@ -2882,7 +2884,7 @@ const ConnectRepositorySchema = z.strictObject({
 
 const DisconnectRepositorySchema = z.strictObject({
   expectedConfigSha256: Sha256Schema,
-  projectId: ProjectIdSchema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
 });
 
 const UpdateConfiguredModelSchema = z.strictObject({
@@ -2891,7 +2893,7 @@ const UpdateConfiguredModelSchema = z.strictObject({
 });
 
 const MigrateWorkItemDocumentRootSchema = z.strictObject({
-  projectId: ProjectIdSchema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
   expectedManifestSha256: Sha256Schema,
   targetWorkItemsRoot: RepositoryPathSchema,
 });
