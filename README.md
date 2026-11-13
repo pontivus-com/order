@@ -12,7 +12,7 @@ Order turns engineering intent into explicitly approved work, runs coding agents
 
 Order `0.2.0` is the first certified public release. Normal installation and update consume the Order-owned GitHub Release bundle rather than arbitrary `master`.
 
-Latest certified release:
+Latest certified release (**one command**):
 
 ```bash
 tmp="$(mktemp -d)" && cd "$tmp" && \
