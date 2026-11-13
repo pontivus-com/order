@@ -729,9 +729,13 @@ describe("daemon control plane", () => {
         PONTIVUS_ORDER_BIND: "127.0.0.1:" + port,
       });
       try {
+        const readiness = await (await import("./src/daemon/settings.ts")).installationReadiness(
+          (await import("./src/daemon/settings.ts")).createCoordinatorRuntimeOwner(daemon.coordinator),
+        );
         console.log(JSON.stringify({
           config: daemon.coordinator.config,
           schedulerStopped: daemon.coordinator.schedulerStopped,
+          readiness,
         }));
       } finally {
         await daemon.stop();
@@ -739,9 +743,13 @@ describe("daemon control plane", () => {
     `, providerEnvironment(binary, emptyState)) as {
       config: { version: number; model: unknown; repositoryRoots: string[] };
       schedulerStopped: boolean;
+      readiness: { ready: boolean; blockers: string[] };
     };
     expect(empty.config).toMatchObject({ version: 4, model: null, repositoryRoots: [] });
     expect(empty.schedulerStopped).toBe(false);
+    expect(empty.readiness.ready).toBe(false);
+    expect(empty.readiness.blockers).toContain("REPOSITORY_REQUIRED");
+    expect(empty.readiness.blockers).toContain("MODEL_INVALID");
 
     const repository = createRepository("drifted");
     const driftState = tempDir("order-daemon-drift-v4-");
@@ -897,6 +905,11 @@ describe("daemon control plane", () => {
       const after = cfg.readOrderConfigState(${JSON.stringify(state)});
       console.log(JSON.stringify({
         runtimeReplaced: owner.current !== runtime,
+        oldSchedulerStopped: runtime.schedulerStopped,
+        oldSchedulerArmed: runtime.schedulerTimer !== null,
+        candidateSchedulerStopped: owner.current.schedulerStopped,
+        candidateSchedulerArmed: owner.current.schedulerTimer !== null,
+        mutationActive: owner.settingsMutationActive,
         activated,
         activeConfig: owner.current.config,
         persisted: after,
@@ -906,12 +919,22 @@ describe("daemon control plane", () => {
       database.close();
     `, providerEnvironment(binary, state)) as {
       runtimeReplaced: boolean;
+      oldSchedulerStopped: boolean;
+      oldSchedulerArmed: boolean;
+      candidateSchedulerStopped: boolean;
+      candidateSchedulerArmed: boolean;
+      mutationActive: boolean;
       activeConfig: { repositoryRoots: string[] };
       persisted: { config: { repositoryRoots: string[] } };
       stale: string | null;
     };
 
     expect(output.runtimeReplaced).toBe(true);
+    expect(output.oldSchedulerStopped).toBe(true);
+    expect(output.oldSchedulerArmed).toBe(false);
+    expect(output.candidateSchedulerStopped).toBe(false);
+    expect(output.candidateSchedulerArmed).toBe(true);
+    expect(output.mutationActive).toBe(false);
     expect(output.activeConfig.repositoryRoots).toEqual([repository]);
     expect(output.persisted.config.repositoryRoots).toEqual([repository]);
     expect(output.stale).toContain("changed since it was loaded");
@@ -1242,6 +1265,161 @@ describe("daemon control plane", () => {
 
     expect(output.hidden).toEqual([]);
     expect(output.visible).toEqual([output.createdId]);
+  });
+
+
+  it("blocks Settings activation while a Run is active", () => {
+    const repository = createRepository("settings-active-run");
+    const candidateRepository = createRepository("settings-active-run-candidate");
+    const state = tempDir("order-settings-active-run-");
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const settings = await import("./src/daemon/settings.ts");
+
+      cfg.writeOrderConfig(
+        ${JSON.stringify(state)},
+        cfg.buildOrderConfig(null, [${JSON.stringify(repository)}], []),
+      );
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      const work = await coord.createWorkItem(runtime, {
+        projectId: "settings-active-run",
+        schemaId: "change-v1",
+        title: "Block Settings while active",
+        concernIds: ["shell"],
+      });
+      sql.storeRun(database, {
+        id: "run_77777777-7777-4777-8777-777777777777",
+        workItemId: work.id,
+        executionTaskId: null,
+        stage: "IDEA",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: "sha256:" + "7".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-13T08:00:00.000Z",
+        endedAt: null,
+      });
+      const before = cfg.readOrderConfigState(${JSON.stringify(state)});
+      let failure = null;
+      try {
+        await settings.connectRepository(owner, {
+          expectedConfigSha256: before.sha256,
+          repositoryRoot: ${JSON.stringify(candidateRepository)},
+        });
+      } catch (error) {
+        failure = error instanceof Error ? error.message : String(error);
+      }
+      const after = cfg.readOrderConfigState(${JSON.stringify(state)});
+      console.log(JSON.stringify({
+        failure,
+        same: JSON.stringify(before) === JSON.stringify(after),
+        sameRuntime: owner.current === runtime,
+      }));
+      database.close();
+    `) as { failure: string | null; same: boolean; sameRuntime: boolean };
+
+    expect(output.failure).toContain("Order Run is active");
+    expect(output.same).toBe(true);
+    expect(output.sameRuntime).toBe(true);
+  });
+
+  it("serves the replacement runtime immediately after a Settings HTTP mutation", () => {
+    const repository = createRepository("settings-http-swap");
+    const state = tempDir("order-settings-http-swap-");
+    const binary = createFakeOpenCode();
+    mkdirSync(join(process.cwd(), "dist"), { recursive: true });
+    writeFileSync(join(process.cwd(), "dist", "index.html"), "<!doctype html><title>Order</title>");
+    distOwned = true;
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const settings = await import("./src/daemon/settings.ts");
+      const srv = await import("./src/daemon/server.ts");
+
+      cfg.writeOrderConfig(${JSON.stringify(state)}, cfg.buildOrderConfig(null, [], []));
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const initial = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        { ...process.env, PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)} },
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      initial.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(initial);
+      const daemonToken = shellRuntime.loadOrCreateDaemonToken(${JSON.stringify(state)});
+      const probe = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: () => new Response("x") });
+      const port = probe.port;
+      probe.stop(true);
+      const bind = srv.resolveDaemonBind("127.0.0.1:" + port);
+      const http = srv.startDaemonServer(owner, daemonToken, bind);
+      const origin = bind.origin;
+      try {
+        const minted = await fetch(origin + "/api/auth/connect-token", {
+          method: "POST",
+          headers: {
+            authorization: "Bearer " + daemonToken,
+            "content-type": "application/json",
+          },
+          body: "{}",
+        }).then((response) => response.json());
+        const connected = await fetch(origin + "/connect?token=" + minted.token, { redirect: "manual" });
+        const cookie = connected.headers.get("set-cookie");
+        const before = await fetch(origin + "/api/settings/config", { headers: { cookie } }).then(
+          (response) => response.json(),
+        );
+        const mutation = await fetch(origin + "/api/settings/repositories/connect", {
+          method: "POST",
+          headers: { cookie, origin, "content-type": "application/json" },
+          body: JSON.stringify({
+            expectedConfigSha256: before.sha256,
+            repositoryRoot: ${JSON.stringify(repository)},
+          }),
+        });
+        const mutationBody = await mutation.json();
+        const after = await fetch(origin + "/api/settings/config", { headers: { cookie } }).then(
+          (response) => response.json(),
+        );
+        console.log(JSON.stringify({
+          mutationStatus: mutation.status,
+          mutationBody,
+          runtimeReplaced: owner.current !== initial,
+          after,
+        }));
+      } finally {
+        http.server.stop(true);
+        await (await import("./src/daemon/coordinator.ts")).stopCoordinatorScheduler(owner.current);
+        database.close();
+      }
+    `, providerEnvironment(binary, state)) as {
+      mutationStatus: number;
+      runtimeReplaced: boolean;
+      after: { config: { repositoryRoots: string[] } };
+    };
+
+    expect(output.mutationStatus).toBe(200);
+    expect(output.runtimeReplaced).toBe(true);
+    expect(output.after.config.repositoryRoots).toEqual([repository]);
   });
 
   it("enforces public-health-only, one-time connect, cookie auth, Origin, and no CORS", () => {
