@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { orderVersion } from "../src/version.ts";
+
 import {
   ArtifactRefSchema,
   EvidencePathSchema,
@@ -971,5 +973,16 @@ describe("source-backed WorkItem core", () => {
     }, "Self linked");
     expect(() => parseWorkItemSourceMarkdown(id + ".md", hashA, markdown))
       .toThrow(/must not equal/);
+  });
+});
+
+
+describe("release version ownership", () => {
+  it("derives the runtime version from package.json", async () => {
+    const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
+      version: string;
+    };
+    expect(orderVersion).toBe(packageJson.version);
+    expect(orderVersion).toMatch(/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/);
   });
 });
