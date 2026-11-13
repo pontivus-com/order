@@ -508,3 +508,54 @@ Archive-marker creation/deletion participates in the existing WorkItem Git-statu
 
 **Failure/negative behavior:** removal must not delete the WorkItem, use an installation-local hide flag, rewrite signed Markdown, or introduce a second lifecycle/status value.
 
+
+
+## 15. Human-authored WorkItem body and system-owned metadata
+
+The portable WorkItem source remains one canonical repository file, but its content has two distinct authoring responsibilities:
+
+1. the machine-readable metadata envelope identifies/classifies the WorkItem;
+2. the Markdown body contains the human-authored title and originating request/observation/question/audit instruction.
+
+Normal Order authoring must respect that ownership boundary.
+
+### 15.1 System-owned metadata in normal authoring
+
+The metadata concepts in §5 are portable repository authority, but they are **system-owned during ordinary Order UI authoring**.
+
+Order derives them from controlled project/kind/schema/concern/remediation choices and preserves them while the operator edits narrative content. The normal Markdown editor must not require an operator to understand or directly edit:
+
+- `formatVersion`;
+- WorkItem id;
+- project id;
+- concern ids;
+- schema id;
+- `derivedFromWorkItemId`.
+
+Repository authors outside Order may still edit the canonical file directly. Such edits remain subject to the same parser, validation, reconciliation and freshness rules; Order does not create a second hidden metadata authority.
+
+### 15.2 Human-authored body
+
+The WorkItem source body beginning with its H1 is the normal human-authored surface.
+
+Order may provide dedicated controls for metadata-owned choices and title editing, but body authoring must remain ordinary Markdown and must round-trip without unrelated normalization.
+
+Saving a body edit must preserve the current validated metadata envelope byte-for-byte unless the same explicit operator action also changes a metadata-owned choice through its canonical controlled interaction.
+
+The reconstituted repository file remains the one canonical WorkItem source and its complete bytes remain available for exact inspection.
+
+### GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP
+
+**Required behavior:** normal Order authoring separates system-owned WorkItem metadata controls from the human-authored Markdown title/body while persisting one canonical portable source file.
+
+**Acceptance criterion:** operators can author the WorkItem narrative without editing machine metadata, and controlled project/schema/concern/lineage choices still deterministically produce the canonical metadata envelope.
+
+**Failure/negative behavior:** the browser must not create a second metadata store/authority, make machine identifiers ordinary free-text authoring fields, or hide metadata mutations from the resulting canonical repository file.
+
+### GW-FR-088-WORKITEM-METADATA-PRESERVATION
+
+**Required behavior:** saving a narrative/body edit preserves the current validated WorkItem metadata envelope unless an explicit canonical metadata-owning action is part of the same mutation.
+
+**Acceptance criterion:** editing body prose changes only the intended human-authored source region; exact-file inspection after save shows the same metadata bytes and the edited body in the single canonical source.
+
+**Failure/negative behavior:** body editing must not regenerate, reorder, normalize or silently mutate metadata, and system-owned metadata must not disappear from the portable repository source.
