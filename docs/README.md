@@ -44,6 +44,10 @@ Order must fail closed when it cannot resolve the canonical owner required for a
 25. [GW-DOC-ORDER-TECHNICAL-IDENTITY-V1](41-order-technical-identity-cutover.md) — binding P4 owner for the Order live technical namespace, one-way predecessor cutover and repository-migration boundary.
 26. [GW-DOC-INSTALLATION-READINESS-V1](45-installation-readiness-and-configuration-continuity.md) — binding P3 functional design for productive installation readiness, account/repository configuration continuity, bounded upgrade migration and explicit setup/recovery states.
 
+## Active implementation plan
+
+- [GW-P7-ORDER-0.2.1-SETTINGS-WORKBENCH-REFACTOR-V1-2026-11-13](46-order-0.2.1-settings-workbench-refactor-implementation-plan.md) — implementation-ready P7 plan for the governed 0.2.1 configuration/runtime, centralized Settings, repository/document migration, OpenCode readiness, human-first Source authoring and workbench UX refactor.
+
 ## Completed implementation provenance
 
 The following P7 records document completed implementation packages. They are navigation/provenance records, not additional P1-P6 semantic owners and not standing authorization for future changes.
