@@ -217,7 +217,7 @@ describe("Order cross-boundary certification", () => {
     expect(source).not.toContain("RichTextEditor");
 
     const layout = read("ui/src/primitives/WorkbenchLayout.tsx");
-    expect(layout).toContain('"(min-width: 1200px)"');
+    expect(layout).toContain('"(min-width: 1280px)"');
     expect(layout).toContain("<Drawer");
     expect(layout).not.toContain("inspector-fallback");
 
@@ -236,7 +236,8 @@ describe("Order cross-boundary certification", () => {
     const browserSources = [
       read("ui/src/app.tsx"),
       read("ui/src/WorkItemWorkspace.tsx"),
-      read("ui/src/StageDialogue.tsx"),
+      read("ui/src/ActivityWorkspace.tsx"),
+      read("ui/src/RunEventTimeline.tsx"),
       read("ui/src/ExecutionWorkspace.tsx"),
       read("ui/src/EvidenceViewer.tsx"),
     ].join("\n");
