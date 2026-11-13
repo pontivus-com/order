@@ -97,6 +97,7 @@ export const WorkItemWorkspace = ({
   const [unreachedStep, setUnreachedStep] = useState<WorkflowStepPresentation | null>(null);
   const [pendingUnreachedStep, setPendingUnreachedStep] =
     useState<WorkflowStepPresentation | null>(null);
+  const [workflowInspectionActive, setWorkflowInspectionActive] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const runs = runsQuery.data ?? [];
   const workflow = workflowPresentation(workItem.stage);
@@ -142,7 +143,8 @@ export const WorkItemWorkspace = ({
     if (
       runs.some(runIsActive) &&
       mode === "DOCUMENTS" &&
-      !dirty
+      !dirty &&
+      !workflowInspectionActive
     ) {
       setMode("ACTIVITY");
     }
@@ -153,6 +155,7 @@ export const WorkItemWorkspace = ({
     runsQuery.isPending,
     visibleModes,
     workItem,
+    workflowInspectionActive,
   ]);
 
   const invalidate = async (): Promise<void> => {
@@ -213,7 +216,11 @@ export const WorkItemWorkspace = ({
     onDirtyChange(value);
   };
 
-  const navigate = (next: WorkItemMode): void => {
+  const navigate = (
+    next: WorkItemMode,
+    preserveWorkflowInspection = false,
+  ): void => {
+    if (!preserveWorkflowInspection) setWorkflowInspectionActive(false);
     if (next === mode && unreachedStep === null) return;
     if (dirty) {
       setPendingMode(next);
@@ -225,6 +232,7 @@ export const WorkItemWorkspace = ({
 
   const inspectWorkflowStep = (step: WorkflowStepPresentation): void => {
     const target = workflowInspectionTarget(workItem, step);
+    setWorkflowInspectionActive(true);
     if (target.kind === "UNREACHED") {
       if (dirty) {
         setPendingUnreachedStep(step);
@@ -239,10 +247,10 @@ export const WorkItemWorkspace = ({
         document: target.document,
         requestId: (current?.requestId ?? 0) + 1,
       }));
-      navigate("DOCUMENTS");
+      navigate("DOCUMENTS", true);
       return;
     }
-    navigate(target.mode);
+    navigate(target.mode, true);
   };
 
   const openEvidence = (selection: EvidenceSelection): void => {
