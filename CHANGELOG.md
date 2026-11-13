@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Centralize repository, OpenCode account, model/runtime and readiness configuration under browser Settings, make fresh installation start from valid empty OrderConfig v4, and reduce the shell account control to a Settings shortcut.
+
 - Add bounded repository-owned WorkItem document-root migration with exact-byte tree staging, minimal manifest mutation, transactional current-source path updates, rollback, and lifecycle draft rediscovery.
 
 - Add the canonical Settings/readiness daemon owner with drift-safe repository projection, valid-incomplete v4 daemon boot, focused configuration mutations, and serialized immutable runtime activation/rollback.
