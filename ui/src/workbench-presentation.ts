@@ -38,6 +38,19 @@ export type WorkflowStepPresentation = Readonly<{
   purpose: string;
 }>;
 
+export type WorkflowDocumentTarget =
+  | "SOURCE"
+  | "R1"
+  | "R2"
+  | "DESIGN"
+  | "PLAN"
+  | "R3";
+
+export type WorkflowInspectionTarget =
+  | Readonly<{ kind: "DOCUMENT"; document: WorkflowDocumentTarget }>
+  | Readonly<{ kind: "MODE"; mode: "REVIEW" | "EXECUTION" | "RESULT" }>
+  | Readonly<{ kind: "UNREACHED"; step: WorkItem["stage"] }>;
+
 export const workflowSteps: readonly WorkflowStepPresentation[] = [
   { stage: "IDEA", label: "Work request", purpose: "Define the work that needs attention" },
   { stage: "R1", label: "Research", purpose: "Establish what is actually true" },
@@ -56,6 +69,39 @@ export const workflowPresentation = (
   const found = workflowSteps.find((step) => step.stage === stage);
   if (!found) throw new TypeError(`unknown WorkItem stage: ${stage}`);
   return found;
+};
+
+export const workflowInspectionTarget = (
+  workItem: Pick<WorkItem, "stage" | "outcome">,
+  step: WorkflowStepPresentation,
+): WorkflowInspectionTarget => {
+  const currentIndex = workflowSteps.findIndex((item) => item.stage === workItem.stage);
+  const targetIndex = workflowSteps.findIndex((item) => item.stage === step.stage);
+  if (currentIndex < 0 || targetIndex < 0) {
+    throw new TypeError("unknown workflow presentation stage");
+  }
+  if (targetIndex > currentIndex) {
+    return { kind: "UNREACHED", step: step.stage };
+  }
+  switch (step.stage) {
+    case "IDEA":
+      return { kind: "DOCUMENT", document: "SOURCE" };
+    case "R1":
+    case "R2":
+    case "DESIGN":
+    case "PLAN":
+    case "R3":
+      return { kind: "DOCUMENT", document: step.stage };
+    case "AWAITING_SIGNOFF":
+      return { kind: "MODE", mode: "REVIEW" };
+    case "EXECUTION":
+      return { kind: "MODE", mode: "EXECUTION" };
+    case "COMPLETE":
+      return {
+        kind: "MODE",
+        mode: workItem.outcome === "CANDIDATE_DONE" ? "EXECUTION" : "RESULT",
+      };
+  }
 };
 
 export const runIsActive = (
