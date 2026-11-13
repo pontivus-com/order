@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="https://raw.githubusercontent.com/pontivus-com/order/master/assets/order-logo-plate-dark.svg" alt="Order — Ideas in. Results out." width="640">
+  <img src="assets/order-logo-plate-dark.svg" alt="Order — Ideas in. Results out." width="640">
 </h1>
 
 <p align="center">
