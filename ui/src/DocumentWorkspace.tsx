@@ -243,40 +243,34 @@ export const DocumentWorkspace = ({
           onClick={() => setConfirmGitSave(true)}
         />
       ) : null}
-      <details className="order-document-git-details">
-        <summary>Documentation details</summary>
-        <div><span>Selected path</span><code>{selectedRepositoryPath ?? workItemDirectory}</code></div>
-        {selectedGitPath ? (
-          <div>
-            <span>Working tree</span>
-            <code>{selectedGitPath.state.replaceAll("_", " ").toLowerCase()}</code>
-          </div>
-        ) : null}
-        <div><span>WorkItem directory</span><code>{workItemDirectory}</code></div>
-        {gitStatusQuery.data ? (
-          <>
-            <div><span>Branch</span><code>{gitStatusQuery.data.branch ?? "detached HEAD"}</code></div>
-            <div><span>HEAD</span><code>{gitStatusQuery.data.headCommit}</code></div>
-            <ul>
-              {gitStatusQuery.data.paths.map((path) => (
-                <li key={path.repositoryPath}>
-                  <code>{path.repositoryPath}</code>
-                  <span>{path.state.replaceAll("_", " ").toLowerCase()}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : null}
-        {gitStatusQuery.isError ? (
-          <span className="order-error-text">{errorText(gitStatusQuery.error)}</span>
-        ) : null}
-        {gitStatusQuery.data?.blockers.map((blocker) => (
-          <span key={blocker} className="order-warning-text">{gitBlockerText(blocker)}</span>
-        ))}
-        {commitDocumentation.error ? (
-          <span className="order-error-text">{errorText(commitDocumentation.error)}</span>
-        ) : null}
-      </details>
+      {gitStatusQuery.isError ? (
+        <span className="order-error-text">{errorText(gitStatusQuery.error)}</span>
+      ) : null}
+      {gitStatusQuery.data?.blockers.map((blocker) => (
+        <span key={blocker} className="order-warning-text">{gitBlockerText(blocker)}</span>
+      ))}
+      {commitDocumentation.error ? (
+        <span className="order-error-text">{errorText(commitDocumentation.error)}</span>
+      ) : null}
+    </div>
+  );
+
+  const documentationTechnicalDetails = (
+    <div className="order-document-technical-details">
+      <div><span>Selected path</span><code>{selectedRepositoryPath ?? workItemDirectory}</code></div>
+      {selectedGitPath ? (
+        <div>
+          <span>Working tree</span>
+          <code>{selectedGitPath.state.replaceAll("_", " ").toLowerCase()}</code>
+        </div>
+      ) : null}
+      <div><span>WorkItem directory</span><code>{workItemDirectory}</code></div>
+      {gitStatusQuery.data ? (
+        <>
+          <div><span>Branch</span><code>{gitStatusQuery.data.branch ?? "detached HEAD"}</code></div>
+          <div><span>HEAD</span><code>{gitStatusQuery.data.headCommit}</code></div>
+        </>
+      ) : null}
     </div>
   );
 
@@ -332,10 +326,13 @@ export const DocumentWorkspace = ({
                 }}
                 toolbarAccessory={documentationControls}
                 technicalDetails={
-                  <div className="order-source-technical">
-                    <strong>Complete portable source</strong>
-                    <pre><code>{sourceQuery.data.markdown}</code></pre>
-                  </div>
+                  <>
+                    {documentationTechnicalDetails}
+                    <div className="order-source-technical">
+                      <strong>Complete portable source</strong>
+                      <pre><code>{sourceQuery.data.markdown}</code></pre>
+                    </div>
+                  </>
                 }
               />
             </div>
@@ -370,6 +367,7 @@ export const DocumentWorkspace = ({
               return result;
             }}
             toolbarAccessory={documentationControls}
+            technicalDetails={documentationTechnicalDetails}
           />
         ) : null}
       </div>
