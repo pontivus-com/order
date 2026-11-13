@@ -12,6 +12,8 @@ import { orderVersion } from "../version.ts";
 import {
   ArtifactRefIdSchema,
   CommitWorkItemDocumentationSchema,
+  ConnectRepositorySchema,
+  DisconnectRepositorySchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   ActivateOpenCodeAccountSchema,
@@ -20,6 +22,8 @@ import {
   OrderHttpErrorSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
+  UpdateConfiguredModelSchema,
+  UpdateReferenceRootsSchema,
   SetWorkItemArchivedSchema,
   UpdateWorkItemTitleSchema,
   RunEventIdSchema,
@@ -90,6 +94,21 @@ import {
   startSavedOpenCodeAccountLogin,
   stopSavedOpenCodeAccountControl,
 } from "./opencode-account.ts";
+import {
+  availableOpenCodeModels,
+  connectRepository,
+  connectedRepositoryStates,
+  createCoordinatorRuntimeOwner,
+  disconnectRepository,
+  installationReadiness,
+  orderConfigState,
+  readyRepositoryRoots,
+  requireProductiveReadiness,
+  resumeSchedulerForReadiness,
+  updateConfiguredModel,
+  updateReferenceRoots,
+  type CoordinatorRuntimeOwner,
+} from "./settings.ts";
 
 const connectTokenLifetimeMillis = 60_000;
 const tokenPattern = /^[0-9a-f]{64}$/;
@@ -453,18 +472,29 @@ const apiPath = (url: URL): string[] =>
 
 
 const requireOpenCodeAccountStableForRunStart = (
-  runtime: CoordinatorRuntime,
+  owner: CoordinatorRuntimeOwner,
 ): void => {
-  if (runtime.openCodeAccountMutationActive || runtime.openCodeAccountLogin !== null) {
+  const runtime = owner.current;
+  if (
+    owner.settingsMutationActive ||
+    runtime.openCodeAccountMutationActive ||
+    runtime.openCodeAccountLogin !== null
+  ) {
     throw new TypeError(
-      "Run start is blocked while OpenCode account state is changing",
+      "Run start is blocked while installation/account configuration is changing",
     );
   }
 };
 
 const pauseSchedulerForOpenCodeAccountMutation = (
-  runtime: CoordinatorRuntime,
-): void => {
+  owner: CoordinatorRuntimeOwner,
+): CoordinatorRuntime => {
+  const runtime = owner.current;
+  if (owner.settingsMutationActive) {
+    throw new TypeError(
+      "OpenCode account mutation is blocked while Settings configuration is changing",
+    );
+  }
   if (runtime.tickActive) {
     throw new TypeError(
       "OpenCode account mutation is blocked while coordinator work is being admitted",
@@ -474,27 +504,29 @@ const pauseSchedulerForOpenCodeAccountMutation = (
     clearTimeout(runtime.schedulerTimer);
     runtime.schedulerTimer = null;
   }
+  return runtime;
 };
 
-const resumeSchedulerAfterOpenCodeAccountMutation = (
-  runtime: CoordinatorRuntime,
-): void => {
+const resumeSchedulerAfterOpenCodeAccountMutation = async (
+  owner: CoordinatorRuntimeOwner,
+): Promise<void> => {
+  const runtime = owner.current;
   if (
-    !runtime.schedulerStopped &&
     runtime.openCodeAccountLogin === null &&
     !runtime.openCodeAccountMutationActive
   ) {
-    armScheduler(runtime);
+    await resumeSchedulerForReadiness(owner);
   }
 };
 
 const routeApi = async (
-  runtime: CoordinatorRuntime,
+  owner: CoordinatorRuntimeOwner,
   sessions: LocalSessions,
   bind: BindAddress,
   request: Request,
   url: URL,
 ): Promise<Response> => {
+  const runtime = owner.current;
   if (request.method === "GET" && url.pathname === "/api/health") {
     return jsonResponse({ status: "ok", version: orderVersion });
   }
@@ -518,7 +550,8 @@ const routeApi = async (
     const body = await readJsonBody(request);
     requireKeys(body, []);
     try {
-      requireOpenCodeAccountStableForRunStart(runtime);
+      requireOpenCodeAccountStableForRunStart(owner);
+      await requireProductiveReadiness(owner);
       return jsonResponse(await runCoordinatorTick(runtime));
     } catch (error) {
       if (error instanceof TypeError && error.message === "TICK_ALREADY_ACTIVE") {
@@ -534,6 +567,43 @@ const routeApi = async (
     : requireBrowserMutation(request, sessions, bind.origin);
   if (browserAuth) return browserAuth;
 
+  if (request.method === "GET" && url.pathname === "/api/settings/config") {
+    return jsonResponse(orderConfigState(owner));
+  }
+  if (request.method === "GET" && url.pathname === "/api/settings/readiness") {
+    return jsonResponse(await installationReadiness(owner));
+  }
+  if (request.method === "GET" && url.pathname === "/api/settings/repositories") {
+    return jsonResponse(await connectedRepositoryStates(runtime.config));
+  }
+  if (request.method === "GET" && url.pathname === "/api/settings/models") {
+    return jsonResponse(await availableOpenCodeModels(owner));
+  }
+  if (request.method === "POST" && url.pathname === "/api/settings/repositories/connect") {
+    const body = await parseRequest(async () =>
+      ConnectRepositorySchema.parse(await readJsonBody(request))
+    );
+    return jsonResponse(await connectRepository(owner, body));
+  }
+  if (request.method === "POST" && url.pathname === "/api/settings/repositories/disconnect") {
+    const body = await parseRequest(async () =>
+      DisconnectRepositorySchema.parse(await readJsonBody(request))
+    );
+    return jsonResponse(await disconnectRepository(owner, body));
+  }
+  if (request.method === "PUT" && url.pathname === "/api/settings/model") {
+    const body = await parseRequest(async () =>
+      UpdateConfiguredModelSchema.parse(await readJsonBody(request))
+    );
+    return jsonResponse(await updateConfiguredModel(owner, body));
+  }
+  if (request.method === "PUT" && url.pathname === "/api/settings/reference-roots") {
+    const body = await parseRequest(async () =>
+      UpdateReferenceRootsSchema.parse(await readJsonBody(request))
+    );
+    return jsonResponse(await updateReferenceRoots(owner, body));
+  }
+
   if (request.method === "GET" && url.pathname === "/api/opencode/accounts") {
     return jsonResponse(await openCodeAccountState(runtime));
   }
@@ -542,11 +612,11 @@ const routeApi = async (
     const body = await parseRequest(async () =>
       StartOpenCodeAccountLoginSchema.parse(await readJsonBody(request))
     );
-    pauseSchedulerForOpenCodeAccountMutation(runtime);
+    pauseSchedulerForOpenCodeAccountMutation(owner);
     try {
       return jsonResponse(await startSavedOpenCodeAccountLogin(runtime, body), 201);
     } catch (error) {
-      resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+      await resumeSchedulerAfterOpenCodeAccountMutation(owner);
       throw error;
     }
   }
@@ -565,13 +635,13 @@ const routeApi = async (
     if (request.method === "GET") {
       const attempt = await pollSavedOpenCodeAccountLogin(runtime, attemptId);
       if (attempt.status !== "PENDING") {
-        resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+        await resumeSchedulerAfterOpenCodeAccountMutation(owner);
       }
       return jsonResponse(attempt);
     }
     if (request.method === "DELETE") {
       await cancelSavedOpenCodeAccountLogin(runtime, attemptId);
-      resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+      await resumeSchedulerAfterOpenCodeAccountMutation(owner);
       return new Response(null, { status: 204, headers: commonHeaders() });
     }
   }
@@ -588,11 +658,11 @@ const routeApi = async (
       const body = await parseRequest(async () =>
         RenameOpenCodeAccountSchema.parse(await readJsonBody(request))
       );
-      pauseSchedulerForOpenCodeAccountMutation(runtime);
+      pauseSchedulerForOpenCodeAccountMutation(owner);
       try {
         return jsonResponse(await renameSavedOpenCodeAccount(runtime, accountId, body));
       } finally {
-        resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+        await resumeSchedulerAfterOpenCodeAccountMutation(owner);
       }
     }
     if (
@@ -603,11 +673,11 @@ const routeApi = async (
       const body = await parseRequest(async () =>
         ActivateOpenCodeAccountSchema.parse(await readJsonBody(request))
       );
-      pauseSchedulerForOpenCodeAccountMutation(runtime);
+      pauseSchedulerForOpenCodeAccountMutation(owner);
       try {
         return jsonResponse(await activateSavedOpenCodeAccount(runtime, accountId, body));
       } finally {
-        resumeSchedulerAfterOpenCodeAccountMutation(runtime);
+        await resumeSchedulerAfterOpenCodeAccountMutation(owner);
       }
     }
   }
@@ -628,17 +698,23 @@ const routeApi = async (
   }
 
   if (request.method === "GET" && url.pathname === "/api/projects") {
-    return jsonResponse(await listProjects(runtime));
+    return jsonResponse(await listProjects(runtime, await readyRepositoryRoots(runtime.config)));
   }
 
   if (request.method === "GET" && url.pathname === "/api/work-item-sources/diagnostics") {
-    return jsonResponse(await getWorkItemSourceDiagnostics(runtime));
+    return jsonResponse(await getWorkItemSourceDiagnostics(
+      runtime,
+      await readyRepositoryRoots(runtime.config),
+    ));
   }
 
   if (request.method === "POST" && url.pathname === "/api/work-item-sources/reconcile") {
     const body = await readJsonBody(request);
     requireKeys(body, []);
-    return jsonResponse(await reconcileSources(runtime));
+    return jsonResponse(await reconcileSources(
+      runtime,
+      await readyRepositoryRoots(runtime.config),
+    ));
   }
 
   if (
@@ -719,7 +795,8 @@ const routeApi = async (
         const body = await readJsonBody(request);
         requireKeys(body, ["mode"]);
         const mode = await parseRequest(() => RunModeSchema.parse(body.mode));
-        requireOpenCodeAccountStableForRunStart(runtime);
+        requireOpenCodeAccountStableForRunStart(owner);
+        await requireProductiveReadiness(owner);
         return jsonResponse(await startStageRun(runtime, workItemId, mode), 201);
       }
     }
@@ -833,9 +910,9 @@ export type DaemonServer = Readonly<{
 }>;
 
 export const startDaemonServer = (
-  runtime: CoordinatorRuntime,
+  owner: CoordinatorRuntimeOwner,
   daemonToken: string,
-  bind = resolveDaemonBind(runtime.environment.PONTIVUS_ORDER_BIND),
+  bind = resolveDaemonBind(owner.current.environment.PONTIVUS_ORDER_BIND),
 ): DaemonServer => {
   if (!tokenPattern.test(daemonToken)) {
     throw new TypeError("daemon token is malformed");
@@ -874,7 +951,7 @@ export const startDaemonServer = (
 
       if (url.pathname.startsWith("/api/")) {
         try {
-          return await routeApi(runtime, sessions, bind, request, url);
+          return await routeApi(owner, sessions, bind, request, url);
         } catch (error) {
           const failure = classifyHttpFailure(error);
           return errorResponse(
