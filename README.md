@@ -16,6 +16,8 @@ The supported public installation channel is being established by the `0.2.0` im
 
 Cloning `master` is therefore a **contributor/development path**, not an immutable public release installation.
 
+`install.sh` is only the minimal bootstrap; it verifies the checkout/runtime prerequisites and transfers control to the purpose-built `src/installer.ts` installer.
+
 For repository development, the current bootstrap remains:
 
 ```bash
