@@ -60,6 +60,7 @@ export const WorkItemWorkspace = ({
   onOpenContext,
   onContextModeChange,
   onContextDocumentChange,
+  onCreateRemediation,
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
@@ -67,6 +68,7 @@ export const WorkItemWorkspace = ({
   onOpenContext: () => void;
   onContextModeChange: (mode: WorkItemMode, runId: Run["id"] | null) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onCreateRemediation: (workItem: WorkItem) => void;
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -80,8 +82,14 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
     queryFn: api.listWorkItemSourceDiagnostics,
   });
+  const signoffPackageQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+    queryFn: () => api.getSignoffPackage(workItem.id),
+    enabled: workItem.stage === "AWAITING_SIGNOFF" && workItem.status === "ACTIVE",
+  });
 
   const [mode, setMode] = useState<WorkItemMode | null>(null);
+  const [approvedBy, setApprovedBy] = useState("");
   const [dirty, setDirty] = useState(false);
   const [pendingMode, setPendingMode] = useState<WorkItemMode | null>(null);
   const [evidence, setEvidence] = useState<EvidenceSelection | null>(null);
@@ -204,6 +212,29 @@ export const WorkItemWorkspace = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
+      ]);
+    },
+  });
+
+  const signoffMutation = useMutation({
+    mutationFn: () => {
+      if (!signoffPackageQuery.data) {
+        throw new TypeError("current sign-off package is unavailable");
+      }
+      return api.signOffWorkItem(
+        workItem.id,
+        signoffPackageQuery.data.packageHash,
+        approvedBy.trim(),
+      );
+    },
+    onSuccess: async () => {
+      setApprovedBy("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.tasks(workItem.id) }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
       ]);
     },
   });
@@ -362,8 +393,48 @@ export const WorkItemWorkspace = ({
                 {titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}
               </span>
             ) : null}
+            {signoffMutation.error ? (
+              <span role="alert" className="order-error-text">
+                {signoffMutation.error instanceof Error
+                  ? signoffMutation.error.message
+                  : String(signoffMutation.error)}
+              </span>
+            ) : null}
           </div>
           <div className="order-workitem-rail-actions">
+            {workItem.stage === "AWAITING_SIGNOFF" ? (
+              <div className="order-signoff-action">
+                <label className="order-field">
+                  <span>Approved by</span>
+                  <input
+                    value={approvedBy}
+                    onChange={(event) => setApprovedBy(event.currentTarget.value)}
+                    placeholder="Local operator identity"
+                  />
+                </label>
+                <WorkbenchAction
+                  label="Sign off exact package"
+                  tone="primary"
+                  loading={signoffMutation.isPending}
+                  disabled={
+                    !signoffPackageQuery.data ||
+                    approvedBy.trim().length === 0 ||
+                    signoffMutation.isPending
+                  }
+                  onClick={() => signoffMutation.mutate()}
+                />
+              </div>
+            ) : null}
+            {workItem.stage === "COMPLETE" && (
+              workItem.outcome === "INVESTIGATION_COMPLETE" ||
+              workItem.outcome === "AUDIT_COMPLETE"
+            ) ? (
+              <WorkbenchAction
+                label="Create linked remediation"
+                tone="primary"
+                onClick={() => onCreateRemediation(workItem)}
+              />
+            ) : null}
             <WorkbenchAction
               label={workItem.archived ? "Restore work item" : "Archive work item"}
               tone="ghost"

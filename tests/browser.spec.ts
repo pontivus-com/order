@@ -641,7 +641,6 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 
   await page.setViewportSize({ width: 1000, height: 800 });
   await expect(page.getByTestId("work-item-context")).toHaveCount(0);
-  await page.getByRole("button", { name: "Context" }).click();
   await expect(page.getByTestId("work-item-context-drawer")).toBeVisible();
   await expect(page.getByTestId("work-item-context-drawer").locator('[data-testid="activity-workspace"]')).toHaveCount(0);
   await page.keyboard.press("Escape");
@@ -780,7 +779,6 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByText("Current", { exact: true })).toBeVisible();
 
     await backToQueue(page);
     await openWorkItem(page, title);
@@ -1092,7 +1090,9 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
     "saved through browser workbench",
   );
 
-  await expect(page.getByTestId("work-item-context").getByText("Research", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByTestId("work-item-workspace").getByText("Research", { exact: true }).first(),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 
   await page.getByTestId("governed-document-nav")

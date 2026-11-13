@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Badge } from "@astryxdesign/core/Badge";
@@ -299,6 +299,22 @@ export const App = () => {
     setCreateOpen(true);
   };
 
+  const updateContextMode = useCallback((
+    nextMode: WorkItemMode,
+    runId: Run["id"] | null,
+  ): void => {
+    setContextMode(nextMode);
+    setContextRunId(runId);
+  }, []);
+
+  const updateContextDocument = useCallback((
+    path: string | null,
+    sha256: Sha256 | null,
+  ): void => {
+    setContextDocumentPath(path);
+    setContextDocumentSha256(sha256);
+  }, []);
+
   const filtered = useMemo(() => {
     const scoped = queueProjectId.length === 0
       ? workItems
@@ -438,14 +454,9 @@ export const App = () => {
         workItem={selectedWorkItem}
         onBack={() => requestSelection(null)}
         onOpenContext={() => setContextOpen(true)}
-        onContextModeChange={(nextMode, runId) => {
-          setContextMode(nextMode);
-          setContextRunId(runId);
-        }}
-        onContextDocumentChange={(path, sha256) => {
-          setContextDocumentPath(path);
-          setContextDocumentSha256(sha256);
-        }}
+        onContextModeChange={updateContextMode}
+        onContextDocumentChange={updateContextDocument}
+        onCreateRemediation={startRemediation}
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>
@@ -507,7 +518,6 @@ export const App = () => {
                 selectedRunId={contextRunId}
                 selectedDocumentPath={contextDocumentPath}
                 selectedDocumentSha256={contextDocumentSha256}
-                onCreateRemediation={startRemediation}
               />
             </Suspense>
           )
