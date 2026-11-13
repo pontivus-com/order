@@ -373,8 +373,6 @@ const applyPlan = (
     storeWorkItem(runtime.database, plan.workItem);
     return;
   }
-  if (plan.disposition === "UNCHANGED") return;
-
   updateWorkItemSourceProjection(runtime.database, plan.workItem);
   if (plan.disposition === "UPDATED") {
     const approval = loadCurrentApprovalForWorkItem(runtime.database, plan.workItem.id);
