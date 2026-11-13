@@ -587,7 +587,11 @@ describe("repository shell", () => {
       ambientAgentsExists: boolean;
     };
 
-    expect(output.agents).toEqual(["AGENTS.md"]);
+    expect(output.agents).toEqual(["AGENTS.md", "nested/AGENTS.md"]);
+    expect(output.agents).not.toContain(
+      "node_modules/.pnpm/recharts@3.3.0/node_modules/recharts/AGENTS.md",
+    );
+    expect(output.agents).not.toContain("ambient/vendor/A/AGENTS.md");
     expect(output.tracked).toBe("tracked through Git\n");
     expect(output.dependencyAgentsExists).toBe(false);
     expect(output.ambientAgentsExists).toBe(false);

@@ -22,6 +22,7 @@ describe("productive invocation failure origin", () => {
       const sql = await import("./src/shell/sqlite.ts");
       const repo = await import("./src/shell/repository.ts");
       const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
       const runStore = await import("./src/daemon/run.ts");
       const shellRuntime = await import("./src/shell/runtime.ts");
 
@@ -38,9 +39,15 @@ describe("productive invocation failure origin", () => {
           referenceRoots: [],
         },
       );
+      const workItem = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "Local admission failure origin",
+        concernIds: ["shell"],
+      });
       const run = runStore.insertRun(runtime, {
         id: shellRuntime.newRunId(),
-        workItemId: "work_11111111-1111-4111-8111-111111111111",
+        workItemId: workItem.id,
         executionTaskId: null,
         stage: "R1",
         mode: "INTERACTIVE",
