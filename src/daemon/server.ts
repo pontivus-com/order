@@ -11,6 +11,7 @@ import { extname, resolve, sep } from "node:path";
 import { orderVersion } from "../version.ts";
 import {
   ArtifactRefIdSchema,
+  CommitWorkItemDocumentationSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   SetWorkItemArchivedSchema,
@@ -70,6 +71,11 @@ import {
   updateTitle,
   type CoordinatorRuntime,
 } from "./coordinator.ts";
+import {
+  commitWorkItemDocumentation,
+  isDocumentationGitFailure,
+  workItemDocumentationGitStatus,
+} from "./work-item-documentation.ts";
 
 const connectTokenLifetimeMillis = 60_000;
 const tokenPattern = /^[0-9a-f]{64}$/;
@@ -448,6 +454,28 @@ const routeApi = async (
     if (parts[3] === "archive" && parts.length === 4 && request.method === "PATCH") {
       const body = SetWorkItemArchivedSchema.parse(await readJsonBody(request));
       return jsonResponse(await setArchived(runtime, workItemId, body));
+    }
+    if (
+      parts[3] === "documentation-git-status" &&
+      parts.length === 4 &&
+      request.method === "GET"
+    ) {
+      return jsonResponse(await workItemDocumentationGitStatus(runtime, workItemId));
+    }
+    if (
+      parts[3] === "documentation-commit" &&
+      parts.length === 4 &&
+      request.method === "POST"
+    ) {
+      const body = CommitWorkItemDocumentationSchema.parse(await readJsonBody(request));
+      try {
+        return jsonResponse(await commitWorkItemDocumentation(runtime, workItemId, body));
+      } catch (error) {
+        if (isDocumentationGitFailure(error)) {
+          return errorResponse(409, error.orderCode, error.message);
+        }
+        throw error;
+      }
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));
