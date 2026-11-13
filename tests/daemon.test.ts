@@ -571,21 +571,25 @@ describe("daemon control plane", () => {
       const contracts = await import("./src/core/contracts.ts");
       const server = await import("./src/daemon/server.ts");
 
-      let malformed;
-      try {
-        contracts.WorkItemIdSchema.parse("not-a-work-item-id");
-      } catch (error) {
-        malformed = server.classifyHttpFailure(error);
-      }
+      const malformed = server.classifyHttpFailure(
+        Object.assign(new TypeError("invalid request"), { orderHttpStatus: 400 }),
+      );
       const absent = server.classifyHttpFailure(new TypeError("WorkItem does not exist"));
       const conflict = server.classifyHttpFailure(new TypeError("WorkItem is not awaiting sign-off"));
       const unexpected = server.classifyHttpFailure(new Error("secret internal detail"));
-      console.log(JSON.stringify({ malformed, absent, conflict, unexpected }));
+      let unexpectedSchema;
+      try {
+        contracts.WorkItemSchema.parse({});
+      } catch (error) {
+        unexpectedSchema = server.classifyHttpFailure(error);
+      }
+      console.log(JSON.stringify({ malformed, absent, conflict, unexpected, unexpectedSchema }));
     `) as {
       malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown };
       absent: { status: number; code: string; message: string; sourceDiagnostic: unknown };
       conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown };
       unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown };
     };
 
     expect(output.malformed).toMatchObject({
@@ -612,6 +616,12 @@ describe("daemon control plane", () => {
       sourceDiagnostic: null,
     });
     expect(output.unexpected.message).not.toContain("secret internal detail");
+    expect(output.unexpectedSchema).toEqual({
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: "Internal daemon error",
+      sourceDiagnostic: null,
+    });
   });
 
   it("preserves the exact canonical source diagnostic on HTTP conflict classification", () => {
