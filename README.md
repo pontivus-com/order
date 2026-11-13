@@ -17,7 +17,7 @@
   <a href="https://github.com/pontivus-com/order/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="Apache-2.0"></a>
   <img src="https://img.shields.io/badge/Bun-1.4.4-blue?style=flat-square" alt="Bun 1.4.4">
   <img src="https://img.shields.io/badge/platform-Linux%20verified-lightgrey?style=flat-square" alt="Linux verified">
-  <img src="https://img.shields.io/badge/status-pre--release-orange?style=flat-square" alt="Pre-release">
+  <img src="https://img.shields.io/badge/release-v0.2.0-blue?style=flat-square" alt="Release v0.2.0">
   <a href="https://github.com/pontivus-com/order/stargazers"><img src="https://img.shields.io/github/stars/pontivus-com/order?style=flat-square" alt="GitHub stars"></a>
 </p>
 
@@ -123,12 +123,15 @@ Order stops at the verified candidate boundary. It does not commit, push, merge,
 
 ## Quick start
 
-The repository is currently versioned at `0.2.0`, but there is no published GitHub Release yet. Until a certified release is published, cloning `master` is the contributor/development installation path rather than an immutable public release channel.
+Order `0.2.0` is the first certified public release. Normal installation uses the immutable Order-owned release bundle and verifies its SHA-256 checksum before running the installer.
 
 ```bash
-git clone https://github.com/pontivus-com/order.git
-cd order
-./install.sh
+tmp="$(mktemp -d)" && cd "$tmp" && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/download/v0.2.0/pontivus-order.tar.gz && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/download/v0.2.0/pontivus-order.tar.gz.sha256 && \
+sha256sum -c pontivus-order.tar.gz.sha256 && \
+tar -xzf pontivus-order.tar.gz && \
+./order/install.sh
 ```
 
 The guided installer provisions the pinned runtime, Order's private OpenCode environment, target repository configuration, the local daemon, and the user-level service. It refuses success until `order status` is healthy.
@@ -160,7 +163,7 @@ order provider login <provider>
 
 The guided installation manages the user-level `pontivus-order.service`; `order status` remains the supported health check.
 
-Once a certified GitHub Release is published, normal installation and update will consume the Order-owned release bundle rather than arbitrary `master`. See the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
+Normal installation and update consume the certified Order-owned release bundle rather than arbitrary `master`. See the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
 
 ## Work from one place
 
@@ -194,7 +197,7 @@ The intended benefit is a software-production system that can carry recurring en
 
 ## Status and documentation
 
-This checkout is version `0.2.0`. No GitHub Release has been published yet.
+This checkout is version `0.2.0`, the first certified public release.
 
 The canonical design set begins at [docs/README.md](docs/README.md).
 

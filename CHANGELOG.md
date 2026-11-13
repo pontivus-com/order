@@ -6,26 +6,6 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
-### Fixed
-
-- Permit a failed unpublished release candidate to be replaced at the same version only while its tag is absent and the replacement re-freezes current unreleased changes through the normal release PR gates.
-
-- Force GitHub to render the corrected centered README logo plate from a new asset path instead of a stale cached SVG.
-
-### Fixed
-
-- Correct the horizontal Order logo canvas crop so the visible mark and wordmark render centered in the GitHub README and other fixed-width placements.
-
-- Add a governed PR-triggered exact release retry request so failed publication can be resumed through the same release workflow when workflow dispatch is unavailable.
-
-### Changed
-
-- Reorder the public README around product value, lifecycle, result semantics, installation, operating context, and repository documentation; remove contradictory pre-release/release installation copy.
-
-### Fixed
-
-- Make release publication race-safe by validating the immutable release commit remains reachable from `master` instead of requiring it to remain the moving branch tip, preserving exact retries after later merges.
-
 ## [0.2.0] - 2026-11-13
 
 ### Added
@@ -48,9 +28,15 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 - Cut productive WorkItem configuration, source discovery, lifecycle drafts, and persistence to repository-native v3 semantics with bounded v2 migration.
 - Formalized public-repository delivery through pull requests, semantic release impact, changelog entries, versioned release PRs, immutable tags, GitHub Releases and certified release artifacts.
 - Extended the implementation-ready repository-native workbench plan to include permanent CI/release automation and a target `0.2.0` public release.
+- Reorder the public README around product value, lifecycle, result semantics, installation, operating context, and repository documentation; remove contradictory pre-release/release installation copy.
 
 ### Fixed
 
 - Replace the incorrect Order logo construction with the approved six-blade aperture mark across every repository brand asset.
+- Correct the horizontal Order logo canvas crop so the visible mark and wordmark render centered in the GitHub README and other fixed-width placements.
+- Force GitHub to render the corrected centered README logo plate from a new asset path instead of a stale cached SVG.
 - Make the first certified `0.2.0` release archive directly installable without Git metadata while preserving exact release commit/version provenance and the packaged production build.
 - Corrected the canonical public-release governance document path so it participates in active documentation ownership checks.
+- Make release publication race-safe by validating the immutable release commit remains reachable from `master` instead of requiring it to remain the moving branch tip, preserving exact retries after later merges.
+- Add a governed PR-triggered exact release retry request so failed publication can be resumed through the same release workflow when workflow dispatch is unavailable.
+- Permit a failed unpublished release candidate to be replaced at the same version only while its tag is absent and the replacement re-freezes current unreleased changes through the normal release PR gates.
