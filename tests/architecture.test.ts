@@ -304,9 +304,13 @@ describe("architecture fitness", () => {
       "src/daemon/work-item-source.ts": [
         "src/daemon/runtime.ts",
       ],
+      "src/daemon/opencode-account.ts": [
+        "src/daemon/runtime.ts",
+      ],
       "src/daemon/server.ts": [
         "src/daemon/runtime.ts",
         "src/daemon/coordinator.ts",
+        "src/daemon/opencode-account.ts",
       ],
     };
 
