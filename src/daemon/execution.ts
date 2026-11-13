@@ -435,6 +435,7 @@ export const executeMutatingRun = async (
         runtime,
         run.id,
         new TypeError("TASK_ALREADY_SATISFIED requires a zero-diff BUILDER Run"),
+        diagnosticEvidence,
       );
       return;
     }
@@ -459,6 +460,7 @@ export const executeMutatingRun = async (
       new TypeError(
         "zero-diff BUILDER Run did not explicitly classify the task as already satisfied",
       ),
+      diagnosticEvidence,
     );
     return;
   }
@@ -727,6 +729,7 @@ export const executeReviewerRun = async (
       runtime,
       run.id,
       new TypeError("REVIEWER did not emit REVIEW_PASSED or REVIEW_FAILED"),
+      diagnosticEvidence,
     );
     return;
   }
