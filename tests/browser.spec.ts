@@ -395,7 +395,7 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
   await expect(trigger).toContainText("beta+renamed@example.com");
 
   await panel.getByRole("button", { name: "Remove gamma@example.com" }).click();
-  const removeDialog = page.getByRole("dialog");
+  const removeDialog = page.getByRole("alertdialog");
   await expect(removeDialog).toContainText("Remove gamma@example.com");
   await removeDialog.getByRole("button", { name: "Remove account" }).click();
   await expect(panel).not.toContainText("gamma@example.com");
