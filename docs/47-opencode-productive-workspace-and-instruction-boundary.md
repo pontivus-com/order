@@ -471,18 +471,18 @@ If an AGENTS.md is legitimate project instruction material but is not declared/r
 
 ## 10. Role matrix
 
-| Role/path | Internal workspace | Internal tools | External refs | Instruction closure |
-|---|---|---|---|---|
-| Research STAGE | materialized inspection snapshot | read/glob/grep | configured STAGE refs only | required |
-| Requirements STAGE | same | read/glob/grep | configured STAGE refs only | required |
-| Solution design STAGE | same | read/glob/grep | configured STAGE refs only | required |
-| Implementation plan STAGE | same | read/glob/grep | configured STAGE refs only | required |
-| Readiness review STAGE | same | read/glob/grep | configured STAGE refs only | required |
-| Builder | fresh exact execution checkout | read/glob/grep + exact changeSurface edit | none | required |
-| Reviewer | fresh replayed candidate checkout | read/glob/grep | none | required |
-| Remediator | fresh replayed candidate checkout | read/glob/grep + exact changeSurface edit | none | required |
-| Format repair | already admitted session | no tools | none | inherits admitted session |
-| Account/model control | private non-project control workspace | non-productive integration operations | none | project instruction closure not applicable |
+| Role/path | Internal workspace | Repository tools | Trusted integration capabilities | External refs | Instruction closure |
+|---|---|---|---|---|---|
+| Research STAGE | materialized inspection snapshot | read/glob/grep | exact visible selected-account skills + trusted MCP server tools | configured STAGE refs only | required |
+| Requirements STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Solution design STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Implementation plan STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Readiness review STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Builder | fresh exact execution checkout | read/glob/grep + exact changeSurface edit | exact visible selected-account skills + trusted MCP server tools | none | required |
+| Reviewer | fresh replayed candidate checkout | read/glob/grep | exact visible selected-account skills + trusted MCP server tools | none | required |
+| Remediator | fresh replayed candidate checkout | read/glob/grep + exact changeSurface edit | exact visible selected-account skills + trusted MCP server tools | none | required |
+| Format repair | already admitted session | no tools | none | none | inherits admitted session |
+| Account/model control | private non-project control workspace | non-productive integration operations | account/integration control only | none | project instruction closure not applicable |
 
 ## 11. Required permanent test matrix
 
@@ -578,9 +578,9 @@ The following cases are minimum certification, not examples to sample from.
 62. production source has no ungoverned session-instruction-entry write path;
 63. project/global compatibility instruction discovery and ambient host skill/config roots remain disabled;
 64. Order-generated `OPENCODE_CONFIG_CONTENT` contains only the explicit Run-owned instruction/skill/reference/MCP configuration expected for the role;
-65. Order-owned configured skills are registered and reachable only when the role admits the `skill` capability;
+65. the exact skill ids visible from the selected trusted Console integration plus any explicit Run-owned skill source are listed before session creation and only those ids receive `skill` permission;
 66. configured STAGE references are listed/readable through the exact admitted external-directory roots and remain non-authoritative;
-67. explicitly configured MCP servers are the exact intended set for the Run and only role-permitted MCP tools are model-reachable;
+67. the exact MCP server names visible from the selected trusted Console integration plus explicit Run config are listed before session creation, normalized according to the pinned provider namespace law, and only those server namespaces receive MCP tool permission;
 68. provider-native MCP server instructions from an admitted MCP are treated as trusted integration context and cannot expand Order permissions/changeSurface;
 69. active OpenCode Console account identity is recorded/proven before session admission and cannot change while a Run is active;
 70. Console Library instructions/skills for that selected account are accepted as trusted integration context and are not promoted into P1/P3/P4/P6 authority;
