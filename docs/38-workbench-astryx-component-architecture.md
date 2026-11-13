@@ -1590,9 +1590,10 @@ Create one cohesive Settings composition boundary. Illustrative filenames are no
 SettingsWorkspace
   ├── SettingsNavigation
   ├── RepositorySettings
-  │   ├── connected repository inventory
+  │   ├── connected target-repository inventory
   │   ├── connect/disconnect controls
-  │   └── document-root migration interaction
+  │   ├── repository document-root migration interaction
+  │   └── STAGE reference-root configuration
   ├── OpenCodeAccountSettings
   │   └── existing canonical account-management flow
   └── ModelRuntimeSettings
@@ -1617,7 +1618,7 @@ The main workbench and Settings do not share a generic content dump. Entering Se
 
 ### 22.4 Repository Settings realization
 
-Repository Settings consumes canonical `ConnectedRepositoryState[]`, `OrderConfigState` and `InstallationReadiness`.
+Repository Settings consumes canonical `ConnectedRepositoryState[]`, `OrderConfigState` and `InstallationReadiness`. The same Settings section also exposes `OrderConfig.referenceRoots` as a clearly separate STAGE-only reference-context list.
 
 Settings must render valid empty/unconfigured states as first-class setup states. Zero connected repositories and `model = null` are not transport errors; they produce the relevant setup action in the owning Settings section.
 
@@ -1630,7 +1631,7 @@ Each repository row/card remains compact and exposes:
 - current queue/creation context where applicable;
 - Connect/Disconnect/document-root actions.
 
-The UI never concatenates repository paths, parses `pontivus-order.toml`, derives document roots or infers readiness.
+The UI never concatenates repository paths, parses `pontivus-order.toml`, derives document roots or infers readiness. Reference roots are never presented as productive/connected repositories.
 
 Document-root migration is a deliberate modal/dialog/review interaction because it changes repository-owned files and configuration. It must present current root, proposed root, blockers and explicit confirmation before invoking the canonical migration command.
 
