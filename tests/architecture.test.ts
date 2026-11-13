@@ -295,6 +295,11 @@ describe("architecture fitness", () => {
         "src/daemon/validation.ts",
         "src/daemon/execution.ts",
         "src/daemon/work-item-source.ts",
+        "src/daemon/work-item-documentation.ts",
+      ],
+      "src/daemon/work-item-documentation.ts": [
+        "src/daemon/runtime.ts",
+        "src/daemon/authority.ts",
       ],
       "src/daemon/work-item-source.ts": [
         "src/daemon/runtime.ts",
