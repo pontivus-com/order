@@ -187,7 +187,7 @@ const server = Bun.serve({
       return new Response(null, { status: 204 });
     }
 
-    const credentialMatch = /^\/api\/credential\/([^/]+)(?:\/(activate))?$/.exec(url.pathname);
+    const credentialMatch = /^\\/api\\/credential\\/([^/]+)(?:\\/(activate))?$/.exec(url.pathname);
     if (credentialMatch) {
       const id = decodeURIComponent(credentialMatch[1]);
       const index = accountConnections.findIndex((connection) =>
