@@ -63,6 +63,7 @@ export const DocumentWorkspace = ({
   onDirtyChange,
   onOpenArtifactEvidence,
   requestedDocument,
+  onRequestedDocumentHandled,
   onContextDocumentChange,
 }: Readonly<{
   workItem: WorkItem;
@@ -72,6 +73,7 @@ export const DocumentWorkspace = ({
     document: WorkflowDocumentTarget;
     requestId: number;
   }> | null;
+  onRequestedDocumentHandled: (requestId: number) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -187,6 +189,7 @@ export const DocumentWorkspace = ({
     if (handledDocumentRequestId.current === requestedDocument.requestId) return;
     if (artifactsQuery.isPending) return;
     handledDocumentRequestId.current = requestedDocument.requestId;
+    onRequestedDocumentHandled(requestedDocument.requestId);
     setRequestedUnavailable(null);
     if (requestedDocument.document === "SOURCE") {
       select({ kind: "SOURCE" });
@@ -203,6 +206,7 @@ export const DocumentWorkspace = ({
   }, [
     artifacts,
     artifactsQuery.isPending,
+    onRequestedDocumentHandled,
     requestedDocument,
   ]);
 

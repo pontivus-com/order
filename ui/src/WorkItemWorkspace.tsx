@@ -542,6 +542,11 @@ export const WorkItemWorkspace = ({
                 onDirtyChange={setDirtyState}
                 onOpenArtifactEvidence={openArtifactEvidence}
                 requestedDocument={requestedDocument}
+                onRequestedDocumentHandled={(requestId) => {
+                  setRequestedDocument((current) =>
+                    current?.requestId === requestId ? null : current
+                  );
+                }}
                 onContextDocumentChange={onContextDocumentChange}
               />
             ) : null}

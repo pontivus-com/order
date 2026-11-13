@@ -780,6 +780,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
 
     await backToQueue(page);
     await openWorkItem(page, title);
