@@ -494,8 +494,10 @@ test("Activity keeps all Run history, human workflow orientation, responsive mas
   await expect(detail.getByText("Your input is needed", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Message input")).toBeVisible();
   await expect(page.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeHidden();
-  const technical = detail.getByText("Technical details", { exact: true }).first();
-  await technical.click();
+  const proposalTechnical = detail
+    .locator('li[data-event-tag="ARTIFACT_PROPOSAL_CREATED"]')
+    .getByText("Technical details", { exact: true });
+  await proposalTechnical.click();
   await expect(detail.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeVisible();
 
   await page.setViewportSize({ width: 1000, height: 800 });
@@ -806,7 +808,7 @@ test("candidate surface exposes task, V0-V7, exact evidence bytes, and never exe
   await expect(page.locator("textarea")).toHaveCount(0);
 
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
-    await expect(page.getByText(stage, { exact: true }).first()).toBeVisible();
+    await expect(page.getByText(stage + " passed.", { exact: true }).first()).toBeVisible();
   }
 
   await page.getByRole("button", { name: "Evidence: review.txt" }).first().click();
