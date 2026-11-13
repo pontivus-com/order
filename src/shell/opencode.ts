@@ -533,15 +533,50 @@ const accountControlWorkspace = (stateRoot: string): string => {
   return workspace;
 };
 
+const waitForOpenCodeAccountIntegration = async (
+  control: OpenCodeProviderProcess,
+): Promise<void> => {
+  let lastError: unknown = null;
+  while (Date.now() < control.deadline) {
+    try {
+      const result = await control.client.integration.list(
+        { location: { directory: control.workspace } },
+        { signal: withDeadlineSignal(
+          control.deadline,
+          Math.max(1, control.deadline - Date.now()),
+        ) },
+      );
+      if (result.data.some((integration) => integration.id === openCodeAccountIntegrationId)) {
+        return;
+      }
+      lastError = new TypeError("OpenCode account integration is not registered yet");
+    } catch (error) {
+      lastError = error;
+    }
+    await sleep(100);
+  }
+  throw new TypeError("OpenCode account integration readiness timed out", {
+    cause: lastError,
+  });
+};
+
 export const startOpenCodeAccountControl = async (
   stateRoot: string,
   sourceEnvironment: NodeJS.ProcessEnv = process.env,
-): Promise<OpenCodeProviderProcess> =>
-  startOpenCodeProviderProcess(
+): Promise<OpenCodeProviderProcess> => {
+  const control = await startOpenCodeProviderProcess(
     stateRoot,
     accountControlWorkspace(stateRoot),
     sourceEnvironment,
   );
+  try {
+    await waitForOpenCodeAccountIntegration(control);
+    return control;
+  } catch (error) {
+    await control.process.terminate().catch(() => undefined);
+    throw error;
+  }
+};
 
 export const stopOpenCodeAccountControl = async (
   control: OpenCodeProviderProcess,
