@@ -7,10 +7,6 @@
 </p>
 
 <p align="center">
-  From idea to verified result.
-</p>
-
-<p align="center">
   Order is an open-source software factory that carries software work from idea to verified result.
 </p>
 
@@ -19,15 +15,17 @@
   <a href="https://github.com/pontivus-com/order/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="Apache-2.0"></a>
   <img src="https://img.shields.io/badge/platform-Linux%20verified-lightgrey?style=flat-square" alt="Linux verified">
   <img src="https://img.shields.io/badge/status-pre--release-orange?style=flat-square" alt="Pre-release">
+  <a href="https://github.com/pontivus-com/order/stargazers"><img src="https://img.shields.io/github/stars/pontivus-com/order?style=flat-square" alt="GitHub stars"></a>
 </p>
 
 <p align="center">
   <a href="#quick-start"><strong>Quick start</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
+  <a href="#see-the-factory"><strong>See the factory</strong></a> ·
   <a href="https://github.com/pontivus-com/order/tree/master/docs"><strong>Docs</strong></a>
 </p>
 
-## Turn software work into verified results
+## Turn ideas into verified results
 
 Start with something that needs to happen: a feature, defect, change, investigation, audit, documentation update, infrastructure change, UI change, or other repository-governed work.
 
@@ -49,9 +47,81 @@ Some work correctly ends without implementation. An investigation can conclude t
 
 The agent does the work. It does not redefine the work, and it does not certify its own result.
 
+## See the factory
+
+The lifecycle is intentionally more rigorous before implementation than during execution.
+
+```text
+IDEA
+  |
+  v
+R1 RESEARCH
+  |
+  v
+R2 REQUIREMENTS
+  |
+  v
+DESIGN
+  |
+  v
+PLAN
+  |
+  v
+R3 READINESS REVIEW
+  |
+  v
+AWAITING SIGN-OFF
+  |
+  | explicit authorization
+  v
+=============================
+ EXECUTION AUTHORITY BOUNDARY
+=============================
+  |
+  v
+TODO
+  |
+  v
+IMPLEMENT
+  |
+  v
+MECHANICAL VERIFY
+  |
+  v
+INDEPENDENT REVIEW
+  |
+  v
+BOUNDED REMEDIATION
+  |
+  v
+MECHANICAL VERIFY
+  |
+  v
+VERIFIED CANDIDATE
+```
+
+Not every WorkItem traverses the entire implementation path. Investigations, audits, disproven work, duplicates, already-satisfied work, and blocked work can terminate earlier without manufacturing implementation.
+
+See the [work lifecycle](docs/01-work-lifecycle.md) and [validation standard](docs/06-validation-standard.md) for the canonical transition and evidence rules.
+
+## Know what the result means
+
+A successful run is not “the agent produced a patch.”
+
+A verified candidate means the exact authorized task was still valid against the current repository, implementation stayed inside its authorized boundary, prescribed deterministic verification passed, and independent semantic review accepted the result.
+
+| Outcome | Meaning |
+| --- | --- |
+| **Verified candidate** | Authorized work was implemented and independently verified. |
+| **Already satisfied / duplicate / disproven** | The work did not justify new implementation. |
+| **Investigation / audit complete** | The requested analysis completed without manufacturing remediation work. |
+| **Blocked / returned upstream** | A material requirement, design, authority, readiness, or validation issue must be resolved at its owning stage. |
+
+Order stops at the verified candidate boundary. It does not commit, push, merge, deploy, or mutate production as part of v1.
+
 ## Quick start
 
-Order is currently in public pre-release development. Until the first certified release is published, cloning `master` is a contributor/development path:
+Order is currently in public pre-release development. No certified GitHub Release has been published yet, so cloning `master` is a contributor/development path rather than an immutable public installation channel.
 
 ```bash
 git clone https://github.com/pontivus-com/order.git
@@ -59,46 +129,16 @@ cd order
 ./install.sh
 ```
 
-After setup:
+The guided installer provisions the pinned runtime, Order's private OpenCode environment, target repository configuration, the local daemon, and the user-level service. It refuses success until `order status` is healthy.
+
+Then:
 
 ```bash
 order status
 order open
 ```
 
-`order open` prints a one-time local connect URL for the local workbench.
-
-## Install
-
-Order is currently in public pre-release development. No certified GitHub Release has been published yet. The supported public installation remains a **one command** flow once the first certified release is available.
-
-The supported public installation channel is being established by the `0.2.0` implementation/release package governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Once `0.2.0` is published, normal installation/update will consume the certified GitHub Release asset rather than arbitrary `master`.
-
-Cloning `master` is therefore a **contributor/development path**, not an immutable public release installation.
-
-`install.sh` is only the minimal bootstrap; it verifies the checkout/runtime prerequisites and transfers control to the purpose-built `src/installer.ts` installer.
-
-For repository development, the current bootstrap remains:
-
-```bash
-git clone https://github.com/pontivus-com/order.git
-cd order
-./install.sh
-```
-
-The purpose-built installer installs and verifies the exact pinned Bun, Node and OpenCode runtimes under `~/.local/share/pontivus-order`, installs the committed dependency graph, builds production `dist/`, installs `~/.local/bin/order`, guides private OpenCode authentication/model selection when required, persists target-repository/reference configuration, installs/enables the user-level `pontivus-order.service`, and refuses success until `order status` is healthy.
-
-Install-time host prerequisites are Linux, a usable systemd user manager, Git, `curl`, `tar`, `xz`, Bash/POSIX shell support, and ordinary core file utilities. The installer never invokes `sudo` or a distro package manager.
-
-For the immediately preceding supported Gateweft beta only, the installer retains the bounded one-way predecessor migration owned by the canonical technical contracts; it does not create a second productive identity or source model.
-
-Advanced packaging overrides are `PONTIVUS_ORDER_INSTALL_ROOT` and `PONTIVUS_ORDER_BIN_DIR`; both must be absolute when supplied. `PONTIVUS_ORDER_STATE_ROOT` and loopback-only `PONTIVUS_ORDER_BIND` may be supplied to the installer and are then fixed into the installed launcher/service.
-
-## Setup and run
-
-The installer performs all mandatory first-run setup. When it reports success, the daemon is already supervised by the user-level `pontivus-order.service` and `order status` is healthy. There is no required post-install model export, provider-login command, or foreground daemon start.
-
-During first setup, Order keeps provider credentials in its private OpenCode namespace, presents enabled exact `provider/model` choices, and asks for target repository roots. Target roots determine which local Git repositories may become WorkItems; they do not grant agents arbitrary sibling-repository reads. Optional STAGE reference roots are configured separately and are read-only/non-authoritative.
+`order open` prints a one-time local connect URL for the browser workbench.
 
 To deliberately change the selected model or filesystem roots later:
 
@@ -106,47 +146,60 @@ To deliberately change the selected model or filesystem roots later:
 order setup --reconfigure
 ```
 
-`order provider login <provider>` remains a maintenance/recovery command for Order's private OpenCode credential namespace.
+The supported public release path for normal users will consume the certified GitHub Release bundle once the first release is published; see the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
 
-Normal operation:
+## Work from one place
 
-```bash
-order --version
-order status
-order open
-```
+The local browser workbench is the operating surface for the factory.
 
-`order open` prints a one-time local connect URL. Open that URL to establish the HttpOnly browser session and use the local React workbench. The browser never owns lifecycle state and never receives the daemon Bearer token.
+It provides one place to inspect and manage:
 
-A target engineering repository must be a configured exact local Git repository with a resolvable `HEAD` and a valid root `pontivus-order.toml`. `pontivus-order.toml.example` shows the project-integration grammar.
+- proposed and active WorkItems;
+- source and lifecycle documents;
+- current stage and blockers;
+- evidence and authority;
+- readiness and sign-off;
+- execution tasks and Runs;
+- verification and review state;
+- remediation;
+- the final candidate patch and evidence.
 
-In the workbench:
+The browser does not become a second source of workflow truth. Durable state remains daemon-owned, while project repositories retain authority for their own product intent, requirements, architecture, contracts, ADRs, tests, plans, and domain semantics.
 
-1. Create a work item with the absolute repository root, title, origin, and any project-defined concern IDs.
-2. Progress the item through R1 → R2 → DESIGN → PLAN → R3. Review persisted dialogue/evidence and explicitly adopt or reject repository artifact proposals. An active STAGE Run remains continuable from the same inspector even when the last turn produced a proposal without a blocking question.
-3. At `AWAITING_SIGNOFF`, review the exact package hash, baseline and signed tasks, enter the approving local identity, and sign off that exact package.
-4. Execution runs from the signed baseline through BUILDER, verification, independent REVIEWER and bounded remediation where permitted. The daemon performs one coordinator tick on startup and then hourly; `order tick` invokes the same coordinator operation manually.
-5. Inspect task state, V0–V7 events, evidence bytes and the final candidate patch in the workbench.
+See the [workbench UX](docs/37-workbench-ux-information-architecture.md), [technical architecture](docs/12-technical-architecture.md), and [project governance integration](docs/09-project-governance-integration.md).
 
-Order stops at a **verified candidate**. It does not commit, push, merge, deploy, or mutate production as part of v1.
+## Fits around your repositories and agents
 
-## Operational commands
+Order is project-neutral. A target repository remains the engineering authority.
 
-```text
-order daemon
-order setup
-order setup --reconfigure
-order open
-order status
-order tick
-order provider login <provider>
-```
+Order references and verifies that project's own governing artifacts rather than replacing them. Coding agents run inside the work Order has authorized; discoveries outside the active task become new ideas rather than silently expanding the current assignment.
 
-`order daemon` is the foreground daemon entry point used by the installed user service and for explicit diagnostics; normal installed operation does not require the operator to keep a terminal open.
+Order currently uses OpenCode as the execution provider, but provider sessions do not own Order lifecycle state, approval state, or completion semantics.
 
-## Verification for repository development
+The intended benefit is a software-production system that can carry recurring engineering work without requiring the user to manually shepherd every agent turn, retry, review, and verification step. Quantified productivity, time-saving, defect-reduction, or supervision-reduction claims are not yet established.
 
-The root manifest owns six logical gates:
+## Status and documentation
+
+Order is in public pre-release development. The repository version is currently `0.1.0`, with the next public release train targeting `0.2.0`.
+
+The canonical design set begins at [docs/README.md](docs/README.md).
+
+- [Product identity](docs/40-order-product-identity.md)
+- [System brief](docs/00-system-brief.md)
+- [Work lifecycle](docs/01-work-lifecycle.md)
+- [Validation standard](docs/06-validation-standard.md)
+- [Minimum-change standard](docs/08-minimum-change-standard.md)
+- [Project governance integration](docs/09-project-governance-integration.md)
+- [Technical architecture](docs/12-technical-architecture.md)
+- [Canonical contracts](docs/13-canonical-contracts.md)
+- [WorkItem document system](docs/31-work-item-document-system.md)
+- [Workbench UX](docs/37-workbench-ux-information-architecture.md)
+- [Public repository delivery and release](docs/44-public-repository-delivery-and-release.md)
+- [Changelog](CHANGELOG.md)
+
+## Repository development
+
+The root project manifest owns the canonical verification gates:
 
 - `dependency-lock`
 - `typecheck`
@@ -155,16 +208,16 @@ The root manifest owns six logical gates:
 - `build`
 - `browser`
 
-Their canonical commands are in `pontivus-order.toml`. Browser certification additionally requires the Playwright Chromium build owned by the external-facts snapshot:
+The exact commands are defined in `pontivus-order.toml`.
 
-```bash
-node node_modules/@playwright/test/cli.js install chromium
-```
+Browser/e2e certification requires the Playwright-owned Chromium build and a dedicated absolute `PONTIVUS_ORDER_TEST_STATE_ROOT`; development verification must never point browser tests at the operator daemon state root.
 
-Browser/e2e verification must use a dedicated absolute `PONTIVUS_ORDER_TEST_STATE_ROOT`. It must never point at the operator daemon state root.
+## Contributing
 
-## Contributing and releases
+See [contributing](CONTRIBUTING.md). All public repository changes are delivered through pull requests to `master`, with the required changelog and release-impact metadata.
 
-All public changes are delivered through pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) and [the canonical public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
+Preserve the central contract: the work must be resolved before productive execution, implementation must stay inside the authorized task, and completion must be established by independent verification rather than builder self-attestation.
 
-`CHANGELOG.md` records unreleased and published changes. Version bumps, tags, GitHub Releases and release assets follow the canonical release process; direct-to-`master` delivery is not supported.
+## License
+
+Order is licensed under **Apache License 2.0** (`Apache-2.0`). See [LICENSE](LICENSE).
