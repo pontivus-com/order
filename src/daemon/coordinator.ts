@@ -340,10 +340,11 @@ export const armScheduler = (
 export const startCoordinatorScheduler = async (
   runtime: CoordinatorRuntime,
   tick: CoordinatorTick = defaultCoordinatorTick(runtime),
+  initialTick: CoordinatorTick = tick,
 ): Promise<void> => {
   runtime.schedulerStopped = false;
   await recoverInterruptedRuns(runtime);
-  await tick();
+  await initialTick();
   armScheduler(runtime, tick);
 };
 
