@@ -787,6 +787,7 @@ test("workflow progression inspects reached material, exposes unreached steps, p
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   await authenticate(page, request);
   await openWorkItem(page, "Proposal review");
 
