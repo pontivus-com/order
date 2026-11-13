@@ -1281,7 +1281,7 @@ describe("daemon control plane", () => {
         title: "missing source boundary",
         concernIds: ["shell"],
       });
-      fs.unlinkSync(path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), created.sourcePath));
+      fs.unlinkSync(path.join(runtime.config.repositoryRoots[0], created.sourcePath));
       let rejected = false;
       try {
         await coord.startStageRun(runtime, created.id, "INTERACTIVE");
@@ -1494,7 +1494,7 @@ describe("daemon control plane", () => {
         markdown: "this is not valid WorkItem Markdown",
       });
       const exact = fs.readFileSync(
-        path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), source.path),
+        path.join(runtime.config.repositoryRoots[0], source.path),
         "utf8",
       );
       const after = coord.getWorkItem(runtime, created.id);
