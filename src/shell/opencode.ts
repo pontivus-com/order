@@ -1020,6 +1020,13 @@ export const runOpenCodeTurn = async (
       }
     }
 
+    if (events === null) {
+      throw providerTurnFailure(
+        "INVALID_OUTPUT",
+        "PARSE",
+        new TypeError("OpenCode provider turn produced no canonical events"),
+      );
+    }
     try {
       events = validateProviderAdmission(role, events);
     } catch (error) {
@@ -1050,6 +1057,7 @@ export const runOpenCodeTurn = async (
     exceptionMessage: safeFailureMessage,
   });
 
+  await sleep(0);
   await onDiagnostics(
     diagnostic,
     server.diagnosticStderr.snapshot(),
