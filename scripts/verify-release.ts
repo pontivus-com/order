@@ -25,7 +25,7 @@ const publishedTagExists = (version: string): boolean => {
   );
   if (result.status === 0) return true;
   if (result.status === 2) return false;
-  fail(`could not determine whether v${version} is already published`);
+  return fail(`could not determine whether v${version} is already published`);
 };
 
 const parseVersion = (value: string): Version => {
