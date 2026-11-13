@@ -1358,7 +1358,9 @@ Order runtime state remains outside the project repository under the existing Or
 
 ### 30.2 Productive configuration
 
-Productive `OrderConfig` advances to v3 and contains only:
+> Historical v3 cutover contract. The current configuration contract is v4 under §34.13; v3 remains migration input only.
+
+The v3 cutover advanced `OrderConfig` to contain only:
 
 - model;
 - exact target repository roots;
