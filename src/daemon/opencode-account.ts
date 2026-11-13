@@ -26,6 +26,7 @@ import {
   cancelOpenCodeAccountOAuth,
   listOpenCodeAccounts,
   pollOpenCodeAccountOAuth,
+  removeOpenCodeAccount,
   renameOpenCodeAccount,
   startOpenCodeAccountControl,
   startOpenCodeAccountOAuth,
