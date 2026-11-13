@@ -1189,3 +1189,73 @@ This rule does not authorize loss of diagnostic evidence or concealment of a req
 **Acceptance criterion:** hashes, exact paths, raw ids/diagnostics and system-owned source metadata remain inspectable without occupying permanent primary authoring space.
 
 **Failure/negative behavior:** compression must not remove information needed for recovery/audit, and technical details must not dominate ordinary workflow understanding.
+
+
+
+## 25. Application information-placement discipline (2026-11-13)
+
+Order's workbench and Configuration surfaces use one information-placement discipline.
+
+### 25.1 One shell grammar
+
+The application composes persistent information in this order:
+
+```text
+compact application/top rail
+└── primary work surface
+    └── optional contextual inspector / secondary disclosure
+```
+
+New functionality must fit that grammar before adding another persistent horizontal band or vertical rail.
+
+A new bar/rail is justified only when the information has independent navigation/context ownership that cannot remain understandable in an existing shell cell.
+
+### 25.2 Compact chrome, readable content
+
+Chrome and content have separate density needs.
+
+- navigation, status, metadata and control chrome use compact density;
+- Markdown/document reading uses comfortable reading measure/line spacing;
+- operational queues/tables use information-dense rows;
+- changing content readability must not require oversized surrounding chrome.
+
+Long-form content gets the space. Controls orient the operator without competing with the document/work surface.
+
+### 25.3 Zero duplicate context
+
+A fact has one primary presentation location.
+
+Concise mirrors are allowed only when they answer a different immediate context question, such as:
+
+- active OpenCode account in the global shell while full account inventory lives in Configuration;
+- current repository/project in the shell while repository inventory/document-root management lives in Configuration;
+- current workflow step in the top rail while full stage material lives in the primary canvas.
+
+The same explanatory text, path, status or action must not be repeated in multiple persistent bands merely for visibility.
+
+### 25.4 Guidance on demand
+
+Routine instructional copy should not consume permanent primary-canvas space.
+
+Use compact labels plus on-demand help/secondary disclosure for:
+
+- what a configuration field means;
+- format hints;
+- exact technical paths/ids;
+- explanations that are not currently blocking work.
+
+Always-visible callouts are reserved for actionable operational states such as:
+
+- missing required configuration;
+- failed migration;
+- invalid repository/project configuration;
+- unsaved/conflicted document state where action is required;
+- active-work blocker preventing a requested account/repository mutation.
+
+### GW-FR-094-INFORMATION-PLACEMENT-ECONOMY
+
+**Required behavior:** Order uses one compact shell grammar, presents each fact in one primary location, separates compact chrome density from readable document density, and moves routine guidance/technical detail to on-demand secondary presentation.
+
+**Acceptance criterion:** adding repository/account configuration and workflow/editor controls does not create redundant persistent bands, duplicate context or repeated explanatory panels; primary work surfaces retain the majority of usable viewport space.
+
+**Failure/negative behavior:** screens must not accumulate independently styled headers, breadcrumbs, status strips, helper banners, action bars or technical-data rows when those concerns can be composed into existing shell/control surfaces.
