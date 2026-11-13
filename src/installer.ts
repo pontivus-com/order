@@ -3,7 +3,6 @@ import {
   chmodSync,
   copyFileSync,
   existsSync,
-  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -14,12 +13,6 @@ import {
 import { dirname, isAbsolute, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
-import type {
-  LegacyOrderConfigV2,
-  OrderConfig,
-  RepositoryPath,
-  WorkItemSourcePath,
-} from "./core/contracts.ts";
 import type { LegacyDatabaseArchive } from "./shell/sqlite.ts";
 
 const bunVersion = "1.4.4";
@@ -387,211 +380,17 @@ const buildApplication = (
   writeFileSync(join(staging, "SOURCE_COMMIT"), sourceCommit + "\n", "utf8");
 };
 
-const bytesEqual = (left: Uint8Array, right: Uint8Array): boolean => {
-  if (left.byteLength !== right.byteLength) return false;
-  for (let index = 0; index < left.byteLength; index += 1) {
-    if (left[index] !== right[index]) return false;
-  }
-  return true;
-};
-
-const ensureMigrationParent = (
-  repositoryRoot: string,
-  repositoryPath: RepositoryPath,
-): string => {
-  const segments = repositoryPath.split("/");
-  let current = repositoryRoot;
-  for (const segment of segments.slice(0, -1)) {
-    current = join(current, segment);
-    if (!existsSync(current)) mkdirSync(current, { mode: 0o755 });
-    const stat = lstatSync(current);
-    if (stat.isSymbolicLink() || !stat.isDirectory()) {
-      fail("repository-native WorkItem migration may not traverse a symlink/non-directory");
-    }
-  }
-  return join(repositoryRoot, ...segments);
-};
-
-const migrateRepositoryNativeV2State = async (
-  locations: InstallerLocations,
-  legacyConfig: LegacyOrderConfigV2,
-  currentConfig: OrderConfig,
-  sqliteModule: typeof import("./shell/sqlite.ts"),
-): Promise<void> => {
-  const moduleUrl = (path: string): string =>
-    pathToFileURL(join(locations.installRoot, "app", "src", path)).href;
-  const [projectModule, sourceShell, sourceCore, repositoryModule, runtimeModule, fileWriteModule] =
-    await Promise.all([
-      import(moduleUrl("shell/project.ts")) as Promise<typeof import("./shell/project.ts")>,
-      import(moduleUrl("shell/work-item-source.ts")) as Promise<typeof import("./shell/work-item-source.ts")>,
-      import(moduleUrl("core/work-item-source.ts")) as Promise<typeof import("./core/work-item-source.ts")>,
-      import(moduleUrl("shell/repository.ts")) as Promise<typeof import("./shell/repository.ts")>,
-      import(moduleUrl("shell/runtime.ts")) as Promise<typeof import("./shell/runtime.ts")>,
-      import(moduleUrl("shell/file-write.ts")) as Promise<typeof import("./shell/file-write.ts")>,
-    ]);
-
-  const projects = await projectModule.loadConfiguredProjects(currentConfig.repositoryRoots);
-  const projectById = new Map(
-    projects.map((project) => [project.manifest.projectId, project] as const),
-  );
-
-  const legacySources = sourceShell.scanLegacyV2WorkItemSourcesForInstall(
-    legacyConfig.workItemRoot,
-  );
-  const duplicates = sourceCore.duplicateWorkItemSourceIds(legacySources);
-  if (duplicates.length !== 0) {
-    fail("v2→v3 migration found duplicate WorkItem ids: " + duplicates.join(", "));
-  }
-  const sourceById = new Map(
-    legacySources.map((source) => [source.metadata.id, source] as const),
-  );
-
-  const migrationState = sqliteModule.readOrderV2MigrationStateForInstall(
-    locations.stateRoot,
-  );
-  const sourcePaths = new Map<string, WorkItemSourcePath>();
-  const planned = new Map<string, Readonly<{
-    repositoryRoot: string;
-    repositoryPath: RepositoryPath;
-    bytes: Uint8Array;
-  }>>();
-
-  const planCopy = (
-    repositoryRoot: string,
-    repositoryPath: RepositoryPath,
-    bytes: Uint8Array,
-  ): void => {
-    const target = join(repositoryRoot, repositoryPath);
-    const prior = planned.get(target);
-    if (prior !== undefined) {
-      if (!bytesEqual(prior.bytes, bytes)) {
-        fail("v2→v3 migration maps different bytes to the same repository path: " + repositoryPath);
-      }
-      return;
-    }
-    if (existsSync(target)) {
-      const stat = lstatSync(target);
-      if (stat.isSymbolicLink() || !stat.isFile()) {
-        fail("v2→v3 migration destination is not a regular file: " + repositoryPath);
-      }
-      if (!bytesEqual(new Uint8Array(readFileSync(target)), bytes)) {
-        fail("v2→v3 migration destination already exists with different bytes: " + repositoryPath);
-      }
-    }
-    planned.set(target, { repositoryRoot, repositoryPath, bytes });
-  };
-
-  for (const source of legacySources) {
-    const project = projectById.get(source.metadata.projectId);
-    if (project === undefined) {
-      throw new TypeError(
-        "v2→v3 migration cannot resolve projectId: " + source.metadata.projectId,
-      );
-    }
-    const destination = sourceCore.workItemDocumentPath(
-      project.manifest.workItems.root,
-      source.metadata.id,
-      "SOURCE",
-    );
-    planCopy(
-      project.repositoryRoot,
-      destination,
-      new TextEncoder().encode(source.markdown),
-    );
-  }
-
-  for (const [workItem, lifecycleArtifacts] of migrationState) {
-    const source = sourceById.get(workItem.id);
-    if (source === undefined) {
-      throw new TypeError(
-        "v2→v3 migration is missing persisted WorkItem source: " + workItem.id,
-      );
-    }
-    if (
-      source.path !== workItem.sourcePath ||
-      source.sha256 !== workItem.sourceSha256 ||
-      source.metadata.projectId !== workItem.projectId
-    ) {
-      fail("v2→v3 persisted WorkItem source projection is stale: " + workItem.id);
-    }
-    const project = projectById.get(workItem.projectId);
-    if (project === undefined) {
-      throw new TypeError(
-        "v2→v3 migration cannot resolve project for WorkItem: " + workItem.id,
-      );
-    }
-    if (project.repositoryRoot !== workItem.repositoryRoot) {
-      throw new TypeError(
-        "v2→v3 migration repository does not match persisted WorkItem: " + workItem.id,
-      );
-    }
-    const destination = sourceCore.workItemDocumentPath(
-      project.manifest.workItems.root,
-      workItem.id,
-      "SOURCE",
-    );
-    sourcePaths.set(workItem.id, destination as WorkItemSourcePath);
-
-    for (const artifact of lifecycleArtifacts) {
-      if (
-        artifact.role !== "R1" &&
-        artifact.role !== "R2" &&
-        artifact.role !== "DESIGN" &&
-        artifact.role !== "PLAN" &&
-        artifact.role !== "R3"
-      ) {
-        continue;
-      }
-      const bytes = repositoryModule.readWorkingTreeFile(
-        workItem.repositoryRoot,
-        artifact.repositoryPath,
-      );
-      if (runtimeModule.sha256(bytes) !== artifact.sha256) {
-        fail(
-          "v2→v3 lifecycle source bytes differ from current ArtifactRef: " +
-            artifact.repositoryPath,
-        );
-      }
-      const lifecycleDestination = sourceCore.workItemDocumentPath(
-        project.manifest.workItems.root,
-        workItem.id,
-        artifact.role,
-      );
-      planCopy(project.repositoryRoot, lifecycleDestination, bytes);
-    }
-  }
-
-  for (const copy of planned.values()) {
-    const target = join(copy.repositoryRoot, copy.repositoryPath);
-    if (!existsSync(target)) {
-      ensureMigrationParent(copy.repositoryRoot, copy.repositoryPath);
-      fileWriteModule.createRegularFileExclusive(target, copy.bytes);
-    }
-    const verified = new Uint8Array(readFileSync(target));
-    if (!bytesEqual(verified, copy.bytes)) {
-      fail("v2→v3 repository copy failed read-back verification: " + copy.repositoryPath);
-    }
-  }
-
-  sqliteModule.migrateOrderDatabaseV2ToV3(
-    locations.stateRoot,
-    sourcePaths as ReadonlyMap<import("./core/contracts.ts").WorkItemId, WorkItemSourcePath>,
-  );
-  process.stdout.write(
-    "Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
-      legacyConfig.workItemRoot +
-      "\n",
-  );
-};
-
 const configureOrder = async (
   locations: InstallerLocations,
   projectManifestCreated: (path: string) => void,
-): Promise<void> => {
+) => {
   const setupUrl = pathToFileURL(
     join(locations.installRoot, "app", "src", "shell", "setup.ts"),
   ).href;
   const setupModule = await import(setupUrl) as typeof import("./shell/setup.ts");
+  const legacyV2Config = setupModule.readLegacyOrderConfigV2ForInstall(
+    locations.stateRoot,
+  );
   const code = await setupModule.runInstallerGuidedSetup(
     runtimeEnvironment(locations),
     (value) => process.stdout.write(value),
@@ -599,6 +398,7 @@ const configureOrder = async (
     projectManifestCreated,
   );
   if (code !== 0) fail("Order guided configuration did not complete");
+  return { setupModule, legacyV2Config } as const;
 };
 
 const activateService = async (
@@ -854,7 +654,7 @@ export const runInstaller = async (
   let configSnapshot: Readonly<{ path: string; bytes: Uint8Array | null }> | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
-  let legacyV2Config: LegacyOrderConfigV2 | null = null;
+  let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
   let priorServiceWasActive = false;
   const createdProjectManifests: string[] = [];
   const launcher = join(locations.binDir, "order");
@@ -913,17 +713,8 @@ export const runInstaller = async (
       bytes: existsSync(configPath) ? new Uint8Array(readFileSync(configPath)) : null,
     };
 
-    const configUrl = pathToFileURL(
-      join(locations.installRoot, "app", "src", "shell", "config.ts"),
-    ).href;
-    const configModule = await import(configUrl) as typeof import("./shell/config.ts");
-    const upgradeConfig = configModule.readOrderConfigForUpgradeIfPresent(
-      locations.stateRoot,
-    );
-    legacyV2Config = upgradeConfig?.version === 2 ? upgradeConfig : null;
-
     step("configuring provider, model and repository access");
-    await configureOrder(
+    configuredSetup = await configureOrder(
       locations,
       (path) => createdProjectManifests.push(path),
     );
@@ -943,13 +734,15 @@ export const runInstaller = async (
       );
     }
 
-    if (legacyV2Config !== null) {
-      const currentConfig = configModule.readOrderConfig(locations.stateRoot);
-      await migrateRepositoryNativeV2State(
-        locations,
-        legacyV2Config,
-        currentConfig,
-        sqliteUpgradeModule,
+    if (configuredSetup.legacyV2Config !== null) {
+      await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(
+        locations.stateRoot,
+        configuredSetup.legacyV2Config,
+      );
+      process.stdout.write(
+        "Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
+          configuredSetup.legacyV2Config.workItemRoot +
+          "\n",
       );
     }
 
