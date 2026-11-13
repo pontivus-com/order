@@ -9,6 +9,7 @@ import {
   type ConcernId,
   type ProjectId,
   type ProjectManifest,
+  type RepositoryPath,
   type Sha256,
   type StageCompletion,
   type WorkItem,
@@ -255,7 +256,7 @@ export const linkedRemediationIsAllowed = (
   );
 };
 
-export type WorkItemSourceDisposition = "UPDATED" | "MOVED" | "UNCHANGED";
+export type WorkItemSourceDisposition = "UPDATED" | "UNCHANGED";
 
 export type ExistingWorkItemSourceClassification =
   | Readonly<{
@@ -314,13 +315,17 @@ export const classifyExistingWorkItemSource = (
     };
   }
 
+  if (source.path !== existing.sourcePath) {
+    return {
+      tag: "REJECT",
+      code: "INVALID_SOURCE",
+      detail: "WorkItem source is not at its deterministic repository path",
+    };
+  }
+
   return {
     tag: "ACCEPT",
-    disposition: bytesChanged
-      ? "UPDATED"
-      : source.path !== existing.sourcePath
-        ? "MOVED"
-        : "UNCHANGED",
+    disposition: bytesChanged ? "UPDATED" : "UNCHANGED",
   };
 };
 
@@ -332,9 +337,31 @@ export const stageTemplateForSchema = (
   return id === null ? null : stageTemplates[id];
 };
 
-export const workItemSourcePathForId = (
+export type WorkItemDocumentRole = "SOURCE" | "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
+
+const workItemDocumentFilename: Readonly<Record<WorkItemDocumentRole, string>> = Object.freeze({
+  SOURCE: "work-request.md",
+  R1: "research.md",
+  R2: "requirements.md",
+  DESIGN: "solution-design.md",
+  PLAN: "implementation-plan.md",
+  R3: "readiness-review.md",
+});
+
+export const workItemDocumentPath = (
+  workItemsRoot: RepositoryPath,
   id: WorkItemSourceMetadata["id"],
-): WorkItemSourcePath => WorkItemSourcePathSchema.parse(`${id}.md`);
+  role: WorkItemDocumentRole,
+): RepositoryPath =>
+  WorkItemSourcePathSchema.parse(
+    `${workItemsRoot}/${id}/${workItemDocumentFilename[role]}`,
+  );
+
+export const workItemSourcePathForId = (
+  workItemsRoot: RepositoryPath,
+  id: WorkItemSourceMetadata["id"],
+): WorkItemSourcePath =>
+  WorkItemSourcePathSchema.parse(workItemDocumentPath(workItemsRoot, id, "SOURCE"));
 
 const titleFromBody = (body: string): WorkItemTitle => {
   const first = body.split("\n").find((line) => line.trim().length > 0);
