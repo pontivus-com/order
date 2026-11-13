@@ -24,6 +24,7 @@ import {
 import {
   classifyExistingWorkItemSource,
   duplicateWorkItemSourceIds,
+  isUnsupportedWorkItemSchemaFailure,
   linkedRemediationIsAllowed,
   parseWorkItemSourceMarkdown,
   renderWorkItemSourceMarkdown,
@@ -69,16 +70,16 @@ const SOURCE_BOUNDARY_FAILURE = "WORK_ITEM_SOURCE_BOUNDARY";
 
 type SourceBoundaryFailure = TypeError & Readonly<{
   orderCode: typeof SOURCE_BOUNDARY_FAILURE;
+  sourceDiagnostic: WorkItemSourceDiagnostic;
 }>;
 
-const sourceBoundaryFailureMarker: Readonly<{
-  orderCode: typeof SOURCE_BOUNDARY_FAILURE;
-}> = {
-  orderCode: SOURCE_BOUNDARY_FAILURE,
-};
-
-const sourceBoundaryFailure = (detail: string): SourceBoundaryFailure =>
-  Object.assign(new TypeError(detail), sourceBoundaryFailureMarker);
+const sourceBoundaryFailure = (
+  sourceDiagnostic: WorkItemSourceDiagnostic,
+): SourceBoundaryFailure =>
+  Object.assign(new TypeError(sourceDiagnostic.detail), {
+    orderCode: SOURCE_BOUNDARY_FAILURE as typeof SOURCE_BOUNDARY_FAILURE,
+    sourceDiagnostic: WorkItemSourceDiagnosticSchema.parse(sourceDiagnostic),
+  });
 
 const operationalSourceReadFailure = (error: unknown): boolean => {
   if (typeof error !== "object" || error === null || !("code" in error)) return false;
@@ -91,7 +92,15 @@ export const isSourceBoundaryFailure = (
 ): error is SourceBoundaryFailure =>
   error instanceof TypeError &&
   "orderCode" in error &&
-  (error as { orderCode?: unknown }).orderCode === SOURCE_BOUNDARY_FAILURE;
+  (error as { orderCode?: unknown }).orderCode === SOURCE_BOUNDARY_FAILURE &&
+  "sourceDiagnostic" in error;
+
+export const sourceDiagnosticForFailure = (
+  error: unknown,
+): WorkItemSourceDiagnostic | null =>
+  isSourceBoundaryFailure(error)
+    ? WorkItemSourceDiagnosticSchema.parse(error.sourceDiagnostic)
+    : null;
 
 type QueuePlan = Readonly<{
   disposition: "REGISTERED" | WorkItemSourceDisposition;
@@ -430,39 +439,105 @@ export const revalidateWorkItemSource = async (
     "SOURCE",
   );
   if (before.sourcePath !== expectedPath) {
-    throw sourceBoundaryFailure("persisted WorkItem source path is not deterministic");
+    throw sourceBoundaryFailure(WorkItemSourceDiagnosticSchema.parse({
+      projectId: before.projectId,
+      path: before.sourcePath,
+      workItemId: before.id,
+      code: "INVALID_SOURCE",
+      detail: "persisted WorkItem source path is not deterministic",
+    }));
   }
 
   let current: ParsedWorkItemSource;
   try {
     current = readWorkItemSource(projectForPath.repositoryRoot, expectedPath);
   } catch (error) {
-    if (isWorkItemRootAccessFailure(error) || operationalSourceReadFailure(error)) {
-      throw error;
+    if (isWorkItemRootAccessFailure(error)) throw error;
+    const errorCode =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof (error as { code?: unknown }).code === "string"
+        ? (error as { code: string }).code
+        : null;
+    if (errorCode === "ENOENT") {
+      throw sourceBoundaryFailure(diagnostic(
+        before.projectId,
+        null,
+        before.stage === "COMPLETE" ? "COMPLETED_SOURCE_MISSING" : "MISSING_SOURCE",
+        `source is missing for WorkItem ${before.id}`,
+        before.id,
+      ));
     }
-    throw sourceBoundaryFailure(error instanceof Error ? error.message : String(error));
+    if (operationalSourceReadFailure(error)) throw error;
+    throw sourceBoundaryFailure(WorkItemSourceDiagnosticSchema.parse({
+      projectId: before.projectId,
+      path: expectedPath,
+      workItemId: before.id,
+      code: isUnsupportedWorkItemSchemaFailure(error)
+        ? "UNSUPPORTED_SCHEMA"
+        : "INVALID_SOURCE",
+      detail: error instanceof Error ? error.message : String(error),
+    }));
   }
 
   let project: ConfiguredProject;
   try {
     project = await resolveSourceProject(runtime, current);
-    requireResolvedConcerns(project, current.metadata.concernIds);
   } catch (error) {
-    throw sourceBoundaryFailure(error instanceof Error ? error.message : String(error));
+    throw sourceBoundaryFailure(diagnostic(
+      before.projectId,
+      current,
+      "UNRESOLVED_PROJECT",
+      error instanceof Error ? error.message : String(error),
+      before.id,
+    ));
   }
 
-  const archived = readWorkItemArchived(
-    project.repositoryRoot,
-    project.manifest.workItems.root,
-    before.id,
+  const unresolvedConcerns = unresolvedConcernIdsForProject(
+    current.metadata.concernIds,
+    project.manifest,
   );
+  if (unresolvedConcerns[0] !== undefined) {
+    throw sourceBoundaryFailure(diagnostic(
+      project.manifest.projectId,
+      current,
+      "UNRESOLVED_CONCERN",
+      `unresolved concern id: ${unresolvedConcerns[0]}`,
+      before.id,
+    ));
+  }
+
+  let archived: boolean;
+  try {
+    archived = readWorkItemArchived(
+      project.repositoryRoot,
+      project.manifest.workItems.root,
+      before.id,
+    );
+  } catch (error) {
+    throw sourceBoundaryFailure(diagnostic(
+      project.manifest.projectId,
+      current,
+      "INVALID_SOURCE",
+      error instanceof Error ? error.message : String(error),
+      before.id,
+    ));
+  }
+
   const planned = planExistingSource(runtime, before, current, project, archived);
   if (planned.diagnostic !== null) {
-    throw sourceBoundaryFailure(planned.diagnostic.detail);
+    throw sourceBoundaryFailure(planned.diagnostic);
   }
   const plan = planned.plan;
   if (plan === null) {
-    throw sourceBoundaryFailure("WorkItem source revalidation produced no valid source plan");
+    throw sourceBoundaryFailure(diagnostic(
+      project.manifest.projectId,
+      current,
+      "INVALID_SOURCE",
+      "WorkItem source revalidation produced no valid source plan",
+      before.id,
+    ));
   }
 
   withTransaction(runtime.database, () => applyPlan(runtime, plan));

@@ -566,6 +566,131 @@ describe("daemon control plane", () => {
     expect(output.nonLoopbackRejected).toBe(true);
   });
 
+  it("classifies canonical HTTP failures without leaking unexpected daemon detail", () => {
+    const output = bunEval(`
+      const contracts = await import("./src/core/contracts.ts");
+      const server = await import("./src/daemon/server.ts");
+
+      const malformed = server.classifyHttpFailure(
+        Object.assign(new TypeError("invalid request"), { orderHttpStatus: 400 }),
+      );
+      const absent = server.classifyHttpFailure(new TypeError("WorkItem does not exist"));
+      const conflict = server.classifyHttpFailure(new TypeError("WorkItem is not awaiting sign-off"));
+      const unexpected = server.classifyHttpFailure(new Error("secret internal detail"));
+      let unexpectedSchema;
+      try {
+        contracts.WorkItemSchema.parse({});
+      } catch (error) {
+        unexpectedSchema = server.classifyHttpFailure(error);
+      }
+      console.log(JSON.stringify({ malformed, absent, conflict, unexpected, unexpectedSchema }));
+    `) as {
+      malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      absent: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+    };
+
+    expect(output.malformed).toMatchObject({
+      status: 400,
+      code: "INVALID_REQUEST",
+      sourceDiagnostic: null,
+    });
+    expect(output.absent).toEqual({
+      status: 404,
+      code: "NOT_FOUND",
+      message: "WorkItem does not exist",
+      sourceDiagnostic: null,
+    });
+    expect(output.conflict).toEqual({
+      status: 409,
+      code: "CURRENT_STATE_CONFLICT",
+      message: "WorkItem is not awaiting sign-off",
+      sourceDiagnostic: null,
+    });
+    expect(output.unexpected).toEqual({
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: "Internal daemon error",
+      sourceDiagnostic: null,
+    });
+    expect(output.unexpected.message).not.toContain("secret internal detail");
+    expect(output.unexpectedSchema).toEqual({
+      status: 500,
+      code: "INTERNAL_ERROR",
+      message: "Internal daemon error",
+      sourceDiagnostic: null,
+    });
+  });
+
+  it("preserves the exact canonical source diagnostic on HTTP conflict classification", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-http-source-conflict-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const server = await import("./src/daemon/server.ts");
+      const repository = ${JSON.stringify(repository)};
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 3,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "source conflict",
+        concernIds: ["shell"],
+      });
+      fs.unlinkSync(path.join(repository, created.sourcePath));
+      let classified = null;
+      try {
+        await coord.getWorkItemSource(runtime, created.id);
+      } catch (error) {
+        classified = server.classifyHttpFailure(error);
+      }
+      console.log(JSON.stringify({ created, classified }));
+      database.close();
+    `) as {
+      created: { id: string; projectId: string; sourcePath: string };
+      classified: {
+        status: number;
+        code: string;
+        message: string;
+        sourceDiagnostic: {
+          projectId: string;
+          path: string | null;
+          workItemId: string;
+          code: string;
+          detail: string;
+        };
+      };
+    };
+
+    expect(output.classified).toMatchObject({
+      status: 409,
+      code: "WORK_ITEM_SOURCE_CONFLICT",
+      sourceDiagnostic: {
+        projectId: output.created.projectId,
+        path: null,
+        workItemId: output.created.id,
+        code: "MISSING_SOURCE",
+      },
+    });
+    expect(output.classified.message).toBe(output.classified.sourceDiagnostic.detail);
+  });
+
   it("enforces public-health-only, one-time connect, cookie auth, Origin, and no CORS", () => {
     const state = tempDir("order-daemon-http-");
         mkdirSync(join(process.cwd(), "dist"), { recursive: true });
@@ -616,6 +741,17 @@ describe("daemon control plane", () => {
         const reused = await fetch(origin + "/connect?token=" + tokenBody.token, { redirect: "manual" });
 
         const listed = await fetch(origin + "/api/work-items", { headers: { cookie } });
+        const malformed = await fetch(origin + "/api/work-items", {
+          method: "POST",
+          headers: { cookie, origin, "content-type": "application/json" },
+          body: "{",
+        });
+        const malformedBody = await malformed.json();
+        const absent = await fetch(
+          origin + "/api/work-items/work_00000000-0000-4000-8000-000000000000",
+          { headers: { cookie } },
+        );
+        const absentBody = await absent.json();
         const missingOrigin = await fetch(origin + "/api/tick", {
           method: "POST",
           headers: { cookie, "content-type": "application/json" },
@@ -654,6 +790,10 @@ describe("daemon control plane", () => {
           cookie,
           reused: reused.status,
           listed: listed.status,
+          malformedStatus: malformed.status,
+          malformedBody,
+          absentStatus: absent.status,
+          absentBody,
           missingOrigin: missingOrigin.status,
           wrongOrigin: wrongOrigin.status,
           tickStatus: tick.status,
@@ -679,6 +819,18 @@ describe("daemon control plane", () => {
     );
     expect(output.reused).toBe(401);
     expect(output.listed).toBe(200);
+    expect(output.malformedStatus).toBe(400);
+    expect(output.malformedBody).toEqual({
+      code: "INVALID_REQUEST",
+      message: "request body must contain valid JSON",
+      sourceDiagnostic: null,
+    });
+    expect(output.absentStatus).toBe(404);
+    expect(output.absentBody).toEqual({
+      code: "NOT_FOUND",
+      message: "WorkItem does not exist",
+      sourceDiagnostic: null,
+    });
     expect(output.missingOrigin).toBe(403);
     expect(output.wrongOrigin).toBe(403);
     expect(output.tickStatus).toBe(200);

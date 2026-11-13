@@ -281,6 +281,29 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
 });
 
+test("browser surfaces the canonical typed API failure message", async ({ page, request }) => {
+  await authenticate(page, request);
+
+  await page.route("**/api/work-items", async (route) => {
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: "CURRENT_STATE_CONFLICT",
+        message: "Documentation changed; review the current state and retry.",
+        sourceDiagnostic: null,
+      }),
+    });
+  });
+  await page.reload();
+
+  await expect(page.getByText("Documentation changed; review the current state and retry."))
+    .toBeVisible();
+  await expect(page.getByText("Local browser session required")).toBeVisible();
+
+  await page.unroute("**/api/work-items");
+});
+
 test("queue opens a primary workspace, keeps context compact, preserves URL history, responds with a Drawer, and creates real WorkItems", async ({
   page,
   request,

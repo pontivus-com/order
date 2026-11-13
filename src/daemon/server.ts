@@ -14,6 +14,7 @@ import {
   CommitWorkItemDocumentationSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
+  OrderHttpErrorSchema,
   SetWorkItemArchivedSchema,
   UpdateWorkItemTitleSchema,
   RunEventIdSchema,
@@ -64,6 +65,7 @@ import {
   runCoordinatorTick,
   saveArtifactContent,
   saveSource,
+  sourceDiagnosticForFailure,
   setArchived,
   signOffWorkItem,
   startCoordinatorScheduler,
@@ -144,7 +146,97 @@ const errorResponse = (
   status: number,
   code: string,
   message: string,
-): Response => jsonResponse({ code, message }, status);
+  sourceDiagnostic: ReturnType<typeof sourceDiagnosticForFailure> = null,
+): Response =>
+  jsonResponse(OrderHttpErrorSchema.parse({
+    code,
+    message,
+    sourceDiagnostic,
+  }), status);
+
+type BadRequestFailure = TypeError & Readonly<{ orderHttpStatus: 400 }>;
+
+const badRequest = (message: string): BadRequestFailure =>
+  Object.assign(new TypeError(message), { orderHttpStatus: 400 as const });
+
+const isZodFailure = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  "name" in error &&
+  (error as { name?: unknown }).name === "ZodError";
+
+const parseRequest = async <T>(
+  parse: () => T | Promise<T>,
+): Promise<T> => {
+  try {
+    return await parse();
+  } catch (error) {
+    if (isZodFailure(error)) {
+      throw badRequest(error instanceof Error ? error.message : "Invalid request");
+    }
+    throw error;
+  }
+};
+
+export const classifyHttpFailure = (
+  error: unknown,
+): Readonly<{
+  status: 400 | 404 | 409 | 500;
+  code: string;
+  message: string;
+  sourceDiagnostic: ReturnType<typeof sourceDiagnosticForFailure>;
+}> => {
+  const sourceDiagnostic = sourceDiagnosticForFailure(error);
+  if (sourceDiagnostic !== null) {
+    return {
+      status: 409,
+      code: "WORK_ITEM_SOURCE_CONFLICT",
+      message: sourceDiagnostic.detail,
+      sourceDiagnostic,
+    };
+  }
+
+  if (
+    error instanceof TypeError &&
+    "orderHttpStatus" in error &&
+    (error as { orderHttpStatus?: unknown }).orderHttpStatus === 400
+  ) {
+    return {
+      status: 400,
+      code: "INVALID_REQUEST",
+      message: error instanceof Error ? error.message : "Invalid request",
+      sourceDiagnostic: null,
+    };
+  }
+
+  if (
+    error instanceof TypeError &&
+    /(?:WorkItem|ArtifactRef|Approval|Run|RunEvent|execution task) does not exist/.test(error.message)
+  ) {
+    return {
+      status: 404,
+      code: "NOT_FOUND",
+      message: error.message,
+      sourceDiagnostic: null,
+    };
+  }
+
+  if (error instanceof TypeError) {
+    return {
+      status: 409,
+      code: "CURRENT_STATE_CONFLICT",
+      message: error.message,
+      sourceDiagnostic: null,
+    };
+  }
+
+  return {
+    status: 500,
+    code: "INTERNAL_ERROR",
+    message: "Internal daemon error",
+    sourceDiagnostic: null,
+  };
+};
 
 const parseCookie = (request: Request, name: string): string | null => {
   const cookie = request.headers.get("cookie");
@@ -208,11 +300,16 @@ const requireCliBearer = (
 const readJsonBody = async (request: Request): Promise<Record<string, unknown>> => {
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.toLowerCase().startsWith("application/json")) {
-    throw new TypeError("Content-Type must be application/json");
+    throw badRequest("Content-Type must be application/json");
   }
-  const value: unknown = await request.json();
+  let value: unknown;
+  try {
+    value = await request.json();
+  } catch {
+    throw badRequest("request body must contain valid JSON");
+  }
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new TypeError("request body must be a JSON object");
+    throw badRequest("request body must be a JSON object");
   }
   return value as Record<string, unknown>;
 };
@@ -227,7 +324,7 @@ const requireKeys = (
     actual.length !== expected.length ||
     actual.some((key, index) => key !== expected[index])
   ) {
-    throw new TypeError(`request body must contain exactly: ${expected.join(", ")}`);
+    throw badRequest(`request body must contain exactly: ${expected.join(", ")}`);
   }
 };
 
@@ -236,7 +333,7 @@ const requireString = (
   key: string,
 ): string => {
   const value = body[key];
-  if (typeof value !== "string") throw new TypeError(`${key} must be a string`);
+  if (typeof value !== "string") throw badRequest(`${key} must be a string`);
   return value;
 };
 
@@ -390,7 +487,7 @@ const routeApi = async (
       (includeArchived !== null && includeArchived !== "true") ||
       [...url.searchParams.keys()].some((key) => key !== "includeArchived")
     ) {
-      throw new TypeError("includeArchived query must be exact true or absent");
+      throw badRequest("includeArchived query must be exact true or absent");
     }
     return jsonResponse(listWorkItems(runtime, includeArchived === "true"));
   }
@@ -417,12 +514,14 @@ const routeApi = async (
     request.method === "POST" &&
     url.pathname === "/api/work-items"
   ) {
-    const body = CreateWorkItemSourceSchema.parse(await readJsonBody(request));
+    const body = await parseRequest(async () =>
+      CreateWorkItemSourceSchema.parse(await readJsonBody(request))
+    );
     return jsonResponse(await createWorkItem(runtime, body), 201);
   }
 
   if (parts[0] === "api" && parts[1] === "work-items" && parts[2]) {
-    const workItemId = WorkItemIdSchema.parse(parts[2]);
+    const workItemId = await parseRequest(() => WorkItemIdSchema.parse(parts[2]));
 
     if (parts.length === 3 && request.method === "GET") {
       return jsonResponse(getWorkItem(runtime, workItemId));
@@ -441,15 +540,21 @@ const routeApi = async (
       return jsonResponse(await getWorkItemSource(runtime, workItemId));
     }
     if (parts[3] === "source" && parts.length === 4 && request.method === "PUT") {
-      const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
+      const body = await parseRequest(async () =>
+        ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request))
+      );
       return jsonResponse(await saveSource(runtime, workItemId, body));
     }
     if (parts[3] === "title" && parts.length === 4 && request.method === "PATCH") {
-      const body = UpdateWorkItemTitleSchema.parse(await readJsonBody(request));
+      const body = await parseRequest(async () =>
+        UpdateWorkItemTitleSchema.parse(await readJsonBody(request))
+      );
       return jsonResponse(await updateTitle(runtime, workItemId, body));
     }
     if (parts[3] === "archive" && parts.length === 4 && request.method === "PATCH") {
-      const body = SetWorkItemArchivedSchema.parse(await readJsonBody(request));
+      const body = await parseRequest(async () =>
+        SetWorkItemArchivedSchema.parse(await readJsonBody(request))
+      );
       return jsonResponse(await setArchived(runtime, workItemId, body));
     }
     if (
@@ -464,7 +569,9 @@ const routeApi = async (
       parts.length === 4 &&
       request.method === "POST"
     ) {
-      const body = CommitWorkItemDocumentationSchema.parse(await readJsonBody(request));
+      const body = await parseRequest(async () =>
+        CommitWorkItemDocumentationSchema.parse(await readJsonBody(request))
+      );
       return jsonResponse(await commitDocumentation(runtime, workItemId, body));
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
@@ -480,7 +587,7 @@ const routeApi = async (
       if (request.method === "POST") {
         const body = await readJsonBody(request);
         requireKeys(body, ["mode"]);
-        const mode = RunModeSchema.parse(body.mode);
+        const mode = await parseRequest(() => RunModeSchema.parse(body.mode));
         return jsonResponse(await startStageRun(runtime, workItemId, mode), 201);
       }
     }
@@ -495,29 +602,31 @@ const routeApi = async (
       return jsonResponse(await signOffWorkItem(
         runtime,
         workItemId,
-        Sha256Schema.parse(body.expectedPackageHash),
+        await parseRequest(() => Sha256Schema.parse(body.expectedPackageHash)),
         requireString(body, "approvedBy"),
       ));
     }
   }
 
   if (parts[0] === "api" && parts[1] === "runs" && parts[2]) {
-    const runId = RunIdSchema.parse(parts[2]);
+    const runId = await parseRequest(() => RunIdSchema.parse(parts[2]));
     if (parts[3] === "events" && parts.length === 4 && request.method === "GET") {
       const raw = url.searchParams.get("afterSequence") ?? "0";
-      if (!/^[0-9]+$/.test(raw)) throw new TypeError("afterSequence must be a non-negative integer");
+      if (!/^[0-9]+$/.test(raw)) throw badRequest("afterSequence must be a non-negative integer");
       return jsonResponse(listRunEvents(runtime, runId, Number(raw)));
     }
     if (parts[3] === "evidence" && parts.length === 4 && request.method === "GET") {
       const path = url.searchParams.get("path");
-      if (path === null) throw new TypeError("evidence path query parameter is required");
+      if (path === null) throw badRequest("evidence path query parameter is required");
       return rawResponse(readReferencedEvidence(runtime, runId, path));
     }
     if (parts[3] === "input" && parts.length === 4 && request.method === "POST") {
       const body = await readJsonBody(request);
       requireKeys(body, ["text", "requestEventId"]);
       const rawEventId = body.requestEventId;
-      const requestEventId = rawEventId === null ? null : RunEventIdSchema.parse(rawEventId);
+      const requestEventId = rawEventId === null
+        ? null
+        : await parseRequest(() => RunEventIdSchema.parse(rawEventId));
       return jsonResponse(await submitRunInput(
         runtime,
         runId,
@@ -539,7 +648,7 @@ const routeApi = async (
     parts.length === 4 &&
     request.method === "POST"
   ) {
-    const proposalEventId = RunEventIdSchema.parse(parts[2]);
+    const proposalEventId = await parseRequest(() => RunEventIdSchema.parse(parts[2]));
     const body = await readJsonBody(request);
     requireKeys(body, []);
     if (parts[3] === "adopt") {
@@ -560,7 +669,7 @@ const routeApi = async (
   ) {
     return rawResponse(await readArtifactContent(
       runtime,
-      ArtifactRefIdSchema.parse(parts[2]),
+      await parseRequest(() => ArtifactRefIdSchema.parse(parts[2])),
     ));
   }
 
@@ -572,10 +681,12 @@ const routeApi = async (
     parts.length === 4 &&
     request.method === "PUT"
   ) {
-    const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
+    const body = await parseRequest(async () =>
+        ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request))
+      );
     return jsonResponse(await saveArtifactContent(
       runtime,
-      ArtifactRefIdSchema.parse(parts[2]),
+      await parseRequest(() => ArtifactRefIdSchema.parse(parts[2])),
       body,
     ));
   }
@@ -633,8 +744,13 @@ export const startDaemonServer = (
         try {
           return await routeApi(runtime, sessions, bind, request, url);
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          return errorResponse(400, "INVALID_REQUEST", message);
+          const failure = classifyHttpFailure(error);
+          return errorResponse(
+            failure.status,
+            failure.code,
+            failure.message,
+            failure.sourceDiagnostic,
+          );
         }
       }
 
