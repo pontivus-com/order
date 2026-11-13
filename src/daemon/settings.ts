@@ -459,11 +459,7 @@ const activateConfiguration = async (
     owner.current = candidate;
 
     const readiness = await installationReadiness(owner);
-    if (readiness.ready) {
-      await startCoordinatorScheduler(candidate);
-    } else {
-      candidate.schedulerStopped = true;
-    }
+    await startCoordinatorScheduler(candidate, () => runReadyCoordinatorTick(owner));
     return { configState: persisted, readiness };
   } catch (error) {
     if (candidate !== null) {
@@ -488,7 +484,10 @@ const activateConfiguration = async (
     if (oldSchedulerStopped) {
       oldRuntime.schedulerStopped = true;
     } else {
-      await startCoordinatorScheduler(oldRuntime).catch(() => undefined);
+      await startCoordinatorScheduler(
+        oldRuntime,
+        () => runReadyCoordinatorTick(owner),
+      ).catch(() => undefined);
     }
     throw error;
   } finally {
