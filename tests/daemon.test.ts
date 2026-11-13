@@ -3441,6 +3441,92 @@ describe("daemon control plane", () => {
     expect(output.conformanceFailures).toBe(1);
   });
 
+  it("rejects a resumed STAGE session after a clean source HEAD advance", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stage-head-freshness-");
+
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const stageOwner = await import("./src/daemon/stage.ts");
+      sql.updateWorkItemLifecycle(database, work, {
+        stage: "PLAN",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const planWorkItem = coord.getWorkItem(runtime, work);
+      const context = await authority.resolveStageContext(runtime, planWorkItem, "PLAN");
+      const waiting = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: work,
+        executionTaskId: null,
+        stage: "PLAN",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: runStore.nextAttempt(runtime, work, "PLAN", null),
+        baselineCommit: approval.baselineCommit,
+        contextHash: context.contextHash,
+        providerSessionId: "session_existing",
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      const trigger = runStore.appendRunEvent(runtime, waiting.id, {
+        tag: "OBSERVATION_RECORDED",
+        title: "RESUME",
+        detail: "resume after external commit",
+        evidence: [],
+      });
+      runtime.activeProviders.set(waiting.id, {
+        server: {
+          process: { terminate: async () => undefined },
+        },
+        sessionId: "session_existing",
+        trustedAccountId: "cred_existing",
+        stageMaterialIdentity: "sha256:" + "a".repeat(64),
+      });
+
+      Bun.spawnSync(["git", "config", "user.email", "fixture@example.com"], { cwd: ${JSON.stringify(repository)} });
+      Bun.spawnSync(["git", "config", "user.name", "Fixture"], { cwd: ${JSON.stringify(repository)} });
+      await Bun.write(${JSON.stringify(repository)} + "/head-advance.txt", "committed change\\n");
+      Bun.spawnSync(["git", "add", "head-advance.txt"], { cwd: ${JSON.stringify(repository)} });
+      const committed = Bun.spawnSync(["git", "commit", "-m", "advance head"], { cwd: ${JSON.stringify(repository)} });
+      if (committed.exitCode !== 0) {
+        throw new Error(new TextDecoder().decode(committed.stderr));
+      }
+
+      const result = await stageOwner.runStageTurn(runtime, waiting, trigger.id, context);
+      const events = runStore.listRunEvents(runtime, waiting.id);
+      console.log(JSON.stringify({
+        status: result.status,
+        classification: result.terminalClassification,
+        productiveFailures: events
+          .filter((event) => event.event.tag === "PRODUCTIVE_INVOCATION_FAILED")
+          .map((event) => event.event),
+        providerFailures: events.filter((event) => event.event.tag === "PROVIDER_FAILED").length,
+        activeProvider: runtime.activeProviders.has(waiting.id),
+      }));
+      database.close();
+    `) as {
+      status: string;
+      classification: string | null;
+      productiveFailures: Array<{ classification: string; detail: string }>;
+      providerFailures: number;
+      activeProvider: boolean;
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.classification).toBe("PRECONDITION_FAILED");
+    expect(output.productiveFailures).toEqual([
+      expect.objectContaining({
+        classification: "PRECONDITION_FAILED",
+        detail: expect.stringContaining("source HEAD no longer equals the Run baseline"),
+      }),
+    ]);
+    expect(output.providerFailures).toBe(0);
+    expect(output.activeProvider).toBe(false);
+  });
+
   it("routes an externally changed source through approval staleness to R1", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-stale-");

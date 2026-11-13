@@ -372,6 +372,18 @@ export const runStageTurn = async (
       };
       runtime.activeProviders.set(run.id, active);
     } else {
+      const sourceHead = await resolveHeadCommit(workItem.repositoryRoot);
+      if (sourceHead !== run.baselineCommit) {
+        await stopActiveProvider(runtime, run.id);
+        return failRunForProductiveInvocation(
+          runtime,
+          run.id,
+          "PRECONDITION_FAILED",
+          new TypeError(
+            "STAGE source HEAD no longer equals the Run baseline; retry after re-resolution",
+          ),
+        );
+      }
       const currentProjectDeltaSha256 = (await captureCandidate(workItem.repositoryRoot)).patchSha256;
       const currentIdentity = stageMaterialIdentity(run, currentProjectDeltaSha256);
       if (active.stageMaterialIdentity !== currentIdentity) {
