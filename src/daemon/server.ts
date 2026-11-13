@@ -17,6 +17,7 @@ import {
   MigrateWorkItemDocumentRootSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
+  ExpectedHashWorkItemBodyWriteSchema,
   ActivateOpenCodeAccountSchema,
   OpenCodeAccountIdSchema,
   OpenCodeAccountLoginAttemptIdSchema,
@@ -69,6 +70,7 @@ import {
   resumeWorkItem,
   saveArtifactContent,
   saveSource,
+  saveSourceBody,
   sourceDiagnosticForFailure,
   setArchived,
   signOffWorkItem,
@@ -760,6 +762,17 @@ const routeApi = async (
         ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request))
       );
       return jsonResponse(await saveSource(runtime, workItemId, body));
+    }
+    if (
+      parts[3] === "source" &&
+      parts[4] === "body" &&
+      parts.length === 5 &&
+      request.method === "PUT"
+    ) {
+      const body = await parseRequest(async () =>
+        ExpectedHashWorkItemBodyWriteSchema.parse(await readJsonBody(request))
+      );
+      return jsonResponse(await saveSourceBody(runtime, workItemId, body));
     }
     if (parts[3] === "title" && parts.length === 4 && request.method === "PATCH") {
       const body = await parseRequest(async () =>
