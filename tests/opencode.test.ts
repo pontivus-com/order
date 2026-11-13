@@ -791,17 +791,13 @@ describe("OpenCode shell", () => {
 
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      const server = await o.startOpenCodeServer(
+      const admission = await o.admitProductiveOpenCode(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
         { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
-      );
-      try {
-        const admission = await o.createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
+        "STAGE",
+        null,
           [{
             authorityLayer: "P1",
             repositoryPath: "AGENTS.md",
@@ -812,8 +808,9 @@ describe("OpenCode shell", () => {
               ),
             ),
           }],
-          [],
-        );
+        [],
+      );
+        const server = admission.server;
         const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
@@ -930,17 +927,13 @@ describe("OpenCode shell", () => {
 
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      const server = await o.startOpenCodeServer(
+      const admission = await o.admitProductiveOpenCode(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
         { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
-      );
-      try {
-        const admission = await o.createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
+        "STAGE",
+        null,
           [{
             authorityLayer: "P1",
             repositoryPath: "AGENTS.md",
@@ -951,8 +944,9 @@ describe("OpenCode shell", () => {
               ),
             ),
           }],
-          [],
-        );
+        [],
+      );
+        const server = admission.server;
         const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",
@@ -1044,17 +1038,13 @@ describe("OpenCode shell", () => {
 
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      const server = await o.startOpenCodeServer(
+      const admission = await o.admitProductiveOpenCode(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
         { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
-      );
-      try {
-        const admission = await o.createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
+        "STAGE",
+        null,
           [{
             authorityLayer: "P1",
             repositoryPath: "AGENTS.md",
@@ -1065,8 +1055,9 @@ describe("OpenCode shell", () => {
               ),
             ),
           }],
-          [],
-        );
+        [],
+      );
+        const server = admission.server;
         const sessionID = admission.sessionId;
         const run = {
           id: "run_11111111-1111-4111-8111-111111111111",

@@ -9,6 +9,7 @@ import {
   type RunId,
   type RunMode,
   RunSchema,
+  type Sha256,
   SignedTaskBlockJsonSchemaText,
   type WorkItem,
   type WorkItemId,
@@ -33,22 +34,25 @@ import {
 import { loadValidatedProjectManifest } from "../shell/project.ts";
 import {
   adoptProposalPatch,
+  captureCandidate,
+  materializeStageInspectionWorkspace,
   readWorkingTreeFile,
   verifyProposalPatchAdoption,
   resolveHeadCommit,
 } from "../shell/repository.ts";
 import {
-  createOpenCodeSession,
-  productiveOpenCodeConfig,
+  admitProductiveOpenCode,
+  productiveInvocationFailure,
+  productiveInvocationFailureClassification,
   runOpenCodeTurn,
-  startOpenCodeServer,
-  stopOpenCodeServer,
 } from "../shell/opencode.ts";
 import {
   newArtifactRefId,
   newRunId,
   nowIsoDateTime,
   sha256,
+  sha256Text,
+  workspacePathForRun,
 } from "../shell/runtime.ts";
 import {
   promoteIdeaToR1,
@@ -63,6 +67,7 @@ import { type CoordinatorRuntime } from "./runtime.ts";
 import {
   activeRunStatuses,
   appendRunEvent,
+  failRunForProductiveInvocation,
   failRunForProvider,
   getRun,
   getRunEvent,
@@ -83,6 +88,15 @@ import {
   resolveStageContextState,
   type ResolvedContext,
 } from "./authority.ts";
+
+const stageMaterialIdentity = (
+  run: Pick<Run, "baselineCommit" | "contextHash">,
+  currentProjectDeltaSha256: Sha256,
+): Sha256 => sha256Text(canonicalJson({
+  baselineCommit: run.baselineCommit,
+  currentProjectDeltaSha256,
+  contextHash: run.contextHash,
+}));
 
 const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
   stage === "PLAN"
@@ -323,34 +337,53 @@ export const runStageTurn = async (
     if (active === undefined) {
       const configuredModel = runtime.config.model;
       if (configuredModel === null) {
-        throw new TypeError("a configured OpenCode model is required for productive stage work");
+        throw productiveInvocationFailure(
+          "ENVIRONMENT_BLOCKED",
+          new TypeError("a configured OpenCode model is required for productive stage work"),
+        );
       }
-      const server = await startOpenCodeServer(
+      const workspace = workspacePathForRun(runtime.stateRoot, run.id);
+      let currentProjectDeltaSha256: Sha256;
+      try {
+        currentProjectDeltaSha256 = await materializeStageInspectionWorkspace(
+          workItem.repositoryRoot,
+          workspace,
+          run.baselineCommit,
+        );
+      } catch (error) {
+        throw productiveInvocationFailure("PRECONDITION_FAILED", error);
+      }
+      const admission = await admitProductiveOpenCode(
         runtime.stateRoot,
-        workItem.repositoryRoot,
+        workspace,
         configuredModel,
         runtime.environment,
-        productiveOpenCodeConfig("STAGE", runtime.config.referenceRoots),
+        "STAGE",
+        null,
+        context.artifacts,
+        runtime.config.referenceRoots,
       );
-      try {
-        const admission = await createOpenCodeSession(
-          server,
-          "STAGE",
-          null,
-          context.artifacts,
-          runtime.config.referenceRoots,
+      updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
+      active = {
+        server: admission.server,
+        sessionId: admission.sessionId,
+        trustedAccountId: admission.trustedAccountId,
+        stageMaterialIdentity: stageMaterialIdentity(run, currentProjectDeltaSha256),
+      };
+      runtime.activeProviders.set(run.id, active);
+    } else {
+      const currentProjectDeltaSha256 = (await captureCandidate(workItem.repositoryRoot)).patchSha256;
+      const currentIdentity = stageMaterialIdentity(run, currentProjectDeltaSha256);
+      if (active.stageMaterialIdentity !== currentIdentity) {
+        await stopActiveProvider(runtime, run.id);
+        return failRunForProductiveInvocation(
+          runtime,
+          run.id,
+          "PRECONDITION_FAILED",
+          new TypeError(
+            "STAGE repository/context material changed during the active session; retry after re-resolution",
+          ),
         );
-        updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
-        active = {
-          server,
-          sessionId: admission.sessionId,
-          trustedAccountId: admission.trustedAccountId,
-          stageMaterialIdentity: null,
-        };
-        runtime.activeProviders.set(run.id, active);
-      } catch (error) {
-        await stopOpenCodeServer(server).catch(() => undefined);
-        throw error;
       }
     }
 
@@ -382,7 +415,16 @@ export const runStageTurn = async (
     persisted = persistProviderEvents(runtime, run, events);
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
-    return failRunForProvider(runtime, run.id, error, diagnosticEvidence);
+    const classification = productiveInvocationFailureClassification(error);
+    return classification === null
+      ? failRunForProvider(runtime, run.id, error, diagnosticEvidence)
+      : failRunForProductiveInvocation(
+          runtime,
+          run.id,
+          classification,
+          error,
+          diagnosticEvidence,
+        );
   }
 
   const reacted = await reactToStageEvents(

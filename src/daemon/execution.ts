@@ -40,11 +40,10 @@ import {
   replayAndVerifyCandidate,
 } from "../shell/repository.ts";
 import {
-  createOpenCodeSession,
-  productiveOpenCodeConfig,
+  admitProductiveOpenCode,
+  productiveInvocationFailure,
+  productiveInvocationFailureClassification,
   runOpenCodeTurn,
-  startOpenCodeServer,
-  stopOpenCodeServer,
 } from "../shell/opencode.ts";
 import {
   byteEqual,
@@ -70,6 +69,7 @@ import {
 import { type ActiveProvider, type CoordinatorRuntime } from "./runtime.ts";
 import {
   appendRunEvent,
+  failRunForProductiveInvocation,
   failRunForProvider,
   getRun,
   getRunEvent,
@@ -306,36 +306,30 @@ export const startProviderForExecutionRun = async (
 ): Promise<ActiveProvider> => {
   const configuredModel = runtime.config.model;
   if (configuredModel === null) {
-    throw new TypeError("a configured OpenCode model is required for productive execution work");
+    throw productiveInvocationFailure(
+      "ENVIRONMENT_BLOCKED",
+      new TypeError("a configured OpenCode model is required for productive execution work"),
+    );
   }
-  const server = await startOpenCodeServer(
+  const admission = await admitProductiveOpenCode(
     runtime.stateRoot,
     workspace,
     configuredModel,
     runtime.environment,
-    productiveOpenCodeConfig(run.role, []),
+    run.role,
+    task,
+    context.artifacts,
+    runtime.config.referenceRoots,
   );
-  try {
-    const admission = await createOpenCodeSession(
-      server,
-      run.role,
-      task,
-      context.artifacts,
-      runtime.config.referenceRoots,
-    );
-    updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
-    const active: ActiveProvider = {
-      server,
-      sessionId: admission.sessionId,
-      trustedAccountId: admission.trustedAccountId,
-      stageMaterialIdentity: null,
-    };
-    runtime.activeProviders.set(run.id, active);
-    return active;
-  } catch (error) {
-    await stopOpenCodeServer(server).catch(() => undefined);
-    throw error;
-  }
+  updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
+  const active: ActiveProvider = {
+    server: admission.server,
+    sessionId: admission.sessionId,
+    trustedAccountId: admission.trustedAccountId,
+    stageMaterialIdentity: null,
+  };
+  runtime.activeProviders.set(run.id, active);
+  return active;
 };
 
 export const executeMutatingRun = async (
@@ -351,19 +345,29 @@ export const executeMutatingRun = async (
   const context = await approvalContext(runtime, approval, task, run.role);
   const workspace = workspaceForRun(runtime, run.id);
   const parentCandidate = candidateForRun(runtime, run);
-  if (parentCandidate === null) {
-    await createFreshCheckout(
-      workItem.repositoryRoot,
-      workspace,
-      approval.baselineCommit,
+  try {
+    if (parentCandidate === null) {
+      await createFreshCheckout(
+        workItem.repositoryRoot,
+        workspace,
+        approval.baselineCommit,
+      );
+    } else {
+      await replayAndVerifyCandidate(
+        workItem.repositoryRoot,
+        workspace,
+        approval.baselineCommit,
+        loadCandidateCapture(runtime, parentCandidate),
+      );
+    }
+  } catch (error) {
+    failRunForProductiveInvocation(
+      runtime,
+      run.id,
+      "PRECONDITION_FAILED",
+      error,
     );
-  } else {
-    await replayAndVerifyCandidate(
-      workItem.repositoryRoot,
-      workspace,
-      approval.baselineCommit,
-      loadCandidateCapture(runtime, parentCandidate),
-    );
+    return;
   }
 
   const preflight = await preflightExecutionRun(runtime, run, approval, task);
@@ -415,7 +419,18 @@ export const executeMutatingRun = async (
     persisted = persistProviderEvents(runtime, run, payloads);
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
-    failRunForProvider(runtime, run.id, error, diagnosticEvidence);
+    const classification = productiveInvocationFailureClassification(error);
+    if (classification === null) {
+      failRunForProvider(runtime, run.id, error, diagnosticEvidence);
+    } else {
+      failRunForProductiveInvocation(
+        runtime,
+        run.id,
+        classification,
+        error,
+        diagnosticEvidence,
+      );
+    }
     return;
   }
   await stopActiveProvider(runtime, run.id);
@@ -717,7 +732,18 @@ export const executeReviewerRun = async (
     reviewEvents = persistProviderEvents(runtime, run, payloads);
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
-    failRunForProvider(runtime, run.id, error, diagnosticEvidence);
+    const classification = productiveInvocationFailureClassification(error);
+    if (classification === null) {
+      failRunForProvider(runtime, run.id, error, diagnosticEvidence);
+    } else {
+      failRunForProductiveInvocation(
+        runtime,
+        run.id,
+        classification,
+        error,
+        diagnosticEvidence,
+      );
+    }
     return;
   }
   await stopActiveProvider(runtime, run.id);

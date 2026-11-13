@@ -962,10 +962,37 @@ const requireSessionBinding = (
   }
 };
 
-export type ProductiveOpenCodeSession = Readonly<{
-  sessionId: string;
-  trustedAccountId: OpenCodeAccountId;
+type ProductiveInvocationClassification = Extract<
+  NonNullable<Run["terminalClassification"]>,
+  "PRECONDITION_FAILED" | "ENVIRONMENT_BLOCKED"
+>;
+
+type ProductiveInvocationError = TypeError & Readonly<{
+  productiveInvocationClassification: ProductiveInvocationClassification;
 }>;
+
+export const productiveInvocationFailure = (
+  classification: ProductiveInvocationClassification,
+  error: unknown,
+): ProductiveInvocationError =>
+  Object.assign(
+    new TypeError(error instanceof Error ? error.message : String(error)),
+    { productiveInvocationClassification: classification } as const,
+  );
+
+export const productiveInvocationFailureClassification = (
+  error: unknown,
+): ProductiveInvocationClassification | null =>
+  error instanceof TypeError &&
+  "productiveInvocationClassification" in error &&
+  (
+    (error as { productiveInvocationClassification?: unknown }).productiveInvocationClassification ===
+      "PRECONDITION_FAILED" ||
+    (error as { productiveInvocationClassification?: unknown }).productiveInvocationClassification ===
+      "ENVIRONMENT_BLOCKED"
+  )
+    ? (error as ProductiveInvocationError).productiveInvocationClassification
+    : null;
 
 const productiveIntegrationAdmission = async (
   server: OpenCodeServer,
@@ -989,7 +1016,10 @@ const productiveIntegrationAdmission = async (
     account.active && account.status.status === "READY"
   );
   if (active === undefined) {
-    throw new TypeError("productive OpenCode admission requires a usable active Console account");
+    throw productiveInvocationFailure(
+      "ENVIRONMENT_BLOCKED",
+      new TypeError("productive OpenCode admission requires a usable active Console account"),
+    );
   }
   return {
     trustedAccountId: active.id,
@@ -998,22 +1028,10 @@ const productiveIntegrationAdmission = async (
   };
 };
 
-export const createOpenCodeSession = async (
+const createBoundOpenCodeSession = async (
   server: OpenCodeServer,
-  role: RunRole,
-  task: ExecutionTask | null,
-  resolvedArtifacts: readonly ArtifactRef[],
-  referenceRoots: readonly string[],
-): Promise<ProductiveOpenCodeSession> => {
-  await assertAgentInstructionsResolved(server.workspace, resolvedArtifacts, task);
-  const integration = await productiveIntegrationAdmission(server);
-  const permissions = openCodePermissionRules(
-    role,
-    task,
-    referenceRoots,
-    integration.skillIds,
-    integration.mcpServerNames,
-  );
+  permissions: readonly PermissionRule[],
+): Promise<string> => {
   const created = await server.client.session.create({
     location: { directory: server.workspace },
   });
@@ -1027,7 +1045,62 @@ export const createOpenCodeSession = async (
   });
   const rebound = await server.client.session.get({ sessionID: created.id });
   requireSessionBinding(rebound, server.model, permissions);
-  return { sessionId: created.id, trustedAccountId: integration.trustedAccountId };
+  return created.id;
+};
+
+export type ProductiveOpenCodeAdmission = Readonly<{
+  server: OpenCodeServer;
+  sessionId: string;
+  trustedAccountId: OpenCodeAccountId;
+}>;
+
+export const admitProductiveOpenCode = async (
+  stateRoot: string,
+  workspace: string,
+  model: OpenCodeModelRef,
+  sourceEnvironment: NodeJS.ProcessEnv,
+  role: RunRole,
+  task: ExecutionTask | null,
+  resolvedArtifacts: readonly ArtifactRef[],
+  referenceRoots: readonly string[],
+): Promise<ProductiveOpenCodeAdmission> => {
+  let basePermissions: readonly PermissionRule[];
+  try {
+    await assertAgentInstructionsResolved(workspace, resolvedArtifacts, task);
+    basePermissions = openCodePermissionRules(role, task, referenceRoots);
+  } catch (error) {
+    throw productiveInvocationFailure("PRECONDITION_FAILED", error);
+  }
+
+  const server = await startOpenCodeServer(
+    stateRoot,
+    workspace,
+    model,
+    sourceEnvironment,
+    productiveOpenCodeConfig(role, role === "STAGE" ? referenceRoots : []),
+  );
+  try {
+    const integration = await productiveIntegrationAdmission(server);
+    const permissions = [
+      ...basePermissions,
+      ...openCodePermissionRules(
+        role,
+        task,
+        referenceRoots,
+        integration.skillIds,
+        integration.mcpServerNames,
+      ).slice(basePermissions.length),
+    ];
+    const sessionId = await createBoundOpenCodeSession(server, permissions);
+    return {
+      server,
+      sessionId,
+      trustedAccountId: integration.trustedAccountId,
+    };
+  } catch (error) {
+    await stopOpenCodeServer(server).catch(() => undefined);
+    throw error;
+  }
 };
 
 export const openCodePromptId = (
