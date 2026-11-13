@@ -606,6 +606,39 @@ export const EvidenceRefSchema = z.strictObject({
 
 export type EvidenceRef = Readonly<z.infer<typeof EvidenceRefSchema>>;
 
+export const ProviderTurnOutcomeSchema = z.enum([
+  "SUCCEEDED",
+  "FAILED",
+  "INTERRUPTED",
+  "TIMEOUT",
+  "TRANSPORT_ERROR",
+  "INVALID_OUTPUT",
+]);
+
+export const ProviderDiagnosticRecordSchema = z.strictObject({
+  providerId: z.string().min(1),
+  modelId: z.string().min(1),
+  providerSessionId: z.string().min(1),
+  promptId: z.string().min(1),
+  startedAt: IsoDateTimeSchema,
+  endedAt: IsoDateTimeSchema,
+  outcome: ProviderTurnOutcomeSchema,
+  formatRepairAttempted: z.boolean(),
+  formatRepairSucceeded: z.boolean().nullable(),
+  failurePhase: z.enum([
+    "ADMISSION",
+    "TRANSPORT",
+    "PROVIDER",
+    "COMPLETION",
+    "PARSE",
+    "FORMAT_REPAIR",
+  ]).nullable(),
+  exceptionMessage: z.string().min(1).nullable(),
+});
+
+export type ProviderTurnOutcome = z.infer<typeof ProviderTurnOutcomeSchema>;
+export type ProviderDiagnosticRecord = Readonly<z.infer<typeof ProviderDiagnosticRecordSchema>>;
+
 export const HumanInputCategorySchema = z.enum([
   "INFORMATION",
   "EVIDENCE",
@@ -690,6 +723,7 @@ const RunEventPayloadBaseSchema = z.union([
     summary: z.string(),
     evidence: evidenceArray,
   }),
+  z.strictObject({ tag: z.literal("PROVIDER_DIAGNOSTICS_RECORDED"), evidence: evidenceArray }),
   z.strictObject({ tag: z.literal("PROVIDER_FAILED"), detail: z.string(), evidence: evidenceArray }),
   z.strictObject({ tag: z.literal("GATE_PASSED"), gateId: GateIdSchema, evidence: evidenceArray }),
   z.strictObject({
