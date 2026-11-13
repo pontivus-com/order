@@ -138,6 +138,9 @@ export const ActivateOpenCodeAccountSchema = z.strictObject({
 export const RenameOpenCodeAccountSchema = z.strictObject({
   label: OpenCodeAccountLabelSchema,
 });
+export const RemoveOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
 export const StartOpenCodeAccountLoginSchema = z.strictObject({
   label: OpenCodeAccountLabelSchema,
 });
@@ -293,6 +296,7 @@ export type OpenCodeAccountMutationBlocker = z.infer<typeof OpenCodeAccountMutat
 export type OpenCodeAccountState = Readonly<z.infer<typeof OpenCodeAccountStateSchema>>;
 export type ActivateOpenCodeAccount = Readonly<z.infer<typeof ActivateOpenCodeAccountSchema>>;
 export type RenameOpenCodeAccount = Readonly<z.infer<typeof RenameOpenCodeAccountSchema>>;
+export type RemoveOpenCodeAccount = Readonly<z.infer<typeof RemoveOpenCodeAccountSchema>>;
 export type StartOpenCodeAccountLogin = Readonly<z.infer<typeof StartOpenCodeAccountLoginSchema>>;
 export type OpenCodeAccountLoginAttemptId = z.infer<typeof OpenCodeAccountLoginAttemptIdSchema>;
 export type OpenCodeAccountLoginAttempt = Readonly<z.infer<typeof OpenCodeAccountLoginAttemptSchema>>;
