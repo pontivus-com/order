@@ -13,6 +13,7 @@ import {
   type OrderConfigState,
   type UpdateConfiguredModel,
   type UpdateReferenceRoots,
+  type WorkItemId,
 } from "../core/contracts.ts";
 import { canonicalAbsolutePathIsWithinRoot } from "../core/governance.ts";
 import {
@@ -37,8 +38,10 @@ import {
 } from "./runtime.ts";
 import {
   reconcileSources,
+  runCoordinatorTick,
   startCoordinatorScheduler,
   stopCoordinatorScheduler,
+  type TickResult,
 } from "./coordinator.ts";
 import { openCodeAccountState } from "./opencode-account.ts";
 
@@ -199,26 +202,12 @@ export const availableOpenCodeModels = async (
   );
 };
 
-export const installationReadiness = async (
+const providerReadinessBlockers = async (
   owner: CoordinatorRuntimeOwner,
-): Promise<InstallationReadiness> => {
+  readyRoots: readonly string[],
+): Promise<readonly InstallationReadiness["blockers"][number][]> => {
   const runtime = owner.current;
-  const repositories = await connectedRepositoryStates(runtime.config);
-  const readyRoots = repositories
-    .filter((state) => state.status === "READY")
-    .map((state) => state.repositoryRoot);
   const blockers: InstallationReadiness["blockers"][number][] = [];
-
-  if (runtime.config.repositoryRoots.length === 0) {
-    blockers.push("REPOSITORY_REQUIRED");
-  } else if (repositories.some((state) => state.status === "ATTENTION")) {
-    blockers.push("REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION");
-  }
-
-  if (!referenceRootsAreReady(runtime.config)) {
-    blockers.push("REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION");
-  }
-
   const accounts = await openCodeAccountState(runtime);
   const active = accounts.activeAccountId === null
     ? null
@@ -249,10 +238,113 @@ export const installationReadiness = async (
     }
   }
 
+  return blockers;
+};
+
+export const installationReadiness = async (
+  owner: CoordinatorRuntimeOwner,
+): Promise<InstallationReadiness> => {
+  const runtime = owner.current;
+  const repositories = await connectedRepositoryStates(runtime.config);
+  const readyRoots = repositories
+    .filter((state) => state.status === "READY")
+    .map((state) => state.repositoryRoot);
+  const blockers: InstallationReadiness["blockers"][number][] = [];
+
+  if (runtime.config.repositoryRoots.length === 0) {
+    blockers.push("REPOSITORY_REQUIRED");
+  } else if (repositories.some((state) => state.status === "ATTENTION")) {
+    blockers.push("REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION");
+  }
+
+  if (!referenceRootsAreReady(runtime.config)) {
+    blockers.push("REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION");
+  }
+
+  blockers.push(...await providerReadinessBlockers(owner, readyRoots));
+
   return InstallationReadinessSchema.parse({
     ready: blockers.length === 0,
     blockers: [...new Set(blockers)],
   });
+};
+
+const affectedProductiveBlockers = async (
+  owner: CoordinatorRuntimeOwner,
+  repositoryRoot: string,
+  includeReferenceRoots: boolean,
+): Promise<readonly InstallationReadiness["blockers"][number][]> => {
+  const runtime = owner.current;
+  const blockers: InstallationReadiness["blockers"][number][] = [];
+  if (!runtime.config.repositoryRoots.includes(repositoryRoot)) {
+    blockers.push("REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION");
+  } else {
+    const state = await repositoryState(repositoryRoot);
+    if (state.status !== "READY") {
+      blockers.push("REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION");
+    }
+  }
+  if (includeReferenceRoots && !referenceRootsAreReady(runtime.config)) {
+    blockers.push("REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION");
+  }
+  const readyRoots = await readyRepositoryRoots(runtime.config);
+  blockers.push(...await providerReadinessBlockers(owner, readyRoots));
+  return [...new Set(blockers)];
+};
+
+export const requireStageRunReadiness = async (
+  owner: CoordinatorRuntimeOwner,
+  workItemId: WorkItemId,
+): Promise<void> => {
+  if (owner.settingsMutationActive) {
+    throw new TypeError("productive work is blocked while Settings configuration is changing");
+  }
+  const workItem = loadWorkItems(owner.current.database)
+    .find((candidate) => candidate.id === workItemId);
+  if (workItem === undefined) throw new TypeError("WorkItem does not exist");
+  const blockers = await affectedProductiveBlockers(
+    owner,
+    workItem.repositoryRoot,
+    true,
+  );
+  if (blockers.length !== 0) {
+    throw new TypeError(
+      "productive stage work requires readiness: " + blockers.join(","),
+    );
+  }
+};
+
+export const executionReadyRepositoryRoots = async (
+  owner: CoordinatorRuntimeOwner,
+): Promise<readonly string[]> => {
+  const readyRoots = await readyRepositoryRoots(owner.current.config);
+  const providerBlockers = await providerReadinessBlockers(owner, readyRoots);
+  return providerBlockers.length === 0 ? readyRoots : [];
+};
+
+export const requireExecutionReadiness = async (
+  owner: CoordinatorRuntimeOwner,
+): Promise<readonly string[]> => {
+  if (owner.settingsMutationActive) {
+    throw new TypeError("productive work is blocked while Settings configuration is changing");
+  }
+  const roots = await executionReadyRepositoryRoots(owner);
+  if (roots.length === 0) {
+    throw new TypeError("productive execution requires a ready repository, model and OpenCode account");
+  }
+  return roots;
+};
+
+export const runReadyCoordinatorTick = async (
+  owner: CoordinatorRuntimeOwner,
+): Promise<TickResult> => {
+  if (owner.settingsMutationActive) {
+    return { result: "NO_WORK", executionTaskId: null, runId: null };
+  }
+  const roots = await executionReadyRepositoryRoots(owner);
+  return roots.length === 0
+    ? { result: "NO_WORK", executionTaskId: null, runId: null }
+    : runCoordinatorTick(owner.current, roots);
 };
 
 export const orderConfigState = (
@@ -492,32 +584,14 @@ export const updateReferenceRoots = async (
   );
 };
 
-export const requireProductiveReadiness = async (
-  owner: CoordinatorRuntimeOwner,
-): Promise<void> => {
-  if (owner.settingsMutationActive) {
-    throw new TypeError("productive work is blocked while Settings configuration is changing");
-  }
-  const readiness = await installationReadiness(owner);
-  if (!readiness.ready) {
-    throw new TypeError(
-      "productive work requires installation readiness: " + readiness.blockers.join(","),
-    );
-  }
-};
-
 export const resumeSchedulerForReadiness = async (
   owner: CoordinatorRuntimeOwner,
 ): Promise<void> => {
   const runtime = owner.current;
-  const readiness = await installationReadiness(owner);
-  if (!readiness.ready) {
-    await stopCoordinatorScheduler(runtime);
-    return;
-  }
+  const tick = () => runReadyCoordinatorTick(owner);
   if (runtime.schedulerStopped) {
-    await startCoordinatorScheduler(runtime);
+    await startCoordinatorScheduler(runtime, tick);
   } else if (runtime.schedulerTimer === null && !runtime.tickActive) {
-    await startCoordinatorScheduler(runtime);
+    await startCoordinatorScheduler(runtime, tick);
   }
 };
