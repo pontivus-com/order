@@ -247,11 +247,11 @@ A successful update reports any configuration that still requires operator actio
 
 ### GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS
 
-**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration before productive work is attempted.
+**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration or unavailable provider-instruction isolation before productive work is attempted.
 
-**Acceptance criterion:** an installation lacking a required OpenCode account or valid target repository opens a usable setup/recovery experience and cannot start affected productive Runs.
+**Acceptance criterion:** an installation lacking a required OpenCode account, valid target repository, or certifiable complete provider-instruction boundary opens a usable setup/recovery experience and cannot start affected productive Runs. `PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE` is explicit when the exact installed provider/account path cannot prove `GW-FR-105`.
 
-**Failure/negative behavior:** unresolved setup must not appear only as an internal daemon error, empty unexplained workbench, or downstream provider/workflow failure.
+**Failure/negative behavior:** unresolved setup must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state based solely on successful authentication/model listing.
 
 ### GW-FR-080-CONFIGURATION-CONTINUITY
 
