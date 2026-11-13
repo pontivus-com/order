@@ -1187,10 +1187,11 @@ Config v4 invariants:
 
 - when `model` is non-null, `providerID` and `id` are non-empty and contain no NUL;
 - `model === null` is the sole canonical unconfigured-model state;
-- `repositoryRoots` is a unique list of exact canonical Git top-level realpaths and may be empty only as a non-productive configuration state;
-- every target entry contains a valid root `pontivus-order.toml` and configured targets have unique `ProjectManifest.projectId` values;
+- `repositoryRoots` is a unique list of absolute canonical path identities that were proven as exact Git top-level realpaths when connected, and may be empty as a non-productive configuration state;
+- live filesystem/Git/project-manifest validity is a readiness concern, not config-file parse validity, so a formerly valid configured root may remain represented while unavailable/drifted and can be repaired or disconnected through Settings;
+- every currently READY target has a valid root `pontivus-order.toml` and READY targets have unique `ProjectManifest.projectId` values;
 - a WorkItem repository must equal one configured target repository exactly; descendant containment is not a WorkItem-selection rule;
-- `referenceRoots` remains a unique list of canonical directories with STAGE-only read semantics;
+- `referenceRoots` remains a unique list of stored canonical path identities with STAGE-only read semantics; live availability is validated by readiness before productive use;
 - WorkItem source/document location is resolved inside each selected repository through §32, never through OrderConfig.
 
 Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. Fresh setup may write a valid but non-productive v4 configuration with `model = null` and/or no target repositories so the authenticated browser can open Settings and complete configuration. Broad parent roots are never recursively crawled or guessed into a project catalog.
@@ -2839,6 +2840,8 @@ const ConnectedRepositoryStateSchema = z.strictObject({
   workItemsRoot: RepositoryPathSchema.nullable(),
   manifestSha256: Sha256Schema.nullable(),
   attention: z.array(z.enum([
+    "REPOSITORY_UNAVAILABLE",
+    "REPOSITORY_IDENTITY_INVALID",
     "PROJECT_MANIFEST_MISSING",
     "PROJECT_MANIFEST_INVALID",
     "WORKITEM_ROOT_INVALID",
@@ -2859,6 +2862,7 @@ const InstallationReadinessBlockerSchema = z.enum([
   "REPOSITORY_REQUIRED",
   "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
   "MODEL_INVALID",
+  "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
   "OPENCODE_ACCOUNT_REQUIRED",
 ]);
 
@@ -3060,6 +3064,8 @@ Config v4 distinguishes:
 - **productive readiness** — derived separately by `InstallationReadiness`.
 
 A v4 config with zero repositories and/or `model = null` is valid but not productively ready.
+
+Reading an existing v4 config validates its schema, stored path syntax/uniqueness and state-root separation without requiring every configured external path to be currently reachable. Exact realpath/Git-root/directory proof is mandatory when a root is added or changed and is repeated by readiness before productive use. This preserves the last configured identity so Settings can repair/remove a path that later disappears or drifts.
 
 The installer/update path performs one deterministic v3→v4 conversion:
 
