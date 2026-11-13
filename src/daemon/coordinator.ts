@@ -105,6 +105,7 @@ export const listWorkItems = (
   includeArchived = false,
 ): readonly WorkItem[] =>
   loadWorkItems(runtime.database)
+    .filter((workItem) => runtime.config.repositoryRoots.includes(workItem.repositoryRoot))
     .filter((workItem) => includeArchived || !workItem.archived);
 
 export const createWorkItem = createWorkItemFromSource;
@@ -115,7 +116,8 @@ export const listWorkItemSchemas = () => workItemSchemaCatalog;
 
 export const listProjects = async (
   runtime: CoordinatorRuntime,
-) => (await loadConfiguredProjects(runtime.config.repositoryRoots))
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
+) => (await loadConfiguredProjects(repositoryRoots))
   .map((project) => project.manifest);
 
 export const listCurrentLifecycleArtifacts = async (
