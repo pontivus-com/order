@@ -251,6 +251,81 @@ export const SetWorkItemArchivedSchema = z.strictObject({
   archived: z.boolean(),
 });
 
+export const WorkItemDocumentGitStateSchema = z.enum([
+  "MATCHES_HEAD",
+  "MODIFIED",
+  "UNTRACKED",
+  "DELETED",
+  "MISSING",
+  "IGNORED",
+  "UNMERGED",
+]);
+
+export const WorkItemDocumentGitPathStatusSchema = z.strictObject({
+  repositoryPath: RepositoryPathSchema,
+  workingTreeSha256: Sha256Schema.nullable(),
+  headSha256: Sha256Schema.nullable(),
+  state: WorkItemDocumentGitStateSchema,
+});
+
+export const WorkItemDocumentationGitBlockerSchema = z.enum([
+  "LIFECYCLE_INELIGIBLE",
+  "ACTIVE_RUN",
+  "DETACHED_HEAD",
+  "GIT_OPERATION_ACTIVE",
+  "MISSING_GIT_IDENTITY",
+  "MISSING_DOCUMENT",
+  "IGNORED_DOCUMENT",
+  "UNMERGED_DOCUMENT",
+]);
+
+export const WorkItemDocumentationGitStatusSchema = z.strictObject({
+  workItemId: WorkItemIdSchema,
+  headCommit: GitCommitSchema,
+  branch: z.string().min(1).nullable(),
+  authorName: z.string().min(1).nullable(),
+  authorEmail: z.string().min(1).nullable(),
+  blockers: z.array(WorkItemDocumentationGitBlockerSchema).readonly(),
+  paths: z.array(WorkItemDocumentGitPathStatusSchema).readonly(),
+});
+
+export const WorkItemDocumentationExpectedPathSchema = z.strictObject({
+  repositoryPath: RepositoryPathSchema,
+  sha256: Sha256Schema.nullable(),
+});
+
+export const CommitWorkItemDocumentationSchema = z.strictObject({
+  expectedHeadCommit: GitCommitSchema,
+  expectedPaths: z.array(WorkItemDocumentationExpectedPathSchema)
+    .min(1)
+    .refine(
+      (values) => new Set(values.map((value) => value.repositoryPath)).size === values.length,
+      "expectedPaths must be unique",
+    )
+    .refine(
+      (values) => values.every(
+        (value, index) => index === 0 || values[index - 1]!.repositoryPath < value.repositoryPath,
+      ),
+      "expectedPaths must be repository-path sorted",
+    )
+    .readonly(),
+});
+
+export const WorkItemDocumentationCommitSchema = z.strictObject({
+  workItemId: WorkItemIdSchema,
+  gitCommit: GitCommitSchema,
+  repositoryPaths: z.array(RepositoryPathSchema)
+    .min(1)
+    .refine(unique, "repositoryPaths must be unique")
+    .refine(
+      (values) => values.every(
+        (value, index) => index === 0 || values[index - 1]! < value,
+      ),
+      "repositoryPaths must be sorted",
+    )
+    .readonly(),
+});
+
 export const CreateWorkItemSourceSchema = z.strictObject({
   projectId: ProjectIdSchema,
   schemaId: WorkItemSchemaIdSchema,
@@ -302,6 +377,13 @@ export type ExpectedHashWriteResult = Readonly<z.infer<typeof ExpectedHashWriteR
 export type ExpectedHashMarkdownWrite = Readonly<z.infer<typeof ExpectedHashMarkdownWriteSchema>>;
 export type UpdateWorkItemTitle = Readonly<z.infer<typeof UpdateWorkItemTitleSchema>>;
 export type SetWorkItemArchived = Readonly<z.infer<typeof SetWorkItemArchivedSchema>>;
+export type WorkItemDocumentGitState = z.infer<typeof WorkItemDocumentGitStateSchema>;
+export type WorkItemDocumentGitPathStatus = Readonly<z.infer<typeof WorkItemDocumentGitPathStatusSchema>>;
+export type WorkItemDocumentationGitBlocker = z.infer<typeof WorkItemDocumentationGitBlockerSchema>;
+export type WorkItemDocumentationGitStatus = Readonly<z.infer<typeof WorkItemDocumentationGitStatusSchema>>;
+export type WorkItemDocumentationExpectedPath = Readonly<z.infer<typeof WorkItemDocumentationExpectedPathSchema>>;
+export type CommitWorkItemDocumentation = Readonly<z.infer<typeof CommitWorkItemDocumentationSchema>>;
+export type WorkItemDocumentationCommit = Readonly<z.infer<typeof WorkItemDocumentationCommitSchema>>;
 export type CreateWorkItemSource = Readonly<z.infer<typeof CreateWorkItemSourceSchema>>;
 export type WorkItemSchemaCatalogEntry = Readonly<z.infer<typeof WorkItemSchemaCatalogEntrySchema>>;
 export type WorkItemSourceDiagnosticCode = z.infer<typeof WorkItemSourceDiagnosticCodeSchema>;
