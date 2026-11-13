@@ -46,7 +46,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const args = process.argv.slice(2);
-const configPath = join(process.cwd(), ".fake-opencode.json");
+const configPath = join(import.meta.dir, ".fake-opencode.json");
 const config = existsSync(configPath)
   ? JSON.parse(readFileSync(configPath, "utf8"))
   : {};
@@ -101,6 +101,8 @@ const model = {
 const sessions = new Map();
 let sessionCounter = 0;
 let promptCounter = 0;
+let accountConnections = config.accountConnections ?? [];
+let oauthStatus = config.oauthStatus ?? "pending";
 
 const json = (value, status = 200) =>
   new Response(JSON.stringify(value), {
@@ -132,6 +134,76 @@ const server = Bun.serve({
           },
         ],
       });
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/integration/opencode") {
+      return json({
+        location: { directory: process.cwd() },
+        data: {
+          id: "opencode",
+          name: "OpenCode",
+          methods: [{ id: "device", type: "oauth", name: "Device" }],
+          connections: accountConnections,
+        },
+      });
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/integration/opencode/connect/oauth") {
+      const body = await request.json();
+      if (body.methodID !== "device" || typeof body.label !== "string" || body.answer !== undefined) {
+        return json({ message: "invalid oauth request" }, 400);
+      }
+      return json({
+        location: { directory: process.cwd() },
+        data: {
+          attemptID: "attempt_device",
+          url: config.authorizationUrl ?? "https://opencode.ai/console/device",
+          instructions: "Open the verification page and continue.",
+          mode: "auto",
+          time: { created: Date.now(), expires: Date.now() + 300000 },
+        },
+      });
+    }
+
+    if (
+      request.method === "GET" &&
+      url.pathname === "/api/integration/opencode/connect/oauth/attempt_device"
+    ) {
+      return json({
+        location: { directory: process.cwd() },
+        data: {
+          status: oauthStatus,
+          ...(oauthStatus === "failed" ? { message: "provider rejected login" } : {}),
+          time: { created: Date.now() - 1000, expires: Date.now() + 300000 },
+        },
+      });
+    }
+
+    if (
+      request.method === "DELETE" &&
+      url.pathname === "/api/integration/opencode/connect/oauth/attempt_device"
+    ) {
+      oauthStatus = "expired";
+      return new Response(null, { status: 204 });
+    }
+
+    const credentialMatch = /^\/api\/credential\/([^/]+)(?:\/(activate))?$/.exec(url.pathname);
+    if (credentialMatch) {
+      const id = decodeURIComponent(credentialMatch[1]);
+      const index = accountConnections.findIndex((connection) =>
+        connection.type === "credential" && connection.id === id
+      );
+      if (index < 0) return json({ message: "credential not found" }, 404);
+      if (request.method === "PATCH" && credentialMatch[2] === undefined) {
+        const body = await request.json();
+        accountConnections[index] = { ...accountConnections[index], label: body.label };
+        return new Response(null, { status: 204 });
+      }
+      if (request.method === "POST" && credentialMatch[2] === "activate") {
+        const [selected] = accountConnections.splice(index, 1);
+        accountConnections.unshift(selected);
+        return new Response(null, { status: 204 });
+      }
     }
 
     if (request.method === "POST" && url.pathname === "/api/session") {
@@ -376,6 +448,114 @@ describe("OpenCode shell", () => {
       { providerID: "anthropic", id: "claude" },
       { providerID: "opencode", id: "glm-5.3-flash-free" },
     ]);
+  });
+
+  it("projects and mutates saved accounts only through safe integration state", () => {
+    const workspace = tempDir("order-opencode-accounts-");
+    const state = tempDir("order-opencode-accounts-state-");
+    const binary = createFakeOpenCode(workspace, {
+      accountConnections: [
+        {
+          type: "credential",
+          id: "cred_beta",
+          label: "beta@example.com",
+          method: "oauth",
+        },
+        {
+          type: "credential",
+          id: "cred_key",
+          label: "secret-bearing key",
+          method: "key",
+        },
+        {
+          type: "credential",
+          id: "cred_alpha",
+          label: "alpha@example.com",
+          method: "oauth",
+          status: {
+            status: "needs_auth",
+            message: "Reconnect account",
+            url: "https://opencode.ai/console/reconnect",
+          },
+        },
+      ],
+      authorizationUrl: "https://opencode.ai/console/device",
+      oauthStatus: "pending",
+    });
+
+    const output = bunEval(`
+      const o = await import("./src/shell/opencode.ts");
+      const control = await o.startOpenCodeAccountControl(
+        ${JSON.stringify(state)},
+        process.env,
+      );
+      try {
+        const initial = await o.listOpenCodeAccounts(control);
+        await o.renameOpenCodeAccount(control, "cred_alpha", "alpha+renamed@example.com");
+        await o.activateOpenCodeAccount(control, "cred_alpha");
+        const after = await o.listOpenCodeAccounts(control);
+        const login = await o.startOpenCodeAccountOAuth(control, "new@example.com");
+        const pending = await o.pollOpenCodeAccountOAuth(control, login.providerAttemptId);
+        await o.cancelOpenCodeAccountOAuth(control, login.providerAttemptId);
+        console.log(JSON.stringify({
+          initial,
+          after,
+          login,
+          pending,
+          exposedKeys: Object.keys(control).sort(),
+        }));
+      } finally {
+        await o.stopOpenCodeAccountControl(control);
+      }
+    `, providerEnvironment(binary)) as {
+      initial: unknown[];
+      after: unknown[];
+      login: { providerAttemptId: string; authorizationUrl: string; instructions: string; expiresAt: string };
+      pending: unknown;
+      exposedKeys: string[];
+    };
+
+    expect(output.initial).toEqual([
+      {
+        id: "cred_beta",
+        label: "beta@example.com",
+        active: true,
+        status: { status: "READY" },
+      },
+      {
+        id: "cred_alpha",
+        label: "alpha@example.com",
+        active: false,
+        status: {
+          status: "NEEDS_AUTH",
+          message: "Reconnect account",
+          url: "https://opencode.ai/console/reconnect",
+        },
+      },
+    ]);
+    expect(output.after).toEqual([
+      {
+        id: "cred_alpha",
+        label: "alpha+renamed@example.com",
+        active: true,
+        status: {
+          status: "NEEDS_AUTH",
+          message: "Reconnect account",
+          url: "https://opencode.ai/console/reconnect",
+        },
+      },
+      {
+        id: "cred_beta",
+        label: "beta@example.com",
+        active: false,
+        status: { status: "READY" },
+      },
+    ]);
+    expect(output.login.providerAttemptId).toBe("attempt_device");
+    expect(output.login.authorizationUrl).toBe("https://opencode.ai/console/device");
+    expect(new Date(output.login.expiresAt).toISOString()).toBe(output.login.expiresAt);
+    expect(output.pending).toEqual({ status: "PENDING", message: null });
+    expect(output.exposedKeys).not.toContain("password");
   });
 
   it("grants external-directory access only to STAGE reference roots", () => {
