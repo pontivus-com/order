@@ -25,7 +25,7 @@ jobs:
     timeout-minutes: 60
     env:
       CI: "1"
-      PONTIVUS_ORDER_TEST_STATE_ROOT: ${{ runner.temp }}/order-browser-state
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
       PONTIVUS_ORDER_OPENCODE_BIN: /bin/false
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.commit || github.sha }}
       GH_TOKEN: ${{ github.token }}
