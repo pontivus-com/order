@@ -1,0 +1,130 @@
+name: temporary 0.2.1 exact release verification
+
+on:
+  push:
+    branches:
+      - docs/correct-0.2.1-release-history
+
+permissions:
+  contents: read
+
+jobs:
+  verify-v0-2-1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+      EXPECTED_RELEASE_SHA: f37f660835bf7700b20ac1f429af07c397968757
+    steps:
+      - name: Checkout exact immutable v0.2.1 tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags --depth=1 origin             "+refs/tags/v0.2.1:refs/tags/v0.2.1"
+          test "$(git rev-parse 'v0.2.1^{}')" = "${EXPECTED_RELEASE_SHA}"
+          git checkout --detach "${EXPECTED_RELEASE_SHA}"
+
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz"             "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip"             "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+
+      - name: Verify exact toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(node --version)" = "v26.13.0"
+          test "$(bun --version)" = "1.4.4"
+          test "$(node -p "require('./package.json').version")" = "0.2.1"
+
+      - name: Install exact OpenCode
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/pontivus-order-opencode
+          BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
+          test "$(/tmp/pontivus-order-opencode/bin/opencode --version)" = "opencode v2.2.6"
+
+      - name: dependency-lock
+        run: bun ci
+
+      - name: Install Playwright Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      - name: typecheck
+        run: bun run tsc --noEmit
+
+      - name: architecture
+        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+
+      - name: complete test suite
+        run: node node_modules/vitest/vitest.mjs run
+
+      - name: production build
+        run: node node_modules/vite/bin/vite.js build
+
+      - name: Runtime health smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun tests/e2e-server.ts > "${RUNNER_TEMP}/order-e2e.log" 2>&1 &
+          server_pid=$!
+          cleanup() {
+            kill "${server_pid}" 2>/dev/null || true
+            wait "${server_pid}" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+          ready=false
+          for _ in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:17347/api/health > "${RUNNER_TEMP}/health.json"; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "${ready}" != "true" ]; then
+            cat "${RUNNER_TEMP}/order-e2e.log"
+            exit 1
+          fi
+          node -e '
+            const fs = require("node:fs");
+            const health = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + "/health.json", "utf8"));
+            if (health.version !== "0.2.1") {
+              console.error(health);
+              process.exit(1);
+            }
+          '
+
+      - name: complete Chromium functional suite
+        run: node node_modules/@playwright/test/cli.js test
+
+      - name: Build and verify release bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          bun scripts/package-release.ts
+          test -s release/pontivus-order.tar.gz
+          test -s release/pontivus-order.tar.gz.sha256
+          (cd release && sha256sum -c pontivus-order.tar.gz.sha256)
+          tar -xOf release/pontivus-order.tar.gz order/RELEASE.json > "${RUNNER_TEMP}/release.json"
+          RELEASE_MANIFEST="${RUNNER_TEMP}/release.json" bun -e '
+            const r = JSON.parse(await Bun.file(process.env.RELEASE_MANIFEST).text());
+            if (r.version !== "0.2.1") process.exit(1);
+            if (r.commit !== process.env.EXPECTED_RELEASE_SHA) process.exit(1);
+          '
