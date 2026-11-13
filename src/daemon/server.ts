@@ -292,7 +292,12 @@ const readJsonBody = async (request: Request): Promise<Record<string, unknown>> 
   if (!contentType.toLowerCase().startsWith("application/json")) {
     throw badRequest("Content-Type must be application/json");
   }
-  const value: unknown = await request.json();
+  let value: unknown;
+  try {
+    value = await request.json();
+  } catch {
+    throw badRequest("request body must contain valid JSON");
+  }
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw badRequest("request body must be a JSON object");
   }
