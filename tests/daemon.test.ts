@@ -11,6 +11,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { orderVersion } from "../src/version.ts";
+
 const temporary: string[] = [];
 let distOwned = false;
 
@@ -650,7 +652,7 @@ describe("daemon control plane", () => {
     `) as Record<string, unknown>;
 
     expect(output.healthStatus).toBe(200);
-    expect(output.healthBody).toEqual({ status: "ok", version: "0.1.0" });
+    expect(output.healthBody).toEqual({ status: "ok", version: orderVersion });
     expect(output.unauth).toBe(401);
     expect(output.connectStatus).toBe(303);
     expect(output.location).toBe("/");
