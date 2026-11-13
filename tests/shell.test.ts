@@ -22,6 +22,7 @@ import {
   writeOrderConfig,
   writeOrderConfigExpected,
 } from "../src/shell/config.ts";
+import { runInstallerGuidedSetup } from "../src/shell/setup.ts";
 import {
   filesystemTypeIsSupported,
   loadOrCreateDaemonToken,
@@ -80,6 +81,59 @@ const initGitRepo = (root: string): string => {
 };
 
 describe("runtime shell", () => {
+  it("initializes fresh installs as valid incomplete v4 without terminal configuration prompts", async () => {
+    const home = tempDir("order-setup-home-");
+    const stateRoot = tempDir("order-setup-state-");
+    const output: string[] = [];
+    let prompts = 0;
+
+    const code = await runInstallerGuidedSetup(
+      {
+        ...process.env,
+        HOME: home,
+        PONTIVUS_ORDER_STATE_ROOT: stateRoot,
+      },
+      (value) => output.push(value),
+      async () => {
+        prompts += 1;
+        return "";
+      },
+    );
+
+    expect(code).toBe(0);
+    expect(prompts).toBe(0);
+    expect(readOrderConfig(stateRoot)).toEqual(buildOrderConfig(null, [], []));
+    expect(output.join("")).toContain("complete repository, OpenCode account and model setup in browser Settings");
+  });
+
+  it("retains current incomplete v4 exactly during installer update without prompting", async () => {
+    const home = tempDir("order-update-home-");
+    const stateRoot = tempDir("order-update-state-");
+    const config = buildOrderConfig(null, [], ["/reference/retained"]);
+    writeOrderConfig(stateRoot, config);
+    const before = readOrderConfigState(stateRoot);
+    const output: string[] = [];
+    let prompts = 0;
+
+    const code = await runInstallerGuidedSetup(
+      {
+        ...process.env,
+        HOME: home,
+        PONTIVUS_ORDER_STATE_ROOT: stateRoot,
+      },
+      (value) => output.push(value),
+      async () => {
+        prompts += 1;
+        return "";
+      },
+    );
+
+    expect(code).toBe(0);
+    expect(prompts).toBe(0);
+    expect(readOrderConfigState(stateRoot)).toEqual(before);
+    expect(output.join("")).toContain("requires operator action");
+  });
+
   it("resolves state-root precedence exactly and rejects relative configured bases", () => {
     expect(resolveStateRoot({
       PONTIVUS_ORDER_STATE_ROOT: "/explicit",
