@@ -726,9 +726,11 @@ The orientation belongs in the existing WorkItem header because it answers "wher
 It must **not** become:
 
 - another full-width content-edge tab bar;
-- a clickable lifecycle wizard;
+- a lifecycle-promotion wizard;
 - a second state machine;
 - a third persistent navigation row above Documents/Activity/Review content.
+
+The compact workflow steps may be interactive as **presentation navigation**. Selecting a workflow step changes only what historical/current/future-step material the primary canvas is inspecting; it never changes lifecycle stage, promotion state, approval or execution authority.
 
 The selected primary workspace continues to own its own within-mode navigation.
 
@@ -867,7 +869,7 @@ Presentation must track canonical transitions without losing operational history
 
 **Acceptance criterion:** changing Documents/Activity/Review/Implementation presentation modes never obscures the canonical workflow position.
 
-**Failure/negative behavior:** workflow orientation must not become another full-width tab row or clickable promotion control.
+**Failure/negative behavior:** workflow orientation must not become another full-width tab row or a clickable promotion control; inspection navigation must never mutate lifecycle state.
 
 #### GW-FR-053-ACTIVITY-WORKSPACE
 
@@ -986,6 +988,8 @@ It must not present the account label as a provider/model choice. Changing this 
 
 On medium/narrow layouts the same control moves into the application-level utilities/menu before consuming primary WorkItem canvas width. It must remain reachable from both queue and WorkItem states.
 
+When no usable saved account exists, the control presents a clear setup-required state and direct Add-account action governed by `GW-DOC-INSTALLATION-READINESS-V1`; the operator must not encounter an unexplained internal error merely by opening account management.
+
 ### 23.2 Account manager
 
 Activating the toolbar control opens one bounded account-management popover/dialog/drawer appropriate to viewport size.
@@ -1080,3 +1084,108 @@ The UI must not allow an account mutation and then rely on a provider failure to
 
 **Failure/negative behavior:** account mutation must not race active provider work or use provider failure as the mechanism for detecting an unsafe switch.
 
+
+
+## 24. Configuration-aware compact workbench addendum (2026-11-13)
+
+This section owns the workbench presentation/navigation consequences of `GW-DOC-INSTALLATION-READINESS-V1` and the spatial refinements required for the 0.2.1 workbench.
+
+### 24.1 Global repository context
+
+The application shell exposes the current target repository/project context alongside the global OpenCode account identity.
+
+The operator must be able to answer, without opening Context or a terminal:
+
+- which target repository is currently selected for queue/creation context;
+- which repository owns the selected WorkItem;
+- whether repository configuration requires attention.
+
+For one configured repository, the shell may present it as compact context without a selector.
+
+For multiple configured repositories, the queue/creation state exposes an explicit repository/project selector. Changing this selection changes presentation/creation scope only; it does not move an existing WorkItem or rewrite its project identity. Opening a WorkItem always shows the repository/project that canonically owns that WorkItem.
+
+Repository labels should prefer human project identity/name with the filesystem path demoted to a secondary/technical disclosure unless needed to disambiguate two configured repositories.
+
+### 24.2 Workflow-step inspection navigation
+
+The compact workflow progression is interactive.
+
+Every user-facing workflow step is a presentation navigation target:
+
+- a completed/past step opens the canonical document/activity/review/result material for that step;
+- the current step opens its normal primary workspace;
+- a future/unreached step may open a lightweight unavailable/not-yet-reached presentation explaining what the step represents and that no canonical material exists yet.
+
+The interaction is never promotion. It must not create Runs, change stage/status, sign off, start execution or fabricate artifacts.
+
+This lets the operator move laterally across the complete workflow history without confusing navigation with state transition.
+
+### 24.3 Single WorkItem top rail
+
+The selected WorkItem uses one compact top rail for persistent orientation and global WorkItem controls.
+
+That rail contains, as space permits:
+
+- Back to queue;
+- WorkItem title/current state;
+- compact workflow progression;
+- current primary workspace/mode control;
+- WorkItem-level/contextual actions.
+
+The current workflow purpose may appear as concise supporting text/tooltip/accessible description rather than requiring a second permanent full-width row.
+
+The design must not stack a separate breadcrumb/header row and a separate workflow-orientation row when the same orientation can be communicated in one rail.
+
+### 24.4 Document/editor chrome consolidation
+
+Documents retain one content-edge Source/R1/R2/DESIGN/PLAN/R3 selector because that is meaningful within-mode document navigation.
+
+Other persistent document/editor controls must be consolidated to protect vertical authoring space:
+
+- document Git/working-tree state appears as compact state within the document/editor control rail;
+- branch, HEAD, exact repository paths and detailed path state are secondary Technical details;
+- Save documentation to Git remains directly reachable when actionable;
+- Markdown formatting, Edit/Preview/Split, dirty/current state, Save/Cancel and compact document status should compose into the minimum practical number of persistent rails;
+- exact SHA identity is technical detail rather than dominant persistent chrome.
+
+A second full-width editor action bar or document-state strip is not justified when its controls can remain understandable and accessible in the existing editor rail.
+
+### 24.5 Technical-detail economy
+
+Ordinary authoring/navigation surfaces show information needed to understand or act.
+
+Internal ids, hashes, exact filesystem paths, Git HEAD values, raw diagnostics and system-owned WorkItem metadata are secondary technical material. They remain inspectable but do not permanently consume primary-canvas height.
+
+This rule does not authorize loss of diagnostic evidence or concealment of a required operator decision.
+
+### GW-FR-083-CURRENT-REPOSITORY-CONTEXT
+
+**Required behavior:** the application shell makes the current configured repository/project context visible and, when multiple targets exist, provides explicit presentation/creation-scope selection.
+
+**Acceptance criterion:** the operator can identify the current repository context and the repository owning an open WorkItem without inspecting configuration files or filesystem paths.
+
+**Failure/negative behavior:** repository context must not remain an implicit `repositoryRoots[0]` convention, be visible only during WorkItem creation, or allow a presentation selection to rewrite existing WorkItem ownership.
+
+### GW-FR-084-WORKFLOW-STEP-INSPECTION-NAVIGATION
+
+**Required behavior:** each user-facing workflow step is usable as non-mutating presentation navigation to its available canonical material or an explicit not-yet-reached state.
+
+**Acceptance criterion:** the operator can traverse Research, Requirements, Solution design, Implementation plan, Readiness, Approval, Implementation and Complete material without changing lifecycle state.
+
+**Failure/negative behavior:** clicking workflow orientation must never promote, sign off, create a Run, start execution or fabricate missing step material.
+
+### GW-FR-085-WORKBENCH-CHROME-CONSOLIDATION
+
+**Required behavior:** persistent WorkItem/document/editor chrome is consolidated so orientation and controls remain available while primary-canvas vertical space is maximized.
+
+**Acceptance criterion:** WorkItem orientation uses one top rail and document editing does not stack redundant full-width state/action rows when equivalent controls fit coherently in existing rails.
+
+**Failure/negative behavior:** breadcrumbs, workflow orientation, Git state, formatting controls and save controls must not accumulate as independent permanent rows merely because each is locally useful.
+
+### GW-FR-086-PRIMARY-TECHNICAL-DETAIL-ECONOMY
+
+**Required behavior:** technical identity/diagnostic material remains accessible through secondary disclosure while ordinary authoring/navigation prioritizes human-meaningful content and actions.
+
+**Acceptance criterion:** hashes, exact paths, raw ids/diagnostics and system-owned source metadata remain inspectable without occupying permanent primary authoring space.
+
+**Failure/negative behavior:** compression must not remove information needed for recovery/audit, and technical details must not dominate ordinary workflow understanding.
