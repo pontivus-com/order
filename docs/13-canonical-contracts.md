@@ -1172,8 +1172,8 @@ type OpenCodeModelRef = Readonly<{
 }>;
 
 type OrderConfig = Readonly<{
-  version: 3;
-  model: OpenCodeModelRef;
+  version: 4;
+  model: OpenCodeModelRef | null;
   repositoryRoots: readonly AbsoluteDirectoryPath[];
   referenceRoots: readonly AbsoluteDirectoryPath[];
 }>;
@@ -1183,20 +1183,21 @@ The canonical Zod schemas for these concepts live in `src/core/contracts.ts`; no
 
 The productive config is UTF-8 JSON at `<order-state>/config.json`. It is written only through the canonical configuration effect owner using owner-only atomic replacement. The installer/CLI guided setup and the authenticated Settings mutation boundary both call that same owner; neither owns a second config shape or writer. Missing or invalid config is a startup/setup failure, never an environment/default fallback.
 
-Config v3 invariants:
+Config v4 invariants:
 
-- `providerID` and `id` are non-empty and contain no NUL;
-- `repositoryRoots` contains at least one unique exact canonical Git top-level realpath;
+- when `model` is non-null, `providerID` and `id` are non-empty and contain no NUL;
+- `model === null` is the sole canonical unconfigured-model state;
+- `repositoryRoots` is a unique list of exact canonical Git top-level realpaths and may be empty only as a non-productive configuration state;
 - every target entry contains a valid root `pontivus-order.toml` and configured targets have unique `ProjectManifest.projectId` values;
 - a WorkItem repository must equal one configured target repository exactly; descendant containment is not a WorkItem-selection rule;
 - `referenceRoots` remains a unique list of canonical directories with STAGE-only read semantics;
 - WorkItem source/document location is resolved inside each selected repository through §32, never through OrderConfig.
 
-Only config v3 is productive at daemon/ordinary CLI runtime. Config v2 is accepted only by the installer-owned bounded v2→v3 migration in §32.10. Fresh setup/configuration writes v3 from explicit current operator choices; broad parent roots are never recursively crawled or guessed into a project catalog.
+Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. Fresh setup may write a valid but non-productive v4 configuration with `model = null` and/or no target repositories so the authenticated browser can open Settings and complete configuration. Broad parent roots are never recursively crawled or guessed into a project catalog.
 
 For each STAGE OpenCode session, reference-root permissions retain the existing deny-first exact `external_directory` semantics. Target repositories and the WorkItem root do not become generic external-reference permissions.
 
-There is one configured model. Dynamic/per-stage model routing remains outside v2.
+There is at most one configured model. `model = null` means configuration is incomplete; productive OpenCode-backed work is blocked until Settings or guided setup selects and preflights one model. Dynamic/per-stage model routing remains outside this release.
 
 Host-edge environment remains deliberately narrow:
 
@@ -3026,3 +3027,62 @@ At minimum:
 - unexpected activation/migration defect -> 500.
 
 No failure path silently falls back to another repository, model, account or document root.
+
+
+### 35.11 OrderConfig v4 and bounded v3 migration
+
+The first-class Settings/readiness design requires the daemon to start while installation configuration is incomplete. Config v3 cannot represent that state because it requires a model and at least one repository.
+
+The current contract is therefore:
+
+```ts
+const OrderConfigSchema = z.strictObject({
+  version: z.literal(4),
+  model: OpenCodeModelRefSchema.nullable(),
+  repositoryRoots: z.array(AbsoluteDirectoryPathSchema).refine(unique).readonly(),
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema).refine(unique).readonly(),
+});
+```
+
+Config v4 distinguishes:
+
+- **valid configuration state** — the file is structurally/canonically valid and the daemon may start;
+- **productive readiness** — derived separately by `InstallationReadiness`.
+
+A v4 config with zero repositories and/or `model = null` is valid but not productively ready.
+
+The installer/update path performs one deterministic v3→v4 conversion:
+
+```text
+v3.model -> v4.model unchanged
+v3.repositoryRoots -> v4.repositoryRoots unchanged
+v3.referenceRoots -> v4.referenceRoots unchanged
+version 3 -> 4
+```
+
+No semantic choices are introduced and no existing repository/model selection is reset.
+
+A fresh installation may create:
+
+```json
+{
+  "version": 4,
+  "model": null,
+  "repositoryRoots": [],
+  "referenceRoots": []
+}
+```
+
+when the operator elects to complete configuration in the browser.
+
+Daemon startup under incomplete v4 configuration:
+
+- validates the config file;
+- opens canonical state/database/session infrastructure;
+- skips repository reconciliation when no repository is configured;
+- skips model/provider preflight when `model === null`;
+- starts the authenticated HTTP/UI surface;
+- exposes readiness blockers;
+- rejects productive commands whose prerequisites are absent with canonical 409 recovery errors.
+
+It must not fabricate defaults merely to reach ready state.
