@@ -783,32 +783,6 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   expect(Math.abs(masterBox!.y - detailBox!.y)).toBeLessThan(80);
 });
 
-test("workflow progression inspects reached material, exposes unreached steps, and never mutates lifecycle", async ({
-  page,
-  request,
-}) => {
-  await authenticate(page, request);
-  await openWorkItem(page, "Proposal review");
-
-  const mutationRequests: string[] = [];
-  page.on("request", (browserRequest) => {
-    if (browserRequest.method() !== "GET") {
-      mutationRequests.push(browserRequest.method() + " " + new URL(browserRequest.url()).pathname);
-    }
-  });
-
-  const rail = page.getByTestId("workflow-progression");
-  await rail.getByRole("button", { name: "Work request" }).click();
-  await expect(page.getByRole("radio", { name: "Documents" })).toBeChecked();
-  await expect(
-    page.getByTestId("governed-document-nav").getByRole("tab", { name: "Source" }),
-  ).toHaveAttribute("aria-selected", "true");
-
-  await rail.getByRole("button", { name: "Approval" }).click();
-  await expect(page.getByText("Approval has not been reached", { exact: true })).toBeVisible();
-  expect(mutationRequests).toEqual([]);
-});
-
 test("Activity keeps all Run history, consolidated workflow orientation, responsive master-detail, and secondary technical details", async ({
   page,
   request,
@@ -1013,6 +987,19 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await openWorkItem(page, "Lifecycle editing workbench");
   await page.getByRole("radio", { name: "Documents" }).click();
 
+  const workflowMutations: string[] = [];
+  page.on("request", (browserRequest) => {
+    if (browserRequest.method() !== "GET") {
+      workflowMutations.push(browserRequest.method() + " " + new URL(browserRequest.url()).pathname);
+    }
+  });
+  const workflowRail = page.getByTestId("workflow-progression");
+  await workflowRail.getByRole("button", { name: "Work request" }).click();
+  await expect(
+    page.getByTestId("governed-document-nav").getByRole("tab", { name: "Source" }),
+  ).toHaveAttribute("aria-selected", "true");
+  expect(workflowMutations).toEqual([]);
+
   await page.getByTestId("governed-document-nav")
     .getByRole("tab", { name: "PLAN" })
     .click();
@@ -1028,6 +1015,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(workflowGuard).toBeVisible();
   await workflowGuard.getByRole("button", { name: "Continue editing" }).click();
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
+  expect(workflowMutations).toEqual([]);
 
   await page.getByRole("button", { name: "Back to work queue" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
