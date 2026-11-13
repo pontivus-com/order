@@ -1,4 +1,16 @@
-import { isAbsolute, relative, sep } from "node:path";
+import { existsSync, lstatSync, readFileSync } from "node:fs";
+import { isAbsolute, join, relative, sep } from "node:path";
+
+import {
+  type LegacyOrderConfigV2,
+  type OrderConfig,
+  type RepositoryPath,
+  type WorkItemSourcePath,
+} from "../core/contracts.ts";
+import {
+  duplicateWorkItemSourceIds,
+  workItemDocumentPath,
+} from "../core/work-item-source.ts";
 
 import {
   buildOrderConfig,
@@ -14,10 +26,205 @@ import {
   loadConfiguredProjects,
   prepareProjectRootForInstall,
 } from "./project.ts";
-import { resolveStateRoot } from "./runtime.ts";
-import { readLegacyWorkItemRepositoryRootsForInstall } from "./sqlite.ts";
+import {
+  createWorkingTreeFileExclusive,
+  readWorkingTreeFile,
+} from "./repository.ts";
+import { resolveStateRoot, sha256 } from "./runtime.ts";
+import {
+  migrateOrderDatabaseV2ToV3,
+  readLegacyWorkItemRepositoryRootsForInstall,
+  readOrderV2MigrationStateForInstall,
+} from "./sqlite.ts";
+import { scanLegacyV2WorkItemSourcesForInstall } from "./work-item-source.ts";
 
 export type SetupQuestion = (prompt: string) => Promise<string>;
+
+const byteEqual = (left: Uint8Array, right: Uint8Array): boolean => {
+  if (left.byteLength !== right.byteLength) return false;
+  for (let index = 0; index < left.byteLength; index += 1) {
+    if (left[index] !== right[index]) return false;
+  }
+  return true;
+};
+
+export const migrateRepositoryNativeV2StateForInstall = async (
+  stateRoot: string,
+  legacyConfig: LegacyOrderConfigV2,
+  currentConfig: OrderConfig,
+): Promise<void> => {
+  const projects = await loadConfiguredProjects(currentConfig.repositoryRoots);
+  const projectById = new Map(
+    projects.map((project) => [project.manifest.projectId, project] as const),
+  );
+
+  const legacySources = scanLegacyV2WorkItemSourcesForInstall(
+    legacyConfig.workItemRoot,
+  );
+  const duplicateIds = duplicateWorkItemSourceIds(legacySources);
+  if (duplicateIds.length !== 0) {
+    throw new TypeError(
+      "v2→v3 migration found duplicate WorkItem ids: " + duplicateIds.join(", "),
+    );
+  }
+  const sourceById = new Map(
+    legacySources.map((source) => [source.metadata.id, source] as const),
+  );
+  const migrationState = readOrderV2MigrationStateForInstall(stateRoot);
+  const sourcePaths = new Map<string, WorkItemSourcePath>();
+  const planned = new Map<string, Readonly<{
+    repositoryRoot: string;
+    repositoryPath: RepositoryPath;
+    bytes: Uint8Array;
+  }>>();
+
+  const planCopy = (
+    repositoryRoot: string,
+    repositoryPath: RepositoryPath,
+    bytes: Uint8Array,
+  ): void => {
+    const key = repositoryRoot + "\0" + repositoryPath;
+    const prior = planned.get(key);
+    if (prior !== undefined) {
+      if (!byteEqual(prior.bytes, bytes)) {
+        throw new TypeError(
+          "v2→v3 migration maps different bytes to the same repository path: " +
+            repositoryPath,
+        );
+      }
+      return;
+    }
+    const target = join(repositoryRoot, repositoryPath);
+    if (existsSync(target)) {
+      const stat = lstatSync(target);
+      if (stat.isSymbolicLink() || !stat.isFile()) {
+        throw new TypeError(
+          "v2→v3 migration destination is not a regular file: " + repositoryPath,
+        );
+      }
+      if (!byteEqual(new Uint8Array(readFileSync(target)), bytes)) {
+        throw new TypeError(
+          "v2→v3 migration destination already exists with different bytes: " +
+            repositoryPath,
+        );
+      }
+    }
+    planned.set(key, { repositoryRoot, repositoryPath, bytes });
+  };
+
+  for (const source of legacySources) {
+    const project = projectById.get(source.metadata.projectId);
+    if (project === undefined) {
+      throw new TypeError(
+        "v2→v3 migration cannot resolve projectId: " + source.metadata.projectId,
+      );
+    }
+    planCopy(
+      project.repositoryRoot,
+      workItemDocumentPath(
+        project.manifest.workItems.root,
+        source.metadata.id,
+        "SOURCE",
+      ),
+      new TextEncoder().encode(source.markdown),
+    );
+  }
+
+  for (const [workItem, lifecycleArtifacts] of migrationState) {
+    const source = sourceById.get(workItem.id);
+    if (source === undefined) {
+      throw new TypeError(
+        "v2→v3 migration is missing persisted WorkItem source: " + workItem.id,
+      );
+    }
+    if (
+      source.path !== workItem.sourcePath ||
+      source.sha256 !== workItem.sourceSha256 ||
+      source.metadata.projectId !== workItem.projectId
+    ) {
+      throw new TypeError(
+        "v2→v3 persisted WorkItem source projection is stale: " + workItem.id,
+      );
+    }
+
+    const project = projectById.get(workItem.projectId);
+    if (project === undefined) {
+      throw new TypeError(
+        "v2→v3 migration cannot resolve project for WorkItem: " + workItem.id,
+      );
+    }
+    if (project.repositoryRoot !== workItem.repositoryRoot) {
+      throw new TypeError(
+        "v2→v3 migration repository does not match persisted WorkItem: " +
+          workItem.id,
+      );
+    }
+
+    const sourcePath = workItemDocumentPath(
+      project.manifest.workItems.root,
+      workItem.id,
+      "SOURCE",
+    );
+    sourcePaths.set(workItem.id, sourcePath as WorkItemSourcePath);
+
+    for (const artifact of lifecycleArtifacts) {
+      if (
+        artifact.role !== "R1" &&
+        artifact.role !== "R2" &&
+        artifact.role !== "DESIGN" &&
+        artifact.role !== "PLAN" &&
+        artifact.role !== "R3"
+      ) {
+        continue;
+      }
+      const bytes = readWorkingTreeFile(
+        workItem.repositoryRoot,
+        artifact.repositoryPath,
+      );
+      if (sha256(bytes) !== artifact.sha256) {
+        throw new TypeError(
+          "v2→v3 lifecycle source bytes differ from current ArtifactRef: " +
+            artifact.repositoryPath,
+        );
+      }
+      planCopy(
+        project.repositoryRoot,
+        workItemDocumentPath(
+          project.manifest.workItems.root,
+          workItem.id,
+          artifact.role,
+        ),
+        bytes,
+      );
+    }
+  }
+
+  for (const copy of planned.values()) {
+    const target = join(copy.repositoryRoot, copy.repositoryPath);
+    if (!existsSync(target)) {
+      createWorkingTreeFileExclusive(
+        copy.repositoryRoot,
+        copy.repositoryPath,
+        copy.bytes,
+      );
+    }
+    if (!byteEqual(readWorkingTreeFile(copy.repositoryRoot, copy.repositoryPath), copy.bytes)) {
+      throw new TypeError(
+        "v2→v3 repository copy failed read-back verification: " +
+          copy.repositoryPath,
+      );
+    }
+  }
+
+  migrateOrderDatabaseV2ToV3(
+    stateRoot,
+    sourcePaths as ReadonlyMap<
+      import("../core/contracts.ts").WorkItemId,
+      WorkItemSourcePath
+    >,
+  );
+};
+
 
 const requireSetupHome = (environment: NodeJS.ProcessEnv): string => {
   const home = environment.HOME;
