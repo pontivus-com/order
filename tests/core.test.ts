@@ -57,6 +57,7 @@ import {
   duplicateWorkItemSourceIds,
   linkedRemediationIsAllowed,
   parseWorkItemSourceMarkdown,
+  recomposeWorkItemSourceBody,
   renderWorkItemSourceMarkdown,
   rewriteWorkItemSourceTitle,
   unresolvedConcernIdsForProject,
@@ -827,6 +828,44 @@ describe("source-backed WorkItem core", () => {
       expect(parsed.title).toBe("Canonical source");
       expect(workItemKindForSchema(parsed.metadata.schemaId)).toBe(kind);
     }
+  });
+
+  it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
+    const metadata = {
+      formatVersion: 1 as const,
+      id: `work_${uuidA}`,
+      projectId: "order",
+      concernIds: ["core"],
+      schemaId: "change-v1" as const,
+    };
+    const rendered = renderWorkItemSourceMarkdown(metadata, "Human body");
+    const renderedParsed = parseWorkItemSourceMarkdown(
+      `work_${uuidA}.md`,
+      hashA,
+      rendered,
+    );
+    expect(renderedParsed.bodyMarkdown).toBe(
+      rendered.slice(rendered.indexOf("\n---\n") + "\n---\n".length),
+    );
+
+    const envelope = [
+      "---",
+      `{ "schemaId": "change-v1", "concernIds": ["core"], "projectId": "order", "id": "work_${uuidA}", "formatVersion": 1 }`,
+      "---",
+      "",
+    ].join("\n");
+    const exact = envelope + renderedParsed.bodyMarkdown;
+    const changedBody = renderedParsed.bodyMarkdown.replace(
+      "## Current context\n",
+      "## Current context\nBody-only edit.\n",
+    );
+    const recomposed = recomposeWorkItemSourceBody(exact, changedBody);
+    expect(recomposed.slice(0, envelope.length)).toBe(envelope);
+    expect(recomposed.slice(envelope.length)).toBe(changedBody);
+    expect(() => recomposeWorkItemSourceBody(
+      exact,
+      changedBody.replace("## Evidence/references", "## Missing evidence"),
+    )).toThrow(/missing ordered section/);
   });
 
   it("requires exact ordered section-heading lines rather than fuzzy heading text", () => {
