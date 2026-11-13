@@ -338,6 +338,83 @@ describe("repository shell", () => {
     expect(parsed.patchSha256).toMatch(/^sha256:[0-9a-f]{64}$/);
   });
 
+  it("reports and commits only exact governed documentation paths while preserving unrelated index state", () => {
+    const root = tempDir("order-doc-git-");
+    initGitRepo(root);
+    mkdirSync(join(root, "docs"), { recursive: true });
+    writeFileSync(join(root, "docs", "tracked.md"), "tracked before\n");
+    run(["git", "add", "docs/tracked.md"], root);
+    run(["git", "commit", "-qm", "documentation baseline"], root);
+
+    writeFileSync(join(root, "docs", "tracked.md"), "tracked after\n");
+    writeFileSync(join(root, "docs", "new.md"), "new document\n");
+    writeFileSync(join(root, "file.txt"), "unrelated staged\n");
+    run(["git", "add", "file.txt"], root);
+
+    const first = JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const root = ${JSON.stringify(root)};
+      const status = await repo.inspectDocumentationGit(
+        root,
+        ["docs/tracked.md", "docs/new.md"],
+      );
+      const expected = status.paths
+        .filter((path) => path.state === "MODIFIED" || path.state === "UNTRACKED")
+        .map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.workingTreeSha256,
+        }));
+      const commit = await repo.commitDocumentationPaths(
+        root,
+        status.headCommit,
+        expected,
+        "docs(order): save work_11111111-1111-4111-8111-111111111111 documentation",
+      );
+      const after = await repo.inspectDocumentationGit(
+        root,
+        ["docs/tracked.md", "docs/new.md"],
+      );
+      console.log(JSON.stringify({ status, commit, after }));
+    `, process.cwd())) as {
+      status: { paths: Array<{ repositoryPath: string; state: string }> };
+      commit: string;
+      after: { paths: Array<{ repositoryPath: string; state: string }> };
+    };
+
+    expect(first.status.paths).toEqual([
+      expect.objectContaining({ repositoryPath: "docs/new.md", state: "UNTRACKED" }),
+      expect.objectContaining({ repositoryPath: "docs/tracked.md", state: "MODIFIED" }),
+    ]);
+    expect(first.after.paths.map((path) => path.state)).toEqual([
+      "MATCHES_HEAD",
+      "MATCHES_HEAD",
+    ]);
+    expect(run(["git", "diff", "--cached", "--name-only"], root).stdout.trim()).toBe("file.txt");
+    expect(run(["git", "show", "HEAD:file.txt"], root).stdout).toBe("baseline\n");
+
+    rmSync(join(root, "docs", "tracked.md"));
+    const deletion = JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const root = ${JSON.stringify(root)};
+      const status = await repo.inspectDocumentationGit(root, ["docs/tracked.md"]);
+      const commit = await repo.commitDocumentationPaths(
+        root,
+        status.headCommit,
+        [{ repositoryPath: "docs/tracked.md", sha256: null }],
+        "docs(order): save work_11111111-1111-4111-8111-111111111111 documentation",
+      );
+      const after = await repo.inspectDocumentationGit(root, ["docs/tracked.md"]);
+      console.log(JSON.stringify({ status, commit, after }));
+    `, process.cwd())) as {
+      status: { paths: Array<{ state: string }> };
+      after: { paths: Array<{ state: string }> };
+    };
+    expect(deletion.status.paths[0]?.state).toBe("DELETED");
+    expect(deletion.after.paths[0]?.state).toBe("MISSING");
+    expect(run(["git", "diff", "--cached", "--name-only"], root).stdout.trim()).toBe("file.txt");
+  });
+
   it("adopts exactly one proposal target and rejects symlink targets", () => {
     const root = tempDir("order-adopt-");
     initGitRepo(root);
