@@ -157,9 +157,11 @@ Each connected repository entry shows, in ordinary operator language:
 
 A repository is connected only when Order has validated an exact Git top-level root and its current Order project manifest/configuration.
 
-Connecting a repository is an explicit operator action. Order must validate the candidate root before adding it to productive configuration. Filesystem search, parent-directory guessing and implicit adoption are not acceptable connection mechanisms.
+Connecting a repository is an explicit operator action. In a configured installation the repository inventory exposes **Add repository** as the action for adding another target; it does not leave an always-open field labeled "Connect target repository" that can be mistaken for editing/replacing the current repository. Activating Add repository opens the bounded add flow, and Order validates the candidate root before adding it to productive configuration. Filesystem search, parent-directory guessing and implicit adoption are not acceptable connection mechanisms.
 
-Disconnecting a repository removes it from the installation's productive repository set only. It must not delete repository-owned WorkItem/lifecycle Markdown, Git history or project authority. Disconnect is blocked while productive work in that repository is active. Reconnecting the same valid repository rediscovers its portable WorkItems and lifecycle documents through the normal canonical source path.
+Existing repository entries expose their own current state/details/actions. The exact Git root is not presented as an ordinary editable text field after connection; a different repository is added explicitly and the existing one may be disconnected explicitly.
+
+Disconnecting a repository removes it from the installation's productive repository set only. It must not delete repository-owned WorkItem/lifecycle Markdown, Git history or project authority. Every disconnect mutation requires an explicit destructive confirmation that identifies the selected repository and states this non-deletion consequence before mutation. Cancelling/dismissing confirmation performs no mutation. Disconnect remains blocked while productive work in that repository is active. Reconnecting the same valid repository rediscovers its portable WorkItems and lifecycle documents through the normal canonical source path.
 
 ### 7.3 Repository-owned document location
 
@@ -292,11 +294,11 @@ A successful update reports any configuration that still requires operator actio
 
 ### GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION
 
-**Required behavior:** connected repositories are explicitly manageable as exact validated Git roots, each showing its repository-owned effective WorkItem document root and current readiness/context.
+**Required behavior:** connected repositories are explicitly manageable as exact validated Git roots, each showing its repository-owned effective WorkItem document root and current readiness/context. Additional targets are added through an explicit Add repository flow; disconnect is a confirmed destructive configuration action.
 
-**Acceptance criterion:** an operator can connect/disconnect valid repositories, see where that repository's Order documents live, and distinguish current context from repository ownership without relying on `repositoryRoots[0]` or filesystem inspection.
+**Acceptance criterion:** an operator can add a valid repository, inspect existing repository state, request disconnect, review a confirmation that identifies the repository and explains that repository-owned Markdown/Git history are retained, cancel without mutation, or confirm the disconnect; current context remains distinguishable from repository ownership without relying on `repositoryRoots[0]` or filesystem inspection.
 
-**Failure/negative behavior:** Order must not infer repository connections recursively, hide document destination, delete repository-owned documents when disconnecting, or treat a presentation selection as ownership mutation.
+**Failure/negative behavior:** Order must not infer repository connections recursively, hide document destination, expose an ambiguous always-open "Connect target repository" field as if it edited the existing connection, disconnect on one click without confirmation, delete repository-owned documents when disconnecting, or treat a presentation selection as ownership mutation.
 
 ### GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY
 
