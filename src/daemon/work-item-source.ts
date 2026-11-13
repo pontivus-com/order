@@ -127,11 +127,29 @@ const resolveSourceProject = async (
   runtime: CoordinatorRuntime,
   source: ParsedWorkItemSource,
   repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
-): Promise<ConfiguredProject> =>
-  resolveConfiguredProject(
-    repositoryRoots,
-    source.metadata.projectId,
-  );
+): Promise<ConfiguredProject> => {
+  const matches: ConfiguredProject[] = [];
+  for (const repositoryRoot of repositoryRoots) {
+    try {
+      matches.push(await resolveConfiguredProject(
+        [repositoryRoot],
+        source.metadata.projectId,
+      ));
+    } catch {
+      // A source reclassification depends only on the uniquely matching
+      // healthy configured project; unrelated unavailable/invalid roots
+      // remain Settings attention rather than becoming a hidden blocker.
+    }
+  }
+  if (matches.length !== 1) {
+    throw new TypeError(
+      matches.length === 0
+        ? `unresolved configured projectId: ${source.metadata.projectId}`
+        : `configured projectId is not unique: ${source.metadata.projectId}`,
+    );
+  }
+  return matches[0]!;
+};
 
 const requireResolvedConcerns = (
   project: ConfiguredProject,
@@ -487,7 +505,7 @@ export const revalidateWorkItemSource = async (
 
   let project: ConfiguredProject;
   try {
-    project = await resolveSourceProject(runtime, current, [before.repositoryRoot]);
+    project = await resolveSourceProject(runtime, current);
   } catch (error) {
     throw sourceBoundaryFailure(diagnostic(
       before.projectId,
