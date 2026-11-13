@@ -811,8 +811,6 @@ describe("daemon control plane", () => {
           [],
         ),
       );
-      fs.rmSync(${JSON.stringify(driftedRepository)}, { recursive: true, force: true });
-
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = rt.createCoordinatorRuntime(
         database,
@@ -829,6 +827,8 @@ describe("daemon control plane", () => {
         title: "Affected readiness only",
         concernIds: ["shell"],
       });
+      fs.rmSync(${JSON.stringify(driftedRepository)}, { recursive: true, force: true });
+
       const global = await settings.installationReadiness(owner);
       let stageFailure = null;
       try {
@@ -954,6 +954,7 @@ describe("daemon control plane", () => {
         visible: coord.listWorkItems(owner.current).map((item) => item.id),
         stored: sql.loadWorkItems(database).map((item) => item.id),
       }));
+      await coord.stopCoordinatorScheduler(owner.current);
       database.close();
     `, providerEnvironment(binary, state)) as {
       createdId: string;
