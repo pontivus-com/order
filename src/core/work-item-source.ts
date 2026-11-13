@@ -401,19 +401,23 @@ const validateRequiredIntakeSections = (
   }
 };
 
-export const parseWorkItemSourceMarkdown = (
-  path: WorkItemSourcePath,
-  sha256: Sha256,
-  markdown: string,
-): Readonly<WorkItemSourceSnapshot & { title: WorkItemTitle }> => {
-  const canonicalPath = WorkItemSourcePathSchema.parse(path);
-  const canonicalMarkdown = MarkdownTextSchema.parse(markdown);
-  const lines = canonicalMarkdown.split("\n");
-  if (lines[0] !== "---") throw new TypeError("WorkItem source must begin with ---");
-  const close = lines.indexOf("---", 1);
-  if (close < 2) throw new TypeError("WorkItem source metadata terminator is missing");
+type WorkItemSourceParts = Readonly<{
+  metadata: WorkItemSourceMetadata;
+  bodyMarkdown: string;
+  bodyStart: number;
+}>;
 
-  const metadataText = lines.slice(1, close).join("\n");
+const workItemSourceParts = (markdown: string): WorkItemSourceParts => {
+  const canonicalMarkdown = MarkdownTextSchema.parse(markdown);
+  if (!canonicalMarkdown.startsWith("---\n")) {
+    throw new TypeError("WorkItem source must begin with ---");
+  }
+  const closing = canonicalMarkdown.indexOf("\n---\n", 4);
+  if (closing < 4) {
+    throw new TypeError("WorkItem source metadata terminator is missing");
+  }
+
+  const metadataText = canonicalMarkdown.slice(4, closing);
   let decoded: unknown;
   try {
     decoded = JSON.parse(metadataText);
@@ -430,21 +434,60 @@ export const parseWorkItemSourceMarkdown = (
       "WorkItem source schemaId is not in the canonical catalog",
     );
   }
+
   const metadata = WorkItemSourceMetadataSchema.parse(decoded);
   if (metadata.derivedFromWorkItemId === metadata.id) {
     throw new TypeError("derivedFromWorkItemId must not equal the WorkItem id");
   }
-  const body = lines.slice(close + 1).join("\n");
-  const title = titleFromBody(body);
-  validateRequiredIntakeSections(metadata.schemaId, body);
+
+  const bodyStart = closing + "\n---\n".length;
+  return {
+    metadata,
+    bodyMarkdown: canonicalMarkdown.slice(bodyStart),
+    bodyStart,
+  };
+};
+
+export const validateWorkItemSourceBody = (
+  schemaId: WorkItemSchemaId,
+  bodyMarkdown: string,
+): Readonly<{ bodyMarkdown: string; title: WorkItemTitle }> => {
+  const canonicalBody = MarkdownTextSchema.parse(bodyMarkdown);
+  const title = titleFromBody(canonicalBody);
+  validateRequiredIntakeSections(schemaId, canonicalBody);
+  return { bodyMarkdown: canonicalBody, title };
+};
+
+export const recomposeWorkItemSourceBody = (
+  currentMarkdown: string,
+  bodyMarkdown: string,
+): string => {
+  const canonicalCurrent = MarkdownTextSchema.parse(currentMarkdown);
+  const parts = workItemSourceParts(canonicalCurrent);
+  const validated = validateWorkItemSourceBody(parts.metadata.schemaId, bodyMarkdown);
+  return MarkdownTextSchema.parse(
+    canonicalCurrent.slice(0, parts.bodyStart) + validated.bodyMarkdown,
+  );
+};
+
+export const parseWorkItemSourceMarkdown = (
+  path: WorkItemSourcePath,
+  sha256: Sha256,
+  markdown: string,
+): Readonly<WorkItemSourceSnapshot & { title: WorkItemTitle }> => {
+  const canonicalPath = WorkItemSourcePathSchema.parse(path);
+  const canonicalMarkdown = MarkdownTextSchema.parse(markdown);
+  const parts = workItemSourceParts(canonicalMarkdown);
+  const validated = validateWorkItemSourceBody(parts.metadata.schemaId, parts.bodyMarkdown);
 
   const snapshot = WorkItemSourceSnapshotSchema.parse({
     path: canonicalPath,
     sha256,
-    metadata,
+    metadata: parts.metadata,
     markdown: canonicalMarkdown,
+    bodyMarkdown: validated.bodyMarkdown,
   });
-  return { ...snapshot, title };
+  return { ...snapshot, title: validated.title };
 };
 
 export const rewriteWorkItemSourceTitle = (

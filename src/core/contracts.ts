@@ -385,6 +385,7 @@ export const WorkItemSourceSnapshotSchema = z.strictObject({
   sha256: Sha256Schema,
   metadata: WorkItemSourceMetadataSchema,
   markdown: MarkdownTextSchema,
+  bodyMarkdown: MarkdownTextSchema,
 });
 
 export const ExpectedHashWriteResultSchema = z.discriminatedUnion("tag", [
@@ -395,6 +396,11 @@ export const ExpectedHashWriteResultSchema = z.discriminatedUnion("tag", [
 export const ExpectedHashMarkdownWriteSchema = z.strictObject({
   expectedSha256: Sha256Schema,
   markdown: MarkdownTextSchema,
+});
+
+export const ExpectedHashWorkItemBodyWriteSchema = z.strictObject({
+  expectedSha256: Sha256Schema,
+  bodyMarkdown: MarkdownTextSchema,
 });
 
 export const UpdateWorkItemTitleSchema = z.strictObject({
@@ -519,6 +525,7 @@ export type WorkItemSourceMetadata = Readonly<z.infer<typeof WorkItemSourceMetad
 export type WorkItemSourceSnapshot = Readonly<z.infer<typeof WorkItemSourceSnapshotSchema>>;
 export type ExpectedHashWriteResult = Readonly<z.infer<typeof ExpectedHashWriteResultSchema>>;
 export type ExpectedHashMarkdownWrite = Readonly<z.infer<typeof ExpectedHashMarkdownWriteSchema>>;
+export type ExpectedHashWorkItemBodyWrite = Readonly<z.infer<typeof ExpectedHashWorkItemBodyWriteSchema>>;
 export type UpdateWorkItemTitle = Readonly<z.infer<typeof UpdateWorkItemTitleSchema>>;
 export type SetWorkItemArchived = Readonly<z.infer<typeof SetWorkItemArchivedSchema>>;
 export type StableHttpErrorCode = z.infer<typeof StableHttpErrorCodeSchema>;

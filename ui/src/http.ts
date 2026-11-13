@@ -7,6 +7,7 @@ import {
   CreateWorkItemSourceSchema,
   DisconnectRepositorySchema,
   ExpectedHashMarkdownWriteSchema,
+  ExpectedHashWorkItemBodyWriteSchema,
   ExpectedHashWriteResultSchema,
   ExecutionTaskSchema,
   ActivateOpenCodeAccountSchema,
@@ -45,6 +46,7 @@ import {
   type CreateWorkItemSource,
   type DisconnectRepository,
   type ExpectedHashMarkdownWrite,
+  type ExpectedHashWorkItemBodyWrite,
   type ExpectedHashWriteResult,
   type ExecutionTask,
   type ActivateOpenCodeAccount,
@@ -180,6 +182,15 @@ export const saveWorkItemSource = async (
   ExpectedHashWriteResultSchema.parse(await json(
     `/api/work-items/${encodeURIComponent(workItemId)}/source`,
     mutation("PUT", ExpectedHashMarkdownWriteSchema.parse(input)),
+  ));
+
+export const saveWorkItemSourceBody = async (
+  workItemId: WorkItemId,
+  input: ExpectedHashWorkItemBodyWrite,
+): Promise<ExpectedHashWriteResult> =>
+  ExpectedHashWriteResultSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/source/body`,
+    mutation("PUT", ExpectedHashWorkItemBodyWriteSchema.parse(input)),
   ));
 
 export const updateWorkItemTitle = async (
