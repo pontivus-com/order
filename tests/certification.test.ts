@@ -611,6 +611,60 @@ describe("Order cross-boundary certification", () => {
 
 
 describe("public release delivery certification", () => {
+  it("retains permanent 0.2.1 installed-state and browser seam certification", () => {
+    const suites = {
+      shell: read("tests/shell.test.ts"),
+      daemon: read("tests/daemon.test.ts"),
+      opencode: read("tests/opencode.test.ts"),
+      migration: read("tests/order-migration.test.ts"),
+      browser: read("tests/browser.spec.ts"),
+    };
+
+    for (const required of [
+      "initializes fresh installs as valid incomplete v4 without terminal configuration prompts",
+      "retains current incomplete v4 exactly during installer update without prompting",
+      "supports valid incomplete v4 configuration and expected-hash replacement",
+    ]) {
+      expect(suites.shell).toContain(required);
+    }
+
+    for (const required of [
+      "boots with valid incomplete v4 configuration and with a drifted configured repository",
+      "rediscovers retained WorkItems after reconnecting the same repository",
+      "migrates a repository WorkItem document root without rewriting history or bytes",
+      "rolls back repository bytes when activation fails after manifest mutation",
+      "saves only WorkItem body Markdown while preserving exact metadata and complete-file concurrency",
+      "blocks account removal during active Runs and reports account-required readiness after final removal",
+    ]) {
+      expect(suites.daemon).toContain(required);
+    }
+
+    for (const required of [
+      "deterministically migrates current v3 configuration to v4 without prompting",
+      "retains an exact v1 target and provisions its missing manifest without prompting",
+      "upgrades broad v1 target roots from persisted WorkItem repository evidence",
+      "waits for account integration registration before reading saved accounts",
+      "projects an empty account set through the real pinned OpenCode account-control process",
+      "projects and mutates saved accounts only through safe integration state",
+    ]) {
+      expect(suites.opencode).toContain(required);
+    }
+
+    expect(suites.migration).toContain(
+      "migrates, rolls back and retires the immediately preceding default footprint under Bun",
+    );
+
+    for (const required of [
+      "Settings uses stable native-history destinations and daemon-owned readiness",
+      "global OpenCode account utility switches, renames, signs in, blocks during active Runs, and remains responsive",
+      "source editor preserves stale buffers, never overwrites newer source, and returns work visibly to R1",
+      "dirty Markdown navigation is explicit, preserves the buffer when cancelled, restores queue focus when discarded, and PLAN/R3 editing remains correct",
+      "appearance uses a direct compact mode switcher, follows system mode, and persists explicit overrides",
+    ]) {
+      expect(suites.browser).toContain(required);
+    }
+  });
+
   it("keeps one package-derived version owner and retained PR/release automation", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       version: string;
