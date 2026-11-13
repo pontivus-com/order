@@ -10,6 +10,13 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 - Wait for the pinned OpenCode account integration to finish registering before querying saved accounts, preventing a clean installation from surfacing a transient upstream 404 as an internal daemon error.
 
+### Changed
+
+- Establish the governed 0.2.1 functional design for first-class connected-repository/document-location and OpenCode-account configuration, installation continuity/readiness, navigable workflow inspection, compact information placement, and human-first WorkItem Markdown authoring with preserved system metadata.
+- Define the 0.2.1 technical refactor architecture for centralized Settings, immutable runtime configuration activation, repository/document-root migration, canonical readiness, human-first Source recomposition, compact semantic viewport composition, and direct appearance switching.
+- Define the bounded 0.2.1 implementation plan with explicit refactor necessity, owner-boundary changes, ordered work PRs, permanent verification and release closure.
+- Close the 0.2.1 design/plan audit gaps by governing safe OpenCode account removal and explicitly certifying current-version update continuity, ambiguous repository recovery, installer rollback, and unresolved-readiness update reporting.
+
 ### Internal
 
 - Trigger governed publication of the final certified `0.2.0` release candidate.
