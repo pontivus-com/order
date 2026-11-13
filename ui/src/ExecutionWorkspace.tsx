@@ -22,6 +22,7 @@ const eventDetail = (event: RunEvent): string => {
     case "STAGE_BLOCKED": return payload.reason;
     case "TASK_ALREADY_SATISFIED": return payload.summary;
     case "CONFORMANCE_FAILED": return payload.summary;
+    case "PROVIDER_DIAGNOSTICS_RECORDED": return "Provider diagnostics recorded";
     case "PROVIDER_FAILED": return payload.detail;
     case "GATE_PASSED":
     case "GATE_FAILED": return payload.gateId;
