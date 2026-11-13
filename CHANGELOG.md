@@ -36,6 +36,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Replace the incorrect Order logo construction with the approved six-blade aperture mark across every repository brand asset.
 - Make the first certified `0.2.0` release archive directly installable without Git metadata while preserving exact release commit/version provenance and the packaged production build.
 - Corrected the canonical public-release governance document path so it participates in active documentation ownership checks.
 
