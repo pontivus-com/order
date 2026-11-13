@@ -94,6 +94,7 @@ import {
   reconcileWorkItemSources,
   revalidateWorkItemSource,
   saveWorkItemSource,
+  sourceDiagnosticForFailure as sourceDiagnosticForSourceFailure,
   setWorkItemArchived,
   updateWorkItemTitle,
   workItemSourceDiagnostics,
@@ -107,6 +108,8 @@ export const listWorkItems = (
     .filter((workItem) => includeArchived || !workItem.archived);
 
 export const createWorkItem = createWorkItemFromSource;
+
+export const sourceDiagnosticForFailure = sourceDiagnosticForSourceFailure;
 
 export const listWorkItemSchemas = () => workItemSchemaCatalog;
 
