@@ -1259,7 +1259,7 @@ materialRefs = ["AGENTS.md"]
     expect(output.code).toBe(0);
     expect(output.cliLegacyError).not.toBeNull();
     expect(output.config).toEqual({
-      version: 3,
+      version: 4,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [workspace],
       referenceRoots: [],
