@@ -1148,6 +1148,99 @@ describe("daemon control plane", () => {
     expect(output.message).toBe("");
   });
 
+  it("edits the canonical title and archives/restores without lifecycle mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-title-archive-");
+
+    const output = bunEval(\`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 3,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "Original title",
+        concernIds: ["shell"],
+      });
+      const source = await coord.getWorkItemSource(runtime, created.id);
+      const titleWrite = await coord.updateTitle(runtime, created.id, {
+        expectedSourceSha256: source.sha256,
+        title: "Renamed title",
+      });
+      const renamed = coord.getWorkItem(runtime, created.id);
+      const beforeArchiveLifecycle = {
+        stage: renamed.stage,
+        status: renamed.status,
+        outcome: renamed.outcome,
+      };
+      const archived = await coord.setArchived(runtime, created.id, {
+        expectedArchived: false,
+        archived: true,
+      });
+      const defaultQueue = coord.listWorkItems(runtime).map((item) => item.id);
+      const allQueue = coord.listWorkItems(runtime, true).map((item) => item.id);
+      const marker = sourceShell.readWorkItemArchived(
+        repository,
+        "docs/order/work-items",
+        created.id,
+      );
+      const restored = await coord.setArchived(runtime, created.id, {
+        expectedArchived: true,
+        archived: false,
+      });
+      console.log(JSON.stringify({
+        titleWrite,
+        renamed,
+        beforeArchiveLifecycle,
+        archived,
+        defaultQueue,
+        allQueue,
+        marker,
+        restored,
+      }));
+      database.close();
+    \`) as {
+      titleWrite: { tag: string; sha256: string };
+      renamed: { title: string; stage: string; status: string; outcome: string | null };
+      beforeArchiveLifecycle: { stage: string; status: string; outcome: string | null };
+      archived: { archived: boolean; stage: string; status: string; outcome: string | null };
+      defaultQueue: string[];
+      allQueue: string[];
+      marker: boolean;
+      restored: { archived: boolean; stage: string; status: string; outcome: string | null };
+    };
+
+    expect(output.titleWrite.tag).toBe("UPDATED");
+    expect(output.renamed.title).toBe("Renamed title");
+    expect(output.archived.archived).toBe(true);
+    expect(output.marker).toBe(true);
+    expect(output.defaultQueue).toEqual([]);
+    expect(output.allQueue).toHaveLength(1);
+    expect({
+      stage: output.archived.stage,
+      status: output.archived.status,
+      outcome: output.archived.outcome,
+    }).toEqual(output.beforeArchiveLifecycle);
+    expect(output.restored.archived).toBe(false);
+    expect({
+      stage: output.restored.stage,
+      status: output.restored.status,
+      outcome: output.restored.outcome,
+    }).toEqual(output.beforeArchiveLifecycle);
+  });
+
   it("discovers an existing source and binds its exact hash into R1 context", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-discovery-");
