@@ -575,7 +575,7 @@ test("persisted proposal disposition is caught by polling and sign-off review re
     },
   );
   expect(rejected.status()).toBe(200);
-  await expect(page.getByText("REJECTED", { exact: true }).first()).toBeVisible({
+  await expect(page.getByText("Rejected", { exact: true }).first()).toBeVisible({
     timeout: 5_000,
   });
 
