@@ -2491,6 +2491,34 @@ The daemon refreshes the safe account projection, proves the id is one of its OA
 
 After mutation it refreshes and proves the exact new label.
 
+
+### 33.5a Remove account
+
+The pinned OpenCode 2.2.6 credential contract supports credential removal by credential id. Order exposes that capability only through the already-safe OAuth account projection.
+
+```ts
+const RemoveOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+```
+
+```text
+DELETE /api/opencode/accounts/:accountId
+body { expectedActiveAccountId }
+-> OpenCodeAccountState
+```
+
+Admission requires the same installation-global mutation guard as Switch/Rename/Add and additionally:
+
+- current `activeAccountId` equals `expectedActiveAccountId`;
+- `:accountId` is present in the freshly resolved safe OAuth-account projection.
+
+The daemon passes only that proven credential id to the pinned OpenCode credential-remove operation, then refreshes the safe account projection and requires that the removed id is absent before returning success.
+
+Removing the active account is permitted only when no productive Run is active. OpenCode determines the remaining active connection, if any; Order does not silently activate a replacement credential. The returned `OpenCodeAccountState` is authoritative.
+
+Removing the final account is valid and intentionally yields an account-required readiness blocker for productive OpenCode work. Removal never changes `OrderConfig.model`.
+
 ### 33.6 Add-account login
 
 ```ts
@@ -2565,7 +2593,7 @@ RUNNING
 WAITING_FOR_INPUT
 ```
 
-Before every Add/Switch/Rename mutation the daemon queries canonical Run state and proves no active Run exists across **all** WorkItems.
+Before every Add/Switch/Rename/Remove mutation the daemon queries canonical Run state and proves no active Run exists across **all** WorkItems.
 
 The check is repeated immediately before the OpenCode mutation/admission after acquiring the daemon's account-mutation serialization guard.
 
@@ -2605,7 +2633,10 @@ Permanent integration/browser tests must prove:
 - successful Add makes the new account active;
 - account login URL is validated before browser exposure;
 - Add/Rename reject duplicate account labels and Rename changes label without changing credential id;
-- Add/Switch/Rename all reject while any Run is RUNNING or WAITING_FOR_INPUT;
+- Add/Switch/Rename/Remove all reject while any Run is RUNNING or WAITING_FOR_INPUT;
+- removing a non-active account deletes only that credential and preserves the active account;
+- removing the active account returns the actual refreshed OpenCode active-account state without Order choosing a replacement;
+- removing the final account yields an empty safe account projection and account-required readiness;
 - concurrent account mutations/login attempts are rejected deterministically;
 - read-only account listing remains available during active Runs;
 - switch/add affects only subsequently created OpenCode provider sessions;
