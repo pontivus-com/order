@@ -34,7 +34,8 @@ Productive readiness requires, at minimum:
 1. at least one valid configured target repository;
 2. a valid configured model/provider selection;
 3. when the selected productive model requires an authenticated OpenCode account, at least one usable saved OpenCode account in Order's private OpenCode namespace;
-4. repository-local project/WorkItem configuration required by the selected target repository to be valid or to have an explicit recovery path.
+4. the exact provider/account process must satisfy the complete productive instruction-isolation contract in `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`; an authenticated connection that can inject uninspectable external semantic instructions is not productive-ready;
+5. repository-local project/WorkItem configuration required by the selected target repository to be valid or to have an explicit recovery path.
 
 Readiness is derived from canonical configuration and integration state. It is not a second lifecycle state and need not be persisted as an independent status value.
 
@@ -219,6 +220,7 @@ The first productive workbench experience must make readiness obvious.
 When configuration is incomplete, the workbench presents a bounded setup/recovery surface identifying each unresolved concern and its direct action. At minimum:
 
 - **OpenCode account required** → Add OpenCode account;
+- **Provider instruction isolation unavailable** → productive agent work remains blocked until the installed OpenCode integration can disable or completely preflight external instruction sources for the active account/process;
 - **Target repository required** → configure/select target repository;
 - **Repository configuration needs attention** → inspect and resolve the specific repository/project problem.
 
