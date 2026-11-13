@@ -45,7 +45,7 @@ const authenticate = async (
 const rowFor = (page: Page, title: string) =>
   page
     .locator('[data-testid^="work-item-row-"]')
-    .filter({ hasText: title })
+    .filter({ has: page.getByText(title, { exact: true }) })
     .first();
 
 const openWorkItem = async (page: Page, title: string): Promise<void> => {
