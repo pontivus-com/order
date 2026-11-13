@@ -452,9 +452,24 @@ export const revalidateWorkItemSource = async (
   try {
     current = readWorkItemSource(projectForPath.repositoryRoot, expectedPath);
   } catch (error) {
-    if (isWorkItemRootAccessFailure(error) || operationalSourceReadFailure(error)) {
-      throw error;
+    if (isWorkItemRootAccessFailure(error)) throw error;
+    const errorCode =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      typeof (error as { code?: unknown }).code === "string"
+        ? (error as { code: string }).code
+        : null;
+    if (errorCode === "ENOENT") {
+      throw sourceBoundaryFailure(diagnostic(
+        before.projectId,
+        null,
+        before.stage === "COMPLETE" ? "COMPLETED_SOURCE_MISSING" : "MISSING_SOURCE",
+        `source is missing for WorkItem ${before.id}`,
+        before.id,
+      ));
     }
+    if (operationalSourceReadFailure(error)) throw error;
     throw sourceBoundaryFailure(WorkItemSourceDiagnosticSchema.parse({
       projectId: before.projectId,
       path: expectedPath,
