@@ -26,7 +26,7 @@ export const OpenCodeAccountControl = ({
     <button
       type="button"
       className="order-opencode-account-trigger"
-      aria-label={`${label}. Open Settings.`}
+      aria-label={`${label}. Manage account.`}
       onClick={onOpenSettings}
       data-testid="opencode-account-trigger"
     >
