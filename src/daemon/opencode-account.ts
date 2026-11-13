@@ -7,6 +7,7 @@ import {
   OpenCodeAccountLoginAttemptIdSchema,
   OpenCodeAccountLoginAttemptSchema,
   OpenCodeAccountStateSchema,
+  RemoveOpenCodeAccountSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
   type ActivateOpenCodeAccount,
@@ -16,6 +17,7 @@ import {
   type OpenCodeAccountLoginAttemptId,
   type OpenCodeAccountMutationBlocker,
   type OpenCodeAccountState,
+  type RemoveOpenCodeAccount,
   type RenameOpenCodeAccount,
   type StartOpenCodeAccountLogin,
 } from "../core/contracts.ts";
@@ -186,6 +188,37 @@ export const renameSavedOpenCodeAccount = async (
       const after = await listOpenCodeAccounts(control);
       if (requireAccount(after, id).label !== command.label) {
         throw new TypeError("OpenCode account rename was not retained");
+      }
+      return after;
+    });
+  } finally {
+    runtime.openCodeAccountMutationActive = false;
+  }
+  return stateFromAccounts(runtime, accounts);
+};
+
+export const removeSavedOpenCodeAccount = async (
+  runtime: CoordinatorRuntime,
+  accountId: OpenCodeAccountId,
+  input: RemoveOpenCodeAccount,
+): Promise<OpenCodeAccountState> => {
+  const id = OpenCodeAccountIdSchema.parse(accountId);
+  const command = RemoveOpenCodeAccountSchema.parse(input);
+  beginMutation(runtime);
+  let accounts: readonly OpenCodeAccount[];
+  try {
+    accounts = await withAccountControl(runtime, async (control) => {
+      const before = await listOpenCodeAccounts(control);
+      const current = before.find((account) => account.active)?.id ?? null;
+      if (current !== command.expectedActiveAccountId) {
+        throw new TypeError("OpenCode active account changed");
+      }
+      requireAccount(before, id);
+      repeatMutationAdmission(runtime);
+      await removeOpenCodeAccount(control, id);
+      const after = await listOpenCodeAccounts(control);
+      if (after.some((account) => account.id === id)) {
+        throw new TypeError("OpenCode account removal was not retained");
       }
       return after;
     });
