@@ -251,6 +251,15 @@ export const SetWorkItemArchivedSchema = z.strictObject({
   archived: z.boolean(),
 });
 
+export const StableHttpErrorCodeSchema = z.string()
+  .regex(/^[A-Z][A-Z0-9_]*$/);
+
+export const OrderHttpErrorSchema = z.strictObject({
+  code: StableHttpErrorCodeSchema,
+  message: z.string().min(1),
+  sourceDiagnostic: WorkItemSourceDiagnosticSchema.nullable(),
+});
+
 export const WorkItemDocumentGitStateSchema = z.enum([
   "MATCHES_HEAD",
   "MODIFIED",
@@ -356,6 +365,8 @@ export type ExpectedHashWriteResult = Readonly<z.infer<typeof ExpectedHashWriteR
 export type ExpectedHashMarkdownWrite = Readonly<z.infer<typeof ExpectedHashMarkdownWriteSchema>>;
 export type UpdateWorkItemTitle = Readonly<z.infer<typeof UpdateWorkItemTitleSchema>>;
 export type SetWorkItemArchived = Readonly<z.infer<typeof SetWorkItemArchivedSchema>>;
+export type StableHttpErrorCode = z.infer<typeof StableHttpErrorCodeSchema>;
+export type OrderHttpError = Readonly<z.infer<typeof OrderHttpErrorSchema>>;
 export type WorkItemDocumentGitState = z.infer<typeof WorkItemDocumentGitStateSchema>;
 export type WorkItemDocumentGitPathStatus = Readonly<z.infer<typeof WorkItemDocumentGitPathStatusSchema>>;
 export type WorkItemDocumentationGitBlocker = z.infer<typeof WorkItemDocumentationGitBlockerSchema>;
