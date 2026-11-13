@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import {
   closeSync,
   constants,
@@ -84,11 +85,8 @@ export const secureTokenHex = (): string => {
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 };
 
-export const sha256Hex = (bytes: Uint8Array): string => {
-  const hasher = new Bun.CryptoHasher("sha256");
-  hasher.update(bytes);
-  return hasher.digest("hex");
-};
+export const sha256Hex = (bytes: Uint8Array): string =>
+  createHash("sha256").update(bytes).digest("hex");
 
 export const sha256 = (bytes: Uint8Array): Sha256 =>
   Sha256Schema.parse(`sha256:${sha256Hex(bytes)}`);
