@@ -718,7 +718,11 @@ const routeApi = async (
     const body = await parseRequest(async () =>
       CreateWorkItemSourceSchema.parse(await readJsonBody(request))
     );
-    return jsonResponse(await createWorkItem(runtime, body), 201);
+    return jsonResponse(await createWorkItem(
+      runtime,
+      body,
+      await readyRepositoryRoots(runtime.config),
+    ), 201);
   }
 
   if (parts[0] === "api" && parts[1] === "work-items" && parts[2]) {
