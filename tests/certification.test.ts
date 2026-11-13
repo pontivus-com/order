@@ -699,6 +699,7 @@ describe("public release delivery certification", () => {
       "migrates a repository WorkItem document root without rewriting history or bytes",
       "rolls back repository bytes when activation fails after manifest mutation",
       "saves only WorkItem body Markdown while preserving exact metadata and complete-file concurrency",
+      "blocks account removal during active Runs and reports account-required readiness after final removal",
     ]) {
       expect(suites.daemon).toContain(required);
     }
@@ -708,6 +709,8 @@ describe("public release delivery certification", () => {
       "retains an exact v1 target and provisions its missing manifest without prompting",
       "upgrades broad v1 target roots from persisted WorkItem repository evidence",
       "waits for account integration registration before reading saved accounts",
+      "projects an empty account set through the real pinned OpenCode account-control process",
+      "projects and mutates saved accounts only through safe integration state",
     ]) {
       expect(suites.opencode).toContain(required);
     }
