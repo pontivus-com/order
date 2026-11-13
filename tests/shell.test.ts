@@ -383,6 +383,109 @@ describe("repository shell", () => {
       `const r=await import("./src/shell/repository.ts"); await r.adoptProposalPatch(${JSON.stringify(root)}, "link.md", null, "");`,
     ], process.cwd(), { allowFailure: true });
     expect(result.status).not.toBe(0);
+
+  it("commits exactly the reviewed WorkItem documentation paths and preserves unrelated index state", () => {
+    const root = tempDir("order-documentation-git-");
+    initGitRepo(root);
+    const workItemId = "work_11111111-1111-4111-8111-111111111111";
+    const workItemRoot = join(root, "docs", "order", "work-items", workItemId);
+    mkdirSync(workItemRoot, { recursive: true });
+    const sourcePath = `docs/order/work-items/${workItemId}/work-request.md`;
+    const researchPath = `docs/order/work-items/${workItemId}/research.md`;
+    const markerPath = `docs/order/work-items/${workItemId}/.order-archived`;
+
+    writeFileSync(join(root, sourcePath), "# source v1\n");
+    writeFileSync(join(root, markerPath), "archived\n");
+    run(["git", "add", "--", sourcePath, markerPath], root);
+    run(["git", "commit", "-qm", "WorkItem baseline"], root);
+    const expectedHead = run(["git", "rev-parse", "HEAD"], root).stdout.trim();
+
+    writeFileSync(join(root, sourcePath), "# source v2\n");
+    writeFileSync(join(root, researchPath), "# research\n");
+    rmSync(join(root, markerPath));
+    writeFileSync(join(root, "file.txt"), "unrelated staged\n");
+    run(["git", "add", "--", "file.txt"], root);
+    writeFileSync(join(root, "unrelated.txt"), "unrelated unstaged\n");
+
+    const output = JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const root = ${JSON.stringify(root)};
+      const sourcePath = ${JSON.stringify(sourcePath)};
+      const researchPath = ${JSON.stringify(researchPath)};
+      const markerPath = ${JSON.stringify(markerPath)};
+      const inspection = await repo.inspectDocumentationGit(
+        root,
+        [sourcePath],
+        [researchPath, markerPath],
+        [markerPath],
+      );
+      const expectedPaths = inspection.paths
+        .filter((path) =>
+          path.state === "MODIFIED" ||
+          path.state === "UNTRACKED" ||
+          path.state === "DELETED"
+        )
+        .map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+        }));
+      const committed = await repo.commitDocumentationPaths(
+        root,
+        ${JSON.stringify(workItemId)},
+        [sourcePath],
+        [researchPath, markerPath],
+        [markerPath],
+        {
+          expectedHeadCommit: ${JSON.stringify(expectedHead)},
+          expectedPaths,
+        },
+      );
+      const after = await repo.inspectDocumentationGit(
+        root,
+        [sourcePath, researchPath],
+        [markerPath],
+        [markerPath],
+      );
+      console.log(JSON.stringify({ inspection, expectedPaths, committed, after }));
+    `, process.cwd())) as {
+      inspection: {
+        paths: Array<{ repositoryPath: string; state: string; workingTreeSha256: string | null }>;
+      };
+      expectedPaths: Array<{ repositoryPath: string; sha256: string | null }>;
+      committed: { gitCommit: string; repositoryPaths: string[] };
+      after: { paths: Array<{ repositoryPath: string; state: string }> };
+    };
+
+    expect(Object.fromEntries(
+      output.inspection.paths.map((path) => [path.repositoryPath, path.state]),
+    )).toEqual({
+      [markerPath]: "DELETED",
+      [researchPath]: "UNTRACKED",
+      [sourcePath]: "MODIFIED",
+    });
+    expect(output.expectedPaths.map((path) => path.repositoryPath)).toEqual(
+      [markerPath, researchPath, sourcePath].sort(),
+    );
+    expect(output.committed.repositoryPaths).toEqual(
+      [markerPath, researchPath, sourcePath].sort(),
+    );
+    expect(output.committed.gitCommit).not.toBe(expectedHead);
+    expect(Object.fromEntries(
+      output.after.paths.map((path) => [path.repositoryPath, path.state]),
+    )).toEqual({
+      [researchPath]: "MATCHES_HEAD",
+      [sourcePath]: "MATCHES_HEAD",
+    });
+
+    const committedNames = run(
+      ["git", "diff", "--name-only", expectedHead, output.committed.gitCommit, "--"],
+      root,
+    ).stdout.trim().split("\n").filter(Boolean).sort();
+    expect(committedNames).toEqual([markerPath, researchPath, sourcePath].sort());
+    expect(run(["git", "diff", "--cached", "--name-only"], root).stdout.trim()).toBe("file.txt");
+    expect(readFileSync(join(root, "unrelated.txt"), "utf8")).toBe("unrelated unstaged\n");
+  });
+
   });
 });
 
