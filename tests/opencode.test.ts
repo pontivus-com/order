@@ -103,6 +103,7 @@ let sessionCounter = 0;
 let promptCounter = 0;
 let accountConnections = config.accountConnections ?? [];
 let oauthStatus = config.oauthStatus ?? "pending";
+let integrationListCount = 0;
 
 const json = (value, status = 200) =>
   new Response(JSON.stringify(value), {
@@ -136,15 +137,27 @@ const server = Bun.serve({
       });
     }
 
+    const accountIntegration = {
+      id: "opencode",
+      name: "OpenCode",
+      methods: [{ id: "device", type: "oauth", name: "Device" }],
+      connections: accountConnections,
+    };
+
+    if (request.method === "GET" && url.pathname === "/api/integration") {
+      integrationListCount += 1;
+      return json({
+        location: { directory: process.cwd() },
+        data: integrationListCount <= (config.integrationUnavailableCount ?? 0)
+          ? []
+          : [accountIntegration],
+      });
+    }
+
     if (request.method === "GET" && url.pathname === "/api/integration/opencode") {
       return json({
         location: { directory: process.cwd() },
-        data: {
-          id: "opencode",
-          name: "OpenCode",
-          methods: [{ id: "device", type: "oauth", name: "Device" }],
-          connections: accountConnections,
-        },
+        data: accountIntegration,
       });
     }
 
@@ -448,6 +461,54 @@ describe("OpenCode shell", () => {
       { providerID: "anthropic", id: "claude" },
       { providerID: "opencode", id: "glm-5.3-flash-free" },
     ]);
+  });
+
+  it("waits for account integration registration before reading saved accounts", () => {
+    const workspace = tempDir("order-opencode-account-readiness-");
+    const state = tempDir("order-opencode-account-readiness-state-");
+    const binary = createFakeOpenCode(workspace, {
+      integrationUnavailableCount: 2,
+      accountConnections: [],
+    });
+
+    const output = bunEval(`
+      const o = await import("./src/shell/opencode.ts");
+      const control = await o.startOpenCodeAccountControl(
+        ${JSON.stringify(state)},
+        process.env,
+      );
+      try {
+        console.log(JSON.stringify(await o.listOpenCodeAccounts(control)));
+      } finally {
+        await o.stopOpenCodeAccountControl(control);
+      }
+    `, providerEnvironment(binary));
+
+    expect(output).toEqual([]);
+  });
+
+  const pinnedOpenCodeBinary = process.env.PONTIVUS_ORDER_OPENCODE_BIN;
+  const pinnedOpenCodeTest = pinnedOpenCodeBinary === undefined ? it.skip : it;
+
+  pinnedOpenCodeTest("projects an empty account set through the real pinned OpenCode account-control process", () => {
+    const state = tempDir("order-opencode-real-account-state-");
+
+    const output = bunEval(`
+      const o = await import("./src/shell/opencode.ts");
+      const control = await o.startOpenCodeAccountControl(
+        ${JSON.stringify(state)},
+        process.env,
+      );
+      try {
+        console.log(JSON.stringify(await o.listOpenCodeAccounts(control)));
+      } finally {
+        await o.stopOpenCodeAccountControl(control);
+      }
+    `, {
+      PONTIVUS_ORDER_OPENCODE_BIN: pinnedOpenCodeBinary!,
+    });
+
+    expect(output).toEqual([]);
   });
 
   it("projects and mutates saved accounts only through safe integration state", () => {
