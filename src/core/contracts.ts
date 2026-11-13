@@ -95,6 +95,61 @@ export const OpenCodeModelRefSchema = z.strictObject({
   providerID: NonEmptyNoNulStringSchema,
   id: NonEmptyNoNulStringSchema,
 });
+
+export const OpenCodeAccountIdSchema = z.string()
+  .min(1)
+  .refine((value) => !value.includes("\0"), "account id must not contain NUL");
+export const OpenCodeAccountLabelSchema = z.string()
+  .min(1)
+  .max(320)
+  .refine((value) => value === value.trim(), "account label must not have outer whitespace")
+  .refine((value) => !value.includes("\0"), "account label must not contain NUL")
+  .refine(
+    (value) => !value.includes("\n") && !value.includes("\r"),
+    "account label must be one line",
+  );
+export const OpenCodeAccountStatusSchema = z.discriminatedUnion("status", [
+  z.strictObject({ status: z.literal("READY") }),
+  z.strictObject({
+    status: z.literal("NEEDS_AUTH"),
+    message: z.string().min(1),
+    url: z.string().url().nullable(),
+  }),
+]);
+export const OpenCodeAccountSchema = z.strictObject({
+  id: OpenCodeAccountIdSchema,
+  label: OpenCodeAccountLabelSchema,
+  active: z.boolean(),
+  status: OpenCodeAccountStatusSchema,
+});
+export const OpenCodeAccountMutationBlockerSchema = z.enum([
+  "ACTIVE_RUN",
+  "LOGIN_ATTEMPT_ACTIVE",
+  "ACCOUNT_MUTATION_ACTIVE",
+]);
+export const OpenCodeAccountStateSchema = z.strictObject({
+  accounts: z.array(OpenCodeAccountSchema).readonly(),
+  activeAccountId: OpenCodeAccountIdSchema.nullable(),
+  mutationBlockers: z.array(OpenCodeAccountMutationBlockerSchema).readonly(),
+});
+export const ActivateOpenCodeAccountSchema = z.strictObject({
+  expectedActiveAccountId: OpenCodeAccountIdSchema.nullable(),
+});
+export const RenameOpenCodeAccountSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+export const StartOpenCodeAccountLoginSchema = z.strictObject({
+  label: OpenCodeAccountLabelSchema,
+});
+export const OpenCodeAccountLoginAttemptIdSchema = z.string().uuid();
+export const OpenCodeAccountLoginAttemptSchema = z.strictObject({
+  id: OpenCodeAccountLoginAttemptIdSchema,
+  authorizationUrl: z.string().url(),
+  instructions: z.string().min(1),
+  expiresAt: IsoDateTimeSchema,
+  status: z.enum(["PENDING", "COMPLETED", "FAILED", "EXPIRED", "CANCELLED"]),
+  message: z.string().min(1).nullable(),
+});
 export const LegacyPredecessorConfigV1Schema = z.strictObject({
   version: z.literal(1),
   model: OpenCodeModelRefSchema,
@@ -154,6 +209,17 @@ export type Sha256 = z.infer<typeof Sha256Schema>;
 export type IsoDateTime = z.infer<typeof IsoDateTimeSchema>;
 export type EvidencePath = z.infer<typeof EvidencePathSchema>;
 export type OpenCodeModelRef = Readonly<z.infer<typeof OpenCodeModelRefSchema>>;
+export type OpenCodeAccountId = z.infer<typeof OpenCodeAccountIdSchema>;
+export type OpenCodeAccountLabel = z.infer<typeof OpenCodeAccountLabelSchema>;
+export type OpenCodeAccountStatus = Readonly<z.infer<typeof OpenCodeAccountStatusSchema>>;
+export type OpenCodeAccount = Readonly<z.infer<typeof OpenCodeAccountSchema>>;
+export type OpenCodeAccountMutationBlocker = z.infer<typeof OpenCodeAccountMutationBlockerSchema>;
+export type OpenCodeAccountState = Readonly<z.infer<typeof OpenCodeAccountStateSchema>>;
+export type ActivateOpenCodeAccount = Readonly<z.infer<typeof ActivateOpenCodeAccountSchema>>;
+export type RenameOpenCodeAccount = Readonly<z.infer<typeof RenameOpenCodeAccountSchema>>;
+export type StartOpenCodeAccountLogin = Readonly<z.infer<typeof StartOpenCodeAccountLoginSchema>>;
+export type OpenCodeAccountLoginAttemptId = z.infer<typeof OpenCodeAccountLoginAttemptIdSchema>;
+export type OpenCodeAccountLoginAttempt = Readonly<z.infer<typeof OpenCodeAccountLoginAttemptSchema>>;
 export type LegacyPredecessorConfigV1 = Readonly<z.infer<typeof LegacyPredecessorConfigV1Schema>>;
 export type LegacyOrderConfigV2 = Readonly<z.infer<typeof LegacyOrderConfigV2Schema>>;
 export type OrderConfig = Readonly<z.infer<typeof OrderConfigSchema>>;
