@@ -14,6 +14,7 @@ import {
   type WorkItemSchemaId,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -23,6 +24,7 @@ import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
   WorkbenchToolbarSearch,
+  WorkbenchToolbarUtilities,
 } from "./primitives/WorkbenchToolbar.tsx";
 import {
   WorkbenchEmptyState,
@@ -282,19 +284,22 @@ export const App = () => {
               onChange={(event) => setSearch(event.currentTarget.value)}
             />
           ) : null}
-          <label className="order-theme-control">
-            <WorkbenchIcon name={themePreference} />
-            <span className="order-visually-hidden">Theme</span>
-            <select
-              aria-label="Theme"
-              value={themePreference}
-              onChange={(event) => selectTheme(event.currentTarget.value)}
-            >
-              <option value="system">System</option>
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
-          </label>
+          <WorkbenchToolbarUtilities>
+            <OpenCodeAccountControl />
+            <label className="order-theme-control">
+              <WorkbenchIcon name={themePreference} />
+              <span className="order-visually-hidden">Theme</span>
+              <select
+                aria-label="Theme"
+                value={themePreference}
+                onChange={(event) => selectTheme(event.currentTarget.value)}
+              >
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
+          </WorkbenchToolbarUtilities>
         </>
       }
     />

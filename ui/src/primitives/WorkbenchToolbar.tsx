@@ -15,6 +15,10 @@ export const WorkbenchToolbarGroup = ({ children }: Readonly<{ children: ReactNo
   <div className="order-toolbar-group">{children}</div>
 );
 
+export const WorkbenchToolbarUtilities = ({ children }: Readonly<{ children: ReactNode }>) => (
+  <div className="order-toolbar-utilities" data-testid="workbench-utilities">{children}</div>
+);
+
 export const WorkbenchToolbarSearch = (props: InputHTMLAttributes<HTMLInputElement>) => (
   <div className="order-toolbar-search-wrap" data-testid="workbench-search">
     <WorkbenchIcon name="search" />

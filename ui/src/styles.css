@@ -11,3 +11,8 @@
 html, body, #root { min-height: 100%; }
 body { margin: 0; background: var(--order-workbench-bg); color: var(--order-workbench-text); }
 * { box-sizing: border-box; }
+
+.order-opencode-account-trigger,
+.order-opencode-account-panel input {
+  font: inherit;
+}
