@@ -11,6 +11,7 @@ import {
 import {
   OpenCodeModelRefSchema,
   ProviderDiagnosticRecordSchema,
+  ProviderTurnOutcomeSchema,
   RunEventPayloadJsonSchemaText,
   RunEventPayloadSchema,
   type ExecutionTask,
@@ -702,6 +703,48 @@ const idleAdvanced = (
 ): boolean =>
   current !== undefined && (prior === undefined || current > prior);
 
+type ProviderFailurePhase = Exclude<
+  ProviderDiagnosticRecord["failurePhase"],
+  null
+>;
+
+type ProviderTurnFailure = TypeError & Readonly<{
+  providerOutcome: ProviderTurnOutcome;
+  providerFailurePhase: ProviderFailurePhase;
+}>;
+
+const providerTurnFailure = (
+  providerOutcome: ProviderTurnOutcome,
+  providerFailurePhase: ProviderFailurePhase,
+  error: unknown,
+): ProviderTurnFailure => {
+  const message = error instanceof Error ? error.message : String(error);
+  return Object.assign(new TypeError(message.length === 0 ? "OpenCode provider turn failed" : message), {
+    providerOutcome,
+    providerFailurePhase,
+  });
+};
+
+const isProviderTurnFailure = (
+  error: unknown,
+): error is ProviderTurnFailure =>
+  error instanceof TypeError &&
+  "providerOutcome" in error &&
+  ProviderTurnOutcomeSchema.safeParse(error.providerOutcome).success &&
+  "providerFailurePhase" in error &&
+  [
+    "ADMISSION",
+    "TRANSPORT",
+    "PROVIDER",
+    "COMPLETION",
+    "PARSE",
+    "FORMAT_REPAIR",
+  ].includes(
+    typeof error.providerFailurePhase === "string"
+      ? error.providerFailurePhase
+      : "",
+  );
+
 const pollForTerminal = async (
   client: OpenCodeClient,
   sessionID: string,
@@ -709,13 +752,22 @@ const pollForTerminal = async (
   deadline: number,
 ): Promise<SessionInfo> => {
   while (Date.now() < deadline) {
-    const session = await client.session.get({ sessionID });
+    let session: SessionInfo;
+    try {
+      session = await client.session.get({ sessionID });
+    } catch (error) {
+      throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
+    }
     if (idleAdvanced(session.time.idle, priorIdle) && session.outcome !== undefined) {
       return session;
     }
     await sleep(Math.min(terminalPollMillis, Math.max(1, deadline - Date.now())));
   }
-  throw new TypeError("OpenCode productive turn did not reach a terminal projection");
+  throw providerTurnFailure(
+    "TIMEOUT",
+    "COMPLETION",
+    new TypeError("OpenCode productive turn did not reach a terminal projection"),
+  );
 };
 
 const promptWithReconciliation = async (
@@ -727,7 +779,11 @@ const promptWithReconciliation = async (
   try {
     await client.session.prompt({ sessionID, id: promptId, text });
   } catch {
-    await client.session.prompt({ sessionID, id: promptId, text });
+    try {
+      await client.session.prompt({ sessionID, id: promptId, text });
+    } catch (error) {
+      throw providerTurnFailure("TRANSPORT_ERROR", "ADMISSION", error);
+    }
   }
 };
 
@@ -815,7 +871,13 @@ const runPromptToText = async (
   prompt: string,
   timeoutMillis: number,
 ): Promise<string> => {
-  const before = await client.session.get({ sessionID });
+  let before: SessionInfo;
+  try {
+    before = await client.session.get({ sessionID });
+  } catch (error) {
+    throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
+  }
+
   const deadline = Date.now() + timeoutMillis;
   await promptWithReconciliation(client, sessionID, promptId, prompt);
 
@@ -828,7 +890,14 @@ const runPromptToText = async (
       deadline,
     );
   } catch (error) {
-    await client.session.interrupt({ sessionID, resume: false }).catch(() => undefined);
+    if (!isProviderTurnFailure(error) || error.providerOutcome !== "TIMEOUT") {
+      throw error;
+    }
+    try {
+      await client.session.interrupt({ sessionID, resume: false });
+    } catch {
+      // The timeout remains the governing failure if interruption cannot be confirmed.
+    }
     const interruptDeadline = Date.now() + postInterruptPollMillis;
     const afterInterrupt = await pollForTerminal(
       client,
@@ -841,10 +910,24 @@ const runPromptToText = async (
   }
 
   if (terminal.outcome !== "succeeded") {
-    throw new TypeError(`OpenCode productive turn ended with outcome ${terminal.outcome}`);
+    throw providerTurnFailure(
+      terminal.outcome === "interrupted" ? "INTERRUPTED" : "FAILED",
+      "PROVIDER",
+      new TypeError(`OpenCode productive turn ended with outcome ${terminal.outcome}`),
+    );
   }
-  const context = await client.session.context({ sessionID });
-  return completedAssistantText(context, promptId);
+
+  let context: readonly SessionMessageInfo[];
+  try {
+    context = await client.session.context({ sessionID });
+  } catch (error) {
+    throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
+  }
+  try {
+    return completedAssistantText(context, promptId);
+  } catch (error) {
+    throw providerTurnFailure("FAILED", "COMPLETION", error);
+  }
 };
 
 const formatRepairPrompt = (role: RunRole): string =>
@@ -863,42 +946,125 @@ export const runOpenCodeTurn = async (
   task: ExecutionTask | null,
   referenceRoots: readonly string[],
   prompt: string,
+  onDiagnostics: (
+    record: ProviderDiagnosticRecord,
+    stderr: Uint8Array | null,
+  ) => void | Promise<void>,
 ): Promise<readonly RunEventPayload[]> => {
   const productivePermissions = openCodePermissionRules(role, task, referenceRoots);
   const promptId = openCodePromptId(run, triggeringRunEventId);
-  const text = await runPromptToText(
-    server.client,
-    sessionID,
-    promptId,
-    [prompt, providerOutputContract(role)].join("\n\n"),
-    productiveTurnTimeoutMillis,
-  );
+  const startedAt = nowIsoDateTime();
+  server.diagnosticStderr.reset();
 
-  let events: readonly RunEventPayload[];
+  let events: readonly RunEventPayload[] | null = null;
+  let failure: ProviderTurnFailure | null = null;
+  let formatRepairAttempted = false;
+  let formatRepairSucceeded: boolean | null = null;
+
   try {
-    events = parseCanonicalProviderEvents(text);
-  } catch {
-    await server.client.session.update({
-      sessionID,
-      permissions: [denyAllRule()],
-    });
-    const repairedText = await runPromptToText(
+    const text = await runPromptToText(
       server.client,
       sessionID,
-      formatRepairPromptId(promptId),
-      formatRepairPrompt(role),
+      promptId,
+      [prompt, providerOutputContract(role)].join("\n\n"),
       productiveTurnTimeoutMillis,
     );
-    await server.client.session.update({
-      sessionID,
-      permissions: productivePermissions,
-    });
-    const rebound = await server.client.session.get({ sessionID });
-    requireSessionBinding(rebound, server.model, productivePermissions);
-    events = parseCanonicalProviderEvents(repairedText);
+
+    try {
+      events = parseCanonicalProviderEvents(text);
+    } catch {
+      formatRepairAttempted = true;
+      formatRepairSucceeded = false;
+      try {
+        await server.client.session.update({
+          sessionID,
+          permissions: [denyAllRule()],
+        });
+      } catch (error) {
+        throw providerTurnFailure("TRANSPORT_ERROR", "FORMAT_REPAIR", error);
+      }
+
+      const repairedText = await runPromptToText(
+        server.client,
+        sessionID,
+        formatRepairPromptId(promptId),
+        formatRepairPrompt(role),
+        productiveTurnTimeoutMillis,
+      ).catch((error: unknown) => {
+        if (isProviderTurnFailure(error)) {
+          throw providerTurnFailure(
+            error.providerOutcome,
+            "FORMAT_REPAIR",
+            error,
+          );
+        }
+        throw providerTurnFailure("FAILED", "FORMAT_REPAIR", error);
+      });
+
+      try {
+        await server.client.session.update({
+          sessionID,
+          permissions: productivePermissions,
+        });
+        const rebound = await server.client.session.get({ sessionID });
+        requireSessionBinding(rebound, server.model, productivePermissions);
+      } catch (error) {
+        throw providerTurnFailure("TRANSPORT_ERROR", "FORMAT_REPAIR", error);
+      }
+
+      try {
+        events = parseCanonicalProviderEvents(repairedText);
+      } catch (error) {
+        throw providerTurnFailure("INVALID_OUTPUT", "FORMAT_REPAIR", error);
+      }
+    }
+
+    try {
+      events = validateProviderAdmission(role, events);
+    } catch (error) {
+      throw providerTurnFailure("INVALID_OUTPUT", "ADMISSION", error);
+    }
+    if (formatRepairAttempted) formatRepairSucceeded = true;
+  } catch (error) {
+    failure = isProviderTurnFailure(error)
+      ? error
+      : providerTurnFailure("FAILED", "PROVIDER", error);
   }
 
-  return validateProviderAdmission(role, events);
+  const endedAt = nowIsoDateTime();
+  const safeFailureMessage = failure === null
+    ? null
+    : server.diagnosticStderr.redact(failure.message);
+  const diagnostic = ProviderDiagnosticRecordSchema.parse({
+    providerId: server.model.providerID,
+    modelId: server.model.id,
+    providerSessionId: sessionID,
+    promptId,
+    startedAt,
+    endedAt,
+    outcome: failure?.providerOutcome ?? "SUCCEEDED",
+    formatRepairAttempted,
+    formatRepairSucceeded,
+    failurePhase: failure?.providerFailurePhase ?? null,
+    exceptionMessage: safeFailureMessage,
+  });
+
+  await onDiagnostics(
+    diagnostic,
+    server.diagnosticStderr.snapshot(),
+  );
+
+  if (failure !== null) {
+    throw new TypeError(
+      safeFailureMessage === null || safeFailureMessage.length === 0
+        ? "OpenCode provider turn failed"
+        : safeFailureMessage,
+    );
+  }
+  if (events === null) {
+    throw new TypeError("OpenCode provider turn completed without canonical events");
+  }
+  return events;
 };
 
 export const loginOpenCodeProviderInteractive = async (
