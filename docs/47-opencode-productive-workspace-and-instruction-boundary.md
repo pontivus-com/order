@@ -4,7 +4,7 @@
 **Versioned concern ID:** GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1  
 **Target correction train:** Order 0.2.2  
 **Authority layers:** P3 functional requirements + P4 technical architecture  
-**Status:** functional/P4/P6 boundary design complete; productive connected-account implementation is blocked until the pinned OpenCode integration provides a certifiable external-instruction isolation capability
+**Status:** functional/P4/P6 boundary design complete; ready for P7 translation under the explicit trusted-integration boundary defined below
 
 ## 1. Purpose
 
@@ -113,17 +113,19 @@ The exact OpenCode 2.2.6 request-context assembly combines multiple instruction 
 
 Read-triggered nested `AGENTS.md` is an additional synthetic-message path after internal reads.
 
-For Order, only provider-internal invariant framing that has been explicitly capability-certified may remain ambient. Project/user/remote semantic instructions must either resolve through Order authority before inference or be absent.
+Order therefore distinguishes **canonical authority** from **trusted integration context**.
 
-The exact OpenCode Console plugin creates a separate critical ingress. When a saved Console connection is active, it can download workspace Library instructions and add their bytes directly to `InstructionDiscovery`. This contribution is independent of repository `AGENTS.md` and is not exposed through the session instruction-entry API.
+Canonical authority remains closed and reproducible: repository `AGENTS.md`, Order role instructions, resolved lifecycle context, signed tasks and other governed project material must resolve through the existing Order authority graph and, where repository-backed, through the admitted workspace with exact bytes.
 
-The pinned public API exposes API-managed `/api/experimental/session/:id/instructions/entries`, but no pre-inference endpoint that returns the complete effective `InstructionDiscovery`/MCP/reference/skill/Console instruction set with exact source bytes. The pinned configuration API does not expose Console Library instruction bytes.
+Selected external integrations are different. When the operator selects an OpenCode Console account or Order explicitly configures an MCP/skill/reference integration for productive use, that integration is a trusted semantic/capability boundary. Its provider-native instructions, skills, MCP guidance and remote configuration may influence model execution without being copied into Order's canonical authority graph or byte-hashed by Order. They remain subordinate to Order's canonical authority, permissions, signed change surface, validation and adoption/signoff boundaries.
 
-The Console integration can be withheld only by `integration.use` managed policy. In the pinned config implementation, ordinary user/project/private config cannot act as that managed-policy lockdown. Order's foreground-server contract does not expose a supported per-process option that disables Console Library instructions while retaining the connected account/provider authentication.
+The exact OpenCode Console plugin can download workspace Library instructions and skills and can contribute remote provider/MCP configuration for the selected connected account. This is accepted as part of the selected Console integration trust boundary; it is not ambient user configuration and does not become P1/P3/P4/P6 authority.
 
-A forward check against OpenCode 2.3.0, released 2026-11-13, does not close this gap: it still loads connected-workspace Console instructions into `InstructionDiscovery`, and its public session protocol still exposes only API-managed instruction entries rather than a complete pre-inference effective-instruction manifest. A pin bump to 2.3.0 is therefore not, by itself, a remediation.
+OpenCode 2.2.6 also supports `OPENCODE_CONFIG_CONTENT` as a process-level inline configuration layer. Order uses that native mechanism for Run-specific explicit configuration that it owns, while continuing to use its private HOME/XDG/database namespace for saved-account continuity. Project/global compatibility configuration remains disabled so host/user ambient OpenCode state cannot silently join the productive environment.
 
-This is a release-critical provider-capability gap. Order must not claim complete productive instruction authority while this ingress is unbounded.
+The public API does not expose every provider-native semantic byte (notably MCP server instructions and Console Library instruction content) as one complete pre-inference manifest. Under this design that is no longer a release blocker because those channels are admitted by explicit integration identity/trust, not misrepresented as byte-reproducible Order authority.
+
+A provider upgrade still requires re-certification of these ingress paths and trust boundaries.
 
 ## 5. Functional design
 
@@ -184,24 +186,28 @@ At minimum:
 
 ### GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE
 
-**Required behavior:** before any productive model inference, Order can prove the complete semantic instruction context that may influence the model. Every non-invariant instruction source is either (a) exact Order-resolved authority/rendering admitted for this Run or (b) absent.
+**Required behavior:** before productive inference, Order can classify every semantic/capability source that may influence the agent as either:
+
+1. **Order-governed authority/context** — exact material selected and admitted by Order; or
+2. **explicitly trusted integration context** — provider-native material contributed by a selected OpenCode account or another explicitly configured productive integration.
+
+No third category of ambient host/user/project OpenCode state is permitted.
 
 The closure covers, at minimum:
 
 - repository/read-triggered `AGENTS.md`;
-- configured/global/project instruction discovery;
-- OpenCode Console workspace/Library instructions;
-- API-managed session instruction entries;
-- MCP instructions;
-- reference instructions;
-- skill instructions.
+- Order role/prompt instructions and resolved lifecycle/canonical context;
+- configured reference roots;
+- Order-owned Run-specific OpenCode configuration;
+- the selected OpenCode Console account's Library instructions/skills and remote integration configuration;
+- explicitly configured MCP servers and their provider-native instructions;
+- API-managed session instruction entries.
 
-Provider-internal built-in date/environment/tool-catalog framing may remain only where its exact behavior is part of the pinned capability contract and does not introduce project/product authority.
+**Acceptance criterion:** a productive Run can identify the exact Order-governed repository/context inputs and the identities of every trusted external integration allowed to contribute semantic context/capability. The selected Console account may contribute its native Library and remote MCP semantics without Order duplicating those bytes. Unknown global/project OpenCode configuration, unselected accounts/integrations or host-user skill/instruction directories cannot contribute.
 
-**Acceptance criterion:** Order has a pre-inference proof for each instruction channel. A connected account or provider configuration that can inject semantic instructions whose exact bytes/source cannot be disabled or inspected before inference makes productive readiness false. No productive prompt is sent in that state.
+**Authority rule:** trusted integration instructions are operational context, not canonical Order/project authority. They cannot override P1-P7 authority, expand a signed change surface, mutate `AGENTS.md`, bypass session permissions, adopt canonical artifacts, or satisfy validation/signoff on their own.
 
-**Failure/negative behavior:** successful model output, an empty current Console Library observed manually, denial of model tools, `OPENCODE_DISABLE_PROJECT_CONFIG`, `OPENCODE_PURE`, or the absence of repository `AGENTS.md` is not proof of complete instruction closure.
-
+**Failure/negative behavior:** Order must not describe trusted external semantics as reproducible canonical authority, inherit arbitrary host OpenCode configuration, or require byte-for-byte replication of provider-native integration context as a precondition for productive work.
 
 ## 6. Technical design overview
 
@@ -379,24 +385,42 @@ Tests must exercise the actual production functions. Copying the intended algori
 
 ### GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT
 
-The productive-provider admission boundary must prove all model-context instruction channels before the first productive inference.
+The productive-provider admission boundary proves the **source class and admission path** of model-context instructions/capabilities before the first productive inference.
 
-The approved technical contract is capability-based:
+The approved technical contract is:
 
-1. **repository instruction channel** — closed by GW-TR-073..075;
-2. **ordinary OpenCode config instruction channel** — Order's private provider namespace contains no configured `instructions`; project/global compatibility discovery remains disabled and is capability-certified;
-3. **API-managed session instruction channel** — immediately after session creation Order proves the session instruction-entry list is empty; Order production code has no path that writes instruction entries;
-4. **MCP/reference/skill instruction channels** — the effective productive role configuration proves these channels contribute no semantic instructions unless a future governed design explicitly adopts them;
-5. **Console/workspace instruction channel** — the provider pin must offer one of the following before productive connected-account use is legal:
-   - a supported per-process/configuration capability that disables Console/workspace instruction contribution while retaining the selected provider/account authentication; or
-   - a supported pre-inference API that returns the complete effective external instruction manifest with stable source identity and exact bytes, allowing Order to admit only explicitly resolved authority and fail closed otherwise.
+1. **repository instruction channel** — closed exactly by GW-TR-073..075; every provider-visible project `AGENTS.md` is byte-proved Order authority;
+2. **Order role/canonical context channel** — supplied by the existing deterministic prompt/context assembly and remains canonical authority;
+3. **Run-specific OpenCode configuration** — Order starts the productive provider with an Order-generated `OPENCODE_CONFIG_CONTENT` layer containing only explicit configuration required for that Run; project/global compatibility discovery remains disabled;
+4. **reference channel** — configured Order reference roots are explicit read-only context and never become project authority merely by being readable;
+5. **skill channel** — Order-owned skills may be supplied through explicit Run configuration, while skills supplied by the selected OpenCode Console account are admitted as trusted Console integration context; unselected host/global skills are excluded;
+6. **MCP channel** — MCP servers supplied through Order's explicit Run configuration or the selected trusted Console integration are allowed according to the role permission profile. Their provider-native server instructions are trusted integration context rather than byte-reproducible Order authority;
+7. **Console/workspace channel** — the active saved OpenCode Console account is an explicit trusted integration boundary. Its Library instructions/skills and allowed remote configuration may influence the agent. Account switching remains prohibited while a Run is active, preserving stable integration identity for the Run;
+8. **API-managed session instruction channel** — Order production code does not write arbitrary session instruction entries unless a future governed design explicitly adopts that mechanism.
 
-Order must not read OpenCode credential secrets, call Console private endpoints using copied credentials, scrape internal provider databases, infer Library emptiness from UI state, or patch hidden provider state to manufacture this proof.
+The process still uses Order's private HOME/XDG/database namespace, so trusting the selected Console integration does **not** mean inheriting the user's ambient global OpenCode installation.
 
-For the currently pinned OpenCode 2.2.6—and for the audited 2.3.0 forward candidate—neither permitted Console capability is available. Therefore **productive use with an active OpenCode Console connection is a known blocked condition under this design** until the external provider capability changes or a separately governed provider-integration decision replaces the current constraint.
+The productive evidence boundary records/proves the selected account/integration identity and Order-owned configuration/context identities. It does not fabricate hashes for provider-native semantic material that the pinned public API does not expose.
 
-Unconnected/free-provider execution may remain eligible only when the complete channel matrix above is mechanically proven for that exact process state.
+A change to the selected account, configured integration set, role permissions, repository material identity or Order canonical context invalidates continuation under the existing session-freshness/replacement laws. Provider-native content refresh within an unchanged explicitly trusted integration remains that integration's responsibility and is not promoted to Order authority.
 
+### GW-TR-081-RUN-SPECIFIC-PRODUCTIVE-AGENT-ENVIRONMENT
+
+Order constructs a productive OpenCode environment rather than an empty sandbox.
+
+For each Run, the shell combines:
+
+- the admitted project workspace containing complete Git-visible project material needed for code understanding;
+- exact resolved repository `AGENTS.md`;
+- existing deterministic role/canonical context;
+- configured STAGE reference roots where the role permits them;
+- Order-owned skill/reference/MCP configuration needed by the role, when any;
+- the selected trusted OpenCode Console account/integration contribution;
+- the exact model and session permission profile.
+
+Order-owned provider configuration is supplied through the pinned process-level `OPENCODE_CONFIG_CONTENT` mechanism. Saved account credentials remain in the installation's existing private OpenCode credential namespace and are not copied into the Run configuration.
+
+This is a closed admission model, not a closed capability model: required context and tools are deliberately available, while unselected ambient host/user configuration is not.
 
 ## 8. Provider-visible file-set law
 
@@ -548,21 +572,21 @@ The following cases are minimum certification, not examples to sample from.
 59. architecture test proves task instruction-path mutation rejection remains wired;
 60. release/certification run executes the full opencode integration test set on the final candidate.
 
-### 11.9 Complete model-context instruction closure
+### 11.9 Complete model-context/trusted-integration closure
 
-61. fresh productive session has zero API-managed instruction entries before first prompt;
-62. production source has no instruction-entry write/remove call path;
-63. private provider config contains no configured `instructions` source and project/global instruction discovery stays disabled;
-64. no productive MCP configuration contributes server instructions;
-65. no productive reference configuration contributes OpenCode reference instructions;
-66. denied/absent skill capability contributes no skill instructions, including Console-downloaded skills;
-67. mock connected Console account with non-empty Library instructions is rejected before productive inference by the certified provider-isolation mechanism;
-68. mock connected Console account with empty Library still passes only because the same mechanism proves the channel, not because a test fixture happens to be empty;
-69. provider refresh/config polling cannot introduce a new external instruction after initial admission without invalidating/halting productive use before the next inference;
-70. the exact installed provider pin exposes the certified disable or complete pre-inference manifest capability required by GW-TR-080;
-71. a pin candidate lacking that capability fails provider certification and cannot be released as productive;
-72. OpenCode 2.2.6 regression fixture proves connected-account productive readiness is blocked rather than silently executing with an unprovable instruction context;
-73. OpenCode 2.3.0 forward-candidate fixture/contract audit proves a version bump alone does not satisfy GW-TR-080.
+61. fresh productive session contains no unexpected API-managed instruction entries before the first prompt;
+62. production source has no ungoverned session-instruction-entry write path;
+63. project/global compatibility instruction discovery and ambient host skill/config roots remain disabled;
+64. Order-generated `OPENCODE_CONFIG_CONTENT` contains only the explicit Run-owned instruction/skill/reference/MCP configuration expected for the role;
+65. Order-owned configured skills are registered and reachable only when the role admits the `skill` capability;
+66. configured STAGE references are listed/readable through the exact admitted external-directory roots and remain non-authoritative;
+67. explicitly configured MCP servers are the exact intended set for the Run and only role-permitted MCP tools are model-reachable;
+68. provider-native MCP server instructions from an admitted MCP are treated as trusted integration context and cannot expand Order permissions/changeSurface;
+69. active OpenCode Console account identity is recorded/proven before session admission and cannot change while a Run is active;
+70. Console Library instructions/skills for that selected account are accepted as trusted integration context and are not promoted into P1/P3/P4/P6 authority;
+71. switching/removing/adding a Console account while a Run is active remains blocked and a later Run uses the newly selected integration identity;
+72. an ambient host/global OpenCode skill/instruction/config fixture outside Order's private namespace cannot influence the productive Run;
+73. exact OpenCode pin certification proves the supported `OPENCODE_CONFIG_CONTENT`, skill, reference, MCP and Console contribution behavior used by this design.
 
 ## 12. Browser/operator consequence
 
@@ -598,7 +622,7 @@ The following canonical owners are aligned with this concern on the current desi
 - GW-DOC-OPENCODE-INTEGRATION-V1 delegates productive workspace/instruction closure to this concern and no longer treats the physical configured source directory as the provider-visible project-material boundary;
 - GW-DOC-TECHNICAL-ARCHITECTURE-V1 requires the isolated STAGE inspection-workspace architecture;
 - GW-DOC-CANONICAL-CONTRACTS-V1 §36 owns the exact P6 contracts from §13;
-- the remaining downstream artifact is the P7 0.2.2 implementation plan, which must translate this design plus the separately owned workbench/settings corrections into exact tasks and gates.
+- the remaining downstream artifact is the P7 0.2.2 implementation plan, which must translate this design—including the trusted-integration productive agent environment—plus the separately owned workbench/settings corrections into exact tasks and gates.
 
 ## 15. Explicit non-goals
 
