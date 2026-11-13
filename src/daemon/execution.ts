@@ -1,5 +1,6 @@
 import {
   type Approval,
+  type EvidenceRef,
   type ExecutionTask,
   type ExecutionTaskId,
   type Run,
@@ -76,6 +77,7 @@ import {
   nextAttempt,
   persistProviderEvents,
   readEvidenceRef,
+  recordProviderDiagnostics,
   renderArtifacts,
   stopActiveProvider,
   updateRun,
@@ -369,6 +371,7 @@ export const executeMutatingRun = async (
     evidence: [],
   });
   let persisted: readonly RunEvent[];
+  let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
     const active = await startProviderForExecutionRun(
       runtime,
@@ -389,11 +392,19 @@ export const executeMutatingRun = async (
       task,
       runtime.config.referenceRoots,
       await executionPrompt(workItem, run.role, task, context, failure),
+      (record, stderr) => {
+        diagnosticEvidence = recordProviderDiagnostics(
+          runtime,
+          run.id,
+          record,
+          stderr,
+        );
+      },
     );
     persisted = persistProviderEvents(runtime, run, payloads);
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
-    failRunForProvider(runtime, run.id, error);
+    failRunForProvider(runtime, run.id, error, diagnosticEvidence);
     return;
   }
   await stopActiveProvider(runtime, run.id);
@@ -656,6 +667,7 @@ export const executeReviewerRun = async (
 
   const context = await approvalContext(runtime, approval, task, run.role);
   let reviewEvents: readonly RunEvent[];
+  let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
     const active = await startProviderForExecutionRun(
       runtime,
@@ -680,11 +692,19 @@ export const executeReviewerRun = async (
         undefined,
         reviewerInputs(runtime, capture, [...preflight, v2, v3]),
       ),
+      (record, stderr) => {
+        diagnosticEvidence = recordProviderDiagnostics(
+          runtime,
+          run.id,
+          record,
+          stderr,
+        );
+      },
     );
     reviewEvents = persistProviderEvents(runtime, run, payloads);
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
-    failRunForProvider(runtime, run.id, error);
+    failRunForProvider(runtime, run.id, error, diagnosticEvidence);
     return;
   }
   await stopActiveProvider(runtime, run.id);
