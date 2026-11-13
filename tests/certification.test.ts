@@ -634,7 +634,11 @@ describe("public release delivery certification", () => {
     expect(release).toContain(".github/release-retries/**");
     expect(release).toContain('mapfile -t retry_files');
     expect(release).toContain('target_sha="$(tr -d');
+    expect(release).toContain('release_retry=false');
+    expect(release).toContain('release_retry=true');
     expect(release).toContain('echo "TARGET_SHA=${target_sha}" >> "${GITHUB_ENV}"');
+    expect(release).toContain('echo "RELEASE_RETRY=${release_retry}" >> "${GITHUB_ENV}"');
+    expect(release).toContain('"${RELEASE_RETRY}" != "true"');
     expect(release).toContain('test "$(git rev-parse HEAD)" = "${target_sha}"');
     expect(release).toContain('git merge-base --is-ancestor "${target_sha}" refs/remotes/origin/master');
     expect(release).not.toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
