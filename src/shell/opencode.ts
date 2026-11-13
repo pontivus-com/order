@@ -570,15 +570,15 @@ export const listOpenCodeAccounts = async (
   const first = result.data.connections[0];
   const activeCredentialId = first?.type === "credential" ? first.id : null;
   return result.data.connections
-    .filter((connection) =>
-      connection.type === "credential" && connection.method === "oauth"
-    )
-    .map((connection) => OpenCodeAccountSchema.parse({
-      id: OpenCodeAccountIdSchema.parse(connection.id),
-      label: connection.label,
-      active: connection.id === activeCredentialId,
-      status: accountStatus(connection.status),
-    }))
+    .flatMap((connection) => {
+      if (connection.type !== "credential" || connection.method !== "oauth") return [];
+      return [OpenCodeAccountSchema.parse({
+        id: OpenCodeAccountIdSchema.parse(connection.id),
+        label: connection.label,
+        active: connection.id === activeCredentialId,
+        status: accountStatus(connection.status),
+      })];
+    })
     .sort((left, right) =>
       Number(right.active) - Number(left.active) ||
       left.label.localeCompare(right.label) ||
