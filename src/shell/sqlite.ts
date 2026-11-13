@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { existsSync, renameSync, unlinkSync } from "node:fs";
+import { copyFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -350,12 +350,12 @@ export const prepareOrderDatabaseForInstall = (
     database.close();
   }
 
-  if (version === 3 || version === 2) return null;
-  if (version !== 1) {
+  if (version === 3) return null;
+  if (version !== 1 && version !== 2) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
 
-  const suffix = `.legacy-v1.${crypto.randomUUID()}`;
+  const suffix = `.legacy-v${version}.${crypto.randomUUID()}`;
   const moved: string[] = [];
   try {
     for (const candidate of orderDatabaseFiles(path)) {
@@ -363,7 +363,15 @@ export const prepareOrderDatabaseForInstall = (
       renameSync(candidate, candidate + suffix);
       moved.push(candidate);
     }
+    if (version === 2) {
+      for (const candidate of moved) {
+        copyFileSync(candidate + suffix, candidate);
+      }
+    }
   } catch (error) {
+    for (const candidate of moved) {
+      if (existsSync(candidate)) unlinkSync(candidate);
+    }
     for (const candidate of moved.reverse()) {
       const archived = candidate + suffix;
       if (existsSync(archived)) renameSync(archived, candidate);
