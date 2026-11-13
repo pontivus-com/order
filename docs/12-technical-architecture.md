@@ -2211,6 +2211,8 @@ It owns:
 
 The daemon settings owner composes these existing/new shell effects and invokes normal source reconciliation afterward.
 
+Because current WorkItem source paths are persisted, the migration also uses the existing SQLite effect owner for one transaction that updates only the affected `workItemSources.sourcePath` values to the new deterministic paths. This happens as part of the migration activation boundary before normal reconciliation. Historical ArtifactRefs are not rewritten; new-path lifecycle files are rediscovered as current drafts through the existing ArtifactRef owner.
+
 ### 34.6 Readiness architecture
 
 Readiness is a pure daemon projection, not persisted state.
@@ -2359,7 +2361,7 @@ Permanent tests must cover:
 
 **Required behavior:** repository document-root changes preserve governed bytes/identities and manifest authority through one bounded atomic/rollback-capable shell operation.
 
-**Acceptance criterion:** success leaves one productive root and a matching validated manifest; failure leaves the old root authoritative.
+**Acceptance criterion:** success leaves one productive root, matching validated manifest, matching persisted current source paths and rediscovered current lifecycle drafts; failure leaves the old root authoritative.
 
 **Failure/negative behavior:** path-only edits, dual productive roots, whole-manifest semantic rewrites or orphaned WorkItems are prohibited.
 
