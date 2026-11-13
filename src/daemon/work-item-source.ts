@@ -240,12 +240,13 @@ const materializeLifecycleDrafts = async (
 
 const inspectQueue = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<Readonly<{
   plans: readonly QueuePlan[];
   diagnostics: readonly WorkItemSourceDiagnostic[];
   projects: ReadonlyMap<ProjectId, ConfiguredProject>;
 }>> => {
-  const configuredProjects = await loadConfiguredProjects(runtime.config.repositoryRoots);
+  const configuredProjects = await loadConfiguredProjects(repositoryRoots);
   const projects = new Map(
     configuredProjects.map((project) => [project.manifest.projectId, project] as const),
   );
@@ -393,13 +394,15 @@ const applyPlan = (
 
 export const workItemSourceDiagnostics = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<readonly WorkItemSourceDiagnostic[]> =>
-  (await inspectQueue(runtime)).diagnostics;
+  (await inspectQueue(runtime, repositoryRoots)).diagnostics;
 
 export const reconcileWorkItemSources = async (
   runtime: CoordinatorRuntime,
+  repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<WorkItemSourceReconciliation> => {
-  const inspected = await inspectQueue(runtime);
+  const inspected = await inspectQueue(runtime, repositoryRoots);
   withTransaction(runtime.database, () => {
     for (const plan of inspected.plans) applyPlan(runtime, plan);
   });
