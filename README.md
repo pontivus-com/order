@@ -47,6 +47,7 @@ order setup --reconfigure
 Normal operation:
 
 ```bash
+order --version
 order status
 order open
 ```
