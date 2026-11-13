@@ -1181,7 +1181,7 @@ type OrderConfig = Readonly<{
 
 The canonical Zod schemas for these concepts live in `src/core/contracts.ts`; no CLI/installer/daemon copy or DTO shape exists.
 
-The productive config is UTF-8 JSON at `<order-state>/config.json`. It is written only through the canonical guided-configuration function and owner-only atomic replacement. Missing or invalid config is a startup/setup failure, never an environment/default fallback.
+The productive config is UTF-8 JSON at `<order-state>/config.json`. It is written only through the canonical configuration effect owner using owner-only atomic replacement. The installer/CLI guided setup and the authenticated Settings mutation boundary both call that same owner; neither owns a second config shape or writer. Missing or invalid config is a startup/setup failure, never an environment/default fallback.
 
 Config v3 invariants:
 
@@ -2803,3 +2803,226 @@ Permanent tests prove:
 - stderr is bounded and known secrets are absent;
 - no hidden reasoning or second diagnostic/log database is introduced.
 
+
+
+## 35. Settings, readiness and human-first source-authoring contracts
+
+This section is the P6 realization of `GW-FR-079..098`. It extends the existing configuration, project-manifest, WorkItem-source and OpenCode-account contracts without introducing a parallel settings model.
+
+### 35.1 Canonical configuration identity
+
+Every productive configuration read returns the exact canonical `OrderConfig` plus the SHA-256 of its canonical persisted UTF-8 bytes:
+
+```ts
+const OrderConfigStateSchema = z.strictObject({
+  config: OrderConfigSchema,
+  sha256: Sha256Schema,
+});
+```
+
+The SHA is optimistic-concurrency identity only. It is not another configuration authority.
+
+Every Settings mutation that changes `config.json` requires the caller's `expectedConfigSha256`. A stale hash returns a 409 conflict before mutation.
+
+### 35.2 Connected repository projection
+
+The browser consumes one canonical projection derived from `OrderConfig.repositoryRoots` plus each validated root manifest:
+
+```ts
+const ConnectedRepositoryStateSchema = z.strictObject({
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+  projectId: ProjectIdSchema,
+  workItemsRoot: RepositoryPathSchema,
+  ready: z.boolean(),
+  attention: z.array(z.enum([
+    "PROJECT_MANIFEST_INVALID",
+    "WORKITEM_ROOT_INVALID",
+  ])).readonly(),
+});
+```
+
+`repositoryRoot` is exact canonical Git top-level identity. `workItemsRoot` is the effective repository-relative root after applying the manifest default/override. The projection does not copy the full project manifest into a new settings-owned shape.
+
+The existing project catalog remains authoritative for project concerns/authority/verification. Settings uses this projection only for installation-level connection/document-location management.
+
+### 35.3 Installation readiness projection
+
+Readiness is derived on demand and is never persisted independently:
+
+```ts
+const InstallationReadinessBlockerSchema = z.enum([
+  "REPOSITORY_REQUIRED",
+  "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
+  "MODEL_INVALID",
+  "OPENCODE_ACCOUNT_REQUIRED",
+]);
+
+const InstallationReadinessSchema = z.strictObject({
+  ready: z.boolean(),
+  blockers: z.array(InstallationReadinessBlockerSchema).readonly(),
+});
+```
+
+`ready === true` iff `blockers.length === 0`.
+
+The daemon is the single readiness-policy owner. The browser does not reconstruct readiness from separate repository/account/model queries.
+
+### 35.4 Focused Settings commands
+
+Settings mutates canonical state only through focused commands:
+
+```ts
+const ConnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  repositoryRoot: AbsoluteDirectoryPathSchema,
+});
+
+const DisconnectRepositorySchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  projectId: ProjectIdSchema,
+});
+
+const UpdateConfiguredModelSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  model: OpenCodeModelRefSchema,
+});
+
+const MigrateWorkItemDocumentRootSchema = z.strictObject({
+  projectId: ProjectIdSchema,
+  expectedManifestSha256: Sha256Schema,
+  targetWorkItemsRoot: RepositoryPathSchema,
+});
+```
+
+There is no generic browser command that posts an arbitrary replacement `OrderConfig`, raw project-manifest object or TOML text.
+
+Repository connect/disconnect/model mutations produce a new validated `OrderConfig` snapshot through the one configuration owner. Document-root migration mutates the repository-owned project manifest through the project-manifest owner and does not add a document-root field to `OrderConfig`.
+
+### 35.5 Configuration activation contract
+
+A successful config-changing Settings mutation is not considered active merely because new bytes reached `config.json`.
+
+The daemon owns one serialized configuration-activation boundary:
+
+1. prove no active Run or account-login/account-mutation operation conflicts with reconfiguration;
+2. verify the expected config hash;
+3. build and fully validate the proposed immutable `OrderConfig`;
+4. preflight configured repositories and the selected OpenCode model against the proposed configuration;
+5. quiesce the current coordinator scheduler;
+6. construct a candidate `CoordinatorRuntime` over the same canonical database/state root using the proposed immutable config;
+7. reconcile canonical repository sources under that candidate;
+8. atomically persist the config bytes;
+9. atomically replace the daemon's current coordinator-runtime reference with the candidate and start its scheduler;
+10. return the new `OrderConfigState` and `InstallationReadiness`.
+
+If candidate activation fails before the runtime swap, the old runtime/config remain authoritative and the old scheduler is resumed. If reconciliation changed projection state before a later activation failure, the old runtime performs canonical reconciliation before service resumes.
+
+`CoordinatorRuntime.config` itself remains readonly. Reconfiguration replaces the whole immutable runtime snapshot; it never mutates `runtime.config` in place.
+
+Only one configuration activation may run at a time.
+
+### 35.6 Repository disconnect visibility
+
+Disconnecting a repository removes it from the current productive configuration but does not delete its repository files or installation-local historical Run/evidence records.
+
+Ordinary active-work queries project only WorkItems whose exact `repositoryRoot` remains in current `OrderConfig.repositoryRoots`. Historical records are retained in SQLite and become visible again when the same repository is validly reconnected/reconciled.
+
+Disconnect is rejected while any active Run belongs to a WorkItem in that repository.
+
+### 35.7 Repository document-root migration contract
+
+The project manifest remains the only document-root configuration authority.
+
+Before migration, Order resolves:
+
+- exact repository root;
+- current validated manifest bytes + SHA-256;
+- current effective `workItems.root`;
+- target repository-relative root;
+- complete deterministic governed WorkItem path set under the current root.
+
+Migration admission requires:
+
+- matching `expectedManifestSha256`;
+- target path is repository-contained, non-Git and valid under the existing project-manifest contract;
+- no active Run for any WorkItem in the repository;
+- destination contains no conflicting governed WorkItem bytes;
+- no Git operation or filesystem condition makes the move untrustworthy.
+
+The shell project/document owner then performs one bounded operation:
+
+1. stage/copy every governed WorkItem directory to the target root without changing file bytes;
+2. verify file identities/hashes;
+3. produce project-manifest bytes whose only semantic change is the effective `workItems.root`;
+4. atomically activate the new document tree and manifest;
+5. remove the former productive tree only after activation succeeds;
+6. re-read/parse/hash the manifest and governed sources;
+7. reconcile the daemon projection.
+
+On failure, either the old root remains the sole productive root or the operation rolls back before returning failure. Two productive roots are never accepted as success.
+
+The manifest mutation must preserve unrelated project configuration/authority. A generic parse-and-reserialize rewrite that changes unrelated manifest semantics/text is not an acceptable correctness mechanism.
+
+### 35.8 WorkItem source authoring projection
+
+`WorkItemSourceSnapshot` remains the one canonical source snapshot and is extended with the exact human-authored body derived by the core source parser:
+
+```ts
+const WorkItemSourceSnapshotSchema = z.strictObject({
+  path: WorkItemSourcePathSchema,
+  sha256: Sha256Schema,
+  metadata: WorkItemSourceMetadataSchema,
+  markdown: MarkdownTextSchema,
+  bodyMarkdown: MarkdownTextSchema,
+});
+```
+
+`markdown` is the exact complete portable file for technical inspection/audit. `bodyMarkdown` is the exact byte-preserving body region beginning with the canonical H1 and is the normal Source editor buffer.
+
+Body save uses:
+
+```ts
+const ExpectedHashWorkItemBodyWriteSchema = z.strictObject({
+  expectedSha256: Sha256Schema,
+  bodyMarkdown: MarkdownTextSchema,
+});
+```
+
+The source core owner verifies the expected complete-file hash, parses the current metadata envelope, validates the proposed body, recomposes:
+
+```text
+current exact metadata envelope + proposed exact body
+```
+
+and persists through the existing expected-hash source-write effect. It must not regenerate, reorder or normalize the metadata envelope during a body-only save.
+
+The existing full-source parser remains the authority for externally edited repository files.
+
+### 35.9 Settings/account endpoint ownership
+
+Existing OpenCode account endpoints and `OpenCodeAccountState` remain canonical. Settings reuses them; no settings-specific account shape/endpoints duplicate that owner.
+
+New authenticated same-origin Settings endpoints are limited to canonical queries/commands for:
+
+- config state;
+- installation readiness;
+- connected repositories;
+- connect/disconnect repository;
+- update configured model;
+- migrate repository document root.
+
+The server remains transport-only and calls daemon command/query owners. UI `http.ts` parses canonical P6 schemas and owns no configuration policy.
+
+### 35.10 Required failure semantics
+
+Known Settings failures use the existing canonical HTTP error shape.
+
+At minimum:
+
+- stale config/manifest identity -> 409;
+- active Run/login/mutation blocker -> 409;
+- invalid repository/model/path input -> 400 when request-invalid, otherwise 409 when canonical current state prevents the requested operation;
+- missing configured repository/project -> 404;
+- unexpected activation/migration defect -> 500.
+
+No failure path silently falls back to another repository, model, account or document root.
