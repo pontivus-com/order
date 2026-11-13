@@ -6,7 +6,6 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
-
 ### Fixed
 
 - Correct the `0.2.1` release history so it describes only work shipped in that version, removes stale `0.2.0` publication residue, and records the complete Settings/account/readiness, repository migration, Source-authoring, workbench and certification scope.
