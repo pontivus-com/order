@@ -165,13 +165,13 @@ const baseRun = (overrides: Partial<Run> = {}): Run =>
 describe("productive configuration policy", () => {
   it("keeps configuration strict and path containment component-safe", () => {
     expect(OrderConfigSchema.safeParse({
-      version: 3,
+      version: 4,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: ["/home/test/projects"],
       referenceRoots: [],
     }).success).toBe(true);
     expect(OrderConfigSchema.safeParse({
-      version: 3,
+      version: 4,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [],
       referenceRoots: [],
