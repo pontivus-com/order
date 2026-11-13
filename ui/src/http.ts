@@ -6,6 +6,12 @@ import {
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWriteResultSchema,
   ExecutionTaskSchema,
+  ActivateOpenCodeAccountSchema,
+  OpenCodeAccountIdSchema,
+  OpenCodeAccountLoginAttemptSchema,
+  OpenCodeAccountStateSchema,
+  RenameOpenCodeAccountSchema,
+  StartOpenCodeAccountLoginSchema,
   SetWorkItemArchivedSchema,
   OrderHttpErrorSchema,
   RunEventSchema,
@@ -28,7 +34,13 @@ import {
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWriteResult,
   type ExecutionTask,
+  type ActivateOpenCodeAccount,
+  type OpenCodeAccountId,
+  type OpenCodeAccountLoginAttempt,
+  type OpenCodeAccountState,
   type OrderHttpError,
+  type RenameOpenCodeAccount,
+  type StartOpenCodeAccountLogin,
   type ProjectManifest,
   type Run,
   type RunEvent,
@@ -317,3 +329,49 @@ export const readEvidence = async (
       `/api/runs/${encodeURIComponent(runId)}/evidence?path=${encodeURIComponent(relativePath)}`,
     )
   ).arrayBuffer());
+
+
+export const getOpenCodeAccountState = async (): Promise<OpenCodeAccountState> =>
+  OpenCodeAccountStateSchema.parse(await json("/api/opencode/accounts"));
+
+export const activateOpenCodeAccount = async (
+  accountId: OpenCodeAccountId,
+  input: ActivateOpenCodeAccount,
+): Promise<OpenCodeAccountState> =>
+  OpenCodeAccountStateSchema.parse(await json(
+    `/api/opencode/accounts/${encodeURIComponent(OpenCodeAccountIdSchema.parse(accountId))}/activate`,
+    mutation("POST", ActivateOpenCodeAccountSchema.parse(input)),
+  ));
+
+export const renameOpenCodeAccount = async (
+  accountId: OpenCodeAccountId,
+  input: RenameOpenCodeAccount,
+): Promise<OpenCodeAccountState> =>
+  OpenCodeAccountStateSchema.parse(await json(
+    `/api/opencode/accounts/${encodeURIComponent(OpenCodeAccountIdSchema.parse(accountId))}`,
+    mutation("PATCH", RenameOpenCodeAccountSchema.parse(input)),
+  ));
+
+export const startOpenCodeAccountLogin = async (
+  input: StartOpenCodeAccountLogin,
+): Promise<OpenCodeAccountLoginAttempt> =>
+  OpenCodeAccountLoginAttemptSchema.parse(await json(
+    "/api/opencode/accounts/login",
+    mutation("POST", StartOpenCodeAccountLoginSchema.parse(input)),
+  ));
+
+export const getOpenCodeAccountLogin = async (
+  attemptId: OpenCodeAccountLoginAttempt["id"],
+): Promise<OpenCodeAccountLoginAttempt> =>
+  OpenCodeAccountLoginAttemptSchema.parse(await json(
+    `/api/opencode/accounts/login/${encodeURIComponent(attemptId)}`,
+  ));
+
+export const cancelOpenCodeAccountLogin = async (
+  attemptId: OpenCodeAccountLoginAttempt["id"],
+): Promise<void> => {
+  await request(
+    `/api/opencode/accounts/login/${encodeURIComponent(attemptId)}`,
+    { method: "DELETE" },
+  );
+};
