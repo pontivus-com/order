@@ -843,6 +843,7 @@ export const runInstaller = async (
   let configSnapshot: Readonly<{ path: string; bytes: Uint8Array | null }> | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
+  let legacyV2Config: LegacyOrderConfigV2 | null = null;
   let priorServiceWasActive = false;
   const createdProjectManifests: string[] = [];
   const launcher = join(locations.binDir, "order");
@@ -901,6 +902,15 @@ export const runInstaller = async (
       bytes: existsSync(configPath) ? new Uint8Array(readFileSync(configPath)) : null,
     };
 
+    const configUrl = pathToFileURL(
+      join(locations.installRoot, "app", "src", "shell", "config.ts"),
+    ).href;
+    const configModule = await import(configUrl) as typeof import("./shell/config.ts");
+    const upgradeConfig = configModule.readOrderConfigForUpgradeIfPresent(
+      locations.stateRoot,
+    );
+    legacyV2Config = upgradeConfig?.version === 2 ? upgradeConfig : null;
+
     step("configuring provider, model and repository access");
     await configureOrder(
       locations,
@@ -916,9 +926,19 @@ export const runInstaller = async (
     );
     if (databaseArchive !== null) {
       process.stdout.write(
-        "Order installer — archived incompatible beta workflow database at " +
+        "Order installer — retained rollback database archive at " +
           databaseArchive.archiveDatabase +
           "\n",
+      );
+    }
+
+    if (legacyV2Config !== null) {
+      const currentConfig = configModule.readOrderConfig(locations.stateRoot);
+      await migrateRepositoryNativeV2State(
+        locations,
+        legacyV2Config,
+        currentConfig,
+        sqliteUpgradeModule,
       );
     }
 
