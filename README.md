@@ -12,7 +12,7 @@ Order turns engineering intent into explicitly approved work, runs coding agents
 
 Order is currently in public pre-release development. No certified GitHub Release has been published yet.
 
-The supported public installation channel is being established by the `0.2.0` implementation/release package governed by [the public repository delivery standard](docs/15-public-repository-delivery-and-release.md). Once `0.2.0` is published, normal installation/update will consume the certified GitHub Release asset rather than arbitrary `master`.
+The supported public installation channel is being established by the `0.2.0` implementation/release package governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Once `0.2.0` is published, normal installation/update will consume the certified GitHub Release asset rather than arbitrary `master`.
 
 Cloning `master` is therefore a **contributor/development path**, not an immutable public release installation.
 
@@ -101,6 +101,6 @@ Browser/e2e verification must use a dedicated absolute `PONTIVUS_ORDER_TEST_STAT
 
 ## Contributing and releases
 
-All public changes are delivered through pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) and [the canonical public repository delivery and release standard](docs/15-public-repository-delivery-and-release.md).
+All public changes are delivered through pull requests. See [CONTRIBUTING.md](CONTRIBUTING.md) and [the canonical public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
 
 `CHANGELOG.md` records unreleased and published changes. Version bumps, tags, GitHub Releases and release assets follow the canonical release process; direct-to-`master` delivery is not supported.

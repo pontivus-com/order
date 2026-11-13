@@ -4,7 +4,7 @@ Order is a public repository. All changes are delivered through pull requests to
 
 The canonical contribution, versioning, changelog, tagging and release rules are defined by:
 
-- [Public repository delivery and release standard](docs/15-public-repository-delivery-and-release.md)
+- [Public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md)
 - [Repository operating rules](AGENTS.md)
 
 Before opening a PR:
