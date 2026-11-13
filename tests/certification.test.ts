@@ -163,6 +163,7 @@ describe("Order cross-boundary certification", () => {
       strict: true,
       noEmit: true,
       types: ["bun"],
+      resolveJsonModule: true,
     });
 
     const vite = read("vite.config.ts");
