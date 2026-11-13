@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Add final 0.2.1 cross-boundary architecture and installed-state certification, including active/final OpenCode account removal and obsolete-path absence.
+
 - Consolidate WorkItem workflow/document/editor chrome, make workflow steps non-mutating inspection navigation, and replace the theme select with a direct System/Light/Dark switcher.
 
 - Make normal WorkItem Source authoring body-only while preserving exact portable metadata bytes, complete-file concurrency identity, and read-only technical source disclosure.
