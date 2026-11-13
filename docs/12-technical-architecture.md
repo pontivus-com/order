@@ -2007,7 +2007,7 @@ Normal trigger is a `master` push whose merged candidate changes the canonical p
 
 Before any tag/publication effect it:
 
-1. proves the checkout commit equals the intended `master` release commit;
+1. proves the checkout commit equals the intended `master` release commit and is still reachable from `master`, without requiring it to remain the moving branch tip;
 2. validates package/changelog version agreement;
 3. proves the release tag is absent or already points to this exact commit for retry;
 4. establishes the exact locked toolchain;

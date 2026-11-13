@@ -182,7 +182,7 @@ Release automation runs only for a merged release/version change on `master`.
 
 Before creating a tag it must:
 
-1. prove `HEAD` is the current `master` release-PR merge commit;
+1. prove `HEAD` is the intended `master` release-PR merge commit and remains reachable from `master`; a later `master` commit must not invalidate that immutable release candidate or an exact retry;
 2. read/validate `package.json.version`;
 3. prove `CHANGELOG.md` contains the matching released section;
 4. prove tag `vX.Y.Z` does not point at another commit;

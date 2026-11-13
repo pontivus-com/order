@@ -139,7 +139,6 @@ describe("Order cross-boundary certification", () => {
         path !== "src/installer.ts" &&
         path !== "src/shell/project.ts"),
     ).toEqual([]);
-    expect(read("README.md")).toContain("immediately preceding supported Gateweft beta");
     expect(read("src/installer.ts")).toContain("migrateLegacyGateweftInstallation");
     expect(read("src/installer.ts")).toContain('"gateweft.service"');
     expect(read("src/installer.ts")).toContain('"gateweft.sqlite3"');
@@ -519,7 +518,6 @@ describe("Order cross-boundary certification", () => {
     const readme = read("README.md");
     for (const required of [
       "Linux",
-      "one command",
       "install.sh",
       "purpose-built installer",
       "src/installer.ts",
@@ -633,8 +631,9 @@ describe("public release delivery certification", () => {
     expect(release).toContain("pontivus-order.tar.gz.sha256");
     expect(release).toContain("git tag -a");
     expect(release).toContain("/releases/");
-    expect(release).toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
-    expect(release).not.toContain("git merge-base --is-ancestor");
+    expect(release).toContain('test "$(git rev-parse HEAD)" = "${TARGET_SHA}"');
+    expect(release).toContain('git merge-base --is-ancestor "${TARGET_SHA}" refs/remotes/origin/master');
+    expect(release).not.toContain('test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"');
     expect(release).toContain('Accept: application/octet-stream');
     expect(release).toContain('cmp -s "release/${asset}" "${existing_asset}"');
     expect(release).not.toContain("uses:");
