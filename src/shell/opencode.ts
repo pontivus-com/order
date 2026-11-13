@@ -641,6 +641,15 @@ export const renameOpenCodeAccount = async (
   });
 };
 
+export const removeOpenCodeAccount = async (
+  control: OpenCodeProviderProcess,
+  accountId: OpenCodeAccountId,
+): Promise<void> => {
+  await control.client.credential.remove({
+    credentialID: OpenCodeAccountIdSchema.parse(accountId),
+  });
+};
+
 const requireDefaultConsoleAuthorizationUrl = (value: string): string => {
   const candidate = new URL(value);
   const expected = new URL(openCodeConsoleDefaultEndpoint);
