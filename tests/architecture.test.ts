@@ -474,6 +474,11 @@ describe("architecture fitness", () => {
         "src/shell/file-write.ts",
         "src/shell/runtime.ts",
       ],
+      "src/shell/project-config.ts": [
+        "src/shell/project.ts",
+        "src/shell/repository.ts",
+        "src/shell/runtime.ts",
+      ],
     };
     for (const [sourcePath, allowedTargets] of Object.entries(requiredShellOwners)) {
       if (!files.has(sourcePath)) {
