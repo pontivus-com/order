@@ -14,6 +14,7 @@ import {
 
 import {
   buildOrderConfig,
+  readOrderConfig,
   readOrderConfigForUpgradeIfPresent,
   readOrderConfigIfPresent,
   writeOrderConfig,
@@ -48,11 +49,18 @@ const byteEqual = (left: Uint8Array, right: Uint8Array): boolean => {
   return true;
 };
 
+export const readLegacyOrderConfigV2ForInstall = (
+  stateRoot: string,
+): LegacyOrderConfigV2 | null => {
+  const config = readOrderConfigForUpgradeIfPresent(stateRoot);
+  return config?.version === 2 ? config : null;
+};
+
 export const migrateRepositoryNativeV2StateForInstall = async (
   stateRoot: string,
   legacyConfig: LegacyOrderConfigV2,
-  currentConfig: OrderConfig,
 ): Promise<void> => {
+  const currentConfig: OrderConfig = readOrderConfig(stateRoot);
   const projects = await loadConfiguredProjects(currentConfig.repositoryRoots);
   const projectById = new Map(
     projects.map((project) => [project.manifest.projectId, project] as const),
