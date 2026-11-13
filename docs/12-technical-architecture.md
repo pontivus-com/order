@@ -2345,9 +2345,9 @@ Permanent tests must cover:
 
 #### GW-TR-059-CANONICAL-SETTINGS-READINESS-PROJECTION
 
-**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners plus the exact installed-provider instruction-isolation capability required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`.
+**Required behavior:** connected repositories and productive readiness are canonical daemon projections derived from config/project/account/model owners. Productive OpenCode trust/admission follows `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`: exact Order authority is closed separately from explicitly selected trusted integration context.
 
-**Acceptance criterion:** browser Settings can render repository/document-root/readiness state, including `PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE`, without reconstructing it from unrelated APIs or assuming authentication success implies provider governance readiness.
+**Acceptance criterion:** browser Settings can render repository/document-root/account/model/readiness state without reconstructing it from unrelated APIs. A selected usable OpenCode Console account is a valid trusted integration input; its provider-native Library/MCP semantics are not a separate readiness blocker.
 
 **Failure/negative behavior:** no settings database, browser readiness policy, duplicate repository registry or browser-owned provider-instruction inference is permitted.
 
