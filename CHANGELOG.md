@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Consolidate WorkItem workflow/document/editor chrome, make workflow steps non-mutating inspection navigation, and replace the theme select with a direct System/Light/Dark switcher.
+
 - Make normal WorkItem Source authoring body-only while preserving exact portable metadata bytes, complete-file concurrency identity, and read-only technical source disclosure.
 
 - Centralize repository, OpenCode account, model/runtime and readiness configuration under browser Settings, make fresh installation start from valid empty OrderConfig v4, and reduce the shell account control to a Settings shortcut.

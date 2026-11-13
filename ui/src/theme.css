@@ -239,15 +239,9 @@
   align-items: center;
   gap: .35rem;
   min-height: 2rem;
-  padding: 0 .35rem;
+  padding: 0 .25rem;
   border: 1px solid var(--order-workbench-border);
   background: var(--order-workbench-surface);
-}
-.order-theme-control select {
-  border: 0;
-  background: transparent;
-  color: var(--order-workbench-text);
-  min-height: 1.75rem;
 }
 .order-visually-hidden {
   position: absolute !important;
@@ -393,15 +387,41 @@
 }
 .order-editor-body > * { min-height: 0; }
 
-.order-markdown-format-toolbar {
+.order-editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   flex: 0 0 auto;
-  min-height: 2.35rem;
-  display: flex;
-  align-items: center;
-  gap: .35rem;
-  padding: .3rem .4rem;
+  display: grid;
+  gap: .3rem;
+  padding: .35rem .4rem;
   border: 1px solid var(--order-editor-border);
   background: var(--order-workbench-subtle);
+}
+.order-editor-toolbar-main,
+.order-editor-toolbar-actions,
+.order-editor-heading,
+.order-document-toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  min-width: 0;
+}
+.order-editor-toolbar-main { justify-content: space-between; }
+.order-editor-heading { flex: 1; justify-content: space-between; }
+.order-editor-heading > div:first-child { min-width: 0; }
+.order-editor-toolbar-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--order-workbench-border);
+  padding-top: .3rem;
+}
+.order-markdown-format-toolbar {
+  flex: 1 1 auto;
+  min-width: 12rem;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
   overflow-x: auto;
 }
 .order-markdown-format-group {
@@ -456,27 +476,39 @@
 .order-editor-preview-pane .order-markdown-preview {
   border-color: var(--order-editor-border);
 }
-.order-editor-actionbar {
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  flex: 0 0 auto;
-  min-height: 2.5rem;
-  border-top: 1px solid var(--order-workbench-border);
-  background: var(--order-workbench-surface);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .75rem;
-  padding: .35rem 0;
+.order-editor-identity {
+  min-width: 0;
+  max-width: min(42rem, 55vw);
+  font-size: .7rem;
+  color: var(--order-workbench-muted);
 }
-.order-editor-identity { min-width: 0; font-size: .7rem; color: var(--order-workbench-muted); }
-.order-editor-identity code {
-  display: block;
-  max-width: min(36rem, 50vw);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.order-editor-identity summary { cursor: pointer; white-space: nowrap; }
+.order-editor-technical-content {
+  display: grid;
+  gap: .35rem;
+  margin-top: .35rem;
+}
+.order-editor-technical-content > div {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  gap: .4rem;
+}
+.order-editor-technical-content code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.order-source-technical {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.order-source-technical pre {
+  max-height: 16rem;
+  margin: .25rem 0 0;
+  padding: .45rem;
+  overflow: auto;
+  border: 1px solid var(--order-workbench-border);
+  background: var(--order-workbench-surface);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .order-editor-dirty-state { font-size: .72rem; color: var(--order-workbench-muted); }
 
@@ -723,7 +755,6 @@
   .order-queue-stage-column,.order-queue-status-column { display: none; }
   .order-queue-mobile-meta,.order-queue-mobile-concerns { display: block; }
   .order-review-metadata > div,.order-review-documents > div { grid-template-columns: 4rem minmax(0, 1fr); }
-  .order-editor-actionbar { align-items: flex-start; }
   .order-editor-identity code { max-width: 45vw; }
   .order-markdown-format-toolbar { padding-inline: .25rem; }
   .order-editor-mode-split {
@@ -734,69 +765,63 @@
   }
 }
 
-/* Canonical workflow orientation and Activity workspace. */
+/* Consolidated WorkItem top rail and Activity workspace. */
 .order-workitem-header {
   min-height: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0;
+  display: block;
+  background: var(--order-workbench-surface);
 }
 .order-workitem-header-main {
   min-height: 3rem;
-  padding: .4rem .75rem;
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-}
-.order-workflow-orientation {
-  min-height: 2.35rem;
-  padding: .32rem .75rem;
-  border-top: 1px solid var(--order-workbench-border);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: var(--order-workbench-subtle);
-}
-.order-current-workflow-step {
-  flex: 0 0 auto;
-  min-width: 13rem;
+  padding: .35rem .65rem;
   display: grid;
-  gap: .05rem;
+  grid-template-columns: auto minmax(11rem, 1fr) minmax(18rem, 2fr) auto;
+  align-items: center;
+  gap: .55rem;
 }
-.order-current-workflow-step strong { font-size: .78rem; }
-.order-current-workflow-step span {
-  max-width: 25rem;
-  font-size: .68rem;
-  color: var(--order-workbench-muted);
+.order-workitem-navigation-actions,
+.order-workitem-rail-actions {
+  flex-wrap: nowrap;
 }
-.order-workflow-orientation ol {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.order-workitem-rail-actions {
   display: flex;
   align-items: center;
-  gap: .25rem;
+  justify-content: flex-end;
+  gap: .35rem;
+}
+.order-workflow-progression {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: .2rem;
   overflow-x: auto;
   scrollbar-width: thin;
 }
-.order-workflow-orientation li {
+.order-workflow-progression button {
   flex: 0 0 auto;
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: .18rem .42rem;
+  padding: .2rem .4rem;
+  background: transparent;
   color: var(--order-workbench-muted);
+  font: inherit;
   font-size: .66rem;
   white-space: nowrap;
+  cursor: pointer;
 }
-.order-workflow-orientation li[aria-current="step"] {
+.order-workflow-progression button[data-reached="false"] {
+  opacity: .55;
+}
+.order-workflow-progression button[aria-current="step"] {
   border-color: var(--order-workbench-accent);
   color: var(--order-workbench-text);
   background: var(--order-color-eff6ff);
   font-weight: 700;
+}
+.order-workflow-progression button:focus-visible {
+  outline: 2px solid var(--order-workbench-accent);
+  outline-offset: 1px;
 }
 
 .order-primary-blocker {
@@ -972,13 +997,20 @@
     order: -1;
     flex-basis: 100%;
   }
-  .order-workflow-orientation {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: .3rem;
+  .order-workitem-header-main {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
-  .order-current-workflow-step { min-width: 0; }
-  .order-workflow-orientation ol { width: 100%; }
+  .order-workitem-navigation-actions { grid-column: 1; }
+  .order-workitem-heading-block { grid-column: 1 / -1; }
+  .order-workflow-progression {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .order-workitem-rail-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
   .order-primary-blocker { align-items: stretch; flex-direction: column; }
   .order-activity-summary {
     grid-template-columns: 1fr;
@@ -1029,30 +1061,11 @@
 .order-create-location span { color: var(--order-workbench-muted); }
 .order-create-location code { overflow-wrap: anywhere; }
 
-.order-document-state-strip {
-  flex: 0 0 auto;
-  min-height: 2.35rem;
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  padding: .35rem .1rem;
-  border-bottom: 1px solid var(--order-workbench-border);
+.order-document-toolbar-controls {
+  min-width: 0;
   font-size: .7rem;
 }
-.order-document-state-summary {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-}
-.order-document-state-summary code {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.order-document-state-summary > span:last-child {
+.order-document-git-state {
   color: var(--order-workbench-muted);
   white-space: nowrap;
 }
@@ -1110,11 +1123,6 @@
 }
 
 @media (max-width: 799px) {
-  .order-document-state-strip {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .order-document-state-summary { flex-wrap: wrap; }
   .order-document-git-details { max-width: 100%; }
   .order-workitem-title-edit { grid-template-columns: auto auto; }
   .order-workitem-title-edit input {

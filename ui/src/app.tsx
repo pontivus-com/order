@@ -3,6 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Badge } from "@astryxdesign/core/Badge";
 import { Drawer } from "@astryxdesign/core/Drawer";
+import {
+  SegmentedControl,
+  SegmentedControlItem,
+} from "@astryxdesign/core/SegmentedControl";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 
@@ -368,19 +372,19 @@ export const App = () => {
               tone="ghost"
               onClick={() => navigateSettings(settingsSection ?? "repositories")}
             />
-            <label className="order-theme-control">
+            <div className="order-theme-control">
               <WorkbenchIcon name={themePreference} />
-              <span className="order-visually-hidden">Theme</span>
-              <select
-                aria-label="Theme"
+              <SegmentedControl
+                label="Theme"
                 value={themePreference}
-                onChange={(event) => selectTheme(event.currentTarget.value)}
+                onChange={selectTheme}
+                size="sm"
               >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </label>
+                <SegmentedControlItem value="system" label="System" />
+                <SegmentedControlItem value="light" label="Light" />
+                <SegmentedControlItem value="dark" label="Dark" />
+              </SegmentedControl>
+            </div>
           </WorkbenchToolbarUtilities>
         </>
       }
