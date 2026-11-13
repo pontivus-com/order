@@ -883,11 +883,11 @@ Presentation must track canonical transitions without losing operational history
 
 #### GW-FR-053-ACTIVITY-WORKSPACE
 
-**Required behavior:** all current and historical agent Runs are inspectable through one Activity primary workspace across pre-signoff and post-signoff states.
+**Required behavior:** all current and historical agent Runs are inspectable through one Activity primary workspace across pre-signoff and post-signoff states. Activity is organized as Run/attempt history plus one selected-Run detail; status and actions belong to that selected detail.
 
-**Acceptance criterion:** active, waiting, completed, blocked, failed and cancelled Runs remain selectable with their chronological persisted events and evidence.
+**Acceptance criterion:** active, waiting, completed, blocked, failed and cancelled Runs remain selectable with their chronological persisted events and evidence; Retry/Cancel/Resume appears adjacent to the selected Run state that it affects; the event timeline is the dominant detail surface.
 
-**Failure/negative behavior:** terminal pre-signoff Runs must not disappear merely because they are no longer "active".
+**Failure/negative behavior:** terminal pre-signoff Runs must not disappear merely because they are no longer "active"; Activity must not duplicate selected-Run summary/state across an outer header and inner detail, or require a permanent unrelated Context rail to understand or operate the selected Run.
 
 #### GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY
 
@@ -907,7 +907,7 @@ Presentation must track canonical transitions without losing operational history
 
 #### GW-FR-056-WORKFLOW-ACTION-PLACEMENT
 
-**Required behavior:** current workflow actions appear adjacent to the task/state they affect according to §21.6 and do not compete through duplicated primary actions.
+**Required behavior:** current workflow actions appear adjacent to the task/state they affect according to §21.6 and do not compete through duplicated primary actions. Activity Retry/Cancel/Resume belongs in the selected-Run detail header rather than in an unrelated outer WorkItem/Activity band.
 
 **Acceptance criterion:** the operator never needs to infer that a hidden Context control is required to continue a visibly active primary task.
 
