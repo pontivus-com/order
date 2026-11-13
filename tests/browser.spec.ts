@@ -491,7 +491,7 @@ test("Activity keeps all Run history, human workflow orientation, responsive mas
   expect(masterBox!.width).toBeLessThanOrEqual(18 * 16 + 4);
   expect(detailBox!.width).toBeGreaterThan(640);
 
-  await expect(detail.getByText("Your input is needed", { exact: true })).toBeVisible();
+  await expect(detail.getByText("Continue current work", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Message input")).toBeVisible();
   await expect(page.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeHidden();
   const proposalTechnical = detail
@@ -510,7 +510,7 @@ test("Activity keeps all Run history, human workflow orientation, responsive mas
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("activity-detail")).toBeVisible();
   await expect(page.getByTestId("activity-run-master")).toBeVisible();
-  await expect(page.getByText("Your input is needed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Continue current work", { exact: true })).toBeVisible();
 
   await backToQueue(page);
   await openWorkItem(page, "Completed investigation");
@@ -702,7 +702,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await replaceMarkdownSource(page, editablePlan, fresh + "\nsaved plan edit\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => markdownSourceValue(editablePlan)).toContain("saved plan edit");
-  await expect(page.getByTestId("work-item-context").getByText("PLAN", { exact: true }).first()).toBeVisible();
+  await expect(page.getByTestId("work-item-context").getByText("Implementation plan", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
