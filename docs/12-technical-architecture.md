@@ -2363,3 +2363,40 @@ Permanent tests must cover:
 **Acceptance criterion:** normal Source editing can save body-only changes with complete-file expected-hash protection and unchanged metadata bytes.
 
 **Failure/negative behavior:** browser metadata parsing/recomposition or a second body/source persistence path is prohibited.
+
+
+### 34.13 Configuration-capable daemon startup and installer continuity
+
+The daemon must be able to serve authenticated Settings while configuration is valid but not productively ready.
+
+For `OrderConfig v4`:
+
+- zero configured repositories is valid configuration state;
+- `model = null` is valid configuration state;
+- repository/source reconciliation runs only when repositories exist;
+- provider/model preflight runs only when a model exists and a repository context required by that preflight can be resolved;
+- productive Run start/tick commands enforce readiness and return a canonical configuration blocker instead of crashing startup.
+
+The installer/update path reuses the same config owner.
+
+Update from 0.2.0/v3:
+
+1. preserve existing repository/model/reference choices exactly;
+2. convert config version 3 -> 4 deterministically;
+3. preserve the installation-owned OpenCode private state directory as part of state-root continuity;
+4. never import ambient/global OpenCode secrets;
+5. retain the existing v2 repository-document migration before final v4 activation where applicable;
+6. start the daemon even when post-update account readiness requires operator action;
+7. expose unresolved readiness through Settings instead of treating it as installation corruption.
+
+Fresh install may complete with an incomplete v4 config and route the operator into Settings. Guided terminal setup remains available, but it is no longer the only way to reach a valid daemon.
+
+Permanent migration tests must prove v3 choices survive byte-for-semantic-value conversion, retained private OpenCode state remains in place, and missing account/repository/model conditions reach Settings rather than daemon startup failure.
+
+#### GW-TR-070-CONFIGURATION-CAPABLE-DAEMON-BOOT
+
+**Required behavior:** the daemon starts from structurally valid OrderConfig v4 even when repository/model productive prerequisites are absent, and exposes canonical readiness/Settings while blocking only affected productive commands.
+
+**Acceptance criterion:** fresh or upgraded installations can reach authenticated Settings with zero repositories and/or no configured model; existing valid v3 choices migrate unchanged.
+
+**Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force account/model/repository completion exclusively through installer prompts.
