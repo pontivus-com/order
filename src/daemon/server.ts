@@ -165,6 +165,22 @@ const isZodFailure = (error: unknown): boolean =>
   "name" in error &&
   (error as { name?: unknown }).name === "ZodError";
 
+type RequestSchema<T> = Readonly<{ parse: (value: unknown) => T }>;
+
+const parseRequest = <T>(
+  schema: RequestSchema<T>,
+  value: unknown,
+): T => {
+  try {
+    return schema.parse(value);
+  } catch (error) {
+    if (isZodFailure(error)) {
+      throw badRequest(error instanceof Error ? error.message : "Invalid request");
+    }
+    throw error;
+  }
+};
+
 export const classifyHttpFailure = (
   error: unknown,
 ): Readonly<{
@@ -184,12 +200,9 @@ export const classifyHttpFailure = (
   }
 
   if (
-    isZodFailure(error) ||
-    (
-      error instanceof TypeError &&
-      "orderHttpStatus" in error &&
-      (error as { orderHttpStatus?: unknown }).orderHttpStatus === 400
-    )
+    error instanceof TypeError &&
+    "orderHttpStatus" in error &&
+    (error as { orderHttpStatus?: unknown }).orderHttpStatus === 400
   ) {
     return {
       status: 400,
@@ -504,12 +517,12 @@ const routeApi = async (
     request.method === "POST" &&
     url.pathname === "/api/work-items"
   ) {
-    const body = CreateWorkItemSourceSchema.parse(await readJsonBody(request));
+    const body = parseRequest(CreateWorkItemSourceSchema, await readJsonBody(request));
     return jsonResponse(await createWorkItem(runtime, body), 201);
   }
 
   if (parts[0] === "api" && parts[1] === "work-items" && parts[2]) {
-    const workItemId = WorkItemIdSchema.parse(parts[2]);
+    const workItemId = parseRequest(WorkItemIdSchema, parts[2]);
 
     if (parts.length === 3 && request.method === "GET") {
       return jsonResponse(getWorkItem(runtime, workItemId));
@@ -528,15 +541,15 @@ const routeApi = async (
       return jsonResponse(await getWorkItemSource(runtime, workItemId));
     }
     if (parts[3] === "source" && parts.length === 4 && request.method === "PUT") {
-      const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
+      const body = parseRequest(ExpectedHashMarkdownWriteSchema, await readJsonBody(request));
       return jsonResponse(await saveSource(runtime, workItemId, body));
     }
     if (parts[3] === "title" && parts.length === 4 && request.method === "PATCH") {
-      const body = UpdateWorkItemTitleSchema.parse(await readJsonBody(request));
+      const body = parseRequest(UpdateWorkItemTitleSchema, await readJsonBody(request));
       return jsonResponse(await updateTitle(runtime, workItemId, body));
     }
     if (parts[3] === "archive" && parts.length === 4 && request.method === "PATCH") {
-      const body = SetWorkItemArchivedSchema.parse(await readJsonBody(request));
+      const body = parseRequest(SetWorkItemArchivedSchema, await readJsonBody(request));
       return jsonResponse(await setArchived(runtime, workItemId, body));
     }
     if (
@@ -551,7 +564,7 @@ const routeApi = async (
       parts.length === 4 &&
       request.method === "POST"
     ) {
-      const body = CommitWorkItemDocumentationSchema.parse(await readJsonBody(request));
+      const body = parseRequest(CommitWorkItemDocumentationSchema, await readJsonBody(request));
       return jsonResponse(await commitDocumentation(runtime, workItemId, body));
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
@@ -567,7 +580,7 @@ const routeApi = async (
       if (request.method === "POST") {
         const body = await readJsonBody(request);
         requireKeys(body, ["mode"]);
-        const mode = RunModeSchema.parse(body.mode);
+        const mode = parseRequest(RunModeSchema, body.mode);
         return jsonResponse(await startStageRun(runtime, workItemId, mode), 201);
       }
     }
@@ -582,14 +595,14 @@ const routeApi = async (
       return jsonResponse(await signOffWorkItem(
         runtime,
         workItemId,
-        Sha256Schema.parse(body.expectedPackageHash),
+        parseRequest(Sha256Schema, body.expectedPackageHash),
         requireString(body, "approvedBy"),
       ));
     }
   }
 
   if (parts[0] === "api" && parts[1] === "runs" && parts[2]) {
-    const runId = RunIdSchema.parse(parts[2]);
+    const runId = parseRequest(RunIdSchema, parts[2]);
     if (parts[3] === "events" && parts.length === 4 && request.method === "GET") {
       const raw = url.searchParams.get("afterSequence") ?? "0";
       if (!/^[0-9]+$/.test(raw)) throw badRequest("afterSequence must be a non-negative integer");
@@ -604,7 +617,7 @@ const routeApi = async (
       const body = await readJsonBody(request);
       requireKeys(body, ["text", "requestEventId"]);
       const rawEventId = body.requestEventId;
-      const requestEventId = rawEventId === null ? null : RunEventIdSchema.parse(rawEventId);
+      const requestEventId = rawEventId === null ? null : parseRequest(RunEventIdSchema, rawEventId);
       return jsonResponse(await submitRunInput(
         runtime,
         runId,
@@ -626,7 +639,7 @@ const routeApi = async (
     parts.length === 4 &&
     request.method === "POST"
   ) {
-    const proposalEventId = RunEventIdSchema.parse(parts[2]);
+    const proposalEventId = parseRequest(RunEventIdSchema, parts[2]);
     const body = await readJsonBody(request);
     requireKeys(body, []);
     if (parts[3] === "adopt") {
@@ -647,7 +660,7 @@ const routeApi = async (
   ) {
     return rawResponse(await readArtifactContent(
       runtime,
-      ArtifactRefIdSchema.parse(parts[2]),
+      parseRequest(ArtifactRefIdSchema, parts[2]),
     ));
   }
 
@@ -659,10 +672,10 @@ const routeApi = async (
     parts.length === 4 &&
     request.method === "PUT"
   ) {
-    const body = ExpectedHashMarkdownWriteSchema.parse(await readJsonBody(request));
+    const body = parseRequest(ExpectedHashMarkdownWriteSchema, await readJsonBody(request));
     return jsonResponse(await saveArtifactContent(
       runtime,
-      ArtifactRefIdSchema.parse(parts[2]),
+      parseRequest(ArtifactRefIdSchema, parts[2]),
       body,
     ));
   }
