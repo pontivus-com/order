@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Define the Order software-factory product identity, aperture-based brand assets, and public README messaging around ideas becoming verified results.
 - Add structured GitHub issue intake for bug reports, feature requests, and private security reporting.
 - Add adversarial cross-boundary certification for repository-native Git admission, three-account OpenCode identity switching, and canonical UI/runtime ownership.
 - Add a responsive global OpenCode saved-account utility for safe switching, rename, external device sign-in, auth attention, and active-Run mutation blocking.

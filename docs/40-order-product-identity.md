@@ -4,7 +4,7 @@
 **Canonical concern ID:** `GW-DOC-PRODUCT-IDENTITY`  
 **Versioned concern ID:** `GW-DOC-PRODUCT-IDENTITY-V1`  
 **Pyramid layer:** P2 user/product intent  
-**Scope:** Naming, descriptors, family relationship, and approved product-language hierarchy only.  
+**Scope:** Naming, descriptors, value proposition, brand message hierarchy, family relationship, and approved product-language hierarchy.  
 **Non-scope:** Runtime architecture, lifecycle contracts, persistence, transport, execution semantics, or implementation planning.
 
 ## 1. Canonical identity
@@ -13,64 +13,231 @@
 |---|---|
 | Product name | **Order** |
 | Endorsed/full name | **Pontivus Order** |
-| Category descriptor | **Governed software delivery for coding agents.** |
-| Primary proposition | **Give agents the work. Keep authority over what counts as done.** |
-| One-line description | **Order turns engineering intent into explicitly approved work, runs coding agents within that authority, and independently verifies the resulting change.** |
-| Technical description | **A local workbench and execution control plane for governed coding-agent work.** |
+| Category descriptor | **Open-source software factory for coding agents.** |
+| Primary proposition | **Ideas in. Results out.** |
+| Supporting line | **From idea to verified result.** |
+| One-line description | **Order turns ideas for software work into verified results by carrying them through definition, implementation, testing, review, bounded remediation, and independent verification.** |
+| Short description | **An open-source software factory that carries software work from idea to verified result.** |
+| Technical description | **A local workbench and execution control plane that turns governed software work into verified candidates.** |
 | Terminal product outcome | **Verified candidate** |
-| Family relationship | **Span keeps engineering understanding current. Order keeps engineering work under authority.** |
+| Family relationship | **Span preserves engineering understanding. Order carries engineering work through to verified results.** |
 
 ## 2. Product job
 
-Order governs how software work moves from engineering intent to authorized coding-agent execution and independently verified completion.
+Order turns software-work ideas into verified results.
 
-Its job is not to make a coding agent more autonomous. Its job is to preserve explicit authority over:
+A user starts with something that needs to happen: a feature, defect, change, investigation, audit, documentation update, infrastructure change, UI change, or other repository-governed work.
 
-- what work may progress;
-- what scope is authorized;
-- what constraints govern implementation;
-- what evidence is required;
-- what qualifies as complete.
+Order owns the production process required to carry that work forward:
 
-The coding agent performs implementation work inside that authority. It does not originate its own execution authority, broaden its own approved scope, or certify its own completion.
+1. establish what is actually true;
+2. define the required outcome;
+3. resolve the solution and implementation plan;
+4. independently assess readiness;
+5. require explicit sign-off before productive implementation;
+6. execute the authorized work;
+7. run prescribed deterministic verification;
+8. run independent semantic review;
+9. perform bounded remediation where the failure is legitimately repairable;
+10. re-verify and produce the terminal result.
 
-## 3. Family relationship with Span
+Some work correctly terminates without implementation. Investigations, audits, disproven ideas, duplicate work, and already-satisfied work do not manufacture code merely because they entered the system.
 
-Span and Order are complementary Pontivus-native engineering tools.
+The user manages **what work should happen**. Order manages **how that work is carried through**.
 
-**Span** maintains engineering understanding. It preserves supported conclusions about a codebase, their evidence, and whether that support remains current.
+## 3. User-level value
 
-**Order** governs engineering work. It controls whether proposed work may progress into execution, constrains implementation to explicitly authorized work, and independently verifies the resulting change.
+The primary user value is not governance for its own sake.
 
-A concise family statement is:
+Order is intended to let an engineer or team define the work that matters and avoid manually operating every agent invocation, verification step, retry, and review cycle required to turn that work into a reliable outcome.
 
-> **Span keeps engineering understanding current. Order keeps engineering work under authority.**
+The product therefore presents one centralized work surface over:
 
-The tools may integrate, but neither product becomes a semantic subsystem of the other merely because they are in the same family.
+- work that still needs definition;
+- work awaiting a human decision or sign-off;
+- work executing;
+- work blocked or failed;
+- work under verification or review;
+- work undergoing bounded remediation;
+- work that has reached a verified terminal result.
 
-## 4. Product-language hierarchy
+The desired abstraction is:
 
-Use the following hierarchy consistently.
+```text
+idea / requested change
+        |
+        v
+      Order
+ software-work factory
+        |
+        v
+ verified result
+```
 
-### Public headline
+Coding agents operate inside the factory. They are execution components, not the product identity.
 
-> **Give agents the work. Keep authority over what counts as done.**
+## 4. Differentiation
+
+Order does not primarily compete on making a coding agent more autonomous.
+
+Its distinguishing operating model is that the software work itself has a durable lifecycle and an explicit authority boundary.
+
+An implementation agent does not get to:
+
+- silently turn ambiguity into new requirements;
+- broaden its own authorized scope;
+- manufacture additional execution tasks;
+- treat an adjacent discovery as permission to implement unrelated work;
+- redefine the acceptance criteria to fit its implementation;
+- certify its own work as complete.
+
+Order carries the approved work through execution and checks the resulting change against the work that was actually authorized.
+
+This prevents the common failure mode where the implementation may be technically plausible while the job itself has drifted.
+
+## 5. Product-language hierarchy
+
+Use this hierarchy consistently.
+
+### Primary headline
+
+> **Ideas in. Results out.**
+
+This is the primary brand proposition.
+
+### Supporting line
+
+> **From idea to verified result.**
+
+This explains what the primary proposition means.
 
 ### Category
 
-> **Governed software delivery for coding agents.**
+> **Open-source software factory for coding agents.**
+
+Use this when the reader needs to understand what kind of product Order is.
 
 ### Short description
 
-> Order turns engineering intent into explicitly approved work, runs coding agents within that authority, and independently verifies the resulting change.
+> Order is an open-source software factory that carries software work from idea to verified result.
+
+### Standard description
+
+> Order turns ideas for software work into verified results by carrying them through definition, implementation, testing, review, bounded remediation, and independent verification.
+
+### Expanded description
+
+> Start with a feature, bug, change, audit, investigation, documentation task, infrastructure change, or other piece of repository-governed work. Order works out what needs to happen, makes the work implementation-ready, requires explicit sign-off before productive execution, runs coding agents against the authorized work, tests and reviews the result, performs bounded remediation where appropriate, and produces a verified candidate.
 
 ### Technical description
 
-> Order is a local workbench and execution control plane for governed coding-agent work.
+> Order is a local workbench and execution control plane that durably owns software-work state, authorized execution, verification evidence, independent review, bounded remediation, and terminal result classification.
 
-The technical description is explanatory architecture language. It is not the primary market category.
+The technical description is explanatory architecture language. It is not the primary product message.
 
-## 5. Positioning boundaries
+## 6. Supporting messages
+
+These messages explain why the factory can produce a reliable result.
+
+### Define the work before building it
+
+Order separates current-state research, requirements, design, planning, and readiness from implementation.
+
+Implementation should not be the stage where material product or architecture decisions are invented.
+
+### Keep the work from drifting
+
+The implementation agent receives exact authorized work with explicit scope, exclusions, acceptance criteria, dependencies, and verification requirements.
+
+The agent does the work. It does not redefine the work.
+
+### Do not let the builder certify itself
+
+A successful implementation claim from the builder is not completion evidence.
+
+Candidate completion requires prescribed deterministic verification and independent semantic review.
+
+### Correct what can be corrected
+
+Where validation identifies a legitimately repairable implementation defect, Order may run bounded remediation and re-verification.
+
+Where the problem is upstream in requirements, design, authority, or readiness, the work returns to the correct owning stage rather than being patched blindly.
+
+### Allow no-code results
+
+Doing nothing is a valid result when the requested work is disproven, duplicate, already satisfied, informational only, or otherwise does not justify implementation.
+
+## 7. Claim boundaries
+
+The following are supported product facts:
+
+- Order carries software work through a durable governed lifecycle;
+- productive implementation requires explicit sign-off;
+- implementation agents cannot broaden their own authorized execution tasks;
+- required deterministic verification is external to the implementation agent;
+- independent semantic review is required for candidate completion;
+- bounded remediation exists where permitted by validation policy;
+- investigations and audits may terminate without implementation;
+- Order terminates at a verified candidate;
+- Order does not commit, push, merge, deploy, or mutate production as part of v1.
+
+Do not present the following as measured facts without external evidence:
+
+- reduced engineering time;
+- reduced supervision time;
+- fewer defects;
+- higher developer productivity;
+- faster delivery;
+- larger tasks delegated per engineer;
+- lower review cost;
+- improved code quality;
+- increased trust in coding agents.
+
+These may be tested as adoption-benefit hypotheses but are not yet quantified product claims.
+
+## 8. Visual identity
+
+The canonical visual metaphor is **aperture / focus**.
+
+An idea begins unresolved. Order brings the work into focus, carries it through the software factory, and produces a verified result.
+
+The aperture is a metaphor. Order is not a camera product and the mark must not become a literal camera illustration.
+
+Canonical assets are owned under `assets/`.
+
+Primary visual rules:
+
+- simple geometric aperture symbol;
+- strong performance in monochrome;
+- deep navy / Order blue palette;
+- no checkmark embedded in the mark;
+- no workflow nodes;
+- no shield;
+- no literal factory;
+- no robot or AI sparkle;
+- no arrow as the primary symbol;
+- no literal camera body or lens detail.
+
+The primary README lockup uses:
+
+> **Ideas in. Results out.**  
+> **From idea to verified result.**
+
+## 9. Family relationship with Span
+
+Span and Order are complementary Pontivus-native engineering tools.
+
+**Span** preserves supported engineering understanding and whether that understanding remains current.
+
+**Order** carries engineering work from idea through the production process to a verified result.
+
+A concise family statement is:
+
+> **Span preserves engineering understanding. Order carries engineering work through to verified results.**
+
+The products may integrate, but neither becomes a semantic subsystem of the other merely because they belong to the same family.
+
+## 10. Positioning boundaries
 
 Do not position Order primarily as:
 
@@ -82,15 +249,16 @@ Do not position Order primarily as:
 - an IDE;
 - a coding agent itself;
 - a CI/CD replacement;
-- a deployment or merge authority.
+- a deployment or merge authority;
+- a generic task orchestrator.
 
-Those labels either describe only one internal mechanism or materially misstate the product boundary.
+Those descriptions either expose an internal mechanism or materially understate the product.
 
-The distinguishing proposition is control over **software-work progression and completion authority**, not merely model access, permissions, orchestration, or generated code quality.
+The product-level abstraction is the **software factory**: software work enters as an idea or requested change and is carried through the necessary definition, execution, validation, and remediation to a verified terminal result.
 
-## 6. Naming usage
+## 11. Naming usage
 
-Use **Order** in the product itself and in ordinary product prose.
+Use **Order** in the product itself and ordinary product prose.
 
 Use **Pontivus Order** when the endorsed/full identity is useful, including:
 
