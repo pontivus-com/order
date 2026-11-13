@@ -225,7 +225,7 @@ Control form must match the decision being made.
 
 | Decision | Required interaction pattern |
 |---|---|
-| Appearance: System / Light / Dark | compact three-way utility control/menu preserving explicit semantic labels/icons; not a generic entity select |
+| Appearance: System / Light / Dark | compact three-way segmented switcher or equivalent direct mode control with explicit System/Light/Dark semantics; never a select/dropdown form field |
 | WorkItem type | direct icon + label single-choice options; not a text-only select |
 | Project | selector/typeahead/select because this is an entity choice |
 | Concerns | searchable/toggleable multi-choice chips/list; not native multi-select |
@@ -234,6 +234,16 @@ Control form must match the decision being made.
 | Destructive disposition | explicit destructive action, never hidden in a generic menu when immediately consequential |
 
 Native/select-style controls remain valid when the choice is genuinely an arbitrary entity list rather than a small semantic mode set.
+
+
+
+### GW-FR-098-APPEARANCE-MODE-DIRECT-CONTROL
+
+**Required behavior:** System / Light / Dark is exposed as a direct compact mode switcher whose options are immediately visible or one-tap conventional utility states; it is not modeled as an arbitrary-value form select.
+
+**Acceptance criterion:** the operator can identify and change the active appearance mode directly from the application utility area without opening a select-style field or settings form merely to cycle among the three fixed modes.
+
+**Failure/negative behavior:** appearance mode must not use a native/select-box interaction, an entity picker, or another control whose interaction grammar implies arbitrary configuration values.
 
 ## 12. Icon semantics
 
