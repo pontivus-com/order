@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { orderVersion } from "../src/version.ts";
@@ -978,8 +979,8 @@ describe("source-backed WorkItem core", () => {
 
 
 describe("release version ownership", () => {
-  it("derives the runtime version from package.json", async () => {
-    const packageJson = JSON.parse(await Bun.file("package.json").text()) as {
+  it("derives the runtime version from package.json", () => {
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
       version: string;
     };
     expect(orderVersion).toBe(packageJson.version);
