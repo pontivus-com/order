@@ -2892,6 +2892,11 @@ const UpdateConfiguredModelSchema = z.strictObject({
   model: OpenCodeModelRefSchema,
 });
 
+const UpdateReferenceRootsSchema = z.strictObject({
+  expectedConfigSha256: Sha256Schema,
+  referenceRoots: z.array(AbsoluteDirectoryPathSchema).refine(unique).readonly(),
+});
+
 const MigrateWorkItemDocumentRootSchema = z.strictObject({
   repositoryRoot: AbsoluteDirectoryPathSchema,
   expectedManifestSha256: Sha256Schema,
@@ -2901,7 +2906,7 @@ const MigrateWorkItemDocumentRootSchema = z.strictObject({
 
 There is no generic browser command that posts an arbitrary replacement `OrderConfig`, raw project-manifest object or TOML text.
 
-Repository connect/disconnect/model mutations produce a new validated `OrderConfig` snapshot through the one configuration owner. Document-root migration mutates the repository-owned project manifest through the project-manifest owner and does not add a document-root field to `OrderConfig`.
+Repository connect/disconnect, model and STAGE reference-root mutations produce a new validated `OrderConfig` snapshot through the one configuration owner. Document-root migration mutates the repository-owned project manifest through the project-manifest owner and does not add a document-root field to `OrderConfig`.
 
 ### 35.5 Configuration activation contract
 
@@ -3014,6 +3019,7 @@ New authenticated same-origin Settings endpoints are limited to canonical querie
 - connected repositories;
 - connect/disconnect repository;
 - update configured model;
+- update STAGE reference roots;
 - migrate repository document root.
 
 The server remains transport-only and calls daemon command/query owners. UI `http.ts` parses canonical P6 schemas and owns no configuration policy.
