@@ -334,7 +334,7 @@ export const WorkItemSchema = z
     id: WorkItemIdSchema,
     projectId: ProjectIdSchema,
     repositoryRoot: z.string(),
-    title: WorkItemTitleSchema,
+    title: z.string(),
     origin: z.string(),
     schemaId: WorkItemSchemaIdSchema,
     sourcePath: WorkItemSourcePathSchema,
