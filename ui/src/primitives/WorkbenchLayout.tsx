@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Drawer } from "@astryxdesign/core/Drawer";
 
-const RAIL_QUERY = "(min-width: 1200px)";
+const RAIL_QUERY = "(min-width: 1280px)";
 
 export const useWideWorkbench = (): boolean => {
   const [wide, setWide] = useState(() =>

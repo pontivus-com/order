@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Replace active-only Dialogue with an all-Run Activity workspace and human workflow orientation across the WorkItem surface.
 - Persist bounded, secret-safe provider turn diagnostics as canonical Run evidence with failure linkage.
 - Add the canonical typed HTTP failure boundary with actionable source/current-state diagnostics.
 

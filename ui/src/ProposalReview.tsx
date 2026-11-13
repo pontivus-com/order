@@ -14,11 +14,11 @@ import { proposalDispositionFor, type ProposalSelection } from "./workbench-pres
 export const ProposalReview = ({
   workItem,
   selection,
-  onBackToDialogue,
+  onBackToActivity,
 }: Readonly<{
   workItem: WorkItem;
   selection: ProposalSelection;
-  onBackToDialogue: () => void;
+  onBackToActivity: () => void;
 }>) => {
   const queryClient = useQueryClient();
   const eventsQuery = useQuery({
@@ -83,7 +83,7 @@ export const ProposalReview = ({
       <section className="order-workspace-section order-review-workspace" data-testid="proposal-review-workspace">
         <WorkbenchEmptyState
           title="Proposal is no longer available"
-          description="Return to Dialogue to select a current proposal event."
+          description="Return to Activity to select a current proposal event."
         />
       </section>
     );
@@ -97,15 +97,15 @@ export const ProposalReview = ({
           <span>{proposalPayload.targetPath}</span>
         </div>
         <WorkbenchAction
-          label="Back to dialogue"
+          label="Back to Activity"
           tone="ghost"
-          onClick={onBackToDialogue}
+          onClick={onBackToActivity}
         />
       </div>
 
       <div className="order-proposal-review-summary">
         <p>{proposalPayload.rationale}</p>
-        <span>{disposition ?? "PENDING"}</span>
+        <span>{disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : "Pending review"}</span>
       </div>
 
       <div className="order-proposal-review-diff" data-testid="proposal-review-diff">
