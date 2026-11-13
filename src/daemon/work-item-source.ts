@@ -2,6 +2,7 @@ import {
   ArtifactRefSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
+  ExpectedHashWorkItemBodyWriteSchema,
   ExpectedHashWriteResultSchema,
   SetWorkItemArchivedSchema,
   UpdateWorkItemTitleSchema,
@@ -11,6 +12,7 @@ import {
   WorkItemSourceReconciliationSchema,
   type CreateWorkItemSource,
   type ExpectedHashMarkdownWrite,
+  type ExpectedHashWorkItemBodyWrite,
   type ExpectedHashWriteResult,
   type ProjectId,
   type SetWorkItemArchived,
@@ -27,6 +29,7 @@ import {
   isUnsupportedWorkItemSchemaFailure,
   linkedRemediationIsAllowed,
   parseWorkItemSourceMarkdown,
+  recomposeWorkItemSourceBody,
   renderWorkItemSourceMarkdown,
   rewriteWorkItemSourceTitle,
   workItemDocumentPath,
@@ -570,6 +573,7 @@ export const revalidateWorkItemSource = async (
       sha256: current.sha256,
       metadata: current.metadata,
       markdown: current.markdown,
+      bodyMarkdown: current.bodyMarkdown,
     }),
   };
 };
@@ -584,6 +588,7 @@ export const currentWorkItemSource = async (
     sha256: source.sha256,
     metadata: source.metadata,
     markdown: source.markdown,
+    bodyMarkdown: source.bodyMarkdown,
   });
 };
 
@@ -704,6 +709,33 @@ export const saveWorkItemSource = async (
   });
   updateWorkItemSourceProjection(runtime.database, next);
   return result;
+};
+
+export const saveWorkItemSourceBody = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: ExpectedHashWorkItemBodyWrite,
+): Promise<ExpectedHashWriteResult> => {
+  const command = ExpectedHashWorkItemBodyWriteSchema.parse(input);
+  const validated = await revalidateWorkItemSource(runtime, workItemId);
+  const existing = validated.workItem;
+  if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
+    throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
+  }
+  if (command.expectedSha256 !== existing.sourceSha256) {
+    return ExpectedHashWriteResultSchema.parse({
+      tag: "STALE",
+      currentSha256: existing.sourceSha256,
+    });
+  }
+  const markdown = recomposeWorkItemSourceBody(
+    validated.source.markdown,
+    command.bodyMarkdown,
+  );
+  return saveWorkItemSource(runtime, workItemId, {
+    expectedSha256: command.expectedSha256,
+    markdown,
+  });
 };
 
 export const updateWorkItemTitle = async (
