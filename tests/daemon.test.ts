@@ -1148,6 +1148,117 @@ describe("daemon control plane", () => {
     expect(output.message).toBe("");
   });
 
+  it("persists source and archive-marker changes through exact documentation Git commands", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-documentation-git-");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 3,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "Git managed source",
+        concernIds: ["shell"],
+      });
+
+      const sourceStatus = await coord.getDocumentationGitStatus(runtime, created.id);
+      const sourceChanged = sourceStatus.paths.filter((path) =>
+        path.state === "MODIFIED" || path.state === "UNTRACKED" || path.state === "DELETED"
+      );
+      const sourceCommit = await coord.commitDocumentation(runtime, created.id, {
+        expectedHeadCommit: sourceStatus.headCommit,
+        expectedPaths: sourceChanged.map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+        })),
+      });
+
+      await coord.setArchived(runtime, created.id, {
+        expectedArchived: false,
+        archived: true,
+      });
+      const archiveStatus = await coord.getDocumentationGitStatus(runtime, created.id);
+      const archiveChanged = archiveStatus.paths.filter((path) =>
+        path.state === "MODIFIED" || path.state === "UNTRACKED" || path.state === "DELETED"
+      );
+      const archiveCommit = await coord.commitDocumentation(runtime, created.id, {
+        expectedHeadCommit: archiveStatus.headCommit,
+        expectedPaths: archiveChanged.map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+        })),
+      });
+
+      await coord.setArchived(runtime, created.id, {
+        expectedArchived: true,
+        archived: false,
+      });
+      const restoreStatus = await coord.getDocumentationGitStatus(runtime, created.id);
+      const restoreChanged = restoreStatus.paths.filter((path) =>
+        path.state === "MODIFIED" || path.state === "UNTRACKED" || path.state === "DELETED"
+      );
+      const restoreCommit = await coord.commitDocumentation(runtime, created.id, {
+        expectedHeadCommit: restoreStatus.headCommit,
+        expectedPaths: restoreChanged.map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+        })),
+      });
+
+      const finalStatus = await coord.getDocumentationGitStatus(runtime, created.id);
+      console.log(JSON.stringify({
+        sourceStatus,
+        sourceCommit,
+        archiveStatus,
+        archiveCommit,
+        restoreStatus,
+        restoreCommit,
+        finalStatus,
+      }));
+      database.close();
+    `) as {
+      sourceStatus: { blockers: string[]; paths: Array<{ repositoryPath: string; state: string }> };
+      sourceCommit: { repositoryPaths: string[]; gitCommit: string };
+      archiveStatus: { paths: Array<{ repositoryPath: string; state: string }> };
+      archiveCommit: { repositoryPaths: string[] };
+      restoreStatus: { paths: Array<{ repositoryPath: string; state: string }> };
+      restoreCommit: { repositoryPaths: string[] };
+      finalStatus: { paths: Array<{ repositoryPath: string; state: string }> };
+    };
+
+    expect(output.sourceStatus.blockers).toEqual([]);
+    expect(output.sourceStatus.paths).toEqual([
+      expect.objectContaining({ state: "UNTRACKED", repositoryPath: expect.stringMatching(/work-request\.md$/) }),
+    ]);
+    expect(output.sourceCommit.repositoryPaths).toHaveLength(1);
+    expect(output.archiveStatus.paths).toContainEqual(
+      expect.objectContaining({ state: "UNTRACKED", repositoryPath: expect.stringMatching(/\.order-archived$/) }),
+    );
+    expect(output.archiveCommit.repositoryPaths).toContainEqual(
+      expect.stringMatching(/\.order-archived$/),
+    );
+    expect(output.restoreStatus.paths).toContainEqual(
+      expect.objectContaining({ state: "DELETED", repositoryPath: expect.stringMatching(/\.order-archived$/) }),
+    );
+    expect(output.restoreCommit.repositoryPaths).toContainEqual(
+      expect.stringMatching(/\.order-archived$/),
+    );
+    expect(output.finalStatus.paths.every((path) => path.state === "MATCHES_HEAD")).toBe(true);
+  });
+
   it("edits the canonical title and archives/restores without lifecycle mutation", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-title-archive-");
