@@ -118,7 +118,7 @@ jobs:
         run: |
           set -euo pipefail
           bun scripts/package-release.ts
-          sha256sum -c release/pontivus-order.tar.gz.sha256
+          (cd release && sha256sum -c pontivus-order.tar.gz.sha256)
           test -s release/release-notes.md
 
       - name: Create or verify annotated tag
