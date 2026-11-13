@@ -741,7 +741,7 @@ describe("daemon control plane", () => {
       schedulerStopped: boolean;
     };
     expect(empty.config).toMatchObject({ version: 4, model: null, repositoryRoots: [] });
-    expect(empty.schedulerStopped).toBe(true);
+    expect(empty.schedulerStopped).toBe(false);
 
     const repository = createRepository("drifted");
     const driftState = tempDir("order-daemon-drift-v4-");
@@ -786,7 +786,73 @@ describe("daemon control plane", () => {
       status: "ATTENTION",
       attention: ["REPOSITORY_UNAVAILABLE"],
     })]);
-    expect(drift.schedulerStopped).toBe(true);
+    expect(drift.schedulerStopped).toBe(false);
+  });
+
+  it("keeps ready repository work admissible when an unrelated configured repository needs attention", () => {
+    const readyRepository = createRepository("settings-ready");
+    const driftedRepository = createRepository("settings-drifted-unrelated");
+    const state = tempDir("order-settings-affected-readiness-");
+    const binary = createFakeOpenCode();
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const settings = await import("./src/daemon/settings.ts");
+      const fs = await import("node:fs");
+
+      cfg.writeOrderConfig(
+        ${JSON.stringify(state)},
+        cfg.buildOrderConfig(
+          { providerID: "opencode", id: "glm-5.3-flash-free" },
+          [${JSON.stringify(readyRepository)}, ${JSON.stringify(driftedRepository)}],
+          [],
+        ),
+      );
+      fs.rmSync(${JSON.stringify(driftedRepository)}, { recursive: true, force: true });
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        { ...process.env, PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)} },
+        cfg.readOrderConfig(${JSON.stringify(state)}),
+      );
+      runtime.schedulerStopped = true;
+      const owner = settings.createCoordinatorRuntimeOwner(runtime);
+      await coord.reconcileSources(runtime, [${JSON.stringify(readyRepository)}]);
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "settings-ready",
+        schemaId: "change-v1",
+        title: "Affected readiness only",
+        concernIds: ["shell"],
+      });
+      const global = await settings.installationReadiness(owner);
+      let stageFailure = null;
+      try {
+        await settings.requireStageRunReadiness(owner, created.id);
+      } catch (error) {
+        stageFailure = error instanceof Error ? error.message : String(error);
+      }
+      const executionRoots = await settings.executionReadyRepositoryRoots(owner);
+      console.log(JSON.stringify({
+        global,
+        stageFailure,
+        executionRoots,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      global: { ready: boolean; blockers: string[] };
+      stageFailure: string | null;
+      executionRoots: string[];
+    };
+
+    expect(output.global.ready).toBe(false);
+    expect(output.global.blockers).toContain("REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION");
+    expect(output.stageFailure).toBeNull();
+    expect(output.executionRoots).toEqual([readyRepository]);
   });
 
   it("activates connected repositories through immutable runtime replacement and rejects stale config identity", () => {
