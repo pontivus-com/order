@@ -1647,6 +1647,8 @@ Refactor goals:
 - preserve in-progress login state if the user remains inside the Settings account surface;
 - do not duplicate account logic between shell and Settings.
 
+The Settings account inventory also exposes **Remove account** when permitted by the canonical account state. Removal is a destructive secondary action with confirmation. The browser sends only the selected canonical account id plus the expected active-account identity; it does not select or predict a replacement active account. Removing the final account transitions the Settings/readiness presentation to the explicit account-required state.
+
 ### 22.6 Model/runtime Settings realization
 
 Model selection becomes a Settings concern backed by canonical model/config queries.
