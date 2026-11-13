@@ -1058,10 +1058,104 @@ materialRefs = ["AGENTS.md"]
     expect(output.first).toBe(0);
     expect(output.second).toBe(0);
     expect(output.config.model).toEqual({ providerID: "opencode", id: "glm-5.3-flash-free" });
-    expect(output.config.version).toBe(3);
+    expect(output.config.version).toBe(4);
     expect(output.config.repositoryRoots).toEqual([workspace]);
     expect(output.config.referenceRoots).toEqual([]);
     expect(output.stdout.join("")).toContain("Order configuration is already valid");
+  });
+
+  it("deterministically migrates current v3 configuration to v4 without prompting", () => {
+    const workspace = tempDir("order-setup-v3-upgrade-");
+    const home = tempDir("order-setup-v3-upgrade-home-");
+    const state = tempDir("order-setup-v3-upgrade-state-");
+    writeFileSync(join(workspace, "AGENTS.md"), "# fixture authority\n");
+    writeFileSync(join(workspace, "pontivus-order.toml"), `version = 1
+projectId = "setup-v3-fixture"
+
+[authority]
+p1 = ["AGENTS.md"]
+p2 = []
+p3 = []
+p4 = []
+p5 = []
+p6 = []
+
+[refs]
+
+[governance.fitness]
+GW-P1-FCIS = ["architecture"]
+
+[concerns.core]
+authority = ["AGENTS.md"]
+paths = ["src/**"]
+gates = ["architecture"]
+
+[verification.architecture]
+argv = ["bash", "-c", "true"]
+cwd = "."
+timeoutSeconds = 30
+inheritEnv = ["PATH"]
+materialRefs = ["AGENTS.md"]
+`);
+    spawnSync("git", ["init", "-q"], { cwd: workspace });
+    spawnSync("git", ["config", "user.name", "Order Test"], { cwd: workspace });
+    spawnSync("git", ["config", "user.email", "order@example.invalid"], { cwd: workspace });
+    spawnSync("git", ["add", "."], { cwd: workspace });
+    spawnSync("git", ["commit", "-qm", "fixture"], { cwd: workspace });
+
+    const binary = createFakeOpenCode(workspace, {
+      models: [{ providerID: "opencode", id: "glm-5.3-flash-free", enabled: true }],
+    });
+    const configPath = join(state, "config.json");
+    writeFileSync(configPath, JSON.stringify({
+      version: 3,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [workspace],
+      referenceRoots: [],
+    }) + "\n", { mode: 0o600 });
+    chmodSync(configPath, 0o600);
+
+    const output = bunEval(`
+      const cfg = await import("./src/shell/config.ts");
+      const setup = await import("./src/shell/setup.ts");
+      const env = {
+        ...process.env,
+        HOME: ${JSON.stringify(home)},
+        PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(state)},
+        PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)},
+      };
+      const stdout = [];
+      const code = await setup.runInstallerGuidedSetup(
+        env,
+        (value) => stdout.push(value),
+        async () => { throw new Error("v3→v4 migration must not prompt"); },
+      );
+      console.log(JSON.stringify({
+        code,
+        config: cfg.readOrderConfig(${JSON.stringify(state)}),
+        stdout,
+      }));
+    `, providerEnvironment(binary)) as {
+      code: number;
+      config: {
+        version: 4;
+        model: { providerID: string; id: string } | null;
+        repositoryRoots: string[];
+        referenceRoots: string[];
+      };
+      stdout: string[];
+    };
+
+    expect(output.code).toBe(0);
+    expect(output.config).toEqual({
+      version: 4,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      repositoryRoots: [workspace],
+      referenceRoots: [],
+    });
+    expect(output.stdout.join("")).toContain(
+      "configuration upgraded to version 4; existing provider/model/repository/reference choices retained",
+    );
   });
 
   it("retains an exact v1 target and provisions its missing manifest without prompting", () => {
