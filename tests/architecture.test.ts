@@ -239,6 +239,125 @@ describe("architecture fitness", () => {
     expect(violations).toEqual([]);
   });
 
+  it("certifies the 0.2.1 configuration, account, source and workbench ownership boundaries", () => {
+    const violations: string[] = [];
+    const runtime = sourceText("src/daemon/runtime.ts");
+    if (!runtime.includes("readonly config: OrderConfig")) {
+      violations.push("CoordinatorRuntime.config must remain readonly");
+    }
+
+    for (const sourcePath of productionFiles) {
+      const source = sourceText(sourcePath);
+      if (
+        sourcePath !== "src/shell/config.ts" &&
+        sourcePath !== "src/installer.ts" &&
+        /statePaths\([^)]*\)\.config/.test(source)
+      ) {
+        violations.push(
+          sourcePath + ": productive config.json path access must remain owned by src/shell/config.ts",
+        );
+      }
+      if (/\b(?:runtime|owner\.current)\.config\s*=/.test(source)) {
+        violations.push(sourcePath + ": CoordinatorRuntime.config must never be reassigned");
+      }
+      if (/\.config\.(?:model|repositoryRoots|referenceRoots)\s*=/.test(source)) {
+        violations.push(sourcePath + ": canonical runtime config fields must never be mutated in place");
+      }
+      if (
+        /\.config\.(?:repositoryRoots|referenceRoots)\.(?:copyWithin|fill|pop|push|reverse|shift|sort|splice|unshift)\s*\(/.test(source)
+      ) {
+        violations.push(sourcePath + ": canonical runtime config arrays must remain immutable snapshots");
+      }
+
+      if (layerOf(sourcePath) === "ui") {
+        if (/\b(?:settings|config)(?:Store|Context|Reducer)\b/i.test(source)) {
+          violations.push(sourcePath + ": browser configuration must not introduce a global store owner");
+        }
+        for (const forbidden of [
+          "parseWorkItemSourceMarkdown",
+          "recomposeWorkItemSourceBody",
+          "WorkItemSourceMetadataSchema",
+        ]) {
+          if (source.includes(forbidden)) {
+            violations.push(
+              sourcePath + ": browser must not parse or recompose WorkItem source metadata: " + forbidden,
+            );
+          }
+        }
+      }
+    }
+
+    const config = sourceText("src/shell/config.ts");
+    for (const required of [
+      "writeOrderConfig",
+      "writeOrderConfigExpected",
+      "statePaths(stateRoot).config",
+      "O_NOFOLLOW",
+      "fsyncSync",
+      "renameSync",
+    ]) {
+      if (!config.includes(required)) {
+        violations.push("src/shell/config.ts must retain canonical config writer mechanic " + required);
+      }
+    }
+
+    const projectConfig = sourceText("src/shell/project-config.ts");
+    for (const required of [
+      "mutateWorkItemsRootText",
+      "atomicReplaceText",
+      "activateWorkItemsRootManifest",
+      "rollbackWorkItemsRootMigration",
+    ]) {
+      if (!projectConfig.includes(required)) {
+        violations.push(
+          "src/shell/project-config.ts must retain WorkItem-root mutation ownership: " + required,
+        );
+      }
+    }
+
+    const accountControl = sourceText("ui/src/OpenCodeAccountControl.tsx");
+    for (const forbidden of [
+      "useMutation",
+      "activateOpenCodeAccount",
+      "renameOpenCodeAccount",
+      "removeOpenCodeAccount",
+      "startOpenCodeAccountLogin",
+    ]) {
+      if (accountControl.includes(forbidden)) {
+        violations.push(
+          "shell OpenCode account utility must remain status/navigation-only: " + forbidden,
+        );
+      }
+    }
+    const accountSettings = sourceText("ui/src/OpenCodeAccountSettings.tsx");
+    for (const required of [
+      "api.activateOpenCodeAccount",
+      "api.renameOpenCodeAccount",
+      "api.removeOpenCodeAccount",
+      "api.startOpenCodeAccountLogin",
+    ]) {
+      if (!accountSettings.includes(required)) {
+        violations.push("Settings must reuse the canonical OpenCode account API: " + required);
+      }
+    }
+
+    const documentWorkspace = sourceText("ui/src/DocumentWorkspace.tsx");
+    if (!documentWorkspace.includes("api.saveWorkItemSourceBody")) {
+      violations.push("ordinary Source authoring must use the canonical body-only save command");
+    }
+    if (/api\.saveWorkItemSource\s*\(/.test(documentWorkspace)) {
+      violations.push("ordinary Source authoring must not retain the complete-source save path");
+    }
+
+    const app = sourceText("ui/src/app.tsx");
+    const theme = sourceText("ui/src/theme.css");
+    if (/<select[^>]+aria-label=["']Theme["']/.test(app) || /order-theme-control\s+select/.test(theme)) {
+      violations.push("theme selection must remain a direct System/Light/Dark control");
+    }
+
+    expect(violations).toEqual([]);
+  });
+
   it("keeps Zod canonical semantic ownership in core/contracts.ts", () => {
     const violations = productionFiles
       .filter((path) => path !== "src/core/contracts.ts")
