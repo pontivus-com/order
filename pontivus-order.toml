@@ -249,6 +249,7 @@ GW-TR-067-HUMAN-FIRST-SOURCE-EDITOR-COMPOSITION = "docs/38-workbench-astryx-comp
 GW-TR-068-DIRECT-APPEARANCE-MODE-CONTROL = "docs/38-workbench-astryx-component-architecture.md"
 GW-TR-069-SETTINGS-ACCOUNT-PRESENTATION-OWNERSHIP = "docs/38-workbench-astryx-component-architecture.md"
 GW-TR-070-CONFIGURATION-CAPABLE-DAEMON-BOOT = "docs/12-technical-architecture.md"
+GW-TR-071-OPENCODE-ACCOUNT-INTEGRATION-READINESS = "docs/12-technical-architecture.md"
 D1 = "docs/04-open-decisions.md"
 D2 = "docs/04-open-decisions.md"
 D3 = "docs/04-open-decisions.md"
