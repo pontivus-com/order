@@ -867,6 +867,12 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   const sourceEditor = page.getByLabel("WorkItem source Markdown source");
   await expect(sourceEditor).toBeVisible();
   const original = await markdownSourceValue(sourceEditor);
+  expect(original).toContain("# Source editing workbench");
+  expect(original).not.toContain('"formatVersion"');
+  const technicalSource = page.getByText("Technical source", { exact: true });
+  await expect(technicalSource).toBeVisible();
+  await technicalSource.click();
+  await expect(page.locator(".order-source-authoring details pre")).toContainText('"formatVersion": 1');
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
   const item = await workItemForTitle(page, "Source editing workbench");
