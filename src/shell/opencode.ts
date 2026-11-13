@@ -9,12 +9,17 @@ import {
   type SessionMessageInfo,
 } from "@opencode/client";
 import {
+  IsoDateTimeSchema,
+  OpenCodeAccountIdSchema,
+  OpenCodeAccountSchema,
   OpenCodeModelRefSchema,
   ProviderDiagnosticRecordSchema,
   ProviderTurnOutcomeSchema,
   RunEventPayloadJsonSchemaText,
   RunEventPayloadSchema,
   type ExecutionTask,
+  type OpenCodeAccount,
+  type OpenCodeAccountId,
   type OpenCodeModelRef,
   type ProviderDiagnosticRecord,
   type ProviderTurnOutcome,
@@ -448,7 +453,7 @@ const requireConfiguredModel = async (
   }
 };
 
-type OpenCodeProviderProcess = Readonly<{
+export type OpenCodeProviderProcess = Readonly<{
   client: OpenCodeClient;
   process: ManagedProcess;
   workspace: string;
@@ -502,6 +507,162 @@ const startOpenCodeProviderProcess = async (
     await child.terminate().catch(() => undefined);
     throw error;
   }
+};
+
+const openCodeAccountIntegrationId = "opencode";
+const openCodeAccountMethodId = "device";
+const openCodeConsoleDefaultEndpoint = "https://opencode.ai/console";
+
+export type OpenCodeAccountOAuthStart = Readonly<{
+  providerAttemptId: string;
+  authorizationUrl: string;
+  instructions: string;
+  expiresAt: string;
+}>;
+
+export type OpenCodeAccountOAuthStatus = Readonly<
+  | { status: "PENDING"; message: null }
+  | { status: "COMPLETED"; message: null }
+  | { status: "FAILED"; message: string }
+  | { status: "EXPIRED"; message: null }
+>;
+
+const accountControlWorkspace = (stateRoot: string): string => {
+  const workspace = join(requireAbsoluteStateRoot(stateRoot), "opencode", "account-control");
+  mkdirSync(workspace, { recursive: true, mode: 0o700 });
+  return workspace;
+};
+
+export const startOpenCodeAccountControl = async (
+  stateRoot: string,
+  sourceEnvironment: NodeJS.ProcessEnv = process.env,
+): Promise<OpenCodeProviderProcess> =>
+  startOpenCodeProviderProcess(
+    stateRoot,
+    accountControlWorkspace(stateRoot),
+    sourceEnvironment,
+  );
+
+export const stopOpenCodeAccountControl = async (
+  control: OpenCodeProviderProcess,
+): Promise<void> => {
+  await control.process.terminate();
+};
+
+const accountStatus = (
+  status: Readonly<{ status: "needs_auth"; message: string; url?: string }> | undefined,
+): OpenCodeAccount["status"] =>
+  status === undefined
+    ? { status: "READY" }
+    : {
+        status: "NEEDS_AUTH",
+        message: status.message,
+        url: status.url ?? null,
+      };
+
+export const listOpenCodeAccounts = async (
+  control: OpenCodeProviderProcess,
+): Promise<readonly OpenCodeAccount[]> => {
+  const result = await control.client.integration.get({
+    integrationID: openCodeAccountIntegrationId,
+    location: { directory: control.workspace },
+  });
+  const first = result.data.connections[0];
+  const activeCredentialId = first?.type === "credential" ? first.id : null;
+  return result.data.connections
+    .filter((connection) =>
+      connection.type === "credential" && connection.method === "oauth"
+    )
+    .map((connection) => OpenCodeAccountSchema.parse({
+      id: OpenCodeAccountIdSchema.parse(connection.id),
+      label: connection.label,
+      active: connection.id === activeCredentialId,
+      status: accountStatus(connection.status),
+    }))
+    .sort((left, right) =>
+      Number(right.active) - Number(left.active) ||
+      left.label.localeCompare(right.label) ||
+      left.id.localeCompare(right.id)
+    );
+};
+
+export const activateOpenCodeAccount = async (
+  control: OpenCodeProviderProcess,
+  accountId: OpenCodeAccountId,
+): Promise<void> => {
+  await control.client.credential.activate({
+    credentialID: OpenCodeAccountIdSchema.parse(accountId),
+  });
+};
+
+export const renameOpenCodeAccount = async (
+  control: OpenCodeProviderProcess,
+  accountId: OpenCodeAccountId,
+  label: string,
+): Promise<void> => {
+  await control.client.credential.update({
+    credentialID: OpenCodeAccountIdSchema.parse(accountId),
+    label,
+  });
+};
+
+const requireDefaultConsoleAuthorizationUrl = (value: string): string => {
+  const candidate = new URL(value);
+  const expected = new URL(openCodeConsoleDefaultEndpoint);
+  if (candidate.protocol !== "https:" || candidate.origin !== expected.origin) {
+    throw new TypeError("OpenCode account authorization URL is not the pinned Console origin");
+  }
+  return candidate.href;
+};
+
+export const startOpenCodeAccountOAuth = async (
+  control: OpenCodeProviderProcess,
+  label: string,
+): Promise<OpenCodeAccountOAuthStart> => {
+  const result = await control.client.integration.oauth.connect({
+    integrationID: openCodeAccountIntegrationId,
+    methodID: openCodeAccountMethodId,
+    label,
+    location: { directory: control.workspace },
+  });
+  return {
+    providerAttemptId: result.data.attemptID,
+    authorizationUrl: requireDefaultConsoleAuthorizationUrl(result.data.url),
+    instructions: result.data.instructions,
+    expiresAt: IsoDateTimeSchema.parse(new Date(result.data.time.expires).toISOString()),
+  };
+};
+
+export const pollOpenCodeAccountOAuth = async (
+  control: OpenCodeProviderProcess,
+  providerAttemptId: string,
+): Promise<OpenCodeAccountOAuthStatus> => {
+  const result = await control.client.integration.oauth.status({
+    integrationID: openCodeAccountIntegrationId,
+    attemptID: providerAttemptId,
+    location: { directory: control.workspace },
+  });
+  switch (result.data.status) {
+    case "pending":
+      return { status: "PENDING", message: null };
+    case "complete":
+      return { status: "COMPLETED", message: null };
+    case "failed":
+      return { status: "FAILED", message: result.data.message };
+    case "expired":
+      return { status: "EXPIRED", message: null };
+  }
+};
+
+export const cancelOpenCodeAccountOAuth = async (
+  control: OpenCodeProviderProcess,
+  providerAttemptId: string,
+): Promise<void> => {
+  await control.client.integration.oauth.cancel({
+    integrationID: openCodeAccountIntegrationId,
+    attemptID: providerAttemptId,
+    location: { directory: control.workspace },
+  });
 };
 
 export const listAvailableOpenCodeModels = async (
