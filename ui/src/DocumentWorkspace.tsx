@@ -247,20 +247,29 @@ export const DocumentWorkspace = ({
           sourceQuery.isPending ? <WorkbenchEmptyState compact title="Loading source…" /> :
           sourceQuery.isError ? <WorkbenchErrorState title="Source unavailable" description={errorText(sourceQuery.error)} /> :
           sourceQuery.data ? (
-            <MarkdownEditor
-              key={"source-" + workItem.id}
-              title="WorkItem source"
-              description={sourceReadOnly ? "Read-only in execution/completed state." : "Canonical originating work definition."}
-              sha256={sourceQuery.data.sha256}
-              markdown={sourceQuery.data.markdown}
-              readOnly={sourceReadOnly}
-              onDirtyChange={(value) => { setDirty(value); onDirtyChange(value); }}
-              onSave={async (expectedSha256, value) => {
-                const result = await api.saveWorkItemSource(workItem.id, { expectedSha256, markdown: value });
-                await invalidate();
-                return result;
-              }}
-            />
+            <div className="order-source-authoring">
+              <MarkdownEditor
+                key={"source-" + workItem.id}
+                title="WorkItem source"
+                description={sourceReadOnly ? "Read-only in execution/completed state." : "Canonical human-authored work definition."}
+                sha256={sourceQuery.data.sha256}
+                markdown={sourceQuery.data.bodyMarkdown}
+                readOnly={sourceReadOnly}
+                onDirtyChange={(value) => { setDirty(value); onDirtyChange(value); }}
+                onSave={async (expectedSha256, value) => {
+                  const result = await api.saveWorkItemSourceBody(workItem.id, {
+                    expectedSha256,
+                    bodyMarkdown: value,
+                  });
+                  await invalidate();
+                  return result;
+                }}
+              />
+              <details className="order-document-git-details">
+                <summary>Technical source</summary>
+                <pre><code>{sourceQuery.data.markdown}</code></pre>
+              </details>
+            </div>
           ) : null
         ) : selectedArtifact === null ? (
           <WorkbenchEmptyState compact title="Lifecycle document is no longer current" />
