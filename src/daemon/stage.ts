@@ -1,6 +1,7 @@
 import {
   type ArtifactRef,
   ArtifactRefSchema,
+  type EvidenceRef,
   type Run,
   type RunEvent,
   type RunEventId,
@@ -69,6 +70,7 @@ import {
   listRuns,
   nextAttempt,
   persistProviderEvents,
+  recordProviderDiagnostics,
   renderArtifacts,
   stopActiveProvider,
   updateRun,
@@ -313,6 +315,7 @@ export const runStageTurn = async (
   }
 
   let persisted: readonly RunEvent[];
+  let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
     const workItem = getWorkItem(runtime, run.workItemId);
     let active = runtime.activeProviders.get(run.id);
@@ -356,11 +359,19 @@ export const runStageTurn = async (
         runtime.config.referenceRoots,
         userInput,
       ),
+      (record, stderr) => {
+        diagnosticEvidence = recordProviderDiagnostics(
+          runtime,
+          run.id,
+          record,
+          stderr,
+        );
+      },
     );
     persisted = persistProviderEvents(runtime, run, events);
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
-    return failRunForProvider(runtime, run.id, error);
+    return failRunForProvider(runtime, run.id, error, diagnosticEvidence);
   }
 
   const reacted = await reactToStageEvents(
