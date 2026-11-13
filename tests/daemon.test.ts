@@ -659,7 +659,7 @@ describe("daemon control plane", () => {
         message: string;
         sourceDiagnostic: {
           projectId: string;
-          path: string;
+          path: string | null;
           workItemId: string;
           code: string;
           detail: string;
@@ -672,9 +672,9 @@ describe("daemon control plane", () => {
       code: "WORK_ITEM_SOURCE_CONFLICT",
       sourceDiagnostic: {
         projectId: output.created.projectId,
-        path: output.created.sourcePath,
+        path: null,
         workItemId: output.created.id,
-        code: "INVALID_SOURCE",
+        code: "MISSING_SOURCE",
       },
     });
     expect(output.classified.message).toBe(output.classified.sourceDiagnostic.detail);
