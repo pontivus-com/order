@@ -129,7 +129,7 @@ const json = async (path: string, init?: RequestInit): Promise<unknown> =>
   (await request(path, init)).json();
 
 const mutation = (
-  method: "PATCH" | "POST" | "PUT",
+  method: "DELETE" | "PATCH" | "POST" | "PUT",
   body: unknown,
 ): RequestInit => ({
   method,
