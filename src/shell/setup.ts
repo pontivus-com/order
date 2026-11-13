@@ -361,7 +361,7 @@ const runGuidedSetupInternal = async (
     ? readOrderConfigForUpgradeIfPresent(stateRoot)
     : readOrderConfigIfPresent(stateRoot);
 
-  let existing = configured?.version === 3 ? configured : null;
+  let existing = configured?.version === 4 ? configured : null;
   let upgrading = false;
 
   if (allowLegacyUpdate && configured?.version === 1) {
@@ -410,23 +410,38 @@ const runGuidedSetupInternal = async (
     upgrading = true;
   }
 
+  if (allowLegacyUpdate && configured?.version === 3) {
+    existing = buildOrderConfig(
+      configured.model,
+      configured.repositoryRoots,
+      configured.referenceRoots,
+    );
+    upgrading = true;
+  }
+
   const workspace = existing?.repositoryRoots[0] ?? home;
 
   let models = existing === null
     ? []
     : await listAvailableOpenCodeModels(stateRoot, workspace, environment).catch(() => []);
-  const existingModelIndex = existing === null
+  const existingModelIndex = existing?.model === null || existing?.model === undefined
     ? -1
     : models.findIndex((model) =>
-        model.providerID === existing.model.providerID && model.id === existing.model.id
+        model.providerID === existing.model!.providerID && model.id === existing.model!.id
       );
 
-  if (existing !== null && existingModelIndex >= 0 && !reconfigure) {
+  if (
+    existing !== null &&
+    existing.model !== null &&
+    existing.repositoryRoots.length > 0 &&
+    existingModelIndex >= 0 &&
+    !reconfigure
+  ) {
     await loadConfiguredProjects(existing.repositoryRoots);
     if (upgrading) {
       writeOrderConfig(stateRoot, existing);
       writeStdout(
-        "Order configuration upgraded to version 3; existing provider/model/repository/reference choices retained.\n",
+        "Order configuration upgraded to version 4; existing provider/model/repository/reference choices retained.\n",
       );
     } else {
       writeStdout("Order configuration is already valid; existing choices retained.\n");
@@ -452,10 +467,10 @@ const runGuidedSetupInternal = async (
   models.forEach((model, index) => {
     writeStdout("  " + (index + 1) + ". " + model.providerID + "/" + model.id + "\n");
   });
-  const currentIndex = existing === null
+  const currentIndex = existing?.model === null || existing?.model === undefined
     ? -1
     : models.findIndex((model) =>
-        model.providerID === existing.model.providerID && model.id === existing.model.id
+        model.providerID === existing.model!.providerID && model.id === existing.model!.id
       );
   const selectionPrompt = currentIndex >= 0
     ? "Select model [" + (currentIndex + 1) + "]: "
@@ -511,7 +526,7 @@ const runGuidedSetupInternal = async (
   writeOrderConfig(stateRoot, config);
   writeStdout(
     upgrading
-      ? "Order configuration upgraded to version 3.\n"
+      ? "Order configuration upgraded to version 4.\n"
       : "Order configuration complete.\n",
   );
   return 0;
