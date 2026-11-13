@@ -103,24 +103,21 @@ No refactor above authorizes broad cleanup outside the stated owner boundary.
 Implementation is delivered as serial governed work PRs where a later task depends on merged bytes from an earlier task.
 
 ```text
-P7-T00  OpenCode account-control readiness
-   |
-   +------------------------+
-   |                        |
-   v                        v
-P7-T01 config v4        (T00 may merge independently)
-   |
-   v
-P7-T02 daemon Settings/readiness + immutable runtime activation
+P7-T00  OpenCode account-control readiness (independent prerequisite)
+
+P7-T01  config v4 + migration foundation
    | \
    |  \
    v   v
-P7-T03 document-root backend     P7-T05 source-body authoring
+P7-T02 daemon Settings/readiness     P7-T05 source-body authoring
+   |
+   v
+P7-T03 document-root backend
+   |
+   v
+P7-T04 centralized Settings + install/browser setup
    |                              |
    +--------------+---------------+
-                  v
-          P7-T04 centralized Settings + install/browser setup
-                  |
                   v
           P7-T06 workbench UX/chrome/appearance
                   |
@@ -131,7 +128,7 @@ P7-T03 document-root backend     P7-T05 source-body authoring
           P7-T08 release/v0.2.1
 ```
 
-T03 and T05 may be developed as separate PRs after their prerequisites exist, but each PR must branch from current `master` and may not depend on unmerged sibling bytes.
+T05 may proceed after T01 independently of the T02→T03→T04 Settings/backend chain. T06 starts only after both T04 and T05 are merged. Every PR branches from current `master` and may not depend on unmerged sibling bytes.
 
 P7-T00 is the already-proven account readiness defect. Existing PR #31 may be rebased/refreshed and reused after this plan is approved if its implementation still matches T00 exactly; do not recreate equivalent code merely to obtain a new task branch.
 
