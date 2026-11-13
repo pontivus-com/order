@@ -177,6 +177,7 @@ GW-FR-094-INFORMATION-PLACEMENT-ECONOMY = "docs/37-workbench-ux-information-arch
 GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS = "docs/45-installation-readiness-and-configuration-continuity.md"
 GW-FR-096-SEMANTIC-VIEWPORT-ZONING = "docs/37-workbench-ux-information-architecture.md"
 GW-FR-097-LOGICAL-READING-FLOW = "docs/37-workbench-ux-information-architecture.md"
+GW-FR-098-APPEARANCE-MODE-DIRECT-CONTROL = "docs/37-workbench-ux-information-architecture.md"
 GW-P4-V1-ARCHITECTURE = "docs/12-technical-architecture.md"
 GW-TR-001-FCIS-CANONICAL-OWNERSHIP = "docs/12-technical-architecture.md"
 GW-TR-002-LOCAL-LINUX-RUNTIME = "docs/12-technical-architecture.md"
