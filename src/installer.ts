@@ -24,6 +24,8 @@ type InstallerArguments = Readonly<{
   sourceCommit: string;
 }>;
 
+type InstallerSourceKind = "GIT_CHECKOUT" | "RELEASE_BUNDLE";
+
 type InstallerLocations = Readonly<{
   home: string;
   installRoot: string;
@@ -256,21 +258,96 @@ const runtimeEnvironment = (
   PONTIVUS_ORDER_BIND: locations.bind,
 });
 
-const verifySource = (sourceRoot: string, sourceCommit: string): void => {
-  const repositoryRoot = runCommand(
+const verifySource = (
+  sourceRoot: string,
+  sourceCommit: string,
+): InstallerSourceKind => {
+  if (!/^[0-9a-f]{40}$/.test(sourceCommit)) {
+    fail("installer source commit must be an exact lowercase Git commit");
+  }
+
+  const repositoryRoot = commandSucceeds(
     ["git", "-C", sourceRoot, "rev-parse", "--show-toplevel"],
     sourceRoot,
-  ).trim();
-  if (repositoryRoot !== sourceRoot) fail("installer source must be the Order repository root");
-  if (runCommand(["git", "-C", sourceRoot, "rev-parse", "HEAD"], sourceRoot).trim() !== sourceCommit) {
-    fail("installer source commit changed after bootstrap");
+  )
+    ? runCommand(
+        ["git", "-C", sourceRoot, "rev-parse", "--show-toplevel"],
+        sourceRoot,
+      ).trim()
+    : null;
+
+  if (repositoryRoot === sourceRoot) {
+    if (
+      runCommand(["git", "-C", sourceRoot, "rev-parse", "HEAD"], sourceRoot).trim() !==
+        sourceCommit
+    ) {
+      fail("installer source commit changed after bootstrap");
+    }
+    if (!commandSucceeds(["git", "-C", sourceRoot, "diff", "--quiet", "--"], sourceRoot)) {
+      fail("refusing to install from a checkout with unstaged changes");
+    }
+    if (
+      !commandSucceeds(
+        ["git", "-C", sourceRoot, "diff", "--cached", "--quiet", "--"],
+        sourceRoot,
+      )
+    ) {
+      fail("refusing to install from a checkout with staged changes");
+    }
+    return "GIT_CHECKOUT";
   }
-  if (!commandSucceeds(["git", "-C", sourceRoot, "diff", "--quiet", "--"], sourceRoot)) {
-    fail("refusing to install from a checkout with unstaged changes");
+
+  const releaseManifestPath = join(sourceRoot, "RELEASE.json");
+  if (!existsSync(releaseManifestPath)) {
+    fail("installer source must be a clean Order Git checkout or extracted Order release bundle");
   }
-  if (!commandSucceeds(["git", "-C", sourceRoot, "diff", "--cached", "--quiet", "--"], sourceRoot)) {
-    fail("refusing to install from a checkout with staged changes");
+
+  let releaseManifest: unknown;
+  try {
+    releaseManifest = JSON.parse(readFileSync(releaseManifestPath, "utf8"));
+  } catch {
+    fail("release bundle contains an invalid RELEASE.json");
   }
+  if (
+    releaseManifest === null ||
+    typeof releaseManifest !== "object" ||
+    Array.isArray(releaseManifest)
+  ) {
+    fail("release bundle contains an invalid RELEASE.json");
+  }
+  const releaseRecord = releaseManifest as Record<string, unknown>;
+  if (
+    Object.keys(releaseRecord).sort().join(",") !== "gitCommit,version" ||
+    typeof releaseRecord.version !== "string" ||
+    !/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/.test(releaseRecord.version) ||
+    typeof releaseRecord.gitCommit !== "string" ||
+    !/^[0-9a-f]{40}$/.test(releaseRecord.gitCommit)
+  ) {
+    fail("release bundle contains an invalid RELEASE.json");
+  }
+  if (releaseRecord.gitCommit !== sourceCommit) {
+    fail("release bundle commit does not match bootstrap source commit");
+  }
+
+  let packageJson: unknown;
+  try {
+    packageJson = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
+  } catch {
+    fail("release bundle contains an invalid package.json");
+  }
+  if (
+    packageJson === null ||
+    typeof packageJson !== "object" ||
+    Array.isArray(packageJson) ||
+    (packageJson as Record<string, unknown>).version !== releaseRecord.version
+  ) {
+    fail("release bundle version does not match package.json");
+  }
+  if (!existsSync(join(sourceRoot, "dist", "index.html"))) {
+    fail("release bundle is missing certified dist/index.html");
+  }
+
+  return "RELEASE_BUNDLE";
 };
 
 const installNode = async (staging: string, sourceRoot: string): Promise<string> => {
@@ -345,6 +422,7 @@ const buildApplication = (
   staging: string,
   sourceRoot: string,
   sourceCommit: string,
+  sourceKind: InstallerSourceKind,
   bun: string,
   node: string,
 ): void => {
@@ -353,11 +431,17 @@ const buildApplication = (
   mkdirSync(app, { recursive: true });
   mkdirSync(downloads, { recursive: true });
   const archive = join(downloads, "source.tar");
-  runCommand(
-    ["git", "-C", sourceRoot, "archive", "--format=tar", "--output=" + archive, sourceCommit],
-    sourceRoot,
-  );
+
+  if (sourceKind === "GIT_CHECKOUT") {
+    runCommand(
+      ["git", "-C", sourceRoot, "archive", "--format=tar", "--output=" + archive, sourceCommit],
+      sourceRoot,
+    );
+  } else {
+    runCommand(["tar", "-cf", archive, "-C", sourceRoot, "."], sourceRoot);
+  }
   runCommand(["tar", "-xf", archive, "-C", app], sourceRoot);
+
   const environment: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: join(staging, "runtime", "home"),
@@ -373,9 +457,16 @@ const buildApplication = (
       (process.env.PATH ?? ""),
   };
   runCommand([bun, "ci"], app, environment, true);
-  runCommand([node, "node_modules/vite/bin/vite.js", "build"], app, environment, true);
+
+  if (sourceKind === "GIT_CHECKOUT") {
+    runCommand([node, "node_modules/vite/bin/vite.js", "build"], app, environment, true);
+  }
   if (!existsSync(join(app, "dist", "index.html"))) {
-    fail("production build did not create dist/index.html");
+    fail(
+      sourceKind === "RELEASE_BUNDLE"
+        ? "release bundle lost certified dist/index.html during installation"
+        : "production build did not create dist/index.html",
+    );
   }
   writeFileSync(join(staging, "SOURCE_COMMIT"), sourceCommit + "\n", "utf8");
 };
@@ -630,7 +721,7 @@ export const runInstaller = async (
   for (const command of ["git", "tar", "xz", "systemctl", "sh"]) {
     requireHostCommand(command, args.sourceRoot);
   }
-  verifySource(args.sourceRoot, args.sourceCommit);
+  const sourceKind = verifySource(args.sourceRoot, args.sourceCommit);
   if (!commandSucceeds(["systemctl", "--user", "show-environment"], locations.home)) {
     fail("a usable systemd user manager is required for productive Order installation");
   }
@@ -670,7 +761,14 @@ export const runInstaller = async (
     installOpenCode(staging, args.sourceRoot, installedBun, node);
 
     step("installing and building Order");
-    buildApplication(staging, args.sourceRoot, args.sourceCommit, installedBun, node);
+    buildApplication(
+      staging,
+      args.sourceRoot,
+      args.sourceCommit,
+      sourceKind,
+      installedBun,
+      node,
+    );
 
     const launcherTemporary = join(locations.binDir, ".pontivus-order." + process.pid);
     writeFileSync(launcherTemporary, buildLauncherScript(locations), {
