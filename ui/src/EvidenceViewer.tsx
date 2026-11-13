@@ -4,6 +4,7 @@ import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import type { EvidenceSelection } from "./workbench-presentation.ts";
+import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchEmptyState, WorkbenchErrorState } from "./primitives/WorkbenchState.tsx";
 
 const decodeBytes = (bytes: Uint8Array): string => {
@@ -15,7 +16,13 @@ const decodeBytes = (bytes: Uint8Array): string => {
   }
 };
 
-export const EvidenceViewer = ({ selection }: Readonly<{ selection: EvidenceSelection | null }>) => {
+export const EvidenceViewer = ({
+  selection,
+  onBack,
+}: Readonly<{
+  selection: EvidenceSelection | null;
+  onBack: () => void;
+}>) => {
   const query = useQuery({
     queryKey: selection?.kind === "ARTIFACT"
       ? workbenchQueryKeys.artifactContent(selection.artifactId)
@@ -35,7 +42,7 @@ export const EvidenceViewer = ({ selection }: Readonly<{ selection: EvidenceSele
   if (!selection) {
     return (
       <section className="order-workspace-section" data-testid="evidence-workspace">
-        <WorkbenchEmptyState title="No evidence selected" description="Select an artifact or evidence reference from Execution." />
+        <WorkbenchEmptyState title="No evidence selected" description="Select an evidence reference from Activity or Implementation." />
       </section>
     );
   }
@@ -57,7 +64,10 @@ export const EvidenceViewer = ({ selection }: Readonly<{ selection: EvidenceSele
   const title = selection.kind === "ARTIFACT" ? selection.label : selection.relativePath;
   return (
     <section className="order-workspace-section" data-testid="evidence-workspace">
-      <div className="order-section-heading"><h2>{title}</h2><span>Read-only exact material</span></div>
+      <div className="order-section-heading">
+        <div><h2>{title}</h2><span>Read-only exact material</span></div>
+        <WorkbenchAction label="Back to previous workspace" tone="ghost" onClick={onBack} />
+      </div>
       <div data-testid="raw-content-view" className="order-code-view">
         <CodeBlock code={value} language="plaintext" hasCopyButton width="100%" />
       </div>
