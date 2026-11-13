@@ -298,6 +298,23 @@ const inspectQueue = async (
       continue;
     }
 
+    let archived: boolean;
+    try {
+      archived = readWorkItemArchived(
+        project.repositoryRoot,
+        project.manifest.workItems.root,
+        source.metadata.id,
+      );
+    } catch (error) {
+      diagnostics.push(diagnostic(
+        project.manifest.projectId,
+        source,
+        "INVALID_SOURCE",
+        error instanceof Error ? error.message : String(error),
+      ));
+      continue;
+    }
+
     const prior = existing.get(source.metadata.id);
     if (prior === undefined) {
       plans.push({
@@ -317,17 +334,13 @@ const inspectQueue = async (
           status: "ACTIVE",
           outcome: null,
           concernIds: source.metadata.concernIds,
+          archived,
           createdAt: nowIsoDateTime(),
         }),
       });
       continue;
     }
 
-    const archived = readWorkItemArchived(
-      project.repositoryRoot,
-      project.manifest.workItems.root,
-      source.metadata.id,
-    );
     const planned = planExistingSource(runtime, prior, source, project, archived);
     if (planned.diagnostic !== null) {
       diagnostics.push(WorkItemSourceDiagnosticSchema.parse({
