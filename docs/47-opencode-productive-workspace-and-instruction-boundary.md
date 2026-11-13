@@ -4,7 +4,7 @@
 **Versioned concern ID:** GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1  
 **Target correction train:** Order 0.2.2  
 **Authority layers:** P3 functional requirements + P4 technical architecture  
-**Status:** design complete; P6/P7 changes required before implementation
+**Status:** functional/P4/P6 design baseline complete; P7 implementation plan required before code changes
 
 ## 1. Purpose
 
@@ -243,9 +243,9 @@ At minimum:
 
 - a symlink that resolves outside the provider workspace blocks the Run;
 - an AGENTS.md symlink blocks the Run regardless of target;
-- provider direct read of repository metadata under .git is denied because it is not productive project material;
+- provider direct read/listing of repository metadata at `.git` or below `.git/*` is denied because it is not productive project material;
 - non-STAGE roles have no external_directory permission;
-- STAGE external_directory permissions are exactly the configured reference roots and retain the pinned external-read no-instruction-injection behavior;
+- STAGE external_directory permissions are exactly the configured reference roots and retain the pinned external-read no-instruction-injection behavior; canonical configuration keeps target repositories and reference roots path-disjoint so an external reference cannot bypass the isolated target workspace by pointing back into the physical target repository;
 - the provider workspace must not contain or resolve into Order's state/evidence/account-control directories except as its own isolated run workspace;
 - no provider tool receives ambient HOME/XDG project content through the private OpenCode namespace.
 
@@ -413,7 +413,7 @@ The following cases are minimum certification, not examples to sample from.
 14. glob cannot return physical-source ignored dependency material absent from workspace;
 15. grep cannot match physical-source ignored dependency material absent from workspace;
 16. a repository .ignore/ripgrep rule cannot resurrect bytes that are physically absent from the admitted provider workspace;
-17. direct read of .git internal metadata -> denied;
+17. direct read/listing of `.git` and direct read below `.git/*` -> denied;
 18. internal symlink resolving outside workspace -> precondition failure before session;
 19. internal symlink resolving inside workspace -> allowed only within ordinary role/scope rules;
 20. external STAGE reference file is readable when explicitly configured;
@@ -490,9 +490,9 @@ For this concern:
 
 No new browser-only failure state is introduced.
 
-## 13. Required downstream canonical-contract amendments
+## 13. Canonical-contract realization
 
-Before implementation begins, GW-DOC-CANONICAL-CONTRACTS-V1 must close the exact P6 consequences of this P3/P4 design:
+GW-DOC-CANONICAL-CONTRACTS-V1 §36 now owns the exact P6 realization of this P3/P4 design:
 
 1. exact persisted RunEvent representation for non-provider productive-invocation failure detail;
 2. exact mapping from admission failure origin to existing Run terminal classifications;
@@ -500,17 +500,17 @@ Before implementation begins, GW-DOC-CANONICAL-CONTRACTS-V1 must close the exact
 4. exact prohibition on ExecutionTask changeSurface paths naming AGENTS.md independent of current existence;
 5. exact certification assertions added to the external integration matrix.
 
-The P6 owner should reuse existing canonical Run/RunEvent/ArtifactRef/RepositoryPath/Sha256 contracts. This design does not authorize a ProductiveWorkspace DTO/domain model family.
+The P6 realization reuses existing canonical Run/RunEvent/ArtifactRef/RepositoryPath/Sha256 contracts and introduces no ProductiveWorkspace DTO/domain model family.
 
-## 14. Existing canonical-owner amendments required
+## 14. Existing canonical-owner alignment
 
-The implementation package is not ready until the following documents are coherent with this owner:
+The following canonical owners are aligned with this concern on the current design branch:
 
-- GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 — record the exact pinned direct-read versus ripgrep-search behavior that motivated the workspace boundary;
-- GW-DOC-OPENCODE-INTEGRATION-V1 — delegate productive workspace/instruction closure to this concern and remove wording that can be read as scanning every physical file below the configured source directory;
-- GW-DOC-TECHNICAL-ARCHITECTURE-V1 — replace direct pre-signoff provider use of the user's repository with the isolated inspection-workspace architecture;
-- GW-DOC-CANONICAL-CONTRACTS-V1 — close the P6 items in §13;
-- the P7 0.2.2 implementation plan — translate this design plus the separately owned workbench/settings corrections into exact tasks and gates.
+- GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 records the exact pinned direct-read versus ripgrep-search behavior that motivates the workspace boundary;
+- GW-DOC-OPENCODE-INTEGRATION-V1 delegates productive workspace/instruction closure to this concern and no longer treats the physical configured source directory as the provider-visible project-material boundary;
+- GW-DOC-TECHNICAL-ARCHITECTURE-V1 requires the isolated STAGE inspection-workspace architecture;
+- GW-DOC-CANONICAL-CONTRACTS-V1 §36 owns the exact P6 contracts from §13;
+- the remaining downstream artifact is the P7 0.2.2 implementation plan, which must translate this design plus the separately owned workbench/settings corrections into exact tasks and gates.
 
 ## 15. Explicit non-goals
 
@@ -533,12 +533,10 @@ This design does not authorize:
 
 ## 16. Design completion criteria
 
-This design is complete when:
+The functional/P4/P6 design baseline is complete because:
 
-1. its new FR/TR identifiers are registered in pontivus-order.toml;
-2. the existing canonical owners listed in §14 are amended so no contradictory productive-workspace/instruction semantics remain;
-3. the P6 failure/workspace identity consequences are exact;
-4. the P7 implementation plan maps every requirement and every test family to a bounded task;
-5. no implementation task requires the developer to decide what constitutes provider-visible project material, when AGENTS.md is authoritative, or whether a failure is local versus provider-origin.
+1. the new FR/TR identifiers are registered in `pontivus-order.toml`;
+2. the existing canonical owners listed in §14 are aligned with this concern;
+3. the P6 failure/workspace identity consequences are exact.
 
-Only then is the OpenCode instruction-boundary correction implementation-ready.
+Implementation readiness additionally requires a P7 0.2.2 plan that maps every requirement and every test family to bounded tasks and leaves no implementer decision about provider-visible project material, `AGENTS.md` authority, failure origin, workspace freshness or verification coverage.
