@@ -514,8 +514,8 @@ describe("OpenCode shell", () => {
         await o.stopOpenCodeAccountControl(control);
       }
     `, providerEnvironment(binary)) as {
-      initial: unknown[];
-      after: unknown[];
+      initial: Array<{ active: boolean }>;
+      after: Array<{ active: boolean }>;
       login: { providerAttemptId: string; authorizationUrl: string; instructions: string; expiresAt: string };
       pending: unknown;
       exposedKeys: string[];
@@ -574,7 +574,7 @@ describe("OpenCode shell", () => {
     expect(new Date(output.login.expiresAt).toISOString()).toBe(output.login.expiresAt);
     expect(output.pending).toEqual({ status: "PENDING", message: null });
     expect(output.initial).toHaveLength(3);
-    expect(output.after.filter((account: any) => account.active)).toHaveLength(1);
+    expect(output.after.filter((account) => account.active)).toHaveLength(1);
     expect(JSON.stringify(output.initial)).not.toContain("cred_key");
     expect(JSON.stringify(output.after)).not.toContain("cred_key");
     expect(output.exposedKeys).not.toContain("password");
