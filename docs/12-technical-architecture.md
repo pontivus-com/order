@@ -2131,7 +2131,7 @@ A new cohesive daemon settings owner (for example `src/daemon/settings.ts`) comp
 - current config identity;
 - readiness;
 - connected-repository projection;
-- focused repository/model commands;
+- focused repository/model/reference-root commands;
 - runtime reconfiguration admission.
 
 The daemon does **not** mutate `CoordinatorRuntime.config`. Instead, the process-level daemon composition owns one replaceable reference to an otherwise immutable `CoordinatorRuntime`.
@@ -2169,6 +2169,8 @@ OrderConfig.repositoryRoots
 ```
 
 No repository registry/database table is added.
+
+Reference-root changes remain ordinary `OrderConfig.referenceRoots` mutations through the same expected-hash activation boundary. They are validated as canonical directories and retain STAGE-only read semantics; they never become target repositories or WorkItem source roots.
 
 Connect repository:
 
@@ -2346,7 +2348,7 @@ Permanent tests must cover:
 
 #### GW-TR-060-FOCUSED-REPOSITORY-CONFIG-MUTATION
 
-**Required behavior:** connect/disconnect repository and model changes are focused expected-hash commands over canonical `OrderConfig`.
+**Required behavior:** connect/disconnect repository, model and STAGE reference-root changes are focused expected-hash commands over canonical `OrderConfig`.
 
 **Acceptance criterion:** successful commands produce one validated new config snapshot; stale/blocked/invalid commands mutate nothing.
 
