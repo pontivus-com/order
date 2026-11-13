@@ -324,6 +324,7 @@ describe("Order cross-boundary certification", () => {
     const account = read("src/daemon/opencode-account.ts");
     const runtime = read("src/daemon/runtime.ts");
     const server = read("src/daemon/server.ts");
+    const settings = read("src/daemon/settings.ts");
     const sqlite = read("src/shell/sqlite.ts");
 
     expect(contracts).toContain("OpenCodeAccountStateSchema");
@@ -355,7 +356,11 @@ describe("Order cross-boundary certification", () => {
     expect(server).toContain("pauseSchedulerForOpenCodeAccountMutation");
     expect(server).toContain("resumeSchedulerAfterOpenCodeAccountMutation");
     expect(server).toContain("requireOpenCodeAccountStableForRunStart");
-    expect(server).toContain("armScheduler(runtime)");
+    expect(server).toContain("resumeSchedulerForReadiness");
+    expect(server).not.toContain("armScheduler(runtime)");
+    expect(settings).toContain("startCoordinatorScheduler");
+    expect(settings).toContain("stopCoordinatorScheduler");
+    expect(settings).toContain("owner.current");
     expect(server).toContain("stopSavedOpenCodeAccountControl");
 
     expect(sqlite).not.toContain("openCodeAccount");
