@@ -1703,20 +1703,20 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-deterministic-boundary-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const path = await import("node:path");
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -1747,7 +1747,7 @@ describe("daemon control plane", () => {
           .map((item) => item.code),
       }));
       database.close();
-    \`) as {
+    `) as {
       rejected: boolean;
       runCount: number;
       sourcePath: string;
@@ -1767,20 +1767,20 @@ describe("daemon control plane", () => {
     const repositoryB = createRepository("duplicate-b");
     const state = tempDir("order-daemon-source-duplicate-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const sourceCore = await import("./src/core/work-item-source.ts");
       const sourceShell = await import("./src/shell/work-item-source.ts");
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const repositories = [
-        \${JSON.stringify(repositoryA)},
-        \${JSON.stringify(repositoryB)},
+        ${JSON.stringify(repositoryA)},
+        ${JSON.stringify(repositoryB)},
       ];
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 3,
@@ -1811,7 +1811,7 @@ describe("daemon control plane", () => {
         count: coord.listWorkItems(runtime).length,
       }));
       database.close();
-    \`) as { codes: string[]; count: number };
+    `) as { codes: string[]; count: number };
 
     expect(output.codes.filter((code) => code === "DUPLICATE_WORK_ITEM_ID")).toHaveLength(2);
     expect(output.count).toBe(0);
@@ -2059,7 +2059,7 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-proposal-reconcile-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const path = await import("node:path");
       const sql = await import("./src/shell/sqlite.ts");
@@ -2068,15 +2068,15 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const runStore = await import("./src/daemon/run.ts");
 
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -2089,12 +2089,12 @@ describe("daemon control plane", () => {
       sql.promoteIdeaToR1(database, workItem.id);
       const proposalPath =
         "docs/order/work-items/" + workItem.id + "/research.md";
-      const absoluteProposal = path.join(\${JSON.stringify(repository)}, proposalPath);
+      const absoluteProposal = path.join(${JSON.stringify(repository)}, proposalPath);
       fs.writeFileSync(absoluteProposal, "accepted\\n");
       const proposalDiff = Bun.spawnSync(
         ["git", "diff", "--no-index", "--binary", "--", "/dev/null", proposalPath],
         {
-          cwd: \${JSON.stringify(repository)},
+          cwd: ${JSON.stringify(repository)},
           stdout: "pipe",
           stderr: "pipe",
         },
@@ -2105,7 +2105,7 @@ describe("daemon control plane", () => {
       const diff = new TextDecoder().decode(proposalDiff.stdout);
       fs.rmSync(absoluteProposal);
 
-      const baseline = await repo.resolveHeadCommit(\${JSON.stringify(repository)});
+      const baseline = await repo.resolveHeadCommit(${JSON.stringify(repository)});
       const run = runStore.insertRun(runtime, {
         id: rt.newRunId(),
         workItemId: workItem.id,
@@ -2137,7 +2137,7 @@ describe("daemon control plane", () => {
         proposalEventId: proposal.id,
       });
       await repo.adoptProposalPatch(
-        \${JSON.stringify(repository)},
+        ${JSON.stringify(repository)},
         proposalPath,
         null,
         diff,
@@ -2156,7 +2156,7 @@ describe("daemon control plane", () => {
         proposalPath,
       }));
       database.close();
-    \`) as {
+    `) as {
       tick: { result: string };
       disposition: { tag: string; disposition: string } | null;
       content: string;
