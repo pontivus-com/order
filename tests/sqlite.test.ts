@@ -181,7 +181,7 @@ describe("SQLite shell", () => {
       const db = s.openOrderDatabase(${JSON.stringify(root)});
       const work = "work_11111111-1111-4111-8111-111111111111";
       db.exec("ALTER TABLE workItems DROP COLUMN archived; PRAGMA user_version = 2;");
-      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]',0,'2026-11-11T03:30:00.000Z')").run(work);
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
         .run(work, "sha256:" + "a".repeat(64));
       db.close();
@@ -227,7 +227,7 @@ describe("SQLite shell", () => {
       const planBytes = new TextEncoder().encode(${JSON.stringify(plan)});
       const planHash = r.sha256(planBytes);
       const sourceHash = "sha256:" + "d".repeat(64);
-      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]',0,'2026-11-11T03:30:00.000Z')").run(work);
       db.query("INSERT INTO workItemSources VALUES (?1,'change-v1',?2,?3,NULL)").run(work, work + ".md", sourceHash);
       db.query("INSERT INTO artifactRefs VALUES (?1,?2,'docs/plan.md','PLAN','P7',?3,?4)").run(planId, work, planHash, commit);
       db.query("INSERT INTO artifactRefs VALUES (?1,?2,'docs/r3.md','R3',NULL,?3,?4)").run(r3Id, work, "sha256:" + "b".repeat(64), commit);
