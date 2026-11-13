@@ -43,10 +43,10 @@ const bunEval = (
 
 const fakeOpenCodeSource = `#!/usr/bin/env bun
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 const args = process.argv.slice(2);
-const configPath = join(import.meta.dir, ".fake-opencode.json");
+const configPath = join(dirname(process.argv[1]), ".fake-opencode.json");
 const config = existsSync(configPath)
   ? JSON.parse(readFileSync(configPath, "utf8"))
   : {};
