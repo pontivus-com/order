@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Fixed
+
+- Corrected the canonical public-release governance document path so it participates in active documentation ownership checks.
+
 ### Changed
 
 - Formalized public-repository delivery through pull requests, semantic release impact, changelog entries, versioned release PRs, immutable tags, GitHub Releases and certified release artifacts.
