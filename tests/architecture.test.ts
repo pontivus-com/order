@@ -239,6 +239,68 @@ describe("architecture fitness", () => {
     expect(violations).toEqual([]);
   });
 
+  it("certifies the 0.2.2 productive-provider ownership and Workbench structural boundaries", () => {
+    const contracts = sourceText("src/core/contracts.ts");
+    const repository = sourceText("src/shell/repository.ts");
+    const openCode = sourceText("src/shell/opencode.ts");
+    const stage = sourceText("src/daemon/stage.ts");
+    const execution = sourceText("src/daemon/execution.ts");
+    const layout = sourceText("ui/src/primitives/WorkbenchLayout.tsx");
+    const queue = sourceText("ui/src/WorkItemQueue.tsx");
+    const documents = sourceText("ui/src/DocumentWorkspace.tsx");
+    const activity = sourceText("ui/src/ActivityWorkspace.tsx");
+    const settings = sourceText("ui/src/SettingsWorkspace.tsx");
+
+    expect(stage).toContain("materializeStageInspectionWorkspace");
+    expect(stage).toContain("admitProductiveOpenCode");
+    expect(stage).not.toContain("startOpenCodeServer");
+    expect(stage).not.toContain("createOpenCodeSession");
+    expect(execution).toContain("admitProductiveOpenCode");
+    expect(execution).not.toContain("startOpenCodeServer");
+    expect(execution).not.toContain("createOpenCodeSession");
+
+    expect(openCode).toContain("export const admitProductiveOpenCode");
+    expect(openCode.match(/client\.session\.create\s*\(/g) ?? []).toHaveLength(1);
+    expect(openCode).toContain("client.skill.list");
+    expect(openCode).toContain("client.mcp.list");
+    expect(openCode).toContain('resource: ".git"');
+    expect(openCode).toContain('resource: ".git/*"');
+    expect(openCode).not.toContain("session.instruction");
+    expect(openCode).not.toContain("instruction.create");
+
+    const stageMaterializer = repository.slice(
+      repository.indexOf("export const materializeStageInspectionWorkspace"),
+      repository.indexOf("export const replayAndVerifyCandidate"),
+    );
+    expect(stageMaterializer).toContain("captureCandidate");
+    expect(stageMaterializer).toContain("createFreshCheckout");
+    expect(stageMaterializer).toContain('"apply", "--binary", "-"');
+    expect(stageMaterializer).not.toContain(".gitignore");
+    for (const forbidden of ["node_modules", ".venv", "vendor/", "target/", "dist/"]) {
+      expect(stageMaterializer).not.toContain(forbidden);
+    }
+
+    const configSchema = contracts.slice(
+      contracts.indexOf("export const OrderConfigSchema"),
+      contracts.indexOf("export type OrderConfig"),
+    );
+    expect(configSchema).not.toMatch(/\bskills?\b/i);
+    expect(configSchema).not.toMatch(/\bmcp\b/i);
+
+    expect(layout).toContain("wide && hasInspector && inspectorOpen");
+    expect(settings).not.toContain("Connect target repository");
+    expect(settings).toContain('label="Add repository"');
+    expect(settings).toContain('title="Disconnect repository?"');
+    expect(settings).not.toMatch(/onClick=\{\(\) => disconnect\.mutate/);
+
+    expect(queue).toContain("workflowPresentation(item.stage).label");
+    expect(queue).not.toContain("{item.stage}</");
+    expect(documents).toContain("lifecycleArtifactLabel(artifact.role)");
+    expect(documents).not.toContain("label={artifact.role}");
+    expect(activity).toContain('data-testid="selected-run-header"');
+    expect(activity).not.toContain('data-testid="activity-summary"');
+  });
+
   it("keeps Zod canonical semantic ownership in core/contracts.ts", () => {
     const violations = productionFiles
       .filter((path) => path !== "src/core/contracts.ts")
