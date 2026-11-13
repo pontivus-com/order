@@ -543,7 +543,8 @@ describe("architecture fitness", () => {
       "ui/src/WorkItemQueue.tsx",
       "ui/src/WorkItemContext.tsx",
       "ui/src/DocumentWorkspace.tsx",
-      "ui/src/StageDialogue.tsx",
+      "ui/src/ActivityWorkspace.tsx",
+      "ui/src/RunEventTimeline.tsx",
       "ui/src/SignoffReview.tsx",
       "ui/src/ExecutionWorkspace.tsx",
       "ui/src/EvidenceViewer.tsx",
@@ -643,7 +644,8 @@ describe("architecture fitness", () => {
       "ui/src/ProposalReview.tsx",
       "ui/src/SignoffReview.tsx",
       "ui/src/ProposalReview.tsx",
-      "ui/src/StageDialogue.tsx",
+      "ui/src/ActivityWorkspace.tsx",
+      "ui/src/RunEventTimeline.tsx",
       "ui/src/TerminalResult.tsx",
       "ui/src/WorkItemContext.tsx",
       "ui/src/WorkItemQueue.tsx",
@@ -652,6 +654,8 @@ describe("architecture fitness", () => {
     const allowedSubstantiveDependencies: Readonly<Record<string, readonly string[]>> = {
       "ui/src/DocumentWorkspace.tsx": ["ui/src/MarkdownEditor.tsx"],
       "ui/src/MarkdownEditor.tsx": ["ui/src/MarkdownSourceEditor.tsx"],
+      "ui/src/ActivityWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
+      "ui/src/ExecutionWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
     };
 
     const localUiDependencies = new Map<string, readonly string[]>();
@@ -695,6 +699,7 @@ describe("architecture fitness", () => {
       if (
         substantiveOwners.has(sourcePath) &&
         !new Set([
+          "ui/src/ActivityWorkspace.tsx",
           "ui/src/ExecutionWorkspace.tsx",
           "ui/src/WorkItemQueue.tsx",
         ]).has(sourcePath) &&
