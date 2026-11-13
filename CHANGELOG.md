@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Internal
+
+- Finalize publication recovery for the first public release from the certified replacement `0.2.0` candidate.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
