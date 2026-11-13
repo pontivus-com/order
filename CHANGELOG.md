@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-13
+
 ### Changed
 
 - Add final 0.2.1 cross-boundary architecture and installed-state certification, including active/final OpenCode account removal and obsolete-path absence.
