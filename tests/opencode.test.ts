@@ -478,6 +478,12 @@ describe("OpenCode shell", () => {
             url: "https://opencode.ai/console/reconnect",
           },
         },
+        {
+          type: "credential",
+          id: "cred_gamma",
+          label: "gamma@example.com",
+          method: "oauth",
+        },
       ],
       authorizationUrl: "https://opencode.ai/console/device",
       oauthStatus: "pending",
@@ -532,6 +538,12 @@ describe("OpenCode shell", () => {
           url: "https://opencode.ai/console/reconnect",
         },
       },
+      {
+        id: "cred_gamma",
+        label: "gamma@example.com",
+        active: false,
+        status: { status: "READY" },
+      },
     ]);
     expect(output.after).toEqual([
       {
@@ -550,11 +562,21 @@ describe("OpenCode shell", () => {
         active: false,
         status: { status: "READY" },
       },
+      {
+        id: "cred_gamma",
+        label: "gamma@example.com",
+        active: false,
+        status: { status: "READY" },
+      },
     ]);
     expect(output.login.providerAttemptId).toBe("attempt_device");
     expect(output.login.authorizationUrl).toBe("https://opencode.ai/console/device");
     expect(new Date(output.login.expiresAt).toISOString()).toBe(output.login.expiresAt);
     expect(output.pending).toEqual({ status: "PENDING", message: null });
+    expect(output.initial).toHaveLength(3);
+    expect(output.after.filter((account: any) => account.active)).toHaveLength(1);
+    expect(JSON.stringify(output.initial)).not.toContain("cred_key");
+    expect(JSON.stringify(output.after)).not.toContain("cred_key");
     expect(output.exposedKeys).not.toContain("password");
   });
 
