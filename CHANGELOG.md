@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Cut productive WorkItem configuration, source discovery, lifecycle drafts, and persistence to repository-native v3 semantics with bounded v2 migration.
+
 ### Added
 
 - Added permanent public-repository PR verification, governed release publication, package-derived runtime versioning, and reproducible release bundle/checksum tooling for the 0.2.0 release train.
