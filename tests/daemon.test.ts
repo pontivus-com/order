@@ -1699,38 +1699,35 @@ describe("daemon control plane", () => {
     expect(output.count).toBe(0);
   });
 
-  it("requires explicit full reconciliation to discover a moved source path", () => {
+  it("keeps the deterministic source path authoritative when bytes are moved elsewhere", () => {
     const repository = createRepository();
-    const state = tempDir("order-daemon-source-targeted-boundary-");
-    const workItemRoot = join(repository, "docs", "order", "work-items");
-    mkdirSync(workItemRoot, { recursive: true });
+    const state = tempDir("order-daemon-source-deterministic-boundary-");
 
-    const output = bunEval(`
+    const output = bunEval(\`
       const fs = await import("node:fs");
       const path = await import("node:path");
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        ${JSON.stringify(state)},
+        \${JSON.stringify(state)},
         process.env,
         {
           version: 3,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [${JSON.stringify(repository)}],
+          repositoryRoots: [\${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
       const created = await coord.createWorkItem(runtime, {
         projectId: "fixture",
         schemaId: "change-v1",
-        title: "targeted source boundary",
+        title: "deterministic source boundary",
         concernIds: ["shell"],
       });
-      const original = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), created.sourcePath);
-      fs.mkdirSync(path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved"), { recursive: true });
-      const movedPath = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved", "item.md");
+      const original = path.join(runtime.config.repositoryRoots[0], created.sourcePath);
+      const movedPath = path.join(runtime.config.repositoryRoots[0], "moved-work-request.md");
       fs.renameSync(original, movedPath);
 
       let rejected = false;
@@ -1739,101 +1736,85 @@ describe("daemon control plane", () => {
       } catch {
         rejected = true;
       }
-      const afterTargeted = coord.getWorkItem(runtime, created.id);
-      const runCount = coord.listRuns(runtime, created.id).length;
       const reconciliation = await coord.reconcileSources(runtime);
-      const afterFull = coord.getWorkItem(runtime, created.id);
+      const after = coord.getWorkItem(runtime, created.id);
       console.log(JSON.stringify({
         rejected,
-        recordedPathAfterTargeted: afterTargeted.sourcePath,
-        runCount,
-        moved: reconciliation.moved,
-        pathAfterFull: afterFull.sourcePath,
-      }));
-      database.close();
-    `) as {
-      rejected: boolean;
-      recordedPathAfterTargeted: string;
-      runCount: number;
-      moved: string[];
-      pathAfterFull: string;
-    };
-
-    expect(output.rejected).toBe(true);
-    expect(output.recordedPathAfterTargeted).not.toBe("moved/item.md");
-    expect(output.runCount).toBe(0);
-    expect(output.moved).toHaveLength(1);
-    expect(output.pathAfterFull).toBe("moved/item.md");
-  });
-
-  it("classifies moved, duplicate and missing portable sources without duplicate WorkItems", () => {
-    const repository = createRepository();
-    const state = tempDir("order-daemon-source-reconcile-");
-    const workItemRoot = join(repository, "docs", "order", "work-items");
-    mkdirSync(workItemRoot, { recursive: true });
-
-    const output = bunEval(`
-      const fs = await import("node:fs");
-      const path = await import("node:path");
-      const sql = await import("./src/shell/sqlite.ts");
-      const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(${JSON.stringify(state)});
-      const runtime = coord.createCoordinatorRuntime(
-        database,
-        ${JSON.stringify(state)},
-        process.env,
-        {
-          version: 3,
-          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [${JSON.stringify(repository)}],
-          referenceRoots: [],
-        },
-      );
-      const created = await coord.createWorkItem(runtime, {
-        projectId: "fixture",
-        schemaId: "change-v1",
-        title: "reconcile",
-        concernIds: ["shell"],
-      });
-      const original = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), created.sourcePath);
-      fs.mkdirSync(path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved"), { recursive: true });
-      const movedPath = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "moved", "item.md");
-      fs.renameSync(original, movedPath);
-      const moved = await coord.reconcileSources(runtime);
-      const afterMove = coord.getWorkItem(runtime, created.id);
-
-      const duplicatePath = path.join((runtime.config.repositoryRoots[0] + "/docs/order/work-items"), "duplicate.md");
-      fs.copyFileSync(movedPath, duplicatePath);
-      const duplicate = await coord.reconcileSources(runtime);
-      const afterDuplicateCount = coord.listWorkItems(runtime).length;
-
-      fs.unlinkSync(movedPath);
-      fs.unlinkSync(duplicatePath);
-      const missing = await coord.getWorkItemSourceDiagnostics(runtime);
-      console.log(JSON.stringify({
-        moved,
-        afterMovePath: afterMove.sourcePath,
-        duplicateCodes: duplicate.diagnostics.map((item) => item.code),
-        afterDuplicateCount,
-        missingCodes: missing
+        runCount: coord.listRuns(runtime, created.id).length,
+        sourcePath: after.sourcePath,
+        codes: reconciliation.diagnostics
           .filter((item) => item.workItemId === created.id)
           .map((item) => item.code),
       }));
       database.close();
-    `) as {
-      moved: { moved: string[]; diagnostics: unknown[] };
-      afterMovePath: string;
-      duplicateCodes: string[];
-      afterDuplicateCount: number;
-      missingCodes: string[];
+    \`) as {
+      rejected: boolean;
+      runCount: number;
+      sourcePath: string;
+      codes: string[];
     };
 
-    expect(output.moved.moved).toHaveLength(1);
-    expect(output.moved.diagnostics).toEqual([]);
-    expect(output.afterMovePath).toBe("moved/item.md");
-    expect(output.duplicateCodes).toContain("DUPLICATE_WORK_ITEM_ID");
-    expect(output.afterDuplicateCount).toBe(1);
-    expect(output.missingCodes).toContain("MISSING_SOURCE");
+    expect(output.rejected).toBe(true);
+    expect(output.runCount).toBe(0);
+    expect(output.sourcePath).toMatch(
+      /^docs\/order\/work-items\/work_.+\/work-request\.md$/,
+    );
+    expect(output.codes).toContain("MISSING_SOURCE");
+  });
+
+  it("does not create duplicate WorkItems when a second repository reuses an existing WorkItem id", () => {
+    const repositoryA = createRepository("duplicate-a");
+    const repositoryB = createRepository("duplicate-b");
+    const state = tempDir("order-daemon-source-duplicate-");
+
+    const output = bunEval(\`
+      const sourceCore = await import("./src/core/work-item-source.ts");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const repositories = [
+        \${JSON.stringify(repositoryA)},
+        \${JSON.stringify(repositoryB)},
+      ];
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 3,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: repositories,
+          referenceRoots: [],
+        },
+      );
+      const id = rt.newWorkItemId();
+      for (const [index, repositoryRoot] of repositories.entries()) {
+        const markdown = sourceCore.renderWorkItemSourceMarkdown({
+          formatVersion: 1,
+          id,
+          projectId: index === 0 ? "duplicate-a" : "duplicate-b",
+          concernIds: [],
+          schemaId: "change-v1",
+        }, "duplicate source");
+        sourceShell.createWorkItemSourceFile(
+          repositoryRoot,
+          "docs/order/work-items",
+          id,
+          markdown,
+        );
+      }
+      const reconciliation = await coord.reconcileSources(runtime);
+      console.log(JSON.stringify({
+        codes: reconciliation.diagnostics.map((item) => item.code),
+        count: coord.listWorkItems(runtime).length,
+      }));
+      database.close();
+    \`) as { codes: string[]; count: number };
+
+    expect(output.codes.filter((code) => code === "DUPLICATE_WORK_ITEM_ID")).toHaveLength(2);
+    expect(output.count).toBe(0);
   });
 
   it("materializes current lifecycle Markdown snapshots from latest STAGE lineage", () => {
