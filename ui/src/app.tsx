@@ -63,6 +63,13 @@ const firstProjectId = (
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
 
+const settingsSectionForBlocker = (blocker: string | undefined): SettingsSection =>
+  blocker === "OPENCODE_ACCOUNT_REQUIRED"
+    ? "opencode"
+    : blocker === "MODEL_INVALID"
+      ? "model"
+      : "repositories";
+
 const settingsSectionFromUrl = (): SettingsSection | null => {
   const path = new URL(window.location.href).pathname;
   if (path === "/settings/repositories") return "repositories";
@@ -309,18 +316,26 @@ export const App = () => {
         <WorkbenchToolbarGroup>
           <div className="order-brand">
             <strong>Order</strong>
-            <span>{selectedWorkItem ? "Governed work item" : "Governed work queue"}</span>
+            <span>
+              {settingsSection !== null
+                ? "Settings"
+                : selectedWorkItem
+                  ? "Governed work item"
+                  : "Governed work queue"}
+            </span>
           </div>
-          <WorkbenchAction
-            label="New work item"
-            icon={<WorkbenchIcon name="add" />}
-            iconOnly={selectedWorkItem !== null}
-            onClick={() => {
-              resetCreate();
-              setCreateOpen(true);
-            }}
-          />
-          {selectedWorkItem === null ? (
+          {settingsSection === null ? (
+            <WorkbenchAction
+              label="New work item"
+              icon={<WorkbenchIcon name="add" />}
+              iconOnly={selectedWorkItem !== null}
+              onClick={() => {
+                resetCreate();
+                setCreateOpen(true);
+              }}
+            />
+          ) : null}
+          {selectedWorkItem === null && settingsSection === null ? (
             <WorkbenchAction
               label={refresh.isPending ? "Refreshing…" : "Refresh sources"}
               icon={<WorkbenchIcon name="refresh" />}
@@ -328,11 +343,17 @@ export const App = () => {
               onClick={() => refresh.mutate()}
             />
           ) : null}
+          {settingsSection !== null ? (
+            <WorkbenchAction
+              label="Back to work queue"
+              onClick={() => requestSelection(null)}
+            />
+          ) : null}
         </WorkbenchToolbarGroup>
       }
       end={
         <>
-          {selectedWorkItem === null ? (
+          {selectedWorkItem === null && settingsSection === null ? (
             <WorkbenchToolbarSearch
               aria-label="Search work items"
               placeholder="Search work items"
@@ -341,7 +362,12 @@ export const App = () => {
             />
           ) : null}
           <WorkbenchToolbarUtilities>
-            <OpenCodeAccountControl />
+            <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
+            <WorkbenchAction
+              label="Settings"
+              tone="ghost"
+              onClick={() => navigateSettings(settingsSection ?? "repositories")}
+            />
             <label className="order-theme-control">
               <WorkbenchIcon name={themePreference} />
               <span className="order-visually-hidden">Theme</span>
@@ -379,7 +405,19 @@ export const App = () => {
     </Suspense>
   );
 
-  const main = selectedWorkItem ? (
+  const main = settingsSection !== null ? (
+    <Suspense fallback={<WorkbenchEmptyState title="Loading Settings…" />}>
+      <SettingsWorkspace
+        section={settingsSection}
+        onNavigate={navigateSettings}
+        queueProjectId={queueProjectId}
+        onQueueProjectChange={(nextProjectId) => {
+          setQueueProjectId(nextProjectId);
+          if (nextProjectId.length > 0) setProjectId(nextProjectId);
+        }}
+      />
+    </Suspense>
+  ) : selectedWorkItem ? (
     <Suspense fallback={<WorkbenchEmptyState title="Loading work item workspace…" />}>
       <WorkItemWorkspace
         key={selectedWorkItem.id}
@@ -392,6 +430,21 @@ export const App = () => {
     </Suspense>
   ) : (
     <div className="order-queue-page">
+      {readinessQuery.data && !readinessQuery.data.ready ? (
+        <section className="order-setup-required" role="status">
+          <div>
+            <strong>Setup requires attention</strong>
+            <span>Complete installation Settings before productive work.</span>
+          </div>
+          <WorkbenchAction
+            label="Open Settings"
+            tone="primary"
+            onClick={() => navigateSettings(
+              settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
+            )}
+          />
+        </section>
+      ) : null}
       {(diagnosticsQuery.data ?? []).length > 0 ? (
         <section className="order-diagnostics" data-testid="source-diagnostics">
           <h2>Source diagnostics</h2>
@@ -424,7 +477,7 @@ export const App = () => {
     <WorkbenchLayout
       toolbar={toolbar}
       inspector={
-        selectedWorkItem
+        selectedWorkItem && settingsSection === null
           ? (
             <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
               <WorkItemContext workItem={selectedWorkItem} onCreateRemediation={startRemediation} />
@@ -478,17 +531,17 @@ export const App = () => {
       </Drawer>
 
       <AlertDialog
-        isOpen={pendingSelection !== undefined}
-        onOpenChange={(open) => { if (!open) setPendingSelection(undefined); }}
+        isOpen={pendingDestination !== undefined}
+        onOpenChange={(open) => { if (!open) setPendingDestination(undefined); }}
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
         cancelLabel="Continue editing"
         actionLabel="Discard unsaved changes"
         actionVariant="destructive"
         onAction={() => {
-          const next = pendingSelection;
-          setPendingSelection(undefined);
-          if (next !== undefined) commitSelection(next);
+          const next = pendingDestination;
+          setPendingDestination(undefined);
+          if (next !== undefined) commitDestination(next);
         }}
       />
     </Theme>
