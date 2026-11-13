@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Permit a failed unpublished release candidate to be replaced at the same version only while its tag is absent and the replacement re-freezes current unreleased changes through the normal release PR gates.
+
 - Force GitHub to render the corrected centered README logo plate from a new asset path instead of a stale cached SVG.
 
 ### Fixed
