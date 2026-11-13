@@ -820,14 +820,18 @@ describe("daemon control plane", () => {
       );
       runtime.schedulerStopped = true;
       const owner = settings.createCoordinatorRuntimeOwner(runtime);
-      await coord.reconcileSources(runtime, [${JSON.stringify(readyRepository)}]);
-      const created = await coord.createWorkItem(runtime, {
-        projectId: "settings-ready",
-        schemaId: "change-v1",
-        title: "Affected readiness only",
-        concernIds: ["shell"],
-      });
       fs.rmSync(${JSON.stringify(driftedRepository)}, { recursive: true, force: true });
+      const created = await coord.createWorkItem(
+        runtime,
+        {
+          projectId: "settings-ready",
+          schemaId: "change-v1",
+          title: "Affected readiness only",
+          concernIds: ["shell"],
+        },
+        [${JSON.stringify(readyRepository)}],
+      );
+      await coord.reconcileSources(runtime, [${JSON.stringify(readyRepository)}]);
 
       const global = await settings.installationReadiness(owner);
       let stageFailure = null;
