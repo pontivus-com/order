@@ -83,7 +83,7 @@ export const ProposalReview = ({
       <section className="order-workspace-section order-review-workspace" data-testid="proposal-review-workspace">
         <WorkbenchEmptyState
           title="Proposal is no longer available"
-          description="Return to Dialogue to select a current proposal event."
+          description="Return to Activity to select a current proposal event."
         />
       </section>
     );
@@ -105,7 +105,7 @@ export const ProposalReview = ({
 
       <div className="order-proposal-review-summary">
         <p>{proposalPayload.rationale}</p>
-        <span>{disposition ?? "PENDING"}</span>
+        <span>{disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : "Pending review"}</span>
       </div>
 
       <div className="order-proposal-review-diff" data-testid="proposal-review-diff">
