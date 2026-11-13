@@ -270,6 +270,7 @@ GW-TR-077-PRODUCTIVE-INVOCATION-FAILURE-BOUNDARY = "docs/47-opencode-productive-
 GW-TR-078-PRODUCTIVE-PROVIDER-WORKSPACE-FRESHNESS = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
 GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
 GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
+GW-TR-081-RUN-SPECIFIC-PRODUCTIVE-AGENT-ENVIRONMENT = "docs/47-opencode-productive-workspace-and-instruction-boundary.md"
 D1 = "docs/04-open-decisions.md"
 D2 = "docs/04-open-decisions.md"
 D3 = "docs/04-open-decisions.md"
