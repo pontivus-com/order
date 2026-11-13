@@ -66,13 +66,11 @@ import {
   reconcileSources,
   rejectArtifactProposal,
   resumeWorkItem,
-  runCoordinatorTick,
   saveArtifactContent,
   saveSource,
   sourceDiagnosticForFailure,
   setArchived,
   signOffWorkItem,
-  startCoordinatorScheduler,
   startStageRun,
   stopCoordinatorScheduler,
   submitRunInput,
@@ -97,8 +95,10 @@ import {
   installationReadiness,
   orderConfigState,
   readyRepositoryRoots,
-  requireProductiveReadiness,
+  requireExecutionReadiness,
+  requireStageRunReadiness,
   resumeSchedulerForReadiness,
+  runReadyCoordinatorTick,
   updateConfiguredModel,
   updateReferenceRoots,
   type CoordinatorRuntimeOwner,
@@ -545,8 +545,8 @@ const routeApi = async (
     requireKeys(body, []);
     try {
       requireOpenCodeAccountStableForRunStart(owner);
-      await requireProductiveReadiness(owner);
-      return jsonResponse(await runCoordinatorTick(runtime));
+      await requireExecutionReadiness(owner);
+      return jsonResponse(await runReadyCoordinatorTick(owner));
     } catch (error) {
       if (error instanceof TypeError && error.message === "TICK_ALREADY_ACTIVE") {
         return errorResponse(409, "TICK_ALREADY_ACTIVE", "coordinator tick already active");
@@ -790,7 +790,7 @@ const routeApi = async (
         requireKeys(body, ["mode"]);
         const mode = await parseRequest(() => RunModeSchema.parse(body.mode));
         requireOpenCodeAccountStableForRunStart(owner);
-        await requireProductiveReadiness(owner);
+        await requireStageRunReadiness(owner, workItemId);
         return jsonResponse(await startStageRun(runtime, workItemId, mode), 201);
       }
     }
@@ -997,12 +997,7 @@ export const startOrderDaemon = async (
 
     const readyRoots = await readyRepositoryRoots(config);
     await reconcileSources(initial, readyRoots);
-    const readiness = await installationReadiness(owner);
-    if (readiness.ready) {
-      await startCoordinatorScheduler(initial);
-    } else {
-      initial.schedulerStopped = true;
-    }
+    await resumeSchedulerForReadiness(owner);
 
     const http = startDaemonServer(owner, daemonToken);
     return {
