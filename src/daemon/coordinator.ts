@@ -85,6 +85,10 @@ import {
   startEligibleTask,
 } from "./execution.ts";
 import {
+  commitWorkItemDocumentation,
+  documentationGitStatus,
+} from "./work-item-documentation.ts";
+import {
   createWorkItemFromSource,
   currentWorkItemSource,
   reconcileWorkItemSources,
@@ -123,6 +127,8 @@ export const reconcileSources = reconcileWorkItemSources;
 export const saveSource = saveWorkItemSource;
 export const updateTitle = updateWorkItemTitle;
 export const setArchived = setWorkItemArchived;
+export const getDocumentationGitStatus = documentationGitStatus;
+export const commitDocumentation = commitWorkItemDocumentation;
 
 export type TickResult = Readonly<{
   result: "NO_WORK" | "STARTED";

@@ -11,6 +11,7 @@ import { extname, resolve, sep } from "node:path";
 import { orderVersion } from "../version.ts";
 import {
   ArtifactRefIdSchema,
+  CommitWorkItemDocumentationSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   SetWorkItemArchivedSchema,
@@ -38,8 +39,10 @@ import {
 import {
   adoptArtifactProposal,
   cancelRun,
+  commitDocumentation,
   createCoordinatorRuntime,
   createWorkItem,
+  getDocumentationGitStatus,
   getRun,
   getWorkItem,
   getWorkItemSource,
@@ -448,6 +451,21 @@ const routeApi = async (
     if (parts[3] === "archive" && parts.length === 4 && request.method === "PATCH") {
       const body = SetWorkItemArchivedSchema.parse(await readJsonBody(request));
       return jsonResponse(await setArchived(runtime, workItemId, body));
+    }
+    if (
+      parts[3] === "documentation-git-status" &&
+      parts.length === 4 &&
+      request.method === "GET"
+    ) {
+      return jsonResponse(await getDocumentationGitStatus(runtime, workItemId));
+    }
+    if (
+      parts[3] === "documentation-commit" &&
+      parts.length === 4 &&
+      request.method === "POST"
+    ) {
+      const body = CommitWorkItemDocumentationSchema.parse(await readJsonBody(request));
+      return jsonResponse(await commitDocumentation(runtime, workItemId, body));
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));
