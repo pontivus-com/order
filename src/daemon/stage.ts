@@ -27,7 +27,9 @@ import {
 import {
   allowedR1CompletionsForSchema,
   stageTemplateForSchema,
+  workItemDocumentPath,
 } from "../core/work-item-source.ts";
+import { loadValidatedProjectManifest } from "../shell/project.ts";
 import {
   adoptProposalPatch,
   readWorkingTreeFile,
@@ -136,10 +138,17 @@ export const stagePrompt = async (
   currentStageDrafts: readonly ArtifactRef[],
   referenceRoots: readonly string[],
   userInput?: string,
-): Promise<string> =>
-  [
+): Promise<string> => {
+  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  const expectedOutputPath = workItemDocumentPath(
+    manifest.workItems.root,
+    workItem.id,
+    stage,
+  );
+  return [
     `Order lifecycle stage: ${stage}`,
     stageDecisionText[stage],
+    `Canonical output path for this stage: ${expectedOutputPath}. Any ARTIFACT_PROPOSAL_CREATED for role ${stage} must target exactly this path.`,
     "Return only a JSON array of canonical provider-emittable RunEventPayload values for STAGE role.",
     `WorkItem: ${canonicalJson(workItem)}`,
     stage === "R1" || stage === "R2"
@@ -167,6 +176,7 @@ export const stagePrompt = async (
     "Resolved canonical sources:",
     await renderArtifacts(workItem, context.artifacts),
   ].filter((value) => value.length > 0).join("\n\n");
+};
 
 export const applyStageCompletion = async (
   runtime: CoordinatorRuntime,
@@ -541,6 +551,26 @@ export const adoptArtifactProposal = async (
     workItem.stage === "COMPLETE"
   ) {
     throw new TypeError("artifact proposal cannot mutate authority after sign-off");
+  }
+
+  const project = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  if (
+    proposal.event.role === "R1" ||
+    proposal.event.role === "R2" ||
+    proposal.event.role === "DESIGN" ||
+    proposal.event.role === "PLAN" ||
+    proposal.event.role === "R3"
+  ) {
+    const expectedPath = workItemDocumentPath(
+      project.workItems.root,
+      workItem.id,
+      proposal.event.role,
+    );
+    if (proposal.event.targetPath !== expectedPath) {
+      throw new TypeError(
+        `lifecycle artifact proposal must target deterministic path ${expectedPath}`,
+      );
+    }
   }
 
   let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;

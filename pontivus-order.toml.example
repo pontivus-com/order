@@ -1,6 +1,9 @@
 version = 1
 projectId = "example"
 
+[workItems]
+root = "docs/order/work-items"
+
 [authority]
 p1 = ["AGENTS.md", "docs/principles.md"]
 p2 = ["docs/product.md"]

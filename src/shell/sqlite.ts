@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { existsSync, renameSync, unlinkSync } from "node:fs";
+import { copyFileSync, existsSync, renameSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -91,7 +91,7 @@ CREATE UNIQUE INDEX approvals_packageHash ON approvals(packageHash);
 CREATE TABLE workItemSources (
   workItemId TEXT PRIMARY KEY REFERENCES workItems(id),
   schemaId TEXT NOT NULL,
-  sourcePath TEXT NOT NULL UNIQUE,
+  sourcePath TEXT NOT NULL,
   sourceSha256 TEXT NOT NULL,
   derivedFromWorkItemId TEXT
 ) STRICT;
@@ -228,18 +228,18 @@ const userVersion = (database: Database): number =>
 
 const initializeSchema = (database: Database): void => {
   const version = userVersion(database);
-  if (version === 2) return;
+  if (version === 3) return;
   if (version !== 0) {
     throw new TypeError(`unsupported Order SQLite schema version: ${version}`);
   }
 
   database.transaction(() => {
     database.exec(schemaSql);
-    database.exec("PRAGMA user_version = 2;");
+    database.exec("PRAGMA user_version = 3;");
   })();
 
-  if (userVersion(database) !== 2) {
-    throw new TypeError("Order SQLite schema initialization did not set user_version=2");
+  if (userVersion(database) !== 3) {
+    throw new TypeError("Order SQLite schema initialization did not set user_version=3");
   }
 };
 
@@ -311,7 +311,7 @@ export const readLegacyWorkItemRepositoryRootsForInstall = (
   });
   try {
     const version = userVersion(database);
-    if (version === 2) return [];
+    if (version === 3 || version === 2) return [];
     if (version !== 1) {
       throw new TypeError(
         `unsupported Order SQLite schema version during update: ${version}`,
@@ -350,12 +350,12 @@ export const prepareOrderDatabaseForInstall = (
     database.close();
   }
 
-  if (version === 2) return null;
-  if (version !== 1) {
+  if (version === 3) return null;
+  if (version !== 1 && version !== 2) {
     throw new TypeError(`unsupported Order SQLite schema version during update: ${version}`);
   }
 
-  const suffix = `.legacy-v1.${crypto.randomUUID()}`;
+  const suffix = `.legacy-v${version}.${crypto.randomUUID()}`;
   const moved: string[] = [];
   try {
     for (const candidate of orderDatabaseFiles(path)) {
@@ -363,7 +363,15 @@ export const prepareOrderDatabaseForInstall = (
       renameSync(candidate, candidate + suffix);
       moved.push(candidate);
     }
+    if (version === 2) {
+      for (const candidate of moved) {
+        copyFileSync(candidate + suffix, candidate);
+      }
+    }
   } catch (error) {
+    for (const candidate of moved) {
+      if (existsSync(candidate)) unlinkSync(candidate);
+    }
     for (const candidate of moved.reverse()) {
       const archived = candidate + suffix;
       if (existsSync(archived)) renameSync(archived, candidate);
@@ -453,6 +461,145 @@ const parseRunEventRow = (value: unknown): RunEvent => {
     occurredAt: row.occurredAt,
     event: persistedJson(row.eventJson),
   });
+};
+
+export const readOrderV2MigrationStateForInstall = (
+  stateRoot: string,
+): readonly (readonly [WorkItem, readonly ArtifactRef[]])[] => {
+  const path = statePaths(stateRoot).database;
+  if (!existsSync(path)) return [];
+  const database = new Database(path, { readonly: true, create: false, strict: true });
+  try {
+    if (userVersion(database) !== 2) return [];
+    const executionWorkItems = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM workItems WHERE stage='EXECUTION';",
+      "value",
+    );
+    const runningTasks = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM executionTasks WHERE state='RUNNING';",
+      "value",
+    );
+    const activePostSignoffRuns = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM runs WHERE executionTaskId IS NOT NULL AND status IN ('RUNNING','WAITING_FOR_INPUT');",
+      "value",
+    );
+    if (executionWorkItems !== 0 || runningTasks !== 0 || activePostSignoffRuns !== 0) {
+      throw new TypeError("v2→v3 migration is prohibited while post-signoff execution is active");
+    }
+    const workItems = database.query(`${workItemSelect} ORDER BY createdAt, id;`).all()
+      .map(parseWorkItemRow);
+    return workItems.map((workItem) => {
+      const artifactsById = new Map(
+        database
+          .query(`${artifactSelect} WHERE workItemId=?1;`)
+          .all(workItem.id)
+          .map((row) => ArtifactRefSchema.parse(row))
+          .map((artifact) => [artifact.id, artifact] as const),
+      );
+      const current: ArtifactRef[] = [];
+      for (const stage of ["R1", "R2", "DESIGN", "PLAN", "R3"] as const) {
+        const runRow = database.query(
+          "SELECT id FROM runs WHERE workItemId=?1 AND role='STAGE' AND stage=?2 ORDER BY startedAt DESC, attempt DESC, id DESC LIMIT 1;",
+        ).get(workItem.id, stage);
+        if (runRow === null) continue;
+        const runId = RunIdSchema.parse(recordRow(runRow).id);
+        const events = database.query(
+          "SELECT id, runId, sequence, occurredAt, eventJson FROM runEvents WHERE runId=?1 ORDER BY sequence;",
+        ).all(runId).map(parseRunEventRow);
+        const conformance = events.findLast((event) =>
+          event.event.tag === "CONFORMANCE_PASSED" && event.event.stage === stage
+        );
+        if (conformance?.event.tag !== "CONFORMANCE_PASSED") continue;
+        for (const artifactId of conformance.event.outputArtifactRefIds) {
+          const artifact = artifactsById.get(artifactId);
+          if (artifact !== undefined && artifact.role === stage) current.push(artifact);
+        }
+      }
+      return [workItem, current] as const;
+    });
+  } finally {
+    database.close();
+  }
+};
+
+export const migrateOrderDatabaseV2ToV3 = (
+  stateRoot: string,
+  sourcePaths: ReadonlyMap<WorkItemId, WorkItemSourcePath>,
+): void => {
+  const path = statePaths(stateRoot).database;
+  if (!existsSync(path)) return;
+  const database = new Database(path, { create: false, strict: true });
+  try {
+    configureDatabase(database);
+    const version = userVersion(database);
+    if (version === 3) return;
+    if (version !== 2) {
+      throw new TypeError(`v2→v3 migration requires SQLite user_version=2; found ${version}`);
+    }
+
+    const executionWorkItems = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM workItems WHERE stage='EXECUTION';",
+      "value",
+    );
+    const runningTasks = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM executionTasks WHERE state='RUNNING';",
+      "value",
+    );
+    const activePostSignoffRuns = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM runs WHERE executionTaskId IS NOT NULL AND status IN ('RUNNING','WAITING_FOR_INPUT');",
+      "value",
+    );
+    if (executionWorkItems !== 0 || runningTasks !== 0 || activePostSignoffRuns !== 0) {
+      throw new TypeError("v2→v3 migration is prohibited while post-signoff execution is active");
+    }
+
+    const workItemIds = database.query("SELECT id FROM workItems ORDER BY id;").all()
+      .map((row) => WorkItemIdSchema.parse(recordRow(row).id));
+    if (
+      sourcePaths.size !== workItemIds.length ||
+      workItemIds.some((id) => !sourcePaths.has(id))
+    ) {
+      throw new TypeError("v2→v3 migration source-path map must cover every WorkItem exactly");
+    }
+
+    database.transaction(() => {
+      database.exec(`
+        CREATE TABLE workItemSources_v3 (
+          workItemId TEXT PRIMARY KEY REFERENCES workItems(id),
+          schemaId TEXT NOT NULL,
+          sourcePath TEXT NOT NULL,
+          sourceSha256 TEXT NOT NULL,
+          derivedFromWorkItemId TEXT
+        ) STRICT;
+        INSERT INTO workItemSources_v3(workItemId, schemaId, sourcePath, sourceSha256, derivedFromWorkItemId)
+          SELECT workItemId, schemaId, sourcePath, sourceSha256, derivedFromWorkItemId FROM workItemSources;
+        DROP TABLE workItemSources;
+        ALTER TABLE workItemSources_v3 RENAME TO workItemSources;
+      `);
+      for (const id of workItemIds) {
+        database.query("UPDATE workItemSources SET sourcePath=?2 WHERE workItemId=?1;")
+          .run(id, WorkItemSourcePathSchema.parse(sourcePaths.get(id)));
+      }
+      database.exec(`
+        UPDATE workItems
+        SET stage='R1', status='ACTIVE', outcome=NULL
+        WHERE stage NOT IN ('IDEA','COMPLETE');
+      `);
+      database.exec("PRAGMA user_version = 3;");
+    })();
+
+    if (userVersion(database) !== 3) {
+      throw new TypeError("Order SQLite v2→v3 migration did not set user_version=3");
+    }
+  } finally {
+    database.close();
+  }
 };
 
 export const loadWorkItems = (

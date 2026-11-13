@@ -59,6 +59,7 @@ import {
   parseWorkItemSourceMarkdown,
   renderWorkItemSourceMarkdown,
   unresolvedConcernIdsForProject,
+  workItemDocumentPath,
   workItemKindForSchema,
   workItemSchemaCatalog,
 } from "../src/core/work-item-source.ts";
@@ -162,24 +163,23 @@ const baseRun = (overrides: Partial<Run> = {}): Run =>
 describe("productive configuration policy", () => {
   it("keeps configuration strict and path containment component-safe", () => {
     expect(OrderConfigSchema.safeParse({
-      version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      version: 3,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: ["/home/test/projects"],
       referenceRoots: [],
-      workItemRoot: "/home/test/work-items",
     }).success).toBe(true);
     expect(OrderConfigSchema.safeParse({
-      version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      version: 3,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [],
       referenceRoots: [],
-      workItemRoot: "/home/test/work-items",
     }).success).toBe(false);
     expect(OrderConfigSchema.safeParse({
-      version: 1,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      version: 2,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: ["/home/test/projects"],
       referenceRoots: [],
+      workItemRoot: "/home/test/work-items",
     }).success).toBe(false);
     expect(
       canonicalAbsolutePathIsWithinRoot(
@@ -207,6 +207,16 @@ describe("canonical scalar and strict ingress contracts", () => {
     expect(RepositoryPathSchema.safeParse("/src/x.ts").success).toBe(false);
     expect(RepositoryPatternSchema.safeParse("src/**/*.ts").success).toBe(true);
     expect(() => normalizeRepositoryPath("src/**")).toThrow();
+  });
+
+  it("derives deterministic repository-native WorkItem document paths", () => {
+    const id = `work_${uuidA}`;
+    expect(workItemDocumentPath("docs/order/work-items", id, "SOURCE"))
+      .toBe(`docs/order/work-items/${id}/work-request.md`);
+    expect(workItemDocumentPath("docs/order/work-items", id, "R1"))
+      .toBe(`docs/order/work-items/${id}/research.md`);
+    expect(workItemDocumentPath(".context/order", id, "R3"))
+      .toBe(`.context/order/${id}/readiness-review.md`);
   });
 
   it("enforces canonical EvidencePath ambiguity rules", () => {
@@ -428,6 +438,16 @@ describe("signed task and manifest contracts", () => {
       },
     };
     const parsed = ProjectManifestSchema.parse(manifest);
+    expect(parsed.workItems.root).toBe("docs/order/work-items");
+    const overridden = ProjectManifestSchema.parse({
+      ...manifest,
+      workItems: { root: ".context/order" },
+    });
+    expect(overridden.workItems.root).toBe(".context/order");
+    expect(ProjectManifestSchema.safeParse({
+      ...manifest,
+      workItems: { root: ".git/order" },
+    }).success).toBe(false);
     expect(parsed.refs["FR-1"]).toBe("docs/contracts.md");
     expect(parsed.governance.fitness["GW-P1-FCIS"]).toEqual(["architecture"]);
     expect(parsed.governance.fitness["GW-P1-DOC-CANONICALITY"]).toEqual(["architecture"]);
@@ -859,8 +879,9 @@ describe("source-backed WorkItem core", () => {
       { ...unchanged, path: "nested/moved.md" },
       false,
     )).toEqual({
-      tag: "ACCEPT",
-      disposition: "MOVED",
+      tag: "REJECT",
+      code: "INVALID_SOURCE",
+      detail: "WorkItem source is not at its deterministic repository path",
     });
     expect(classifyExistingWorkItemSource(
       existing,

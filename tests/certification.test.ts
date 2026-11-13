@@ -253,19 +253,27 @@ describe("Order cross-boundary certification", () => {
     expect(http).not.toContain("EventSource");
   });
 
-  it("keeps source-backed v2 as the only productive persistence and transport path", () => {
+  it("keeps repository-native v3 as the only productive persistence and transport path", () => {
     const contracts = read("src/core/contracts.ts");
     const sqlite = read("src/shell/sqlite.ts");
     const server = read("src/daemon/server.ts");
     const sourceDaemon = read("src/daemon/work-item-source.ts");
     const sourceCore = read("src/core/work-item-source.ts");
+    const sourceShell = read("src/shell/work-item-source.ts");
     const lifecycle = read("src/core/lifecycle.ts");
 
-    expect(contracts).toMatch(/OrderConfigSchema = z\.strictObject\(\{\s*version: z\.literal\(2\)/);
-    expect(sqlite).toContain("PRAGMA user_version = 2");
+    expect(contracts).toMatch(/OrderConfigSchema = z\.strictObject\(\{\s*version: z\.literal\(3\)/);
+    expect(contracts).toContain("LegacyOrderConfigV2Schema");
+    const productiveConfig = contracts.slice(
+      contracts.indexOf("export const OrderConfigSchema"),
+      contracts.indexOf("export type OrderConfig"),
+    );
+    expect(productiveConfig).not.toContain("workItemRoot");
+    expect(sqlite).toContain("PRAGMA user_version = 3");
     expect(sqlite).toContain("CREATE TABLE workItemSources");
-    expect(sqlite).toContain("sourceSha256 TEXT NOT NULL");
-    expect(sqlite).not.toContain("ALTER TABLE");
+    expect(sqlite).toContain("sourcePath TEXT NOT NULL,");
+    expect(sqlite).not.toContain("sourcePath TEXT NOT NULL UNIQUE");
+    expect(sqlite).toContain("migrateOrderDatabaseV2ToV3");
     expect(sqlite).not.toContain("PRAGMA user_version = 1");
 
     expect(server).toContain("CreateWorkItemSourceSchema.parse");
@@ -273,10 +281,11 @@ describe("Order cross-boundary certification", () => {
     expect(server).not.toContain('requireString(body, "repositoryRoot")');
     expect(server).not.toContain('requireString(body, "origin")');
 
-    expect(sourceDaemon).toContain("classifyExistingWorkItemSource");
-    expect(sourceDaemon).toContain("linkedRemediationIsAllowed");
-    expect(sourceDaemon).not.toContain('includes("concern")');
-    expect(sourceDaemon).not.toContain('startsWith("UNSUPPORTED_SCHEMA');
+    expect(sourceDaemon).toContain("loadConfiguredProjects");
+    expect(sourceDaemon).toContain("materializeLifecycleDrafts");
+    expect(sourceDaemon).not.toContain('disposition: "MOVED"');
+    expect(sourceShell).toContain("scanLegacyV2WorkItemSourcesForInstall");
+    expect(sourceCore).toContain("workItemDocumentPath");
     expect(sourceCore).toContain("isUnsupportedWorkItemSchemaFailure");
     expect(lifecycle).not.toContain("work-item-source");
   });

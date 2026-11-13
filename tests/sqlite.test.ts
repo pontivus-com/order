@@ -27,7 +27,7 @@ const bun = (code: string, allowFailure = false) => {
 };
 
 describe("SQLite shell", () => {
-  it("creates and reopens exact schema version 2 with required effective PRAGMAs", () => {
+  it("creates and reopens exact schema version 3 with required effective PRAGMAs", () => {
     const root = tempDir();
     const result = bun(`
       const s = await import("./src/shell/sqlite.ts");
@@ -47,7 +47,7 @@ describe("SQLite shell", () => {
       console.log(JSON.stringify({ first, reopenedVersion }));
     `);
     const parsed = JSON.parse(result.stdout.trim());
-    expect(parsed.first.version).toBe(2);
+    expect(parsed.first.version).toBe(3);
     expect(String(parsed.first.journal).toLowerCase()).toBe("wal");
     expect(parsed.first.synchronous).toBe(2);
     expect(parsed.first.foreignKeys).toBe(1);
@@ -62,7 +62,7 @@ describe("SQLite shell", () => {
       "workItemSources",
       "workItems",
     ]);
-    expect(parsed.reopenedVersion).toBe(2);
+    expect(parsed.reopenedVersion).toBe(3);
   });
 
   it("reads distinct v1 WorkItem repository roots as installer migration evidence", () => {
@@ -126,9 +126,63 @@ describe("SQLite shell", () => {
     `);
     const parsed = JSON.parse(result.stdout.trim());
     expect(parsed.archiveDatabase).toContain(".legacy-v1.");
-    expect(parsed.currentVersion).toBe(2);
+    expect(parsed.currentVersion).toBe(3);
     expect(parsed.restoredVersion).toBe(1);
     expect(parsed.sentinel).toBe("legacy");
+  });
+
+  it("migrates v2 source paths and lifecycle state in place while preserving runtime history", () => {
+    const root = tempDir();
+    const result = bun(`
+      const s = await import("./src/shell/sqlite.ts");
+      const db = s.openOrderDatabase(${JSON.stringify(root)});
+      const work = "work_11111111-1111-4111-8111-111111111111";
+      const run = "run_11111111-1111-4111-8111-111111111111";
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','PLAN','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
+      db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
+        .run(work, "sha256:" + "a".repeat(64));
+      db.query("INSERT INTO runs VALUES (?1,?2,NULL,'PLAN','INTERACTIVE','STAGE',NULL,'COMPLETED',1,?3,?4,NULL,NULL,'2026-11-11T03:30:00.000Z','2026-11-11T03:31:00.000Z')")
+        .run(run, work, "b".repeat(40), "sha256:" + "c".repeat(64));
+      db.exec("PRAGMA user_version = 2;");
+      db.close();
+
+      const archive = s.prepareOrderDatabaseForInstall(${JSON.stringify(root)});
+      if (archive === null) throw new Error("expected v2 rollback archive");
+      const paths = new Map([[work, "docs/order/work-items/" + work + "/work-request.md"]]);
+      s.migrateOrderDatabaseV2ToV3(${JSON.stringify(root)}, paths);
+      const migrated = s.openOrderDatabase(${JSON.stringify(root)});
+      const version = migrated.query("PRAGMA user_version").get().user_version;
+      const sourcePath = migrated.query("SELECT sourcePath FROM workItemSources WHERE workItemId=?1").get(work).sourcePath;
+      const lifecycle = migrated.query("SELECT stage,status,outcome FROM workItems WHERE id=?1").get(work);
+      const runCount = migrated.query("SELECT count(*) AS value FROM runs WHERE id=?1").get(run).value;
+      migrated.close();
+      console.log(JSON.stringify({ version, sourcePath, lifecycle, runCount, archive: archive.archiveDatabase }));
+    `);
+    const parsed = JSON.parse(result.stdout.trim());
+    expect(parsed.version).toBe(3);
+    expect(parsed.sourcePath).toBe(
+      "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
+    );
+    expect(parsed.lifecycle).toEqual({ stage: "R1", status: "ACTIVE", outcome: null });
+    expect(parsed.runCount).toBe(1);
+    expect(parsed.archive).toContain(".legacy-v2.");
+  });
+
+  it("refuses v2 migration preflight while post-signoff execution is active", () => {
+    const root = tempDir();
+    const result = bun(`
+      const s = await import("./src/shell/sqlite.ts");
+      const db = s.openOrderDatabase(${JSON.stringify(root)});
+      const work = "work_11111111-1111-4111-8111-111111111111";
+      db.query("INSERT INTO workItems VALUES (?1,'fixture','/repo','title','origin','EXECUTION','ACTIVE',NULL,'[]','2026-11-11T03:30:00.000Z')").run(work);
+      db.query("INSERT INTO workItemSources VALUES (?1,'change-v1','legacy.md',?2,NULL)")
+        .run(work, "sha256:" + "a".repeat(64));
+      db.exec("PRAGMA user_version = 2;");
+      db.close();
+      s.readOrderV2MigrationStateForInstall(${JSON.stringify(root)});
+    `, true);
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("prohibited while post-signoff execution is active");
   });
 
   it("rejects unsupported schema versions", () => {

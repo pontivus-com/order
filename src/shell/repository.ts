@@ -1,6 +1,7 @@
 import {
   existsSync,
   lstatSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   realpathSync,
@@ -19,7 +20,7 @@ import {
   type RepositoryPath,
   type Sha256,
 } from "../core/contracts.ts";
-import { replaceRegularFileExpectedHash } from "./file-write.ts";
+import { createRegularFileExclusive, replaceRegularFileExpectedHash } from "./file-write.ts";
 import { runProcess } from "./process.ts";
 import { sha256 } from "./runtime.ts";
 
@@ -181,6 +182,28 @@ export const readCommittedFile = async (
   ]);
   const objectId = parseLsTree(entry, canonicalPath);
   return runGit(repositoryRoot, ["cat-file", "blob", objectId]);
+};
+
+export const createWorkingTreeFileExclusive = (
+  repositoryRoot: string,
+  path: RepositoryPath,
+  bytes: Uint8Array,
+): Sha256 => {
+  const root = realpathSync(repositoryRoot);
+  const canonicalPath = RepositoryPathSchema.parse(path);
+  if (canonicalPath === ".") throw new TypeError("repository root is not a file target");
+  const segments = canonicalPath.split("/");
+  let current = root;
+  for (const segment of segments.slice(0, -1)) {
+    current = join(current, segment);
+    if (!existsSync(current)) mkdirSync(current, { mode: 0o755 });
+    const stat = lstatSync(current);
+    if (stat.isSymbolicLink() || !stat.isDirectory()) {
+      throw new TypeError("repository target parent must be a regular directory");
+    }
+  }
+  const target = join(root, ...segments);
+  return createRegularFileExclusive(target, bytes);
 };
 
 export const readWorkingTreeFile = (

@@ -383,11 +383,14 @@ const buildApplication = (
 const configureOrder = async (
   locations: InstallerLocations,
   projectManifestCreated: (path: string) => void,
-): Promise<void> => {
+) => {
   const setupUrl = pathToFileURL(
     join(locations.installRoot, "app", "src", "shell", "setup.ts"),
   ).href;
   const setupModule = await import(setupUrl) as typeof import("./shell/setup.ts");
+  const legacyV2Config = setupModule.readLegacyOrderConfigV2ForInstall(
+    locations.stateRoot,
+  );
   const code = await setupModule.runInstallerGuidedSetup(
     runtimeEnvironment(locations),
     (value) => process.stdout.write(value),
@@ -395,6 +398,7 @@ const configureOrder = async (
     projectManifestCreated,
   );
   if (code !== 0) fail("Order guided configuration did not complete");
+  return { setupModule, legacyV2Config } as const;
 };
 
 const activateService = async (
@@ -650,6 +654,7 @@ export const runInstaller = async (
   let configSnapshot: Readonly<{ path: string; bytes: Uint8Array | null }> | null = null;
   let databaseArchive: LegacyDatabaseArchive | null = null;
   let sqliteUpgradeModule: typeof import("./shell/sqlite.ts") | null = null;
+  let configuredSetup: Awaited<ReturnType<typeof configureOrder>> | null = null;
   let priorServiceWasActive = false;
   const createdProjectManifests: string[] = [];
   const launcher = join(locations.binDir, "order");
@@ -709,7 +714,7 @@ export const runInstaller = async (
     };
 
     step("configuring provider, model and repository access");
-    await configureOrder(
+    configuredSetup = await configureOrder(
       locations,
       (path) => createdProjectManifests.push(path),
     );
@@ -723,8 +728,20 @@ export const runInstaller = async (
     );
     if (databaseArchive !== null) {
       process.stdout.write(
-        "Order installer — archived incompatible beta workflow database at " +
+        "Order installer — retained rollback database archive at " +
           databaseArchive.archiveDatabase +
+          "\n",
+      );
+    }
+
+    if (configuredSetup.legacyV2Config !== null) {
+      await configuredSetup.setupModule.migrateRepositoryNativeV2StateForInstall(
+        locations.stateRoot,
+        configuredSetup.legacyV2Config,
+      );
+      process.stdout.write(
+        "Order installer — migrated WorkItem documentation into target repositories; retained legacy source root as backup: " +
+          configuredSetup.legacyV2Config.workItemRoot +
           "\n",
       );
     }

@@ -1071,6 +1071,25 @@ export const computeSignoffPackage = async (
   }
 
   const baselineCommit = await resolveHeadCommit(workItem.repositoryRoot);
+  let committedSource: Uint8Array;
+  try {
+    committedSource = await readCommittedFile(
+      workItem.repositoryRoot,
+      baselineCommit,
+      workItem.sourcePath,
+    );
+  } catch (error) {
+    throw new TypeError(
+      "WorkItem source is not committed at the selected sign-off baseline",
+      { cause: error },
+    );
+  }
+  if (sha256(committedSource) !== workItem.sourceSha256) {
+    throw new TypeError(
+      "WorkItem source bytes do not match the selected sign-off baseline",
+    );
+  }
+
   const committedClosure = await rematerializeCommittedApprovalClosure(
     runtime,
     workItem,

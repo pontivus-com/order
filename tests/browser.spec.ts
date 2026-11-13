@@ -15,7 +15,7 @@ if (stateRoot === undefined || stateRoot.length === 0) {
   throw new TypeError("PONTIVUS_ORDER_TEST_STATE_ROOT is required");
 }
 const daemonToken = readFileSync(join(stateRoot, "daemon-token"), "utf8").trim();
-const workItemRoot = stateRoot + "-work-items";
+const repositoryRoot = stateRoot + "-e2e-project";
 
 const mintConnectToken = async (
   request: APIRequestContext,
@@ -299,7 +299,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(rowFor(page, "Discovered on startup")).toBeVisible();
   await expect(page.getByTestId("source-diagnostics")).toContainText("INVALID_SOURCE");
-  await expect(page.getByTestId("source-diagnostics")).toContainText("invalid-source.md");
+  await expect(page.getByTestId("source-diagnostics")).toContainText("work-request.md");
   await page.getByRole("button", { name: "Refresh sources" }).click();
   await expect(page.getByTestId("source-diagnostics")).toContainText("INVALID_SOURCE");
 
@@ -537,7 +537,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   );
   expect(sourceResponse.status()).toBe(200);
   const source = WorkItemSourceSnapshotSchema.parse(await sourceResponse.json());
-  const sourcePath = join(workItemRoot, source.path);
+  const sourcePath = join(repositoryRoot, source.path);
   const external = readFileSync(sourcePath, "utf8").replace(
     "# Source editing workbench",
     "# Source editing externally changed",

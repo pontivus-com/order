@@ -1,4 +1,5 @@
 import {
+  ArtifactRefSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWriteResultSchema,
@@ -9,6 +10,7 @@ import {
   type CreateWorkItemSource,
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWriteResult,
+  type ProjectId,
   type WorkItem,
   type WorkItemId,
   type WorkItemSourceDiagnostic,
@@ -21,6 +23,7 @@ import {
   linkedRemediationIsAllowed,
   parseWorkItemSourceMarkdown,
   renderWorkItemSourceMarkdown,
+  workItemDocumentPath,
   unresolvedConcernIdsForProject,
   type WorkItemSourceDisposition,
 } from "../core/work-item-source.ts";
@@ -38,13 +41,16 @@ import {
   scanWorkItemSources,
   type ParsedWorkItemSource,
 } from "../shell/work-item-source.ts";
-import { newWorkItemId, nowIsoDateTime, sha256 } from "../shell/runtime.ts";
+import { readCommittedFile, readWorkingTreeFile, resolveHeadCommit } from "../shell/repository.ts";
+import { newArtifactRefId, newWorkItemId, nowIsoDateTime, sha256 } from "../shell/runtime.ts";
 import {
   blockExecutionTasksForApproval,
+  findArtifactSnapshot,
   loadCurrentApprovalForWorkItem,
   loadRunsForWorkItem,
   loadWorkItem,
   loadWorkItems,
+  storeArtifact,
   storeWorkItem,
   updateWorkItemSourceProjection,
   withTransaction,
@@ -86,12 +92,14 @@ type QueuePlan = Readonly<{
 }>;
 
 const diagnostic = (
+  projectId: ProjectId,
   source: ParsedWorkItemSource | null,
   code: WorkItemSourceDiagnostic["code"],
   detail: string,
   workItemId: WorkItemId | null = source?.metadata.id ?? null,
 ): WorkItemSourceDiagnostic =>
   WorkItemSourceDiagnosticSchema.parse({
+    projectId,
     path: source?.path ?? null,
     workItemId,
     code,
@@ -131,7 +139,7 @@ const planExistingSource = (
   if (classification.tag === "REJECT") {
     return {
       plan: null,
-      diagnostic: diagnostic(source, classification.code, classification.detail),
+      diagnostic: diagnostic(project.manifest.projectId, source, classification.code, classification.detail),
     };
   }
 
@@ -161,47 +169,118 @@ const planExistingSource = (
   };
 };
 
+const lifecycleDrafts = [
+  ["R1", "P1"],
+  ["R2", "P3"],
+  ["DESIGN", "P6"],
+  ["PLAN", "P7"],
+  ["R3", "P7"],
+] as const;
+
+const materializeLifecycleDrafts = async (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  project: ConfiguredProject,
+): Promise<void> => {
+  const head = await resolveHeadCommit(project.repositoryRoot);
+  for (const [role, authorityLayer] of lifecycleDrafts) {
+    const repositoryPath = workItemDocumentPath(
+      project.manifest.workItems.root,
+      workItem.id,
+      role,
+    );
+    let bytes: Uint8Array;
+    try {
+      bytes = readWorkingTreeFile(project.repositoryRoot, repositoryPath);
+    } catch {
+      continue;
+    }
+    const digest = sha256(bytes);
+    let gitCommit: typeof head | null = null;
+    try {
+      const committed = await readCommittedFile(project.repositoryRoot, head, repositoryPath);
+      if (sha256(committed) === digest) gitCommit = head;
+    } catch {
+      gitCommit = null;
+    }
+    const candidate = {
+      workItemId: workItem.id,
+      repositoryPath,
+      role,
+      authorityLayer,
+      sha256: digest,
+      gitCommit,
+    } as const;
+    if (findArtifactSnapshot(runtime.database, candidate) !== null) continue;
+    storeArtifact(runtime.database, ArtifactRefSchema.parse({
+      id: newArtifactRefId(),
+      ...candidate,
+    }));
+  }
+};
+
 const inspectQueue = async (
   runtime: CoordinatorRuntime,
 ): Promise<Readonly<{
   plans: readonly QueuePlan[];
   diagnostics: readonly WorkItemSourceDiagnostic[];
+  projects: ReadonlyMap<ProjectId, ConfiguredProject>;
 }>> => {
-  const scanned = scanWorkItemSources(runtime.config.workItemRoot);
-  const diagnostics: WorkItemSourceDiagnostic[] = [...scanned.diagnostics];
+  const configuredProjects = await loadConfiguredProjects(runtime.config.repositoryRoots);
+  const projects = new Map(
+    configuredProjects.map((project) => [project.manifest.projectId, project] as const),
+  );
+  const scannedEntries: Array<Readonly<{
+    source: ParsedWorkItemSource;
+    project: ConfiguredProject;
+  }>> = [];
+  const diagnostics: WorkItemSourceDiagnostic[] = [];
+
+  for (const project of configuredProjects) {
+    const scanned = scanWorkItemSources(
+      project.repositoryRoot,
+      project.manifest.projectId,
+      project.manifest.workItems.root,
+    );
+    diagnostics.push(...scanned.diagnostics);
+    scannedEntries.push(...scanned.sources.map((source) => ({ source, project })));
+  }
+
   const existing = new Map(loadWorkItems(runtime.database).map((item) => [item.id, item] as const));
-  const duplicateIds = new Set(duplicateWorkItemSourceIds(scanned.sources));
+  const duplicateIds = new Set(
+    duplicateWorkItemSourceIds(scannedEntries.map((entry) => entry.source)),
+  );
   const seen = new Set<WorkItemId>();
   const plans: QueuePlan[] = [];
 
-  for (const source of scanned.sources) {
+  for (const { source, project } of scannedEntries) {
     seen.add(source.metadata.id);
     if (duplicateIds.has(source.metadata.id)) {
       diagnostics.push(diagnostic(
+        project.manifest.projectId,
         source,
         "DUPLICATE_WORK_ITEM_ID",
         `duplicate WorkItem id: ${source.metadata.id}`,
       ));
       continue;
     }
-
-    let project: ConfiguredProject;
-    try {
-      project = await resolveSourceProject(runtime, source);
-    } catch (error) {
+    if (source.metadata.projectId !== project.manifest.projectId) {
       diagnostics.push(diagnostic(
+        project.manifest.projectId,
         source,
         "UNRESOLVED_PROJECT",
-        error instanceof Error ? error.message : String(error),
+        "WorkItem source projectId does not match the repository project",
       ));
       continue;
     }
+
     const unresolvedConcerns = unresolvedConcernIdsForProject(
       source.metadata.concernIds,
       project.manifest,
     );
     if (unresolvedConcerns[0] !== undefined) {
       diagnostics.push(diagnostic(
+        project.manifest.projectId,
         source,
         "UNRESOLVED_CONCERN",
         `unresolved concern id: ${unresolvedConcerns[0]}`,
@@ -235,13 +314,19 @@ const inspectQueue = async (
     }
 
     const planned = planExistingSource(runtime, prior, source, project);
-    if (planned.diagnostic !== null) diagnostics.push(planned.diagnostic);
+    if (planned.diagnostic !== null) {
+      diagnostics.push(WorkItemSourceDiagnosticSchema.parse({
+        ...planned.diagnostic,
+        projectId: project.manifest.projectId,
+      }));
+    }
     if (planned.plan !== null) plans.push(planned.plan);
   }
 
   for (const workItem of existing.values()) {
     if (seen.has(workItem.id)) continue;
     diagnostics.push(diagnostic(
+      workItem.projectId,
       null,
       workItem.stage === "COMPLETE" ? "COMPLETED_SOURCE_MISSING" : "MISSING_SOURCE",
       `source is missing for WorkItem ${workItem.id}`,
@@ -249,7 +334,7 @@ const inspectQueue = async (
     ));
   }
 
-  return { plans, diagnostics };
+  return { plans, diagnostics, projects };
 };
 
 const applyPlan = (
@@ -283,6 +368,12 @@ export const reconcileWorkItemSources = async (
   withTransaction(runtime.database, () => {
     for (const plan of inspected.plans) applyPlan(runtime, plan);
   });
+  for (const plan of inspected.plans) {
+    const project = inspected.projects.get(plan.workItem.projectId);
+    if (project !== undefined) {
+      await materializeLifecycleDrafts(runtime, plan.workItem, project);
+    }
+  }
   const byDisposition = (
     disposition: "REGISTERED" | WorkItemSourceDisposition,
   ): readonly WorkItemId[] =>
@@ -293,7 +384,6 @@ export const reconcileWorkItemSources = async (
   return WorkItemSourceReconciliationSchema.parse({
     registered: byDisposition("REGISTERED"),
     updated: byDisposition("UPDATED"),
-    moved: byDisposition("MOVED"),
     unchanged: byDisposition("UNCHANGED"),
     diagnostics: inspected.diagnostics,
   });
@@ -304,9 +394,22 @@ export const revalidateWorkItemSource = async (
   workItemId: WorkItemId,
 ): Promise<Readonly<{ workItem: WorkItem; source: WorkItemSourceSnapshot }>> => {
   const before = loadWorkItem(runtime.database, workItemId);
+  const projectForPath = await resolveConfiguredProject(
+    runtime.config.repositoryRoots,
+    before.projectId,
+  );
+  const expectedPath = workItemDocumentPath(
+    projectForPath.manifest.workItems.root,
+    before.id,
+    "SOURCE",
+  );
+  if (before.sourcePath !== expectedPath) {
+    throw sourceBoundaryFailure("persisted WorkItem source path is not deterministic");
+  }
+
   let current: ParsedWorkItemSource;
   try {
-    current = readWorkItemSource(runtime.config.workItemRoot, before.sourcePath);
+    current = readWorkItemSource(projectForPath.repositoryRoot, expectedPath);
   } catch (error) {
     if (isWorkItemRootAccessFailure(error) || operationalSourceReadFailure(error)) {
       throw error;
@@ -384,8 +487,13 @@ export const createWorkItemFromSource = async (
     ...(parentId === null ? {} : { derivedFromWorkItemId: parentId }),
   };
   const markdown = renderWorkItemSourceMarkdown(metadata, command.title);
-  const created = createWorkItemSourceFile(runtime.config.workItemRoot, id, markdown);
-  const source = readWorkItemSource(runtime.config.workItemRoot, created.path);
+  const created = createWorkItemSourceFile(
+    project.repositoryRoot,
+    project.manifest.workItems.root,
+    id,
+    markdown,
+  );
+  const source = readWorkItemSource(project.repositoryRoot, created.path);
   const value = WorkItemSchema.parse({
     id,
     projectId: command.projectId,
@@ -442,14 +550,14 @@ export const saveWorkItemSource = async (
   }
 
   const result = replaceWorkItemSourceFile(
-    runtime.config.workItemRoot,
+    existing.repositoryRoot,
     existing.sourcePath,
     command.expectedSha256,
     command.markdown,
   );
   if (result.tag === "STALE") return result;
 
-  const source = readWorkItemSource(runtime.config.workItemRoot, existing.sourcePath);
+  const source = readWorkItemSource(existing.repositoryRoot, existing.sourcePath);
   const lifecycle = classification.disposition === "UPDATED"
     ? sourceChangeLifecycleState(existing)
     : { stage: existing.stage, status: existing.status, outcome: existing.outcome };

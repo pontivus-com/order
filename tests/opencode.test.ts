@@ -92,7 +92,7 @@ if (
   process.exit(2);
 }
 
-const modelText = config.model ?? "openai/gpt-5.6";
+const modelText = config.model ?? "opencode/glm-5.3-flash-free";
 const slash = modelText.indexOf("/");
 const model = {
   providerID: modelText.slice(0, slash),
@@ -356,7 +356,7 @@ describe("OpenCode shell", () => {
     const binary = createFakeOpenCode(workspace, {
       models: [
         { providerID: "zeta", id: "disabled", enabled: false },
-        { providerID: "openai", id: "gpt-5.6", enabled: true },
+        { providerID: "opencode", id: "glm-5.3-flash-free", enabled: true },
         { providerID: "anthropic", id: "claude", enabled: true },
       ],
     });
@@ -372,7 +372,7 @@ describe("OpenCode shell", () => {
 
     expect(output).toEqual([
       { providerID: "anthropic", id: "claude" },
-      { providerID: "openai", id: "gpt-5.6" },
+      { providerID: "opencode", id: "glm-5.3-flash-free" },
     ]);
   });
 
@@ -408,7 +408,7 @@ describe("OpenCode shell", () => {
       const server = await o.startOpenCodeServer(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
-        { providerID: "openai", id: "gpt-5.6" },
+        { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
       );
       try {
@@ -459,8 +459,8 @@ describe("OpenCode shell", () => {
       { tag: "AGENT_MESSAGE_FINAL", text: "done", evidence: [] },
     ]);
     expect(output.model).toEqual({
-      providerID: "openai",
-      id: "gpt-5.6",
+      providerID: "opencode",
+      id: "glm-5.3-flash-free",
       variant: "default",
     });
     expect(output.permissions).toEqual([
@@ -488,7 +488,7 @@ describe("OpenCode shell", () => {
       const server = await o.startOpenCodeServer(
         ${JSON.stringify(state)},
         ${JSON.stringify(workspace)},
-        { providerID: "openai", id: "gpt-5.6" },
+        { providerID: "opencode", id: "glm-5.3-flash-free" },
         process.env,
       );
       try {
@@ -576,7 +576,6 @@ describe("OpenCode shell", () => {
   it("completes guided setup and reuses a valid persisted configuration", () => {
     const workspace = tempDir("order-setup-workspace-");
     const state = tempDir("order-setup-state-");
-    const workItemRoot = tempDir("order-setup-work-items-");
     writeFileSync(join(workspace, "AGENTS.md"), "# fixture authority\n");
     writeFileSync(join(workspace, "pontivus-order.toml"), `version = 1
 projectId = "setup-fixture"
@@ -612,7 +611,7 @@ materialRefs = ["AGENTS.md"]
     spawnSync("git", ["add", "."], { cwd: workspace });
     spawnSync("git", ["commit", "-qm", "fixture"], { cwd: workspace });
     const binary = createFakeOpenCode(workspace, {
-      models: [{ providerID: "openai", id: "gpt-5.6", enabled: true }],
+      models: [{ providerID: "opencode", id: "glm-5.3-flash-free", enabled: true }],
     });
 
     const output = bunEval(`
@@ -625,7 +624,7 @@ materialRefs = ["AGENTS.md"]
         PONTIVUS_ORDER_STATE_ROOT: ${JSON.stringify(state)},
         PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(binary)},
       };
-      const answers = ["1", ${JSON.stringify(workspace)}, "", "", ${JSON.stringify(workItemRoot)}];
+      const answers = ["1", ${JSON.stringify(workspace)}, "", ""];
       const stdout = [];
       const first = await cli.runCli(
         ["setup"],
@@ -647,22 +646,20 @@ materialRefs = ["AGENTS.md"]
       first: number;
       second: number;
       config: {
-        version: 2;
+        version: 3;
         model: { providerID: string; id: string };
         repositoryRoots: string[];
         referenceRoots: string[];
-        workItemRoot: string;
       };
       stdout: string[];
     };
 
     expect(output.first).toBe(0);
     expect(output.second).toBe(0);
-    expect(output.config.model).toEqual({ providerID: "openai", id: "gpt-5.6" });
-    expect(output.config.version).toBe(2);
+    expect(output.config.model).toEqual({ providerID: "opencode", id: "glm-5.3-flash-free" });
+    expect(output.config.version).toBe(3);
     expect(output.config.repositoryRoots).toEqual([workspace]);
     expect(output.config.referenceRoots).toEqual([]);
-    expect(output.config.workItemRoot).toBe(workItemRoot);
     expect(output.stdout.join("")).toContain("Order configuration is already valid");
   });
 
@@ -678,12 +675,12 @@ materialRefs = ["AGENTS.md"]
     spawnSync("git", ["commit", "-qm", "fixture"], { cwd: workspace });
 
     const binary = createFakeOpenCode(workspace, {
-      models: [{ providerID: "openai", id: "gpt-5.6", enabled: true }],
+      models: [{ providerID: "opencode", id: "glm-5.3-flash-free", enabled: true }],
     });
     const configPath = join(state, "config.json");
     writeFileSync(configPath, JSON.stringify({
       version: 1,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [workspace],
       referenceRoots: [],
     }) + "\n", { mode: 0o600 });
@@ -718,11 +715,10 @@ materialRefs = ["AGENTS.md"]
       code: number;
       created: string[];
       config: {
-        version: 2;
+        version: 3;
         model: { providerID: string; id: string };
         repositoryRoots: string[];
         referenceRoots: string[];
-        workItemRoot: string;
       };
       manifest: {
         projectId: string;
@@ -742,11 +738,10 @@ materialRefs = ["AGENTS.md"]
     expect(output.created).toEqual([join(workspace, "pontivus-order.toml")]);
     expect(output.config.repositoryRoots).toEqual([workspace]);
     expect(output.config.referenceRoots).toEqual([]);
-    expect(output.config.workItemRoot).toBe(join(home, ".local", "share", "pontivus-order-work-items"));
     expect(output.manifest.projectId).toBe(basename(workspace).toLowerCase());
     expect(output.manifest.authority.p1).toEqual(["AGENTS.md"]);
     expect(output.stdout.join("")).toContain("created missing project manifest");
-    expect(output.stdout.join("")).toContain("configuration upgraded to version 2");
+    expect(output.stdout.join("")).toContain("configuration upgraded to version 3");
   });
 
   it("upgrades broad v1 target roots from persisted WorkItem repository evidence", () => {
@@ -791,12 +786,12 @@ materialRefs = ["AGENTS.md"]
     spawnSync("git", ["commit", "-qm", "fixture"], { cwd: workspace });
 
     const binary = createFakeOpenCode(workspace, {
-      models: [{ providerID: "openai", id: "gpt-5.6", enabled: true }],
+      models: [{ providerID: "opencode", id: "glm-5.3-flash-free", enabled: true }],
     });
     const configPath = join(state, "config.json");
     writeFileSync(configPath, JSON.stringify({
       version: 1,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [legacyRoot],
       referenceRoots: [],
     }) + "\n", { mode: 0o600 });
@@ -852,11 +847,10 @@ materialRefs = ["AGENTS.md"]
       code: number;
       cliLegacyError: string | null;
       config: {
-        version: 2;
+        version: 3;
         model: { providerID: string; id: string };
         repositoryRoots: string[];
         referenceRoots: string[];
-        workItemRoot: string;
       };
       stdout: string[];
     };
@@ -864,15 +858,12 @@ materialRefs = ["AGENTS.md"]
     expect(output.code).toBe(0);
     expect(output.cliLegacyError).not.toBeNull();
     expect(output.config).toEqual({
-      version: 2,
-      model: { providerID: "openai", id: "gpt-5.6" },
+      version: 3,
+      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
       repositoryRoots: [workspace],
       referenceRoots: [],
-      workItemRoot: join(home, ".local", "share", "pontivus-order-work-items"),
     });
-    expect(output.stdout.join("")).toContain("resolved v2 exact target repositories");
-    expect(output.stdout.join("")).toContain("configuration upgraded to version 2");
-    expect(output.stdout.join("")).toContain("configuration is already valid");
+    expect(output.stdout.join("")).toContain("configuration upgraded to version 3");
   });
 
   it("executes provider login through exact standalone argv in the private namespace", () => {
