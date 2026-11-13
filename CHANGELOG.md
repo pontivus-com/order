@@ -10,6 +10,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 - Reorder the public README around product value, lifecycle, result semantics, installation, operating context, and repository documentation; remove contradictory pre-release/release installation copy.
 
+### Fixed
+
+- Make release publication race-safe by validating the immutable release commit remains reachable from `master` instead of requiring it to remain the moving branch tip, preserving exact retries after later merges.
+
 ## [0.2.0] - 2026-11-13
 
 ### Added
