@@ -8,7 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
-- Define the Order 0.2.2 corrective functional/P4/P6 design for productive OpenCode workspace containment and complete repository-instruction closure across every productive agent role, including local-vs-provider failure classification and adversarial certification of ignored dependencies, direct reads, symlink/metadata escape, external references, mutation safety, freshness and restart behavior.
+- Define the Order 0.2.2 corrective functional/P4/P6 design for productive OpenCode workspace containment and complete model-context instruction authority closure across every productive agent role, including local-vs-provider failure classification, adversarial certification of ignored dependencies/direct reads/symlink and metadata escape/external references/mutation safety/freshness/restart behavior, and an explicit productive-readiness block for connected Console instruction channels that the installed provider cannot disable or completely preflight before inference.
 - Correct the canonical WorkItem information hierarchy to separate WorkItem identity, workflow-process navigation, workspace-view selection and within-view navigation; make contextual inspection on-demand; consolidate document/editor/Git controls; and remove raw lifecycle identifiers from ordinary browser labels.
 - Strengthen Markdown editor geometry requirements with final-line long-document scrolling certification and clarify repository Settings around explicit Add repository plus confirmed, non-destructive Disconnect.
 
