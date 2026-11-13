@@ -798,13 +798,16 @@ test("workflow progression inspects reached material, exposes unreached steps, p
   });
 
   const rail = page.getByTestId("workflow-progression");
-  await rail.getByRole("button", { name: "Requirements" }).click();
+  await rail.getByRole("button", { name: "Work request" }).click();
   await expect(page.getByRole("radio", { name: "Documents" })).toBeChecked();
   await expect(
-    page.getByTestId("governed-document-nav").getByRole("tab", { name: "R2" }),
+    page.getByTestId("governed-document-nav").getByRole("tab", { name: "Source" }),
   ).toHaveAttribute("aria-selected", "true");
 
   await rail.getByRole("button", { name: "Implementation plan" }).click();
+  await expect(
+    page.getByTestId("governed-document-nav").getByRole("tab", { name: "PLAN" }),
+  ).toHaveAttribute("aria-selected", "true");
   const planEditor = page.getByLabel("PLAN lifecycle document Markdown source");
   await expect(planEditor).toBeVisible();
   const initial = await markdownSourceValue(planEditor);
@@ -976,6 +979,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await technicalSource.click();
   await expect(page.locator(".order-source-authoring .order-source-technical pre"))
     .toContainText('"formatVersion": 1');
+  await technicalSource.click();
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
   const item = await workItemForTitle(page, "Source editing workbench");
