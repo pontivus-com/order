@@ -2,14 +2,22 @@ import {
   ApprovalSchema,
   ArtifactRefSchema,
   CommitWorkItemDocumentationSchema,
+  ConnectRepositorySchema,
+  ConnectedRepositoryStateSchema,
   CreateWorkItemSourceSchema,
+  DisconnectRepositorySchema,
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWriteResultSchema,
   ExecutionTaskSchema,
   ActivateOpenCodeAccountSchema,
+  InstallationReadinessSchema,
+  MigrateWorkItemDocumentRootSchema,
   OpenCodeAccountIdSchema,
+  OpenCodeModelRefSchema,
+  OrderConfigStateSchema,
   OpenCodeAccountLoginAttemptSchema,
   OpenCodeAccountStateSchema,
+  RemoveOpenCodeAccountSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
   SetWorkItemArchivedSchema,
@@ -19,6 +27,8 @@ import {
   RunSchema,
   Sha256Schema,
   SignoffPackageSchema,
+  UpdateConfiguredModelSchema,
+  UpdateReferenceRootsSchema,
   UpdateWorkItemTitleSchema,
   WorkItemDocumentationCommitSchema,
   WorkItemDocumentationGitStatusSchema,
@@ -30,15 +40,23 @@ import {
   type Approval,
   type ArtifactRef,
   type CommitWorkItemDocumentation,
+  type ConnectRepository,
+  type ConnectedRepositoryState,
   type CreateWorkItemSource,
+  type DisconnectRepository,
   type ExpectedHashMarkdownWrite,
   type ExpectedHashWriteResult,
   type ExecutionTask,
   type ActivateOpenCodeAccount,
+  type InstallationReadiness,
+  type MigrateWorkItemDocumentRoot,
   type OpenCodeAccountId,
   type OpenCodeAccountLoginAttempt,
   type OpenCodeAccountState,
+  type OpenCodeModelRef,
+  type OrderConfigState,
   type OrderHttpError,
+  type RemoveOpenCodeAccount,
   type RenameOpenCodeAccount,
   type StartOpenCodeAccountLogin,
   type ProjectManifest,
@@ -48,6 +66,8 @@ import {
   type RunId,
   type SignoffPackage,
   type SetWorkItemArchived,
+  type UpdateConfiguredModel,
+  type UpdateReferenceRoots,
   type UpdateWorkItemTitle,
   type WorkItem,
   type WorkItemDocumentationCommit,
@@ -331,6 +351,60 @@ export const readEvidence = async (
   ).arrayBuffer());
 
 
+export const getOrderConfigState = async (): Promise<OrderConfigState> =>
+  OrderConfigStateSchema.parse(await json("/api/settings/config"));
+
+export const getInstallationReadiness = async (): Promise<InstallationReadiness> =>
+  InstallationReadinessSchema.parse(await json("/api/settings/readiness"));
+
+export const getConnectedRepositories = async (): Promise<readonly ConnectedRepositoryState[]> =>
+  ConnectedRepositoryStateSchema.array().readonly().parse(
+    await json("/api/settings/repositories"),
+  );
+
+export const getAvailableOpenCodeModels = async (): Promise<readonly OpenCodeModelRef[]> =>
+  OpenCodeModelRefSchema.array().readonly().parse(await json("/api/settings/models"));
+
+export const connectRepository = async (
+  input: ConnectRepository,
+) =>
+  await json(
+    "/api/settings/repositories/connect",
+    mutation("POST", ConnectRepositorySchema.parse(input)),
+  );
+
+export const disconnectRepository = async (
+  input: DisconnectRepository,
+) =>
+  await json(
+    "/api/settings/repositories/disconnect",
+    mutation("POST", DisconnectRepositorySchema.parse(input)),
+  );
+
+export const updateConfiguredModel = async (
+  input: UpdateConfiguredModel,
+) =>
+  await json(
+    "/api/settings/model",
+    mutation("PUT", UpdateConfiguredModelSchema.parse(input)),
+  );
+
+export const updateReferenceRoots = async (
+  input: UpdateReferenceRoots,
+) =>
+  await json(
+    "/api/settings/reference-roots",
+    mutation("PUT", UpdateReferenceRootsSchema.parse(input)),
+  );
+
+export const migrateWorkItemDocumentRoot = async (
+  input: MigrateWorkItemDocumentRoot,
+): Promise<ConnectedRepositoryState> =>
+  ConnectedRepositoryStateSchema.parse(await json(
+    "/api/settings/repositories/document-root",
+    mutation("PUT", MigrateWorkItemDocumentRootSchema.parse(input)),
+  ));
+
 export const getOpenCodeAccountState = async (): Promise<OpenCodeAccountState> =>
   OpenCodeAccountStateSchema.parse(await json("/api/opencode/accounts"));
 
@@ -350,6 +424,15 @@ export const renameOpenCodeAccount = async (
   OpenCodeAccountStateSchema.parse(await json(
     `/api/opencode/accounts/${encodeURIComponent(OpenCodeAccountIdSchema.parse(accountId))}`,
     mutation("PATCH", RenameOpenCodeAccountSchema.parse(input)),
+  ));
+
+export const removeOpenCodeAccount = async (
+  accountId: OpenCodeAccountId,
+  input: RemoveOpenCodeAccount,
+): Promise<OpenCodeAccountState> =>
+  OpenCodeAccountStateSchema.parse(await json(
+    `/api/opencode/accounts/${encodeURIComponent(OpenCodeAccountIdSchema.parse(accountId))}`,
+    mutation("DELETE", RemoveOpenCodeAccountSchema.parse(input)),
   ));
 
 export const startOpenCodeAccountLogin = async (
