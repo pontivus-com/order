@@ -3,6 +3,8 @@ import {
   EvidencePathSchema,
   type EvidenceRef,
   type ExecutionTaskId,
+  ProviderDiagnosticRecordSchema,
+  type ProviderDiagnosticRecord,
   type Run,
   type RunEvent,
   type RunEventId,
@@ -14,6 +16,7 @@ import {
   type WorkItemId,
   type WorkStage,
 } from "../core/contracts.ts";
+import { canonicalJson } from "../core/canonical.ts";
 import {
   readCommittedFile,
   readWorkingTreeFile,
@@ -218,6 +221,41 @@ export const persistProviderEvents = (
   return persisted;
 };
 
+export const recordProviderDiagnostics = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+  record: ProviderDiagnosticRecord,
+  stderr: Uint8Array | null,
+): readonly EvidenceRef[] => {
+  const diagnostic = ProviderDiagnosticRecordSchema.parse(record);
+  const root = `provider/${diagnostic.promptId}`;
+  const evidence: EvidenceRef[] = [
+    writeRunEvidence(
+      runtime,
+      runId,
+      `${root}/diagnostic.json`,
+      new TextEncoder().encode(canonicalJson(diagnostic) + "\n"),
+      "application/json",
+    ),
+  ];
+  if (stderr !== null && stderr.byteLength > 0) {
+    evidence.push(
+      writeRunEvidence(
+        runtime,
+        runId,
+        `${root}/stderr.txt`,
+        stderr,
+        "text/plain; charset=utf-8",
+      ),
+    );
+  }
+  appendRunEvent(runtime, runId, {
+    tag: "PROVIDER_DIAGNOSTICS_RECORDED",
+    evidence,
+  });
+  return evidence;
+};
+
 export const stopActiveProvider = async (
   runtime: CoordinatorRuntime,
   runId: RunId,
@@ -232,6 +270,7 @@ export const failRunForProvider = (
   runtime: CoordinatorRuntime,
   runId: RunId,
   error: unknown,
+  evidence: readonly EvidenceRef[] = [],
 ): Run => {
   const current = getRun(runtime, runId);
   if (current.status === "CANCELLED") return current;
@@ -239,7 +278,7 @@ export const failRunForProvider = (
     appendRunEvent(runtime, runId, {
       tag: "PROVIDER_FAILED",
       detail: error instanceof Error ? error.message : String(error),
-      evidence: [],
+      evidence,
     });
     return updateRun(runtime, runId, {
       status: "FAILED",

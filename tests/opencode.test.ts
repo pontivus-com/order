@@ -181,6 +181,8 @@ const server = Bun.serve({
       const output =
         config.outputs?.[promptCounter - 1] ??
         '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
+      const stderrLine = config.stderr?.[promptCounter - 1];
+      if (typeof stderrLine === "string") console.error(stderrLine);
       const now = Date.now();
       session.messages.push({
         id: body.id,
@@ -425,6 +427,8 @@ describe("OpenCode shell", () => {
         };
         const eventId = "event_22222222-2222-4222-8222-222222222222";
         const promptId = o.openCodePromptId(run, eventId);
+        let diagnostics = null;
+        let diagnosticStderr = null;
         const events = await o.runOpenCodeTurn(
           server,
           sessionID,
@@ -434,11 +438,17 @@ describe("OpenCode shell", () => {
           null,
           [],
           "Return the canonical event array.",
+          (record, stderr) => {
+            diagnostics = record;
+            diagnosticStderr = stderr === null ? null : new TextDecoder().decode(stderr);
+          },
         );
         const session = await server.client.session.get({ sessionID });
         console.log(JSON.stringify({
           promptId,
           events,
+          diagnostics,
+          diagnosticStderr,
           model: session.model,
           permissions: session.permissions,
           exposedKeys: Object.keys(server).sort(),
@@ -450,6 +460,18 @@ describe("OpenCode shell", () => {
       promptId: string;
       events: unknown[];
       model: unknown;
+      diagnostics: {
+        providerId: string;
+        modelId: string;
+        providerSessionId: string;
+        promptId: string;
+        outcome: string;
+        formatRepairAttempted: boolean;
+        formatRepairSucceeded: boolean | null;
+        failurePhase: string | null;
+        exceptionMessage: string | null;
+      };
+      diagnosticStderr: string | null;
       permissions: unknown[];
       exposedKeys: string[];
     };
@@ -458,6 +480,17 @@ describe("OpenCode shell", () => {
     expect(output.events).toEqual([
       { tag: "AGENT_MESSAGE_FINAL", text: "done", evidence: [] },
     ]);
+    expect(output.diagnostics).toMatchObject({
+      providerId: "opencode",
+      modelId: "glm-5.3-flash-free",
+      promptId: output.promptId,
+      outcome: "SUCCEEDED",
+      formatRepairAttempted: false,
+      formatRepairSucceeded: null,
+      failurePhase: null,
+      exceptionMessage: null,
+    });
+    expect(output.diagnosticStderr).toBeNull();
     expect(output.model).toEqual({
       providerID: "opencode",
       id: "glm-5.3-flash-free",
@@ -469,7 +502,13 @@ describe("OpenCode shell", () => {
       { action: "glob", resource: "*", effect: "allow" },
       { action: "grep", resource: "*", effect: "allow" },
     ]);
-    expect(output.exposedKeys).toEqual(["client", "model", "process", "workspace"]);
+    expect(output.exposedKeys).toEqual([
+      "client",
+      "diagnosticStderr",
+      "model",
+      "process",
+      "workspace",
+    ]);
   });
 
   it("uses exactly one deny-all format repair and restores productive permissions", () => {
@@ -503,6 +542,7 @@ describe("OpenCode shell", () => {
           id: "run_11111111-1111-4111-8111-111111111111",
           contextHash: "sha256:" + "a".repeat(64),
         };
+        let diagnostics = null;
         const events = await o.runOpenCodeTurn(
           server,
           sessionID,
@@ -512,11 +552,15 @@ describe("OpenCode shell", () => {
           null,
           [],
           "Return events.",
+          (record) => {
+            diagnostics = record;
+          },
         );
         const session = await server.client.session.get({ sessionID });
         const context = await server.client.session.context({ sessionID });
         console.log(JSON.stringify({
           events,
+          diagnostics,
           permissions: session.permissions,
           userPrompts: context.filter((message) => message.type === "user").length,
         }));
@@ -525,6 +569,12 @@ describe("OpenCode shell", () => {
       }
     `, providerEnvironment(binary)) as {
       events: unknown[];
+      diagnostics: {
+        outcome: string;
+        formatRepairAttempted: boolean;
+        formatRepairSucceeded: boolean | null;
+        failurePhase: string | null;
+      };
       permissions: unknown[];
       userPrompts: number;
     };
@@ -540,6 +590,12 @@ describe("OpenCode shell", () => {
         rationale: "Create R1",
       },
     ]);
+    expect(output.diagnostics).toMatchObject({
+      outcome: "SUCCEEDED",
+      formatRepairAttempted: true,
+      formatRepairSucceeded: true,
+      failurePhase: null,
+    });
     expect(output.permissions).toEqual([
       { action: "*", resource: "*", effect: "deny" },
       { action: "read", resource: "*", effect: "allow" },
@@ -547,6 +603,88 @@ describe("OpenCode shell", () => {
       { action: "grep", resource: "*", effect: "allow" },
     ]);
     expect(output.userPrompts).toBe(2);
+  });
+
+  it("redacts and bounds provider stderr while recording invalid-output diagnostics", () => {
+    const workspace = tempDir("order-opencode-diagnostics-");
+    const state = tempDir("order-opencode-diagnostics-state-");
+    writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
+    const longTail = "x".repeat(30_000);
+    const binary = createFakeOpenCode(workspace, {
+      outputs: ["not-json", "still-not-json"],
+      stderr: [
+        "provider emitted must-not-leak",
+        longTail,
+      ],
+    });
+
+    const output = bunEval(`
+      const o = await import("./src/shell/opencode.ts");
+      const server = await o.startOpenCodeServer(
+        ${JSON.stringify(state)},
+        ${JSON.stringify(workspace)},
+        { providerID: "opencode", id: "glm-5.3-flash-free" },
+        process.env,
+      );
+      try {
+        const sessionID = await o.createOpenCodeSession(
+          server,
+          "STAGE",
+          null,
+          ["AGENTS.md"],
+          [],
+        );
+        const run = {
+          id: "run_11111111-1111-4111-8111-111111111111",
+          contextHash: "sha256:" + "a".repeat(64),
+        };
+        let diagnostics = null;
+        let stderrText = null;
+        let failure = null;
+        try {
+          await o.runOpenCodeTurn(
+            server,
+            sessionID,
+            run,
+            "event_22222222-2222-4222-8222-222222222222",
+            "STAGE",
+            null,
+            [],
+            "Return events.",
+            (record, stderr) => {
+              diagnostics = record;
+              stderrText = stderr === null ? null : new TextDecoder().decode(stderr);
+            },
+          );
+        } catch (error) {
+          failure = error instanceof Error ? error.message : String(error);
+        }
+        console.log(JSON.stringify({ diagnostics, stderrText, failure }));
+      } finally {
+        await o.stopOpenCodeServer(server);
+      }
+    `, providerEnvironment(binary)) as {
+      diagnostics: {
+        outcome: string;
+        formatRepairAttempted: boolean;
+        formatRepairSucceeded: boolean | null;
+        failurePhase: string | null;
+        exceptionMessage: string | null;
+      };
+      stderrText: string | null;
+      failure: string | null;
+    };
+
+    expect(output.diagnostics).toMatchObject({
+      outcome: "INVALID_OUTPUT",
+      formatRepairAttempted: true,
+      formatRepairSucceeded: false,
+      failurePhase: "FORMAT_REPAIR",
+    });
+    expect(output.stderrText).toContain("[REDACTED SECRET LINE]");
+    expect(output.stderrText).not.toContain("must-not-leak");
+    expect(new TextEncoder().encode(output.stderrText ?? "").byteLength).toBeLessThan(17_000);
+    expect(output.failure).not.toContain("must-not-leak");
   });
 
   it("executes guided login without preselecting a provider", () => {

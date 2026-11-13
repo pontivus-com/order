@@ -10,10 +10,14 @@ import {
 } from "@opencode/client";
 import {
   OpenCodeModelRefSchema,
+  ProviderDiagnosticRecordSchema,
+  ProviderTurnOutcomeSchema,
   RunEventPayloadJsonSchemaText,
   RunEventPayloadSchema,
   type ExecutionTask,
   type OpenCodeModelRef,
+  type ProviderDiagnosticRecord,
+  type ProviderTurnOutcome,
   type RepositoryPath,
   type Run,
   type RunEventId,
@@ -36,7 +40,7 @@ import {
   type ManagedProcess,
   type TerminalProcessResult,
 } from "./process.ts";
-import { secureTokenHex, sha256TextHex } from "./runtime.ts";
+import { nowIsoDateTime, secureTokenHex, sha256TextHex } from "./runtime.ts";
 
 const openCodeVersion = "2.2.6";
 const openCodeVersionOutput = `opencode v${openCodeVersion}`;
@@ -44,6 +48,12 @@ const startupTimeoutMillis = 60_000;
 const productiveTurnTimeoutMillis = 3_600_000;
 const terminalPollMillis = 250;
 const postInterruptPollMillis = 5_000;
+const diagnosticStderrHeadBytes = 8 * 1024;
+const diagnosticStderrTailBytes = 8 * 1024;
+const diagnosticLineCharacterLimit = 16 * 1024;
+const diagnosticTruncationMarker = new TextEncoder().encode("\n...[stderr truncated]...\n");
+const diagnosticEncoder = new TextEncoder();
+const sensitiveEnvironmentName = /(?:TOKEN|SECRET|PASSWORD|API_?KEY|CREDENTIAL|AUTH)/i;
 
 const runtimeEnvironmentNames = [
   "PATH",
@@ -58,12 +68,114 @@ const runtimeEnvironmentNames = [
   "NO_COLOR",
 ] as const;
 
+type DiagnosticStderrCapture = Readonly<{
+  reset: () => void;
+  record: (line: string) => void;
+  snapshot: () => Uint8Array | null;
+  redact: (text: string) => string;
+}>;
+
 export type OpenCodeServer = Readonly<{
   client: OpenCodeClient;
   process: ManagedProcess;
   model: OpenCodeModelRef;
   workspace: string;
+  diagnosticStderr: DiagnosticStderrCapture;
 }>;
+
+const concatBytes = (
+  left: Uint8Array,
+  right: Uint8Array,
+): Uint8Array => {
+  const result = new Uint8Array(left.byteLength + right.byteLength);
+  result.set(left);
+  result.set(right, left.byteLength);
+  return result;
+};
+
+const knownDiagnosticSecrets = (
+  sourceEnvironment: NodeJS.ProcessEnv,
+  password: string,
+): readonly string[] =>
+  [...new Set([
+    password,
+    basicAuthorization(password),
+    ...Object.entries(sourceEnvironment)
+      .flatMap(([name, value]) =>
+        sensitiveEnvironmentName.test(name) &&
+        value !== undefined &&
+        value.length > 0
+          ? [value]
+          : []
+      ),
+  ])].filter((value) => value.length > 0);
+
+const redactDiagnosticText = (
+  text: string,
+  secrets: readonly string[],
+): string =>
+  text
+    .split(/\r?\n/)
+    .map((line) =>
+      secrets.some((secret) => line.includes(secret))
+        ? "[REDACTED SECRET LINE]"
+        : line
+    )
+    .join("\n");
+
+const boundedDiagnosticLine = (line: string): string => {
+  if (line.length <= diagnosticLineCharacterLimit) return line;
+  const half = Math.floor(diagnosticLineCharacterLimit / 2);
+  return `${line.slice(0, half)}...[line truncated]...${line.slice(-half)}`;
+};
+
+const createDiagnosticStderrCapture = (
+  secrets: readonly string[],
+): DiagnosticStderrCapture => {
+  let complete: Uint8Array = new Uint8Array();
+  let head: Uint8Array = new Uint8Array();
+  let tail: Uint8Array = new Uint8Array();
+  let truncated = false;
+
+  const reset = (): void => {
+    complete = new Uint8Array();
+    head = new Uint8Array();
+    tail = new Uint8Array();
+    truncated = false;
+  };
+
+  const record = (line: string): void => {
+    const redacted = redactDiagnosticText(boundedDiagnosticLine(line), secrets);
+    const chunk = diagnosticEncoder.encode(redacted + "\n");
+    if (!truncated) {
+      const combined = concatBytes(complete, chunk);
+      if (combined.byteLength <= diagnosticStderrHeadBytes + diagnosticStderrTailBytes) {
+        complete = combined;
+        return;
+      }
+      head = combined.slice(0, diagnosticStderrHeadBytes);
+      tail = combined.slice(-diagnosticStderrTailBytes);
+      complete = new Uint8Array();
+      truncated = true;
+      return;
+    }
+    tail = concatBytes(tail, chunk).slice(-diagnosticStderrTailBytes);
+  };
+
+  const snapshot = (): Uint8Array | null => {
+    const bytes = truncated
+      ? concatBytes(concatBytes(head, diagnosticTruncationMarker), tail)
+      : complete;
+    return bytes.byteLength === 0 ? null : bytes.slice();
+  };
+
+  return {
+    reset,
+    record,
+    snapshot,
+    redact: (text) => redactDiagnosticText(text, secrets),
+  };
+};
 
 const sleep = (milliseconds: number): Promise<void> =>
   new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds));
@@ -238,6 +350,7 @@ const consumeTextStream = async (
 
 const startOutputDrain = (
   child: ManagedProcess,
+  diagnosticStderr: DiagnosticStderrCapture,
 ): Readonly<{ endpoint: Promise<string> }> => {
   let settled = false;
   let resolveEndpoint!: (endpoint: string) => void;
@@ -258,7 +371,10 @@ const startOutputDrain = (
       }
     },
   );
-  const stderr = consumeTextStream(requireReadable(child.stderr, "stderr"), () => {});
+  const stderr = consumeTextStream(
+    requireReadable(child.stderr, "stderr"),
+    diagnosticStderr.record,
+  );
 
   const fail = (error: unknown): void => {
     if (!settled) {
@@ -337,6 +453,7 @@ type OpenCodeProviderProcess = Readonly<{
   process: ManagedProcess;
   workspace: string;
   deadline: number;
+  diagnosticStderr: DiagnosticStderrCapture;
 }>;
 
 const startOpenCodeProviderProcess = async (
@@ -355,7 +472,10 @@ const startOpenCodeProviderProcess = async (
     workspace,
     environment,
   );
-  const drain = startOutputDrain(child);
+  const diagnosticStderr = createDiagnosticStderrCapture(
+    knownDiagnosticSecrets(sourceEnvironment, password),
+  );
+  const drain = startOutputDrain(child, diagnosticStderr);
   const deadline = Date.now() + startupTimeoutMillis;
 
   try {
@@ -377,7 +497,7 @@ const startOpenCodeProviderProcess = async (
       headers: { Authorization: basicAuthorization(password) },
     });
     await waitForServerInfo(client, deadline);
-    return { client, process: child, workspace, deadline };
+    return { client, process: child, workspace, deadline, diagnosticStderr };
   } catch (error) {
     await child.terminate().catch(() => undefined);
     throw error;
@@ -440,6 +560,7 @@ export const startOpenCodeServer = async (
       process: provider.process,
       model: configuredModel,
       workspace,
+      diagnosticStderr: provider.diagnosticStderr,
     };
   } catch (error) {
     await provider.process.terminate().catch(() => undefined);
@@ -583,6 +704,48 @@ const idleAdvanced = (
 ): boolean =>
   current !== undefined && (prior === undefined || current > prior);
 
+type ProviderFailurePhase = Exclude<
+  ProviderDiagnosticRecord["failurePhase"],
+  null
+>;
+
+type ProviderTurnFailure = TypeError & Readonly<{
+  providerOutcome: ProviderTurnOutcome;
+  providerFailurePhase: ProviderFailurePhase;
+}>;
+
+const providerTurnFailure = (
+  providerOutcome: ProviderTurnOutcome,
+  providerFailurePhase: ProviderFailurePhase,
+  error: unknown,
+): ProviderTurnFailure => {
+  const message = error instanceof Error ? error.message : String(error);
+  return Object.assign(new TypeError(message.length === 0 ? "OpenCode provider turn failed" : message), {
+    providerOutcome,
+    providerFailurePhase,
+  });
+};
+
+const isProviderTurnFailure = (
+  error: unknown,
+): error is ProviderTurnFailure =>
+  error instanceof TypeError &&
+  "providerOutcome" in error &&
+  ProviderTurnOutcomeSchema.safeParse(error.providerOutcome).success &&
+  "providerFailurePhase" in error &&
+  [
+    "ADMISSION",
+    "TRANSPORT",
+    "PROVIDER",
+    "COMPLETION",
+    "PARSE",
+    "FORMAT_REPAIR",
+  ].includes(
+    typeof error.providerFailurePhase === "string"
+      ? error.providerFailurePhase
+      : "",
+  );
+
 const pollForTerminal = async (
   client: OpenCodeClient,
   sessionID: string,
@@ -590,13 +753,22 @@ const pollForTerminal = async (
   deadline: number,
 ): Promise<SessionInfo> => {
   while (Date.now() < deadline) {
-    const session = await client.session.get({ sessionID });
+    let session: SessionInfo;
+    try {
+      session = await client.session.get({ sessionID });
+    } catch (error) {
+      throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
+    }
     if (idleAdvanced(session.time.idle, priorIdle) && session.outcome !== undefined) {
       return session;
     }
     await sleep(Math.min(terminalPollMillis, Math.max(1, deadline - Date.now())));
   }
-  throw new TypeError("OpenCode productive turn did not reach a terminal projection");
+  throw providerTurnFailure(
+    "TIMEOUT",
+    "COMPLETION",
+    new TypeError("OpenCode productive turn did not reach a terminal projection"),
+  );
 };
 
 const promptWithReconciliation = async (
@@ -608,7 +780,11 @@ const promptWithReconciliation = async (
   try {
     await client.session.prompt({ sessionID, id: promptId, text });
   } catch {
-    await client.session.prompt({ sessionID, id: promptId, text });
+    try {
+      await client.session.prompt({ sessionID, id: promptId, text });
+    } catch (error) {
+      throw providerTurnFailure("TRANSPORT_ERROR", "ADMISSION", error);
+    }
   }
 };
 
@@ -696,7 +872,13 @@ const runPromptToText = async (
   prompt: string,
   timeoutMillis: number,
 ): Promise<string> => {
-  const before = await client.session.get({ sessionID });
+  let before: SessionInfo;
+  try {
+    before = await client.session.get({ sessionID });
+  } catch (error) {
+    throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
+  }
+
   const deadline = Date.now() + timeoutMillis;
   await promptWithReconciliation(client, sessionID, promptId, prompt);
 
@@ -709,7 +891,14 @@ const runPromptToText = async (
       deadline,
     );
   } catch (error) {
-    await client.session.interrupt({ sessionID, resume: false }).catch(() => undefined);
+    if (!isProviderTurnFailure(error) || error.providerOutcome !== "TIMEOUT") {
+      throw error;
+    }
+    try {
+      await client.session.interrupt({ sessionID, resume: false });
+    } catch {
+      // The timeout remains the governing failure if interruption cannot be confirmed.
+    }
     const interruptDeadline = Date.now() + postInterruptPollMillis;
     const afterInterrupt = await pollForTerminal(
       client,
@@ -722,10 +911,24 @@ const runPromptToText = async (
   }
 
   if (terminal.outcome !== "succeeded") {
-    throw new TypeError(`OpenCode productive turn ended with outcome ${terminal.outcome}`);
+    throw providerTurnFailure(
+      terminal.outcome === "interrupted" ? "INTERRUPTED" : "FAILED",
+      "PROVIDER",
+      new TypeError(`OpenCode productive turn ended with outcome ${terminal.outcome}`),
+    );
   }
-  const context = await client.session.context({ sessionID });
-  return completedAssistantText(context, promptId);
+
+  let context: readonly SessionMessageInfo[];
+  try {
+    context = await client.session.context({ sessionID });
+  } catch (error) {
+    throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
+  }
+  try {
+    return completedAssistantText(context, promptId);
+  } catch (error) {
+    throw providerTurnFailure("FAILED", "COMPLETION", error);
+  }
 };
 
 const formatRepairPrompt = (role: RunRole): string =>
@@ -744,42 +947,133 @@ export const runOpenCodeTurn = async (
   task: ExecutionTask | null,
   referenceRoots: readonly string[],
   prompt: string,
+  onDiagnostics: (
+    record: ProviderDiagnosticRecord,
+    stderr: Uint8Array | null,
+  ) => void | Promise<void>,
 ): Promise<readonly RunEventPayload[]> => {
   const productivePermissions = openCodePermissionRules(role, task, referenceRoots);
   const promptId = openCodePromptId(run, triggeringRunEventId);
-  const text = await runPromptToText(
-    server.client,
-    sessionID,
-    promptId,
-    [prompt, providerOutputContract(role)].join("\n\n"),
-    productiveTurnTimeoutMillis,
-  );
+  const startedAt = nowIsoDateTime();
+  server.diagnosticStderr.reset();
 
-  let events: readonly RunEventPayload[];
+  let events: readonly RunEventPayload[] | null = null;
+  let failure: ProviderTurnFailure | null = null;
+  let formatRepairAttempted = false;
+  let formatRepairSucceeded: boolean | null = null;
+
   try {
-    events = parseCanonicalProviderEvents(text);
-  } catch {
-    await server.client.session.update({
-      sessionID,
-      permissions: [denyAllRule()],
-    });
-    const repairedText = await runPromptToText(
+    const text = await runPromptToText(
       server.client,
       sessionID,
-      formatRepairPromptId(promptId),
-      formatRepairPrompt(role),
+      promptId,
+      [prompt, providerOutputContract(role)].join("\n\n"),
       productiveTurnTimeoutMillis,
     );
-    await server.client.session.update({
-      sessionID,
-      permissions: productivePermissions,
-    });
-    const rebound = await server.client.session.get({ sessionID });
-    requireSessionBinding(rebound, server.model, productivePermissions);
-    events = parseCanonicalProviderEvents(repairedText);
+
+    try {
+      events = parseCanonicalProviderEvents(text);
+    } catch {
+      formatRepairAttempted = true;
+      formatRepairSucceeded = false;
+      try {
+        await server.client.session.update({
+          sessionID,
+          permissions: [denyAllRule()],
+        });
+      } catch (error) {
+        throw providerTurnFailure("TRANSPORT_ERROR", "FORMAT_REPAIR", error);
+      }
+
+      const repairedText = await runPromptToText(
+        server.client,
+        sessionID,
+        formatRepairPromptId(promptId),
+        formatRepairPrompt(role),
+        productiveTurnTimeoutMillis,
+      ).catch((error: unknown) => {
+        if (isProviderTurnFailure(error)) {
+          throw providerTurnFailure(
+            error.providerOutcome,
+            "FORMAT_REPAIR",
+            error,
+          );
+        }
+        throw providerTurnFailure("FAILED", "FORMAT_REPAIR", error);
+      });
+
+      try {
+        await server.client.session.update({
+          sessionID,
+          permissions: productivePermissions,
+        });
+        const rebound = await server.client.session.get({ sessionID });
+        requireSessionBinding(rebound, server.model, productivePermissions);
+      } catch (error) {
+        throw providerTurnFailure("TRANSPORT_ERROR", "FORMAT_REPAIR", error);
+      }
+
+      try {
+        events = parseCanonicalProviderEvents(repairedText);
+      } catch (error) {
+        throw providerTurnFailure("INVALID_OUTPUT", "FORMAT_REPAIR", error);
+      }
+    }
+
+    if (events === null) {
+      throw providerTurnFailure(
+        "INVALID_OUTPUT",
+        "PARSE",
+        new TypeError("OpenCode provider turn produced no canonical events"),
+      );
+    }
+    try {
+      events = validateProviderAdmission(role, events);
+    } catch (error) {
+      throw providerTurnFailure("INVALID_OUTPUT", "ADMISSION", error);
+    }
+    if (formatRepairAttempted) formatRepairSucceeded = true;
+  } catch (error) {
+    failure = isProviderTurnFailure(error)
+      ? error
+      : providerTurnFailure("FAILED", "PROVIDER", error);
   }
 
-  return validateProviderAdmission(role, events);
+  const endedAt = nowIsoDateTime();
+  const safeFailureMessage = failure === null
+    ? null
+    : server.diagnosticStderr.redact(failure.message);
+  const diagnostic = ProviderDiagnosticRecordSchema.parse({
+    providerId: server.model.providerID,
+    modelId: server.model.id,
+    providerSessionId: sessionID,
+    promptId,
+    startedAt,
+    endedAt,
+    outcome: failure?.providerOutcome ?? "SUCCEEDED",
+    formatRepairAttempted,
+    formatRepairSucceeded,
+    failurePhase: failure?.providerFailurePhase ?? null,
+    exceptionMessage: safeFailureMessage,
+  });
+
+  await sleep(0);
+  await onDiagnostics(
+    diagnostic,
+    server.diagnosticStderr.snapshot(),
+  );
+
+  if (failure !== null) {
+    throw new TypeError(
+      safeFailureMessage === null || safeFailureMessage.length === 0
+        ? "OpenCode provider turn failed"
+        : safeFailureMessage,
+    );
+  }
+  if (events === null) {
+    throw new TypeError("OpenCode provider turn completed without canonical events");
+  }
+  return events;
 };
 
 export const loginOpenCodeProviderInteractive = async (
