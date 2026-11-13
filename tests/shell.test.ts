@@ -130,12 +130,10 @@ describe("runtime shell", () => {
     const state = tempDir("order-config-");
     const repositories = tempDir("order-repositories-");
     const reference = tempDir("order-reference-");
-    const workItems = tempDir("pontivus-order-work-items-");
     const config = buildOrderConfig(
       { providerID: "opencode", id: "glm-5.3-flash-free" },
       [repositories, repositories],
       [reference],
-      workItems,
     );
     expect(writeOrderConfig(state, config)).toEqual(config);
     expect(readOrderConfig(state)).toEqual(config);
@@ -145,16 +143,14 @@ describe("runtime shell", () => {
     expect(() => readOrderConfig(state)).toThrow();
   });
 
-  it("rejects overlapping target, reference, WorkItem and state roots", () => {
+  it("rejects overlapping target, reference and state roots", () => {
     const target = tempDir("order-target-disjoint-");
     const reference = tempDir("order-reference-disjoint-");
-    const workItems = tempDir("order-workitems-disjoint-");
 
     expect(() => buildOrderConfig(
       { providerID: "opencode", id: "glm-5.3-flash-free" },
       [target],
-      [reference],
-      target,
+      [target],
     )).toThrow(/path-disjoint/);
 
     const nestedReference = join(target, "reference");
@@ -163,7 +159,6 @@ describe("runtime shell", () => {
       { providerID: "opencode", id: "glm-5.3-flash-free" },
       [target],
       [nestedReference],
-      workItems,
     )).toThrow(/path-disjoint/);
 
     const stateInsideTarget = join(target, "state");
@@ -172,7 +167,6 @@ describe("runtime shell", () => {
       { providerID: "opencode", id: "glm-5.3-flash-free" },
       [target],
       [reference],
-      workItems,
     );
     expect(() => writeOrderConfig(stateInsideTarget, config)).toThrow(/path-disjoint/);
   });
@@ -210,6 +204,7 @@ describe("project manifest shell", () => {
     expect(parsed.manifest.refs).toEqual({});
     expect(parsed.manifest.concerns).toEqual({});
     expect(parsed.manifest.verification).toEqual({});
+    expect(parsed.manifest.workItems).toEqual({ root: "docs/order/work-items" });
     expect(parsed.second).toEqual([root, null]);
   });
 
@@ -522,10 +517,15 @@ describe("guarded Markdown and WorkItem source shell", () => {
       }, "Portable source");
       const created = shell.createWorkItemSourceFile(
         ${JSON.stringify(root)},
+        "docs/order/work-items",
         id,
         markdown,
       );
-      const scanned = shell.scanWorkItemSources(${JSON.stringify(root)});
+      const scanned = shell.scanWorkItemSources(
+        ${JSON.stringify(root)},
+        "fixture",
+        "docs/order/work-items",
+      );
       console.log(JSON.stringify({
         created,
         paths: scanned.sources.map((source) => source.path),
@@ -538,7 +538,9 @@ describe("guarded Markdown and WorkItem source shell", () => {
       paths: string[];
       diagnostics: unknown[];
     };
-    expect(parsed.created.path).toBe("work_11111111-1111-4111-8111-111111111111.md");
+    expect(parsed.created.path).toBe(
+      "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
+    );
     expect(parsed.created.sha256).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(parsed.paths).toEqual([parsed.created.path]);
     expect(parsed.diagnostics).toEqual([]);
@@ -547,8 +549,10 @@ describe("guarded Markdown and WorkItem source shell", () => {
   it("classifies an unknown source schema with the canonical UNSUPPORTED_SCHEMA diagnostic", () => {
     const root = tempDir("order-source-unsupported-schema-");
     const id = "work_11111111-1111-4111-8111-111111111111";
+    const sourceDir = join(root, "docs", "order", "work-items", id);
+    mkdirSync(sourceDir, { recursive: true });
     writeFileSync(
-      join(root, "unsupported.md"),
+      join(sourceDir, "work-request.md"),
       [
         "---",
         JSON.stringify({
@@ -566,7 +570,11 @@ describe("guarded Markdown and WorkItem source shell", () => {
 
     const output = bunEval(`
       const shell = await import("./src/shell/work-item-source.ts");
-      const scanned = shell.scanWorkItemSources(${JSON.stringify(root)});
+      const scanned = shell.scanWorkItemSources(
+        ${JSON.stringify(root)},
+        "fixture",
+        "docs/order/work-items",
+      );
       console.log(JSON.stringify({
         sources: scanned.sources.length,
         diagnostics: scanned.diagnostics,
@@ -581,7 +589,8 @@ describe("guarded Markdown and WorkItem source shell", () => {
     expect(parsed.diagnostics).toEqual([
       expect.objectContaining({
         code: "UNSUPPORTED_SCHEMA",
-        path: "unsupported.md",
+        projectId: "fixture",
+        path: "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
       }),
     ]);
   });
