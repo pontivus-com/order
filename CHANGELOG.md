@@ -10,6 +10,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 - Correct the horizontal Order logo canvas crop so the visible mark and wordmark render centered in the GitHub README and other fixed-width placements.
 
+- Add a governed PR-triggered exact release retry request so failed publication can be resumed through the same release workflow when workflow dispatch is unavailable.
+
 ### Changed
 
 - Reorder the public README around product value, lifecycle, result semantics, installation, operating context, and repository documentation; remove contradictory pre-release/release installation copy.
