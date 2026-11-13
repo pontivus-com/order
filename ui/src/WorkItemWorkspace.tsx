@@ -11,6 +11,7 @@ import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
   runIsActive,
+  workflowInspectionTarget,
   workflowPresentation,
   workflowSteps,
   workItemInitialMode,
@@ -18,6 +19,8 @@ import {
   workItemModeLabel,
   type EvidenceSelection,
   type ProposalSelection,
+  type WorkflowDocumentTarget,
+  type WorkflowStepPresentation,
   type WorkItemMode,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -87,6 +90,13 @@ export const WorkItemWorkspace = ({
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [requestedDocument, setRequestedDocument] = useState<Readonly<{
+    document: WorkflowDocumentTarget;
+    requestId: number;
+  }> | null>(null);
+  const [unreachedStep, setUnreachedStep] = useState<WorkflowStepPresentation | null>(null);
+  const [pendingUnreachedStep, setPendingUnreachedStep] =
+    useState<WorkflowStepPresentation | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const runs = runsQuery.data ?? [];
   const workflow = workflowPresentation(workItem.stage);
@@ -98,8 +108,15 @@ export const WorkItemWorkspace = ({
   const visibleModes: readonly WorkItemMode[] = [
     "DOCUMENTS",
     ...(runs.length > 0 ? ["ACTIVITY" as const] : []),
-    ...(workItem.stage === "AWAITING_SIGNOFF" || proposal ? ["REVIEW" as const] : []),
-    ...(workItem.stage === "EXECUTION" || workItem.outcome === "CANDIDATE_DONE"
+    ...(
+      workItem.stage === "AWAITING_SIGNOFF" ||
+      workItem.stage === "EXECUTION" ||
+      workItem.stage === "COMPLETE" ||
+      proposal
+        ? ["REVIEW" as const]
+        : []
+    ),
+    ...(workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
       ? ["EXECUTION" as const]
       : []),
     ...(evidence ? ["EVIDENCE" as const] : []),
@@ -197,9 +214,35 @@ export const WorkItemWorkspace = ({
   };
 
   const navigate = (next: WorkItemMode): void => {
-    if (next === mode) return;
-    if (dirty) setPendingMode(next);
-    else setMode(next);
+    if (next === mode && unreachedStep === null) return;
+    if (dirty) {
+      setPendingMode(next);
+      return;
+    }
+    setUnreachedStep(null);
+    setMode(next);
+  };
+
+  const inspectWorkflowStep = (step: WorkflowStepPresentation): void => {
+    const target = workflowInspectionTarget(workItem, step);
+    if (target.kind === "UNREACHED") {
+      if (dirty) {
+        setPendingUnreachedStep(step);
+        return;
+      }
+      setUnreachedStep(step);
+      return;
+    }
+    setUnreachedStep(null);
+    if (target.kind === "DOCUMENT") {
+      setRequestedDocument((current) => ({
+        document: target.document,
+        requestId: (current?.requestId ?? 0) + 1,
+      }));
+      navigate("DOCUMENTS");
+      return;
+    }
+    navigate(target.mode);
   };
 
   const openEvidence = (selection: EvidenceSelection): void => {
@@ -240,9 +283,9 @@ export const WorkItemWorkspace = ({
 
   return (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
-      <header className="order-workitem-header">
+      <header className="order-workitem-header order-workitem-top-rail">
         <div className="order-workitem-header-main">
-          <div className="order-inline-actions">
+          <div className="order-inline-actions order-workitem-navigation-actions">
             <WorkbenchAction
               label="Back to work queue"
               tone="ghost"
@@ -308,56 +351,63 @@ export const WorkItemWorkspace = ({
               </span>
             ) : null}
           </div>
-          <WorkbenchAction
-            label={workItem.archived ? "Restore work item" : "Archive work item"}
-            tone="ghost"
-            disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
-            onClick={() => setConfirmArchive(true)}
-          />
-          {canStart && runs.length === 0 ? (
+          <nav
+            className="order-workflow-progression"
+            aria-label="Workflow progression"
+            data-testid="workflow-progression"
+          >
+            {workflowSteps.map((step) => {
+              const target = workflowInspectionTarget(workItem, step);
+              return (
+                <button
+                  key={step.stage}
+                  type="button"
+                  aria-current={step.stage === workItem.stage ? "step" : undefined}
+                  aria-disabled={target.kind === "UNREACHED" ? "true" : undefined}
+                  data-reached={target.kind === "UNREACHED" ? "false" : "true"}
+                  title={step.purpose}
+                  onClick={() => inspectWorkflowStep(step)}
+                >
+                  {step.label}
+                </button>
+              );
+            })}
+          </nav>
+          <div className="order-workitem-rail-actions">
             <WorkbenchAction
-              label={"Start " + workflow.label}
-              tone="primary"
-              loading={start.isPending}
-              disabled={dirty}
-              onClick={() => start.mutate()}
+              label={workItem.archived ? "Restore work item" : "Archive work item"}
+              tone="ghost"
+              disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+              onClick={() => setConfirmArchive(true)}
             />
-          ) : null}
-          {mode !== null ? (
-            <SegmentedControl
-              label="Workspace mode"
-              value={mode}
-              onChange={(value) => {
-                if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
-              }}
-              size="sm"
-            >
-              {visibleModes.map((item) => (
-                <SegmentedControlItem
-                  key={item}
-                  value={item}
-                  label={workItemModeLabel(item)}
-                />
-              ))}
-            </SegmentedControl>
-          ) : null}
-        </div>
-        <div className="order-workflow-orientation" data-testid="workflow-orientation">
-          <div className="order-current-workflow-step">
-            <strong>{workflow.label}</strong>
-            <span>{workflow.purpose}</span>
-          </div>
-          <ol aria-label="Workflow progression">
-            {workflowSteps.map((step) => (
-              <li
-                key={step.stage}
-                aria-current={step.stage === workItem.stage ? "step" : undefined}
-                title={step.purpose}
+            {canStart && runs.length === 0 ? (
+              <WorkbenchAction
+                label={"Start " + workflow.label}
+                tone="primary"
+                loading={start.isPending}
+                disabled={dirty}
+                onClick={() => start.mutate()}
+              />
+            ) : null}
+            {mode !== null ? (
+              <SegmentedControl
+                label="Workspace mode"
+                value={mode}
+                onChange={(value) => {
+                  if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
+                }}
+                size="sm"
               >
-                {step.label}
-              </li>
-            ))}
-          </ol>
+                {visibleModes.map((item) => (
+                  <SegmentedControlItem
+                    key={item}
+                    value={item}
+                    label={workItemModeLabel(item)}
+                  />
+                ))}
+              </SegmentedControl>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -404,6 +454,7 @@ export const WorkItemWorkspace = ({
                 workItem={workItem}
                 onDirtyChange={setDirtyState}
                 onOpenArtifactEvidence={openArtifactEvidence}
+                requestedDocument={requestedDocument}
               />
             ) : null}
             {mode === "ACTIVITY" ? (
@@ -482,7 +533,26 @@ export const WorkItemWorkspace = ({
           const next = pendingMode;
           setPendingMode(null);
           setDirtyState(false);
-          if (next) setMode(next);
+          if (next) {
+            setUnreachedStep(null);
+            setMode(next);
+          }
+        }}
+      />
+
+      <AlertDialog
+        isOpen={pendingUnreachedStep !== null}
+        onOpenChange={(open) => { if (!open) setPendingUnreachedStep(null); }}
+        title="Discard unsaved Markdown?"
+        description="Inspecting an unreached workflow step would leave the current unsaved Markdown buffer."
+        cancelLabel="Continue editing"
+        actionLabel="Discard unsaved changes"
+        actionVariant="destructive"
+        onAction={() => {
+          const next = pendingUnreachedStep;
+          setPendingUnreachedStep(null);
+          setDirtyState(false);
+          if (next) setUnreachedStep(next);
         }}
       />
     </div>
