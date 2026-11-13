@@ -94,6 +94,7 @@ import {
   reconcileWorkItemSources,
   revalidateWorkItemSource,
   saveWorkItemSource,
+  saveWorkItemSourceBody,
   sourceDiagnosticForFailure as sourceDiagnosticForSourceFailure,
   setWorkItemArchived,
   updateWorkItemTitle,
@@ -134,6 +135,7 @@ export const getWorkItemSource = currentWorkItemSource;
 export const getWorkItemSourceDiagnostics = workItemSourceDiagnostics;
 export const reconcileSources = reconcileWorkItemSources;
 export const saveSource = saveWorkItemSource;
+export const saveSourceBody = saveWorkItemSourceBody;
 export const updateTitle = updateWorkItemTitle;
 export const setArchived = setWorkItemArchived;
 export const getDocumentationGitStatus = documentationGitStatus;
