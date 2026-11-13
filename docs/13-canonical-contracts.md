@@ -2902,7 +2902,6 @@ const InstallationReadinessBlockerSchema = z.enum([
   "MODEL_INVALID",
   "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
   "OPENCODE_ACCOUNT_REQUIRED",
-  "PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE",
 ]);
 
 const InstallationReadinessSchema = z.strictObject({
@@ -2913,7 +2912,6 @@ const InstallationReadinessSchema = z.strictObject({
 
 `ready === true` iff `blockers.length === 0`.
 
-`PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE` is present when the exact installed provider/account process can contribute semantic instruction sources that Order cannot disable or inspect/admit completely before the first productive inference. Under the audited OpenCode 2.2.6 contract, an active OpenCode Console connection has this blocker because connected-workspace Library instructions can enter `InstructionDiscovery` without a supported complete pre-inference manifest or selective disable capability. The blocker is removed only by an exact provider capability certified under `GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT`; a manually empty Library is not sufficient.
 
 The daemon is the single readiness-policy owner. The browser does not reconstruct readiness from separate repository/account/model queries.
 
@@ -3232,20 +3230,24 @@ The §29 OpenCode certification must additionally prove the complete test matrix
 - account-control operations remain isolated from project instruction scanning.
 
 
-### 36.7 Effective model-context instruction closure
+### 36.7 Effective model-context and trusted-integration closure
 
-The productive admission contract additionally realizes `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` / `GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT`.
+The productive admission contract realizes `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` / `GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT`.
 
 Before the first productive inference Order proves, for the exact live provider process/session:
 
-- repository/read-triggered instructions satisfy §36.3;
-- ordinary configured/global/project OpenCode instruction discovery contributes no unowned instruction source;
-- the session's API-managed instruction-entry list is empty and Order production code exposes no instruction-entry mutation path;
-- MCP/reference/skill instruction channels contribute no semantic instruction material unless separately governed in future authority;
-- a connected OpenCode Console/workspace instruction channel is either mechanically disabled while retaining authentication, or exposed through a supported complete pre-inference manifest whose exact bytes/source identity can be admitted through Order authority.
+- repository/read-triggered `AGENTS.md` satisfies §36.3 with exact canonical path/bytes;
+- Order role/canonical context comes only from the existing resolved context/prompt owners;
+- ordinary host/global/project OpenCode configuration and compatibility discovery cannot contribute ambient instructions/skills;
+- the generated Run-specific `OPENCODE_CONFIG_CONTENT` contains only Order-owned configuration explicitly admitted for the Run;
+- configured reference roots are explicit non-authoritative context;
+- any Order-configured skill or MCP is explicitly admitted and permissioned for the role;
+- the active saved OpenCode Console account, when required, is the explicitly selected trusted integration identity for the Run. Its provider-native Library instructions/skills and allowed remote MCP/provider configuration are accepted as trusted integration context and are not promoted into Order canonical authority;
+- account mutation/switching remains impossible while the Run is active;
+- arbitrary API-managed session instruction entries are absent unless a future governed contract explicitly introduces them.
 
-If the last condition cannot be proven, installation/productive readiness includes `PROVIDER_INSTRUCTION_ISOLATION_UNAVAILABLE` and no productive Run may start. This is a readiness/precondition failure, not `PROVIDER_FAILED`.
+Trusted integration semantics may influence model execution, but they do not enlarge `ExecutionTask.changeSurface`, mutate `AGENTS.md`, override canonical P1-P7 authority, bypass permissions, adopt artifacts or satisfy validation/signoff.
 
-OpenCode 2.2.6 does not expose the required Console instruction isolation/introspection capability. The audited OpenCode 2.3.0 forward candidate still loads connected-workspace instructions into `InstructionDiscovery` and still does not expose a public complete pre-inference effective-instruction manifest. Merely updating the pin to 2.3.0 therefore cannot remove the blocker.
+The productive evidence boundary records the selected integration/account identity plus exact Order-owned repository/context/config identities. It does not fabricate hashes for provider-native semantic bytes that OpenCode does not expose through its public API.
 
-No new persisted instruction-domain model is introduced. Any future supported manifest is consumed at the provider shell boundary and reduced to existing canonical authority/hash identities needed for admission.
+No new persisted instruction-domain model is introduced. The shell derives this admission from existing repository/context/account/config/permission owners.
