@@ -46,7 +46,7 @@ const governedDocumentationPaths = async (
 }>> => {
   const workItem = getWorkItem(runtime, workItemId);
   const project = await resolveConfiguredProject(
-    runtime.config.repositoryRoots,
+    [workItem.repositoryRoot],
     workItem.projectId,
   );
   if (project.repositoryRoot !== workItem.repositoryRoot) {
