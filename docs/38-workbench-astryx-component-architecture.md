@@ -1141,7 +1141,10 @@ Behavior/browser tests must prove:
 13. toolbar actions preserve/update selection and dirty state correctly and remain disabled for read-only documents;
 14. the CodeMirror viewport consumes the primary authoring canvas;
 15. light/dark/system theme changes produce the explicit editor-chrome and Markdown-syntax theme with readable contrast;
-16. selection, caret, search matches, gutters and focus treatment remain legible in both explicit Light/Dark and System-derived modes.
+16. selection, caret, search matches, gutters and focus treatment remain legible in both explicit Light/Dark and System-derived modes;
+17. a long Source document and a long lifecycle document each scroll inside the editor viewport through the exact final source line at wide and narrow supported browser widths;
+18. after scrolling to the final line, the operator can edit it and Save/Cancel remain reachable without page-level clipping or a second trapped vertical scroller;
+19. every remaining-height wrapper between the mode canvas and CodeMirror participates in the flex-height chain with `min-height: 0` where required, and CodeMirror owns the document-content scroll rather than an unsized ancestor.
 
 ### 19.11 Stop conditions
 
@@ -1190,19 +1193,19 @@ Return to P3/P4 instead of expanding implementation if:
 
 ### GW-TR-043-CODEMIRROR-THEME-SPATIAL-INTEGRATION
 
-**Required behavior:** CodeMirror uses the explicit Order editor-chrome and Markdown-syntax theme in §19.5.3, derived from Order/Astryx theme authority, and fills the existing primary-canvas editor region.
+**Required behavior:** CodeMirror uses the explicit Order editor-chrome and Markdown-syntax theme in §19.5.3, derived from Order/Astryx theme authority, and fills the existing primary-canvas editor region. The complete wrapper chain from the active mode canvas through any Source/lifecycle authoring wrapper to CodeMirror must participate in one remaining-height flex contract; wrappers that can otherwise prevent shrinking use `min-height: 0`, and the CodeMirror scroller is the document-content vertical scroll owner.
 
-**Acceptance criterion:** System/Light/Dark produce intentional editor chrome and Markdown syntax contrast; selection/caret/search/gutter/focus states remain legible and the CodeMirror root/scroller/content participate in the existing flex-height/width contract.
+**Acceptance criterion:** System/Light/Dark produce intentional editor chrome and Markdown syntax contrast; selection/caret/search/gutter/focus states remain legible; a long document can scroll to and edit its final line; and the CodeMirror root/scroller/content plus every remaining-height ancestor preserve the flex-height/width contract at wide and narrow supported viewports.
 
-**Failure/negative behavior:** CodeMirror must not ship as an unthemed/default-looking surface, create a second product theme, fixed page container or independent preference owner.
+**Failure/negative behavior:** CodeMirror must not ship as an unthemed/default-looking surface, create a second product theme, fixed page container or independent preference owner. An unsized intermediary wrapper, clipped overflow ancestor, page-level overflow substitute or nested scroll trap that makes the final source lines unreachable is a contract failure.
 
 ### GW-TR-044-EXACT-SOURCE-EDITOR-CERTIFICATION
 
-**Required behavior:** permanent architecture, unit/browser and certification tests prove exact-source preservation, dependency isolation, save/conflict continuity, presentation-mode continuity and usable editor geometry.
+**Required behavior:** permanent architecture, unit/browser and certification tests prove exact-source preservation, dependency isolation, save/conflict continuity, presentation-mode continuity, usable editor geometry and end-to-end long-document scrolling.
 
-**Acceptance criterion:** the test set in §19.10 passes on the final candidate alongside all existing workbench regressions.
+**Acceptance criterion:** the test set in §19.10 passes on the final candidate alongside all existing workbench regressions, including programmatic/browser proof that the final line of long Source and lifecycle Markdown can be scrolled into view, edited and saved/cancelled at desktop and narrow supported widths.
 
-**Failure/negative behavior:** a mount-only or syntax-highlighting-only test is insufficient evidence that the governed Markdown contract remains intact.
+**Failure/negative behavior:** a mount-only, bounding-box-only, visible-Save-button-only or syntax-highlighting-only test is insufficient evidence that the governed Markdown contract remains intact.
 
 ## 20. User-facing workflow and Activity technical realization (2026-11-13)
 
@@ -1225,12 +1228,16 @@ The projection does not persist state and does not determine lifecycle eligibili
 
 `WorkItemWorkspace` retains one compact orientation header.
 
-The header may use at most two compact intrinsic rows before the primary mode canvas:
+The WorkItem orientation region uses exactly two compact intrinsic semantic rows before workspace-view selection and the primary mode canvas:
 
-1. title/back/context/mode-management row;
-2. workflow-orientation row containing current step/purpose/progression.
+1. **WorkItem identity row** — Back, title/identity, concise current state and true WorkItem-level actions only;
+2. **workflow-process rail** — the complete ordinary-language workflow progression/current step and non-mutating inspection navigation.
 
-Documents may then use their existing one within-mode document navigation strip. Activity uses its own internal master/detail selection and must not add another full-width outer navigation row.
+Documents / Activity / Review / Implementation workspace-view selection is a third semantic level but is **not** part of the WorkItem orientation header. It sits at the primary-canvas boundary and controls only which primary WorkItem surface is visible.
+
+Documents may then use one within-Documents document selector. Activity uses its own internal Run-history/selected-detail composition and must not add another outer navigation row.
+
+Workflow progression, workspace-view selection and document selection are distinct information hierarchies and must not be compressed into one overloaded control row.
 
 Exact hash, project/schema/concern/source metadata and Technical details do not expand this header.
 
@@ -1256,13 +1263,13 @@ Names are illustrative; P7 may choose equivalent cohesive module names while pre
 On wide workbench layouts, the Activity primary canvas uses:
 
 ```text
-Activity canvas
-├── activity summary / current state        intrinsic compact row
-└── master-detail                           min-height: 0; flex: 1
-    ├── Run/attempt master                  minmax(14rem, 18rem)
-    └── selected activity detail            minmax(0, 1fr)
-        ├── event timeline                  min-height: 0; flex: 1
-        └── composer/current action          intrinsic/sticky bottom when applicable
+Activity canvas                               min-height: 0; flex: 1
+└── master-detail
+    ├── Activity history / Run master          minmax(14rem, 18rem)
+    └── selected activity detail               minmax(0, 1fr)
+        ├── selected Run header/state/actions  intrinsic compact row
+        ├── event timeline                     min-height: 0; flex: 1
+        └── composer/current action             intrinsic/sticky bottom when applicable
 ```
 
 Requirements:
@@ -1270,15 +1277,17 @@ Requirements:
 - the selected detail region has `min-width: 0` and `min-height: 0`;
 - Activity owns remaining mode-canvas height;
 - the event list scrolls inside the detail region rather than forcing the whole WorkItem page to grow indefinitely;
-- if persistent Context plus the Run master would reduce selected detail below approximately 640 px usable width, the existing responsive Context mechanism must switch Context to drawer/overlay before Activity is compressed further;
+- the global WorkItem contextual inspector is closed by default and therefore reserves no Activity width merely because the viewport is wide;
+- opening contextual inspection may use a collapsible trailing inspector only while requested; if that would reduce selected detail below approximately 640 px usable width it uses the drawer/overlay presentation instead;
 - a normal wide desktop target should leave approximately 760–960+ px for selected activity detail where the viewport permits;
+- there is no separate full-width Activity summary above master/detail; selected Run status, attempt/time and Retry/Cancel/Resume actions belong to the one selected-Run detail header;
 - Technical details must not reserve a permanent third column.
 
 ### 20.5 Medium and narrow Activity geometry
 
 Below the width where master + detail + optional Context remain usable:
 
-- Context becomes temporary under the existing workbench rule;
+- contextual inspection is temporary drawer/overlay only;
 - the Run/attempt master collapses to a compact selector, drawer or temporary master pane;
 - selected Activity detail remains the primary viewport;
 - timeline and composer keep remaining-height ownership;
@@ -1371,19 +1380,19 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-027-WORKFLOW-PRESENTATION-PROJECTION
 
-**Required behavior:** one pure presentation owner maps canonical lifecycle/Run/RunEvent state to user-facing workflow/status/event language.
+**Required behavior:** one pure presentation owner maps canonical lifecycle/Run/RunEvent state to user-facing workflow/status/event language, including the ordinary-language label used for lifecycle document roles.
 
-**Acceptance criterion:** substantive UI modules consume the shared projection and canonical types directly.
+**Acceptance criterion:** queue stage cells/mobile metadata, workflow navigation, governed-document selectors, Activity headings/actions and other substantive UI modules consume the shared projection and canonical types directly.
 
-**Failure/negative behavior:** screen-local workflow/status/event mapping tables or browser-owned lifecycle DTOs are prohibited.
+**Failure/negative behavior:** screen-local workflow/status/event mapping tables, direct ordinary-label rendering of canonical values such as `workItem.stage` / lifecycle `artifact.role`, or browser-owned lifecycle DTOs are prohibited. Raw identifiers remain available only in explicit Technical details.
 
 #### GW-TR-028-WORKFLOW-HEADER-GEOMETRY
 
-**Required behavior:** user-facing workflow orientation fits within the compact WorkItem header without adding another full-width primary navigation row.
+**Required behavior:** WorkItem orientation uses the two-level geometry in §20.2: one compact identity/header row followed by one compact dedicated workflow-process rail. Workspace-view selection is separate at the primary-canvas boundary.
 
-**Acceptance criterion:** header geometry follows §20.2 and leaves the primary task with remaining viewport space.
+**Acceptance criterion:** Back/title/WorkItem actions remain in the identity row; Research → Complete inspection navigation remains in the workflow rail; Documents/Activity/Review/Implementation selection is visually and semantically distinct; all three levels remain compact enough to leave the primary task the dominant viewport.
 
-**Failure/negative behavior:** workflow explanation must not become page-like chrome above every workspace.
+**Failure/negative behavior:** workflow progression must not be mixed into the identity row, workspace-view tabs must not masquerade as lifecycle progression, and explanatory chrome must not become a page-like header stack.
 
 #### GW-TR-029-ACTIVITY-MASTER-DETAIL-LAYOUT
 
@@ -1411,11 +1420,11 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-032-TECHNICAL-DETAILS-PRESENTATION
 
-**Required behavior:** exact internal state is available through secondary disclosure while large diagnostics promote to Evidence-class primary space.
+**Required behavior:** exact internal state is available through on-demand secondary disclosure/contextual inspection while large diagnostics promote to Evidence-class primary space.
 
-**Acceptance criterion:** ordinary Activity retains its width while exact raw identifiers/payloads remain inspectable on demand.
+**Acceptance criterion:** ordinary Activity retains its full primary width with the contextual inspector closed; opening Details exposes exact selected-Run identifiers/payloads without duplicating WorkItem identity; large diagnostics remain inspectable in Evidence-class primary space.
 
-**Failure/negative behavior:** a permanent debug column or Context-rail log viewer is prohibited.
+**Failure/negative behavior:** a permanent debug column, always-present global Context rail, duplicated WorkItem summary rail or Context-rail log viewer is prohibited.
 
 #### GW-TR-033-PRIMARY-FAILURE-PRESENTATION
 
@@ -1659,17 +1668,15 @@ Changing model invokes the focused Settings command and reflects success only af
 
 ### 22.7 WorkItem top-rail and workflow navigation refactor
 
-`WorkItemWorkspace` is refactored so persistent WorkItem orientation is one compact top rail.
+`WorkItemWorkspace` is refactored into three explicit semantic levels before the primary content:
 
-The rail composes:
+1. **WorkItem identity row** — Back, title + concise current state, Details/Context access when useful, and contextual actions whose scope is the WorkItem itself;
+2. **workflow-process rail** — compact clickable Research → Requirements → Solution design → Implementation plan → Readiness review → Approval → Implementation → Complete inspection navigation;
+3. **workspace-view selector at the canvas boundary** — Documents / Activity / Review / Implementation / Result as applicable.
 
-- Back;
-- title + concise current state;
-- compact clickable workflow-step inspection navigation;
-- current workspace-mode control;
-- contextual WorkItem actions.
+The WorkItem identity row and workflow rail are the two compact orientation rows defined by §20.2. The workspace-view selector is not workflow state and must not be merged into either row.
 
-The former separate `.order-workflow-orientation` row is removed after equivalent orientation/navigation is integrated.
+The former mixed/overloaded top-rail composition is removed rather than retained beside the corrected hierarchy.
 
 Workflow-step click maps to browser-local presentation targets only. A pure typed presentation projection maps each canonical user-facing step to its available Documents/Review/Execution/Result target or explicit unreached state.
 
@@ -1679,16 +1686,19 @@ No click path imports or calls lifecycle promotion/start/sign-off mutations.
 
 `DocumentWorkspace` retains one within-Documents selector.
 
-The separate document Git-state strip and Markdown action/footer rows are consolidated into the smallest coherent editor/document toolbar set:
+After the one within-Documents document selector, the selected document owns **one coherent sticky horizontal editor/document control region**. It contains, responsively grouped without creating independent persistent rows:
 
 - Edit / Preview / Split;
-- formatting actions;
-- compact dirty/save/cancel state;
-- actionable documentation Git save;
-- compact document/Git state;
-- technical details disclosure for exact SHA/path/HEAD.
+- formatting actions when editing is permitted;
+- compact dirty/current state;
+- Save / Cancel;
+- compact documentation Git state;
+- Save documentation to Git when actionable;
+- one Details/Technical affordance for exact source/path/SHA/branch/HEAD information.
 
-Old state/action bars are deleted once their controls move.
+The document selector remains a separate navigation strip because it selects content; the editor/document control region performs actions on that selected content.
+
+Old Git-state strips, bottom Save/Cancel action bars, source-specific redundant headings/toolbars and any other superseded full-width control rows are deleted once their useful controls move. On narrow widths the control region may wrap or use overflow/compact grouping, but it remains one semantic control surface rather than separate bars.
 
 The center document/editor region remains the flexible-height owner; chrome is intrinsic/compact.
 
@@ -1789,11 +1799,11 @@ Permanent verification must prove:
 
 #### GW-TR-066-CONSOLIDATED-WORKITEM-DOCUMENT-CHROME
 
-**Required behavior:** WorkItem orientation and document/editor controls are consolidated into semantically owned compact rails with old redundant rows removed.
+**Required behavior:** WorkItem orientation follows the identity-row + workflow-rail hierarchy, workspace-view selection remains a separate canvas-boundary concern, and Documents uses one document selector plus one coherent editor/document control region. Old redundant rows are removed.
 
-**Acceptance criterion:** primary document/work space increases while all required actions/state remain reachable.
+**Acceptance criterion:** primary document/work space increases while all required actions/state remain reachable; Save/Cancel/Git-save remain visible/reachable during long-document editing; exact path/SHA/HEAD moves behind Details rather than consuming another permanent bar.
 
-**Failure/negative behavior:** old and new chrome grammars must not coexist or duplicate context.
+**Failure/negative behavior:** old and new chrome grammars must not coexist, workflow/view/document hierarchies must not be collapsed into one overloaded row, and Git/editor actions must not be duplicated across separate persistent strips.
 
 #### GW-TR-067-HUMAN-FIRST-SOURCE-EDITOR-COMPOSITION
 
