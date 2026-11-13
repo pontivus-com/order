@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Tab, TabList } from "@astryxdesign/core/TabList";
@@ -82,6 +82,7 @@ export const DocumentWorkspace = ({
   const [confirmGitSave, setConfirmGitSave] = useState(false);
   const [requestedUnavailable, setRequestedUnavailable] =
     useState<WorkflowDocumentTarget | null>(null);
+  const handledDocumentRequestId = useRef<number | null>(null);
 
   const sourceQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSource(workItem.id), queryFn: () => api.getWorkItemSource(workItem.id) });
   const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id), queryFn: () => api.listLifecycleArtifacts(workItem.id) });
@@ -183,7 +184,9 @@ export const DocumentWorkspace = ({
 
   useEffect(() => {
     if (requestedDocument === null || requestedDocument === undefined) return;
+    if (handledDocumentRequestId.current === requestedDocument.requestId) return;
     if (artifactsQuery.isPending) return;
+    handledDocumentRequestId.current = requestedDocument.requestId;
     setRequestedUnavailable(null);
     if (requestedDocument.document === "SOURCE") {
       select({ kind: "SOURCE" });
@@ -200,7 +203,7 @@ export const DocumentWorkspace = ({
   }, [
     artifacts,
     artifactsQuery.isPending,
-    requestedDocument?.requestId,
+    requestedDocument,
   ]);
 
   useEffect(() => {

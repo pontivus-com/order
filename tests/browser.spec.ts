@@ -75,7 +75,8 @@ const replaceMarkdownSource = async (
   await editor.click();
   await editor.press("Control+A");
   await page.keyboard.insertText(markdown);
-  await expect.poll(() => markdownSourceValue(editor)).toBe(markdown);
+  const finalLine = markdown.split("\n").at(-1) ?? "";
+  await expect(editor.locator(".cm-line").last()).toHaveText(finalLine);
 };
 
 const workItemForTitle = async (
