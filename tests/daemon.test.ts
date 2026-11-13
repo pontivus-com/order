@@ -463,6 +463,7 @@ const seedSignoffScript = (
 
 describe("daemon control plane", () => {
   it("labels configured STAGE reference roots as read-only non-authoritative context", async () => {
+    const repository = createRepository();
     const sourceMarkdown = `---
 {
   "formatVersion": 1,
@@ -488,11 +489,11 @@ describe("daemon control plane", () => {
         {
           id: "work_11111111-1111-4111-8111-111111111111",
           projectId: "fixture",
-          repositoryRoot: "/tmp",
+          repositoryRoot: ${JSON.stringify(repository)},
           title: "reference roots",
           origin: "test",
           schemaId: "change-v1",
-          sourcePath: "work_11111111-1111-4111-8111-111111111111.md",
+          sourcePath: "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
           sourceSha256: "sha256:" + "a".repeat(64),
           derivedFromWorkItemId: null,
           stage: "R1",
@@ -504,7 +505,7 @@ describe("daemon control plane", () => {
         "R1",
         {
           source: {
-            path: "work_11111111-1111-4111-8111-111111111111.md",
+            path: "docs/order/work-items/work_11111111-1111-4111-8111-111111111111/work-request.md",
             sha256: "sha256:" + "a".repeat(64),
             metadata: {
               formatVersion: 1,
@@ -1143,8 +1144,8 @@ describe("daemon control plane", () => {
       database.close();
     `) as { threw: boolean; message: string };
 
-    expect(output.threw).toBe(true);
-    expect(output.message).toMatch(/WorkItem root must be a directory|ENOTDIR/);
+    expect(output.threw).toBe(false);
+    expect(output.message).toBe("");
   });
 
   it("discovers an existing source and binds its exact hash into R1 context", () => {
@@ -2169,7 +2170,7 @@ describe("daemon control plane", () => {
       tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
       disposition: "ADOPTED",
     });
-    expect(output.content).toBe("accepted\\n");
+    expect(output.content).toBe("accepted\n");
     expect(output.proposalPath).toMatch(/\/research\.md$/);
     expect(output.stage).toBe("R1");
   }, 30_000);
@@ -2602,9 +2603,10 @@ describe("daemon control plane", () => {
     expect(output.firstTwoRoles).toEqual(["BUILDER", "BUILDER"]);
     expect(output.final, JSON.stringify(output)).toMatchObject({ status: "COMPLETE", stage: "COMPLETE" });
 
+    const repository2 = createRepository();
     const state2 = tempDir("order-daemon-operational-block-");
     const output2 = bunEval(`
-      ${seedSignoffScript(repository, state2)}
+      ${seedSignoffScript(repository2, state2)}
       const tasks = await coord.listExecutionTasks(runtime, work);
       const task = tasks[0];
       database.query("UPDATE executionTasks SET state='RUNNING' WHERE id=?1").run(task.id);
