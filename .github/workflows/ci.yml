@@ -19,7 +19,7 @@ jobs:
     env:
       CI: "1"
       PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
-      PONTIVUS_ORDER_OPENCODE_BIN: /bin/false
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
     steps:
       - name: Checkout exact PR merge candidate
         shell: bash
@@ -57,6 +57,14 @@ jobs:
           set -euo pipefail
           test "$(node --version)" = "v26.13.0"
           test "$(bun --version)" = "1.4.4"
+
+      - name: Install exact OpenCode
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/pontivus-order-opencode
+          BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
+          test "$(/tmp/pontivus-order-opencode/bin/opencode --version)" = "opencode v2.2.6"
 
       - name: Verify PR release metadata
         run: bun scripts/verify-release.ts --mode pr --base "refs/remotes/origin/${GITHUB_BASE_REF}"
