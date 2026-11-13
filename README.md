@@ -10,15 +10,26 @@ Order turns engineering intent into explicitly approved work, runs coding agents
 
 ## Install
 
-Order is currently in public pre-release development. No certified GitHub Release has been published yet. The supported public installation remains a **one command** flow once the first certified release is available.
+Order `0.2.0` is the first certified public release. Normal installation and update consume the Order-owned GitHub Release bundle rather than arbitrary `master`.
 
-The supported public installation channel is being established by the `0.2.0` implementation/release package governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Once `0.2.0` is published, normal installation/update will consume the certified GitHub Release asset rather than arbitrary `master`.
+Latest certified release:
 
-Cloning `master` is therefore a **contributor/development path**, not an immutable public release installation.
+```bash
+tmp="$(mktemp -d)" && cd "$tmp" && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/latest/download/pontivus-order.tar.gz && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/latest/download/pontivus-order.tar.gz.sha256 && \
+sha256sum -c pontivus-order.tar.gz.sha256 && \
+tar -xzf pontivus-order.tar.gz && \
+./order/install.sh
+```
 
-`install.sh` is only the minimal bootstrap; it verifies the checkout/runtime prerequisites and transfers control to the purpose-built `src/installer.ts` installer.
+Version-pinned `0.2.0` installation uses the same flow with `/releases/download/v0.2.0/` in place of `/releases/latest/download/`.
 
-For repository development, the current bootstrap remains:
+The supported installation channel and release assets are governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Cloning `master` is a **contributor/development path**, not an immutable public release installation.
+
+`install.sh` is only the minimal bootstrap; it verifies the checkout or certified release-bundle provenance/runtime prerequisites and transfers control to the purpose-built `src/installer.ts` installer.
+
+For repository development, the bootstrap remains:
 
 ```bash
 git clone https://github.com/pontivus-com/order.git
@@ -26,7 +37,7 @@ cd order
 ./install.sh
 ```
 
-The purpose-built installer installs and verifies the exact pinned Bun, Node and OpenCode runtimes under `~/.local/share/pontivus-order`, installs the committed dependency graph, builds production `dist/`, installs `~/.local/bin/order`, guides private OpenCode authentication/model selection when required, persists target-repository/reference configuration, installs/enables the user-level `pontivus-order.service`, and refuses success until `order status` is healthy.
+The purpose-built installer installs and verifies the exact pinned Bun, Node and OpenCode runtimes under `~/.local/share/pontivus-order`, installs the committed dependency graph, preserves the certified production `dist/` from a release bundle (or builds it for a development checkout), installs `~/.local/bin/order`, guides private OpenCode authentication/model selection when required, persists target-repository/reference configuration, installs/enables the user-level `pontivus-order.service`, and refuses success until `order status` is healthy.
 
 Install-time host prerequisites are Linux, a usable systemd user manager, Git, `curl`, `tar`, `xz`, Bash/POSIX shell support, and ordinary core file utilities. The installer never invokes `sudo` or a distro package manager.
 
