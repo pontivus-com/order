@@ -38,7 +38,7 @@ jobs:
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch --tags --force origin "+refs/heads/master:refs/remotes/origin/master"
           git checkout --detach "${TARGET_SHA}"
-          git merge-base --is-ancestor "${TARGET_SHA}" refs/remotes/origin/master
+          test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"
 
       - name: Install exact Node and Bun
         shell: bash
@@ -182,10 +182,12 @@ jobs:
           fi
 
           for asset in pontivus-order.tar.gz pontivus-order.tar.gz.sha256; do
-            existing_size="$(RELEASE_JSON="${RUNNER_TEMP}/release.json" ASSET_NAME="${asset}" bun -e 'const r=JSON.parse(await Bun.file(process.env.RELEASE_JSON).text()); const a=(r.assets??[]).find(x=>x.name===process.env.ASSET_NAME); process.stdout.write(a?String(a.size):"");')"
-            actual_size="$(stat -c %s "release/${asset}")"
-            if [[ -n "${existing_size}" ]]; then
-              test "${existing_size}" = "${actual_size}"
+            existing_url="$(RELEASE_JSON="${RUNNER_TEMP}/release.json" ASSET_NAME="${asset}" bun -e 'const r=JSON.parse(await Bun.file(process.env.RELEASE_JSON).text()); const a=(r.assets??[]).find(x=>x.name===process.env.ASSET_NAME); process.stdout.write(a?.url??"");')"
+            if [[ -n "${existing_url}" ]]; then
+              existing_asset="${RUNNER_TEMP}/existing-${asset}"
+              curl -fsS -L -H "${auth_header}" -H "X-GitHub-Api-Version: 2022-11-28" \
+                -H "Accept: application/octet-stream" "${existing_url}" -o "${existing_asset}"
+              cmp -s "release/${asset}" "${existing_asset}"
               continue
             fi
             content_type="application/octet-stream"
