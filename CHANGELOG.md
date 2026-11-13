@@ -8,6 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Add structured GitHub issue intake for bug reports, feature requests, and private security reporting.
 - Add adversarial cross-boundary certification for repository-native Git admission, three-account OpenCode identity switching, and canonical UI/runtime ownership.
 - Add a responsive global OpenCode saved-account utility for safe switching, rename, external device sign-in, auth attention, and active-Run mutation blocking.
 - Integrate repository-native documentation Git state/save, direct title management, archive/restore, archived queue visibility, and project-local creation paths into the existing CodeMirror workbench.
