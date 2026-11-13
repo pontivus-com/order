@@ -30,6 +30,7 @@ import {
   type RunEvent,
   type RunEventId,
   type RunId,
+  type RepositoryPath,
   type Sha256,
   type WorkItem,
   type WorkItemId,
