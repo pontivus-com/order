@@ -8,6 +8,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Add canonical WorkItem title editing and repository-native archive/restore projection semantics.
+
+### Changed
+
 - Cut productive WorkItem configuration, source discovery, lifecycle drafts, and persistence to repository-native v3 semantics with bounded v2 migration.
 
 ### Added
