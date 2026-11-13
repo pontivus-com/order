@@ -1241,6 +1241,137 @@ describe("daemon control plane", () => {
     }).toEqual(output.beforeArchiveLifecycle);
   });
 
+  it("reports canonical documentation Git state and refuses stale or detached commits", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-documentation-git-");
+
+    const output = bunEval(`
+      const child = await import("node:child_process");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const docs = await import("./src/daemon/work-item-documentation.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 3,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "Git-backed documentation",
+        concernIds: ["shell"],
+      });
+      const initial = await docs.workItemDocumentationGitStatus(runtime, created.id);
+      const expectedPaths = initial.paths
+        .filter((path) =>
+          path.state === "MODIFIED" ||
+          path.state === "UNTRACKED" ||
+          path.state === "DELETED"
+        )
+        .map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+        }));
+      const committed = await docs.commitWorkItemDocumentation(runtime, created.id, {
+        expectedHeadCommit: initial.headCommit,
+        expectedPaths,
+      });
+      const persisted = await docs.workItemDocumentationGitStatus(runtime, created.id);
+
+      const source = await coord.getWorkItemSource(runtime, created.id);
+      await coord.updateTitle(runtime, created.id, {
+        expectedSourceSha256: source.sha256,
+        title: "Changed after commit",
+      });
+      child.execFileSync("git", ["checkout", "--detach", "-q"], {
+        cwd: ${JSON.stringify(repository)},
+      });
+      const blocked = await docs.workItemDocumentationGitStatus(runtime, created.id);
+      const blockedExpectedPaths = blocked.paths
+        .filter((path) =>
+          path.state === "MODIFIED" ||
+          path.state === "UNTRACKED" ||
+          path.state === "DELETED"
+        )
+        .map((path) => ({
+          repositoryPath: path.repositoryPath,
+          sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
+        }));
+      let conflictCode = null;
+      try {
+        await docs.commitWorkItemDocumentation(runtime, created.id, {
+          expectedHeadCommit: blocked.headCommit,
+          expectedPaths: blockedExpectedPaths,
+        });
+      } catch (error) {
+        conflictCode =
+          typeof error === "object" &&
+          error !== null &&
+          "orderCode" in error
+            ? error.orderCode
+            : null;
+      }
+
+      console.log(JSON.stringify({
+        sourcePath: created.sourcePath,
+        initial,
+        committed,
+        persisted,
+        blocked,
+        conflictCode,
+      }));
+      database.close();
+    `) as {
+      sourcePath: string;
+      initial: {
+        blockers: string[];
+        paths: Array<{ repositoryPath: string; state: string }>;
+      };
+      committed: { gitCommit: string; repositoryPaths: string[] };
+      persisted: {
+        blockers: string[];
+        paths: Array<{ repositoryPath: string; state: string }>;
+      };
+      blocked: {
+        blockers: string[];
+        paths: Array<{ repositoryPath: string; state: string }>;
+      };
+      conflictCode: string | null;
+    };
+
+    expect(output.initial.blockers).toEqual([]);
+    expect(output.initial.paths).toEqual([
+      expect.objectContaining({
+        repositoryPath: output.sourcePath,
+        state: "UNTRACKED",
+      }),
+    ]);
+    expect(output.committed.repositoryPaths).toEqual([output.sourcePath]);
+    expect(output.persisted.blockers).toEqual([]);
+    expect(output.persisted.paths).toEqual([
+      expect.objectContaining({
+        repositoryPath: output.sourcePath,
+        state: "MATCHES_HEAD",
+      }),
+    ]);
+    expect(output.blocked.blockers).toContain("DETACHED_HEAD");
+    expect(output.blocked.paths).toEqual([
+      expect.objectContaining({
+        repositoryPath: output.sourcePath,
+        state: "MODIFIED",
+      }),
+    ]);
+    expect(output.conflictCode).toBe("DOCUMENTATION_GIT_CONFLICT");
+  });
+
   it("discovers an existing source and binds its exact hash into R1 context", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-discovery-");
