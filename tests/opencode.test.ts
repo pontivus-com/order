@@ -217,6 +217,10 @@ const server = Bun.serve({
         accountConnections.unshift(selected);
         return new Response(null, { status: 204 });
       }
+      if (request.method === "DELETE" && credentialMatch[2] === undefined) {
+        accountConnections.splice(index, 1);
+        return new Response(null, { status: 204 });
+      }
     }
 
     if (request.method === "POST" && url.pathname === "/api/session") {
@@ -561,12 +565,21 @@ describe("OpenCode shell", () => {
         await o.renameOpenCodeAccount(control, "cred_alpha", "alpha+renamed@example.com");
         await o.activateOpenCodeAccount(control, "cred_alpha");
         const after = await o.listOpenCodeAccounts(control);
+        await o.removeOpenCodeAccount(control, "cred_gamma");
+        const afterNonActiveRemoval = await o.listOpenCodeAccounts(control);
+        await o.removeOpenCodeAccount(control, "cred_alpha");
+        const afterActiveRemoval = await o.listOpenCodeAccounts(control);
+        await o.removeOpenCodeAccount(control, "cred_beta");
+        const afterFinalRemoval = await o.listOpenCodeAccounts(control);
         const login = await o.startOpenCodeAccountOAuth(control, "new@example.com");
         const pending = await o.pollOpenCodeAccountOAuth(control, login.providerAttemptId);
         await o.cancelOpenCodeAccountOAuth(control, login.providerAttemptId);
         console.log(JSON.stringify({
           initial,
           after,
+          afterNonActiveRemoval,
+          afterActiveRemoval,
+          afterFinalRemoval,
           login,
           pending,
           exposedKeys: Object.keys(control).sort(),
@@ -576,7 +589,10 @@ describe("OpenCode shell", () => {
       }
     `, providerEnvironment(binary)) as {
       initial: Array<{ active: boolean }>;
-      after: Array<{ active: boolean }>;
+      after: Array<{ id: string; active: boolean }>;
+      afterNonActiveRemoval: Array<{ id: string; active: boolean }>;
+      afterActiveRemoval: Array<{ id: string; active: boolean }>;
+      afterFinalRemoval: Array<{ id: string; active: boolean }>;
       login: { providerAttemptId: string; authorizationUrl: string; instructions: string; expiresAt: string };
       pending: unknown;
       exposedKeys: string[];
@@ -636,6 +652,15 @@ describe("OpenCode shell", () => {
     expect(output.pending).toEqual({ status: "PENDING", message: null });
     expect(output.initial).toHaveLength(3);
     expect(output.after.filter((account) => account.active)).toHaveLength(1);
+    expect(output.afterNonActiveRemoval.map((account) => account.id)).toEqual([
+      "cred_alpha",
+      "cred_beta",
+    ]);
+    expect(output.afterNonActiveRemoval.find((account) => account.active)?.id).toBe("cred_alpha");
+    expect(output.afterActiveRemoval).toEqual([
+      expect.objectContaining({ id: "cred_beta", active: true }),
+    ]);
+    expect(output.afterFinalRemoval).toEqual([]);
     expect(JSON.stringify(output.initial)).not.toContain("cred_key");
     expect(JSON.stringify(output.after)).not.toContain("cred_key");
     expect(output.exposedKeys).not.toContain("password");
