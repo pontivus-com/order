@@ -172,10 +172,10 @@ describe("productive configuration policy", () => {
     }).success).toBe(true);
     expect(OrderConfigSchema.safeParse({
       version: 4,
-      model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+      model: null,
       repositoryRoots: [],
       referenceRoots: [],
-    }).success).toBe(false);
+    }).success).toBe(true);
     expect(OrderConfigSchema.safeParse({
       version: 2,
       model: { providerID: "opencode", id: "glm-5.3-flash-free" },
