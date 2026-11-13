@@ -47,11 +47,9 @@ export const isOrderHttpRequestFailure = (
 ): error is OrderHttpRequestFailure =>
   error instanceof Error &&
   "status" in error &&
-  typeof (error as { status?: unknown }).status === "number" &&
+  typeof error.status === "number" &&
   "orderError" in error &&
-  OrderHttpErrorSchema.safeParse(
-    (error as { orderError?: unknown }).orderError,
-  ).success;
+  OrderHttpErrorSchema.safeParse(error.orderError).success;
 
 const requestFailure = (
   status: number,
