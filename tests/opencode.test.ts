@@ -425,6 +425,47 @@ describe("OpenCode shell", () => {
     });
   });
 
+  it("requires exact ArtifactRef bytes for every admitted AGENTS.md", () => {
+    const workspace = tempDir("order-opencode-agent-bytes-");
+    writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
+
+    const output = bunEval(\`
+      const o = await import("./src/shell/opencode.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const path = \${JSON.stringify(workspace)};
+      const good = {
+        authorityLayer: "P1",
+        repositoryPath: "AGENTS.md",
+        sha256: rt.sha256(new TextEncoder().encode("# authority\\n")),
+      };
+      let matched = true;
+      let mismatchRejected = false;
+      let absentRejected = false;
+      try { await o.assertAgentInstructionsResolved(path, [good], null); } catch { matched = false; }
+      try {
+        await o.assertAgentInstructionsResolved(
+          path,
+          [{ ...good, sha256: "sha256:" + "0".repeat(64) }],
+          null,
+        );
+      } catch { mismatchRejected = true; }
+      try {
+        await o.assertAgentInstructionsResolved(
+          path,
+          [{ ...good, repositoryPath: "nested/AGENTS.md" }],
+          null,
+        );
+      } catch { absentRejected = true; }
+      console.log(JSON.stringify({ matched, mismatchRejected, absentRejected }));
+    \`) as Record<string, boolean>;
+
+    expect(output).toEqual({
+      matched: true,
+      mismatchRejected: true,
+      absentRejected: true,
+    });
+  });
+
   it("creates deny-first exact-path permission rules for multi-resource patch authorization", () => {
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
@@ -706,7 +747,13 @@ describe("OpenCode shell", () => {
           server,
           "STAGE",
           null,
-          ["AGENTS.md"],
+          [{
+            authorityLayer: "P1",
+            repositoryPath: "AGENTS.md",
+            sha256: (await import("./src/shell/runtime.ts")).sha256(
+              new TextEncoder().encode("# authority\n"),
+            ),
+          }],
           [],
         );
         const run = {
@@ -823,7 +870,13 @@ describe("OpenCode shell", () => {
           server,
           "STAGE",
           null,
-          ["AGENTS.md"],
+          [{
+            authorityLayer: "P1",
+            repositoryPath: "AGENTS.md",
+            sha256: (await import("./src/shell/runtime.ts")).sha256(
+              new TextEncoder().encode("# authority\n"),
+            ),
+          }],
           [],
         );
         const run = {
@@ -919,7 +972,13 @@ describe("OpenCode shell", () => {
           server,
           "STAGE",
           null,
-          ["AGENTS.md"],
+          [{
+            authorityLayer: "P1",
+            repositoryPath: "AGENTS.md",
+            sha256: (await import("./src/shell/runtime.ts")).sha256(
+              new TextEncoder().encode("# authority\n"),
+            ),
+          }],
           [],
         );
         const run = {

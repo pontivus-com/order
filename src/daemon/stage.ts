@@ -39,6 +39,7 @@ import {
 } from "../shell/repository.ts";
 import {
   createOpenCodeSession,
+  productiveOpenCodeConfig,
   runOpenCodeTurn,
   startOpenCodeServer,
   stopOpenCodeServer,
@@ -329,13 +330,14 @@ export const runStageTurn = async (
         workItem.repositoryRoot,
         configuredModel,
         runtime.environment,
+        productiveOpenCodeConfig("STAGE", runtime.config.referenceRoots),
       );
       try {
         const sessionId = await createOpenCodeSession(
           server,
           "STAGE",
           null,
-          context.p1Paths,
+          context.artifacts,
           runtime.config.referenceRoots,
         );
         updateRun(runtime, run.id, { providerSessionId: sessionId });
