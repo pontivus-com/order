@@ -352,6 +352,10 @@ describe("Order cross-boundary certification", () => {
     expect(runtime).toContain("openCodeAccountMutationActive");
     expect(server).toContain('"/api/opencode/accounts"');
     expect(server).toContain('"/api/opencode/accounts/login"');
+    expect(server).toContain("pauseSchedulerForOpenCodeAccountMutation");
+    expect(server).toContain("resumeSchedulerAfterOpenCodeAccountMutation");
+    expect(server).toContain("requireOpenCodeAccountStableForRunStart");
+    expect(server).toContain("armScheduler(runtime)");
     expect(server).toContain("stopSavedOpenCodeAccountControl");
 
     expect(sqlite).not.toContain("openCodeAccount");
