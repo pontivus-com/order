@@ -489,6 +489,16 @@ describe("Order cross-boundary certification", () => {
     expect(installer).not.toContain("sudo ");
     expect(installer).not.toContain("PONTIVUS_ORDER_OPENCODE_MODEL");
 
+    expect(bootstrap).toContain('elif [ ! -f "$sourceRoot/RELEASE.json" ]');
+    expect(bootstrap).toContain('"$sourceRoot/RELEASE.json"');
+    expect(installer).toContain('type InstallerSourceKind = "GIT_CHECKOUT" | "RELEASE_BUNDLE"');
+    expect(installer).toContain('return "RELEASE_BUNDLE"');
+    expect(installer).toContain("release bundle version does not match package.json");
+    expect(installer).toContain('sourceKind === "GIT_CHECKOUT"');
+    expect(installer).toContain("release bundle lost certified dist/index.html during installation");
+    expect(read("scripts/package-release.ts")).toContain('cpSync("dist", join(orderRoot, "dist"), { recursive: true })');
+    expect(read("scripts/package-release.ts")).toContain('join(orderRoot, "RELEASE.json")');
+
     const manifest = read("pontivus-order.toml");
     expect(manifest).toContain('"install.sh"');
     expect(manifest).toContain('"src/installer.ts"');
