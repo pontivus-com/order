@@ -383,6 +383,7 @@ describe("repository shell", () => {
       `const r=await import("./src/shell/repository.ts"); await r.adoptProposalPatch(${JSON.stringify(root)}, "link.md", null, "");`,
     ], process.cwd(), { allowFailure: true });
     expect(result.status).not.toBe(0);
+  });
 
   it("commits exactly the reviewed WorkItem documentation paths and preserves unrelated index state", () => {
     const root = tempDir("order-documentation-git-");
@@ -484,8 +485,6 @@ describe("repository shell", () => {
     expect(committedNames).toEqual([markerPath, researchPath, sourcePath].sort());
     expect(run(["git", "diff", "--cached", "--name-only"], root).stdout.trim()).toBe("file.txt");
     expect(readFileSync(join(root, "unrelated.txt"), "utf8")).toBe("unrelated unstaged\n");
-  });
-
   });
 });
 
