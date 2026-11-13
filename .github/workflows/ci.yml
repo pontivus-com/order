@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 45
     env:
       CI: "1"
-      PONTIVUS_ORDER_TEST_STATE_ROOT: ${{ runner.temp }}/order-browser-state
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
       PONTIVUS_ORDER_OPENCODE_BIN: /bin/false
     steps:
       - name: Checkout exact PR merge candidate
