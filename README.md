@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="assets/order-logo-plate-dark.svg" alt="Order" width="360">
+  <img src="assets/order-logo-plate-dark-v2.svg" alt="Order" width="360">
 </h1>
 
 <p align="center">
