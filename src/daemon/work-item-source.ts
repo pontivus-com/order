@@ -77,7 +77,7 @@ const sourceBoundaryFailure = (
   sourceDiagnostic: WorkItemSourceDiagnostic,
 ): SourceBoundaryFailure =>
   Object.assign(new TypeError(sourceDiagnostic.detail), {
-    orderCode: SOURCE_BOUNDARY_FAILURE,
+    orderCode: SOURCE_BOUNDARY_FAILURE as typeof SOURCE_BOUNDARY_FAILURE,
     sourceDiagnostic: WorkItemSourceDiagnosticSchema.parse(sourceDiagnostic),
   });
 
