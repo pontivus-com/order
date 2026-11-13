@@ -29,15 +29,26 @@
 
 ## Turn ideas into verified results
 
-Start with something that needs to happen: a feature, defect, change, investigation, audit, documentation update, infrastructure change, UI change, or other repository-governed work.
+Order `0.2.0` is the first certified public release. Normal installation and update consume the Order-owned GitHub Release bundle rather than arbitrary `master`.
 
-Order carries that work through the production process. It establishes what is actually true, defines the required outcome, resolves the solution and implementation plan, checks readiness, requires explicit sign-off before productive implementation, runs coding agents against the authorized work, tests and independently reviews the result, performs bounded remediation where appropriate, and produces a verified candidate.
+Latest certified release (**one command**):
 
-The user manages **what work should happen**. Order manages **how that work is carried through**.
+```bash
+tmp="$(mktemp -d)" && cd "$tmp" && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/latest/download/pontivus-order.tar.gz && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/latest/download/pontivus-order.tar.gz.sha256 && \
+sha256sum -c pontivus-order.tar.gz.sha256 && \
+tar -xzf pontivus-order.tar.gz && \
+./order/install.sh
+```
 
-Coding agents operate inside the factory. They do not get to silently redefine the assignment, broaden their own execution scope, or certify their own work as complete.
+Version-pinned `0.2.0` installation uses the same flow with `/releases/download/v0.2.0/` in place of `/releases/latest/download/`.
 
-Some work correctly ends without implementation. An investigation can conclude that no change is required; an idea can be disproven, duplicate, or already satisfied. Order does not manufacture code merely because work entered the system.
+The supported installation channel and release assets are governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Cloning `master` is a **contributor/development path**, not an immutable public release installation.
+
+`install.sh` is only the minimal bootstrap; it verifies the checkout or certified release-bundle provenance/runtime prerequisites and transfers control to the purpose-built `src/installer.ts` installer.
+
+For repository development, the bootstrap remains:
 
 ## How it works
 
