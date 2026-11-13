@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Introduce `OrderConfig` v4 with valid incomplete configuration, deterministic v3→v4 migration, persisted config SHA identity, expected-hash replacement, and drift-tolerant stored path reads as the foundation for centralized Settings.
+
 ### Fixed
 
 - Wait for the pinned OpenCode account integration to finish registering before querying saved accounts, preventing a clean installation from surfacing a transient upstream 404 as an internal daemon error.
