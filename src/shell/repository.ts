@@ -571,7 +571,7 @@ const attachedBranch = async (repositoryRoot: string): Promise<string | null> =>
   return symbolic.slice("refs/heads/".length);
 };
 
-const gitOperationActive = async (repositoryRoot: string): Promise<boolean> => {
+export const gitOperationActive = async (repositoryRoot: string): Promise<boolean> => {
   for (const marker of [
     "MERGE_HEAD",
     "CHERRY_PICK_HEAD",
