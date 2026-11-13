@@ -3,6 +3,8 @@ import {
   WorkItemDocumentationGitStatusSchema,
   type CommitWorkItemDocumentation,
   type RepositoryPath,
+  type Sha256,
+  type WorkItem,
   type WorkItemDocumentationCommit,
   type WorkItemDocumentationGitBlocker,
   type WorkItemDocumentationGitStatus,
@@ -28,7 +30,7 @@ import { type CoordinatorRuntime } from "./runtime.ts";
 import { revalidateWorkItemSource } from "./work-item-source.ts";
 
 const lifecycleRoles = ["R1", "R2", "DESIGN", "PLAN", "R3"] as const satisfies readonly WorkItemDocumentRole[];
-const preSignoffStages = new Set([
+const preSignoffStages: ReadonlySet<string> = new Set([
   "IDEA",
   "R1",
   "R2",
@@ -36,7 +38,7 @@ const preSignoffStages = new Set([
   "PLAN",
   "R3",
   "AWAITING_SIGNOFF",
-] as const);
+]);
 
 type DocumentationGitFailure = TypeError & Readonly<{
   orderCode: "DOCUMENTATION_GIT_CONFLICT" | "COMMIT_VERIFICATION_FAILED";
@@ -60,13 +62,12 @@ export const isDocumentationGitFailure = (
 
 const governedPathSets = async (
   runtime: CoordinatorRuntime,
-  workItemId: WorkItemId,
+  workItem: WorkItem,
 ): Promise<Readonly<{
   requiredPaths: readonly RepositoryPath[];
   optionalPaths: readonly RepositoryPath[];
   deletablePaths: readonly RepositoryPath[];
 }>> => {
-  const { workItem } = await revalidateWorkItemSource(runtime, workItemId);
   const project = await resolveConfiguredProject(
     runtime.config.repositoryRoots,
     workItem.projectId,
@@ -110,7 +111,7 @@ const blockersFor = (
   inspection: Awaited<ReturnType<typeof inspectDocumentationGit>>,
 ): readonly WorkItemDocumentationGitBlocker[] => {
   const blockers = new Set<WorkItemDocumentationGitBlocker>();
-  if (!preSignoffStages.has(stage as typeof preSignoffStages extends Set<infer T> ? T : never)) {
+  if (!preSignoffStages.has(stage)) {
     blockers.add("LIFECYCLE_INELIGIBLE");
   }
   if (
@@ -136,12 +137,11 @@ const blockersFor = (
   return [...blockers].sort();
 };
 
-export const workItemDocumentationGitStatus = async (
+const statusFor = async (
   runtime: CoordinatorRuntime,
-  workItemId: WorkItemId,
+  workItem: WorkItem,
+  paths: Awaited<ReturnType<typeof governedPathSets>>,
 ): Promise<WorkItemDocumentationGitStatus> => {
-  const { workItem } = await revalidateWorkItemSource(runtime, workItemId);
-  const paths = await governedPathSets(runtime, workItemId);
   const inspection = await inspectDocumentationGit(
     workItem.repositoryRoot,
     paths.requiredPaths,
@@ -149,19 +149,27 @@ export const workItemDocumentationGitStatus = async (
     paths.deletablePaths,
   );
   return WorkItemDocumentationGitStatusSchema.parse({
-    workItemId,
+    workItemId: workItem.id,
     headCommit: inspection.headCommit,
     branch: inspection.branch,
     authorName: inspection.authorName,
     authorEmail: inspection.authorEmail,
-    blockers: blockersFor(runtime, workItemId, workItem.stage, inspection),
+    blockers: blockersFor(runtime, workItem.id, workItem.stage, inspection),
     paths: inspection.paths,
   });
 };
 
+export const workItemDocumentationGitStatus = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<WorkItemDocumentationGitStatus> => {
+  const { workItem } = await revalidateWorkItemSource(runtime, workItemId);
+  return statusFor(runtime, workItem, await governedPathSets(runtime, workItem));
+};
+
 const expectedChangedPaths = (
   status: WorkItemDocumentationGitStatus,
-): readonly Readonly<{ repositoryPath: RepositoryPath; sha256: string | null }>[] =>
+): readonly Readonly<{ repositoryPath: RepositoryPath; sha256: Sha256 | null }>[] =>
   status.paths
     .filter((path) =>
       path.state === "MODIFIED" ||
@@ -174,8 +182,8 @@ const expectedChangedPaths = (
     }));
 
 const sameExpectedPaths = (
-  left: readonly Readonly<{ repositoryPath: RepositoryPath; sha256: string | null }>[],
-  right: readonly Readonly<{ repositoryPath: RepositoryPath; sha256: string | null }>[],
+  left: readonly Readonly<{ repositoryPath: RepositoryPath; sha256: Sha256 | null }>[],
+  right: readonly Readonly<{ repositoryPath: RepositoryPath; sha256: Sha256 | null }>[],
 ): boolean =>
   left.length === right.length &&
   left.every((value, index) =>
@@ -190,8 +198,8 @@ export const commitWorkItemDocumentation = async (
 ): Promise<WorkItemDocumentationCommit> => {
   const command = CommitWorkItemDocumentationSchema.parse(input);
   const { workItem } = await revalidateWorkItemSource(runtime, workItemId);
-  const paths = await governedPathSets(runtime, workItemId);
-  const status = await workItemDocumentationGitStatus(runtime, workItemId);
+  const paths = await governedPathSets(runtime, workItem);
+  const status = await statusFor(runtime, workItem, paths);
   const expected = expectedChangedPaths(status);
 
   if (
