@@ -2242,6 +2242,8 @@ No account-management backend refactor is required beyond:
 - readiness composition using the canonical account projection;
 - exposing full manager UI in Settings.
 
+The account-control process has a stronger readiness predicate than the generic OpenCode provider process. Generic server readiness (including a successful `/api/info`) is insufficient. Account control is ready only after the pinned OpenCode integration list contains integration id `opencode`; only then may Order call the account projection/mutation operations. A bounded timeout terminates the private control process and returns a typed failure rather than surfacing the transient upstream 404 as an internal daemon error.
+
 The shell utility becomes a concise active-account/status shortcut that navigates to Settings. It must not maintain a second full manager implementation.
 
 ### 34.8 Model configuration architecture
@@ -2402,3 +2404,11 @@ Permanent migration tests must prove v3 choices survive byte-for-semantic-value 
 **Acceptance criterion:** fresh or upgraded installations can reach authenticated Settings with zero repositories and/or no configured model; existing valid v3 choices migrate unchanged.
 
 **Failure/negative behavior:** daemon startup must not require fake/default repository/model values, silently reset existing config, or force account/model/repository completion exclusively through installer prompts.
+
+#### GW-TR-071-OPENCODE-ACCOUNT-INTEGRATION-READINESS
+
+**Required behavior:** the private OpenCode account-control process waits for registration of integration id `opencode` before account queries/mutations.
+
+**Acceptance criterion:** clean-start account listing succeeds when generic OpenCode HTTP readiness precedes integration registration; the process remains bounded by the existing startup deadline.
+
+**Failure/negative behavior:** generic `/api/info` readiness must not authorize an immediate account integration query that can return a transient upstream 404/internal daemon error.
