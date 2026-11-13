@@ -649,6 +649,9 @@ describe("public release delivery certification", () => {
     expect(read("scripts/verify-release.ts")).toContain(
       "ordinary work PRs must not change package.json.version",
     );
+    expect(read("scripts/verify-release.ts")).toContain("git\", [\"ls-remote\", \"--exit-code\", \"--tags");
+    expect(read("scripts/verify-release.ts")).toContain("published versions cannot be replaced");
+    expect(read("scripts/verify-release.ts")).toContain("unpublished same-version release replacement");
     expect(read("scripts/package-release.ts")).toContain('"RELEASE.json"');
     expect(read("CHANGELOG.md")).toContain("## [Unreleased]");
   });
