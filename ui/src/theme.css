@@ -755,7 +755,6 @@
   .order-queue-stage-column,.order-queue-status-column { display: none; }
   .order-queue-mobile-meta,.order-queue-mobile-concerns { display: block; }
   .order-review-metadata > div,.order-review-documents > div { grid-template-columns: 4rem minmax(0, 1fr); }
-  .order-editor-actionbar { align-items: flex-start; }
   .order-editor-identity code { max-width: 45vw; }
   .order-markdown-format-toolbar { padding-inline: .25rem; }
   .order-editor-mode-split {
