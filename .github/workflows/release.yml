@@ -38,7 +38,8 @@ jobs:
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch --tags --force origin "+refs/heads/master:refs/remotes/origin/master"
           git checkout --detach "${TARGET_SHA}"
-          test "$(git rev-parse refs/remotes/origin/master)" = "${TARGET_SHA}"
+          test "$(git rev-parse HEAD)" = "${TARGET_SHA}"
+          git merge-base --is-ancestor "${TARGET_SHA}" refs/remotes/origin/master
 
       - name: Install exact Node and Bun
         shell: bash
