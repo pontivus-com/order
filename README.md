@@ -10,7 +10,7 @@ Order turns engineering intent into explicitly approved work, runs coding agents
 
 ## Install
 
-Order is currently in public pre-release development. No certified GitHub Release has been published yet.
+Order is currently in public pre-release development. No certified GitHub Release has been published yet. The supported public installation remains a **one command** flow once the first certified release is available.
 
 The supported public installation channel is being established by the `0.2.0` implementation/release package governed by [the public repository delivery standard](docs/44-public-repository-delivery-and-release.md). Once `0.2.0` is published, normal installation/update will consume the certified GitHub Release asset rather than arbitrary `master`.
 
@@ -27,6 +27,8 @@ cd order
 The purpose-built installer installs and verifies the exact pinned Bun, Node and OpenCode runtimes under `~/.local/share/pontivus-order`, installs the committed dependency graph, builds production `dist/`, installs `~/.local/bin/order`, guides private OpenCode authentication/model selection when required, persists target-repository/reference configuration, installs/enables the user-level `pontivus-order.service`, and refuses success until `order status` is healthy.
 
 Install-time host prerequisites are Linux, a usable systemd user manager, Git, `curl`, `tar`, `xz`, Bash/POSIX shell support, and ordinary core file utilities. The installer never invokes `sudo` or a distro package manager.
+
+For the immediately preceding supported Gateweft beta only, the installer retains the bounded one-way predecessor migration owned by the canonical technical contracts; it does not create a second productive identity or source model.
 
 Advanced packaging overrides are `PONTIVUS_ORDER_INSTALL_ROOT` and `PONTIVUS_ORDER_BIN_DIR`; both must be absolute when supplied. `PONTIVUS_ORDER_STATE_ROOT` and loopback-only `PONTIVUS_ORDER_BIND` may be supplied to the installer and are then fixed into the installed launcher/service.
 
