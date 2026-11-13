@@ -463,6 +463,24 @@ export const readOrderV2MigrationStateForInstall = (
   const database = new Database(path, { readonly: true, create: false, strict: true });
   try {
     if (userVersion(database) !== 2) return [];
+    const executionWorkItems = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM workItems WHERE stage='EXECUTION';",
+      "value",
+    );
+    const runningTasks = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM executionTasks WHERE state='RUNNING';",
+      "value",
+    );
+    const activePostSignoffRuns = queryIntegerScalar(
+      database,
+      "SELECT count(*) AS value FROM runs WHERE executionTaskId IS NOT NULL AND status IN ('RUNNING','WAITING_FOR_INPUT');",
+      "value",
+    );
+    if (executionWorkItems !== 0 || runningTasks !== 0 || activePostSignoffRuns !== 0) {
+      throw new TypeError("v2→v3 migration is prohibited while post-signoff execution is active");
+    }
     const workItems = database.query(`${workItemSelect} ORDER BY createdAt, id;`).all()
       .map(parseWorkItemRow);
     return workItems.map((workItem) => {
