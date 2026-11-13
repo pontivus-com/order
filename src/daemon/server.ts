@@ -924,6 +924,11 @@ export const startOrderDaemon = async (
     }
     await loadConfiguredProjects(config.repositoryRoots);
 
+    if (config.repositoryRoots.length === 0 || config.model === null) {
+      throw new TypeError(
+        "productive daemon startup requires at least one configured repository and model",
+      );
+    }
     const provider = await startOpenCodeServer(
       stateRoot,
       config.repositoryRoots[0]!,
