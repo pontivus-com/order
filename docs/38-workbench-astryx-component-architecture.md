@@ -1447,9 +1447,9 @@ This section is the P4 UI realization of `GW-FR-073..076` and the daemon/account
 
 ### 21.1 Application-shell ownership
 
-The OpenCode account control is owned by the application shell, not by Queue, WorkItemWorkspace, Activity, Documents or provider/model configuration components.
+OpenCode account **current-state access** is owned by the application shell, while full account configuration is owned by the Settings surface. Queue, WorkItemWorkspace, Activity, Documents and provider/model components own neither.
 
-One compact shell control renders the current account projection in both queue and WorkItem states. It may move into an application-level utilities menu/drawer on narrow viewports, but ownership does not move into WorkItem Context.
+One compact shell control renders the active-account/current-attention projection in queue and WorkItem states and navigates to Settings for full management. It may move into an application-level utilities menu on narrow viewports, but full Add/Switch/Rename management does not live in that utility or WorkItem Context.
 
 ### 21.2 Query/mutation ownership
 
@@ -1466,7 +1466,7 @@ Successful Activate/Rename and terminal successful Add invalidate/refetch the ac
 
 ### 21.3 Account manager composition
 
-The manager is a compact popover/dialog on wide layouts and a drawer/dialog on narrow layouts.
+The complete manager is rendered in **Settings → OpenCode accounts**. Shell account UI is limited to concise active-account/attention state plus navigation to that Settings area.
 
 Recommended composition:
 
@@ -1551,3 +1551,265 @@ Permanent browser tests prove:
 
 **Failure/negative behavior:** account switching must not be implemented inside provider/model selection, WorkItem Context, a global ad-hoc store or browser-direct OpenCode API access.
 
+
+
+## 22. 0.2.1 Settings and information-architecture refactor
+
+This section is the P4 UI realization of `GW-FR-083..098` plus the Settings/readiness contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
+
+### 22.1 Application-shell decomposition
+
+`app.tsx` remains the top application composition owner but must stop owning substantive configuration UI.
+
+Target composition:
+
+```text
+App
+├── application shell / top rail
+│   ├── Order identity + queue/WorkItem orientation
+│   ├── current repository/project mirror
+│   ├── current OpenCode account mirror
+│   ├── direct appearance mode switcher
+│   └── Settings entry
+├── Queue / selected WorkItem primary surface
+└── Settings surface (when selected)
+    ├── Repositories
+    ├── OpenCode accounts
+    └── Model & runtime
+```
+
+Settings is an application-level presentation state/route, not a WorkItem mode and not a drawer owned by queue/work-item content.
+
+The shell may mirror concise current state, but every full application-level mutation navigates to the owning Settings section.
+
+### 22.2 Settings component ownership
+
+Create one cohesive Settings composition boundary. Illustrative filenames are not binding; responsibilities are.
+
+```text
+SettingsWorkspace
+  ├── SettingsNavigation
+  ├── RepositorySettings
+  │   ├── connected repository inventory
+  │   ├── connect/disconnect controls
+  │   └── document-root migration interaction
+  ├── OpenCodeAccountSettings
+  │   └── existing canonical account-management flow
+  └── ModelRuntimeSettings
+      └── configured model selection/preflight
+```
+
+TanStack Query remains the sole browser owner of daemon settings/account/readiness state.
+
+No Settings context/global store, repository view-model family, configuration service class or mirrored config object is introduced.
+
+### 22.3 Settings navigation and viewport zoning
+
+Settings uses the semantic zoning defined by `GW-FR-096/097`:
+
+- global/top rail retains application orientation;
+- Settings navigation occupies the local navigation region;
+- selected Settings concern owns the primary canvas;
+- secondary technical detail/help uses disclosure/context rather than another persistent top band;
+- operational blockers may appear in the relevant Settings content because they affect the current action.
+
+The main workbench and Settings do not share a generic content dump. Entering Settings replaces the primary application work surface; it does not stack settings controls above the queue/WorkItem.
+
+### 22.4 Repository Settings realization
+
+Repository Settings consumes canonical `ConnectedRepositoryState[]`, `OrderConfigState` and `InstallationReadiness`.
+
+Each repository row/card remains compact and exposes:
+
+- project identity;
+- connection/readiness state;
+- effective WorkItem document root;
+- exact Git root as secondary technical detail;
+- current queue/creation context where applicable;
+- Connect/Disconnect/document-root actions.
+
+The UI never concatenates repository paths, parses `pontivus-order.toml`, derives document roots or infers readiness.
+
+Document-root migration is a deliberate modal/dialog/review interaction because it changes repository-owned files and configuration. It must present current root, proposed root, blockers and explicit confirmation before invoking the canonical migration command.
+
+### 22.5 OpenCode account Settings realization
+
+The existing account manager interaction is reused as the content of Settings → OpenCode accounts.
+
+Refactor goals:
+
+- retain existing canonical query/mutation/login hooks and state;
+- move full manager presentation out of the shell utility;
+- keep the shell utility as active-account/attention summary + Settings navigation;
+- preserve in-progress login state if the user remains inside the Settings account surface;
+- do not duplicate account logic between shell and Settings.
+
+### 22.6 Model/runtime Settings realization
+
+Model selection becomes a Settings concern backed by canonical model/config queries.
+
+The component consumes the currently configured `OpenCodeModelRef` and a canonical list/preflight source. It does not invent provider semantics.
+
+Changing model invokes the focused Settings command and reflects success only after the daemon returns the activated config/readiness state.
+
+### 22.7 WorkItem top-rail and workflow navigation refactor
+
+`WorkItemWorkspace` is refactored so persistent WorkItem orientation is one compact top rail.
+
+The rail composes:
+
+- Back;
+- title + concise current state;
+- compact clickable workflow-step inspection navigation;
+- current workspace-mode control;
+- contextual WorkItem actions.
+
+The former separate `.order-workflow-orientation` row is removed after equivalent orientation/navigation is integrated.
+
+Workflow-step click maps to browser-local presentation targets only. A pure typed presentation projection maps each canonical user-facing step to its available Documents/Review/Execution/Result target or explicit unreached state.
+
+No click path imports or calls lifecycle promotion/start/sign-off mutations.
+
+### 22.8 Document/editor chrome refactor
+
+`DocumentWorkspace` retains one within-Documents selector.
+
+The separate document Git-state strip and Markdown action/footer rows are consolidated into the smallest coherent editor/document toolbar set:
+
+- Edit / Preview / Split;
+- formatting actions;
+- compact dirty/save/cancel state;
+- actionable documentation Git save;
+- compact document/Git state;
+- technical details disclosure for exact SHA/path/HEAD.
+
+Old state/action bars are deleted once their controls move.
+
+The center document/editor region remains the flexible-height owner; chrome is intrinsic/compact.
+
+### 22.9 Human-first Source editor realization
+
+For WorkItem Source:
+
+- `MarkdownEditor` receives `bodyMarkdown` as its ordinary editable buffer;
+- Save sends `expectedSha256 + bodyMarkdown`;
+- Preview/Split render the human-authored body;
+- Technical source disclosure renders the exact complete `snapshot.markdown` read-only;
+- after save, canonical query refetch replaces both full-source and body projections.
+
+For lifecycle documents, `MarkdownEditor` continues to receive/edit the exact full Markdown.
+
+The editor does not contain logic for detecting/removing front matter or JSON metadata.
+
+### 22.10 Appearance control realization
+
+Theme preference ownership remains browser-local and unchanged.
+
+Replace the current select with a compact direct mode switcher using the pinned Astryx/local segmented/toggle primitive that best represents exactly three semantic states:
+
+- System;
+- Light;
+- Dark.
+
+All three states are directly understandable from the control. Icons may supplement labels/accessible names.
+
+There is no theme Settings form unless future functional requirements create additional appearance settings. This utility remains globally reachable because it is a frequent reversible presentation preference.
+
+### 22.11 Responsive semantics
+
+Responsive recomposition preserves semantic ownership:
+
+- Settings navigation may collapse into a local menu/drawer but remains Settings navigation;
+- contextual inspector may become a drawer but remains WorkItem context;
+- shell account/repository mirrors may collapse into utilities but continue to link to Settings;
+- appearance switcher may compact its visual representation without becoming a generic select;
+- primary Markdown/work content remains dominant.
+
+### 22.12 Required UI refactors
+
+The following current implementation structures are explicitly superseded and must not remain as parallel paths:
+
+1. full `OpenCodeAccountControl` manager behavior in the global toolbar;
+2. theme `<select>` in `app.tsx`;
+3. implicit first-project/repository context as the only global repository indication;
+4. separate WorkItem heading + workflow-orientation persistent rows;
+5. separate document-state + editor-format + editor-action persistent full-width bars when controls can be composed coherently;
+6. complete WorkItem source technical Markdown as the normal editable buffer;
+7. any configuration mutation retained only in installer/CLI after equivalent Settings support is implemented.
+
+Guided setup remains a supported install/recovery entry, but it calls the same canonical configuration owner and does not remain an exclusive configuration capability.
+
+### 22.13 Browser/architecture certification
+
+Permanent verification must prove:
+
+- Settings is reachable from queue and WorkItem states without becoming a WorkItem mode;
+- Repositories/OpenCode accounts/Model-runtime each have stable Settings navigation targets;
+- full account management is absent from the WorkItem/queue shell while active account state remains visible;
+- current repository context is visible globally and repository mutation lives only in Settings;
+- appearance control is not a select and changes System/Light/Dark correctly;
+- workflow steps navigate without lifecycle mutation;
+- one WorkItem top rail replaces the old orientation stack;
+- document/editor chrome uses fewer persistent rows and preserves reachable Save/Git actions;
+- Source editor excludes system metadata in ordinary authoring but technical source shows complete bytes;
+- body save preserves metadata bytes and stale complete-file conflicts;
+- responsive layout preserves semantic zoning;
+- no second browser server-state/config store or DTO/view-model layer appears.
+
+### 22.14 Technical requirements
+
+#### GW-TR-063-CENTRALIZED-SETTINGS-COMPOSITION
+
+**Required behavior:** one application-level Settings surface owns full repository, OpenCode-account and model/runtime configuration presentation.
+
+**Acceptance criterion:** global shell utilities provide only current-state mirrors/navigation; full mutation flows live under stable Settings navigation.
+
+**Failure/negative behavior:** configuration management must not remain scattered across toolbar popovers, WorkItem context, queue-only controls or installer-only UI.
+
+#### GW-TR-064-SEMANTIC-VIEWPORT-COMPOSITION
+
+**Required behavior:** shell, Settings, WorkItem, inspector and task-local controls map to stable semantic viewport regions and preserve those roles responsively.
+
+**Acceptance criterion:** placement remains predictable and primary content retains dominant width/height.
+
+**Failure/negative behavior:** generic bars/rails or responsive moves must not mix unrelated semantic roles.
+
+#### GW-TR-065-NONMUTATING-WORKFLOW-INSPECTION-NAVIGATION
+
+**Required behavior:** workflow steps use one pure typed presentation projection to navigate to canonical material/unreached presentation without invoking lifecycle mutations.
+
+**Acceptance criterion:** every workflow step is inspectable/clickable while lifecycle state is unchanged.
+
+**Failure/negative behavior:** step clicks must not start/promote/sign off/execute or duplicate lifecycle policy.
+
+#### GW-TR-066-CONSOLIDATED-WORKITEM-DOCUMENT-CHROME
+
+**Required behavior:** WorkItem orientation and document/editor controls are consolidated into semantically owned compact rails with old redundant rows removed.
+
+**Acceptance criterion:** primary document/work space increases while all required actions/state remain reachable.
+
+**Failure/negative behavior:** old and new chrome grammars must not coexist or duplicate context.
+
+#### GW-TR-067-HUMAN-FIRST-SOURCE-EDITOR-COMPOSITION
+
+**Required behavior:** Source editing uses canonical `bodyMarkdown` while exact complete source remains read-only technical inspection.
+
+**Acceptance criterion:** the browser performs no metadata parsing/recomposition and complete-file concurrency semantics remain intact.
+
+**Failure/negative behavior:** hidden CSS/front-matter stripping in the editor or a second source buffer authority is prohibited.
+
+#### GW-TR-068-DIRECT-APPEARANCE-MODE-CONTROL
+
+**Required behavior:** the browser-local theme preference is presented through one compact direct three-state System/Light/Dark switcher.
+
+**Acceptance criterion:** mode is identifiable/changeable without a select/dropdown and still drives the single Astryx Theme owner.
+
+**Failure/negative behavior:** appearance must not use a generic select field or acquire a second preference owner.
+
+#### GW-TR-069-SETTINGS-ACCOUNT-PRESENTATION-OWNERSHIP
+
+**Required behavior:** Settings owns full OpenCode account-management presentation while the shell owns only active-account/attention mirroring and navigation.
+
+**Acceptance criterion:** one canonical account query/mutation implementation serves both contexts without duplicate management logic.
+
+**Failure/negative behavior:** parallel account managers or browser-direct OpenCode access are prohibited.
