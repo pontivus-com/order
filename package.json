@@ -32,5 +32,9 @@
     "typescript": "7.0.2",
     "vite": "8.3.5",
     "vitest": "5.0.5"
+  },
+  "scripts": {
+    "verify:release": "bun scripts/verify-release.ts",
+    "package:release": "bun scripts/package-release.ts"
   }
 }

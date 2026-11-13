@@ -17,7 +17,8 @@
     "noEmit": true,
     "types": [
       "bun"
-    ]
+    ],
+    "resolveJsonModule": true
   },
   "include": [
     "vite.config.ts",
@@ -26,6 +27,7 @@
     "src/**/*.ts",
     "ui/src/**/*.ts",
     "ui/src/**/*.tsx",
-    "tests/**/*.ts"
+    "tests/**/*.ts",
+    "scripts/**/*.ts"
   ]
 }

@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Added
+
+- Added permanent public-repository PR verification, governed release publication, package-derived runtime versioning, and reproducible release bundle/checksum tooling for the 0.2.0 release train.
+
 ### Fixed
 
 - Corrected the canonical public-release governance document path so it participates in active documentation ownership checks.
