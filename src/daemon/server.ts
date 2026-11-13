@@ -14,6 +14,7 @@ import {
   CommitWorkItemDocumentationSchema,
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
+  OrderHttpErrorSchema,
   SetWorkItemArchivedSchema,
   UpdateWorkItemTitleSchema,
   RunEventIdSchema,
@@ -73,6 +74,7 @@ import {
   updateTitle,
   type CoordinatorRuntime,
 } from "./coordinator.ts";
+import { sourceDiagnosticForFailure } from "./work-item-source.ts";
 
 const connectTokenLifetimeMillis = 60_000;
 const tokenPattern = /^[0-9a-f]{64}$/;
@@ -144,7 +146,87 @@ const errorResponse = (
   status: number,
   code: string,
   message: string,
-): Response => jsonResponse({ code, message }, status);
+  sourceDiagnostic: ReturnType<typeof sourceDiagnosticForFailure> = null,
+): Response =>
+  jsonResponse(OrderHttpErrorSchema.parse({
+    code,
+    message,
+    sourceDiagnostic,
+  }), status);
+
+type BadRequestFailure = TypeError & Readonly<{ orderHttpStatus: 400 }>;
+
+const badRequest = (message: string): BadRequestFailure =>
+  Object.assign(new TypeError(message), { orderHttpStatus: 400 as const });
+
+const isZodFailure = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  "name" in error &&
+  (error as { name?: unknown }).name === "ZodError";
+
+export const classifyHttpFailure = (
+  error: unknown,
+): Readonly<{
+  status: 400 | 404 | 409 | 500;
+  code: string;
+  message: string;
+  sourceDiagnostic: ReturnType<typeof sourceDiagnosticForFailure>;
+}> => {
+  const sourceDiagnostic = sourceDiagnosticForFailure(error);
+  if (sourceDiagnostic !== null) {
+    return {
+      status: 409,
+      code: "WORK_ITEM_SOURCE_CONFLICT",
+      message: sourceDiagnostic.detail,
+      sourceDiagnostic,
+    };
+  }
+
+  if (
+    isZodFailure(error) ||
+    (
+      error instanceof TypeError &&
+      "orderHttpStatus" in error &&
+      (error as { orderHttpStatus?: unknown }).orderHttpStatus === 400
+    )
+  ) {
+    return {
+      status: 400,
+      code: "INVALID_REQUEST",
+      message: error instanceof Error ? error.message : "Invalid request",
+      sourceDiagnostic: null,
+    };
+  }
+
+  if (
+    error instanceof TypeError &&
+    /(?:WorkItem|ArtifactRef|Approval|Run|RunEvent|execution task) does not exist/.test(error.message)
+  ) {
+    return {
+      status: 404,
+      code: "NOT_FOUND",
+      message: error.message,
+      sourceDiagnostic: null,
+    };
+  }
+
+  if (error instanceof TypeError) {
+    return {
+      status: 409,
+      code: "CURRENT_STATE_CONFLICT",
+      message: error.message,
+      sourceDiagnostic: null,
+    };
+  }
+
+  return {
+    status: 500,
+    code: "INTERNAL_ERROR",
+    message: "Internal daemon error",
+    sourceDiagnostic: null,
+  };
+};
 
 const parseCookie = (request: Request, name: string): string | null => {
   const cookie = request.headers.get("cookie");
@@ -208,11 +290,11 @@ const requireCliBearer = (
 const readJsonBody = async (request: Request): Promise<Record<string, unknown>> => {
   const contentType = request.headers.get("content-type") ?? "";
   if (!contentType.toLowerCase().startsWith("application/json")) {
-    throw new TypeError("Content-Type must be application/json");
+    throw badRequest("Content-Type must be application/json");
   }
   const value: unknown = await request.json();
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new TypeError("request body must be a JSON object");
+    throw badRequest("request body must be a JSON object");
   }
   return value as Record<string, unknown>;
 };
@@ -227,7 +309,7 @@ const requireKeys = (
     actual.length !== expected.length ||
     actual.some((key, index) => key !== expected[index])
   ) {
-    throw new TypeError(`request body must contain exactly: ${expected.join(", ")}`);
+    throw badRequest(`request body must contain exactly: ${expected.join(", ")}`);
   }
 };
 
@@ -236,7 +318,7 @@ const requireString = (
   key: string,
 ): string => {
   const value = body[key];
-  if (typeof value !== "string") throw new TypeError(`${key} must be a string`);
+  if (typeof value !== "string") throw badRequest(`${key} must be a string`);
   return value;
 };
 
@@ -390,7 +472,7 @@ const routeApi = async (
       (includeArchived !== null && includeArchived !== "true") ||
       [...url.searchParams.keys()].some((key) => key !== "includeArchived")
     ) {
-      throw new TypeError("includeArchived query must be exact true or absent");
+      throw badRequest("includeArchived query must be exact true or absent");
     }
     return jsonResponse(listWorkItems(runtime, includeArchived === "true"));
   }
@@ -505,12 +587,12 @@ const routeApi = async (
     const runId = RunIdSchema.parse(parts[2]);
     if (parts[3] === "events" && parts.length === 4 && request.method === "GET") {
       const raw = url.searchParams.get("afterSequence") ?? "0";
-      if (!/^[0-9]+$/.test(raw)) throw new TypeError("afterSequence must be a non-negative integer");
+      if (!/^[0-9]+$/.test(raw)) throw badRequest("afterSequence must be a non-negative integer");
       return jsonResponse(listRunEvents(runtime, runId, Number(raw)));
     }
     if (parts[3] === "evidence" && parts.length === 4 && request.method === "GET") {
       const path = url.searchParams.get("path");
-      if (path === null) throw new TypeError("evidence path query parameter is required");
+      if (path === null) throw badRequest("evidence path query parameter is required");
       return rawResponse(readReferencedEvidence(runtime, runId, path));
     }
     if (parts[3] === "input" && parts.length === 4 && request.method === "POST") {
@@ -633,8 +715,13 @@ export const startDaemonServer = (
         try {
           return await routeApi(runtime, sessions, bind, request, url);
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          return errorResponse(400, "INVALID_REQUEST", message);
+          const failure = classifyHttpFailure(error);
+          return errorResponse(
+            failure.status,
+            failure.code,
+            failure.message,
+            failure.sourceDiagnostic,
+          );
         }
       }
 
