@@ -328,7 +328,7 @@ type ExecutionTask = Readonly<{
 
 Task content other than `state` is immutable after materialization.
 
-`changeSurface` contains exact literal `RepositoryPath` values. Every value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, and be disjoint from the material authority/project-manifest/verification sources in the Approval closure. A worker never mutates the authority that authorizes its own execution.
+`changeSurface` contains exact literal `RepositoryPath` values. Every value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, be disjoint from the material authority/project-manifest/verification sources in the Approval closure, and have a final path segment other than `AGENTS.md`. The instruction-path prohibition is existence-independent: a signed task cannot authorize creation of a new `AGENTS.md` merely because the path did not exist when the Approval was materialized. A worker never mutates the authority that authorizes its own execution.
 
 A post-signoff task remains `RUNNING` through implementation and V2-V7 validation; validation progress belongs to its Run/RunEvents and does not create another task state.
 
@@ -517,6 +517,12 @@ type RunEventPayload =
       evidence: readonly EvidenceRef[];
     }
   | { tag: "PROVIDER_DIAGNOSTICS_RECORDED"; evidence: readonly EvidenceRef[] }
+  | {
+      tag: "PRODUCTIVE_INVOCATION_FAILED";
+      classification: "PRECONDITION_FAILED" | "ENVIRONMENT_BLOCKED";
+      detail: string;
+      evidence: readonly EvidenceRef[];
+    }
   | { tag: "PROVIDER_FAILED"; detail: string; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_PASSED"; gateId: GateId; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_FAILED"; gateId: GateId; classification: ValidationClassification; evidence: readonly EvidenceRef[] }
@@ -622,7 +628,7 @@ type SignedTaskBlock = Readonly<{
 }>;
 ```
 
-Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
 
 Every `acceptanceRefs` and `authorityRefs` value must resolve through the same manifest's `refs` map described in §14. An unresolved reference is `SPEC_INVALID`; runtime never scans arbitrary prose or invents an alias/source mapping.
 
@@ -1271,7 +1277,7 @@ Provider-emittable tags by Run role are:
 | `REMEDIATOR` | `AGENT_MESSAGE_FINAL`, `STAGE_BLOCKED` with `owningStage = EXECUTION`, `OBSERVATION_RECORDED` |
 | `REVIEWER` | `REVIEW_PASSED`, `REVIEW_FAILED`, `OBSERVATION_RECORDED` |
 
-All other RunEvent tags are coordinator/human-owned, including `STAGE_STARTED`, `HUMAN_INPUT_RECEIVED`, proposal disposition, conformance, provider failure, gates, authority/repository drift, `VALIDATION_*` and `CANDIDATE_*`. A valid-shaped but role-forbidden provider event is invalid provider output.
+All other RunEvent tags are coordinator/human-owned, including `STAGE_STARTED`, `HUMAN_INPUT_RECEIVED`, proposal disposition, conformance, `PRODUCTIVE_INVOCATION_FAILED`, provider failure, gates, authority/repository drift, `VALIDATION_*` and `CANDIDATE_*`. A valid-shaped but role-forbidden provider event is invalid provider output.
 
 One deny-all/tool-disabled format-repair turn may re-encode only an event that would have been allowed for the original Run role. A second invalid result is `PROVIDER_FAILED / OUTPUT`.
 
@@ -3137,3 +3143,86 @@ Daemon startup under incomplete v4 configuration:
 - rejects productive commands whose prerequisites are absent with canonical 409 recovery errors.
 
 It must not fabricate defaults merely to reach ready state.
+
+
+## 36. Productive OpenCode workspace and instruction-boundary contracts
+
+This section is the P6 realization of `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`. It extends the existing Run/RunEvent/task/provider contracts without introducing a second workspace or failure domain model.
+
+### 36.1 Productive invocation failure event
+
+`PRODUCTIVE_INVOCATION_FAILED` is coordinator-owned and is emitted only when Order's own deterministic productive-invocation admission fails before the failing action can correctly be attributed to an admitted provider turn.
+
+Its classification is limited to existing terminal classifications `PRECONDITION_FAILED` and `ENVIRONMENT_BLOCKED`.
+
+- repository snapshot/materialization failure, unresolved/stale provider-visible `AGENTS.md`, instruction symlink/escape, or another project admission invariant -> `PRECONDITION_FAILED`;
+- missing/broken required local runtime/provider readiness that is not an admitted provider turn failure -> `ENVIRONMENT_BLOCKED` where the owning readiness/integration contract assigns that class.
+
+The event detail is a non-empty human-actionable explanation. Evidence is the ordinary immutable `EvidenceRef[]` and defaults to empty when no additional evidence artifact is required.
+
+`PROVIDER_FAILED` remains coordinator-owned but is reserved for an OpenCode process/session/productive-turn failure after Order has completed its local workspace/instruction admission for that action. A local pre-admission exception must not be persisted as `PROVIDER_FAILED` merely because the admitting shell function lives in `opencode.ts`.
+
+### 36.2 STAGE provider-workspace material identity
+
+No new persisted Run field is required.
+
+For one live STAGE provider session the daemon carries one transient `Sha256` material identity derived through the existing canonical serializer/hash owner from:
+
+~~~text
+{
+  baselineCommit: Run.baselineCommit,
+  currentProjectDeltaSha256: <exact admitted working-tree projection hash>,
+  contextHash: Run.contextHash
+}
+~~~
+
+The identity belongs to the live `ActiveProvider` runtime binding only. It is not durable workflow authority. A daemon restart already terminalizes the lost live Run as `COORDINATOR_INTERRUPTED`, so no persisted provider-workspace record is introduced merely to reconstruct a lost provider process.
+
+Before a resumed productive STAGE turn, Order recomputes/revalidates the current project delta and context. A mismatch prevents reuse of the existing session/workspace and follows the current stale/precondition reaction. Excluded ignored ambient bytes are absent from the admitted project delta and cannot invalidate this identity.
+
+### 36.3 Instruction closure
+
+For every productive provider workspace:
+
+1. enumerate regular `AGENTS.md` paths inside the admitted workspace without following symlinks;
+2. require every path to equal a resolved P1 repository path in the Run context/approval closure;
+3. require provider-workspace bytes to hash exactly to the resolved ArtifactRef bytes;
+4. reject a resolved repository instruction that should exist in the workspace but is missing or byte-different;
+5. reject symlink/non-regular `AGENTS.md`;
+6. reject any task `changeSurface` path whose final segment is `AGENTS.md`, regardless of current path existence.
+
+This closure uses existing `RepositoryPath`, `ArtifactRef`, `Sha256` and authority-resolution owners. There is no `ProviderInstruction` DTO/domain type.
+
+### 36.4 Candidate instruction immutability
+
+V2/scope-governance candidate validation must reject any candidate whose changed-path set adds, removes or modifies an `AGENTS.md` path. The signed task grammar already prevents such a path from being authorized; candidate validation is the independent enforcement sensor, not a second permission source.
+
+### 36.5 Productive admission ordering
+
+For every STAGE/BUILDER/REVIEWER/REMEDIATOR session, Order completes the following local steps before admitting the first productive prompt:
+
+1. productive readiness for the role;
+2. exact provider workspace materialization/proof;
+3. workspace escape/symlink checks required by P4;
+4. instruction closure;
+5. exact role permission derivation;
+6. pinned provider process readiness;
+7. session creation;
+8. exact model/permission read-back binding.
+
+A failure at steps 1-5 is not a provider failure. A failure at provider-owned steps 6-8 is classified by the existing integration/failure contract according to the actual failing boundary. Productive turn failures after step 8 remain ordinary provider failures.
+
+### 36.6 External integration certification extension
+
+The §29 OpenCode certification must additionally prove the complete test matrix owned by `GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION`, including at minimum:
+
+- ignored dependency `AGENTS.md` is absent from the provider workspace and cannot be reached by a guessed direct read;
+- non-ignored/tracked nested project `AGENTS.md` is admitted only when resolved P1 bytes match;
+- instruction symlinks/escapes fail closed;
+- STAGE R1/R2/DESIGN/PLAN/R3 plus BUILDER/REVIEWER/REMEDIATOR all pass through one shared productive admission owner;
+- external STAGE reference-root `AGENTS.md` remains non-authoritative and does not enter project instruction closure;
+- existing and not-yet-existing `AGENTS.md` changeSurface paths are rejected;
+- local admission failures persist `PRODUCTIVE_INVOCATION_FAILED`, not `PROVIDER_FAILED`;
+- real admitted process/session/turn failure still persists `PROVIDER_FAILED` and retains the existing bounded operational recovery law;
+- format repair remains deny-all;
+- account-control operations remain isolated from project instruction scanning.
