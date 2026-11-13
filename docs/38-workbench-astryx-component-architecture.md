@@ -1638,7 +1638,11 @@ Each repository row/card remains compact and exposes:
 - effective WorkItem document root;
 - exact Git root as secondary technical detail;
 - current queue/creation context where applicable;
-- Connect/Disconnect/document-root actions.
+- repository-local actions appropriate to that connected target.
+
+The inventory exposes one **Add repository** action outside the existing rows. Activating it opens the bounded connect flow; the free-text candidate-root control is not permanently rendered as if it were an editable property of the current repository.
+
+Disconnect is destructive installation configuration even though it does not delete repository-owned files. Activating Disconnect opens an alert/confirmation dialog that identifies the project/repository, states that Order will remove the connection while leaving repository Markdown/Git history/project authority intact, and presents Cancel versus explicit Disconnect. The mutation is invoked only from the confirm action. Existing active-Run blockers continue to come from canonical server state and remain visible before/inside confirmation as appropriate.
 
 The UI never concatenates repository paths, parses `pontivus-order.toml`, derives document roots or infers readiness. Reference roots are never presented as productive/connected repositories.
 
@@ -1777,9 +1781,9 @@ Permanent verification must prove:
 
 **Required behavior:** one application-level Settings surface owns full repository, OpenCode-account and model/runtime configuration presentation.
 
-**Acceptance criterion:** global shell utilities provide only current-state mirrors/navigation; full mutation flows live under stable Settings navigation.
+**Acceptance criterion:** global shell utilities provide only current-state mirrors/navigation; full mutation flows live under stable Settings navigation; repository inventory uses explicit Add repository and confirmed Disconnect interactions rather than ambiguous always-open mutation controls.
 
-**Failure/negative behavior:** configuration management must not remain scattered across toolbar popovers, WorkItem context, queue-only controls or installer-only UI.
+**Failure/negative behavior:** configuration management must not remain scattered across toolbar popovers, WorkItem context, queue-only controls or installer-only UI, and destructive repository disconnection must not bypass an explicit confirmation boundary.
 
 #### GW-TR-064-SEMANTIC-VIEWPORT-COMPOSITION
 
