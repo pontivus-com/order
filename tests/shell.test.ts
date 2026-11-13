@@ -546,6 +546,40 @@ describe("guarded Markdown and WorkItem source shell", () => {
     expect(parsed.diagnostics).toEqual([]);
   });
 
+  it("creates, reads and removes only the exact repository archive marker", () => {
+    const root = tempDir("order-archive-marker-");
+    const id = "work_11111111-1111-4111-8111-111111111111";
+    mkdirSync(join(root, "docs", "order", "work-items", id), { recursive: true });
+
+    const output = bunEval(
+      'const shell = await import("./src/shell/work-item-source.ts");' +
+      'const root = ' + JSON.stringify(root) + ';' +
+      'const id = ' + JSON.stringify(id) + ';' +
+      'const before = shell.readWorkItemArchived(root, "docs/order/work-items", id);' +
+      'shell.setWorkItemArchivedFile(root, "docs/order/work-items", id, true);' +
+      'const afterArchive = shell.readWorkItemArchived(root, "docs/order/work-items", id);' +
+      'shell.setWorkItemArchivedFile(root, "docs/order/work-items", id, false);' +
+      'const afterRestore = shell.readWorkItemArchived(root, "docs/order/work-items", id);' +
+      'console.log(JSON.stringify({ before, afterArchive, afterRestore }));',
+      process.cwd(),
+    );
+
+    expect(JSON.parse(output)).toEqual({
+      before: false,
+      afterArchive: true,
+      afterRestore: false,
+    });
+
+    const marker = join(root, "docs", "order", "work-items", id, ".order-archived");
+    writeFileSync(marker, "wrong\n");
+    expect(() => bunEval(
+      'const shell = await import("./src/shell/work-item-source.ts");' +
+      'shell.readWorkItemArchived(' + JSON.stringify(root) + ', "docs/order/work-items", ' + JSON.stringify(id) + ');' +
+      'console.log("never");',
+      process.cwd(),
+    )).toThrow();
+  });
+
   it("classifies an unknown source schema with the canonical UNSUPPORTED_SCHEMA diagnostic", () => {
     const root = tempDir("order-source-unsupported-schema-");
     const id = "work_11111111-1111-4111-8111-111111111111";
