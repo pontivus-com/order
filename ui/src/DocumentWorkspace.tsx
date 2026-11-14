@@ -327,9 +327,11 @@ export const SourceDocumentMaterial = ({
           key={"source-" + workItem.id}
           title="WorkItem source"
           description={
-            sourceReadOnly
-              ? "Read-only in execution/completed state."
-              : "Canonical human-authored work definition."
+            readOnly
+              ? "Read-only supporting Work request context."
+              : sourceReadOnly
+                ? "Read-only in execution/completed state."
+                : "Canonical human-authored work definition."
           }
           sha256={git.sourceQuery.data.sha256}
           markdown={git.sourceQuery.data.bodyMarkdown}
