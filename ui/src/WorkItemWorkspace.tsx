@@ -643,6 +643,20 @@ export const WorkItemWorkspace = ({
               onContextDocumentChange={onContextDocumentChange}
             />
           </Suspense>
+        ) : selectedStep === "EXECUTION" ? (
+          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading implementation…</strong></div>}>
+            <ExecutionWorkspace
+              workItem={workItem}
+              material={material}
+              onSelectMaterial={(nextMaterial) =>
+                requestSelection({
+                  step: "EXECUTION",
+                  material: nextMaterial,
+                })}
+              onOpenEvidence={openEvidence}
+              onReturnFromEvidence={returnFromTransient}
+            />
+          </Suspense>
         ) : (
           <WorkflowStepFrame
             summary={stepSummary}
@@ -665,12 +679,6 @@ export const WorkItemWorkspace = ({
               onContextDocumentChange={onContextDocumentChange}
             />
           ) : null}
-          {material.kind === "EXECUTION_TASK" ? (
-            <ExecutionWorkspace
-              workItem={workItem}
-              onOpenEvidence={openEvidence}
-            />
-          ) : null}
           {material.kind === "EVIDENCE" ? (
             <EvidenceViewer
               selection={evidence}
@@ -678,14 +686,7 @@ export const WorkItemWorkspace = ({
             />
           ) : null}
           {material.kind === "TERMINAL_RESULT" ? (
-            workItem.outcome === "CANDIDATE_DONE" ? (
-              <ExecutionWorkspace
-                workItem={workItem}
-                onOpenEvidence={openEvidence}
-              />
-            ) : (
-              <TerminalResult workItem={workItem} />
-            )
+            <TerminalResult workItem={workItem} />
           ) : null}
           {material.kind === "STEP_STATE" ? (
             <WorkbenchEmptyState
