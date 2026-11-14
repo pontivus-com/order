@@ -2084,3 +2084,564 @@ Navigation-only interactions (select step, attempt, document, task, evidence, Te
 **Acceptance criterion:** Running/Waiting/failed/completed states and persisted semantic feedback are truthful; provider diagnostics are inspectable; no fake token/tool/percentage progress is presented.
 
 **Failure/negative behavior:** the UI must not imply access to hidden reasoning, token streaming or provider progress that Order does not canonically observe, and must not hide persisted OpenCode-origin feedback that Order does observe.
+
+
+### 27.23 Detailed functional screen contracts by workflow step
+
+This section is the complete functional screen contract required by GW-FR-116. Sections 27.5–27.13 state each step's intent and information classes; this section fixes the **actual information division, default presentation, interactions, action placement and feedback behavior** for implementation.
+
+The terms **step summary**, **work index**, **primary material**, **task-local action region** and **Context/Technical details** mean the semantic regions defined in §27.17. A step may omit a region only where this section says it is optional or unnecessary.
+
+#### 27.23.1 Work request
+
+**Step summary**
+
+Always show:
+
+- **Work request** label and purpose;
+- source state: current / invalid / stale / needs attention where applicable;
+- whether Research has not started, is current, or this step is historical;
+- the current blocker if the source cannot progress;
+- **Start Research** only when this is the current startable step.
+
+Do not show Run attempt metadata here because Work request itself has no STAGE Run until Research starts.
+
+**Work index**
+
+Normally absent. Work request has one authoritative primary object: the source Markdown.
+
+If source diagnostics contain multiple independent source problems, those problems are presented as a compact diagnostic list above or beside the document only while they need action; they are not a permanent navigation index.
+
+**Primary material**
+
+The source Markdown is always the default primary material.
+
+Presentation states:
+
+- read/view state;
+- edit state;
+- dirty edit state;
+- saving state;
+- stale/conflict state;
+- source-invalid/blocking state;
+- source-loading/error state.
+
+The actual document consumes Document-class space. Source diagnostics that prevent use appear as an inline primary blocker before the document controls/content rather than only in Context.
+
+**Supporting information**
+
+Secondary information includes WorkItem kind, concerns, source path, source SHA and documentation Git identity. Human-relevant kind/concern information may appear compactly near the document identity; exact path/hash and raw schema details belong in Technical details.
+
+**Interactions and placement**
+
+- Edit / Preview / Split → document control surface.
+- Formatting commands → document control surface.
+- Save / Cancel → document action region.
+- Save documentation to Git → same document control surface, with confirmation only where the canonical Git-save flow requires it.
+- Start Research → step-summary/current-action region after the source is valid/current.
+- Source-diagnostic recovery → adjacent to the blocking diagnostic.
+
+**Feedback**
+
+Save, Git save and Start Research use §27.22. Starting Research immediately selects Research and its created Run after canonical refresh.
+
+**Responsive behavior**
+
+The source remains the single primary pane. Document controls may wrap/compact but must remain reachable. Source diagnostics may collapse details, never the actual blocker/recovery direction.
+
+#### 27.23.2 Research
+
+**Step summary**
+
+Always show:
+
+- **Research** and its purpose;
+- current/reached/historical state;
+- latest current Research Run status when one exists;
+- current Research verdict when completed;
+- one current action: Start Research / Retry / Resume / continue required input / review pending proposal as applicable.
+
+A blocker, setup failure, provider failure or conformance failure is promoted into the summary/primary feedback path and is not reduced to a small status badge.
+
+**Work index**
+
+Render only when at least two meaningful Research work objects exist.
+
+The index is divided into:
+
+1. **Activity** — Research attempts, newest meaningful attempt selected according to §27.18;
+2. **Research document** — current adopted R1 artifact when present.
+
+Each attempt row shows Attempt number, ordinary status and time/role only as needed for disambiguation. It does not show message text.
+
+Evidence is not a permanent third index group; evidence is reached from the event/document that references it.
+
+**Primary material**
+
+Possible primary materials are:
+
+- Research start/empty state;
+- Research blocker/failure receipt;
+- selected Research Run dialogue;
+- pending proposal review;
+- Research governed document;
+- selected evidence.
+
+Default priority follows §27.18.
+
+When Run dialogue is primary it shows:
+
+- selected Run identity in ordinary language;
+- chronological persisted agent/operator/system feedback;
+- unresolved human question prominently when present;
+- evidence/resource rows under the event that produced them;
+- composer only when the selected live Run accepts input.
+
+When the Research document is primary it uses the governed Markdown document presentation and editability rules.
+
+When a proposal is primary it uses Review-class geometry and shows target, rationale, complete diff, disposition and decision controls.
+
+**Supporting information**
+
+Provide on-demand:
+
+- Work request summary/source context required to understand the research;
+- conformance receipt/verdict;
+- exact Run ids/context/baseline/provider diagnostics;
+- evidence resources.
+
+The Work request source must be inspectable without making the user leave Research and reconstruct their location.
+
+**Interactions and placement**
+
+- Start / Retry / Resume → step summary or failure receipt.
+- Cancel → selected live Run header/action region.
+- Answer/Continue → composer at bottom of selected Run.
+- Select attempt/document → work index.
+- Review proposal → proposal event action; promoted in the same Research step.
+- Adopt/Reject → proposal action region.
+- Edit/Save/Cancel Research Markdown → document controls.
+- Open evidence → event/document resource row.
+
+**Feedback and return**
+
+All Run/OpenCode feedback follows §§27.20–27.22. Proposal/evidence close or disposition returns to the exact selected Research Run/document origin. Research CONFIRMED advances canonical current orientation to Requirements while preserving Research history/document.
+
+**Responsive behavior**
+
+Wide: optional work index + primary material. Medium/narrow: work index becomes temporary selector; dialogue/document/review/evidence each receives one primary pane.
+
+#### 27.23.3 Requirements
+
+**Step summary**
+
+Always show:
+
+- **Requirements** and purpose;
+- current/reached/historical state;
+- latest/current Requirements Run status;
+- accepted/current requirements state or blocker;
+- one current action.
+
+**Work index**
+
+When useful, divide into:
+
+1. **Activity** — R2 attempts;
+2. **Requirements document** — current R2 artifact.
+
+Supporting Research/source references are not peer navigation destinations.
+
+**Primary material**
+
+Possible materials:
+
+- start/empty state;
+- blocker/failure;
+- selected Requirements Run dialogue;
+- pending proposal review;
+- Requirements governed document;
+- selected evidence/supporting source material.
+
+Default priority follows §27.18.
+
+The Requirements document must make the outcome/acceptance/scope/failure semantics readable as a coherent governed artifact; the UI must not decompose those headings into a browser-owned requirements model.
+
+**Supporting information**
+
+Research findings/evidence and source-backed product intent needed for a requirement decision are step-local supporting material. They may open read-only in the primary canvas and return to Requirements.
+
+Exact authority ids, hashes and provider diagnostics remain secondary.
+
+**Interactions and placement**
+
+Same stage action grammar as Research:
+
+- Start / Retry / Resume with current step/failure;
+- Cancel and composer with live Run;
+- attempt/document selection in work index;
+- proposal review and Adopt/Reject with proposal;
+- direct document edit controls with Requirements Markdown;
+- evidence/source inspection from structured resources.
+
+**Feedback and transition**
+
+All Run feedback follows §27.20. Accepted Requirements advances canonical current orientation to Solution design and exposes its Start action; Requirements remains historical/inspectable.
+
+**Responsive behavior**
+
+Same pre-signoff responsive grammar as Research.
+
+#### 27.23.4 Solution design
+
+**Step summary**
+
+Always show:
+
+- **Solution design** and purpose;
+- current/reached/historical state;
+- current/latest DESIGN Run state;
+- accepted/current design state or blocker;
+- one current action.
+
+**Work index**
+
+When useful:
+
+1. **Activity** — DESIGN attempts;
+2. **Solution design document** — current DESIGN artifact.
+
+Architecture references/evidence do not become another permanent navigation rail.
+
+**Primary material**
+
+Possible materials:
+
+- start/empty state;
+- blocker/failure;
+- selected Design Run dialogue;
+- pending proposal review;
+- governed Solution design Markdown;
+- selected evidence/authority material.
+
+Design Markdown receives full Document-class outer width. Prose may retain a readable inner measure, while code, diagrams represented as preformatted content, tables and structured technical material use the available width.
+
+**Supporting information**
+
+Make available as step-local read-only supporting material:
+
+- accepted Requirements;
+- relevant Research evidence;
+- applicable architecture/ADR/contract references;
+- exact technical/provider details.
+
+These are context for the design decision, not peer workflow destinations.
+
+**Interactions and placement**
+
+Use the shared pre-signoff stage action grammar. Proposal review receives full Review space. Evidence uses Evidence space. Editing remains governed Markdown editing, not form-based architecture editing.
+
+**Feedback and transition**
+
+Accepted Design advances to Implementation plan and exposes Start Implementation planning. Failed conformance/blocker feedback remains owned by Solution design and identifies recovery.
+
+**Responsive behavior**
+
+On constrained widths, remove/collapse the work index before reducing technical document/review content below its minimum space.
+
+#### 27.23.5 Implementation plan
+
+**Step summary**
+
+Always show:
+
+- **Implementation plan** and purpose;
+- current/reached/historical state;
+- current/latest PLAN Run state;
+- accepted/current plan state or blocker;
+- one current action.
+
+**Work index**
+
+When useful:
+
+1. **Activity** — PLAN attempts;
+2. **Implementation plan document** — current PLAN artifact;
+3. **Plan structure** — optional compact inspection entry only when parsed/signed plan information already exists canonically and materially improves scanning.
+
+Plan structure is a projection of canonical Plan/package information; it is never a second plan authority.
+
+**Primary material**
+
+Possible materials:
+
+- start/empty;
+- blocker/failure;
+- selected Plan Run dialogue;
+- pending proposal review;
+- governed Plan Markdown;
+- selected task/dependency/change-surface inspection;
+- selected evidence.
+
+The default remains the Plan document once no higher-priority active/attention material exists.
+
+**Supporting information**
+
+Accepted Design, requirement traceability and verification/change-surface references are available inside the step.
+
+**Interactions and placement**
+
+Use the shared pre-signoff stage action grammar. Task/change-surface inspection is selection/read-only; editing remains through the Plan Markdown authority.
+
+**Feedback and transition**
+
+Accepted Plan advances to Readiness review and exposes Start Readiness review. Plan failures show exact classification/recovery in the Plan context.
+
+**Responsive behavior**
+
+Structured plan inspection may replace the primary document temporarily; it must not force a permanent split that makes either unreadable.
+
+#### 27.23.6 Readiness review
+
+**Step summary**
+
+Always show:
+
+- **Readiness review** and purpose;
+- current/reached/historical state;
+- current readiness verdict or "Review in progress";
+- current blocker/return owner when not ready;
+- one current action: Start / Retry / Resume / answer required input.
+
+The summary emphasizes readiness meaning, not R3 internal identifiers.
+
+**Work index**
+
+When useful, group:
+
+1. **Review** — current Readiness review/verdict;
+2. **Attempts** — R3 Runs;
+3. **Package material** — R1, R2, Design and Plan documents plus evidence needed for review.
+
+This index may be wider only within the compact work-index budget. It is not a document workspace.
+
+**Primary material**
+
+Default primary material is the Readiness review findings/verdict.
+
+Possible promoted materials:
+
+- blocking/failure receipt;
+- legitimate current human-input request/Run dialogue;
+- selected upstream governed document read-only;
+- selected evidence.
+
+The Readiness review itself shows, in priority order:
+
+1. verdict/state;
+2. adversarial findings;
+3. defective layer/return stage where applicable;
+4. package coherence/currentness;
+5. supporting evidence/resources.
+
+The R3 document is read-only review output and may be integrated into this review presentation; it does not become an editable document tab.
+
+**Supporting information**
+
+Run chronology, exact artifact identities, hashes and provider diagnostics are secondary unless needed to resolve an active failure.
+
+**Interactions and placement**
+
+- Start/Retry/Resume → review summary/failure receipt.
+- Answer required input → composer only for the current live R3 Run.
+- Select review attempt/document/evidence → work index/resource rows.
+- No R3 direct edit.
+- Return-stage consequence is shown with the verdict; user does not manually choose a return stage unless a canonical human-input request explicitly requires a decision.
+
+**Feedback and transition**
+
+READY_FOR_SIGNOFF advances to Approval. RETURN_TO_* changes current workflow orientation to the canonical returned step. BLOCKED remains in Readiness with recovery information.
+
+**Responsive behavior**
+
+Review findings/verdict remain primary. Package material index collapses before review width is compromised.
+
+#### 27.23.7 Approval
+
+**Step summary**
+
+Always show:
+
+- **Approval** and purpose;
+- package state: current / changed / unavailable;
+- readiness to sign;
+- sign-off blocker when present.
+
+Do not place approver input/action in the global WorkItem header.
+
+**Work index**
+
+Approval has a package-local index with:
+
+1. **Overview**;
+2. **Governed documents** — the exact signed lifecycle material;
+3. **Signed tasks** — exact task definitions.
+
+If the package contains many tasks/documents, use a compact list/master selection. There is no generic Documents destination.
+
+**Primary material**
+
+Default is package **Overview**, showing:
+
+- package meaning/currentness;
+- source binding;
+- readiness state;
+- signed task count/summary;
+- material blockers.
+
+Selecting a governed document shows it read-only in Document-class space inside Approval.
+
+Selecting a signed task shows objective, dependencies, scope/exclusions, acceptance/gates and change surface in Review-class detail.
+
+Hashes/baseline/package id remain accessible but secondary.
+
+**Supporting information**
+
+Exact hashes, source SHA, baseline commit, artifact ids and other identity metadata belong in Technical details unless needed to explain stale/change state.
+
+**Interactions and placement**
+
+- select overview/document/task → package work index;
+- inspect evidence/resources → structured resource rows;
+- enter approver identity → task-local Approval action region;
+- **Sign off exact package** → same region immediately adjacent to package decision context.
+
+Sign-off is disabled while pending or when no current package is available.
+
+**Feedback and transition**
+
+Pending sign-off keeps the package visible. Success advances to Implementation. Package-stale failure stays in Approval, refreshes current package state and requires review of the new package before another sign-off.
+
+**Responsive behavior**
+
+Package index becomes temporary selector on medium/narrow. The selected document/task/overview gets full primary space; sign-off controls remain attached below/alongside the selected review material without covering it.
+
+#### 27.23.8 Implementation
+
+**Step summary**
+
+Always show:
+
+- **Implementation** and purpose;
+- overall WorkItem execution state;
+- selected/current task state;
+- active/attention Run role/status where applicable;
+- one current implementation/recovery action.
+
+**Work index**
+
+Implementation uses a two-level operational index:
+
+1. **Approved tasks** — plan task label/objective summary + task state;
+2. **Attempts for selected task** — Builder/Reviewer/Remediator attempt + Run status.
+
+The index must remain scan-efficient and must not render task bodies or event text.
+
+**Primary material**
+
+The selected task detail is the owning material. It contains:
+
+- task objective;
+- current task state;
+- relevant signed scope/change surface/gates as compact task facts;
+- selected Run header;
+- chronological persisted RunEvents;
+- V0–V7 validation summary derived from those events;
+- candidate/evidence/resource references.
+
+If an event/evidence item is selected, it may promote to Evidence geometry and return to the same task/Run.
+
+A failure/blocker that controls what happens next is promoted above passive history.
+
+**Supporting information**
+
+Exact task/run ids, approval id, provider diagnostics, baseline/hash and raw payloads remain Technical details.
+
+**Interactions and placement**
+
+- select task/attempt → work index;
+- Run next implementation step → step/current task action region;
+- Cancel active Run / Resume blocker when canonically allowed → selected Run/failure action region;
+- open evidence/patch/candidate → resource rows;
+- no Open in Activity action.
+
+**Feedback**
+
+Gate/review/validation/candidate events use §27.20 and may be summarized into a scan-efficient validation matrix. Failure classifications must expose the canonical next consequence: repair, block, return to Plan/Design/etc., or operational replacement as applicable.
+
+**Responsive behavior**
+
+Wide uses task/attempt index + detail. Medium/narrow turns the master into temporary selection; selected task/Run detail remains the only primary pane.
+
+#### 27.23.9 Complete
+
+**Step summary**
+
+Always show:
+
+- **Complete** and purpose;
+- exact terminal outcome in ordinary language;
+- whether the outcome is implementation candidate completion or a non-delivery terminal result;
+- linked-remediation availability when applicable.
+
+**Work index**
+
+Normally absent. Reached workflow history is already available from the workflow rail.
+
+For CANDIDATE_DONE, a compact result-material selector may expose final candidate/verification resources if multiple final artifacts exist. It must not duplicate the reached Implementation task index.
+
+**Primary material**
+
+For DISPROVEN / DUPLICATE / ALREADY_SATISFIED:
+
+- terminal classification;
+- concise human-readable meaning;
+- relevant governed result/evidence if available.
+
+For INVESTIGATION_COMPLETE / AUDIT_COMPLETE:
+
+- terminal result narrative/artifact;
+- findings/evidence/resources;
+- linked-remediation action.
+
+For CANDIDATE_DONE:
+
+- verified candidate completion summary;
+- final candidate/evidence/verification resources;
+- link/selection back to reached Implementation for detailed task history.
+
+**Supporting information**
+
+Exact ids/hashes remain Technical details. Prior workflow-step material is reached through the workflow rail.
+
+**Interactions and placement**
+
+- open final evidence/resource → result resource rows;
+- create linked remediation → result action region for eligible outcomes only;
+- historical step inspection → workflow rail, no lifecycle mutation.
+
+**Feedback**
+
+Remediation creation uses §27.22. Complete itself has no Start/Retry workflow action unless a separate canonical remediation/recovery flow changes WorkItem state upstream.
+
+**Responsive behavior**
+
+Result narrative remains readable; evidence/patches promote to Evidence-class full width; no decorative side panel may displace the result.
+
+### GW-FR-121-PER-STEP-FUNCTIONAL-SCREEN-CONTRACT
+
+**Required behavior:** each workflow step implements the complete functional screen contract in §27.23, including its step summary, work-index contents, possible/default primary materials, supporting information, interactions/action placement, feedback/return behavior and responsive rules.
+
+**Acceptance criterion:** an implementation team can construct every workflow step without inventing information grouping, panel priority, navigation, action location or feedback semantics beyond the canonical shared rules and the step-specific contract.
+
+**Failure/negative behavior:** naming a step workspace or listing its available information is insufficient; any implementation that requires local inference about what panel appears, what it contains, or where its actions/feedback belong is nonconformant.
