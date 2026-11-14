@@ -125,6 +125,7 @@ export const WorkItemWorkspace = ({
   const [pendingReturnSelection, setPendingReturnSelection] =
     useState<WorkspaceSelection | null>(null);
   const [returnSelection, setReturnSelection] = useState<WorkspaceSelection | null>(null);
+  const [returnFocusName, setReturnFocusName] = useState<string | null>(null);
   const [workflowInspectionActive, setWorkflowInspectionActive] = useState(false);
   const [titleEditing, setTitleEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState(workItem.title);
@@ -348,8 +349,28 @@ export const WorkItemWorkspace = ({
     requestSelection({ step, material: null });
   };
 
+  const focusReturnedControl = (name: string): void => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const target = Array.from(
+          document.querySelectorAll<HTMLButtonElement>("button"),
+        ).find((button) =>
+          button.getAttribute("aria-label") === name ||
+          button.textContent?.trim() === name);
+        target?.focus();
+      });
+    });
+  };
+
   const openEvidence = (selection: EvidenceSelection): void => {
     const origin: WorkspaceSelection = { step: selectedStep, material };
+    setReturnFocusName(
+      selection.kind === "EVIDENCE"
+        ? "Evidence: " + selection.relativePath
+        : selection.label === "Lifecycle document exact bytes"
+          ? "Inspect exact bytes"
+          : "Open " + selection.label,
+    );
     requestSelection(
       {
         step: selectedStep,
@@ -368,6 +389,7 @@ export const WorkItemWorkspace = ({
   };
 
   const openProposalReview = (selection: ProposalSelection): void => {
+    setReturnFocusName("Review proposed document change");
     const ownerRun = runs.find((run) => run.id === selection.runId);
     const ownerStep = ownerRun?.stage ?? selectedStep;
     const origin: WorkspaceSelection = {
@@ -389,12 +411,15 @@ export const WorkItemWorkspace = ({
 
   const returnFromTransient = (): void => {
     const origin = returnSelection;
+    const focusName = returnFocusName;
     setReturnSelection(null);
+    setReturnFocusName(null);
     if (origin) {
       commitSelection(origin);
-      return;
+    } else {
+      setExplicitMaterial(null);
     }
-    setExplicitMaterial(null);
+    if (focusName) focusReturnedControl(focusName);
   };
 
   const canStart =
