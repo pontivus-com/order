@@ -466,29 +466,6 @@ const adoptionPendingRun = RunSchema.parse({
   startedAt: stamp,
   endedAt: null,
 });
-storeRun(database, adoptionPendingRun);
-persistEvent(adoptionPendingRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: adoptionPendingRun.contextHash,
-});
-const adoptionPendingProposal = persistEvent(adoptionPendingRun.id, 2, {
-  tag: "ARTIFACT_PROPOSAL_CREATED",
-  targetPath: `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md`,
-  baseSha256: null,
-  role: "PLAN",
-  authorityLayer: "P7",
-  unifiedDiff:
-    "--- /dev/null\n+++ b/" +
-    `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md` +
-    "\n@@ -0,0 +1 @@\n+pending adoption\n",
-  rationale: "Certify the canonical adoption-in-progress state.",
-});
-persistEvent(adoptionPendingRun.id, 3, {
-  tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
-  proposalEventId: adoptionPendingProposal.id,
-});
 
 const retryItem = workItem("Workflow retry action", "PLAN", "ACTIVE", null);
 storeWorkItem(database, retryItem);
@@ -1341,6 +1318,37 @@ const environment: NodeJS.ProcessEnv = {
 };
 const daemon = await startOrderDaemon(environment);
 updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
+
+insertRun(daemon.coordinator, {
+  ...adoptionPendingRun,
+  status: "RUNNING",
+});
+appendRunEvent(daemon.coordinator, adoptionPendingRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: adoptionPendingRun.contextHash,
+});
+const liveAdoptionPendingProposal = appendRunEvent(
+  daemon.coordinator,
+  adoptionPendingRun.id,
+  {
+    tag: "ARTIFACT_PROPOSAL_CREATED",
+    targetPath: `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md`,
+    baseSha256: null,
+    role: "PLAN",
+    authorityLayer: "P7",
+    unifiedDiff:
+      "--- /dev/null\n+++ b/" +
+      `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md` +
+      "\n@@ -0,0 +1 @@\n+pending adoption\n",
+    rationale: "Certify the canonical adoption-in-progress state.",
+  },
+);
+appendRunEvent(daemon.coordinator, adoptionPendingRun.id, {
+  tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+  proposalEventId: liveAdoptionPendingProposal.id,
+});
 
 const fixtureControl = Bun.serve({
   hostname: "127.0.0.1",
