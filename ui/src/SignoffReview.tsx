@@ -447,25 +447,30 @@ export const SignoffReview = ({
           </MetadataListItem>
         </MetadataList>
 
-        <div className="order-approval-action-region">
-          <TextInput
-            label="Approved by"
-            description="Identify the operator authorizing this exact package."
-            value={approvedBy}
-            onChange={(value) => setApprovedBy(value)}
-            placeholder="Local operator identity"
-            isDisabled={signoff.isPending}
-            width="100%"
-          />
-          <WorkbenchAction
-            label="Sign off exact package"
-            tone="primary"
-            loading={signoff.isPending}
-            disabled={approvedBy.trim().length === 0 || signoff.isPending}
-            onClick={() => signoff.mutate()}
-          />
-        </div>
 
+      </section>
+    );
+  })();
+
+  const approvalAction =
+    currentApproval && packageQuery.data ? (
+      <div className="order-approval-action-region">
+        <TextInput
+          label="Approved by"
+          description="Identify the operator authorizing this exact package."
+          value={approvedBy}
+          onChange={(value) => setApprovedBy(value)}
+          placeholder="Local operator identity"
+          isDisabled={signoff.isPending}
+          width="100%"
+        />
+        <WorkbenchAction
+          label="Sign off exact package"
+          tone="primary"
+          loading={signoff.isPending}
+          disabled={approvedBy.trim().length === 0 || signoff.isPending}
+          onClick={() => signoff.mutate()}
+        />
         {signoff.error ? (
           <WorkbenchErrorState
             title="Sign-off failed"
@@ -474,16 +479,20 @@ export const SignoffReview = ({
               : String(signoff.error)}
           />
         ) : null}
-      </section>
-    );
-  })();
+      </div>
+    ) : null;
 
   return (
     <WorkflowStepFrame
       summary={summary}
       index={<WorkflowStepIndex groups={groups} />}
       indexLabel="Approval package"
-      primary={<PrimaryMaterialFrame>{primary}</PrimaryMaterialFrame>}
+      primary={
+        <PrimaryMaterialFrame>
+          {primary}
+          {approvalAction}
+        </PrimaryMaterialFrame>
+      }
     />
   );
 };
