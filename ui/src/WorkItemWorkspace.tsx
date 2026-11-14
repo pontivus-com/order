@@ -244,6 +244,111 @@ export const WorkItemWorkspace = ({
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
   );
 
+  const selectedLatestStageRun =
+    selectedStep === "R1" ||
+    selectedStep === "R2" ||
+    selectedStep === "DESIGN" ||
+    selectedStep === "PLAN" ||
+    selectedStep === "R3"
+      ? [...runs]
+          .filter((run) =>
+            run.role === "STAGE" &&
+            run.stage === selectedStep)
+          .sort((left, right) =>
+            left.attempt - right.attempt ||
+            left.startedAt.localeCompare(right.startedAt) ||
+            left.id.localeCompare(right.id))
+          .at(-1) ?? null
+      : null;
+  const selectedStageArtifact =
+    selectedStep === "R1" ||
+    selectedStep === "R2" ||
+    selectedStep === "DESIGN" ||
+    selectedStep === "PLAN" ||
+    selectedStep === "R3"
+      ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
+      : null;
+  const ordinaryClassification = (value: string): string =>
+    value
+      .replaceAll("_", " ")
+      .toLowerCase()
+      .replace(/^./, (first) => first.toUpperCase());
+  const summaryStatusLabel = (() => {
+    if (selectedStep === "IDEA") {
+      return sourceDiagnostics.length > 0
+        ? "Source needs attention"
+        : "Source current";
+    }
+    if (
+      selectedStep === "R1" ||
+      selectedStep === "R2" ||
+      selectedStep === "DESIGN" ||
+      selectedStep === "PLAN"
+    ) {
+      if (pendingProposal && selectedStepState === "CURRENT") {
+        return "Proposal review required";
+      }
+      if (selectedLatestStageRun) {
+        const classification =
+          selectedLatestStageRun.terminalClassification === null
+            ? ""
+            : " · " +
+              ordinaryClassification(selectedLatestStageRun.terminalClassification);
+        const documentState = selectedStageArtifact ? " · document current" : "";
+        return runStatusLabel(selectedLatestStageRun.status) +
+          classification +
+          documentState;
+      }
+      if (selectedStageArtifact) return "Document current";
+      return selectedStepState === "CURRENT" ? "Ready to start" : "No governed material";
+    }
+    if (selectedStep === "R3") {
+      if (selectedStepState === "HISTORICAL") return "Ready for sign-off";
+      if (selectedLatestStageRun) {
+        return selectedLatestStageRun.terminalClassification
+          ? ordinaryClassification(selectedLatestStageRun.terminalClassification)
+          : runStatusLabel(selectedLatestStageRun.status);
+      }
+      return selectedStepState === "CURRENT"
+        ? "Review in progress"
+        : "Not yet reached";
+    }
+    if (selectedStep === "AWAITING_SIGNOFF") {
+      if (selectedStepState === "HISTORICAL") return "Approved";
+      if (selectedStepState === "UNREACHED") return "Not yet reached";
+      if (signoffPackageQuery.isPending) return "Resolving package";
+      if (signoffPackageQuery.isError || !signoffPackageQuery.data) {
+        return "Package unavailable";
+      }
+      return "Package current · ready to sign";
+    }
+    if (selectedStep === "COMPLETE") {
+      return workItem.outcome
+        ? ordinaryClassification(workItem.outcome)
+        : selectedStepState === "CURRENT"
+          ? "Complete"
+          : "Not yet reached";
+    }
+    return undefined;
+  })();
+  const summaryStatusVariant =
+    selectedStep === "IDEA" && sourceDiagnostics.length > 0
+      ? "error" as const
+      : selectedLatestStageRun?.status === "FAILED" ||
+          selectedLatestStageRun?.status === "BLOCKED"
+        ? "error" as const
+        : selectedLatestStageRun?.status === "WAITING_FOR_INPUT"
+          ? "warning" as const
+          : selectedStep === "AWAITING_SIGNOFF" &&
+              selectedStepState === "CURRENT" &&
+              (signoffPackageQuery.isError || !signoffPackageQuery.data)
+            ? "error" as const
+            : selectedStep === "COMPLETE" ||
+                selectedStepState === "HISTORICAL" ||
+                selectedLatestStageRun?.status === "COMPLETED"
+              ? "success" as const
+              : "neutral" as const;
+
   useEffect(() => {
     headingRef.current?.focus();
   }, [workItem.id]);
@@ -479,7 +584,26 @@ export const WorkItemWorkspace = ({
               ? start.error.message
               : String(start.error),
           }
-        : null;
+        : selectedLatestStageRun &&
+            (selectedLatestStageRun.status === "FAILED" ||
+              selectedLatestStageRun.status === "BLOCKED")
+          ? {
+              status: "error" as const,
+              title: selectedWorkflow.label + " needs attention",
+              description:
+                "Inspect the primary failure or blocker receipt for the canonical recovery path.",
+            }
+          : selectedStep === "AWAITING_SIGNOFF" &&
+              selectedStepState === "CURRENT" &&
+              signoffPackageQuery.isError
+            ? {
+                status: "error" as const,
+                title: "Approval package unavailable",
+                description: signoffPackageQuery.error instanceof Error
+                  ? signoffPackageQuery.error.message
+                  : String(signoffPackageQuery.error),
+              }
+            : null;
 
   const stepSummary = (
     <WorkflowStepSummary
@@ -487,22 +611,8 @@ export const WorkItemWorkspace = ({
       purpose={selectedWorkflow.purpose}
       stateLabel={selectedStateLabel}
       stateVariant={selectedStateVariant}
-      statusLabel={
-        selectedStepState === "CURRENT"
-          ? workItem.status === "ACTIVE"
-            ? "Active"
-            : workItem.status === "BLOCKED"
-              ? "Blocked"
-              : "Complete"
-          : undefined
-      }
-      statusVariant={
-        workItem.status === "BLOCKED"
-          ? "error"
-          : workItem.status === "COMPLETE"
-            ? "success"
-            : "neutral"
-      }
+      statusLabel={summaryStatusLabel}
+      statusVariant={summaryStatusVariant}
       blocker={summaryBlocker}
       action={
         startIsOwnedBySelectedStep ? (
