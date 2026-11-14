@@ -51,7 +51,8 @@ The task implements:
 - GW-FR-117-DETERMINISTIC-PRIMARY-MATERIAL;
 - GW-FR-118-CANONICAL-RUN-FEEDBACK-COMPLETENESS;
 - GW-FR-119-INTERACTION-RESULT-FEEDBACK;
-- GW-FR-120-OPENCODE-FEEDBACK-BOUNDARY.
+- GW-FR-120-OPENCODE-FEEDBACK-BOUNDARY;
+- GW-FR-121-PER-STEP-FUNCTIONAL-SCREEN-CONTRACT.
 
 ### Technical authority
 
@@ -72,6 +73,8 @@ The task implements:
 - GW-TR-093-EXHAUSTIVE-RUN-FEEDBACK-PROJECTION;
 - GW-TR-094-LOCAL-MUTATION-FEEDBACK-ORCHESTRATION;
 - GW-TR-095-OPENCODE-BROWSER-OBSERVATION-BOUNDARY;
+- GW-TR-096-PER-STEP-PRIMITIVE-COMPOSITION;
+- GW-TR-097-SHARED-WORKFLOW-UI-SEMANTIC-OWNERSHIP;
 - existing CodeMirror, Context, responsive, evidence, RunEvent and Astryx integration requirements that remain unsuperseded.
 
 No implementation step may create a second lifecycle, transport shape family, browser server-state owner, DTO/ViewModel family or new daemon policy to solve a presentation problem.
@@ -698,3 +701,172 @@ The plan is not implementation-ready merely because every workflow step has a na
 10. what information is intentionally unavailable because the provider/browser contract does not expose it.
 
 GW-DOC-WORKBENCH-UX-V1 §§27.17–27.22 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §§23.16–23.23 are the canonical answers. Implementation may not infer a different panel or feedback model.
+
+
+## 23. Exact per-step UI composition implementation addendum
+
+This section operationalizes GW-DOC-WORKBENCH-UX-V1 §27.23 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §§23.24–23.35. It removes any remaining implementation freedom around choosing arbitrary panels or UI primitives.
+
+### 23.1 Shared composition layer
+
+Implement the following local semantic presentation responsibilities before rewriting individual steps:
+
+1. **WorkflowStepFrame** — summary + optional work index + one primary material slot + responsive index collapse.
+2. **WorkflowStepSummary** — step label/purpose/state, Badge/StatusDot, Banner when actionable, one WorkbenchAction current action.
+3. **WorkflowStepIndex** — Astryx List-backed grouped selection of attempts/documents/tasks/package material; Drawer-backed on constrained widths.
+4. **PrimaryMaterialFrame** — material heading/content/local-action geometry plus WorkbenchEmptyState/WorkbenchErrorState.
+5. **pure selected-material resolver** in the existing workbench-presentation owner implementing GW-FR-117.
+6. **shared RunEvent presentation** remains singular and exhaustive.
+
+These are presentation components/functions only. Do not add persistence, transport state, DTOs, classes, services or a global store.
+
+### 23.2 Work request implementation
+
+Refactor the source responsibilities currently inside DocumentWorkspace so the Work request step mounts the source material directly.
+
+Use exactly:
+
+- WorkflowStepFrame;
+- WorkflowStepSummary;
+- Badge/StatusDot;
+- Banner for blocking source diagnostics;
+- MarkdownEditor / CodeMirror;
+- existing formatting/document control surface;
+- WorkbenchAction;
+- AlertDialog for dirty navigation/Git confirmation.
+
+Do not mount the generic lifecycle TabList around Work request.
+
+### 23.3 Shared R1/R2/DESIGN/PLAN implementation
+
+Implement one PreSignoffStageWorkspace parameterized by canonical stage.
+
+Reuse/refactor current ActivityWorkspace and DocumentWorkspace responsibilities rather than copying them four times.
+
+Use:
+
+- WorkflowStepIndex backed by List for attempts + one owning stage document;
+- ChatLayout / ChatMessage / ChatSystemMessage / ChatToolCalls / ChatComposer for stage dialogue;
+- RunEventTimeline as the one semantic event presentation path;
+- Badge/StatusDot for Run state;
+- Banner for current failure/blocker;
+- WorkbenchAction for Cancel/Retry/Resume;
+- MarkdownEditor / CodeMirror and Markdown for stage document;
+- ProposalReview + CodeBlock + WorkbenchAction Adopt/Reject;
+- EvidenceViewer + CodeBlock/ScrollableArea;
+- WorkbenchResourceRow for evidence.
+
+Remove global Activity and Documents routing from these steps.
+
+### 23.4 Readiness implementation
+
+Create/refactor one dedicated ReadinessWorkspace.
+
+Use:
+
+- WorkflowStepFrame / Summary / Index;
+- List for Review / attempts / package-material selection;
+- Badge/StatusDot for readiness state;
+- Banner for blocker/RETURN_TO_*;
+- Section/Stack review composition;
+- Markdown for R3/upstream documents read-only;
+- WorkbenchResourceRow;
+- shared StageRunMaterial only when an R3 Run is selected or awaits input;
+- EvidenceViewer.
+
+Do not mount MarkdownEditor for R3.
+
+### 23.5 Approval implementation
+
+Refactor SignoffReview into the complete Approval workspace.
+
+Use:
+
+- WorkflowStepFrame / Summary / Index;
+- List for Overview/Documents/Tasks;
+- Table only where multiple signed tasks benefit from comparison;
+- Markdown for selected governed document;
+- Section/Stack for package/task detail;
+- MetadataList only for secondary exact identity;
+- TextInput for approvedBy;
+- Toolbar/Stack + WorkbenchAction for Sign off exact package;
+- Banner for stale/unavailable package.
+
+Delete Open governed documents cross-navigation and remove sign-off controls from WorkItemWorkspace header.
+
+### 23.6 Implementation implementation
+
+Refactor ExecutionWorkspace without changing execution domain semantics.
+
+Use:
+
+- WorkflowStepFrame / Summary / Index;
+- Table/List task master;
+- List attempt master;
+- Badge/StatusDot;
+- MetadataList for compact task facts;
+- Table for V0–V7 discrete validation states;
+- RunEventTimeline;
+- WorkbenchResourceRow;
+- EvidenceViewer / CodeBlock / ScrollableArea;
+- WorkbenchAction for current execution/recovery actions.
+
+Delete Open in Activity.
+
+Do not use ProgressBar for provider work or V0–V7.
+
+### 23.7 Complete implementation
+
+Compose TerminalResult under Complete.
+
+Use:
+
+- WorkflowStepFrame / Summary;
+- Badge for terminal outcome;
+- Markdown / CodeBlock for final result material;
+- WorkbenchResourceRow for evidence/candidate resources;
+- WorkbenchAction for eligible linked remediation.
+
+TabList is permitted only for a small fixed set of peer final artifacts inside one terminal result, not as generic Result/Documents navigation.
+
+### 23.8 Context and responsiveness
+
+Retain WorkbenchLayout + Drawer for Context.
+
+Replace contextMode with selected workflow step/material identity. WorkItemContext renders MetadataList/technical detail for the selected canonical object.
+
+WorkflowStepIndex uses Drawer/temporary selection on constrained widths.
+
+Dirty-discard confirmation remains AlertDialog.
+
+### 23.9 Explicit primitive prohibitions
+
+The implementation must not:
+
+- reintroduce SegmentedControl as a global Documents/Activity/Review/Result selector;
+- use TabList as the workflow rail or generic work index;
+- use ProgressBar for opaque provider execution;
+- use Toast as the only failure/blocker/input feedback;
+- create Card stacks as the primary information architecture;
+- create per-stage action/status/event primitive wrappers;
+- duplicate Markdown, evidence, proposal or RunEvent semantic owners;
+- import a different Astryx composite where §§23.24–23.35 already specify the primitive family.
+
+### 23.10 Additional certification
+
+Add permanent tests proving:
+
+- each of the nine step contracts in §27.23 renders the prescribed semantic regions;
+- WorkflowStepIndex is absent when not needed and becomes temporary selection at narrow width;
+- the generic global workspace SegmentedControl is absent;
+- no lifecycle-wide document TabList is mounted around pre-signoff steps;
+- Research/R2/Design/Plan all reuse the same stage composition semantics;
+- R3 mounts no editable Markdown control;
+- Approval sign-off is inside Approval and governed documents inspect in-place;
+- Implementation contains no Open in Activity;
+- V0–V7 uses discrete state presentation rather than fake percentage progress;
+- Context follows selected step/material and uses Drawer at constrained widths.
+
+### 23.11 Completion consequence
+
+Implementation is complete only when every row of GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §23.35 is realized and traceable to production components/tests. A functional screen contract without its specified primitive/composition owner is incomplete; a technically rendered primitive without the corresponding functional information hierarchy is likewise incomplete.
