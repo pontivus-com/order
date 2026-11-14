@@ -275,6 +275,26 @@ const storePlanArtifacts = (workItemId: WorkItemId) => {
 
 const proposalItem = workItem("Proposal review", "PLAN", "ACTIVE", null);
 storeWorkItem(database, proposalItem);
+const proposalArtifacts = storePlanArtifacts(proposalItem.id);
+const historicalProposalRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: proposalItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "COMPLETED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("historical-proposal-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, historicalProposalRun);
+
 const proposalRun = RunSchema.parse({
   id: newRunId(),
   workItemId: proposalItem.id,
@@ -284,7 +304,7 @@ const proposalRun = RunSchema.parse({
   role: "STAGE",
   triggerEventId: null,
   status: "WAITING_FOR_INPUT",
-  attempt: 1,
+  attempt: 2,
   baselineCommit,
   contextHash: sha256Text("proposal-context"),
   providerSessionId: null,
@@ -310,6 +330,33 @@ const persistEvent = (
   return value;
 };
 
+persistEvent(historicalProposalRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: historicalProposalRun.contextHash,
+});
+const historicalProposal = persistEvent(historicalProposalRun.id, 2, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: "docs/plan.md",
+  baseSha256: planSha,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- a/docs/plan.md\n+++ b/docs/plan.md\n@@ -1 +1 @@\n-# Browser certification plan\n+# Browser certification plan adopted\n",
+  rationale: "Exercise the completed proposal lifecycle.",
+});
+persistEvent(historicalProposalRun.id, 3, {
+  tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+  proposalEventId: historicalProposal.id,
+});
+persistEvent(historicalProposalRun.id, 4, {
+  tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+  proposalEventId: historicalProposal.id,
+  disposition: "ADOPTED",
+  adoptedArtifactRefId: proposalArtifacts.plan.id,
+});
+
 persistEvent(proposalRun.id, 1, {
   tag: "STAGE_STARTED",
   stage: "PLAN",
@@ -321,8 +368,18 @@ persistEvent(proposalRun.id, 2, {
   text: "The plan is ready for operator review.",
   evidence: [],
 });
+const proposalInputRequest = persistEvent(proposalRun.id, 3, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Confirm the proposal should be reviewed.",
+});
+persistEvent(proposalRun.id, 4, {
+  tag: "HUMAN_INPUT_RECEIVED",
+  requestEventId: proposalInputRequest.id,
+  text: "Review the proposal.",
+});
 const proposalPath = `${workItemsRoot}/${proposalItem.id}/implementation-plan.md`;
-const proposal = persistEvent(proposalRun.id, 3, {
+const proposal = persistEvent(proposalRun.id, 5, {
   tag: "ARTIFACT_PROPOSAL_CREATED",
   targetPath: proposalPath,
   baseSha256: null,
