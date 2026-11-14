@@ -1592,7 +1592,24 @@ test("terminal investigation and audit results remain closed and linked remediat
 
   await dialog.getByRole("radio", { name: "DEFECT" }).click();
   await dialog.getByLabel("Title").fill("Remediate investigation finding");
-  await dialog.getByRole("button", { name: "Create linked remediation" }).click();
+
+  let releaseRemediation = (): void => {};
+  const remediationBarrier = new Promise<void>((resolve) => {
+    releaseRemediation = resolve;
+  });
+  await page.route("**/api/work-items", async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.continue();
+      return;
+    }
+    await remediationBarrier;
+    await route.continue();
+  });
+  const createRemediation = dialog.getByRole("button", { name: "Create linked remediation" });
+  await createRemediation.click();
+  await expect(createRemediation).toBeDisabled();
+  releaseRemediation();
+  await page.unroute("**/api/work-items");
 
   await expect(page.getByTestId("work-item-heading")).toHaveText("Remediate investigation finding");
   const child = await workItemForTitle(page, "Remediate investigation finding");
