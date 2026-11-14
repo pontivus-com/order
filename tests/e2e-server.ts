@@ -987,7 +987,7 @@ const seedExecutionFeedback = (
         outcome: "ALREADY_SATISFIED";
       }
   >,
-  taskState: "PENDING" | "ALREADY_SATISFIED" | "BLOCKED",
+  taskState: "TODO" | "ALREADY_SATISFIED" | "BLOCKED",
 ) => {
   const item = workItem(
     title,
@@ -1035,7 +1035,7 @@ const implementationReady = seedExecutionFeedback(
     status: "ACTIVE",
     outcome: null,
   },
-  "PENDING",
+  "TODO",
 );
 
 const alreadySatisfied = seedExecutionFeedback(
