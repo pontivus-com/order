@@ -1114,6 +1114,9 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 
   await openWorkItem(page, "Already satisfied implementation");
+  await expect(page.getByTestId("result-workspace"))
+    .toContainText("Already satisfied");
+  await selectWorkflowStep(page, "Implementation");
   await expect(page.getByText("No change required", { exact: true })).toBeVisible();
   await backToQueue(page);
 
