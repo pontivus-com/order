@@ -285,8 +285,9 @@ const selectedStageRun = (
 const unresolvedInputRun = (
   input: WorkflowMaterialResolutionInput,
 ): Run | null => {
-  const id = input.unresolvedInputRunId ?? null;
-  if (id !== null) {
+  if (input.unresolvedInputRunId !== undefined) {
+    const id = input.unresolvedInputRunId;
+    if (id === null) return null;
     return input.runs.find(
       (run) =>
         run.id === id &&
