@@ -1125,6 +1125,9 @@ test("canonical Run feedback remains visible in the owning workflow context with
 
   await openWorkItem(page, "Failed implementation feedback");
   const implementationIndex = page.getByTestId("workflow-step-index");
+  await implementationIndex
+    .getByText(/Independent review · Attempt 1/)
+    .click();
   await expect(
     page.getByText("Independent review failed", { exact: true }),
   ).toBeVisible();
@@ -1247,7 +1250,6 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   page,
   request,
 }) => {
-  console.log("browser-checkpoint source: start");
   await authenticate(page, request);
   await openWorkItem(page, "Source editing workbench");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
@@ -1281,13 +1283,11 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   writeFileSync(sourcePath, external);
 
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  console.log("browser-checkpoint source: stale save submitted");
   await expect(page.getByText(/canonical file changed while this buffer was open/i)).toBeVisible();
   expect(await markdownSourceValue(sourceEditor)).toContain("local unsaved buffer");
   expect(readFileSync(sourcePath, "utf8")).toBe(external);
 
   await page.getByRole("button", { name: "Reload current" }).click();
-  console.log("browser-checkpoint source: reload current");
   await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("# Source editing externally changed");
   const current = await markdownSourceValue(sourceEditor);
 
@@ -1297,7 +1297,6 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 
   await replaceMarkdownSource(page, sourceEditor, current + "\nsaved through browser workbench\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  console.log("browser-checkpoint source: canonical save submitted");
   await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("saved through browser workbench");
   await expect.poll(() => readFileSync(sourcePath, "utf8")).toContain(
     "saved through browser workbench",
@@ -1309,9 +1308,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   ).toHaveAttribute("aria-current", "step");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 
-  console.log("browser-checkpoint source: before unreached inspection");
   await selectWorkflowStep(page, "Implementation plan");
-  console.log("browser-checkpoint source: unreached selected");
   await expect(
     page.getByText("This workflow step has not been reached", { exact: true }),
   ).toBeVisible();
@@ -1474,7 +1471,6 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   page,
   request,
 }) => {
-  console.log("browser-checkpoint candidate: start");
   await authenticate(page, request);
   await openWorkItem(page, "Verified candidate");
 
@@ -1483,7 +1479,6 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(page.getByRole("button", { name: "Open in Activity" })).toHaveCount(0);
 
   await selectWorkflowStep(page, "Approval");
-  console.log("browser-checkpoint candidate: approval selected");
   await expect(page.getByTestId("review-workspace"))
     .toContainText("Approved package history");
   const historicalApprovalIndex = page.getByTestId("workflow-step-index");
@@ -1494,17 +1489,14 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     .toContainText("Prove the browser candidate surface");
 
   await selectWorkflowStep(page, "Implementation");
-  console.log("browser-checkpoint candidate: implementation selected");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   const implementationIndex = page.getByTestId("workflow-step-index");
   await implementationIndex.getByText(/Implementation agent · Attempt 1/).click();
-  console.log("browser-checkpoint candidate: builder selected");
   await expect(
     page.getByText("Candidate state recorded", { exact: true }),
   ).toBeVisible();
 
   await implementationIndex.getByText(/Independent review · Attempt 1/).click();
-  console.log("browser-checkpoint candidate: reviewer selected");
   await expect(
     page.getByText("Independent review passed", { exact: true }),
   ).toBeVisible();
@@ -1516,7 +1508,6 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   ).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
 
-  console.log("browser-checkpoint candidate: before validation");
   const validation = page.getByTestId("validation-matrix");
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
     await expect(
@@ -1524,7 +1515,6 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     ).toContainText("Passed");
   }
 
-  console.log("browser-checkpoint candidate: validation complete");
   const reviewEvidence = page
     .locator('[data-evidence-path="review.txt"]')
     .first()
@@ -1532,7 +1522,6 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(reviewEvidence).toBeVisible();
   await reviewEvidence.scrollIntoViewIfNeeded();
   await reviewEvidence.click();
-  console.log("browser-checkpoint candidate: evidence clicked");
   await expect(page.getByTestId("evidence-workspace")).toBeVisible();
   const raw = page.getByTestId("raw-content-view");
   await expect(raw).toContainText(
@@ -1544,7 +1533,6 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   ).toBe(false);
 
   await page.getByRole("button", { name: "Back to workflow context" }).click();
-  console.log("browser-checkpoint candidate: evidence back");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await expect(
     page
