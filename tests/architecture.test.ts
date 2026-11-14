@@ -759,7 +759,10 @@ describe("architecture fitness", () => {
         "ui/src/EvidenceViewer.tsx",
       ],
       "ui/src/SignoffReview.tsx": ["ui/src/DocumentWorkspace.tsx"],
-      "ui/src/ExecutionWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
+      "ui/src/ExecutionWorkspace.tsx": [
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/EvidenceViewer.tsx",
+      ],
     };
 
     const localUiDependencies = new Map<string, readonly string[]>();
