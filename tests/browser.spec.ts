@@ -973,6 +973,9 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
 
   await openWorkItem(page, "Proposal adoption in progress");
   if (await page.getByTestId("proposal-review-workspace").count() === 0) {
+    const adoptionIndex = page.getByTestId("workflow-step-index");
+    await expect(adoptionIndex).toBeVisible();
+    await adoptionIndex.getByText("Attempt 1", { exact: true }).click();
     await expect(page.getByTestId("stage-run-material")).toBeVisible();
     await page
       .getByRole("button", { name: "Review proposed document change" })
