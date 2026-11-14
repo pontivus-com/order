@@ -29,7 +29,7 @@ export const ActivityComposer = ({
     <div className="order-activity-composer" data-testid="activity-composer">
       {input.error ? (
         <WorkbenchErrorState
-          title="Could not send response"
+          title="Workflow action failed"
           description={input.error instanceof Error ? input.error.message : String(input.error)}
         />
       ) : null}
