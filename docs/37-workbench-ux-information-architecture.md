@@ -7,7 +7,7 @@
 
 
 
-> **Current 0.2.2 design authority:** §27 is the current WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
+> **Current 0.3.0 design authority:** §27 is the current WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
 
 ## 1. Purpose
 
@@ -83,7 +83,7 @@ A surface may become wider than its preferred width. It must not be deliberately
 
 ## 4. Superseded WorkItem workspace-mode model
 
-> **0.2.2 supersession:** this section records the earlier material-mode model. The current binding navigation/composition model is §27: workflow step is the persistent navigation owner and document/dialogue/review/evidence/result are material classes inside that step.
+> **0.3.0 supersession:** this section records the earlier material-mode model. The current binding navigation/composition model is §27: workflow step is the persistent navigation owner and document/dialogue/review/evidence/result are material classes inside that step.
 
 The selected WorkItem primary canvas previously exposed modes that were meaningful for the current canonical state.
 
@@ -517,7 +517,7 @@ The following are binding consequences:
 
 ### 19.3 Superseded navigation hierarchy and chrome economy
 
-> **0.2.2 supersession:** the three-hierarchy model below is replaced by §27.2 and §27.17. It is retained only as the design history that motivated the correction.
+> **0.3.0 supersession:** the three-hierarchy model below is replaced by §27.2 and §27.17. It is retained only as the design history that motivated the correction.
 
 The prior WorkItem workspace had three distinct presentation hierarchies:
 
@@ -891,7 +891,7 @@ Presentation must track canonical transitions without losing operational history
 
 #### GW-FR-052-WORKFLOW-ORIENTATION
 
-> **0.2.2 supersession:** the persistent workspace-view hierarchy implied below is superseded by GW-FR-106-WORKFLOW-STEP-PRIMARY-NAVIGATION and GW-FR-107-STEP-LOCAL-MATERIAL-COMPOSITION. The workflow rail remains authoritative orientation/navigation.
+> **0.3.0 supersession:** the persistent workspace-view hierarchy implied below is superseded by GW-FR-106-WORKFLOW-STEP-PRIMARY-NAVIGATION and GW-FR-107-STEP-LOCAL-MATERIAL-COMPOSITION. The workflow rail remains authoritative orientation/navigation.
 
 **Required behavior:** every selected WorkItem exposes two compact semantic orientation levels before the primary canvas: (1) a WorkItem identity/header row containing Back, title/current identity and true WorkItem-level actions, followed by (2) a dedicated horizontal workflow-process rail showing the complete ordinary-language lifecycle. This does not create another workflow state machine.
 
@@ -901,7 +901,7 @@ Presentation must track canonical transitions without losing operational history
 
 #### GW-FR-053-ACTIVITY-WORKSPACE
 
-> **0.2.2 supersession:** Activity remains required information, but it is no longer a global WorkItem destination. Pre-signoff activity is owned by its workflow step and post-signoff activity by Implementation under GW-FR-108 and GW-FR-113.
+> **0.3.0 supersession:** Activity remains required information, but it is no longer a global WorkItem destination. Pre-signoff activity is owned by its workflow step and post-signoff activity by Implementation under GW-FR-108 and GW-FR-113.
 
 **Required behavior:** all current and historical agent Runs are inspectable through one Activity primary workspace across pre-signoff and post-signoff states. Activity is organized as Run/attempt history plus one selected-Run detail; status and actions belong to that selected detail.
 
@@ -1207,7 +1207,7 @@ This rule does not authorize loss of diagnostic evidence or concealment of a req
 
 ### GW-FR-084-WORKFLOW-STEP-INSPECTION-NAVIGATION
 
-> **0.2.2 clarification:** inspection still never mutates lifecycle state, but the target is now the selected workflow-step workspace rather than a generic Documents/Activity/Review mode.
+> **0.3.0 clarification:** inspection still never mutates lifecycle state, but the target is now the selected workflow-step workspace rather than a generic Documents/Activity/Review mode.
 
 **Required behavior:** each user-facing workflow step is usable as non-mutating presentation navigation to its available canonical material or an explicit not-yet-reached state.
 
@@ -1217,7 +1217,7 @@ This rule does not authorize loss of diagnostic evidence or concealment of a req
 
 ### GW-FR-085-WORKBENCH-CHROME-CONSOLIDATION
 
-> **0.2.2 supersession:** the workspace-view selector required below is removed by GW-FR-106; the compact identity row plus workflow rail remain, and task-local controls live inside the selected step workspace.
+> **0.3.0 supersession:** the workspace-view selector required below is removed by GW-FR-106; the compact identity row plus workflow rail remain, and task-local controls live inside the selected step workspace.
 
 **Required behavior:** persistent WorkItem/document/editor chrome is consolidated according to semantic level so orientation and controls remain available while primary-canvas vertical space is maximized.
 
@@ -1375,15 +1375,15 @@ Everything else belongs beside, behind or outside the primary reading path accor
 **Failure/negative behavior:** settings, technical detail, secondary status or redundant helper content must not interrupt the primary reading flow or consume persistent vertical space without a task-critical reason.
 
 
-## 27. Order 0.2.2 workflow-step workspace redesign (2026-11-14)
+## 27. Order 0.3.0 workflow-step workspace redesign (2026-11-14)
 
-This section is the current functional information-architecture authority for the selected WorkItem experience in Order 0.2.2.
+This section is the current functional information-architecture authority for the selected WorkItem experience in Order 0.3.0.
 
 It closes a structural usability failure found after the previous corrective Workbench refactor: the application currently asks the operator to navigate both the lifecycle and a second presentation taxonomy (Documents / Activity / Review / Implementation / Evidence / Result). The second taxonomy describes **information classes**, not user goals. It fragments one workflow step across multiple destinations, creates unnecessary return navigation around proposal review and evidence, and can hide the next lifecycle action after a completed Run.
 
 ### 27.1 Supersession and preserved authority
 
-For 0.2.2 and later, this section supersedes §§4, 19.3, 21.2–21.4, 21.6, 21.9, 24.2–24.4 and requirements GW-FR-052, GW-FR-053, GW-FR-084 and GW-FR-085 **only where** those provisions require a persistent WorkItem workspace-view selector or treat Documents/Activity/Review/Evidence/Result as global WorkItem destinations.
+For 0.3.0 and later, this section supersedes §§4, 19.3, 21.2–21.4, 21.6, 21.9, 24.2–24.4 and requirements GW-FR-052, GW-FR-053, GW-FR-084 and GW-FR-085 **only where** those provisions require a persistent WorkItem workspace-view selector or treat Documents/Activity/Review/Evidence/Result as global WorkItem destinations.
 
 The following existing rules remain authoritative and are intentionally reused:
 
