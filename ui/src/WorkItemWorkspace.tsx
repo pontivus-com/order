@@ -31,8 +31,8 @@ import {
 
 const DocumentWorkspace = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.DocumentWorkspace })));
-const ActivityWorkspace = lazy(() =>
-  import("./ActivityWorkspace.tsx").then((module) => ({ default: module.ActivityWorkspace })));
+const StageRunMaterial = lazy(() =>
+  import("./ActivityWorkspace.tsx").then((module) => ({ default: module.StageRunMaterial })));
 const SignoffReview = lazy(() =>
   import("./SignoffReview.tsx").then((module) => ({ default: module.SignoffReview })));
 const ProposalReview = lazy(() =>
@@ -695,8 +695,9 @@ export const WorkItemWorkspace = ({
             />
           ) : null}
           {material.kind === "STAGE_RUN" ? (
-            <ActivityWorkspace
+            <StageRunMaterial
               workItem={workItem}
+              stage={selectedStep === "R1" || selectedStep === "R2" || selectedStep === "DESIGN" || selectedStep === "PLAN" || selectedStep === "R3" ? selectedStep : "R1"}
               selectedRunId={material.runId}
               onSelectedRunChange={(runId) => {
                 setExplicitMaterial({ kind: "STAGE_RUN", runId });
