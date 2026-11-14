@@ -223,19 +223,10 @@ const selectedMaterialIsAvailable = (
       return input.artifacts.some(
         (artifact) => artifact.id === selection.artifactId,
       );
-    case "PROPOSAL": {
-      const proposal = input.pendingProposal ?? null;
-      if (
-        proposal === null ||
-        proposal.runId !== selection.runId ||
-        proposal.eventId !== selection.eventId
-      ) {
-        return false;
-      }
+    case "PROPOSAL":
       return input.runs.some(
         (run) => run.id === selection.runId && run.stage === input.selectedStep,
       );
-    }
     case "READINESS_REVIEW":
       return input.selectedStep === "R3";
     case "APPROVAL_PACKAGE":
