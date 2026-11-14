@@ -171,9 +171,11 @@ const selectedMaterialIsAvailable = (
       return artifact !== undefined && artifact.role === input.selectedStep;
     }
     case "PROPOSAL": {
+      const proposal = input.pendingProposal ?? null;
       if (
-        input.pendingProposal?.runId !== selection.runId ||
-        input.pendingProposal.eventId !== selection.eventId
+        proposal === null ||
+        proposal.runId !== selection.runId ||
+        proposal.eventId !== selection.eventId
       ) {
         return false;
       }
@@ -209,21 +211,23 @@ const selectedMaterialIsAvailable = (
   }
 };
 
-const selectedStageRun = (
+const latestStageRun = (
   input: WorkflowMaterialResolutionInput,
-  status: "attention" | "active",
 ): Run | null =>
   latestRun(
     input.runs,
-    (run) =>
-      run.stage === input.selectedStep &&
-      run.role === "STAGE" &&
-      (
-        status === "attention"
-          ? runNeedsAttention(run)
-          : runIsActive(run)
-      ),
+    (run) => run.stage === input.selectedStep && run.role === "STAGE",
   );
+
+const selectedStageRun = (
+  input: WorkflowMaterialResolutionInput,
+  status: "attention" | "active",
+): Run | null => {
+  const run = latestStageRun(input);
+  if (!run) return null;
+  if (status === "attention") return runNeedsAttention(run) ? run : null;
+  return runIsActive(run) ? run : null;
+};
 
 const unresolvedInputRun = (
   input: WorkflowMaterialResolutionInput,
