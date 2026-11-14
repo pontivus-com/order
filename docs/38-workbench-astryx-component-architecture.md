@@ -1,17 +1,17 @@
 # 38 — Workbench component architecture and Astryx integration
 
-**Status:** Binding technical design  
+**Status:** Historical V1 technical design; not implementation-ready against current Workbench functional authority  
 **Canonical concern ID:** `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE`  
 **Versioned concern ID:** `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`  
 **Pyramid layer:** P4 technical architecture
 
+> **Downstream re-design required:** `GW-DOC-WORKBENCH-UX-V2` supersedes the V1 functional authority this document was designed against. The workflow-state, messaging, transition, history and stable-geometry contracts must be re-derived at P4/P6 before implementation remediation. In particular, §23 and any V1 component/spatial realization must not be treated as current implementation authority where it conflicts with V2.
 
-
-> **Current 0.3.0 technical authority:** §23 is the current component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
+> **Historical 0.3.0 technical authority:** §23 is the current component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
 
 ## 1. Purpose
 
-This document owns the technical realization of `GW-DOC-WORKBENCH-UX-V1`.
+This document records the V1 technical realization of `GW-DOC-WORKBENCH-UX-V1`. It requires a V2 replacement/revision before further Workbench implementation work proceeds under `GW-DOC-WORKBENCH-UX-V2`.
 
 Order retains its existing React/Vite/TanStack Query application architecture and local semantic workbench boundary. It adopts a pinned subset of **Astryx** as an interaction/component implementation dependency where doing so replaces substantial generic accessibility/layout/control machinery without transferring Order domain semantics or information architecture to the library.
 
