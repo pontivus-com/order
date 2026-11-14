@@ -503,7 +503,7 @@ export const runEventPresentation = (
     case "ARTIFACT_PROPOSAL_CREATED":
       return { label: "Document change proposed", detail: `${payload.targetPath} — ${payload.rationale}`, tone: "warning" };
     case "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED":
-      return { label: "Document review requested", detail: "Review the proposed document change.", tone: "warning" };
+      return { label: "Document adoption in progress", detail: "The proposed document change is being applied and reconciled.", tone: "warning" };
     case "ARTIFACT_PROPOSAL_DISPOSITIONED":
       return {
         label: payload.disposition === "ADOPTED" ? "Document change adopted" : "Document change rejected",
@@ -527,7 +527,7 @@ export const runEventPresentation = (
     case "CONFORMANCE_FAILED":
       return { label: "Conformance check failed", detail: payload.summary, tone: "error" };
     case "PROVIDER_DIAGNOSTICS_RECORDED":
-      return { label: "Technical diagnostics recorded", detail: "Provider diagnostic evidence is available.", tone: "neutral" };
+      return { label: "Technical diagnostics available", detail: "Provider diagnostic evidence is available.", tone: "neutral" };
     case "PRODUCTIVE_INVOCATION_FAILED":
       return { label: "Agent setup blocked", detail: payload.detail, tone: "error" };
     case "PROVIDER_FAILED":
