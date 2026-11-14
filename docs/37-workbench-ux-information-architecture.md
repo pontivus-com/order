@@ -7,11 +7,11 @@
 
 > **Superseded:** This V1 document is retained only so historical references resolve to the exact 0.3.0 functional-design generation. It no longer owns the stable `GW-DOC-WORKBENCH-UX` concern and must not be used as current implementation authority. The current functional design is `GW-DOC-WORKBENCH-UX-V2`.
 
-> **Historical 0.3.0 design authority:** §27 is the current WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
+> **Historical 0.3.0 design authority:** §27 was the final V1 WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
 
 ## 1. Purpose
 
-This document owns Order's **workbench information architecture, spatial allocation, interaction-surface selection and responsive presentation rules**.
+This historical V1 document formerly owned Order's **workbench information architecture, spatial allocation, interaction-surface selection and responsive presentation rules**. Current authority is `GW-DOC-WORKBENCH-UX-V2`.
 
 It exists because a governed software-work application contains materially different information classes:
 
