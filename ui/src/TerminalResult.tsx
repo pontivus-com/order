@@ -43,11 +43,14 @@ const resultText = (workItem: WorkItem): string => {
   }
 };
 
-const outcomeLabel = (workItem: WorkItem): string =>
-  (workItem.outcome ?? "COMPLETE")
+const outcomeLabel = (workItem: WorkItem): string => {
+  const label = (workItem.outcome ?? "COMPLETE")
     .replaceAll("_", " ")
-    .toLowerCase()
-    .replace(/^w/, (value) => value.toUpperCase());
+    .toLowerCase();
+  return label.length === 0
+    ? label
+    : label[0]!.toUpperCase() + label.slice(1);
+};
 
 const decode = (
   bytes: Uint8Array,
