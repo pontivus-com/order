@@ -919,6 +919,40 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   expect(detailBox!.width).toBeGreaterThan(640);
 });
 
+test("narrow workflow work index returns focus and preserves dirty material across recomposition", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 700, height: 800 });
+  await authenticate(page, request);
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await selectWorkflowStep(page, "Implementation plan");
+
+  const editor = page.getByLabel("Implementation plan document Markdown source");
+  await expect(editor).toBeVisible();
+  const initial = await markdownSourceValue(editor);
+  await replaceMarkdownSource(
+    page,
+    editor,
+    initial + "\n# Responsive continuity\n",
+  );
+
+  const trigger = page.getByRole("button", { name: "Plan work" });
+  await trigger.focus();
+  await trigger.click();
+  await expect(page.getByTestId("workflow-step-index-drawer")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByTestId("workflow-step-index-drawer")).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await expect.poll(() => markdownSourceValue(editor))
+    .toContain("# Responsive continuity");
+
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await expect(page.getByTestId("workflow-step-index")).toBeVisible();
+  await expect.poll(() => markdownSourceValue(editor))
+    .toContain("# Responsive continuity");
+});
+
 test("workflow step owns Run history, dialogue, responsive detail, and technical feedback", async ({
   page,
   request,
@@ -1093,6 +1127,9 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   });
   await page.getByRole("button", { name: "Back to workflow attempt" }).click();
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Review proposed document change" }),
+  ).toBeFocused();
   await expect(
     page.getByTestId("workflow-progression")
       .getByRole("button", { name: "Implementation plan" }),
@@ -1390,4 +1427,7 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
 
   await page.getByRole("button", { name: "Back to workflow context" }).click();
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Evidence: review.txt" }).first(),
+  ).toBeFocused();
 });
