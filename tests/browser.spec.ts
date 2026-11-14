@@ -1277,13 +1277,13 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Work request start success");
   const startItem = await workItemForTitle(page, "Work request start success");
+  const researchRun = RunSchema.parse(await fixtureMutation(
+    page.context().request,
+    "/start-stage",
+    { workItemId: startItem.id },
+  ));
   const startPattern = "**/api/work-items/" + startItem.id + "/runs";
   await page.route(startPattern, async (route) => {
-    const researchRun = RunSchema.parse(await fixtureMutation(
-      page.context().request,
-      "/start-stage",
-      { workItemId: startItem.id },
-    ));
     await route.fulfill({
       status: 201,
       contentType: "application/json",
@@ -1322,17 +1322,17 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
     (event) => event.event.tag === "HUMAN_INPUT_REQUESTED",
   );
   expect(requested).toBeDefined();
+  const received = RunEventSchema.parse(await fixtureMutation(
+    page.context().request,
+    "/submit-input",
+    {
+      runId: inputRun!.id,
+      requestEventId: requested!.id,
+      text: "Keep the approved constraint.",
+    },
+  ));
   const inputPattern = "**/api/runs/" + inputRun!.id + "/input";
   await page.route(inputPattern, async (route) => {
-    const received = RunEventSchema.parse(await fixtureMutation(
-      page.context().request,
-      "/submit-input",
-      {
-        runId: inputRun!.id,
-        requestEventId: requested!.id,
-        text: "Keep the approved constraint.",
-      },
-    ));
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -1363,13 +1363,13 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Workflow retry action");
   const retryItem = await workItemForTitle(page, "Workflow retry action");
+  const retryRun = RunSchema.parse(await fixtureMutation(
+    page.context().request,
+    "/start-stage",
+    { workItemId: retryItem.id },
+  ));
   const retryPattern = "**/api/work-items/" + retryItem.id + "/runs";
   await page.route(retryPattern, async (route) => {
-    const retryRun = RunSchema.parse(await fixtureMutation(
-      page.context().request,
-      "/start-stage",
-      { workItemId: retryItem.id },
-    ));
     await route.fulfill({
       status: 201,
       contentType: "application/json",
@@ -1399,12 +1399,12 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Implementation action ready");
   const executionItem = await workItemForTitle(page, "Implementation action ready");
+  await fixtureMutation(
+    page.context().request,
+    "/tick",
+    { workItemId: executionItem.id },
+  );
   await page.route("**/api/tick", async (route) => {
-    await fixtureMutation(
-      page.context().request,
-      "/tick",
-      { workItemId: executionItem.id },
-    );
     await route.fulfill({
       status: 200,
       contentType: "application/json",
