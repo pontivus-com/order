@@ -124,7 +124,10 @@ export const StageRunMaterial = ({
       }
       return api.cancelRun(selectedRun.id);
     },
-    onSuccess: invalidate,
+    onSuccess: async (run) => {
+      onSelectedRunChange(run.id);
+      await invalidate();
+    },
   });
   const retry = useMutation({
     mutationFn: () => api.startInteractiveRun(workItem.id),
