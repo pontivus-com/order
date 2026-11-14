@@ -1142,20 +1142,16 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 });
 
-test("persisted proposal disposition is caught by polling and sign-off review remains explicit", async ({
+test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off attached to selected material", async ({
   page,
   request,
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Proposal review");
 
-  await expect(page.getByTestId("stage-run-material")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Review proposed document change" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
-  await expect(page.getByLabel("Message input")).toBeVisible();
-
-  await page.getByRole("button", { name: "Review proposed document change" }).click();
+  const summary = page.getByTestId("workflow-step-summary");
+  await expect(summary).toContainText("Implementation plan");
+  await expect(summary).toContainText("Proposal review required");
   const proposalReview = page.getByTestId("proposal-review-workspace");
   const proposalDiff = page.getByTestId("proposal-review-diff");
   await expect(proposalReview).toBeVisible();
@@ -1165,52 +1161,31 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   expect(proposalReviewBox).not.toBeNull();
   expect(proposalDiffBox).not.toBeNull();
   expect(proposalDiffBox!.width).toBeGreaterThan(proposalReviewBox!.width * 0.85);
-  await expect(page.getByRole("button", { name: "Adopt" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Reject" })).toBeVisible();
 
-  const contextRequest = page.context().request;
-  const workItemsResponse = await contextRequest.get("/api/work-items");
-  const workItems = WorkItemSchema.array().parse(await workItemsResponse.json());
-  const proposalItem = workItems.find((item) => item.title === "Proposal review");
-  expect(proposalItem).toBeDefined();
+  const adopt = page.getByRole("button", { name: "Adopt" });
+  const reject = page.getByRole("button", { name: "Reject" });
+  await expect(adopt).toBeVisible();
+  await expect(reject).toBeVisible();
 
-  const runsResponse = await contextRequest.get(
-    "/api/work-items/" + proposalItem!.id + "/runs",
-  );
-  const runs = RunSchema.array().parse(await runsResponse.json());
-  const proposalRun = runs
-    .filter((run) => run.role === "STAGE" && run.stage === "PLAN")
-    .sort((left, right) => right.attempt - left.attempt)[0];
-  expect(proposalRun).toBeDefined();
-
-  const eventsResponse = await contextRequest.get(
-    "/api/runs/" + proposalRun!.id + "/events?afterSequence=0",
-  );
-  const events = RunEventSchema.array().parse(await eventsResponse.json());
-  const proposal = events.find((event) =>
-    event.event.tag === "ARTIFACT_PROPOSAL_CREATED");
-  expect(proposal).toBeDefined();
-
-  const rejected = await contextRequest.post(
-    "/api/run-events/" + proposal!.id + "/reject",
-    {
-      headers: { origin: baseURL },
-      data: {},
-    },
-  );
-  expect(rejected.status()).toBe(200);
-  await expect(page.getByText("Rejected", { exact: true }).first()).toBeVisible({
+  let releaseAdopt = (): void => {};
+  const adoptBarrier = new Promise<void>((resolve) => {
+    releaseAdopt = resolve;
+  });
+  await page.route("**/api/run-events/*/adopt", async (route) => {
+    await adoptBarrier;
+    await route.continue();
+  });
+  await adopt.click();
+  await expect(adopt).toBeDisabled();
+  await expect(reject).toBeDisabled();
+  releaseAdopt();
+  await expect(page.getByText("Adopted", { exact: true })).toBeVisible({
     timeout: 5_000,
   });
+  await page.unroute("**/api/run-events/*/adopt");
+
   await page.getByRole("button", { name: "Back to workflow attempt" }).click();
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Review proposed document change" }),
-  ).toBeFocused();
-  await expect(
-    page.getByTestId("workflow-progression")
-      .getByRole("button", { name: "Implementation plan" }),
-  ).toHaveAttribute("aria-current", "step");
   const proposalIndex = page.getByTestId("workflow-step-index");
   await proposalIndex.getByText("Attempt 1", { exact: true }).click();
   await expect(
@@ -1219,10 +1194,37 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await expect(
     page.getByText("Document change adopted", { exact: true }),
   ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
+
+  await backToQueue(page);
+  await openWorkItem(page, "Proposal rejection review");
+  await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
+  const rejectAction = page.getByRole("button", { name: "Reject" });
+  const adoptAction = page.getByRole("button", { name: "Adopt" });
+  let releaseReject = (): void => {};
+  const rejectBarrier = new Promise<void>((resolve) => {
+    releaseReject = resolve;
+  });
+  await page.route("**/api/run-events/*/reject", async (route) => {
+    await rejectBarrier;
+    await route.continue();
+  });
+  await rejectAction.click();
+  await expect(rejectAction).toBeDisabled();
+  await expect(adoptAction).toBeDisabled();
+  releaseReject();
+  await expect(page.getByText("Rejected", { exact: true })).toBeVisible({
+    timeout: 5_000,
+  });
+  await page.unroute("**/api/run-events/*/reject");
 
   await backToQueue(page);
   await openWorkItem(page, "Awaiting sign-off");
   await expect(page.getByTestId("review-workspace")).toBeVisible();
+  await expect(page.getByTestId("workflow-step-summary")).toContainText(
+    "Package current · ready to sign",
+  );
   await expect(page.getByTestId("signoff-package-hash")).toHaveText(
     /^sha256:[0-9a-f]{64}$/,
   );
@@ -1233,17 +1235,34 @@ test("persisted proposal disposition is caught by polling and sign-off review re
 
   await approvalIndex.getByText("Implementation plan", { exact: true }).click();
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
-  await expect(
-    page.getByLabel("Implementation plan document Markdown source"),
-  ).toHaveCount(0);
+  await expect(page.getByLabel("Approved by")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
+  await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
 
   await approvalIndex.getByText("T1", { exact: true }).click();
   await expect(page.getByTestId("approval-task-detail"))
     .toContainText("Prove the browser candidate surface");
-
-  await approvalIndex.getByText("Overview", { exact: true }).click();
   await expect(page.getByLabel("Approved by")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
+  await page.getByLabel("Approved by").fill("browser-approver");
+
+  const signoff = page.getByRole("button", { name: "Sign off exact package" });
+  let releaseSignoff = (): void => {};
+  const signoffBarrier = new Promise<void>((resolve) => {
+    releaseSignoff = resolve;
+  });
+  await page.route("**/api/work-items/*/signoff", async (route) => {
+    await signoffBarrier;
+    await route.continue();
+  });
+  await signoff.click();
+  await expect(signoff).toBeDisabled();
+  await expect(page.getByLabel("Approved by")).toBeDisabled();
+  releaseSignoff();
+  await page.unroute("**/api/work-items/*/signoff");
+  await expect(
+    page.getByTestId("workflow-progression")
+      .getByRole("button", { name: "Implementation", exact: true }),
+  ).toHaveAttribute("aria-current", "step", { timeout: 5_000 });
 });
 
 test("source editor preserves stale buffers, never overwrites newer source, and returns work visibly to R1", async ({
