@@ -1,13 +1,13 @@
-# 37 — Workbench UX and information architecture
+# 37 — Workbench UX and information architecture — superseded V1
 
-**Status:** Binding functional design  
-**Canonical concern ID:** `GW-DOC-WORKBENCH-UX`  
+**Status:** Superseded historical functional-design snapshot  
 **Versioned concern ID:** `GW-DOC-WORKBENCH-UX-V1`  
+**Current canonical owner:** `GW-DOC-WORKBENCH-UX-V2` → `docs/50-order-workbench-functional-design.md`  
 **Pyramid layer:** P3 functional requirements
 
+> **Superseded:** This V1 document is retained only so historical references resolve to the exact 0.3.0 functional-design generation. It no longer owns the stable `GW-DOC-WORKBENCH-UX` concern and must not be used as current implementation authority. The current functional design is `GW-DOC-WORKBENCH-UX-V2`.
 
-
-> **Current 0.3.0 design authority:** §27 is the current WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
+> **Historical 0.3.0 design authority:** §27 is the current WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
 
 ## 1. Purpose
 
