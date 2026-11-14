@@ -1066,6 +1066,73 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
   }
 });
 
+test("canonical Run feedback remains visible in the owning workflow context without synthetic progress", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  await openWorkItem(page, "Workflow input required");
+  await expect(page.getByText("Waiting for you", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Your input is needed", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Which constraint should the plan prioritize?", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow failure feedback");
+  const failureIndex = page.getByTestId("workflow-step-index");
+  await expect(page.getByText("Work is blocked", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Conformance check failed", { exact: true }),
+  ).toBeVisible();
+
+  await failureIndex.getByText("Attempt 2", { exact: true }).click();
+  await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Technical diagnostics recorded", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Evidence: provider-diagnostics.json" }),
+  ).toBeVisible();
+
+  await failureIndex.getByText("Attempt 3", { exact: true }).click();
+  await expect(
+    page.getByText("Agent execution failed", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Approved authority changed", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Repository changed", { exact: true })).toBeVisible();
+
+  await failureIndex.getByText("Attempt 1", { exact: true }).click();
+  await expect(page.getByText("Cancelled", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Attempt cancelled", { exact: true })).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Already satisfied implementation");
+  await expect(page.getByText("No change required", { exact: true })).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Failed implementation feedback");
+  const implementationIndex = page.getByTestId("workflow-step-index");
+  await expect(
+    page.getByText("Independent review failed", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText("Validation failed", { exact: true })).toBeVisible();
+
+  await implementationIndex
+    .getByText(/Implementation agent · Attempt 1/)
+    .click();
+  await expect(page.getByText("Verification passed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Verification failed", { exact: true })).toBeVisible();
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
+  await backToQueue(page);
+});
+
 test("persisted proposal disposition is caught by polling and sign-off review remains explicit", async ({
   page,
   request,
@@ -1134,6 +1201,14 @@ test("persisted proposal disposition is caught by polling and sign-off review re
     page.getByTestId("workflow-progression")
       .getByRole("button", { name: "Implementation plan" }),
   ).toHaveAttribute("aria-current", "step");
+  const proposalIndex = page.getByTestId("workflow-step-index");
+  await proposalIndex.getByText("Attempt 1", { exact: true }).click();
+  await expect(
+    page.getByText("Document review requested", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Document change adopted", { exact: true }),
+  ).toBeVisible();
 
   await backToQueue(page);
   await openWorkItem(page, "Awaiting sign-off");
@@ -1396,8 +1471,15 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   const implementationIndex = page.getByTestId("workflow-step-index");
-  await implementationIndex.getByText(/Independent review · Attempt 1/).click();
+  await implementationIndex.getByText(/Implementation agent · Attempt 1/).click();
+  await expect(
+    page.getByText("Candidate state recorded", { exact: true }),
+  ).toBeVisible();
 
+  await implementationIndex.getByText(/Independent review · Attempt 1/).click();
+  await expect(
+    page.getByText("Independent review passed", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText("Verified candidate recorded", { exact: true }).first(),
   ).toBeVisible();
