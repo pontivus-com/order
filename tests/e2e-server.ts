@@ -456,7 +456,7 @@ const adoptionPendingRun = RunSchema.parse({
   mode: "INTERACTIVE",
   role: "STAGE",
   triggerEventId: null,
-  status: "RUNNING",
+  status: "WAITING_FOR_INPUT",
   attempt: 1,
   baselineCommit,
   contextHash: sha256Text("proposal-adoption-pending-context"),
