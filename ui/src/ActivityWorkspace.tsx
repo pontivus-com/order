@@ -59,7 +59,7 @@ export const StageRunMaterial = ({
   selectedRunId: Run["id"] | null;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
-  onOpenProposalReview: (selection: ProposalSelection) => void;
+  onOpenProposalReview?: (selection: ProposalSelection) => void;
 }>) => {
   const queryClient = useQueryClient();
   const runsQuery = useQuery({
