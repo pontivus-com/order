@@ -207,7 +207,7 @@ const selectedMaterialIsAvailable = (
     case "STEP_STATE":
       return true;
     case "UNREACHED":
-      return stepState === "UNREACHED";
+      return false;
   }
 };
 
