@@ -906,13 +906,14 @@ describe("architecture fitness", () => {
 
     const presentationPolicy = sourceText("ui/src/workbench-presentation.ts");
     for (const requiredOwner of [
-      "export type WorkItemMode",
+      "export type WorkflowMaterial",
       "export type EvidenceSelection",
+      "export const workflowStepState",
+      "export const resolveWorkflowMaterial",
       "export const runIsActive",
+      "export const runEventPresentation",
       "export const proposalDispositionFor",
       "export const lifecycleArtifactRoleRank",
-      "export const workItemInitialMode",
-      "export const workflowInspectionTarget",
     ]) {
       if (!presentationPolicy.includes(requiredOwner)) {
         violations.push(
@@ -942,10 +943,26 @@ describe("architecture fitness", () => {
         );
       }
     }
-    if (!workItemChrome.includes("workflowInspectionTarget")) {
-      violations.push(
-        "ui/src/WorkItemWorkspace.tsx must use the pure workflow inspection projection",
-      );
+    for (const required of ["workflowStepState", "resolveWorkflowMaterial"]) {
+      if (!workItemChrome.includes(required)) {
+        violations.push(
+          "ui/src/WorkItemWorkspace.tsx must use the workflow-step presentation owner: " + required,
+        );
+      }
+    }
+    for (const forbidden of [
+      "workspace-view-selector",
+      "SegmentedControlItem",
+      "visibleModes",
+      "workItemInitialMode",
+      "workflowInspectionTarget",
+      "returnMode",
+    ]) {
+      if (workItemChrome.includes(forbidden)) {
+        violations.push(
+          "ui/src/WorkItemWorkspace.tsx must not retain superseded global mode navigation: " + forbidden,
+        );
+      }
     }
     if (!markdownChrome.includes("toolbarAccessory")) {
       violations.push(
