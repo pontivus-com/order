@@ -1096,9 +1096,11 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Evidence: provider-diagnostics.json" }),
-  ).toBeVisible();
+  const setupEvidence = page
+    .locator('[data-evidence-path="provider-diagnostics.json"]')
+    .first()
+    .getByRole("button", { name: "Evidence: provider-diagnostics.json" });
+  await expect(setupEvidence).toBeVisible();
 
   await failureIndex.getByText("Attempt 3", { exact: true }).click();
   await expect(
@@ -1523,7 +1525,13 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   }
 
   console.log("browser-checkpoint candidate: validation complete");
-  await page.getByRole("button", { name: "Evidence: review.txt" }).first().click();
+  const reviewEvidence = page
+    .locator('[data-evidence-path="review.txt"]')
+    .first()
+    .getByRole("button", { name: "Evidence: review.txt" });
+  await expect(reviewEvidence).toBeVisible();
+  await reviewEvidence.scrollIntoViewIfNeeded();
+  await reviewEvidence.click();
   console.log("browser-checkpoint candidate: evidence clicked");
   await expect(page.getByTestId("evidence-workspace")).toBeVisible();
   const raw = page.getByTestId("raw-content-view");
@@ -1539,6 +1547,9 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   console.log("browser-checkpoint candidate: evidence back");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Evidence: review.txt" }).first(),
+    page
+      .locator('[data-evidence-path="review.txt"]')
+      .first()
+      .getByRole("button", { name: "Evidence: review.txt" }),
   ).toBeFocused();
 });
