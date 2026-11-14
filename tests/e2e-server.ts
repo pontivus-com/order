@@ -607,7 +607,7 @@ await seedProgressionReadyItem(
 const feedbackItem = workItem(
   "Workflow failure feedback",
   "PLAN",
-  "BLOCKED",
+  "ACTIVE",
   null,
 );
 storeWorkItem(database, feedbackItem);
@@ -734,6 +734,49 @@ persistEvent(blockedFeedbackRun.id, 2, {
   defectiveLayer: "P7",
   summary: "The current plan failed conformance.",
   evidence: [],
+});
+
+const latestFeedbackRun = feedbackRun(
+  5,
+  "CANCELLED",
+  "COORDINATOR_INTERRUPTED",
+);
+persistEvent(latestFeedbackRun.id, 1, {
+  tag: "OBSERVATION_RECORDED",
+  title: "Latest attempt cancelled",
+  detail: "The latest attempt is terminal and does not demand current recovery.",
+  evidence: [],
+});
+
+const resumeItem = workItem(
+  "Workflow resume action",
+  "PLAN",
+  "BLOCKED",
+  null,
+);
+storeWorkItem(database, resumeItem);
+const resumeRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: resumeItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "BLOCKED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("resume-action-context"),
+  providerSessionId: null,
+  terminalClassification: "TEST_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, resumeRun);
+persistEvent(resumeRun.id, 1, {
+  tag: "STAGE_BLOCKED",
+  reason: "Synthetic blocker for browser Resume certification.",
+  owningStage: "PLAN",
 });
 
 const waitingInputItem = workItem(
