@@ -465,11 +465,7 @@ describe("Run presentation", () => {
 
     const presentations = payloads.map((payload, index) => {
       const parsed = RunEventSchema.parse({
-        id: `event_${[
-          uuidA, uuidB, uuidC, uuidD, uuidE, uuidF, uuidG, uuidH, uuidI,
-          uuidA, uuidB, uuidC, uuidD, uuidE, uuidF, uuidG, uuidH, uuidI,
-          uuidA, uuidB, uuidC, uuidD, uuidE, uuidF, uuidG,
-        ][index]!}`,
+        id: eventId,
         runId: `run_${uuidA}`,
         sequence: index + 1,
         occurredAt: stamp,
