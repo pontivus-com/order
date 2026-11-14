@@ -649,7 +649,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
   await expect(context.locator(
-    '[data-testid="document-workspace"], [data-testid="activity-workspace"], [data-testid="review-workspace"], [data-testid="execution-workspace"], [data-testid="evidence-workspace"]',
+    '[data-testid="workflow-step-frame"], [data-testid="stage-run-material"], [data-testid="lifecycle-document-material"], [data-testid="review-workspace"], [data-testid="execution-workspace"], [data-testid="evidence-workspace"]',
   )).toHaveCount(0);
 
   await page.goBack();
@@ -660,7 +660,9 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.setViewportSize({ width: 1000, height: 800 });
   await expect(page.getByTestId("work-item-context")).toHaveCount(0);
   await expect(page.getByTestId("work-item-context-drawer")).toBeVisible();
-  await expect(page.getByTestId("work-item-context-drawer").locator('[data-testid="activity-workspace"]')).toHaveCount(0);
+  await expect(
+    page.getByTestId("work-item-context-drawer").locator('[data-testid="stage-run-material"]'),
+  ).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("work-item-context-drawer")).toBeHidden();
 
