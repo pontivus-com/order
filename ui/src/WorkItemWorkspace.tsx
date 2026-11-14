@@ -243,20 +243,15 @@ export const WorkItemWorkspace = ({
 
   useEffect(() => {
     if (dirty) return;
-    const state = workflowStepState(workItem, selectedStep);
-    if (
-      state === "UNREACHED" ||
-      (!workflowInspectionActive && selectedStep !== workItem.stage)
-    ) {
+    if (!workflowInspectionActive && selectedStep !== workItem.stage) {
       setSelectedStep(workItem.stage);
       setExplicitMaterial(null);
       setReturnSelection(null);
-      setWorkflowInspectionActive(false);
     }
   }, [
     dirty,
     selectedStep,
-    workItem,
+    workItem.stage,
     workflowInspectionActive,
   ]);
 
