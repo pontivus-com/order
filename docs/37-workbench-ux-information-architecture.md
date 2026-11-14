@@ -1845,3 +1845,242 @@ Responsive recomposition must preserve selected workflow step, selected Run/task
 **Acceptance criterion:** wide, medium and narrow layouts retain the same workflow semantics and preserve unsaved/selected state through presentation changes.
 
 **Failure/negative behavior:** responsive reduction must not reintroduce generic mode navigation, move consequential actions away from their material, or discard selected/dirty context.
+
+
+### 27.17 Canonical workflow-step panel grammar
+
+Every selected workflow step is composed from the same semantic regions. A region exists only when its information class is present; empty regions do not reserve space.
+
+**A. Step summary strip — compact, intrinsic height**
+
+The first row inside the selected step workspace contains only:
+
+- selected step label and one-sentence purpose;
+- current/reached/historical state;
+- concise Run/currentness/blocker state when material;
+- exactly one dominant current action when one exists.
+
+This strip is not another navigation row. It does not contain document tabs, attempt lists, hashes, raw ids or long explanatory copy.
+
+**B. Step work index — optional leading region**
+
+A leading region is permitted only when the selected step has multiple inspectable work objects that the operator must switch among, such as multiple Runs/attempts, a governed stage document and supporting package material.
+
+On wide layouts it is approximately 14–18 rem. It contains compact selectable rows, grouped by semantic role. It never renders full messages, Markdown, diffs, evidence or diagnostics.
+
+The index is omitted when the step has only one meaningful material object. On medium/narrow layouts it collapses to a temporary selector/drawer before the primary material is compressed.
+
+**C. Primary material canvas — dominant region**
+
+Exactly one information object or coherent task owns the primary material canvas at a time:
+
+- source/lifecycle Markdown;
+- selected Run dialogue/timeline;
+- proposal diff;
+- readiness/package review;
+- implementation task/Run detail;
+- evidence/raw material;
+- terminal result.
+
+Its geometry follows §3. Supporting information must not reduce it below the applicable minimum width merely to remain simultaneously visible.
+
+**D. Task-local action region — intrinsic/sticky only when required**
+
+Actions whose meaning depends on the selected primary material stay attached to that material:
+
+- composer → selected live STAGE Run;
+- Save/Cancel/Git save → selected editable Markdown;
+- Adopt/Reject → selected proposal;
+- sign off → selected Approval package;
+- implementation current action → selected execution task/workflow state;
+- linked remediation → eligible terminal result.
+
+The action region disappears when the selected material has no current mutation.
+
+**E. Context/Technical details — on demand**
+
+The trailing Context/Technical surface contains supporting exact identity and diagnostics only. It does not own normal workflow navigation and cannot become the only location of a blocker, failure reason or required current action.
+
+This grammar is stable across workflow steps. Step-specific content determines which regions are populated.
+
+### 27.18 Deterministic primary-material priority
+
+The selected workflow step must have a deterministic primary material so the user never lands on an arbitrary panel.
+
+For the **current pre-signoff step**, after preserving an explicitly selected dirty document/material that cannot be safely replaced, priority is:
+
+1. terminal/active blocker or failed Run receipt requiring recovery;
+2. unresolved HUMAN_INPUT_REQUESTED on the selected/current Run;
+3. pending artifact proposal requiring disposition;
+4. active STAGE Run dialogue;
+5. current governed stage artifact when it exists;
+6. start/empty state for a current stage with no Run/artifact yet.
+
+For a **reached historical pre-signoff step**:
+
+1. current governed artifact when it exists;
+2. otherwise the latest Run/attempt receipt;
+3. otherwise an explicit no-material state.
+
+Historical Run selection never shows an active composer. If the historical stage artifact remains directly editable under GW-DOC-MARKDOWN-WORKBENCH-V1, the edit surface must state that saving can return the WorkItem to that owning stage and invalidate downstream material.
+
+For **Readiness review**:
+
+1. blocker/failed review requiring recovery;
+2. unresolved human input when the current R3 Run legitimately requests it;
+3. readiness review/verdict material, with Run history as supporting inspection.
+
+For **Approval**, the exact current sign-off package is always the primary material while the WorkItem is AWAITING_SIGNOFF. Package-unavailable/stale state replaces it with an actionable review blocker; it does not fall back to a generic document screen.
+
+For **Implementation**, the selected/current execution task is primary; within it an active/attention Run receives operational detail priority over passive candidate/history material.
+
+For **Complete**, the final governed result is primary. Reached earlier steps remain historical inspection through the workflow rail.
+
+A user-initiated selection of another valid material item is preserved until canonical state makes that material invalid, a higher-priority blocking/required-input condition demands attention, or the operator explicitly returns to the current task.
+
+### 27.19 Per-step panel and information-division contract
+
+| Step | Step summary | Optional work index | Primary material default | Supporting/secondary information | Task-local action region |
+|---|---|---|---|---|---|
+| **Work request** | source validity/current stage + Start Research eligibility | normally none | WorkItem source Markdown | kind/concerns, Git state, source diagnostics; exact source/path/hash in Technical details | editor Save/Cancel/Git save; Start Research in step summary/current-action area |
+| **Research** | Research state, latest/current Run state, blocker/current action | Research attempts + Research document when both exist | active/required-input Run; pending proposal when review is required; otherwise Research document | Work request summary, evidence/resources, conformance/verdict, technical provider diagnostics | composer/Cancel/Retry/Resume with Run; Adopt/Reject with proposal; Save/Cancel with document |
+| **Requirements** | Requirements state + current action | Requirements attempts + Requirements document | active/required-input Run; pending proposal; otherwise Requirements document | relevant Research/source context, evidence, conformance/failure | same stage-local action grammar as Research |
+| **Solution design** | Design state + current action | Design attempts + Solution design document | active/required-input Run; pending proposal; otherwise Solution design document | accepted requirements, architecture/ADR/contract references, evidence | same stage-local action grammar |
+| **Implementation plan** | Plan state + current action | Plan attempts + plan document; compact task/change-surface inspection when useful | active/required-input Run; pending proposal; otherwise plan document | requirement/design traceability, task/dependency/change-surface summaries, evidence | same stage-local action grammar |
+| **Readiness review** | readiness state/verdict/current blocker | review attempt history + supporting lifecycle material index | readiness findings/verdict; required-input Run only when action is needed | read-only R1–PLAN material, evidence, exact return layer, technical Run details | Start/Retry Readiness; composer only for legitimate active input request |
+| **Approval** | package currentness + approval readiness | package material index: lifecycle docs + signed tasks | exact sign-off package/task review | source binding, blockers; hashes/baseline in Technical details | approver identity + Sign off exact package attached to review |
+| **Implementation** | overall execution/task state + current action | approved task master; selected task attempts | selected task + active/attention Run detail | gates/validation matrix, candidate/evidence/resources, technical Run detail | Run next/Resume/Cancel/recovery according to canonical execution state |
+| **Complete** | terminal outcome | normally none; reached workflow rail supplies history | final result/candidate material | supporting evidence and prior-step history | Create linked remediation only for eligible investigation/audit result |
+
+The table defines information division, not mandatory visual component names. A component implementation may combine adjacent compact regions when their semantic jobs remain clear and no information is duplicated.
+
+### 27.20 Canonical Run/OpenCode feedback presentation
+
+The browser does not consume OpenCode's private/live event stream. User-visible agent feedback is the canonical Order projection: Run status plus persisted RunEvents and evidence. **Every canonical RunEvent tag must have an intentional user presentation.** No event may disappear merely because a screen-specific allow-list does not recognize it.
+
+#### Run status
+
+| Run status | Primary presentation |
+|---|---|
+| RUNNING | selected Run header shows Running; dialogue/operational surface remains active; no invented percentage/progress text |
+| WAITING_FOR_INPUT | high-priority "Waiting for you" state + unresolved question + composer |
+| COMPLETED | completion receipt/history; composer absent |
+| BLOCKED | primary blocker/recovery receipt in owning step/task; history retained |
+| FAILED | primary failure/retry/recovery receipt in owning step/task; history retained |
+| CANCELLED | neutral terminal receipt/history; no implicit retry |
+
+#### Persisted RunEvent feedback
+
+| RunEvent | Ordinary presentation and placement | Interaction / promotion |
+|---|---|---|
+| STAGE_STARTED | compact timeline receipt with workflow label/start time | none |
+| AGENT_MESSAGE_FINAL | full agent message in selected Run timeline; attached evidence listed below message | evidence opens in owning step |
+| HUMAN_INPUT_REQUESTED | warning/attention message and unresolved-question summary; becomes task-priority feedback | composer anchored to selected live Run |
+| HUMAN_INPUT_RECEIVED | operator response in timeline | none |
+| ARTIFACT_PROPOSAL_CREATED | proposal receipt with target/rationale/disposition state | Review proposed change promotes diff to Review-class primary material |
+| ARTIFACT_PROPOSAL_ADOPTION_REQUESTED | in-progress adoption feedback; proposal actions disabled while adoption is being applied/reconciled | no second adoption action |
+| ARTIFACT_PROPOSAL_DISPOSITIONED | adopted/rejected confirmation attached to proposal history | adopted artifact becomes available through owning stage material |
+| STAGE_COMPLETED | explicit step outcome receipt; current workflow orientation refreshes from canonical WorkItem | successful progression exposes next step/current action; terminal R1 outcomes route to Complete |
+| STAGE_BLOCKED | primary blocker with human-readable reason and owning step | Resume/retry only when canonical state permits |
+| TASK_ALREADY_SATISFIED | success/no-change-required task receipt | task/overall completion follows canonical execution state |
+| CONFORMANCE_PASSED | compact successful conformance receipt; evidence resources exposed | no action |
+| CONFORMANCE_FAILED | primary step failure/blocker with summary and defective layer when available | evidence opens; recovery follows canonical owning stage |
+| PROVIDER_DIAGNOSTICS_RECORDED | secondary "Technical diagnostics available" receipt | evidence opens in Evidence/Technical material; raw provider ids/details stay secondary |
+| PRODUCTIVE_INVOCATION_FAILED | primary **Agent setup blocked** failure with PRECONDITION_FAILED/ENVIRONMENT_BLOCKED meaning and human-actionable detail | Retry/resolve only according to canonical failure state; never relabel as provider execution failure |
+| PROVIDER_FAILED | primary **Agent execution failed** receipt with actionable detail | evidence/diagnostics available; retry/recovery follows Run policy |
+| GATE_PASSED | compact verification row/state for the named gate | evidence opens |
+| GATE_FAILED | failed gate highlighted in validation/task detail | evidence + canonical recovery |
+| REVIEW_PASSED | independent-review success in validation/review summary | evidence opens |
+| REVIEW_FAILED | primary independent-review failure; BLOCKED_FOR_REANALYSIS also shows exact return stage | evidence + canonical return/recovery |
+| VALIDATION_PASSED | V0–V7 validation matrix/summary success for the named stage | evidence opens |
+| VALIDATION_FAILED | V0–V7 failure highlighted with classification + summary | evidence + canonical recovery/return |
+| CANDIDATE_STATE_RECORDED | candidate summary with changed-path count/list and patch resource | patch/evidence opens in Evidence geometry |
+| CANDIDATE_RECORDED | verified-candidate success receipt linked to final validation chain | inspect candidate/validation evidence |
+| AUTHORITY_CHANGED | high-priority stale-authority warning/blocker | route to canonical owning stage/currentness recovery |
+| REPOSITORY_DRIFTED | high-priority repository-drift warning/blocker | show expected/current baseline in Technical details; canonical recovery |
+| OBSERVATION_RECORDED | normal observation message with title/detail | evidence opens when present |
+
+Pass/success events may be summarized in compact validation/conformance structures when rendering every event as a full timeline card would create noise, but the exact persisted event remains inspectable. Failure, blocker, required-input, proposal and terminal-outcome feedback may not be hidden behind Technical details.
+
+### 27.21 OpenCode integration feedback boundary
+
+The user-facing Workbench must expose **all feedback that Order canonically receives and persists from productive OpenCode work**, but it must not fabricate feedback that the integration does not provide.
+
+The current integration contract provides:
+
+- Run status and timing;
+- final agent messages;
+- human-input requests and received responses;
+- artifact proposals/dispositions;
+- stage completion/blocking;
+- conformance outcomes;
+- productive-admission versus provider-execution failure classification;
+- provider diagnostic evidence;
+- post-signoff gate/review/validation/candidate events;
+- evidence references.
+
+The current integration deliberately does **not** expose OpenCode token deltas, hidden reasoning, tool-call streaming, percentage completion, provider queue state or arbitrary live OpenCode events to the browser. While a provider turn is executing between persisted events, the truthful ordinary feedback is the canonical Run state **Running** plus any already-persisted events. The UI must not invent "thinking", percentage, step counts or fake progress.
+
+ProviderDiagnosticRecord fields such as provider/model/session/prompt ids, timing, outcome, format-repair state, failure phase and exception detail are diagnostic evidence. Human-readable failure/recovery information appears in the primary workflow surface; exact diagnostic records remain Technical details/Evidence.
+
+The globally selected OpenCode account remains visible through the existing application-level account control. A productive Run cannot straddle an account change under GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1. The workflow step does not duplicate account-management UI.
+
+If a future product requirement needs live token/tool/progress streaming, that is a new browser-observation/transport requirement and must return through P3/P4/P6; it must not be improvised inside this redesign.
+
+### 27.22 Interaction-result feedback
+
+Every consequential operator mutation must provide immediate local pending state and an unambiguous canonical result in the same workflow context.
+
+- **Start stage:** disable/relabel the initiating action while pending; on success show/select the created Run; on failure retain the step and show the canonical error.
+- **Submit human input:** disable duplicate submit while pending; persisted HUMAN_INPUT_RECEIVED confirms acceptance; Run state then reflects continued work/waiting/completion.
+- **Cancel Run:** show pending state; terminal CANCELLED/blocked outcome remains in the owning Run history.
+- **Retry/Resume:** pending action stays with failure receipt; success selects/refetches the resulting canonical Run/state.
+- **Adopt proposal:** disable Adopt/Reject once adoption is requested; display adoption-in-progress; disposition/adopted artifact confirms completion; return to exact owning step/Run.
+- **Reject proposal:** disable duplicate disposition; persisted rejected disposition confirms completion; return to exact owning step/Run.
+- **Save Markdown:** retain existing dirty/saving/saved/conflict/error semantics; downstream return/invalidation is surfaced when canonical state changes.
+- **Save documentation to Git:** pending/success/error remains with document controls; exact Git details stay secondary.
+- **Sign off:** keep package visible while pending; success advances to Implementation; stale/changed package failure keeps Approval primary and requires refreshed package review.
+- **Run/advance implementation:** pending state remains with Implementation; new/updated task and Run state is read from canonical queries.
+- **Create linked remediation:** pending/success/error remains with Complete result; created WorkItem is a separate governed object.
+
+Navigation-only interactions (select step, attempt, document, task, evidence, Technical details) must not display mutation pending states and must not alter canonical state.
+
+### GW-FR-116-WORKFLOW-STEP-PANEL-CONTRACT
+
+**Required behavior:** every workflow step composes information through the canonical step-summary, optional work-index, primary-material, task-local-action and on-demand-context regions in §27.17 and the per-step contract in §27.19.
+
+**Acceptance criterion:** for every step and material state, an implementer can determine what is primary, what is supporting, where actions live and what collapses responsively without inventing another panel hierarchy.
+
+**Failure/negative behavior:** implementation must not use generic card accumulation, arbitrary tabs or equal-weight panes where the canonical information division identifies primary versus supporting material.
+
+### GW-FR-117-DETERMINISTIC-PRIMARY-MATERIAL
+
+**Required behavior:** current, historical, blocked, waiting-input, proposal, active-Run, document, approval, execution and complete states resolve to the deterministic primary material priority in §27.18.
+
+**Acceptance criterion:** opening or refreshing a WorkItem yields the same meaningful primary task from the same canonical state, while explicit valid user selection and dirty-buffer safety are preserved.
+
+**Failure/negative behavior:** the operator must not land on an arbitrary document/activity panel or have required-input/blocker feedback hidden by a stale presentation selection.
+
+### GW-FR-118-CANONICAL-RUN-FEEDBACK-COMPLETENESS
+
+**Required behavior:** every canonical Run status and RunEvent payload has an intentional human-readable presentation according to §27.20, with material failure/input/proposal/terminal feedback promoted out of Technical details.
+
+**Acceptance criterion:** adding or exercising any currently defined RunEvent tag produces visible/inspectable feedback in the owning workflow step/task, and evidence remains reachable.
+
+**Failure/negative behavior:** screen-specific event allow-lists must not silently drop canonical events or force the operator to inspect raw JSON to understand a failure or required action.
+
+### GW-FR-119-INTERACTION-RESULT-FEEDBACK
+
+**Required behavior:** every consequential operator mutation provides local pending protection and canonical success/failure feedback in the same workflow context according to §27.22.
+
+**Acceptance criterion:** duplicate mutations are prevented while pending and completion/error never strands the user in an unrelated step/material.
+
+**Failure/negative behavior:** buttons must not appear inert, permit accidental double submission, or navigate away before the canonical result can be understood.
+
+### GW-FR-120-OPENCODE-FEEDBACK-BOUNDARY
+
+**Required behavior:** the Workbench exposes all canonical Order Run/RunEvent/evidence feedback produced from OpenCode while accurately representing the absence of browser-level provider streaming.
+
+**Acceptance criterion:** Running/Waiting/failed/completed states and persisted semantic feedback are truthful; provider diagnostics are inspectable; no fake token/tool/percentage progress is presented.
+
+**Failure/negative behavior:** the UI must not imply access to hidden reasoning, token streaming or provider progress that Order does not canonically observe, and must not hide persisted OpenCode-origin feedback that Order does observe.
