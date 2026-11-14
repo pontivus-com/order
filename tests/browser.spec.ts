@@ -843,7 +843,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
   );
 });
 
-test("workbench geometry gives the active task the canvas and recomposes narrow queue rows", async ({
+test("workflow-step geometry gives the selected task the canvas and recomposes narrow queue rows", async ({
   page,
   request,
 }) => {
@@ -851,13 +851,6 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   await authenticate(page, request);
 
   const loadingItem = await workItemForTitle(page, "Lifecycle editing workbench");
-  await page.route(
-    "**/api/work-items/" + loadingItem.id + "/source",
-    async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 700));
-      await route.continue();
-    },
-  );
   await page.route(
     "**/api/work-items/" + loadingItem.id + "/lifecycle-artifacts",
     async (route) => {
@@ -867,8 +860,8 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   );
 
   await openWorkItem(page, "Lifecycle editing workbench");
-  await page.getByRole("radio", { name: "Documents" }).click();
-  const loadingWorkspace = page.getByTestId("document-workspace");
+  await selectWorkflowStep(page, "Implementation plan");
+  const loadingWorkspace = page.getByTestId("lifecycle-document-material");
   await expect(loadingWorkspace).toBeVisible();
   const loadingBox = await loadingWorkspace.boundingBox();
   expect(loadingBox).not.toBeNull();
@@ -877,17 +870,13 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   await expect(page.getByRole("button", { name: "Context" })).toBeVisible();
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
-  await page.getByRole("radio", { name: "Documents" }).click();
-  await expect(page.getByRole("tablist")).toHaveCount(1);
+  await expect(page.getByRole("radio", { name: "Documents" })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
+  await expect(page.getByTestId("governed-document-nav")).toHaveCount(0);
   await expect(page.getByTestId("document-state-strip")).toHaveCount(0);
   await expect(page.locator(".order-editor-actionbar")).toHaveCount(0);
-  await expect(page.getByTestId("workflow-orientation")).toHaveCount(0);
 
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Implementation plan" })
-    .click();
-
-  const workspace = page.getByTestId("document-workspace");
+  const workspace = page.getByTestId("lifecycle-document-material");
   const editor = page.getByTestId("markdown-source-editor");
   const save = page.getByRole("button", { name: "Save", exact: true });
   await expect(workspace).toBeVisible();
@@ -900,8 +889,8 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
   expect(workspaceBox).not.toBeNull();
   expect(editorBox).not.toBeNull();
   expect(saveBox).not.toBeNull();
-  expect(editorBox!.width).toBeGreaterThan(workspaceBox!.width * 0.88);
-  expect(editorBox!.height).toBeGreaterThan(workspaceBox!.height * 0.5);
+  expect(editorBox!.width).toBeGreaterThan(workspaceBox!.width * 0.75);
+  expect(editorBox!.height).toBeGreaterThan(workspaceBox!.height * 0.45);
   expect(saveBox!.y + saveBox!.height).toBeLessThanOrEqual(900);
 
   await backToQueue(page);
@@ -915,18 +904,20 @@ test("workbench geometry gives the active task the canvas and recomposes narrow 
 
   await page.setViewportSize({ width: 1280, height: 800 });
   await openWorkItem(page, "Verified candidate");
-  const taskMaster = page.getByTestId("execution-task-master");
+  await selectWorkflowStep(page, "Implementation");
+  const taskIndex = page.getByTestId("workflow-step-index");
   const taskDetail = page.getByTestId("execution-task-detail");
-  await expect(taskMaster).toBeVisible();
+  await expect(taskIndex).toBeVisible();
   await expect(taskDetail).toBeVisible();
-  const masterBox = await taskMaster.boundingBox();
+  const masterBox = await taskIndex.boundingBox();
   const detailBox = await taskDetail.boundingBox();
   expect(masterBox).not.toBeNull();
   expect(detailBox).not.toBeNull();
-  expect(Math.abs(masterBox!.y - detailBox!.y)).toBeLessThan(80);
+  expect(masterBox!.width).toBeLessThanOrEqual(18 * 16 + 20);
+  expect(detailBox!.width).toBeGreaterThan(640);
 });
 
-test("Activity keeps all Run history, consolidated workflow orientation, responsive master-detail, and secondary technical details", async ({
+test("workflow step owns Run history, dialogue, responsive detail, and technical feedback", async ({
   page,
   request,
 }) => {
@@ -939,19 +930,13 @@ test("Activity keeps all Run history, consolidated workflow orientation, respons
     .toHaveAttribute("aria-current", "step");
   await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
     .toHaveAttribute("title", "Define exactly how the change will be made");
-  await expect(page.getByTestId("activity-workspace")).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Activity" })).toBeChecked();
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toHaveCount(1);
-  await expect(page.getByTestId("activity-summary")).toHaveCount(0);
 
-  const master = page.getByTestId("activity-run-master");
   const detail = page.getByTestId("activity-detail");
-  const masterBox = await master.boundingBox();
   const detailBox = await detail.boundingBox();
-  expect(masterBox).not.toBeNull();
   expect(detailBox).not.toBeNull();
-  expect(masterBox!.width).toBeGreaterThanOrEqual(14 * 16 - 4);
-  expect(masterBox!.width).toBeLessThanOrEqual(18 * 16 + 4);
   expect(detailBox!.width).toBeGreaterThan(640);
 
   await expect(detail.getByText("Continue current work", { exact: true })).toBeVisible();
@@ -966,21 +951,21 @@ test("Activity keeps all Run history, consolidated workflow orientation, respons
   await page.setViewportSize({ width: 1000, height: 800 });
   await expect(page.getByTestId("work-item-context")).toHaveCount(0);
   await expect(page.getByTestId("activity-detail")).toBeVisible();
-  const mediumDetail = await page.getByTestId("activity-detail").boundingBox();
-  expect(mediumDetail).not.toBeNull();
-  expect(mediumDetail!.width).toBeGreaterThan(640);
 
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("activity-detail")).toBeVisible();
-  await expect(page.getByTestId("activity-run-master")).toBeVisible();
   await expect(page.getByText("Continue current work", { exact: true })).toBeVisible();
+  await expect(page.getByRole("radio", { name: "Documents" })).toHaveCount(0);
 
   await backToQueue(page);
+  await page.setViewportSize({ width: 1600, height: 900 });
   await openWorkItem(page, "Completed investigation");
   await expect(page.getByTestId("result-workspace")).toBeVisible();
-  await expect(page.getByRole("radio", { name: "Activity" })).toBeVisible();
-  await page.getByRole("radio", { name: "Activity" }).click();
-  await expect(page.getByTestId("activity-workspace")).toBeVisible();
+  await selectWorkflowStep(page, "Research");
+  const index = page.getByTestId("workflow-step-index");
+  await expect(index).toBeVisible();
+  await index.getByText("Attempt 1", { exact: true }).click();
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Workflow step completed", { exact: true })).toBeVisible();
 });
