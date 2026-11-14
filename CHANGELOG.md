@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Replace the accumulated 0.3.0 Workbench functional-design/addendum stack with `GW-DOC-WORKBENCH-UX-V2`, defining one coherent workflow/state interaction contract for pure reads, atomic command outcomes, serialized agent turns, exact required-input ownership, monotonic reached history, proposal/edit authority, asynchronous state convergence, blocker precedence, and stable Foundation-style Workbench geometry; retain V1 only as historical provenance and mark the V1 component architecture for P4/P6 re-derivation before implementation.
+
 ### Fixed
 
 - Restore the omitted 0.2.2 repository-boundary, deferred STAGE-run, and proposal-review fixes in the 0.3 line; the shipped behavior is also recorded under 0.3.0 below.
