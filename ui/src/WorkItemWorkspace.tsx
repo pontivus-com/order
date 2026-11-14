@@ -158,9 +158,7 @@ export const WorkItemWorkspace = ({
   const signoffPackageQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
     queryFn: () => api.getSignoffPackage(workItem.id),
-    enabled:
-      selectedStep === "AWAITING_SIGNOFF" ||
-      workItem.stage === "AWAITING_SIGNOFF",
+    enabled: workItem.stage === "AWAITING_SIGNOFF",
   });
 
   const runs = runsQuery.data ?? [];
