@@ -865,6 +865,140 @@ for (const [title, outcome] of [
   storeWorkItem(database, workItem(title, "COMPLETE", "COMPLETE", outcome));
 }
 
+const seedExecutionFeedback = (
+  title: string,
+  status: "ACTIVE" | "BLOCKED",
+  taskState: "ALREADY_SATISFIED" | "BLOCKED",
+) => {
+  const item = workItem(title, "EXECUTION", status, null);
+  storeWorkItem(database, item);
+  const artifacts = storePlanArtifacts(item.id);
+  const approvalValue = ApprovalSchema.parse({
+    id: newApprovalId(),
+    workItemId: item.id,
+    baselineCommit,
+    packageHash: sha256Text(title + "-package"),
+    planArtifactRefId: artifacts.plan.id,
+    r3ArtifactRefId: artifacts.r3.id,
+    sourceSha256: item.sourceSha256,
+    approvedBy: "browser-certification",
+    approvedAt: stamp,
+  });
+  storeApproval(database, approvalValue);
+  const executionTask = ExecutionTaskSchema.parse({
+    id: newExecutionTaskId(),
+    approvalId: approvalValue.id,
+    planTaskId: "T1",
+    objective: title,
+    dependsOn: [],
+    scope: ["src/a.ts"],
+    exclusions: [],
+    acceptanceRefs: [],
+    changeSurface: ["src/a.ts"],
+    gateIds: ["test"],
+    authorityRefs: [],
+    concernIds: [],
+    state: taskState,
+  });
+  storeExecutionTask(database, executionTask);
+  return { item, task: executionTask };
+};
+
+const alreadySatisfied = seedExecutionFeedback(
+  "Already satisfied implementation",
+  "ACTIVE",
+  "ALREADY_SATISFIED",
+);
+const alreadySatisfiedRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: alreadySatisfied.item.id,
+  executionTaskId: alreadySatisfied.task.id,
+  stage: "EXECUTION",
+  mode: "UNATTENDED",
+  role: "BUILDER",
+  triggerEventId: null,
+  status: "COMPLETED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("already-satisfied-context"),
+  providerSessionId: null,
+  terminalClassification: "ALREADY_SATISFIED",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, alreadySatisfiedRun);
+persistEvent(alreadySatisfiedRun.id, 1, {
+  tag: "TASK_ALREADY_SATISFIED",
+  summary: "The approved task already matches the repository state.",
+});
+
+const failedExecution = seedExecutionFeedback(
+  "Failed implementation feedback",
+  "BLOCKED",
+  "BLOCKED",
+);
+const failedBuilderRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: failedExecution.item.id,
+  executionTaskId: failedExecution.task.id,
+  stage: "EXECUTION",
+  mode: "UNATTENDED",
+  role: "BUILDER",
+  triggerEventId: null,
+  status: "FAILED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("failed-builder-context"),
+  providerSessionId: null,
+  terminalClassification: "TEST_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, failedBuilderRun);
+persistEvent(failedBuilderRun.id, 1, {
+  tag: "GATE_PASSED",
+  gateId: "typecheck",
+  evidence: [],
+});
+const failedGateEvent = persistEvent(failedBuilderRun.id, 2, {
+  tag: "GATE_FAILED",
+  gateId: "test",
+  classification: "TEST_FAILURE",
+  evidence: [],
+});
+
+const failedReviewerRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: failedExecution.item.id,
+  executionTaskId: failedExecution.task.id,
+  stage: "EXECUTION",
+  mode: "UNATTENDED",
+  role: "REVIEWER",
+  triggerEventId: failedGateEvent.id,
+  status: "FAILED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("failed-reviewer-context"),
+  providerSessionId: null,
+  terminalClassification: "REVIEW_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, failedReviewerRun);
+persistEvent(failedReviewerRun.id, 1, {
+  tag: "REVIEW_FAILED",
+  classification: "REVIEW_FAILURE",
+  summary: "Independent review rejected the candidate.",
+  evidence: [],
+});
+persistEvent(failedReviewerRun.id, 2, {
+  tag: "VALIDATION_FAILED",
+  stage: "V4",
+  classification: "REVIEW_FAILURE",
+  summary: "Semantic review failed.",
+  evidence: [],
+});
+
 const candidateItem = workItem("Verified candidate", "COMPLETE", "COMPLETE", "CANDIDATE_DONE");
 storeWorkItem(database, candidateItem);
 const candidateArtifacts = storePlanArtifacts(candidateItem.id);
