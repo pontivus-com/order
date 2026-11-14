@@ -117,7 +117,7 @@ const ValidationMatrix = ({
           const passed = event?.event.tag === "VALIDATION_PASSED";
           const failed = event?.event.tag === "VALIDATION_FAILED";
           return (
-            <TableRow key={stage}>
+            <TableRow key={stage} data-testid={"validation-stage-" + stage}>
               <TableCell><code>{stage}</code></TableCell>
               <TableCell>
                 <Badge
