@@ -389,7 +389,11 @@ export const WorkItemWorkspace = ({
 
   useEffect(() => {
     if (dirty) return;
-    if (!workflowInspectionActive && selectedStep !== workItem.stage) {
+    if (selectedStep === workItem.stage) {
+      if (workflowInspectionActive) setWorkflowInspectionActive(false);
+      return;
+    }
+    if (!workflowInspectionActive) {
       if (selectedStep === "IDEA" && material.kind === "SOURCE_DOCUMENT") {
         setWorkflowInspectionActive(true);
         return;
@@ -480,7 +484,6 @@ export const WorkItemWorkspace = ({
         step: run.stage,
         material: { kind: "STAGE_RUN", runId: run.id },
       });
-      setWorkflowInspectionActive(false);
     },
   });
 
