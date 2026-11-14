@@ -435,8 +435,8 @@ No `ApprovalWorkspace.tsx`, `CompleteWorkspace.tsx`, stage-specific workspace fi
 
 - `ui/src/WorkItemWorkspace.tsx`
 - `ui/src/workbench-presentation.ts`
-- `ui/src/ActivityWorkspace.tsx` — refactor from global Activity destination into the reusable selected-Run/stage material owner;
-- `ui/src/DocumentWorkspace.tsx` — remove lifecycle-wide TabList ownership and expose source/lifecycle document material for step-local composition;
+- `ui/src/ActivityWorkspace.tsx` — refactor from global Activity destination into the reusable `StageRunMaterial` owner; it keeps Run queries/mutations, selected Run detail, composer and `RunEventTimeline` composition;
+- `ui/src/DocumentWorkspace.tsx` — remove lifecycle-wide TabList ownership and expose the cohesive governed-document material exports `SourceDocumentMaterial`, `LifecycleDocumentMaterial` and `ReadOnlyLifecycleDocumentMaterial`; editing/Git state remains singular here;
 - `ui/src/ProposalReview.tsx`
 - `ui/src/SignoffReview.tsx` — becomes the complete Approval composition without changing package semantics;
 - `ui/src/ExecutionWorkspace.tsx`
@@ -469,7 +469,7 @@ It must:
 - permit only the cohesive sibling dependencies required by the canonical compositions:
   - `PreSignoffStageWorkspace.tsx` → `ActivityWorkspace.tsx`, `DocumentWorkspace.tsx`, `ProposalReview.tsx`, `EvidenceViewer.tsx`;
   - `ReadinessWorkspace.tsx` → `ActivityWorkspace.tsx`, `DocumentWorkspace.tsx`, `EvidenceViewer.tsx`;
-  - `SignoffReview.tsx` → `DocumentWorkspace.tsx` only if the read-only lifecycle-material export is reused directly;
+  - `SignoffReview.tsx` → `DocumentWorkspace.tsx` for the canonical read-only lifecycle-document material;
 - preserve `ActivityWorkspace.tsx` → `RunEventTimeline.tsx` and `ExecutionWorkspace.tsx` → `RunEventTimeline.tsx`;
 - prove `WorkflowStepFrame.tsx` has no HTTP/query/domain-policy ownership;
 - replace old architecture assertions that require `WorkItemMode`, `workItemInitialMode` or `workflowInspectionTarget` with the new selected-step/material and deterministic resolver ownership.
@@ -545,10 +545,10 @@ At minimum:
 23. Context remains on-demand and follows selected material;
 24. wide and narrow viewport tests prove no second navigation hierarchy appears and task-local actions remain reachable;
 25. entering a WorkItem still focuses the WorkItem heading/orientation target;
-41. closing a narrow WorkflowStepIndex drawer with Escape restores focus to its opening control/current step context;
-42. proposal/evidence promotion and return restore focus to the originating Run/material control rather than an obsolete global mode control;
-43. cancelling a dirty-navigation confirmation preserves the buffer and returns focus to the edited material/control;
-39. discarding dirty state and returning to the queue restores focus to the originating WorkItem row.
+26. closing a narrow WorkflowStepIndex drawer with Escape restores focus to its opening control/current step context;
+27. proposal/evidence promotion and return restore focus to the originating Run/material control rather than an obsolete global mode control;
+28. cancelling a dirty-navigation confirmation preserves the buffer and returns focus to the edited material/control;
+29. discarding dirty state and returning to the queue restores focus to the originating WorkItem row.
 
 The Research → Requirements scenario is mandatory because it certifies the original progression dead-end is structurally closed.
 
@@ -726,20 +726,20 @@ Proposal adoption specifically must show adoption-in-progress after ARTIFACT_PRO
 
 Extend §17 with permanent cases proving:
 
-40. each of the nine workflow steps renders the canonical step-summary / work-index-if-needed / primary-material / local-action division rather than arbitrary equal-weight panels;
-26. current pre-signoff primary material priority is blocker → required input → pending proposal → active Run → stage document → start state, subject to dirty-selection safety;
-27. historical step defaults to its governed artifact, otherwise latest Run, and never shows an active composer;
-28. every canonical Run status has ordinary-language presentation;
-29. every current RunEvent tag can be rendered by the shared presentation path and is not dropped by screen-specific filtering;
-30. PRODUCTIVE_INVOCATION_FAILED renders Agent setup blocked while PROVIDER_FAILED renders Agent execution failed;
-31. provider diagnostics are reachable as evidence/Technical detail without replacing human-readable failure feedback;
-32. STAGE_COMPLETED refreshes workflow orientation and next-stage action without removing the completed step's history;
-33. CONFORMANCE_FAILED, STAGE_BLOCKED, AUTHORITY_CHANGED and REPOSITORY_DRIFTED become primary actionable feedback in their owning context;
-34. V0–V7 validation feedback is scan-efficient in Implementation while exact events/evidence remain inspectable;
-35. mutation pending states disable duplicate Start/Input/Cancel/Retry/Resume/Adopt/Reject/Sign-off/Implementation/Remediation actions as applicable;
-36. proposal adoption-in-progress disables disposition controls until canonical reconciliation completes;
-37. no browser UI exposes fake token/tool/percentage progress while a Run is merely RUNNING;
-38. wide → narrow → wide responsive transitions preserve selected workflow step, selected material and dirty state.
+30. each of the nine workflow steps renders the canonical step-summary / work-index-if-needed / primary-material / local-action division rather than arbitrary equal-weight panels;
+31. current pre-signoff primary material priority is blocker → required input → pending proposal → active Run → stage document → start state, subject to dirty-selection safety;
+32. historical step defaults to its governed artifact, otherwise latest Run, and never shows an active composer;
+33. every canonical Run status has ordinary-language presentation;
+34. every current RunEvent tag can be rendered by the shared presentation path and is not dropped by screen-specific filtering;
+35. PRODUCTIVE_INVOCATION_FAILED renders Agent setup blocked while PROVIDER_FAILED renders Agent execution failed;
+36. provider diagnostics are reachable as evidence/Technical detail without replacing human-readable failure feedback;
+37. STAGE_COMPLETED refreshes workflow orientation and next-stage action without removing the completed step's history;
+38. CONFORMANCE_FAILED, STAGE_BLOCKED, AUTHORITY_CHANGED and REPOSITORY_DRIFTED become primary actionable feedback in their owning context;
+39. V0–V7 validation feedback is scan-efficient in Implementation while exact events/evidence remain inspectable;
+40. mutation pending states disable duplicate Start/Input/Cancel/Retry/Resume/Adopt/Reject/Sign-off/Implementation/Remediation actions as applicable;
+41. proposal adoption-in-progress disables disposition controls until canonical reconciliation completes;
+42. no browser UI exposes fake token/tool/percentage progress while a Run is merely RUNNING;
+43. wide → narrow → wide responsive transitions preserve selected workflow step, selected material and dirty state.
 
 ### 22.7 Additional architecture/static certification
 
@@ -810,7 +810,7 @@ Do not mount the generic lifecycle TabList around Work request.
 
 Implement one PreSignoffStageWorkspace parameterized by canonical stage.
 
-Reuse/refactor current ActivityWorkspace and DocumentWorkspace responsibilities rather than copying them four times.
+Reuse/refactor current ActivityWorkspace and DocumentWorkspace responsibilities rather than copying them four times. `ActivityWorkspace.tsx` exports the shared `StageRunMaterial`; `DocumentWorkspace.tsx` exports the shared source/lifecycle document materials named in §15.2. `PreSignoffStageWorkspace.tsx` composes those exports directly.
 
 Use:
 
@@ -861,7 +861,7 @@ Use:
 - Toolbar/Stack + WorkbenchAction for Sign off exact package;
 - Banner for stale/unavailable package.
 
-Delete Open governed documents cross-navigation and remove sign-off controls from WorkItemWorkspace header.
+Delete Open governed documents cross-navigation and remove sign-off controls from WorkItemWorkspace header. `SignoffReview.tsx` composes `ReadOnlyLifecycleDocumentMaterial` from `DocumentWorkspace.tsx` for selected governed-document inspection; it does not implement a second document renderer.
 
 ### 23.6 Implementation implementation
 
