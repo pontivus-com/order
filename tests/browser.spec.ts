@@ -1325,10 +1325,10 @@ test("terminal investigation and audit results remain closed and linked remediat
 
   const refreshedParent = await workItemForTitle(page, "Completed investigation");
   expect(refreshedParent.stage).toBe("COMPLETE");
-  expect(refreshedParent.outcome).toBe("Investigation complete");
+  expect(refreshedParent.outcome).toBe("INVESTIGATION_COMPLETE");
 });
 
-test("all non-delivery terminal classifications route to Result without invented remediation", async ({
+test("all non-delivery terminal classifications render under Complete without invented remediation", async ({
   page,
   request,
 }) => {
