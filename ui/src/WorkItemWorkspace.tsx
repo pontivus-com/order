@@ -93,7 +93,9 @@ const materialTitle = (
 const startLabelForStage = (stage: WorkItem["stage"]): string =>
   stage === "IDEA"
     ? "Start Research"
-    : "Start " + workflowPresentation(stage).label;
+    : stage === "PLAN"
+      ? "Start Implementation planning"
+      : "Start " + workflowPresentation(stage).label;
 
 export const WorkItemWorkspace = ({
   workItem,
