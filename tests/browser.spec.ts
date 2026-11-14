@@ -1142,6 +1142,141 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 });
 
+test("workflow mutations lock their owning controls while pending and keep failures local", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  const failNext = async (
+    pattern: string,
+    trigger: () => Promise<void>,
+    assertPending: () => Promise<void>,
+  ): Promise<void> => {
+    let release = (): void => {};
+    const barrier = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    await page.route(pattern, async (route) => {
+      await barrier;
+      await route.abort("failed");
+    });
+    await trigger();
+    await assertPending();
+    release();
+    await page.unroute(pattern);
+  };
+
+  await openWorkItem(page, "Requirements ready after Research");
+  const start = page.getByRole("button", { name: "Start Requirements", exact: true });
+  await failNext(
+    "**/api/work-items/*/runs",
+    async () => start.click(),
+    async () => expect(start).toBeDisabled(),
+  );
+  await expect(page.getByText("Could not start current workflow step", { exact: true }))
+    .toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow input required");
+  const messageInput = page.getByLabel("Message input");
+  await messageInput.fill("Keep the approved constraint.");
+  await failNext(
+    "**/api/runs/*/input",
+    async () => messageInput.press("Enter"),
+    async () => expect(messageInput).toBeDisabled(),
+  );
+  await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
+
+  const cancel = page.getByRole("button", { name: "Cancel current activity" });
+  await failNext(
+    "**/api/runs/*/cancel",
+    async () => cancel.click(),
+    async () => expect(cancel).toBeDisabled(),
+  );
+  await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow retry action");
+  const retry = page.getByRole("button", { name: "Retry Implementation plan" });
+  await failNext(
+    "**/api/work-items/*/runs",
+    async () => retry.click(),
+    async () => expect(retry).toBeDisabled(),
+  );
+  await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow failure feedback");
+  const resume = page.getByRole("button", { name: "Resume resolved blocker" });
+  await failNext(
+    "**/api/work-items/*/resume",
+    async () => resume.click(),
+    async () => expect(resume).toBeDisabled(),
+  );
+  await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Implementation action ready");
+  const runNext = page.getByRole("button", { name: "Run next implementation step" });
+  await failNext(
+    "**/api/tick",
+    async () => runNext.click(),
+    async () => expect(runNext).toBeDisabled(),
+  );
+  await expect(page.getByText("Implementation action failed", { exact: true }))
+    .toBeVisible();
+});
+
+test("all nine workflow steps keep their canonical summary/material grammar and supporting context local", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Lifecycle editing workbench");
+
+  const cases = [
+    ["Work request", "Source current"],
+    ["Research", "document current"],
+    ["Requirements", "document current"],
+    ["Solution design", "document current"],
+    ["Implementation plan", "document current"],
+    ["Readiness review", "Ready for sign-off"],
+    ["Approval", "Package current · ready to sign"],
+  ] as const;
+
+  for (const [step, summaryState] of cases) {
+    await selectWorkflowStep(page, step);
+    await expect(page.getByTestId("workflow-step-summary")).toContainText(step);
+    await expect(page.getByTestId("workflow-step-summary")).toContainText(summaryState);
+    await expect(page.getByTestId("primary-material-frame")).toBeVisible();
+  }
+
+  await selectWorkflowStep(page, "Research");
+  await page.getByText("Supporting context", { exact: true }).click();
+  await page.getByRole("button", { name: "Open supporting Work request" }).click();
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to workflow context" }).click();
+  await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+
+  await selectWorkflowStep(page, "Requirements");
+  await page.getByText("Supporting context", { exact: true }).click();
+  await page.getByRole("button", { name: "Open supporting Research document" }).click();
+  await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+  await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to workflow context" }).click();
+
+  await backToQueue(page);
+  await openWorkItem(page, "Verified candidate");
+  await selectWorkflowStep(page, "Implementation");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation");
+  await expect(page.getByTestId("primary-material-frame")).toBeVisible();
+  await selectWorkflowStep(page, "Complete");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Candidate done");
+  await expect(page.getByTestId("primary-material-frame")).toBeVisible();
+});
+
 test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off attached to selected material", async ({
   page,
   request,
