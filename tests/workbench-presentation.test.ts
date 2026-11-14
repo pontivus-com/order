@@ -156,9 +156,9 @@ describe("workflow presentation policy", () => {
   });
 
   it("resolves current pre-signoff material by the canonical priority", () => {
-    const failed = stageRun("R1", "FAILED", 1, uuidB);
+    const failed = stageRun("R1", "FAILED", 3, uuidB);
     const waiting = stageRun("R1", "WAITING_FOR_INPUT", 2, uuidC);
-    const running = stageRun("R1", "RUNNING", 3, uuidD);
+    const running = stageRun("R1", "RUNNING", 1, uuidD);
     const research = artifact("R1", uuidE);
     const proposal: ProposalSelection = {
       runId: waiting.id,
@@ -185,18 +185,23 @@ describe("workflow presentation policy", () => {
       kind: "STAGE_RUN",
       runId: waiting.id,
     });
+    const runningProposal: ProposalSelection = {
+      runId: running.id,
+      eventId: proposal.eventId,
+    };
     expect(resolveWorkflowMaterial({
       ...base,
-      runs: [waiting, running],
+      runs: [running],
       unresolvedInputRunId: null,
+      pendingProposal: runningProposal,
     })).toEqual({
       kind: "PROPOSAL",
-      runId: proposal.runId,
-      eventId: proposal.eventId,
+      runId: runningProposal.runId,
+      eventId: runningProposal.eventId,
     });
     expect(resolveWorkflowMaterial({
       ...base,
-      runs: [waiting, running],
+      runs: [running],
       unresolvedInputRunId: null,
       pendingProposal: null,
     })).toEqual({
