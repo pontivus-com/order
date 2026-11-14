@@ -1,26 +1,20 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import {
-  SegmentedControl,
-  SegmentedControlItem,
-} from "@astryxdesign/core/SegmentedControl";
 
 import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
+  resolveWorkflowMaterial,
   runIsActive,
-  workflowInspectionTarget,
   workflowPresentation,
+  workflowStepState,
   workflowSteps,
-  workItemInitialMode,
-  workItemModeIsKnown,
-  workItemModeLabel,
   type EvidenceSelection,
   type ProposalSelection,
   type WorkflowDocumentTarget,
-  type WorkflowStepPresentation,
+  type WorkflowMaterial,
   type WorkItemMode,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -54,6 +48,35 @@ const preSignoff = new Set<WorkItem["stage"]>([
   "R3",
 ]);
 
+type WorkspaceSelection = Readonly<{
+  step: WorkItem["stage"];
+  material: WorkflowMaterial | null;
+}>;
+
+const contextModeForMaterial = (
+  material: WorkflowMaterial,
+): WorkItemMode => {
+  switch (material.kind) {
+    case "SOURCE_DOCUMENT":
+    case "STAGE_DOCUMENT":
+    case "STEP_STATE":
+    case "UNREACHED":
+      return "DOCUMENTS";
+    case "STAGE_RUN":
+      return "ACTIVITY";
+    case "PROPOSAL":
+    case "READINESS_REVIEW":
+    case "APPROVAL_PACKAGE":
+      return "REVIEW";
+    case "EXECUTION_TASK":
+      return "EXECUTION";
+    case "EVIDENCE":
+      return "EVIDENCE";
+    case "TERMINAL_RESULT":
+      return "RESULT";
+  }
+};
+
 export const WorkItemWorkspace = ({
   workItem,
   onBack,
@@ -72,30 +95,15 @@ export const WorkItemWorkspace = ({
   onDirtyChange: (dirty: boolean) => void;
 }>) => {
   const queryClient = useQueryClient();
-  const runsQuery = useQuery({
-    queryKey: workbenchQueryKeys.runs(workItem.id),
-    queryFn: () => api.listRuns(workItem.id),
-    refetchInterval: (query) =>
-      query.state.data?.some(runIsActive) === true ? 1000 : false,
-  });
-  const diagnosticsQuery = useQuery({
-    queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
-    queryFn: api.listWorkItemSourceDiagnostics,
-  });
-  const signoffPackageQuery = useQuery({
-    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
-    queryFn: () => api.getSignoffPackage(workItem.id),
-    enabled: workItem.stage === "AWAITING_SIGNOFF" && workItem.status === "ACTIVE",
-  });
-
-  const [mode, setMode] = useState<WorkItemMode | null>(null);
-  const [approvedBy, setApprovedBy] = useState("");
+  const [selectedStep, setSelectedStep] = useState<WorkItem["stage"]>(workItem.stage);
+  const [explicitMaterial, setExplicitMaterial] = useState<WorkflowMaterial | null>(null);
   const [dirty, setDirty] = useState(false);
-  const [pendingMode, setPendingMode] = useState<WorkItemMode | null>(null);
-  const [evidence, setEvidence] = useState<EvidenceSelection | null>(null);
-  const [proposal, setProposal] = useState<ProposalSelection | null>(null);
-  const [returnMode, setReturnMode] = useState<WorkItemMode | null>(null);
-  const [selectedActivityRunId, setSelectedActivityRunId] = useState<Run["id"] | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<WorkspaceSelection | null>(null);
+  const [pendingReturnSelection, setPendingReturnSelection] =
+    useState<WorkspaceSelection | null>(null);
+  const [returnSelection, setReturnSelection] = useState<WorkspaceSelection | null>(null);
+  const [workflowInspectionActive, setWorkflowInspectionActive] = useState(false);
+  const [approvedBy, setApprovedBy] = useState("");
   const [titleEditing, setTitleEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -104,73 +112,147 @@ export const WorkItemWorkspace = ({
     document: WorkflowDocumentTarget;
     requestId: number;
   }> | null>(null);
-  const [unreachedStep, setUnreachedStep] = useState<WorkflowStepPresentation | null>(null);
-  const [pendingUnreachedStep, setPendingUnreachedStep] =
-    useState<WorkflowStepPresentation | null>(null);
-  const [workflowInspectionActive, setWorkflowInspectionActive] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const runsQuery = useQuery({
+    queryKey: workbenchQueryKeys.runs(workItem.id),
+    queryFn: () => api.listRuns(workItem.id),
+    refetchInterval: (query) =>
+      query.state.data?.some(runIsActive) === true ? 1000 : false,
+  });
+  const artifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
+    queryFn: () => api.listLifecycleArtifacts(workItem.id),
+  });
+  const tasksQuery = useQuery({
+    queryKey: workbenchQueryKeys.tasks(workItem.id),
+    queryFn: () => api.listExecutionTasks(workItem.id),
+    enabled:
+      selectedStep === "EXECUTION" ||
+      workItem.stage === "EXECUTION" ||
+      workItem.stage === "COMPLETE",
+  });
+  const diagnosticsQuery = useQuery({
+    queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
+    queryFn: api.listWorkItemSourceDiagnostics,
+  });
+  const signoffPackageQuery = useQuery({
+    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+    queryFn: () => api.getSignoffPackage(workItem.id),
+    enabled:
+      selectedStep === "AWAITING_SIGNOFF" ||
+      workItem.stage === "AWAITING_SIGNOFF",
+  });
+
   const runs = runsQuery.data ?? [];
+  const artifacts = artifactsQuery.data ?? [];
+  const tasks = tasksQuery.data ?? [];
   const workflow = workflowPresentation(workItem.stage);
+  const selectedWorkflow = workflowPresentation(selectedStep);
+  const selectedProposal: ProposalSelection | null =
+    explicitMaterial?.kind === "PROPOSAL"
+      ? { runId: explicitMaterial.runId, eventId: explicitMaterial.eventId }
+      : null;
+  const selectedTaskId =
+    explicitMaterial?.kind === "EXECUTION_TASK"
+      ? explicitMaterial.taskId
+      : null;
+  const selectedRunId =
+    explicitMaterial?.kind === "STAGE_RUN"
+      ? explicitMaterial.runId
+      : explicitMaterial?.kind === "EXECUTION_TASK"
+        ? explicitMaterial.runId
+        : explicitMaterial?.kind === "PROPOSAL"
+          ? explicitMaterial.runId
+          : null;
+
+  const material = resolveWorkflowMaterial({
+    workItem,
+    selectedStep,
+    runs,
+    artifacts,
+    pendingProposal: selectedProposal,
+    approvalPackageAvailable: signoffPackageQuery.data != null,
+    tasks,
+    selectedTaskId,
+    selectedRunId,
+    explicitSelection: explicitMaterial,
+    dirtyDocument: dirty,
+  });
+
+  const evidence =
+    material.kind === "EVIDENCE" ? material.selection : null;
+  const proposal: ProposalSelection | null =
+    material.kind === "PROPOSAL"
+      ? { runId: material.runId, eventId: material.eventId }
+      : null;
+  const activityRunId =
+    material.kind === "STAGE_RUN"
+      ? material.runId
+      : material.kind === "PROPOSAL"
+        ? material.runId
+        : null;
+  const contextMode = contextModeForMaterial(material);
 
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
   );
-
-  const visibleModes: readonly WorkItemMode[] = [
-    "DOCUMENTS",
-    ...(runs.length > 0 ? ["ACTIVITY" as const] : []),
-    ...(
-      workItem.stage === "AWAITING_SIGNOFF" ||
-      workItem.stage === "EXECUTION" ||
-      workItem.stage === "COMPLETE" ||
-      proposal
-        ? ["REVIEW" as const]
-        : []
-    ),
-    ...(workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
-      ? ["EXECUTION" as const]
-      : []),
-    ...(evidence ? ["EVIDENCE" as const] : []),
-    ...(workItem.stage === "COMPLETE" && workItem.outcome !== "CANDIDATE_DONE"
-      ? ["RESULT" as const]
-      : []),
-  ];
 
   useEffect(() => {
     headingRef.current?.focus();
   }, [workItem.id]);
 
   useEffect(() => {
-    if (mode !== null) onContextModeChange(mode, selectedActivityRunId);
-  }, [mode, onContextModeChange, selectedActivityRunId]);
+    onContextModeChange(contextMode, activityRunId);
+  }, [activityRunId, contextMode, onContextModeChange]);
 
   useEffect(() => {
-    if (runsQuery.isPending) return;
-    if (mode === null) {
-      setMode(workItemInitialMode(workItem, runs));
-      return;
-    }
-    if (!visibleModes.includes(mode)) {
-      setMode(workItemInitialMode(workItem, runs));
-      return;
-    }
+    if (dirty) return;
+    const state = workflowStepState(workItem, selectedStep);
     if (
-      runs.some(runIsActive) &&
-      mode === "DOCUMENTS" &&
-      !dirty &&
-      !workflowInspectionActive
+      state === "UNREACHED" ||
+      (!workflowInspectionActive && selectedStep !== workItem.stage)
     ) {
-      setMode("ACTIVITY");
+      setSelectedStep(workItem.stage);
+      setExplicitMaterial(null);
+      setReturnSelection(null);
+      setWorkflowInspectionActive(false);
     }
   }, [
     dirty,
-    mode,
-    runs,
-    runsQuery.isPending,
-    visibleModes,
+    selectedStep,
     workItem,
     workflowInspectionActive,
   ]);
+
+  useEffect(() => {
+    let target: WorkflowDocumentTarget | null = null;
+    if (material.kind === "SOURCE_DOCUMENT") {
+      target = "SOURCE";
+    } else if (material.kind === "STAGE_DOCUMENT") {
+      const artifact = artifacts.find((candidate) => candidate.id === material.artifactId);
+      if (
+        artifact?.role === "R1" ||
+        artifact?.role === "R2" ||
+        artifact?.role === "DESIGN" ||
+        artifact?.role === "PLAN" ||
+        artifact?.role === "R3"
+      ) {
+        target = artifact.role;
+      }
+    } else if (material.kind === "READINESS_REVIEW") {
+      target = "R3";
+    }
+    if (target === null) return;
+    setRequestedDocument((current) => (
+      current?.document === target
+        ? current
+        : {
+            document: target,
+            requestId: (current?.requestId ?? 0) + 1,
+          }
+    ));
+  }, [artifacts, material]);
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
@@ -239,12 +321,37 @@ export const WorkItemWorkspace = ({
     },
   });
 
+  const commitSelection = (
+    next: WorkspaceSelection,
+    nextReturnSelection: WorkspaceSelection | null = null,
+  ): void => {
+    setSelectedStep(next.step);
+    setExplicitMaterial(next.material);
+    setReturnSelection(nextReturnSelection);
+    setWorkflowInspectionActive(next.step !== workItem.stage);
+  };
+
+  const requestSelection = (
+    next: WorkspaceSelection,
+    nextReturnSelection: WorkspaceSelection | null = null,
+  ): void => {
+    if (dirty) {
+      setPendingSelection(next);
+      setPendingReturnSelection(nextReturnSelection);
+      return;
+    }
+    commitSelection(next, nextReturnSelection);
+  };
+
   const start = useMutation({
     mutationFn: () => api.startInteractiveRun(workItem.id),
     onSuccess: async (run) => {
-      setSelectedActivityRunId(run.id);
       await invalidate();
-      setMode("ACTIVITY");
+      commitSelection({
+        step: run.stage,
+        material: { kind: "STAGE_RUN", runId: run.id },
+      });
+      setWorkflowInspectionActive(false);
     },
   });
 
@@ -253,47 +360,19 @@ export const WorkItemWorkspace = ({
     onDirtyChange(value);
   };
 
-  const navigate = (
-    next: WorkItemMode,
-    preserveWorkflowInspection = false,
-  ): void => {
-    if (!preserveWorkflowInspection) setWorkflowInspectionActive(false);
-    if (next === mode && unreachedStep === null) return;
-    if (dirty) {
-      setPendingMode(next);
-      return;
-    }
-    setUnreachedStep(null);
-    setMode(next);
-  };
-
-  const inspectWorkflowStep = (step: WorkflowStepPresentation): void => {
-    const target = workflowInspectionTarget(workItem, step);
-    setWorkflowInspectionActive(true);
-    if (target.kind === "UNREACHED") {
-      if (dirty) {
-        setPendingUnreachedStep(step);
-        return;
-      }
-      setUnreachedStep(step);
-      return;
-    }
-    setUnreachedStep(null);
-    if (target.kind === "DOCUMENT") {
-      setRequestedDocument((current) => ({
-        document: target.document,
-        requestId: (current?.requestId ?? 0) + 1,
-      }));
-      navigate("DOCUMENTS", true);
-      return;
-    }
-    navigate(target.mode, true);
+  const inspectWorkflowStep = (step: WorkItem["stage"]): void => {
+    requestSelection({ step, material: null });
   };
 
   const openEvidence = (selection: EvidenceSelection): void => {
-    if (mode && mode !== "EVIDENCE") setReturnMode(mode);
-    setEvidence(selection);
-    navigate("EVIDENCE");
+    const origin: WorkspaceSelection = { step: selectedStep, material };
+    requestSelection(
+      {
+        step: selectedStep,
+        material: { kind: "EVIDENCE", selection },
+      },
+      origin,
+    );
   };
 
   const openArtifactEvidence = (artifactId: ArtifactRef["id"]): void => {
@@ -305,26 +384,44 @@ export const WorkItemWorkspace = ({
   };
 
   const openProposalReview = (selection: ProposalSelection): void => {
-    setSelectedActivityRunId(selection.runId);
-    setReturnMode("ACTIVITY");
-    setProposal(selection);
-    navigate("REVIEW");
+    const ownerRun = runs.find((run) => run.id === selection.runId);
+    const ownerStep = ownerRun?.stage ?? selectedStep;
+    const origin: WorkspaceSelection = {
+      step: ownerStep,
+      material: { kind: "STAGE_RUN", runId: selection.runId },
+    };
+    requestSelection(
+      {
+        step: ownerStep,
+        material: {
+          kind: "PROPOSAL",
+          runId: selection.runId,
+          eventId: selection.eventId,
+        },
+      },
+      origin,
+    );
   };
 
-  const returnFromTransient = (fallback: WorkItemMode): void => {
-    const target = returnMode && visibleModes.includes(returnMode)
-      ? returnMode
-      : fallback;
-    setReturnMode(null);
-    if (mode === "REVIEW") setProposal(null);
-    if (mode === "EVIDENCE") setEvidence(null);
-    navigate(target);
+  const returnFromTransient = (): void => {
+    const origin = returnSelection;
+    setReturnSelection(null);
+    if (origin) {
+      commitSelection(origin);
+      return;
+    }
+    setExplicitMaterial(null);
   };
 
   const canStart =
     preSignoff.has(workItem.stage) &&
     workItem.status === "ACTIVE" &&
     !runs.some(runIsActive);
+
+  const documentMaterial =
+    material.kind === "SOURCE_DOCUMENT" ||
+    material.kind === "STAGE_DOCUMENT" ||
+    material.kind === "READINESS_REVIEW";
 
   return (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
@@ -441,7 +538,7 @@ export const WorkItemWorkspace = ({
               disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
               onClick={() => setConfirmArchive(true)}
             />
-            {canStart && runs.length === 0 ? (
+            {canStart ? (
               <WorkbenchAction
                 label={"Start " + workflow.label}
                 tone="primary"
@@ -460,43 +557,25 @@ export const WorkItemWorkspace = ({
         data-testid="workflow-progression"
       >
         {workflowSteps.map((step) => {
-          const target = workflowInspectionTarget(workItem, step);
+          const state = workflowStepState(workItem, step.stage);
+          const selected = step.stage === selectedStep;
           return (
             <button
               key={step.stage}
               type="button"
               aria-current={step.stage === workItem.stage ? "step" : undefined}
-              aria-disabled={target.kind === "UNREACHED" ? "true" : undefined}
-              data-reached={target.kind === "UNREACHED" ? "false" : "true"}
+              aria-pressed={selected}
+              aria-disabled={state === "UNREACHED" ? "true" : undefined}
+              data-reached={state === "UNREACHED" ? "false" : "true"}
+              data-selected={selected ? "true" : "false"}
               title={step.purpose}
-              onClick={() => inspectWorkflowStep(step)}
+              onClick={() => inspectWorkflowStep(step.stage)}
             >
               {step.label}
             </button>
           );
         })}
       </nav>
-
-      {mode !== null ? (
-        <div className="order-workspace-view-selector" data-testid="workspace-view-selector">
-          <SegmentedControl
-            label="Workspace view"
-            value={mode}
-            onChange={(value) => {
-              if (workItemModeIsKnown(value) && visibleModes.includes(value)) navigate(value);
-            }}
-            size="sm"
-          >
-            {visibleModes.map((item) => (
-              <SegmentedControlItem
-                key={item}
-                value={item}
-                label={workItemModeLabel(item)}
-              />
-            ))}
-          </SegmentedControl>
-        </div>
-      ) : null}
 
       {sourceDiagnostics.length > 0 ? (
         <div className="order-primary-blocker" role="alert" data-testid="work-item-source-blocker">
@@ -507,7 +586,7 @@ export const WorkItemWorkspace = ({
           <WorkbenchAction
             label="Open work request"
             tone="primary"
-            onClick={() => navigate("DOCUMENTS")}
+            onClick={() => requestSelection({ step: "IDEA", material: null })}
           />
           <details className="order-technical-details">
             <summary>Technical details</summary>
@@ -529,70 +608,112 @@ export const WorkItemWorkspace = ({
         </div>
       ) : null}
 
-      {mode === null ? (
-        <div className="order-mode-canvas">
-          <WorkbenchEmptyState compact title="Resolving workspace…" />
-        </div>
-      ) : (
-        <div className="order-mode-canvas" role="region" aria-label={workItemModeLabel(mode) + " workspace"}>
-          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
-            {mode === "DOCUMENTS" ? (
-              <DocumentWorkspace
-                workItem={workItem}
-                onDirtyChange={setDirtyState}
-                onOpenArtifactEvidence={openArtifactEvidence}
-                requestedDocument={requestedDocument}
-                onRequestedDocumentHandled={(requestId) => {
-                  setRequestedDocument((current) =>
-                    current?.requestId === requestId ? null : current
-                  );
-                }}
-                onContextDocumentChange={onContextDocumentChange}
-              />
-            ) : null}
-            {mode === "ACTIVITY" ? (
-              <ActivityWorkspace
-                workItem={workItem}
-                selectedRunId={selectedActivityRunId}
-                onSelectedRunChange={setSelectedActivityRunId}
-                onOpenEvidence={openEvidence}
-                onOpenProposalReview={openProposalReview}
-              />
-            ) : null}
-            {mode === "REVIEW" ? (
-              proposal ? (
-                <ProposalReview
-                  workItem={workItem}
-                  selection={proposal}
-                  onBackToActivity={() => returnFromTransient("ACTIVITY")}
-                />
-              ) : (
-                <SignoffReview
-                  workItem={workItem}
-                  onOpenDocuments={() => navigate("DOCUMENTS")}
-                />
-              )
-            ) : null}
-            {mode === "EXECUTION" ? (
+      <div
+        className="order-mode-canvas"
+        role="region"
+        aria-label={selectedWorkflow.label + " workspace"}
+        data-testid="workflow-step-workspace"
+      >
+        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
+          {documentMaterial ? (
+            <DocumentWorkspace
+              workItem={workItem}
+              onDirtyChange={setDirtyState}
+              onOpenArtifactEvidence={openArtifactEvidence}
+              requestedDocument={requestedDocument}
+              onRequestedDocumentHandled={(requestId) => {
+                setRequestedDocument((current) =>
+                  current?.requestId === requestId ? null : current
+                );
+              }}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          ) : null}
+          {material.kind === "STAGE_RUN" ? (
+            <ActivityWorkspace
+              workItem={workItem}
+              selectedRunId={material.runId}
+              onSelectedRunChange={(runId) => {
+                setExplicitMaterial({ kind: "STAGE_RUN", runId });
+              }}
+              onOpenEvidence={openEvidence}
+              onOpenProposalReview={openProposalReview}
+            />
+          ) : null}
+          {material.kind === "PROPOSAL" && proposal ? (
+            <ProposalReview
+              workItem={workItem}
+              selection={proposal}
+              onBackToActivity={returnFromTransient}
+            />
+          ) : null}
+          {material.kind === "APPROVAL_PACKAGE" ? (
+            <SignoffReview
+              workItem={workItem}
+              onOpenDocuments={() => requestSelection({
+                step: "AWAITING_SIGNOFF",
+                material: null,
+              })}
+            />
+          ) : null}
+          {material.kind === "EXECUTION_TASK" ? (
+            <ExecutionWorkspace
+              workItem={workItem}
+              onOpenEvidence={openEvidence}
+              onOpenActivity={(runId) => {
+                requestSelection({
+                  step: "EXECUTION",
+                  material: { kind: "STAGE_RUN", runId },
+                });
+              }}
+            />
+          ) : null}
+          {material.kind === "EVIDENCE" ? (
+            <EvidenceViewer
+              selection={evidence}
+              onBack={returnFromTransient}
+            />
+          ) : null}
+          {material.kind === "TERMINAL_RESULT" ? (
+            workItem.outcome === "CANDIDATE_DONE" ? (
               <ExecutionWorkspace
                 workItem={workItem}
                 onOpenEvidence={openEvidence}
                 onOpenActivity={(runId) => {
-                  setSelectedActivityRunId(runId);
-                  navigate("ACTIVITY");
+                  requestSelection({
+                    step: "EXECUTION",
+                    material: { kind: "STAGE_RUN", runId },
+                  });
                 }}
               />
-            ) : null}
-            {mode === "EVIDENCE" ? (
-              <EvidenceViewer
-                selection={evidence}
-                onBack={() => returnFromTransient(runs.length > 0 ? "ACTIVITY" : "DOCUMENTS")}
-              />
-            ) : null}
-            {mode === "RESULT" ? <TerminalResult workItem={workItem} /> : null}
-          </Suspense>
-        </div>
-      )}
+            ) : (
+              <TerminalResult workItem={workItem} />
+            )
+          ) : null}
+          {material.kind === "STEP_STATE" ? (
+            <WorkbenchEmptyState
+              compact
+              title={
+                selectedStep === workItem.stage && canStart
+                  ? selectedWorkflow.label + " is ready to start"
+                  : "No current material for " + selectedWorkflow.label
+              }
+              description={
+                selectedStep === workItem.stage && canStart
+                  ? "Use the current workflow action to begin this step."
+                  : "This reached workflow step has no current canonical material to inspect."
+              }
+            />
+          ) : null}
+          {material.kind === "UNREACHED" ? (
+            <WorkbenchEmptyState
+              compact
+              title={selectedWorkflow.label + " has not been reached"}
+              description="Workflow inspection does not create or promote lifecycle state."
+            />
+          ) : null}
+        </Suspense>
+      </div>
 
       <AlertDialog
         isOpen={confirmArchive}
@@ -615,37 +736,25 @@ export const WorkItemWorkspace = ({
       ) : null}
 
       <AlertDialog
-        isOpen={pendingMode !== null}
-        onOpenChange={(open) => { if (!open) setPendingMode(null); }}
-        title="Discard unsaved Markdown?"
-        description="Changing workspace modes would discard the current unsaved Markdown buffer."
-        cancelLabel="Continue editing"
-        actionLabel="Discard unsaved changes"
-        actionVariant="destructive"
-        onAction={() => {
-          const next = pendingMode;
-          setPendingMode(null);
-          setDirtyState(false);
-          if (next) {
-            setUnreachedStep(null);
-            setMode(next);
+        isOpen={pendingSelection !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingSelection(null);
+            setPendingReturnSelection(null);
           }
         }}
-      />
-
-      <AlertDialog
-        isOpen={pendingUnreachedStep !== null}
-        onOpenChange={(open) => { if (!open) setPendingUnreachedStep(null); }}
         title="Discard unsaved Markdown?"
-        description="Inspecting an unreached workflow step would leave the current unsaved Markdown buffer."
+        description="Changing workflow step or material would discard the current unsaved Markdown buffer."
         cancelLabel="Continue editing"
         actionLabel="Discard unsaved changes"
         actionVariant="destructive"
         onAction={() => {
-          const next = pendingUnreachedStep;
-          setPendingUnreachedStep(null);
+          const next = pendingSelection;
+          const nextReturn = pendingReturnSelection;
+          setPendingSelection(null);
+          setPendingReturnSelection(null);
           setDirtyState(false);
-          if (next) setUnreachedStep(next);
+          if (next) commitSelection(next, nextReturn);
         }}
       />
     </div>
