@@ -2156,3 +2156,216 @@ The redesign is presentation architecture only unless implementation evidence pr
 **Acceptance criterion:** tests cover Work request→Research→Requirements progression, proposal/evidence return continuity, R1/R2/DESIGN/PLAN stage composition, Readiness, Approval, Implementation and Complete at representative wide/narrow geometries.
 
 **Failure/negative behavior:** certification must not stop at static component visibility or continue asserting Documents/Activity/Review as the intended global WorkItem architecture.
+
+
+### 23.16 Workflow-step panel composition
+
+The P4 implementation must realize GW-DOC-WORKBENCH-UX-V1 §§27.17–27.19 with one stable component grammar.
+
+WorkItemWorkspace owns only:
+
+- WorkItem identity/header;
+- workflow rail;
+- selected step composition;
+- dirty-navigation admission;
+- typed cross-material selection/return orchestration.
+
+Inside the selected step, composition is:
+
+~~~text
+step root                         min-width: 0; min-height: 0
+├── step summary                 intrinsic compact row
+└── step body                    min-width: 0; min-height: 0; flex: 1
+    ├── optional work index      14–18rem wide only when useful
+    └── primary material         minmax(0, 1fr)
+        ├── material header      intrinsic
+        ├── scroll/content body  min-height: 0; flex: 1
+        └── local action region  intrinsic/sticky when applicable
+~~~
+
+The global Context/Technical surface remains outside the step body's normal width and is closed by default.
+
+The work index contains canonical identities only: attempt summary, lifecycle document identity, signed task/package material identity. It must not render copied Markdown/message/diff bodies.
+
+At medium/narrow widths the work index becomes temporary selection UI before reducing the primary material below its P3 minimum width.
+
+### 23.17 Typed primary-material selection
+
+Presentation-local selection must be represented as a small discriminated union or equivalent typed state over canonical identities, for example conceptually:
+
+~~~text
+SOURCE_DOCUMENT
+STAGE_RUN(runId)
+STAGE_DOCUMENT(artifactId/role)
+PROPOSAL(runId,eventId)
+READINESS_REVIEW
+APPROVAL_PACKAGE
+EXECUTION_TASK(taskId,runId?)
+EVIDENCE(origin + canonical evidence/artifact identity)
+TERMINAL_RESULT
+~~~
+
+This is browser presentation state only. It is not persisted, transported or mapped into parallel domain/DTO shapes.
+
+A pure resolver in ui/src/workbench-presentation.ts (or the existing single presentation-policy owner) determines the default material from:
+
+- selected workflow step;
+- current canonical WorkItem stage/status/outcome;
+- Runs/statuses;
+- unresolved input;
+- pending proposal disposition;
+- available lifecycle artifact;
+- Approval/task state.
+
+The resolver implements GW-FR-117 priority exactly. It must be deterministic and exhaustively tested.
+
+Dirty-document selection and an explicit still-valid operator selection are admission inputs to reconciliation; they are not new lifecycle state.
+
+### 23.18 Exhaustive Run/OpenCode feedback projection
+
+runEventPresentation remains the one ordinary-language event projection owner and must be exhaustive over the complete canonical RunEventPayload union.
+
+Implementation requirements:
+
+1. every RunEvent tag in src/core/contracts.ts has one explicit projection;
+2. every Run status has one explicit ordinary-language status;
+3. event projection returns presentation semantics only, never mutation eligibility or duplicated domain state;
+4. pre-signoff stage composition and Implementation reuse the same projection;
+5. no component keeps a second tag allow-list that can silently suppress a canonical event;
+6. exact raw payload stays available through Technical details;
+7. evidence references are obtained through the existing canonical eventEvidence path or one singular replacement owner;
+8. failure/input/proposal/terminal events may set presentation importance used by the step material resolver, but that importance is a pure view policy over canonical events;
+9. success/pass events may be compacted into conformance/validation summaries while retaining exact event inspection.
+
+The current provider observation boundary remains unchanged: browser queries poll canonical Runs and RunEvents. They do not subscribe to OpenCode events directly.
+
+### 23.19 Provider diagnostic presentation
+
+ProviderDiagnosticRecord remains evidence, not a browser domain projection.
+
+When PROVIDER_DIAGNOSTICS_RECORDED, PRODUCTIVE_INVOCATION_FAILED or PROVIDER_FAILED exposes diagnostic evidence:
+
+- primary UI uses the canonical human-readable classification/detail;
+- EvidenceViewer reads the evidence bytes through the existing safe evidence endpoint;
+- exact providerId/modelId/providerSessionId/promptId/timing/outcome/format-repair/failure-phase/exception fields remain secondary technical data;
+- no provider diagnostic field is copied into WorkItem/Run presentation state merely for display.
+
+PRODUCTIVE_INVOCATION_FAILED and PROVIDER_FAILED must remain visually/semantically distinct. A component must not normalize both to a generic "agent failed".
+
+### 23.20 Interaction mutation feedback
+
+Mutation orchestration stays with existing TanStack Query mutation owners and canonical HTTP commands.
+
+Each owning material must receive:
+
+- isPending to disable/relabel only the action being executed;
+- canonical mutation error rendered adjacent to that material/action;
+- targeted query invalidation on success;
+- selection reconciliation after refreshed canonical state.
+
+Required flows:
+
+- stage start → created Run selected;
+- input → selected Run retained; persisted input/events refresh;
+- cancel → selected Run retained as terminal history;
+- retry → returned fresh Run selected;
+- resume → current WorkItem/Run state refetched;
+- adopt/reject → proposal retained while pending, controls disabled; disposition refresh then exact origin restored;
+- Markdown save/Git save → existing editor-local state retained;
+- sign-off → package remains visible while pending; success reconciles to Implementation; stale-package error keeps Approval selected and refetches package;
+- implementation advance → selected task maintained where still valid;
+- linked remediation → Complete remains stable until creation succeeds.
+
+Navigation-only selection must not create mutations, loading spinners or query invalidation.
+
+### 23.21 Step-specific technical composition
+
+#### Work request
+
+Reuse DocumentWorkspace/MarkdownEditor source responsibilities in a source-only step composition. Do not instantiate the lifecycle-document tab list around it. Source diagnostic blocker and Start Research are passed into the step summary/current-action surface.
+
+#### Research / Requirements / Solution design / Implementation plan
+
+Implement one reusable PreSignoffStageWorkspace responsibility or equivalent cohesive decomposition.
+
+Inputs are canonical WorkItem, selected stage, stage-filtered Runs, stage artifact, proposal/evidence selection and typed callbacks.
+
+Internally it may compose:
+
+- compact stage work index;
+- Activity/Run detail responsibility;
+- stage document responsibility;
+- ProposalReview;
+- EvidenceViewer.
+
+These children do not become sibling global workspaces. The stage owner controls primary material selection.
+
+#### Readiness review
+
+Use a dedicated review composition because R3 has materially different semantics. Reuse RunEventTimeline and artifact/evidence viewers, but keep R3 artifact read-only and make verdict/findings/package coherence the default review detail.
+
+#### Approval
+
+SignoffReview (or successor) owns package/material selection. Supporting lifecycle document inspection is a read-only child material of Approval. Approver input/action is passed into the same composition.
+
+#### Implementation
+
+ExecutionWorkspace keeps its task/Run master-detail owner. Validation presentation should derive a scan-efficient V0–V7 summary from canonical RunEvents without a parallel validation state model. Selected evidence is promoted and returns to selected task/Run.
+
+#### Complete
+
+TerminalResult (or successor) owns result material. Candidate-complete may compose read-only candidate/evidence material while detailed execution history remains selectable through the reached Implementation step.
+
+### 23.22 OpenCode observation limitations
+
+Do not add WebSocket/SSE/OpenCode event subscriptions, token-stream state, tool-stream state or fake progress as part of this redesign.
+
+The browser's truthful live provider feedback is:
+
+- canonical Run status;
+- canonical persisted RunEvents already returned by polling;
+- local mutation pending state.
+
+Between persisted events, RUNNING means only that the canonical Run is active. It must not be refined into provider-specific progress without a future governed transport requirement.
+
+### 23.23 Technical requirements
+
+#### GW-TR-091-WORKFLOW-STEP-PANEL-COMPOSITION
+
+**Required behavior:** selected workflow steps use the §23.16 semantic panel grammar with optional compact work index and one dominant primary material canvas.
+
+**Acceptance criterion:** every step can be rendered from the same shell grammar while its material keeps the P3 minimum space class and task-local action placement.
+
+**Failure/negative behavior:** implementation must not reintroduce full-width nested mode tabs, arbitrary card stacks or permanent side panels that compress the primary task.
+
+#### GW-TR-092-DETERMINISTIC-STEP-MATERIAL-RESOLVER
+
+**Required behavior:** one pure presentation-policy owner resolves the default/current step material using GW-FR-117 and canonical identities/state.
+
+**Acceptance criterion:** equal canonical inputs produce equal material selection; dirty/explicit valid selection is preserved according to navigation safety.
+
+**Failure/negative behavior:** individual components must not independently invent open-Activity-vs-Document-vs-Review logic.
+
+#### GW-TR-093-EXHAUSTIVE-RUN-FEEDBACK-PROJECTION
+
+**Required behavior:** Run status and RunEvent presentation is exhaustive over canonical contracts and shared by pre-signoff and post-signoff surfaces.
+
+**Acceptance criterion:** TypeScript/tests fail when a canonical event is added without a presentation decision; all existing event tags are visible/inspectable in the owning surface.
+
+**Failure/negative behavior:** component-local allow-lists must not silently drop new/current event classes.
+
+#### GW-TR-094-LOCAL-MUTATION-FEEDBACK-ORCHESTRATION
+
+**Required behavior:** consequential actions use local mutation pending/error state plus targeted canonical query refresh and exact selection reconciliation.
+
+**Acceptance criterion:** duplicate submissions are disabled and success/failure remains understandable without changing unrelated workflow selection.
+
+**Failure/negative behavior:** mutation state must not be centralized into a new global workflow store or represented by navigation-only state.
+
+#### GW-TR-095-OPENCODE-BROWSER-OBSERVATION-BOUNDARY
+
+**Required behavior:** the UI observes productive OpenCode work only through canonical Runs, RunEvents/evidence and existing polling/mutation state.
+
+**Acceptance criterion:** no hidden/direct OpenCode browser connection or invented provider-progress state is introduced; all persisted provider-origin feedback is still presented.
+
+**Failure/negative behavior:** implementation must not add live-provider transport or fake progress under the guise of UX redesign.
