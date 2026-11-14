@@ -59,7 +59,10 @@ export const ProposalReview = ({
       if (action === "ADOPT") await api.adoptProposal(selection.eventId);
       else await api.rejectProposal(selection.eventId);
     },
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await invalidate();
+      onBack();
+    },
   });
 
   if (eventsQuery.isPending) {
