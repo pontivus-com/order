@@ -613,6 +613,7 @@ describe("architecture fitness", () => {
 
     const requiredUiOwners = [
       "ui/src/WorkItemWorkspace.tsx",
+      "ui/src/WorkflowStepFrame.tsx",
       "ui/src/MarkdownEditor.tsx",
       "ui/src/MarkdownSourceEditor.tsx",
       "ui/src/markdown-source-formatting.ts",
@@ -634,6 +635,15 @@ describe("architecture fitness", () => {
       "ui/src/primitives/WorkbenchResourceRow.tsx",
       "ui/src/primitives/WorkbenchToolbar.tsx",
     ] as const;
+
+    const workflowStepFrame = sourceText("ui/src/WorkflowStepFrame.tsx");
+    for (const forbidden of ["useQuery(", "useMutation(", "./http.ts", "../../src/core/"]) {
+      if (workflowStepFrame.includes(forbidden)) {
+        violations.push(
+          "ui/src/WorkflowStepFrame.tsx must remain presentation-only: " + forbidden,
+        );
+      }
+    }
 
     const workItemWorkspace = sourceText("ui/src/WorkItemWorkspace.tsx");
     for (const forbidden of ["WorkStageSchema.options.indexOf", "artifactIsDownstream"]) {
