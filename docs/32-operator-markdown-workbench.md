@@ -639,3 +639,21 @@ If the metadata envelope or body changed externally while the buffer was open, t
 **Acceptance criterion:** any external change to the canonical WorkItem source after load causes conflict/reload rather than silent recomposition over newer bytes.
 
 **Failure/negative behavior:** the body editor must not compare only body text/hash or preserve stale metadata after the canonical source changed.
+
+
+## 20. Order 0.2.2 workflow-step presentation alignment (2026-11-14)
+
+The Markdown authority/editing semantics in this document are unchanged. GW-DOC-WORKBENCH-UX-V1 §27 changes only how those canonical documents are composed into the WorkItem UI.
+
+For 0.2.2:
+
+- Work request Markdown is the primary document material of the **Work request** workflow step.
+- R1, R2, DESIGN and PLAN Markdown are the governed document material of **Research**, **Requirements**, **Solution design** and **Implementation plan** respectively.
+- R3 Markdown is read-only review material of **Readiness review**.
+- signed lifecycle Markdown is inspectable as read-only package material inside **Approval** and remains inspectable from reached historical workflow steps.
+- execution remains inspection-only under §12.
+- direct-edit, expected-hash, freshness, invalidation, Git-save, exact-source and conflict semantics remain exactly as defined by this canonical owner.
+
+The Workbench therefore does not require a global **Documents** destination to satisfy this document's lifecycle-package navigation requirement. Document navigation is fulfilled by selecting the owning workflow step and, where a step contains more than one relevant document/material item, a compact step-local material selector.
+
+A proposal affecting a governed Markdown artifact remains an explicit proposal/adoption interaction. GW-DOC-WORKBENCH-UX-V1 §27 governs its in-context review placement; this document continues to own the distinction between transient dialogue and durable canonical Markdown.
