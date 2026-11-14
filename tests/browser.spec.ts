@@ -966,6 +966,9 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
     .toHaveAttribute("aria-current", "step");
   await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
     .toHaveAttribute("title", "Define exactly how the change will be made");
+  await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
+  const proposalRunIndex = page.getByTestId("workflow-step-index");
+  await proposalRunIndex.getByText("Attempt 2", { exact: true }).click();
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toHaveCount(1);
@@ -1073,7 +1076,10 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await authenticate(page, request);
 
   await openWorkItem(page, "Workflow input required");
-  await expect(page.getByText("Waiting for you", { exact: true })).toBeVisible();
+  await expect(
+    page.getByTestId("workflow-step-summary")
+      .getByText("Waiting for you", { exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByText("Your input is needed", { exact: true }).first(),
   ).toBeVisible();
@@ -1155,16 +1161,22 @@ test("workflow mutations lock their owning controls while pending and keep failu
     assertPending: () => Promise<void>,
   ): Promise<void> => {
     let release = (): void => {};
+    let markHandled = (): void => {};
     const barrier = new Promise<void>((resolve) => {
       release = resolve;
+    });
+    const handled = new Promise<void>((resolve) => {
+      markHandled = resolve;
     });
     await page.route(pattern, async (route) => {
       await barrier;
       await route.abort("failed");
+      markHandled();
     });
     await trigger();
     await assertPending();
     release();
+    await handled;
     await page.unroute(pattern);
   };
 
@@ -1315,13 +1327,13 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(adopt).toBeDisabled();
   await expect(reject).toBeDisabled();
   releaseAdopt();
-  await expect(page.getByText("Adopted", { exact: true })).toBeVisible({
+  await expect(page.getByTestId("stage-run-material")).toBeVisible({
     timeout: 5_000,
   });
+  await expect(
+    page.getByText("Document change adopted", { exact: true }).last(),
+  ).toBeVisible();
   await page.unroute("**/api/run-events/*/adopt");
-
-  await page.getByRole("button", { name: "Back to workflow attempt" }).click();
-  await expect(page.getByTestId("stage-run-material")).toBeVisible();
   const proposalIndex = page.getByTestId("workflow-step-index");
   await proposalIndex.getByText("Attempt 1", { exact: true }).click();
   await expect(
@@ -1350,9 +1362,12 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(rejectAction).toBeDisabled();
   await expect(adoptAction).toBeDisabled();
   releaseReject();
-  await expect(page.getByText("Rejected", { exact: true })).toBeVisible({
+  await expect(page.getByTestId("stage-run-material")).toBeVisible({
     timeout: 5_000,
   });
+  await expect(
+    page.getByText("Document change rejected", { exact: true }).last(),
+  ).toBeVisible();
   await page.unroute("**/api/run-events/*/reject");
 
   await backToQueue(page);
@@ -1594,21 +1609,27 @@ test("terminal investigation and audit results remain closed and linked remediat
   await dialog.getByLabel("Title").fill("Remediate investigation finding");
 
   let releaseRemediation = (): void => {};
+  let remediationHandled = (): void => {};
   const remediationBarrier = new Promise<void>((resolve) => {
     releaseRemediation = resolve;
   });
+  const remediationComplete = new Promise<void>((resolve) => {
+    remediationHandled = resolve;
+  });
   await page.route("**/api/work-items", async (route) => {
     if (route.request().method() !== "POST") {
-      await route.continue();
+      await route.fallback();
       return;
     }
     await remediationBarrier;
     await route.continue();
+    remediationHandled();
   });
   const createRemediation = dialog.getByRole("button", { name: "Create linked remediation" });
   await createRemediation.click();
   await expect(createRemediation).toBeDisabled();
   releaseRemediation();
+  await remediationComplete;
   await page.unroute("**/api/work-items");
 
   await expect(page.getByTestId("work-item-heading")).toHaveText("Remediate investigation finding");
