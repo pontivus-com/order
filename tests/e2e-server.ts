@@ -867,10 +867,26 @@ for (const [title, outcome] of [
 
 const seedExecutionFeedback = (
   title: string,
-  status: "ACTIVE" | "BLOCKED",
+  lifecycle: Readonly<
+    | {
+        stage: "EXECUTION";
+        status: "ACTIVE" | "BLOCKED";
+        outcome: null;
+      }
+    | {
+        stage: "COMPLETE";
+        status: "COMPLETE";
+        outcome: "ALREADY_SATISFIED";
+      }
+  >,
   taskState: "ALREADY_SATISFIED" | "BLOCKED",
 ) => {
-  const item = workItem(title, "EXECUTION", status, null);
+  const item = workItem(
+    title,
+    lifecycle.stage,
+    lifecycle.status,
+    lifecycle.outcome,
+  );
   storeWorkItem(database, item);
   const artifacts = storePlanArtifacts(item.id);
   const approvalValue = ApprovalSchema.parse({
@@ -906,7 +922,11 @@ const seedExecutionFeedback = (
 
 const alreadySatisfied = seedExecutionFeedback(
   "Already satisfied implementation",
-  "ACTIVE",
+  {
+    stage: "COMPLETE",
+    status: "COMPLETE",
+    outcome: "ALREADY_SATISFIED",
+  },
   "ALREADY_SATISFIED",
 );
 const alreadySatisfiedRun = RunSchema.parse({
@@ -934,7 +954,11 @@ persistEvent(alreadySatisfiedRun.id, 1, {
 
 const failedExecution = seedExecutionFeedback(
   "Failed implementation feedback",
-  "BLOCKED",
+  {
+    stage: "EXECUTION",
+    status: "BLOCKED",
+    outcome: null,
+  },
   "BLOCKED",
 );
 const failedBuilderRun = RunSchema.parse({
