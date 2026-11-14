@@ -535,6 +535,61 @@ describe("repository shell", () => {
     expect(run(["git", "status", "--porcelain=v1"], root).stdout).toContain("file.txt");
   });
 
+  it("captures outer-repository files without traversing an untracked nested repository", () => {
+    const root = tempDir("order-nested-repository-");
+    initGitRepo(root);
+    const nested = join(root, "embedded");
+    mkdirSync(nested);
+    run(["git", "init", "-q"], nested);
+    run(["git", "config", "user.name", "Order Test"], nested);
+    run(["git", "config", "user.email", "order@example.invalid"], nested);
+    writeFileSync(join(nested, "private.txt"), "nested repository material\n");
+    run(["git", "add", "."], nested);
+    run(["git", "commit", "-qm", "nested baseline"], nested);
+    writeFileSync(join(root, "visible.txt"), "outer repository material\n");
+
+    const result = JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const capture = await repo.captureCandidate(${JSON.stringify(root)});
+      console.log(JSON.stringify({
+        changedPaths: capture.changedPaths,
+        patch: new TextDecoder().decode(capture.patch),
+      }));
+    `, process.cwd())) as { changedPaths: string[]; patch: string };
+
+    expect(result.changedPaths).toEqual(["visible.txt"]);
+    expect(result.patch).toContain("b/visible.txt");
+    expect(result.patch).not.toContain("embedded");
+  });
+
+  it("does not treat dirty tracked gitlinks as outer-repository file changes", () => {
+    const root = tempDir("order-gitlink-");
+    initGitRepo(root);
+    const nested = join(root, "embedded");
+    mkdirSync(nested);
+    run(["git", "init", "-q"], nested);
+    run(["git", "config", "user.name", "Order Test"], nested);
+    run(["git", "config", "user.email", "order@example.invalid"], nested);
+    writeFileSync(join(nested, "private.txt"), "nested baseline\n");
+    run(["git", "add", "."], nested);
+    run(["git", "commit", "-qm", "nested baseline"], nested);
+    run(["git", "add", "embedded"], root);
+    run(["git", "commit", "-qm", "track nested gitlink"], root);
+    writeFileSync(join(nested, "private.txt"), "nested dirty\n");
+
+    const result = JSON.parse(bunEval(`
+      const repo = await import("./src/shell/repository.ts");
+      const capture = await repo.captureCandidate(${JSON.stringify(root)});
+      console.log(JSON.stringify({
+        changedPaths: capture.changedPaths,
+        patch: new TextDecoder().decode(capture.patch),
+      }));
+    `, process.cwd())) as { changedPaths: string[]; patch: string };
+
+    expect(result.changedPaths).toEqual([]);
+    expect(result.patch).toBe("");
+  });
+
   it("excludes ignored dependency and arbitrary physical AGENTS.md while preserving tracked ignored-looking material", () => {
     const root = tempDir("order-stage-ignored-agents-");
     initGitRepo(root);

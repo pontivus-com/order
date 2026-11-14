@@ -377,9 +377,10 @@ export const enumerateAgentInstructions = async (
   return [...new Set(paths)].sort();
 };
 
-export const changedRepositoryPaths = async (
+const opaqueRepositoryPaths = async (
   workspace: string,
-): Promise<readonly RepositoryPath[]> => {
+  index: string,
+): Promise<readonly string[]> => {
   const output = await runGit(workspace, [
     "status",
     "--porcelain=v1",
@@ -387,16 +388,31 @@ export const changedRepositoryPaths = async (
     "--untracked-files=all",
     "--no-renames",
   ]);
-  if (output.byteLength === 0) return [];
 
-  const records = utf8.decode(output).split("\0").filter((record) => record.length > 0);
-  const paths = records.map((record) => {
+  const paths = new Set<string>();
+  const statusRecords = utf8.decode(output).split("\0").filter((record) => record.length > 0);
+  for (const record of statusRecords) {
     if (record.length < 4 || record[2] !== " ") {
       throw new TypeError("invalid git status porcelain record");
     }
-    return RepositoryPathSchema.parse(record.slice(3));
-  });
-  return [...new Set(paths)].sort();
+    const path = record.slice(3);
+    if (path.endsWith("/")) paths.add(path.slice(0, -1));
+  }
+
+  const indexRecords = utf8.decode(await runGit(
+    workspace,
+    ["ls-files", "--stage", "-z"],
+    undefined,
+    { GIT_INDEX_FILE: index },
+  )).split("\0").filter((record) => record.length > 0);
+  for (const record of indexRecords) {
+    const tab = record.indexOf("\t");
+    if (tab < 0) throw new TypeError("invalid git ls-files index record");
+    const mode = record.slice(0, tab).split(" ")[0];
+    if (mode === "160000") paths.add(record.slice(tab + 1));
+  }
+
+  return [...paths].sort();
 };
 
 export type CandidateCapture = Readonly<{
@@ -408,18 +424,26 @@ export type CandidateCapture = Readonly<{
 export const captureCandidate = async (
   workspace: string,
 ): Promise<CandidateCapture> => {
-  const changedPaths = await changedRepositoryPaths(workspace);
   const directory = mkdtempSync(join(tmpdir(), "order-index-"));
   const index = join(directory, "index");
 
   try {
     await runGit(workspace, ["read-tree", "HEAD"], undefined, { GIT_INDEX_FILE: index });
+    const opaquePaths = await opaqueRepositoryPaths(workspace, index);
     await runGit(
       workspace,
       ["add", "--intent-to-add", "--all", "--", "."],
       undefined,
       { GIT_INDEX_FILE: index },
     );
+    if (opaquePaths.length > 0) {
+      await runGit(
+        workspace,
+        ["--literal-pathspecs", "reset", "--", ...opaquePaths],
+        undefined,
+        { GIT_INDEX_FILE: index },
+      );
+    }
     const patch = await runGit(
       workspace,
       [
@@ -428,6 +452,7 @@ export const captureCandidate = async (
         "--full-index",
         "--no-renames",
         "--no-ext-diff",
+        "--ignore-submodules=all",
         "--src-prefix=a/",
         "--dst-prefix=b/",
         "--",
@@ -436,6 +461,9 @@ export const captureCandidate = async (
       undefined,
       { GIT_INDEX_FILE: index },
     );
+    const changedPaths = patch.byteLength === 0
+      ? []
+      : await patchPaths(workspace, patch);
     return {
       patch,
       patchSha256: sha256(patch),
