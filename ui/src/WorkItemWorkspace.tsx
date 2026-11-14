@@ -592,7 +592,6 @@ export const WorkItemWorkspace = ({
               type="button"
               aria-current={step.stage === workItem.stage ? "step" : undefined}
               aria-pressed={selected}
-              aria-disabled={state === "UNREACHED" ? "true" : undefined}
               data-reached={state === "UNREACHED" ? "false" : "true"}
               data-selected={selected ? "true" : "false"}
               title={step.purpose}
