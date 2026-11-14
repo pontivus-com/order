@@ -614,6 +614,7 @@ describe("architecture fitness", () => {
     const requiredUiOwners = [
       "ui/src/WorkItemWorkspace.tsx",
       "ui/src/WorkflowStepFrame.tsx",
+      "ui/src/PreSignoffStageWorkspace.tsx",
       "ui/src/MarkdownEditor.tsx",
       "ui/src/MarkdownSourceEditor.tsx",
       "ui/src/markdown-source-formatting.ts",
@@ -729,6 +730,7 @@ describe("architecture fitness", () => {
       "ui/src/MarkdownEditor.tsx",
       "ui/src/MarkdownSourceEditor.tsx",
       "ui/src/ProposalReview.tsx",
+      "ui/src/PreSignoffStageWorkspace.tsx",
       "ui/src/SignoffReview.tsx",
       "ui/src/ProposalReview.tsx",
       "ui/src/ActivityWorkspace.tsx",
@@ -742,6 +744,12 @@ describe("architecture fitness", () => {
       "ui/src/DocumentWorkspace.tsx": ["ui/src/MarkdownEditor.tsx"],
       "ui/src/MarkdownEditor.tsx": ["ui/src/MarkdownSourceEditor.tsx"],
       "ui/src/ActivityWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
+      "ui/src/PreSignoffStageWorkspace.tsx": [
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/EvidenceViewer.tsx",
+      ],
       "ui/src/ExecutionWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
     };
 
