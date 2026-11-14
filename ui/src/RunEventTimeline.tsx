@@ -34,7 +34,12 @@ export const RunEventTimeline = ({
         ? proposalDispositionFor(events, event.id)
         : null;
       return (
-        <li key={event.id} data-event-tag={event.event.tag}>
+        <li
+          key={event.id}
+          data-event-tag={event.event.tag}
+          data-event-tone={presentation.tone}
+          aria-label={presentation.label}
+        >
           <div className="order-event-heading">
             <div>
               <Badge variant={toneVariant(presentation.tone)} label={presentation.label} />
