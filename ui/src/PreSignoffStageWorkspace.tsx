@@ -17,6 +17,7 @@ import {
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import {
+  PrimaryMaterialFrame,
   WorkflowStepFrame,
   WorkflowStepIndex,
   type WorkflowStepIndexGroup,
@@ -189,7 +190,11 @@ export const PreSignoffStageWorkspace = ({
       summary={summary}
       index={index}
       indexLabel={stage === "PLAN" ? "Plan work" : "Step work"}
-      primary={primary}
+      primary={
+        <PrimaryMaterialFrame>
+          {primary}
+        </PrimaryMaterialFrame>
+      }
     />
   );
 };
