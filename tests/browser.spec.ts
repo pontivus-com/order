@@ -977,7 +977,7 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await authenticate(page, request);
   await openWorkItem(page, "Proposal review");
 
-  await expect(page.getByTestId("activity-workspace")).toBeVisible();
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByRole("button", { name: "Review proposed document change" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
@@ -1006,7 +1006,8 @@ test("persisted proposal disposition is caught by polling and sign-off review re
     "/api/work-items/" + proposalItem!.id + "/runs",
   );
   const runs = RunSchema.array().parse(await runsResponse.json());
-  const proposalRun = runs.find((run) => run.role === "STAGE" && run.status === "RUNNING");
+  const proposalRun = runs.find((run) =>
+    run.role === "STAGE" && run.stage === "PLAN");
   expect(proposalRun).toBeDefined();
 
   const eventsResponse = await contextRequest.get(
@@ -1028,6 +1029,12 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await expect(page.getByText("Rejected", { exact: true }).first()).toBeVisible({
     timeout: 5_000,
   });
+  await page.getByRole("button", { name: "Back to workflow attempt" }).click();
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
+  await expect(
+    page.getByTestId("workflow-progression")
+      .getByRole("button", { name: "Implementation plan" }),
+  ).toHaveAttribute("aria-current", "step");
 
   await backToQueue(page);
   await openWorkItem(page, "Awaiting sign-off");
@@ -1035,11 +1042,22 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   await expect(page.getByTestId("signoff-package-hash")).toHaveText(
     /^sha256:[0-9a-f]{64}$/,
   );
-  await expect(page.getByTestId("review-documents")).toContainText("PLAN");
-  await expect(page.getByTestId("review-documents")).toContainText("R3");
-  await expect(page.getByText("Signed tasks", { exact: true })).toBeVisible();
-  await expect(page.locator(".order-signed-task-list").getByText("T1", { exact: true })).toBeVisible();
-  await expect(page.locator(".order-signed-task-list").getByText("Prove the browser candidate surface", { exact: true })).toBeVisible();
+  const approvalIndex = page.getByTestId("workflow-step-index");
+  await expect(approvalIndex).toContainText("Governed documents");
+  await expect(approvalIndex).toContainText("Signed tasks");
+  await expect(approvalIndex.getByText("T1", { exact: true })).toBeVisible();
+
+  await approvalIndex.getByText("Implementation plan", { exact: true }).click();
+  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
+  await expect(
+    page.getByLabel("Implementation plan document Markdown source"),
+  ).toHaveCount(0);
+
+  await approvalIndex.getByText("T1", { exact: true }).click();
+  await expect(page.getByTestId("approval-task-detail"))
+    .toContainText("Prove the browser candidate surface");
+
+  await approvalIndex.getByText("Overview", { exact: true }).click();
   await expect(page.getByLabel("Approved by")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
 });
@@ -1050,9 +1068,10 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Source editing workbench");
-  await page.getByRole("radio", { name: "Documents" }).click();
-
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
+  await selectWorkflowStep(page, "Work request");
+  await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
+
   const sourceEditor = page.getByLabel("WorkItem source Markdown source");
   await expect(sourceEditor).toBeVisible();
   const original = await markdownSourceValue(sourceEditor);
