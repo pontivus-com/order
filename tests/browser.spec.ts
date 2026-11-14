@@ -1349,7 +1349,11 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   ).toBeVisible();
   await expect(page.getByText("Continue current work", { exact: true })).toBeVisible();
 
+  const cancelResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().includes("/api/runs/" + inputRun!.id + "/cancel"));
   await page.getByRole("button", { name: "Cancel current activity" }).click();
+  expect((await cancelResponse).status()).toBe(200);
   await expect(page.getByTestId("selected-run-header")).toContainText("Cancelled");
   await expect(page.getByTestId("activity-composer")).toHaveCount(0);
   await backToQueue(page);
