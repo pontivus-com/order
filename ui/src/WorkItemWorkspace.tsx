@@ -244,12 +244,17 @@ export const WorkItemWorkspace = ({
   useEffect(() => {
     if (dirty) return;
     if (!workflowInspectionActive && selectedStep !== workItem.stage) {
+      if (selectedStep === "IDEA" && material.kind === "SOURCE_DOCUMENT") {
+        setWorkflowInspectionActive(true);
+        return;
+      }
       setSelectedStep(workItem.stage);
       setExplicitMaterial(null);
       setReturnSelection(null);
     }
   }, [
     dirty,
+    material.kind,
     selectedStep,
     workItem.stage,
     workflowInspectionActive,
