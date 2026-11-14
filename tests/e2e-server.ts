@@ -17,6 +17,7 @@ import {
   WorkItemSchema,
   type RunEventPayload,
   type RunId,
+  type StageCompletion,
   type WorkItemId,
 } from "../src/core/contracts.ts";
 import { renderWorkItemSourceMarkdown } from "../src/core/work-item-source.ts";
@@ -193,7 +194,14 @@ const r3Sha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r
 
 const workItem = (
   title: string,
-  stage: "R1" | "PLAN" | "AWAITING_SIGNOFF" | "COMPLETE",
+  stage:
+    | "R1"
+    | "R2"
+    | "DESIGN"
+    | "PLAN"
+    | "R3"
+    | "AWAITING_SIGNOFF"
+    | "COMPLETE",
   status: "ACTIVE" | "COMPLETE",
   outcome:
     | "CANDIDATE_DONE"
@@ -330,6 +338,7 @@ const seedConformance = async (
   item: ReturnType<typeof workItem>,
   stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
   output: Awaited<ReturnType<typeof currentFileArtifact>>,
+  completion?: StageCompletion,
 ): Promise<void> => {
   const context = await resolveStageContext(seedRuntime, item, stage);
   const run = insertRun(seedRuntime, RunSchema.parse({
@@ -362,6 +371,13 @@ const seedConformance = async (
       contextHash: context.contextHash,
       evidence: [],
     });
+    if (completion) {
+      appendRunEvent(seedRuntime, run.id, {
+        tag: "STAGE_COMPLETED",
+        completion,
+        artifactRefIds: [output.id],
+      });
+    }
   });
 };
 
@@ -383,6 +399,87 @@ const seedLifecycle = async (
   await seedConformance(item, "R3", outputs.R3);
   return outputs;
 };
+
+const progressionStages = [
+  {
+    stage: "R1",
+    path: "docs/r1.md",
+    role: "R1",
+    layer: "P1",
+    completion: { stage: "R1", outcome: "CONFIRMED" },
+  },
+  {
+    stage: "R2",
+    path: "docs/r2.md",
+    role: "R2",
+    layer: "P3",
+    completion: { stage: "R2", outcome: "ACCEPTED" },
+  },
+  {
+    stage: "DESIGN",
+    path: "docs/design.md",
+    role: "DESIGN",
+    layer: "P6",
+    completion: { stage: "DESIGN", outcome: "ACCEPTED" },
+  },
+  {
+    stage: "PLAN",
+    path: "docs/plan.md",
+    role: "PLAN",
+    layer: "P7",
+    completion: { stage: "PLAN", outcome: "ACCEPTED" },
+  },
+] as const satisfies readonly Readonly<{
+  stage: "R1" | "R2" | "DESIGN" | "PLAN";
+  path: string;
+  role: "R1" | "R2" | "DESIGN" | "PLAN";
+  layer: "P1" | "P3" | "P6" | "P7";
+  completion: StageCompletion;
+}>[];
+
+const seedProgressionReadyItem = async (
+  title: string,
+  currentStage: "R2" | "DESIGN" | "PLAN" | "R3",
+) => {
+  const item = workItem(title, currentStage, "ACTIVE", null);
+  storeWorkItem(database, item);
+  const currentIndex = ["R2", "DESIGN", "PLAN", "R3"].indexOf(currentStage);
+  for (let index = 0; index <= currentIndex; index += 1) {
+    const definition = progressionStages[index];
+    if (!definition) break;
+    const output = await currentFileArtifact(
+      seedRuntime,
+      item,
+      definition.path,
+      definition.role,
+      definition.layer,
+    );
+    await seedConformance(
+      item,
+      definition.stage,
+      output,
+      definition.completion,
+    );
+  }
+  return item;
+};
+
+await seedProgressionReadyItem(
+  "Requirements ready after Research",
+  "R2",
+);
+await seedProgressionReadyItem(
+  "Solution design ready after Requirements",
+  "DESIGN",
+);
+await seedProgressionReadyItem(
+  "Implementation plan ready after Design",
+  "PLAN",
+);
+await seedProgressionReadyItem(
+  "Readiness ready after Plan",
+  "R3",
+);
 
 const signoffItem = workItem("Awaiting sign-off", "AWAITING_SIGNOFF", "ACTIVE", null);
 storeWorkItem(database, signoffItem);
