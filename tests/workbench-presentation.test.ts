@@ -366,6 +366,24 @@ describe("workflow presentation policy", () => {
   });
 
 
+  it("keeps explicit proposal inspection valid independently of default proposal priority", () => {
+    const running = stageRun("PLAN", "RUNNING", 1, uuidB);
+    const explicit: WorkflowMaterial = {
+      kind: "PROPOSAL",
+      runId: running.id,
+      eventId: `event_${uuidC}`,
+    };
+
+    expect(resolveWorkflowMaterial({
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN",
+      runs: [running],
+      artifacts: [],
+      pendingProposal: null,
+      explicitSelection: explicit,
+    })).toEqual(explicit);
+  });
+
   it("promotes current blocking attention above an explicitly selected historical attempt", () => {
     const selectedAttempt = stageRun("PLAN", "FAILED", 2, uuidB);
     const currentBlocker = stageRun("PLAN", "BLOCKED", 4, uuidC);
