@@ -13,6 +13,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 - Strengthen Markdown editor geometry requirements with final-line long-document scrolling certification and clarify repository Settings around explicit Add repository plus confirmed, non-destructive Disconnect.
 - Add the governed Order 0.2.2 P7 implementation plan as one cumulative signed task with exact code/test change surface, trusted Console/skill/MCP admission mechanics, workspace/instruction/failure/freshness implementation steps, and the complete dependency-lock/typecheck/architecture/test/build/browser gate union.
 - Add the governed 0.2.2 workflow-centric Workbench P7 plan with explicit per-step implementation ownership, deletion obligations, Research → Requirements progression certification, proposal/evidence return continuity, and complete wide/narrow browser coverage.
+- Specify the complete workflow-step panel grammar, deterministic primary-material rules, exhaustive Run/OpenCode feedback presentation, mutation pending/success/failure behavior, and the explicit boundary that browser feedback uses canonical Runs/RunEvents rather than invented provider streaming.
 
 
 ### Fixed
