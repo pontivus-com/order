@@ -5,6 +5,10 @@
 **Versioned concern ID:** `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`  
 **Pyramid layer:** P4 technical architecture
 
+
+
+> **Current 0.3.0 technical authority:** §23 is the current component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
+
 ## 1. Purpose
 
 This document owns the technical realization of `GW-DOC-WORKBENCH-UX-V1`.
@@ -113,7 +117,9 @@ Exact breakpoint values are implementation tokens; the initial design targets ap
 
 Browser verification must validate behavior rather than merely CSS class presence.
 
-## 5. Astryx component mapping
+## 5. Astryx component inventory and baseline mapping
+
+This table records the verified primitive inventory available to the Workbench. For the 0.3.0 workflow-step redesign, the **exact primitive/composition selection is owned by §23.24–§23.35**. Where this older table names a superseded global workspace-view or lifecycle-document navigation surface, the later workflow-step mapping governs.
 
 | Functional surface | Astryx implementation candidates | Order responsibility |
 |---|---|---|
@@ -122,8 +128,8 @@ Browser verification must validate behavior rather than merely CSS class presenc
 | WorkItem queue | `Table`, `StatusDot`, `Badge`, `IconButton` | canonical rows/columns/status mapping |
 | Diagnostics | `Table`/ `List`, `Banner`, `StatusDot` | diagnostic meaning/actionability |
 | Creation | `Drawer`, `Selector`/`Typeahead`, `RadioList` or `SelectableCard`, `MultiSelector`, `TextInput` | project/type/concern semantics and canonical create mutation |
-| WorkItem workspace-view navigation | compact `SegmentedControl`/selector/navigation primitive or Order semantic wrapper | available views from canonical state; presentation-only selection at the primary-canvas boundary below the workflow rail |
-| Lifecycle document navigation | `TabList` or compact `Outline` | Work request/Research/Requirements/Solution design/Implementation plan/Readiness review presentation over canonical document roles |
+| Workflow-step navigation | Order semantic workflow rail using ordinary buttons/navigation semantics; `Badge`/`StatusDot` only for concise state where useful | canonical step labels/current-reached-unreached orientation; no generic Documents/Activity/Review mode selector |
+| Step-local work/material selection | `List` as the default work-index primitive; `TabList` only for a small fixed set of true peer variants inside one material | Run/document/task/package selection inside the owning workflow step; never a second workflow hierarchy |
 | Editable Markdown | Order-owned `MarkdownSourceEditor` backed by CodeMirror 6 | exact source buffer, editor lifecycle, syntax-aware source editing; dirty/conflict/save semantics remain in `MarkdownEditor` |
 | Read-only Markdown/raw content | `Markdown`, `CodeBlock`, `ScrollableArea` as appropriate | exact bytes remain canonical; rendering never becomes authority |
 | Stage dialogue | `ChatLayout`, `ChatMessage`, `ChatSystemMessage`, `ChatToolCalls`, `ChatComposer` | Run/RunEvent projection and mutation commands |
@@ -465,17 +471,15 @@ The current `.order-markdown-editor { max-width: 72rem; }` outer cap must be rem
 
 ### 17.2 WorkItem orientation and view navigation
 
-`WorkItemWorkspace` owns three explicit presentation levels:
+`WorkItemWorkspace` owns two persistent orientation levels and one selected-step composition:
 
-1. compact identity/header row — Back, WorkItem title/current state, WorkItem-level actions and Details/Context access;
+1. compact identity/header row — Back, WorkItem title/current state, true WorkItem-level actions and Details/Context access;
 2. compact workflow-process rail — ordinary-language lifecycle progression/current step and non-mutating inspection navigation;
-3. workspace-view selector at the primary-canvas boundary — Documents / Activity / Review / Implementation / Evidence / Result as applicable.
+3. selected workflow-step workspace — `WorkflowStepFrame` with optional step-local work index and one primary material, as defined by §23.24–§23.35.
 
 Detailed project/schema/concern/source metadata remains in on-demand `WorkItemContext`/Details rather than reserving permanent width.
 
-Workspace-view choice remains typed browser-local presentation state and preserves the existing dirty-navigation guard. It must not be merged with the lifecycle workflow rail.
-
-Documents retain one human-labelled lifecycle document content-navigation strip as the normal content edge.
+Selected workflow step/material remains typed browser-local presentation state and preserves the existing dirty-navigation guard. There is no persistent Documents / Activity / Review / Implementation / Evidence / Result workspace-view selector.
 
 ### 17.3 State-aware application toolbar
 
@@ -527,7 +531,7 @@ Implementation should replace identity-card-style layout for package hash/source
 3. signed task objective/scope/gates;
 4. exact identity metadata.
 
-Repeated tasks use a compact selectable/expandable list/table or equivalent scan-efficient treatment rather than unbounded stacked cards when multiple tasks exist. Approver input and final sign-off action remain in Context where the complete review surface is simultaneously visible.
+Repeated tasks use a compact selectable/expandable list/table or equivalent scan-efficient treatment rather than unbounded stacked cards when multiple tasks exist. Approver input and final sign-off action are task-local controls inside Approval beside the selected package review material. Context retains only secondary exact package identity/technical detail.
 
 ### 17.7 Execution master/detail realization
 
@@ -539,7 +543,7 @@ Repeated tasks use a compact selectable/expandable list/table or equivalent scan
 - selected Run/event timeline receives the flexible remaining region;
 - task/Run/event regions must not be separated by arbitrary vertical card stacks;
 - artifact/evidence references use a shared structured resource-row/list primitive or semantic component;
-- opening evidence continues to move the primary canvas into Evidence mode.
+- opening evidence promotes Evidence-class primary material inside Implementation and preserves the selected task/Run return origin.
 
 The current `15rem + minmax(0, 1fr)` Run/detail concept may be retained, but it must participate in remaining-height layout rather than sit below all task cards.
 
@@ -618,7 +622,7 @@ The spatial refactor must preserve the same P1 engineering constitution as the r
 Each production UI module owns one current presentation responsibility:
 
 - `app.tsx` owns application-shell composition, queue-vs-WorkItem selection, URL selection, global presentation preference and top-level query/mutation orchestration only;
-- `WorkItemWorkspace.tsx` owns selected-WorkItem presentation composition, mode selection, dirty-navigation admission and cross-mode presentation navigation only;
+- `WorkItemWorkspace.tsx` owns selected-WorkItem composition, selected workflow-step/material coordination, dirty-navigation admission and cross-material return orchestration only;
 - each workspace module owns only its substantive interaction class;
 - `MarkdownEditor.tsx` owns only exact editor-buffer/dirty/save/cancel/conflict presentation behavior;
 - `ui/src/http.ts` owns browser HTTP transport/parsing only and must not become a presentation-policy or domain-policy owner;
@@ -637,7 +641,7 @@ The UI must not introduce:
 - repeated screen-local mappings for the same semantic presentation rule when one cohesive pure presentation owner can serve them;
 - duplicate query/cache/state representations of daemon-owned state.
 
-Presentation-only values are legitimate when they represent **presentation state rather than domain meaning**, for example selected workspace mode, selected document, selected Run/evidence item, drawer visibility, dirty state or a resource-row visual variant. Such values remain local, typed and derived from canonical state; they do not become a parallel semantic model.
+Presentation-only values are legitimate when they represent **presentation state rather than domain meaning**, for example selected workflow step/material, selected document, selected Run/evidence item, drawer visibility, dirty state or a resource-row visual variant. Such values remain local, typed and derived from canonical state; they do not become a parallel semantic model.
 
 DRY is applied by **semantic ownership**, not by extracting every repeated JSX fragment. A shared primitive/helper is introduced only when the repeated behavior has one stable presentation meaning. Similar-looking markup with different semantics may remain separate.
 
@@ -679,7 +683,7 @@ Non-trivial derived presentation logic should be expressed as small pure functio
 
 Examples include:
 
-- canonical state -> available workspace modes;
+- canonical state -> current/reached workflow step and deterministic primary material;
 - canonical status -> semantic badge/action presentation;
 - RunEvent -> human-readable event detail/evidence links;
 - canonical resource -> shared resource-row presentation.
@@ -714,11 +718,11 @@ Architecture tests should enforce stable ownership/dependency propositions, not 
 
 ### GW-TR-016-COMPACT-WORKITEM-NAVIGATION
 
-**Required behavior:** WorkItem presentation separates the compact identity row, dedicated workflow-process rail, workspace-view selection at the primary-canvas boundary and one within-view navigation strip where the selected view needs it.
+**Required behavior:** WorkItem presentation separates the compact identity row, one dedicated workflow-process rail and the selected workflow-step workspace; a compact step-local work index appears only when that step has multiple meaningful work objects.
 
-**Acceptance criterion:** the active Documents surface presents one human-labelled content-edge document selector, workspace-view selection remains presentation-only and distinct from workflow inspection, and existing typed view/document state, dirty guards and focus behavior are preserved.
+**Acceptance criterion:** workflow navigation remains persistent and direct, step-local selection remains presentation-only, and existing typed selection/dirty guards/focus behavior are preserved without a generic workspace-view selector.
 
-**Failure/negative behavior:** workflow progression, workspace-view selection and document selection must not be collapsed into one ambiguous control or rendered as redundant competing full-width tab stacks.
+**Failure/negative behavior:** implementation must not stack workflow progression, a Documents/Activity/Review mode selector and lifecycle-wide document tabs as competing full-width navigation layers.
 
 ### GW-TR-017-STATE-AWARE-TOOLBAR-COMPOSITION
 
@@ -1224,6 +1228,8 @@ The projection does not persist state and does not determine lifecycle eligibili
 
 ### 20.2 WorkItem header geometry
 
+> **0.3.0 supersession:** the global workspace-view level described in the historical text of this section is replaced by §23.24–§23.35. The current implementation has identity row + workflow rail + selected workflow-step composition.
+
 `WorkItemWorkspace` retains one compact orientation header.
 
 The WorkItem orientation region uses exactly two compact intrinsic semantic rows before workspace-view selection and the primary mode canvas:
@@ -1386,6 +1392,8 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-028-WORKFLOW-HEADER-GEOMETRY
 
+> **0.3.0 supersession:** the workspace-view selector described below is removed by GW-TR-082-WORKFLOW-STEP-COMPOSITION-OWNER; identity + workflow rail remain the persistent orientation structure.
+
 **Required behavior:** WorkItem orientation uses the two-level geometry in §20.2: one compact identity/header row followed by one compact dedicated workflow-process rail. Workspace-view selection is separate at the primary-canvas boundary.
 
 **Acceptance criterion:** Back/title/WorkItem actions remain in the identity row; Research → Complete inspection navigation remains in the workflow rail; Documents/Activity/Review/Implementation selection is visually and semantically distinct; all three levels remain compact enough to leave the primary task the dominant viewport.
@@ -1393,6 +1401,8 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 **Failure/negative behavior:** workflow progression must not be mixed into the identity row, workspace-view tabs must not masquerade as lifecycle progression, and explanatory chrome must not become a page-like header stack.
 
 #### GW-TR-029-ACTIVITY-MASTER-DETAIL-LAYOUT
+
+> **0.3.0 supersession:** the master/detail geometry remains valid when agent activity is the selected material, but Activity is stage-local before sign-off and Implementation-local after sign-off under GW-TR-083 and GW-TR-088.
 
 **Required behavior:** Activity uses the remaining-height master/detail geometry in §§20.4–20.5.
 
@@ -1409,6 +1419,8 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 **Failure/negative behavior:** pre-signoff failure/completion events must not be hidden by a narrower Dialogue-specific allow-list.
 
 #### GW-TR-031-ACTIVITY-INPUT-PLACEMENT
+
+> **0.3.0 clarification:** composer placement remains valid but is now owned by the selected workflow-step Run material rather than a global Activity workspace.
 
 **Required behavior:** pending human input is attached to the selected Activity detail and consumes intrinsic/sticky bottom space only while input is accepted.
 
@@ -1441,6 +1453,8 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 **Failure/negative behavior:** management must not require raw Markdown structure manipulation or compete with the current lifecycle action.
 
 #### GW-TR-035-CANONICAL-MODE-RECONCILIATION
+
+> **0.3.0 supersession:** generic WorkItem mode reconciliation is replaced by workflow-step/material reconciliation in GW-TR-082..090.
 
 **Required behavior:** browser-local mode selection is reconciled against changing canonical WorkItem/Run state while preserving dirty-buffer and focus/history protections.
 
@@ -1793,6 +1807,8 @@ Permanent verification must prove:
 
 #### GW-TR-065-NONMUTATING-WORKFLOW-INSPECTION-NAVIGATION
 
+> **0.3.0 clarification:** non-mutating step inspection remains required; its target is the workflow-step composition, not a generic workspace mode.
+
 **Required behavior:** workflow steps use one pure typed presentation projection to navigate to canonical material/unreached presentation without invoking lifecycle mutations.
 
 **Acceptance criterion:** every workflow step is inspectable/clickable while lifecycle state is unchanged.
@@ -1800,6 +1816,8 @@ Permanent verification must prove:
 **Failure/negative behavior:** step clicks must not start/promote/sign off/execute or duplicate lifecycle policy.
 
 #### GW-TR-066-CONSOLIDATED-WORKITEM-DOCUMENT-CHROME
+
+> **0.3.0 supersession:** the workspace-view selector portion is removed by GW-TR-082; document control consolidation remains required when document material is selected inside a workflow step.
 
 **Required behavior:** WorkItem orientation follows the identity-row + workflow-rail hierarchy, workspace-view selection remains a separate canvas-boundary concern, and Documents uses one document selector plus one coherent editor/document control region. Old redundant rows are removed.
 
@@ -1830,3 +1848,972 @@ Permanent verification must prove:
 **Acceptance criterion:** one canonical account query/mutation implementation serves both contexts without duplicate management logic.
 
 **Failure/negative behavior:** parallel account managers or browser-direct OpenCode access are prohibited.
+
+
+## 23. Order 0.3.0 workflow-step Workbench technical realization (2026-11-14)
+
+This section realizes GW-DOC-WORKBENCH-UX-V1 §27 and is the current P4 authority for WorkItem UI composition.
+
+### 23.1 Technical ownership model
+
+WorkItemWorkspace remains the selected-WorkItem composition owner, but its browser-local state is no longer centered on a generic WorkItemMode.
+
+The composition hierarchy is:
+
+~~~text
+WorkItemWorkspace
+├── WorkItem identity/header
+├── workflow-step rail
+└── selected WorkflowStepWorkspace
+    ├── current step summary/action
+    ├── selected primary material
+    │   ├── governed Markdown
+    │   ├── selected STAGE Run timeline/composer
+    │   ├── proposal diff/review
+    │   ├── readiness/package review
+    │   ├── execution task/run detail
+    │   ├── evidence/raw material
+    │   └── terminal result
+    └── compact/on-demand step-local history/resources/details
+~~~
+
+The names above describe responsibilities, not mandatory filenames or a new domain model.
+
+The browser may hold typed presentation-local selection such as selected workflow step, selected Run, selected proposal, selected evidence, selected task or selected artifact. It must not persist a second workflow state, copy daemon eligibility, or introduce DTO/ViewModel families.
+
+### 23.2 Pure workflow-step presentation projection
+
+ui/src/workbench-presentation.ts remains the one pure semantic presentation-policy owner.
+
+It must project canonical WorkItem/Run/RunEvent state into:
+
+- ordinary workflow labels/purpose;
+- current/default workflow step;
+- whether a step is current, reached historical or unreached;
+- the current consequential action class/label where this is purely presentational;
+- step-local material availability;
+- human-readable Run/event/status presentation.
+
+It must not:
+
+- decide lifecycle promotion;
+- synthesize artifact existence;
+- infer daemon mutation eligibility beyond already-returned canonical state;
+- create a browser workflow state machine;
+- copy canonical contracts into presentation DTOs.
+
+The current generic workItemInitialMode, workflowInspectionTarget mode targets and workItemMode policy are replaced or reduced so navigation resolves directly to the owning workflow step/material.
+
+### 23.3 Selected-step state and reconciliation
+
+The default selected step follows canonical WorkItem stage.
+
+A user may inspect a reached historical step without mutating the WorkItem. Browser-local inspection selection may therefore differ temporarily from the current canonical stage.
+
+Reconciliation rules:
+
+- current-stage transition does not erase historical selection while the operator is deliberately inspecting a reached step;
+- starting/answering current work selects the current owning step unless a dirty Markdown guard prevents safe movement;
+- completion may advance default/current orientation immediately while preserving completed step history;
+- unreached step inspection renders a lightweight unavailable state and never creates material;
+- dirty Markdown navigation safety remains authoritative;
+- proposal/evidence material stores a typed return origin within the owning step rather than a generic returnMode.
+
+### 23.4 Pre-signoff stage composition
+
+Research, Requirements, Solution design and Implementation plan share one reusable composition responsibility.
+
+The implementation should reuse existing ActivityWorkspace, DocumentWorkspace, ProposalReview, RunEventTimeline, EvidenceViewer and MarkdownEditor behavior by **recomposing responsibilities**, not by duplicating them.
+
+Required behavior:
+
+- Run history/timeline/composer can render as the primary material for the selected stage and is filtered/anchored to that stage;
+- the stage's lifecycle artifact can render as the primary document material without a global Documents destination;
+- proposal review receives the existing review-class geometry but retains stage ownership and exact selected Run/proposal identity;
+- evidence receives the existing evidence-class geometry and exact return origin;
+- stage-local compact controls expose available material/history without becoming another full-width persistent navigation rail;
+- direct-edit permissions continue to call the canonical artifactDirectEditIsAllowed policy.
+
+The code must not create separate ResearchWorkspace/RequirementsWorkspace/DesignWorkspace/PlanWorkspace implementations that duplicate the same composition semantics unless a stage has a materially different technical responsibility. Prefer one typed stage composition with canonical stage-specific projections.
+
+### 23.5 Current action ownership
+
+Current action rendering is derived from canonical current WorkItem/Run/package/task state.
+
+For pre-signoff start actions, the browser condition is equivalent to:
+
+- WorkItem current stage is pre-signoff/currently startable under existing daemon semantics;
+- WorkItem status is ACTIVE;
+- no Run is currently active for the WorkItem.
+
+Historical terminal Runs are not a blocker.
+
+The existing canStart && runs.length === 0 presentation gate is therefore invalid and must be removed as part of the structural redesign. The browser does not create a new eligibility rule; it stops imposing a presentation-only restriction that the daemon does not own.
+
+Start actions render in the current step workspace. Sign-off renders in Approval. Linked remediation renders in Complete. Implementation mutation renders in Implementation.
+
+### 23.6 Proposal and evidence promotion
+
+Proposal/evidence presentation is a typed material selection owned by the current workflow step.
+
+For a proposal:
+
+- preserve runId + proposal event id;
+- render rationale + complete diff in review geometry;
+- Adopt/Reject use existing daemon commands;
+- after disposition, invalidate canonical queries and restore the exact owning stage/Run material;
+- do not require a global Review mode or Back to Activity.
+
+For evidence:
+
+- preserve the evidence/artifact selection plus owning step/task/Run return origin;
+- render through the existing evidence safety/content path;
+- closing returns to that origin;
+- no evidence bytes are copied into browser state beyond existing query/cache behavior.
+
+### 23.7 Readiness composition
+
+Readiness is a dedicated step composition, not a generic document or global Activity mode.
+
+It combines:
+
+- current R3/readiness state;
+- R3 artifact/verdict read-only;
+- selected R3 Run activity when present;
+- adversarial findings/evidence;
+- supporting lifecycle material opened read-only;
+- exact return-stage/blocker presentation.
+
+The primary layout is review-class. Run chronology uses the shared RunEvent presentation owner but does not automatically dominate the viewport unless input is currently required.
+
+No direct R3 editor is introduced.
+
+### 23.8 Approval composition
+
+Approval owns package query, supporting artifacts/tasks and sign-off mutation.
+
+Refactor the current split so:
+
+- SignoffReview (or its successor responsibility) owns the exact package presentation;
+- approver input and sign-off action are composed in that same Approval workspace;
+- supporting governed documents open as read-only package material inside Approval and return to package review;
+- package/task comparison gets review width;
+- exact hashes/baseline identifiers move behind Technical details or compact secondary metadata.
+
+WorkItemWorkspace may own the mutation hook/orchestration if required by current dependency direction, but the rendered action remains inside Approval and is passed through typed callbacks/props. Sibling workspaces do not import each other's state.
+
+### 23.9 Implementation composition
+
+ExecutionWorkspace becomes the owning post-signoff operational context.
+
+It retains:
+
+- approved-task master;
+- task attempts/Runs;
+- selected task/Run detail;
+- shared RunEventTimeline;
+- validation/candidate/evidence material;
+- current implementation action.
+
+Remove cross-navigation whose sole purpose is to reopen the same post-signoff Run in a global Activity workspace. Shared Run/event rendering remains one semantic owner and may be reused by pre-signoff stage composition and Implementation without implying a shared destination.
+
+### 23.10 Complete composition
+
+TerminalResult remains the reusable terminal-result material owner for non-delivery outcomes, but it renders under the Complete step.
+
+Complete composition selects appropriate result/candidate material from canonical outcome without exposing a global Result mode.
+
+For CANDIDATE_DONE, verified implementation/candidate material remains inspectable from Complete while task history remains owned by reached Implementation.
+
+For eligible investigation/audit results, linked-remediation action is rendered with the terminal result and invoked through existing canonical creation flow.
+
+### 23.11 Context and technical details
+
+WorkItemContext remains on-demand secondary inspection.
+
+It follows the selected workflow step/material and may show:
+
+- selected document technical identity;
+- selected Run technical identity;
+- selected task/evidence identifiers;
+- compact current blocker/failure facts.
+
+It must not become a replacement global workspace selector or duplicate the primary task action.
+
+Large diagnostics/evidence continue to promote into the selected step's primary material.
+
+### 23.12 Responsive realization
+
+Wide/medium/narrow behavior preserves the same typed selected-step/material state.
+
+- wide layouts may retain compact stage history/master beside primary material when space-class minima remain satisfied;
+- medium layouts collapse stage history/context before shrinking the primary material below its minimum;
+- narrow layouts show one material pane at a time with temporary selectors/drawers;
+- workflow rail remains the one lifecycle navigation control and may scroll/compact;
+- composer/document/review/sign-off/task-local actions remain attached to their owning material.
+
+No responsive-only workflow or duplicate selection store is introduced.
+
+### 23.13 Required deletion/refactor obligations
+
+The 0.3.0 redesign must remove or repurpose the structures that encode the superseded navigation model:
+
+1. global WorkItem workspace-view segmented selector;
+2. generic WorkItemMode as the primary WorkItem navigation state where it exists solely for Documents/Activity/Review/Execution/Evidence/Result;
+3. visibleModes eligibility logic as a global destination list;
+4. returnMode-based proposal/evidence navigation;
+5. workflow-step routing that first maps a step into a generic mode;
+6. WorkItem-header Start/sign-off/remediation actions that belong to step-local material;
+7. runs.length === 0 as a condition for starting the current pre-signoff stage;
+8. post-signoff Open in Activity navigation;
+9. Proposal Review's workflow-level Back to Activity requirement;
+10. browser tests that assert the superseded workspace-mode hierarchy as desired behavior.
+
+Existing canonical query/mutation owners, RunEvent rendering, Markdown editor, evidence safety, dirty-state safety, lifecycle contracts and daemon commands are reused.
+
+### 23.14 Architecture discipline
+
+The redesign is presentation architecture only unless implementation evidence proves otherwise.
+
+- no daemon lifecycle redesign;
+- no new persistence;
+- no transport contract change merely to drive layout;
+- no DTO/ViewModel family;
+- no class/service/controller layer;
+- no second browser server-state store;
+- one pure presentation policy owner;
+- shared Run/event and Markdown semantic owners remain shared;
+- same-layer component decomposition is permitted only where required to keep one current responsibility per module, with architecture sensor registration when a new production module is created.
+
+### 23.15 Technical requirements
+
+#### GW-TR-082-WORKFLOW-STEP-COMPOSITION-OWNER
+
+**Required behavior:** WorkItemWorkspace composes identity + one workflow rail + one selected workflow-step workspace and no global material-mode navigation hierarchy.
+
+**Acceptance criterion:** canonical current/reached/unreached step selection determines the owning context and generic Documents/Activity/Review/Result destinations are absent.
+
+**Failure/negative behavior:** browser-local mode state must not become a second workflow or require an extra navigation decision before ordinary step work.
+
+#### GW-TR-083-PRE-SIGNOFF-STAGE-MATERIAL-ORCHESTRATION
+
+**Required behavior:** one reusable typed pre-signoff composition integrates stage Run activity, governed artifact, proposal review and evidence for R1/R2/DESIGN/PLAN without duplicating their semantic owners.
+
+**Acceptance criterion:** shared RunEvent/Markdown/proposal/evidence components operate inside the selected stage and preserve canonical identifiers/queries.
+
+**Failure/negative behavior:** separate stage implementations must not duplicate policy tables, transport shapes or lifecycle rules.
+
+#### GW-TR-084-STAGE-RUN-HISTORY-AND-COMPOSER
+
+**Required behavior:** stage Run history and selected Run timeline/composer are rendered as step-local material with the composer only for a selected live input-accepting STAGE Run.
+
+**Acceptance criterion:** completed attempts remain inspectable, active/waiting attempts receive the primary dialogue surface, and terminal Runs never show an active composer.
+
+**Failure/negative behavior:** Run history must not require a global Activity destination or disappear after stage completion.
+
+#### GW-TR-085-IN-CONTEXT-PROPOSAL-EVIDENCE-PROMOTION
+
+**Required behavior:** proposal/evidence selection promotes the material to full review/evidence geometry while retaining typed owning step/Run/task return context.
+
+**Acceptance criterion:** disposition/close returns to the exact origin and query invalidation refreshes canonical state.
+
+**Failure/negative behavior:** returnMode or generic Review/Evidence destinations must not be required to reconstruct context.
+
+#### GW-TR-086-CANONICAL-CURRENT-ACTION-PROJECTION
+
+**Required behavior:** current actions render in the owning workflow-step material from canonical WorkItem/Run/package/task state and do not add presentation-only eligibility restrictions.
+
+**Acceptance criterion:** a later pre-signoff stage can be started after earlier Runs exist when no current Run is active; sign-off/remediation/implementation actions render only in Approval/Complete/Implementation respectively.
+
+**Failure/negative behavior:** historical Run count must not block the current stage and WorkItem header chrome must not own task-specific mutation controls.
+
+#### GW-TR-087-READINESS-APPROVAL-TECHNICAL-COMPOSITION
+
+**Required behavior:** Readiness and Approval use dedicated review-class compositions that reuse canonical artifacts/Runs/package/task queries while keeping verdict/sign-off actions with the reviewed material.
+
+**Acceptance criterion:** R3 is read-only and review-oriented; Approval supports in-context governed-document inspection and sign-off.
+
+**Failure/negative behavior:** Review must not be a generic destination shared by unrelated proposal/sign-off contexts, and sign-off must not be detached into the WorkItem header.
+
+#### GW-TR-088-IMPLEMENTATION-RUN-OWNERSHIP
+
+**Required behavior:** Implementation owns post-signoff task/Run/event/validation/candidate inspection and uses the shared event presenter without a separate global Activity route.
+
+**Acceptance criterion:** the selected task and its attempts/events/evidence remain operable in one master/detail composition.
+
+**Failure/negative behavior:** post-signoff Runs must not require Open in Activity to expose information already owned by Implementation.
+
+#### GW-TR-089-COMPLETE-OUTCOME-COMPOSITION
+
+**Required behavior:** Complete derives the appropriate terminal material from canonical WorkItem outcome and composes terminal result/candidate/evidence/remediation within the Complete step.
+
+**Acceptance criterion:** terminal non-delivery and candidate outcomes remain inspectable without a global Result destination.
+
+**Failure/negative behavior:** completion presentation must not invent another outcome state or duplicate implementation/result history.
+
+#### GW-TR-090-WORKFLOW-CENTRIC-BROWSER-CERTIFICATION
+
+**Required behavior:** permanent browser/architecture tests certify workflow-step navigation, stage-local material transitions, current-action continuity, responsive behavior and absence of the superseded generic mode hierarchy.
+
+**Acceptance criterion:** tests cover Work request→Research→Requirements progression, proposal/evidence return continuity, R1/R2/DESIGN/PLAN stage composition, Readiness, Approval, Implementation and Complete at representative wide/narrow geometries.
+
+**Failure/negative behavior:** certification must not stop at static component visibility or continue asserting Documents/Activity/Review as the intended global WorkItem architecture.
+
+
+### 23.16 Workflow-step panel composition
+
+The P4 implementation must realize GW-DOC-WORKBENCH-UX-V1 §§27.17–27.19 with one stable component grammar.
+
+WorkItemWorkspace owns only:
+
+- WorkItem identity/header;
+- workflow rail;
+- selected step composition;
+- dirty-navigation admission;
+- typed cross-material selection/return orchestration.
+
+Inside the selected step, composition is:
+
+~~~text
+step root                         min-width: 0; min-height: 0
+├── step summary                 intrinsic compact row
+└── step body                    min-width: 0; min-height: 0; flex: 1
+    ├── optional work index      14–18rem wide only when useful
+    └── primary material         minmax(0, 1fr)
+        ├── material header      intrinsic
+        ├── scroll/content body  min-height: 0; flex: 1
+        └── local action region  intrinsic/sticky when applicable
+~~~
+
+The global Context/Technical surface remains outside the step body's normal width and is closed by default.
+
+The work index contains canonical identities only: attempt summary, lifecycle document identity, signed task/package material identity. It must not render copied Markdown/message/diff bodies.
+
+At medium/narrow widths the work index becomes temporary selection UI before reducing the primary material below its P3 minimum width.
+
+### 23.17 Typed primary-material selection
+
+Presentation-local selection must be represented as a small discriminated union or equivalent typed state over canonical identities, for example conceptually:
+
+~~~text
+SOURCE_DOCUMENT
+STAGE_RUN(runId)
+STAGE_DOCUMENT(artifactId/role)
+PROPOSAL(runId,eventId)
+READINESS_REVIEW
+APPROVAL_PACKAGE
+EXECUTION_TASK(taskId,runId?)
+EVIDENCE(origin + canonical evidence/artifact identity)
+TERMINAL_RESULT
+~~~
+
+This is browser presentation state only. It is not persisted, transported or mapped into parallel domain/DTO shapes.
+
+A pure resolver in ui/src/workbench-presentation.ts (or the existing single presentation-policy owner) determines the default material from:
+
+- selected workflow step;
+- current canonical WorkItem stage/status/outcome;
+- Runs/statuses;
+- unresolved input;
+- pending proposal disposition;
+- available lifecycle artifact;
+- Approval/task state.
+
+The resolver implements GW-FR-117 priority exactly. It must be deterministic and exhaustively tested.
+
+Dirty-document selection and an explicit still-valid operator selection are admission inputs to reconciliation; they are not new lifecycle state.
+
+### 23.18 Exhaustive Run/OpenCode feedback projection
+
+runEventPresentation remains the one ordinary-language event projection owner and must be exhaustive over the complete canonical RunEventPayload union.
+
+Implementation requirements:
+
+1. every RunEvent tag in src/core/contracts.ts has one explicit projection;
+2. every Run status has one explicit ordinary-language status;
+3. event projection returns presentation semantics only, never mutation eligibility or duplicated domain state;
+4. pre-signoff stage composition and Implementation reuse the same projection;
+5. no component keeps a second tag allow-list that can silently suppress a canonical event;
+6. exact raw payload stays available through Technical details;
+7. evidence references are obtained through the existing canonical eventEvidence path or one singular replacement owner;
+8. failure/input/proposal/terminal events may set presentation importance used by the step material resolver, but that importance is a pure view policy over canonical events;
+9. success/pass events may be compacted into conformance/validation summaries while retaining exact event inspection.
+
+The current provider observation boundary remains unchanged: browser queries poll canonical Runs and RunEvents. They do not subscribe to OpenCode events directly.
+
+### 23.19 Provider diagnostic presentation
+
+ProviderDiagnosticRecord remains evidence, not a browser domain projection.
+
+When PROVIDER_DIAGNOSTICS_RECORDED, PRODUCTIVE_INVOCATION_FAILED or PROVIDER_FAILED exposes diagnostic evidence:
+
+- primary UI uses the canonical human-readable classification/detail;
+- EvidenceViewer reads the evidence bytes through the existing safe evidence endpoint;
+- exact providerId/modelId/providerSessionId/promptId/timing/outcome/format-repair/failure-phase/exception fields remain secondary technical data;
+- no provider diagnostic field is copied into WorkItem/Run presentation state merely for display.
+
+PRODUCTIVE_INVOCATION_FAILED and PROVIDER_FAILED must remain visually/semantically distinct. A component must not normalize both to a generic "agent failed".
+
+### 23.20 Interaction mutation feedback
+
+Mutation orchestration stays with existing TanStack Query mutation owners and canonical HTTP commands.
+
+Each owning material must receive:
+
+- isPending to disable/relabel only the action being executed;
+- canonical mutation error rendered adjacent to that material/action;
+- targeted query invalidation on success;
+- selection reconciliation after refreshed canonical state.
+
+Required flows:
+
+- stage start → created Run selected;
+- input → selected Run retained; persisted input/events refresh;
+- cancel → selected Run retained as terminal history;
+- retry → returned fresh Run selected;
+- resume → current WorkItem/Run state refetched;
+- adopt/reject → proposal retained while pending, controls disabled; disposition refresh then exact origin restored;
+- Markdown save/Git save → existing editor-local state retained;
+- sign-off → package remains visible while pending; success reconciles to Implementation; stale-package error keeps Approval selected and refetches package;
+- implementation advance → selected task maintained where still valid;
+- linked remediation → Complete remains stable until creation succeeds.
+
+Navigation-only selection must not create mutations, loading spinners or query invalidation.
+
+### 23.21 Step-specific technical composition
+
+#### Work request
+
+Reuse DocumentWorkspace/MarkdownEditor source responsibilities in a source-only step composition. Do not instantiate the lifecycle-document tab list around it. Source diagnostic blocker and Start Research are passed into the step summary/current-action surface.
+
+#### Research / Requirements / Solution design / Implementation plan
+
+Implement one reusable PreSignoffStageWorkspace responsibility or equivalent cohesive decomposition.
+
+Inputs are canonical WorkItem, selected stage, stage-filtered Runs, stage artifact, proposal/evidence selection and typed callbacks.
+
+Internally it may compose:
+
+- compact stage work index;
+- Activity/Run detail responsibility;
+- stage document responsibility;
+- ProposalReview;
+- EvidenceViewer.
+
+These children do not become sibling global workspaces. The stage owner controls primary material selection.
+
+#### Readiness review
+
+Use a dedicated review composition because R3 has materially different semantics. Reuse RunEventTimeline and artifact/evidence viewers, but keep R3 artifact read-only and make verdict/findings/package coherence the default review detail.
+
+#### Approval
+
+SignoffReview (or successor) owns package/material selection. Supporting lifecycle document inspection is a read-only child material of Approval. Approver input/action is passed into the same composition.
+
+#### Implementation
+
+ExecutionWorkspace keeps its task/Run master-detail owner. Validation presentation should derive a scan-efficient V0–V7 summary from canonical RunEvents without a parallel validation state model. Selected evidence is promoted and returns to selected task/Run.
+
+#### Complete
+
+TerminalResult (or successor) owns result material. Candidate-complete may compose read-only candidate/evidence material while detailed execution history remains selectable through the reached Implementation step.
+
+### 23.22 OpenCode observation limitations
+
+Do not add WebSocket/SSE/OpenCode event subscriptions, token-stream state, tool-stream state or fake progress as part of this redesign.
+
+The browser's truthful live provider feedback is:
+
+- canonical Run status;
+- canonical persisted RunEvents already returned by polling;
+- local mutation pending state.
+
+Between persisted events, RUNNING means only that the canonical Run is active. It must not be refined into provider-specific progress without a future governed transport requirement.
+
+### 23.23 Technical requirements
+
+#### GW-TR-091-WORKFLOW-STEP-PANEL-COMPOSITION
+
+**Required behavior:** selected workflow steps use the §23.16 semantic panel grammar with optional compact work index and one dominant primary material canvas.
+
+**Acceptance criterion:** every step can be rendered from the same shell grammar while its material keeps the P3 minimum space class and task-local action placement.
+
+**Failure/negative behavior:** implementation must not reintroduce full-width nested mode tabs, arbitrary card stacks or permanent side panels that compress the primary task.
+
+#### GW-TR-092-DETERMINISTIC-STEP-MATERIAL-RESOLVER
+
+**Required behavior:** one pure presentation-policy owner resolves the default/current step material using GW-FR-117 and canonical identities/state.
+
+**Acceptance criterion:** equal canonical inputs produce equal material selection; dirty/explicit valid selection is preserved according to navigation safety.
+
+**Failure/negative behavior:** individual components must not independently invent open-Activity-vs-Document-vs-Review logic.
+
+#### GW-TR-093-EXHAUSTIVE-RUN-FEEDBACK-PROJECTION
+
+**Required behavior:** Run status and RunEvent presentation is exhaustive over canonical contracts and shared by pre-signoff and post-signoff surfaces.
+
+**Acceptance criterion:** TypeScript/tests fail when a canonical event is added without a presentation decision; all existing event tags are visible/inspectable in the owning surface.
+
+**Failure/negative behavior:** component-local allow-lists must not silently drop new/current event classes.
+
+#### GW-TR-094-LOCAL-MUTATION-FEEDBACK-ORCHESTRATION
+
+**Required behavior:** consequential actions use local mutation pending/error state plus targeted canonical query refresh and exact selection reconciliation.
+
+**Acceptance criterion:** duplicate submissions are disabled and success/failure remains understandable without changing unrelated workflow selection.
+
+**Failure/negative behavior:** mutation state must not be centralized into a new global workflow store or represented by navigation-only state.
+
+#### GW-TR-095-OPENCODE-BROWSER-OBSERVATION-BOUNDARY
+
+**Required behavior:** the UI observes productive OpenCode work only through canonical Runs, RunEvents/evidence and existing polling/mutation state.
+
+**Acceptance criterion:** no hidden/direct OpenCode browser connection or invented provider-progress state is introduced; all persisted provider-origin feedback is still presented.
+
+**Failure/negative behavior:** implementation must not add live-provider transport or fake progress under the guise of UX redesign.
+
+
+### 23.24 Exact primitive-selection law for the workflow redesign
+
+The 0.3.0 implementation does not choose arbitrary Astryx components screen by screen. The following mapping is binding.
+
+The exact pinned primitive families are already verified by GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 and §5:
+
+- layout/composition: Layout, Stack, ScrollableArea;
+- temporary secondary surfaces: Drawer;
+- selection/collections: List, Table, TabList where true tab semantics exist;
+- state/status: Badge, StatusDot, Banner;
+- actions: Button through the existing Order-owned WorkbenchAction semantic wrapper; Toolbar for grouped material-local controls;
+- confirmations: AlertDialog;
+- dialogue: ChatLayout, ChatMessage, ChatSystemMessage, ChatToolCalls, ChatComposer;
+- document/read-only text: Markdown;
+- code/diff/raw evidence: CodeBlock;
+- structured metadata: MetadataList;
+- bounded text input: TextInput;
+- theme/icons: existing Order semantic icon map and root Theme integration.
+
+The existing local Order primitives remain the semantic boundary:
+
+- WorkbenchAction owns action hierarchy/loading/disabled semantics;
+- WorkbenchResourceRow owns resource identity + open interaction;
+- WorkbenchEmptyState / WorkbenchErrorState own ordinary loading/empty/error presentation;
+- WorkbenchLayout owns application primary/context composition;
+- WorkbenchIcon owns semantic icon meaning.
+
+New local wrappers are allowed only for the workflow-step semantics below. They must compose the verified primitives rather than become another design system.
+
+### 23.25 Required local workflow composition components
+
+Implement the workflow redesign with these cohesive local presentation responsibilities.
+
+#### WorkflowStepFrame
+
+One reusable step shell used by every selected workflow step.
+
+Owns:
+
+- compact step-summary slot;
+- step-body grid/flex geometry;
+- optional work-index slot;
+- primary-material slot;
+- responsive collapse of work index;
+- no domain queries or mutations.
+
+Implementation substrate:
+
+- Layout / Stack for structural composition;
+- ScrollableArea only where the selected material does not already own scrolling;
+- Drawer for the work-index selector on medium/narrow when necessary.
+
+It does not own Context; global Context remains WorkbenchLayout/app responsibility.
+
+#### WorkflowStepSummary
+
+One reusable compact semantic header.
+
+Owns:
+
+- step label/purpose;
+- current/reached/historical state;
+- concise primary status;
+- one dominant current action;
+- primary blocker/status Banner when the blocker must stay visible above the material.
+
+Implementation substrate:
+
+- Stack;
+- Badge and/or StatusDot for concise non-blocking status;
+- Banner for actionable blocker/warning/error;
+- WorkbenchAction for the one current action.
+
+It must not contain raw hashes/ids, work-index selection, document tabs or long message content.
+
+#### WorkflowStepIndex
+
+One reusable compact selector for step-owned work objects.
+
+Owns:
+
+- grouped attempt/document/task/package entries;
+- selected state;
+- ordinary status text/badges;
+- temporary narrow-layout opening.
+
+Implementation substrate:
+
+- Astryx List as the default collection primitive;
+- Badge/StatusDot for item state;
+- WorkbenchAction only when a row has a secondary explicit action;
+- Drawer on medium/narrow.
+
+TabList is **not** the generic work-index implementation. It is permitted only where a small fixed set of peer material variants genuinely has tab semantics.
+
+#### PrimaryMaterialFrame
+
+A thin local composition responsibility, not a domain component.
+
+Owns:
+
+- material heading;
+- remaining-height content region;
+- local action slot;
+- loading/empty/error geometry.
+
+Implementation substrate:
+
+- Stack / ScrollableArea;
+- WorkbenchEmptyState / WorkbenchErrorState;
+- Toolbar where multiple material-local controls need one compact row.
+
+It does not choose which material is active; the pure material resolver does.
+
+### 23.26 Exact shared material primitive mapping
+
+| Material class | Required implementation |
+|---|---|
+| Editable governed Markdown | existing MarkdownEditor + CodeMirror exact-source editor; WorkbenchAction-based formatting/save controls; AlertDialog for dirty/discard confirmation |
+| Read-only governed Markdown | Astryx Markdown inside Document-class primary material; exact source remains available through canonical artifact read path |
+| STAGE dialogue | ChatLayout containing ChatMessage / ChatSystemMessage / ChatToolCalls projections plus ChatComposer when input is accepted |
+| Run/event history outside chat-specific rendering | existing singular RunEventTimeline responsibility, refactored to use the same runEventPresentation owner; List/Stack semantics only |
+| Proposal review | Section-style primary review composition + CodeBlock diff + Toolbar/WorkbenchAction Adopt/Reject |
+| Evidence/raw text/patch | CodeBlock + ScrollableArea; WorkbenchResourceRow for references; no Markdown interpretation for arbitrary evidence |
+| Review package/readiness detail | Section-style review composition + List/Table for repeated material + Markdown/CodeBlock for selected document/evidence + MetadataList only for secondary exact metadata |
+| Operational task/run inspection | Table or List task master according to density, List attempt master, Badge/StatusDot state, RunEventTimeline, Table for V0–V7 validation matrix |
+| Terminal result | Section-style result composition + Badge/status + Markdown or CodeBlock for governed result material + WorkbenchResourceRow |
+| Compact technical metadata | MetadataList inside Context/Technical details, never as the primary information hierarchy |
+
+ProgressBar is not used for agent execution or V0–V7 merely because the primitive exists. Discrete validation states are rendered as discrete statuses; the integration does not expose honest percentage progress.
+
+Toast is not the owner of blockers, required input, mutation failure or terminal outcome. Critical feedback remains inline in the owning workflow step/material. Toast may be used only for non-critical ephemeral acknowledgement where losing the toast would not lose required state.
+
+### 23.27 Work request technical composition
+
+Functional authority: GW-DOC-WORKBENCH-UX-V1 §27.23.1.
+
+Component composition:
+
+~~~text
+WorkflowStepFrame
+├── WorkflowStepSummary
+│   ├── Badge/StatusDot source state
+│   ├── Banner source blocker when applicable
+│   └── WorkbenchAction "Start Research"
+└── PrimaryMaterialFrame
+    └── SourceDocumentMaterial
+        └── MarkdownEditor
+            ├── CodeMirror
+            ├── Toolbar / existing formatting controls
+            └── WorkbenchAction Save / Cancel / Git save
+~~~
+
+No WorkflowStepIndex is rendered by default.
+
+Reuse the existing WorkItem source queries, Git-status query and source mutation owners from DocumentWorkspace/MarkdownEditor. Refactor those responsibilities into source material without retaining the generic lifecycle-document TabList around Work request.
+
+AlertDialog remains the confirmation primitive for dirty navigation/Git-save confirmation where required.
+
+### 23.28 Research / Requirements / Solution design / Implementation plan technical composition
+
+Functional authority: GW-DOC-WORKBENCH-UX-V1 §§27.23.2–27.23.5.
+
+All four steps use one reusable PreSignoffStageWorkspace responsibility.
+
+~~~text
+PreSignoffStageWorkspace
+└── WorkflowStepFrame
+    ├── WorkflowStepSummary
+    ├── WorkflowStepIndex (when >1 meaningful work object)
+    │   ├── List group: Activity attempts
+    │   └── List item: owning lifecycle document
+    └── PrimaryMaterialFrame
+        ├── StageRunMaterial
+        ├── StageDocumentMaterial
+        ├── ProposalReview
+        └── EvidenceViewer
+~~~
+
+#### StageRunMaterial
+
+Recompose current ActivityWorkspace behavior; do not keep ActivityWorkspace as a global destination.
+
+Primitive mapping:
+
+- ChatLayout → selected Run conversation canvas;
+- ChatMessage → AGENT_MESSAGE_FINAL and HUMAN_INPUT_RECEIVED ordinary messages;
+- ChatSystemMessage → STAGE_STARTED, HUMAN_INPUT_REQUESTED, completion/blocker/conformance/provider-status receipts where conversation semantics fit;
+- ChatToolCalls or compact structured event rows → evidence/tool-like operational receipts where useful;
+- ChatComposer → selected live STAGE Run input;
+- Badge/StatusDot → Run status;
+- Banner → current failure/blocker/setup failure;
+- WorkbenchAction → Cancel / Retry / Resume;
+- WorkbenchResourceRow → evidence references.
+
+RunEventTimeline remains the singular event-semantic renderer where an event does not map naturally to a chat message. Do not create separate Research/Requirements/Design/Plan event mappers.
+
+#### StageDocumentMaterial
+
+Refactor the lifecycle-document responsibilities from DocumentWorkspace into one selected-stage document material.
+
+Primitive mapping:
+
+- MarkdownEditor + CodeMirror → editable stage document;
+- Markdown → read-only stage document;
+- Toolbar + WorkbenchAction → Edit/Preview/Split/Save/Cancel/Git controls;
+- Badge → editable/read-only/current/stale state;
+- Banner → stale/conflict/invalidation consequence.
+
+No lifecycle-wide TabList is rendered here.
+
+#### ProposalReview
+
+Keep ProposalReview as one shared semantic owner, but change navigation contract.
+
+Primitive mapping:
+
+- review Section/composition;
+- CodeBlock with diff mode;
+- Toolbar;
+- WorkbenchAction Adopt / Reject;
+- Badge for Pending/Adopted/Rejected;
+- WorkbenchErrorState for mutation error.
+
+The parent stage workspace supplies the exact owning stage/Run return context. Back to Activity is deleted.
+
+#### EvidenceViewer
+
+Keep as shared owner.
+
+Primitive mapping:
+
+- CodeBlock for text/raw/patch;
+- ScrollableArea for remaining-height content;
+- WorkbenchAction/semantic Back/Close;
+- no Markdown for arbitrary evidence.
+
+The parent stage supplies return origin.
+
+### 23.29 Readiness review technical composition
+
+Functional authority: GW-DOC-WORKBENCH-UX-V1 §27.23.6.
+
+Use a dedicated ReadinessWorkspace responsibility because R3 is review-oriented and read-only.
+
+~~~text
+ReadinessWorkspace
+└── WorkflowStepFrame
+    ├── WorkflowStepSummary
+    │   ├── Badge verdict/state
+    │   ├── Banner blocker/return owner
+    │   └── WorkbenchAction Start/Retry/Resume
+    ├── WorkflowStepIndex
+    │   ├── List: Review
+    │   ├── List: R3 attempts
+    │   └── List: supporting package material
+    └── PrimaryMaterialFrame
+        ├── ReadinessReviewMaterial
+        ├── StageRunMaterial (only when selected/input required)
+        ├── ReadOnlyLifecycleDocumentMaterial
+        └── EvidenceViewer
+~~~
+
+ReadinessReviewMaterial primitive mapping:
+
+- Section/Stack for verdict + findings hierarchy;
+- Badge/StatusDot for verdict/state;
+- Banner for RETURN_TO_*/BLOCKED/current failure;
+- List for adversarial findings;
+- WorkbenchResourceRow for evidence;
+- Markdown for R3/read-only governed narrative where applicable;
+- MetadataList only for exact hashes/ids in secondary Technical details.
+
+No MarkdownEditor is mounted for R3.
+
+### 23.30 Approval technical composition
+
+Functional authority: GW-DOC-WORKBENCH-UX-V1 §27.23.7.
+
+Refactor SignoffReview into ApprovalWorkspace (or rename while preserving its semantic owner) so it owns package presentation plus sign-off controls.
+
+~~~text
+ApprovalWorkspace
+└── WorkflowStepFrame
+    ├── WorkflowStepSummary
+    │   ├── Badge package currentness
+    │   └── Banner blocker/stale state
+    ├── WorkflowStepIndex
+    │   ├── List: Overview
+    │   ├── List: Governed documents
+    │   └── List: Signed tasks
+    └── PrimaryMaterialFrame
+        ├── PackageOverviewMaterial
+        ├── ReadOnlyLifecycleDocumentMaterial
+        └── SignedTaskReviewMaterial
+            └── ApprovalActionRegion
+~~~
+
+Primitive mapping:
+
+- List → package material selection;
+- Section/Stack → overview/task review structure;
+- Markdown → selected governed document;
+- Table or compact List → repeated signed tasks; use Table when comparison across several tasks is materially useful;
+- MetadataList → package hash/source SHA/baseline in Technical details only;
+- TextInput → approver identity;
+- Toolbar/Stack + WorkbenchAction → Sign off exact package;
+- Banner → stale/unavailable package/error.
+
+Delete Open governed documents cross-navigation. Document selection stays inside Approval.
+
+### 23.31 Implementation technical composition
+
+Functional authority: GW-DOC-WORKBENCH-UX-V1 §27.23.8.
+
+ExecutionWorkspace remains the semantic owner and is refactored rather than replaced with another execution model.
+
+~~~text
+ExecutionWorkspace
+└── WorkflowStepFrame
+    ├── WorkflowStepSummary
+    │   ├── task/overall status
+    │   ├── Banner current blocker/failure
+    │   └── WorkbenchAction current implementation/recovery action
+    ├── WorkflowStepIndex
+    │   ├── Table/List: approved tasks
+    │   └── List: selected-task attempts
+    └── PrimaryMaterialFrame
+        └── ExecutionTaskMaterial
+            ├── TaskSummary
+            ├── SelectedRunHeader
+            ├── ValidationMatrix
+            ├── RunEventTimeline
+            └── WorkbenchResourceRow list
+~~~
+
+Primitive mapping:
+
+- Table for approved tasks when the task set benefits from columns/state scanning; otherwise List using the same semantic row data;
+- List for attempts;
+- Badge/StatusDot for task/Run state;
+- MetadataList for compact signed task facts only where a definition list is clearer than prose;
+- Table for V0–V7 validation state; no ProgressBar;
+- RunEventTimeline for exact event history;
+- WorkbenchResourceRow for artifacts/evidence;
+- CodeBlock/ScrollableArea through EvidenceViewer for promoted patch/raw evidence;
+- WorkbenchAction for Run next / Cancel / Resume where canonical state permits.
+
+Delete Open in Activity. The same RunEventTimeline/presentation owner is used here and in pre-signoff stage activity.
+
+### 23.32 Complete technical composition
+
+Functional authority: GW-DOC-WORKBENCH-UX-V1 §27.23.9.
+
+TerminalResult remains the shared terminal-result material owner and is composed under Complete.
+
+~~~text
+CompleteWorkspace
+└── WorkflowStepFrame
+    ├── WorkflowStepSummary
+    │   ├── Badge terminal outcome
+    │   └── WorkbenchAction linked remediation when eligible
+    └── PrimaryMaterialFrame
+        └── TerminalResult
+            ├── Markdown or CodeBlock result material
+            └── WorkbenchResourceRow evidence/resources
+~~~
+
+Primitive mapping:
+
+- Badge → ordinary terminal outcome/status;
+- Markdown → governed Markdown result;
+- CodeBlock → raw/non-Markdown result/evidence;
+- WorkbenchResourceRow → evidence/final candidate resources;
+- WorkbenchAction → Create linked remediation;
+- TabList only if one terminal result genuinely has a small fixed set of peer final artifacts. It must not recreate generic Result/Documents navigation.
+
+For CANDIDATE_DONE, Complete shows verified completion/candidate resources. Detailed task/attempt history remains under reached Implementation.
+
+### 23.33 Context and responsive primitive mapping
+
+Context remains implemented through the existing WorkbenchLayout + Drawer path.
+
+Wide:
+
+- Context closed by default;
+- when opened and width budget permits, bounded trailing inspector;
+- MetadataList for selected material identity/technical facts;
+- Banner only for compact warning summary when the primary step already owns the actionable blocker.
+
+Medium/narrow:
+
+- Drawer is mandatory for Context;
+- WorkflowStepIndex also uses Drawer/temporary selection when it cannot coexist with primary material;
+- never nest the full Context inspector inside the work-index Drawer.
+
+Dirty navigation confirmation continues to use AlertDialog.
+
+### 23.34 Primitive ownership and reuse constraints
+
+The implementation must not:
+
+- import Astryx primitives directly into every screen when an existing Order semantic wrapper already owns that interaction;
+- create ResearchAction, RequirementsAction, DesignAction or PlanAction wrappers that duplicate WorkbenchAction;
+- create stage-specific status badges or event renderers;
+- create separate evidence viewers per step;
+- create a second document editor/read-only renderer;
+- use TabList as a generic substitute for workflow/work-index navigation;
+- use ProgressBar for opaque provider work;
+- use Toast as the sole representation of critical failure/blocker/input;
+- introduce Cards merely to group every section; information hierarchy is expressed by WorkflowStepFrame/summary/index/primary-material structure.
+
+Direct Astryx imports are appropriate inside local semantic composition owners when the primitive itself is the required generic mechanism, such as ChatComposer, CodeBlock, Markdown, List/Table, Drawer, AlertDialog or Badge.
+
+### 23.35 Technical traceability matrix
+
+| Functional contract | Technical owner | Primary primitives |
+|---|---|---|
+| Work request §27.23.1 | source material composition + MarkdownEditor | WorkflowStepFrame, Badge/Banner, MarkdownEditor/CodeMirror, Toolbar, WorkbenchAction, AlertDialog |
+| Research §27.23.2 | PreSignoffStageWorkspace(stage=R1) | List, ChatLayout/Message/System/Composer, Badge/Banner, MarkdownEditor/Markdown, ProposalReview/CodeBlock, EvidenceViewer |
+| Requirements §27.23.3 | PreSignoffStageWorkspace(stage=R2) | same shared stage primitives |
+| Solution design §27.23.4 | PreSignoffStageWorkspace(stage=DESIGN) | same shared stage primitives with full-width document/review geometry |
+| Implementation plan §27.23.5 | PreSignoffStageWorkspace(stage=PLAN) | same shared stage primitives + List/Table for canonical plan-structure inspection where applicable |
+| Readiness review §27.23.6 | ReadinessWorkspace | List, Badge/Banner, Section/Stack, Markdown, WorkbenchResourceRow, shared StageRunMaterial/EvidenceViewer |
+| Approval §27.23.7 | ApprovalWorkspace / SignoffReview refactor | List/Table, Section/Stack, Markdown, MetadataList, TextInput, Toolbar, WorkbenchAction, Banner |
+| Implementation §27.23.8 | ExecutionWorkspace refactor | Table/List, Badge/StatusDot, MetadataList, validation Table, RunEventTimeline, WorkbenchResourceRow, EvidenceViewer |
+| Complete §27.23.9 | CompleteWorkspace / TerminalResult composition | Badge, Markdown/CodeBlock, WorkbenchResourceRow, WorkbenchAction |
+| Context/technical | WorkItemContext + WorkbenchLayout | Drawer, MetadataList, Badge/Banner, Technical details disclosure |
+
+### GW-TR-096-PER-STEP-PRIMITIVE-COMPOSITION
+
+**Required behavior:** every functional screen contract in GW-DOC-WORKBENCH-UX-V1 §27.23 is realized through the exact component responsibilities and primitive mapping in §§23.24–23.35.
+
+**Acceptance criterion:** implementation review can trace each functional region and interaction to one technical owner and one approved primitive family without choosing a new panel/control grammar locally.
+
+**Failure/negative behavior:** a screen must not substitute ad-hoc cards/tabs/buttons or a different Astryx composite merely because it is convenient if the canonical mapping already names the owning primitive/composition.
+
+### GW-TR-097-SHARED-WORKFLOW-UI-SEMANTIC-OWNERSHIP
+
+**Required behavior:** WorkflowStepFrame, WorkflowStepSummary, WorkflowStepIndex, the pure material resolver, shared pre-signoff stage composition, RunEvent presentation, Markdown, proposal review and evidence each have one reusable semantic owner.
+
+**Acceptance criterion:** Research/R2/Design/Plan differences are supplied as canonical stage data/presentation policy rather than copied component families; Approval/Readiness/Implementation retain distinct owners only because their interaction models materially differ.
+
+**Failure/negative behavior:** implementation must not create nine unrelated page implementations, duplicate status/event/action mappings, or introduce DTO/view-model objects to connect otherwise duplicated components.
