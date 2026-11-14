@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Fixed
+
+- Restore the omitted 0.2.2 repository-boundary, deferred STAGE-run, and proposal-review fixes in the 0.3 line; the shipped behavior is also recorded under 0.3.0 below.
+
 ## [0.3.0] - 2026-11-14
 
 ### Changed
