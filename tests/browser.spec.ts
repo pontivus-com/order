@@ -61,6 +61,26 @@ const backToQueue = async (page: Page): Promise<void> => {
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
 };
 
+const selectWorkflowStep = async (
+  page: Page,
+  name:
+    | "Work request"
+    | "Research"
+    | "Requirements"
+    | "Solution design"
+    | "Implementation plan"
+    | "Readiness review"
+    | "Approval"
+    | "Implementation"
+    | "Complete",
+): Promise<void> => {
+  const button = page
+    .getByTestId("workflow-progression")
+    .getByRole("button", { name, exact: true });
+  await button.click();
+  await expect(button).toHaveAttribute("aria-pressed", "true");
+};
+
 const markdownSourceValue = async (editor: Locator): Promise<string> =>
   editor.evaluate((node) =>
     Array.from(node.querySelectorAll(".cm-line"))
@@ -476,10 +496,7 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await page.setViewportSize({ width: 1440, height: 900 });
   await authenticate(page, request);
   await openWorkItem(page, "Lifecycle editing workbench");
-  await page.getByRole("radio", { name: "Documents" }).click();
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Implementation plan" })
-    .click();
+  await selectWorkflowStep(page, "Implementation plan");
 
   const editor = page.getByLabel("Implementation plan document Markdown source");
   await expect(editor).toBeVisible();
@@ -754,8 +771,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
   ): Promise<void> => {
     await page.setViewportSize({ width, height: 760 });
     await openWorkItem(page, title);
-    await page.getByRole("radio", { name: "Documents" }).click();
-    await page.getByTestId("governed-document-nav").getByRole("tab", { name: tabName }).click();
+    await selectWorkflowStep(page, tabName);
 
     const editor = page.getByLabel(editorName);
     await expect(editor).toBeVisible();
@@ -785,8 +801,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
 
     await backToQueue(page);
     await openWorkItem(page, title);
-    await page.getByRole("radio", { name: "Documents" }).click();
-    await page.getByTestId("governed-document-nav").getByRole("tab", { name: tabName }).click();
+    await selectWorkflowStep(page, tabName);
     const reloaded = page.getByLabel(editorName);
     await expect(reloaded).toBeVisible();
     await reloaded.evaluate((node) => {
