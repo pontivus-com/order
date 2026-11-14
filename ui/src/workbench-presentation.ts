@@ -233,14 +233,17 @@ const unresolvedInputRun = (
   input: WorkflowMaterialResolutionInput,
 ): Run | null => {
   const id = input.unresolvedInputRunId ?? null;
-  if (id === null) return null;
-  return input.runs.find(
-    (run) =>
-      run.id === id &&
-      run.stage === input.selectedStep &&
-      run.role === "STAGE" &&
-      run.status === "WAITING_FOR_INPUT",
-  ) ?? null;
+  if (id !== null) {
+    return input.runs.find(
+      (run) =>
+        run.id === id &&
+        run.stage === input.selectedStep &&
+        run.role === "STAGE" &&
+        run.status === "WAITING_FOR_INPUT",
+    ) ?? null;
+  }
+  const current = latestStageRun(input);
+  return current?.status === "WAITING_FOR_INPUT" ? current : null;
 };
 
 const selectedExecutionTask = (
