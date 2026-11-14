@@ -1268,24 +1268,13 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Work request start success");
   const startItem = await workItemForTitle(page, "Work request start success");
-  const researchRun = syntheticStageRun(startItem, "R1", 1);
-  const researchStarted = syntheticRunEvent(researchRun, 1, {
-    tag: "STAGE_STARTED",
-    stage: "R1",
-    mode: "INTERACTIVE",
-    contextHash: researchRun.contextHash,
-  });
   const startPattern = "**/api/work-items/" + startItem.id + "/runs";
   await page.route(startPattern, async (route) => {
-    mutateFixture((database) => {
-      updateWorkItemLifecycle(database, startItem.id, {
-        stage: "R1",
-        status: "ACTIVE",
-        outcome: null,
-      });
-      storeRun(database, researchRun);
-      storeRunEvent(database, researchStarted);
-    });
+    const researchRun = RunSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/start-stage",
+      { workItemId: startItem.id },
+    ));
     await route.fulfill({
       status: 201,
       contentType: "application/json",
@@ -1320,25 +1309,17 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
     (event) => event.event.tag === "HUMAN_INPUT_REQUESTED",
   );
   expect(requested).toBeDefined();
-  const received = syntheticRunEvent(
-    inputRun!,
-    Math.max(...inputEvents.map((event) => event.sequence)) + 1,
-    {
-      tag: "HUMAN_INPUT_RECEIVED",
-      requestEventId: requested!.id,
-      text: "Keep the approved constraint.",
-    },
-  );
   const inputPattern = "**/api/runs/" + inputRun!.id + "/input";
   await page.route(inputPattern, async (route) => {
-    mutateFixture((database) => {
-      storeRunEvent(database, received);
-      updateStoredRun(database, {
-        ...inputRun!,
-        status: "RUNNING",
-        endedAt: null,
-      });
-    });
+    const received = RunEventSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/submit-input",
+      {
+        runId: inputRun!.id,
+        requestEventId: requested!.id,
+        text: "Keep the approved constraint.",
+      },
+    ));
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -1361,19 +1342,13 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Workflow retry action");
   const retryItem = await workItemForTitle(page, "Workflow retry action");
-  const retryRun = syntheticStageRun(retryItem, "PLAN", 2);
-  const retryStarted = syntheticRunEvent(retryRun, 1, {
-    tag: "STAGE_STARTED",
-    stage: "PLAN",
-    mode: "INTERACTIVE",
-    contextHash: retryRun.contextHash,
-  });
   const retryPattern = "**/api/work-items/" + retryItem.id + "/runs";
   await page.route(retryPattern, async (route) => {
-    mutateFixture((database) => {
-      storeRun(database, retryRun);
-      storeRunEvent(database, retryStarted);
-    });
+    const retryRun = RunSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/start-stage",
+      { workItemId: retryItem.id },
+    ));
     await route.fulfill({
       status: 201,
       contentType: "application/json",
@@ -1399,35 +1374,12 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Implementation action ready");
   const executionItem = await workItemForTitle(page, "Implementation action ready");
-  const taskResponse = await page.context().request.get(
-    "/api/work-items/" + executionItem.id + "/tasks",
-  );
-  expect(taskResponse.status()).toBe(200);
-  const executionTasks = ExecutionTaskSchema.array().parse(await taskResponse.json());
-  const executionTask = executionTasks[0];
-  expect(executionTask).toBeDefined();
-  const builderRun = RunSchema.parse({
-    id: newRunId(),
-    workItemId: executionItem.id,
-    executionTaskId: executionTask!.id,
-    stage: "EXECUTION",
-    mode: "UNATTENDED",
-    role: "BUILDER",
-    triggerEventId: null,
-    status: "RUNNING",
-    attempt: 1,
-    baselineCommit: fixtureBaselineCommit,
-    contextHash: sha256Text("browser-success-execution-" + executionTask!.id),
-    providerSessionId: null,
-    terminalClassification: null,
-    startedAt: nowIsoDateTime(),
-    endedAt: null,
-  });
   await page.route("**/api/tick", async (route) => {
-    mutateFixture((database) => {
-      setExecutionTaskState(database, executionTask!.id, "RUNNING");
-      storeRun(database, builderRun);
-    });
+    await fixtureMutation(
+      page.context().request,
+      "/tick",
+      { workItemId: executionItem.id },
+    );
     await route.fulfill({
       status: 200,
       contentType: "application/json",
