@@ -302,6 +302,7 @@ export const SourceDocumentMaterial = ({
   if (git.sourceQuery.isPending) {
     return (
       <section className="order-workspace-section" data-testid="source-document-material">
+        <DocumentationControls dirty={dirty} state={git} />
         <WorkbenchEmptyState compact title="Loading work request…" />
       </section>
     );
