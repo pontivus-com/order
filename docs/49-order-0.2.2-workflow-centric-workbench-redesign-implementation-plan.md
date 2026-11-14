@@ -6,7 +6,8 @@
 **Target repository:** pontivus-com/order  
 **Target public release:** 0.2.2  
 **Pyramid layer:** P7 implementation plan  
-**Production implementation baseline:** 448ce99763061ccfc24f15a6be7e3ce8095d8b5a  
+**Investigated production-code baseline:** 448ce99763061ccfc24f15a6be7e3ce8095d8b5a
+**P8 execution baseline:** current `master` after this P7 documentation PR is merged and approved; P8 must not branch from the historical investigated SHA  
 **Prepared:** 2026-11-14  
 **Purpose:** replace the current WorkItem dual-navigation model with the canonical workflow-step workspace model defined by GW-DOC-WORKBENCH-UX-V1 §27 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §23, including complete per-step information placement, current-action continuity and removal of the generic Documents / Activity / Review / Evidence / Result destination hierarchy.
 
@@ -81,7 +82,9 @@ No implementation step may create a second lifecycle, transport shape family, br
 
 ## 2. Baseline findings
 
-The implementation baseline is the merged 0.2.2 corrective state at 448ce99763061ccfc24f15a6be7e3ce8095d8b5a.
+The implementation defects and change forecast were investigated against merged 0.2.2 corrective state `448ce99763061ccfc24f15a6be7e3ce8095d8b5a`.
+
+That SHA is **not** the P8 branch point. Under `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`, the implementation branch must start from current `master` after this P7 documentation/authority PR has merged. Before implementation begins, the worker must prove that current `master` contains this exact P7 authority and that the production UI defects described below remain materially equivalent. If `master` has moved in a way that changes the required transition or makes the signed `changeSurface` insufficient, stop and return to PLAN rather than executing against the historical SHA.
 
 The following current implementation structures are the defects this plan must change.
 
@@ -403,36 +406,95 @@ At narrow width:
 
 Preserve selected step/material and dirty state across viewport changes.
 
-## 15. Required production change surface
+## 15. Exact production and verification change surface
 
-Expected primary production files:
+The P8 file transition is fixed here. The worker must not invent additional production modules merely because a different decomposition appears convenient.
 
-- ui/src/WorkItemWorkspace.tsx
-- ui/src/workbench-presentation.ts
-- ui/src/ActivityWorkspace.tsx
-- ui/src/DocumentWorkspace.tsx
-- ui/src/ProposalReview.tsx
-- ui/src/SignoffReview.tsx
-- ui/src/ExecutionWorkspace.tsx
-- ui/src/TerminalResult.tsx
-- ui/src/EvidenceViewer.tsx
-- ui/src/RunEventTimeline.tsx
-- ui/src/WorkItemContext.tsx
-- ui/src/app.tsx where selected-context callback composition changes
-- ui/src/theme.css for the minimum required workflow-step/material geometry changes
+### 15.1 New production modules
 
-A new UI component file is permitted only if required to preserve one current responsibility under GW-P1-SOC. If introduced, it must be a same-layer presentation decomposition, must not own canonical domain semantics, and must be registered in the existing architecture fitness sensor when that sensor enumerates production modules.
+Exactly three new production modules are authorized:
 
-The following are not expected change surface and must not be changed merely to implement this redesign:
+- `ui/src/WorkflowStepFrame.tsx`
+  - owns `WorkflowStepFrame`, `WorkflowStepSummary`, `WorkflowStepIndex` and `PrimaryMaterialFrame`;
+  - contains layout/presentation composition only;
+  - may depend on React, approved Astryx primitives and existing `ui/src/primitives/**`;
+  - must not query/mutate server state or own lifecycle/domain policy.
+- `ui/src/PreSignoffStageWorkspace.tsx`
+  - owns the shared R1/R2/DESIGN/PLAN step composition;
+  - consumes canonical stage identity plus browser-safe WorkItem/Run/artifact state;
+  - composes the existing document, Run, proposal and evidence semantic owners;
+  - contains no duplicated lifecycle policy or stage-specific component family.
+- `ui/src/ReadinessWorkspace.tsx`
+  - owns the distinct R3 review composition;
+  - composes read-only lifecycle material, R3 Run material and evidence;
+  - must not introduce R3 editing or another review-domain model.
 
-- src/core lifecycle semantics;
-- src/daemon stage lifecycle/start contracts;
+No `ApprovalWorkspace.tsx`, `CompleteWorkspace.tsx`, stage-specific workspace files, DTO/ViewModel modules or additional primitive layer is authorized. Approval remains the responsibility of `SignoffReview.tsx` after refactor; Complete remains the responsibility of `TerminalResult.tsx` composed by the selected Complete step.
+
+### 15.2 Existing production modules that must change
+
+- `ui/src/WorkItemWorkspace.tsx`
+- `ui/src/workbench-presentation.ts`
+- `ui/src/ActivityWorkspace.tsx` — refactor from global Activity destination into the reusable selected-Run/stage material owner;
+- `ui/src/DocumentWorkspace.tsx` — remove lifecycle-wide TabList ownership and expose source/lifecycle document material for step-local composition;
+- `ui/src/ProposalReview.tsx`
+- `ui/src/SignoffReview.tsx` — becomes the complete Approval composition without changing package semantics;
+- `ui/src/ExecutionWorkspace.tsx`
+- `ui/src/TerminalResult.tsx`
+- `ui/src/EvidenceViewer.tsx`
+- `ui/src/RunEventTimeline.tsx`
+- `ui/src/WorkItemContext.tsx`
+- `ui/src/app.tsx`
+- `ui/src/theme.css`
+
+Existing `MarkdownEditor.tsx`, `MarkdownSourceEditor.tsx`, `query-keys.ts`, `http.ts`, `primitives/WorkbenchAction.tsx`, `primitives/WorkbenchLayout.tsx`, `primitives/WorkbenchResourceRow.tsx`, `primitives/WorkbenchState.tsx` and `primitives/WorkbenchToolbar.tsx` are reused unchanged unless implementation evidence proves a defect in their already-authorized responsibility. Such evidence is a PLAN stop condition; P8 must not silently broaden this task.
+
+### 15.3 Verification and delivery files that must change
+
+- `tests/architecture.test.ts`
+- `tests/browser.spec.ts`
+- `tests/e2e-server.ts`
+- `CHANGELOG.md`
+
+`tests/e2e-server.ts` must seed the canonical WorkItem/Run/RunEvent/package/task/evidence states required by §§17 and 22.6, including the states needed to prove all Run statuses, all current RunEvent tags, current/historical stage material priority, proposal adoption-in-progress, readiness returns/blockers and V0–V7/candidate presentation. Tests must exercise production presentation functions/components rather than copied projection logic.
+
+### 15.4 Architecture-sensor transition
+
+`tests/architecture.test.ts` must update the existing UI owner/dependency sensor rather than add a second architecture test framework.
+
+It must:
+
+- register `WorkflowStepFrame.tsx`, `PreSignoffStageWorkspace.tsx` and `ReadinessWorkspace.tsx` in the required production UI owner set;
+- treat `PreSignoffStageWorkspace.tsx` and `ReadinessWorkspace.tsx` as substantive composition owners;
+- permit only the cohesive sibling dependencies required by the canonical compositions:
+  - `PreSignoffStageWorkspace.tsx` → `ActivityWorkspace.tsx`, `DocumentWorkspace.tsx`, `ProposalReview.tsx`, `EvidenceViewer.tsx`;
+  - `ReadinessWorkspace.tsx` → `ActivityWorkspace.tsx`, `DocumentWorkspace.tsx`, `EvidenceViewer.tsx`;
+  - `SignoffReview.tsx` → `DocumentWorkspace.tsx` only if the read-only lifecycle-material export is reused directly;
+- preserve `ActivityWorkspace.tsx` → `RunEventTimeline.tsx` and `ExecutionWorkspace.tsx` → `RunEventTimeline.tsx`;
+- prove `WorkflowStepFrame.tsx` has no HTTP/query/domain-policy ownership;
+- replace old architecture assertions that require `WorkItemMode`, `workItemInitialMode` or `workflowInspectionTarget` with the new selected-step/material and deterministic resolver ownership.
+
+No architecture sensor may be weakened merely to permit the refactor.
+
+### 15.5 Explicit exclusions
+
+The signed P8 task does not authorize changes to:
+
+- `AGENTS.md`;
+- `docs/**`;
+- `pontivus-order.toml`;
+- `package.json` or `bun.lock`;
+- `playwright.config.ts`;
+- `src/**`;
+- `ui/src/http.ts`;
+- `ui/src/query-keys.ts`;
+- `ui/src/primitives/**`;
 - persistence schemas;
-- HTTP command contracts;
+- public HTTP command contracts;
 - OpenCode integration;
-- execution-control semantics.
+- execution-control or lifecycle semantics.
 
-If implementation evidence proves one of those owners is actually insufficient, stop and return the issue to DESIGN rather than expanding this P7.
+If implementation evidence proves an excluded owner must change to satisfy the approved design, stop and return to PLAN/DESIGN as applicable rather than broadening the signed task.
 
 ## 16. Required deletion obligations
 
@@ -481,7 +543,12 @@ At minimum:
 21. Complete renders terminal non-delivery result and eligible remediation in-place;
 22. Complete CANDIDATE_DONE retains verified candidate/result access and reached Implementation history;
 23. Context remains on-demand and follows selected material;
-24. wide and narrow viewport tests prove no second navigation hierarchy appears and task-local actions remain reachable.
+24. wide and narrow viewport tests prove no second navigation hierarchy appears and task-local actions remain reachable;
+25. entering a WorkItem still focuses the WorkItem heading/orientation target;
+41. closing a narrow WorkflowStepIndex drawer with Escape restores focus to its opening control/current step context;
+42. proposal/evidence promotion and return restore focus to the originating Run/material control rather than an obsolete global mode control;
+43. cancelling a dirty-navigation confirmation preserves the buffer and returns focus to the edited material/control;
+39. discarding dirty state and returning to the queue restores focus to the originating WorkItem row.
 
 The Research → Requirements scenario is mandatory because it certifies the original progression dead-end is structurally closed.
 
@@ -659,7 +726,7 @@ Proposal adoption specifically must show adoption-in-progress after ARTIFACT_PRO
 
 Extend §17 with permanent cases proving:
 
-25. each of the nine workflow steps renders the canonical step-summary / work-index-if-needed / primary-material / local-action division rather than arbitrary equal-weight panels;
+40. each of the nine workflow steps renders the canonical step-summary / work-index-if-needed / primary-material / local-action division rather than arbitrary equal-weight panels;
 26. current pre-signoff primary material priority is blocker → required input → pending proposal → active Run → stage document → start state, subject to dirty-selection safety;
 27. historical step defaults to its governed artifact, otherwise latest Run, and never shows an active composer;
 28. every canonical Run status has ordinary-language presentation;
@@ -708,6 +775,8 @@ GW-DOC-WORKBENCH-UX-V1 §§27.17–27.23 and GW-DOC-WORKBENCH-COMPONENT-ARCHITEC
 This section operationalizes GW-DOC-WORKBENCH-UX-V1 §27.23 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §§23.24–23.35. It removes any remaining implementation freedom around choosing arbitrary panels or UI primitives.
 
 ### 23.1 Shared composition layer
+
+The physical ownership is fixed by §15.1: `WorkflowStepFrame.tsx` contains the four structural frame exports; `PreSignoffStageWorkspace.tsx` contains the shared R1/R2/DESIGN/PLAN composition; `ReadinessWorkspace.tsx` contains R3 composition. Existing semantic owners are refactored in place and no other production file is created.
 
 Implement the following local semantic presentation responsibilities before rewriting individual steps:
 
@@ -870,3 +939,184 @@ Add permanent tests proving:
 ### 23.11 Completion consequence
 
 Implementation is complete only when every row of GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §23.35 is realized and traceable to production components/tests. A functional screen contract without its specified primitive/composition owner is incomplete; a technically rendered primitive without the corresponding functional information hierarchy is likewise incomplete.
+
+
+## 24. Ordered implementation checkpoints
+
+The one signed task executes in this order. These are checkpoints inside one cumulative candidate, not separate ExecutionTasks.
+
+1. **Presentation-policy checkpoint:** Phase A plus the pure deterministic material resolver are complete; focused typecheck/unit/architecture checks prove no generic mode owner remains.
+2. **Shared-frame checkpoint:** `WorkflowStepFrame.tsx` plus responsive work-index mechanics are complete; architecture ownership is updated before substantive workspace imports are added.
+3. **Pre-signoff checkpoint:** Work request and the shared R1/R2/DESIGN/PLAN workspace are complete, including the historical-Run Start suppression fix and proposal/evidence return context.
+4. **Review checkpoint:** Readiness and Approval are complete; R3 is read-only and package review/sign-off remains in Approval.
+5. **Post-signoff checkpoint:** Implementation and Complete are complete; Open in Activity/global Result paths are gone.
+6. **Feedback checkpoint:** exhaustive Run status/RunEvent presentation and every mutation pending/success/failure path in §22 are complete.
+7. **Certification checkpoint:** `tests/e2e-server.ts`, browser tests and architecture sensors cover §§17, 18, 22.6, 22.7 and 23.10.
+8. **Diff-reduction checkpoint:** remove obsolete generic mode/tab/return machinery and any temporary duplication introduced during the refactor; prove the final tree matches the signed changeSurface.
+9. **Final gate checkpoint:** run the complete six-gate union on the final candidate state.
+
+A checkpoint failure may be repaired only within the already-approved P1-P7 semantics. A required new lifecycle rule, transport contract, dependency, effect boundary, persisted state or production file outside the signed changeSurface returns upstream.
+
+## 25. P8 execution and public delivery
+
+This P7 authorizes implementation only after this documentation PR is merged and approved.
+
+P8 must:
+
+1. create a new short-lived `feat/` or `fix/` branch from **current `master`**, not from investigated SHA `448ce99763061ccfc24f15a6be7e3ce8095d8b5a`;
+2. prove the merged `master` contains this exact P7 plan and the referenced P3/P4 requirements;
+3. execute the single signed task in §26 without broadening its scope/changeSurface;
+4. update root `CHANGELOG.md` under `[Unreleased]`;
+5. open a PR to `master` declaring **patch** impact and target release **0.2.2**;
+6. pass every required repository PR/status check and resolve material review discussion before merge;
+7. not modify `package.json.version`, create a tag or publish 0.2.2. The version/release transition remains a later dedicated `release/v0.2.2` PR under `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+
+If current `master` has diverged such that any signed file path, authority reference, primitive contract or planned deletion is no longer sufficient, P8 must stop and the P7 must be amended/re-signed.
+
+## 26. Machine-readable signed task
+
+The following is the only machine-readable P7 task authority in this document. The cumulative Workbench transition is one task because the approved browser state must be validated as one repository candidate and v1 does not compose candidate bytes across dependent ExecutionTasks.
+
+```order-tasks
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "P7-T01",
+      "objective": "Implement the complete Order 0.2.2 workflow-centric Workbench redesign: one lifecycle-step navigation axis, canonical per-step material composition, exact approved UI primitive mapping, complete Run/OpenCode and mutation feedback, and removal of the superseded global workspace-mode architecture.",
+      "dependsOn": [],
+      "scope": [
+        "CHANGELOG.md",
+        "ui/src/**",
+        "tests/**"
+      ],
+      "exclusions": [
+        "AGENTS.md",
+        "docs/**",
+        "package.json",
+        "bun.lock",
+        "pontivus-order.toml",
+        "playwright.config.ts",
+        "src/**",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/primitives/**"
+      ],
+      "acceptanceRefs": [
+        "GW-FR-040-UNSAVED-MARKDOWN-NAVIGATION-SAFETY",
+        "GW-FR-041-KEYBOARD-FOCUS-CONTINUITY",
+        "GW-FR-046-SCOPE-LOCAL-CONTROLS",
+        "GW-FR-050-SHARED-ACTION-RESOURCE-GRAMMAR",
+        "GW-FR-051-USER-FACING-WORKFLOW-LANGUAGE",
+        "GW-FR-054-EXACT-AGENT-EXECUTION-VISIBILITY",
+        "GW-FR-055-ACTIONABLE-FAILURE-RECOVERY",
+        "GW-FR-056-WORKFLOW-ACTION-PLACEMENT",
+        "GW-FR-057-TECHNICAL-DETAILS-BOUNDARY",
+        "GW-FR-059-RESPONSIVE-ACTIVITY-CONTINUITY",
+        "GW-FR-106-WORKFLOW-STEP-PRIMARY-NAVIGATION",
+        "GW-FR-107-STEP-LOCAL-MATERIAL-COMPOSITION",
+        "GW-FR-108-PRE-SIGNOFF-STAGE-WORKSPACE",
+        "GW-FR-109-PROPOSAL-EVIDENCE-CONTEXT-CONTINUITY",
+        "GW-FR-110-CURRENT-STAGE-ACTION-CONTINUITY",
+        "GW-FR-111-READINESS-REVIEW-WORKSPACE",
+        "GW-FR-112-APPROVAL-PACKAGE-WORKSPACE",
+        "GW-FR-113-IMPLEMENTATION-WORKSPACE-OWNERSHIP",
+        "GW-FR-114-COMPLETE-OUTCOME-WORKSPACE",
+        "GW-FR-115-RESPONSIVE-WORKFLOW-STEP-CONTINUITY",
+        "GW-FR-116-WORKFLOW-STEP-PANEL-CONTRACT",
+        "GW-FR-117-DETERMINISTIC-PRIMARY-MATERIAL",
+        "GW-FR-118-CANONICAL-RUN-FEEDBACK-COMPLETENESS",
+        "GW-FR-119-INTERACTION-RESULT-FEEDBACK",
+        "GW-FR-120-OPENCODE-FEEDBACK-BOUNDARY",
+        "GW-FR-121-PER-STEP-FUNCTIONAL-SCREEN-CONTRACT"
+      ],
+      "changeSurface": [
+        "CHANGELOG.md",
+        "ui/src/WorkflowStepFrame.tsx",
+        "ui/src/PreSignoffStageWorkspace.tsx",
+        "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/SignoffReview.tsx",
+        "ui/src/ExecutionWorkspace.tsx",
+        "ui/src/TerminalResult.tsx",
+        "ui/src/EvidenceViewer.tsx",
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/WorkItemContext.tsx",
+        "ui/src/app.tsx",
+        "ui/src/theme.css",
+        "tests/architecture.test.ts",
+        "tests/browser.spec.ts",
+        "tests/e2e-server.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-EXPLICIT-FLOW",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-DOC-CANONICALITY",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORK-LIFECYCLE-V1",
+        "GW-DOC-LIFECYCLE-CONTEXT-V1",
+        "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1",
+        "GW-DOC-MARKDOWN-WORKBENCH-V1",
+        "GW-DOC-WORKBENCH-UX-V1",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1",
+        "GW-DOC-TECHNICAL-ARCHITECTURE-V1",
+        "GW-DOC-CANONICAL-CONTRACTS-V1",
+        "GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1",
+        "GW-TR-082-WORKFLOW-STEP-COMPOSITION-OWNER",
+        "GW-TR-083-PRE-SIGNOFF-STAGE-MATERIAL-ORCHESTRATION",
+        "GW-TR-084-STAGE-RUN-HISTORY-AND-COMPOSER",
+        "GW-TR-085-IN-CONTEXT-PROPOSAL-EVIDENCE-PROMOTION",
+        "GW-TR-086-CANONICAL-CURRENT-ACTION-PROJECTION",
+        "GW-TR-087-READINESS-APPROVAL-TECHNICAL-COMPOSITION",
+        "GW-TR-088-IMPLEMENTATION-RUN-OWNERSHIP",
+        "GW-TR-089-COMPLETE-OUTCOME-COMPOSITION",
+        "GW-TR-090-WORKFLOW-CENTRIC-BROWSER-CERTIFICATION",
+        "GW-TR-091-WORKFLOW-STEP-PANEL-COMPOSITION",
+        "GW-TR-092-DETERMINISTIC-STEP-MATERIAL-RESOLVER",
+        "GW-TR-093-EXHAUSTIVE-RUN-FEEDBACK-PROJECTION",
+        "GW-TR-094-LOCAL-MUTATION-FEEDBACK-ORCHESTRATION",
+        "GW-TR-095-OPENCODE-BROWSER-OBSERVATION-BOUNDARY",
+        "GW-TR-096-PER-STEP-PRIMITIVE-COMPOSITION",
+        "GW-TR-097-SHARED-WORKFLOW-UI-SEMANTIC-OWNERSHIP"
+      ],
+      "concernIds": [
+        "foundation",
+        "ui",
+        "verification"
+      ]
+    }
+  ]
+}
+```
+
+## 27. R3 / implementation-readiness predicate
+
+This P7 may be marked READY_FOR_SIGNOFF only when all of the following are true:
+
+1. the `order-tasks` block in §26 parses successfully under the repository's current `SignedTaskBlockSchema`;
+2. every `acceptanceRefs` and `authorityRefs` value resolves through current `pontivus-order.toml`;
+3. the task's gateIds include the complete gate union required by `foundation`, `ui` and `verification`;
+4. the exact changeSurface is sufficient for the approved production decomposition and no required P8 file is already known outside it;
+5. the physical owner/dependency transition in §15.4 is compatible with the existing UI architecture sensor without weakening that sensor;
+6. the browser fixture plan can represent every canonical state/event required by §§17 and 22.6 without changing daemon/domain contracts;
+7. no requirement in P3/P4 needs implementation inference beyond ordinary local coding choices;
+8. the documentation/plan PR is green under its required status checks.
+
+After sign-off, P8 executes §26 exactly. A prose/block mismatch is a readiness failure.
