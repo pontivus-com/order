@@ -1,19 +1,12 @@
 import type {
   ArtifactRef,
   EvidencePath,
+  ExecutionTask,
   Run,
   RunEvent,
   RunEventId,
   WorkItem,
 } from "../../src/core/contracts.ts";
-
-export type WorkItemMode =
-  | "DOCUMENTS"
-  | "ACTIVITY"
-  | "REVIEW"
-  | "EXECUTION"
-  | "EVIDENCE"
-  | "RESULT";
 
 export type ProposalSelection = Readonly<{
   runId: Run["id"];
@@ -38,19 +31,6 @@ export type WorkflowStepPresentation = Readonly<{
   purpose: string;
 }>;
 
-export type WorkflowDocumentTarget =
-  | "SOURCE"
-  | "R1"
-  | "R2"
-  | "DESIGN"
-  | "PLAN"
-  | "R3";
-
-export type WorkflowInspectionTarget =
-  | Readonly<{ kind: "DOCUMENT"; document: WorkflowDocumentTarget }>
-  | Readonly<{ kind: "MODE"; mode: "REVIEW" | "EXECUTION" | "RESULT" }>
-  | Readonly<{ kind: "UNREACHED"; step: WorkItem["stage"] }>;
-
 export const workflowSteps: readonly WorkflowStepPresentation[] = [
   { stage: "IDEA", label: "Work request", purpose: "Define the work that needs attention" },
   { stage: "R1", label: "Research", purpose: "Establish what is actually true" },
@@ -71,37 +51,400 @@ export const workflowPresentation = (
   return found;
 };
 
-export const workflowInspectionTarget = (
-  workItem: Pick<WorkItem, "stage" | "outcome">,
-  step: WorkflowStepPresentation,
-): WorkflowInspectionTarget => {
-  const currentIndex = workflowSteps.findIndex((item) => item.stage === workItem.stage);
-  const targetIndex = workflowSteps.findIndex((item) => item.stage === step.stage);
-  if (currentIndex < 0 || targetIndex < 0) {
-    throw new TypeError("unknown workflow presentation stage");
+
+export type WorkflowStepState = "CURRENT" | "HISTORICAL" | "UNREACHED";
+
+export type WorkflowMaterial =
+  | Readonly<{ kind: "SOURCE_DOCUMENT" }>
+  | Readonly<{ kind: "STAGE_RUN"; runId: Run["id"] }>
+  | Readonly<{ kind: "STAGE_DOCUMENT"; artifactId: ArtifactRef["id"] }>
+  | Readonly<{ kind: "SUPPORTING_DOCUMENT"; artifactId: ArtifactRef["id"] }>
+  | Readonly<{ kind: "PROPOSAL"; runId: Run["id"]; eventId: RunEventId }>
+  | Readonly<{ kind: "READINESS_REVIEW" }>
+  | Readonly<{ kind: "APPROVAL_PACKAGE" }>
+  | Readonly<{
+      kind: "EXECUTION_TASK";
+      taskId: ExecutionTask["id"];
+      runId: Run["id"] | null;
+    }>
+  | Readonly<{ kind: "EVIDENCE"; selection: EvidenceSelection }>
+  | Readonly<{ kind: "TERMINAL_RESULT" }>
+  | Readonly<{ kind: "STEP_STATE" }>
+  | Readonly<{ kind: "UNREACHED" }>;
+
+export const workflowMaterialLabel = (
+  material: WorkflowMaterial,
+): string => {
+  switch (material.kind) {
+    case "SOURCE_DOCUMENT": return "Work request";
+    case "STAGE_RUN": return "Workflow attempt";
+    case "STAGE_DOCUMENT": return "Governed document";
+    case "SUPPORTING_DOCUMENT": return "Supporting document";
+    case "PROPOSAL": return "Proposal review";
+    case "READINESS_REVIEW": return "Readiness review";
+    case "APPROVAL_PACKAGE": return "Approval package";
+    case "EXECUTION_TASK": return "Implementation task";
+    case "EVIDENCE": return "Evidence";
+    case "TERMINAL_RESULT": return "Final outcome";
+    case "STEP_STATE": return "Workflow step";
+    case "UNREACHED": return "Not yet reached";
   }
-  if (targetIndex > currentIndex) {
-    return { kind: "UNREACHED", step: step.stage };
+};
+
+export const workflowMaterialRunId = (
+  material: WorkflowMaterial,
+): Run["id"] | null => {
+  switch (material.kind) {
+    case "STAGE_RUN":
+    case "PROPOSAL":
+      return material.runId;
+    case "EXECUTION_TASK":
+      return material.runId;
+    case "EVIDENCE":
+      return material.selection.kind === "EVIDENCE"
+        ? material.selection.runId
+        : null;
+    default:
+      return null;
   }
-  switch (step.stage) {
-    case "IDEA":
-      return { kind: "DOCUMENT", document: "SOURCE" };
-    case "R1":
-    case "R2":
-    case "DESIGN":
-    case "PLAN":
-    case "R3":
-      return { kind: "DOCUMENT", document: step.stage };
-    case "AWAITING_SIGNOFF":
-      return { kind: "MODE", mode: "REVIEW" };
-    case "EXECUTION":
-      return { kind: "MODE", mode: "EXECUTION" };
-    case "COMPLETE":
+};
+
+export const workflowMaterialIdentity = (
+  material: WorkflowMaterial,
+): string => {
+  switch (material.kind) {
+    case "SOURCE_DOCUMENT":
+    case "READINESS_REVIEW":
+    case "APPROVAL_PACKAGE":
+    case "TERMINAL_RESULT":
+    case "STEP_STATE":
+    case "UNREACHED":
+      return material.kind;
+    case "STAGE_RUN":
+      return material.kind + ":" + material.runId;
+    case "STAGE_DOCUMENT":
+    case "SUPPORTING_DOCUMENT":
+      return material.kind + ":" + material.artifactId;
+    case "PROPOSAL":
+      return material.kind + ":" + material.runId + ":" + material.eventId;
+    case "EXECUTION_TASK":
+      return material.kind + ":" + material.taskId + ":" + (material.runId ?? "none");
+    case "EVIDENCE":
+      return material.selection.kind === "ARTIFACT"
+        ? material.kind + ":ARTIFACT:" + material.selection.artifactId
+        : material.kind + ":EVIDENCE:" + material.selection.runId + ":" +
+          material.selection.relativePath;
+  }
+};
+
+export type WorkflowMaterialResolutionInput = Readonly<{
+  workItem: Pick<WorkItem, "stage" | "status" | "outcome">;
+  selectedStep: WorkItem["stage"];
+  runs: readonly Run[];
+  artifacts: readonly ArtifactRef[];
+  unresolvedInputRunId?: Run["id"] | null;
+  pendingProposal?: ProposalSelection | null;
+  approvalPackageAvailable?: boolean;
+  tasks?: readonly ExecutionTask[];
+  selectedTaskId?: ExecutionTask["id"] | null;
+  selectedRunId?: Run["id"] | null;
+  explicitSelection?: WorkflowMaterial | null;
+  dirtyDocument?: boolean;
+}>;
+
+const workflowStepIndex = (stage: WorkItem["stage"]): number => {
+  const index = workflowSteps.findIndex((step) => step.stage === stage);
+  if (index < 0) throw new TypeError(`unknown WorkItem stage: ${stage}`);
+  return index;
+};
+
+export const workflowStepState = (
+  workItem: Pick<WorkItem, "stage">,
+  selectedStep: WorkItem["stage"],
+): WorkflowStepState => {
+  const current = workflowStepIndex(workItem.stage);
+  const selected = workflowStepIndex(selectedStep);
+  if (selected === current) return "CURRENT";
+  return selected < current ? "HISTORICAL" : "UNREACHED";
+};
+
+const runOrder = (left: Run, right: Run): number =>
+  left.attempt - right.attempt ||
+  left.startedAt.localeCompare(right.startedAt) ||
+  left.id.localeCompare(right.id);
+
+const latestRun = (
+  runs: readonly Run[],
+  predicate: (run: Run) => boolean,
+): Run | null =>
+  [...runs].filter(predicate).sort(runOrder).at(-1) ?? null;
+
+const stageArtifact = (
+  artifacts: readonly ArtifactRef[],
+  stage: WorkItem["stage"],
+): ArtifactRef | null => {
+  if (
+    stage !== "R1" &&
+    stage !== "R2" &&
+    stage !== "DESIGN" &&
+    stage !== "PLAN" &&
+    stage !== "R3"
+  ) {
+    return null;
+  }
+  return artifacts.find((artifact) => artifact.role === stage) ?? null;
+};
+
+const selectedMaterialIsAvailable = (
+  input: WorkflowMaterialResolutionInput,
+  selection: WorkflowMaterial,
+): boolean => {
+  const stepState = workflowStepState(input.workItem, input.selectedStep);
+  if (stepState === "UNREACHED") return selection.kind === "UNREACHED";
+
+  switch (selection.kind) {
+    case "SOURCE_DOCUMENT":
+      return input.selectedStep === "IDEA" ||
+        input.selectedStep === "R1" ||
+        input.selectedStep === "R2" ||
+        input.selectedStep === "DESIGN" ||
+        input.selectedStep === "PLAN";
+    case "STAGE_RUN":
+      return input.runs.some(
+        (run) => run.id === selection.runId && run.stage === input.selectedStep,
+      );
+    case "STAGE_DOCUMENT": {
+      const artifact = input.artifacts.find(
+        (candidate) => candidate.id === selection.artifactId,
+      );
+      return artifact !== undefined && artifact.role === input.selectedStep;
+    }
+    case "SUPPORTING_DOCUMENT":
+      return input.artifacts.some(
+        (artifact) => artifact.id === selection.artifactId,
+      );
+    case "PROPOSAL":
+      return input.runs.some(
+        (run) => run.id === selection.runId && run.stage === input.selectedStep,
+      );
+    case "READINESS_REVIEW":
+      return input.selectedStep === "R3";
+    case "APPROVAL_PACKAGE":
+      return input.selectedStep === "AWAITING_SIGNOFF" &&
+        input.approvalPackageAvailable === true;
+    case "EXECUTION_TASK":
+      return input.selectedStep === "EXECUTION" &&
+        (input.tasks ?? []).some((task) => task.id === selection.taskId) &&
+        (
+          selection.runId === null ||
+          input.runs.some(
+            (run) =>
+              run.id === selection.runId &&
+              run.executionTaskId === selection.taskId,
+          )
+        );
+    case "EVIDENCE":
+      return true;
+    case "TERMINAL_RESULT":
+      return input.selectedStep === "COMPLETE" &&
+        input.workItem.stage === "COMPLETE";
+    case "STEP_STATE":
+      return true;
+    case "UNREACHED":
+      return false;
+  }
+};
+
+const latestStageRun = (
+  input: WorkflowMaterialResolutionInput,
+): Run | null =>
+  latestRun(
+    input.runs,
+    (run) => run.stage === input.selectedStep && run.role === "STAGE",
+  );
+
+const selectedStageRun = (
+  input: WorkflowMaterialResolutionInput,
+  status: "attention" | "active",
+): Run | null => {
+  const run = latestStageRun(input);
+  if (!run) return null;
+  if (status === "attention") return runNeedsAttention(run) ? run : null;
+  return runIsActive(run) ? run : null;
+};
+
+const unresolvedInputRun = (
+  input: WorkflowMaterialResolutionInput,
+): Run | null => {
+  if (input.unresolvedInputRunId !== undefined) {
+    const id = input.unresolvedInputRunId;
+    if (id === null) return null;
+    return input.runs.find(
+      (run) =>
+        run.id === id &&
+        run.stage === input.selectedStep &&
+        run.role === "STAGE" &&
+        run.status === "WAITING_FOR_INPUT",
+    ) ?? null;
+  }
+  const current = latestStageRun(input);
+  return current?.status === "WAITING_FOR_INPUT" ? current : null;
+};
+
+const selectedExecutionTask = (
+  input: WorkflowMaterialResolutionInput,
+): ExecutionTask | null => {
+  const tasks = input.tasks ?? [];
+  const selectedTaskId = input.selectedTaskId ?? null;
+  if (selectedTaskId !== null) {
+    const selected = tasks.find((task) => task.id === selectedTaskId);
+    if (selected) return selected;
+  }
+  const activeTaskRun = latestRun(
+    input.runs,
+    (run) =>
+      run.executionTaskId !== null &&
+      (runIsActive(run) || runNeedsAttention(run)),
+  );
+  if (activeTaskRun?.executionTaskId) {
+    const activeTask = tasks.find(
+      (task) => task.id === activeTaskRun.executionTaskId,
+    );
+    if (activeTask) return activeTask;
+  }
+  return tasks.find((task) => task.state === "RUNNING" || task.state === "BLOCKED") ??
+    tasks.at(0) ??
+    null;
+};
+
+const selectedExecutionRun = (
+  input: WorkflowMaterialResolutionInput,
+  task: ExecutionTask,
+): Run | null => {
+  const selectedRunId = input.selectedRunId ?? null;
+  if (selectedRunId !== null) {
+    const selected = input.runs.find(
+      (run) =>
+        run.id === selectedRunId &&
+        run.executionTaskId === task.id,
+    );
+    if (selected) return selected;
+  }
+  return latestRun(
+    input.runs,
+    (run) => run.executionTaskId === task.id,
+  );
+};
+
+export const resolveWorkflowMaterial = (
+  input: WorkflowMaterialResolutionInput,
+): WorkflowMaterial => {
+  const stepState = workflowStepState(input.workItem, input.selectedStep);
+  if (stepState === "UNREACHED") return { kind: "UNREACHED" };
+
+  const explicit = input.explicitSelection ?? null;
+  const explicitIsAvailable =
+    explicit !== null && selectedMaterialIsAvailable(input, explicit);
+  const explicitIsDirtyDocument =
+    input.dirtyDocument === true &&
+    explicitIsAvailable &&
+    (
+      explicit?.kind === "SOURCE_DOCUMENT" ||
+      explicit?.kind === "STAGE_DOCUMENT" ||
+      explicit?.kind === "SUPPORTING_DOCUMENT"
+    );
+
+  if (input.selectedStep === "IDEA") {
+    return explicitIsAvailable && explicit?.kind === "SOURCE_DOCUMENT"
+      ? explicit
+      : { kind: "SOURCE_DOCUMENT" };
+  }
+
+  if (
+    input.selectedStep === "R1" ||
+    input.selectedStep === "R2" ||
+    input.selectedStep === "DESIGN" ||
+    input.selectedStep === "PLAN"
+  ) {
+    const artifact = stageArtifact(input.artifacts, input.selectedStep);
+    if (stepState === "HISTORICAL") {
+      if (explicitIsAvailable && explicit) return explicit;
+      if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
+      const historicalRun = latestRun(
+        input.runs,
+        (run) => run.stage === input.selectedStep && run.role === "STAGE",
+      );
+      return historicalRun
+        ? { kind: "STAGE_RUN", runId: historicalRun.id }
+        : { kind: "STEP_STATE" };
+    }
+
+    if (explicitIsDirtyDocument && explicit) return explicit;
+
+    const attentionRun = selectedStageRun(input, "attention");
+    if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
+
+    const inputRun = unresolvedInputRun(input);
+    if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+
+    if (explicitIsAvailable && explicit) return explicit;
+
+    const proposal = input.pendingProposal ?? null;
+    if (
+      proposal !== null &&
+      input.runs.some(
+        (run) => run.id === proposal.runId && run.stage === input.selectedStep,
+      )
+    ) {
       return {
-        kind: "MODE",
-        mode: workItem.outcome === "CANDIDATE_DONE" ? "EXECUTION" : "RESULT",
+        kind: "PROPOSAL",
+        runId: proposal.runId,
+        eventId: proposal.eventId,
       };
+    }
+
+    const activeRun = selectedStageRun(input, "active");
+    if (activeRun) return { kind: "STAGE_RUN", runId: activeRun.id };
+    if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
+    return { kind: "STEP_STATE" };
   }
+
+  if (input.selectedStep === "R3") {
+    const attentionRun = selectedStageRun(input, "attention");
+    if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
+    const inputRun = unresolvedInputRun(input);
+    if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+    if (explicitIsAvailable && explicit) return explicit;
+    return { kind: "READINESS_REVIEW" };
+  }
+
+  if (input.selectedStep === "AWAITING_SIGNOFF") {
+    return input.approvalPackageAvailable === true
+      ? { kind: "APPROVAL_PACKAGE" }
+      : { kind: "STEP_STATE" };
+  }
+
+  if (input.selectedStep === "EXECUTION") {
+    if (
+      explicitIsAvailable &&
+      explicit?.kind === "EVIDENCE"
+    ) {
+      return explicit;
+    }
+    const task = selectedExecutionTask(input);
+    if (!task) return { kind: "STEP_STATE" };
+    const run = selectedExecutionRun(input, task);
+    return {
+      kind: "EXECUTION_TASK",
+      taskId: task.id,
+      runId: run?.id ?? null,
+    };
+  }
+
+  if (explicitIsAvailable && explicit?.kind === "EVIDENCE") {
+    return explicit;
+  }
+  return { kind: "TERMINAL_RESULT" };
 };
 
 export const runIsActive = (
@@ -123,6 +466,8 @@ export const runStatusLabel = (status: Run["status"]): string => {
     case "FAILED": return "Failed";
     case "CANCELLED": return "Cancelled";
   }
+  const exhaustive: never = status;
+  return exhaustive;
 };
 
 export const runRoleLabel = (role: Run["role"]): string => {
@@ -148,6 +493,21 @@ export const proposalDispositionFor = (
     event.event.proposalEventId === proposalId);
   return found?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
     ? found.event.disposition
+    : null;
+};
+
+export const pendingProposalForEvents = (
+  events: readonly RunEvent[],
+): ProposalSelection | null => {
+  const proposal = [...events]
+    .sort((left, right) =>
+      right.sequence - left.sequence ||
+      right.id.localeCompare(left.id))
+    .find((event) =>
+      event.event.tag === "ARTIFACT_PROPOSAL_CREATED" &&
+      proposalDispositionFor(events, event.id) === null);
+  return proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED"
+    ? { runId: proposal.runId, eventId: proposal.id }
     : null;
 };
 
@@ -177,7 +537,7 @@ export const runEventPresentation = (
     case "ARTIFACT_PROPOSAL_CREATED":
       return { label: "Document change proposed", detail: `${payload.targetPath} — ${payload.rationale}`, tone: "warning" };
     case "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED":
-      return { label: "Document review requested", detail: "Review the proposed document change.", tone: "warning" };
+      return { label: "Document adoption in progress", detail: "The proposed document change is being applied and reconciled.", tone: "warning" };
     case "ARTIFACT_PROPOSAL_DISPOSITIONED":
       return {
         label: payload.disposition === "ADOPTED" ? "Document change adopted" : "Document change rejected",
@@ -201,7 +561,7 @@ export const runEventPresentation = (
     case "CONFORMANCE_FAILED":
       return { label: "Conformance check failed", detail: payload.summary, tone: "error" };
     case "PROVIDER_DIAGNOSTICS_RECORDED":
-      return { label: "Technical diagnostics recorded", detail: "Provider diagnostic evidence is available.", tone: "neutral" };
+      return { label: "Technical diagnostics available", detail: "Provider diagnostic evidence is available.", tone: "neutral" };
     case "PRODUCTIVE_INVOCATION_FAILED":
       return { label: "Agent setup blocked", detail: payload.detail, tone: "error" };
     case "PROVIDER_FAILED":
@@ -235,6 +595,8 @@ export const runEventPresentation = (
     case "OBSERVATION_RECORDED":
       return { label: payload.title, detail: payload.detail, tone: "neutral" };
   }
+  const exhaustive: never = payload;
+  return exhaustive;
 };
 
 export const eventEvidence = (
@@ -295,41 +657,5 @@ export const lifecycleArtifactLabel = (
     case "R3": return workflowPresentation("R3").label;
     case "GOVERNANCE": return "Governance";
     case "VERIFICATION_MATERIAL": return "Verification material";
-  }
-};
-
-export const workItemInitialMode = (
-  workItem: Pick<WorkItem, "stage" | "outcome">,
-  runs: readonly Pick<Run, "status">[] = [],
-): WorkItemMode => {
-  if (runs.some(runIsActive) || runs.some(runNeedsAttention)) return "ACTIVITY";
-  if (workItem.stage === "AWAITING_SIGNOFF") return "REVIEW";
-  if (workItem.stage === "EXECUTION") return "EXECUTION";
-  if (workItem.stage === "COMPLETE") {
-    return workItem.outcome === "CANDIDATE_DONE" ? "EXECUTION" : "RESULT";
-  }
-  return "DOCUMENTS";
-};
-
-export const workItemModeIsKnown = (
-  value: string,
-): value is WorkItemMode =>
-  value === "DOCUMENTS" ||
-  value === "ACTIVITY" ||
-  value === "REVIEW" ||
-  value === "EXECUTION" ||
-  value === "EVIDENCE" ||
-  value === "RESULT";
-
-export const workItemModeLabel = (
-  mode: WorkItemMode,
-): string => {
-  switch (mode) {
-    case "DOCUMENTS": return "Documents";
-    case "ACTIVITY": return "Activity";
-    case "REVIEW": return "Review";
-    case "EXECUTION": return "Implementation";
-    case "EVIDENCE": return "Evidence";
-    case "RESULT": return "Result";
   }
 };

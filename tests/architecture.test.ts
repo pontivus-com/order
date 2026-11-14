@@ -295,8 +295,9 @@ describe("architecture fitness", () => {
 
     expect(queue).toContain("workflowPresentation(item.stage).label");
     expect(queue).not.toContain("{item.stage}</");
-    expect(documents).toContain("lifecycleArtifactLabel(artifact.role)");
+    expect(documents).toContain("lifecycleArtifactLabel(selectedArtifact.role)");
     expect(documents).not.toContain("label={artifact.role}");
+    expect(documents).not.toContain("@astryxdesign/core/TabList");
     expect(activity).toContain('data-testid="selected-run-header"');
     expect(activity).not.toContain('data-testid="activity-summary"');
   });
@@ -613,6 +614,9 @@ describe("architecture fitness", () => {
 
     const requiredUiOwners = [
       "ui/src/WorkItemWorkspace.tsx",
+      "ui/src/WorkflowStepFrame.tsx",
+      "ui/src/PreSignoffStageWorkspace.tsx",
+      "ui/src/ReadinessWorkspace.tsx",
       "ui/src/MarkdownEditor.tsx",
       "ui/src/MarkdownSourceEditor.tsx",
       "ui/src/markdown-source-formatting.ts",
@@ -634,6 +638,15 @@ describe("architecture fitness", () => {
       "ui/src/primitives/WorkbenchResourceRow.tsx",
       "ui/src/primitives/WorkbenchToolbar.tsx",
     ] as const;
+
+    const workflowStepFrame = sourceText("ui/src/WorkflowStepFrame.tsx");
+    for (const forbidden of ["useQuery(", "useMutation(", "./http.ts", "../../src/core/"]) {
+      if (workflowStepFrame.includes(forbidden)) {
+        violations.push(
+          "ui/src/WorkflowStepFrame.tsx must remain presentation-only: " + forbidden,
+        );
+      }
+    }
 
     const workItemWorkspace = sourceText("ui/src/WorkItemWorkspace.tsx");
     for (const forbidden of ["WorkStageSchema.options.indexOf", "artifactIsDownstream"]) {
@@ -719,6 +732,8 @@ describe("architecture fitness", () => {
       "ui/src/MarkdownEditor.tsx",
       "ui/src/MarkdownSourceEditor.tsx",
       "ui/src/ProposalReview.tsx",
+      "ui/src/PreSignoffStageWorkspace.tsx",
+      "ui/src/ReadinessWorkspace.tsx",
       "ui/src/SignoffReview.tsx",
       "ui/src/ProposalReview.tsx",
       "ui/src/ActivityWorkspace.tsx",
@@ -732,7 +747,22 @@ describe("architecture fitness", () => {
       "ui/src/DocumentWorkspace.tsx": ["ui/src/MarkdownEditor.tsx"],
       "ui/src/MarkdownEditor.tsx": ["ui/src/MarkdownSourceEditor.tsx"],
       "ui/src/ActivityWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
-      "ui/src/ExecutionWorkspace.tsx": ["ui/src/RunEventTimeline.tsx"],
+      "ui/src/PreSignoffStageWorkspace.tsx": [
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/EvidenceViewer.tsx",
+      ],
+      "ui/src/ReadinessWorkspace.tsx": [
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/EvidenceViewer.tsx",
+      ],
+      "ui/src/SignoffReview.tsx": ["ui/src/DocumentWorkspace.tsx"],
+      "ui/src/ExecutionWorkspace.tsx": [
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/EvidenceViewer.tsx",
+      ],
     };
 
     const localUiDependencies = new Map<string, readonly string[]>();
@@ -906,13 +936,14 @@ describe("architecture fitness", () => {
 
     const presentationPolicy = sourceText("ui/src/workbench-presentation.ts");
     for (const requiredOwner of [
-      "export type WorkItemMode",
+      "export type WorkflowMaterial",
       "export type EvidenceSelection",
+      "export const workflowStepState",
+      "export const resolveWorkflowMaterial",
       "export const runIsActive",
+      "export const runEventPresentation",
       "export const proposalDispositionFor",
       "export const lifecycleArtifactRoleRank",
-      "export const workItemInitialMode",
-      "export const workflowInspectionTarget",
     ]) {
       if (!presentationPolicy.includes(requiredOwner)) {
         violations.push(
@@ -942,10 +973,26 @@ describe("architecture fitness", () => {
         );
       }
     }
-    if (!workItemChrome.includes("workflowInspectionTarget")) {
-      violations.push(
-        "ui/src/WorkItemWorkspace.tsx must use the pure workflow inspection projection",
-      );
+    for (const required of ["workflowStepState", "resolveWorkflowMaterial"]) {
+      if (!workItemChrome.includes(required)) {
+        violations.push(
+          "ui/src/WorkItemWorkspace.tsx must use the workflow-step presentation owner: " + required,
+        );
+      }
+    }
+    for (const forbidden of [
+      "workspace-view-selector",
+      "SegmentedControlItem",
+      "visibleModes",
+      "workItemInitialMode",
+      "workflowInspectionTarget",
+      "returnMode",
+    ]) {
+      if (workItemChrome.includes(forbidden)) {
+        violations.push(
+          "ui/src/WorkItemWorkspace.tsx must not retain superseded global mode navigation: " + forbidden,
+        );
+      }
     }
     if (!markdownChrome.includes("toolbarAccessory")) {
       violations.push(
@@ -960,9 +1007,12 @@ describe("architecture fitness", () => {
           sourcePath + ": active Run classification must use the shared presentation owner",
         );
       }
-      if (/from ["']\.\/EvidenceViewer\.tsx["']/.test(source)) {
+      if (
+        sourcePath === "ui/src/EvidenceViewer.tsx" &&
+        /export\s+(?:type|interface)\s+EvidenceSelection\b/.test(source)
+      ) {
         violations.push(
-          sourcePath + ": presentation selection types must not be owned by a sibling Evidence workspace",
+          sourcePath + ": presentation selection types must remain owned by workbench-presentation.ts",
         );
       }
       if (/\bconst\s+proposalDisposition\s*=/.test(source)) {

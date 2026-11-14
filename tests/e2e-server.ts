@@ -12,11 +12,15 @@ import {
   ApprovalSchema,
   ArtifactRefSchema,
   ExecutionTaskSchema,
+  RunEventIdSchema,
   RunEventSchema,
+  RunIdSchema,
   RunSchema,
+  WorkItemIdSchema,
   WorkItemSchema,
   type RunEventPayload,
   type RunId,
+  type StageCompletion,
   type WorkItemId,
 } from "../src/core/contracts.ts";
 import { renderWorkItemSourceMarkdown } from "../src/core/work-item-source.ts";
@@ -24,10 +28,13 @@ import { startOrderDaemon } from "../src/daemon/server.ts";
 import { createCoordinatorRuntime } from "../src/daemon/runtime.ts";
 import {
   currentFileArtifact,
+  getWorkItem,
+  listExecutionTasks,
   resolveStageContext,
 } from "../src/daemon/authority.ts";
 import {
   appendRunEvent,
+  getRun,
   insertRun,
   nextAttempt,
   updateRun,
@@ -60,6 +67,8 @@ import {
   storeRun,
   storeRunEvent,
   storeWorkItem,
+  setExecutionTaskState,
+  updateWorkItemLifecycle,
   withTransaction,
 } from "../src/shell/sqlite.ts";
 
@@ -193,8 +202,17 @@ const r3Sha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r
 
 const workItem = (
   title: string,
-  stage: "R1" | "PLAN" | "AWAITING_SIGNOFF" | "COMPLETE",
-  status: "ACTIVE" | "COMPLETE",
+  stage:
+    | "IDEA"
+    | "R1"
+    | "R2"
+    | "DESIGN"
+    | "PLAN"
+    | "R3"
+    | "AWAITING_SIGNOFF"
+    | "EXECUTION"
+    | "COMPLETE",
+  status: "ACTIVE" | "BLOCKED" | "COMPLETE",
   outcome:
     | "CANDIDATE_DONE"
     | "INVESTIGATION_COMPLETE"
@@ -265,8 +283,31 @@ const storePlanArtifacts = (workItemId: WorkItemId) => {
   return { plan, r3 };
 };
 
+const startResearchItem = workItem("Work request start success", "IDEA", "ACTIVE", null);
+storeWorkItem(database, startResearchItem);
+
 const proposalItem = workItem("Proposal review", "PLAN", "ACTIVE", null);
 storeWorkItem(database, proposalItem);
+const proposalArtifacts = storePlanArtifacts(proposalItem.id);
+const historicalProposalRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: proposalItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "COMPLETED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("historical-proposal-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, historicalProposalRun);
+
 const proposalRun = RunSchema.parse({
   id: newRunId(),
   workItemId: proposalItem.id,
@@ -276,7 +317,7 @@ const proposalRun = RunSchema.parse({
   role: "STAGE",
   triggerEventId: null,
   status: "WAITING_FOR_INPUT",
-  attempt: 1,
+  attempt: 2,
   baselineCommit,
   contextHash: sha256Text("proposal-context"),
   providerSessionId: null,
@@ -302,6 +343,33 @@ const persistEvent = (
   return value;
 };
 
+persistEvent(historicalProposalRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: historicalProposalRun.contextHash,
+});
+const historicalProposal = persistEvent(historicalProposalRun.id, 2, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: "docs/plan.md",
+  baseSha256: planSha,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- a/docs/plan.md\n+++ b/docs/plan.md\n@@ -1 +1 @@\n-# Browser certification plan\n+# Browser certification plan adopted\n",
+  rationale: "Exercise the completed proposal lifecycle.",
+});
+persistEvent(historicalProposalRun.id, 3, {
+  tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+  proposalEventId: historicalProposal.id,
+});
+persistEvent(historicalProposalRun.id, 4, {
+  tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+  proposalEventId: historicalProposal.id,
+  disposition: "ADOPTED",
+  adoptedArtifactRefId: proposalArtifacts.plan.id,
+});
+
 persistEvent(proposalRun.id, 1, {
   tag: "STAGE_STARTED",
   stage: "PLAN",
@@ -313,8 +381,18 @@ persistEvent(proposalRun.id, 2, {
   text: "The plan is ready for operator review.",
   evidence: [],
 });
+const proposalInputRequest = persistEvent(proposalRun.id, 3, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Confirm the proposal should be reviewed.",
+});
+persistEvent(proposalRun.id, 4, {
+  tag: "HUMAN_INPUT_RECEIVED",
+  requestEventId: proposalInputRequest.id,
+  text: "Review the proposal.",
+});
 const proposalPath = `${workItemsRoot}/${proposalItem.id}/implementation-plan.md`;
-const proposal = persistEvent(proposalRun.id, 3, {
+const proposal = persistEvent(proposalRun.id, 5, {
   tag: "ARTIFACT_PROPOSAL_CREATED",
   targetPath: proposalPath,
   baseSha256: null,
@@ -324,12 +402,104 @@ const proposal = persistEvent(proposalRun.id, 3, {
     "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
   rationale: "Exercise the canonical proposal disposition surface.",
 });
+const rejectionItem = workItem("Proposal rejection review", "PLAN", "ACTIVE", null);
+storeWorkItem(database, rejectionItem);
+const rejectionRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: rejectionItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("proposal-rejection-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, rejectionRun);
+persistEvent(rejectionRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: rejectionRun.contextHash,
+});
+persistEvent(rejectionRun.id, 2, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md`,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" +
+    `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
+    "\n@@ -0,0 +1 @@\n+reject proposal\n",
+  rationale: "Exercise the canonical Reject mutation.",
+});
+
+const adoptionPendingItem = workItem(
+  "Proposal adoption in progress",
+  "PLAN",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, adoptionPendingItem);
+storePlanArtifacts(adoptionPendingItem.id);
+const adoptionPendingRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: adoptionPendingItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("proposal-adoption-pending-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+
+const retryItem = workItem("Workflow retry action", "PLAN", "ACTIVE", null);
+storeWorkItem(database, retryItem);
+const retryRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: retryItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "FAILED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("retry-action-context"),
+  providerSessionId: null,
+  terminalClassification: "PROVIDER_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, retryRun);
+persistEvent(retryRun.id, 1, {
+  tag: "PROVIDER_FAILED",
+  detail: "Synthetic provider failure for browser retry certification.",
+  evidence: [],
+});
+
 const seedRuntime = createCoordinatorRuntime(database, stateRoot, process.env, orderConfig);
 
 const seedConformance = async (
   item: ReturnType<typeof workItem>,
   stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
   output: Awaited<ReturnType<typeof currentFileArtifact>>,
+  completion?: StageCompletion,
 ): Promise<void> => {
   const context = await resolveStageContext(seedRuntime, item, stage);
   const run = insertRun(seedRuntime, RunSchema.parse({
@@ -362,6 +532,13 @@ const seedConformance = async (
       contextHash: context.contextHash,
       evidence: [],
     });
+    if (completion) {
+      appendRunEvent(seedRuntime, run.id, {
+        tag: "STAGE_COMPLETED",
+        completion,
+        artifactRefIds: [output.id],
+      });
+    }
   });
 };
 
@@ -383,6 +560,293 @@ const seedLifecycle = async (
   await seedConformance(item, "R3", outputs.R3);
   return outputs;
 };
+
+const progressionStages = [
+  {
+    stage: "R1",
+    path: "docs/r1.md",
+    role: "R1",
+    layer: "P1",
+    completion: { stage: "R1", outcome: "CONFIRMED" },
+  },
+  {
+    stage: "R2",
+    path: "docs/r2.md",
+    role: "R2",
+    layer: "P3",
+    completion: { stage: "R2", outcome: "ACCEPTED" },
+  },
+  {
+    stage: "DESIGN",
+    path: "docs/design.md",
+    role: "DESIGN",
+    layer: "P6",
+    completion: { stage: "DESIGN", outcome: "ACCEPTED" },
+  },
+  {
+    stage: "PLAN",
+    path: "docs/plan.md",
+    role: "PLAN",
+    layer: "P7",
+    completion: { stage: "PLAN", outcome: "ACCEPTED" },
+  },
+] as const satisfies readonly Readonly<{
+  stage: "R1" | "R2" | "DESIGN" | "PLAN";
+  path: string;
+  role: "R1" | "R2" | "DESIGN" | "PLAN";
+  layer: "P1" | "P3" | "P6" | "P7";
+  completion: StageCompletion;
+}>[];
+
+const seedProgressionReadyItem = async (
+  title: string,
+  currentStage: "R2" | "DESIGN" | "PLAN" | "R3",
+) => {
+  const item = workItem(title, currentStage, "ACTIVE", null);
+  storeWorkItem(database, item);
+  const currentIndex = ["R2", "DESIGN", "PLAN", "R3"].indexOf(currentStage);
+  for (let index = 0; index <= currentIndex; index += 1) {
+    const definition = progressionStages[index];
+    if (!definition) break;
+    const output = await currentFileArtifact(
+      seedRuntime,
+      item,
+      definition.path,
+      definition.role,
+      definition.layer,
+    );
+    await seedConformance(
+      item,
+      definition.stage,
+      output,
+      definition.completion,
+    );
+  }
+  return item;
+};
+
+await seedProgressionReadyItem(
+  "Requirements ready after Research",
+  "R2",
+);
+await seedProgressionReadyItem(
+  "Solution design ready after Requirements",
+  "DESIGN",
+);
+await seedProgressionReadyItem(
+  "Implementation plan ready after Design",
+  "PLAN",
+);
+await seedProgressionReadyItem(
+  "Readiness ready after Plan",
+  "R3",
+);
+
+const feedbackItem = workItem(
+  "Workflow failure feedback",
+  "PLAN",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, feedbackItem);
+const feedbackPlan = await currentFileArtifact(
+  seedRuntime,
+  feedbackItem,
+  "docs/plan.md",
+  "PLAN",
+  "P7",
+);
+const feedbackPriorPlan = ArtifactRefSchema.parse({
+  id: newArtifactRefId(),
+  workItemId: feedbackItem.id,
+  repositoryPath: "docs/plan.md",
+  role: "PLAN",
+  authorityLayer: "P7",
+  sha256: sha256Text("prior feedback plan"),
+  gitCommit: baselineCommit,
+});
+storeArtifact(database, feedbackPriorPlan);
+
+const feedbackRun = (
+  attempt: number,
+  status: "CANCELLED" | "FAILED" | "BLOCKED",
+  terminalClassification:
+    | "COORDINATOR_INTERRUPTED"
+    | "ENVIRONMENT_BLOCKED"
+    | "PROVIDER_FAILURE"
+    | "TEST_FAILURE",
+) => {
+  const run = RunSchema.parse({
+    id: newRunId(),
+    workItemId: feedbackItem.id,
+    executionTaskId: null,
+    stage: "PLAN",
+    mode: "INTERACTIVE",
+    role: "STAGE",
+    triggerEventId: null,
+    status,
+    attempt,
+    baselineCommit,
+    contextHash: sha256Text("feedback-context-" + attempt),
+    providerSessionId: null,
+    terminalClassification,
+    startedAt: stamp,
+    endedAt: stamp,
+  });
+  storeRun(database, run);
+  return run;
+};
+
+const cancelledFeedbackRun = feedbackRun(
+  1,
+  "CANCELLED",
+  "COORDINATOR_INTERRUPTED",
+);
+persistEvent(cancelledFeedbackRun.id, 1, {
+  tag: "OBSERVATION_RECORDED",
+  title: "Attempt cancelled",
+  detail: "The operator cancelled the superseded attempt.",
+  evidence: [],
+});
+
+const setupFeedbackRun = feedbackRun(
+  2,
+  "FAILED",
+  "ENVIRONMENT_BLOCKED",
+);
+const setupDiagnostics = {
+  relativePath: "provider-diagnostics.json",
+  sha256: writeRunEvidenceBytes(
+    stateRoot,
+    setupFeedbackRun.id,
+    "provider-diagnostics.json",
+    encoder.encode('{"failure":"agent setup"}\n'),
+  ),
+  mediaType: "application/json",
+};
+persistEvent(setupFeedbackRun.id, 1, {
+  tag: "PROVIDER_DIAGNOSTICS_RECORDED",
+  evidence: [setupDiagnostics],
+});
+persistEvent(setupFeedbackRun.id, 2, {
+  tag: "PRODUCTIVE_INVOCATION_FAILED",
+  classification: "ENVIRONMENT_BLOCKED",
+  detail: "The productive workspace could not be admitted.",
+  evidence: [setupDiagnostics],
+});
+
+const providerFeedbackRun = feedbackRun(
+  3,
+  "FAILED",
+  "PROVIDER_FAILURE",
+);
+persistEvent(providerFeedbackRun.id, 1, {
+  tag: "PROVIDER_FAILED",
+  detail: "The configured provider failed during execution.",
+  evidence: [],
+});
+persistEvent(providerFeedbackRun.id, 2, {
+  tag: "AUTHORITY_CHANGED",
+  priorArtifactRefId: feedbackPriorPlan.id,
+  newArtifactRefId: feedbackPlan.id,
+});
+persistEvent(providerFeedbackRun.id, 3, {
+  tag: "REPOSITORY_DRIFTED",
+  expectedCommit: baselineCommit,
+  actualCommit: "b".repeat(40),
+});
+
+const blockedFeedbackRun = feedbackRun(
+  4,
+  "BLOCKED",
+  "TEST_FAILURE",
+);
+persistEvent(blockedFeedbackRun.id, 1, {
+  tag: "STAGE_BLOCKED",
+  reason: "The current plan cannot proceed.",
+  owningStage: "PLAN",
+});
+persistEvent(blockedFeedbackRun.id, 2, {
+  tag: "CONFORMANCE_FAILED",
+  stage: "PLAN",
+  defectiveLayer: "P7",
+  summary: "The current plan failed conformance.",
+  evidence: [],
+});
+
+const latestFeedbackRun = feedbackRun(
+  5,
+  "CANCELLED",
+  "COORDINATOR_INTERRUPTED",
+);
+persistEvent(latestFeedbackRun.id, 1, {
+  tag: "OBSERVATION_RECORDED",
+  title: "Latest attempt cancelled",
+  detail: "The latest attempt is terminal and does not demand current recovery.",
+  evidence: [],
+});
+
+const resumeItem = workItem(
+  "Workflow resume action",
+  "PLAN",
+  "BLOCKED",
+  null,
+);
+storeWorkItem(database, resumeItem);
+const resumeRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: resumeItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "BLOCKED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("resume-action-context"),
+  providerSessionId: null,
+  terminalClassification: "TEST_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, resumeRun);
+persistEvent(resumeRun.id, 1, {
+  tag: "STAGE_BLOCKED",
+  reason: "Synthetic blocker for browser Resume certification.",
+  owningStage: "PLAN",
+});
+
+const waitingInputItem = workItem(
+  "Workflow input required",
+  "PLAN",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, waitingInputItem);
+const waitingInputRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: waitingInputItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("waiting-input-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, waitingInputRun);
+persistEvent(waitingInputRun.id, 1, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Which constraint should the plan prioritize?",
+});
 
 const signoffItem = workItem("Awaiting sign-off", "AWAITING_SIGNOFF", "ACTIVE", null);
 storeWorkItem(database, signoffItem);
@@ -547,6 +1011,174 @@ for (const [title, outcome] of [
   storeWorkItem(database, workItem(title, "COMPLETE", "COMPLETE", outcome));
 }
 
+const seedExecutionFeedback = (
+  title: string,
+  lifecycle: Readonly<
+    | {
+        stage: "EXECUTION";
+        status: "ACTIVE" | "BLOCKED";
+        outcome: null;
+      }
+    | {
+        stage: "COMPLETE";
+        status: "COMPLETE";
+        outcome: "ALREADY_SATISFIED";
+      }
+  >,
+  taskState: "TODO" | "ALREADY_SATISFIED" | "BLOCKED",
+) => {
+  const item = workItem(
+    title,
+    lifecycle.stage,
+    lifecycle.status,
+    lifecycle.outcome,
+  );
+  storeWorkItem(database, item);
+  const artifacts = storePlanArtifacts(item.id);
+  const approvalValue = ApprovalSchema.parse({
+    id: newApprovalId(),
+    workItemId: item.id,
+    baselineCommit,
+    packageHash: sha256Text(title + "-package"),
+    planArtifactRefId: artifacts.plan.id,
+    r3ArtifactRefId: artifacts.r3.id,
+    sourceSha256: item.sourceSha256,
+    approvedBy: "browser-certification",
+    approvedAt: stamp,
+  });
+  storeApproval(database, approvalValue);
+  const executionTask = ExecutionTaskSchema.parse({
+    id: newExecutionTaskId(),
+    approvalId: approvalValue.id,
+    planTaskId: "T1",
+    objective: title,
+    dependsOn: [],
+    scope: ["src/a.ts"],
+    exclusions: [],
+    acceptanceRefs: [],
+    changeSurface: ["src/a.ts"],
+    gateIds: ["test"],
+    authorityRefs: [],
+    concernIds: [],
+    state: taskState,
+  });
+  storeExecutionTask(database, executionTask);
+  return { item, task: executionTask };
+};
+
+const implementationReady = seedExecutionFeedback(
+  "Implementation action ready",
+  {
+    stage: "EXECUTION",
+    status: "ACTIVE",
+    outcome: null,
+  },
+  "TODO",
+);
+
+const alreadySatisfied = seedExecutionFeedback(
+  "Already satisfied implementation",
+  {
+    stage: "COMPLETE",
+    status: "COMPLETE",
+    outcome: "ALREADY_SATISFIED",
+  },
+  "ALREADY_SATISFIED",
+);
+const alreadySatisfiedRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: alreadySatisfied.item.id,
+  executionTaskId: alreadySatisfied.task.id,
+  stage: "EXECUTION",
+  mode: "UNATTENDED",
+  role: "BUILDER",
+  triggerEventId: null,
+  status: "COMPLETED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("already-satisfied-context"),
+  providerSessionId: null,
+  terminalClassification: "ALREADY_SATISFIED",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, alreadySatisfiedRun);
+persistEvent(alreadySatisfiedRun.id, 1, {
+  tag: "TASK_ALREADY_SATISFIED",
+  summary: "The approved task already matches the repository state.",
+});
+
+const failedExecution = seedExecutionFeedback(
+  "Failed implementation feedback",
+  {
+    stage: "EXECUTION",
+    status: "BLOCKED",
+    outcome: null,
+  },
+  "BLOCKED",
+);
+const failedBuilderRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: failedExecution.item.id,
+  executionTaskId: failedExecution.task.id,
+  stage: "EXECUTION",
+  mode: "UNATTENDED",
+  role: "BUILDER",
+  triggerEventId: null,
+  status: "FAILED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("failed-builder-context"),
+  providerSessionId: null,
+  terminalClassification: "TEST_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, failedBuilderRun);
+persistEvent(failedBuilderRun.id, 1, {
+  tag: "GATE_PASSED",
+  gateId: "typecheck",
+  evidence: [],
+});
+const failedGateEvent = persistEvent(failedBuilderRun.id, 2, {
+  tag: "GATE_FAILED",
+  gateId: "test",
+  classification: "TEST_FAILURE",
+  evidence: [],
+});
+
+const failedReviewerRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: failedExecution.item.id,
+  executionTaskId: failedExecution.task.id,
+  stage: "EXECUTION",
+  mode: "UNATTENDED",
+  role: "REVIEWER",
+  triggerEventId: failedGateEvent.id,
+  status: "FAILED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("failed-reviewer-context"),
+  providerSessionId: null,
+  terminalClassification: "REVIEW_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, failedReviewerRun);
+persistEvent(failedReviewerRun.id, 1, {
+  tag: "REVIEW_FAILED",
+  classification: "REVIEW_FAILURE",
+  summary: "Independent review rejected the candidate.",
+  evidence: [],
+});
+persistEvent(failedReviewerRun.id, 2, {
+  tag: "VALIDATION_FAILED",
+  stage: "V4",
+  classification: "REVIEW_FAILURE",
+  summary: "Semantic review failed.",
+  evidence: [],
+});
+
 const candidateItem = workItem("Verified candidate", "COMPLETE", "COMPLETE", "CANDIDATE_DONE");
 storeWorkItem(database, candidateItem);
 const candidateArtifacts = storePlanArtifacts(candidateItem.id);
@@ -687,10 +1319,155 @@ const environment: NodeJS.ProcessEnv = {
 const daemon = await startOrderDaemon(environment);
 updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
 
+insertRun(daemon.coordinator, {
+  ...adoptionPendingRun,
+  status: "RUNNING",
+});
+appendRunEvent(daemon.coordinator, adoptionPendingRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: adoptionPendingRun.contextHash,
+});
+const liveAdoptionPendingProposal = appendRunEvent(
+  daemon.coordinator,
+  adoptionPendingRun.id,
+  {
+    tag: "ARTIFACT_PROPOSAL_CREATED",
+    targetPath: `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md`,
+    baseSha256: null,
+    role: "PLAN",
+    authorityLayer: "P7",
+    unifiedDiff:
+      "--- /dev/null\n+++ b/" +
+      `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md` +
+      "\n@@ -0,0 +1 @@\n+pending adoption\n",
+    rationale: "Certify the canonical adoption-in-progress state.",
+  },
+);
+appendRunEvent(daemon.coordinator, adoptionPendingRun.id, {
+  tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+  proposalEventId: liveAdoptionPendingProposal.id,
+});
+
+const fixtureControl = Bun.serve({
+  hostname: "127.0.0.1",
+  port: 17348,
+  async fetch(request) {
+    if (request.method !== "POST") {
+      return new Response("fixture mutation requires POST", { status: 405 });
+    }
+    const url = new URL(request.url);
+    const raw = await request.json();
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+      return new Response("fixture mutation body must be an object", { status: 400 });
+    }
+    const body = raw as Record<string, unknown>;
+
+    if (url.pathname === "/start-stage") {
+      const workItemId = WorkItemIdSchema.parse(body.workItemId);
+      const item = getWorkItem(daemon.coordinator, workItemId);
+      const stage = item.stage === "IDEA" ? "R1" : item.stage;
+      if (
+        stage !== "R1" &&
+        stage !== "R2" &&
+        stage !== "DESIGN" &&
+        stage !== "PLAN" &&
+        stage !== "R3"
+      ) {
+        return new Response("fixture start requires pre-signoff stage", { status: 409 });
+      }
+      const run = insertRun(daemon.coordinator, RunSchema.parse({
+        id: newRunId(),
+        workItemId,
+        executionTaskId: null,
+        stage,
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: nextAttempt(daemon.coordinator, workItemId, stage, null),
+        baselineCommit,
+        contextHash: sha256Text(
+          "browser-success-" + workItemId + "-" + stage,
+        ),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: nowIsoDateTime(),
+        endedAt: null,
+      }));
+      if (item.stage === "IDEA") {
+        updateWorkItemLifecycle(daemon.coordinator.database, workItemId, {
+          stage: "R1",
+          status: "ACTIVE",
+          outcome: null,
+        });
+      }
+      appendRunEvent(daemon.coordinator, run.id, {
+        tag: "STAGE_STARTED",
+        stage,
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      return Response.json(run, { status: 201 });
+    }
+
+    if (url.pathname === "/submit-input") {
+      const runId = RunIdSchema.parse(body.runId);
+      const text = String(body.text ?? "");
+      const requestEventId = body.requestEventId === null
+        ? null
+        : RunEventIdSchema.parse(body.requestEventId);
+      const run = getRun(daemon.coordinator, runId);
+      const received = appendRunEvent(daemon.coordinator, runId, {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId,
+        text,
+      });
+      updateRun(daemon.coordinator, runId, {
+        status: "RUNNING",
+        endedAt: null,
+      });
+      return Response.json(received);
+    }
+
+    if (url.pathname === "/tick") {
+      const workItemId = WorkItemIdSchema.parse(body.workItemId);
+      const tasks = await listExecutionTasks(daemon.coordinator, workItemId);
+      const task = tasks[0];
+      if (task === undefined) {
+        return new Response("fixture execution task missing", { status: 409 });
+      }
+      setExecutionTaskState(daemon.coordinator.database, task.id, "RUNNING");
+      const run = insertRun(daemon.coordinator, RunSchema.parse({
+        id: newRunId(),
+        workItemId,
+        executionTaskId: task.id,
+        stage: "EXECUTION",
+        mode: "UNATTENDED",
+        role: "BUILDER",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: nextAttempt(daemon.coordinator, workItemId, "EXECUTION", task.id),
+        baselineCommit,
+        contextHash: sha256Text("browser-success-execution-" + task.id),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: nowIsoDateTime(),
+        endedAt: null,
+      }));
+      return Response.json(run);
+    }
+
+    return new Response("fixture mutation not found", { status: 404 });
+  },
+});
+
 let stopping = false;
 const stop = async (): Promise<void> => {
   if (stopping) return;
   stopping = true;
+  fixtureControl.stop(true);
   await daemon.stop();
   process.exit(0);
 };

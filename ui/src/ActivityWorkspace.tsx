@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@astryxdesign/core/Badge";
 import { ChatComposer } from "@astryxdesign/core/Chat";
@@ -17,21 +17,13 @@ import {
   runNeedsAttention,
   runRoleLabel,
   runStatusLabel,
-  runSummaryLabel,
   unresolvedHumanInput,
   workflowPresentation,
   type EvidenceSelection,
   type ProposalSelection,
 } from "./workbench-presentation.ts";
 
-const preSignoff = new Set<WorkItem["stage"]>([
-  "IDEA",
-  "R1",
-  "R2",
-  "DESIGN",
-  "PLAN",
-  "R3",
-]);
+export type PreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
 
 const statusVariant = (
   status: Run["status"],
@@ -42,24 +34,32 @@ const statusVariant = (
   return "neutral";
 };
 
-const latestMeaningfulRun = (runs: readonly Run[]): Run | null =>
-  runs.findLast(runIsActive) ??
-  runs.findLast(runNeedsAttention) ??
-  runs.at(-1) ??
-  null;
+const latestStageRun = (
+  runs: readonly Run[],
+  stage: PreSignoffStage,
+): Run | null =>
+  runs
+    .filter((run) => run.role === "STAGE" && run.stage === stage)
+    .sort((left, right) =>
+      left.attempt - right.attempt ||
+      left.startedAt.localeCompare(right.startedAt) ||
+      left.id.localeCompare(right.id))
+    .at(-1) ?? null;
 
-export const ActivityWorkspace = ({
+export const StageRunMaterial = ({
   workItem,
+  stage,
   selectedRunId,
   onSelectedRunChange,
   onOpenEvidence,
   onOpenProposalReview,
 }: Readonly<{
   workItem: WorkItem;
+  stage: PreSignoffStage;
   selectedRunId: Run["id"] | null;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
-  onOpenProposalReview: (selection: ProposalSelection) => void;
+  onOpenProposalReview?: (selection: ProposalSelection) => void;
 }>) => {
   const queryClient = useQueryClient();
   const runsQuery = useQuery({
@@ -69,15 +69,12 @@ export const ActivityWorkspace = ({
       query.state.data?.some(runIsActive) === true ? 1000 : false,
   });
   const runs = runsQuery.data ?? [];
+  const stageRuns = runs.filter(
+    (run) => run.role === "STAGE" && run.stage === stage,
+  );
   const selectedRun =
-    runs.find((run) => run.id === selectedRunId) ??
-    latestMeaningfulRun(runs);
-
-  useEffect(() => {
-    if (selectedRun && selectedRun.id !== selectedRunId) {
-      onSelectedRunChange(selectedRun.id);
-    }
-  }, [onSelectedRunChange, selectedRun, selectedRunId]);
+    stageRuns.find((run) => run.id === selectedRunId) ??
+    latestStageRun(stageRuns, stage);
 
   const eventKey = workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
   const eventsQuery = useQuery({
@@ -108,7 +105,7 @@ export const ActivityWorkspace = ({
   const input = useMutation({
     mutationFn: (text: string) => {
       if (!selectedRun || selectedRun.role !== "STAGE" || !runIsActive(selectedRun)) {
-        throw new TypeError("selected Activity does not accept human input");
+        throw new TypeError("selected workflow Run does not accept human input");
       }
       return api.submitRunInput(selectedRun.id, text.trim(), pending?.id ?? null);
     },
@@ -117,11 +114,14 @@ export const ActivityWorkspace = ({
   const cancel = useMutation({
     mutationFn: () => {
       if (!selectedRun || !runIsActive(selectedRun)) {
-        throw new TypeError("selected Activity is not running");
+        throw new TypeError("selected workflow Run is not active");
       }
       return api.cancelRun(selectedRun.id);
     },
-    onSuccess: invalidate,
+    onSuccess: async (run) => {
+      onSelectedRunChange(run.id);
+      await invalidate();
+    },
   });
   const retry = useMutation({
     mutationFn: () => api.startInteractiveRun(workItem.id),
@@ -137,159 +137,148 @@ export const ActivityWorkspace = ({
 
   if (runsQuery.isPending) {
     return (
-      <section className="order-workspace-section order-activity-workspace" data-testid="activity-workspace">
-        <WorkbenchEmptyState compact title="Loading activity…" />
+      <section className="order-workspace-section order-stage-run-material" data-testid="stage-run-material">
+        <WorkbenchEmptyState compact title="Loading workflow activity…" />
       </section>
     );
   }
   if (runsQuery.isError) {
     return (
-      <section className="order-workspace-section order-activity-workspace" data-testid="activity-workspace">
+      <section className="order-workspace-section order-stage-run-material" data-testid="stage-run-material">
         <WorkbenchErrorState
-          title="Activity unavailable"
+          title="Workflow activity unavailable"
           description={runsQuery.error instanceof Error ? runsQuery.error.message : String(runsQuery.error)}
         />
       </section>
     );
   }
-  if (runs.length === 0 || selectedRun === null) {
+  if (selectedRun === null) {
     return (
-      <section className="order-workspace-section order-activity-workspace" data-testid="activity-workspace">
+      <section className="order-workspace-section order-stage-run-material" data-testid="stage-run-material">
         <WorkbenchEmptyState
-          title="No agent activity yet"
-          description="Start the current workflow step to create the first Activity."
+          title={"No " + workflowPresentation(stage).label + " activity yet"}
+          description="Start this workflow step to create its first attempt."
         />
       </section>
     );
   }
 
-  const selectedStep = workflowPresentation(selectedRun.stage);
+  const selectedStep = workflowPresentation(stage);
   const canRetry =
-    preSignoff.has(workItem.stage) &&
+    workItem.stage === stage &&
     workItem.status === "ACTIVE" &&
     runNeedsAttention(selectedRun) &&
     !runs.some(runIsActive);
-  const canResume = workItem.status === "BLOCKED";
+  const canResume =
+    workItem.stage === stage &&
+    workItem.status === "BLOCKED";
   const canAnswer =
     selectedRun.role === "STAGE" &&
     runIsActive(selectedRun);
   const actionError = input.error ?? cancel.error ?? retry.error ?? resume.error;
 
   return (
-    <section className="order-workspace-section order-activity-workspace" data-testid="activity-workspace">
+    <section
+      className="order-workspace-section order-stage-run-material"
+      data-testid="stage-run-material"
+    >
       {actionError ? (
         <WorkbenchErrorState
-          title="Activity action failed"
+          title="Workflow action failed"
           description={actionError instanceof Error ? actionError.message : String(actionError)}
         />
       ) : null}
 
-      <div className="order-activity-layout">
-        <aside className="order-activity-master" aria-label="Activity attempts" data-testid="activity-run-master">
-          <strong>Activity history</strong>
-          <div className="order-activity-run-list">
-            {runs.map((run) => (
-              <button
-                key={run.id}
-                type="button"
-                aria-pressed={run.id === selectedRun.id}
-                onClick={() => onSelectedRunChange(run.id)}
-              >
-                <span>{runSummaryLabel(run)}</span>
-                <Badge variant={statusVariant(run.status)} label={runStatusLabel(run.status)} />
-              </button>
-            ))}
+      <div className="order-activity-detail" data-testid="activity-detail">
+        <div className="order-activity-run-heading" data-testid="selected-run-header">
+          <div>
+            <strong>{selectedStep.label} · {runRoleLabel(selectedRun.role)}</strong>
+            <span>
+              <Badge variant={statusVariant(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
+              {" · Attempt " + selectedRun.attempt + " · "}
+              <time>{new Date(selectedRun.startedAt).toLocaleString()}</time>
+            </span>
           </div>
-        </aside>
-
-        <div className="order-activity-detail" data-testid="activity-detail">
-          <div className="order-activity-run-heading" data-testid="selected-run-header">
-            <div>
-              <strong>{selectedStep.label} · {runRoleLabel(selectedRun.role)}</strong>
-              <span>
-                <Badge variant={statusVariant(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
-                {" · Attempt " + selectedRun.attempt + " · "}
-                <time>{new Date(selectedRun.startedAt).toLocaleString()}</time>
-              </span>
-            </div>
-            <div className="order-inline-actions">
-              {runIsActive(selectedRun) ? (
-                <WorkbenchAction
-                  label="Cancel current activity"
-                  tone="destructive"
-                  loading={cancel.isPending}
-                  onClick={() => cancel.mutate()}
-                />
-              ) : null}
-              {canRetry ? (
-                <WorkbenchAction
-                  label={"Retry " + workflowPresentation(workItem.stage).label}
-                  tone="primary"
-                  loading={retry.isPending}
-                  onClick={() => retry.mutate()}
-                />
-              ) : null}
-              {canResume ? (
-                <WorkbenchAction
-                  label="Resume resolved blocker"
-                  tone="primary"
-                  loading={resume.isPending}
-                  onClick={() => resume.mutate()}
-                />
-              ) : null}
-            </div>
-            <details className="order-technical-details order-run-technical-details">
-              <summary>Technical details</summary>
-              <dl>
-                <div><dt>Run id</dt><dd><code>{selectedRun.id}</code></dd></div>
-                <div><dt>Stage</dt><dd><code>{selectedRun.stage}</code></dd></div>
-                <div><dt>Role</dt><dd><code>{selectedRun.role}</code></dd></div>
-                <div><dt>Status</dt><dd><code>{selectedRun.status}</code></dd></div>
-                <div><dt>Baseline</dt><dd><code>{selectedRun.baselineCommit}</code></dd></div>
-                <div><dt>Context</dt><dd><code>{selectedRun.contextHash}</code></dd></div>
-                <div><dt>Provider session</dt><dd><code>{selectedRun.providerSessionId ?? "—"}</code></dd></div>
-                <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification ?? "—"}</code></dd></div>
-              </dl>
-            </details>
+          <div className="order-inline-actions">
+            {runIsActive(selectedRun) ? (
+              <WorkbenchAction
+                label="Cancel current activity"
+                tone="destructive"
+                loading={cancel.isPending}
+                disabled={cancel.isPending}
+                onClick={() => cancel.mutate()}
+              />
+            ) : null}
+            {canRetry ? (
+              <WorkbenchAction
+                label={"Retry " + selectedStep.label}
+                tone="primary"
+                loading={retry.isPending}
+                disabled={retry.isPending}
+                onClick={() => retry.mutate()}
+              />
+            ) : null}
+            {canResume ? (
+              <WorkbenchAction
+                label="Resume resolved blocker"
+                tone="primary"
+                loading={resume.isPending}
+                disabled={resume.isPending}
+                onClick={() => resume.mutate()}
+              />
+            ) : null}
           </div>
-
-          <div className="order-event-scroll">
-            {eventsQuery.isPending ? (
-              <WorkbenchEmptyState compact title="Loading activity timeline…" />
-            ) : eventsQuery.isError ? (
-              <WorkbenchErrorState
-                title="Activity timeline unavailable"
-                description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)}
-              />
-            ) : events.length === 0 ? (
-              <WorkbenchEmptyState compact title="No persisted activity events yet" />
-            ) : (
-              <RunEventTimeline
-                run={selectedRun}
-                events={events}
-                onOpenEvidence={onOpenEvidence}
-                onOpenProposalReview={onOpenProposalReview}
-              />
-            )}
-          </div>
-
-          {canAnswer ? (
-            <div className="order-activity-composer" data-testid="activity-composer">
-              <div>
-                <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your input is needed" : "Continue current work"}</strong>
-                <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.event.question : "Send the next instruction or answer for this interactive activity."}</span>
-              </div>
-              <ChatComposer
-                onSubmit={(value) => {
-                  if (value.trim().length > 0) input.mutate(value);
-                }}
-                placeholder="Answer and continue"
-                isDisabled={input.isPending}
-                elevation="none"
-              />
-            </div>
-          ) : null}
+          <details className="order-technical-details order-run-technical-details">
+            <summary>Technical details</summary>
+            <dl>
+              <div><dt>Run id</dt><dd><code>{selectedRun.id}</code></dd></div>
+              <div><dt>Stage</dt><dd><code>{selectedRun.stage}</code></dd></div>
+              <div><dt>Role</dt><dd><code>{selectedRun.role}</code></dd></div>
+              <div><dt>Status</dt><dd><code>{selectedRun.status}</code></dd></div>
+              <div><dt>Baseline</dt><dd><code>{selectedRun.baselineCommit}</code></dd></div>
+              <div><dt>Context</dt><dd><code>{selectedRun.contextHash}</code></dd></div>
+              <div><dt>Provider session</dt><dd><code>{selectedRun.providerSessionId ?? "—"}</code></dd></div>
+              <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification ?? "—"}</code></dd></div>
+            </dl>
+          </details>
         </div>
+
+        <div className="order-event-scroll">
+          {eventsQuery.isPending ? (
+            <WorkbenchEmptyState compact title="Loading activity timeline…" />
+          ) : eventsQuery.isError ? (
+            <WorkbenchErrorState
+              title="Activity timeline unavailable"
+              description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)}
+            />
+          ) : events.length === 0 ? (
+            <WorkbenchEmptyState compact title="No persisted activity events yet" />
+          ) : (
+            <RunEventTimeline
+              run={selectedRun}
+              events={events}
+              onOpenEvidence={onOpenEvidence}
+              onOpenProposalReview={onOpenProposalReview}
+            />
+          )}
+        </div>
+
+        {canAnswer ? (
+          <div className="order-activity-composer" data-testid="activity-composer">
+            <div>
+              <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your input is needed" : "Continue current work"}</strong>
+              <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.event.question : "Send the next instruction or answer for this interactive workflow attempt."}</span>
+            </div>
+            <ChatComposer
+              onSubmit={(value) => {
+                if (value.trim().length > 0) input.mutate(value);
+              }}
+              placeholder="Answer and continue"
+              isDisabled={input.isPending}
+              elevation="none"
+            />
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -13,7 +13,6 @@ import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 import {
   WorkItemIdSchema,
   type ProjectManifest,
-  type Run,
   type Sha256,
   type WorkItem,
   type WorkItemId,
@@ -22,7 +21,7 @@ import {
 import * as api from "./http.ts";
 import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
-import type { WorkItemMode } from "./workbench-presentation.ts";
+import type { WorkflowMaterial } from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -129,8 +128,9 @@ export const App = () => {
   const [themePreference, setThemePreference] = useState<ThemePreference>(savedThemePreference);
   const [createOpen, setCreateOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
-  const [contextMode, setContextMode] = useState<WorkItemMode>("DOCUMENTS");
-  const [contextRunId, setContextRunId] = useState<Run["id"] | null>(null);
+  const [contextStep, setContextStep] = useState<WorkItem["stage"] | null>(null);
+  const [contextMaterial, setContextMaterial] =
+    useState<WorkflowMaterial | null>(null);
   const [contextDocumentPath, setContextDocumentPath] = useState<string | null>(null);
   const [contextDocumentSha256, setContextDocumentSha256] = useState<Sha256 | null>(null);
   const [projectId, setProjectId] = useState("");
@@ -230,8 +230,8 @@ export const App = () => {
     setSettingsSection(destination.settingsSection);
     setWorkspaceDirty(false);
     setContextOpen(false);
-    setContextMode("DOCUMENTS");
-    setContextRunId(null);
+    setContextStep(null);
+    setContextMaterial(null);
     setContextDocumentPath(null);
     setContextDocumentSha256(null);
     updateDestinationUrl(destination);
@@ -299,12 +299,12 @@ export const App = () => {
     setCreateOpen(true);
   };
 
-  const updateContextMode = useCallback((
-    nextMode: WorkItemMode,
-    runId: Run["id"] | null,
+  const updateContextSelection = useCallback((
+    step: WorkItem["stage"],
+    material: WorkflowMaterial,
   ): void => {
-    setContextMode(nextMode);
-    setContextRunId(runId);
+    setContextStep(step);
+    setContextMaterial(material);
   }, []);
 
   const updateContextDocument = useCallback((
@@ -454,7 +454,7 @@ export const App = () => {
         workItem={selectedWorkItem}
         onBack={() => requestSelection(null)}
         onOpenContext={() => setContextOpen(true)}
-        onContextModeChange={updateContextMode}
+        onContextSelectionChange={updateContextSelection}
         onContextDocumentChange={updateContextDocument}
         onCreateRemediation={startRemediation}
         onDirtyChange={setWorkspaceDirty}
@@ -514,8 +514,8 @@ export const App = () => {
             <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
               <WorkItemContext
                 workItem={selectedWorkItem}
-                mode={contextMode}
-                selectedRunId={contextRunId}
+                selectedStep={contextStep}
+                selectedMaterial={contextMaterial}
                 selectedDocumentPath={contextDocumentPath}
                 selectedDocumentSha256={contextDocumentSha256}
               />

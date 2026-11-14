@@ -14,11 +14,11 @@ import { proposalDispositionFor, type ProposalSelection } from "./workbench-pres
 export const ProposalReview = ({
   workItem,
   selection,
-  onBackToActivity,
+  onBack,
 }: Readonly<{
   workItem: WorkItem;
   selection: ProposalSelection;
-  onBackToActivity: () => void;
+  onBack: () => void;
 }>) => {
   const queryClient = useQueryClient();
   const eventsQuery = useQuery({
@@ -33,6 +33,9 @@ export const ProposalReview = ({
   const disposition = proposalPayload
     ? proposalDispositionFor(events, selection.eventId)
     : null;
+  const adoptionRequested = events.some((event) =>
+    event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" &&
+    event.event.proposalEventId === selection.eventId);
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
@@ -56,7 +59,10 @@ export const ProposalReview = ({
       if (action === "ADOPT") await api.adoptProposal(selection.eventId);
       else await api.rejectProposal(selection.eventId);
     },
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await invalidate();
+      onBack();
+    },
   });
 
   if (eventsQuery.isPending) {
@@ -83,7 +89,7 @@ export const ProposalReview = ({
       <section className="order-workspace-section order-review-workspace" data-testid="proposal-review-workspace">
         <WorkbenchEmptyState
           title="Proposal is no longer available"
-          description="Return to Activity to select a current proposal event."
+          description="Return to the owning workflow step to select a current proposal event."
         />
       </section>
     );
@@ -97,15 +103,23 @@ export const ProposalReview = ({
           <span>{proposalPayload.targetPath}</span>
         </div>
         <WorkbenchAction
-          label="Back to Activity"
+          label="Back to workflow attempt"
           tone="ghost"
-          onClick={onBackToActivity}
+          onClick={onBack}
         />
       </div>
 
       <div className="order-proposal-review-summary">
         <p>{proposalPayload.rationale}</p>
-        <span>{disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : "Pending review"}</span>
+        <span>
+          {disposition === "ADOPTED"
+            ? "Adopted"
+            : disposition === "REJECTED"
+              ? "Rejected"
+              : adoptionRequested
+                ? "Adoption in progress"
+                : "Pending review"}
+        </span>
       </div>
 
       <div className="order-proposal-review-diff" data-testid="proposal-review-diff">
@@ -118,20 +132,36 @@ export const ProposalReview = ({
         />
       </div>
 
-      {disposition === null ? (
+      {decision.error ? (
+        <WorkbenchErrorState
+          title="Proposal decision failed"
+          description={decision.error instanceof Error
+            ? decision.error.message
+            : String(decision.error)}
+        />
+      ) : null}
+
+      {disposition === null && !adoptionRequested ? (
         <div className="order-review-actions">
           <WorkbenchAction
             label="Adopt"
             tone="primary"
             loading={decision.isPending}
+            disabled={decision.isPending}
             onClick={() => decision.mutate("ADOPT")}
           />
           <WorkbenchAction
             label="Reject"
             tone="destructive"
             loading={decision.isPending}
+            disabled={decision.isPending}
             onClick={() => decision.mutate("REJECT")}
           />
+        </div>
+      ) : adoptionRequested && disposition === null ? (
+        <div className="order-state order-state-compact" role="status">
+          <strong>Adoption in progress</strong>
+          <span>The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded.</span>
         </div>
       ) : null}
     </section>

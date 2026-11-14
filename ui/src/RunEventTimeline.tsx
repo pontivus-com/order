@@ -34,7 +34,12 @@ export const RunEventTimeline = ({
         ? proposalDispositionFor(events, event.id)
         : null;
       return (
-        <li key={event.id} data-event-tag={event.event.tag}>
+        <li
+          key={event.id}
+          data-event-tag={event.event.tag}
+          data-event-tone={presentation.tone}
+          aria-label={presentation.label}
+        >
           <div className="order-event-heading">
             <div>
               <Badge variant={toneVariant(presentation.tone)} label={presentation.label} />
@@ -57,17 +62,21 @@ export const RunEventTimeline = ({
           {evidence.length > 0 ? (
             <div className="order-event-evidence">
               {evidence.map((reference) => (
-                <WorkbenchResourceRow
+                <div
                   key={reference.relativePath}
-                  label={reference.relativePath}
-                  detail="Run evidence"
-                  actionLabel={"Evidence: " + reference.relativePath}
-                  onOpen={() => onOpenEvidence({
-                    kind: "EVIDENCE",
-                    runId: run.id,
-                    relativePath: reference.relativePath,
-                  })}
-                />
+                  data-evidence-path={reference.relativePath}
+                >
+                  <WorkbenchResourceRow
+                    label={reference.relativePath}
+                    detail="Run evidence"
+                    actionLabel={"Evidence: " + reference.relativePath}
+                    onOpen={() => onOpenEvidence({
+                      kind: "EVIDENCE",
+                      runId: run.id,
+                      relativePath: reference.relativePath,
+                    })}
+                  />
+                </div>
               ))}
             </div>
           ) : null}
