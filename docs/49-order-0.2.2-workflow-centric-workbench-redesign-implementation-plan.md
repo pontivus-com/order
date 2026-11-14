@@ -46,7 +46,12 @@ The task implements:
 - GW-FR-112-APPROVAL-PACKAGE-WORKSPACE;
 - GW-FR-113-IMPLEMENTATION-WORKSPACE-OWNERSHIP;
 - GW-FR-114-COMPLETE-OUTCOME-WORKSPACE;
-- GW-FR-115-RESPONSIVE-WORKFLOW-STEP-CONTINUITY.
+- GW-FR-115-RESPONSIVE-WORKFLOW-STEP-CONTINUITY;
+- GW-FR-116-WORKFLOW-STEP-PANEL-CONTRACT;
+- GW-FR-117-DETERMINISTIC-PRIMARY-MATERIAL;
+- GW-FR-118-CANONICAL-RUN-FEEDBACK-COMPLETENESS;
+- GW-FR-119-INTERACTION-RESULT-FEEDBACK;
+- GW-FR-120-OPENCODE-FEEDBACK-BOUNDARY.
 
 ### Technical authority
 
@@ -62,6 +67,11 @@ The task implements:
 - GW-TR-088-IMPLEMENTATION-RUN-OWNERSHIP;
 - GW-TR-089-COMPLETE-OUTCOME-COMPOSITION;
 - GW-TR-090-WORKFLOW-CENTRIC-BROWSER-CERTIFICATION;
+- GW-TR-091-WORKFLOW-STEP-PANEL-COMPOSITION;
+- GW-TR-092-DETERMINISTIC-STEP-MATERIAL-RESOLVER;
+- GW-TR-093-EXHAUSTIVE-RUN-FEEDBACK-PROJECTION;
+- GW-TR-094-LOCAL-MUTATION-FEEDBACK-ORCHESTRATION;
+- GW-TR-095-OPENCODE-BROWSER-OBSERVATION-BOUNDARY;
 - existing CodeMirror, Context, responsive, evidence, RunEvent and Astryx integration requirements that remain unsuperseded.
 
 No implementation step may create a second lifecycle, transport shape family, browser server-state owner, DTO/ViewModel family or new daemon policy to solve a presentation problem.
@@ -527,3 +537,164 @@ This P7 is complete only when:
 - Approval and Implementation no longer require cross-mode navigation to complete their ordinary tasks;
 - all required gates pass;
 - the final diff contains no unrelated redesign, abstraction or cleanup.
+
+
+## 22. Panel, feedback and interaction closure addendum
+
+This section is mandatory implementation scope. It closes the remaining ambiguity identified after the first workflow-centric design pass: knowing that a step owns dialogue/document/review/evidence is insufficient unless the implementation also knows the exact semantic regions, default material priority, feedback placement and action-result behavior.
+
+### 22.1 Implement the canonical step panel grammar
+
+For every workflow step implement GW-DOC-WORKBENCH-UX-V1 §§27.17–27.19:
+
+- compact step summary;
+- optional 14–18 rem work index only when multiple work objects need selection;
+- one dominant primary material canvas;
+- task-local action region attached to the selected material;
+- on-demand Context/Technical details.
+
+Do not create equal-weight dashboard panels. Do not keep a work index visible when it would reduce Document/Dialogue/Review/Evidence below its minimum usable width.
+
+The implementation must prove the per-step panel contract for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete.
+
+### 22.2 Implement one deterministic material resolver
+
+In the single presentation-policy owner, implement and test GW-FR-117/GW-TR-092.
+
+The resolver must cover:
+
+- current pre-signoff blocker/failure;
+- unresolved human input;
+- pending proposal;
+- active Run;
+- current artifact;
+- empty/start state;
+- historical-step artifact/latest Run fallback;
+- Readiness blocker/input/review priority;
+- Approval package priority;
+- Implementation selected/current task/Run priority;
+- Complete result priority.
+
+Individual React components must not invent their own default Activity/Document/Review decisions.
+
+### 22.3 Present every canonical Run/OpenCode feedback class
+
+Use the complete current RunEventPayload union in src/core/contracts.ts as the closed source set.
+
+Permanent presentation coverage must include:
+
+- STAGE_STARTED;
+- AGENT_MESSAGE_FINAL;
+- HUMAN_INPUT_REQUESTED;
+- HUMAN_INPUT_RECEIVED;
+- ARTIFACT_PROPOSAL_CREATED;
+- ARTIFACT_PROPOSAL_ADOPTION_REQUESTED;
+- ARTIFACT_PROPOSAL_DISPOSITIONED;
+- STAGE_COMPLETED;
+- STAGE_BLOCKED;
+- TASK_ALREADY_SATISFIED;
+- CONFORMANCE_PASSED;
+- CONFORMANCE_FAILED;
+- PROVIDER_DIAGNOSTICS_RECORDED;
+- PRODUCTIVE_INVOCATION_FAILED;
+- PROVIDER_FAILED;
+- GATE_PASSED;
+- GATE_FAILED;
+- REVIEW_PASSED;
+- REVIEW_FAILED;
+- VALIDATION_PASSED;
+- VALIDATION_FAILED;
+- CANDIDATE_STATE_RECORDED;
+- CANDIDATE_RECORDED;
+- AUTHORITY_CHANGED;
+- REPOSITORY_DRIFTED;
+- OBSERVATION_RECORDED.
+
+Also cover all Run statuses: RUNNING, WAITING_FOR_INPUT, COMPLETED, BLOCKED, FAILED and CANCELLED.
+
+The ordinary-language mapping remains singular in workbench-presentation.ts. Component-local tag allow-lists that silently discard canonical feedback are prohibited.
+
+Pass/success events may be summarized into a compact conformance/validation presentation, but exact persisted events remain inspectable. Failure, blocker, pending-input, proposal and terminal-result feedback must be visible without opening raw Technical details.
+
+### 22.4 Preserve the truthful OpenCode observation boundary
+
+Do not add direct browser OpenCode subscriptions, WebSocket/SSE, token streaming, tool-call streaming or synthetic progress.
+
+The UI must show:
+
+- canonical Run state;
+- persisted RunEvent feedback;
+- evidence references;
+- local pending state for operator mutations.
+
+While OpenCode is executing but no new canonical event has been persisted, the UI says Running. It does not claim percentage complete, thinking phase, tool progress or hidden reasoning.
+
+ProviderDiagnosticRecord is rendered through existing evidence/Technical-details paths. Human-readable PRODUCTIVE_INVOCATION_FAILED versus PROVIDER_FAILED remains primary and semantically distinct.
+
+### 22.5 Implement mutation-result feedback at the owning material
+
+For every consequential mutation certify pending, success and failure:
+
+- Start stage;
+- Submit input;
+- Cancel;
+- Retry;
+- Resume;
+- Adopt proposal;
+- Reject proposal;
+- Save Markdown;
+- Save documentation to Git;
+- Sign off;
+- Run/advance implementation;
+- Create linked remediation.
+
+While pending, duplicate mutation controls are disabled. A successful mutation refreshes only affected canonical queries and preserves/reconciles the exact owning step/material selection. A failure is shown beside the action/material that failed.
+
+Proposal adoption specifically must show adoption-in-progress after ARTIFACT_PROPOSAL_ADOPTION_REQUESTED and before final disposition/reconciliation; Adopt/Reject cannot remain simultaneously actionable in that state.
+
+### 22.6 Additional browser certification
+
+Extend §17 with permanent cases proving:
+
+25. each of the nine workflow steps renders the canonical step-summary / work-index-if-needed / primary-material / local-action division rather than arbitrary equal-weight panels;
+26. current pre-signoff primary material priority is blocker → required input → pending proposal → active Run → stage document → start state, subject to dirty-selection safety;
+27. historical step defaults to its governed artifact, otherwise latest Run, and never shows an active composer;
+28. every canonical Run status has ordinary-language presentation;
+29. every current RunEvent tag can be rendered by the shared presentation path and is not dropped by screen-specific filtering;
+30. PRODUCTIVE_INVOCATION_FAILED renders Agent setup blocked while PROVIDER_FAILED renders Agent execution failed;
+31. provider diagnostics are reachable as evidence/Technical detail without replacing human-readable failure feedback;
+32. STAGE_COMPLETED refreshes workflow orientation and next-stage action without removing the completed step's history;
+33. CONFORMANCE_FAILED, STAGE_BLOCKED, AUTHORITY_CHANGED and REPOSITORY_DRIFTED become primary actionable feedback in their owning context;
+34. V0–V7 validation feedback is scan-efficient in Implementation while exact events/evidence remain inspectable;
+35. mutation pending states disable duplicate Start/Input/Cancel/Retry/Resume/Adopt/Reject/Sign-off/Implementation/Remediation actions as applicable;
+36. proposal adoption-in-progress disables disposition controls until canonical reconciliation completes;
+37. no browser UI exposes fake token/tool/percentage progress while a Run is merely RUNNING;
+38. wide → narrow → wide responsive transitions preserve selected workflow step, selected material and dirty state.
+
+### 22.7 Additional architecture/static certification
+
+The architecture/presentation tests must prove:
+
+- the RunEvent presentation switch is exhaustive over the canonical union;
+- pre-signoff and Implementation consume the same event presentation owner;
+- default material selection has one pure owner;
+- no new browser OpenCode transport exists;
+- no provider diagnostic DTO/view-model family is introduced;
+- no stage-specific event/status mapping copies exist.
+
+### 22.8 Completion consequence
+
+The plan is not implementation-ready merely because every workflow step has a named workspace. Completion requires that the implementation can answer, for every state of every step:
+
+1. what information is present;
+2. which information is primary versus supporting;
+3. what semantic region displays it;
+4. what width/height class it receives;
+5. what interaction is available;
+6. where that interaction is placed;
+7. what pending/success/failure feedback it produces;
+8. where the user returns after promoted review/evidence;
+9. what Run/OpenCode feedback is visible;
+10. what information is intentionally unavailable because the provider/browser contract does not expose it.
+
+GW-DOC-WORKBENCH-UX-V1 §§27.17–27.22 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §§23.16–23.23 are the canonical answers. Implementation may not infer a different panel or feedback model.
