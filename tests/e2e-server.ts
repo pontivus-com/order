@@ -448,6 +448,7 @@ const adoptionPendingItem = workItem(
   null,
 );
 storeWorkItem(database, adoptionPendingItem);
+storePlanArtifacts(adoptionPendingItem.id);
 const adoptionPendingRun = RunSchema.parse({
   id: newRunId(),
   workItemId: adoptionPendingItem.id,
