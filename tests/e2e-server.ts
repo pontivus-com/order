@@ -451,8 +451,6 @@ const retryRun = RunSchema.parse({
 storeRun(database, retryRun);
 persistEvent(retryRun.id, 1, {
   tag: "PROVIDER_FAILED",
-  providerSessionId: null,
-  classification: "PROVIDER_FAILURE",
   detail: "Synthetic provider failure for browser retry certification.",
   evidence: [],
 });
