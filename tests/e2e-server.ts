@@ -390,6 +390,73 @@ const proposal = persistEvent(proposalRun.id, 5, {
     "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
   rationale: "Exercise the canonical proposal disposition surface.",
 });
+const rejectionItem = workItem("Proposal rejection review", "PLAN", "ACTIVE", null);
+storeWorkItem(database, rejectionItem);
+const rejectionRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: rejectionItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("proposal-rejection-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, rejectionRun);
+persistEvent(rejectionRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: rejectionRun.contextHash,
+});
+persistEvent(rejectionRun.id, 2, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md`,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" +
+    `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
+    "\n@@ -0,0 +1 @@\n+reject proposal\n",
+  rationale: "Exercise the canonical Reject mutation.",
+});
+
+const retryItem = workItem("Workflow retry action", "PLAN", "ACTIVE", null);
+storeWorkItem(database, retryItem);
+const retryRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: retryItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "FAILED",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("retry-action-context"),
+  providerSessionId: null,
+  terminalClassification: "PROVIDER_FAILURE",
+  startedAt: stamp,
+  endedAt: stamp,
+});
+storeRun(database, retryRun);
+persistEvent(retryRun.id, 1, {
+  tag: "PROVIDER_FAILED",
+  providerSessionId: null,
+  classification: "PROVIDER_FAILURE",
+  detail: "Synthetic provider failure for browser retry certification.",
+  evidence: [],
+});
+
 const seedRuntime = createCoordinatorRuntime(database, stateRoot, process.env, orderConfig);
 
 const seedConformance = async (
@@ -879,7 +946,7 @@ const seedExecutionFeedback = (
         outcome: "ALREADY_SATISFIED";
       }
   >,
-  taskState: "ALREADY_SATISFIED" | "BLOCKED",
+  taskState: "PENDING" | "ALREADY_SATISFIED" | "BLOCKED",
 ) => {
   const item = workItem(
     title,
@@ -919,6 +986,16 @@ const seedExecutionFeedback = (
   storeExecutionTask(database, executionTask);
   return { item, task: executionTask };
 };
+
+const implementationReady = seedExecutionFeedback(
+  "Implementation action ready",
+  {
+    stage: "EXECUTION",
+    status: "ACTIVE",
+    outcome: null,
+  },
+  "PENDING",
+);
 
 const alreadySatisfied = seedExecutionFeedback(
   "Already satisfied implementation",
