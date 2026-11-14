@@ -204,7 +204,11 @@ const selectedMaterialIsAvailable = (
 
   switch (selection.kind) {
     case "SOURCE_DOCUMENT":
-      return input.selectedStep === "IDEA";
+      return input.selectedStep === "IDEA" ||
+        input.selectedStep === "R1" ||
+        input.selectedStep === "R2" ||
+        input.selectedStep === "DESIGN" ||
+        input.selectedStep === "PLAN";
     case "STAGE_RUN":
       return input.runs.some(
         (run) => run.id === selection.runId && run.stage === input.selectedStep,
@@ -392,7 +396,6 @@ export const resolveWorkflowMaterial = (
     }
 
     if (explicitIsDirtyDocument && explicit) return explicit;
-    if (explicitIsInspection && explicit) return explicit;
 
     const attentionRun = selectedStageRun(input, "attention");
     if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
@@ -423,7 +426,6 @@ export const resolveWorkflowMaterial = (
   }
 
   if (input.selectedStep === "R3") {
-    if (explicitIsInspection && explicit) return explicit;
     const attentionRun = selectedStageRun(input, "attention");
     if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
     const inputRun = unresolvedInputRun(input);
@@ -507,6 +509,21 @@ export const proposalDispositionFor = (
     event.event.proposalEventId === proposalId);
   return found?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
     ? found.event.disposition
+    : null;
+};
+
+export const pendingProposalForEvents = (
+  events: readonly RunEvent[],
+): ProposalSelection | null => {
+  const proposal = [...events]
+    .sort((left, right) =>
+      right.sequence - left.sequence ||
+      right.id.localeCompare(left.id))
+    .find((event) =>
+      event.event.tag === "ARTIFACT_PROPOSAL_CREATED" &&
+      proposalDispositionFor(events, event.id) === null);
+  return proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED"
+    ? { runId: proposal.runId, eventId: proposal.id }
     : null;
 };
 
