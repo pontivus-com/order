@@ -7,7 +7,7 @@
 
 > **Downstream re-design required:** `GW-DOC-WORKBENCH-UX-V2` supersedes the V1 functional authority this document was designed against. The workflow-state, messaging, transition, history and stable-geometry contracts must be re-derived at P4/P6 before implementation remediation. In particular, §23 and any V1 component/spatial realization must not be treated as current implementation authority where it conflicts with V2.
 
-> **Historical 0.3.0 technical authority:** §23 is the current component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
+> **Historical 0.3.0 technical authority:** §23 was the V1 component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
 
 ## 1. Purpose
 
