@@ -201,8 +201,9 @@ const workItem = (
     | "PLAN"
     | "R3"
     | "AWAITING_SIGNOFF"
+    | "EXECUTION"
     | "COMPLETE",
-  status: "ACTIVE" | "COMPLETE",
+  status: "ACTIVE" | "BLOCKED" | "COMPLETE",
   outcome:
     | "CANDIDATE_DONE"
     | "INVESTIGATION_COMPLETE"
@@ -537,6 +538,169 @@ await seedProgressionReadyItem(
   "Readiness ready after Plan",
   "R3",
 );
+
+const feedbackItem = workItem(
+  "Workflow failure feedback",
+  "PLAN",
+  "BLOCKED",
+  null,
+);
+storeWorkItem(database, feedbackItem);
+const feedbackPlan = await currentFileArtifact(
+  seedRuntime,
+  feedbackItem,
+  "docs/plan.md",
+  "PLAN",
+  "P7",
+);
+const feedbackPriorPlan = ArtifactRefSchema.parse({
+  id: newArtifactRefId(),
+  workItemId: feedbackItem.id,
+  repositoryPath: "docs/plan.md",
+  role: "PLAN",
+  authorityLayer: "P7",
+  sha256: sha256Text("prior feedback plan"),
+  gitCommit: baselineCommit,
+});
+storeArtifact(database, feedbackPriorPlan);
+
+const feedbackRun = (
+  attempt: number,
+  status: "CANCELLED" | "FAILED" | "BLOCKED",
+  terminalClassification:
+    | "COORDINATOR_INTERRUPTED"
+    | "ENVIRONMENT_BLOCKED"
+    | "PROVIDER_FAILURE"
+    | "TEST_FAILURE",
+) => {
+  const run = RunSchema.parse({
+    id: newRunId(),
+    workItemId: feedbackItem.id,
+    executionTaskId: null,
+    stage: "PLAN",
+    mode: "INTERACTIVE",
+    role: "STAGE",
+    triggerEventId: null,
+    status,
+    attempt,
+    baselineCommit,
+    contextHash: sha256Text("feedback-context-" + attempt),
+    providerSessionId: null,
+    terminalClassification,
+    startedAt: stamp,
+    endedAt: stamp,
+  });
+  storeRun(database, run);
+  return run;
+};
+
+const cancelledFeedbackRun = feedbackRun(
+  1,
+  "CANCELLED",
+  "COORDINATOR_INTERRUPTED",
+);
+persistEvent(cancelledFeedbackRun.id, 1, {
+  tag: "OBSERVATION_RECORDED",
+  title: "Attempt cancelled",
+  detail: "The operator cancelled the superseded attempt.",
+  evidence: [],
+});
+
+const setupFeedbackRun = feedbackRun(
+  2,
+  "FAILED",
+  "ENVIRONMENT_BLOCKED",
+);
+const setupDiagnostics = {
+  relativePath: "provider-diagnostics.json",
+  sha256: writeRunEvidenceBytes(
+    stateRoot,
+    setupFeedbackRun.id,
+    "provider-diagnostics.json",
+    encoder.encode('{"failure":"agent setup"}\n'),
+  ),
+  mediaType: "application/json",
+};
+persistEvent(setupFeedbackRun.id, 1, {
+  tag: "PROVIDER_DIAGNOSTICS_RECORDED",
+  evidence: [setupDiagnostics],
+});
+persistEvent(setupFeedbackRun.id, 2, {
+  tag: "PRODUCTIVE_INVOCATION_FAILED",
+  classification: "ENVIRONMENT_BLOCKED",
+  detail: "The productive workspace could not be admitted.",
+  evidence: [setupDiagnostics],
+});
+
+const providerFeedbackRun = feedbackRun(
+  3,
+  "FAILED",
+  "PROVIDER_FAILURE",
+);
+persistEvent(providerFeedbackRun.id, 1, {
+  tag: "PROVIDER_FAILED",
+  detail: "The configured provider failed during execution.",
+  evidence: [],
+});
+persistEvent(providerFeedbackRun.id, 2, {
+  tag: "AUTHORITY_CHANGED",
+  priorArtifactRefId: feedbackPriorPlan.id,
+  newArtifactRefId: feedbackPlan.id,
+});
+persistEvent(providerFeedbackRun.id, 3, {
+  tag: "REPOSITORY_DRIFTED",
+  expectedCommit: baselineCommit,
+  actualCommit: "b".repeat(40),
+});
+
+const blockedFeedbackRun = feedbackRun(
+  4,
+  "BLOCKED",
+  "TEST_FAILURE",
+);
+persistEvent(blockedFeedbackRun.id, 1, {
+  tag: "STAGE_BLOCKED",
+  reason: "The current plan cannot proceed.",
+  owningStage: "PLAN",
+});
+persistEvent(blockedFeedbackRun.id, 2, {
+  tag: "CONFORMANCE_FAILED",
+  stage: "PLAN",
+  defectiveLayer: "P7",
+  summary: "The current plan failed conformance.",
+  evidence: [],
+});
+
+const waitingInputItem = workItem(
+  "Workflow input required",
+  "PLAN",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, waitingInputItem);
+const waitingInputRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: waitingInputItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("waiting-input-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, waitingInputRun);
+persistEvent(waitingInputRun.id, 1, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Which constraint should the plan prioritize?",
+});
 
 const signoffItem = workItem("Awaiting sign-off", "AWAITING_SIGNOFF", "ACTIVE", null);
 storeWorkItem(database, signoffItem);
