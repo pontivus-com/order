@@ -7,7 +7,7 @@
 
 
 
-> **Current 0.2.2 technical authority:** §23 is the current component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
+> **Current 0.3.0 technical authority:** §23 is the current component/spatial realization of the workflow-step Workbench design in GW-DOC-WORKBENCH-UX-V1 §27. It supersedes earlier technical provisions wherever they require a persistent global WorkItem workspace-mode selector or a global Activity/Review/Evidence destination taxonomy.
 
 ## 1. Purpose
 
@@ -119,7 +119,7 @@ Browser verification must validate behavior rather than merely CSS class presenc
 
 ## 5. Astryx component inventory and baseline mapping
 
-This table records the verified primitive inventory available to the Workbench. For the 0.2.2 workflow-step redesign, the **exact primitive/composition selection is owned by §23.24–§23.35**. Where this older table names a superseded global workspace-view or lifecycle-document navigation surface, the later workflow-step mapping governs.
+This table records the verified primitive inventory available to the Workbench. For the 0.3.0 workflow-step redesign, the **exact primitive/composition selection is owned by §23.24–§23.35**. Where this older table names a superseded global workspace-view or lifecycle-document navigation surface, the later workflow-step mapping governs.
 
 | Functional surface | Astryx implementation candidates | Order responsibility |
 |---|---|---|
@@ -1228,7 +1228,7 @@ The projection does not persist state and does not determine lifecycle eligibili
 
 ### 20.2 WorkItem header geometry
 
-> **0.2.2 supersession:** the global workspace-view level described in the historical text of this section is replaced by §23.24–§23.35. The current implementation has identity row + workflow rail + selected workflow-step composition.
+> **0.3.0 supersession:** the global workspace-view level described in the historical text of this section is replaced by §23.24–§23.35. The current implementation has identity row + workflow rail + selected workflow-step composition.
 
 `WorkItemWorkspace` retains one compact orientation header.
 
@@ -1392,7 +1392,7 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-028-WORKFLOW-HEADER-GEOMETRY
 
-> **0.2.2 supersession:** the workspace-view selector described below is removed by GW-TR-082-WORKFLOW-STEP-COMPOSITION-OWNER; identity + workflow rail remain the persistent orientation structure.
+> **0.3.0 supersession:** the workspace-view selector described below is removed by GW-TR-082-WORKFLOW-STEP-COMPOSITION-OWNER; identity + workflow rail remain the persistent orientation structure.
 
 **Required behavior:** WorkItem orientation uses the two-level geometry in §20.2: one compact identity/header row followed by one compact dedicated workflow-process rail. Workspace-view selection is separate at the primary-canvas boundary.
 
@@ -1402,7 +1402,7 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-029-ACTIVITY-MASTER-DETAIL-LAYOUT
 
-> **0.2.2 supersession:** the master/detail geometry remains valid when agent activity is the selected material, but Activity is stage-local before sign-off and Implementation-local after sign-off under GW-TR-083 and GW-TR-088.
+> **0.3.0 supersession:** the master/detail geometry remains valid when agent activity is the selected material, but Activity is stage-local before sign-off and Implementation-local after sign-off under GW-TR-083 and GW-TR-088.
 
 **Required behavior:** Activity uses the remaining-height master/detail geometry in §§20.4–20.5.
 
@@ -1420,7 +1420,7 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-031-ACTIVITY-INPUT-PLACEMENT
 
-> **0.2.2 clarification:** composer placement remains valid but is now owned by the selected workflow-step Run material rather than a global Activity workspace.
+> **0.3.0 clarification:** composer placement remains valid but is now owned by the selected workflow-step Run material rather than a global Activity workspace.
 
 **Required behavior:** pending human input is attached to the selected Activity detail and consumes intrinsic/sticky bottom space only while input is accepted.
 
@@ -1454,7 +1454,7 @@ Permanent browser tests must prove at representative wide/medium/narrow sizes:
 
 #### GW-TR-035-CANONICAL-MODE-RECONCILIATION
 
-> **0.2.2 supersession:** generic WorkItem mode reconciliation is replaced by workflow-step/material reconciliation in GW-TR-082..090.
+> **0.3.0 supersession:** generic WorkItem mode reconciliation is replaced by workflow-step/material reconciliation in GW-TR-082..090.
 
 **Required behavior:** browser-local mode selection is reconciled against changing canonical WorkItem/Run state while preserving dirty-buffer and focus/history protections.
 
@@ -1807,7 +1807,7 @@ Permanent verification must prove:
 
 #### GW-TR-065-NONMUTATING-WORKFLOW-INSPECTION-NAVIGATION
 
-> **0.2.2 clarification:** non-mutating step inspection remains required; its target is the workflow-step composition, not a generic workspace mode.
+> **0.3.0 clarification:** non-mutating step inspection remains required; its target is the workflow-step composition, not a generic workspace mode.
 
 **Required behavior:** workflow steps use one pure typed presentation projection to navigate to canonical material/unreached presentation without invoking lifecycle mutations.
 
@@ -1817,7 +1817,7 @@ Permanent verification must prove:
 
 #### GW-TR-066-CONSOLIDATED-WORKITEM-DOCUMENT-CHROME
 
-> **0.2.2 supersession:** the workspace-view selector portion is removed by GW-TR-082; document control consolidation remains required when document material is selected inside a workflow step.
+> **0.3.0 supersession:** the workspace-view selector portion is removed by GW-TR-082; document control consolidation remains required when document material is selected inside a workflow step.
 
 **Required behavior:** WorkItem orientation follows the identity-row + workflow-rail hierarchy, workspace-view selection remains a separate canvas-boundary concern, and Documents uses one document selector plus one coherent editor/document control region. Old redundant rows are removed.
 
@@ -1850,7 +1850,7 @@ Permanent verification must prove:
 **Failure/negative behavior:** parallel account managers or browser-direct OpenCode access are prohibited.
 
 
-## 23. Order 0.2.2 workflow-step Workbench technical realization (2026-11-14)
+## 23. Order 0.3.0 workflow-step Workbench technical realization (2026-11-14)
 
 This section realizes GW-DOC-WORKBENCH-UX-V1 §27 and is the current P4 authority for WorkItem UI composition.
 
@@ -2056,7 +2056,7 @@ No responsive-only workflow or duplicate selection store is introduced.
 
 ### 23.13 Required deletion/refactor obligations
 
-The 0.2.2 redesign must remove or repurpose the structures that encode the superseded navigation model:
+The 0.3.0 redesign must remove or repurpose the structures that encode the superseded navigation model:
 
 1. global WorkItem workspace-view segmented selector;
 2. generic WorkItemMode as the primary WorkItem navigation state where it exists solely for Documents/Activity/Review/Execution/Evidence/Result;
@@ -2375,7 +2375,7 @@ Between persisted events, RUNNING means only that the canonical Run is active. I
 
 ### 23.24 Exact primitive-selection law for the workflow redesign
 
-The 0.2.2 implementation does not choose arbitrary Astryx components screen by screen. The following mapping is binding.
+The 0.3.0 implementation does not choose arbitrary Astryx components screen by screen. The following mapping is binding.
 
 The exact pinned primitive families are already verified by GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 and §5:
 
