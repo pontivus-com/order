@@ -13,7 +13,6 @@ import {
   workflowSteps,
   type EvidenceSelection,
   type ProposalSelection,
-  type WorkflowDocumentTarget,
   type WorkflowMaterial,
   type WorkItemMode,
 } from "./workbench-presentation.ts";
@@ -29,8 +28,12 @@ import {
   WorkflowStepSummary,
 } from "./WorkflowStepFrame.tsx";
 
-const DocumentWorkspace = lazy(() =>
-  import("./DocumentWorkspace.tsx").then((module) => ({ default: module.DocumentWorkspace })));
+const SourceDocumentMaterial = lazy(() =>
+  import("./DocumentWorkspace.tsx").then((module) => ({ default: module.SourceDocumentMaterial })));
+const LifecycleDocumentMaterial = lazy(() =>
+  import("./DocumentWorkspace.tsx").then((module) => ({ default: module.LifecycleDocumentMaterial })));
+const ReadOnlyLifecycleDocumentMaterial = lazy(() =>
+  import("./DocumentWorkspace.tsx").then((module) => ({ default: module.ReadOnlyLifecycleDocumentMaterial })));
 const StageRunMaterial = lazy(() =>
   import("./ActivityWorkspace.tsx").then((module) => ({ default: module.StageRunMaterial })));
 const SignoffReview = lazy(() =>
@@ -147,10 +150,6 @@ export const WorkItemWorkspace = ({
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
-  const [requestedDocument, setRequestedDocument] = useState<Readonly<{
-    document: WorkflowDocumentTarget;
-    requestId: number;
-  }> | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const runsQuery = useQuery({
@@ -272,35 +271,6 @@ export const WorkItemWorkspace = ({
     workItem,
     workflowInspectionActive,
   ]);
-
-  useEffect(() => {
-    let target: WorkflowDocumentTarget | null = null;
-    if (material.kind === "SOURCE_DOCUMENT") {
-      target = "SOURCE";
-    } else if (material.kind === "STAGE_DOCUMENT") {
-      const artifact = artifacts.find((candidate) => candidate.id === material.artifactId);
-      if (
-        artifact?.role === "R1" ||
-        artifact?.role === "R2" ||
-        artifact?.role === "DESIGN" ||
-        artifact?.role === "PLAN" ||
-        artifact?.role === "R3"
-      ) {
-        target = artifact.role;
-      }
-    } else if (material.kind === "READINESS_REVIEW") {
-      target = "R3";
-    }
-    if (target === null) return;
-    setRequestedDocument((current) => (
-      current?.document === target
-        ? current
-        : {
-            document: target,
-            requestId: (current?.requestId ?? 0) + 1,
-          }
-    ));
-  }, [artifacts, material]);
 
   const invalidate = async (): Promise<void> => {
     await Promise.all([
@@ -483,11 +453,6 @@ export const WorkItemWorkspace = ({
               : String(start.error),
           }
         : null;
-
-  const documentMaterial =
-    material.kind === "SOURCE_DOCUMENT" ||
-    material.kind === "STAGE_DOCUMENT" ||
-    material.kind === "READINESS_REVIEW";
 
   return (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
@@ -680,19 +645,39 @@ export const WorkItemWorkspace = ({
           primary={
             <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
               <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
-          {documentMaterial ? (
-            <DocumentWorkspace
+          {material.kind === "SOURCE_DOCUMENT" ? (
+            <SourceDocumentMaterial
               workItem={workItem}
               onDirtyChange={setDirtyState}
-              onOpenArtifactEvidence={openArtifactEvidence}
-              requestedDocument={requestedDocument}
-              onRequestedDocumentHandled={(requestId) => {
-                setRequestedDocument((current) =>
-                  current?.requestId === requestId ? null : current
-                );
-              }}
               onContextDocumentChange={onContextDocumentChange}
             />
+          ) : null}
+          {material.kind === "STAGE_DOCUMENT" ? (
+            <LifecycleDocumentMaterial
+              workItem={workItem}
+              artifactId={material.artifactId}
+              onDirtyChange={setDirtyState}
+              onOpenArtifactEvidence={openArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          ) : null}
+          {material.kind === "READINESS_REVIEW" ? (
+            (() => {
+              const readinessArtifact = artifacts.find((artifact) => artifact.role === "R3");
+              return readinessArtifact ? (
+                <ReadOnlyLifecycleDocumentMaterial
+                  workItem={workItem}
+                  artifactId={readinessArtifact.id}
+                  onOpenArtifactEvidence={openArtifactEvidence}
+                  onContextDocumentChange={onContextDocumentChange}
+                />
+              ) : (
+                <WorkbenchEmptyState
+                  compact
+                  title="Readiness review material is not available"
+                />
+              );
+            })()
           ) : null}
           {material.kind === "STAGE_RUN" ? (
             <StageRunMaterial
