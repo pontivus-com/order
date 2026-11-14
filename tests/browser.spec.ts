@@ -1118,15 +1118,16 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
     "saved through browser workbench",
   );
 
+  const workflowRail = page.getByTestId("workflow-progression");
   await expect(
-    page.getByTestId("work-item-workspace").getByText("Research", { exact: true }).first(),
-  ).toBeVisible();
+    workflowRail.getByRole("button", { name: "Research" }),
+  ).toHaveAttribute("aria-current", "step");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Implementation plan" })
-    .click();
-  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
+  await selectWorkflowStep(page, "Implementation plan");
+  await expect(
+    page.getByText("This workflow step has not been reached", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByLabel("Implementation plan document Markdown source")).toHaveCount(0);
 });
 
@@ -1136,7 +1137,6 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Lifecycle editing workbench");
-  await page.getByRole("radio", { name: "Documents" }).click();
 
   const workflowMutations: string[] = [];
   page.on("request", (browserRequest) => {
@@ -1145,15 +1145,11 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
     }
   });
   const workflowRail = page.getByTestId("workflow-progression");
-  await workflowRail.getByRole("button", { name: "Work request" }).click();
-  await expect(
-    page.getByTestId("governed-document-nav").getByRole("tab", { name: "Work request" }),
-  ).toHaveAttribute("aria-selected", "true");
+  await selectWorkflowStep(page, "Work request");
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
   expect(workflowMutations).toEqual([]);
 
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Implementation plan" })
-    .click();
+  await selectWorkflowStep(page, "Implementation plan");
   const planEditor = page.getByLabel("Implementation plan document Markdown source");
   await expect(planEditor).toBeVisible();
   const initial = await markdownSourceValue(planEditor);
@@ -1182,16 +1178,11 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(rowFor(page, "Lifecycle editing workbench")).toBeFocused();
 
   await openWorkItem(page, "Lifecycle editing workbench");
-  await page.getByRole("radio", { name: "Documents" }).click();
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Readiness review" })
-    .click();
+  await selectWorkflowStep(page, "Readiness review");
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
   await expect(page.getByLabel("Readiness review document Markdown source")).toHaveCount(0);
 
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Implementation plan" })
-    .click();
+  await selectWorkflowStep(page, "Implementation plan");
   const editablePlan = page.getByLabel("Implementation plan document Markdown source");
   const fresh = await markdownSourceValue(editablePlan);
   await replaceMarkdownSource(page, editablePlan, fresh + "\ncancelled plan edit\n");
@@ -1202,7 +1193,8 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect.poll(() => markdownSourceValue(editablePlan)).toContain("saved plan edit");
   await page.getByRole("button", { name: "Context" }).click();
-  await expect(page.getByTestId("selected-view-context")).toContainText("Documents details");
+  await expect(page.getByTestId("selected-view-context")).toContainText("Implementation plan");
+  await expect(page.getByTestId("selected-view-context")).toContainText("Governed document");
   await expect(page.getByTestId("selected-view-context")).toContainText("docs/plan.md");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
@@ -1213,10 +1205,7 @@ test("invalid lifecycle Markdown stays inspection-only and exact bytes open in t
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Invalid lifecycle Markdown");
-
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Research" })
-    .click();
+  await selectWorkflowStep(page, "Research");
   await expect(
     page.getByText("Lifecycle document is not canonical editable Markdown", { exact: true }),
   ).toBeVisible();
