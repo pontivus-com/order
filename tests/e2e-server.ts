@@ -12,8 +12,11 @@ import {
   ApprovalSchema,
   ArtifactRefSchema,
   ExecutionTaskSchema,
+  RunEventIdSchema,
   RunEventSchema,
+  RunIdSchema,
   RunSchema,
+  WorkItemIdSchema,
   WorkItemSchema,
   type RunEventPayload,
   type RunId,
@@ -25,10 +28,13 @@ import { startOrderDaemon } from "../src/daemon/server.ts";
 import { createCoordinatorRuntime } from "../src/daemon/runtime.ts";
 import {
   currentFileArtifact,
+  getWorkItem,
+  listExecutionTasks,
   resolveStageContext,
 } from "../src/daemon/authority.ts";
 import {
   appendRunEvent,
+  getRun,
   insertRun,
   nextAttempt,
   updateRun,
@@ -61,6 +67,8 @@ import {
   storeRun,
   storeRunEvent,
   storeWorkItem,
+  setExecutionTaskState,
+  updateWorkItemLifecycle,
   withTransaction,
 } from "../src/shell/sqlite.ts";
 
@@ -1333,10 +1341,124 @@ const environment: NodeJS.ProcessEnv = {
 const daemon = await startOrderDaemon(environment);
 updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
 
+const fixtureControl = Bun.serve({
+  hostname: "127.0.0.1",
+  port: 17348,
+  async fetch(request) {
+    if (request.method !== "POST") {
+      return new Response("fixture mutation requires POST", { status: 405 });
+    }
+    const url = new URL(request.url);
+    const raw = await request.json();
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+      return new Response("fixture mutation body must be an object", { status: 400 });
+    }
+    const body = raw as Record<string, unknown>;
+
+    if (url.pathname === "/start-stage") {
+      const workItemId = WorkItemIdSchema.parse(body.workItemId);
+      const item = getWorkItem(daemon.coordinator, workItemId);
+      const stage = item.stage === "IDEA" ? "R1" : item.stage;
+      if (
+        stage !== "R1" &&
+        stage !== "R2" &&
+        stage !== "DESIGN" &&
+        stage !== "PLAN" &&
+        stage !== "R3"
+      ) {
+        return new Response("fixture start requires pre-signoff stage", { status: 409 });
+      }
+      const run = insertRun(daemon.coordinator, RunSchema.parse({
+        id: newRunId(),
+        workItemId,
+        executionTaskId: null,
+        stage,
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: nextAttempt(daemon.coordinator, workItemId, stage, null),
+        baselineCommit,
+        contextHash: sha256Text(
+          "browser-success-" + workItemId + "-" + stage,
+        ),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: nowIsoDateTime(),
+        endedAt: null,
+      }));
+      if (item.stage === "IDEA") {
+        updateWorkItemLifecycle(daemon.coordinator.database, workItemId, {
+          stage: "R1",
+          status: "ACTIVE",
+          outcome: null,
+        });
+      }
+      appendRunEvent(daemon.coordinator, run.id, {
+        tag: "STAGE_STARTED",
+        stage,
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      return Response.json(run, { status: 201 });
+    }
+
+    if (url.pathname === "/submit-input") {
+      const runId = RunIdSchema.parse(body.runId);
+      const text = String(body.text ?? "");
+      const requestEventId = body.requestEventId === null
+        ? null
+        : RunEventIdSchema.parse(body.requestEventId);
+      const run = getRun(daemon.coordinator, runId);
+      const received = appendRunEvent(daemon.coordinator, runId, {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId,
+        text,
+      });
+      updateRun(daemon.coordinator, runId, {
+        status: "RUNNING",
+        endedAt: null,
+      });
+      return Response.json(received);
+    }
+
+    if (url.pathname === "/tick") {
+      const workItemId = WorkItemIdSchema.parse(body.workItemId);
+      const tasks = await listExecutionTasks(daemon.coordinator, workItemId);
+      const task = tasks[0];
+      if (task === undefined) {
+        return new Response("fixture execution task missing", { status: 409 });
+      }
+      setExecutionTaskState(daemon.coordinator.database, task.id, "RUNNING");
+      const run = insertRun(daemon.coordinator, RunSchema.parse({
+        id: newRunId(),
+        workItemId,
+        executionTaskId: task.id,
+        stage: "EXECUTION",
+        mode: "UNATTENDED",
+        role: "BUILDER",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: nextAttempt(daemon.coordinator, workItemId, "EXECUTION", task.id),
+        baselineCommit,
+        contextHash: sha256Text("browser-success-execution-" + task.id),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: nowIsoDateTime(),
+        endedAt: null,
+      }));
+      return Response.json(run);
+    }
+
+    return new Response("fixture mutation not found", { status: 404 });
+  },
+});
+
 let stopping = false;
 const stop = async (): Promise<void> => {
   if (stopping) return;
   stopping = true;
+  fixtureControl.stop(true);
   await daemon.stop();
   process.exit(0);
 };
