@@ -970,6 +970,66 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await expect(page.getByText("Workflow step completed", { exact: true })).toBeVisible();
 });
 
+test("completed pre-signoff history never suppresses the canonical next-stage action", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  const cases = [
+    {
+      title: "Requirements ready after Research",
+      currentStep: "Requirements",
+      action: "Start Requirements",
+    },
+    {
+      title: "Solution design ready after Requirements",
+      currentStep: "Solution design",
+      action: "Start Solution design",
+    },
+    {
+      title: "Implementation plan ready after Design",
+      currentStep: "Implementation plan",
+      action: "Start Implementation planning",
+    },
+    {
+      title: "Readiness ready after Plan",
+      currentStep: "Readiness review",
+      action: "Start Readiness review",
+    },
+  ] as const;
+
+  for (const entry of cases) {
+    await openWorkItem(page, entry.title);
+    const rail = page.getByTestId("workflow-progression");
+    await expect(
+      rail.getByRole("button", { name: entry.currentStep, exact: true }),
+    ).toHaveAttribute("aria-current", "step");
+    await expect(
+      page.getByRole("button", { name: entry.action, exact: true }),
+    ).toBeVisible();
+    await expect(page.getByRole("radio", { name: "Documents" })).toHaveCount(0);
+    await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
+
+    if (entry.currentStep === "Requirements") {
+      await selectWorkflowStep(page, "Research");
+      const index = page.getByTestId("workflow-step-index");
+      await expect(index).toBeVisible();
+      await index.getByText("Attempt 1", { exact: true }).click();
+      await expect(page.getByTestId("stage-run-material")).toBeVisible();
+      await expect(
+        page.getByText("Workflow step completed", { exact: true }),
+      ).toBeVisible();
+      await selectWorkflowStep(page, "Requirements");
+      await expect(
+        page.getByRole("button", { name: "Start Requirements", exact: true }),
+      ).toBeVisible();
+    }
+
+    await backToQueue(page);
+  }
+});
+
 test("persisted proposal disposition is caught by polling and sign-off review remains explicit", async ({
   page,
   request,
