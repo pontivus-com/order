@@ -361,6 +361,9 @@ export const stopCoordinatorScheduler = async (
   for (const runId of [...runtime.activeProviders.keys()]) {
     await stopActiveProvider(runtime, runId);
   }
+  await Promise.all(
+    [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+  );
 };
 
 export const readArtifactContent = async (

@@ -1495,6 +1495,9 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   expect(proposalReviewBox).not.toBeNull();
   expect(proposalDiffBox).not.toBeNull();
   expect(proposalDiffBox!.width).toBeGreaterThan(proposalReviewBox!.width * 0.85);
+  await expect(proposalReview.getByText("Proposed document diff", { exact: true })).toBeVisible();
+  await expect(proposalReview.getByTestId("activity-composer")).toBeVisible();
+  await expect(proposalReview.getByLabel("Message input")).toBeVisible();
 
   const adopt = page.getByRole("button", { name: "Adopt" });
   const reject = page.getByRole("button", { name: "Reject" });

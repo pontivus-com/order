@@ -23,6 +23,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Keep nested Git repositories opaque during candidate capture, preserving valid outer-repository paths and candidate changed-path metadata.
+- Keep the research response composer available during proposal review, present bounded wrapped diffs, and return new STAGE Runs before provider turns complete with persisted activity/OpenCode status.
 - Enforce the 0.2.2 productive-invocation contract end to end: materialize STAGE from the exact Git-visible baseline/delta instead of the physical tree, prove exact P1 `AGENTS.md` bytes and workspace containment, isolate productive OpenCode configuration, bind the live READY Console account plus exact skill/MCP permissions, classify local admission/freshness failures separately from provider failures, and independently reject repository-instruction mutation.
 - Correct the `0.2.1` release history so it describes only work shipped in that version, removes stale `0.2.0` publication residue, and records the complete Settings/account/readiness, repository migration, Source-authoring, workbench and certification scope.
 

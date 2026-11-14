@@ -479,11 +479,15 @@ export const WorkItemWorkspace = ({
   const start = useMutation({
     mutationFn: () => api.startInteractiveRun(workItem.id),
     onSuccess: async (run) => {
-      await invalidate();
       commitSelection({
         step: run.stage,
         material: { kind: "STAGE_RUN", runId: run.id },
       });
+      queryClient.setQueryData<readonly Run[]>(
+        workbenchQueryKeys.runs(workItem.id),
+        (current) => [...(current ?? []).filter((item) => item.id !== run.id), run],
+      );
+      await invalidate();
     },
   });
 
