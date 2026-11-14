@@ -186,6 +186,19 @@ describe("workflow presentation policy", () => {
       kind: "STAGE_RUN",
       runId: waiting.id,
     });
+    expect(resolveWorkflowMaterial({
+      ...base,
+      runs: [waiting],
+      unresolvedInputRunId: null,
+      pendingProposal: {
+        runId: waiting.id,
+        eventId: proposal.eventId,
+      },
+    })).toEqual({
+      kind: "PROPOSAL",
+      runId: waiting.id,
+      eventId: proposal.eventId,
+    });
     const runningProposal: ProposalSelection = {
       runId: running.id,
       eventId: proposal.eventId,
