@@ -981,8 +981,9 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
       .getByRole("button", { name: "Review proposed document change" })
       .click();
   }
-  await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-  await expect(page.getByText("Adoption in progress", { exact: true })).toBeVisible();
+  const adoptionReview = page.getByTestId("proposal-review-workspace");
+  await expect(adoptionReview).toBeVisible();
+  await expect(adoptionReview).toContainText("Adoption in progress");
   await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
   await backToQueue(page);
