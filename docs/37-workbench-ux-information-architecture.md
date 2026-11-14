@@ -5,6 +5,10 @@
 **Versioned concern ID:** `GW-DOC-WORKBENCH-UX-V1`  
 **Pyramid layer:** P3 functional requirements
 
+
+
+> **Current 0.2.2 design authority:** §27 is the current WorkItem navigation and workflow-step workspace design. It supersedes earlier provisions in this document wherever they require Documents / Activity / Review / Implementation / Evidence / Result to be a persistent WorkItem navigation hierarchy separate from the lifecycle workflow. Earlier interaction-class, space-allocation, review-promotion, information-economy and semantic-zoning rules remain authoritative unless §27 explicitly changes them.
+
 ## 1. Purpose
 
 This document owns Order's **workbench information architecture, spatial allocation, interaction-surface selection and responsive presentation rules**.
@@ -883,6 +887,8 @@ Presentation must track canonical transitions without losing operational history
 
 #### GW-FR-052-WORKFLOW-ORIENTATION
 
+> **0.2.2 supersession:** the persistent workspace-view hierarchy implied below is superseded by GW-FR-106-WORKFLOW-STEP-PRIMARY-NAVIGATION and GW-FR-107-STEP-LOCAL-MATERIAL-COMPOSITION. The workflow rail remains authoritative orientation/navigation.
+
 **Required behavior:** every selected WorkItem exposes two compact semantic orientation levels before the primary canvas: (1) a WorkItem identity/header row containing Back, title/current identity and true WorkItem-level actions, followed by (2) a dedicated horizontal workflow-process rail showing the complete ordinary-language lifecycle. This does not create another workflow state machine.
 
 **Acceptance criterion:** changing Documents/Activity/Review/Implementation presentation views never obscures the workflow position; the workflow rail is visually and semantically distinct from workspace-view selection and remains usable as non-mutating inspection navigation.
@@ -890,6 +896,8 @@ Presentation must track canonical transitions without losing operational history
 **Failure/negative behavior:** workflow progression must not be mixed into the WorkItem identity row, presented as workspace-mode tabs, or act as a promotion/start/sign-off control. Inspection navigation must never mutate lifecycle state.
 
 #### GW-FR-053-ACTIVITY-WORKSPACE
+
+> **0.2.2 supersession:** Activity remains required information, but it is no longer a global WorkItem destination. Pre-signoff activity is owned by its workflow step and post-signoff activity by Implementation under GW-FR-108 and GW-FR-113.
 
 **Required behavior:** all current and historical agent Runs are inspectable through one Activity primary workspace across pre-signoff and post-signoff states. Activity is organized as Run/attempt history plus one selected-Run detail; status and actions belong to that selected detail.
 
@@ -1195,6 +1203,8 @@ This rule does not authorize loss of diagnostic evidence or concealment of a req
 
 ### GW-FR-084-WORKFLOW-STEP-INSPECTION-NAVIGATION
 
+> **0.2.2 clarification:** inspection still never mutates lifecycle state, but the target is now the selected workflow-step workspace rather than a generic Documents/Activity/Review mode.
+
 **Required behavior:** each user-facing workflow step is usable as non-mutating presentation navigation to its available canonical material or an explicit not-yet-reached state.
 
 **Acceptance criterion:** the operator can traverse Research, Requirements, Solution design, Implementation plan, Readiness, Approval, Implementation and Complete material without changing lifecycle state.
@@ -1202,6 +1212,8 @@ This rule does not authorize loss of diagnostic evidence or concealment of a req
 **Failure/negative behavior:** clicking workflow orientation must never promote, sign off, create a Run, start execution or fabricate missing step material.
 
 ### GW-FR-085-WORKBENCH-CHROME-CONSOLIDATION
+
+> **0.2.2 supersession:** the workspace-view selector required below is removed by GW-FR-106; the compact identity row plus workflow rail remain, and task-local controls live inside the selected step workspace.
 
 **Required behavior:** persistent WorkItem/document/editor chrome is consolidated according to semantic level so orientation and controls remain available while primary-canvas vertical space is maximized.
 
@@ -1357,3 +1369,479 @@ Everything else belongs beside, behind or outside the primary reading path accor
 **Acceptance criterion:** the visual hierarchy establishes where the user is, then what they are doing/reading, then secondary context/actions; long-form Markdown remains the dominant content surface.
 
 **Failure/negative behavior:** settings, technical detail, secondary status or redundant helper content must not interrupt the primary reading flow or consume persistent vertical space without a task-critical reason.
+
+
+## 27. Order 0.2.2 workflow-step workspace redesign (2026-11-14)
+
+This section is the current functional information-architecture authority for the selected WorkItem experience in Order 0.2.2.
+
+It closes a structural usability failure found after the previous corrective Workbench refactor: the application currently asks the operator to navigate both the lifecycle and a second presentation taxonomy (Documents / Activity / Review / Implementation / Evidence / Result). The second taxonomy describes **information classes**, not user goals. It fragments one workflow step across multiple destinations, creates unnecessary return navigation around proposal review and evidence, and can hide the next lifecycle action after a completed Run.
+
+### 27.1 Supersession and preserved authority
+
+For 0.2.2 and later, this section supersedes §§4, 19.3, 21.2–21.4, 21.6, 21.9, 24.2–24.4 and requirements GW-FR-052, GW-FR-053, GW-FR-084 and GW-FR-085 **only where** those provisions require a persistent WorkItem workspace-view selector or treat Documents/Activity/Review/Evidence/Result as global WorkItem destinations.
+
+The following existing rules remain authoritative and are intentionally reused:
+
+- §3 space classes;
+- §19.1 interaction-pattern classes;
+- §19.2 primary-task spatial priority;
+- §19.4 scope-local controls;
+- §19.5 authoring;
+- §19.6 review/comparison;
+- §19.7 operational inspection;
+- §25 information-placement discipline;
+- §26 semantic viewport zoning and logical reading flow;
+- GW-FR-030..050 where not explicitly superseded above;
+- GW-FR-054..059 for visibility, failure/recovery and technical-detail behavior, interpreted through the workflow-step ownership model below;
+- GW-FR-094, GW-FR-096 and GW-FR-097.
+
+No lifecycle, Run, artifact, approval, execution or persistence semantics change here. Those remain owned by their canonical concerns.
+
+### 27.2 Governing composition rule
+
+The selected WorkItem has one primary navigation axis:
+
+~~~text
+Work request
+→ Research
+→ Requirements
+→ Solution design
+→ Implementation plan
+→ Readiness review
+→ Approval
+→ Implementation
+→ Complete
+~~~
+
+The rule is:
+
+> **The workflow step owns the operator context. The information class determines the geometry used inside that step; the information class is not a competing global navigation hierarchy.**
+
+A selected step may therefore present, as required by its canonical material:
+
+- document/Markdown geometry;
+- dialogue geometry;
+- review/diff geometry;
+- operational master/detail geometry;
+- evidence/raw-material geometry;
+- terminal-result geometry.
+
+Changing among those material presentations does not change the selected workflow step and does not create another lifecycle state.
+
+The persistent selected-WorkItem hierarchy becomes:
+
+~~~text
+application shell
+↓
+compact WorkItem identity/header
+↓
+one compact workflow-step rail
+↓
+selected workflow-step workspace
+   ├── primary task/material
+   ├── task-local current action
+   └── on-demand supporting context/details
+~~~
+
+There is no persistent Documents / Activity / Review / Implementation / Evidence / Result selector.
+
+### 27.3 Information-placement algorithm
+
+For every workflow step, presentation is resolved in this order:
+
+1. **Establish the selected workflow step.** Current canonical stage is selected by default; a reached historical step may be selected for inspection; an unreached step shows a lightweight not-yet-reached state. Step selection never promotes or mutates lifecycle state.
+2. **Identify the operator's current task.** Examples: answer the active agent, author/read the governed artifact, judge a proposal, inspect evidence, review readiness, sign off a package, operate an implementation task, inspect a terminal result.
+3. **Choose the canonical interaction/space class from §3 and §19.1.** The selected information receives the primary canvas appropriate to its shape.
+4. **Keep supporting material subordinate.** Small metadata/status belongs in compact context or secondary disclosure; historical attempts/resources use compact selectors/lists; large evidence/diffs promote to the primary canvas without changing workflow-step ownership.
+5. **Place the consequential action beside the material it affects.** Composer with dialogue, Save/Cancel with Markdown, Adopt/Reject with the proposal diff, approval with the package, implementation action with the selected task, remediation with the terminal result.
+6. **Return to the owning step after transient inspection.** Proposal/evidence/detail inspection must not require the operator to reconstruct their prior workflow location.
+
+A large content class may temporarily consume the complete primary canvas. "Together" therefore means one coherent workflow-step context and return path, not simultaneous display of every document, timeline, diff and evidence object.
+
+### 27.4 Shared pre-signoff step anatomy
+
+Research, Requirements, Solution design and Implementation plan share one functional composition grammar because each combines agent work with a governed lifecycle artifact.
+
+Each step may contain:
+
+- **step summary:** label, purpose, canonical current/reached state and one current action;
+- **current activity:** Run/attempt history, selected Run state, chronological events, pending question and composer when input is accepted;
+- **governed artifact:** the current lifecycle Markdown for the step, including current/stale/read-only/editable state under GW-DOC-MARKDOWN-WORKBENCH-V1;
+- **proposal review:** proposal rationale, complete unified diff and Adopt/Reject decision when a proposal is selected;
+- **evidence/resources:** evidence references from the selected Run/artifact, promoted to evidence geometry when opened;
+- **technical details:** ids, hashes, paths, raw event tags/payloads and provider diagnostics through secondary disclosure unless selected as evidence.
+
+The step must not render all of those as equal persistent panels. The current task gets the primary canvas and the other material remains reachable through compact step-local controls/history/resources.
+
+When a reached upstream artifact is directly edited while the WorkItem is downstream, the UI must make the canonical downstream invalidation/return consequence visible before or immediately after Save. It must not imply that editing is a harmless presentation operation.
+
+### 27.5 Work request
+
+**Operator question:** What work is being requested, and is the source complete enough to begin Research?
+
+**Information model presented:**
+
+- human-authored WorkItem source body;
+- WorkItem kind, concern classification and source validity/freshness as compact context;
+- source diagnostics/blockers when actionable;
+- documentation Git state when relevant;
+- current lifecycle eligibility to begin Research.
+
+**Primary interactions:**
+
+- author/edit the source body under the existing exact-source/body-only rules;
+- Save/Cancel and resolve stale-write/schema validation;
+- inspect secondary complete-source/path/hash/Git details;
+- start Research when canonical state permits.
+
+**Placement and space:**
+
+- the source Markdown is **Document** class and owns the primary canvas;
+- formatting, edit/preview/split, dirty state, Save/Cancel and documentation Git action remain one task-local document control surface;
+- source diagnostics that block progression appear in the primary step state near the affected source/action, with exact diagnostics secondary;
+- **Start Research** is attached to the Work request step/current-action region, not the WorkItem identity header and not a generic Activity destination.
+
+### 27.6 Research
+
+**Operator question:** What is actually true?
+
+**Information model presented:**
+
+- originating Work request context needed to understand the investigation;
+- all R1 Runs/attempts and their canonical RunEvents;
+- agent/operator dialogue and pending human questions;
+- evidence, authority references and factual findings emitted by the Run;
+- pending artifact proposals affecting Research/project authority;
+- current adopted Research artifact when one exists;
+- Research completion/verdict and any actionable blocker/failure.
+
+**Primary interactions:**
+
+- start/retry Research when permitted;
+- answer/continue an active interactive Run;
+- inspect attempt history and evidence;
+- review a proposed document change;
+- Adopt/Reject that proposal;
+- inspect/edit the current Research Markdown when allowed;
+- resolve failure/recovery and understand the resulting R1 verdict.
+
+**Placement and space:**
+
+- while a selected R1 Run is active or waiting, **Dialogue** is the primary material: selected Run header + timeline own remaining height and the composer is anchored to that activity;
+- Run history uses a compact master/list only when multiple attempts exist;
+- a selected proposal promotes to **Review** geometry inside Research; rationale/diff receive full review width and Adopt/Reject remain adjacent;
+- after proposal disposition, Research returns to the owning Run/artifact context automatically or with one obvious in-step action; it never requires "Back to Activity";
+- selected evidence promotes to **Evidence** geometry while preserving Research as the owning step;
+- the adopted Research artifact uses **Document** geometry and is reachable within Research without navigating to a global Documents view;
+- after successful CONFIRMED completion, Research remains inspectable historically, while canonical current-step orientation advances to Requirements and exposes the next-stage action there.
+
+### 27.7 Requirements
+
+**Operator question:** What outcome is required?
+
+**Information model presented:**
+
+- accepted Research facts/evidence required to understand the requirement;
+- source-backed product intent where canonically applicable;
+- all R2 Runs/attempts, dialogue and pending questions;
+- proposed/current Requirements artifact;
+- acceptance criteria, scope/exclusions, failure/negative behavior and material constraints as contained in the governed artifact;
+- evidence/resources and blockers relevant to closing the requirement.
+
+**Primary interactions:**
+
+- start/retry Requirements;
+- answer clarification questions without treating chat as durable authority;
+- inspect Research/source context needed for a requirement decision;
+- review/adopt/reject proposal changes;
+- inspect/edit Requirements Markdown when allowed;
+- resolve stale/direct-edit reconformance.
+
+**Placement and space:**
+
+- active clarification uses **Dialogue** geometry;
+- Requirements Markdown uses **Document** geometry;
+- proposal decisions use **Review** geometry;
+- source/Research material needed for comparison opens as step-local supporting material rather than requiring the user to leave Requirements for a generic Documents destination;
+- the current action is Start/Answer/Review/Save/Retry according to canonical state, never duplicated across header/context.
+
+### 27.8 Solution design
+
+**Operator question:** What is the correct technical solution?
+
+**Information model presented:**
+
+- accepted requirements and relevant R1 evidence;
+- applicable architecture/ADR/contract authority references;
+- DESIGN Runs/attempts, dialogue and technical findings;
+- current/proposed Solution design artifact;
+- architectural decisions, canonical ownership/boundaries, data/control flow, alternatives, failure behavior and validation obligations represented by that artifact;
+- evidence and technical resources needed to substantiate the design.
+
+**Primary interactions:**
+
+- start/retry Solution design;
+- answer bounded design questions;
+- inspect applicable upstream requirements/evidence and authority;
+- review/adopt/reject proposed design changes;
+- inspect/edit Solution design Markdown when allowed;
+- inspect large technical evidence without losing design context.
+
+**Placement and space:**
+
+- the governed design document is **Document** class with near-full primary width; prose may use an inner reading measure while diagrams/code/structured material retain available width;
+- active agent work uses **Dialogue** class;
+- proposal/structural comparison uses **Review** class;
+- raw logs/patches/evidence use **Evidence** class;
+- hashes/paths/internal identifiers remain Technical details and do not compete with architecture content.
+
+### 27.9 Implementation plan
+
+**Operator question:** Exactly how does the repository reach the designed state?
+
+**Information model presented:**
+
+- accepted design and requirement traceability needed to understand the plan;
+- PLAN Runs/attempts and dialogue;
+- current/proposed Implementation plan Markdown;
+- exact task units/dependencies, change surface, required deletions/additions/modifications, validation sequence and canonical task block represented by the plan;
+- plan-related evidence/resources and blockers.
+
+**Primary interactions:**
+
+- start/retry Implementation planning;
+- answer bounded planning questions;
+- inspect requirement/design traceability;
+- review/adopt/reject proposal changes;
+- inspect/edit Plan Markdown when allowed;
+- inspect task/change-surface structure without leaving the Plan step.
+
+**Placement and space:**
+
+- Plan Markdown is **Document** class;
+- repeated tasks/dependencies/change-surface summaries may use compact structured rows/master-detail alongside or as a step-local inspection of the canonical plan, but must not become a second plan authority;
+- proposal diff uses **Review** class;
+- active Run uses **Dialogue** class;
+- exact task ids/hashes/paths remain secondary unless needed for the selected review decision.
+
+### 27.10 Readiness review
+
+**Operator question:** Is the exact package ready for human sign-off without unresolved material interpretation?
+
+**Information model presented:**
+
+- current relevant R1→PLAN authority chain and freshness/conformance state;
+- R3 Run/attempt information where present;
+- adversarial findings/evidence;
+- current Readiness review artifact/verdict;
+- exact defective layer/return stage where not ready;
+- blockers preventing readiness.
+
+**Primary interactions:**
+
+- start/retry Readiness review;
+- inspect the package and adversarial findings;
+- inspect supporting lifecycle documents and evidence read-only in the review context;
+- answer a canonical human-input request if one is legitimately emitted by the owning Run;
+- inspect the resulting READY/RETURN/BLOCKED verdict.
+
+**Placement and space:**
+
+- Readiness is primarily **Review** class, preferred 900–1200 px where available;
+- package coherence, findings, defective layer and verdict dominate the visual hierarchy;
+- R3 Markdown is read-only output and appears as review material, not as an editable document tab competing with the review;
+- supporting upstream documents/evidence open in-place or as step-local promoted material and return to Readiness;
+- the ordinary R3 Run timeline is supporting operational history unless it is actively awaiting operator input.
+
+### 27.11 Approval
+
+**Operator question:** Should this exact ready package be authorized for implementation?
+
+**Information model presented:**
+
+- package currentness and source binding;
+- relevant governed lifecycle documents;
+- exact signed task objectives, dependencies, gates, scope/exclusions and change surface;
+- readiness/sign-off blockers;
+- baseline/package identity as secondary exactness metadata;
+- approver identity and approval action.
+
+**Primary interactions:**
+
+- inspect package contents and supporting governed documents without leaving Approval;
+- compare signed tasks and material;
+- inspect blockers/currentness;
+- enter approver identity and sign off the exact package.
+
+**Placement and space:**
+
+- Approval is **Review** class, preferred 900–1200 px;
+- package meaning and task scope dominate; hashes/commit ids remain secondary Technical details;
+- repeated tasks use scan-efficient list/table/master-detail rather than long card stacks;
+- governed documents open read-only within Approval and return to the package;
+- approver input and **Sign off exact package** are adjacent to the package decision and must not live in the WorkItem identity header.
+
+### 27.12 Implementation
+
+**Operator question:** What approved task is being executed, what happened, what is valid, and what can happen next?
+
+**Information model presented:**
+
+- signed ExecutionTasks and task state;
+- task objective/dependencies/gates/change surface;
+- BUILDER/REVIEWER/REMEDIATOR Runs grouped by owning task;
+- chronological RunEvents and V0–V7 validation state;
+- candidate/evidence/artifacts;
+- recovery/block/failure information;
+- final candidate/task outcome.
+
+**Primary interactions:**
+
+- select approved task;
+- start/advance the canonical implementation action when permitted;
+- select attempt/Run and inspect event history;
+- inspect validation and candidate evidence;
+- follow canonical recovery/reanalysis direction.
+
+**Placement and space:**
+
+- Implementation uses **Operational inspection** master/detail as the normal geometry;
+- task master remains compact; selected task/Run detail owns remaining width/height;
+- Run history is part of Implementation and must not require a global Activity destination;
+- evidence/raw patch/log material promotes to **Evidence** geometry inside Implementation and returns to the same task/Run;
+- there is no "Open in Activity" cross-navigation for post-signoff Runs because Implementation owns this operational context.
+
+### 27.13 Complete
+
+**Operator question:** What is the final governed outcome and what evidence/material supports it?
+
+**Information model presented:**
+
+- terminal WorkItem outcome;
+- final result/candidate classification;
+- applicable governed result narrative/artifact;
+- supporting evidence/resources;
+- lineage/remediation capability where canonically permitted;
+- completed workflow history through the reached workflow steps.
+
+**Primary interactions:**
+
+- inspect the final result/candidate and evidence;
+- inspect prior reached workflow steps without mutating them;
+- create linked remediation only for the canonically permitted investigation/audit outcomes.
+
+**Placement and space:**
+
+- DISPROVEN, DUPLICATE, ALREADY_SATISFIED, INVESTIGATION_COMPLETE and AUDIT_COMPLETE use **Terminal result** plus Document/Review/Evidence geometry appropriate to available material;
+- CANDIDATE_DONE completion presents the verified implementation outcome and candidate evidence through the Implementation/Result material of the Complete step without inventing another navigation hierarchy;
+- linked remediation action sits with the completed investigation/audit result, not in persistent WorkItem header chrome.
+
+### 27.14 Current-action and progression continuity
+
+The current consequential action is derived from canonical WorkItem/Run/package/task state and shown in the currently owning workflow step.
+
+For pre-signoff steps:
+
+- no active Run + current ACTIVE step → show **Start <step>** even when historical Runs from earlier steps exist;
+- live interactive STAGE Run → current Run owns Cancel and composer/Answer/Continue;
+- failed/blocked current Run → selected failure receipt owns Retry/Resume where canonical policy permits;
+- pending proposal → proposal review owns Adopt/Reject;
+- editable dirty document → document controls own Save/Cancel;
+- completed step that advanced canonically → next workflow step becomes current and owns its Start action.
+
+Historical Runs are evidence/history; their mere existence must never suppress the current step's start action.
+
+### 27.15 Responsive behavior
+
+The workflow-step ownership model is invariant across widths.
+
+**Wide:** selected step owns the primary canvas; compact step-local history/resource navigation may coexist only while the primary content retains its minimum space class. Context remains on-demand.
+
+**Medium:** supporting history/context becomes temporary selector/drawer/overlay before the primary material is compressed below its minimum width.
+
+**Narrow:** one primary material pane at a time. The workflow rail may become horizontally scrollable/compact but remains the only lifecycle navigation. Step-local history/material selection is temporary or compact. Composer, Save/Cancel, Adopt/Reject, Sign off and task-local recovery remain attached to their owning material.
+
+Responsive recomposition must preserve selected workflow step, selected Run/task/artifact/evidence, unsaved Markdown and return origin where applicable.
+
+### 27.16 Functional requirements
+
+#### GW-FR-106-WORKFLOW-STEP-PRIMARY-NAVIGATION
+
+**Required behavior:** a selected WorkItem uses the canonical workflow progression as its one persistent work-navigation axis; generic material classes are not exposed as a competing global destination hierarchy.
+
+**Acceptance criterion:** the operator navigates Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete directly, and each step presents its relevant material without a persistent Documents/Activity/Review/Result selector.
+
+**Failure/negative behavior:** the browser must not require the operator to choose both a workflow step and a generic workspace mode to reach the ordinary material/actions of that step.
+
+#### GW-FR-107-STEP-LOCAL-MATERIAL-COMPOSITION
+
+**Required behavior:** document, dialogue, review, operational, evidence and result material are composed inside the workflow step that owns the user's task and receive the canonical space class appropriate to their information shape.
+
+**Acceptance criterion:** selecting a proposal, document, Run or evidence item changes the primary material while preserving the owning workflow-step context and an unambiguous return path.
+
+**Failure/negative behavior:** information classes must not be collapsed into undersized panels merely to keep them simultaneously visible, and material-type selection must not create a second workflow.
+
+#### GW-FR-108-PRE-SIGNOFF-STAGE-WORKSPACE
+
+**Required behavior:** Research, Requirements, Solution design and Implementation plan each expose their Run activity, governed artifact, proposals and evidence as one coherent step workspace.
+
+**Acceptance criterion:** an operator can start/continue the stage, inspect conversation/history, review a proposal, inspect/edit the stage artifact when permitted and inspect evidence without navigating among global Documents/Activity/Review destinations.
+
+**Failure/negative behavior:** a pre-signoff step must not fragment its normal work across unrelated top-level modes or lose the current Run/artifact context when reviewing a proposal.
+
+#### GW-FR-109-PROPOSAL-EVIDENCE-CONTEXT-CONTINUITY
+
+**Required behavior:** proposal review and evidence inspection promote large material to the required primary space while retaining the owning workflow step and return origin.
+
+**Acceptance criterion:** after Adopt/Reject or closing evidence, the operator returns to the exact owning step/Run/task context without reconstructing navigation manually.
+
+**Failure/negative behavior:** proposal review must not strand the operator in a generic Review mode or require a "Back to Activity" workflow reconstruction.
+
+#### GW-FR-110-CURRENT-STAGE-ACTION-CONTINUITY
+
+**Required behavior:** the current lifecycle step always exposes its consequential allowed action from canonical state, independent of historical Runs from earlier steps.
+
+**Acceptance criterion:** after Research completes CONFIRMED, Requirements becomes current and exposes Start Requirements when no current Run is active; the same rule applies through Design, Plan and Readiness.
+
+**Failure/negative behavior:** the existence of completed historical Runs must not suppress Start/Retry/Continue for the current canonical stage.
+
+#### GW-FR-111-READINESS-REVIEW-WORKSPACE
+
+**Required behavior:** Readiness review presents package coherence, adversarial findings/evidence, verdict and return ownership as one review-oriented workflow-step surface.
+
+**Acceptance criterion:** the operator can inspect supporting lifecycle material/evidence and understand READY/RETURN/BLOCKED without treating R3 as an editable document workspace or leaving Readiness for generic modes.
+
+**Failure/negative behavior:** R3 verdict/findings must not be visually subordinated to raw Run chronology or presented as an ordinary editable document.
+
+#### GW-FR-112-APPROVAL-PACKAGE-WORKSPACE
+
+**Required behavior:** Approval presents the exact sign-off package, supporting governed documents, signed tasks/blockers and approval action in one review context.
+
+**Acceptance criterion:** the operator can inspect package material and sign the exact package without navigating to a separate Documents destination; hashes remain available but secondary.
+
+**Failure/negative behavior:** approval input/action must not be detached into WorkItem header chrome while the package requiring judgment is elsewhere.
+
+#### GW-FR-113-IMPLEMENTATION-WORKSPACE-OWNERSHIP
+
+**Required behavior:** Implementation owns signed-task operations and the BUILDER/REVIEWER/REMEDIATOR Run history/evidence needed to operate and verify those tasks.
+
+**Acceptance criterion:** task → attempt → event/evidence inspection is available in one operational master/detail workspace and post-signoff Runs do not require a separate global Activity view.
+
+**Failure/negative behavior:** the operator must not bounce between Implementation and Activity to understand one execution task.
+
+#### GW-FR-114-COMPLETE-OUTCOME-WORKSPACE
+
+**Required behavior:** Complete presents the final governed outcome using result/document/review/evidence geometry appropriate to that outcome and keeps linked remediation with eligible investigation/audit results.
+
+**Acceptance criterion:** terminal non-delivery outcomes are understandable as successful governed completion where applicable, candidate completion exposes its verified implementation result, and reached workflow history remains inspectable.
+
+**Failure/negative behavior:** Complete must not require a generic Result mode or imply failure solely because implementation did not occur.
+
+#### GW-FR-115-RESPONSIVE-WORKFLOW-STEP-CONTINUITY
+
+**Required behavior:** responsive layouts preserve selected workflow-step ownership, task-local actions and material/return context while recomposing supporting history/context.
+
+**Acceptance criterion:** wide, medium and narrow layouts retain the same workflow semantics and preserve unsaved/selected state through presentation changes.
+
+**Failure/negative behavior:** responsive reduction must not reintroduce generic mode navigation, move consequential actions away from their material, or discard selected/dirty context.
