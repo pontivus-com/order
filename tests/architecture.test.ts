@@ -295,8 +295,9 @@ describe("architecture fitness", () => {
 
     expect(queue).toContain("workflowPresentation(item.stage).label");
     expect(queue).not.toContain("{item.stage}</");
-    expect(documents).toContain("lifecycleArtifactLabel(artifact.role)");
+    expect(documents).toContain("lifecycleArtifactLabel(selectedArtifact.role)");
     expect(documents).not.toContain("label={artifact.role}");
+    expect(documents).not.toContain("@astryxdesign/core/TabList");
     expect(activity).toContain('data-testid="selected-run-header"');
     expect(activity).not.toContain('data-testid="activity-summary"');
   });
@@ -1002,9 +1003,12 @@ describe("architecture fitness", () => {
           sourcePath + ": active Run classification must use the shared presentation owner",
         );
       }
-      if (/from ["']\.\/EvidenceViewer\.tsx["']/.test(source)) {
+      if (
+        sourcePath === "ui/src/EvidenceViewer.tsx" &&
+        /export\s+(?:type|interface)\s+EvidenceSelection\b/.test(source)
+      ) {
         violations.push(
-          sourcePath + ": presentation selection types must not be owned by a sibling Evidence workspace",
+          sourcePath + ": presentation selection types must remain owned by workbench-presentation.ts",
         );
       }
       if (/\bconst\s+proposalDisposition\s*=/.test(source)) {
