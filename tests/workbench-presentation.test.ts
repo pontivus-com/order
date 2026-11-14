@@ -507,6 +507,12 @@ describe("Run presentation", () => {
       expect(presentation.detail.length).toBeGreaterThan(0);
     }
     expect(
+      presentations.find(([tag]) => tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED")?.[1].label,
+    ).toBe("Document adoption in progress");
+    expect(
+      presentations.find(([tag]) => tag === "PROVIDER_DIAGNOSTICS_RECORDED")?.[1].label,
+    ).toBe("Technical diagnostics available");
+    expect(
       presentations.find(([tag]) => tag === "PRODUCTIVE_INVOCATION_FAILED")?.[1].label,
     ).toBe("Agent setup blocked");
     expect(
