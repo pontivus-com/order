@@ -532,7 +532,7 @@ Stop and return upstream rather than improvising if implementation would require
 
 This P7 is complete only when:
 
-- GW-FR-106..115 and GW-TR-082..090 are fully implemented;
+- GW-FR-106..121 and GW-TR-082..097 are fully implemented;
 - all nine workflow steps have the information presentation and interaction ownership defined by GW-DOC-WORKBENCH-UX-V1 §27;
 - the old generic workspace-view hierarchy is removed;
 - Research → Requirements and subsequent stage start continuity are certified;
@@ -700,7 +700,7 @@ The plan is not implementation-ready merely because every workflow step has a na
 9. what Run/OpenCode feedback is visible;
 10. what information is intentionally unavailable because the provider/browser contract does not expose it.
 
-GW-DOC-WORKBENCH-UX-V1 §§27.17–27.22 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §§23.16–23.23 are the canonical answers. Implementation may not infer a different panel or feedback model.
+GW-DOC-WORKBENCH-UX-V1 §§27.17–27.23 and GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §§23.16–23.35 are the canonical answers. Implementation may not infer a different panel, primitive or feedback model.
 
 
 ## 23. Exact per-step UI composition implementation addendum
