@@ -26,11 +26,9 @@ const taskVariant = (task: ExecutionTask): "error" | "warning" | "success" | "ne
 export const ExecutionWorkspace = ({
   workItem,
   onOpenEvidence,
-  onOpenActivity,
 }: Readonly<{
   workItem: WorkItem;
   onOpenEvidence: (selection: EvidenceSelection) => void;
-  onOpenActivity: (runId: Run["id"]) => void;
 }>) => {
   const queryClient = useQueryClient();
   const [selectedTaskId, setSelectedTaskId] = useState<ExecutionTask["id"] | null>(null);
@@ -202,11 +200,7 @@ export const ExecutionWorkspace = ({
                   <strong>{runRoleLabel(selectedRun.role)} · Attempt {selectedRun.attempt}</strong>
                   <span>{runStatusLabel(selectedRun.status)}</span>
                 </div>
-                <WorkbenchAction
-                  label="Open in Activity"
-                  tone="ghost"
-                  onClick={() => onOpenActivity(selectedRun.id)}
-                />
+
               </div>
             ) : null}
             <div className="order-event-scroll">
