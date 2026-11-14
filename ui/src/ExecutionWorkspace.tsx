@@ -190,7 +190,7 @@ export const ExecutionWorkspace = ({
     null;
 
   useEffect(() => {
-    if (!selectedTask) return;
+    if (!selectedTask || material.kind === "EVIDENCE") return;
     const next: WorkflowMaterial = {
       kind: "EXECUTION_TASK",
       taskId: selectedTask.id,
