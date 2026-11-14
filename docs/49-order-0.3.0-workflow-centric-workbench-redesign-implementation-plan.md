@@ -979,7 +979,7 @@ P8 must:
 2. prove the merged `master` contains this exact P7 plan and the referenced P3/P4 requirements;
 3. execute the single signed task in §26 without broadening its scope/changeSurface;
 4. update root `CHANGELOG.md` under `[Unreleased]`;
-5. open a PR to `master` declaring **minor** impact and target release **0.3.0**;
+5. open a PR to `master` whose body declares the repository-verifier literals `SemVer impact: **minor**` and `Target release: **0.3.0**`;
 6. pass every required repository PR/status check and resolve material review discussion before merge;
 7. not modify `package.json.version`, create a tag or publish 0.3.0. The version/release transition remains a later dedicated `release/v0.3.0` PR under `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
 
