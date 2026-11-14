@@ -62,17 +62,21 @@ export const RunEventTimeline = ({
           {evidence.length > 0 ? (
             <div className="order-event-evidence">
               {evidence.map((reference) => (
-                <WorkbenchResourceRow
+                <div
                   key={reference.relativePath}
-                  label={reference.relativePath}
-                  detail="Run evidence"
-                  actionLabel={"Evidence: " + reference.relativePath}
-                  onOpen={() => onOpenEvidence({
-                    kind: "EVIDENCE",
-                    runId: run.id,
-                    relativePath: reference.relativePath,
-                  })}
-                />
+                  data-evidence-path={reference.relativePath}
+                >
+                  <WorkbenchResourceRow
+                    label={reference.relativePath}
+                    detail="Run evidence"
+                    actionLabel={"Evidence: " + reference.relativePath}
+                    onOpen={() => onOpenEvidence({
+                      kind: "EVIDENCE",
+                      runId: run.id,
+                      relativePath: reference.relativePath,
+                    })}
+                  />
+                </div>
               ))}
             </div>
           ) : null}
