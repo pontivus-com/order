@@ -81,9 +81,11 @@ The following approximate content budgets are functional usability constraints. 
 
 A surface may become wider than its preferred width. It must not be deliberately constrained to a narrower class merely to preserve a panel.
 
-## 4. WorkItem workspace modes
+## 4. Superseded WorkItem workspace-mode model
 
-The selected WorkItem primary canvas exposes only modes that are meaningful for the current canonical state.
+> **0.2.2 supersession:** this section records the earlier material-mode model. The current binding navigation/composition model is §27: workflow step is the persistent navigation owner and document/dialogue/review/evidence/result are material classes inside that step.
+
+The selected WorkItem primary canvas previously exposed modes that were meaningful for the current canonical state.
 
 The mode vocabulary is:
 
@@ -198,7 +200,7 @@ The Review mode must allow the operator to understand:
 - readiness/sign-off blockers;
 - the explicit approval action.
 
-Hashes remain available for exact identity but are secondary to understanding the package. The compact inspector may contain the approver input and final action only when the complete package remains visible in the primary Review canvas.
+Hashes remain available for exact identity but are secondary to understanding the package. Under the current §27 Approval design, approver input and the final sign-off action are task-local controls inside Approval beside the package decision; Context contains only secondary technical identity.
 
 ## 9. Execution and evidence
 
@@ -216,11 +218,11 @@ The Execution mode must support comparison and scanning of:
 
 Run events are chronological operational information and should use a list/timeline with sufficient width for multi-line event detail.
 
-Evidence selected from a task, run or validation event opens in the Evidence mode. Raw text, logs and patches use the full primary workspace and retain their formatting. Evidence must not be constrained to a short fixed-height preformatted block inside the inspector.
+Evidence selected from a task, Run or validation event promotes to Evidence-class primary material inside the owning workflow step. Raw text, logs and patches use the full primary workspace and retain their formatting. Evidence must not be constrained to a short fixed-height preformatted block inside Context.
 
-## 10. Result presentation
+## 10. Terminal result presentation
 
-The Result mode covers every successful terminal WorkItem that does not represent a delivered candidate: `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED`, `INVESTIGATION_COMPLETE`, and `AUDIT_COMPLETE`.
+Under the current §27 design, the **Complete** workflow step owns terminal result material. The result presentation covers every successful terminal WorkItem that does not represent a delivered candidate: `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED`, `INVESTIGATION_COMPLETE`, and `AUDIT_COMPLETE`.
 
 The primary Result canvas gives the terminal classification and its available conclusion/verdict/findings/evidence appropriate reading space. It must not imply that a duplicate, disproven or already-satisfied item failed merely because no implementation occurred.
 
@@ -487,7 +489,7 @@ Order's current workbench interactions fall into the following presentation clas
 |---|---|---|
 | **Global scanning** | WorkItem queue, source diagnostics | dense full-width operational table/list; title/current state remain scan-dominant |
 | **Compact structured input** | create WorkItem, linked remediation | bounded drawer/sheet/form; no primary-canvas takeover |
-| **Context/status/action** | WorkItem metadata, source health, current lifecycle action, approver input | compact inspector on wide layouts, temporary drawer/sheet when the inspector cannot coexist without stealing task space |
+| **Context/status/technical detail** | WorkItem metadata, source health summary, selected material identity, technical diagnostics | compact inspector on wide layouts, temporary drawer/sheet when the inspector cannot coexist without stealing task space; consequential task actions remain with their primary material |
 | **Long-form authoring** | Source, R1, R2, DESIGN, PLAN Markdown | primary canvas; nearly all available width and remaining viewport height; exact Markdown remains visible/editable |
 | **Long-form reading** | R3, governed read-only Markdown, conclusion/verdict narratives | primary canvas with a readable inner prose measure; outer workspace may remain full-width |
 | **Conversation** | interactive STAGE Run | primary canvas with message history and an adjacent/anchored composer using remaining height |
@@ -513,9 +515,11 @@ The following are binding consequences:
 - A control must not occupy persistent premium toolbar space when it does not act on the currently visible primary task.
 - Responsive behavior may recompose the same information, but it must preserve the interaction class and primary-task priority.
 
-### 19.3 Navigation hierarchy and chrome economy
+### 19.3 Superseded navigation hierarchy and chrome economy
 
-The current WorkItem workspace has three distinct presentation hierarchies:
+> **0.2.2 supersession:** the three-hierarchy model below is replaced by §27.2 and §27.17. It is retained only as the design history that motivated the correction.
+
+The prior WorkItem workspace had three distinct presentation hierarchies:
 
 1. **workflow inspection**: Research → Requirements → Solution design → Implementation plan → Readiness review → Approval → Implementation → Complete;
 2. primary workspace **view**: Documents, Activity, Review, Implementation, Evidence, Result as applicable;
@@ -659,11 +663,11 @@ These are presentation defects only. Their correction must preserve all existing
 
 ### GW-FR-045-NAVIGATION-CHROME-ECONOMY
 
-**Required behavior:** WorkItem mode navigation and within-mode navigation remain distinct without stacking redundant full-width navigation rows.
+**Required behavior:** the selected WorkItem uses one workflow-step navigation axis plus at most one compact step-local work index when the selected step has multiple meaningful work objects.
 
-**Acceptance criterion:** the selected WorkItem retains orientation and mode access while the active mode exposes at most one normal content-edge navigation strip; Context and metadata controls appear only where they perform useful work.
+**Acceptance criterion:** the selected WorkItem retains orientation and direct workflow-step access without stacking a generic material-mode selector and a lifecycle-document selector above the active task; Context and metadata controls appear only where they perform useful work.
 
-**Failure/negative behavior:** mode tabs, document tabs, duplicate metadata headers and diagnostic identity rows must not accumulate into avoidable vertical chrome before the active task.
+**Failure/negative behavior:** generic mode tabs, lifecycle-wide document tabs, duplicate metadata headers and diagnostic identity rows must not accumulate into avoidable vertical chrome before the active task.
 
 ### GW-FR-046-SCOPE-LOCAL-CONTROLS
 
@@ -814,10 +818,10 @@ On medium/narrow viewports:
 
 Current agent status is visible in two levels:
 
-1. **primary Activity summary** — authoritative operator-facing execution state, timestamps, current/last meaningful event and allowed next action;
-2. **compact WorkItem orientation/context** — enough state to tell whether work is running, waiting, blocked, failed or complete without opening Activity.
+1. **owning workflow-step primary material/summary** — authoritative operator-facing Run state, current/last meaningful event and allowed next action;
+2. **compact WorkItem orientation/Context** — enough state to identify that the selected/current step needs attention without duplicating the full failure or action.
 
-A material failure must be visible in the primary WorkItem experience even when the current mode is Documents or Review. The compact summary may link/open Activity, but it must include the human-readable failure class and immediate recovery direction.
+A material failure must be visible in the owning workflow step regardless of whether its selected material was previously a document, Run or review. Required failure class and recovery direction cannot be available only through Context or raw Technical details.
 
 A failed terminal Run must remain selectable in Activity. Replacing a failed Run with an empty state such as "No active interactive run" is prohibited.
 
@@ -830,16 +834,16 @@ Only one primary instance of a consequential current action should dominate the 
 Placement follows scope:
 
 - **Start Research / Start Requirements / Start Solution design / Start Implementation planning / Start Readiness review** — attached to the current workflow-step summary in the primary WorkItem surface when no agent activity is active;
-- **Answer / Continue** — Activity composer/action region;
-- **Review proposed document change** — Activity event opens Review-class primary space;
-- **Adopt / Reject** — Proposal Review;
-- **Continue after adoption** — Proposal Review completion state returns to/opens Activity with the owning workflow action explicit;
-- **Retry after agent failure** — Activity terminal failure receipt;
+- **Answer / Continue** — selected workflow-step Run composer/action region;
+- **Review proposed document change** — owning-step Run event promotes Review-class primary material;
+- **Adopt / Reject** — proposal review action region inside the owning step;
+- **Continue after adoption** — disposition restores the exact owning step/Run or document origin;
+- **Retry after agent failure** — owning-step terminal failure receipt;
 - **Revalidate after direct Markdown edit** — document/current-step state strip associated with the edited document and owning workflow step;
 - **Approve exact package** — Review/Approval surface under existing sign-off rules;
 - **Implementation controls** — Implementation workspace only.
 
-Context may carry the action when it is the only compact action for the current state, but it must not create a competing second primary action while the active primary workspace already owns the same decision.
+Context must not become the owner of a consequential workflow mutation. The owning primary material or step summary carries the action; Context may only expose secondary inspection/recovery detail.
 
 ### 21.7 WorkItem management placement
 
