@@ -8,13 +8,13 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 import {
   resolveWorkflowMaterial,
   runIsActive,
+  workflowMaterialIdentity,
   workflowPresentation,
   workflowStepState,
   workflowSteps,
   type EvidenceSelection,
   type ProposalSelection,
   type WorkflowMaterial,
-  type WorkItemMode,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
@@ -95,36 +95,11 @@ const startLabelForStage = (stage: WorkItem["stage"]): string =>
     ? "Start Research"
     : "Start " + workflowPresentation(stage).label;
 
-const contextModeForMaterial = (
-  material: WorkflowMaterial,
-): WorkItemMode => {
-  switch (material.kind) {
-    case "SOURCE_DOCUMENT":
-    case "STAGE_DOCUMENT":
-    case "SUPPORTING_DOCUMENT":
-    case "STEP_STATE":
-    case "UNREACHED":
-      return "DOCUMENTS";
-    case "STAGE_RUN":
-      return "ACTIVITY";
-    case "PROPOSAL":
-    case "READINESS_REVIEW":
-    case "APPROVAL_PACKAGE":
-      return "REVIEW";
-    case "EXECUTION_TASK":
-      return "EXECUTION";
-    case "EVIDENCE":
-      return "EVIDENCE";
-    case "TERMINAL_RESULT":
-      return "RESULT";
-  }
-};
-
 export const WorkItemWorkspace = ({
   workItem,
   onBack,
   onOpenContext,
-  onContextModeChange,
+  onContextSelectionChange,
   onContextDocumentChange,
   onCreateRemediation,
   onDirtyChange,
@@ -132,7 +107,10 @@ export const WorkItemWorkspace = ({
   workItem: WorkItem;
   onBack: () => void;
   onOpenContext: () => void;
-  onContextModeChange: (mode: WorkItemMode, runId: Run["id"] | null) => void;
+  onContextSelectionChange: (
+    step: WorkItem["stage"],
+    material: WorkflowMaterial,
+  ) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
   onCreateRemediation: (workItem: WorkItem) => void;
   onDirtyChange: (dirty: boolean) => void;
@@ -220,13 +198,7 @@ export const WorkItemWorkspace = ({
 
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
-  const activityRunId =
-    material.kind === "STAGE_RUN"
-      ? material.runId
-      : material.kind === "PROPOSAL"
-        ? material.runId
-        : null;
-  const contextMode = contextModeForMaterial(material);
+  const materialIdentity = workflowMaterialIdentity(material);
   const selectedStepState = workflowStepState(workItem, selectedStep);
   const selectedStateLabel =
     selectedStepState === "CURRENT"
@@ -246,8 +218,12 @@ export const WorkItemWorkspace = ({
   }, [workItem.id]);
 
   useEffect(() => {
-    onContextModeChange(contextMode, activityRunId);
-  }, [activityRunId, contextMode, onContextModeChange]);
+    onContextSelectionChange(selectedStep, material);
+  }, [
+    materialIdentity,
+    onContextSelectionChange,
+    selectedStep,
+  ]);
 
   useEffect(() => {
     if (dirty) return;
