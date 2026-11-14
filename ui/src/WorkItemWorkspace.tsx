@@ -467,6 +467,17 @@ export const WorkItemWorkspace = ({
             disabled={dirty || start.isPending}
             onClick={() => start.mutate()}
           />
+        ) : selectedStep === "COMPLETE" &&
+          workItem.stage === "COMPLETE" &&
+          (
+            workItem.outcome === "INVESTIGATION_COMPLETE" ||
+            workItem.outcome === "AUDIT_COMPLETE"
+          ) ? (
+          <WorkbenchAction
+            label="Create linked remediation"
+            tone="primary"
+            onClick={() => onCreateRemediation(workItem)}
+          />
         ) : undefined
       }
     />
@@ -541,16 +552,6 @@ export const WorkItemWorkspace = ({
             ) : null}
           </div>
           <div className="order-workitem-rail-actions">
-            {workItem.stage === "COMPLETE" && (
-              workItem.outcome === "INVESTIGATION_COMPLETE" ||
-              workItem.outcome === "AUDIT_COMPLETE"
-            ) ? (
-              <WorkbenchAction
-                label="Create linked remediation"
-                tone="primary"
-                onClick={() => onCreateRemediation(workItem)}
-              />
-            ) : null}
             <WorkbenchAction
               label={workItem.archived ? "Restore work item" : "Archive work item"}
               tone="ghost"
@@ -686,7 +687,10 @@ export const WorkItemWorkspace = ({
             />
           ) : null}
           {material.kind === "TERMINAL_RESULT" ? (
-            <TerminalResult workItem={workItem} />
+            <TerminalResult
+              workItem={workItem}
+              onOpenEvidence={openEvidence}
+            />
           ) : null}
           {material.kind === "STEP_STATE" ? (
             <WorkbenchEmptyState
