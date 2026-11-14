@@ -42,7 +42,7 @@ export const EvidenceViewer = ({
   if (!selection) {
     return (
       <section className="order-workspace-section" data-testid="evidence-workspace">
-        <WorkbenchEmptyState title="No evidence selected" description="Select an evidence reference from Activity or Implementation." />
+        <WorkbenchEmptyState title="No evidence selected" description="Select an evidence reference from the owning workflow step." />
       </section>
     );
   }
@@ -66,7 +66,7 @@ export const EvidenceViewer = ({
     <section className="order-workspace-section" data-testid="evidence-workspace">
       <div className="order-section-heading">
         <div><h2>{title}</h2><span>Read-only exact material</span></div>
-        <WorkbenchAction label="Back to previous workspace" tone="ghost" onClick={onBack} />
+        <WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onBack} />
       </div>
       <div data-testid="raw-content-view" className="order-code-view">
         <CodeBlock code={value} language="plaintext" hasCopyButton width="100%" />
