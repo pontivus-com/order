@@ -271,16 +271,18 @@ const DocumentationGitConfirmation = ({
 
 export const SourceDocumentMaterial = ({
   workItem,
+  readOnly = false,
   onDirtyChange,
   onContextDocumentChange,
 }: Readonly<{
   workItem: WorkItem;
+  readOnly?: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
-    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
+    readOnly || workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
   const git = useDocumentationGitState(
     workItem,
     dirty,
@@ -302,7 +304,7 @@ export const SourceDocumentMaterial = ({
   if (git.sourceQuery.isPending) {
     return (
       <section className="order-workspace-section" data-testid="source-document-material">
-        <DocumentationControls dirty={dirty} state={git} />
+        {!sourceReadOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
         <WorkbenchEmptyState compact title="Loading work request…" />
       </section>
     );
@@ -345,7 +347,9 @@ export const SourceDocumentMaterial = ({
             return result;
           }}
           toolbarAccessory={
-            <DocumentationControls dirty={dirty} state={git} />
+            sourceReadOnly
+              ? undefined
+              : <DocumentationControls dirty={dirty} state={git} />
           }
           technicalDetails={
             <DocumentationTechnicalDetails
@@ -360,7 +364,7 @@ export const SourceDocumentMaterial = ({
           }
         />
       </div>
-      <DocumentationGitConfirmation state={git} />
+      {!sourceReadOnly ? <DocumentationGitConfirmation state={git} /> : null}
     </section>
   );
 };
