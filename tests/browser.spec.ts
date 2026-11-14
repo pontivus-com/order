@@ -1086,6 +1086,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
 
   await openWorkItem(page, "Workflow failure feedback");
   const failureIndex = page.getByTestId("workflow-step-index");
+  await failureIndex.getByText("Attempt 4", { exact: true }).click();
   await expect(page.getByText("Work is blocked", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Conformance check failed", { exact: true }),
@@ -1207,7 +1208,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
   await backToQueue(page);
 
-  await openWorkItem(page, "Workflow failure feedback");
+  await openWorkItem(page, "Workflow resume action");
   const resume = page.getByRole("button", { name: "Resume resolved blocker" });
   await failNext(
     "**/api/work-items/*/resume",
