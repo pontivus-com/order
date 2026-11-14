@@ -347,14 +347,22 @@ export const resolveWorkflowMaterial = (
   if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   const explicit = input.explicitSelection ?? null;
-  if (
-    explicit !== null &&
-    selectedMaterialIsAvailable(input, explicit)
-  ) {
-    return explicit;
-  }
+  const explicitIsAvailable =
+    explicit !== null && selectedMaterialIsAvailable(input, explicit);
+  const explicitIsDirtyDocument =
+    input.dirtyDocument === true &&
+    explicitIsAvailable &&
+    (
+      explicit?.kind === "SOURCE_DOCUMENT" ||
+      explicit?.kind === "STAGE_DOCUMENT" ||
+      explicit?.kind === "SUPPORTING_DOCUMENT"
+    );
 
-  if (input.selectedStep === "IDEA") return { kind: "SOURCE_DOCUMENT" };
+  if (input.selectedStep === "IDEA") {
+    return explicitIsAvailable && explicit?.kind === "SOURCE_DOCUMENT"
+      ? explicit
+      : { kind: "SOURCE_DOCUMENT" };
+  }
 
   if (
     input.selectedStep === "R1" ||
@@ -364,6 +372,7 @@ export const resolveWorkflowMaterial = (
   ) {
     const artifact = stageArtifact(input.artifacts, input.selectedStep);
     if (stepState === "HISTORICAL") {
+      if (explicitIsAvailable && explicit) return explicit;
       if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
       const historicalRun = latestRun(
         input.runs,
@@ -374,11 +383,15 @@ export const resolveWorkflowMaterial = (
         : { kind: "STEP_STATE" };
     }
 
+    if (explicitIsDirtyDocument && explicit) return explicit;
+
     const attentionRun = selectedStageRun(input, "attention");
     if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
 
     const inputRun = unresolvedInputRun(input);
     if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+
+    if (explicitIsAvailable && explicit) return explicit;
 
     const proposal = input.pendingProposal ?? null;
     if (
@@ -405,6 +418,7 @@ export const resolveWorkflowMaterial = (
     if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
     const inputRun = unresolvedInputRun(input);
     if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+    if (explicitIsAvailable && explicit) return explicit;
     return { kind: "READINESS_REVIEW" };
   }
 
@@ -415,6 +429,12 @@ export const resolveWorkflowMaterial = (
   }
 
   if (input.selectedStep === "EXECUTION") {
+    if (
+      explicitIsAvailable &&
+      explicit?.kind === "EVIDENCE"
+    ) {
+      return explicit;
+    }
     const task = selectedExecutionTask(input);
     if (!task) return { kind: "STEP_STATE" };
     const run = selectedExecutionRun(input, task);
@@ -425,6 +445,9 @@ export const resolveWorkflowMaterial = (
     };
   }
 
+  if (explicitIsAvailable && explicit?.kind === "EVIDENCE") {
+    return explicit;
+  }
   return { kind: "TERMINAL_RESULT" };
 };
 
