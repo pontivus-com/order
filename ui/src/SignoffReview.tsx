@@ -249,6 +249,13 @@ export const SignoffReview = ({
       setApprovedBy("");
       await invalidate();
     },
+    onError: async () => {
+      if (currentApproval) {
+        await queryClient.invalidateQueries({
+          queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+        });
+      }
+    },
   });
 
   const groups: WorkflowStepIndexGroup[] = [
