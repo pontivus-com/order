@@ -69,10 +69,7 @@ export const PreSignoffStageWorkspace = ({
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onOpenProposalReview: (selection: ProposalSelection) => void;
-  onOpenSupportingMaterial: (
-    material: WorkflowMaterial,
-    focusName: string,
-  ) => void;
+  onOpenSupportingMaterial: (material: WorkflowMaterial) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
@@ -155,10 +152,7 @@ export const PreSignoffStageWorkspace = ({
           detail="Canonical source context"
           actionLabel="Open supporting Work request"
           onOpen={() =>
-            onOpenSupportingMaterial(
-              { kind: "SOURCE_DOCUMENT" },
-              "Open supporting Work request",
-            )}
+            onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" })}
         />
         {supportingArtifacts.map((artifact) => {
           const label = lifecycleArtifactLabel(artifact.role) + " document";
@@ -170,13 +164,10 @@ export const PreSignoffStageWorkspace = ({
               detail={artifact.repositoryPath}
               actionLabel={actionLabel}
               onOpen={() =>
-                onOpenSupportingMaterial(
-                  {
-                    kind: "SUPPORTING_DOCUMENT",
-                    artifactId: artifact.id,
-                  },
-                  actionLabel,
-                )}
+                onOpenSupportingMaterial({
+                  kind: "SUPPORTING_DOCUMENT",
+                  artifactId: artifact.id,
+                })}
             />
           );
         })}
