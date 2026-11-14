@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@astryxdesign/core/Badge";
 
@@ -74,6 +74,7 @@ export const StageRunMaterial = ({
   onOpenProposalReview?: (selection: ProposalSelection) => void;
 }>) => {
   const queryClient = useQueryClient();
+  const [inputError, setInputError] = useState<unknown>(null);
   const runsQuery = useQuery({
     queryKey: workbenchQueryKeys.runs(workItem.id),
     queryFn: () => api.listRuns(workItem.id),
@@ -182,7 +183,7 @@ export const StageRunMaterial = ({
   const canAnswer =
     selectedRun.role === "STAGE" &&
     runIsActive(selectedRun);
-  const actionError = cancel.error ?? retry.error ?? resume.error;
+  const actionError = inputError ?? cancel.error ?? retry.error ?? resume.error;
   const sessionStatus = openCodeSessionStatus(selectedRun);
 
   return (
@@ -285,7 +286,11 @@ export const StageRunMaterial = ({
           <ActivityComposer
             run={selectedRun}
             pending={pending}
-            onSubmitted={invalidate}
+            onSubmitted={async () => {
+              setInputError(null);
+              await invalidate();
+            }}
+            onError={setInputError}
           />
         ) : null}
       </div>

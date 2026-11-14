@@ -10,10 +10,12 @@ export const ActivityComposer = ({
   run,
   pending,
   onSubmitted,
+  onError,
 }: Readonly<{
   run: Run;
   pending: RunEvent | null;
   onSubmitted: () => Promise<void>;
+  onError?: (error: unknown) => void;
 }>) => {
   const input = useMutation({
     mutationFn: (text: string) => {
@@ -23,11 +25,12 @@ export const ActivityComposer = ({
       return api.submitRunInput(run.id, text.trim(), pending?.id ?? null);
     },
     onSuccess: onSubmitted,
+    onError,
   });
 
   return (
     <div className="order-activity-composer" data-testid="activity-composer">
-      {input.error ? (
+      {input.error && onError === undefined ? (
         <WorkbenchErrorState
           title="Workflow action failed"
           description={input.error instanceof Error ? input.error.message : String(input.error)}
