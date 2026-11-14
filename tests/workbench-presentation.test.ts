@@ -14,6 +14,7 @@ import {
   type WorkItem,
 } from "../src/core/contracts.ts";
 import {
+  pendingProposalForEvents,
   resolveWorkflowMaterial,
   runEventPresentation,
   runStatusLabel,
@@ -352,7 +353,7 @@ describe("workflow presentation policy", () => {
   });
 
 
-  it("preserves an explicitly selected workflow attempt while blockers remain the default", () => {
+  it("promotes current blocking attention above an explicitly selected historical attempt", () => {
     const selectedAttempt = stageRun("PLAN", "FAILED", 2, uuidB);
     const currentBlocker = stageRun("PLAN", "BLOCKED", 4, uuidC);
 
@@ -377,8 +378,50 @@ describe("workflow presentation policy", () => {
       },
     })).toEqual({
       kind: "STAGE_RUN",
-      runId: selectedAttempt.id,
+      runId: currentBlocker.id,
     });
+  });
+
+  it("discovers the latest unresolved canonical proposal from persisted events", () => {
+    const proposalA = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: `run_${uuidA}`,
+      sequence: 1,
+      occurredAt: stamp,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/a.md",
+        rationale: "First proposal",
+        unifiedDiff: "--- a/docs/a.md\n+++ b/docs/a.md\n",
+      },
+    });
+    const disposedA = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: `run_${uuidA}`,
+      sequence: 2,
+      occurredAt: stamp,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposalA.id,
+        disposition: "REJECTED",
+      },
+    });
+    const proposalB = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: `run_${uuidA}`,
+      sequence: 3,
+      occurredAt: stamp,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/b.md",
+        rationale: "Current proposal",
+        unifiedDiff: "--- a/docs/b.md\n+++ b/docs/b.md\n",
+      },
+    });
+
+    expect(pendingProposalForEvents([proposalA, disposedA, proposalB]))
+      .toEqual({ runId: proposalB.runId, eventId: proposalB.id });
+    expect(pendingProposalForEvents([proposalA, disposedA])).toBeNull();
   });
 
   it("returns an explicit unreached material without mutating lifecycle meaning", () => {
