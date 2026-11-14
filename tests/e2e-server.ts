@@ -195,6 +195,7 @@ const r3Sha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r
 const workItem = (
   title: string,
   stage:
+    | "IDEA"
     | "R1"
     | "R2"
     | "DESIGN"
@@ -273,6 +274,9 @@ const storePlanArtifacts = (workItemId: WorkItemId) => {
   storeArtifact(database, r3);
   return { plan, r3 };
 };
+
+const startResearchItem = workItem("Work request start success", "IDEA", "ACTIVE", null);
+storeWorkItem(database, startResearchItem);
 
 const proposalItem = workItem("Proposal review", "PLAN", "ACTIVE", null);
 storeWorkItem(database, proposalItem);
@@ -427,6 +431,54 @@ persistEvent(rejectionRun.id, 2, {
     `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
     "\n@@ -0,0 +1 @@\n+reject proposal\n",
   rationale: "Exercise the canonical Reject mutation.",
+});
+
+const adoptionPendingItem = workItem(
+  "Proposal adoption in progress",
+  "PLAN",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, adoptionPendingItem);
+const adoptionPendingRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: adoptionPendingItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "RUNNING",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("proposal-adoption-pending-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, adoptionPendingRun);
+persistEvent(adoptionPendingRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: adoptionPendingRun.contextHash,
+});
+const adoptionPendingProposal = persistEvent(adoptionPendingRun.id, 2, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md`,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" +
+    `${workItemsRoot}/${adoptionPendingItem.id}/implementation-plan.md` +
+    "\n@@ -0,0 +1 @@\n+pending adoption\n",
+  rationale: "Certify the canonical adoption-in-progress state.",
+});
+persistEvent(adoptionPendingRun.id, 3, {
+  tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+  proposalEventId: adoptionPendingProposal.id,
 });
 
 const retryItem = workItem("Workflow retry action", "PLAN", "ACTIVE", null);
