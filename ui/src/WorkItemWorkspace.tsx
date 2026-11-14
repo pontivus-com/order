@@ -23,6 +23,11 @@ import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
 } from "./primitives/WorkbenchState.tsx";
+import {
+  PrimaryMaterialFrame,
+  WorkflowStepFrame,
+  WorkflowStepSummary,
+} from "./WorkflowStepFrame.tsx";
 
 const DocumentWorkspace = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.DocumentWorkspace })));
@@ -52,6 +57,40 @@ type WorkspaceSelection = Readonly<{
   step: WorkItem["stage"];
   material: WorkflowMaterial | null;
 }>;
+
+const materialTitle = (
+  material: WorkflowMaterial,
+  stepLabel: string,
+): string => {
+  switch (material.kind) {
+    case "SOURCE_DOCUMENT":
+      return "Work request";
+    case "STAGE_RUN":
+      return stepLabel + " activity";
+    case "STAGE_DOCUMENT":
+      return stepLabel + " document";
+    case "PROPOSAL":
+      return "Proposal review";
+    case "READINESS_REVIEW":
+      return "Readiness review";
+    case "APPROVAL_PACKAGE":
+      return "Approval package";
+    case "EXECUTION_TASK":
+      return "Implementation task";
+    case "EVIDENCE":
+      return "Evidence";
+    case "TERMINAL_RESULT":
+      return "Final outcome";
+    case "STEP_STATE":
+    case "UNREACHED":
+      return stepLabel;
+  }
+};
+
+const startLabelForStage = (stage: WorkItem["stage"]): string =>
+  stage === "IDEA"
+    ? "Start Research"
+    : "Start " + workflowPresentation(stage).label;
 
 const contextModeForMaterial = (
   material: WorkflowMaterial,
@@ -193,6 +232,15 @@ export const WorkItemWorkspace = ({
         ? material.runId
         : null;
   const contextMode = contextModeForMaterial(material);
+  const selectedStepState = workflowStepState(workItem, selectedStep);
+  const selectedStateLabel =
+    selectedStepState === "CURRENT"
+      ? "Current"
+      : selectedStepState === "HISTORICAL"
+        ? "Reached"
+        : "Not reached";
+  const selectedStateVariant =
+    selectedStepState === "CURRENT" ? "info" as const : "neutral" as const;
 
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
@@ -417,6 +465,24 @@ export const WorkItemWorkspace = ({
     preSignoff.has(workItem.stage) &&
     workItem.status === "ACTIVE" &&
     !runs.some(runIsActive);
+  const startIsOwnedBySelectedStep =
+    selectedStep === workItem.stage && canStart;
+  const summaryBlocker =
+    selectedStep === "IDEA" && sourceDiagnostics[0]
+      ? {
+          status: "error" as const,
+          title: "Work request source needs attention",
+          description: sourceDiagnostics[0].detail,
+        }
+      : start.error && selectedStep === workItem.stage
+        ? {
+            status: "error" as const,
+            title: "Could not start current workflow step",
+            description: start.error instanceof Error
+              ? start.error.message
+              : String(start.error),
+          }
+        : null;
 
   const documentMaterial =
     material.kind === "SOURCE_DOCUMENT" ||
@@ -538,15 +604,6 @@ export const WorkItemWorkspace = ({
               disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
               onClick={() => setConfirmArchive(true)}
             />
-            {canStart ? (
-              <WorkbenchAction
-                label={"Start " + workflow.label}
-                tone="primary"
-                loading={start.isPending}
-                disabled={dirty}
-                onClick={() => start.mutate()}
-              />
-            ) : null}
           </div>
         </div>
       </header>
@@ -577,44 +634,52 @@ export const WorkItemWorkspace = ({
         })}
       </nav>
 
-      {sourceDiagnostics.length > 0 ? (
-        <div className="order-primary-blocker" role="alert" data-testid="work-item-source-blocker">
-          <div>
-            <strong>Work request source needs attention</strong>
-            <span>{sourceDiagnostics[0]?.detail}</span>
-          </div>
-          <WorkbenchAction
-            label="Open work request"
-            tone="primary"
-            onClick={() => requestSelection({ step: "IDEA", material: null })}
-          />
-          <details className="order-technical-details">
-            <summary>Technical details</summary>
-            {sourceDiagnostics.map((diagnostic) => (
-              <div key={diagnostic.code + (diagnostic.path ?? diagnostic.workItemId ?? "")}>
-                <code>{diagnostic.code}</code> · {diagnostic.path ?? diagnostic.workItemId ?? "source"}
-              </div>
-            ))}
-          </details>
-        </div>
-      ) : null}
-
-      {start.error ? (
-        <div className="order-primary-action-error">
-          <WorkbenchErrorState
-            title="Could not start current workflow step"
-            description={start.error instanceof Error ? start.error.message : String(start.error)}
-          />
-        </div>
-      ) : null}
-
       <div
         className="order-mode-canvas"
         role="region"
         aria-label={selectedWorkflow.label + " workspace"}
         data-testid="workflow-step-workspace"
       >
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
+        <WorkflowStepFrame
+          summary={
+            <WorkflowStepSummary
+              label={selectedWorkflow.label}
+              purpose={selectedWorkflow.purpose}
+              stateLabel={selectedStateLabel}
+              stateVariant={selectedStateVariant}
+              statusLabel={
+                selectedStepState === "CURRENT"
+                  ? workItem.status === "ACTIVE"
+                    ? "Active"
+                    : workItem.status === "BLOCKED"
+                      ? "Blocked"
+                      : "Complete"
+                  : undefined
+              }
+              statusVariant={
+                workItem.status === "BLOCKED"
+                  ? "error"
+                  : workItem.status === "COMPLETE"
+                    ? "success"
+                    : "neutral"
+              }
+              blocker={summaryBlocker}
+              action={
+                startIsOwnedBySelectedStep ? (
+                  <WorkbenchAction
+                    label={startLabelForStage(workItem.stage)}
+                    tone="primary"
+                    loading={start.isPending}
+                    disabled={dirty || start.isPending}
+                    onClick={() => start.mutate()}
+                  />
+                ) : undefined
+              }
+            />
+          }
+          primary={
+            <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
+              <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
           {documentMaterial ? (
             <DocumentWorkspace
               workItem={workItem}
@@ -712,7 +777,10 @@ export const WorkItemWorkspace = ({
               description="Workflow inspection does not create or promote lifecycle state."
             />
           ) : null}
-        </Suspense>
+              </Suspense>
+            </PrimaryMaterialFrame>
+          }
+        />
       </div>
 
       <AlertDialog
