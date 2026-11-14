@@ -972,6 +972,12 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await authenticate(page, request);
 
   await openWorkItem(page, "Proposal adoption in progress");
+  if (await page.getByTestId("proposal-review-workspace").count() === 0) {
+    await expect(page.getByTestId("stage-run-material")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Review proposed document change" })
+      .click();
+  }
   await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
   await expect(page.getByText("Adoption in progress", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
@@ -1281,7 +1287,11 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
       body: JSON.stringify(researchRun),
     });
   });
+  const startResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().includes("/api/work-items/" + startItem.id + "/runs"));
   await page.getByRole("button", { name: "Start Research", exact: true }).click();
+  await startResponse;
   await page.unroute(startPattern);
   await expect(
     page.getByTestId("workflow-progression")
@@ -1328,7 +1338,11 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   });
   const messageInput = page.getByLabel("Message input");
   await messageInput.fill("Keep the approved constraint.");
+  const inputResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().includes("/api/runs/" + inputRun!.id + "/input"));
   await messageInput.press("Enter");
+  await inputResponse;
   await page.unroute(inputPattern);
   await expect(
     page.locator('[data-event-tag="HUMAN_INPUT_RECEIVED"]'),
@@ -1355,7 +1369,11 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
       body: JSON.stringify(retryRun),
     });
   });
+  const retryResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().includes("/api/work-items/" + retryItem.id + "/runs"));
   await page.getByRole("button", { name: "Retry Implementation plan" }).click();
+  await retryResponse;
   await page.unroute(retryPattern);
   await expect(page.getByTestId("selected-run-header")).toContainText("Attempt 2");
   await expect(page.getByTestId("selected-run-header")).toContainText("Running");
@@ -1386,7 +1404,11 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
       body: "{}",
     });
   });
+  const tickResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().endsWith("/api/tick"));
   await page.getByRole("button", { name: "Run next implementation step" }).click();
+  await tickResponse;
   await page.unroute("**/api/tick");
   await expect(page.getByTestId("selected-run-header"))
     .toContainText("Implementation agent · Attempt 1");
