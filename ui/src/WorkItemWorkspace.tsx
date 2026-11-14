@@ -32,10 +32,10 @@ const SourceDocumentMaterial = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.SourceDocumentMaterial })));
 const LifecycleDocumentMaterial = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.LifecycleDocumentMaterial })));
-const ReadOnlyLifecycleDocumentMaterial = lazy(() =>
-  import("./DocumentWorkspace.tsx").then((module) => ({ default: module.ReadOnlyLifecycleDocumentMaterial })));
 const PreSignoffStageWorkspace = lazy(() =>
   import("./PreSignoffStageWorkspace.tsx").then((module) => ({ default: module.PreSignoffStageWorkspace })));
+const ReadinessWorkspace = lazy(() =>
+  import("./ReadinessWorkspace.tsx").then((module) => ({ default: module.ReadinessWorkspace })));
 const StageRunMaterial = lazy(() =>
   import("./ActivityWorkspace.tsx").then((module) => ({ default: module.StageRunMaterial })));
 const SignoffReview = lazy(() =>
@@ -677,6 +677,25 @@ export const WorkItemWorkspace = ({
               onContextDocumentChange={onContextDocumentChange}
             />
           </Suspense>
+        ) : selectedStep === "R3" ? (
+          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading readiness review…</strong></div>}>
+            <ReadinessWorkspace
+              workItem={workItem}
+              runs={runs}
+              artifacts={artifacts}
+              material={material}
+              summary={stepSummary}
+              onSelectMaterial={(nextMaterial) =>
+                requestSelection({
+                  step: "R3",
+                  material: nextMaterial,
+                })}
+              onOpenArtifactEvidence={openArtifactEvidence}
+              onOpenEvidence={openEvidence}
+              onReturnFromTransient={returnFromTransient}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          </Suspense>
         ) : (
           <WorkflowStepFrame
             summary={stepSummary}
@@ -699,43 +718,6 @@ export const WorkItemWorkspace = ({
               onContextDocumentChange={onContextDocumentChange}
             />
           ) : null}
-          {material.kind === "READINESS_REVIEW" ? (
-            (() => {
-              const readinessArtifact = artifacts.find((artifact) => artifact.role === "R3");
-              return readinessArtifact ? (
-                <ReadOnlyLifecycleDocumentMaterial
-                  workItem={workItem}
-                  artifactId={readinessArtifact.id}
-                  onOpenArtifactEvidence={openArtifactEvidence}
-                  onContextDocumentChange={onContextDocumentChange}
-                />
-              ) : (
-                <WorkbenchEmptyState
-                  compact
-                  title="Readiness review material is not available"
-                />
-              );
-            })()
-          ) : null}
-          {material.kind === "STAGE_RUN" ? (
-            <StageRunMaterial
-              workItem={workItem}
-              stage={selectedStep === "R1" || selectedStep === "R2" || selectedStep === "DESIGN" || selectedStep === "PLAN" || selectedStep === "R3" ? selectedStep : "R1"}
-              selectedRunId={material.runId}
-              onSelectedRunChange={(runId) => {
-                setExplicitMaterial({ kind: "STAGE_RUN", runId });
-              }}
-              onOpenEvidence={openEvidence}
-              onOpenProposalReview={openProposalReview}
-            />
-          ) : null}
-          {material.kind === "PROPOSAL" && proposal ? (
-            <ProposalReview
-              workItem={workItem}
-              selection={proposal}
-              onBack={returnFromTransient}
-            />
-          ) : null}
           {material.kind === "APPROVAL_PACKAGE" ? (
             <SignoffReview
               workItem={workItem}
@@ -749,12 +731,6 @@ export const WorkItemWorkspace = ({
             <ExecutionWorkspace
               workItem={workItem}
               onOpenEvidence={openEvidence}
-              onOpenActivity={(runId) => {
-                requestSelection({
-                  step: "EXECUTION",
-                  material: { kind: "STAGE_RUN", runId },
-                });
-              }}
             />
           ) : null}
           {material.kind === "EVIDENCE" ? (
@@ -768,12 +744,6 @@ export const WorkItemWorkspace = ({
               <ExecutionWorkspace
                 workItem={workItem}
                 onOpenEvidence={openEvidence}
-                onOpenActivity={(runId) => {
-                  requestSelection({
-                    step: "EXECUTION",
-                    material: { kind: "STAGE_RUN", runId },
-                  });
-                }}
               />
             ) : (
               <TerminalResult workItem={workItem} />
