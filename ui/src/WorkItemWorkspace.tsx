@@ -226,6 +226,21 @@ export const WorkItemWorkspace = ({
   ]);
 
   useEffect(() => {
+    if (
+      material.kind !== "SOURCE_DOCUMENT" &&
+      material.kind !== "STAGE_DOCUMENT" &&
+      material.kind !== "SUPPORTING_DOCUMENT" &&
+      selectedStep !== "AWAITING_SIGNOFF"
+    ) {
+      onContextDocumentChange(null, null);
+    }
+  }, [
+    materialIdentity,
+    onContextDocumentChange,
+    selectedStep,
+  ]);
+
+  useEffect(() => {
     if (dirty) return;
     const state = workflowStepState(workItem, selectedStep);
     if (
