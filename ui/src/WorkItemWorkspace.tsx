@@ -10,6 +10,7 @@ import {
   resolveWorkflowMaterial,
   runIsActive,
   runStatusLabel,
+  unresolvedHumanInput,
   workflowMaterialIdentity,
   workflowPresentation,
   workflowStepState,
@@ -200,6 +201,10 @@ export const WorkItemWorkspace = ({
   const pendingProposal = pendingProposalForEvents(
     proposalEventsQuery.data ?? [],
   );
+  const currentUnresolvedInput = unresolvedHumanInput(
+    proposalEventsQuery.data ?? [],
+  );
+
   const selectedTaskId =
     explicitMaterial?.kind === "EXECUTION_TASK"
       ? explicitMaterial.taskId
@@ -219,6 +224,12 @@ export const WorkItemWorkspace = ({
     runs,
     artifacts,
     pendingProposal,
+    unresolvedInputRunId:
+      sharedPreSignoffStage === null
+        ? undefined
+        : currentUnresolvedInput
+          ? currentProposalRun?.id ?? null
+          : null,
     approvalPackageAvailable: signoffPackageQuery.data != null,
     tasks,
     selectedTaskId,
