@@ -36,12 +36,8 @@ const PreSignoffStageWorkspace = lazy(() =>
   import("./PreSignoffStageWorkspace.tsx").then((module) => ({ default: module.PreSignoffStageWorkspace })));
 const ReadinessWorkspace = lazy(() =>
   import("./ReadinessWorkspace.tsx").then((module) => ({ default: module.ReadinessWorkspace })));
-const StageRunMaterial = lazy(() =>
-  import("./ActivityWorkspace.tsx").then((module) => ({ default: module.StageRunMaterial })));
 const SignoffReview = lazy(() =>
   import("./SignoffReview.tsx").then((module) => ({ default: module.SignoffReview })));
-const ProposalReview = lazy(() =>
-  import("./ProposalReview.tsx").then((module) => ({ default: module.ProposalReview })));
 const ExecutionWorkspace = lazy(() =>
   import("./ExecutionWorkspace.tsx").then((module) => ({ default: module.ExecutionWorkspace })));
 const EvidenceViewer = lazy(() =>
@@ -225,10 +221,6 @@ export const WorkItemWorkspace = ({
 
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
-  const proposal: ProposalSelection | null =
-    material.kind === "PROPOSAL"
-      ? { runId: material.runId, eventId: material.eventId }
-      : null;
   const activityRunId =
     material.kind === "STAGE_RUN"
       ? material.runId
