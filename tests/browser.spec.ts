@@ -1093,7 +1093,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await failureIndex.getByText("Attempt 2", { exact: true }).click();
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
   await expect(
-    page.getByText("Technical diagnostics recorded", { exact: true }),
+    page.getByText("Technical diagnostics available", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "Evidence: provider-diagnostics.json" }),
@@ -1204,7 +1204,7 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   const proposalIndex = page.getByTestId("workflow-step-index");
   await proposalIndex.getByText("Attempt 1", { exact: true }).click();
   await expect(
-    page.getByText("Document review requested", { exact: true }),
+    page.getByText("Document adoption in progress", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText("Document change adopted", { exact: true }),
