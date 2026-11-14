@@ -351,6 +351,36 @@ describe("workflow presentation policy", () => {
     });
   });
 
+
+  it("preserves an explicitly selected workflow attempt while blockers remain the default", () => {
+    const selectedAttempt = stageRun("PLAN", "FAILED", 2, uuidB);
+    const currentBlocker = stageRun("PLAN", "BLOCKED", 4, uuidC);
+
+    expect(resolveWorkflowMaterial({
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN",
+      runs: [selectedAttempt, currentBlocker],
+      artifacts: [],
+    })).toEqual({
+      kind: "STAGE_RUN",
+      runId: currentBlocker.id,
+    });
+
+    expect(resolveWorkflowMaterial({
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN",
+      runs: [selectedAttempt, currentBlocker],
+      artifacts: [],
+      explicitSelection: {
+        kind: "STAGE_RUN",
+        runId: selectedAttempt.id,
+      },
+    })).toEqual({
+      kind: "STAGE_RUN",
+      runId: selectedAttempt.id,
+    });
+  });
+
   it("returns an explicit unreached material without mutating lifecycle meaning", () => {
     expect(resolveWorkflowMaterial({
       workItem: workItem("R1"),
