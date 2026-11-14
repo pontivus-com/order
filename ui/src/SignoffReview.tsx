@@ -8,6 +8,7 @@ import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type {
   ArtifactRef,
+  ExecutionTask,
   Sha256,
   SignedTaskDefinition,
   WorkItem,
@@ -98,6 +99,69 @@ const TaskDetail = ({
   </section>
 );
 
+const HistoricalTaskDetail = ({
+  task,
+}: Readonly<{
+  task: ExecutionTask;
+}>) => (
+  <section className="order-approval-task-detail" data-testid="approval-task-detail">
+    <div className="order-section-heading">
+      <div>
+        <h2>{task.planTaskId}</h2>
+        <span>{task.objective}</span>
+      </div>
+    </div>
+    <MetadataList columns="multi">
+      <MetadataListItem label="Approval">
+        <code>{task.approvalId}</code>
+      </MetadataListItem>
+      <MetadataListItem label="Execution state">
+        {task.state.replaceAll("_", " ").toLowerCase()}
+      </MetadataListItem>
+      <MetadataListItem label="Depends on">
+        {task.dependsOn.length > 0 ? task.dependsOn.join(", ") : "None"}
+      </MetadataListItem>
+      <MetadataListItem label="Gates">
+        {task.gateIds.length > 0 ? task.gateIds.join(", ") : "None"}
+      </MetadataListItem>
+      <MetadataListItem label="Concerns">
+        {task.concernIds.length > 0 ? task.concernIds.join(", ") : "None"}
+      </MetadataListItem>
+      <MetadataListItem label="Acceptance">
+        {task.acceptanceRefs.length > 0
+          ? task.acceptanceRefs.join(", ")
+          : "None"}
+      </MetadataListItem>
+    </MetadataList>
+    <div className="order-approval-task-sections">
+      <section>
+        <h3>Scope</h3>
+        {task.scope.length > 0 ? (
+          <ul>{task.scope.map((value) => <li key={value}><code>{value}</code></li>)}</ul>
+        ) : <p>None</p>}
+      </section>
+      <section>
+        <h3>Exclusions</h3>
+        {task.exclusions.length > 0 ? (
+          <ul>{task.exclusions.map((value) => <li key={value}><code>{value}</code></li>)}</ul>
+        ) : <p>None</p>}
+      </section>
+      <section>
+        <h3>Change surface</h3>
+        <ul>
+          {task.changeSurface.map((value) => <li key={value}><code>{value}</code></li>)}
+        </ul>
+      </section>
+      <section>
+        <h3>Authority</h3>
+        <ul>
+          {task.authorityRefs.map((value) => <li key={value}><code>{value}</code></li>)}
+        </ul>
+      </section>
+    </div>
+  </section>
+);
+
 export const SignoffReview = ({
   workItem,
   summary,
@@ -115,15 +179,22 @@ export const SignoffReview = ({
   });
   const [approvedBy, setApprovedBy] = useState("");
 
+  const currentApproval = workItem.stage === "AWAITING_SIGNOFF";
+
   const packageQuery = useQuery({
     queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
     queryFn: () => api.getSignoffPackage(workItem.id),
-    enabled: workItem.stage === "AWAITING_SIGNOFF",
+    enabled: currentApproval,
   });
   const artifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
-    enabled: workItem.stage === "AWAITING_SIGNOFF",
+    enabled: true,
+  });
+  const tasksQuery = useQuery({
+    queryKey: workbenchQueryKeys.tasks(workItem.id),
+    queryFn: () => api.listExecutionTasks(workItem.id),
+    enabled: !currentApproval,
   });
 
   const packageArtifacts = (artifactsQuery.data ?? [])
@@ -134,9 +205,17 @@ export const SignoffReview = ({
     selection.kind === "DOCUMENT"
       ? packageArtifacts.find((artifact) => artifact.id === selection.artifactId) ?? null
       : null;
-  const selectedTask =
-    selection.kind === "TASK"
-      ? packageQuery.data?.taskBlock.tasks.find((task) => task.id === selection.taskId) ?? null
+  const selectedCurrentTask =
+    selection.kind === "TASK" && currentApproval
+      ? packageQuery.data?.taskBlock.tasks.find(
+          (task) => task.id === selection.taskId,
+        ) ?? null
+      : null;
+  const selectedHistoricalTask =
+    selection.kind === "TASK" && !currentApproval
+      ? (tasksQuery.data ?? []).find(
+          (task) => task.id === selection.taskId,
+        ) ?? null
       : null;
 
   useEffect(() => {
@@ -203,34 +282,63 @@ export const SignoffReview = ({
     });
   }
 
-  if (packageQuery.data?.taskBlock.tasks.length) {
+  const currentTasks = packageQuery.data?.taskBlock.tasks ?? [];
+  const historicalTasks = tasksQuery.data ?? [];
+  if (
+    (currentApproval && currentTasks.length > 0) ||
+    (!currentApproval && historicalTasks.length > 0)
+  ) {
     groups.push({
       id: "tasks",
       label: "Signed tasks",
-      items: packageQuery.data.taskBlock.tasks.map((task) => ({
-        id: task.id,
-        label: task.id,
-        description: task.objective,
-        selected: selection.kind === "TASK" && selection.taskId === task.id,
-        onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
-      })),
+      items: currentApproval
+        ? currentTasks.map((task) => ({
+            id: task.id,
+            label: task.id,
+            description: task.objective,
+            selected: selection.kind === "TASK" && selection.taskId === task.id,
+            onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
+          }))
+        : historicalTasks.map((task) => ({
+            id: task.id,
+            label: task.planTaskId,
+            description: task.objective,
+            selected: selection.kind === "TASK" && selection.taskId === task.id,
+            onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
+          })),
     });
   }
 
   const primary = (() => {
-    if (packageQuery.isPending || artifactsQuery.isPending) {
-      return <WorkbenchEmptyState compact title="Resolving exact package…" />;
+    if (
+      artifactsQuery.isPending ||
+      (currentApproval ? packageQuery.isPending : tasksQuery.isPending)
+    ) {
+      return (
+        <WorkbenchEmptyState
+          compact
+          title={currentApproval
+            ? "Resolving exact package…"
+            : "Loading approved package history…"}
+        />
+      );
     }
-    if (packageQuery.isError || artifactsQuery.isError) {
-      const error = packageQuery.error ?? artifactsQuery.error;
+    if (
+      artifactsQuery.isError ||
+      (currentApproval ? packageQuery.isError : tasksQuery.isError)
+    ) {
+      const error = artifactsQuery.error ??
+        (currentApproval ? packageQuery.error : tasksQuery.error);
       return (
         <WorkbenchErrorState
-          title="Package is not current"
+          title={currentApproval
+            ? "Package is not current"
+            : "Approved package history unavailable"}
           description={error instanceof Error ? error.message : String(error)}
         />
       );
     }
-    if (!packageQuery.data) {
+    if (currentApproval && !packageQuery.data) {
       return (
         <WorkbenchEmptyState
           title="No current sign-off package"
@@ -256,10 +364,51 @@ export const SignoffReview = ({
     }
 
     if (selection.kind === "TASK") {
-      return selectedTask ? (
-        <TaskDetail task={selectedTask} />
+      if (currentApproval) {
+        return selectedCurrentTask ? (
+          <TaskDetail task={selectedCurrentTask} />
+        ) : (
+          <WorkbenchEmptyState compact title="Signed task is no longer current" />
+        );
+      }
+      return selectedHistoricalTask ? (
+        <HistoricalTaskDetail task={selectedHistoricalTask} />
       ) : (
-        <WorkbenchEmptyState compact title="Signed task is no longer current" />
+        <WorkbenchEmptyState compact title="Approved task is unavailable" />
+      );
+    }
+
+    if (!currentApproval) {
+      return (
+        <section
+          className="order-workspace-section order-approval-overview"
+          data-testid="review-workspace"
+        >
+          <div className="order-section-heading">
+            <div>
+              <h2>Approved package history</h2>
+              <span>
+                {historicalTasks.length} signed task
+                {historicalTasks.length === 1 ? "" : "s"} · approval completed
+              </span>
+            </div>
+          </div>
+          <p>
+            Signed task and governed document material remains inspectable here.
+            Exact package hash and baseline are current-Approval facts and are
+            not re-derived after sign-off.
+          </p>
+        </section>
+      );
+    }
+
+    const packageValue = packageQuery.data;
+    if (!packageValue) {
+      return (
+        <WorkbenchEmptyState
+          title="No current sign-off package"
+          description="Approval remains blocked until the exact package is current."
+        />
       );
     }
 
@@ -269,8 +418,8 @@ export const SignoffReview = ({
           <div>
             <h2>Exact approval package</h2>
             <span>
-              {packageQuery.data.taskBlock.tasks.length} signed task
-              {packageQuery.data.taskBlock.tasks.length === 1 ? "" : "s"} · package current
+              {packageValue.taskBlock.tasks.length} signed task
+              {packageValue.taskBlock.tasks.length === 1 ? "" : "s"} · package current
             </span>
           </div>
         </div>
@@ -281,13 +430,13 @@ export const SignoffReview = ({
           data-testid="approval-package-metadata"
         >
           <MetadataListItem label="Package">
-            <code data-testid="signoff-package-hash">{packageQuery.data.packageHash}</code>
+            <code data-testid="signoff-package-hash">{packageValue.packageHash}</code>
           </MetadataListItem>
           <MetadataListItem label="Source">
-            <code>{packageQuery.data.sourceSha256}</code>
+            <code>{packageValue.sourceSha256}</code>
           </MetadataListItem>
           <MetadataListItem label="Baseline">
-            <code>{packageQuery.data.baselineCommit}</code>
+            <code>{packageValue.baselineCommit}</code>
           </MetadataListItem>
         </MetadataList>
 
