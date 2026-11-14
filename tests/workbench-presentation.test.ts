@@ -391,6 +391,9 @@ describe("workflow presentation policy", () => {
       event: {
         tag: "ARTIFACT_PROPOSAL_CREATED",
         targetPath: "docs/a.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
         rationale: "First proposal",
         unifiedDiff: "--- a/docs/a.md\n+++ b/docs/a.md\n",
       },
@@ -404,6 +407,7 @@ describe("workflow presentation policy", () => {
         tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
         proposalEventId: proposalA.id,
         disposition: "REJECTED",
+        adoptedArtifactRefId: null,
       },
     });
     const proposalB = RunEventSchema.parse({
@@ -414,6 +418,9 @@ describe("workflow presentation policy", () => {
       event: {
         tag: "ARTIFACT_PROPOSAL_CREATED",
         targetPath: "docs/b.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
         rationale: "Current proposal",
         unifiedDiff: "--- a/docs/b.md\n+++ b/docs/b.md\n",
       },
