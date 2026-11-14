@@ -472,7 +472,7 @@ export const LifecycleDocumentMaterial = ({
               label="Inspect exact bytes"
               onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}
             />
-            <DocumentationControls dirty={dirty} state={git} />
+            {!readOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
           </div>
         </div>
       ) : (
@@ -500,7 +500,9 @@ export const LifecycleDocumentMaterial = ({
             return result;
           }}
           toolbarAccessory={
-            <DocumentationControls dirty={dirty} state={git} />
+            readOnly
+              ? undefined
+              : <DocumentationControls dirty={dirty} state={git} />
           }
           technicalDetails={
             <DocumentationTechnicalDetails
@@ -510,7 +512,7 @@ export const LifecycleDocumentMaterial = ({
           }
         />
       )}
-      <DocumentationGitConfirmation state={git} />
+      {!readOnly ? <DocumentationGitConfirmation state={git} /> : null}
     </section>
   );
 };
