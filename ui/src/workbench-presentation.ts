@@ -8,14 +8,6 @@ import type {
   WorkItem,
 } from "../../src/core/contracts.ts";
 
-export type WorkItemMode =
-  | "DOCUMENTS"
-  | "ACTIVITY"
-  | "REVIEW"
-  | "EXECUTION"
-  | "EVIDENCE"
-  | "RESULT";
-
 export type ProposalSelection = Readonly<{
   runId: Run["id"];
   eventId: RunEventId;
@@ -38,19 +30,6 @@ export type WorkflowStepPresentation = Readonly<{
   label: string;
   purpose: string;
 }>;
-
-export type WorkflowDocumentTarget =
-  | "SOURCE"
-  | "R1"
-  | "R2"
-  | "DESIGN"
-  | "PLAN"
-  | "R3";
-
-export type WorkflowInspectionTarget =
-  | Readonly<{ kind: "DOCUMENT"; document: WorkflowDocumentTarget }>
-  | Readonly<{ kind: "MODE"; mode: "REVIEW" | "EXECUTION" | "RESULT" }>
-  | Readonly<{ kind: "UNREACHED"; step: WorkItem["stage"] }>;
 
 export const workflowSteps: readonly WorkflowStepPresentation[] = [
   { stage: "IDEA", label: "Work request", purpose: "Define the work that needs attention" },
@@ -92,6 +71,43 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "TERMINAL_RESULT" }>
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
+
+export const workflowMaterialLabel = (
+  material: WorkflowMaterial,
+): string => {
+  switch (material.kind) {
+    case "SOURCE_DOCUMENT": return "Work request";
+    case "STAGE_RUN": return "Workflow attempt";
+    case "STAGE_DOCUMENT": return "Governed document";
+    case "SUPPORTING_DOCUMENT": return "Supporting document";
+    case "PROPOSAL": return "Proposal review";
+    case "READINESS_REVIEW": return "Readiness review";
+    case "APPROVAL_PACKAGE": return "Approval package";
+    case "EXECUTION_TASK": return "Implementation task";
+    case "EVIDENCE": return "Evidence";
+    case "TERMINAL_RESULT": return "Final outcome";
+    case "STEP_STATE": return "Workflow step";
+    case "UNREACHED": return "Not yet reached";
+  }
+};
+
+export const workflowMaterialRunId = (
+  material: WorkflowMaterial,
+): Run["id"] | null => {
+  switch (material.kind) {
+    case "STAGE_RUN":
+    case "PROPOSAL":
+      return material.runId;
+    case "EXECUTION_TASK":
+      return material.runId;
+    case "EVIDENCE":
+      return material.selection.kind === "EVIDENCE"
+        ? material.selection.runId
+        : null;
+    default:
+      return null;
+  }
+};
 
 export type WorkflowMaterialResolutionInput = Readonly<{
   workItem: Pick<WorkItem, "stage" | "status" | "outcome">;
@@ -384,39 +400,6 @@ export const resolveWorkflowMaterial = (
   return { kind: "TERMINAL_RESULT" };
 };
 
-export const workflowInspectionTarget = (
-  workItem: Pick<WorkItem, "stage" | "outcome">,
-  step: WorkflowStepPresentation,
-): WorkflowInspectionTarget => {
-  const currentIndex = workflowSteps.findIndex((item) => item.stage === workItem.stage);
-  const targetIndex = workflowSteps.findIndex((item) => item.stage === step.stage);
-  if (currentIndex < 0 || targetIndex < 0) {
-    throw new TypeError("unknown workflow presentation stage");
-  }
-  if (targetIndex > currentIndex) {
-    return { kind: "UNREACHED", step: step.stage };
-  }
-  switch (step.stage) {
-    case "IDEA":
-      return { kind: "DOCUMENT", document: "SOURCE" };
-    case "R1":
-    case "R2":
-    case "DESIGN":
-    case "PLAN":
-    case "R3":
-      return { kind: "DOCUMENT", document: step.stage };
-    case "AWAITING_SIGNOFF":
-      return { kind: "MODE", mode: "REVIEW" };
-    case "EXECUTION":
-      return { kind: "MODE", mode: "EXECUTION" };
-    case "COMPLETE":
-      return {
-        kind: "MODE",
-        mode: workItem.outcome === "CANDIDATE_DONE" ? "EXECUTION" : "RESULT",
-      };
-  }
-};
-
 export const runIsActive = (
   run: Pick<Run, "status">,
 ): boolean =>
@@ -612,41 +595,5 @@ export const lifecycleArtifactLabel = (
     case "R3": return workflowPresentation("R3").label;
     case "GOVERNANCE": return "Governance";
     case "VERIFICATION_MATERIAL": return "Verification material";
-  }
-};
-
-export const workItemInitialMode = (
-  workItem: Pick<WorkItem, "stage" | "outcome">,
-  runs: readonly Pick<Run, "status">[] = [],
-): WorkItemMode => {
-  if (runs.some(runIsActive) || runs.some(runNeedsAttention)) return "ACTIVITY";
-  if (workItem.stage === "AWAITING_SIGNOFF") return "REVIEW";
-  if (workItem.stage === "EXECUTION") return "EXECUTION";
-  if (workItem.stage === "COMPLETE") {
-    return workItem.outcome === "CANDIDATE_DONE" ? "EXECUTION" : "RESULT";
-  }
-  return "DOCUMENTS";
-};
-
-export const workItemModeIsKnown = (
-  value: string,
-): value is WorkItemMode =>
-  value === "DOCUMENTS" ||
-  value === "ACTIVITY" ||
-  value === "REVIEW" ||
-  value === "EXECUTION" ||
-  value === "EVIDENCE" ||
-  value === "RESULT";
-
-export const workItemModeLabel = (
-  mode: WorkItemMode,
-): string => {
-  switch (mode) {
-    case "DOCUMENTS": return "Documents";
-    case "ACTIVITY": return "Activity";
-    case "REVIEW": return "Review";
-    case "EXECUTION": return "Implementation";
-    case "EVIDENCE": return "Evidence";
-    case "RESULT": return "Result";
   }
 };
