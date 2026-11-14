@@ -1,6 +1,7 @@
 import type {
   ArtifactRef,
   EvidencePath,
+  ExecutionTask,
   Run,
   RunEvent,
   RunEventId,
@@ -71,6 +72,306 @@ export const workflowPresentation = (
   return found;
 };
 
+
+export type WorkflowStepState = "CURRENT" | "HISTORICAL" | "UNREACHED";
+
+export type WorkflowMaterial =
+  | Readonly<{ kind: "SOURCE_DOCUMENT" }>
+  | Readonly<{ kind: "STAGE_RUN"; runId: Run["id"] }>
+  | Readonly<{ kind: "STAGE_DOCUMENT"; artifactId: ArtifactRef["id"] }>
+  | Readonly<{ kind: "PROPOSAL"; runId: Run["id"]; eventId: RunEventId }>
+  | Readonly<{ kind: "READINESS_REVIEW" }>
+  | Readonly<{ kind: "APPROVAL_PACKAGE" }>
+  | Readonly<{
+      kind: "EXECUTION_TASK";
+      taskId: ExecutionTask["id"];
+      runId: Run["id"] | null;
+    }>
+  | Readonly<{ kind: "EVIDENCE"; selection: EvidenceSelection }>
+  | Readonly<{ kind: "TERMINAL_RESULT" }>
+  | Readonly<{ kind: "STEP_STATE" }>
+  | Readonly<{ kind: "UNREACHED" }>;
+
+export type WorkflowMaterialResolutionInput = Readonly<{
+  workItem: Pick<WorkItem, "stage" | "status" | "outcome">;
+  selectedStep: WorkItem["stage"];
+  runs: readonly Run[];
+  artifacts: readonly ArtifactRef[];
+  unresolvedInputRunId?: Run["id"] | null;
+  pendingProposal?: ProposalSelection | null;
+  approvalPackageAvailable?: boolean;
+  tasks?: readonly ExecutionTask[];
+  selectedTaskId?: ExecutionTask["id"] | null;
+  selectedRunId?: Run["id"] | null;
+  explicitSelection?: WorkflowMaterial | null;
+  dirtyDocument?: boolean;
+}>;
+
+const workflowStepIndex = (stage: WorkItem["stage"]): number => {
+  const index = workflowSteps.findIndex((step) => step.stage === stage);
+  if (index < 0) throw new TypeError(`unknown WorkItem stage: ${stage}`);
+  return index;
+};
+
+export const workflowStepState = (
+  workItem: Pick<WorkItem, "stage">,
+  selectedStep: WorkItem["stage"],
+): WorkflowStepState => {
+  const current = workflowStepIndex(workItem.stage);
+  const selected = workflowStepIndex(selectedStep);
+  if (selected === current) return "CURRENT";
+  return selected < current ? "HISTORICAL" : "UNREACHED";
+};
+
+const runOrder = (left: Run, right: Run): number =>
+  left.attempt - right.attempt ||
+  left.startedAt.localeCompare(right.startedAt) ||
+  left.id.localeCompare(right.id);
+
+const latestRun = (
+  runs: readonly Run[],
+  predicate: (run: Run) => boolean,
+): Run | null =>
+  [...runs].filter(predicate).sort(runOrder).at(-1) ?? null;
+
+const stageArtifact = (
+  artifacts: readonly ArtifactRef[],
+  stage: WorkItem["stage"],
+): ArtifactRef | null => {
+  if (
+    stage !== "R1" &&
+    stage !== "R2" &&
+    stage !== "DESIGN" &&
+    stage !== "PLAN" &&
+    stage !== "R3"
+  ) {
+    return null;
+  }
+  return artifacts.find((artifact) => artifact.role === stage) ?? null;
+};
+
+const selectedMaterialIsAvailable = (
+  input: WorkflowMaterialResolutionInput,
+  selection: WorkflowMaterial,
+): boolean => {
+  const stepState = workflowStepState(input.workItem, input.selectedStep);
+  if (stepState === "UNREACHED") return selection.kind === "UNREACHED";
+
+  switch (selection.kind) {
+    case "SOURCE_DOCUMENT":
+      return input.selectedStep === "IDEA";
+    case "STAGE_RUN":
+      return input.runs.some(
+        (run) => run.id === selection.runId && run.stage === input.selectedStep,
+      );
+    case "STAGE_DOCUMENT": {
+      const artifact = input.artifacts.find(
+        (candidate) => candidate.id === selection.artifactId,
+      );
+      return artifact !== undefined && artifact.role === input.selectedStep;
+    }
+    case "PROPOSAL": {
+      if (
+        input.pendingProposal?.runId !== selection.runId ||
+        input.pendingProposal.eventId !== selection.eventId
+      ) {
+        return false;
+      }
+      return input.runs.some(
+        (run) => run.id === selection.runId && run.stage === input.selectedStep,
+      );
+    }
+    case "READINESS_REVIEW":
+      return input.selectedStep === "R3";
+    case "APPROVAL_PACKAGE":
+      return input.selectedStep === "AWAITING_SIGNOFF" &&
+        input.approvalPackageAvailable === true;
+    case "EXECUTION_TASK":
+      return input.selectedStep === "EXECUTION" &&
+        (input.tasks ?? []).some((task) => task.id === selection.taskId) &&
+        (
+          selection.runId === null ||
+          input.runs.some(
+            (run) =>
+              run.id === selection.runId &&
+              run.executionTaskId === selection.taskId,
+          )
+        );
+    case "EVIDENCE":
+      return true;
+    case "TERMINAL_RESULT":
+      return input.selectedStep === "COMPLETE" &&
+        input.workItem.stage === "COMPLETE";
+    case "STEP_STATE":
+      return true;
+    case "UNREACHED":
+      return stepState === "UNREACHED";
+  }
+};
+
+const selectedStageRun = (
+  input: WorkflowMaterialResolutionInput,
+  status: "attention" | "active",
+): Run | null =>
+  latestRun(
+    input.runs,
+    (run) =>
+      run.stage === input.selectedStep &&
+      run.role === "STAGE" &&
+      (
+        status === "attention"
+          ? runNeedsAttention(run)
+          : runIsActive(run)
+      ),
+  );
+
+const unresolvedInputRun = (
+  input: WorkflowMaterialResolutionInput,
+): Run | null => {
+  const id = input.unresolvedInputRunId ?? null;
+  if (id === null) return null;
+  return input.runs.find(
+    (run) =>
+      run.id === id &&
+      run.stage === input.selectedStep &&
+      run.role === "STAGE" &&
+      run.status === "WAITING_FOR_INPUT",
+  ) ?? null;
+};
+
+const selectedExecutionTask = (
+  input: WorkflowMaterialResolutionInput,
+): ExecutionTask | null => {
+  const tasks = input.tasks ?? [];
+  const selectedTaskId = input.selectedTaskId ?? null;
+  if (selectedTaskId !== null) {
+    const selected = tasks.find((task) => task.id === selectedTaskId);
+    if (selected) return selected;
+  }
+  const activeTaskRun = latestRun(
+    input.runs,
+    (run) =>
+      run.executionTaskId !== null &&
+      (runIsActive(run) || runNeedsAttention(run)),
+  );
+  if (activeTaskRun?.executionTaskId) {
+    const activeTask = tasks.find(
+      (task) => task.id === activeTaskRun.executionTaskId,
+    );
+    if (activeTask) return activeTask;
+  }
+  return tasks.find((task) => task.state === "RUNNING" || task.state === "BLOCKED") ??
+    tasks.at(0) ??
+    null;
+};
+
+const selectedExecutionRun = (
+  input: WorkflowMaterialResolutionInput,
+  task: ExecutionTask,
+): Run | null => {
+  const selectedRunId = input.selectedRunId ?? null;
+  if (selectedRunId !== null) {
+    const selected = input.runs.find(
+      (run) =>
+        run.id === selectedRunId &&
+        run.executionTaskId === task.id,
+    );
+    if (selected) return selected;
+  }
+  return latestRun(
+    input.runs,
+    (run) => run.executionTaskId === task.id,
+  );
+};
+
+export const resolveWorkflowMaterial = (
+  input: WorkflowMaterialResolutionInput,
+): WorkflowMaterial => {
+  const stepState = workflowStepState(input.workItem, input.selectedStep);
+  if (stepState === "UNREACHED") return { kind: "UNREACHED" };
+
+  const explicit = input.explicitSelection ?? null;
+  if (
+    explicit !== null &&
+    selectedMaterialIsAvailable(input, explicit)
+  ) {
+    return explicit;
+  }
+
+  if (input.selectedStep === "IDEA") return { kind: "SOURCE_DOCUMENT" };
+
+  if (
+    input.selectedStep === "R1" ||
+    input.selectedStep === "R2" ||
+    input.selectedStep === "DESIGN" ||
+    input.selectedStep === "PLAN"
+  ) {
+    const artifact = stageArtifact(input.artifacts, input.selectedStep);
+    if (stepState === "HISTORICAL") {
+      if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
+      const historicalRun = latestRun(
+        input.runs,
+        (run) => run.stage === input.selectedStep && run.role === "STAGE",
+      );
+      return historicalRun
+        ? { kind: "STAGE_RUN", runId: historicalRun.id }
+        : { kind: "STEP_STATE" };
+    }
+
+    const attentionRun = selectedStageRun(input, "attention");
+    if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
+
+    const inputRun = unresolvedInputRun(input);
+    if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+
+    const proposal = input.pendingProposal ?? null;
+    if (
+      proposal !== null &&
+      input.runs.some(
+        (run) => run.id === proposal.runId && run.stage === input.selectedStep,
+      )
+    ) {
+      return {
+        kind: "PROPOSAL",
+        runId: proposal.runId,
+        eventId: proposal.eventId,
+      };
+    }
+
+    const activeRun = selectedStageRun(input, "active");
+    if (activeRun) return { kind: "STAGE_RUN", runId: activeRun.id };
+    if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
+    return { kind: "STEP_STATE" };
+  }
+
+  if (input.selectedStep === "R3") {
+    const attentionRun = selectedStageRun(input, "attention");
+    if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
+    const inputRun = unresolvedInputRun(input);
+    if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+    return { kind: "READINESS_REVIEW" };
+  }
+
+  if (input.selectedStep === "AWAITING_SIGNOFF") {
+    return input.approvalPackageAvailable === true
+      ? { kind: "APPROVAL_PACKAGE" }
+      : { kind: "STEP_STATE" };
+  }
+
+  if (input.selectedStep === "EXECUTION") {
+    const task = selectedExecutionTask(input);
+    if (!task) return { kind: "STEP_STATE" };
+    const run = selectedExecutionRun(input, task);
+    return {
+      kind: "EXECUTION_TASK",
+      taskId: task.id,
+      runId: run?.id ?? null,
+    };
+  }
+
+  return { kind: "TERMINAL_RESULT" };
+};
+
 export const workflowInspectionTarget = (
   workItem: Pick<WorkItem, "stage" | "outcome">,
   step: WorkflowStepPresentation,
@@ -123,6 +424,8 @@ export const runStatusLabel = (status: Run["status"]): string => {
     case "FAILED": return "Failed";
     case "CANCELLED": return "Cancelled";
   }
+  const exhaustive: never = status;
+  return exhaustive;
 };
 
 export const runRoleLabel = (role: Run["role"]): string => {
@@ -235,6 +538,8 @@ export const runEventPresentation = (
     case "OBSERVATION_RECORDED":
       return { label: payload.title, detail: payload.detail, tone: "neutral" };
   }
+  const exhaustive: never = payload;
+  return exhaustive;
 };
 
 export const eventEvidence = (
