@@ -198,7 +198,7 @@ export const TerminalResult = ({
                     " · " +
                     candidate.role.toLowerCase()
                   }
-                  actionLabel={"Open " + candidate.evidence.relativePath}
+                  actionLabel={"Evidence: " + candidate.evidence.relativePath}
                   onOpen={() =>
                     onOpenEvidence({
                       kind: "EVIDENCE",
