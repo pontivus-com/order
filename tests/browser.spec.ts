@@ -1316,17 +1316,23 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(reject).toBeVisible();
 
   let releaseAdopt = (): void => {};
+  let markAdoptHandled = (): void => {};
   const adoptBarrier = new Promise<void>((resolve) => {
     releaseAdopt = resolve;
+  });
+  const adoptHandled = new Promise<void>((resolve) => {
+    markAdoptHandled = resolve;
   });
   await page.route("**/api/run-events/*/adopt", async (route) => {
     await adoptBarrier;
     await route.continue();
+    markAdoptHandled();
   });
   await adopt.click();
   await expect(adopt).toBeDisabled();
   await expect(reject).toBeDisabled();
   releaseAdopt();
+  await adoptHandled;
   await expect(page.getByTestId("stage-run-material")).toBeVisible({
     timeout: 5_000,
   });
@@ -1351,17 +1357,23 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   const rejectAction = page.getByRole("button", { name: "Reject" });
   const adoptAction = page.getByRole("button", { name: "Adopt" });
   let releaseReject = (): void => {};
+  let markRejectHandled = (): void => {};
   const rejectBarrier = new Promise<void>((resolve) => {
     releaseReject = resolve;
+  });
+  const rejectHandled = new Promise<void>((resolve) => {
+    markRejectHandled = resolve;
   });
   await page.route("**/api/run-events/*/reject", async (route) => {
     await rejectBarrier;
     await route.continue();
+    markRejectHandled();
   });
   await rejectAction.click();
   await expect(rejectAction).toBeDisabled();
   await expect(adoptAction).toBeDisabled();
   releaseReject();
+  await rejectHandled;
   await expect(page.getByTestId("stage-run-material")).toBeVisible({
     timeout: 5_000,
   });
@@ -1398,17 +1410,23 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
 
   const signoff = page.getByRole("button", { name: "Sign off exact package" });
   let releaseSignoff = (): void => {};
+  let markSignoffHandled = (): void => {};
   const signoffBarrier = new Promise<void>((resolve) => {
     releaseSignoff = resolve;
+  });
+  const signoffHandled = new Promise<void>((resolve) => {
+    markSignoffHandled = resolve;
   });
   await page.route("**/api/work-items/*/signoff", async (route) => {
     await signoffBarrier;
     await route.continue();
+    markSignoffHandled();
   });
   await signoff.click();
   await expect(signoff).toBeDisabled();
   await expect(page.getByLabel("Approved by")).toBeDisabled();
   releaseSignoff();
+  await signoffHandled;
   await page.unroute("**/api/work-items/*/signoff");
   await expect(
     page.getByTestId("workflow-progression")
