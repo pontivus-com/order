@@ -684,6 +684,11 @@
   gap: .6rem;
   padding: .75rem;
 }
+.order-execution-task-material .order-event-scroll {
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+}
 .order-execution-layout {
   flex: 1;
   min-height: 0;
