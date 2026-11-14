@@ -146,7 +146,6 @@ export const WorkItemWorkspace = ({
     useState<WorkspaceSelection | null>(null);
   const [returnSelection, setReturnSelection] = useState<WorkspaceSelection | null>(null);
   const [workflowInspectionActive, setWorkflowInspectionActive] = useState(false);
-  const [approvedBy, setApprovedBy] = useState("");
   const [titleEditing, setTitleEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -309,29 +308,6 @@ export const WorkItemWorkspace = ({
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
-      ]);
-    },
-  });
-
-  const signoffMutation = useMutation({
-    mutationFn: () => {
-      if (!signoffPackageQuery.data) {
-        throw new TypeError("current sign-off package is unavailable");
-      }
-      return api.signOffWorkItem(
-        workItem.id,
-        signoffPackageQuery.data.packageHash,
-        approvedBy.trim(),
-      );
-    },
-    onSuccess: async () => {
-      setApprovedBy("");
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.tasks(workItem.id) }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
       ]);
     },
   });
@@ -563,38 +539,8 @@ export const WorkItemWorkspace = ({
                 {titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}
               </span>
             ) : null}
-            {signoffMutation.error ? (
-              <span role="alert" className="order-error-text">
-                {signoffMutation.error instanceof Error
-                  ? signoffMutation.error.message
-                  : String(signoffMutation.error)}
-              </span>
-            ) : null}
           </div>
           <div className="order-workitem-rail-actions">
-            {workItem.stage === "AWAITING_SIGNOFF" ? (
-              <div className="order-signoff-action">
-                <label className="order-field">
-                  <span>Approved by</span>
-                  <input
-                    value={approvedBy}
-                    onChange={(event) => setApprovedBy(event.currentTarget.value)}
-                    placeholder="Local operator identity"
-                  />
-                </label>
-                <WorkbenchAction
-                  label="Sign off exact package"
-                  tone="primary"
-                  loading={signoffMutation.isPending}
-                  disabled={
-                    !signoffPackageQuery.data ||
-                    approvedBy.trim().length === 0 ||
-                    signoffMutation.isPending
-                  }
-                  onClick={() => signoffMutation.mutate()}
-                />
-              </div>
-            ) : null}
             {workItem.stage === "COMPLETE" && (
               workItem.outcome === "INVESTIGATION_COMPLETE" ||
               workItem.outcome === "AUDIT_COMPLETE"
@@ -688,6 +634,15 @@ export const WorkItemWorkspace = ({
               onContextDocumentChange={onContextDocumentChange}
             />
           </Suspense>
+        ) : selectedStep === "AWAITING_SIGNOFF" ? (
+          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading approval package…</strong></div>}>
+            <SignoffReview
+              workItem={workItem}
+              summary={stepSummary}
+              onOpenArtifactEvidence={openArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          </Suspense>
         ) : (
           <WorkflowStepFrame
             summary={stepSummary}
@@ -708,15 +663,6 @@ export const WorkItemWorkspace = ({
               onDirtyChange={setDirtyState}
               onOpenArtifactEvidence={openArtifactEvidence}
               onContextDocumentChange={onContextDocumentChange}
-            />
-          ) : null}
-          {material.kind === "APPROVAL_PACKAGE" ? (
-            <SignoffReview
-              workItem={workItem}
-              onOpenDocuments={() => requestSelection({
-                step: "AWAITING_SIGNOFF",
-                material: null,
-              })}
             />
           ) : null}
           {material.kind === "EXECUTION_TASK" ? (
