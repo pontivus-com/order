@@ -1078,7 +1078,8 @@ test("canonical Run feedback remains visible in the owning workflow context with
     page.getByText("Your input is needed", { exact: true }).first(),
   ).toBeVisible();
   await expect(
-    page.getByText("Which constraint should the plan prioritize?", { exact: true }),
+    page.getByTestId("activity-composer")
+      .getByText("Which constraint should the plan prioritize?", { exact: true }),
   ).toBeVisible();
   await expect(page.getByRole("progressbar")).toHaveCount(0);
   await backToQueue(page);
@@ -1172,8 +1173,9 @@ test("persisted proposal disposition is caught by polling and sign-off review re
     "/api/work-items/" + proposalItem!.id + "/runs",
   );
   const runs = RunSchema.array().parse(await runsResponse.json());
-  const proposalRun = runs.find((run) =>
-    run.role === "STAGE" && run.stage === "PLAN");
+  const proposalRun = runs
+    .filter((run) => run.role === "STAGE" && run.stage === "PLAN")
+    .sort((left, right) => right.attempt - left.attempt)[0];
   expect(proposalRun).toBeDefined();
 
   const eventsResponse = await contextRequest.get(
@@ -1303,7 +1305,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 
   await selectWorkflowStep(page, "Implementation plan");
   await expect(
-    page.getByText("This workflow step has not been reached", { exact: true }),
+    page.getByText("Implementation plan has not been reached", { exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Implementation plan document Markdown source")).toHaveCount(0);
 });
@@ -1503,10 +1505,9 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
 
   const validation = page.getByTestId("validation-matrix");
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
-    const row = validation.getByRole("row").filter({
-      has: validation.getByText(stage, { exact: true }),
-    });
-    await expect(row).toContainText("Passed");
+    await expect(
+      validation.getByTestId("validation-stage-" + stage),
+    ).toContainText("Passed");
   }
 
   await page.getByRole("button", { name: "Evidence: review.txt" }).first().click();
