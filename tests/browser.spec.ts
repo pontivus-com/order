@@ -1035,6 +1035,14 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
 }) => {
   await page.setViewportSize({ width: 1600, height: 900 });
   await authenticate(page, request);
+
+  await openWorkItem(page, "Proposal adoption in progress");
+  await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
+  await expect(page.getByText("Adoption in progress", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Adopt" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Reject" })).toHaveCount(0);
+  await backToQueue(page);
+
   await openWorkItem(page, "Proposal review");
 
   const workflowRail = page.getByTestId("workflow-progression");
@@ -1317,6 +1325,193 @@ test("workflow mutations lock their owning controls while pending and keep failu
     .toBeVisible();
 });
 
+test("successful workflow mutations reconcile to refreshed canonical state without provider-dependent browser work", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  await openWorkItem(page, "Work request start success");
+  const startItem = await workItemForTitle(page, "Work request start success");
+  const researchRun = syntheticStageRun(startItem, "R1", 1);
+  const researchStarted = syntheticRunEvent(researchRun, 1, {
+    tag: "STAGE_STARTED",
+    stage: "R1",
+    mode: "INTERACTIVE",
+    contextHash: researchRun.contextHash,
+  });
+  const startPattern = "**/api/work-items/" + startItem.id + "/runs";
+  await page.route(startPattern, async (route) => {
+    mutateFixture((database) => {
+      updateWorkItemLifecycle(database, startItem.id, {
+        stage: "R1",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      storeRun(database, researchRun);
+      storeRunEvent(database, researchStarted);
+    });
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify(researchRun),
+    });
+  });
+  await page.getByRole("button", { name: "Start Research", exact: true }).click();
+  await page.unroute(startPattern);
+  await expect(
+    page.getByTestId("workflow-progression")
+      .getByRole("button", { name: "Research", exact: true }),
+  ).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+  await expect(page.getByTestId("activity-composer")).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow input required");
+  const inputItem = await workItemForTitle(page, "Workflow input required");
+  const inputRunsResponse = await page.context().request.get(
+    "/api/work-items/" + inputItem.id + "/runs",
+  );
+  expect(inputRunsResponse.status()).toBe(200);
+  const inputRuns = RunSchema.array().parse(await inputRunsResponse.json());
+  const inputRun = inputRuns.find((run) => run.status === "WAITING_FOR_INPUT");
+  expect(inputRun).toBeDefined();
+  const inputEventsResponse = await page.context().request.get(
+    "/api/runs/" + inputRun!.id + "/events?afterSequence=0",
+  );
+  expect(inputEventsResponse.status()).toBe(200);
+  const inputEvents = RunEventSchema.array().parse(await inputEventsResponse.json());
+  const requested = inputEvents.find(
+    (event) => event.event.tag === "HUMAN_INPUT_REQUESTED",
+  );
+  expect(requested).toBeDefined();
+  const received = syntheticRunEvent(
+    inputRun!,
+    Math.max(...inputEvents.map((event) => event.sequence)) + 1,
+    {
+      tag: "HUMAN_INPUT_RECEIVED",
+      requestEventId: requested!.id,
+      text: "Keep the approved constraint.",
+    },
+  );
+  const inputPattern = "**/api/runs/" + inputRun!.id + "/input";
+  await page.route(inputPattern, async (route) => {
+    mutateFixture((database) => {
+      storeRunEvent(database, received);
+      updateStoredRun(database, {
+        ...inputRun!,
+        status: "RUNNING",
+        endedAt: null,
+      });
+    });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(received),
+    });
+  });
+  const messageInput = page.getByLabel("Message input");
+  await messageInput.fill("Keep the approved constraint.");
+  await messageInput.press("Enter");
+  await page.unroute(inputPattern);
+  await expect(
+    page.locator('[data-event-tag="HUMAN_INPUT_RECEIVED"]'),
+  ).toBeVisible();
+  await expect(page.getByText("Continue current work", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: "Cancel current activity" }).click();
+  await expect(page.getByTestId("selected-run-header")).toContainText("Cancelled");
+  await expect(page.getByTestId("activity-composer")).toHaveCount(0);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow retry action");
+  const retryItem = await workItemForTitle(page, "Workflow retry action");
+  const retryRun = syntheticStageRun(retryItem, "PLAN", 2);
+  const retryStarted = syntheticRunEvent(retryRun, 1, {
+    tag: "STAGE_STARTED",
+    stage: "PLAN",
+    mode: "INTERACTIVE",
+    contextHash: retryRun.contextHash,
+  });
+  const retryPattern = "**/api/work-items/" + retryItem.id + "/runs";
+  await page.route(retryPattern, async (route) => {
+    mutateFixture((database) => {
+      storeRun(database, retryRun);
+      storeRunEvent(database, retryStarted);
+    });
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify(retryRun),
+    });
+  });
+  await page.getByRole("button", { name: "Retry Implementation plan" }).click();
+  await page.unroute(retryPattern);
+  await expect(page.getByTestId("selected-run-header")).toContainText("Attempt 2");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+  await expect(page.getByTestId("activity-composer")).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Workflow resume action");
+  await page.getByRole("button", { name: "Resume resolved blocker" }).click();
+  await expect(
+    page.getByRole("button", { name: "Resume resolved blocker" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Retry Implementation plan" }),
+  ).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Implementation action ready");
+  const executionItem = await workItemForTitle(page, "Implementation action ready");
+  const taskResponse = await page.context().request.get(
+    "/api/work-items/" + executionItem.id + "/tasks",
+  );
+  expect(taskResponse.status()).toBe(200);
+  const executionTasks = ExecutionTaskSchema.array().parse(await taskResponse.json());
+  const executionTask = executionTasks[0];
+  expect(executionTask).toBeDefined();
+  const builderRun = RunSchema.parse({
+    id: newRunId(),
+    workItemId: executionItem.id,
+    executionTaskId: executionTask!.id,
+    stage: "EXECUTION",
+    mode: "UNATTENDED",
+    role: "BUILDER",
+    triggerEventId: null,
+    status: "RUNNING",
+    attempt: 1,
+    baselineCommit: fixtureBaselineCommit,
+    contextHash: sha256Text("browser-success-execution-" + executionTask!.id),
+    providerSessionId: null,
+    terminalClassification: null,
+    startedAt: nowIsoDateTime(),
+    endedAt: null,
+  });
+  await page.route("**/api/tick", async (route) => {
+    mutateFixture((database) => {
+      setExecutionTaskState(database, executionTask!.id, "RUNNING");
+      storeRun(database, builderRun);
+    });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: "{}",
+    });
+  });
+  await page.getByRole("button", { name: "Run next implementation step" }).click();
+  await page.unroute("**/api/tick");
+  await expect(page.getByTestId("selected-run-header"))
+    .toContainText("Implementation agent · Attempt 1");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+  await expect(
+    page.getByRole("button", { name: "Run next implementation step" }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Cancel current implementation attempt" }),
+  ).toBeVisible();
+});
+
 test("all nine workflow steps keep their canonical summary/material grammar and supporting context local", async ({
   page,
   request,
@@ -1346,6 +1541,9 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await page.getByRole("button", { name: "Open supporting Work request" }).click();
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
+  await expect(
+    page.getByText("Read-only supporting Work request context.", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Back to workflow context" }).click();
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
 
