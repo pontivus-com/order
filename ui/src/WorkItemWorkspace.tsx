@@ -6,8 +6,10 @@ import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contract
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
+  pendingProposalForEvents,
   resolveWorkflowMaterial,
   runIsActive,
+  runStatusLabel,
   workflowMaterialIdentity,
   workflowPresentation,
   workflowStepState,
@@ -166,10 +168,38 @@ export const WorkItemWorkspace = ({
   const tasks = tasksQuery.data ?? [];
   const workflow = workflowPresentation(workItem.stage);
   const selectedWorkflow = workflowPresentation(selectedStep);
-  const selectedProposal: ProposalSelection | null =
-    explicitMaterial?.kind === "PROPOSAL"
-      ? { runId: explicitMaterial.runId, eventId: explicitMaterial.eventId }
+  const sharedPreSignoffStage =
+    selectedStep === "R1" ||
+    selectedStep === "R2" ||
+    selectedStep === "DESIGN" ||
+    selectedStep === "PLAN"
+      ? selectedStep
       : null;
+  const currentProposalRun =
+    sharedPreSignoffStage !== null && selectedStep === workItem.stage
+      ? [...runs]
+          .filter((run) =>
+            run.role === "STAGE" &&
+            run.stage === sharedPreSignoffStage)
+          .sort((left, right) =>
+            left.attempt - right.attempt ||
+            left.startedAt.localeCompare(right.startedAt) ||
+            left.id.localeCompare(right.id))
+          .at(-1) ?? null
+      : null;
+  const proposalEventsQuery = useQuery({
+    queryKey: workbenchQueryKeys.runEvents(currentProposalRun?.id ?? null),
+    queryFn: () =>
+      currentProposalRun
+        ? api.listRunEvents(currentProposalRun.id, 0)
+        : Promise.resolve([]),
+    enabled: currentProposalRun !== null,
+    refetchInterval:
+      currentProposalRun && runIsActive(currentProposalRun) ? 1000 : false,
+  });
+  const pendingProposal = pendingProposalForEvents(
+    proposalEventsQuery.data ?? [],
+  );
   const selectedTaskId =
     explicitMaterial?.kind === "EXECUTION_TASK"
       ? explicitMaterial.taskId
@@ -188,7 +218,7 @@ export const WorkItemWorkspace = ({
     selectedStep,
     runs,
     artifacts,
-    pendingProposal: selectedProposal,
+    pendingProposal,
     approvalPackageAvailable: signoffPackageQuery.data != null,
     tasks,
     selectedTaskId,
@@ -407,6 +437,14 @@ export const WorkItemWorkspace = ({
     );
   };
 
+  const openSupportingMaterial = (nextMaterial: WorkflowMaterial): void => {
+    const origin: WorkspaceSelection = { step: selectedStep, material };
+    requestSelection(
+      { step: selectedStep, material: nextMaterial },
+      origin,
+    );
+  };
+
   const returnFromTransient = (): void => {
     const origin = returnSelection;
     const focusName = returnFocusName;
@@ -442,14 +480,6 @@ export const WorkItemWorkspace = ({
               : String(start.error),
           }
         : null;
-
-  const sharedPreSignoffStage =
-    selectedStep === "R1" ||
-    selectedStep === "R2" ||
-    selectedStep === "DESIGN" ||
-    selectedStep === "PLAN"
-      ? selectedStep
-      : null;
 
   const stepSummary = (
     <WorkflowStepSummary
@@ -627,6 +657,7 @@ export const WorkItemWorkspace = ({
               onOpenArtifactEvidence={openArtifactEvidence}
               onOpenEvidence={openEvidence}
               onOpenProposalReview={openProposalReview}
+              onOpenSupportingMaterial={openSupportingMaterial}
               onReturnFromTransient={returnFromTransient}
               onContextDocumentChange={onContextDocumentChange}
             />
