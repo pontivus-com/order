@@ -103,7 +103,6 @@ const ValidationMatrix = ({
       density="compact"
       dividers="rows"
       textOverflow="wrap"
-      label="V0 to V7 validation state"
     >
       <TableHeader>
         <TableRow>
