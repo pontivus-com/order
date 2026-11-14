@@ -17,7 +17,7 @@
   <a href="https://github.com/pontivus-com/order/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue?style=flat-square" alt="Apache-2.0"></a>
   <img src="https://img.shields.io/badge/Bun-1.4.4-blue?style=flat-square" alt="Bun 1.4.4">
   <img src="https://img.shields.io/badge/platform-Linux%20verified-lightgrey?style=flat-square" alt="Linux verified">
-  <img src="https://img.shields.io/badge/release-v0.2.0-blue?style=flat-square" alt="Release v0.2.0">
+  <img src="https://img.shields.io/badge/release-v0.3.0-blue?style=flat-square" alt="Release v0.3.0">
   <a href="https://github.com/pontivus-com/order/stargazers"><img src="https://img.shields.io/github/stars/pontivus-com/order?style=flat-square" alt="GitHub stars"></a>
 </p>
 
@@ -123,12 +123,12 @@ Order stops at the verified candidate boundary. It does not commit, push, merge,
 
 ## Quick start
 
-Order `0.2.0` is the first certified public release. Normal installation uses the immutable Order-owned release bundle and verifies its SHA-256 checksum before running the installer.
+Order `0.3.0` is the current certified public release. Normal installation uses the immutable Order-owned release bundle and verifies its SHA-256 checksum before running the installer.
 
 ```bash
 tmp="$(mktemp -d)" && cd "$tmp" && \
-curl -fsSLO https://github.com/pontivus-com/order/releases/download/v0.2.0/pontivus-order.tar.gz && \
-curl -fsSLO https://github.com/pontivus-com/order/releases/download/v0.2.0/pontivus-order.tar.gz.sha256 && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/download/v0.3.0/pontivus-order.tar.gz && \
+curl -fsSLO https://github.com/pontivus-com/order/releases/download/v0.3.0/pontivus-order.tar.gz.sha256 && \
 sha256sum -c pontivus-order.tar.gz.sha256 && \
 tar -xzf pontivus-order.tar.gz && \
 ./order/install.sh
@@ -197,7 +197,7 @@ The intended benefit is a software-production system that can carry recurring en
 
 ## Status and documentation
 
-This checkout is version `0.2.0`, the first certified public release.
+This checkout is version `0.3.0`, the current certified public release.
 
 The canonical design set begins at [docs/README.md](docs/README.md).
 

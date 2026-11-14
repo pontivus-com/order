@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-14
+
 ### Changed
 
 - Define the Order 0.2.2 corrective functional/P4/P6 design for productive OpenCode workspace containment and model-context admission across every productive agent role, including local-vs-provider failure classification, adversarial certification of ignored dependencies/direct reads/symlink and metadata escape/external references/mutation safety/freshness/restart behavior, a Run-specific `OPENCODE_CONFIG_CONTENT` agent environment, and an explicit trusted-integration boundary for the selected OpenCode Console account, skills and MCP semantics without promoting them into canonical Order authority.
