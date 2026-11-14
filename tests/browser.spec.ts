@@ -1468,6 +1468,16 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(page.getByTestId("candidate-result-material")).toBeVisible();
   await expect(page.getByRole("button", { name: "Open in Activity" })).toHaveCount(0);
 
+  await selectWorkflowStep(page, "Approval");
+  await expect(page.getByTestId("review-workspace"))
+    .toContainText("Approved package history");
+  const historicalApprovalIndex = page.getByTestId("workflow-step-index");
+  await expect(historicalApprovalIndex.getByText("T1", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
+  await historicalApprovalIndex.getByText("T1", { exact: true }).click();
+  await expect(page.getByTestId("approval-task-detail"))
+    .toContainText("Prove the browser candidate surface");
+
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   const implementationIndex = page.getByTestId("workflow-step-index");
