@@ -60,6 +60,9 @@ The task implements:
 The task implements:
 
 - GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1 §23;
+- GW-DOC-OPENCODE-INTEGRATION-V1 for the browser-visible Run/RunEvent observation boundary;
+- GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1 for productive failure-origin semantics consumed by the Workbench;
+- GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 for the already-pinned Astryx primitive/dependency facts;
 - GW-TR-082-WORKFLOW-STEP-COMPOSITION-OWNER;
 - GW-TR-083-PRE-SIGNOFF-STAGE-MATERIAL-ORCHESTRATION;
 - GW-TR-084-STAGE-RUN-HISTORY-AND-COMPOSER;
@@ -963,7 +966,7 @@ This P7 authorizes implementation only after this documentation PR is merged and
 
 P8 must:
 
-1. create a new short-lived `feat/` or `fix/` branch from **current `master`**, not from investigated SHA `448ce99763061ccfc24f15a6be7e3ce8095d8b5a`;
+1. create short-lived branch **`fix/0.2.2-workflow-centric-workbench`** from **current `master`**, not from investigated SHA `448ce99763061ccfc24f15a6be7e3ce8095d8b5a`;
 2. prove the merged `master` contains this exact P7 plan and the referenced P3/P4 requirements;
 3. execute the single signed task in §26 without broadening its scope/changeSurface;
 4. update root `CHANGELOG.md` under `[Unreleased]`;
@@ -1076,6 +1079,9 @@ The following is the only machine-readable P7 task authority in this document. T
         "GW-DOC-MARKDOWN-WORKBENCH-V1",
         "GW-DOC-WORKBENCH-UX-V1",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1",
+        "GW-DOC-OPENCODE-INTEGRATION-V1",
+        "GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1",
+        "GW-DOC-EXTERNAL-FACTS-V1-2026-11-12",
         "GW-DOC-TECHNICAL-ARCHITECTURE-V1",
         "GW-DOC-CANONICAL-CONTRACTS-V1",
         "GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1",
