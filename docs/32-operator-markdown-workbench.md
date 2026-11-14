@@ -641,11 +641,11 @@ If the metadata envelope or body changed externally while the buffer was open, t
 **Failure/negative behavior:** the body editor must not compare only body text/hash or preserve stale metadata after the canonical source changed.
 
 
-## 20. Order 0.2.2 workflow-step presentation alignment (2026-11-14)
+## 20. Order 0.3.0 workflow-step presentation alignment (2026-11-14)
 
 The Markdown authority/editing semantics in this document are unchanged. GW-DOC-WORKBENCH-UX-V1 §27 changes only how those canonical documents are composed into the WorkItem UI.
 
-For 0.2.2:
+For 0.3.0:
 
 - Work request Markdown is the primary document material of the **Work request** workflow step.
 - R1, R2, DESIGN and PLAN Markdown are the governed document material of **Research**, **Requirements**, **Solution design** and **Implementation plan** respectively.
