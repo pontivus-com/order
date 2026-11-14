@@ -299,9 +299,10 @@ describe("workflow presentation policy", () => {
     })).toEqual({ kind: "TERMINAL_RESULT" });
   });
 
-  it("preserves an explicit valid selection and reconciles an invalid one", () => {
+  it("preserves safe explicit selection but promotes required attention", () => {
     const research = artifact("R1", uuidB);
-    const run = stageRun("R1", "RUNNING", 1, uuidC);
+    const running = stageRun("R1", "RUNNING", 1, uuidC);
+    const failed = stageRun("R1", "FAILED", 2, uuidD);
     const explicit: WorkflowMaterial = {
       kind: "STAGE_DOCUMENT",
       artifactId: research.id,
@@ -310,7 +311,28 @@ describe("workflow presentation policy", () => {
     expect(resolveWorkflowMaterial({
       workItem: workItem("R1"),
       selectedStep: "R1",
-      runs: [run],
+      runs: [running],
+      artifacts: [research],
+      explicitSelection: explicit,
+      dirtyDocument: false,
+    })).toEqual(explicit);
+
+    expect(resolveWorkflowMaterial({
+      workItem: workItem("R1"),
+      selectedStep: "R1",
+      runs: [failed],
+      artifacts: [research],
+      explicitSelection: explicit,
+      dirtyDocument: false,
+    })).toEqual({
+      kind: "STAGE_RUN",
+      runId: failed.id,
+    });
+
+    expect(resolveWorkflowMaterial({
+      workItem: workItem("R1"),
+      selectedStep: "R1",
+      runs: [failed],
       artifacts: [research],
       explicitSelection: explicit,
       dirtyDocument: true,
@@ -319,13 +341,13 @@ describe("workflow presentation policy", () => {
     expect(resolveWorkflowMaterial({
       workItem: workItem("R1"),
       selectedStep: "R1",
-      runs: [run],
+      runs: [running],
       artifacts: [],
       explicitSelection: explicit,
       dirtyDocument: true,
     })).toEqual({
       kind: "STAGE_RUN",
-      runId: run.id,
+      runId: running.id,
     });
   });
 
