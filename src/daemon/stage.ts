@@ -45,6 +45,7 @@ import {
   productiveInvocationFailure,
   productiveInvocationFailureClassification,
   runOpenCodeTurn,
+  stopOpenCodeServer,
 } from "../shell/opencode.ts";
 import {
   newArtifactRefId,
@@ -97,6 +98,18 @@ const stageMaterialIdentity = (
   currentProjectDeltaSha256,
   contextHash: run.contextHash,
 }));
+
+const cancelledStageRun = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+): Run | null => {
+  const current = getRun(runtime, runId);
+  if (current.status === "CANCELLED") return current;
+  if (current.status !== "RUNNING") {
+    throw new TypeError(`STAGE Run cannot continue from status ${current.status}`);
+  }
+  return null;
+};
 
 const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
   stage === "PLAN"
@@ -328,6 +341,8 @@ export const runStageTurn = async (
   if (!isPreSignoffStage(run.stage)) {
     throw new TypeError("STAGE Run must use a pre-signoff lifecycle stage");
   }
+  const initialCancellation = cancelledStageRun(runtime, run.id);
+  if (initialCancellation !== null) return initialCancellation;
 
   let persisted: readonly RunEvent[];
   let diagnosticEvidence: readonly EvidenceRef[] = [];
@@ -353,6 +368,8 @@ export const runStageTurn = async (
       } catch (error) {
         throw productiveInvocationFailure("PRECONDITION_FAILED", error);
       }
+      const beforeAdmissionCancellation = cancelledStageRun(runtime, run.id);
+      if (beforeAdmissionCancellation !== null) return beforeAdmissionCancellation;
       const admission = await admitProductiveOpenCode(
         runtime.stateRoot,
         workspace,
@@ -363,6 +380,11 @@ export const runStageTurn = async (
         context.artifacts,
         runtime.config.referenceRoots,
       );
+      const afterAdmissionCancellation = cancelledStageRun(runtime, run.id);
+      if (afterAdmissionCancellation !== null) {
+        await stopOpenCodeServer(admission.server);
+        return afterAdmissionCancellation;
+      }
       updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
       active = {
         server: admission.server,
@@ -451,6 +473,32 @@ export const runStageTurn = async (
   return reacted;
 };
 
+const scheduleStageTurn = (
+  runtime: CoordinatorRuntime,
+  run: Run,
+  triggeringEventId: RunEventId,
+  context: ResolvedContext,
+): void => {
+  const task = runStageTurn(runtime, run, triggeringEventId, context);
+  runtime.stageTurnTasks.set(run.id, task);
+  void task.then(
+    () => {
+      runtime.stageTurnTasks.delete(run.id);
+    },
+    (error: unknown) => {
+      runtime.stageTurnTasks.delete(run.id);
+      try {
+        const current = getRun(runtime, run.id);
+        if (activeRunStatuses.has(current.status)) {
+          failRunForProvider(runtime, run.id, error);
+        }
+      } catch (cleanupError) {
+        console.error("Order could not finalize an unhandled stage turn failure", cleanupError);
+      }
+    },
+  );
+};
+
 export const startStageRun = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
@@ -513,7 +561,8 @@ export const startStageRun = async (
     return { value, started };
   });
 
-  return runStageTurn(runtime, run.value, run.started.id, context);
+  scheduleStageTurn(runtime, run.value, run.started.id, context);
+  return run.value;
 };
 
 export const submitRunInput = async (

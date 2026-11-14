@@ -370,14 +370,17 @@ const server = Bun.serve({
       const body = await request.json();
       const text = String(body.text ?? "");
       let output;
+      const delayedPrompt =
+        (mode === "stage-delay" && text.includes("Order lifecycle stage:")) ||
+        (mode === "noop-delay" && text.includes("Order execution role: BUILDER"));
+      if (delayedPrompt) {
+        writeFileSync(join(own, "provider-started"), "started");
+        while (!existsSync(join(own, "provider-release"))) {
+          await Bun.sleep(10);
+        }
+      }
       if (text.includes("Order execution role: BUILDER")) {
         if (mode === "noop" || mode === "noop-delay") {
-          if (mode === "noop-delay") {
-            writeFileSync(join(own, "provider-started"), "started");
-            while (!existsSync(join(own, "provider-release"))) {
-              await Bun.sleep(10);
-            }
-          }
           output = '[{"tag":"TASK_ALREADY_SATISFIED","summary":"baseline already satisfies the signed task"}]';
         } else if (mode === "empty") {
           output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"no candidate produced","evidence":[]}]';
@@ -2320,6 +2323,73 @@ describe("daemon control plane", () => {
     expect(output).toEqual({ rejected: true, count: 0 });
     expect(repository).not.toBe(allowed);
   });
+
+
+  it("returns a stage Run before the OpenCode turn completes", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stage-start-visibility-");
+    const binary = createFakeOpenCode("stage-delay");
+    const providerStarted = join(binary, "..", "provider-started");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "stage start visibility",
+        concernIds: ["shell"],
+      });
+      const startPromise = coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      const result = await Promise.race([
+        startPromise.then((run) => ({ returnedBeforeRelease: true, runId: run.id })),
+        Bun.sleep(500).then(() => ({ returnedBeforeRelease: false, runId: null })),
+      ]);
+      const fs = await import("node:fs");
+      for (let attempt = 0; attempt < 500 && !fs.existsSync(${JSON.stringify(providerStarted)}); attempt += 1) {
+        await Bun.sleep(10);
+      }
+      const visibleRun = result.runId === null ? null : coord.getRun(runtime, result.runId);
+      const startedEvent = visibleRun === null
+        ? null
+        : coord.listRunEvents(runtime, visibleRun.id)[0]?.event.tag ?? null;
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
+      const run = result.runId === null
+        ? await startPromise
+        : visibleRun;
+      await Promise.all([...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)));
+      const current = coord.getRun(runtime, run.id);
+      if (current.status === "RUNNING" || current.status === "WAITING_FOR_INPUT") {
+        await coord.cancelRun(runtime, run.id);
+      }
+      console.log(JSON.stringify({
+        returnedBeforeRelease: result.returnedBeforeRelease,
+        startedEvent: startedEvent ?? coord.listRunEvents(runtime, run.id)[0]?.event.tag ?? null,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      returnedBeforeRelease: boolean;
+      startedEvent: string | null;
+    };
+
+    expect(output).toEqual({
+      returnedBeforeRelease: true,
+      startedEvent: "STAGE_STARTED",
+    });
+  }, 30_000);
 
 
   it("binds first R1 baseline to the repository selected by current IDEA source reclassification", () => {

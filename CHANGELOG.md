@@ -16,6 +16,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Keep the research response composer available while reviewing a proposed artifact, and present unified diffs with bounded, wrapped, syntax-aware formatting inside the review surface.
+- Return newly created STAGE Runs immediately and surface their persisted activity/OpenCode session status without a reload, while safely cancelling and tearing down deferred turns.
 - Prevent nested Git repositories from being admitted as invalid outer-repository paths such as `order/`, keeping candidate patches and changed-path metadata consistent for OpenCode workspace admission.
 - Enforce the 0.2.2 productive-invocation contract end to end: materialize STAGE from the exact Git-visible baseline/delta instead of the physical tree, prove exact P1 `AGENTS.md` bytes and workspace containment, isolate productive OpenCode configuration, bind the live READY Console account plus exact skill/MCP permissions, classify local admission/freshness failures separately from provider failures, and independently reject repository-instruction mutation.
 - Correct the WorkItem browser hierarchy and human lifecycle presentation, keep Context closed and selected-view-specific, consolidate Activity and document controls, certify final-line CodeMirror editing at wide/narrow widths, and make repository Settings inventory-first with bounded Add and confirmed non-destructive Disconnect.

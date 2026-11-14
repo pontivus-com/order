@@ -603,9 +603,26 @@
 .order-proposal-review-diff {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
   border: 1px solid var(--order-workbench-border);
 }
+.order-proposal-review-diff-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .45rem .6rem;
+  border-bottom: 1px solid var(--order-workbench-border);
+  color: var(--order-workbench-muted);
+  font-size: .72rem;
+}
+.order-proposal-review-diff-heading span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: end;
+}
+.order-proposal-review-diff > pre { max-width: 100%; }
 .order-review-actions {
   flex: 0 0 auto;
   display: flex;

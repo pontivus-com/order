@@ -993,6 +993,9 @@ test("persisted proposal disposition is caught by polling and sign-off review re
   expect(proposalReviewBox).not.toBeNull();
   expect(proposalDiffBox).not.toBeNull();
   expect(proposalDiffBox!.width).toBeGreaterThan(proposalReviewBox!.width * 0.85);
+  await expect(proposalReview.getByText("Proposed document diff", { exact: true })).toBeVisible();
+  await expect(proposalReview.getByTestId("activity-composer")).toBeVisible();
+  await expect(proposalReview.getByLabel("Message input")).toBeVisible();
   await expect(page.getByRole("button", { name: "Adopt" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Reject" })).toBeVisible();
 
