@@ -109,6 +109,34 @@ export const workflowMaterialRunId = (
   }
 };
 
+export const workflowMaterialIdentity = (
+  material: WorkflowMaterial,
+): string => {
+  switch (material.kind) {
+    case "SOURCE_DOCUMENT":
+    case "READINESS_REVIEW":
+    case "APPROVAL_PACKAGE":
+    case "TERMINAL_RESULT":
+    case "STEP_STATE":
+    case "UNREACHED":
+      return material.kind;
+    case "STAGE_RUN":
+      return material.kind + ":" + material.runId;
+    case "STAGE_DOCUMENT":
+    case "SUPPORTING_DOCUMENT":
+      return material.kind + ":" + material.artifactId;
+    case "PROPOSAL":
+      return material.kind + ":" + material.runId + ":" + material.eventId;
+    case "EXECUTION_TASK":
+      return material.kind + ":" + material.taskId + ":" + (material.runId ?? "none");
+    case "EVIDENCE":
+      return material.selection.kind === "ARTIFACT"
+        ? material.kind + ":ARTIFACT:" + material.selection.artifactId
+        : material.kind + ":EVIDENCE:" + material.selection.runId + ":" +
+          material.selection.relativePath;
+  }
+};
+
 export type WorkflowMaterialResolutionInput = Readonly<{
   workItem: Pick<WorkItem, "stage" | "status" | "outcome">;
   selectedStep: WorkItem["stage"];
