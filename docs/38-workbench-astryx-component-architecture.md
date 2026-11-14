@@ -471,17 +471,15 @@ The current `.order-markdown-editor { max-width: 72rem; }` outer cap must be rem
 
 ### 17.2 WorkItem orientation and view navigation
 
-`WorkItemWorkspace` owns three explicit presentation levels:
+`WorkItemWorkspace` owns two persistent orientation levels and one selected-step composition:
 
-1. compact identity/header row — Back, WorkItem title/current state, WorkItem-level actions and Details/Context access;
+1. compact identity/header row — Back, WorkItem title/current state, true WorkItem-level actions and Details/Context access;
 2. compact workflow-process rail — ordinary-language lifecycle progression/current step and non-mutating inspection navigation;
-3. workspace-view selector at the primary-canvas boundary — Documents / Activity / Review / Implementation / Evidence / Result as applicable.
+3. selected workflow-step workspace — `WorkflowStepFrame` with optional step-local work index and one primary material, as defined by §23.24–§23.35.
 
 Detailed project/schema/concern/source metadata remains in on-demand `WorkItemContext`/Details rather than reserving permanent width.
 
-Workspace-view choice remains typed browser-local presentation state and preserves the existing dirty-navigation guard. It must not be merged with the lifecycle workflow rail.
-
-Documents retain one human-labelled lifecycle document content-navigation strip as the normal content edge.
+Selected workflow step/material remains typed browser-local presentation state and preserves the existing dirty-navigation guard. There is no persistent Documents / Activity / Review / Implementation / Evidence / Result workspace-view selector.
 
 ### 17.3 State-aware application toolbar
 
@@ -533,7 +531,7 @@ Implementation should replace identity-card-style layout for package hash/source
 3. signed task objective/scope/gates;
 4. exact identity metadata.
 
-Repeated tasks use a compact selectable/expandable list/table or equivalent scan-efficient treatment rather than unbounded stacked cards when multiple tasks exist. Approver input and final sign-off action remain in Context where the complete review surface is simultaneously visible.
+Repeated tasks use a compact selectable/expandable list/table or equivalent scan-efficient treatment rather than unbounded stacked cards when multiple tasks exist. Approver input and final sign-off action are task-local controls inside Approval beside the selected package review material. Context retains only secondary exact package identity/technical detail.
 
 ### 17.7 Execution master/detail realization
 
@@ -545,7 +543,7 @@ Repeated tasks use a compact selectable/expandable list/table or equivalent scan
 - selected Run/event timeline receives the flexible remaining region;
 - task/Run/event regions must not be separated by arbitrary vertical card stacks;
 - artifact/evidence references use a shared structured resource-row/list primitive or semantic component;
-- opening evidence continues to move the primary canvas into Evidence mode.
+- opening evidence promotes Evidence-class primary material inside Implementation and preserves the selected task/Run return origin.
 
 The current `15rem + minmax(0, 1fr)` Run/detail concept may be retained, but it must participate in remaining-height layout rather than sit below all task cards.
 
@@ -624,7 +622,7 @@ The spatial refactor must preserve the same P1 engineering constitution as the r
 Each production UI module owns one current presentation responsibility:
 
 - `app.tsx` owns application-shell composition, queue-vs-WorkItem selection, URL selection, global presentation preference and top-level query/mutation orchestration only;
-- `WorkItemWorkspace.tsx` owns selected-WorkItem presentation composition, mode selection, dirty-navigation admission and cross-mode presentation navigation only;
+- `WorkItemWorkspace.tsx` owns selected-WorkItem composition, selected workflow-step/material coordination, dirty-navigation admission and cross-material return orchestration only;
 - each workspace module owns only its substantive interaction class;
 - `MarkdownEditor.tsx` owns only exact editor-buffer/dirty/save/cancel/conflict presentation behavior;
 - `ui/src/http.ts` owns browser HTTP transport/parsing only and must not become a presentation-policy or domain-policy owner;
@@ -643,7 +641,7 @@ The UI must not introduce:
 - repeated screen-local mappings for the same semantic presentation rule when one cohesive pure presentation owner can serve them;
 - duplicate query/cache/state representations of daemon-owned state.
 
-Presentation-only values are legitimate when they represent **presentation state rather than domain meaning**, for example selected workspace mode, selected document, selected Run/evidence item, drawer visibility, dirty state or a resource-row visual variant. Such values remain local, typed and derived from canonical state; they do not become a parallel semantic model.
+Presentation-only values are legitimate when they represent **presentation state rather than domain meaning**, for example selected workflow step/material, selected document, selected Run/evidence item, drawer visibility, dirty state or a resource-row visual variant. Such values remain local, typed and derived from canonical state; they do not become a parallel semantic model.
 
 DRY is applied by **semantic ownership**, not by extracting every repeated JSX fragment. A shared primitive/helper is introduced only when the repeated behavior has one stable presentation meaning. Similar-looking markup with different semantics may remain separate.
 
@@ -685,7 +683,7 @@ Non-trivial derived presentation logic should be expressed as small pure functio
 
 Examples include:
 
-- canonical state -> available workspace modes;
+- canonical state -> current/reached workflow step and deterministic primary material;
 - canonical status -> semantic badge/action presentation;
 - RunEvent -> human-readable event detail/evidence links;
 - canonical resource -> shared resource-row presentation.
@@ -720,11 +718,11 @@ Architecture tests should enforce stable ownership/dependency propositions, not 
 
 ### GW-TR-016-COMPACT-WORKITEM-NAVIGATION
 
-**Required behavior:** WorkItem presentation separates the compact identity row, dedicated workflow-process rail, workspace-view selection at the primary-canvas boundary and one within-view navigation strip where the selected view needs it.
+**Required behavior:** WorkItem presentation separates the compact identity row, one dedicated workflow-process rail and the selected workflow-step workspace; a compact step-local work index appears only when that step has multiple meaningful work objects.
 
-**Acceptance criterion:** the active Documents surface presents one human-labelled content-edge document selector, workspace-view selection remains presentation-only and distinct from workflow inspection, and existing typed view/document state, dirty guards and focus behavior are preserved.
+**Acceptance criterion:** workflow navigation remains persistent and direct, step-local selection remains presentation-only, and existing typed selection/dirty guards/focus behavior are preserved without a generic workspace-view selector.
 
-**Failure/negative behavior:** workflow progression, workspace-view selection and document selection must not be collapsed into one ambiguous control or rendered as redundant competing full-width tab stacks.
+**Failure/negative behavior:** implementation must not stack workflow progression, a Documents/Activity/Review mode selector and lifecycle-wide document tabs as competing full-width navigation layers.
 
 ### GW-TR-017-STATE-AWARE-TOOLBAR-COMPOSITION
 
@@ -1229,6 +1227,8 @@ Components consume those projections. They must not duplicate lifecycle label/st
 The projection does not persist state and does not determine lifecycle eligibility/promotion.
 
 ### 20.2 WorkItem header geometry
+
+> **0.2.2 supersession:** the global workspace-view level described in the historical text of this section is replaced by §23.24–§23.35. The current implementation has identity row + workflow rail + selected workflow-step composition.
 
 `WorkItemWorkspace` retains one compact orientation header.
 
