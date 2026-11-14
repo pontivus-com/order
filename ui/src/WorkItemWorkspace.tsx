@@ -34,6 +34,8 @@ const LifecycleDocumentMaterial = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.LifecycleDocumentMaterial })));
 const ReadOnlyLifecycleDocumentMaterial = lazy(() =>
   import("./DocumentWorkspace.tsx").then((module) => ({ default: module.ReadOnlyLifecycleDocumentMaterial })));
+const PreSignoffStageWorkspace = lazy(() =>
+  import("./PreSignoffStageWorkspace.tsx").then((module) => ({ default: module.PreSignoffStageWorkspace })));
 const StageRunMaterial = lazy(() =>
   import("./ActivityWorkspace.tsx").then((module) => ({ default: module.StageRunMaterial })));
 const SignoffReview = lazy(() =>
@@ -454,6 +456,51 @@ export const WorkItemWorkspace = ({
           }
         : null;
 
+  const sharedPreSignoffStage =
+    selectedStep === "R1" ||
+    selectedStep === "R2" ||
+    selectedStep === "DESIGN" ||
+    selectedStep === "PLAN"
+      ? selectedStep
+      : null;
+
+  const stepSummary = (
+    <WorkflowStepSummary
+      label={selectedWorkflow.label}
+      purpose={selectedWorkflow.purpose}
+      stateLabel={selectedStateLabel}
+      stateVariant={selectedStateVariant}
+      statusLabel={
+        selectedStepState === "CURRENT"
+          ? workItem.status === "ACTIVE"
+            ? "Active"
+            : workItem.status === "BLOCKED"
+              ? "Blocked"
+              : "Complete"
+          : undefined
+      }
+      statusVariant={
+        workItem.status === "BLOCKED"
+          ? "error"
+          : workItem.status === "COMPLETE"
+            ? "success"
+            : "neutral"
+      }
+      blocker={summaryBlocker}
+      action={
+        startIsOwnedBySelectedStep ? (
+          <WorkbenchAction
+            label={startLabelForStage(workItem.stage)}
+            tone="primary"
+            loading={start.isPending}
+            disabled={dirty || start.isPending}
+            onClick={() => start.mutate()}
+          />
+        ) : undefined
+      }
+    />
+  );
+
   return (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
       <header className="order-workitem-header order-workitem-top-rail">
@@ -605,44 +652,32 @@ export const WorkItemWorkspace = ({
         aria-label={selectedWorkflow.label + " workspace"}
         data-testid="workflow-step-workspace"
       >
-        <WorkflowStepFrame
-          summary={
-            <WorkflowStepSummary
-              label={selectedWorkflow.label}
-              purpose={selectedWorkflow.purpose}
-              stateLabel={selectedStateLabel}
-              stateVariant={selectedStateVariant}
-              statusLabel={
-                selectedStepState === "CURRENT"
-                  ? workItem.status === "ACTIVE"
-                    ? "Active"
-                    : workItem.status === "BLOCKED"
-                      ? "Blocked"
-                      : "Complete"
-                  : undefined
-              }
-              statusVariant={
-                workItem.status === "BLOCKED"
-                  ? "error"
-                  : workItem.status === "COMPLETE"
-                    ? "success"
-                    : "neutral"
-              }
-              blocker={summaryBlocker}
-              action={
-                startIsOwnedBySelectedStep ? (
-                  <WorkbenchAction
-                    label={startLabelForStage(workItem.stage)}
-                    tone="primary"
-                    loading={start.isPending}
-                    disabled={dirty || start.isPending}
-                    onClick={() => start.mutate()}
-                  />
-                ) : undefined
-              }
+        {sharedPreSignoffStage ? (
+          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workflow step…</strong></div>}>
+            <PreSignoffStageWorkspace
+              workItem={workItem}
+              stage={sharedPreSignoffStage}
+              runs={runs}
+              artifacts={artifacts}
+              material={material}
+              summary={stepSummary}
+              onSelectMaterial={(nextMaterial) =>
+                requestSelection({
+                  step: sharedPreSignoffStage,
+                  material: nextMaterial,
+                })}
+              onDirtyChange={setDirtyState}
+              onOpenArtifactEvidence={openArtifactEvidence}
+              onOpenEvidence={openEvidence}
+              onOpenProposalReview={openProposalReview}
+              onReturnFromTransient={returnFromTransient}
+              onContextDocumentChange={onContextDocumentChange}
             />
-          }
-          primary={
+          </Suspense>
+        ) : (
+          <WorkflowStepFrame
+            summary={stepSummary}
+            primary={
             <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
               <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
           {material.kind === "SOURCE_DOCUMENT" ? (
@@ -695,7 +730,7 @@ export const WorkItemWorkspace = ({
             <ProposalReview
               workItem={workItem}
               selection={proposal}
-              onBackToActivity={returnFromTransient}
+              onBack={returnFromTransient}
             />
           ) : null}
           {material.kind === "APPROVAL_PACKAGE" ? (
@@ -766,7 +801,8 @@ export const WorkItemWorkspace = ({
               </Suspense>
             </PrimaryMaterialFrame>
           }
-        />
+          />
+        )}
       </div>
 
       <AlertDialog
