@@ -1223,7 +1223,7 @@ test("terminal investigation and audit results remain closed and linked remediat
   await authenticate(page, request);
 
   await openWorkItem(page, "Completed audit");
-  await expect(page.getByTestId("result-workspace")).toContainText("AUDIT_COMPLETE");
+  await expect(page.getByTestId("result-workspace")).toContainText("Audit complete");
   await expect(page.getByTestId("result-material")).toContainText(
     "Evidence-backed audit verdict.",
   );
@@ -1232,18 +1232,17 @@ test("terminal investigation and audit results remain closed and linked remediat
 
   const parent = await workItemForTitle(page, "Completed investigation");
   await openWorkItem(page, "Completed investigation");
-  await expect(page.getByTestId("result-workspace")).toContainText("INVESTIGATION_COMPLETE");
+  await expect(page.getByTestId("result-workspace")).toContainText("Investigation complete");
   await expect(page.getByTestId("result-material")).toContainText(
     "Evidence-backed conclusion.",
   );
-  await page.getByRole("radio", { name: "Documents" }).click();
-  await page.getByTestId("governed-document-nav")
-    .getByRole("tab", { name: "Research" })
-    .click();
+  await selectWorkflowStep(page, "Research");
   await expect(page.getByTestId("markdown-readonly")).toContainText(
     "Evidence-backed conclusion.",
   );
+  await expect(page.getByRole("button", { name: "Create linked remediation" })).toHaveCount(0);
 
+  await selectWorkflowStep(page, "Complete");
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const dialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(dialog).toBeVisible();
@@ -1264,7 +1263,7 @@ test("terminal investigation and audit results remain closed and linked remediat
 
   const refreshedParent = await workItemForTitle(page, "Completed investigation");
   expect(refreshedParent.stage).toBe("COMPLETE");
-  expect(refreshedParent.outcome).toBe("INVESTIGATION_COMPLETE");
+  expect(refreshedParent.outcome).toBe("Investigation complete");
 });
 
 test("all non-delivery terminal classifications route to Result without invented remediation", async ({
@@ -1273,9 +1272,9 @@ test("all non-delivery terminal classifications route to Result without invented
 }) => {
   await authenticate(page, request);
   for (const [title, outcome] of [
-    ["Disproven work", "DISPROVEN"],
-    ["Duplicate work", "DUPLICATE"],
-    ["Already satisfied work", "ALREADY_SATISFIED"],
+    ["Disproven work", "Disproven"],
+    ["Duplicate work", "Duplicate"],
+    ["Already satisfied work", "Already satisfied"],
   ] as const) {
     await openWorkItem(page, title);
     await expect(page.getByTestId("result-workspace")).toContainText(outcome);
@@ -1284,21 +1283,36 @@ test("all non-delivery terminal classifications route to Result without invented
   }
 });
 
-test("candidate surface exposes task, V0-V7, exact evidence bytes, and never executes evidence markup", async ({
+test("candidate Complete surface and reached Implementation expose V0-V7, exact evidence, and never execute evidence markup", async ({
   page,
   request,
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Verified candidate");
 
+  await expect(page.getByTestId("result-workspace")).toContainText("Verified candidate");
+  await expect(page.getByTestId("candidate-result-material")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open in Activity" })).toHaveCount(0);
+
+  await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  await page.getByRole("button", { name: /Independent review · Attempt 1/ }).click();
-  await expect(page.getByText("Verified candidate recorded", { exact: true }).first()).toBeVisible();
-  await expect(page.getByTestId("execution-task-detail").getByText("T1", { exact: true })).toBeVisible();
+  const implementationIndex = page.getByTestId("workflow-step-index");
+  await implementationIndex.getByText(/Independent review · Attempt 1/).click();
+
+  await expect(
+    page.getByText("Verified candidate recorded", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId("execution-task-detail").getByText("T1", { exact: true }),
+  ).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
 
+  const validation = page.getByTestId("validation-matrix");
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
-    await expect(page.getByText(stage + " passed.", { exact: true }).first()).toBeVisible();
+    const row = validation.getByRole("row").filter({
+      has: validation.getByText(stage, { exact: true }),
+    });
+    await expect(row).toContainText("Passed");
   }
 
   await page.getByRole("button", { name: "Evidence: review.txt" }).first().click();
@@ -1311,4 +1325,7 @@ test("candidate surface exposes task, V0-V7, exact evidence bytes, and never exe
     await page.evaluate(() =>
       Object.prototype.hasOwnProperty.call(window, "__orderXss")),
   ).toBe(false);
+
+  await page.getByRole("button", { name: "Back to workflow context" }).click();
+  await expect(page.getByTestId("execution-workspace")).toBeVisible();
 });
