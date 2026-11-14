@@ -972,15 +972,6 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await authenticate(page, request);
 
   await openWorkItem(page, "Proposal adoption in progress");
-  if (await page.getByTestId("proposal-review-workspace").count() === 0) {
-    const adoptionIndex = page.getByTestId("workflow-step-index");
-    await expect(adoptionIndex).toBeVisible();
-    await adoptionIndex.getByText("Attempt 1", { exact: true }).click();
-    await expect(page.getByTestId("stage-run-material")).toBeVisible();
-    await page
-      .getByRole("button", { name: "Review proposed document change" })
-      .click();
-  }
   const adoptionReview = page.getByTestId("proposal-review-workspace");
   await expect(adoptionReview).toBeVisible();
   await expect(adoptionReview).toContainText("Adoption in progress");
@@ -1285,6 +1276,10 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   ));
   const startPattern = "**/api/work-items/" + startItem.id + "/runs";
   await page.route(startPattern, async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
     await route.fulfill({
       status: 201,
       contentType: "application/json",
