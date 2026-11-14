@@ -1,33 +1,14 @@
-import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
-  ExecutionTaskSchema,
   OpenCodeAccountLoginAttemptSchema,
   OpenCodeAccountStateSchema,
   RunEventSchema,
   RunSchema,
   WorkItemSchema,
   WorkItemSourceSnapshotSchema,
-  type Run,
-  type RunEventPayload,
-  type WorkItem,
 } from "../src/core/contracts.ts";
-import {
-  newRunEventId,
-  newRunId,
-  nowIsoDateTime,
-  sha256Text,
-} from "../src/shell/runtime.ts";
-import {
-  openOrderDatabase,
-  setExecutionTaskState,
-  storeRun,
-  storeRunEvent,
-  updateStoredRun,
-  updateWorkItemLifecycle,
-} from "../src/shell/sqlite.ts";
 import { expect, test, type APIRequestContext, type Locator, type Page } from "@playwright/test";
 
 const baseURL = "http://127.0.0.1:17347";
@@ -37,63 +18,17 @@ if (stateRoot === undefined || stateRoot.length === 0) {
 }
 const daemonToken = readFileSync(join(stateRoot, "daemon-token"), "utf8").trim();
 const repositoryRoot = stateRoot + "-e2e-project";
-const fixtureBaselineCommit = execFileSync(
-  "git",
-  ["rev-parse", "HEAD"],
-  { cwd: repositoryRoot, encoding: "utf8" },
-).trim();
+const fixtureControlURL = "http://127.0.0.1:17348";
 
-const mutateFixture = <T>(
-  operation: (database: ReturnType<typeof openOrderDatabase>) => T,
-): T => {
-  const database = openOrderDatabase(stateRoot);
-  try {
-    return operation(database);
-  } finally {
-    database.close();
-  }
+const fixtureMutation = async (
+  request: APIRequestContext,
+  action: "/start-stage" | "/submit-input" | "/tick",
+  data: Record<string, unknown>,
+): Promise<unknown> => {
+  const response = await request.post(fixtureControlURL + action, { data });
+  expect(response.ok()).toBe(true);
+  return response.json();
 };
-
-const syntheticStageRun = (
-  workItem: WorkItem,
-  stage: Run["stage"],
-  attempt: number,
-  status: Run["status"] = "RUNNING",
-): Run => RunSchema.parse({
-  id: newRunId(),
-  workItemId: workItem.id,
-  executionTaskId: null,
-  stage,
-  mode: "INTERACTIVE",
-  role: "STAGE",
-  triggerEventId: null,
-  status,
-  attempt,
-  baselineCommit: fixtureBaselineCommit,
-  contextHash: sha256Text(
-    "browser-success-" + workItem.id + "-" + stage + "-" + attempt,
-  ),
-  providerSessionId: null,
-  terminalClassification: null,
-  startedAt: nowIsoDateTime(),
-  endedAt:
-    status === "RUNNING" || status === "WAITING_FOR_INPUT"
-      ? null
-      : nowIsoDateTime(),
-});
-
-const syntheticRunEvent = (
-  run: Run,
-  sequence: number,
-  event: RunEventPayload,
-) => RunEventSchema.parse({
-  id: newRunEventId(),
-  runId: run.id,
-  sequence,
-  occurredAt: nowIsoDateTime(),
-  event,
-});
-
 
 const mintConnectToken = async (
   request: APIRequestContext,
