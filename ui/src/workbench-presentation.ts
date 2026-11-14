@@ -361,14 +361,6 @@ export const resolveWorkflowMaterial = (
       explicit?.kind === "STAGE_DOCUMENT" ||
       explicit?.kind === "SUPPORTING_DOCUMENT"
     );
-  const explicitIsInspection =
-    explicitIsAvailable &&
-    explicit !== null &&
-    (
-      explicit.kind === "STAGE_RUN" ||
-      explicit.kind === "PROPOSAL" ||
-      explicit.kind === "EVIDENCE"
-    );
 
   if (input.selectedStep === "IDEA") {
     return explicitIsAvailable && explicit?.kind === "SOURCE_DOCUMENT"
