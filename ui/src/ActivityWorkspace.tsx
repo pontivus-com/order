@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@astryxdesign/core/Badge";
 import { ChatComposer } from "@astryxdesign/core/Chat";
@@ -75,12 +75,6 @@ export const StageRunMaterial = ({
   const selectedRun =
     stageRuns.find((run) => run.id === selectedRunId) ??
     latestStageRun(stageRuns, stage);
-
-  useEffect(() => {
-    if (selectedRun && selectedRun.id !== selectedRunId) {
-      onSelectedRunChange(selectedRun.id);
-    }
-  }, [onSelectedRunChange, selectedRun, selectedRunId]);
 
   const eventKey = workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
   const eventsQuery = useQuery({
