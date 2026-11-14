@@ -74,6 +74,8 @@ const materialTitle = (
       return stepLabel + " activity";
     case "STAGE_DOCUMENT":
       return stepLabel + " document";
+    case "SUPPORTING_DOCUMENT":
+      return "Supporting document";
     case "PROPOSAL":
       return "Proposal review";
     case "READINESS_REVIEW":
@@ -103,6 +105,7 @@ const contextModeForMaterial = (
   switch (material.kind) {
     case "SOURCE_DOCUMENT":
     case "STAGE_DOCUMENT":
+    case "SUPPORTING_DOCUMENT":
     case "STEP_STATE":
     case "UNREACHED":
       return "DOCUMENTS";
