@@ -7,6 +7,7 @@ import {
   type OpenCodeAccountLoginAttempt,
   type OpenCodeAccountLoginAttemptId,
   type OrderConfig,
+  type Run,
   type RunId,
   type Sha256,
 } from "../core/contracts.ts";
@@ -38,6 +39,7 @@ export type CoordinatorRuntime = {
   readonly config: OrderConfig;
   readonly environment: NodeJS.ProcessEnv;
   readonly activeProviders: Map<RunId, ActiveProvider>;
+  readonly stageTurnTasks: Map<RunId, Promise<Run>>;
   openCodeAccountMutationActive: boolean;
   openCodeAccountLogin: OpenCodeAccountLoginControl | null;
   openCodeAccountLoginTerminal: OpenCodeAccountLoginAttempt | null;
@@ -57,6 +59,7 @@ export const createCoordinatorRuntime = (
   config,
   environment,
   activeProviders: new Map(),
+  stageTurnTasks: new Map(),
   openCodeAccountMutationActive: false,
   openCodeAccountLogin: null,
   openCodeAccountLoginTerminal: null,

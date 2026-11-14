@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@astryxdesign/core/Badge";
-import { ChatComposer } from "@astryxdesign/core/Chat";
 
 import type { Run, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -45,6 +45,18 @@ const latestStageRun = (
       left.startedAt.localeCompare(right.startedAt) ||
       left.id.localeCompare(right.id))
     .at(-1) ?? null;
+
+const openCodeSessionStatus = (run: Run): string => {
+  if (runIsActive(run)) {
+    return run.providerSessionId === null
+      ? "Starting OpenCode session…"
+      : "OpenCode session is processing this turn…";
+  }
+  if (run.providerSessionId === null) return "OpenCode session was not admitted";
+  if (run.status === "CANCELLED") return "OpenCode session cancelled";
+  if (run.status === "FAILED") return "OpenCode session failed";
+  return "OpenCode session completed";
+};
 
 export const StageRunMaterial = ({
   workItem,
@@ -102,15 +114,6 @@ export const StageRunMaterial = ({
     ]);
   };
 
-  const input = useMutation({
-    mutationFn: (text: string) => {
-      if (!selectedRun || selectedRun.role !== "STAGE" || !runIsActive(selectedRun)) {
-        throw new TypeError("selected workflow Run does not accept human input");
-      }
-      return api.submitRunInput(selectedRun.id, text.trim(), pending?.id ?? null);
-    },
-    onSuccess: invalidate,
-  });
   const cancel = useMutation({
     mutationFn: () => {
       if (!selectedRun || !runIsActive(selectedRun)) {
@@ -126,6 +129,10 @@ export const StageRunMaterial = ({
   const retry = useMutation({
     mutationFn: () => api.startInteractiveRun(workItem.id),
     onSuccess: async (run) => {
+      queryClient.setQueryData<readonly Run[]>(
+        workbenchQueryKeys.runs(workItem.id),
+        (current) => [...(current ?? []).filter((item) => item.id !== run.id), run],
+      );
       onSelectedRunChange(run.id);
       await invalidate();
     },
@@ -175,7 +182,8 @@ export const StageRunMaterial = ({
   const canAnswer =
     selectedRun.role === "STAGE" &&
     runIsActive(selectedRun);
-  const actionError = input.error ?? cancel.error ?? retry.error ?? resume.error;
+  const actionError = cancel.error ?? retry.error ?? resume.error;
+  const sessionStatus = openCodeSessionStatus(selectedRun);
 
   return (
     <section
@@ -198,6 +206,10 @@ export const StageRunMaterial = ({
               {" · Attempt " + selectedRun.attempt + " · "}
               <time>{new Date(selectedRun.startedAt).toLocaleString()}</time>
             </span>
+          </div>
+          <div className="order-opencode-session-status" data-testid="opencode-session-status">
+            <strong>OpenCode session</strong>
+            <span>{sessionStatus}</span>
           </div>
           <div className="order-inline-actions">
             {runIsActive(selectedRun) ? (
@@ -252,7 +264,13 @@ export const StageRunMaterial = ({
               description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)}
             />
           ) : events.length === 0 ? (
-            <WorkbenchEmptyState compact title="No persisted activity events yet" />
+            <WorkbenchEmptyState
+              compact
+              title={sessionStatus}
+              description={runIsActive(selectedRun)
+                ? "The selected Run is active. Persisted session results will appear here automatically."
+                : "No persisted provider events were returned for this Run."}
+            />
           ) : (
             <RunEventTimeline
               run={selectedRun}
@@ -264,20 +282,11 @@ export const StageRunMaterial = ({
         </div>
 
         {canAnswer ? (
-          <div className="order-activity-composer" data-testid="activity-composer">
-            <div>
-              <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your input is needed" : "Continue current work"}</strong>
-              <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.event.question : "Send the next instruction or answer for this interactive workflow attempt."}</span>
-            </div>
-            <ChatComposer
-              onSubmit={(value) => {
-                if (value.trim().length > 0) input.mutate(value);
-              }}
-              placeholder="Answer and continue"
-              isDisabled={input.isPending}
-              elevation="none"
-            />
-          </div>
+          <ActivityComposer
+            run={selectedRun}
+            pending={pending}
+            onSubmitted={invalidate}
+          />
         ) : null}
       </div>
     </section>

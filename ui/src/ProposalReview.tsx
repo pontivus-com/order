@@ -1,15 +1,22 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 
 import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
+import { ActivityComposer } from "./ActivityComposer.tsx";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
 } from "./primitives/WorkbenchState.tsx";
-import { proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
+import {
+  proposalDispositionFor,
+  runIsActive,
+  unresolvedHumanInput,
+  type ProposalSelection,
+} from "./workbench-presentation.ts";
 
 export const ProposalReview = ({
   workItem,
@@ -21,12 +28,20 @@ export const ProposalReview = ({
   onBack: () => void;
 }>) => {
   const queryClient = useQueryClient();
+  const runsQuery = useQuery({
+    queryKey: workbenchQueryKeys.runs(workItem.id),
+    queryFn: () => api.listRuns(workItem.id),
+    refetchInterval: (query) =>
+      query.state.data?.some(runIsActive) === true ? 1000 : false,
+  });
   const eventsQuery = useQuery({
     queryKey: workbenchQueryKeys.runEvents(selection.runId),
     queryFn: () => api.listRunEvents(selection.runId, 0),
     refetchInterval: 1000,
   });
   const events = eventsQuery.data ?? [];
+  const pending = useMemo(() => unresolvedHumanInput(events), [events]);
+  const run = runsQuery.data?.find((candidate) => candidate.id === selection.runId) ?? null;
   const proposal = events.find((event) => event.id === selection.eventId);
   const proposalPayload =
     proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposal.event : null;
@@ -41,6 +56,9 @@ export const ProposalReview = ({
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: workbenchQueryKeys.runEvents(selection.runId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: workbenchQueryKeys.runs(workItem.id),
       }),
       queryClient.invalidateQueries({
         queryKey: workbenchQueryKeys.workItems,
@@ -123,14 +141,28 @@ export const ProposalReview = ({
       </div>
 
       <div className="order-proposal-review-diff" data-testid="proposal-review-diff">
+        <div className="order-proposal-review-diff-heading">
+          <strong>Proposed document diff</strong>
+          <span>{proposalPayload.targetPath}</span>
+        </div>
         <CodeBlock
           code={proposalPayload.unifiedDiff}
           language="diff"
           isDiff
+          isWrapped
           hasCopyButton
+          container="section"
           width="100%"
         />
       </div>
+
+      {run && run.role === "STAGE" && runIsActive(run) ? (
+        <ActivityComposer
+          run={run}
+          pending={pending}
+          onSubmitted={invalidate}
+        />
+      ) : null}
 
       {decision.error ? (
         <WorkbenchErrorState
