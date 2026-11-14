@@ -79,6 +79,7 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "SOURCE_DOCUMENT" }>
   | Readonly<{ kind: "STAGE_RUN"; runId: Run["id"] }>
   | Readonly<{ kind: "STAGE_DOCUMENT"; artifactId: ArtifactRef["id"] }>
+  | Readonly<{ kind: "SUPPORTING_DOCUMENT"; artifactId: ArtifactRef["id"] }>
   | Readonly<{ kind: "PROPOSAL"; runId: Run["id"]; eventId: RunEventId }>
   | Readonly<{ kind: "READINESS_REVIEW" }>
   | Readonly<{ kind: "APPROVAL_PACKAGE" }>
@@ -170,6 +171,10 @@ const selectedMaterialIsAvailable = (
       );
       return artifact !== undefined && artifact.role === input.selectedStep;
     }
+    case "SUPPORTING_DOCUMENT":
+      return input.artifacts.some(
+        (artifact) => artifact.id === selection.artifactId,
+      );
     case "PROPOSAL": {
       const proposal = input.pendingProposal ?? null;
       if (
