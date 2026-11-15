@@ -1020,6 +1020,8 @@ POST /api/work-item-sources/reconcile
 body {}
 -> WorkItemSourceReconciliation
 
+Reconciliation is an explicit authority mutation. Before applying any changed projection/lifecycle plan, the daemon proves no affected WorkItem has an active Run and no affected WorkItem operator-mutation guard is held. If that cannot be proven, the reconciliation command is rejected without applying a partial changed-source lifecycle transition; it is not allowed to move authority underneath an active Run.
+
 PUT /api/work-items/:workItemId/source
 body { expectedSha256, markdown }
 -> ExpectedHashWriteResult
