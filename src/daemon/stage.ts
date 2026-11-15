@@ -634,14 +634,6 @@ const startStageRunUnlocked = async (
 
   const contextState = await resolveStageContextState(runtime, workItem, targetStage);
   if (contextState.staleStage !== null) {
-    withTransaction(runtime.database, () => {
-      const current = getWorkItem(runtime, workItem.id);
-      const transition = transitionWorkItem(current, {
-        tag: "LIFECYCLE_ARTIFACT_CHANGED",
-        owner: contextState.staleStage!,
-      });
-      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
-    });
     throw new TypeError(
       `current upstream conformance is missing or stale: ${contextState.staleStage}`,
     );
