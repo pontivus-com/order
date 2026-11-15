@@ -636,46 +636,14 @@ test("browser surfaces the canonical typed API failure message", async ({ page, 
   await page.unroute("**/api/work-items");
 });
 
-test("Approval consumes the typed stale authority owner and returns to the exact canonical owner", async ({
+test("Approval consumes the real typed stale authority owner and returns to the exact canonical owner", async ({
   page,
   request,
 }) => {
   await authenticate(page, request);
-  const workItem = await workItemForTitle(page, "Awaiting sign-off");
-  const packagePath =
-    `**/api/work-items/${encodeURIComponent(workItem.id)}/signoff-package`;
-  const reconcilePath =
-    `**/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`;
+  const workItem = await workItemForTitle(page, "Stale approval recovery");
 
-  await page.route(packagePath, async (route) => {
-    await route.fulfill({
-      status: 409,
-      contentType: "application/json",
-      body: JSON.stringify({
-        code: "STALE_AUTHORITY",
-        message: "current R3 conformance is missing or stale: PLAN",
-        sourceDiagnostic: null,
-        staleAuthorityOwner: "PLAN",
-      }),
-    });
-  });
-
-  let submittedOwner: unknown = null;
-  await page.route(reconcilePath, async (route) => {
-    submittedOwner = route.request().postDataJSON();
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        ...workItem,
-        stage: "PLAN",
-        status: "ACTIVE",
-        outcome: null,
-      }),
-    });
-  });
-
-  await openWorkItem(page, "Awaiting sign-off");
+  await openWorkItem(page, "Stale approval recovery");
   const summary = page.getByTestId("workflow-step-summary");
   await expect(summary).toContainText("Package stale");
   await expect(summary).toContainText("Approval authority is stale");
@@ -697,11 +665,18 @@ test("Approval consumes the typed stale authority owner and returns to the exact
       `/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`,
     ));
   await reconcile.click();
-  await requestObserved;
-  expect(submittedOwner).toEqual({ expectedOwner: "PLAN" });
+  const reconcileRequest = await requestObserved;
+  expect(reconcileRequest.postDataJSON()).toEqual({ expectedOwner: "PLAN" });
 
-  await page.unroute(packagePath);
-  await page.unroute(reconcilePath);
+  await expect(
+    page.getByTestId("workflow-rail").getByRole("button", {
+      name: "Implementation plan",
+      exact: true,
+    }),
+  ).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText(
+    "Implementation plan",
+  );
 });
 
 test("valid external Work request drift keeps source reconciliation distinct from Approval authority reconciliation", async ({
