@@ -30,7 +30,10 @@ For every governed concern:
 - if the concern already has an owner, change that owner rather than creating a second specification;
 - if a genuinely new concern needs documentation, establish one canonical owner and identifiers before other documents depend on it;
 - local documents may state only their own consequence, dependency, evidence, or integration obligation and cite the owner identifier;
-- never create a shadow specification for convenience.
+- never create a shadow specification for convenience;
+- give Order-owned permanent documentation semantic directory/file names and preserve canonical identifiers across path moves; do not introduce ordinal-prefix filenames as an authority-order mechanism;
+- keep change-specific Research / Requirements / Solution design / Implementation plan / Readiness artifacts in the repository-native WorkItem document set governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` rather than adding release-specific numbered plans to the permanent design set;
+- use Git history, merged pull requests, releases and `CHANGELOG.md` as completed implementation provenance; do not retain superseded/completed copies in the live canonical documentation tree unless an older semantic version must remain independently selectable under `GW-P1-DOC-CANONICALITY`.
 
 
 ## Public repository pull-request delivery
