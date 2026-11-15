@@ -338,6 +338,7 @@ export const WorkItemWorkspace = ({
       runEventQueries[index]?.data === undefined
     );
   const executionEventsPending =
+    workItem.stage === "EXECUTION" &&
     runs.some((run, index) =>
       run.executionTaskId !== null &&
       runEventQueries[index]?.data === undefined
