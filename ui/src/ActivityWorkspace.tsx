@@ -5,7 +5,7 @@ import type { Run, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDialogue } from "./primitives/WorkbenchDialogue.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
@@ -71,15 +71,8 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisa
   const events = eventsQuery.data ?? [];
   const pending = useMemo(() => unresolvedHumanInput(events), [events]);
 
-  const invalidate = async (): Promise<void> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runEventsRoot }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
-    ]);
-  };
+  const invalidate = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
   const cancel = useMutation({
     mutationFn: () => { if (!selectedRun || !runIsActive(selectedRun)) throw new TypeError("selected workflow Run is not active"); return api.cancelRun(selectedRun.id); },
     onSuccess: async (run) => { onSelectedRunChange(run.id); await invalidate(); },
