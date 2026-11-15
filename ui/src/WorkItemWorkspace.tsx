@@ -3,7 +3,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import { Link } from "@astryxdesign/core/Link";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
-import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, Run, RunEvent, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import {
   deriveCurrentAttention,
   deriveExecutionOwner,
@@ -156,6 +156,8 @@ export const WorkItemWorkspace = ({
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [terminalDrainPending, setTerminalDrainPending] = useState(false);
+  const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const runsQuery = useQuery({
@@ -187,6 +189,82 @@ export const WorkItemWorkspace = ({
   });
 
   const runs = runsQuery.data ?? [];
+
+  useEffect(() => {
+    if (!runs.some(runIsActive)) return;
+    const interval = window.setInterval(() => {
+      void queryClient.refetchQueries({
+        queryKey: workbenchQueryKeys.workItem(workItem.id),
+        type: "active",
+      });
+    }, 1000);
+    return () => window.clearInterval(interval);
+  }, [queryClient, runs, workItem.id]);
+
+  useEffect(() => {
+    const activeIds = runs.filter(runIsActive).map((run) => run.id);
+    const terminalized = priorActiveRunIds.current.filter(
+      (runId) => !activeIds.includes(runId),
+    );
+    priorActiveRunIds.current = activeIds;
+    if (terminalized.length === 0) return;
+
+    setTerminalDrainPending(true);
+    void (async () => {
+      for (const runId of terminalized) {
+        const key = workbenchQueryKeys.runEvents(runId);
+        const cached = queryClient.getQueryData<readonly RunEvent[]>(key) ?? [];
+        const afterSequence = cached.at(-1)?.sequence ?? 0;
+        const finalEvents = await api.listRunEvents(runId, afterSequence);
+        if (finalEvents.length > 0) {
+          const byId = new Map(
+            [...cached, ...finalEvents].map((event) => [event.id, event] as const),
+          );
+          queryClient.setQueryData(
+            key,
+            [...byId.values()].sort((left, right) =>
+              left.sequence - right.sequence ||
+              left.id.localeCompare(right.id)),
+          );
+        }
+      }
+      await Promise.all([
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.workItem(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.runs(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.tasks(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.artifacts(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.workItemSource(workItem.id),
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
+          type: "active",
+        }),
+        queryClient.refetchQueries({
+          queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
+          type: "active",
+        }),
+      ]);
+    })().finally(() => setTerminalDrainPending(false));
+  }, [queryClient, runs, workItem.id]);
+
   const artifacts = artifactsQuery.data ?? [];
   const tasks = tasksQuery.data ?? [];
   const runEventQueries = useQueries({
@@ -319,6 +397,7 @@ export const WorkItemWorkspace = ({
     tasks,
   );
   const transportConverging =
+    terminalDrainPending ||
     currentStageEventsPending ||
     runEventQueries.some((query) => query.isFetching) ||
     runsQuery.isFetching ||
