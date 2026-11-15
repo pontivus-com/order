@@ -290,6 +290,7 @@ export const classifyHttpFailure = (
     code: "INTERNAL_ERROR",
     message: "Internal daemon error",
     sourceDiagnostic: null,
+    staleAuthorityOwner: null,
   };
 };
 
