@@ -497,7 +497,7 @@ When used:
 
 Context is secondary and closed by default.
 
-Opening Context is an explicit operator action.
+Opening Context is an explicit operator action. Once open, Context always provides an explicit close/toggle action in a predictable location; navigating away from the selected material is never required merely to recover primary width.
 
 On wide layouts it may use one bounded fixed-width trailing inspector if the primary task remains usable. Otherwise it is a drawer/overlay.
 
@@ -633,6 +633,8 @@ If a legitimate required-input request exists, the current Run interaction tempo
 
 R3 material is read-only.
 
+Readiness does not default to a persistent master/navigation column. Package material, attempts and evidence use a compact subordinate selector unless the interaction is explicitly reclassified as genuine master/detail.
+
 ### 14.7 Approval
 
 Approval is one coherent Review workspace.
@@ -646,6 +648,8 @@ Primary hierarchy:
 5. technical package hashes/commit identity.
 
 Repeated signed tasks use scan-efficient rows/table/master-detail as needed. They do not become a vertical stack of cards.
+
+Approval does not default to a generic persistent package/document/task navigation rail. Technical package hashes/commit identity are collapsed/on-demand secondary detail and may not displace package currentness, task meaning or the sign-off decision from the primary review hierarchy.
 
 ### 14.8 Implementation
 
