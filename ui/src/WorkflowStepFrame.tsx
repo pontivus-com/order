@@ -30,13 +30,14 @@ export const WorkflowStepIndex = ({ groups, label = "Workflow material" }: Reado
   groups: readonly WorkflowStepIndexGroup[]; label?: string;
 }>) => <WorkflowMaterialSelector groups={groups} label={label} />;
 
-export type WorkflowStepSummaryBlocker = Readonly<{ status: BannerStatus; title: string; description?: ReactNode }>;
+export type WorkflowStepSummaryBlocker = Readonly<{
+  status: WorkflowNoticeStatus;
+  title: string;
+  description?: ReactNode;
+}>;
 
-const statusTone = (variant: BadgeVariant): WorkbenchStatusTone =>
-  variant === "success" ? "success" :
-  variant === "warning" ? "warning" :
-  variant === "error" || variant === "red" ? "danger" :
-  variant === "info" || variant === "blue" ? "info" : "neutral";
+const statusTone = (variant: WorkflowStatusVariant): WorkbenchStatusTone =>
+  variant === "error" ? "danger" : variant;
 
 export const WorkflowStepSummary = ({
   label, purpose, stateLabel, stateVariant = "neutral", statusLabel,
