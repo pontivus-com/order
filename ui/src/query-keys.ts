@@ -22,6 +22,8 @@ export const workbenchQueryKeys = {
   signoffPackageRoot: ["signoffPackage"] as const,
   runEventsRoot: ["runEvents"] as const,
 
+  workItem: (workItemId: WorkItemId) =>
+    ["workItem", workItemId] as const,
   workItemSource: (workItemId: WorkItemId) =>
     ["workItemSource", workItemId] as const,
   workItemDocumentationGitStatus: (workItemId: WorkItemId) =>
