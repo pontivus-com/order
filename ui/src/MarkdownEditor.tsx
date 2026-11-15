@@ -86,6 +86,8 @@ export const MarkdownEditor = ({
   technicalDetails,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
+  const onDirtyChangeRef = useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
   const [loadedSha256, setLoadedSha256] = useState(sha256);
   const [loadedMarkdown, setLoadedMarkdown] = useState(markdown);
   const [buffer, setBuffer] = useState(markdown);
@@ -100,8 +102,10 @@ export const MarkdownEditor = ({
   const sourceVisible = !readOnly && presentationMode !== "PREVIEW";
   const formattingDisabled = conflicted || saving || !sourceVisible;
 
-  useEffect(() => onDirtyChange?.(dirty), [dirty, onDirtyChange]);
-  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+  useEffect(() => {
+    onDirtyChangeRef.current?.(dirty);
+  }, [dirty]);
+  useEffect(() => () => onDirtyChangeRef.current?.(false), []);
 
   useEffect(() => {
     setPresentationMode(readOnly ? "PREVIEW" : editablePresentationMode.current);
@@ -124,13 +128,13 @@ export const MarkdownEditor = ({
     setBuffer(markdown);
     setConflicted(false);
     setSaveError(null);
-    onDirtyChange?.(false);
+    onDirtyChangeRef.current?.(false);
   };
 
   const cancel = (): void => {
     setBuffer(loadedMarkdown);
     setSaveError(null);
-    onDirtyChange?.(false);
+    onDirtyChangeRef.current?.(false);
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -146,7 +150,7 @@ export const MarkdownEditor = ({
       }
       setLoadedSha256(result.sha256);
       setLoadedMarkdown(buffer);
-      onDirtyChange?.(false);
+      onDirtyChangeRef.current?.(false);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : String(error));
     } finally {
