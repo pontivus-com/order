@@ -569,6 +569,7 @@ export const WorkItemWorkspace = ({
                 : "neutral" as const;
 
   const observationVersion = [
+    workItem.id,
     workItem.stage,
     workItem.status,
     workItem.outcome ?? "",
@@ -1176,6 +1177,7 @@ export const WorkItemWorkspace = ({
             mutationsDisabled={workflowMutationsDisabled}
             onDirtyChange={setDirtyState}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={reportMutationError}
           />
         ) : null}
         {material.kind === "STAGE_DOCUMENT" ? (
@@ -1186,6 +1188,7 @@ export const WorkItemWorkspace = ({
             onDirtyChange={setDirtyState}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={reportMutationError}
           />
         ) : null}
         {material.kind === "EVIDENCE" ? (
