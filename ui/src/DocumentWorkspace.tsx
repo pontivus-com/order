@@ -10,7 +10,7 @@ import {
 } from "../../src/core/contracts.ts";
 import { artifactDirectEditIsAllowed } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -93,18 +93,8 @@ const useDocumentationGitState = (
           ? "Saved to Git"
           : "Saved to project, not Git";
 
-  const invalidateDocumentation = async (): Promise<void> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSource(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.artifacts(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
-    ]);
-    void queryClient.invalidateQueries({
-      queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id),
-    });
-  };
+  const invalidateDocumentation = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
 
   const commitDocumentation = useMutation({
     mutationFn: async () => {
