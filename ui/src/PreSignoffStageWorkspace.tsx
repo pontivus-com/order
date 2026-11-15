@@ -49,6 +49,7 @@ export const PreSignoffStageWorkspace = ({
   artifacts,
   material,
   summary,
+  mutationsDisabled = false,
   onSelectMaterial,
   onDirtyChange,
   onOpenArtifactEvidence,
@@ -64,6 +65,7 @@ export const PreSignoffStageWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   summary: ReactNode;
+  mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
@@ -176,6 +178,7 @@ export const PreSignoffStageWorkspace = ({
             workItem={workItem}
             stage={stage}
             selectedRunId={material.runId}
+            mutationsDisabled={mutationsDisabled}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
@@ -187,6 +190,7 @@ export const PreSignoffStageWorkspace = ({
           <LifecycleDocumentMaterial
             workItem={workItem}
             artifactId={material.artifactId}
+            mutationsDisabled={mutationsDisabled}
             onDirtyChange={onDirtyChange}
             onOpenArtifactEvidence={onOpenArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
@@ -229,6 +233,7 @@ export const PreSignoffStageWorkspace = ({
           <ProposalReview
             workItem={workItem}
             selection={{ runId: material.runId, eventId: material.eventId }}
+            mutationsDisabled={mutationsDisabled}
             onBack={onReturnFromTransient}
           />
         );
