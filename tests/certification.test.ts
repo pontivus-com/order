@@ -427,6 +427,8 @@ describe("Order cross-boundary certification", () => {
     expect(materialPolicy).toContain("input.currentAttention");
     expect(materialPolicy).toContain("input.stageInteraction");
     expect(materialPolicy).toContain("input.executionOwner");
+    expect(materialPolicy).toContain('input.currentAttention === "CONVERGING"');
+    expect(materialPolicy).toContain("execution owner must identify a loaded ExecutionTask");
     expect(materialPolicy).not.toMatch(/\.status\s*===/);
     expect(materialPolicy).not.toMatch(/\.state\s*===\s*["'](?:RUNNING|BLOCKED)["']/);
 
