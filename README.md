@@ -104,7 +104,7 @@ VERIFIED CANDIDATE
 
 Not every WorkItem traverses the entire implementation path. Investigations, audits, disproven work, duplicates, already-satisfied work, and blocked work can terminate earlier without manufacturing implementation.
 
-See the [work lifecycle](docs/01-work-lifecycle.md) and [validation standard](docs/06-validation-standard.md) for the canonical transition and evidence rules.
+See the [work lifecycle](docs/requirements/work-lifecycle.md) and [validation standard](docs/requirements/validation-standard.md) for the canonical transition and evidence rules.
 
 ## Know what the result means
 
@@ -163,7 +163,7 @@ order provider login <provider>
 
 The guided installation manages the user-level `pontivus-order.service`; `order status` remains the supported health check.
 
-Normal installation and update consume the certified Order-owned release bundle rather than arbitrary `master`. See the [public repository delivery and release standard](docs/44-public-repository-delivery-and-release.md).
+Normal installation and update consume the certified Order-owned release bundle rather than arbitrary `master`. See the [public repository delivery and release standard](docs/governance/repository-delivery.md).
 
 ## Work from one place
 
@@ -183,7 +183,7 @@ It provides one place to inspect and manage:
 
 The browser does not become a second source of workflow truth. Durable state remains daemon-owned, while project repositories retain authority for their own product intent, requirements, architecture, contracts, ADRs, tests, plans, and domain semantics.
 
-See the [workbench UX](docs/37-workbench-ux-information-architecture.md), [technical architecture](docs/12-technical-architecture.md), and [project governance integration](docs/09-project-governance-integration.md).
+See the [workbench UX](docs/requirements/workbench.md), [technical architecture](docs/architecture/technical-architecture.md), and [project governance integration](docs/requirements/project-governance-integration.md).
 
 ## Fits around your repositories and agents
 
@@ -201,17 +201,17 @@ This checkout is version `0.3.0`, the current certified public release.
 
 The canonical design set begins at [docs/README.md](docs/README.md).
 
-- [Product identity](docs/40-order-product-identity.md)
-- [System brief](docs/00-system-brief.md)
-- [Work lifecycle](docs/01-work-lifecycle.md)
-- [Validation standard](docs/06-validation-standard.md)
-- [Minimum-change standard](docs/08-minimum-change-standard.md)
-- [Project governance integration](docs/09-project-governance-integration.md)
-- [Technical architecture](docs/12-technical-architecture.md)
-- [Canonical contracts](docs/13-canonical-contracts.md)
-- [WorkItem document system](docs/31-work-item-document-system.md)
-- [Workbench UX](docs/37-workbench-ux-information-architecture.md)
-- [Public repository delivery and release](docs/44-public-repository-delivery-and-release.md)
+- [Product identity](docs/product/product-identity.md)
+- [System brief](docs/product/system-brief.md)
+- [Work lifecycle](docs/requirements/work-lifecycle.md)
+- [Validation standard](docs/requirements/validation-standard.md)
+- [Minimum-change standard](docs/governance/minimum-change.md)
+- [Project governance integration](docs/requirements/project-governance-integration.md)
+- [Technical architecture](docs/architecture/technical-architecture.md)
+- [Canonical contracts](docs/contracts/canonical-contracts.md)
+- [WorkItem document system](docs/requirements/work-item-documents.md)
+- [Workbench UX](docs/requirements/workbench.md)
+- [Public repository delivery and release](docs/governance/repository-delivery.md)
 - [Changelog](CHANGELOG.md)
 
 ## Repository development
