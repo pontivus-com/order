@@ -125,6 +125,10 @@
 }
 .order-utility-link small { color: var(--color-text-secondary); }
 
+.order-workitem-layout {
+  height: calc(100dvh - var(--order-toolbar-height));
+  min-height: 0;
+}
 .order-workbench-chrome {
   display: grid;
   min-width: 0;
@@ -156,10 +160,9 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(7rem, 1fr);
+  grid-template-columns: repeat(9, minmax(0, 1fr));
   list-style: none;
-  min-width: max-content;
+  min-width: 0;
 }
 .order-workbench-rail button {
   width: 100%;
@@ -186,12 +189,7 @@
 
 .order-workbench-surface {
   height: 100%;
-  min-height: calc(
-    100dvh
-    - var(--order-toolbar-height)
-    - var(--order-identity-height)
-    - var(--size-element-sm)
-  );
+  min-height: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   background: var(--color-background-surface);
@@ -674,6 +672,12 @@
 
 /* 5. Canonical Workbench breakpoint overrides only. */
 @media (max-width: 1279px) {
+  .order-workbench-rail ol {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(7rem, 1fr);
+    min-width: max-content;
+  }
   .order-workbench-identity-primary { justify-content: flex-start; }
   .order-workitem-identity-copy { text-align: start; }
   .order-toolbar-search-wrap { min-width: 12rem; }
