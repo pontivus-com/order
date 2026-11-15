@@ -311,7 +311,7 @@ export const SignoffReview = ({
   const primary = (() => {
     if (
       artifactsQuery.isPending ||
-      (currentApproval ? packageQuery.isPending : tasksQuery.isPending)
+      (currentApproval ? packageQuery.isFetching : tasksQuery.isPending)
     ) {
       return (
         <WorkbenchEmptyState
@@ -445,7 +445,10 @@ export const SignoffReview = ({
   })();
 
   const approvalAction =
-    currentApproval && packageQuery.data ? (
+    currentApproval &&
+    packageQuery.data &&
+    !packageQuery.isError &&
+    !packageQuery.isFetching ? (
       <div className="order-approval-action-region">
         <TextInput
           label="Approved by"
