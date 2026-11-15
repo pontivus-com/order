@@ -393,6 +393,12 @@ describe("Order cross-boundary certification", () => {
     expect(production).not.toMatch(/\b(?:type|interface|class)\s+WorkflowState\b/);
     expect(production).not.toMatch(/z\.[A-Za-z]+\([^)]*WorkflowState/);
 
+    expect(lifecycle).toContain('"RECONCILE_AUTHORITY"');
+    const contracts = read("src/core/contracts.ts");
+    expect(contracts).toContain("UpstreamReturnStageSchema");
+    expect(contracts).toContain("ReconcileWorkItemAuthoritySchema");
+    expect(contracts).toContain("staleAuthorityOwner: UpstreamReturnStageSchema.nullable()");
+
     const presentation = read("ui/src/workbench-presentation.ts");
     expect(presentation).toContain("reachStateForStage");
     expect(presentation).toContain("type CurrentAttentionTag");
@@ -436,6 +442,11 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("currentAttention,");
     expect(workspace).toContain("stageInteraction: currentStageInteraction");
     expect(workspace).toContain("executionOwner,");
+
+    expect(workspace).toContain('orderError.code === "STALE_AUTHORITY"');
+    expect(workspace).toContain("orderError.staleAuthorityOwner");
+    expect(workspace).toContain("api.reconcileWorkItemAuthority");
+    expect(workspace).not.toMatch(/message\.(?:match|includes)|parse.*message/i);
 
     const activity = read("ui/src/ActivityWorkspace.tsx");
     expect(activity).toContain("currentRunId");
@@ -485,6 +496,15 @@ describe("Order cross-boundary certification", () => {
     );
     expect(signoffRead).toContain('"R3",\n    false,');
     expect(signoffRead).not.toContain("updateWorkItemLifecycle(");
+
+    expect(authority).toContain("staleAuthorityOwnerForFailure");
+    expect(authority).toContain("reconcileWorkItemAuthority");
+    expect(authority).toContain('tag: "RECONCILE_AUTHORITY"');
+
+    const server = read("src/daemon/server.ts");
+    expect(server).toContain('code: "STALE_AUTHORITY"');
+    expect(server).toContain('parts[3] === "reconcile-authority"');
+    expect(server).toContain("ReconcileWorkItemAuthoritySchema.parse");
 
     for (const daemonPath of [
       "src/daemon/work-item-source.ts",
