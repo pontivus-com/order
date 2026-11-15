@@ -174,6 +174,7 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.tasks(workItem.id),
     queryFn: () => api.listExecutionTasks(workItem.id),
     enabled:
+      selectedStep === "AWAITING_SIGNOFF" ||
       selectedStep === "EXECUTION" ||
       workItem.stage === "EXECUTION" ||
       workItem.stage === "COMPLETE",
@@ -515,7 +516,12 @@ export const WorkItemWorkspace = ({
         : "Not yet reached";
     }
     if (selectedStep === "AWAITING_SIGNOFF") {
-      if (selectedStepState === "HISTORICAL") return "Approved";
+      if (selectedStepState === "HISTORICAL") {
+        if (tasksQuery.isPending) return "Loading approval history";
+        return tasks.length > 0
+          ? "Approved · historical"
+          : "Returned upstream before sign-off";
+      }
       if (selectedStepState === "UNREACHED") return "Not yet reached";
       if (signoffPackageQuery.isFetching) return "Resolving package";
       if (packageStaleOwner !== null) return "Package stale";
@@ -549,11 +555,15 @@ export const WorkItemWorkspace = ({
                 selectedStepState === "CURRENT" &&
                 (signoffPackageQuery.isError || !signoffPackageQuery.data)
               ? "error" as const
-            : selectedStep === "COMPLETE" ||
-                selectedStepState === "HISTORICAL" ||
-                selectedLatestStageRun?.status === "COMPLETED"
-              ? "success" as const
-              : "neutral" as const;
+            : selectedStep === "AWAITING_SIGNOFF" &&
+                selectedStepState === "HISTORICAL" &&
+                tasks.length === 0
+              ? "neutral" as const
+              : selectedStep === "COMPLETE" ||
+                  selectedStepState === "HISTORICAL" ||
+                  selectedLatestStageRun?.status === "COMPLETED"
+                ? "success" as const
+                : "neutral" as const;
 
   useEffect(() => {
     headingRef.current?.focus();
