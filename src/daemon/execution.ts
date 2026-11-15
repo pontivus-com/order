@@ -28,6 +28,7 @@ import {
 import {
   routeApprovalStale,
   routeValidationFailure,
+  transitionWorkItem,
 } from "../core/lifecycle.ts";
 import {
   loadValidatedProjectManifest,
@@ -62,7 +63,6 @@ import {
   loadRunsForExecutionTask,
   reconstructExecutionTask,
   setExecutionTaskState,
-  setWorkItemStatus,
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
@@ -190,7 +190,11 @@ export const setWorkItemExecutionBlocked = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
 ): void => {
-  setWorkItemStatus(runtime.database, workItemId, "BLOCKED");
+  const current = getWorkItem(runtime, workItemId);
+  const transition = transitionWorkItem(current, {
+    tag: "BLOCK_CURRENT_OWNER",
+  });
+  updateWorkItemLifecycle(runtime.database, workItemId, transition);
 };
 
 export const maybeCompleteWorkItem = async (
@@ -199,12 +203,13 @@ export const maybeCompleteWorkItem = async (
 ): Promise<void> => {
   const tasks = await canonicalTasksForApproval(runtime, approval);
   const aggregate = aggregateTaskCompletion(tasks);
-  if (!aggregate.complete) return;
-  updateWorkItemLifecycle(runtime.database, approval.workItemId, {
-    stage: "COMPLETE",
-    status: "COMPLETE",
+  if (!aggregate.complete || aggregate.outcome === null) return;
+  const current = getWorkItem(runtime, approval.workItemId);
+  const transition = transitionWorkItem(current, {
+    tag: "EXECUTION_COMPLETED",
     outcome: aggregate.outcome,
   });
+  updateWorkItemLifecycle(runtime.database, approval.workItemId, transition);
 };
 
 export const blockOldApprovalAndReturn = (
@@ -212,12 +217,13 @@ export const blockOldApprovalAndReturn = (
   approval: Approval,
   targetStage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
 ): void => {
-  blockExecutionTasksForApproval(runtime.database, approval.id);
-  updateWorkItemLifecycle(runtime.database, approval.workItemId, {
-    stage: targetStage,
-    status: "ACTIVE",
-    outcome: null,
+  const current = getWorkItem(runtime, approval.workItemId);
+  const transition = transitionWorkItem(current, {
+    tag: "EXECUTION_RETURN",
+    owner: targetStage,
   });
+  blockExecutionTasksForApproval(runtime.database, approval.id);
+  updateWorkItemLifecycle(runtime.database, approval.workItemId, transition);
 };
 
 export const terminateValidationFailure = (
