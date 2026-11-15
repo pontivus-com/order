@@ -164,6 +164,7 @@ export const WorkItemWorkspace = ({
   const [titleError, setTitleError] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [mutationConflict, setMutationConflict] = useState(false);
+  const [mutationRefreshPending, setMutationRefreshPending] = useState(false);
   const [terminalDrainPending, setTerminalDrainPending] = useState(false);
   const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
   const mutationConflictObservation = useRef<string | null>(null);
@@ -441,12 +442,6 @@ export const WorkItemWorkspace = ({
     allRunEvents,
     coherenceTasks,
   );
-  const currentStageEventsFetching =
-    currentStageRun !== null &&
-    runs.some((run, index) =>
-      run.id === currentStageRun.id &&
-      runEventQueries[index]?.isFetching === true
-    );
   const currentStageEventsError =
     currentStageRun === null
       ? null
@@ -472,20 +467,22 @@ export const WorkItemWorkspace = ({
     tasksQuery.isFetching;
   const transportConverging =
     terminalDrainPending ||
-    selectedWorkItemFetching ||
-    runsQuery.isFetching ||
-    artifactsQuery.isFetching ||
+    mutationRefreshPending ||
+    runsQuery.data === undefined ||
+    artifactsQuery.data === undefined ||
+    sourceQuery.data === undefined ||
+    diagnosticsQuery.data === undefined ||
     (
       (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
-      allArtifactsQuery.isFetching
+      allArtifactsQuery.data === undefined
     ) ||
     currentExecutionTasksFetching ||
     executionEventsPending ||
-    currentStageEventsFetching ||
     currentStageEventsPending ||
-    sourceQuery.isFetching ||
-    diagnosticsQuery.isFetching ||
-    (workItem.stage === "AWAITING_SIGNOFF" && signoffPackageQuery.isFetching);
+    (
+      workItem.stage === "AWAITING_SIGNOFF" &&
+      signoffPackageQuery.isPending
+    );
   const currentObservationError =
     selectedWorkItemError ??
     runsQuery.error ??
@@ -780,8 +777,14 @@ export const WorkItemWorkspace = ({
     workflowInspectionActive,
   ]);
 
-  const invalidate = (): Promise<void> =>
-    invalidateWorkbenchMutation(queryClient, workItem.id);
+  const invalidate = async (): Promise<void> => {
+    setMutationRefreshPending(true);
+    try {
+      await invalidateWorkbenchMutation(queryClient, workItem.id);
+    } finally {
+      setMutationRefreshPending(false);
+    }
+  };
 
   const reportMutationError = (error: unknown): void => {
     if (!api.isCurrentStateConflict(error)) return;
