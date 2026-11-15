@@ -916,7 +916,9 @@ export const WorkItemWorkspace = ({
       }
       return api.resumeWorkItem(workItem.id);
     },
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await invalidate();
+    },
     onError: async (error) => {
       reportMutationError(error);
       await invalidate();
@@ -940,7 +942,9 @@ export const WorkItemWorkspace = ({
       }
       throw new TypeError("no stale authority owner is available for reconciliation");
     },
-    onSuccess: invalidate,
+    onSuccess: async () => {
+      await invalidate();
+    },
     onError: async (error) => {
       reportMutationError(error);
       await invalidate();
