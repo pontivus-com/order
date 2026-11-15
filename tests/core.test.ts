@@ -1515,5 +1515,31 @@ describe("closed Workbench workflow-state kernel", () => {
       automaticWorkActive: true,
       ordinaryActionAvailable: true,
     })).toBe("CONVERGING");
+
+    const staleCurrentness = normalizeMaterialCurrentness(false, ["PLAN", "R2"]);
+    expect(staleCurrentness).toEqual({ tag: "STALE", owner: "R2" });
+    const staleRecovery = deriveRecoveryDisposition(active, [], staleCurrentness);
+    expect(staleRecovery).toEqual({ tag: "RECONCILE_AUTHORITY" });
+    const staleAttention = deriveCurrentAttention({
+      workItem: active,
+      coherence: "COHERENT",
+      mutationConflict: false,
+      stageInteraction: null,
+      proposal: { tag: "NONE" },
+      recovery: staleRecovery,
+      currentness: staleCurrentness,
+      executionOwner: { tag: "NONE" },
+      automaticWorkActive: false,
+      ordinaryActionAvailable: true,
+    });
+    expect(staleAttention).toBe("STALE_AUTHORITY");
+    const staleRail = deriveWorkflowRail(
+      active,
+      reached,
+      staleAttention,
+      staleRecovery,
+      "R1",
+    );
+    expect(staleRail.find((item) => item.stage === "R1")?.marker).toBe("STALE");
   });
 });
