@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type {
   ArtifactRef,
   Run,
+  RunEvent,
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
@@ -61,6 +62,7 @@ export const ReadinessWorkspace = ({
   onOpenEvidence,
   onReturnFromTransient,
   onContextDocumentChange,
+  onMutationRefresh,
   onMutationError,
 }: Readonly<{
   workItem: WorkItem;
@@ -77,6 +79,7 @@ export const ReadinessWorkspace = ({
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const readinessArtifact =
@@ -180,6 +183,7 @@ export const ReadinessWorkspace = ({
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
+            onMutationRefresh={onMutationRefresh}
             onMutationError={onMutationError}
           />
         );
