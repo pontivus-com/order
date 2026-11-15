@@ -1316,6 +1316,72 @@ describe("closed Workbench workflow-state kernel", () => {
       tag: "PROCESSING",
     });
 
+    const duplicateAnswer = RunEventSchema.parse({
+      id: "event_55555555-5555-4555-8555-555555555555",
+      runId: running.id,
+      sequence: 4,
+      occurredAt: "2026-11-11T03:30:03.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: request.id,
+        text: "Duplicate answer",
+      },
+    });
+    expect(() =>
+      stageRunInteraction(running, [started, request, answer, duplicateAnswer]),
+    ).toThrow(/exact current required request/);
+
+    const unknownAnswer = RunEventSchema.parse({
+      id: "event_66666666-6666-4666-8666-666666666666",
+      runId: running.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: "event_77777777-7777-4777-8777-777777777777",
+        text: "Unknown answer",
+      },
+    });
+    expect(() =>
+      stageRunInteraction(running, [started, unknownAnswer]),
+    ).toThrow(/exact current required request/);
+
+    const freeFormDuringRequest = RunEventSchema.parse({
+      id: "event_88888888-8888-4888-8888-888888888888",
+      runId: running.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: null,
+        text: "Bypass required request",
+      },
+    });
+    expect(() =>
+      stageRunInteraction(
+        running,
+        [started, request, freeFormDuringRequest],
+      ),
+    ).toThrow(/cannot bypass/);
+
+    const secondRequest = RunEventSchema.parse({
+      id: "event_99999999-9999-4999-8999-999999999999",
+      runId: running.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "Second unresolved request?",
+      },
+    });
+    expect(() =>
+      stageRunInteraction(
+        RunSchema.parse({ ...running, status: "WAITING_FOR_INPUT" }),
+        [started, request, secondRequest],
+      ),
+    ).toThrow(/multiple unresolved input requests/);
+
     const closed = stageRun("CANCELLED");
     expect(stageRunInteraction(closed, [])).toEqual({ tag: "CLOSED" });
   });
