@@ -128,7 +128,7 @@ The observable workflow language is closed. Every Workbench workflow condition i
 | material currentness | `CURRENT | STALE(owner)` | whether currently judged lifecycle/approval/execution authority is still current relative to its canonical dependencies; the human-readable cause comes from the owning canonical diagnostic/classification |
 | execution owner | `NONE | CURRENT_TASK(task) | BLOCKED_TASK(task)` | exact task that currently owns Implementation progress/attention |
 | validation boundary | `NONE | PASSED_THROUGH(Vn) | FAILED_AT(Vn, classification) | COMPLETE` | latest durable post-signoff validation boundary for the current task/candidate |
-| recovery route | `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY | AUTOMATIC_RECOVERY | RETURN_TO_OWNER(stage)` | the single governed recovery route, if any, for the current condition |
+| recovery route | `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY` | the single operator-facing recovery route, if any, for the current condition; automatic execution remediation/replacement remains execution policy and appears as ordinary processing/Run state |
 | observation coherence | `COHERENT | CONVERGING` | whether the browser has one self-consistent canonical observation or is waiting for dependent canonical facts to catch up |
 | current attention | the closed categories in §21.9 | the one current workflow condition/action that must dominate presentation |
 
@@ -1242,8 +1242,7 @@ Recovery is likewise closed. A current failure/block/currentness condition resol
 - `RETRY_CURRENT_STAGE`;
 - `RESUME_CURRENT_OWNER`;
 - `RECONCILE_AUTHORITY`;
-- `AUTOMATIC_RECOVERY` for an already-authorized bounded replacement/remediation path;
-- `RETURN_TO_OWNER(stage)` when the canonical classification invalidates the current owner and returns work upstream.
+Automatic post-signoff replacement/remediation is not a Workbench recovery route. It remains governed by the execution policy; while it is running the Workbench observes canonical processing/Run state. A classified upstream return changes the canonical lifecycle owner and therefore does not remain as a separate recovery disposition.
 
 A generic Resume/Retry button is not a substitute for deriving the exact recovery route.
 
@@ -1293,8 +1292,7 @@ current attention REQUIRED_INPUT
   or recovery RECONCILE_AUTHORITY                 -> ACTION_REQUIRED
 current attention PROCESSING
   or PROPOSAL_ADOPTION
-  or CONVERGING
-  or recovery AUTOMATIC_RECOVERY                   -> PROCESSING
+  or CONVERGING                                    -> PROCESSING
 otherwise                                          -> READY
 ```
 
