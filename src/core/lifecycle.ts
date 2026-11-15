@@ -949,7 +949,7 @@ export const deriveObservationCoherence = (
   runs: readonly Run[],
   events: readonly RunEvent[],
   tasks: readonly ExecutionTask[],
-  artifacts: readonly ArtifactRef[] = [],
+  artifacts: readonly ArtifactRef[] | null = null,
 ): ObservationCoherence => {
   const active = (run: Run): boolean =>
     run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT";
@@ -969,13 +969,20 @@ export const deriveObservationCoherence = (
     const runEvents = events.filter((event) => event.runId === currentStageRun.id);
     const completion = runEvents.findLast((event) => event.event.tag === "STAGE_COMPLETED");
     if (completion?.event.tag === "STAGE_COMPLETED") {
+      const laterWorkflowRunExists = runs.some(
+        (run) =>
+          run.id !== currentStageRun.id &&
+          stageRank(run.stage) > stageRank(currentStageRun.stage) &&
+          run.startedAt > currentStageRun.startedAt,
+      );
       const completionArtifactIds = completion.event.artifactRefIds;
       const completionStillControlsCurrentAuthority =
+        artifacts === null ||
         completionArtifactIds.length === 0 ||
         completionArtifactIds.every((artifactId) =>
           artifacts.some((artifact) => artifact.id === artifactId)
         );
-      if (completionStillControlsCurrentAuthority) {
+      if (!laterWorkflowRunExists && completionStillControlsCurrentAuthority) {
         return "CONVERGING";
       }
     }
