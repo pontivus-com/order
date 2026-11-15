@@ -393,7 +393,7 @@ src/core/
   contracts.ts    # canonical strict schemas/types only
   canonical.ts    # canonical deterministic representations/transforms
   governance.ts   # authority/context applicability, concern/material resolution, freshness/invalidation
-  lifecycle.ts    # stage transition/completion and upstream-return/routing policy
+  lifecycle.ts    # WorkItem transition policy + browser-safe STAGE interaction/reached-history derivation
   execution.ts    # signed-task parsing/materialization, eligibility/completion, provider admission, repair/recovery policy
 
 src/shell/
@@ -468,7 +468,7 @@ shell ----------> core schemas where needed
 core -----------> no effectful Order module
 ```
 
-The browser-safe UI/core boundary is exact: UI may import canonical schemas/types from `src/core/contracts.ts` and the pure lifecycle policy owner `src/core/lifecycle.ts`. UI consumes that lifecycle owner for lifecycle ordering/editability decisions rather than recreating the policy. No other core policy module becomes a UI dependency through this exception.
+The browser-safe UI/core boundary is exact: UI may import canonical schemas/types from `src/core/contracts.ts` and the pure lifecycle policy owner `src/core/lifecycle.ts`. UI consumes that lifecycle owner for WorkItem transitions, editability, STAGE Run interaction/input admission and reached-history derivation rather than recreating those rules. Derived interaction/reach values are pure in-process decisions only; they are not persistence/transport models. No other core policy module becomes a UI dependency through this exception.
 
 Forbidden dependency directions:
 
@@ -698,7 +698,7 @@ Important rules:
 - CLI authentication uses only `Authorization: Bearer <daemon-token>`; credentials are never accepted in CLI query parameters or request bodies;
 - all mutations are explicit HTTP commands;
 - canonical server state is read through ordinary HTTP queries;
-- one TanStack Query `QueryClient` owns daemon query caching with query `retry: false`, mutation `retry: false`, `refetchOnWindowFocus: false`, `refetchOnReconnect: false`, and `staleTime: 0`; active Run/RunEvent queries poll every 1000 ms while active and stop polling when inactive; successful mutations explicitly invalidate/refetch only affected keys;
+- one TanStack Query `QueryClient` owns daemon query caching with query `retry: false`, mutation `retry: false`, `refetchOnWindowFocus: false`, `refetchOnReconnect: false`, and `staleTime: 0`; while a selected WorkItem has an active Run, its single-WorkItem query, Run list and active RunEvent queries poll every 1000 ms; when a Run terminalizes the browser performs the final event drain and affected WorkItem/task/artifact/package refetch required by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` before exposing a next workflow action; successful mutations explicitly invalidate/refetch only affected keys;
 - no browser WebSocket/SSE protocol exists in v1;
 - no OpenCode token/progress stream is forwarded to the browser;
 - browser code never talks directly to Git, SQLite or OpenCode;
@@ -813,7 +813,7 @@ Order does not use an event bus.
 
 `RunEvent` is the canonical persisted semantic event boundary.
 
-Pure reaction policy maps current state + RunEvent + governing policy to promotion, return, invalidation, bounded remediation, operational retry, linked IDEA creation or block.
+Pure reaction policy maps current state + admitted RunEvent/turn batch + governing policy to promotion, return, invalidation, bounded remediation, operational retry, linked IDEA creation or block. For STAGE Runs, the complete provider-result batch is validated before persistence and the provider batch plus coordinator reaction is committed atomically when no filesystem effect intervenes.
 
 The exact event union is defined in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
 
@@ -1180,10 +1180,13 @@ Existing WorkItem/artifact/run/task/signoff keys remain canonical.
 
 Successful mutations invalidate only affected keys:
 
-- source reconcile -> workItems + sourceDiagnostics + affected source keys;
+- source reconcile -> workItems + selected WorkItem + sourceDiagnostics + affected source/lifecycle-artifact keys;
 - create -> workItems + sourceDiagnostics; select created item/source;
-- WorkItem source save -> workItems + selected source + lifecycleArtifacts + runs/artifacts/signoff package for that WorkItem;
-- lifecycle Markdown save -> workItems + lifecycleArtifacts + artifacts + runs/signoff package for that WorkItem.
+- WorkItem source save -> workItems + selected WorkItem + selected source + lifecycleArtifacts + runs/artifacts/signoff package for that WorkItem;
+- lifecycle Markdown save -> workItems + selected WorkItem + lifecycleArtifacts + artifacts + runs/signoff package for that WorkItem;
+- Run controlling transition -> selected WorkItem + runs + terminal RunEvents + affected tasks/artifacts/signoff/source diagnostics.
+
+While a Run is active, the selected single-WorkItem query participates in polling. On terminalization the browser performs a final RunEvent drain and affected refetch before presenting a resulting next action. A pure coherence check suppresses mutations when canonical values have not yet observed the same committed reaction.
 
 No browser cache entry becomes an authority; daemon responses remain canonical.
 
@@ -1222,26 +1225,30 @@ No execution/evidence presentation module owns an editor/mutation callback for c
 
 #### Source freshness and live edits
 
-Startup/manual reconcile is not the only freshness check.
+Startup/manual reconcile is not the only freshness **inspection**, but only explicit reconcile/save paths apply source projection/lifecycle mutation.
 
-The daemon calls the same `revalidateWorkItemSource(workItemId)` boundary before:
+Before:
 
 - start/resume pre-signoff stage Run;
 - stage promotion;
-- R3/sign-off package resolution and sign-off mutation;
-- V0/V1 post-signoff execution preflight.
+- sign-off mutation;
+- V0/V1 post-signoff execution preflight;
 
-The boundary reads only the affected source; it does not rescan the full queue and requires no filesystem watcher. If targeted revalidation finds the recorded path missing, it blocks that productive action and requires explicit/full reconciliation to discover a moved path rather than recursively searching the queue from inside a lifecycle command.
+the daemon performs targeted read-only inspection of the affected source. If the recorded source requires reconciliation, the productive command is rejected with the owning reconciliation/precondition reason; it does not apply the reconciliation and then fail the requested command.
 
-External source edits while the daemon is running are therefore observed at the next productive boundary.
+GET source, lifecycle-artifact and sign-off-package paths are observational and never apply source plans, create ArtifactRefs or return the WorkItem upstream.
 
-During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns through R1 before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION.
+The inspection reads only the affected source; it does not rescan the full queue and requires no filesystem watcher. If the recorded path is missing, the productive action is blocked and explicit/full reconciliation is required to discover a moved path rather than recursively searching the queue from inside a lifecycle command.
 
-For a WorkItem already in `COMPLETE`, reconciliation does not reinterpret or reopen the historical lifecycle result. If the source bytes change or disappear, Order preserves the completed runtime projection and emits `COMPLETED_SOURCE_CHANGED` or `COMPLETED_SOURCE_MISSING`. The operator must create a new WorkItem for new/changed intent rather than repurpose the completed stable id.
+External source edits while the daemon is running are therefore observed by diagnostics/read-only productive inspection and become canonical workflow transitions only through explicit reconcile/save.
+
+During `EXECUTION`, reconciliation may update the current source projection but cannot authorize continued work: the approval/source comparison yields `APPROVAL_STALE` and returns to the earliest changed-material owner before another productive execution Run. Direct browser source/artifact editing remains disabled in EXECUTION.
+
+For a WorkItem already in `COMPLETE`, inspection/reconciliation does not reinterpret or reopen the historical lifecycle result. If source bytes change or disappear, Order preserves the completed runtime projection and reports `COMPLETED_SOURCE_CHANGED` or `COMPLETED_SOURCE_MISSING`. The operator must create a new WorkItem for new/changed intent rather than repurpose the completed stable id.
 
 #### Direct operator Markdown save versus artifact proposal
 
-Agent-proposed repository-authority mutations remain governed by the existing `ARTIFACT_PROPOSAL_CREATED` -> explicit adopt/reject flow.
+Agent-proposed repository-authority mutations remain governed by the existing `ARTIFACT_PROPOSAL_CREATED` -> explicit adopt/reject flow. For lifecycle proposals, the proposal role must equal the current STAGE Run stage, the proposal is admitted only from an OPEN turn, and adoption keeps lifecycle ownership at that same stage while invalidating/re-resolving conformance/context.
 
 A direct human edit made through the Markdown workspace is a different ingress: the operator is explicitly authoring the canonical lifecycle Markdown and presses Save against an exact expected hash. That Save is the explicit human mutation action; no synthetic agent proposal RunEvent is created.
 
