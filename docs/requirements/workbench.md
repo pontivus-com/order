@@ -405,6 +405,8 @@ If the package is stale:
 - the Workbench exposes the canonical return/reconciliation action or already-observed returned owner;
 - the operator is never left on a broken Approval screen while the daemon has silently moved elsewhere.
 
+Reaching the Approval stage is not itself approval. If authority reconciliation returns upstream before sign-off, Approval remains reached/historical, but the Workbench must present it as unsigned/returned history and must not label it `Approved` or imply that an Approval/tasks were created.
+
 ### 9.3 Sign-off
 
 Sign-off controls remain adjacent to the exact package being judged.
