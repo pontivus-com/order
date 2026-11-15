@@ -221,9 +221,8 @@ const resolveFixtureMaterial = (
       return { tag: "NONE" as const };
     })();
 
-  const { unresolvedInputRunId: _ignored, ...canonical } = input;
   return resolveWorkflowMaterial({
-    ...canonical,
+    ...input,
     currentStageRunId: input.currentStageRunId ?? currentRun?.id ?? null,
     currentAttention,
     stageInteraction,
@@ -251,6 +250,7 @@ describe("workflow presentation policy", () => {
     };
 
     const base = {
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1" as const,
       runs: [failed, waiting, running],
