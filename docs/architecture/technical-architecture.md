@@ -153,7 +153,7 @@ v1 has no runtime or source dependency on a private Pontivus code repository. Re
 
 No private-source vendoring contract is part of the current architecture. Local primitives must remain target-project/domain neutral, vendor-clean, free of deprecated Radix/Tremor imports, and must not acquire WorkItem/Run/lifecycle/query semantics that belong to higher composition layers.
 
-The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §8.12-§8.15`. In particular:
+The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §8.12-§8.16`. In particular:
 
 - persistent Workbench topology is created only by the local structural primitives;
 - feature/workflow surfaces map canonical domain data into primitive slots rather than importing structural Astryx Layout/Drawer APIs directly;
