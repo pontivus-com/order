@@ -172,7 +172,6 @@ export const ReadinessWorkspace = ({
       case "STAGE_RUN":
         return (
           <StageRunMaterial
-            workItem={workItem}
             stage="R3"
             runs={runs}
             selectedRunId={material.runId}
