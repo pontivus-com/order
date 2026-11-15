@@ -454,7 +454,6 @@ export const runStageTurn = async (
   const initialCancellation = cancelledStageRun(runtime, run.id);
   if (initialCancellation !== null) return initialCancellation;
 
-  let persisted: readonly RunEvent[];
   let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
     const workItem = getWorkItem(runtime, run.workItemId);
@@ -562,7 +561,6 @@ export const runStageTurn = async (
       context,
       events,
     );
-    persisted = reaction.persisted;
     const reacted = reaction.run;
     if (!activeRunStatuses.has(reacted.status)) {
       await stopActiveProvider(runtime, run.id);
@@ -609,7 +607,7 @@ const scheduleStageTurn = (
   );
 };
 
-export const startStageRun = async (
+const startStageRunUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   mode: RunMode,
@@ -628,11 +626,12 @@ export const startStageRun = async (
   const contextState = await resolveStageContextState(runtime, workItem, targetStage);
   if (contextState.staleStage !== null) {
     withTransaction(runtime.database, () => {
-      updateWorkItemLifecycle(runtime.database, workItem.id, {
-        stage: contextState.staleStage!,
-        status: "ACTIVE",
-        outcome: null,
+      const current = getWorkItem(runtime, workItem.id);
+      const transition = transitionWorkItem(current, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: contextState.staleStage!,
       });
+      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
     });
     throw new TypeError(
       `current upstream conformance is missing or stale: ${contextState.staleStage}`,
@@ -642,8 +641,22 @@ export const startStageRun = async (
   const currentWorkItem = getWorkItem(runtime, workItem.id);
   const baselineCommit = await resolveHeadCommit(currentWorkItem.repositoryRoot);
   const run = withTransaction(runtime.database, () => {
+    const recheckedWorkItem = getWorkItem(runtime, workItem.id);
+    const activeRun = listRuns(runtime, workItem.id)
+      .find((candidate) => activeRunStatuses.has(candidate.status));
+    if (activeRun !== undefined) {
+      throw new TypeError("WorkItem already has an active Run");
+    }
     if (storedWorkItem.stage === "IDEA") {
-      promoteIdeaToR1(runtime.database, workItem.id);
+      const transition = transitionWorkItem(recheckedWorkItem, {
+        tag: "START_RESEARCH",
+      });
+      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
+    } else if (
+      recheckedWorkItem.stage !== workItem.stage ||
+      recheckedWorkItem.status !== "ACTIVE"
+    ) {
+      throw new TypeError("WorkItem lifecycle changed before Run creation");
     }
     const value = insertRun(runtime, RunSchema.parse({
       id: newRunId(),
@@ -675,7 +688,18 @@ export const startStageRun = async (
   return run.value;
 };
 
-export const submitRunInput = async (
+export const startStageRun = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  mode: RunMode,
+): Promise<Run> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => startStageRunUnlocked(runtime, workItemId, mode),
+  );
+
+const submitRunInputUnlocked = async (
   runtime: CoordinatorRuntime,
   runId: RunId,
   text: string,
@@ -688,14 +712,12 @@ export const submitRunInput = async (
   if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") {
     throw new TypeError("Run is not accepting human input");
   }
-  if (requestEventId !== null) {
-    const request = getRunEvent(runtime, requestEventId);
-    if (
-      request.runId !== run.id ||
-      request.event.tag !== "HUMAN_INPUT_REQUESTED"
-    ) {
-      throw new TypeError("requestEventId does not identify this Run's human-input request");
-    }
+  const interaction = stageRunInteraction(
+    run,
+    listRunEvents(runtime, run.id),
+  );
+  if (!stageInputIsAdmitted(interaction, requestEventId)) {
+    throw new TypeError("human input is not admitted by the current STAGE interaction");
   }
 
   const workItem = getWorkItem(runtime, run.workItemId);
@@ -735,14 +757,27 @@ export const submitRunInput = async (
     });
   });
 
-  await runStageTurn(
+  scheduleStageTurn(
     runtime,
     getRun(runtime, run.id),
     received.id,
     context,
-    text,
   );
   return received;
+};
+
+export const submitRunInput = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+  text: string,
+  requestEventId: RunEventId | null,
+): Promise<RunEvent> => {
+  const run = getRun(runtime, runId);
+  return withWorkItemOperatorMutation(
+    runtime,
+    run.workItemId,
+    () => submitRunInputUnlocked(runtime, runId, text, requestEventId),
+  );
 };
 
 export const proposalDisposition = (
