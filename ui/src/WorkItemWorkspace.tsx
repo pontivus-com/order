@@ -655,6 +655,16 @@ export const WorkItemWorkspace = ({
     },
   });
 
+  const resumeCurrent = useMutation({
+    mutationFn: () => {
+      if (mutationsDisabled) {
+        throw new TypeError("workflow observation is converging");
+      }
+      return api.resumeWorkItem(workItem.id);
+    },
+    onSuccess: invalidate,
+  });
+
   const setDirtyState = (value: boolean): void => {
     setDirty(value);
     onDirtyChange(value);
@@ -745,20 +755,26 @@ export const WorkItemWorkspace = ({
     if (focusName) focusReturnedControl(focusName);
   };
 
+  const currentStepSelected = selectedStep === workItem.stage;
   const canStart =
+    currentStepSelected &&
     preSignoff.has(workItem.stage) &&
-    workItem.status === "ACTIVE" &&
-    !runs.some(runIsActive);
-  const startIsOwnedBySelectedStep =
-    selectedStep === workItem.stage && canStart;
-  const summaryBlocker =
-    selectedStep === "IDEA" && sourceDiagnostics[0]
+    currentAttention === "ACTIONABLE";
+  const canRetry =
+    currentStepSelected &&
+    recovery.tag === "RETRY_CURRENT_STAGE";
+  const canResume =
+    currentStepSelected &&
+    recovery.tag === "RESUME_CURRENT_OWNER";
+  const summaryBlocker = !currentStepSelected
+    ? null
+    : sourceDiagnostics[0]
       ? {
           status: "error" as const,
           title: "Work request source needs attention",
           description: sourceDiagnostics[0].detail,
         }
-      : start.error && selectedStep === workItem.stage
+      : start.error
         ? {
             status: "error" as const,
             title: "Could not start current workflow step",
@@ -766,26 +782,38 @@ export const WorkItemWorkspace = ({
               ? start.error.message
               : String(start.error),
           }
-        : selectedLatestStageRun &&
-            (selectedLatestStageRun.status === "FAILED" ||
-              selectedLatestStageRun.status === "BLOCKED")
+        : resumeCurrent.error
           ? {
               status: "error" as const,
-              title: selectedWorkflow.label + " needs attention",
-              description:
-                "Inspect the primary failure or blocker receipt for the canonical recovery path.",
+              title: "Could not resume current workflow owner",
+              description: resumeCurrent.error instanceof Error
+                ? resumeCurrent.error.message
+                : String(resumeCurrent.error),
             }
-          : selectedStep === "AWAITING_SIGNOFF" &&
-              selectedStepState === "CURRENT" &&
-              signoffPackageQuery.isError
+          : currentAttention === "BLOCKER"
             ? {
                 status: "error" as const,
-                title: "Approval package unavailable",
-                description: signoffPackageQuery.error instanceof Error
-                  ? signoffPackageQuery.error.message
-                  : String(signoffPackageQuery.error),
+                title: selectedWorkflow.label + " is blocked",
+                description:
+                  "Resolve the current canonical blocker before continuing.",
               }
-            : null;
+            : currentAttention === "RECOVERY"
+              ? {
+                  status: "warning" as const,
+                  title: selectedWorkflow.label + " requires recovery",
+                  description:
+                    "Use the current governed recovery action before continuing.",
+                }
+              : selectedStep === "AWAITING_SIGNOFF" &&
+                  signoffPackageQuery.isError
+                ? {
+                    status: "error" as const,
+                    title: "Approval package unavailable",
+                    description: signoffPackageQuery.error instanceof Error
+                      ? signoffPackageQuery.error.message
+                      : String(signoffPackageQuery.error),
+                  }
+                : null;
 
   const stepSummary = (
     <WorkflowStepSummary
@@ -797,7 +825,23 @@ export const WorkItemWorkspace = ({
       statusVariant={summaryStatusVariant}
       blocker={summaryBlocker}
       action={
-        startIsOwnedBySelectedStep ? (
+        canRetry ? (
+          <WorkbenchAction
+            label={"Retry " + workflow.label}
+            tone="primary"
+            loading={start.isPending}
+            disabled={mutationsDisabled || dirty || start.isPending}
+            onClick={() => start.mutate()}
+          />
+        ) : canResume ? (
+          <WorkbenchAction
+            label="Resume resolved blocker"
+            tone="primary"
+            loading={resumeCurrent.isPending}
+            disabled={mutationsDisabled || resumeCurrent.isPending}
+            onClick={() => resumeCurrent.mutate()}
+          />
+        ) : canStart ? (
           <WorkbenchAction
             label={startLabelForStage(workItem.stage)}
             tone="primary"
