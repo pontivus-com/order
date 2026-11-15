@@ -1027,6 +1027,33 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   await expect(loadingWorkspace).toBeVisible();
   const loadingBox = await loadingWorkspace.boundingBox();
   expect(loadingBox).not.toBeNull();
+  const geometryDiagnostic = await loadingWorkspace.evaluate((node) => {
+    const chain: Array<Record<string, string | number>> = [];
+    for (
+      let current: HTMLElement | null = node as HTMLElement;
+      current !== null;
+      current = current.parentElement
+    ) {
+      const rect = current.getBoundingClientRect();
+      const style = getComputedStyle(current);
+      chain.push({
+        tag: current.tagName.toLowerCase(),
+        id: current.id,
+        className: current.className,
+        height: rect.height,
+        computedHeight: style.height,
+        minHeight: style.minHeight,
+        maxHeight: style.maxHeight,
+        display: style.display,
+        flex: style.flex,
+        overflow: style.overflow,
+        gridTemplateRows: style.gridTemplateRows,
+      });
+      if (current.id === "root") break;
+    }
+    return chain;
+  });
+  console.log("WORKBENCH_GEOMETRY_DIAGNOSTIC " + JSON.stringify(geometryDiagnostic));
   expect(loadingBox!.height).toBeGreaterThan(500);
 
   await expect(page.getByRole("button", { name: "Context" })).toBeVisible();
