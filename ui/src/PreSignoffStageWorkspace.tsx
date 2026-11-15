@@ -189,6 +189,7 @@ export const PreSignoffStageWorkspace = ({
           <StageRunMaterial
             workItem={workItem}
             stage={stage}
+            runs={runs}
             selectedRunId={material.runId}
             currentRunId={workItem.stage === stage ? currentRunId : null}
             currentInteraction={workItem.stage === stage ? currentInteraction : null}
