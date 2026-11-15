@@ -119,6 +119,8 @@ const startLabelForStage = (stage: WorkItem["stage"]): string =>
 
 export const WorkItemWorkspace = ({
   workItem,
+  selectedWorkItemFetching,
+  selectedWorkItemUpdatedAt,
   toolbar,
   contextOpen,
   onContextOpenChange,
@@ -130,6 +132,8 @@ export const WorkItemWorkspace = ({
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
+  selectedWorkItemFetching: boolean;
+  selectedWorkItemUpdatedAt: number;
   toolbar: ReactNode;
   contextOpen: boolean;
   onContextOpenChange: (open: boolean) => void;
@@ -399,8 +403,16 @@ export const WorkItemWorkspace = ({
     allRunEvents,
     tasks,
   );
+  const dependentRunEventsFetching = runEventQueries.some(
+    (query) => query.isFetching,
+  );
   const transportConverging =
     terminalDrainPending ||
+    selectedWorkItemFetching ||
+    runsQuery.isFetching ||
+    artifactsQuery.isFetching ||
+    tasksQuery.isFetching ||
+    dependentRunEventsFetching ||
     currentStageEventsPending ||
     sourceQuery.isFetching ||
     diagnosticsQuery.isFetching ||
@@ -575,13 +587,18 @@ export const WorkItemWorkspace = ({
                 ? "success" as const
                 : "neutral" as const;
 
+  const runEventObservationVersion = runEventQueries
+    .map((query) => query.dataUpdatedAt)
+    .join(",");
   const observationVersion = [
     workItem.id,
     workItem.stage,
     workItem.status,
     workItem.outcome ?? "",
     workItem.sourceSha256,
+    selectedWorkItemUpdatedAt,
     runsQuery.dataUpdatedAt,
+    runEventObservationVersion,
     artifactsQuery.dataUpdatedAt,
     tasksQuery.dataUpdatedAt,
     sourceQuery.dataUpdatedAt,
@@ -596,13 +613,14 @@ export const WorkItemWorkspace = ({
   useEffect(() => {
     if (
       mutationConflict &&
+      !transportConverging &&
       mutationConflictObservation.current !== null &&
       mutationConflictObservation.current !== observationVersion
     ) {
       mutationConflictObservation.current = null;
       setMutationConflict(false);
     }
-  }, [mutationConflict, observationVersion]);
+  }, [mutationConflict, observationVersion, transportConverging]);
 
   useEffect(() => {
     onContextSelectionChange(selectedStep, material);
