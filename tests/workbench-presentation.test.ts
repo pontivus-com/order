@@ -518,7 +518,7 @@ describe("workflow presentation policy", () => {
     })).toEqual(explicit);
   });
 
-  it("promotes current blocking attention above an explicitly selected historical attempt", () => {
+  it("keeps explicit historical inspection while current attention remains independently owned", () => {
     const selectedAttempt = stageRun("PLAN", "FAILED", 2, uuidB);
     const currentBlocker = stageRun("PLAN", "BLOCKED", 4, uuidC);
 
@@ -545,7 +545,7 @@ describe("workflow presentation policy", () => {
       },
     })).toEqual({
       kind: "STAGE_RUN",
-      runId: currentBlocker.id,
+      runId: selectedAttempt.id,
     });
   });
 
