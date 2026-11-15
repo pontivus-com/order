@@ -2367,7 +2367,7 @@ Permanent integration tests must prove:
 
 ## 33. OpenCode saved-account management canonical contracts
 
-This section is the binding P6 contract for `GW-FR-073..076` / `GW-TR-049..052`.
+This section is the binding P6 contract for OpenCode account management as governed by `GW-DOC-INSTALLATION-READINESS-V1` and technically realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
 
 It manages saved **OpenCode Console login accounts** used by subsequent OpenCode work. It does not define provider/model selection and does not persist credential secrets in Order.
 
@@ -2651,7 +2651,7 @@ Permanent integration/browser tests must prove:
 
 ## 34. WorkItem management, API failure and provider diagnostic contracts
 
-This section is the binding P6 closure for `GW-FR-077..078` and `GW-TR-054..056`.
+This section is the binding P6 closure for WorkItem management governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and its technical realization in `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
 
 ### 34.1 Deterministic archive marker
 
@@ -2849,7 +2849,7 @@ Permanent tests prove:
 
 ## 35. Settings, readiness and human-first source-authoring contracts
 
-This section is the P6 realization of `GW-FR-079..082`, `GW-FR-091..093`, `GW-FR-095`. It extends the existing configuration, project-manifest, WorkItem-source and OpenCode-account contracts without introducing a parallel settings model.
+This section is the P6 realization of the installation/configuration requirements owned by `GW-DOC-INSTALLATION-READINESS-V1`. It extends the existing configuration, project-manifest, WorkItem-source and OpenCode-account contracts without introducing a parallel settings model.
 
 ### 35.1 Canonical configuration identity
 
