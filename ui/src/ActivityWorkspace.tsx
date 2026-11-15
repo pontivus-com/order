@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Run, WorkItem } from "../../src/core/contracts.ts";
+import type { Run, RunEvent, WorkItem } from "../../src/core/contracts.ts";
+import { stageRunInteraction } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
@@ -14,7 +15,7 @@ import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx"
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
-  runIsActive, runNeedsAttention, runRoleLabel, runStatusLabel, unresolvedHumanInput,
+  runIsActive, runRoleLabel, runStatusLabel,
   workflowPresentation, type EvidenceSelection, type ProposalSelection,
 } from "./workbench-presentation.ts";
 
@@ -69,32 +70,61 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisa
     refetchInterval: selectedRun && runIsActive(selectedRun) ? 1000 : false,
   });
   const events = eventsQuery.data ?? [];
-  const pending = useMemo(() => unresolvedHumanInput(events), [events]);
+  const currentRun =
+    workItem.stage === stage ? latestStageRun(stageRuns, stage) : null;
+  const selectedIsCurrent = selectedRun?.id === currentRun?.id;
+  let interaction: ReturnType<typeof stageRunInteraction> | null = null;
+  let interactionError: unknown = null;
+  if (
+    selectedRun !== null &&
+    selectedIsCurrent &&
+    !eventsQuery.isPending &&
+    !eventsQuery.isError
+  ) {
+    try {
+      interaction = stageRunInteraction(selectedRun, events);
+    } catch (error) {
+      interactionError = error;
+    }
+  }
+  const pending: RunEvent | null =
+    interaction?.tag === "REQUIRED_INPUT"
+      ? events.find((event) => event.id === interaction.requestEventId) ?? null
+      : null;
 
   const invalidate = (): Promise<void> =>
     invalidateWorkbenchMutation(queryClient, workItem.id);
   const cancel = useMutation({
-    mutationFn: () => { if (!selectedRun || !runIsActive(selectedRun)) throw new TypeError("selected workflow Run is not active"); return api.cancelRun(selectedRun.id); },
+    mutationFn: () => {
+      if (
+        !selectedRun ||
+        !selectedIsCurrent ||
+        interaction === null ||
+        interaction.tag === "CLOSED"
+      ) {
+        throw new TypeError("selected workflow Run is not the current cancellable Run");
+      }
+      return api.cancelRun(selectedRun.id);
+    },
     onSuccess: async (run) => { onSelectedRunChange(run.id); await invalidate(); },
   });
-  const retry = useMutation({
-    mutationFn: () => api.startInteractiveRun(workItem.id),
-    onSuccess: async (run) => {
-      queryClient.setQueryData<readonly Run[]>(workbenchQueryKeys.runs(workItem.id), (current) => [...(current ?? []).filter((item) => item.id !== run.id), run]);
-      onSelectedRunChange(run.id); await invalidate();
-    },
-  });
-  const resume = useMutation({ mutationFn: () => api.resumeWorkItem(workItem.id), onSuccess: invalidate });
 
   if (runsQuery.isPending) return <WorkbenchState kind="loading" title="Loading workflow activity…" />;
   if (runsQuery.isError) return <WorkbenchState kind="error" title="Workflow activity unavailable" description={runsQuery.error instanceof Error ? runsQuery.error.message : String(runsQuery.error)} />;
   if (selectedRun === null) return <WorkbenchState kind="empty" title={"No " + workflowPresentation(stage).label + " activity yet"} description="Start this workflow step to create its first attempt." />;
 
   const selectedStep = workflowPresentation(stage);
-  const canRetry = workItem.stage === stage && workItem.status === "ACTIVE" && runNeedsAttention(selectedRun) && !runs.some(runIsActive);
-  const canResume = workItem.stage === stage && workItem.status === "BLOCKED";
-  const canAnswer = selectedRun.role === "STAGE" && runIsActive(selectedRun);
-  const actionError = inputError ?? cancel.error ?? retry.error ?? resume.error;
+  const canCancel =
+    selectedIsCurrent &&
+    interaction !== null &&
+    interaction.tag !== "CLOSED";
+  const canAnswer =
+    selectedIsCurrent &&
+    (
+      interaction?.tag === "OPEN" ||
+      interaction?.tag === "REQUIRED_INPUT"
+    );
+  const actionError = interactionError ?? inputError ?? cancel.error;
   const sessionStatus = openCodeSessionStatus(selectedRun);
   const technical = (
     <dl>
@@ -116,9 +146,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisa
           title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
           description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
           action={<span className="order-inline-actions">
-            {runIsActive(selectedRun) ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={() => cancel.mutate()} /> : null}
-            {canRetry ? <WorkbenchAction label={"Retry " + selectedStep.label} tone="primary" loading={retry.isPending} disabled={mutationsDisabled || retry.isPending} onClick={() => retry.mutate()} /> : null}
-            {canResume ? <WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={() => resume.mutate()} /> : null}
+            {canCancel ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={() => cancel.mutate()} /> : null}
           </span>}
         />
         <div className="order-run-status-strip">
