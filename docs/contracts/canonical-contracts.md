@@ -1084,6 +1084,12 @@ body { expectedPackageHash, approvedBy }
 
 `GET /api/work-items/:workItemId/signoff-package` is valid only for an ACTIVE WorkItem at `AWAITING_SIGNOFF`. It inspects current R3 conformance, the complete current resolved material set, exact working-tree/baseline byte identity, signed task validity and the canonical package hash without applying reconciliation or lifecycle mutation. It returns the baseline/hash/task block only when currentness is proven; stale/precondition failure is reported through the stable typed HTTP error contract and leaves WorkItem state unchanged. It does not create execution authority.
 
+POST /api/work-items/:workItemId/reconcile-authority
+body { expectedOwner }
+-> WorkItem
+
+`expectedOwner` is the exact `UpstreamReturnStage` previously observed from a `STALE_AUTHORITY` package failure. The command is valid only for `AWAITING_SIGNOFF / ACTIVE`. Under the per-WorkItem mutation guard it re-inspects package currentness, rejects if authority is now current or if the stale owner differs from `expectedOwner`, then applies the canonical `RECONCILE_AUTHORITY(expectedOwner)` lifecycle transition. It changes no repository bytes and creates no ArtifactRef/conformance. Source-boundary conflicts remain owned by the existing source reconciliation command and are not accepted by this endpoint.
+
 `approvedBy` is a non-empty human-readable local operator identity confirmed by the user. The UI submits the exact currently displayed `SignoffPackage.packageHash`; the hash is not an editable browser-owned field. If the package changes between display and mutation, sign-off fails and the UI must refetch/review the new package.
 
 POST /api/runs/:runId/cancel
@@ -2811,6 +2817,18 @@ No other canonical WorkItem document may use null expected hash.
 ### 34.5 Canonical HTTP error response
 
 ```ts
+const UpstreamReturnStageSchema = z.enum([
+  "R1",
+  "R2",
+  "DESIGN",
+  "PLAN",
+  "R3",
+]);
+
+const ReconcileWorkItemAuthoritySchema = z.strictObject({
+  expectedOwner: UpstreamReturnStageSchema,
+});
+
 const StableHttpErrorCodeSchema = z.string()
   .regex(/^[A-Z][A-Z0-9_]*$/);
 
@@ -2818,6 +2836,7 @@ const OrderHttpErrorSchema = z.strictObject({
   code: StableHttpErrorCodeSchema,
   message: z.string().min(1),
   sourceDiagnostic: WorkItemSourceDiagnosticSchema.nullable(),
+  staleAuthorityOwner: UpstreamReturnStageSchema.nullable(),
 });
 ```
 
@@ -2831,7 +2850,11 @@ Status classification is:
 - **409** — optimistic concurrency, source-boundary, lifecycle/current-state or other known operation conflict;
 - **500** — unexpected daemon defect.
 
-A source-boundary 409 sets `sourceDiagnostic` to the exact diagnostic. All other errors set it null.
+A source-boundary 409 sets `sourceDiagnostic` to the exact diagnostic and `staleAuthorityOwner = null`.
+
+A known approval/material-currentness conflict uses `code = "STALE_AUTHORITY"`, `sourceDiagnostic = null`, and sets `staleAuthorityOwner` to the exact earliest canonical upstream owner in `R1 | R2 | DESIGN | PLAN | R3`. `STALE_AUTHORITY` requires a non-null owner; every other error code requires `staleAuthorityOwner = null`. Consumers use this field to derive `MaterialCurrentness.STALE(owner)`; parsing `message` for workflow semantics is forbidden.
+
+All other errors set both optional semantic detail fields to null.
 
 The outer server API catch must classify rather than converting every exception to 400. Unexpected 500 responses use a stable generic public message and do not expose stack traces/secrets; full safe diagnostic detail may be retained in daemon/provider evidence where governed.
 
@@ -2893,6 +2916,7 @@ Permanent tests prove:
 - documentation Git status/commit handles archive marker add and tracked deletion without unrelated Git changes;
 - malformed/absent/conflict/unexpected failures map to 400/404/409/500 respectively;
 - source conflict returns the exact canonical diagnostic;
+- stale approval/package conflict returns `STALE_AUTHORITY` with the exact canonical `staleAuthorityOwner`, and the explicit reconcile-authority command returns lifecycle ownership to that same owner without changing repository bytes;
 - provider diagnostic event/evidence is inspectable from Run history;
 - stderr is bounded and known secrets are absent;
 - no hidden reasoning or second diagnostic/log database is introduced.
