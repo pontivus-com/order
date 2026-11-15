@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { Run, RunEvent, WorkItem } from "../../src/core/contracts.ts";
+import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import type {
   CurrentAttentionTag,
   StageRunInteraction,
@@ -42,8 +42,8 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
-  workItem: WorkItem; stage: PreSignoffStage; runs: readonly Run[]; selectedRunId: Run["id"] | null;
+export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
+  stage: PreSignoffStage; runs: readonly Run[]; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
