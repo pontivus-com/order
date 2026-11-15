@@ -2443,6 +2443,7 @@ describe("daemon control plane", () => {
       const staleBaseline = await repo.resolveHeadCommit(
         ${JSON.stringify(originalRepository)},
       );
+      await coord.reconcileWorkItemSources(runtime);
       const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
       const updated = coord.getWorkItem(runtime, created.id);
       await coord.cancelRun(runtime, run.id);
@@ -2672,7 +2673,7 @@ describe("daemon control plane", () => {
     });
   });
 
-  it("returns AWAITING_SIGNOFF to the stale lifecycle owner when current Markdown diverges", () => {
+  it("keeps sign-off package inspection read-only when current Markdown diverges", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-signoff-recovery-");
 
@@ -2703,7 +2704,7 @@ describe("daemon control plane", () => {
     )) as { error: string | null; stage: string; status: string };
 
     expect(output.error).toMatch(/missing or stale: PLAN/);
-    expect(output).toMatchObject({ stage: "PLAN", status: "ACTIVE" });
+    expect(output).toMatchObject({ stage: "AWAITING_SIGNOFF", status: "ACTIVE" });
   });
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
@@ -3486,29 +3487,41 @@ describe("daemon control plane", () => {
       } catch {
         rejected = true;
       }
-      const afterRun = coord.listRuns(runtime, work).find((candidate) => candidate.id === waiting.id);
-      const events = coord.listRunEvents(runtime, waiting.id);
+      const beforeRecovery = {
+        workItem: coord.getWorkItem(runtime, work),
+        run: coord.listRuns(runtime, work).find((candidate) => candidate.id === waiting.id),
+        events: coord.listRunEvents(runtime, waiting.id),
+      };
+      await coord.cancelRun(runtime, waiting.id);
+      await coord.reconcileWorkItemSources(runtime);
       console.log(JSON.stringify({
         rejected,
-        workItem: coord.getWorkItem(runtime, work),
-        runStatus: afterRun?.status ?? null,
-        receivedCount: events.filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED").length,
-        conformanceFailures: events.filter((event) => event.event.tag === "CONFORMANCE_FAILED").length,
+        beforeRecovery: {
+          workItem: beforeRecovery.workItem,
+          runStatus: beforeRecovery.run?.status ?? null,
+          receivedCount: beforeRecovery.events.filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED").length,
+          conformanceFailures: beforeRecovery.events.filter((event) => event.event.tag === "CONFORMANCE_FAILED").length,
+        },
+        afterRecovery: coord.getWorkItem(runtime, work),
       }));
       database.close();
     `) as {
       rejected: boolean;
-      workItem: { stage: string; status: string };
-      runStatus: string | null;
-      receivedCount: number;
-      conformanceFailures: number;
+      beforeRecovery: {
+        workItem: { stage: string; status: string };
+        runStatus: string | null;
+        receivedCount: number;
+        conformanceFailures: number;
+      };
+      afterRecovery: { stage: string; status: string };
     };
 
     expect(output.rejected).toBe(true);
-    expect(output.workItem).toMatchObject({ stage: "R1", status: "ACTIVE" });
-    expect(output.runStatus).toBe("BLOCKED");
-    expect(output.receivedCount).toBe(0);
-    expect(output.conformanceFailures).toBe(1);
+    expect(output.beforeRecovery.workItem).toMatchObject({ stage: "PLAN", status: "ACTIVE" });
+    expect(output.beforeRecovery.runStatus).toBe("WAITING_FOR_INPUT");
+    expect(output.beforeRecovery.receivedCount).toBe(0);
+    expect(output.beforeRecovery.conformanceFailures).toBe(0);
+    expect(output.afterRecovery).toMatchObject({ stage: "R1", status: "ACTIVE" });
   });
 
   it("rejects a resumed STAGE session after a clean source HEAD advance", () => {
