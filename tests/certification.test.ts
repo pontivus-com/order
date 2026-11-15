@@ -198,11 +198,32 @@ describe("Order cross-boundary certification", () => {
     const names = readdirSync(primitiveDirectory).sort();
     expect(names).toEqual([
       "WorkbenchAction.tsx",
+      "WorkbenchAttention.tsx",
+      "WorkbenchConfirmation.tsx",
+      "WorkbenchContextPanel.tsx",
+      "WorkbenchDialogue.tsx",
+      "WorkbenchDisclosure.tsx",
+      "WorkbenchField.tsx",
+      "WorkbenchForm.tsx",
       "WorkbenchIcon.tsx",
+      "WorkbenchIdentity.tsx",
       "WorkbenchLayout.tsx",
+      "WorkbenchMasterDetail.tsx",
+      "WorkbenchNotice.tsx",
+      "WorkbenchRail.tsx",
       "WorkbenchResourceRow.tsx",
+      "WorkbenchReview.tsx",
+      "WorkbenchSectionHeader.tsx",
+      "WorkbenchSelector.tsx",
+      "WorkbenchSettingsLayout.tsx",
       "WorkbenchState.tsx",
+      "WorkbenchStatus.tsx",
+      "WorkbenchSurface.tsx",
+      "WorkbenchTable.tsx",
+      "WorkbenchTaskPanel.tsx",
+      "WorkbenchTimeline.tsx",
       "WorkbenchToolbar.tsx",
+      "WorkbenchUtilityLink.tsx",
     ]);
 
     const source = names.map((name) => read("ui/src/primitives/" + name)).join("\n");
@@ -217,6 +238,8 @@ describe("Order cross-boundary certification", () => {
 
     const layout = read("ui/src/primitives/WorkbenchLayout.tsx");
     expect(layout).toContain('"(min-width: 1280px)"');
+    expect(layout).toContain("<AppShell");
+    expect(layout).toContain("<Layout");
     expect(layout).toContain("<Drawer");
     expect(layout).not.toContain("inspector-fallback");
 
