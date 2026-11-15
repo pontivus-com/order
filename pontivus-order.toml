@@ -189,6 +189,7 @@ GW-TR-090-STABLE-WORKBENCH-GEOMETRY = "docs/architecture/workbench.md"
 GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION = "docs/architecture/workbench.md"
 GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP = "docs/architecture/workbench.md"
 GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE = "docs/architecture/workbench.md"
+GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION = "docs/architecture/workbench.md"
 D1 = "docs/decisions/technical-decisions.md"
 D2 = "docs/decisions/technical-decisions.md"
 D3 = "docs/decisions/technical-decisions.md"
@@ -244,6 +245,7 @@ GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK = "docs/requirements/workbench.md"
 GW-FR-227-CERTIFICATION-MATRIX = "docs/requirements/workbench.md"
 GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE = "docs/requirements/workbench.md"
 GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY = "docs/requirements/workbench.md"
+GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR = "docs/requirements/workbench.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]
