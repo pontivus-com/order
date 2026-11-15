@@ -48,6 +48,7 @@ export const ReadinessWorkspace = ({
   artifacts,
   material,
   summary,
+  mutationsDisabled = false,
   onSelectMaterial,
   onOpenArtifactEvidence,
   onOpenEvidence,
@@ -59,6 +60,7 @@ export const ReadinessWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   summary: ReactNode;
+  mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -158,6 +160,7 @@ export const ReadinessWorkspace = ({
             workItem={workItem}
             stage="R3"
             selectedRunId={material.runId}
+            mutationsDisabled={mutationsDisabled}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
