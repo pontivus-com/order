@@ -1394,6 +1394,66 @@ test("workflow mutations lock their owning controls while pending and keep failu
     .toBeVisible();
 });
 
+test("mutation conflict remains primary until the selected WorkItem refresh succeeds", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Requirements ready after Research");
+  const workItem = await workItemForTitle(page, "Requirements ready after Research");
+  const selectedPath =
+    `**/api/work-items/${encodeURIComponent(workItem.id)}`;
+  const startPath =
+    `**/api/work-items/${encodeURIComponent(workItem.id)}/runs`;
+
+  await page.route(selectedPath, async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.abort("failed");
+  });
+  await page.route(startPath, async (route) => {
+    if (route.request().method() !== "POST") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: "CURRENT_STATE_CONFLICT",
+        message: "The workflow changed before this command could commit.",
+        sourceDiagnostic: null,
+        staleAuthorityOwner: null,
+      }),
+    });
+  });
+
+  const start = page.getByRole("button", {
+    name: "Start Requirements",
+    exact: true,
+  });
+  await start.click();
+
+  const summary = page.getByTestId("workflow-step-summary");
+  await expect(summary).toContainText(
+    "Workflow state changed during the action",
+  );
+  await expect(summary).toContainText(
+    "Review the refreshed current workflow state before attempting another mutation.",
+  );
+  await expect(
+    page.getByRole("button", {
+      name: "Start Requirements",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+
+  await page.unroute(startPath);
+  await page.unroute(selectedPath);
+});
+
 test("successful workflow mutations reconcile to refreshed canonical state without provider-dependent browser work", async ({
   page,
   request,
