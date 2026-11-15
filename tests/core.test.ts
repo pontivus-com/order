@@ -1228,6 +1228,16 @@ describe("closed Workbench workflow-state kernel", () => {
       status: "ACTIVE",
       outcome: null,
     });
+    expect(
+      transitionWorkItem(awaiting, {
+        tag: "RECONCILE_AUTHORITY",
+        owner: "DESIGN",
+      }),
+    ).toEqual({
+      stage: "DESIGN",
+      status: "ACTIVE",
+      outcome: null,
+    });
 
     const execution = WorkItemSchema.parse({
       ...research,
@@ -1249,6 +1259,12 @@ describe("closed Workbench workflow-state kernel", () => {
     });
     expect(() =>
       transitionWorkItem(research, { tag: "SIGN_OFF" }),
+    ).toThrow(/AWAITING_SIGNOFF/);
+    expect(() =>
+      transitionWorkItem(research, {
+        tag: "RECONCILE_AUTHORITY",
+        owner: "R1",
+      }),
     ).toThrow(/AWAITING_SIGNOFF/);
   });
 
