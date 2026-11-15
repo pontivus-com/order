@@ -164,7 +164,8 @@ Invariants:
 - `archived` is the projection of the deterministic repository-native archive marker defined in §34; it is not lifecycle state and is not sourced from Work request Markdown;
 - R1 `CONFIRMED` promotes to R2 only for `CHANGE`/`DEFECT`;
 - R1 `INVESTIGATION_COMPLETE` and `AUDIT_COMPLETE` terminalize their matching kinds directly without R2/DESIGN/PLAN/R3/EXECUTION;
-- R1/R2 `NEEDS_DECISION` or `BLOCKED` leaves the item at its owning stage with `status = "BLOCKED"`.
+- R1/R2 `NEEDS_DECISION` or `BLOCKED` leaves the item at its owning stage with `status = "BLOCKED"`;
+- the closed derived workflow-state language owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` is **not persisted on WorkItem**. Reach, interaction, proposal-decision, currentness, recovery, observation-coherence, current-attention and rail-marker values remain pure projections over canonical facts.
 
 ## 5. ArtifactRef
 
@@ -298,6 +299,8 @@ At V0/V1 Order re-resolves the current material source set using the current pro
 Freshness fails with `APPROVAL_STALE` when any signed material source changes bytes, disappears, changes semantic role/layer, when current resolution adds/removes a material authority, project-manifest or verification-material source, or when the current validated WorkItem source cannot be proven equal to the non-null source hash bound into the v2 approval. PLAN and R3 root paths/bytes are included in this comparison. A null-bound historical v1 approval is always non-executable under v2.
 
 The current repository commit id is not itself a freshness input: an unrelated commit that leaves the resolved material set and all signed bytes unchanged does not stale approval. `baselineCommit` remains the immutable execution baseline used for isolated workspaces. Freshness comparison does not create or persist replacement ArtifactRefs merely to compare current bytes.
+
+The P4 Workbench `MaterialCurrentness` projection consumes this canonical freshness result. It does not add an `isStale`, currentness or rail-status field to Approval/WorkItem/ArtifactRef. A consumer that cannot prove currentness must use the existing typed stale/precondition/diagnostic boundary rather than infer CURRENT from artifact existence.
 
 ## 7. ExecutionTask
 
@@ -572,6 +575,7 @@ RunEvent invariants:
 - for lifecycle proposal roles `R1|R2|DESIGN|PLAN|R3`, proposal role must equal the owning STAGE Run stage; role/path admission is rechecked again at disposition time;
 - `ARTIFACT_PROPOSAL_CREATED.unifiedDiff` is complete Git unified-diff text and its decoded string must end with LF (`\\n`). A proposal missing that terminal LF is invalid provider output and may use only the existing single formatting-repair turn. Order never appends, trims, normalizes, or otherwise changes proposal patch bytes after provider validation;
 - `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` is coordinator/human-owned and is persisted before the repository patch effect; once present, rejection is no longer valid and a later adopt call may reconcile only that exact persisted proposal;
+- for the P4 proposal-decision projection, an unresolved proposal with no adoption-request event is `PENDING(P)`; the exact proposal with `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED(P)` and no disposition is `ADOPTION_IN_PROGRESS(P)`; a disposition removes it from current proposal-decision state. No proposal-state column/DTO is added;
 - `ARTIFACT_PROPOSAL_DISPOSITIONED` with `ADOPTED` requires non-null `adoptedArtifactRefId`; `REJECTED` requires null;
 - V4 reviewer `FAIL_REPAIRABLE` maps to `REVIEW_FAILED / REVIEW_FAILURE`; `BLOCKED_SPEC_OR_DESIGN` maps to `REVIEW_FAILED / BLOCKED_FOR_REANALYSIS` with an exact `returnTo` owning stage. Scope, governance and change-bloat classifications remain coordinator-owned V2/V5/V6 results;
 - `VALIDATION_FAILED / PRECONDITION_FAILED` is the durable owner of the blocking fact: it uses the applicable V0/V1 stage, a non-empty `summary`, and supporting EvidenceRefs where available before the Run/task block reaction;
@@ -587,7 +591,17 @@ Raw provider token deltas/JSON are not RunEvents.
 
 An `ARTIFACT_PROPOSAL_CREATED` event id is its proposal identity.
 
-A proposal is pending until exactly one later `ARTIFACT_PROPOSAL_DISPOSITIONED` event references it.
+A proposal is unresolved until exactly one later `ARTIFACT_PROPOSAL_DISPOSITIONED` event references it.
+
+Its current decision phase is derived exactly from that event history:
+
+```text
+CREATED and no ADOPTION_REQUESTED/DISPOSITIONED -> PENDING
+CREATED + ADOPTION_REQUESTED and no DISPOSITIONED -> ADOPTION_IN_PROGRESS
+DISPOSITIONED -> no current proposal-decision owner
+```
+
+There is no independent proposal state field. `ADOPTION_IN_PROGRESS` survives daemon restart because the durable adoption-request event is its exact authority.
 
 Adoption loads the exact persisted proposal event, proves the persisted base hash/path and exact patch applicability without mutating the repository, and only then persists exactly one `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` event for it. Order may then apply only that exact persisted patch. For a lifecycle proposal, disposition additionally proves that the Run is the current WorkItem stage, the Run is canonically OPEN, the proposal is the Run's single unresolved lifecycle proposal, proposal role equals Run stage, and the deterministic target path is the path for that same stage. After the effect, Order hashes/read-backs the target, records the new ArtifactRef and `ADOPTED` disposition, invalidates dependent conformance, and leaves the WorkItem at that same owning stage / ACTIVE. Adoption does not promote or jump the lifecycle. The adoption request carries no replacement patch or base hash. Non-lifecycle proposals remain governed by their existing authority and cannot use a lifecycle-role return as a shortcut.
 
@@ -1180,6 +1194,8 @@ For pre-signoff interactive Runs, `WAITING_FOR_INPUT` survives restart unchanged
 
 Explicit human resume from an execution block does not erase historical losses and does not create an unlimited automatic retry loop.
 
+The P4 `RecoveryDisposition` projection is derived from these canonical facts. In particular, `AUTOMATIC_RECOVERY` is available only when the exact action-key/semantic-remediation history below still admits the bounded automatic path; once its budget is exhausted the projection cannot continue to report automatic recovery. No retry counter, recovery-state column or browser-owned entitlement is added.
+
 Post-signoff validation routing is deterministic:
 
 - `ALREADY_SATISFIED` at V1 is accepted only when the BUILDER explicitly emits `TASK_ALREADY_SATISFIED` after inspecting the fresh baseline and the coordinator independently proves the workspace changed-path set is empty. That result atomically terminalizes the current BUILDER Run as `COMPLETED / ALREADY_SATISFIED`, sets the ExecutionTask `ALREADY_SATISFIED`, and performs aggregate WorkItem completion if all tasks are now successful terminals. Zero diff without the explicit semantic result is provider-output failure, not successful no-op;
@@ -1193,6 +1209,8 @@ Post-signoff validation routing is deterministic:
 - `APPROVAL_STALE` returns to the earliest owner of changed material: R1 artifact -> R1; R2 or P2/P3 material -> R2; P1 product/requirements material -> R2; DESIGN or P4-P6 material -> DESIGN; PLAN/P7 or verification material -> PLAN; R3 artifact -> R3; project manifest -> R1. Multiple changed sources choose the earliest lifecycle owner.
 
 On any upstream return, remaining tasks under the old Approval become `BLOCKED` historical records and that Approval is never reused. Fresh execution authority requires normal lifecycle progression, fresh R3 and a new explicit sign-off.
+
+For P4 execution presentation, the current `ExecutionOwner` and `ValidationBoundary` are derived only from the current Approval's tasks plus their canonical Runs/RunEvents. Historical task selection is not an input. A validation pass/failure from an earlier candidate/Run is not reusable as the current boundary unless the P6 candidate-chain rules above make it part of the exact current candidate. No execution-owner or validation-progress field is persisted.
 
 ## 22. Productive configuration and filesystem-access contract
 
