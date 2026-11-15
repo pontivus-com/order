@@ -178,6 +178,10 @@ export const WorkItemWorkspace = ({
       workItem.stage === "EXECUTION" ||
       workItem.stage === "COMPLETE",
   });
+  const sourceQuery = useQuery({
+    queryKey: workbenchQueryKeys.workItemSource(workItem.id),
+    queryFn: () => api.getWorkItemSource(workItem.id),
+  });
   const diagnosticsQuery = useQuery({
     queryKey: workbenchQueryKeys.workItemSourceDiagnostics,
     queryFn: api.listWorkItemSourceDiagnostics,
@@ -355,6 +359,11 @@ export const WorkItemWorkspace = ({
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
   );
+  const sourceAuthorityChanged =
+    sourceQuery.data !== undefined &&
+    sourceQuery.data.sha256 !== workItem.sourceSha256;
+  const sourceAuthorityRequiresReconciliation =
+    sourceDiagnostics.length > 0 || sourceAuthorityChanged;
   const packageStaleOwner =
     workItem.stage === "AWAITING_SIGNOFF" &&
     signoffPackageQuery.isError &&
@@ -363,7 +372,7 @@ export const WorkItemWorkspace = ({
       ? signoffPackageQuery.error.orderError.staleAuthorityOwner
       : null;
   const changedAuthorityOwners =
-    sourceDiagnostics.length > 0
+    sourceAuthorityRequiresReconciliation
       ? (["R1"] as const)
       : packageStaleOwner === null
         ? []
@@ -383,6 +392,8 @@ export const WorkItemWorkspace = ({
   const transportConverging =
     terminalDrainPending ||
     currentStageEventsPending ||
+    sourceQuery.isFetching ||
+    diagnosticsQuery.isFetching ||
     (workItem.stage === "AWAITING_SIGNOFF" && signoffPackageQuery.isFetching);
   const currentAttention = deriveCurrentAttention({
     workItem,
@@ -682,7 +693,7 @@ export const WorkItemWorkspace = ({
       if (mutationsDisabled) {
         throw new TypeError("workflow observation is converging");
       }
-      if (sourceDiagnostics.length > 0) {
+      if (sourceAuthorityRequiresReconciliation) {
         await api.reconcileWorkItemSources();
         return;
       }
@@ -810,7 +821,14 @@ export const WorkItemWorkspace = ({
           title: "Work request source needs attention",
           description: sourceDiagnostics[0].detail,
         }
-      : start.error
+      : sourceAuthorityChanged
+        ? {
+            status: "warning" as const,
+            title: "Work request source changed",
+            description:
+              "Reconcile the current Work request before continuing this workflow.",
+          }
+        : start.error
         ? {
             status: "error" as const,
             title: "Could not start current workflow step",
@@ -897,7 +915,7 @@ export const WorkItemWorkspace = ({
         ) : canReconcile ? (
           <WorkbenchAction
             label={
-              sourceDiagnostics.length > 0
+              sourceAuthorityRequiresReconciliation
                 ? "Reconcile source authority"
                 : currentness.tag === "STALE"
                   ? "Return to " + workflowPresentation(currentness.owner).label
