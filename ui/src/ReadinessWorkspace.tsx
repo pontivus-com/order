@@ -6,6 +6,7 @@ import type {
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
 import {
   ReadOnlyLifecycleDocumentMaterial,
@@ -48,6 +49,8 @@ export const ReadinessWorkspace = ({
   artifacts,
   material,
   summary,
+  currentRunId,
+  currentInteraction,
   mutationsDisabled = false,
   onSelectMaterial,
   onOpenArtifactEvidence,
@@ -60,6 +63,8 @@ export const ReadinessWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   summary: ReactNode;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
   mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
@@ -160,6 +165,8 @@ export const ReadinessWorkspace = ({
             workItem={workItem}
             stage="R3"
             selectedRunId={material.runId}
+            currentRunId={workItem.stage === "R3" ? currentRunId : null}
+            currentInteraction={workItem.stage === "R3" ? currentInteraction : null}
             mutationsDisabled={mutationsDisabled}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
