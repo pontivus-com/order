@@ -22,6 +22,35 @@ import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
 
 const validationStages: readonly ValidationStage[] = ["V0","V1","V2","V3","V4","V5","V6","V7"];
+
+const validationBoundaryTone = (
+  boundary: ValidationBoundary,
+): "danger" | "success" | "neutral" =>
+  boundary.tag === "FAILED_AT"
+    ? "danger"
+    : boundary.tag === "COMPLETE" || boundary.tag === "PASSED_THROUGH"
+      ? "success"
+      : "neutral";
+
+const validationBoundaryLabel = (
+  boundary: ValidationBoundary,
+): string =>
+  boundary.tag === "FAILED_AT"
+    ? "Current boundary: failed at " + boundary.stage
+    : boundary.tag === "PASSED_THROUGH"
+      ? "Current boundary: passed through " + boundary.stage
+      : boundary.tag === "COMPLETE"
+        ? "Current boundary: complete"
+        : "Current boundary: none";
+
+const validationBoundaryStatus = (
+  boundary: ValidationBoundary,
+) => (
+  <WorkbenchStatus
+    tone={validationBoundaryTone(boundary)}
+    label={validationBoundaryLabel(boundary)}
+  />
+);
 const taskTone = (task: ExecutionTask): "danger" | "warning" | "success" | "neutral" =>
   task.state === "BLOCKED" ? "danger" :
   task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED" ? "success" :
@@ -89,24 +118,7 @@ const ValidationMatrix = ({
       <section data-testid="validation-matrix">
         <WorkbenchSectionHeader
           title="Validation"
-          action={<WorkbenchStatus
-            tone={
-              boundary.tag === "FAILED_AT"
-                ? "danger"
-                : boundary.tag === "COMPLETE" || boundary.tag === "PASSED_THROUGH"
-                  ? "success"
-                  : "neutral"
-            }
-            label={
-              boundary.tag === "FAILED_AT"
-                ? "Current boundary: failed at " + boundary.stage
-                : boundary.tag === "PASSED_THROUGH"
-                  ? "Current boundary: passed through " + boundary.stage
-                  : boundary.tag === "COMPLETE"
-                    ? "Current boundary: complete"
-                    : "Current boundary: none"
-            }
-          />}
+          action={validationBoundaryStatus(boundary)}
         />
         <WorkbenchState
           kind={active ? "pending" : "empty"}
@@ -125,24 +137,7 @@ const ValidationMatrix = ({
     <section data-testid="validation-matrix">
       <WorkbenchSectionHeader
         title="Validation"
-        action={<WorkbenchStatus
-          tone={
-            boundary.tag === "FAILED_AT"
-              ? "danger"
-              : boundary.tag === "COMPLETE" || boundary.tag === "PASSED_THROUGH"
-                ? "success"
-                : "neutral"
-          }
-          label={
-            boundary.tag === "FAILED_AT"
-              ? "Current boundary: failed at " + boundary.stage
-              : boundary.tag === "PASSED_THROUGH"
-                ? "Current boundary: passed through " + boundary.stage
-                : boundary.tag === "COMPLETE"
-                  ? "Current boundary: complete"
-                  : "Current boundary: none"
-          }
-        />}
+        action={validationBoundaryStatus(boundary)}
       />
       <WorkbenchTable
         label="Recorded validation"
