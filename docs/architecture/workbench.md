@@ -463,7 +463,7 @@ workflow rail
 primary task surface [ + explicit Context when opened ]
 ```
 
-The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material.
+The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material. The step summary/current-attention band also has a stable height within each responsive class: blocker/failure/input/proposal state changes replace content inside that band rather than inserting a new structural header row that shifts the primary surface.
 
 No step component may insert another persistent outer navigation column into that topology merely because its local collection grows.
 
@@ -518,7 +518,7 @@ Runs/documents/proposals/evidence are selected through one compact step-local ma
 
 Adding a second attempt/document changes selector contents only. The primary surface x-position and width are invariant for the same viewport/Context state.
 
-Supporting context is subordinate material, not another navigation rail.
+Supporting context is subordinate material, not another navigation rail and not the first row before current work. Access to source/upstream documents belongs in the compact material selector or an explicitly secondary disclosure after the current attention/material, so it cannot push a blocker/failure/dialogue down the page.
 
 ### 8.6 Readiness
 
@@ -564,6 +564,8 @@ The master uses one fixed Workbench width token for the entire Implementation wo
 
 The master contains task scanning and subordinate attempt selection. The detail owns objective/scope, current action/blocker, selected Run, validation, chronology and evidence/resources.
 
+Before validation evidence exists, the detail shows a compact validation state such as “Not started” rather than an eight-row V0–V7 table of identical “Not recorded” values. Once validation evidence exists, recorded/current validation stages are scan-visible and the complete matrix remains inspectable without overtaking the current task/action.
+
 On medium/narrow widths the master becomes a temporary drawer/stack before detail readability is compromised.
 
 Historical task/attempt selection never displaces the independently derived current-attention owner.
@@ -594,6 +596,8 @@ The React layout hook and Workbench CSS use these same thresholds. A second Work
 
 The responsive class may change the representation of secondary selectors/master/Context, but it does not change semantic ownership, current attention, selected material or unsaved state.
 
+At narrow width, application-global toolbar utilities use one compact/overflow composition rather than wrapping account, Settings and theme controls into multiple competing rows. Theme/account detail may move behind a compact utility control; the current WorkItem identity and current workflow action remain visually prior.
+
 ### 8.11 CSS/layout hygiene
 
 Each structural Workbench selector has one live declaration owner outside intentionally scoped media overrides.
@@ -620,6 +624,8 @@ For the current step:
 8. historical explicit selection.
 
 Historical selection can remain visible, but a compact current-attention surface remains visible and navigates directly to its owner. Only the highest-precedence current mutation action is rendered: failed/recovery ownership suppresses generic Start, and pending proposal disposition suppresses free-form continuation.
+
+Run/provider plumbing is not a parallel primary information block. The activity header presents workflow role/attempt plus human-relevant interaction state; provider session id, baseline/context hash and ordinary provider-process status remain inside Technical details. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
 
 ### 9.2 Readiness
 
@@ -769,6 +775,16 @@ Approval owns its Review composition directly; it does not reuse a generic side-
 Implementation owns one dedicated stable master/detail composition and may reuse existing primitive interaction components beneath that boundary.
 
 `WorkbenchLayout.tsx` owns Context representation/responsive behavior; `App.tsx` owns the open/close boolean and supplies a true toggle. The wide inspector has a visible close affordance.
+
+### UI attention/presentation cleanup
+
+The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented through the subordinate material selector/secondary access defined in §8.5.
+
+The current prominent `OpenCode session` block in `ActivityWorkspace` is removed from primary composition. Canonical workflow interaction state owns the visible status; provider diagnostics remain Technical details/evidence unless they are the active blocker.
+
+`WorkflowStepSummary` renders one current action owner only. A retryable failed Run must not simultaneously expose both generic Start and Retry controls for the same stage.
+
+Implementation validation presentation is sparse/current-state-first as defined in §8.8; a full empty V0–V7 matrix is not rendered before validation begins.
 
 ### UI CSS
 
