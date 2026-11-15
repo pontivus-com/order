@@ -61,6 +61,7 @@ export const ReadinessWorkspace = ({
   onOpenEvidence,
   onReturnFromTransient,
   onContextDocumentChange,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   runs: readonly Run[];
@@ -76,6 +77,7 @@ export const ReadinessWorkspace = ({
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const readinessArtifact =
     artifacts.find((artifact) => artifact.role === "R3") ?? null;
@@ -177,6 +179,7 @@ export const ReadinessWorkspace = ({
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
+            onMutationError={onMutationError}
           />
         );
       case "SUPPORTING_DOCUMENT":
