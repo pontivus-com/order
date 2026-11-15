@@ -4164,6 +4164,8 @@ describe("daemon control plane", () => {
         markdown: "plan after\\n",
       });
       const after = coord.getWorkItem(runtime, workItem.id);
+      const currentLifecycle = await coord.listCurrentLifecycleArtifacts(runtime, workItem.id);
+      const currentPlan = currentLifecycle.find((artifact) => artifact.role === "PLAN") ?? null;
       const drafts = await authority.currentStageDraftArtifacts(runtime, after, "PLAN");
       const contextState = await authority.resolveStageContextState(runtime, after, "PLAN");
       const prompt = await stageOwner.stagePrompt(
@@ -4185,6 +4187,9 @@ describe("daemon control plane", () => {
       console.log(JSON.stringify({
         saved,
         stage: after.stage,
+        originalPlanId: plan.id,
+        currentPlanId: currentPlan?.id ?? null,
+        currentPlanSha256: currentPlan?.sha256 ?? null,
         draftCount: drafts.length,
         draftSha256: drafts[0]?.sha256 ?? null,
         promptHasDraft:
@@ -4198,6 +4203,9 @@ describe("daemon control plane", () => {
     `) as {
       saved: { tag: string; sha256: string };
       stage: string;
+      originalPlanId: string;
+      currentPlanId: string | null;
+      currentPlanSha256: string | null;
       draftCount: number;
       draftSha256: string | null;
       promptHasDraft: boolean;
@@ -4208,6 +4216,9 @@ describe("daemon control plane", () => {
     expect(output.saved.tag).toBe("UPDATED");
     expect(output.saved.sha256).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(output.stage).toBe("PLAN");
+    expect(output.currentPlanId).not.toBeNull();
+    expect(output.currentPlanId).not.toBe(output.originalPlanId);
+    expect(output.currentPlanSha256).toBe(output.saved.sha256);
     expect(output.draftCount).toBe(1);
     expect(output.draftSha256).toBe(output.saved.sha256);
     expect(output.promptHasDraft).toBe(true);
