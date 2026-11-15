@@ -395,6 +395,8 @@ describe("Order cross-boundary certification", () => {
 
     expect(lifecycle).toContain('"RECONCILE_AUTHORITY"');
     expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
+    expect(lifecycle.indexOf('if (input.currentness.tag === "STALE") return "STALE_AUTHORITY";'))
+      .toBeLessThan(lifecycle.indexOf('if (input.recovery.tag !== "NONE") return "RECOVERY";'));
     const contracts = read("src/core/contracts.ts");
     expect(contracts).toContain("UpstreamReturnStageSchema");
     expect(contracts).toContain("ReconcileWorkItemAuthoritySchema");
