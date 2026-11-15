@@ -92,3 +92,20 @@ export const withWorkItemOperatorMutation = async <T>(
     runtime.operatorMutations.delete(workItemId);
   }
 };
+
+
+export const withWorkItemOperatorMutationSync = <T>(
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  operation: () => T,
+): T => {
+  if (runtime.operatorMutations.has(workItemId)) {
+    throw new TypeError("WORKITEM_MUTATION_IN_PROGRESS");
+  }
+  runtime.operatorMutations.add(workItemId);
+  try {
+    return operation();
+  } finally {
+    runtime.operatorMutations.delete(workItemId);
+  }
+};
