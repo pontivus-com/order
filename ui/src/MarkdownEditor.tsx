@@ -92,6 +92,7 @@ export const MarkdownEditor = ({
   const [conflicted, setConflicted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const editablePresentationMode = useRef<MarkdownPresentationMode>("EDIT");
   const [presentationMode, setPresentationMode] =
     useState<MarkdownPresentationMode>(readOnly ? "PREVIEW" : "EDIT");
 
@@ -103,7 +104,7 @@ export const MarkdownEditor = ({
   useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
 
   useEffect(() => {
-    if (readOnly) setPresentationMode("PREVIEW");
+    setPresentationMode(readOnly ? "PREVIEW" : editablePresentationMode.current);
   }, [readOnly]);
 
   useEffect(() => {
@@ -174,6 +175,7 @@ export const MarkdownEditor = ({
       value={presentationMode}
       onChange={(value) => {
         if (value === "EDIT" || value === "PREVIEW" || value === "SPLIT") {
+          editablePresentationMode.current = value;
           setPresentationMode(value);
         }
       }}
