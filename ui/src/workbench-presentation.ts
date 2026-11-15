@@ -371,7 +371,7 @@ export const resolveWorkflowMaterial = (
         : { kind: "STEP_STATE" };
     }
 
-    if (explicitIsDirtyDocument && explicit) return explicit;
+    if (explicitIsAvailable && explicit) return explicit;
 
     const ownerRun = currentStageRun(input);
     if (
@@ -385,8 +385,6 @@ export const resolveWorkflowMaterial = (
     ) {
       return { kind: "STAGE_RUN", runId: ownerRun.id };
     }
-
-    if (explicitIsAvailable && explicit) return explicit;
 
     const proposal = input.pendingProposal ?? null;
     if (
@@ -414,6 +412,8 @@ export const resolveWorkflowMaterial = (
   }
 
   if (input.selectedStep === "R3") {
+    if (explicitIsAvailable && explicit) return explicit;
+
     const ownerRun = currentStageRun(input);
     if (
       ownerRun !== null &&
@@ -426,7 +426,6 @@ export const resolveWorkflowMaterial = (
     ) {
       return { kind: "STAGE_RUN", runId: ownerRun.id };
     }
-    if (explicitIsAvailable && explicit) return explicit;
     if (
       ownerRun !== null &&
       input.stageInteraction !== null &&
