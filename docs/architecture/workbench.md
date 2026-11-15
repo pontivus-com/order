@@ -926,7 +926,7 @@ All Order-owned Workbench primitives obey the applicable laws:
 3. **Policy-blind:** primitives do not decide current attention, reached state, input eligibility, blocker ownership, lifecycle progression, validation or command admission.
 4. **Count-blind topology:** collection length may alter rows/items but never selects another persistent topology.
 5. **Single responsive owner:** structural responsive decisions are primitive-owned under §8.10; feature components do not choose structural markup through viewport hooks.
-6. **Token-owned geometry:** context/master widths, toolbar/identity/attention heights, field/control heights and structural gaps use §8.18 tokens; callers do not pass ad-hoc values.
+6. **Token-owned geometry:** context/master widths, toolbar/identity/attention heights, field/control heights and structural gaps use `GW-DOC-WORKBENCH-THEME-V1` canonical geometry/spacing tokens; callers do not pass ad-hoc values.
 7. **Named constrained slots:** no arbitrary `start`, `sidebar`, `columns`, `width`, `breakpoint`, generic `slots` or mega-variant API.
 8. **Composition over configuration:** different interaction classes use their primitive composition rather than one configurable super-layout.
 9. **Accessible behavior is primitive-owned:** drawers, modal focus return, disclosure semantics, rail scrolling, dialogue focus/scroll, table selection/focus and field labeling are implemented once.
@@ -1053,7 +1053,7 @@ Examples:
 - `CreateWorkItem.tsx`, `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` map form/configuration semantics into `WorkbenchForm + WorkbenchField`.
 - technical/supporting detail uses `WorkbenchDisclosure`; semantic feedback uses `WorkbenchNotice`; semantic state uses `WorkbenchStatus`.
 
-No feature/service adapter owns CSS establishing a primitive-owned layout/mechanic or chooses visual values outside §8.18.
+No feature/service adapter owns CSS establishing a primitive-owned layout/mechanic or chooses visual values outside `GW-DOC-WORKBENCH-THEME-V1`.
 
 ### 8.17 Complete production-renderer coverage audit
 
@@ -1338,7 +1338,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 The current Workbench implementation is evidence of the failure modes described by this design; it is **not** the structural or visual baseline that P7 incrementally patches into compliance.
 
-P7 must perform an architecture-preserving **re-composition** around the canonical owners and visual language above. This is not a later cosmetic pass: §8.18 visual tokens and §8.12 primitive ownership are part of the architecture that every migrated renderer must consume.
+P7 must perform an architecture-preserving **re-composition** around the canonical owners and visual language above. This is not a later cosmetic pass: `GW-DOC-WORKBENCH-THEME-V1` theme/style authority and §8.12 primitive ownership are part of the architecture that every migrated renderer must consume.
 
 #### Required replacement order
 
