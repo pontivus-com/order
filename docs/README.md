@@ -1,78 +1,89 @@
-# Order design
+# Order documentation
 
-**Status:** Canonical design baseline  
-**Purpose:** Canonical design set for Order.
+**Status:** Current documentation index
 
-Order is a governed software work system. It owns the lifecycle that moves work from an untrusted idea or observation to an explicitly authorized execution task, and then through bounded implementation and independent verification.
+Order documentation is organized by semantic concern rather than document sequence.
 
-It is deliberately not a software-development methodology, ticket system, autonomous product manager, or general agent framework. Project repositories retain authority for their product intent, requirements, architecture, contracts, ADRs, tests, plans, and domain semantics within the Order systems governance pyramid.
+Canonical semantic authority is identified by stable `GW-DOC-*` / requirement / technical-requirement identifiers resolved through root `pontivus-order.toml`. Filenames and directories are navigation only.
 
-## Governing status
+## Documentation rules
 
-Canonical semantic authority is held only by documents that declare a `GW-DOC-*` canonical concern identifier and are selected by the project authority map. Reference indexes, historical plans and review records are not additional semantic owners.
+The live `docs/` design set contains only:
 
-`GW-P1-DOC-CANONICALITY` is owned by `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`. Stable and versioned concern identifiers resolve through root `pontivus-order.toml [refs]`; filenames and document numbers are navigation only.
+- current durable P1-P6 authority;
+- current architecture decisions;
+- current factual/reference material;
+- repository-native Order WorkItem documents under `docs/order/work-items/**` when such WorkItems exist.
 
-Order must fail closed when it cannot resolve the canonical owner required for a governed concern. It must not duplicate or weaken a rule merely to keep work moving.
+It does **not** retain completed release implementation plans, superseded functional designs, superseded component mappings or compatibility indexes merely for history. Git history, merged pull requests, releases and `CHANGELOG.md` are the implementation/provenance record.
 
-## Design set
+New canonical documentation files use semantic names. Ordinal prefixes such as `00-`, `37-` or `50-` are prohibited.
 
-1. [GW-DOC-SYSTEM-BRIEF-V1](00-system-brief.md) — product boundary, goals, non-goals, and relationship to project repositories and Span.
-2. [GW-DOC-WORK-LIFECYCLE-V1](01-work-lifecycle.md) — Idea → R1 → R2 → Design → Plan → R3 → Sign-off → TODO.
-3. [GW-DOC-EXECUTION-CONTROL-PLANE-V1](02-execution-control-plane.md) — queue, OpenCode execution, verification, retry, evidence, and scheduling.
-4. [Architecture invariant reference index](03-architecture-invariants.md) — navigation-only compatibility index; it owns no architecture semantics.
-5. [GW-DOC-TECHNICAL-DECISIONS-V1](04-open-decisions.md) — resolved v1 architecture/integration decisions and implementation gate.
-6. [GW-DOC-SPECIFICATION-STANDARD-V1](05-specification-standard.md) — mandatory contents and readiness rules for work packages.
-7. [GW-DOC-VALIDATION-STANDARD-V1](06-validation-standard.md) — validation gates, branches, failure classes, and terminal evidence.
-8. [GW-DOC-OPENCODE-INTEGRATION-V1](07-opencode-integration-standard.md) — constrained builder/reviewer execution and session management.
-9. [GW-DOC-MINIMUM-CHANGE-V1](08-minimum-change-standard.md) — minimum sufficient implementation and change-surface control.
-10. [GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1](09-project-governance-integration.md) — how projects plug their own authority into Order defaults.
-11. [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](10-systems-governance-pyramid.md) — the complete P0-P8 authority model from principles and user intent through requirements, architecture, ADRs, contracts, plans, implementation, and evidence.
-12. [GW-DOC-LIFECYCLE-CONTEXT-V1](11-lifecycle-context-resolution.md) — stage-specific minimum context, decision boundaries, boundary conformance, freshness, and promotion rules.
-13. [GW-DOC-TECHNICAL-ARCHITECTURE-V1](12-technical-architecture.md) — locked TypeScript/Bun/React architecture, local daemon/UI, FCIS topology, code layout, project integration, interactive/provider hooks, execution and candidate handoff.
-14. [GW-DOC-CANONICAL-CONTRACTS-V1](13-canonical-contracts.md) — exact canonical semantic types, task/manifest grammar, SQLite schema and local HTTP contracts.
-15. [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](14-external-version-facts.md) — dated factual baseline for the complete v1 direct dependency/runtime set, relied-upon vendor capabilities, Order pins, upstream snapshots and runtime actuals.
-16. [GW-DOC-REF-OPENSPEC-V1-2026-11-12](27-reference-openspec.md) — dated OpenSpec prior-art facts for change metadata, schema-driven artifact graphs, templates and dependencies.
-17. [GW-DOC-REF-SPEC-KIT-V1-2026-11-12](28-reference-spec-kit.md) — dated GitHub Spec Kit prior-art facts for SDD, bug-fix and idea-assessment agentic processes.
-18. [GW-DOC-REF-KIRO-SPECS-V1-2026-11-12](29-reference-kiro-specs.md) — dated Kiro Specs prior-art facts for feature/defect document variants and executable task dependencies.
-19. [GW-DOC-REF-BMAD-V1-2026-11-12](30-reference-bmad.md) — dated BMAD prior-art facts for intent-grounded implementation, independent review and separate testing.
-20. [GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1](31-work-item-document-system.md) — binding P3 functional design for portable Markdown WorkItems, governed work-kind/schema/templates, catalog-driven authoring and queue reconciliation.
-21. [GW-DOC-MARKDOWN-WORKBENCH-V1](32-operator-markdown-workbench.md) — binding P3 functional design for governed source/lifecycle Markdown authoring, source diagnostics/freshness visibility, lifecycle document navigation, source-bound sign-off integration and the read-only execution/editor boundary.
-22. [GW-DOC-WORKBENCH-UX-V1](37-workbench-ux-information-architecture.md) — binding P3 UX/information-architecture design for primary-canvas versus contextual-inspector allocation, screen/use-case space budgets, responsive continuity, semantic controls and icon/action behavior across all workbench surfaces.
-23. [GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1](38-workbench-astryx-component-architecture.md) — binding P4 technical design mapping the workbench UX onto the local UI boundary and a selectively adopted, pinned Astryx component substrate.
-24. [GW-DOC-PRODUCT-IDENTITY-V1](40-order-product-identity.md) — canonical Order / Pontivus Order naming, descriptor, proposition, product-language hierarchy, positioning boundaries and Span-family wording.
-25. [GW-DOC-ORDER-TECHNICAL-IDENTITY-V1](41-order-technical-identity-cutover.md) — binding P4 owner for the Order live technical namespace, one-way predecessor cutover and repository-migration boundary.
-26. [GW-DOC-INSTALLATION-READINESS-V1](45-installation-readiness-and-configuration-continuity.md) — binding P3 functional design for productive installation readiness, account/repository configuration continuity, bounded upgrade migration and explicit setup/recovery states.
+Change-specific Research / Requirements / Solution design / Implementation plan / Readiness material belongs to the repository-native WorkItem document system owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`, ordinarily:
 
-## Active implementation plan
+```text
+docs/order/work-items/<WorkItemId>/
+  work-request.md
+  research.md
+  requirements.md
+  solution-design.md
+  implementation-plan.md
+  readiness-review.md
+```
 
-- [GW-P7-ORDER-0.2.1-SETTINGS-WORKBENCH-REFACTOR-V1-2026-11-13](46-order-0.2.1-settings-workbench-refactor-implementation-plan.md) — implementation-ready P7 plan for the governed 0.2.1 configuration/runtime, centralized Settings, repository/document migration, OpenCode readiness, human-first Source authoring and workbench UX refactor.
+## Governance
 
-## Completed implementation provenance
+- [Systems governance](governance/systems-governance.md) — `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`
+- [Minimum change](governance/minimum-change.md) — `GW-DOC-MINIMUM-CHANGE-V1`
+- [Repository delivery and release](governance/repository-delivery.md) — `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`
 
-The following P7 records document completed implementation packages. They are navigation/provenance records, not additional P1-P6 semantic owners and not standing authorization for future changes.
+## Product
 
-- [GW-P7-CODEMIRROR-MARKDOWN-EDITOR-V1-2026-11-13](43-codemirror-markdown-editor-implementation-plan.md) — completed exact-source CodeMirror Markdown editor with deterministic formatting toolbar, Edit/Preview/Split composition, Order-native Light/Dark/System chrome and syntax theming, and permanent source-fidelity/architecture/browser verification.
-- [GW-P7-WORKBENCH-INTERACTION-SPATIAL-REFACTOR-V1-2026-11-12](42-workbench-interaction-spatial-refactor-implementation-addendum.md) — completed public workbench interaction-pattern/spatial-efficiency refactor implementing `GW-FR-043..050` and `GW-TR-015..026`, including permanent architecture and browser-geometry regression evidence.
+- [System brief](product/system-brief.md) — `GW-DOC-SYSTEM-BRIEF-V1`
+- [Product identity](product/product-identity.md) — `GW-DOC-PRODUCT-IDENTITY-V1`
 
-## Canonical concern registry
+## Functional requirements
 
-The machine-resolvable concern registry is root `pontivus-order.toml [refs]`. Each canonical semantic owner declares:
+- [Work lifecycle](requirements/work-lifecycle.md) — `GW-DOC-WORK-LIFECYCLE-V1`
+- [Specification standard](requirements/specification-standard.md) — `GW-DOC-SPECIFICATION-STANDARD-V1`
+- [Validation standard](requirements/validation-standard.md) — `GW-DOC-VALIDATION-STANDARD-V1`
+- [Project governance integration](requirements/project-governance-integration.md) — `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1`
+- [Lifecycle context](requirements/lifecycle-context.md) — `GW-DOC-LIFECYCLE-CONTEXT-V1`
+- [WorkItem documents](requirements/work-item-documents.md) — `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`
+- [Markdown workbench](requirements/markdown-workbench.md) — `GW-DOC-MARKDOWN-WORKBENCH-V1`
+- [Workbench](requirements/workbench.md) — `GW-DOC-WORKBENCH-UX-V2`
+- [Installation readiness](requirements/installation-readiness.md) — `GW-DOC-INSTALLATION-READINESS-V1`
 
-- one stable `GW-DOC-*` concern identifier;
-- one current version-specific identifier;
-- exactly one owning document path for each identifier.
+## Technical architecture
 
-The governing reference law is `GW-P1-DOC-CANONICALITY`. Other documents reference these identifiers rather than reproducing the owner's normative semantics. A document may describe only the local consequence or integration obligation that it itself owns.
+- [Technical architecture](architecture/technical-architecture.md) — `GW-DOC-TECHNICAL-ARCHITECTURE-V1`
+- [Execution control plane](architecture/execution-control-plane.md) — `GW-DOC-EXECUTION-CONTROL-PLANE-V1`
+- [OpenCode integration](architecture/opencode-integration.md) — `GW-DOC-OPENCODE-INTEGRATION-V1`
+- [Workbench technical architecture](architecture/workbench.md) — `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`
+- [Workbench theme and styling architecture](architecture/workbench-theme.md) — `GW-DOC-WORKBENCH-THEME-V1`
 
-The design-set list above is navigation, not a second semantic registry. `docs/03-architecture-invariants.md` is reference-only.
+The Workbench P4 design is split by concern: the component owner defines state/transition/observation/spatial/component composition and renderer coverage, while the theme owner defines exact System/Light/Dark behavior, semantic tokens, cross-component visual parity, foundation bridging and `theme.css`/stylesheet governance. Runtime remediation remains unimplemented; the next lifecycle activity is a P7 implementation plan derived from the closed P3/P4/P6 authority.
 
-The root `AGENTS.md` is itself the canonical owner of agent operating rules under `GW-DOC-AGENT-OPERATING-RULES-V1`; it references all other governed concerns by identifier.
+## Decisions
 
-## Governing principle
+- [Technical decisions](decisions/technical-decisions.md) — `GW-DOC-TECHNICAL-DECISIONS-V1`
 
-> Order is not paid for producing code. It is paid for retiring proven, authorized work with the smallest independently verified change that fully satisfies governing product intent, requirements, architecture and contracts.
+## Canonical contracts
 
-Accordingly, `NO_WORK`, `ALREADY_SATISFIED`, `DUPLICATE`, `BLOCKED`, and `REJECTED` are valid and often desirable outcomes.
+- [Canonical contracts](contracts/canonical-contracts.md) — `GW-DOC-CANONICAL-CONTRACTS-V1`
 
-A smaller change is not automatically better. The required target is the **minimum sufficient change**: nothing unnecessary, nothing missing.
+## External facts and references
+
+- [External facts](references/external-facts.md) — `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`
+- [OpenSpec](references/openspec.md) — `GW-DOC-REF-OPENSPEC-V1-2026-11-12`
+- [GitHub Spec Kit](references/spec-kit.md) — `GW-DOC-REF-SPEC-KIT-V1-2026-11-12`
+- [Kiro Specs](references/kiro-specs.md) — `GW-DOC-REF-KIRO-SPECS-V1-2026-11-12`
+- [BMAD](references/bmad.md) — `GW-DOC-REF-BMAD-V1-2026-11-12`
+
+## Canonical registry
+
+The machine-resolvable authority registry is root `pontivus-order.toml`.
+
+Each current canonical semantic owner declares one stable `GW-DOC-*` concern identifier and one current version-specific identifier. Documents reference those identifiers rather than creating shadow specifications.
+
+The repository architecture fitness test recursively validates this documentation tree, excludes repository-native WorkItem lifecycle documents from canonical-owner discovery, rejects ordinal-prefixed canonical filenames, and verifies registry ownership/path consistency.
