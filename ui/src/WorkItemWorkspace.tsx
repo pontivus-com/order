@@ -801,7 +801,7 @@ export const WorkItemWorkspace = ({
     workItem.stage,
   ]);
 
-  const invalidate = async (acceptedEvent?: RunEvent): Promise<void> => {
+  const refreshWorkbenchMutation = async (acceptedEvent?: RunEvent): Promise<void> => {
     setMutationRefreshPending(true);
     if (acceptedEvent !== undefined) {
       const eventKey = workbenchQueryKeys.runEvents(acceptedEvent.runId);
@@ -821,6 +821,9 @@ export const WorkItemWorkspace = ({
     } finally {
       setMutationRefreshPending(false);
     }
+  };
+  const invalidate = async (): Promise<void> => {
+    await refreshWorkbenchMutation();
   };
 
   const reportMutationError = (error: unknown): void => {
@@ -848,9 +851,7 @@ export const WorkItemWorkspace = ({
       setTitleError(null);
       await invalidate();
     },
-    onError: async () => {
-      await invalidate();
-    },
+    onError: invalidate,
   });
 
   const archiveMutation = useMutation({
@@ -866,9 +867,7 @@ export const WorkItemWorkspace = ({
       await invalidate();
       onBack();
     },
-    onError: async () => {
-      await invalidate();
-    },
+    onError: invalidate,
   });
 
   const commitSelection = (
@@ -1300,7 +1299,7 @@ export const WorkItemWorkspace = ({
             onOpenSupportingMaterial={openSupportingMaterial}
             onReturnFromTransient={returnFromTransient}
             onContextDocumentChange={onContextDocumentChange}
-            onMutationRefresh={invalidate}
+            onMutationRefresh={refreshWorkbenchMutation}
             onMutationError={reportMutationError}
           />
         </Suspense>
@@ -1325,7 +1324,7 @@ export const WorkItemWorkspace = ({
             onOpenEvidence={openEvidence}
             onReturnFromTransient={returnFromTransient}
             onContextDocumentChange={onContextDocumentChange}
-            onMutationRefresh={invalidate}
+            onMutationRefresh={refreshWorkbenchMutation}
             onMutationError={reportMutationError}
           />
         </Suspense>
