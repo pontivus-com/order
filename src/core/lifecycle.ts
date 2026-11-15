@@ -130,7 +130,7 @@ export const evaluateStageCompletion = (
   throw new TypeError("unsupported stage completion");
 };
 
-export const sourceChangeLifecycleState = (
+const sourceChangeLifecycleState = (
   workItem: WorkItem,
 ): Readonly<Pick<WorkItem, "stage" | "status" | "outcome">> =>
   workItem.stage === "COMPLETE"
