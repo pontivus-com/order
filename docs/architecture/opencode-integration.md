@@ -58,7 +58,7 @@ The bound OpenCode foreground `serve` always composes the V2 API with its embedd
 
 The bound OpenCode build still has a Linux system-config source at `/etc/opencode`, while the foreground `serve` command does not expose the programmatic `system: false` switch. Order therefore fails provider startup/certification when `/etc/opencode` exists rather than reimplementing OpenCode's config parser to guess that it is harmless.
 
-The bound OpenCode build's model-facing `read` tool can discover and inject nested repository `AGENTS.md` after successful internal reads, and direct `read` does not share ripgrep search-ignore filtering. Productive repository-byte containment, provider-workspace materialization, exact repository-instruction closure, instruction-path mutation prohibition and the all-role certification law are therefore owned by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`. The user's physical repository directory is not itself the provider-visible project-material boundary. Repository `AGENTS.md` injection is permitted only as a rendering of P1 authority Order already resolved and byte-proved for the admitted provider workspace.
+The bound OpenCode build's model-facing `read` tool can discover and inject nested repository `AGENTS.md` after successful internal reads, and direct `read` does not share ripgrep search-ignore filtering. Productive repository-byte containment, provider-workspace materialization, exact repository-instruction closure, instruction-path mutation prohibition and the all-role certification law are therefore owned by `GW-DOC-OPENCODE-INTEGRATION-V1`. The user's physical repository directory is not itself the provider-visible project-material boundary. Repository `AGENTS.md` injection is permitted only as a rendering of P1 authority Order already resolved and byte-proved for the admitted provider workspace.
 
 The same owner also defines the productive **trusted-integration boundary**. A selected saved OpenCode Console account is an explicit trusted integration and may contribute its provider-native Library instructions/skills and allowed remote configuration, including MCP configuration, without those bytes becoming Order canonical authority. Order-owned Run-specific instructions/skills/references/MCP configuration are supplied through the pinned `OPENCODE_CONFIG_CONTENT` process configuration layer. Host/user ambient OpenCode configuration remains excluded by the private HOME/XDG namespace and disabled project/global compatibility discovery.
 
@@ -77,7 +77,7 @@ A session may continue across ordinary interactive turns only when all are true:
 - same resolved `contextHash`;
 - same configured provider/model;
 - same effective stage permission profile;
-- for STAGE, the same admitted provider-workspace material identity required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`.
+- for STAGE, the same admitted provider-workspace material identity required by `GW-DOC-OPENCODE-INTEGRATION-V1`.
 
 If material authority changes, artifact adoption changes resolved context, permissions materially change, or Order cannot prove the provider session is current, Order replaces the OpenCode session before the next productive turn.
 
@@ -107,15 +107,15 @@ deny action="*" resource="*"
 
 `REVIEWER` allows only admitted target-workspace `read`, `glob` and `grep` with resource `*`, followed by the same `.git` and `.git/*` read denies, and receives no external-directory allow.
 
-`BUILDER` and `REMEDIATOR` allow the same admitted target-workspace read-only actions and `.git` / `.git/*` read denies, then add one `edit` allow for each exact literal `ExecutionTask.changeSurface` path. `changeSurface` is a `RepositoryPath[]`, not a glob, so Order does not translate Bun.Glob semantics into OpenCode permission semantics. `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1` additionally prohibits any changeSurface path naming `AGENTS.md`, including a path that does not yet exist. They receive no external-directory allow.
+`BUILDER` and `REMEDIATOR` allow the same admitted target-workspace read-only actions and `.git` / `.git/*` read denies, then add one `edit` allow for each exact literal `ExecutionTask.changeSurface` path. `changeSurface` is a `RepositoryPath[]`, not a glob, so Order does not translate Bun.Glob semantics into OpenCode permission semantics. `GW-DOC-OPENCODE-INTEGRATION-V1` additionally prohibits any changeSurface path naming `AGENTS.md`, including a path that does not yet exist. They receive no external-directory allow.
 
 All unlisted capabilities remain denied, including shell/execute, external-directory access outside the exact STAGE reference-root rules, subagents, web and schedule operations. Skills and MCP tools are not ambient capabilities: they are available only when the productive Run's explicit role/integration configuration admits them and the installed session permission rules allow their exact skill/server/tool resources. Console-supplied skills/MCPs belong to the selected trusted Console integration; Order-owned skills/MCPs belong to the Run-specific configuration. `write` and the bound OpenCode build's multi-file `patch` use OpenCode's canonical `edit` permission action; certification proves every patch source/destination resource is included in the permission assertion before mutation. Order never uses `ask` as a hidden human-interaction path.
 
 The format-repair turn uses a deny-all profile with zero tools.
 
-Pre-signoff **provider/agent-proposed** canonical artifact mutation remains exclusively Order's proposal/adoption boundary. The governed Markdown workbench's explicit direct-human Save is a separate daemon-owned mutation ingress defined by `GW-DOC-MARKDOWN-WORKBENCH-V1`; it grants no additional OpenCode edit permission and never lets provider conversation mutate authority directly. The STAGE prompt includes the exact configured reference-root paths in a separately labeled non-authoritative read-only section so the model can deliberately inspect them; Order does not preload their bytes into resolved canonical context. Readable reference-root bytes are evidence/context only and do not become Order/project authority without the normal governed artifact/adoption path. Post-signoff model mutation is limited to exact signed `changeSurface` paths. Order-owned provider capabilities do not expose destructive Git, commit, push, merge, deployment or arbitrary external-directory mutation in v1. Explicit MCP servers contributed by the selected trusted integration are separate trusted integration capabilities under `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`; Order admits their exact server namespaces as a trust decision rather than attempting to classify arbitrary MCP tool names by inferred side-effect semantics.
+Pre-signoff **provider/agent-proposed** canonical artifact mutation remains exclusively Order's proposal/adoption boundary. The governed Markdown workbench's explicit direct-human Save is a separate daemon-owned mutation ingress defined by `GW-DOC-MARKDOWN-WORKBENCH-V1`; it grants no additional OpenCode edit permission and never lets provider conversation mutate authority directly. The STAGE prompt includes the exact configured reference-root paths in a separately labeled non-authoritative read-only section so the model can deliberately inspect them; Order does not preload their bytes into resolved canonical context. Readable reference-root bytes are evidence/context only and do not become Order/project authority without the normal governed artifact/adoption path. Post-signoff model mutation is limited to exact signed `changeSurface` paths. Order-owned provider capabilities do not expose destructive Git, commit, push, merge, deployment or arbitrary external-directory mutation in v1. Explicit MCP servers contributed by the selected trusted integration are separate trusted integration capabilities under `GW-DOC-OPENCODE-INTEGRATION-V1`; Order admits their exact server namespaces as a trust decision rather than attempting to classify arbitrary MCP tool names by inferred side-effect semantics.
 
-Capability certification proves the deny-first rule, `.git` plus `.git/*` read denial, exact-path edit allows, multi-resource patch authorization, exact STAGE reference-root external-directory allows, denied external access for all post-signoff roles, explicit skill/MCP admission, and the complete productive workspace/trusted-integration matrix required by `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1` before Order permits productive use. An active Console connection is productively admissible only when it is the explicitly selected saved account and the exact provider pin satisfies the trusted-integration behavior certified under `GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT`; its Library/MCP semantics are trusted integration context, not canonical Order authority.
+Capability certification proves the deny-first rule, `.git` plus `.git/*` read denial, exact-path edit allows, multi-resource patch authorization, exact STAGE reference-root external-directory allows, denied external access for all post-signoff roles, explicit skill/MCP admission, and the complete productive workspace/trusted-integration matrix required by `GW-DOC-OPENCODE-INTEGRATION-V1` before Order permits productive use. An active Console connection is productively admissible only when it is the explicitly selected saved account and the exact provider pin satisfies the trusted-integration behavior certified under `GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT`; its Library/MCP semantics are trusted integration context, not canonical Order authority.
 
 ## 7. Prompt admission and serialization
 
@@ -246,3 +246,352 @@ An OpenCode upgrade is never transparent.
 Before changing the pinned server/client version, Order re-verifies V2 authenticated server-info readiness/version, session create/get/prompt/context, deterministic prompt-id admission/idempotency, monotonic `Session.Info.time.idle`/outcome completion semantics, final context retrieval, foreground-`serve` restart behavior, exact model switch/read-back, session permission enforcement, interrupt, auth namespace, OpenCode Console integration/account projection, OAuth attempt lifecycle, saved-credential activation/label update behavior and final message retrieval.
 
 OpenCode-specific shapes stay in the imperative shell and never enter Order's domain model.
+
+## 14. Productive provider workspace, instruction and certification boundary
+
+### GW-TR-073-STAGE-INSPECTION-WORKSPACE-MATERIALIZATION
+
+**Required behavior:** pre-signoff STAGE Runs use an Order-owned isolated inspection workspace rather than the configured repository directory as the OpenCode Location.
+
+The shell materializes that workspace from:
+
+1. the exact current Git HEAD commit;
+2. the current tracked working-tree content relative to that commit;
+3. current non-ignored untracked repository files admitted by Git's normal project visibility;
+4. no ignored untracked dependency/cache/build/install material.
+
+The implementation reuses the existing Git/process owners and existing isolated checkout/current-delta mechanics. If a physical helper must be generalized so the same byte/patch mechanics serve candidate and inspection materialization, that is an architecture-preserving same-layer refactor; a second Git patch/copy engine is prohibited.
+
+The materializer must verify the final workspace against the captured project delta before provider admission.
+
+**Required negative behavior:**
+
+- do not recursively copy the source repository;
+- do not copy node_modules or any other ignored tree merely because it exists;
+- do not parse .gitignore in application code;
+- do not introduce a Git library;
+- do not mutate the user's Git index;
+- do not initialize/fetch gitlinks/submodules;
+- do not use the resulting workspace as a second canonical repository authority.
+
+The source repository remains canonical. The inspection workspace is an ephemeral execution projection only.
+
+### GW-TR-074-PROVIDER-INSTRUCTION-CLOSURE
+
+After workspace materialization and before OpenCode session creation, one shell-owned instruction-admission operation:
+
+1. enumerates regular AGENTS.md files inside the admitted provider workspace without following symlinks;
+2. canonicalizes each path as RepositoryPath;
+3. proves every enumerated path exists in the already resolved P1 material set for the Run;
+4. proves the bytes/hash in the provider workspace equal the resolved ArtifactRef bytes/hash;
+5. rejects any provider-visible AGENTS.md missing from resolved P1;
+6. rejects any resolved repository instruction expected for that workspace that is missing or byte-different;
+7. rejects symlink/non-regular AGENTS.md rather than following it;
+8. rejects an ExecutionTask whose changeSurface names an AGENTS.md path whether or not that path exists before execution.
+
+The final change-surface rule is path-semantic, not existence-dependent. A Builder must not be able to create a new instruction file simply because the pre-run enumerator could not see a file that did not yet exist.
+
+Candidate validation additionally fails any Builder/Remediator result that adds, deletes or mutates an AGENTS.md outside the signed instruction material closure.
+
+No separate instruction model is introduced. The operation consumes canonical RepositoryPath/ArtifactRef/P1 resolution already owned elsewhere.
+
+### GW-TR-075-PROVIDER-WORKSPACE-ESCAPE-PREVENTION
+
+Before productive provider admission, the materialized workspace is checked for provider-visible escape paths.
+
+At minimum:
+
+- a symlink that resolves outside the provider workspace blocks the Run;
+- an AGENTS.md symlink blocks the Run regardless of target;
+- provider direct read/listing of repository metadata at `.git` or below `.git/*` is denied because it is not productive project material;
+- non-STAGE roles have no external_directory permission;
+- STAGE external_directory permissions are exactly the configured reference roots and retain the pinned external-read no-instruction-injection behavior; canonical configuration keeps target repositories and reference roots path-disjoint so an external reference cannot bypass the isolated target workspace by pointing back into the physical target repository;
+- the provider workspace must not contain or resolve into Order's state/evidence/account-control directories except as its own isolated run workspace;
+- no provider tool receives ambient HOME/XDG project content through the private OpenCode namespace.
+
+Internal repository symlinks may remain only when their resolved target stays inside the admitted workspace and existing repository/scope rules permit the relevant operation. A mutating signed path must not use a symlink to cause a write to a different semantic path.
+
+### GW-TR-076-SHARED-PRODUCTIVE-PROVIDER-ADMISSION
+
+One shared orchestration boundary prepares every productive OpenCode session.
+
+Conceptually:
+
+~~~text
+prepareProductiveProvider(...)
+  -> prove productive readiness required by this role
+  -> prove/materialize exact workspace
+  -> prove workspace escape constraints
+  -> prove repository instruction closure
+  -> derive deterministic Run config + base role policy
+  -> start/verify pinned provider
+  -> list/bind selected account + visible skills + visible MCP servers
+  -> derive exact effective permissions
+  -> create session
+  -> bind exact model + permissions
+  -> return admitted provider/session
+~~~
+
+The base role policy is derivable before provider startup, but the exact effective permission profile is not: trusted skill/MCP permissions depend on identities returned by the exact live pinned provider. No implementation may precompute or guess that live set.
+
+Names are illustrative. The implementation must preserve current FCIS/SoC ownership rather than create a service object or second runtime abstraction.
+
+STAGE, BUILDER, REVIEWER and REMEDIATOR orchestration must call this same boundary. Role-specific prompt assembly and task/candidate handling remain with their current owners.
+
+Format repair remains a separate deny-all turn on an already admitted session and receives no repository tools.
+
+### GW-TR-077-PRODUCTIVE-INVOCATION-FAILURE-BOUNDARY
+
+The daemon must stop routing every setup/admission exception through failRunForProvider.
+
+P6 must expose enough canonical RunEvent semantics to persist the actual failure origin and human-actionable detail without inventing a browser-only error taxonomy.
+
+The implementation classification boundary is:
+
+| Failure point | Terminal classification | Provider failure event? |
+|---|---|---|
+| current repository cannot be materialized/proven | PRECONDITION_FAILED | No |
+| provider workspace contains unresolved/stale instruction | PRECONDITION_FAILED | No |
+| provider workspace contains escaping/symlinked instruction path | PRECONDITION_FAILED | No |
+| signed task attempts to mutate/create AGENTS.md | PRECONDITION_FAILED or existing signed-package invalid classification, according to P6 owner | No |
+| required model/account/runtime is unavailable before productive admission | ENVIRONMENT_BLOCKED where applicable | No |
+| OpenCode process readiness/version/session/model/permission binding fails after local admission | PROVIDER_FAILURE unless the canonical P6 classification assigns an existing environment class | Yes only when provider is the failing boundary |
+| admitted productive turn transport/timeout/invalid provider output fails | PROVIDER_FAILURE | Yes |
+| coordinator/process interruption | COORDINATOR_INTERRUPTED | No |
+
+The exact RunEvent shape belongs in GW-DOC-CANONICAL-CONTRACTS-V1. This P4 design requires semantic accuracy; it does not introduce a duplicate event contract.
+
+### GW-TR-078-PRODUCTIVE-PROVIDER-WORKSPACE-FRESHNESS
+
+For STAGE, the admitted inspection workspace has a deterministic material identity derived from existing canonical primitives:
+
+- exact baseline Git commit;
+- exact captured current-project delta bytes/hash;
+- resolved context hash.
+
+The same productive session may continue only while those facts remain current.
+
+Before a resumed productive STAGE turn, Order re-proves the current source/context and current project-delta identity. If material state changed, Order does not silently update the provider workspace. The Run returns through the existing stale/precondition path with an actionable retry/re-resolution instruction.
+
+Ignored ambient material excluded from the workspace is not part of this identity and therefore cannot create false staleness.
+
+Post-signoff Runs retain their existing immutable baseline + fresh-checkout/candidate-replay behavior.
+
+### GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION
+
+Certification is layered:
+
+- pure/core tests for deterministic classification/reaction decisions;
+- shell tests for Git-visible material capture, workspace materialization, symlink/regular-file constraints and instruction enumeration;
+- OpenCode integration tests against the exact pinned 2.2.6 server/client behavior;
+- daemon tests for persisted Run/RunEvent classification and bounded recovery;
+- browser tests for human-readable failure/retry presentation where the failure is user-visible;
+- architecture tests proving one shared productive admission owner and absence of alternate direct productive session paths.
+
+Tests must exercise the actual production functions. Copying the intended algorithm into a test helper and proving the copy is prohibited.
+
+
+### GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT
+
+The productive-provider admission boundary proves the **source class and admission path** of model-context instructions/capabilities before the first productive inference.
+
+The approved technical contract is:
+
+1. **repository instruction channel** — closed exactly by GW-TR-073..075; every provider-visible project `AGENTS.md` is byte-proved Order authority;
+2. **Order role/canonical context channel** — supplied by the existing deterministic prompt/context assembly and remains canonical authority;
+3. **Run-specific OpenCode configuration** — Order starts each productive provider with a fresh process-private HOME/config root plus an Order-generated `OPENCODE_CONFIG_CONTENT` layer containing only explicit configuration required for that Run. The persistent installation-owned OpenCode database remains shared so saved-account authentication is frictionless, while filesystem-global `~/.agents`, `~/.claude` and global config/skill sources cannot accumulate into productive model context; project compatibility discovery remains disabled;
+4. **reference channel** — configured Order reference roots are explicit read-only context and never become project authority merely by being readable;
+5. **skill channel** — skills visible through the selected trusted Console integration, plus any skill source already explicitly governed and supplied by Order for the Run, are admitted capabilities. After provider startup Order lists the exact visible skill ids and allows the `skill` permission only for those ids; unselected host/global skills are excluded;
+6. **MCP channel** — the MCP server set visible after startup is admitted only because ambient config is excluded and the remaining sources are the selected trusted Console integration plus any explicit Order Run configuration. Order lists the exact server names and permits each server namespace's generated MCP tool actions. The selected server is the trust boundary: Order does not invent a read/write semantic classifier for arbitrary MCP tool names. Provider-native server instructions are trusted integration context rather than byte-reproducible Order authority. `execute` remains denied, so the pinned provider exposes permitted MCP tools directly rather than opening shell/Code Mode execution;
+7. **Console/workspace channel** — the active saved OpenCode Console account is an explicit trusted integration boundary. Its Library instructions/skills and allowed remote configuration may influence the agent. Account switching remains prohibited while a Run is active, preserving stable integration identity for the Run;
+8. **API-managed session instruction channel** — Order production code does not write arbitrary session instruction entries unless a future governed design explicitly adopts that mechanism.
+
+The process still uses Order's private HOME/XDG/database namespace, so trusting the selected Console integration does **not** mean inheriting the user's ambient global OpenCode installation.
+
+The productive admission boundary proves and binds the selected account/integration identity and Order-owned configuration/context identities to the live provider/session. This binding is transient runtime admission/freshness state, not a separate persisted evidence schema unless a future P6 change explicitly introduces one; existing provider/run diagnostics remain the durable evidence governed by the canonical contracts. It does not fabricate hashes for provider-native semantic material that the pinned public API does not expose.
+
+A change to the selected account, configured integration set, role permissions, repository material identity or Order canonical context invalidates continuation under the existing session-freshness/replacement laws. Provider-native content refresh within an unchanged explicitly trusted integration remains that integration's responsibility and is not promoted to Order authority.
+
+### GW-TR-081-RUN-SPECIFIC-PRODUCTIVE-AGENT-ENVIRONMENT
+
+Order constructs a productive OpenCode environment rather than an empty sandbox.
+
+For each Run, the shell combines:
+
+- the admitted project workspace containing complete Git-visible project material needed for code understanding;
+- exact resolved repository `AGENTS.md`;
+- existing deterministic role/canonical context;
+- configured STAGE reference roots where the role permits them;
+- Order-owned skill/reference/MCP configuration needed by the role, when any;
+- the selected trusted OpenCode Console account/integration contribution;
+- the exact model and session permission profile.
+
+Order-owned provider configuration is supplied through the pinned process-level `OPENCODE_CONFIG_CONTENT` mechanism. Each productive OpenCode process uses a fresh Order-owned process-private HOME/config directory under the state root; the directory is empty before process start and is discarded after process termination. The process retains the installation-owned `OPENCODE_DB`/credential database and required private runtime state, so the selected saved account remains usable without reauthentication. Configured STAGE reference roots are projected into inline config as explicit local references. No new Order skill registry, MCP registry, or OrderConfig field is introduced merely to mirror the selected Console integration; if a future product requirement adds independently Order-managed skills/MCPs, that returns through P3/P4/P6. Saved credential bytes are never copied into the Run configuration.
+
+This is a closed admission model, not a closed capability model: required context and tools are deliberately available, while unselected ambient host/user configuration is not. The selected trusted integration/server set is itself the operator trust decision; Order does not attempt to infer external MCP side-effect semantics from tool names.
+
+## 8. Provider-visible file-set law
+
+The productive internal workspace is intentionally narrower than the physical source directory.
+
+### Included
+
+- tracked repository files at the exact admitted baseline;
+- current tracked modifications/deletions represented by the admitted current delta;
+- current non-ignored untracked files represented by that delta;
+- repository-owned WorkItem/lifecycle Markdown when it belongs to that admitted project state.
+
+### Excluded
+
+- ignored untracked dependency trees;
+- ignored build/cache/generated/install trees;
+- unrelated filesystem content adjacent to or beneath the configured source root that is not in the admitted project projection;
+- Order state/evidence/provider-account runtime state;
+- fetched submodule contents not present in the admitted repository projection.
+
+A tracked file is project material even when a later ignore rule matches its path. Git tracking, not a directory-name heuristic, owns that fact.
+
+An untracked ignored file is not provider-visible project material merely because the provider could guess its physical source path.
+
+## 9. Instruction semantics
+
+Repository AGENTS.md is not a second authority mechanism.
+
+Its productive semantics are:
+
+~~~text
+provider-visible AGENTS.md
+        |
+        v
+must already resolve as P1
+        |
+        +-- exact path
+        +-- exact bytes/hash
+        +-- normal P1 precedence/override rules
+        |
+        v
+provider may receive it as OpenCode instruction rendering
+~~~
+
+OpenCode's synthetic instruction message is therefore only a provider rendering of authority Order has already resolved.
+
+If an AGENTS.md is legitimate project instruction material but is not declared/resolved at P1, the correct result is an actionable precondition failure telling the project to resolve its authority map. Order does not make the file authoritative automatically.
+
+## 10. Role matrix
+
+| Role/path | Internal workspace | Repository tools | Trusted integration capabilities | External refs | Instruction closure |
+|---|---|---|---|---|---|
+| Research STAGE | materialized inspection snapshot | read/glob/grep | exact visible selected-account skills + trusted MCP server tools | configured STAGE refs only | required |
+| Requirements STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Solution design STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Implementation plan STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Readiness review STAGE | same | read/glob/grep | same trusted set | configured STAGE refs only | required |
+| Builder | fresh exact execution checkout | read/glob/grep + exact changeSurface edit | exact visible selected-account skills + trusted MCP server tools | none | required |
+| Reviewer | fresh replayed candidate checkout | read/glob/grep | exact visible selected-account skills + trusted MCP server tools | none | required |
+| Remediator | fresh replayed candidate checkout | read/glob/grep + exact changeSurface edit | exact visible selected-account skills + trusted MCP server tools | none | required |
+| Format repair | already admitted session | no tools | none | none | inherits admitted session |
+| Account/model control | private non-project control workspace | non-productive integration operations | account/integration control only | none | project instruction closure not applicable |
+
+## 11. Required permanent test matrix
+
+The following cases are minimum certification, not examples to sample from.
+
+### 11.1 Instruction discovery/materialization
+
+1. root tracked AGENTS.md resolved as P1 -> admitted;
+2. nested tracked AGENTS.md resolved as P1 -> admitted and exact bytes present;
+3. nested tracked AGENTS.md not resolved as P1 -> PRECONDITION_FAILED before provider session use;
+4. nested non-ignored untracked AGENTS.md -> included in inspection snapshot and requires P1 resolution;
+5. modified tracked AGENTS.md -> snapshot contains current bytes and stale P1 hash is rejected;
+6. deleted resolved AGENTS.md -> admission fails as stale/missing material;
+7. symlink AGENTS.md -> admission fails without following target;
+8. duplicate/ambiguous authority resolution -> admission fails through canonical authority resolution;
+9. ignored arbitrary directory containing AGENTS.md -> excluded and does not affect instruction closure;
+10. real regression fixture with node_modules/.pnpm/.../recharts/AGENTS.md -> excluded and Research reaches provider invocation;
+11. ignored directory name unrelated to JavaScript package managers -> same behavior, proving no node_modules special case;
+12. tracked file inside an otherwise ignored-looking path -> remains included as tracked project material.
+
+### 11.2 Provider read/search containment
+
+13. direct read of a guessed ignored dependency path that exists only in the physical source repo -> unavailable from provider workspace;
+14. glob cannot return physical-source ignored dependency material absent from workspace;
+15. grep cannot match physical-source ignored dependency material absent from workspace;
+16. a repository .ignore/ripgrep rule cannot resurrect bytes that are physically absent from the admitted provider workspace;
+17. direct read/listing of `.git` and direct read below `.git/*` -> denied;
+18. internal symlink resolving outside workspace -> precondition failure before session;
+19. internal symlink resolving inside workspace -> allowed only within ordinary role/scope rules;
+20. external STAGE reference file is readable when explicitly configured;
+21. external reference root containing AGENTS.md does not add that file to project P1/instruction closure and does not trigger nearby instruction injection;
+22. Builder/Reviewer/Remediator external-directory access remains denied.
+
+### 11.3 Mutating-role instruction safety
+
+23. existing AGENTS.md path in ExecutionTask.changeSurface -> rejected before productive execution;
+24. nonexistent future path ending in AGENTS.md in changeSurface -> rejected before productive execution;
+25. candidate adding AGENTS.md through any admitted mutation route -> candidate rejected;
+26. candidate deleting/modifying signed AGENTS.md -> candidate rejected;
+27. remediation cannot broaden a task to instruction-file mutation.
+
+### 11.4 Every productive role
+
+28. Research productive session succeeds on a realistic installed repository with ignored dependencies;
+29. Requirements productive session succeeds through the same shared admission;
+30. Solution design productive session succeeds through the same shared admission;
+31. Implementation plan productive session succeeds through the same shared admission;
+32. Readiness review productive session succeeds through the same shared admission;
+33. Builder productive session uses shared admission and exact edit permission;
+34. Reviewer productive session uses shared admission and remains read-only;
+35. Remediator productive session uses shared admission and exact edit permission;
+36. format-repair turn has deny-all tools after an otherwise admitted session.
+
+### 11.5 Failure-origin classification
+
+37. unresolved project AGENTS.md -> PRECONDITION_FAILED, never PROVIDER_FAILED;
+38. workspace materialization failure -> PRECONDITION_FAILED, never PROVIDER_FAILED;
+39. escaping instruction symlink -> PRECONDITION_FAILED, never PROVIDER_FAILED;
+40. model/account readiness missing before productive start -> blocked by readiness or ENVIRONMENT_BLOCKED according to canonical owner, never mislabeled provider turn failure;
+41. OpenCode process cannot become ready after local admission -> provider/environment classification required by P6 and persisted with actual detail;
+42. session creation/model binding/permission binding failure -> correct provider-origin classification;
+43. productive turn transport failure -> PROVIDER_FAILURE;
+44. productive turn timeout -> PROVIDER_FAILURE with existing bounded replacement policy;
+45. invalid provider output after the one permitted format-repair path -> PROVIDER_FAILURE;
+46. coordinator restart/interruption -> COORDINATOR_INTERRUPTED, not PROVIDER_FAILURE.
+
+### 11.6 Freshness and restart
+
+47. repository project-visible bytes unchanged, ignored dependency bytes changed -> same admitted STAGE material identity;
+48. tracked/non-ignored project byte changes during an interactive STAGE session -> resumed productive turn detects staleness and does not use a silently changed workspace;
+49. P1 AGENTS bytes change during STAGE -> context/instruction freshness fails before continuation;
+50. adopted lifecycle/document proposal invalidates the affected old provider context before the next productive turn;
+51. daemon restart does not reuse a lost provider process/session as hidden correctness state;
+52. retried Run reconstructs provider workspace/instruction closure from canonical current state.
+
+### 11.7 Account/control isolation
+
+53. OpenCode account-control workspace contains no target-repository project instructions;
+54. saved-account listing/login/switch/rename/remove do not enumerate target repository AGENTS.md;
+55. account-control failure cannot be confused with productive repository-instruction admission.
+
+### 11.8 Architecture/certification sensors
+
+56. architecture test proves STAGE and execution productive paths both call the shared admission owner;
+57. architecture test rejects a second unrestricted AGENTS.md filesystem scanner in productive source;
+58. architecture test rejects direct productive createOpenCodeSession usage outside the approved shared boundary;
+59. architecture test proves task instruction-path mutation rejection remains wired;
+60. release/certification run executes the full opencode integration test set on the final candidate.
+
+### 11.9 Complete model-context/trusted-integration closure
+
+61. fresh productive session contains no unexpected API-managed instruction entries before the first prompt;
+62. production source has no ungoverned session-instruction-entry write path;
+63. project/global compatibility instruction discovery and ambient host skill/config roots remain disabled;
+64. Order-generated `OPENCODE_CONFIG_CONTENT` contains only the explicit Run-owned instruction/skill/reference/MCP configuration expected for the role;
+65. the exact skill ids visible from the selected trusted Console integration plus any explicit Run-owned skill source are listed before session creation and only those ids receive `skill` permission;
+66. configured STAGE references are listed/readable through the exact admitted external-directory roots and remain non-authoritative;
+67. the exact MCP server names visible from the selected trusted Console integration plus explicit Run config are listed before session creation, normalized according to the pinned provider namespace law, and only those server namespaces receive MCP tool permission;
+68. provider-native MCP server instructions from an admitted MCP are treated as trusted integration context and cannot expand Order permissions/changeSurface;
+69. active OpenCode Console account identity is recorded/proven before session admission and cannot change while a Run is active;
+70. Console Library instructions/skills for that selected account are accepted as trusted integration context and are not promoted into P1/P3/P4/P6 authority;
+71. switching/removing/adding a Console account while a Run is active remains blocked and a later Run uses the newly selected integration identity;
+72. an ambient host/global OpenCode skill/instruction/config fixture outside Order's private namespace cannot influence the productive Run;
+73. exact OpenCode pin certification proves the supported `OPENCODE_CONFIG_CONTENT`, skill, reference, MCP and Console contribution behavior used by this design.
