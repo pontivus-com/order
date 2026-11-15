@@ -1688,6 +1688,214 @@ describe("closed Workbench workflow-state kernel", () => {
       tag: "BLOCKED_TASK",
       taskId: blockedTask.id,
     });
+
+    const eligibleTask = baseTask(`task_${uuidB}`, "TODO");
+    expect(deriveExecutionOwner([eligibleTask], [])).toEqual({
+      tag: "CURRENT_TASK",
+      taskId: eligibleTask.id,
+    });
+    expect(deriveExecutionOwner([], [])).toEqual({ tag: "NONE" });
+    expect(deriveValidationBoundary(
+      { tag: "NONE" },
+      [],
+      [],
+      [],
+    )).toEqual({ tag: "NONE" });
+
+    const failedValidation = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "VALIDATION_FAILED",
+        stage: "V2",
+        classification: "TEST_FAILURE",
+        summary: "candidate tests failed",
+        evidence: [],
+      },
+    });
+    expect(
+      deriveValidationBoundary(
+        owner,
+        [runningTask],
+        [run],
+        [v0, v1, failedValidation],
+      ),
+    ).toEqual({
+      tag: "FAILED_AT",
+      stage: "V2",
+      classification: "TEST_FAILURE",
+    });
+
+    const completeTask = {
+      ...runningTask,
+      state: "CANDIDATE_DONE" as const,
+    };
+    expect(
+      deriveValidationBoundary(
+        { tag: "CURRENT_TASK", taskId: completeTask.id },
+        [completeTask],
+        [run],
+        [v0, v1],
+      ),
+    ).toEqual({ tag: "COMPLETE" });
+  });
+
+  it("projects every current-attention and rail-marker variant", () => {
+    const active = baseWorkItem();
+    const requestEventId = `event_${uuidA}` as RunEventId;
+    const noneRecovery = { tag: "NONE" } as const;
+    const current = { tag: "CURRENT" } as const;
+    const noOwner = { tag: "NONE" } as const;
+    const baseInput = {
+      workItem: active,
+      coherence: "COHERENT" as const,
+      mutationConflict: false,
+      stageInteraction: null,
+      proposal: { tag: "NONE" } as const,
+      recovery: noneRecovery,
+      currentness: current,
+      executionOwner: noOwner,
+      automaticWorkActive: false,
+      ordinaryActionAvailable: false,
+    };
+
+    const cases = [
+      {
+        expected: "CONVERGING" as const,
+        input: { ...baseInput, coherence: "CONVERGING" as const },
+        marker: "PROCESSING" as const,
+      },
+      {
+        expected: "MUTATION_CONFLICT" as const,
+        input: { ...baseInput, mutationConflict: true },
+        marker: "ACTION_REQUIRED" as const,
+      },
+      {
+        expected: "REQUIRED_INPUT" as const,
+        input: {
+          ...baseInput,
+          stageInteraction: {
+            tag: "REQUIRED_INPUT" as const,
+            requestEventId,
+          },
+        },
+        marker: "ACTION_REQUIRED" as const,
+      },
+      {
+        expected: "PROPOSAL_DECISION" as const,
+        input: {
+          ...baseInput,
+          proposal: {
+            tag: "PENDING" as const,
+            proposalEventId: requestEventId,
+          },
+        },
+        marker: "ACTION_REQUIRED" as const,
+      },
+      {
+        expected: "PROPOSAL_ADOPTION" as const,
+        input: {
+          ...baseInput,
+          proposal: {
+            tag: "ADOPTION_IN_PROGRESS" as const,
+            proposalEventId: requestEventId,
+          },
+        },
+        marker: "PROCESSING" as const,
+      },
+      {
+        expected: "BLOCKER" as const,
+        input: {
+          ...baseInput,
+          workItem: WorkItemSchema.parse({
+            ...active,
+            status: "BLOCKED",
+          }),
+        },
+        marker: "BLOCKED" as const,
+      },
+      {
+        expected: "STALE_AUTHORITY" as const,
+        input: {
+          ...baseInput,
+          currentness: { tag: "STALE" as const, owner: "R1" as const },
+          recovery: { tag: "RECONCILE_AUTHORITY" as const },
+        },
+        marker: "STALE" as const,
+      },
+      {
+        expected: "RECOVERY" as const,
+        input: {
+          ...baseInput,
+          recovery: { tag: "RETRY_CURRENT_STAGE" as const },
+        },
+        marker: "ACTION_REQUIRED" as const,
+      },
+      {
+        expected: "PROCESSING" as const,
+        input: {
+          ...baseInput,
+          stageInteraction: { tag: "PROCESSING" as const },
+        },
+        marker: "PROCESSING" as const,
+      },
+      {
+        expected: "ACTIONABLE" as const,
+        input: { ...baseInput, ordinaryActionAvailable: true },
+        marker: "READY" as const,
+      },
+      {
+        expected: "ORDINARY" as const,
+        input: baseInput,
+        marker: "READY" as const,
+      },
+    ];
+
+    const reached = deriveReachedStages(active, [], [], [], []);
+    for (const item of cases) {
+      const attention = deriveCurrentAttention(item.input);
+      expect(attention).toBe(item.expected);
+      const rail = deriveWorkflowRail(
+        item.input.workItem,
+        reached,
+        attention,
+        item.input.recovery,
+        item.input.workItem.stage,
+      );
+      expect(
+        rail.find((entry) => entry.stage === item.input.workItem.stage)?.marker,
+      ).toBe(item.marker);
+    }
+
+    const complete = WorkItemSchema.parse({
+      ...active,
+      stage: "COMPLETE",
+      status: "COMPLETE",
+      outcome: "CANDIDATE_DONE",
+    });
+    const completeRail = deriveWorkflowRail(
+      complete,
+      deriveReachedStages(complete, [], [], [], []),
+      "ORDINARY",
+      noneRecovery,
+      "COMPLETE",
+    );
+    expect(
+      completeRail.find((entry) => entry.stage === "COMPLETE")?.marker,
+    ).toBe("COMPLETE");
+
+    expect(
+      deriveRecoveryDisposition(
+        WorkItemSchema.parse({ ...active, status: "BLOCKED" }),
+        [],
+        current,
+      ),
+    ).toEqual({ tag: "RESUME_CURRENT_OWNER" });
+    expect(deriveRecoveryDisposition(active, [], current)).toEqual({
+      tag: "NONE",
+    });
   });
 
   it("projects coherence, attention, recovery and rail through one canonical owner", () => {
