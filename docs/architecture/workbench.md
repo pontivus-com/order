@@ -1687,6 +1687,8 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 
 ### 14.6 Architecture fitness
 
+For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE-V1` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
+
 Permanent sensors prove:
 
 - no new DTO/view-model/domain-copy family;
