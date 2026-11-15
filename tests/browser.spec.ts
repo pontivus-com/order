@@ -1512,17 +1512,17 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
     (event) => event.event.tag === "HUMAN_INPUT_REQUESTED",
   );
   expect(requested).toBeDefined();
-  const received = RunEventSchema.parse(await fixtureMutation(
-    page.context().request,
-    "/submit-input",
-    {
-      runId: inputRun!.id,
-      requestEventId: requested!.id,
-      text: "Keep the approved constraint.",
-    },
-  ));
   const inputPattern = "**/api/runs/" + inputRun!.id + "/input";
   await page.route(inputPattern, async (route) => {
+    const received = RunEventSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/submit-input",
+      {
+        runId: inputRun!.id,
+        requestEventId: requested!.id,
+        text: "Keep the approved constraint.",
+      },
+    ));
     await route.fulfill({
       status: 200,
       contentType: "application/json",
