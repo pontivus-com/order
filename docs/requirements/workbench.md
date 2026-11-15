@@ -293,6 +293,8 @@ The operator can inspect the full proposal while preserving the Run context. If 
 
 Adopt/Reject is serialized with other canonical mutations.
 
+While a lifecycle proposal is pending, proposal disposition owns the current mutation action. The free-form continuation composer is unavailable until that proposal is adopted or rejected; the Run may remain canonically OPEN, but the Workbench does not present proposal disposition and free-form continuation as competing current actions.
+
 ## 7. Direct document editing contract
 
 ### 7.1 Editing versus saving
@@ -690,6 +692,8 @@ When multiple materials exist, the Workbench resolves current attention using th
 7. current startable/continuable workflow action;
 8. ordinary current document/review/operational material;
 9. historical operator selection.
+
+Only the highest-precedence mutation action is presented as the current workflow action. In particular, a failed current-stage Run exposes its governed Retry/Resume/recovery action and suppresses the generic Start action; a pending lifecycle proposal exposes Adopt/Reject and suppresses free-form continuation until disposition.
 
 Historical selection may remain displayed, but levels 1–7 must remain visible and directly reachable.
 
