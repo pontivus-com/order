@@ -157,7 +157,7 @@ Order does not introduce a replacement primitive framework merely to recreate st
 
 ### Workbench technical boundary
 
-`GW-DOC-WORKBENCH-UX-V2` is the current functional authority for Workbench behavior. The exact component/state-machine realization is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` and must be derived from that functional authority rather than from the superseded 0.3.0 presentation implementation.
+`GW-DOC-WORKBENCH-UX-V2` is the current functional authority for Workbench behavior. The exact component/state-machine realization is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` and must be derived from that functional authority rather than from the superseded presentation implementation.
 
 The technical architecture retains these foundation constraints while that P4 realization is being re-derived:
 
@@ -1315,7 +1315,7 @@ Permanent tests must prove at least:
 
 ##### Architecture
 
-Before the implementation is implementation-ready, the refreshed external-facts snapshot plus deterministic filesystem integration tests must ground the exact open/rename/fsync semantics used by Markdown writes.
+The exact open/rename/fsync semantics used by Markdown writes must remain grounded by the current external-facts snapshot and deterministic filesystem integration tests.
 
 `tests/architecture.test.ts` must:
 
