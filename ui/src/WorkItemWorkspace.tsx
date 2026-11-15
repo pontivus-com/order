@@ -525,9 +525,11 @@ export const WorkItemWorkspace = ({
     selectedStep,
   );
   const mutationsDisabled = currentAttention === "CONVERGING";
-  const workflowMutationsDisabled =
+  const documentMutationsDisabled =
     mutationsDisabled ||
-    currentAttention === "MUTATION_CONFLICT" ||
+    currentAttention === "MUTATION_CONFLICT";
+  const workflowMutationsDisabled =
+    documentMutationsDisabled ||
     (currentness.tag === "STALE" && !runs.some(runIsActive));
 
   const material = resolveWorkflowMaterial({
@@ -1369,7 +1371,7 @@ export const WorkItemWorkspace = ({
         {material.kind === "SOURCE_DOCUMENT" ? (
           <SourceDocumentMaterial
             workItem={workItem}
-            mutationsDisabled={workflowMutationsDisabled}
+            mutationsDisabled={documentMutationsDisabled}
             onDirtyChange={setDirtyState}
             onContextDocumentChange={onContextDocumentChange}
             onMutationError={reportMutationError}
