@@ -386,13 +386,6 @@ export const resolveWorkflowMaterial = (
             ownerRun.status === "RUNNING" ||
             ownerRun.status === "WAITING_FOR_INPUT"
           )
-        ) ||
-        (
-          input.currentAttention === "CONVERGING" &&
-          (
-            ownerRun.status === "RUNNING" ||
-            ownerRun.status === "WAITING_FOR_INPUT"
-          )
         )
       )
     ) {
