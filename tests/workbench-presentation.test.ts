@@ -442,6 +442,20 @@ describe("workflow presentation policy", () => {
     })).toThrow(/execution owner must identify a loaded ExecutionTask/);
   });
 
+  it("keeps canonical lifecycle document material stable during transport convergence", () => {
+    const plan = artifact("PLAN", uuidB);
+    const completed = stageRun("PLAN", "COMPLETED", 1, uuidC);
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN",
+      runs: [completed],
+      artifacts: [plan],
+      currentAttention: "CONVERGING",
+      stageInteraction: { tag: "CLOSED" },
+    })).toEqual({ kind: "STAGE_DOCUMENT", artifactId: plan.id });
+  });
+
   it("preserves available explicit selection independently of current attention", () => {
     const research = artifact("R1", uuidB);
     const running = stageRun("R1", "RUNNING", 1, uuidC);
