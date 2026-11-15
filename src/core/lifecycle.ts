@@ -366,18 +366,36 @@ const orderedEvents = (
 const unresolvedInputRequests = (
   events: readonly RunEvent[],
 ): readonly RunEvent[] => {
-  const answered = new Set(
-    events.flatMap((event) =>
-      event.event.tag === "HUMAN_INPUT_RECEIVED" &&
-      event.event.requestEventId !== null
-        ? [event.event.requestEventId]
-        : [],
-    ),
-  );
-  return events.filter(
-    (event) =>
-      event.event.tag === "HUMAN_INPUT_REQUESTED" && !answered.has(event.id),
-  );
+  let pending: RunEvent | null = null;
+  for (const event of events) {
+    if (event.event.tag === "HUMAN_INPUT_REQUESTED") {
+      if (pending !== null) {
+        throw new TypeError("STAGE Run has multiple unresolved input requests");
+      }
+      pending = event;
+      continue;
+    }
+    if (event.event.tag !== "HUMAN_INPUT_RECEIVED") continue;
+
+    if (event.event.requestEventId === null) {
+      if (pending !== null) {
+        throw new TypeError(
+          "free-form human input cannot bypass a required input request",
+        );
+      }
+      continue;
+    }
+    if (
+      pending === null ||
+      pending.id !== event.event.requestEventId
+    ) {
+      throw new TypeError(
+        "human input response must bind the exact current required request",
+      );
+    }
+    pending = null;
+  }
+  return pending === null ? [] : [pending];
 };
 
 export const stageRunInteraction = (
