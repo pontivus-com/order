@@ -1270,9 +1270,9 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`, `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-219-EXPLICIT-CONTEXT`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`.
 
-**Required behavior:** every persistent Workbench topology is produced by the closed structural primitive vocabulary in §8.12. Feature/workflow components map canonical state into those primitives and may not directly invent persistent columns, Context/drawer behavior, responsive structural branches or content-count-selected layout modes.
+**Required behavior:** every persistent Workbench topology is produced by the structural subset of the closed screen-construction vocabulary in §8.12. Feature/workflow components map canonical state into those primitives and may not directly invent shell/identity/rail/surface/master/Context columns, responsive structural branches or content-count-selected layout modes.
 
-**Acceptance:** architecture fitness proves Workbench feature surfaces do not import structural Astryx `Layout`/`Drawer` directly, do not call a feature-visible responsive-layout hook to choose structural markup, and do not own CSS selectors that create another persistent Workbench column/topology.
+**Acceptance:** architecture fitness proves Workbench feature surfaces do not import structural Astryx `Layout`/`Drawer` directly, do not call a feature-visible responsive-layout hook to choose structural markup, and do not own raw CSS selectors that recreate the primitive-owned outer topology, identity grid, persistent master/detail or Context/selector structural behavior.
 
 ### GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE
 
