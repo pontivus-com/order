@@ -1527,6 +1527,68 @@ describe("closed Workbench workflow-state kernel", () => {
     });
     expect(deriveObservationCoherence(active, [running], [completion], []))
       .toBe("CONVERGING");
+
+    const idea = WorkItemSchema.parse({
+      ...active,
+      stage: "IDEA",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(deriveObservationCoherence(idea, [running], [], []))
+      .toBe("CONVERGING");
+
+    const executionWorkItem = WorkItemSchema.parse({
+      ...active,
+      stage: "EXECUTION",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    const executionTask = baseTask(`task_${uuidA}`, "TODO");
+    const executionRun = baseRun();
+    expect(
+      deriveObservationCoherence(
+        executionWorkItem,
+        [executionRun],
+        [],
+        [executionTask],
+      ),
+    ).toBe("CONVERGING");
+    expect(
+      deriveObservationCoherence(
+        executionWorkItem,
+        [executionRun],
+        [],
+        [{ ...executionTask, state: "RUNNING" }],
+      ),
+    ).toBe("COHERENT");
+    expect(
+      deriveObservationCoherence(
+        executionWorkItem,
+        [],
+        [],
+        [{ ...executionTask, state: "RUNNING" }],
+      ),
+    ).toBe("CONVERGING");
+    expect(
+      deriveObservationCoherence(
+        executionWorkItem,
+        [],
+        [],
+        [{ ...executionTask, state: "BLOCKED" }],
+      ),
+    ).toBe("CONVERGING");
+    expect(
+      deriveObservationCoherence(
+        WorkItemSchema.parse({
+          ...executionWorkItem,
+          status: "BLOCKED",
+        }),
+        [],
+        [],
+        [executionTask],
+      ),
+    ).toBe("CONVERGING");
+
     expect(deriveCurrentAttention({
       workItem: active,
       coherence: "CONVERGING",
