@@ -8,7 +8,12 @@ import type {
   WorkItem,
   WorkStage,
 } from "../../src/core/contracts.ts";
-import { reachStateForStage } from "../../src/core/lifecycle.ts";
+import {
+  reachStateForStage,
+  type CurrentAttentionTag,
+  type ExecutionOwner,
+  type StageRunInteraction,
+} from "../../src/core/lifecycle.ts";
 
 export type ProposalSelection = Readonly<{
   runId: Run["id"];
@@ -145,7 +150,10 @@ export type WorkflowMaterialResolutionInput = Readonly<{
   reachedStages: ReadonlySet<WorkStage>;
   runs: readonly Run[];
   artifacts: readonly ArtifactRef[];
-  unresolvedInputRunId?: Run["id"] | null;
+  currentStageRunId: Run["id"] | null;
+  currentAttention: CurrentAttentionTag;
+  stageInteraction: StageRunInteraction | null;
+  executionOwner: ExecutionOwner;
   pendingProposal?: ProposalSelection | null;
   approvalPackageAvailable?: boolean;
   tasks?: readonly ExecutionTask[];
@@ -263,32 +271,19 @@ const latestStageRun = (
     (run) => run.stage === input.selectedStep && run.role === "STAGE",
   );
 
-const selectedStageRun = (
-  input: WorkflowMaterialResolutionInput,
-  status: "attention" | "active",
-): Run | null => {
-  const run = latestStageRun(input);
-  if (!run) return null;
-  if (status === "attention") return runNeedsAttention(run) ? run : null;
-  return runIsActive(run) ? run : null;
-};
-
-const unresolvedInputRun = (
+const currentStageRun = (
   input: WorkflowMaterialResolutionInput,
 ): Run | null => {
-  if (input.unresolvedInputRunId !== undefined) {
-    const id = input.unresolvedInputRunId;
-    if (id === null) return null;
-    return input.runs.find(
-      (run) =>
-        run.id === id &&
-        run.stage === input.selectedStep &&
-        run.role === "STAGE" &&
-        run.status === "WAITING_FOR_INPUT",
-    ) ?? null;
+  if (input.currentStageRunId === null) return null;
+  const run = input.runs.find((candidate) => candidate.id === input.currentStageRunId);
+  if (
+    run === undefined ||
+    run.role !== "STAGE" ||
+    run.stage !== input.workItem.stage
+  ) {
+    throw new TypeError("currentStageRunId must identify the current STAGE owner");
   }
-  const current = latestStageRun(input);
-  return current?.status === "WAITING_FOR_INPUT" ? current : null;
+  return run;
 };
 
 const selectedExecutionTask = (
@@ -300,21 +295,14 @@ const selectedExecutionTask = (
     const selected = tasks.find((task) => task.id === selectedTaskId);
     if (selected) return selected;
   }
-  const activeTaskRun = latestRun(
-    input.runs,
-    (run) =>
-      run.executionTaskId !== null &&
-      (runIsActive(run) || runNeedsAttention(run)),
-  );
-  if (activeTaskRun?.executionTaskId) {
-    const activeTask = tasks.find(
-      (task) => task.id === activeTaskRun.executionTaskId,
-    );
-    if (activeTask) return activeTask;
+  if (input.executionOwner.tag !== "NONE") {
+    const owned = tasks.find((task) => task.id === input.executionOwner.taskId);
+    if (owned === undefined) {
+      throw new TypeError("execution owner must identify a loaded ExecutionTask");
+    }
+    return owned;
   }
-  return tasks.find((task) => task.state === "RUNNING" || task.state === "BLOCKED") ??
-    tasks.at(0) ??
-    null;
+  return tasks.at(0) ?? null;
 };
 
 const selectedExecutionRun = (
@@ -381,11 +369,18 @@ export const resolveWorkflowMaterial = (
 
     if (explicitIsDirtyDocument && explicit) return explicit;
 
-    const attentionRun = selectedStageRun(input, "attention");
-    if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
-
-    const inputRun = unresolvedInputRun(input);
-    if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+    const ownerRun = currentStageRun(input);
+    if (
+      ownerRun !== null &&
+      (
+        input.currentAttention === "BLOCKER" ||
+        input.currentAttention === "RECOVERY" ||
+        input.currentAttention === "CONVERGING" ||
+        input.stageInteraction?.tag === "REQUIRED_INPUT"
+      )
+    ) {
+      return { kind: "STAGE_RUN", runId: ownerRun.id };
+    }
 
     if (explicitIsAvailable && explicit) return explicit;
 
@@ -403,18 +398,38 @@ export const resolveWorkflowMaterial = (
       };
     }
 
-    const activeRun = selectedStageRun(input, "active");
-    if (activeRun) return { kind: "STAGE_RUN", runId: activeRun.id };
+    if (
+      ownerRun !== null &&
+      input.stageInteraction !== null &&
+      input.stageInteraction.tag !== "CLOSED"
+    ) {
+      return { kind: "STAGE_RUN", runId: ownerRun.id };
+    }
     if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
     return { kind: "STEP_STATE" };
   }
 
   if (input.selectedStep === "R3") {
-    const attentionRun = selectedStageRun(input, "attention");
-    if (attentionRun) return { kind: "STAGE_RUN", runId: attentionRun.id };
-    const inputRun = unresolvedInputRun(input);
-    if (inputRun) return { kind: "STAGE_RUN", runId: inputRun.id };
+    const ownerRun = currentStageRun(input);
+    if (
+      ownerRun !== null &&
+      (
+        input.currentAttention === "BLOCKER" ||
+        input.currentAttention === "RECOVERY" ||
+        input.currentAttention === "CONVERGING" ||
+        input.stageInteraction?.tag === "REQUIRED_INPUT"
+      )
+    ) {
+      return { kind: "STAGE_RUN", runId: ownerRun.id };
+    }
     if (explicitIsAvailable && explicit) return explicit;
+    if (
+      ownerRun !== null &&
+      input.stageInteraction !== null &&
+      input.stageInteraction.tag !== "CLOSED"
+    ) {
+      return { kind: "STAGE_RUN", runId: ownerRun.id };
+    }
     return { kind: "READINESS_REVIEW" };
   }
 
