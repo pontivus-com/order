@@ -1584,14 +1584,6 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Acceptance:** renderer coverage plus theme/component-parity fitness proves one visual language across all services and themes; a new component responsibility or visual role cannot be introduced in feature/P7 code without the owning P4 authority being amended.
 
-### GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE
-
-**Realizes:** `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
-
-**Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
-
-**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, nested/incorrect modal-drawer patterns, field double-wrapping, multiple-primary-action views, badge saturation, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
-
 ### GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA
 
 **Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`.
@@ -1607,6 +1599,15 @@ The UI remediation is structurally complete only when all of the following are t
 **Required behavior:** one pure `deriveWorkflowRail` projection produces all nine ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
 
 **Acceptance:** fixtures covering forward progress, R3/execution return, required input, proposal decision/adoption, processing, block/recovery, stale authority and completion produce exactly one CURRENT item and exactly one current-stage marker; historical/unreached items never carry current operational markers.
+
+
+### GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE
+
+**Realizes:** `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
+
+**Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
+
+**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, nested/incorrect modal-drawer patterns, field double-wrapping, multiple-primary-action views, badge saturation, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
 
 ## 14. Permanent verification
