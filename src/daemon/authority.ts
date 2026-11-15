@@ -94,6 +94,7 @@ import {
 } from "./runtime.ts";
 import { getRun, listRunEvents, listRuns } from "./run.ts";
 import {
+  currentWorkItemSource,
   isSourceBoundaryFailure,
   revalidateWorkItemSource,
 } from "./work-item-source.ts";
@@ -925,8 +926,8 @@ export const approvalFreshness = async (
   changedOwners: readonly UpstreamReturnStage[];
 }>> => {
   try {
-    const validated = await revalidateWorkItemSource(runtime, approval.workItemId);
-    if (validated.workItem.sourceSha256 !== approval.sourceSha256) {
+    const source = await currentWorkItemSource(runtime, approval.workItemId);
+    if (source.sha256 !== approval.sourceSha256) {
       return { fresh: false, changedOwners: ["R1"] };
     }
   } catch (error) {

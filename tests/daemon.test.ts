@@ -3444,7 +3444,7 @@ describe("daemon control plane", () => {
     expect(output.exact).toContain("# newer source");
     expect(output.exact).not.toContain("not valid");
     expect(output.title).toBe("newer source");
-    expect(output.stage).toBe("R1");
+    expect(output.stage).toBe("IDEA");
   });
 
 
