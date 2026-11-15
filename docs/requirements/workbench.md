@@ -575,6 +575,13 @@ Order uses a small closed set of interaction classes.
 
 A screen does not invent a new card/panel grammar merely because its content is unique.
 
+The set is closed for WorkItem Workbench screen construction:
+
+- **primary interaction classes:** Operational scan, Document, Dialogue, Review, Operational master/detail, Evidence and Terminal result;
+- **auxiliary interaction classes:** Compact context and Safety/exception.
+
+Every WorkItem Workbench screen has exactly one primary interaction class. Auxiliary classes may appear only in support of that primary interaction and never become an independent persistent navigation/layout axis. A feature whose required behavior cannot be expressed by these classes returns to DESIGN and amends this canonical owner before implementation; implementation does not create a new geometry or interaction grammar by convenience.
+
 ## 14. Per-step screen contract
 
 ### 14.1 Work request
@@ -1214,6 +1221,12 @@ Therefore the Workbench can prove CURRENT / REACHED-HISTORICAL / UNREACHED witho
 
 **Acceptance:** contradictory provider control events are rejected before they can produce Run/WorkItem state, and a lifecycle proposal can exist only as the single pending proposal of an OPEN current-stage Run.
 
+### GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR
+
+**Required behavior:** every WorkItem Workbench screen is classified under exactly one primary interaction-space class from §13; subordinate selection, context and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation grammar.
+
+**Acceptance:** adding a new feature, material type, Run/document/task count or technical detail does not create a new screen geometry by implementation convenience. If none of the §13 classes can express the required user interaction, the change returns to DESIGN before implementation.
+
 ## 23. Required certification scenarios
 
 At minimum, downstream implementation must prove these scenarios end to end:
@@ -1242,6 +1255,7 @@ At minimum, downstream implementation must prove these scenarios end to end:
 22. Returning from R3 or Implementation preserves every previously reached downstream step as historical.
 23. Approval package read can expose stale currentness but cannot itself execute the upstream return.
 24. Rejected/stale commands and historical navigation are proven state-preserving across every workflow step.
+25. Every WorkItem Workbench screen resolves to one §13 primary interaction class; subordinate selector/context/confirmation behavior does not introduce an undeclared persistent screen grammar.
 
 ## 24. Downstream technical-design obligations
 
