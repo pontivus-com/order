@@ -525,6 +525,18 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
 
+  console.log("WORKBENCH_SELECTION_STATE " + JSON.stringify(await page.evaluate(() => ({
+    rail: Array.from(document.querySelectorAll('[data-testid="workflow-rail"] button')).map((button) => ({
+      text: button.textContent?.trim() ?? "",
+      selected: button.getAttribute("aria-pressed"),
+      current: button.getAttribute("aria-current"),
+    })),
+    summary: document.querySelector('[data-testid="workflow-step-summary"]')?.textContent?.trim() ?? null,
+    primary: document.querySelector('[data-testid="primary-material-frame"]')?.textContent?.trim() ?? null,
+    document: document.querySelector('[data-testid="lifecycle-document-material"]')?.textContent?.trim() ?? null,
+    activity: document.querySelector('[data-testid="stage-run-material"]')?.textContent?.trim() ?? null,
+  }))));
+
   const editor = page.getByLabel("Implementation plan document Markdown source");
   await expect(editor).toBeVisible();
   await expect(page.getByTestId("markdown-format-toolbar")).toBeVisible();
@@ -667,6 +679,14 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   await reconcile.click();
   const reconcileRequest = await requestObserved;
   expect(reconcileRequest.postDataJSON()).toEqual({ expectedOwner: "PLAN" });
+  console.log("WORKBENCH_RECONCILE_STATE " + JSON.stringify(await page.evaluate(() => ({
+    rail: Array.from(document.querySelectorAll('[data-testid="workflow-rail"] button')).map((button) => ({
+      text: button.textContent?.trim() ?? "",
+      selected: button.getAttribute("aria-pressed"),
+      current: button.getAttribute("aria-current"),
+    })),
+    heading: document.querySelector('[data-testid="workflow-step-summary"]')?.textContent?.trim() ?? null,
+  }))));
 
   await expect(
     page.getByTestId("workflow-rail").getByRole("button", {
