@@ -344,12 +344,13 @@ inspect source
   -> NO mutation
 
 explicit reconcile
+  -> reject if an affected WorkItem has an active Run or operator mutation
   -> apply inspected plan
   -> update WorkItem projection/lifecycle
   -> materialize deterministic lifecycle drafts as needed
 ```
 
-Productive commands may perform the same inspection as a precondition but must reject when reconciliation is required; they do not silently apply the reconciliation and then report their own command as failed.
+Productive commands may perform the same inspection as a precondition but must reject when reconciliation is required; they do not silently apply the reconciliation and then report their own command as failed. Full/manual reconciliation is itself an authority mutation and cannot apply changes to a WorkItem while that WorkItem has an active Run.
 
 ### 6.3 Lifecycle artifact inspection
 
