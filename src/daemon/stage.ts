@@ -68,6 +68,7 @@ import {
 import {
   type CoordinatorRuntime,
   withWorkItemOperatorMutation,
+  withWorkItemOperatorMutationSync,
 } from "./runtime.ts";
 import {
   activeRunStatuses,
@@ -808,7 +809,7 @@ export const proposalAdoptionRequest = (
       event.event.proposalEventId === proposal.id
     ) ?? null;
 
-export const adoptArtifactProposal = async (
+const adoptArtifactProposalUnlocked = async (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
 ): Promise<ArtifactRef> => {
@@ -886,6 +887,14 @@ export const adoptArtifactProposal = async (
   });
 
   withTransaction(runtime.database, () => {
+    if (proposalDisposition(runtime, proposal) !== null) {
+      throw new TypeError("artifact proposal was dispositioned during adoption");
+    }
+    const currentWorkItem = getWorkItem(runtime, workItem.id);
+    const transition = transitionWorkItem(currentWorkItem, {
+      tag: "LIFECYCLE_ARTIFACT_CHANGED",
+      owner: artifactReturnOwner(artifact),
+    });
     storeArtifact(runtime.database, artifact);
     appendRunEvent(runtime, run.id, {
       tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
@@ -893,13 +902,22 @@ export const adoptArtifactProposal = async (
       disposition: "ADOPTED",
       adoptedArtifactRefId: artifact.id,
     });
-    updateWorkItemLifecycle(runtime.database, workItem.id, {
-      stage: artifactReturnOwner(artifact),
-      status: "ACTIVE",
-      outcome: null,
-    });
+    updateWorkItemLifecycle(runtime.database, workItem.id, transition);
   });
   return artifact;
+};
+
+export const adoptArtifactProposal = (
+  runtime: CoordinatorRuntime,
+  proposalEventId: RunEventId,
+): Promise<ArtifactRef> => {
+  const proposal = getRunEvent(runtime, proposalEventId);
+  const run = getRun(runtime, proposal.runId);
+  return withWorkItemOperatorMutation(
+    runtime,
+    run.workItemId,
+    () => adoptArtifactProposalUnlocked(runtime, proposalEventId),
+  );
 };
 
 export const reconcilePendingArtifactProposals = async (
@@ -918,7 +936,7 @@ export const reconcilePendingArtifactProposals = async (
   }
 };
 
-export const rejectArtifactProposal = (
+const rejectArtifactProposalUnlocked = (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
 ): RunEvent => {
@@ -939,5 +957,18 @@ export const rejectArtifactProposal = (
       disposition: "REJECTED",
       adoptedArtifactRefId: null,
     })
+  );
+};
+
+export const rejectArtifactProposal = (
+  runtime: CoordinatorRuntime,
+  proposalEventId: RunEventId,
+): RunEvent => {
+  const proposal = getRunEvent(runtime, proposalEventId);
+  const run = getRun(runtime, proposal.runId);
+  return withWorkItemOperatorMutationSync(
+    runtime,
+    run.workItemId,
+    () => rejectArtifactProposalUnlocked(runtime, proposalEventId),
   );
 };
