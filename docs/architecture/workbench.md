@@ -9,7 +9,7 @@
 
 This document is the technical owner for the Order Workbench realization under `GW-DOC-WORKBENCH-UX-V2`.
 
-It resolves the state-machine, transition, observation, command-admission, browser-reconciliation and spatial-design obligations that were deliberately left open by the functional design. It does not preserve the superseded 0.3.0 component/spatial implementation where that implementation conflicts with current authority.
+It resolves the state-machine, transition, observation, command-admission, browser-reconciliation, renderer-coverage, component-language, visual-token and spatial-design obligations deliberately left open by the functional design. It is the canonical technical owner for how Order Workbench services are constructed and rendered. It does not preserve the superseded 0.3.0 component/spatial/visual implementation where that implementation conflicts with current authority.
 
 The implementation remains a functional-core / imperative-shell system. This design does not introduce a workflow framework, service/object graph, DTO layer, browser workflow store, event bus or second canonical state representation.
 
@@ -1060,6 +1060,17 @@ Operational scanning uses `WorkbenchTable` or `WorkbenchResourceRow` with compac
 
 Markdown/document reading uses the `52rem` readable measure when prose is the primary task; code/evidence may use the full available surface with bounded scrolling.
 
+Specialized Markdown source-editor roles map to the same semantic tokens:
+
+- editor background/text/border/gutter -> surface/text/border/subtle/muted;
+- selection -> info-bg;
+- active line -> subtle;
+- search match -> warning-bg with warning-fg outline;
+- link -> info-fg/accent role;
+- code/syntax emphasis -> success-fg only where semantically appropriate, otherwise text/muted.
+
+The source editor does not define an independent light/dark palette.
+
 #### 8.18.10 Theme and motion
 
 System/light/dark preference changes token values only; it does not change component hierarchy or introduce theme-specific component CSS.
@@ -1072,6 +1083,7 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 
 | Foundation/specialist | Allowed use | Boundary |
 |---|---|---|
+| Astryx `Theme` | root theme substrate only | mounted once at application root; feature modules do not create theme islands |
 | Astryx `SegmentedControl` / `TabList` | small fixed peer-view choices such as theme or Edit/Preview/Split | never workflow navigation; cannot alter outer topology |
 | Astryx `RadioList` / `MultiSelector` / selector controls | field choices inside `WorkbenchField/Form` | field grammar remains primitive-owned |
 | native `input/select/textarea` where no suitable foundation control exists | control slot inside `WorkbenchField` only | no feature-owned styling; canonical control tokens apply |
@@ -1080,7 +1092,7 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | Astryx `MetadataList` | secondary/technical structured metadata | not primary workflow hierarchy |
 | Astryx Chat message/composer leaves | only inside `WorkbenchDialogue` | dialogue geometry/input policy remain outside leaf |
 | CodeMirror via `MarkdownSourceEditor` | exact Markdown source editing | consumes canonical editor/color/type/focus tokens; no independent palette |
-| semantic HTML (`section`, `p`, `dl`, `code`, lists) | content semantics inside primitive slots | no independent layout/color/type system |
+| semantic HTML (`section`, `p`, `dl`, `code`, lists, `a`) | content semantics and true external/document links inside primitive slots | no independent layout/color/type system; links use accent/link token + underline/focus grammar |
 
 Direct Astryx `Button`, semantic-status `Badge`, structural `Layout/Drawer`, or `AlertDialog/Dialog` use in feature/service modules is not approved because those mechanics are owned by `WorkbenchAction`, `WorkbenchStatus`, structural/task/context primitives and `WorkbenchConfirmation`.
 
