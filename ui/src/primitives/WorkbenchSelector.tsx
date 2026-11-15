@@ -6,10 +6,16 @@ export type WorkbenchSelectorGroup = Readonly<{ label?: string; items: readonly 
 export const WorkbenchSelector = ({ label, groups }: Readonly<{ label: string; groups: readonly WorkbenchSelectorGroup[] }>) => {
   const items = groups.flatMap((group) => group.items);
   const selected = items.find((item) => item.selected);
-  const options: SelectorOptionType[] = groups.flatMap((group) => [
-    ...(group.label ? [{ type: "section" as const, label: group.label }] : []),
-    ...group.items.map((item) => ({ value: item.id, label: item.label, description: item.detail })),
-  ]);
+  const options: SelectorOptionType[] = groups.flatMap((group) => {
+    const groupOptions = group.items.map((item) => ({
+      value: item.id,
+      label: item.label,
+      description: item.detail,
+    }));
+    return group.label
+      ? [{ type: "section" as const, title: group.label, options: groupOptions }]
+      : groupOptions;
+  });
   return (
     <Selector
       label={label}
