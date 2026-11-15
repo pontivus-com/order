@@ -210,6 +210,7 @@ export const PreSignoffStageWorkspace = ({
             onDirtyChange={onDirtyChange}
             onOpenArtifactEvidence={onOpenArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={onMutationError}
           />
         );
       case "SOURCE_DOCUMENT":
