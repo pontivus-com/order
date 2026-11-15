@@ -397,6 +397,14 @@ describe("Order cross-boundary certification", () => {
     expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
     expect(lifecycle.indexOf('if (input.currentness.tag === "STALE") return "STALE_AUTHORITY";'))
       .toBeLessThan(lifecycle.indexOf('if (input.recovery.tag !== "NONE") return "RECOVERY";'));
+    const coherencePolicy = lifecycle.slice(
+      lifecycle.indexOf("export const deriveObservationCoherence"),
+      lifecycle.indexOf("export const deriveCurrentAttention"),
+    );
+    expect(coherencePolicy).toContain('run.stage !== workItem.stage');
+    expect(coherencePolicy).toContain('task.state !== "RUNNING"');
+    expect(coherencePolicy).toContain('task.state === "BLOCKED"');
+    expect(coherencePolicy).toContain('workItem.status === "BLOCKED"');
     const contracts = read("src/core/contracts.ts");
     expect(contracts).toContain("UpstreamReturnStageSchema");
     expect(contracts).toContain("ReconcileWorkItemAuthoritySchema");
