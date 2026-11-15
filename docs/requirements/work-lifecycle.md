@@ -183,6 +183,114 @@ R3 outcomes:
 
 There is no "mostly ready" state.
 
+### 2.1 Canonical lifecycle state-transition model
+
+This subsection is the canonical P3 cross-workflow-step state model. It closes the legal transition relation for the WorkItem lifecycle. Lower layers may choose the representation and transaction mechanics, but they may not add another lifecycle transition or reinterpret an event into a different destination.
+
+The state notation below is `STAGE / WorkStatus`. `BLOCKED` is an operational condition of the current owning stage, not another lifecycle stage.
+
+```text
+                                      R1 terminal outcome
+                                  +-------------------------> COMPLETE / COMPLETE
+                                  |
+IDEA / ACTIVE -- Start Research --> R1 / ACTIVE
+                                      |
+                                      | CONFIRMED + conformance passed
+                                      v
+                                  R2 / ACTIVE
+                                      |
+                                      | requirements accepted + conformance passed
+                                      v
+                                 DESIGN / ACTIVE
+                                      |
+                                      | design accepted + conformance passed
+                                      v
+                                  PLAN / ACTIVE
+                                      |
+                                      | plan accepted + conformance passed
+                                      v
+                                   R3 / ACTIVE
+                 +--------------------+---------------------+---------------------+
+                 |                    |                     |                     |
+ RETURN_TO_RESEARCH       RETURN_TO_REQUIREMENTS     RETURN_TO_DESIGN       RETURN_TO_PLAN
+                 |                    |                     |                     |
+                 v                    v                     v                     v
+             R1 / ACTIVE          R2 / ACTIVE          DESIGN / ACTIVE        PLAN / ACTIVE
+
+                                   R3 / ACTIVE
+                                       |
+                                       | READY_FOR_SIGNOFF + conformance passed
+                                       v
+                              AWAITING_SIGNOFF / ACTIVE
+                                       |
+                                       | explicit sign-off of exact current package
+                                       v
+                                EXECUTION / ACTIVE
+                                  |             |
+                                  |             | all approved tasks successful
+                                  |             v
+                                  |       COMPLETE / COMPLETE
+                                  |
+                                  +---- classified return to owning upstream stage
+                                        R1 | R2 | DESIGN | PLAN | R3
+```
+
+For every non-terminal stage `S`, a canonical blocker is represented as `S / BLOCKED`. Explicit Resume after the owning blocker is resolved returns to `S / ACTIVE`; it never advances the lifecycle by itself.
+
+A failed or cancelled pre-signoff Run also does not advance the WorkItem. If the WorkItem remains `S / ACTIVE`, any later retry is a new Run at the same stage and must satisfy the normal Start/admission rules.
+
+### 2.2 Cross-step transition closure
+
+The following table is exhaustive for WorkItem-stage changes. A command/event not admitted by a row below does not change lifecycle stage.
+
+| Current stage | Admitted functional event | Result |
+|---|---|---|
+| IDEA | save/edit Work request only | remain IDEA / ACTIVE |
+| IDEA | explicit Start Research | R1 / ACTIVE |
+| R1 | `CONFIRMED` + conformance passed | R2 / ACTIVE |
+| R1 | schema-valid terminal R1 outcome | COMPLETE / COMPLETE with that WorkOutcome |
+| R2 | accepted + conformance passed | DESIGN / ACTIVE |
+| DESIGN | accepted + conformance passed | PLAN / ACTIVE |
+| PLAN | accepted + conformance passed | R3 / ACTIVE |
+| R3 | `READY_FOR_SIGNOFF` + conformance passed | AWAITING_SIGNOFF / ACTIVE |
+| R3 | `RETURN_TO_RESEARCH` | R1 / ACTIVE |
+| R3 | `RETURN_TO_REQUIREMENTS` | R2 / ACTIVE |
+| R3 | `RETURN_TO_DESIGN` | DESIGN / ACTIVE |
+| R3 | `RETURN_TO_PLAN` | PLAN / ACTIVE |
+| any progressed pre-signoff stage or AWAITING_SIGNOFF | accepted Work request mutation/reconciliation changing source authority | R1 / ACTIVE |
+| R1/R2/DESIGN/PLAN/R3 or AWAITING_SIGNOFF | accepted direct edit of an already-reached editable lifecycle artifact | that artifact's canonical owning stage / ACTIVE |
+| current pre-signoff stage | adoption of a current-stage lifecycle proposal | remain at that same owning stage; conformance/context is stale until re-resolved |
+| AWAITING_SIGNOFF | inspect/read current or stale package | no transition |
+| AWAITING_SIGNOFF | explicit sign-off of exact current package | EXECUTION / ACTIVE |
+| EXECUTION | `SPEC_INVALID` | PLAN / ACTIVE |
+| EXECUTION | `SCOPE_BREACH` requiring package re-authorization | PLAN / ACTIVE |
+| EXECUTION | `GOVERNANCE_BREACH` requiring upstream redesign | DESIGN / ACTIVE |
+| EXECUTION | `BLOCKED_FOR_REANALYSIS` with exact `returnTo` | declared R1/R2/DESIGN/PLAN / ACTIVE |
+| EXECUTION | `APPROVAL_STALE` | earliest changed material owner among R1/R2/DESIGN/PLAN/R3 / ACTIVE |
+| EXECUTION | all approved tasks reach successful terminal state | COMPLETE / COMPLETE |
+| COMPLETE | read/inspect, archive/restore where permitted, or changed/missing historical source observation | remain COMPLETE / COMPLETE |
+
+Execution failures that are repairable within the already-approved task (`TEST_FAILURE`, `REVIEW_FAILURE`, and an authorized bounded `CHANGE_BLOAT` reduction) remain inside EXECUTION. `PRECONDITION_FAILED`, unresolved `ENVIRONMENT_BLOCKED`, human cancellation, and operational/provider loss after its bounded replacement policy produce EXECUTION / BLOCKED rather than an upstream lifecycle return. Resume restores EXECUTION / ACTIVE only after the blocker is explicitly resolved.
+
+The table is intentionally explicit about IDEA source editing: recording or refining the Work request does not itself start Research. Only the explicit Start Research transition crosses IDEA -> R1.
+
+### 2.3 Monotonic reached-history law
+
+Lifecycle position and reach history are separate observable facts.
+
+On first entry into a stage, that stage becomes reached. No later return, blocker, retry, source edit, proposal adoption, approval staleness or execution reanalysis removes it from reached history.
+
+Therefore:
+
+```text
+enter(stage S)  => reached := reached U { S }
+
+return(upstream) => currentStage := upstream
+                    reached      := unchanged
+```
+
+`COMPLETE` is terminal for the WorkItem. A changed or missing source discovered after completion is a diagnostic about historical material and does not reopen the completed WorkItem.
+
 ## 3. Explicit sign-off
 
 Only an explicit authorized action may cross the execution authority boundary.
