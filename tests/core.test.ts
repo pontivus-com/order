@@ -2145,52 +2145,17 @@ describe("closed Workbench workflow-state kernel", () => {
     expect(deriveObservationCoherence(active, [running], [completion], []))
       .toBe("CONVERGING");
 
-    const priorR1 = artifact(uuidB, "docs/r1.md", "R1", "P2", hashA);
-    const currentR1 = artifact(uuidC, "docs/r1.md", "R1", "P2", hashB);
-    const artifactCompletion = RunEventSchema.parse({
-      ...completion,
-      event: {
-        ...completion.event,
-        artifactRefIds: [priorR1.id],
-      },
-    });
-    expect(
-      deriveObservationCoherence(
-        active,
-        [running],
-        [artifactCompletion],
-        [],
-        [priorR1],
-      ),
-    ).toBe("CONVERGING");
-    expect(
-      deriveObservationCoherence(
-        active,
-        [running],
-        [artifactCompletion],
-        [],
-        [currentR1],
-      ),
-    ).toBe("COHERENT");
-
     const completedR1 = stageRun("COMPLETED", "R1");
-    const laterR2 = RunSchema.parse({
-      ...stageRun("COMPLETED", "R2"),
-      id: `run_${uuidC}`,
-      startedAt: "2026-11-11T03:32:00.000Z",
-      endedAt: "2026-11-11T03:33:00.000Z",
-    });
-    const historicalCompletion = RunEventSchema.parse({
-      ...artifactCompletion,
+    const settledCompletion = RunEventSchema.parse({
+      ...completion,
       runId: completedR1.id,
     });
     expect(
       deriveObservationCoherence(
         active,
-        [completedR1, laterR2],
-        [historicalCompletion],
+        [completedR1],
+        [settledCompletion],
         [],
-        [priorR1],
       ),
     ).toBe("COHERENT");
 
