@@ -12,7 +12,7 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { proposalDispositionFor, runIsActive, unresolvedHumanInput, type ProposalSelection } from "./workbench-presentation.ts";
 
-export const ProposalReview = ({ workItem, selection, onBack }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; onBack: () => void }>) => {
+export const ProposalReview = ({ workItem, selection, mutationsDisabled = false, onBack }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; mutationsDisabled?: boolean; onBack: () => void }>) => {
   const queryClient = useQueryClient();
   const runsQuery = useQuery({ queryKey: workbenchQueryKeys.runs(workItem.id), queryFn: () => api.listRuns(workItem.id), refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false });
   const eventsQuery = useQuery({ queryKey: workbenchQueryKeys.runEvents(selection.runId), queryFn: () => api.listRunEvents(selection.runId, 0), refetchInterval: 1000 });
@@ -47,8 +47,8 @@ export const ProposalReview = ({ workItem, selection, onBack }: Readonly<{ workI
     label={disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : adoptionRequested ? "Adoption in progress" : "Pending review"}
   />;
   const decisions = disposition === null && !adoptionRequested ? <>
-    <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={decision.isPending} onClick={() => decision.mutate("ADOPT")} />
-    <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={decision.isPending} onClick={() => decision.mutate("REJECT")} />
+    <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
+    <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
   </> : null;
 
   return (
@@ -61,7 +61,7 @@ export const ProposalReview = ({ workItem, selection, onBack }: Readonly<{ workI
             <h3>Proposed document diff</h3>
           <CodeBlock code={proposalPayload.unifiedDiff} language="diff" isDiff isWrapped hasCopyButton container="section" width="100%" />
           </section>
-          {run && run.role === "STAGE" && runIsActive(run) ? <ActivityComposer run={run} pending={pending} onSubmitted={invalidate} /> : null}
+          {run && run.role === "STAGE" && runIsActive(run) ? <ActivityComposer run={run} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={invalidate} /> : null}
           {adoptionRequested && disposition === null ? <WorkbenchNotice tone="warning" title="Adoption in progress" description="The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded." /> : null}
           {decision.error ? <WorkbenchNotice tone="danger" title="Proposal decision failed" description={decision.error instanceof Error ? decision.error.message : String(decision.error)} /> : null}
         </>}
