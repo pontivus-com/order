@@ -379,7 +379,6 @@ export const resolveWorkflowMaterial = (
       (
         input.currentAttention === "BLOCKER" ||
         input.currentAttention === "RECOVERY" ||
-        input.currentAttention === "CONVERGING" ||
         input.stageInteraction?.tag === "REQUIRED_INPUT"
       )
     ) {
@@ -420,7 +419,6 @@ export const resolveWorkflowMaterial = (
       (
         input.currentAttention === "BLOCKER" ||
         input.currentAttention === "RECOVERY" ||
-        input.currentAttention === "CONVERGING" ||
         input.stageInteraction?.tag === "REQUIRED_INPUT"
       )
     ) {
