@@ -9,7 +9,7 @@
 
 This document is the technical owner for the Order Workbench realization under `GW-DOC-WORKBENCH-UX-V2`.
 
-It resolves the state-machine, transition, observation, command-admission, browser-reconciliation, renderer-coverage, component-language, visual-token and spatial-design obligations deliberately left open by the functional design. It is the canonical technical owner for how Order Workbench services are constructed and rendered. It does not preserve the superseded 0.3.0 component/spatial/visual implementation where that implementation conflicts with current authority.
+It resolves the state-machine, transition, observation, command-admission, browser-reconciliation, renderer-coverage, component-language and spatial-design obligations deliberately left open by the functional design. It is the canonical technical owner for how Order Workbench services are constructed and composed. Exact theme, visual-token and stylesheet governance is owned separately by `GW-DOC-WORKBENCH-THEME-V1`; this document owns the integration boundary requiring every primitive/renderer to consume that theme language. It does not preserve the superseded 0.3.0 component/spatial/visual implementation where that implementation conflicts with current authority.
 
 The implementation remains a functional-core / imperative-shell system. This design does not introduce a workflow framework, service/object graph, DTO layer, browser workflow store, event bus or second canonical state representation.
 
@@ -23,6 +23,7 @@ The realization conforms to:
 - `GW-DOC-VALIDATION-STANDARD-V1` for post-signoff failure classification;
 - `GW-DOC-TECHNICAL-ARCHITECTURE-V1` for FCIS/SoC topology and module/dependency ownership;
 - `GW-DOC-CANONICAL-CONTRACTS-V1` for canonical P6 data, persistence and transport;
+- `GW-DOC-WORKBENCH-THEME-V1` for exact theme tokens, visual-role mapping, root theme activation and stylesheet governance;
 - `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW` and `GW-P1-MINIMUM-CHANGE`.
 
 ## 3. Technical thesis
@@ -1086,170 +1087,19 @@ The following matrix is exhaustive for the production TSX renderers present on t
 
 Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
 
-### 8.18 Canonical Workbench visual language and design tokens
+### 8.18 Theme-language integration boundary
 
-#### 8.18.1 Design character
+Exact visual tokens, System/Light/Dark behavior, component visual parity and CSS governance are canonically owned by `GW-DOC-WORKBENCH-THEME-V1`.
 
-Order's aperture/focus identity is expressed through **clarity and controlled emphasis**, not decorative aperture motifs throughout the interface.
+This component architecture imposes only the integration law:
 
-The Workbench is:
+- every §8.12 primitive consumes the canonical theme roles for its visual treatment;
+- every §8.19 approved leaf/specialist inherits or bridges to those same roles;
+- feature/service adapters may supply semantic tone/variant choices admitted by the primitive API but never raw colors/type/spacing/radii/shadows;
+- responsive composition may change structure only under §8.10; theme changes never select another component tree/topology;
+- a new visual role/token belongs in `GW-DOC-WORKBENCH-THEME-V1`; a new reusable component responsibility belongs here. Neither concern is invented locally in P7.
 
-- neutral-first with Order blue as the controlled accent;
-- flat and low-chrome;
-- compact, professional and scan-efficient;
-- border/spacing-driven rather than card/shadow-driven;
-- consistent between light/dark themes;
-- visually quiet until current action, selection, blocker or exceptional state requires emphasis.
-
-Persistent work surfaces have no decorative box shadow. Temporary drawers/dialogs may use one foundation-owned overlay elevation.
-
-#### 8.18.2 Semantic color contract
-
-Raw palette values exist only in the theme token owner. Feature/service CSS and React props use semantic roles.
-
-| Semantic token | Light | Dark | Meaning |
-|---|---:|---:|---|
-| canvas | `#FFFFFF` | `#111A29` | application/background |
-| surface | `#FFFFFF` | `#111A29` | primary persistent surface |
-| subtle | `#F8FAFC` | `#172233` | secondary/selected-neutral surface |
-| border | `#D9DEE8` | `#344256` | ordinary 1px separation |
-| text | `#0F172A` | `#EDF3FA` | primary text |
-| muted | `#657187` | `#A9B8CD` | secondary/technical text |
-| accent | `#1E3A8A` | `#93B4FF` | current/selected/link/focus identity |
-| primary-action | `#1E3A8A` | `#385AC1` | filled primary action |
-| primary-action-hover | `#1D4ED8` | `#4D6ED5` | primary hover |
-| on-primary | `#FFFFFF` | `#FFFFFF` | foreground on filled action |
-| info-bg | `#EFF6FF` | `#203554` | processing/information |
-| info-fg | `#1D4ED8` | `#BAD0FF` | processing/information foreground |
-| success-bg | `#D1FAE5` | `#173B31` | ready/success/complete |
-| success-fg | `#047857` | `#73E5B1` | success foreground |
-| warning-bg | `#FEF3C7` | `#463923` | waiting/stale/attention |
-| warning-fg | `#A16207` | `#FACC77` | warning foreground |
-| danger-bg | `#FEF2F2` | `#44282F` | failure/block/destructive |
-| danger-fg | `#B91C1C` | `#FFADB0` | danger foreground |
-
-`WorkbenchStatus` and `WorkbenchNotice` are the only semantic status-color owners above the foundation theme. Domain states map to these generic roles in presentation policy; features never select raw colors.
-
-Selection/current state uses accent + info/subtle surface and a structural/text marker. Reached/unreached/historical state is never encoded by color alone.
-
-#### 8.18.3 Typography
-
-One application sans stack and one technical monospace stack are canonical:
-
-```text
-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace
-```
-
-Canonical type roles:
-
-| Role | Size | Weight | Use |
-|---|---:|---:|---|
-| caption/technical-xs | `0.6875rem` | 400/600 | technical labels, compact metadata |
-| secondary/small | `0.75rem` | 400/600 | helper text, row metadata |
-| body/control | `0.875rem` | 400/600 | ordinary copy, controls, table/list rows |
-| section heading | `1rem` | 600 | material/subsection headings |
-| screen/work-item title | `1.25rem` | 600/700 | selected service/item title |
-| terminal result | `1.5rem` | 700 | terminal outcome only |
-
-Body line-height is `1.5`; compact control/metadata line-height is `1.35`. Feature CSS does not introduce another type scale.
-
-Technical ids/hashes/paths/code use mono only inside technical/detail/code contexts; ordinary user-facing labels remain sans.
-
-#### 8.18.4 Spacing and density
-
-All recurring spacing uses a 4px-derived semantic scale:
-
-```text
-space-0_5 = 0.125rem
-space-1   = 0.25rem
-space-2   = 0.5rem
-space-3   = 0.75rem
-space-4   = 1rem
-space-6   = 1.5rem
-space-8   = 2rem
-```
-
-No feature invents `.35rem`, `.55rem`, `.65rem`, `.85rem` etc. as independent design values.
-
-Canonical density:
-
-- compact action/input height: `2rem`;
-- standard field/control minimum height: `2.25rem`;
-- dense operational row minimum height: `2.25rem`;
-- toolbar minimum height: `3.25rem`;
-- WorkItem identity row: `3rem`;
-- Context width: `22rem`, hard max `24rem`;
-- operational master width: `18rem`;
-- readable Markdown measure: `52rem`;
-- result/review readable max measure: `72rem`.
-
-The workflow rail and structural heights use their primitive tokens; features never pass these dimensions.
-
-#### 8.18.5 Borders, radii and elevation
-
-- persistent region separation: `1px solid border`;
-- compact control radius: `0.375rem`;
-- small internal radius: `0.25rem`;
-- pill radius (`999px`) is reserved for compact status/segmented semantics where the underlying foundation component uses it;
-- persistent Workbench surfaces, tables, review bodies and master/detail regions do not use decorative shadows;
-- overlays/drawers/dialogs use one foundation-owned elevation and cannot define feature-local box shadows.
-
-Cards are not a primary hierarchy device. Configuration collections use flat bordered rows/sections, not floating dashboard cards.
-
-#### 8.18.6 Focus, hover, selection and disabled state
-
-Keyboard focus uses a `2px` accent outline/ring with at least `2px` separation from the control boundary where space permits. Focus is visually distinct from selected/current state.
-
-Interactive hover changes are subtle and cannot move geometry. Disabled controls preserve readable labels and expose the blocking reason in adjacent text/notice where the reason is material.
-
-Normal text must meet at least a 4.5:1 foreground/background contrast target; large text at least 3:1; focus indicators and meaningful non-text boundaries at least 3:1 against adjacent colors.
-
-#### 8.18.7 Status and feedback hierarchy
-
-`WorkbenchStatus` is compact and non-dominant; it labels state but does not replace the primary task text.
-
-`WorkbenchNotice` owns inline feedback:
-
-- info: processing/non-blocking information;
-- success: completed/ready confirmation when confirmation is useful;
-- warning: waiting/stale/attention;
-- danger: failed/blocked/destructive error.
-
-Workflow-critical failure/block/input feedback stays in the owning Attention/material region. Toast-only critical feedback remains prohibited.
-
-#### 8.18.8 Forms and controls
-
-`WorkbenchField` owns label/help/error spacing and accessibility linkage. Placeholder text never substitutes for a label.
-
-`WorkbenchForm` uses one-column field flow by default. Multi-column forms require a stable semantic pairing, not space-filling. Primary submit and destructive actions remain explicit; error text is adjacent to the owning field/form.
-
-Feature code does not style raw `input/select/textarea/button` elements. Native or Astryx controls are rendered only through the owning primitive contract.
-
-#### 8.18.9 Tables, lists, timeline and content
-
-Operational scanning uses `WorkbenchTable` or `WorkbenchResourceRow` with compact density, row dividers and clear selection. Repeated equal-weight cards are prohibited.
-
-`WorkbenchTimeline` uses chronological rows with compact time/status metadata, readable event summary and subordinate evidence/actions. Technical event payloads are disclosures, not default primary copy.
-
-Markdown/document reading uses the `52rem` readable measure when prose is the primary task; code/evidence may use the full available surface with bounded scrolling.
-
-Specialized Markdown source-editor roles map to the same semantic tokens:
-
-- editor background/text/border/gutter -> surface/text/border/subtle/muted;
-- selection -> info-bg;
-- active line -> subtle;
-- search match -> warning-bg with warning-fg outline;
-- link -> info-fg/accent role;
-- code/syntax emphasis -> success-fg only where semantically appropriate, otherwise text/muted.
-
-The source editor does not define an independent light/dark palette.
-
-#### 8.18.10 Theme and motion
-
-System/light/dark preference changes token values only; it does not change component hierarchy or introduce theme-specific component CSS.
-
-Functional transitions use at most a fast/standard motion token (`120ms` / `180ms`) for opacity/transform/disclosure where the foundation component already supports it. No decorative motion is required. Reduced-motion preference disables non-essential transition animation.
+The current UI/CSS is migration evidence only. Exact remediation and token/style certification are governed by the theme owner.
 
 ### 8.19 Approved foundation leaves and specialist renderers
 
@@ -1270,19 +1120,17 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 
 Direct Astryx `Button`, semantic-status `Badge`, structural `Layout/Drawer`, or `AlertDialog/Dialog` use in feature/service modules is not approved because those mechanics are owned by `WorkbenchAction`, `WorkbenchStatus`, structural/task/context primitives and `WorkbenchConfirmation`.
 
-### 8.20 CSS and token ownership
+### 8.20 CSS/theme ownership consequence
 
-`ui/src/theme.css` is the sole Order-owned token/presentation stylesheet. Its target organization is:
+`GW-DOC-WORKBENCH-THEME-V1` owns the complete `ui/src/theme.css` token/presentation stylesheet contract and the narrow `ui/src/styles.css` import/reset boundary.
 
-1. raw light/dark palette definitions;
-2. semantic tokens from §8.18;
-3. primitive selectors corresponding exactly to §8.12;
-4. specialist content selectors that consume semantic tokens only;
-5. scoped media overrides using only §8.10 breakpoints.
+For this component architecture:
 
-After the token blocks, production selectors do not contain raw hex/rgb/hsl/color-mix values for semantic styling. Feature selectors do not introduce their own font sizes, spacing scale, radii, control heights, semantic colors, shadows or structural breakpoints.
-
-The current CSS contains many ad-hoc fractional spacing/type values and feature-owned visual systems; those are implementation evidence to replace, not design authority.
+- primitive selectors corresponding to §8.12 are the only reusable component-style owners;
+- feature/service renderers do not style primitive internals or establish alternate component chrome;
+- specialist selectors remain content-mechanics-only and consume the canonical theme roles;
+- structural breakpoint selectors remain constrained by §8.10;
+- obsolete feature-era visual/layout selectors are deleted when their renderer migrates to its canonical primitive composition.
 
 ## 9. Material and action composition
 
@@ -1482,7 +1330,7 @@ Implementation validation presentation is sparse/current-state-first as defined 
 
 ### UI CSS
 
-`theme.css` becomes the single semantic token/presentation owner in §8.20. Duplicate/dead layout and feature-local visual systems are removed. Primitive selectors own all recurring structure/mechanics; specialist content selectors consume §8.18 semantic color/type/spacing/radius/focus tokens only. After token declarations, feature/service selectors may not contain raw palette values, independent type/spacing scales, feature-owned shadows/control chrome, or alternate structural breakpoints.
+`theme.css` is remediated exactly under `GW-DOC-WORKBENCH-THEME-V1`. Duplicate/dead layout and feature-local visual systems are removed. Primitive selectors own all recurring structure/mechanics; specialist content selectors consume only canonical theme roles. Feature/service selectors may not establish a competing component/theme language or alternate structural breakpoints.
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
@@ -1500,7 +1348,7 @@ The implementation sequence is structurally ordered:
 2. establish the dedicated selected-WorkItem canonical observation and one shared mutation-refetch boundary;
 3. make current attention/recovery/execution ownership and rail projection independent from historical inspection state;
 4. reduce the generic workflow frame to summary/current-attention + primary material only;
-5. establish the §8.18 semantic token system and complete §8.12 primitive set, including application services (Queue/Create/Settings), forms, semantic status/notices, tables/timeline, task panel and confirmation;
+5. establish the `GW-DOC-WORKBENCH-THEME-V1` semantic token/style system and complete §8.12 primitive set, including application services (Queue/Create/Settings), forms, semantic status/notices, tables/timeline, task panel and confirmation;
 6. migrate every renderer in §8.17 onto its exact §8.15 primitive composition and approved §8.19 leaves;
 7. perform the required same-layer component decomposition in §12 UI ownership above;
 8. remove superseded generic side-index/layout, raw feature control/status/overlay styling, ad-hoc visual values and duplicate/dead CSS systems;
@@ -1678,11 +1526,11 @@ The UI remediation is structurally complete only when all of the following are t
 
 ### GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
 
-**Realizes:** `GW-FR-217-PRIMARY-INFORMATION-ECONOMY`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`.
+**Realizes:** `GW-FR-217-PRIMARY-INFORMATION-ECONOMY`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
 
-**Required behavior:** color, typography, spacing/density, borders/radii, elevation, control geometry, focus, semantic status/feedback, theme parity and motion use only the canonical §8.18 token/role system; `theme.css` owns raw palette/token values under §8.20.
+**Required behavior:** every closed §8.12 primitive and §8.19 approved leaf/specialist consumes the canonical visual/theme language owned by `GW-DOC-WORKBENCH-THEME-V1`; feature/service adapters cannot recreate primitive styling or bypass the canonical theme owner.
 
-**Acceptance:** no feature/service establishes a competing palette/type/spacing/control/status/table/timeline/overlay language; light/dark themes preserve semantic roles; primitive/specialist rendering consumes semantic tokens only.
+**Acceptance:** renderer coverage plus theme/component-parity fitness proves one visual language across all services and themes; a new component responsibility or visual role cannot be introduced in feature/P7 code without the owning P4 authority being amended.
 
 ### GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA
 
@@ -1762,9 +1610,9 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - dirty/destructive confirmation uses one accessible modal mechanic with focus return and leaves the underlying primary screen mounted;
 - every P3 primary interaction class and auxiliary class is exercised through its §8.15 canonical primitive composition;
 - Queue, Create WorkItem and Settings exercise their canonical service compositions rather than bespoke screen grammars;
-- light and dark theme certification verifies the §8.18 semantic roles for normal/current/selected/info/success/warning/danger/focus states without state meaning changing;
+- Light/Dark/System certification follows `GW-DOC-WORKBENCH-THEME-V1` and verifies normal/current/selected/info/success/warning/danger/focus roles without state meaning changing;
 - form labels/help/errors, status/notices, operational tables, timeline rows, disclosure and task-panel/confirmation interaction are visually and keyboard consistent across representative services;
-- typography/readable measures, compact control/row density and focus indicators remain within the canonical token roles at wide/medium/narrow widths;
+- typography/readable measures, compact control/row density and focus indicators remain within `GW-DOC-WORKBENCH-THEME-V1` token roles at wide/medium/narrow widths;
 - responsive continuity with no page-level horizontal overflow for current action/identity.
 
 ### 14.6 Architecture fitness
@@ -1789,9 +1637,8 @@ Permanent sensors prove:
 - Workbench primitive modules are domain/query/policy blind and structural primitives contain no content-count topology branching;
 - only closed primitive selectors establish persistent topology, identity grid, form/control grammar, anchored dialogue composer, Settings/task-panel/Context geometry, status/notice treatment, operational-table/timeline grammar and confirmation layout;
 - §8.19 foundation leaves appear only inside their authorized primitive/specialist boundary;
-- raw semantic color literals (hex/rgb/hsl/color-mix), feature-owned font-size/spacing/radius/control-height scales and feature-owned box shadows are absent from production selectors outside the §8.20 token owner;
-- theme token definitions provide complete light/dark values for every §8.18 semantic color role;
-- specialist CodeMirror/Markdown/evidence renderers consume canonical color/type/focus tokens rather than an independent palette;
+- `GW-DOC-WORKBENCH-THEME-V1` fitness proves raw-value containment, complete token definitions, one foundation bridge, component parity and stylesheet ownership;
+- specialist CodeMirror/Markdown/evidence renderers consume the canonical theme roles rather than an independent palette;
 - obsolete competing Workbench layout/interaction/visual selectors are absent from production CSS.
 
 ## 15. Non-goals
