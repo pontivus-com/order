@@ -26,6 +26,7 @@ import {
 import {
   artifactReturnOwner,
   stageRank,
+  transitionWorkItem,
 } from "../core/lifecycle.ts";
 import {
   approvalMaterialIsFresh,
@@ -85,7 +86,10 @@ import {
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { type CoordinatorRuntime } from "./runtime.ts";
+import {
+  type CoordinatorRuntime,
+  withWorkItemOperatorMutation,
+} from "./runtime.ts";
 import { getRun, listRunEvents, listRuns } from "./run.ts";
 import {
   isSourceBoundaryFailure,
@@ -1174,7 +1178,7 @@ export const signoffPackageForWorkItem = async (
   });
 };
 
-export const signOffWorkItem = async (
+const signOffWorkItemUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   expectedPackageHash: Sha256,
@@ -1201,15 +1205,30 @@ export const signOffWorkItem = async (
   const tasks = materializeExecutionTasks(approval.id, block, taskIds);
 
   withTransaction(runtime.database, () => {
+    const current = getWorkItem(runtime, workItemId);
+    const transition = transitionWorkItem(current, { tag: "SIGN_OFF" });
     storeApproval(runtime.database, approval);
     for (const task of tasks) {
       storeExecutionTask(runtime.database, task);
     }
-    updateWorkItemLifecycle(runtime.database, workItemId, {
-      stage: "EXECUTION",
-      status: "ACTIVE",
-      outcome: null,
-    });
+    updateWorkItemLifecycle(runtime.database, workItemId, transition);
   });
   return approval;
 };
+
+export const signOffWorkItem = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedPackageHash: Sha256,
+  approvedBy: string,
+): Promise<Approval> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => signOffWorkItemUnlocked(
+      runtime,
+      workItemId,
+      expectedPackageHash,
+      approvedBy,
+    ),
+  );
