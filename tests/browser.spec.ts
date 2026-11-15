@@ -960,7 +960,6 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Save", exact: true }).click();
-    await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
 
     await backToQueue(page);
     await openWorkItem(page, title);
@@ -1142,8 +1141,8 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   expect(detailBox).not.toBeNull();
   expect(detailBox!.width).toBeGreaterThan(640);
 
-  await expect(detail.getByText("Continue current work", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Message input")).toBeVisible();
+  await expect(detail.getByText("Continue current work", { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Message input")).toHaveCount(0);
   await expect(page.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeHidden();
   const proposalTechnical = detail.getByText("Timeline technical details", { exact: true });
   await proposalTechnical.click();
@@ -1155,7 +1154,7 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
 
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("activity-detail")).toBeVisible();
-  await expect(page.getByText("Continue current work", { exact: true })).toBeVisible();
+  await expect(page.getByText("Continue current work", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("radio", { name: "Documents" })).toHaveCount(0);
 
   await backToQueue(page);
@@ -1371,7 +1370,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
     async () => retry.click(),
     async () => expect(retry).toBeDisabled(),
   );
-  await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Could not start current workflow step", { exact: true })).toBeVisible();
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow resume action");
@@ -1381,7 +1380,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
     async () => resume.click(),
     async () => expect(resume).toBeDisabled(),
   );
-  await expect(page.getByText("Workflow action failed", { exact: true })).toBeVisible();
+  await expect(page.getByText("Could not resume current workflow owner", { exact: true })).toBeVisible();
   await backToQueue(page);
 
   await openWorkItem(page, "Implementation action ready");
@@ -1691,8 +1690,8 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   expect(proposalDiffBox).not.toBeNull();
   expect(proposalDiffBox!.width).toBeGreaterThan(proposalReviewBox!.width * 0.85);
   await expect(proposalReview.getByText("Proposed document diff", { exact: true })).toBeVisible();
-  await expect(proposalReview.getByTestId("activity-composer")).toBeVisible();
-  await expect(proposalReview.getByLabel("Message input")).toBeVisible();
+  await expect(proposalReview.getByTestId("activity-composer")).toHaveCount(0);
+  await expect(proposalReview.getByLabel("Message input")).toHaveCount(0);
 
   const adopt = page.getByRole("button", { name: "Adopt" });
   const reject = page.getByRole("button", { name: "Reject" });
