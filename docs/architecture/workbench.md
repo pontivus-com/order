@@ -792,6 +792,77 @@ Implementation validation presentation is sparse/current-state-first as defined 
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
+## 12. Structural remediation boundary
+
+The current Workbench implementation is evidence of the failure modes described by this design; it is **not** the structural baseline that P7 incrementally patches into compliance.
+
+P7 must perform an architecture-preserving **re-composition** around the canonical owners defined above. Visual refinements occur only after those ownership/topology changes have landed.
+
+### 12.1 Required replacement order
+
+The implementation sequence is structurally ordered:
+
+1. establish the shared pure lifecycle/reached/interaction/current-attention policy in the existing browser-safe core owner;
+2. establish the dedicated selected-WorkItem canonical observation and one shared mutation-refetch boundary;
+3. make current attention/action independent from historical inspection state;
+4. reduce the generic workflow frame to summary/current-attention + primary material only;
+5. introduce the explicit interaction-class compositions: compact pre-signoff/Readiness selector, coherent Approval Review, dedicated Implementation master/detail, explicit Context;
+6. perform the required same-layer component decomposition in §12 UI ownership above;
+7. remove the superseded generic side-index/layout and duplicate/dead CSS systems;
+8. only then tune spacing, typography, density and other visual details;
+9. certify geometry/state/action ownership permanently through §14.
+
+A lower step must not compensate for a missing higher step.
+
+### 12.2 Existing mechanisms that are removed, not patched
+
+The following current mechanisms are superseded and must disappear from the compliant implementation:
+
+- content-count-driven `meaningfulObjectCount >= 2` selection of a persistent step rail;
+- the optional persistent `start`/side-index slot and associated drawer responsibility in the generic `WorkflowStepFrame`;
+- use of the queue-list WorkItem snapshot as the selected WorkItem's current canonical observation;
+- ordinal `selectedStage < currentStage` reached-history logic;
+- `Run.status`-only human-input/continuation admission;
+- explicit historical ExecutionTask selection as current-attention ownership;
+- child-local divergent WorkItem workflow invalidation sets;
+- simultaneous generic Start plus Retry/Resume for one current stage;
+- simultaneous proposal disposition plus free-form continuation;
+- a wide Context control that can open but not explicitly close/toggle;
+- competing Workbench structural breakpoint authorities;
+- duplicate/unused structural CSS systems that preserve the old layout topology.
+
+Removal means deleting the old structural responsibility and its obsolete selectors/branches once the new owner exists. Leaving the old mechanism in place behind CSS overrides, hidden DOM, an always-false branch, a compatibility wrapper or an additional synchronization effect is not compliant.
+
+### 12.3 Prohibited remediation patterns
+
+P7 must not solve these failures by:
+
+- adding another local boolean to decide whether a rail/header/panel should exist;
+- adding CSS specificity/override rules around the existing conditional layout;
+- adding another responsive breakpoint to compensate for compressed content;
+- adding a UI service/controller/store/view-model/DTO that mirrors canonical workflow state;
+- adding `useEffect` synchronization between competing workflow-state derivations;
+- adding duplicate queries whose purpose is to reconcile disagreement between UI owners;
+- weakening or deleting browser assertions that expose geometry, action-ownership or state-convergence defects;
+- retaining two composition systems and selecting between them by stage/status/content count.
+
+If implementation discovers that the target ownership/topology in §§4–12 cannot be realized without changing canonical state meaning, public contracts or dependency direction, execution returns to DESIGN. It does not invent an implementation-layer workaround.
+
+### 12.4 Definition of structural completion
+
+The UI remediation is structurally complete only when all of the following are true before cosmetic acceptance is considered:
+
+- one core policy owner determines lifecycle/reach/interaction/current-attention semantics;
+- one selected-WorkItem query owns current WorkItem observation;
+- one current action owner exists for every state;
+- one outer Workbench topology exists;
+- each interaction class has exactly the composition defined in §8;
+- the generic frame cannot create a persistent side service;
+- historical inspection cannot become current-attention authority;
+- Context and responsive behavior have one owner;
+- obsolete competing layout code/CSS has been deleted;
+- permanent architecture/browser tests fail if any of those ownership boundaries regress.
+
 ## 13. Technical requirements
 
 ### GW-TR-082-WORKFLOW-TRANSITION-KERNEL
@@ -864,7 +935,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 **Required behavior:** workflow rail, pre-signoff material selection, Approval, Implementation master/detail and Context obey the stable spatial contracts in §8 without content-count/status-driven persistent column insertion or width changes.
 
-**Acceptance:** at the same viewport and Context state, a pre-signoff step with one versus multiple attempts/documents has identical primary-surface x-position and width; Readiness/Approval do not acquire the generic side-index rail; Implementation master width is invariant across task/attempt state; workflow-cell widths are state-invariant; Context has an explicit close/toggle; only explicit Context and the single responsive-class transition alter structural columns.
+**Acceptance:** at the same viewport and Context state, a pre-signoff step with one versus multiple attempts/documents has identical primary-surface x-position and width; Readiness/Approval do not acquire the generic side-index rail; Implementation master width is invariant across task/attempt state; workflow-cell widths are state-invariant; Context has an explicit close/toggle; only explicit Context and the single responsive-class transition alter structural columns. The superseded content-count side-index/generic-frame structural path is deleted rather than hidden or CSS-overridden.
 
 ### GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION
 
