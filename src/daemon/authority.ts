@@ -308,6 +308,29 @@ const currentArtifactBytesMatch = (
   }
 };
 
+const persistedCurrentArtifactSnapshot = (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  artifact: ArtifactRef,
+): ArtifactRef | null => {
+  try {
+    const currentSha256 = sha256(
+      readWorkingTreeFile(workItem.repositoryRoot, artifact.repositoryPath),
+    );
+    if (currentSha256 === artifact.sha256) return artifact;
+    return findArtifactSnapshot(runtime.database, {
+      workItemId: artifact.workItemId,
+      repositoryPath: artifact.repositoryPath,
+      role: artifact.role,
+      authorityLayer: artifact.authorityLayer,
+      sha256: currentSha256,
+      gitCommit: null,
+    });
+  } catch {
+    return null;
+  }
+};
+
 const lifecycleRoleOrder = ["R1", "R2", "DESIGN", "PLAN", "R3"] as const;
 type LifecycleRole = (typeof lifecycleRoleOrder)[number];
 
@@ -451,7 +474,12 @@ export const currentLifecycleArtifacts = async (
       semantic.set(key, candidate);
     }
     for (const candidate of semantic.values()) {
-      if (currentArtifactBytesMatch(workItem, candidate)) current.push(candidate);
+      const snapshot = persistedCurrentArtifactSnapshot(
+        runtime,
+        workItem,
+        candidate,
+      );
+      if (snapshot !== null) current.push(snapshot);
     }
   }
 
