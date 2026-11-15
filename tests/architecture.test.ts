@@ -1153,19 +1153,30 @@ describe("architecture fitness", () => {
   it("enforces canonical documentation concern ownership and identifier references", () => {
     const violations: string[] = [];
     const docsDirectory = join(repositoryRoot, "docs");
-    const activeDocumentationFiles = [
-      "AGENTS.md",
-      ...readdirSync(docsDirectory, { withFileTypes: true })
-        .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
-        .map((entry) => `docs/${entry.name}`)
-        .filter((path) => {
-          const name = path.slice("docs/".length);
-          return (
-            name === "README.md" ||
-            !/^(?:15|1[6-9]|2[0-3])-/.test(name)
-          );
-        }),
-    ].sort();
+    const documentationFiles: string[] = [];
+    const visitDocumentation = (directory: string): void => {
+      for (const entry of readdirSync(directory, { withFileTypes: true })) {
+        const absolute = join(directory, entry.name);
+        const path = repositoryPath(absolute);
+        if (entry.isDirectory()) {
+          if (path === "docs/order/work-items" || path.startsWith("docs/order/work-items/")) {
+            continue;
+          }
+          visitDocumentation(absolute);
+        } else if (entry.isFile() && entry.name.endsWith(".md")) {
+          documentationFiles.push(path);
+        }
+      }
+    };
+    visitDocumentation(docsDirectory);
+
+    const activeDocumentationFiles = ["AGENTS.md", ...documentationFiles].sort();
+
+    for (const path of activeDocumentationFiles) {
+      if (path !== "AGENTS.md" && path !== "docs/README.md" && /(?:^|\/)\d+-[^/]+\.md$/.test(path)) {
+        violations.push(`${path}: canonical documentation filenames must be semantic, not ordinal-prefixed`);
+      }
+    }
 
     type ConcernMetadata = Readonly<{
       path: string;
@@ -1292,15 +1303,23 @@ describe("architecture fitness", () => {
         // AGENTS.md is a conventional project-local filename and can legitimately
         // refer to nested/consumer instruction files rather than this repository root owner.
         if (metadata.path === "AGENTS.md") continue;
-        const basename = metadata.path.split("/").at(-1)!;
+
+        const sourceDirectory = dirname(sourcePath);
+        const relativeTarget = relative(sourceDirectory, metadata.path).replaceAll("\\", "/");
+        const referenceForms = new Set([
+          metadata.path,
+          relativeTarget,
+          relativeTarget.startsWith(".") ? relativeTarget : `./${relativeTarget}`,
+        ]);
+
         for (const [index, line] of lines.entries()) {
-          if (!line.includes(basename)) continue;
+          if (![...referenceForms].some((reference) => line.includes(reference))) continue;
           if (
             !line.includes(metadata.stableId) &&
             !line.includes(metadata.versionedId)
           ) {
             violations.push(
-              `${sourcePath}:${index + 1}: reference to ${basename} must carry ${metadata.stableId} or ${metadata.versionedId}`,
+              `${sourcePath}:${index + 1}: reference to ${metadata.path} must carry ${metadata.stableId} or ${metadata.versionedId}`,
             );
           }
         }
