@@ -48,3 +48,20 @@ export const workbenchQueryKeys = {
   evidence: (runId: RunId | null, relativePath: EvidencePath | null) =>
     ["evidence", runId, relativePath] as const,
 } as const;
+
+
+export const workbenchMutationInvalidationKeys = (
+  workItemId: WorkItemId,
+) => [
+  workbenchQueryKeys.workItem(workItemId),
+  workbenchQueryKeys.workItems,
+  workbenchQueryKeys.runs(workItemId),
+  workbenchQueryKeys.runEventsRoot,
+  workbenchQueryKeys.tasks(workItemId),
+  workbenchQueryKeys.lifecycleArtifacts(workItemId),
+  workbenchQueryKeys.artifacts(workItemId),
+  workbenchQueryKeys.workItemSource(workItemId),
+  workbenchQueryKeys.workItemSourceDiagnostics,
+  workbenchQueryKeys.workItemDocumentationGitStatus(workItemId),
+  workbenchQueryKeys.signoffPackage(workItemId),
+] as const;
