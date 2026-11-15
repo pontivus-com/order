@@ -246,11 +246,7 @@ export const SignoffReview = ({
       await invalidate();
     },
     onError: async () => {
-      if (currentApproval) {
-        await queryClient.invalidateQueries({
-          queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
-        });
-      }
+      if (currentApproval) await invalidate();
     },
   });
 
