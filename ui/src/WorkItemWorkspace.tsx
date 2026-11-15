@@ -420,7 +420,8 @@ export const WorkItemWorkspace = ({
   );
   const mutationsDisabled = currentAttention === "CONVERGING";
   const workflowMutationsDisabled =
-    mutationsDisabled || currentness.tag === "STALE";
+    mutationsDisabled ||
+    (currentness.tag === "STALE" && !runs.some(runIsActive));
 
   const material = resolveWorkflowMaterial({
     workItem,
