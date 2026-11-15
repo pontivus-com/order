@@ -3,7 +3,7 @@ import { useState } from "react";
 
 import type { WorkItem, WorkItemId, WorkItemSchemaCatalogEntry } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
@@ -28,9 +28,9 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
   });
   const restore = useMutation({
     mutationFn: (workItem: WorkItem) => api.setWorkItemArchived(workItem.id, { expectedArchived: true, archived: false }),
-    onSuccess: async () => {
+    onSuccess: async (updated) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        invalidateWorkbenchMutation(queryClient, updated.id),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemsIncludingArchived }),
       ]);
     },
