@@ -13,6 +13,8 @@ import {
   type Sha256,
   type SignoffPackage,
   SignoffPackageSchema,
+  type UpstreamReturnStage,
+  UpstreamReturnStageSchema,
   type WorkItemSourceSnapshot,
   type WorkItem,
   type WorkItemId,
@@ -25,7 +27,7 @@ import {
 } from "../core/canonical.ts";
 import {
   artifactReturnOwner,
-  stageRank,
+  routeApprovalStale,
   transitionWorkItem,
 } from "../core/lifecycle.ts";
 import {
@@ -95,6 +97,40 @@ import {
   isSourceBoundaryFailure,
   revalidateWorkItemSource,
 } from "./work-item-source.ts";
+
+const STALE_AUTHORITY_FAILURE = "STALE_AUTHORITY";
+
+type StaleAuthorityFailure = TypeError & Readonly<{
+  orderCode: typeof STALE_AUTHORITY_FAILURE;
+  staleAuthorityOwner: UpstreamReturnStage;
+}>;
+
+const staleAuthorityFailure = (
+  staleAuthorityOwner: UpstreamReturnStage,
+  message: string,
+): StaleAuthorityFailure =>
+  Object.assign(new TypeError(message), {
+    orderCode: STALE_AUTHORITY_FAILURE as typeof STALE_AUTHORITY_FAILURE,
+    staleAuthorityOwner: UpstreamReturnStageSchema.parse(staleAuthorityOwner),
+  });
+
+const isStaleAuthorityFailure = (
+  error: unknown,
+): error is StaleAuthorityFailure =>
+  error instanceof TypeError &&
+  "orderCode" in error &&
+  (error as { orderCode?: unknown }).orderCode === STALE_AUTHORITY_FAILURE &&
+  "staleAuthorityOwner" in error &&
+  UpstreamReturnStageSchema.safeParse(
+    (error as { staleAuthorityOwner?: unknown }).staleAuthorityOwner,
+  ).success;
+
+export const staleAuthorityOwnerForFailure = (
+  error: unknown,
+): UpstreamReturnStage | null =>
+  isStaleAuthorityFailure(error)
+    ? UpstreamReturnStageSchema.parse(error.staleAuthorityOwner)
+    : null;
 
 export const getWorkItem = (
   runtime: CoordinatorRuntime,
@@ -846,12 +882,47 @@ const currentApprovalMaterialSet = async (
   return deduplicateArtifacts(current);
 };
 
+const changedMaterialOwners = (
+  signed: readonly ArtifactRef[],
+  current: readonly ArtifactRef[],
+): readonly UpstreamReturnStage[] => {
+  const signedByIdentity = new Map(
+    signed.map((artifact) => [artifactSemanticIdentityKey(artifact), artifact] as const),
+  );
+  const currentByIdentity = new Map(
+    current.map((artifact) => [artifactSemanticIdentityKey(artifact), artifact] as const),
+  );
+  const identities = new Set([
+    ...signedByIdentity.keys(),
+    ...currentByIdentity.keys(),
+  ]);
+  const changedOwners: UpstreamReturnStage[] = [];
+
+  for (const identity of identities) {
+    const signedArtifact = signedByIdentity.get(identity);
+    const currentArtifact = currentByIdentity.get(identity);
+    if (
+      signedArtifact !== undefined &&
+      currentArtifact !== undefined &&
+      signedArtifact.sha256 === currentArtifact.sha256
+    ) {
+      continue;
+    }
+    const changedArtifact = currentArtifact ?? signedArtifact;
+    if (changedArtifact !== undefined) {
+      changedOwners.push(artifactReturnOwner(changedArtifact));
+    }
+  }
+
+  return [...new Set(changedOwners)];
+};
+
 export const approvalFreshness = async (
   runtime: CoordinatorRuntime,
   approval: Approval,
 ): Promise<Readonly<{
   fresh: boolean;
-  changedOwners: readonly ("R1" | "R2" | "DESIGN" | "PLAN" | "R3")[];
+  changedOwners: readonly UpstreamReturnStage[];
 }>> => {
   try {
     const validated = await revalidateWorkItemSource(runtime, approval.workItemId);
@@ -873,44 +944,16 @@ export const approvalFreshness = async (
     return { fresh: true, changedOwners: [] };
   }
 
-  const signedByIdentity = new Map(
-    signed.map((artifact) => [artifactSemanticIdentityKey(artifact), artifact] as const),
-  );
-  const currentByIdentity = new Map(
-    current.map((artifact) => [artifactSemanticIdentityKey(artifact), artifact] as const),
-  );
-  const identities = new Set([
-    ...signedByIdentity.keys(),
-    ...currentByIdentity.keys(),
-  ]);
-  const changedOwners: ("R1" | "R2" | "DESIGN" | "PLAN" | "R3")[] = [];
-
-  for (const identity of identities) {
-    const signedArtifact = signedByIdentity.get(identity);
-    const currentArtifact = currentByIdentity.get(identity);
-    if (
-      signedArtifact !== undefined &&
-      currentArtifact !== undefined &&
-      signedArtifact.sha256 === currentArtifact.sha256
-    ) {
-      continue;
-    }
-    const changedArtifact = currentArtifact ?? signedArtifact;
-    if (changedArtifact !== undefined) {
-      changedOwners.push(artifactReturnOwner(changedArtifact));
-    }
-  }
-
   return {
     fresh: false,
-    changedOwners: [...new Set(changedOwners)],
+    changedOwners: changedMaterialOwners(signed, current),
   };
 };
 
 export const approvalChangedOwners = async (
   runtime: CoordinatorRuntime,
   approval: Approval,
-): Promise<readonly ("R1" | "R2" | "DESIGN" | "PLAN" | "R3")[]> =>
+): Promise<readonly UpstreamReturnStage[]> =>
   (await approvalFreshness(runtime, approval)).changedOwners;
 
 export const currentMaterialFresh = async (
@@ -1042,8 +1085,11 @@ export const computeSignoffPackage = async (
     false,
   );
   if (currentR3.staleStage !== null || currentR3.outputs.length !== 1) {
-    const returnTo = currentR3.staleStage ?? "R3";
-    throw new TypeError(
+    const returnTo = UpstreamReturnStageSchema.parse(
+      currentR3.staleStage ?? "R3",
+    );
+    throw staleAuthorityFailure(
+      returnTo,
       `current R3 conformance is missing or stale: ${returnTo}`,
     );
   }
@@ -1058,7 +1104,13 @@ export const computeSignoffPackage = async (
     r3Root,
   ]);
   if (!approvalMaterialIsFresh(conformedClosure, currentMaterial)) {
-    throw new TypeError("R3 dependency closure does not match the current resolved material set");
+    const owner = routeApprovalStale(
+      changedMaterialOwners(conformedClosure, currentMaterial),
+    );
+    throw staleAuthorityFailure(
+      owner,
+      "R3 dependency closure does not match the current resolved material set",
+    );
   }
 
   const baselineCommit = await resolveHeadCommit(workItem.repositoryRoot);
@@ -1222,6 +1274,64 @@ export const signoffPackageForWorkItem = async (
     taskBlock: prepared.taskBlock,
   });
 };
+
+const inspectStaleSignoffAuthorityOwner = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<UpstreamReturnStage | null> => {
+  try {
+    await computeSignoffPackage(runtime, workItemId);
+    return null;
+  } catch (error) {
+    const owner = staleAuthorityOwnerForFailure(error);
+    if (owner !== null) return owner;
+    throw error;
+  }
+};
+
+const reconcileWorkItemAuthorityUnlocked = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedOwner: UpstreamReturnStage,
+): Promise<WorkItem> => {
+  const expected = UpstreamReturnStageSchema.parse(expectedOwner);
+  const inspectedOwner = await inspectStaleSignoffAuthorityOwner(runtime, workItemId);
+  if (inspectedOwner === null) {
+    throw new TypeError("approval authority is current; reconciliation is not required");
+  }
+  if (inspectedOwner !== expected) {
+    throw new TypeError("stale authority owner changed before reconciliation");
+  }
+
+  const recheckedOwner = await inspectStaleSignoffAuthorityOwner(runtime, workItemId);
+  if (recheckedOwner === null) {
+    throw new TypeError("approval authority became current before reconciliation");
+  }
+  if (recheckedOwner !== expected) {
+    throw new TypeError("stale authority owner changed before reconciliation commit");
+  }
+
+  return withTransaction(runtime.database, () => {
+    const current = getWorkItem(runtime, workItemId);
+    const transition = transitionWorkItem(current, {
+      tag: "RECONCILE_AUTHORITY",
+      owner: expected,
+    });
+    updateWorkItemLifecycle(runtime.database, workItemId, transition);
+    return getWorkItem(runtime, workItemId);
+  });
+};
+
+export const reconcileWorkItemAuthority = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedOwner: UpstreamReturnStage,
+): Promise<WorkItem> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => reconcileWorkItemAuthorityUnlocked(runtime, workItemId, expectedOwner),
+  );
 
 const signOffWorkItemUnlocked = async (
   runtime: CoordinatorRuntime,
