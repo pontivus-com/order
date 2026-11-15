@@ -5373,6 +5373,68 @@ describe("daemon control plane", () => {
     expect(output.beforeCleanupStatus).toBe("RUNNING");
   }, 30_000);
 
+  it("rejects Cancel when the Run is already terminal", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-cancel-terminal-");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "terminal cancel",
+        concernIds: ["shell"],
+      });
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: rt.sha256Text("terminal-cancel"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: rt.nowIsoDateTime(),
+      });
+      let error = null;
+      try {
+        await coord.cancelRun(runtime, run.id);
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      console.log(JSON.stringify({
+        error,
+        finalStatus: coord.getRun(runtime, run.id).status,
+      }));
+      database.close();
+    `) as { error: string | null; finalStatus: string };
+
+    expect(output.error).toMatch(/Run is not cancellable/);
+    expect(output.finalStatus).toBe("COMPLETED");
+  });
+
   it("makes Cancel win over a delayed provider finalization without lifecycle mutation", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-provider-cancel-");
