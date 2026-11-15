@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Run, RunEvent, WorkItem } from "../../src/core/contracts.ts";
-import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
+import type {
+  CurrentAttentionTag,
+  StageRunInteraction,
+} from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
@@ -39,10 +42,11 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId, currentInteraction, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
+export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
   workItem: WorkItem; stage: PreSignoffStage; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
+  currentAttention: CurrentAttentionTag;
   mutationsDisabled?: boolean;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -101,15 +105,26 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
   if (selectedRun === null) return <WorkbenchState kind="empty" title={"No " + workflowPresentation(stage).label + " activity yet"} description="Start this workflow step to create its first attempt." />;
 
   const selectedStep = workflowPresentation(stage);
+  const currentRunControlsOwnAttention =
+    currentAttention !== "PROPOSAL_DECISION" &&
+    currentAttention !== "PROPOSAL_ADOPTION" &&
+    currentAttention !== "CONVERGING";
   const canCancel =
     selectedIsCurrent &&
+    currentRunControlsOwnAttention &&
     interaction !== null &&
     interaction.tag !== "CLOSED";
   const canAnswer =
     selectedIsCurrent &&
     (
-      interaction?.tag === "OPEN" ||
-      interaction?.tag === "REQUIRED_INPUT"
+      (
+        currentAttention === "ORDINARY" &&
+        interaction?.tag === "OPEN"
+      ) ||
+      (
+        currentAttention === "REQUIRED_INPUT" &&
+        interaction?.tag === "REQUIRED_INPUT"
+      )
     );
   const actionError = inputError ?? cancel.error;
   const sessionStatus = openCodeSessionStatus(selectedRun);
