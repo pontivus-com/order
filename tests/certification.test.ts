@@ -438,13 +438,20 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("executionOwner,");
 
     const activity = read("ui/src/ActivityWorkspace.tsx");
-    expect(activity).toContain("stageRunInteraction");
+    expect(activity).toContain("currentRunId");
+    expect(activity).toContain("currentInteraction");
+    expect(activity).not.toContain("stageRunInteraction");
     expect(activity).not.toContain("runNeedsAttention");
     expect(activity).not.toContain("const canRetry");
     expect(activity).not.toContain("const canResume");
 
+    const proposalReview = read("ui/src/ProposalReview.tsx");
+    expect(proposalReview).not.toContain("ActivityComposer");
+    expect(proposalReview).not.toContain("unresolvedHumanInput");
+
     const execution = read("ui/src/ExecutionWorkspace.tsx");
-    expect(execution).toContain("deriveExecutionOwner");
+    expect(execution).toContain("executionOwner: ExecutionOwner");
+    expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");
     expect(execution).toContain("currentOwnerRun");
     expect(execution).not.toContain(
