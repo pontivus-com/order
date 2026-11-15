@@ -858,6 +858,9 @@ export const deriveValidationBoundary = (
     if (trigger?.event.tag !== "VALIDATION_FAILED") {
       throw new TypeError("REMEDIATOR trigger must identify VALIDATION_FAILED");
     }
+    if (!taskRuns.some((taskRun) => taskRun.id === trigger.runId)) {
+      throw new TypeError("REMEDIATOR failure must belong to the current ExecutionTask");
+    }
     return {
       tag: "FAILED_AT",
       stage: trigger.event.stage,
