@@ -166,11 +166,13 @@ const HistoricalTaskDetail = ({
 export const SignoffReview = ({
   workItem,
   summary,
+  mutationsDisabled = false,
   onOpenArtifactEvidence,
   onContextDocumentChange,
 }: Readonly<{
   workItem: WorkItem;
   summary: ReactNode;
+  mutationsDisabled?: boolean;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
@@ -462,14 +464,14 @@ export const SignoffReview = ({
           value={approvedBy}
           onChange={(value) => setApprovedBy(value)}
           placeholder="Local operator identity"
-          isDisabled={signoff.isPending}
+          isDisabled={mutationsDisabled || signoff.isPending}
           width="100%"
         />
         <WorkbenchAction
           label="Sign off exact package"
           tone="primary"
           loading={signoff.isPending}
-          disabled={approvedBy.trim().length === 0 || signoff.isPending}
+          disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
           onClick={() => signoff.mutate()}
         />
         {signoff.error ? (
