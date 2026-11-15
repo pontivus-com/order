@@ -307,10 +307,20 @@ const resumeWorkItemUnlocked = async (
   if (workItem.status !== "BLOCKED") {
     throw new TypeError("WorkItem is not blocked");
   }
+  if (listRuns(runtime, workItem.id).some((run) =>
+    run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"
+  )) {
+    throw new TypeError("WorkItem cannot resume while a Run is active");
+  }
 
   if (workItem.stage !== "EXECUTION") {
     return withTransaction(runtime.database, () => {
       const current = getWorkItem(runtime, workItem.id);
+      if (listRuns(runtime, current.id).some((run) =>
+        run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"
+      )) {
+        throw new TypeError("a Run became active before Resume commit");
+      }
       const transition = transitionWorkItem(current, {
         tag: "RESUME_CURRENT_OWNER",
       });
@@ -340,6 +350,11 @@ const resumeWorkItemUnlocked = async (
 
   return withTransaction(runtime.database, () => {
     const current = getWorkItem(runtime, workItem.id);
+    if (listRuns(runtime, current.id).some((run) =>
+      run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"
+    )) {
+      throw new TypeError("a Run became active before Resume commit");
+    }
     const transition = transitionWorkItem(current, {
       tag: "RESUME_CURRENT_OWNER",
     });
