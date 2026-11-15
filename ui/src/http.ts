@@ -145,6 +145,13 @@ export const listWorkItems = async (): Promise<readonly WorkItem[]> =>
 export const listWorkItemsIncludingArchived = async (): Promise<readonly WorkItem[]> =>
   WorkItemSchema.array().parse(await json("/api/work-items?includeArchived=true"));
 
+export const getWorkItem = async (
+  workItemId: WorkItemId,
+): Promise<WorkItem> =>
+  WorkItemSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}`,
+  ));
+
 export const listWorkItemSchemas = async (): Promise<readonly WorkItemSchemaCatalogEntry[]> =>
   WorkItemSchemaCatalogEntrySchema.array().parse(await json("/api/work-item-schemas"));
 
