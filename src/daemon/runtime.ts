@@ -10,6 +10,7 @@ import {
   type Run,
   type RunId,
   type Sha256,
+  type WorkItemId,
 } from "../core/contracts.ts";
 import {
   type OpenCodeProviderProcess,
@@ -40,6 +41,7 @@ export type CoordinatorRuntime = {
   readonly environment: NodeJS.ProcessEnv;
   readonly activeProviders: Map<RunId, ActiveProvider>;
   readonly stageTurnTasks: Map<RunId, Promise<Run>>;
+  readonly operatorMutations: Set<WorkItemId>;
   openCodeAccountMutationActive: boolean;
   openCodeAccountLogin: OpenCodeAccountLoginControl | null;
   openCodeAccountLoginTerminal: OpenCodeAccountLoginAttempt | null;
@@ -60,6 +62,7 @@ export const createCoordinatorRuntime = (
   environment,
   activeProviders: new Map(),
   stageTurnTasks: new Map(),
+  operatorMutations: new Set(),
   openCodeAccountMutationActive: false,
   openCodeAccountLogin: null,
   openCodeAccountLoginTerminal: null,
@@ -67,3 +70,25 @@ export const createCoordinatorRuntime = (
   schedulerTimer: null,
   schedulerStopped: false,
 });
+
+
+export const workItemOperatorMutationIsActive = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): boolean => runtime.operatorMutations.has(workItemId);
+
+export const withWorkItemOperatorMutation = async <T>(
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  operation: () => Promise<T> | T,
+): Promise<T> => {
+  if (runtime.operatorMutations.has(workItemId)) {
+    throw new TypeError("WORKITEM_MUTATION_IN_PROGRESS");
+  }
+  runtime.operatorMutations.add(workItemId);
+  try {
+    return await operation();
+  } finally {
+    runtime.operatorMutations.delete(workItemId);
+  }
+};
