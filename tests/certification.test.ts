@@ -446,6 +446,7 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain('orderError.code === "STALE_AUTHORITY"');
     expect(workspace).toContain("orderError.staleAuthorityOwner");
     expect(workspace).toContain("api.reconcileWorkItemAuthority");
+    expect(workspace).toContain("onError: invalidate");
     expect(workspace).not.toMatch(/message\.(?:match|includes)|parse.*message/i);
     expect(workspace).toContain("signoffPackageQuery.isFetching");
 
