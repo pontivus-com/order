@@ -276,21 +276,23 @@ export const MarkdownEditor = ({
         }
       />
 
-      {conflicted ? (
-        <WorkbenchNotice
-          tone="warning"
-          title="Canonical document changed"
-          description="The canonical file changed while this buffer was open. The local buffer was not rebased or overwritten."
-          action={<WorkbenchAction label="Reload current" onClick={reloadCurrent} />}
-        />
-      ) : null}
-      {saveError ? (
-        <WorkbenchNotice
-          tone="danger"
-          title="Document save failed"
-          description={saveError}
-        />
-      ) : null}
+      <div className="order-editor-notices">
+        {conflicted ? (
+          <WorkbenchNotice
+            tone="warning"
+            title="Canonical document changed"
+            description="The canonical file changed while this buffer was open. The local buffer was not rebased or overwritten."
+            action={<WorkbenchAction label="Reload current" onClick={reloadCurrent} />}
+          />
+        ) : null}
+        {saveError ? (
+          <WorkbenchNotice
+            tone="danger"
+            title="Document save failed"
+            description={saveError}
+          />
+        ) : null}
+      </div>
 
       <div
         className={"order-editor-body order-editor-mode-" + presentationMode.toLowerCase()}

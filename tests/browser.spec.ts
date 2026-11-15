@@ -525,18 +525,6 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
 
-  console.log("WORKBENCH_SELECTION_STATE " + JSON.stringify(await page.evaluate(() => ({
-    rail: Array.from(document.querySelectorAll('[data-testid="workflow-rail"] button')).map((button) => ({
-      text: button.textContent?.trim() ?? "",
-      selected: button.getAttribute("aria-pressed"),
-      current: button.getAttribute("aria-current"),
-    })),
-    summary: document.querySelector('[data-testid="workflow-step-summary"]')?.textContent?.trim() ?? null,
-    primary: document.querySelector('[data-testid="primary-material-frame"]')?.textContent?.trim() ?? null,
-    document: document.querySelector('[data-testid="lifecycle-document-material"]')?.textContent?.trim() ?? null,
-    activity: document.querySelector('[data-testid="stage-run-material"]')?.textContent?.trim() ?? null,
-  }))));
-
   const editor = page.getByLabel("Implementation plan document Markdown source");
   await expect(editor).toBeVisible();
   await expect(page.getByTestId("markdown-format-toolbar")).toBeVisible();
@@ -671,22 +659,15 @@ test("Approval consumes the real typed stale authority owner and returns to the 
     page.getByRole("button", { name: "Sign off exact package" }),
   ).toHaveCount(0);
 
-  const requestObserved = page.waitForRequest((candidate) =>
-    candidate.method() === "POST" &&
+  const responseObserved = page.waitForResponse((candidate) =>
+    candidate.request().method() === "POST" &&
     candidate.url().endsWith(
       `/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`,
     ));
   await reconcile.click();
-  const reconcileRequest = await requestObserved;
-  expect(reconcileRequest.postDataJSON()).toEqual({ expectedOwner: "PLAN" });
-  console.log("WORKBENCH_RECONCILE_STATE " + JSON.stringify(await page.evaluate(() => ({
-    rail: Array.from(document.querySelectorAll('[data-testid="workflow-rail"] button')).map((button) => ({
-      text: button.textContent?.trim() ?? "",
-      selected: button.getAttribute("aria-pressed"),
-      current: button.getAttribute("aria-current"),
-    })),
-    heading: document.querySelector('[data-testid="workflow-step-summary"]')?.textContent?.trim() ?? null,
-  }))));
+  const reconcileResponse = await responseObserved;
+  expect(reconcileResponse.status()).toBe(200);
+  expect(WorkItemSchema.parse(await reconcileResponse.json()).stage).toBe("PLAN");
 
   await expect(
     page.getByTestId("workflow-rail").getByRole("button", {

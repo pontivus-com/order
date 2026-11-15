@@ -1207,6 +1207,7 @@ export const WorkItemWorkspace = ({
   const primary = (
     <div className="order-workitem-workspace" data-testid="work-item-workspace">
     <div
+      key={selectedStep}
       className="order-mode-canvas"
       role="region"
       aria-label={selectedWorkflow.label + " workspace"}
