@@ -454,10 +454,14 @@ describe("Order cross-boundary certification", () => {
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
     expect(workspace).toContain("deriveObservationCoherence");
     expect(workspace).toContain("deriveCurrentAttention");
+    expect(workspace).toContain("deriveValidationBoundary");
+    expect(workspace).toContain("validationBoundary={validationBoundary}");
     expect(workspace).toContain("mutationConflict,");
     expect(workspace).not.toContain("mutationConflict: false");
     expect(workspace).toContain("api.isCurrentStateConflict(error)");
     expect(workspace).toContain('currentAttention === "MUTATION_CONFLICT"');
+    expect(workspace).toContain("mutationConflictObservation.current = observationVersion");
+    expect(workspace).toContain("Workflow state changed during the action");
     expect(workspace).toContain("onMutationError={reportMutationError}");
     expect(workspace).toContain("deriveWorkflowRail");
     expect(workspace).toContain('currentAttention === "CONVERGING"');
@@ -506,6 +510,10 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("onMutationError?.(error)");
     expect(execution).toContain("onError:reportError");
     expect(execution).toContain("executionOwner: ExecutionOwner");
+    expect(execution).toContain("validationBoundary: ValidationBoundary");
+    expect(execution).toContain("boundary={validationBoundary}");
+    expect(execution).toContain("validationBoundaryStatus(boundary)");
+    expect(execution).not.toContain("deriveValidationBoundary");
     expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");
     expect(execution).toContain("currentOwnerRun");
