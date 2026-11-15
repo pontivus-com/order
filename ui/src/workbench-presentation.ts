@@ -298,6 +298,9 @@ const selectedExecutionTask = (
   if (input.executionOwner.tag !== "NONE") {
     const owned = tasks.find((task) => task.id === input.executionOwner.taskId);
     if (owned === undefined) {
+      if (input.currentAttention === "CONVERGING") {
+        return tasks.at(0) ?? null;
+      }
       throw new TypeError("execution owner must identify a loaded ExecutionTask");
     }
     return owned;
