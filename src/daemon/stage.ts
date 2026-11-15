@@ -798,6 +798,49 @@ export const proposalAdoptionRequest = (
       event.event.proposalEventId === proposal.id
     ) ?? null;
 
+const lifecycleProposalRole = (
+  role: ArtifactRef["role"],
+): role is PreSignoffStage =>
+  role === "R1" ||
+  role === "R2" ||
+  role === "DESIGN" ||
+  role === "PLAN" ||
+  role === "R3";
+
+const requireCurrentProposalDecision = (
+  runtime: CoordinatorRuntime,
+  proposal: RunEvent,
+  run: Run,
+): ReturnType<typeof deriveProposalDecision> => {
+  const currentRun = getRun(runtime, run.id);
+  const workItem = getWorkItem(runtime, currentRun.workItemId);
+  if (
+    workItem.stage !== currentRun.stage ||
+    workItem.status !== "ACTIVE"
+  ) {
+    throw new TypeError("proposal Run no longer owns the current WorkItem stage");
+  }
+  const events = listRunEvents(runtime, currentRun.id);
+  if (stageRunInteraction(currentRun, events).tag !== "OPEN") {
+    throw new TypeError("proposal decision requires an OPEN current STAGE Run");
+  }
+  const decision = deriveProposalDecision(events);
+  if (
+    decision.tag === "NONE" ||
+    decision.proposalEventId !== proposal.id
+  ) {
+    throw new TypeError("proposal is not the single current proposal decision");
+  }
+  if (
+    proposal.event.tag === "ARTIFACT_PROPOSAL_CREATED" &&
+    lifecycleProposalRole(proposal.event.role) &&
+    proposal.event.role !== currentRun.stage
+  ) {
+    throw new TypeError("lifecycle proposal role must equal owning Run stage");
+  }
+  return decision;
+};
+
 const adoptArtifactProposalUnlocked = async (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
@@ -814,6 +857,7 @@ const adoptArtifactProposalUnlocked = async (
   if (!isPreSignoffStage(run.stage)) {
     throw new TypeError("artifact proposals are pre-signoff only");
   }
+  const initialDecision = requireCurrentProposalDecision(runtime, proposal, run);
   if (
     workItem.stage === "EXECUTION" ||
     workItem.stage === "COMPLETE"
@@ -822,13 +866,7 @@ const adoptArtifactProposalUnlocked = async (
   }
 
   const project = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  if (
-    proposal.event.role === "R1" ||
-    proposal.event.role === "R2" ||
-    proposal.event.role === "DESIGN" ||
-    proposal.event.role === "PLAN" ||
-    proposal.event.role === "R3"
-  ) {
+  if (lifecycleProposalRole(proposal.event.role)) {
     const expectedPath = workItemDocumentPath(
       project.workItems.root,
       workItem.id,
@@ -842,6 +880,11 @@ const adoptArtifactProposalUnlocked = async (
   }
 
   let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;
+  if (
+    adoptionRequested !== (initialDecision.tag === "ADOPTION_IN_PROGRESS")
+  ) {
+    throw new TypeError("proposal adoption intent does not match current proposal decision");
+  }
   if (!adoptionRequested) {
     await verifyProposalPatchAdoption(
       workItem.repositoryRoot,
@@ -851,12 +894,16 @@ const adoptArtifactProposalUnlocked = async (
     );
     withTransaction(runtime.database, () => {
       const currentRun = getRun(runtime, run.id);
-      const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
+      const currentDecision = requireCurrentProposalDecision(
+        runtime,
+        proposal,
+        currentRun,
+      );
       if (
-        currentWorkItem.stage !== currentRun.stage ||
-        currentWorkItem.status !== "ACTIVE"
+        currentDecision.tag !== "PENDING" ||
+        currentDecision.proposalEventId !== proposal.id
       ) {
-        throw new TypeError("proposal owner changed before adoption intent commit");
+        throw new TypeError("proposal is no longer pending before adoption intent commit");
       }
       if (proposalDisposition(runtime, proposal) !== null) {
         throw new TypeError("artifact proposal was dispositioned before adoption intent commit");
@@ -892,6 +939,18 @@ const adoptArtifactProposalUnlocked = async (
   withTransaction(runtime.database, () => {
     if (proposalDisposition(runtime, proposal) !== null) {
       throw new TypeError("artifact proposal was dispositioned during adoption");
+    }
+    const currentRun = getRun(runtime, run.id);
+    const currentDecision = requireCurrentProposalDecision(
+      runtime,
+      proposal,
+      currentRun,
+    );
+    if (
+      currentDecision.tag !== "ADOPTION_IN_PROGRESS" ||
+      currentDecision.proposalEventId !== proposal.id
+    ) {
+      throw new TypeError("proposal adoption is no longer the current decision");
     }
     const currentWorkItem = getWorkItem(runtime, workItem.id);
     const transition = transitionWorkItem(currentWorkItem, {
@@ -953,14 +1012,34 @@ const rejectArtifactProposalUnlocked = (
   if (proposalAdoptionRequest(runtime, proposal) !== null) {
     throw new TypeError("artifact proposal adoption is already in progress");
   }
-  return withTransaction(runtime.database, () =>
-    appendRunEvent(runtime, proposal.runId, {
+  const run = getRun(runtime, proposal.runId);
+  const decision = requireCurrentProposalDecision(runtime, proposal, run);
+  if (
+    decision.tag !== "PENDING" ||
+    decision.proposalEventId !== proposal.id
+  ) {
+    throw new TypeError("proposal is not pending for rejection");
+  }
+  return withTransaction(runtime.database, () => {
+    const currentRun = getRun(runtime, run.id);
+    const currentDecision = requireCurrentProposalDecision(
+      runtime,
+      proposal,
+      currentRun,
+    );
+    if (
+      currentDecision.tag !== "PENDING" ||
+      currentDecision.proposalEventId !== proposal.id
+    ) {
+      throw new TypeError("proposal is no longer pending before rejection commit");
+    }
+    return appendRunEvent(runtime, proposal.runId, {
       tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
       proposalEventId: proposal.id,
       disposition: "REJECTED",
       adoptedArtifactRefId: null,
-    })
-  );
+    });
+  });
 };
 
 export const rejectArtifactProposal = (
