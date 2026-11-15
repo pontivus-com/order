@@ -5472,6 +5472,52 @@ describe("daemon control plane", () => {
     expect(output.sourceUnchanged).toBe(true);
   }, 30_000);
 
+  it("serializes duplicate stale-authority reconciliation to one lifecycle return", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-authority-reconcile-race-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const fs = await import("node:fs");
+        fs.writeFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "plan changed before authority reconciliation\\n",
+        );
+        const settled = await Promise.allSettled([
+          coord.reconcileWorkItemAuthority(runtime, work, "PLAN"),
+          coord.reconcileWorkItemAuthority(runtime, work, "PLAN"),
+        ]);
+        const finalWorkItem = coord.getWorkItem(runtime, work);
+        console.log(JSON.stringify({
+          states: settled.map((entry) => entry.status),
+          finalWorkItem: {
+            stage: finalWorkItem.stage,
+            status: finalWorkItem.status,
+            outcome: finalWorkItem.outcome,
+          },
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      states: string[];
+      finalWorkItem: {
+        stage: string;
+        status: string;
+        outcome: string | null;
+      };
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.finalWorkItem).toEqual({
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+  }, 30_000);
+
   it("rejects Resume when approval currentness changes during admission", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-resume-currentness-race-");
