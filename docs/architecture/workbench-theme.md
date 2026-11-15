@@ -136,7 +136,7 @@ DARK
 
 Changing effective theme changes token values/foundation rendering only. It does not remount workflow services, alter hierarchy, clear local editor state, change selected material, mutate URL state or initiate daemon activity.
 
-Order-authored CSS keys from the root theme signal that Astryx already owns. In explicit Light/Dark mode it may use the public root `data-theme` value; in System mode it uses `prefers-color-scheme`, matching the pinned Theme behavior. No second JS effective-theme state is introduced.
+Order-authored CSS keys from the root theme signal that Astryx already owns. Explicit Light/Dark mappings use the root `[data-theme="light"]` / `[data-theme="dark"]` selectors established by Astryx `Theme`; System has no explicit `data-theme`, so the Order bridge's System branch uses `@media (prefers-color-scheme: dark)` with light as the default. No second JS effective-theme state or attribute is introduced.
 
 No descendant feature may set `data-theme` or mount a theme island.
 
