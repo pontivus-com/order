@@ -171,6 +171,7 @@ export const ReadinessWorkspace = ({
           <StageRunMaterial
             workItem={workItem}
             stage="R3"
+            runs={runs}
             selectedRunId={material.runId}
             currentRunId={workItem.stage === "R3" ? currentRunId : null}
             currentInteraction={workItem.stage === "R3" ? currentInteraction : null}
