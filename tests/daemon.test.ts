@@ -754,13 +754,41 @@ describe("daemon control plane", () => {
       } catch (error) {
         unexpectedSchema = server.classifyHttpFailure(error);
       }
-      console.log(JSON.stringify({ malformed, absent, conflict, unexpected, unexpectedSchema }));
+      const staleWithoutOwnerAccepted = contracts.OrderHttpErrorSchema.safeParse({
+        code: "STALE_AUTHORITY",
+        message: "stale",
+        sourceDiagnostic: null,
+        staleAuthorityOwner: null,
+      }).success;
+      const mixedRecoveryOwnersAccepted = contracts.OrderHttpErrorSchema.safeParse({
+        code: "STALE_AUTHORITY",
+        message: "stale",
+        sourceDiagnostic: {
+          projectId: "fixture",
+          path: null,
+          workItemId: null,
+          code: "MISSING_SOURCE",
+          detail: "missing",
+        },
+        staleAuthorityOwner: "PLAN",
+      }).success;
+      console.log(JSON.stringify({
+        malformed,
+        absent,
+        conflict,
+        unexpected,
+        unexpectedSchema,
+        staleWithoutOwnerAccepted,
+        mixedRecoveryOwnersAccepted,
+      }));
     `) as {
       malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
       absent: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
       conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
       unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
       unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      staleWithoutOwnerAccepted: boolean;
+      mixedRecoveryOwnersAccepted: boolean;
     };
 
     expect(output.malformed).toMatchObject({
@@ -798,6 +826,8 @@ describe("daemon control plane", () => {
       sourceDiagnostic: null,
       staleAuthorityOwner: null,
     });
+    expect(output.staleWithoutOwnerAccepted).toBe(false);
+    expect(output.mixedRecoveryOwnersAccepted).toBe(false);
   });
 
   it("preserves the exact canonical source diagnostic on HTTP conflict classification", () => {
