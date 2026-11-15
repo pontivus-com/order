@@ -121,6 +121,7 @@ export const WorkItemWorkspace = ({
   workItem,
   selectedWorkItemFetching,
   selectedWorkItemUpdatedAt,
+  selectedWorkItemError,
   toolbar,
   contextOpen,
   onContextOpenChange,
@@ -134,6 +135,7 @@ export const WorkItemWorkspace = ({
   workItem: WorkItem;
   selectedWorkItemFetching: boolean;
   selectedWorkItemUpdatedAt: number;
+  selectedWorkItemError: unknown;
   toolbar: ReactNode;
   contextOpen: boolean;
   onContextOpenChange: (open: boolean) => void;
@@ -165,6 +167,7 @@ export const WorkItemWorkspace = ({
   const [terminalDrainPending, setTerminalDrainPending] = useState(false);
   const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
   const mutationConflictObservation = useRef<string | null>(null);
+  const mutationConflictWorkItemUpdatedAt = useRef<number | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const runsQuery = useQuery({
@@ -444,6 +447,26 @@ export const WorkItemWorkspace = ({
       run.id === currentStageRun.id &&
       runEventQueries[index]?.isFetching === true
     );
+  const currentStageEventsError =
+    currentStageRun === null
+      ? null
+      : runs.reduce<unknown>((error, run, index) =>
+          error ??
+          (
+            run.id === currentStageRun.id
+              ? runEventQueries[index]?.error ?? null
+              : null
+          ), null);
+  const currentExecutionEventsError =
+    workItem.stage !== "EXECUTION"
+      ? null
+      : runs.reduce<unknown>((error, run, index) =>
+          error ??
+          (
+            run.executionTaskId !== null
+              ? runEventQueries[index]?.error ?? null
+              : null
+          ), null);
   const currentExecutionTasksFetching =
     (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
     tasksQuery.isFetching;
@@ -463,6 +486,24 @@ export const WorkItemWorkspace = ({
     sourceQuery.isFetching ||
     diagnosticsQuery.isFetching ||
     (workItem.stage === "AWAITING_SIGNOFF" && signoffPackageQuery.isFetching);
+  const currentObservationError =
+    selectedWorkItemError ??
+    runsQuery.error ??
+    artifactsQuery.error ??
+    sourceQuery.error ??
+    diagnosticsQuery.error ??
+    currentStageEventsError ??
+    currentExecutionEventsError ??
+    (
+      workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+        ? tasksQuery.error ?? allArtifactsQuery.error
+        : null
+    ) ??
+    (
+      workItem.stage === "AWAITING_SIGNOFF" && packageStaleOwner === null
+        ? signoffPackageQuery.error
+        : null
+    );
   const currentAttention = deriveCurrentAttention({
     workItem,
     coherence: transportConverging ? "CONVERGING" : semanticCoherence,
@@ -675,13 +716,23 @@ export const WorkItemWorkspace = ({
     if (
       mutationConflict &&
       !transportConverging &&
+      currentObservationError === null &&
       mutationConflictObservation.current !== null &&
+      mutationConflictWorkItemUpdatedAt.current !== null &&
+      selectedWorkItemUpdatedAt !== mutationConflictWorkItemUpdatedAt.current &&
       mutationConflictObservation.current !== observationVersion
     ) {
       mutationConflictObservation.current = null;
+      mutationConflictWorkItemUpdatedAt.current = null;
       setMutationConflict(false);
     }
-  }, [mutationConflict, observationVersion, transportConverging]);
+  }, [
+    currentObservationError,
+    mutationConflict,
+    observationVersion,
+    selectedWorkItemUpdatedAt,
+    transportConverging,
+  ]);
 
   useEffect(() => {
     onContextSelectionChange(selectedStep, material);
@@ -735,6 +786,7 @@ export const WorkItemWorkspace = ({
   const reportMutationError = (error: unknown): void => {
     if (!api.isCurrentStateConflict(error)) return;
     mutationConflictObservation.current = observationVersion;
+    mutationConflictWorkItemUpdatedAt.current = selectedWorkItemUpdatedAt;
     setMutationConflict(true);
   };
 
