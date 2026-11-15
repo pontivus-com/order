@@ -950,6 +950,7 @@ export const rematerializeCommittedApprovalClosure = async (
   workItem: WorkItem,
   baselineCommit: GitCommit,
   priorR3: ArtifactRef,
+  persist = true,
 ): Promise<Readonly<{
   plan: ArtifactRef;
   r3: ArtifactRef;
@@ -998,7 +999,7 @@ export const rematerializeCommittedApprovalClosure = async (
         })
       : existing;
 
-    if (existing === null) {
+    if (persist && existing === null) {
       storeArtifact(runtime.database, committed);
     }
     idMap.set(prior.id, committed);
@@ -1009,11 +1010,13 @@ export const rematerializeCommittedApprovalClosure = async (
     priorIds,
   );
 
-  for (const edge of priorEdges) {
-    const owner = idMap.get(edge[0]);
-    const dependency = idMap.get(edge[1]);
-    if (owner === undefined || dependency === undefined) continue;
-    storeArtifactDependency(runtime.database, owner.id, dependency.id);
+  if (persist) {
+    for (const edge of priorEdges) {
+      const owner = idMap.get(edge[0]);
+      const dependency = idMap.get(edge[1]);
+      if (owner === undefined || dependency === undefined) continue;
+      storeArtifactDependency(runtime.database, owner.id, dependency.id);
+    }
   }
 
   const r3 = idMap.get(priorR3.id);
@@ -1021,15 +1024,17 @@ export const rematerializeCommittedApprovalClosure = async (
   if (r3 === undefined || plan === undefined) {
     throw new TypeError("committed sign-off closure rematerialization failed");
   }
-  const material = dependencyClosure(runtime, r3.id)
-    .filter((id) => id !== plan.id && id !== r3.id)
-    .map((id) => getArtifact(runtime, id));
+  const material = priorIds
+    .filter((id) => id !== priorPlan.id && id !== priorR3.id)
+    .map((id) => idMap.get(id))
+    .filter((artifact): artifact is ArtifactRef => artifact !== undefined);
   return { plan, r3, material };
 };
 
 export const computeSignoffPackage = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
+  materializeCommittedArtifacts = false,
 ): Promise<Readonly<{
   baselineCommit: GitCommit;
   packageHash: Sha256;
@@ -1044,16 +1049,14 @@ export const computeSignoffPackage = async (
   if (workItem.stage !== "AWAITING_SIGNOFF" || workItem.status !== "ACTIVE") {
     throw new TypeError("WorkItem is not awaiting sign-off");
   }
-  const currentR3 = await resolveStageConformanceState(runtime, workItem, "R3");
+  const currentR3 = await resolveStageConformanceState(
+    runtime,
+    workItem,
+    "R3",
+    materializeCommittedArtifacts,
+  );
   if (currentR3.staleStage !== null || currentR3.outputs.length !== 1) {
     const returnTo = currentR3.staleStage ?? "R3";
-    withTransaction(runtime.database, () => {
-      updateWorkItemLifecycle(runtime.database, workItem.id, {
-        stage: returnTo,
-        status: "ACTIVE",
-        outcome: null,
-      });
-    });
     throw new TypeError(
       `current R3 conformance is missing or stale: ${returnTo}`,
     );
@@ -1097,6 +1100,7 @@ export const computeSignoffPackage = async (
     workItem,
     baselineCommit,
     r3Root,
+    materializeCommittedArtifacts,
   );
   const { plan, r3, material } = committedClosure;
 
@@ -1177,7 +1181,7 @@ export const signOffWorkItem = async (
   approvedBy: string,
 ): Promise<Approval> => {
   if (approvedBy.length === 0) throw new TypeError("approvedBy must be non-empty");
-  const prepared = await computeSignoffPackage(runtime, workItemId);
+  const prepared = await computeSignoffPackage(runtime, workItemId, true);
   if (prepared.packageHash !== expectedPackageHash) {
     throw new TypeError("expectedPackageHash does not match the current sign-off package");
   }
