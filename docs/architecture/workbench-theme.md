@@ -41,25 +41,31 @@ This design conforms to:
 - `GW-DOC-PRODUCT-IDENTITY-V1` for the aperture/focus identity and deep navy / Order-blue posture;
 - `GW-DOC-TECHNICAL-ARCHITECTURE-V1` for UI dependency/state/module boundaries;
 - `GW-DOC-CANONICAL-CONTRACTS-V1 §27` for browser/server-state ownership;
+- `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` for the exact pinned Astryx `0.7.13` public component/theme contract and audited best-practice guidance;
 - `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP` and `GW-P1-MINIMUM-CHANGE`.
 
 ## 3. Design thesis
 
 Order has one visual system.
 
-The theme system is semantic rather than feature-specific:
+The theme system is semantic rather than feature-specific and follows the pinned Astryx public surface before Order-owned CSS:
 
 ```text
-exact theme preference
+exact ThemePreference
         ↓
-one effective root theme
+one root Astryx Theme(theme-neutral/built, mode)
         ↓
-semantic visual tokens
+pinned public Astryx theme tokens
         ↓
-primitive/specialist CSS
+Order brand/base public-token bridge
++ Order-only structural/readability tokens
+        ↓
+Workbench primitive/specialist presentation
         ↓
 every rendered Workbench service
 ```
+
+Order deliberately does **not** duplicate a complete second color/type/spacing/radius/motion token system beside Astryx. Where the pinned public token has the right semantic role, that token is canonical for presentation. An `--order-*` token exists only for an Order-specific semantic/structural value the foundation does not already own.
 
 The following are prohibited:
 
@@ -69,7 +75,8 @@ The following are prohibited:
 - theme-specific JSX/component trees;
 - component-local typography or spacing scales;
 - visual status meaning encoded only by color;
-- direct consumption of private palette tokens by feature/primitive selectors;
+- direct consumption of Astryx private `--_` tokens, generated/internal selectors or raw foundation palette stops;
+- an Order alias that merely renames an equivalent public Astryx token;
 - a specialist renderer with an independent theme;
 - styling the same semantic component differently because it appears in another feature;
 - retaining legacy CSS values/selectors as a parallel visual system after migration.
@@ -92,9 +99,11 @@ This type is UI-local and does not enter `src/core/contracts.ts`.
 
 `App` is the sole theme-preference owner.
 
-The Astryx `Theme` substrate is mounted exactly once around the application root. Its `mode` receives the same `ThemePreference` used by Order styling. Feature/service modules do not mount another `Theme`, set an independent theme attribute, or maintain a local theme preference.
+The Astryx `Theme` substrate is mounted exactly once around the application root using the already-pinned built Neutral theme (`@astryxdesign/theme-neutral/built`). Its `mode` receives the canonical `ThemePreference`.
 
-The application theme control is one small peer-choice control in the global toolbar. It is not a Settings-domain value and does not change workflow/navigation state.
+Pinned Astryx `Theme` itself owns the root `data-theme` / `data-astryx-theme` synchronization and removes the explicit `data-theme` in System mode. Order does not maintain a second theme attribute/effect. Feature/service modules do not mount another `Theme`, set an independent theme attribute, or maintain a local theme preference.
+
+The application theme control is one small `SegmentedControl` peer-mode choice in the global toolbar. It is not a Settings-domain value and does not change workflow/navigation state.
 
 ### 4.3 Browser-local persistence
 
@@ -127,9 +136,9 @@ DARK
 
 Changing effective theme changes token values/foundation rendering only. It does not remount workflow services, alter hierarchy, clear local editor state, change selected material, mutate URL state or initiate daemon activity.
 
-The Order CSS theme signal and Astryx root theme must resolve from the same preference. If the foundation does not expose a usable root selector for Order CSS, `App` may maintain one root `data-theme` attribute derived from the same preference/effective-theme calculation; that attribute is a rendering projection, not another state owner.
+Order-authored CSS keys from the root theme signal that Astryx already owns. In explicit Light/Dark mode it may use the public root `data-theme` value; in System mode it uses `prefers-color-scheme`, matching the pinned Theme behavior. No second JS effective-theme state is introduced.
 
-No descendant feature may set `data-theme`.
+No descendant feature may set `data-theme` or mount a theme island.
 
 ## 5. Canonical visual character
 
@@ -150,166 +159,148 @@ Gradients, feature accent palettes, dashboard-card styling and decorative motion
 
 ## 6. Canonical semantic color system
 
-### 6.1 Public semantic token names
+### 6.1 Foundation-first ownership
 
-These are the complete public Order color roles consumed by Order-authored selectors:
+The exact Order semantic roles are implemented through **public Astryx theme tokens** wherever Astryx already owns the role. Order-authored selectors do not create a parallel `--order-color-*` family.
 
-```text
---order-color-canvas
---order-color-surface
---order-color-subtle
---order-color-border
---order-color-text
---order-color-muted
---order-color-accent
---order-color-primary
---order-color-primary-hover
---order-color-on-primary
---order-color-info-bg
---order-color-info-fg
---order-color-success-bg
---order-color-success-fg
---order-color-warning-bg
---order-color-warning-fg
---order-color-danger-bg
---order-color-danger-fg
-```
+Canonical mapping:
 
-No additional semantic color token is introduced in P7 without DESIGN authority demonstrating a genuinely new semantic role.
+| Order semantic meaning | Public Astryx token(s) consumed by Order/foundation |
+|---|---|
+| application canvas | `--color-background-body` |
+| persistent surface | `--color-background-surface` |
+| subtle/secondary surface | `--color-background-muted` |
+| ordinary boundary | `--color-border` / `--color-border-emphasized` according to foundation component contract |
+| primary text | `--color-text-primary` |
+| muted/secondary text | `--color-text-secondary` |
+| current/selected/link/focus accent | `--color-text-accent`, `--color-icon-accent`, `--focus-outline-color` |
+| primary filled action | `--color-accent` + `--color-on-accent` |
+| selected/accent-muted surface | `--color-accent-muted` |
+| information | `--color-info[-muted]`, `--color-on-info[-muted]`, `--color-text-info` |
+| success/ready/complete | `--color-success[-muted]`, `--color-on-success[-muted]`, `--color-text-success` |
+| warning/waiting/stale | `--color-warning[-muted]`, `--color-on-warning[-muted]`, `--color-text-warning` |
+| danger/failed/blocked/destructive | Astryx `error` family: `--color-error[-muted]`, `--color-on-error[-muted]`, `--color-text-error` |
 
-Aliases such as editor background may exist only when an external/specialist API requires a dedicated variable; every alias must resolve directly to one of these semantic roles and may not contain an independent color value.
+Order calls the product semantic role **danger**; the foundation token family is named **error**. This is a deliberate adapter, not two status systems.
 
-### 6.2 Exact light/dark values
+### 6.2 Order brand/base overrides
 
-| Semantic role | Light | Dark | Meaning |
+The fixed Order identity needs a neutral work surface and deep navy / Order-blue accent. The following public Astryx roles are the only color values Order must override directly for the 0.4 Workbench target:
+
+| Public token role | Light | Dark | Order meaning |
 |---|---:|---:|---|
-| canvas | `#FFFFFF` | `#111A29` | application background |
-| surface | `#FFFFFF` | `#111A29` | primary persistent surface |
-| subtle | `#F8FAFC` | `#172233` | secondary/selected-neutral surface |
-| border | `#D9DEE8` | `#344256` | ordinary separation |
-| text | `#0F172A` | `#EDF3FA` | primary text |
-| muted | `#657187` | `#A9B8CD` | secondary/technical text |
-| accent | `#1E3A8A` | `#93B4FF` | current/selected/link/focus identity |
-| primary | `#1E3A8A` | `#385AC1` | primary filled action |
-| primary-hover | `#1D4ED8` | `#4D6ED5` | primary-action hover |
-| on-primary | `#FFFFFF` | `#FFFFFF` | content on primary action |
-| info-bg | `#EFF6FF` | `#203554` | processing/information surface |
-| info-fg | `#1D4ED8` | `#BAD0FF` | processing/information foreground |
-| success-bg | `#D1FAE5` | `#173B31` | ready/success/complete surface |
-| success-fg | `#047857` | `#73E5B1` | success foreground |
-| warning-bg | `#FEF3C7` | `#463923` | waiting/stale/attention surface |
-| warning-fg | `#A16207` | `#FACC77` | warning foreground |
-| danger-bg | `#FEF2F2` | `#44282F` | failed/blocked/destructive surface |
-| danger-fg | `#B91C1C` | `#FFADB0` | danger foreground |
+| `--color-background-body` | `#FFFFFF` | `#111A29` | application canvas |
+| `--color-background-surface` | `#FFFFFF` | `#111A29` | persistent surface |
+| `--color-background-muted` | `#F8FAFC` | `#172233` | subtle/selected-neutral surface |
+| `--color-border` / emphasized neutral boundary mapping | `#D9DEE8` | `#344256` | ordinary structural separation |
+| `--color-text-primary` | `#0F172A` | `#EDF3FA` | primary text |
+| `--color-text-secondary` | `#657187` | `#A9B8CD` | secondary/technical text |
+| `--color-accent` | `#1E3A8A` | `#385AC1` | filled primary action/current emphasis |
+| `--color-on-accent` | `#FFFFFF` | `#FFFFFF` | content on primary fill |
+| `--color-text-accent` / `--color-icon-accent` | `#1E3A8A` | `#93B4FF` | selected/current/link/focus foreground |
+| `--color-accent-muted` | `#EFF6FF` | `#203554` | selected/information-adjacent subtle surface |
 
-### 6.3 Private palette declaration law
+Semantic info/success/warning/error colors otherwise inherit the **pinned built Neutral theme**. They are foundation-owned semantic roles rather than an Order-specific palette. Because Astryx is exact-pinned, those values cannot drift without an explicit dependency upgrade and P4 visual re-audit.
 
-Exact color literals occur only in the initial theme-token block of `ui/src/theme.css`.
+If browser certification proves one inherited status pairing cannot satisfy Order's contrast/visual-hierarchy contract on the Order base surfaces, the correction is made through the corresponding **public Astryx semantic token** in this owner. A feature-level status color is never the remedy.
 
-The preferred implementation declares the exact light/dark role values once as private role palette values, then maps the public semantic tokens to the effective theme. Private palette identifiers are not consumed outside that block.
+### 6.3 Public-token bridge law
 
-A compliant shape is conceptually:
+The Order bridge in `ui/src/theme.css` may override only public token names verified in the pinned Astryx contract. It may not set:
 
-```css
-:root {
-  --order-palette-light-canvas: #ffffff;
-  --order-palette-dark-canvas: #111a29;
-  /* complete exact light/dark role values */
+- private Astryx variables prefixed `--_`;
+- generated/internal class selectors;
+- arbitrary palette stops that bypass semantic tokens;
+- undocumented component custom properties;
+- a hex-derived `--order-color-*` alias family.
 
-  --order-color-canvas: var(--order-palette-light-canvas);
-  /* complete light semantic mapping */
-}
+Exact Order color literals appear only in the root public-token bridge. Production primitive/specialist selectors consume public Astryx semantic tokens.
 
-:root[data-theme="dark"] {
-  --order-color-canvas: var(--order-palette-dark-canvas);
-  /* complete dark semantic mapping */
-}
+Pinned Astryx guidance prefers a generated/built custom theme when an application introduces a full custom Astryx theme or component overrides. Order does **not** add `@astryxdesign/cli` for this remediation because the current design requires only a bounded fixed override of already-public tokens over the already-installed built Neutral theme and no custom Astryx variants/component-theme rules. This is the minimum-change path.
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) {
-    --order-color-canvas: var(--order-palette-dark-canvas);
-    /* complete dark semantic mapping */
-  }
-}
-```
-
-The implementation may combine selectors/mappings more compactly, but:
-
-- each exact light/dark color value has one declaration owner;
-- public selectors consume only `--order-color-*` semantic roles;
-- a hex-derived variable family such as `--order-color-fef3c7` is prohibited;
-- no selector after the token/bridge blocks contains raw hex/rgb/hsl/color-mix semantic styling.
+If P7 discovers that a required Order visual behavior needs an Astryx component override/custom variant, JS-resolved custom theme value, or private foundation target, implementation stops and returns to DESIGN. The compliant next decision is whether to authorize a built custom Order theme/CLI—not to target private internals.
 
 ### 6.4 Semantic role mapping
 
-- current/selected/link/focus -> accent, plus structural/text indication;
+- current/selected/link/focus -> accent plus readable structural/text indication;
 - processing/information -> info;
 - ready/success/complete -> success;
 - waiting/stale/attention -> warning;
-- failure/block/destructive -> danger;
-- historical/secondary/technical -> neutral text/muted/subtle;
-- primary action -> primary/on-primary.
+- failure/block/destructive -> danger/error;
+- historical/secondary/technical -> primary/secondary neutral roles;
+- primary command -> accent/on-accent.
 
 Color never determines workflow meaning alone.
 
 ## 7. Typography system
 
-### 7.1 Canonical families
+Astryx typography tokens are the default owner. Order does not recreate a complete type scale.
+
+### 7.1 Families
+
+The root public foundation families are set to the system stacks required by Order:
 
 ```css
---order-font-sans:
+--font-family-body:
   ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
   "Segoe UI", sans-serif;
 
---order-font-mono:
+--font-family-heading: var(--font-family-body);
+
+--font-family-code:
   ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
   "Liberation Mono", monospace;
 ```
 
-### 7.2 Canonical type tokens
+Order does not load the optional Neutral-theme Figtree font.
 
-| Token | Value | Role |
-|---|---:|---|
-| `--order-font-size-xs` | `0.6875rem` | technical/caption |
-| `--order-font-size-sm` | `0.75rem` | secondary/help/row metadata |
-| `--order-font-size-md` | `0.875rem` | body/control |
-| `--order-font-size-heading` | `1rem` | section/material heading |
-| `--order-font-size-title` | `1.25rem` | application/work-item/screen title |
-| `--order-font-size-result` | `1.5rem` | terminal result only |
-| `--order-font-weight-regular` | `400` | ordinary text |
-| `--order-font-weight-semibold` | `600` | labels/headings/current emphasis |
-| `--order-font-weight-bold` | `700` | terminal/rare strong emphasis |
-| `--order-line-height-body` | `1.5` | prose/body |
-| `--order-line-height-compact` | `1.35` | compact controls/metadata |
+### 7.2 Role mapping
 
-Order selectors use these tokens rather than feature-local `.72rem`, `.78rem`, `.8rem`, `.85rem`, `.9rem`, `.95rem` scales.
+| Order role | Foundation/public token |
+|---|---|
+| secondary/help/row metadata | `--text-supporting-*` / `--font-size-sm` |
+| body/control | `--text-body-*` / `--font-size-base` |
+| ordinary label | `--text-label-*` |
+| screen/work-item title | `--font-size-xl` + semibold |
+| terminal result | `--font-size-2xl` + bold |
+| code/technical identity | `--text-code-*` + `--font-family-code` |
 
-Technical ids/hashes/paths/code use the mono family only in technical/content roles.
+Two compact Order roles are not exact foundation text roles and may remain explicit Order-only tokens:
+
+```css
+--order-font-size-technical-xs: 0.6875rem;
+--order-font-size-section: 1rem;
+```
+
+Those are role tokens, not a second scale. Feature selectors may not invent intermediate `.72rem/.78rem/.85rem/.9rem/.95rem` values.
 
 ## 8. Spacing, density and geometry tokens
 
-### 8.1 Spacing scale
+### 8.1 Spacing
 
-```css
---order-space-05: 0.125rem;
---order-space-1:  0.25rem;
---order-space-2:  0.5rem;
---order-space-3:  0.75rem;
---order-space-4:  1rem;
---order-space-6:  1.5rem;
---order-space-8:  2rem;
+Interior spacing uses Astryx's public 4px-derived spacing scale directly:
+
+```text
+--spacing-0-5 = 0.125rem
+--spacing-1   = 0.25rem
+--spacing-2   = 0.5rem
+--spacing-3   = 0.75rem
+--spacing-4   = 1rem
+--spacing-6   = 1.5rem
+--spacing-8   = 2rem
 ```
 
-Recurring component padding/gap/margin uses only this scale.
+No `--order-space-*` aliases are introduced for one-to-one values.
 
-Layout mechanics may still use semantic percentages, `fr`, `minmax()`, `auto`, `0` and other non-design arithmetic where required by component topology. They may not introduce a second recurring spacing scale.
+The Astryx layout law is binding inside Workbench composition: the container owns region padding, children do not recreate the same inset with margins, tight and generous gaps express grouping, and a row uses one control size. Raw pixel/rem values are reserved for truly structural/Order-specific geometry rather than ordinary interior spacing.
 
-### 8.2 Density/geometry
+### 8.2 Density and Order-specific geometry
+
+Astryx element-size/density props own ordinary controls and collections. Pinned foundation sizes (`--size-element-*`) are used through component `size`/`density` props before CSS.
+
+Order owns only the structural/readability dimensions that the foundation cannot infer:
 
 ```css
---order-control-height-compact: 2rem;
---order-control-height-standard: 2.25rem;
---order-row-height-dense: 2.25rem;
 --order-toolbar-height: 3.25rem;
 --order-identity-height: 3rem;
 --order-context-width: 22rem;
@@ -319,35 +310,36 @@ Layout mechanics may still use semantic percentages, `fr`, `minmax()`, `auto`, `
 --order-review-max-width: 72rem;
 ```
 
-The structural breakpoint contract remains owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: wide `>=1280px`, medium `800-1279px`, narrow `<800px`. Theme/style code may consume those boundaries; it may not invent another structural breakpoint.
+Operational tables/lists choose foundation `compact | balanced | spacious` density from the interaction frequency; they do not invent per-feature row heights. The Workbench target normally uses compact for high-volume operational/event data and balanced for ordinary review/settings collections unless the owning P3 interaction requires otherwise.
+
+The structural breakpoint contract remains owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: wide `>=1280px`, medium `800-1279px`, narrow `<800px`. Foundation components may have their own internal responsive behavior, but that behavior cannot create a second Workbench topology breakpoint.
 
 ## 9. Borders, radii, focus, elevation and motion
 
-Canonical tokens:
+Astryx public tokens own ordinary component radii, focus and motion. Order does not override them merely to create a slightly different number.
 
-```css
---order-border-width: 1px;
---order-radius-control: 0.375rem;
---order-radius-internal: 0.25rem;
---order-radius-pill: 999px;
+Canonical usage:
 
---order-focus-width: 2px;
---order-focus-offset: 2px;
-
---order-motion-fast: 120ms;
---order-motion-standard: 180ms;
+```text
+component/internal radius -> --radius-inner / --radius-element
+container/dialog radius   -> --radius-container
+pill/segmented semantics  -> --radius-full
+focus                     -> --focus-outline-width/style/color/offset
+ordinary transition       -> --duration-fast / foundation component motion
 ```
 
 Rules:
 
-- persistent region separation uses the border token plus semantic border color;
+- persistent region separation uses the foundation border role; Workbench structural divisions remain 1px where the owning composition requires a line;
 - pill radius is reserved for actual pill/segmented/status semantics, not arbitrary feature chrome;
 - persistent Workbench surfaces do not use decorative box shadows;
-- one foundation-owned overlay elevation is allowed for drawers/dialogs;
-- focus uses accent and remains visibly distinct from selected/current state;
-- hover may change semantic surface/foreground but cannot move geometry;
-- reduced-motion disables non-essential transitions;
+- temporary overlays use the foundation-owned elevation behavior; feature CSS does not recreate it;
+- focus remains visibly distinct from selected/current state;
+- hover/press/loading/disabled behavior is owned by the foundation component where one exists;
+- reduced-motion behavior is inherited from Astryx/components and any Order-only motion obeys `prefers-reduced-motion`;
 - normal text targets at least 4.5:1 contrast, large text 3:1, and meaningful non-text/focus boundaries 3:1.
+
+A future product requirement for a different radius/focus/motion character is a theme-design change and must be expressed through **public** Astryx tokens/theme configuration rather than private component variables.
 
 ## 10. Component visual parity contract
 
@@ -422,9 +414,9 @@ No independent CodeMirror light/dark palette is allowed.
 
 ### 12.4 Astryx/foundation leaves
 
-Astryx leaves inherit the root `Theme`. Where Astryx/Tailwind exposes foundation CSS variables that must be overridden to achieve Order parity, those overrides live only in the §13 foundation bridge and are mapped from Order semantic tokens.
+Astryx leaves inherit the root `Theme`. Order consumes supported component props/variants first and public Astryx theme tokens second. The §13 bridge overrides only the audited public tokens required for Order brand/base parity.
 
-Feature selectors do not target foundation internals to create local variants.
+Feature selectors do not target foundation internals, private `--_` variables or generated/internal class names to create local variants.
 
 ## 13. Stylesheet and foundation-bridge governance
 
@@ -448,37 +440,46 @@ A new Order-authored CSS file requires DESIGN authority. CSS modules or feature 
 
 The target stylesheet is ordered:
 
-1. **private exact light/dark role palette**;
-2. **public semantic theme tokens and effective-theme mapping**;
-3. **typography/spacing/geometry/focus/motion tokens**;
-4. **bounded Astryx/Tailwind foundation bridge**;
-5. **closed Workbench primitive selectors**;
-6. **specialist content/editor selectors**;
-7. **responsive overrides at canonical breakpoints only**.
+1. **root public-Astryx-token bridge** containing only the exact Order brand/base overrides in §6.2 plus the system/light/dark selector mapping;
+2. **Order-only structural/readability tokens** from §§7-8 that have no equivalent foundation role;
+3. **closed Workbench primitive selectors** consuming component props/public Astryx tokens/Order-only tokens;
+4. **specialist content/editor selectors** consuming the same semantic roles;
+5. **responsive overrides at canonical Workbench breakpoints only**.
+
+There is no second private Order color palette layer and no generic foundation-token alias layer.
 
 A feature-by-feature chronological append log is prohibited.
 
 ### 13.3 Raw-value containment
 
-Outside sections 1-4:
+Outside the root bridge:
 
 - no raw hex/rgb/hsl/color-mix semantic value;
-- no foundation palette variable such as Tailwind `--color-*`;
+- no Tailwind/private foundation palette stop;
+- no private Astryx variable prefixed `--_`;
+- no generated/internal Astryx class selector;
 - no hex-derived Order variable;
+- no one-to-one alias of a public Astryx token;
 - no feature-local font-size scale;
-- no feature-local recurring spacing/radius/control-height value;
+- no feature-local recurring spacing/radius/control-height value where a foundation prop/token exists;
 - no feature-owned box shadow;
 - no feature structural breakpoint.
 
-Selectors use semantic tokens.
+Selectors use public Astryx semantic tokens plus the small §7-§8 Order-only token set.
 
 ### 13.4 Foundation bridge
 
-The foundation bridge is the only place Order may assign Astryx/Tailwind theme variables.
+The root bridge is the only place Order may override Astryx theme variables. It assigns the exact §6.2 values directly to **verified public Astryx semantic tokens**.
 
-Every bridge assignment must resolve from an Order semantic token or the exact private theme-role palette. It is an adapter, not another theme.
+It is deliberately not a custom component theme:
 
-Architecture fitness keeps an explicit allowlist of bridge variable names. A newly required foundation variable is a theme-design change when it introduces new semantic meaning; a direct one-to-one bridge for an already-owned role is an implementation detail.
+- no private `--_` token;
+- no component-internal selector;
+- no custom Astryx prop variant;
+- no JS theme-value lookup requirement;
+- no duplicate Order color-token namespace.
+
+Architecture fitness keeps an explicit allowlist of the public token names Order overrides. A newly required public token is a theme-design change when it introduces new semantic meaning. A required component override/custom variant returns to DESIGN for an explicit built-theme/CLI decision.
 
 ### 13.5 Selector ownership
 
@@ -514,16 +515,16 @@ P7 therefore replaces these mechanisms rather than preserving them behind aliase
 
 The implementation migration must:
 
-1. establish the exact semantic token blocks in §§6-9;
-2. establish the bounded foundation bridge;
-3. migrate completed primitives to token-only selectors;
-4. migrate specialist Markdown/CodeMirror/evidence rendering;
+1. establish the §6.2 public-Astryx-token bridge over the already-installed built Neutral theme;
+2. establish only the Order-specific typography/structural/readability tokens retained by §§7-8;
+3. migrate primitives to pinned Astryx props/variants/density/layout first, then public token styling only for residual Order semantics;
+4. migrate specialist Markdown/CodeMirror/evidence rendering onto the same public semantic roles;
 5. migrate every renderer in the component-architecture coverage matrix;
-6. remove legacy raw palette variables and raw selector colors;
-7. remove ad-hoc type/spacing/radius/control values that duplicate canonical tokens;
-8. remove duplicate/dead/obsolete visual selectors;
+6. remove legacy raw palette variables, raw selector colors and one-to-one `--order-color-*` aliases;
+7. remove ad-hoc type/spacing/radius/control values that duplicate foundation props/public tokens;
+8. remove duplicate/dead/obsolete visual selectors and any targeting of Astryx internals;
 9. reduce `styles.css` to its §13.1 ownership;
-10. prove light/dark/system parity on the real SPA.
+10. prove light/dark/system and cross-component parity on the real SPA.
 
 A compatibility alias may exist only transiently inside one implementation commit while migrating call sites and must be absent from the final candidate. A permanent legacy token alias is not an accepted completion state.
 
@@ -533,20 +534,21 @@ A compatibility alias may exist only transiently inside one implementation commi
 
 Mechanical tests prove:
 
-- every public semantic color token exists;
-- every exact light/dark role value matches §6.2;
-- every typography/spacing/geometry/focus/motion token exists with the exact value in §§7-9;
-- every semantic role has both light/dark effective values;
-- no duplicate public semantic token owner exists.
+- every §6.2 Order override targets an audited public Astryx token and has the exact Light/Dark value;
+- inherited info/success/warning/error roles resolve from the pinned built Neutral theme in both modes;
+- every retained Order-only token in §§7-8 exists with the exact value and does not duplicate a public foundation token;
+- no private Astryx token/internal selector is referenced;
+- no duplicate semantic token owner exists.
 
 ### 15.2 Raw-value and selector containment
 
 Architecture fitness proves:
 
-- raw semantic color literals occur only in the allowed token/bridge blocks;
-- `--order-color-<hex>` variables are absent;
-- Order selectors outside the token/bridge blocks do not consume foundation `--color-*` variables;
-- non-tokenized feature font-size/recurring spacing/radius/control-height/shadow values are absent;
+- raw semantic color literals occur only in the root public-token bridge;
+- `--order-color-<hex>` and redundant `--order-color-*` alias families are absent;
+- Order primitive/specialist selectors consume public Astryx semantic tokens directly where the role is foundation-owned;
+- private Astryx `--_` variables, internal/generated selectors and undocumented component custom properties are absent;
+- non-tokenized feature font-size/recurring spacing/radius/control-height/shadow values are absent where a foundation prop/token owns the mechanic;
 - structural media queries use only the component architecture's canonical breakpoints;
 - `styles.css` contains no Order feature/primitive selector.
 
@@ -604,9 +606,9 @@ Automated/browser checks cover the canonical token pairings used by ordinary tex
 
 **Realizes:** `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
 
-**Required behavior:** `ui/src/theme.css` owns one closed semantic token system with the exact light/dark color, typography, spacing, geometry, focus and motion roles in §§6-9; production selectors consume those roles rather than raw/private palette values.
+**Required behavior:** `ui/src/theme.css` implements the §6-§9 foundation-first token contract: exact Order brand/base values override only audited public Astryx tokens, foundation-owned status/spacing/radius/focus/motion roles remain canonical, and `--order-*` tokens exist only for genuinely Order-specific roles/geometry.
 
-**Acceptance:** token-completeness/containment fitness passes and no feature/specialist renderer defines another palette/type/spacing/control system.
+**Acceptance:** token-completeness/containment fitness passes; no redundant Order color/palette namespace, private Astryx token/internal selector or feature/specialist palette/type/spacing/control system exists.
 
 ### GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY
 
@@ -628,9 +630,9 @@ Automated/browser checks cover the canonical token pairings used by ordinary tex
 
 **Realizes:** `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
 
-**Required behavior:** Order-authored CSS obeys the §13 ownership model and canonical `theme.css` section order; raw values/foundation bridge variables are contained, feature-era competing style systems are deleted, and no new stylesheet bypasses the canonical owner.
+**Required behavior:** Order-authored CSS obeys §13 and the pinned Astryx public styling contract: component props/layout/density own mechanics first, public theme tokens own shared visual values second, Order CSS owns only residual semantic/structural presentation, and feature-era competing systems are deleted.
 
-**Acceptance:** permanent architecture fitness proves one token/presentation stylesheet, token-only production selectors outside the bounded bridge, canonical breakpoints, no legacy hex-derived palette family and no feature-local component/theme system.
+**Acceptance:** permanent architecture fitness proves one presentation stylesheet, a bounded public-token bridge, no private/internal Astryx dependencies, no redundant legacy/Order palette aliases, canonical breakpoints and no feature-local component/theme system.
 
 ## 17. Non-goals
 
@@ -641,7 +643,7 @@ This design does not authorize:
 - per-project theming;
 - per-feature dark-mode variants;
 - a CSS-in-JS theme layer;
-- a design-token build/generator package;
+- `@astryxdesign/cli` or another design-token build/generator package solely for the current bounded public-token bridge; if component overrides/custom variants later require a built Order theme, that is a new P4/dependency decision;
 - another global browser state store;
 - a visual regression platform dependency as a prerequisite for correctness;
 - keeping legacy token families for compatibility;
