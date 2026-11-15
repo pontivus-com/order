@@ -756,35 +756,39 @@ describe("daemon control plane", () => {
       }
       console.log(JSON.stringify({ malformed, absent, conflict, unexpected, unexpectedSchema }));
     `) as {
-      malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      absent: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      absent: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
     };
 
     expect(output.malformed).toMatchObject({
       status: 400,
       code: "INVALID_REQUEST",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.absent).toEqual({
       status: 404,
       code: "NOT_FOUND",
       message: "WorkItem does not exist",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.conflict).toEqual({
       status: 409,
       code: "CURRENT_STATE_CONFLICT",
       message: "WorkItem is not awaiting sign-off",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.unexpected).toEqual({
       status: 500,
       code: "INTERNAL_ERROR",
       message: "Internal daemon error",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.unexpected.message).not.toContain("secret internal detail");
     expect(output.unexpectedSchema).toEqual({
@@ -792,6 +796,7 @@ describe("daemon control plane", () => {
       code: "INTERNAL_ERROR",
       message: "Internal daemon error",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
   });
 
@@ -846,6 +851,7 @@ describe("daemon control plane", () => {
           code: string;
           detail: string;
         };
+        staleAuthorityOwner: null;
       };
     };
 
@@ -858,6 +864,7 @@ describe("daemon control plane", () => {
         workItemId: output.created.id,
         code: "MISSING_SOURCE",
       },
+      staleAuthorityOwner: null,
     });
     expect(output.classified.message).toBe(output.classified.sourceDiagnostic.detail);
   });
@@ -2192,12 +2199,14 @@ describe("daemon control plane", () => {
       code: "INVALID_REQUEST",
       message: "request body must contain valid JSON",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.absentStatus).toBe(404);
     expect(output.absentBody).toEqual({
       code: "NOT_FOUND",
       message: "WorkItem does not exist",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.missingOrigin).toBe(403);
     expect(output.wrongOrigin).toBe(403);
@@ -2666,11 +2675,14 @@ describe("daemon control plane", () => {
           repositoryRoot + "/docs/plan.md",
           "utf8",
         );
+        const serverForRecovery = await import("./src/daemon/server.ts");
         let error = null;
+        let classified = null;
         try {
           await coord.computeSignoffPackage(runtime, work);
         } catch (caught) {
           error = caught instanceof Error ? caught.message : String(caught);
+          classified = serverForRecovery.classifyHttpFailure(caught);
         }
         const recovered = coord.getWorkItem(runtime, work);
         const afterArtifactCount = coord.listArtifacts(runtime, work).length;
@@ -2678,32 +2690,83 @@ describe("daemon control plane", () => {
           repositoryRoot + "/docs/plan.md",
           "utf8",
         );
+        let wrongOwnerError = null;
+        try {
+          await coord.reconcileWorkItemAuthority(runtime, work, "DESIGN");
+        } catch (caught) {
+          wrongOwnerError = caught instanceof Error ? caught.message : String(caught);
+        }
+        const afterWrongOwner = coord.getWorkItem(runtime, work);
+        const reconciled = await coord.reconcileWorkItemAuthority(runtime, work, "PLAN");
+        const finalArtifactCount = coord.listArtifacts(runtime, work).length;
+        const finalBytes = fsForRecovery.readFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "utf8",
+        );
         console.log(JSON.stringify({
           error,
+          classified,
           stage: recovered.stage,
           status: recovered.status,
           projectionUnchanged:
             JSON.stringify(recovered) === JSON.stringify(beforeWorkItem),
           artifactCountUnchanged: afterArtifactCount === beforeArtifactCount,
           bytesUnchanged: afterBytes === beforeBytes,
+          wrongOwnerError,
+          wrongOwnerStateUnchanged:
+            JSON.stringify(afterWrongOwner) === JSON.stringify(recovered),
+          reconciled: {
+            stage: reconciled.stage,
+            status: reconciled.status,
+            outcome: reconciled.outcome,
+          },
+          recoveryArtifactCountUnchanged: finalArtifactCount === beforeArtifactCount,
+          recoveryBytesUnchanged: finalBytes === beforeBytes,
         }));
         database.close();
         process.exit(0);
       `,
     )) as {
       error: string | null;
+      classified: {
+        status: number;
+        code: string;
+        message: string;
+        sourceDiagnostic: null;
+        staleAuthorityOwner: string | null;
+      } | null;
       stage: string;
       status: string;
       projectionUnchanged: boolean;
       artifactCountUnchanged: boolean;
       bytesUnchanged: boolean;
+      wrongOwnerError: string | null;
+      wrongOwnerStateUnchanged: boolean;
+      reconciled: { stage: string; status: string; outcome: string | null };
+      recoveryArtifactCountUnchanged: boolean;
+      recoveryBytesUnchanged: boolean;
     };
 
     expect(output.error).toMatch(/missing or stale: PLAN/);
+    expect(output.classified).toMatchObject({
+      status: 409,
+      code: "STALE_AUTHORITY",
+      sourceDiagnostic: null,
+      staleAuthorityOwner: "PLAN",
+    });
     expect(output).toMatchObject({ stage: "AWAITING_SIGNOFF", status: "ACTIVE" });
     expect(output.projectionUnchanged).toBe(true);
     expect(output.artifactCountUnchanged).toBe(true);
     expect(output.bytesUnchanged).toBe(true);
+    expect(output.wrongOwnerError).toMatch(/owner changed/);
+    expect(output.wrongOwnerStateUnchanged).toBe(true);
+    expect(output.reconciled).toEqual({
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(output.recoveryArtifactCountUnchanged).toBe(true);
+    expect(output.recoveryBytesUnchanged).toBe(true);
   });
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
