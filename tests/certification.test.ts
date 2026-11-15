@@ -485,6 +485,14 @@ describe("Order cross-boundary certification", () => {
       'selectedTask?.state==="BLOCKED"',
     );
 
+    const coordinator = read("src/daemon/coordinator.ts");
+    const cancelPolicy = coordinator.slice(
+      coordinator.indexOf("const cancelRunUnlocked"),
+      coordinator.indexOf("export const cancelRun"),
+    );
+    expect(cancelPolicy).toContain("Run stopped being cancellable before Cancel commit");
+    expect(cancelPolicy).not.toContain("return current");
+
     const runtime = read("src/daemon/runtime.ts");
     expect(runtime).toContain("operatorMutations: new Set()");
     expect(runtime).toContain("withWorkItemOperatorMutation");
