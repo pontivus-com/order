@@ -84,6 +84,7 @@ import {
   nextAttempt,
   persistProviderEvents,
   recordProviderDiagnostics,
+  validatePayloadEvidence,
   renderArtifacts,
   stopActiveProvider,
   updateRun,
@@ -374,6 +375,9 @@ const persistAndReactStageBatch = async (
     listRunEvents(runtime, currentRun.id),
     payloads,
   );
+  for (const payload of payloads) {
+    validatePayloadEvidence(runtime, currentRun.id, payload);
+  }
 
   const completion = payloads.find(
     (payload): payload is Extract<
