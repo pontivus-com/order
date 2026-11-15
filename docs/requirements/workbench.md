@@ -4,7 +4,7 @@
 **Canonical concern ID:** `GW-DOC-WORKBENCH-UX`  
 **Versioned concern ID:** `GW-DOC-WORKBENCH-UX-V2`  
 **Pyramid layer:** P3 functional requirements  
-**Scope:** WorkItem workflow interaction, state presentation, operator messaging, information hierarchy, spatial behavior, recovery behavior and responsive workbench behavior.
+**Scope:** WorkItem workflow interaction, state presentation, operator messaging, information hierarchy, spatial behavior, recovery behavior, responsive workbench behavior, unified component presentation and theme behavior.
 
 ## 1. Purpose
 
@@ -620,6 +620,49 @@ Light, dark and system theme preferences preserve the same information hierarchy
 Keyboard focus is always visibly distinguishable from selection/current state. Reduced-motion preference is respected; motion is functional and brief rather than decorative.
 
 The same component/service retains semantic identity across responsive classes. Responsive recomposition may change representation but not styling vocabulary, action priority or state meaning.
+
+### 11.12 Unified component presentation
+
+The Workbench has one component design language across the complete application, not one style per feature.
+
+When two controls/materials have the same semantic role, they have the same recognizable presentation regardless of whether they appear in Queue, Create, Settings, Source/Document, Dialogue, Review, Implementation, Evidence, Result or Context.
+
+This applies to at least:
+
+- primary / secondary / ghost / destructive actions;
+- fields, labels, help, validation and disabled-state explanation;
+- current/selected/reached/unreached navigation state;
+- neutral/info/success/warning/danger status;
+- inline notices and blocking feedback;
+- tables/resource rows and selection;
+- section/material headings;
+- disclosures and technical detail;
+- confirmations/task panels/temporary overlays;
+- Markdown, code/evidence and exact-source editing surfaces.
+
+Feature identity comes from content and workflow context, not from locally invented chrome, colors, radii, type sizes, spacing or control treatments.
+
+A component may have a different structural composition because its interaction class differs. It may not acquire a different visual language merely because it belongs to another feature.
+
+### 11.13 Global theme behavior
+
+Theme preference is application-global and has exactly three operator choices:
+
+- **System** — follows the browser/operating-system color-scheme preference;
+- **Light** — uses the canonical light theme;
+- **Dark** — uses the canonical dark theme.
+
+Changing theme:
+
+- applies to the complete rendered application, including foundation components, Order primitives, overlays, Markdown, code/evidence and source editor;
+- does not change workflow state, selected material, dirty editor buffer, navigation, component hierarchy or geometry;
+- does not require a page reload;
+- preserves semantic meaning: current remains current, warning remains warning, danger remains danger, and action priority does not change;
+- never creates a feature-local theme island.
+
+The selected Light/Dark preference may be remembered as browser-local presentation preference. System is the default when no explicit preference is available. Failure to persist the preference does not change the live selected theme or any workflow state.
+
+Every semantic role required to operate the Workbench must remain readable and distinguishable in both canonical light and dark themes; color alone is never the only carrier of meaning.
 
 ## 12. Information hierarchy
 
@@ -1456,6 +1499,18 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Acceptance:** the same canonical workflow facts always produce the same reach/current marker for every rail cell; historical selection cannot create a false current marker, and no feature supplies an independent rail status.
 
+### GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION
+
+**Required behavior:** equivalent semantic UI roles use the same component presentation language everywhere in the application under §11.12.
+
+**Acceptance:** representative primary/secondary/destructive actions, fields, statuses, notices, operational rows, headings, disclosures and overlays are recognizably the same component family across Queue, Create, Settings and WorkItem workflow services; feature-local visual variants cannot redefine an already-owned role.
+
+### GW-FR-235-GLOBAL-THEME-PARITY
+
+**Required behavior:** System/Light/Dark is one application-global presentation preference under §11.13 and every rendered component/specialist surface preserves the same semantic hierarchy in each effective theme.
+
+**Acceptance:** theme switching changes only presentation tokens/theme rendering, requires no reload, preserves workflow/selection/dirty state, produces no local theme island, and all workflow-significant states remain readable/distinguishable in both light and dark.
+
 ## 23. Required certification scenarios
 
 At minimum, downstream implementation must prove these scenarios end to end:
@@ -1492,6 +1547,10 @@ At minimum, downstream implementation must prove these scenarios end to end:
 30. Every stage in every forward/backward lifecycle fixture produces a deterministic rail reach state, and the current stage produces exactly one READY/PROCESSING/ACTION_REQUIRED/BLOCKED/STALE/COMPLETE marker.
 31. A RunEvent/WorkItem/task observation that has not yet converged produces CONVERGING/PROCESSING presentation with mutation controls suppressed, then resolves without inventing the missing transition locally.
 32. Execution fixtures deterministically identify the current task owner and durable validation boundary independently from historical task/Run selection.
+33. Primary/secondary/ghost/destructive actions, fields, status/notices, operational rows, headings, disclosures and overlays render with the same semantic component language in Queue, Create, Settings and representative WorkItem workflow services.
+34. System/Light/Dark switching updates the complete application—including overlays, Markdown, code/evidence and source editor—without reload or loss of selected WorkItem/material, dirty buffer, focusable task context or workflow state.
+35. Light and dark render every neutral/current/selected/info/success/warning/danger/focus semantic role distinctly using the same meaning; no feature or specialist renderer exposes a conflicting local palette.
+36. System preference follows effective browser/OS color scheme when no explicit Light/Dark preference exists; explicit Light/Dark remains stable until changed, and preference-storage failure does not affect live theme behavior.
 
 ## 24. Downstream technical-design obligations
 
@@ -1514,7 +1573,9 @@ The technical investigation must determine, without changing the behavior above:
 - how layout stability is enforced through the local Foundation/Astryx boundary;
 - the complete renderer-to-primitive/approved-leaf coverage matrix for every production UI renderer;
 - the canonical semantic design-token contract for color, typography, spacing/density, borders/radii, focus, status and theme parity;
-- how permanent state-transition, visual-language and geometry fitness tests are expressed.
+- the one root theme-preference/effective-theme owner, foundation-theme bridge and stylesheet/token governance boundary;
+- how component parity and specialist-renderer theme coverage are proven across System/Light/Dark;
+- how permanent state-transition, visual-language, theming and geometry fitness tests are expressed.
 
 The binding P4/P6 realization must include a transition-coverage proof mapping every functional transition in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` to one pure policy decision and one authorized imperative-shell mutation path. `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` owns that realization. No implementation task may invent those semantics locally.
 
