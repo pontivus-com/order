@@ -2157,6 +2157,24 @@ describe("daemon control plane", () => {
           { headers: { cookie } },
         );
         const absentBody = await absent.json();
+        const invalidAuthorityReconcile = await fetch(
+          origin + "/api/work-items/work_00000000-0000-4000-8000-000000000000/reconcile-authority",
+          {
+            method: "POST",
+            headers: { cookie, origin, "content-type": "application/json" },
+            body: JSON.stringify({ expectedOwner: "EXECUTION" }),
+          },
+        );
+        const invalidAuthorityReconcileBody = await invalidAuthorityReconcile.json();
+        const absentAuthorityReconcile = await fetch(
+          origin + "/api/work-items/work_00000000-0000-4000-8000-000000000000/reconcile-authority",
+          {
+            method: "POST",
+            headers: { cookie, origin, "content-type": "application/json" },
+            body: JSON.stringify({ expectedOwner: "PLAN" }),
+          },
+        );
+        const absentAuthorityReconcileBody = await absentAuthorityReconcile.json();
         const missingOrigin = await fetch(origin + "/api/tick", {
           method: "POST",
           headers: { cookie, "content-type": "application/json" },
@@ -2199,6 +2217,10 @@ describe("daemon control plane", () => {
           malformedBody,
           absentStatus: absent.status,
           absentBody,
+          invalidAuthorityReconcileStatus: invalidAuthorityReconcile.status,
+          invalidAuthorityReconcileBody,
+          absentAuthorityReconcileStatus: absentAuthorityReconcile.status,
+          absentAuthorityReconcileBody,
           missingOrigin: missingOrigin.status,
           wrongOrigin: wrongOrigin.status,
           tickStatus: tick.status,
@@ -2233,6 +2255,19 @@ describe("daemon control plane", () => {
     });
     expect(output.absentStatus).toBe(404);
     expect(output.absentBody).toEqual({
+      code: "NOT_FOUND",
+      message: "WorkItem does not exist",
+      sourceDiagnostic: null,
+      staleAuthorityOwner: null,
+    });
+    expect(output.invalidAuthorityReconcileStatus).toBe(400);
+    expect(output.invalidAuthorityReconcileBody).toMatchObject({
+      code: "INVALID_REQUEST",
+      sourceDiagnostic: null,
+      staleAuthorityOwner: null,
+    });
+    expect(output.absentAuthorityReconcileStatus).toBe(404);
+    expect(output.absentAuthorityReconcileBody).toEqual({
       code: "NOT_FOUND",
       message: "WorkItem does not exist",
       sourceDiagnostic: null,
