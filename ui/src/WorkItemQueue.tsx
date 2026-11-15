@@ -34,6 +34,12 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemsIncludingArchived }),
       ]);
     },
+    onError: async (_error, workItem) => {
+      await Promise.all([
+        invalidateWorkbenchMutation(queryClient, workItem.id),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemsIncludingArchived }),
+      ]);
+    },
   });
   const visibleItems = showArchived ? archivedQuery.data ?? workItems : workItems;
 
