@@ -1,24 +1,19 @@
-import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
-import { ActivityComposer } from "./ActivityComposer.tsx";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
-import { proposalDispositionFor, runIsActive, unresolvedHumanInput, type ProposalSelection } from "./workbench-presentation.ts";
+import { proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
 
 export const ProposalReview = ({ workItem, selection, mutationsDisabled = false, onBack }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; mutationsDisabled?: boolean; onBack: () => void }>) => {
   const queryClient = useQueryClient();
-  const runsQuery = useQuery({ queryKey: workbenchQueryKeys.runs(workItem.id), queryFn: () => api.listRuns(workItem.id), refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false });
   const eventsQuery = useQuery({ queryKey: workbenchQueryKeys.runEvents(selection.runId), queryFn: () => api.listRunEvents(selection.runId, 0), refetchInterval: 1000 });
   const events = eventsQuery.data ?? [];
-  const pending = useMemo(() => unresolvedHumanInput(events), [events]);
-  const run = runsQuery.data?.find((candidate) => candidate.id === selection.runId) ?? null;
   const proposal = events.find((event) => event.id === selection.eventId);
   const proposalPayload = proposal?.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposal.event : null;
   const disposition = proposalPayload ? proposalDispositionFor(events, selection.eventId) : null;
@@ -54,7 +49,6 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
             <h3>Proposed document diff</h3>
           <CodeBlock code={proposalPayload.unifiedDiff} language="diff" isDiff isWrapped hasCopyButton container="section" width="100%" />
           </section>
-          {run && run.role === "STAGE" && runIsActive(run) ? <ActivityComposer run={run} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={invalidate} /> : null}
           {adoptionRequested && disposition === null ? <WorkbenchNotice tone="warning" title="Adoption in progress" description="The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded." /> : null}
           {decision.error ? <WorkbenchNotice tone="danger" title="Proposal decision failed" description={decision.error instanceof Error ? decision.error.message : String(decision.error)} /> : null}
         </>}
