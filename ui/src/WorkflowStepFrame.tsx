@@ -1,6 +1,4 @@
 import type { ReactNode } from "react";
-import type { BadgeVariant } from "@astryxdesign/core/Badge";
-import type { BannerStatus } from "@astryxdesign/core/Banner";
 
 import {
   WorkflowMaterialSelector,
@@ -13,8 +11,20 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus, type WorkbenchStatusTone } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 
-export type WorkflowStepIndexItem = WorkflowMaterialSelectorGroup["items"][number];
-export type WorkflowStepIndexGroup = WorkflowMaterialSelectorGroup;
+export type WorkflowStatusVariant =
+  | "neutral"
+  | "info"
+  | "success"
+  | "warning"
+  | "error";
+export type WorkflowNoticeStatus = "info" | "success" | "warning" | "error";
+
+export type WorkflowStepIndexItem = WorkflowMaterialSelectorGroup["items"][number] & Readonly<{
+  statusVariant?: WorkflowStatusVariant;
+}>;
+export type WorkflowStepIndexGroup = Omit<WorkflowMaterialSelectorGroup, "items"> & Readonly<{
+  items: readonly WorkflowStepIndexItem[];
+}>;
 
 export const WorkflowStepIndex = ({ groups, label = "Workflow material" }: Readonly<{
   groups: readonly WorkflowStepIndexGroup[]; label?: string;
@@ -32,8 +42,8 @@ export const WorkflowStepSummary = ({
   label, purpose, stateLabel, stateVariant = "neutral", statusLabel,
   statusVariant = "neutral", blocker, action,
 }: Readonly<{
-  label: string; purpose: string; stateLabel: string; stateVariant?: BadgeVariant;
-  statusLabel?: string; statusVariant?: BadgeVariant; blocker?: WorkflowStepSummaryBlocker | null; action?: ReactNode;
+  label: string; purpose: string; stateLabel: string; stateVariant?: WorkflowStatusVariant;
+  statusLabel?: string; statusVariant?: WorkflowStatusVariant; blocker?: WorkflowStepSummaryBlocker | null; action?: ReactNode;
 }>) => (
   <WorkbenchAttention
     title={label}
