@@ -15,6 +15,7 @@ Implementation evidence exposed one producer/consumer gap in the previously clos
 The owning P4/P6 authorities have now been corrected before further implementation:
 
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` adds the explicit `RECONCILE_AUTHORITY(owner)` lifecycle cause and owner-correct Approval reconciliation command;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` adds the corresponding canonical browser mutation/convergence invalidation path and keeps it distinct from source reconciliation;
 - `GW-DOC-CANONICAL-CONTRACTS-V1` adds canonical `UpstreamReturnStage`, `ReconcileWorkItemAuthority`, `OrderHttpError.staleAuthorityOwner`, `STALE_AUTHORITY` failure semantics and `POST /api/work-items/:workItemId/reconcile-authority`;
 - the correction extends the implementation surface only as required to realize that contract: `src/core/contracts.ts` and `src/daemon/server.ts` are now authorized in addition to the previously signed files;
 - no DTO, persisted currentness field, parallel workflow state, message parser or generic reconciliation service is introduced.
