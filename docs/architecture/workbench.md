@@ -203,12 +203,13 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Action | Required current condition | State effect |
 |---|---|---|
 | Start Research | IDEA / ACTIVE; source valid/current enough; no active Run; observation coherent | explicit IDEA -> R1 + new STAGE Run / PROCESSING |
-| Start/Retry current pre-signoff stage | current R1/R2/DESIGN/PLAN/R3 / ACTIVE; no active Run; no reconciliation/context blocker | new same-stage STAGE Run / PROCESSING |
+| Start current pre-signoff stage | current R1/R2/DESIGN/PLAN/R3 / ACTIVE; no prior unresolved failed/blocking recovery owner; no active Run; no reconciliation/context blocker | new same-stage STAGE Run / PROCESSING |
+| Retry failed current-stage Run | current stage / ACTIVE; latest current-owner Run is retryable failure; no active Run | new same-stage STAGE Run / PROCESSING; generic Start suppressed |
 | Send free-form continuation | current STAGE Run interaction OPEN; no pending required input; request id null | append input, same stage / PROCESSING |
 | Answer required input | current interaction REQUIRED_INPUT(Q); exact Q; unanswered | append bound input, same stage / PROCESSING |
 | Cancel STAGE Run | current Run active in PROCESSING/OPEN/REQUIRED_INPUT | terminal CANCELLED Run; same WorkItem stage |
-| Adopt lifecycle proposal | current stage Run OPEN; exactly one pending proposal; role/path match current stage | same WorkItem stage; authority/conformance changes, context refresh required |
-| Reject lifecycle proposal | same current/pending/open ownership as adoption; no adoption request persisted | same WorkItem/Run interaction, proposal closed |
+| Adopt lifecycle proposal | current stage Run OPEN; exactly one pending proposal; role/path match current stage | same WorkItem stage; authority/conformance changes, context refresh required; free-form continuation suppressed until disposition |
+| Reject lifecycle proposal | same current/pending/open ownership as adoption; no adoption request persisted | same WorkItem/Run interaction, proposal closed; free-form continuation becomes eligible again |
 | Save Work request/source | pre-signoff/AWAITING_SIGNOFF; no active Run; expected hash current | IDEA stays IDEA; progressed work returns R1 |
 | Save lifecycle document | editable already-reached owner; no active Run; expected hash current | return/remain at artifact owner |
 | Resume pre-signoff blocker | same stage / BLOCKED; blocker proven resolved; no active Run | same stage / ACTIVE |
@@ -618,7 +619,7 @@ For the current step:
 7. current document;
 8. historical explicit selection.
 
-Historical selection can remain visible, but a compact current-attention surface remains visible and navigates directly to its owner.
+Historical selection can remain visible, but a compact current-attention surface remains visible and navigates directly to its owner. Only the highest-precedence current mutation action is rendered: failed/recovery ownership suppresses generic Start, and pending proposal disposition suppresses free-form continuation.
 
 ### 9.2 Readiness
 
@@ -741,7 +742,7 @@ Workflow mutations use one shared WorkItem-observation invalidation/refetch func
 
 Explicit historical selection is presentation state only and is never used as the source of current blocker/action ownership.
 
-`ActivityWorkspace.tsx` / `ActivityComposer.tsx` use the shared interaction derivation; Send is admitted only for OPEN or exact REQUIRED_INPUT, proposal/input/control states cannot coexist contrary to the P3 turn grammar, and mutation error ownership is singular.
+`ActivityWorkspace.tsx` / `ActivityComposer.tsx` use the shared interaction derivation; Send is admitted only for OPEN or exact REQUIRED_INPUT, is suppressed while a lifecycle proposal awaits disposition, proposal/input/control states cannot coexist contrary to the P3 turn grammar, and mutation error ownership is singular.
 
 ### Required same-layer UI decomposition
 
