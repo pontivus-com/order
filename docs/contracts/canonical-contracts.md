@@ -932,6 +932,8 @@ Persistence is implemented as shell functions, not repository/service objects.
 
 ## 17. Transaction boundaries
 
+The daemon additionally owns one process-local per-WorkItem operator-mutation guard. It is ephemeral synchronization only and has no SQLite/HTTP/domain representation. Operator mutations for the same WorkItem are rejected while that guard is held; they are not queued. The guard spans asynchronous inspection and any filesystem effect through final persistence so commands such as Start and Save cannot interleave after both passed an earlier precheck. Background provider execution is not held behind the guard for the duration of an OpenCode turn; provider-finalization versus Cancel is resolved by the final Run/WorkItem transactional recheck.
+
 These are one SQLite transaction:
 
 - register/reconcile a WorkItem projection after the canonical Markdown source already exists and has been read/hash/parse verified;
@@ -1075,7 +1077,7 @@ body {}
 Cancelling a pre-signoff STAGE Run terminalizes that Run without changing the owning lifecycle stage. Cancelling a post-signoff Run interrupts the provider/active process group, marks the Run `CANCELLED`, abandons/retains its workspace as evidence, and atomically sets its ExecutionTask and WorkItem to `BLOCKED`. Human cancellation never triggers automatic retry; explicit resume is required.
 ```
 
-All mutations enforce current state/preconditions. Any command that performs asynchronous inspection before its commit boundary reloads canonical DB state inside the final transaction and re-runs every DB-decidable admission check before persistence. A stale concurrent command is rejected rather than overwriting the winning transition. The thin CLI uses only the health/tick/auth commands explicitly exposed by its v1 command surface; lifecycle mutations remain UI calls to these same HTTP endpoints.
+All operator mutations enforce current state/preconditions under the per-WorkItem mutation guard. Any command that performs asynchronous inspection before its commit boundary reloads canonical DB state inside the final transaction and re-runs every DB-decidable admission check before persistence. A stale concurrent command is rejected rather than overwriting the winning transition. The guard is released in `finally` on success or failure and is never used as crash-recovery authority. The thin CLI uses only the health/tick/auth commands explicitly exposed by its v1 command surface; lifecycle mutations remain UI calls to these same HTTP endpoints.
 
 ## 19. Browser observation contract
 
