@@ -398,6 +398,8 @@ describe("Order cross-boundary certification", () => {
     expect(lifecycle).toContain('run.role === "REMEDIATOR"');
     expect(lifecycle).toContain("REMEDIATOR trigger must identify VALIDATION_FAILED");
     expect(lifecycle).toContain('run.role === "REVIEWER"');
+    expect(lifecycle).toContain("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
+    expect(lifecycle).toContain("REVIEWER candidate must belong to the current ExecutionTask");
     expect(lifecycle).toContain("candidateRun.triggerEventId === run.triggerEventId");
     expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
     expect(lifecycle).toContain("proposal has duplicate disposition");
