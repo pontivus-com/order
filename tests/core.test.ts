@@ -1388,7 +1388,7 @@ describe("closed Workbench workflow-state kernel", () => {
         proposalEventId: proposal.id,
       },
     });
-    const disposed = RunEventSchema.parse({
+    const adopted = RunEventSchema.parse({
       id: `event_${uuidC}`,
       runId: run.id,
       sequence: 3,
@@ -1396,8 +1396,67 @@ describe("closed Workbench workflow-state kernel", () => {
       event: {
         tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
         proposalEventId: proposal.id,
+        disposition: "ADOPTED",
+        adoptedArtifactRefId: `artifact_${uuidA}`,
+      },
+    });
+    const rejected = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
         disposition: "REJECTED",
         adoptedArtifactRefId: null,
+      },
+    });
+    const secondProposal = RunEventSchema.parse({
+      id: "event_55555555-5555-4555-8555-555555555555",
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/r1-alt.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: "--- /dev/null\n+++ b/docs/r1-alt.md\n@@ -0,0 +1 @@\n+new\n",
+        rationale: "Contradictory second proposal",
+      },
+    });
+    const duplicateAdoption = RunEventSchema.parse({
+      id: "event_66666666-6666-4666-8666-666666666666",
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: proposal.id,
+      },
+    });
+    const duplicateDisposition = RunEventSchema.parse({
+      id: "event_77777777-7777-4777-8777-777777777777",
+      runId: run.id,
+      sequence: 4,
+      occurredAt: "2026-11-11T03:30:03.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "ADOPTED",
+        adoptedArtifactRefId: `artifact_${uuidA}`,
+      },
+    });
+    const unknownControl = RunEventSchema.parse({
+      id: "event_88888888-8888-4888-8888-888888888888",
+      runId: run.id,
+      sequence: 4,
+      occurredAt: "2026-11-11T03:30:03.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: "event_99999999-9999-4999-8999-999999999999",
       },
     });
 
@@ -1409,9 +1468,35 @@ describe("closed Workbench workflow-state kernel", () => {
       tag: "ADOPTION_IN_PROGRESS",
       proposalEventId: proposal.id,
     });
-    expect(deriveProposalDecision([proposal, requested, disposed])).toEqual({
+    expect(deriveProposalDecision([proposal, requested, adopted])).toEqual({
       tag: "NONE",
     });
+    expect(deriveProposalDecision([proposal, rejected])).toEqual({
+      tag: "NONE",
+    });
+    expect(() =>
+      deriveProposalDecision([proposal, secondProposal]),
+    ).toThrow(/multiple unresolved/);
+    expect(() =>
+      deriveProposalDecision([proposal, requested, duplicateAdoption]),
+    ).toThrow(/duplicate adoption intent/);
+    expect(() =>
+      deriveProposalDecision([
+        proposal,
+        requested,
+        adopted,
+        duplicateDisposition,
+      ]),
+    ).toThrow(/duplicate disposition/);
+    expect(() =>
+      deriveProposalDecision([proposal, requested, rejected]),
+    ).toThrow(/rejected proposal cannot have adoption intent/);
+    expect(() =>
+      deriveProposalDecision([proposal, adopted]),
+    ).toThrow(/requires durable adoption intent/);
+    expect(() =>
+      deriveProposalDecision([proposal, unknownControl]),
+    ).toThrow(/unknown proposal/);
   });
 
   it("derives reached history only from actual canonical evidence", () => {
