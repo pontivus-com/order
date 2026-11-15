@@ -419,6 +419,35 @@ describe("workflow presentation policy", () => {
     })).toEqual({ kind: "TERMINAL_RESULT" });
   });
 
+  it("treats a missing execution-owner task as transport convergence only", () => {
+    const executionTask = task(uuidC, "RUNNING");
+    const run = executionRun(executionTask, "RUNNING", uuidD);
+    const input = {
+      workItem: workItem("EXECUTION"),
+      selectedStep: "EXECUTION" as const,
+      reachedStages: reachedAll,
+      runs: [run],
+      artifacts: [],
+      currentStageRunId: null,
+      stageInteraction: null,
+      executionOwner: {
+        tag: "CURRENT_TASK" as const,
+        taskId: executionTask.id,
+      },
+      tasks: [],
+    };
+
+    expect(resolveWorkflowMaterial({
+      ...input,
+      currentAttention: "CONVERGING",
+    })).toEqual({ kind: "STEP_STATE" });
+
+    expect(() => resolveWorkflowMaterial({
+      ...input,
+      currentAttention: "ORDINARY",
+    })).toThrow(/execution owner must identify a loaded ExecutionTask/);
+  });
+
   it("preserves safe explicit selection but promotes required attention", () => {
     const research = artifact("R1", uuidB);
     const running = stageRun("R1", "RUNNING", 1, uuidC);
