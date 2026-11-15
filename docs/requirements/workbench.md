@@ -1248,7 +1248,7 @@ The technical investigation must determine, without changing the behavior above:
 - how layout stability is enforced through the local Foundation/Astryx boundary;
 - how permanent state-transition and geometry fitness tests are expressed.
 
-P4/P6 must include a transition-coverage proof mapping every functional transition in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` to one pure policy decision and one authorized imperative-shell mutation path. No implementation task may invent those semantics locally.
+The binding P4/P6 realization must include a transition-coverage proof mapping every functional transition in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` to one pure policy decision and one authorized imperative-shell mutation path. `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` owns that realization. No implementation task may invent those semantics locally.
 
 
 ## 25. Non-goals
@@ -1268,4 +1268,4 @@ This design does not authorize:
 - progress percentages for opaque provider work;
 - a new dashboard/card visual language.
 
-The next step is a P4/P6 state-machine and technical-boundary investigation under this functional authority.
+Implementation planning is governed by the binding P4/P6 realization and must not reinterpret this functional state model.
