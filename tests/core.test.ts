@@ -1524,8 +1524,8 @@ describe("closed Workbench workflow-state kernel", () => {
     const rejected = RunEventSchema.parse({
       id: `event_${uuidD}`,
       runId: run.id,
-      sequence: 2,
-      occurredAt: "2026-11-11T03:30:01.000Z",
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
       event: {
         tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
         proposalEventId: proposal.id,

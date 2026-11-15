@@ -1859,11 +1859,15 @@ describe("daemon control plane", () => {
     expect(output.beforeManifestBytes).toContain('projectId = "document-root"');
     expect(output.afterManifestBytes).toContain('projectId = "document-root"');
     expect(output.allArtifacts).toContainEqual(expect.objectContaining(output.historical));
-    expect(output.currentLifecycle).toContainEqual(expect.objectContaining({
+    expect(output.currentLifecycle).toEqual([]);
+    expect(output.allArtifacts).toContainEqual(expect.objectContaining({
       path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
       role: "PLAN",
     }));
-    const migratedPlan = output.currentLifecycle.find((artifact) => artifact.role === "PLAN");
+    const migratedPlan = output.allArtifacts.find((artifact) =>
+      artifact.role === "PLAN" &&
+      artifact.path === `${targetRoot}/${output.createdId}/implementation-plan.md`
+    );
     expect(migratedPlan?.id).not.toBe(output.historical.id);
   });
 
@@ -2469,7 +2473,7 @@ describe("daemon control plane", () => {
   }, 30_000);
 
 
-  it("binds first R1 baseline to the repository selected by current IDEA source reclassification", () => {
+  it("rejects cross-project IDEA source reclassification outside the owning repository", () => {
     const originalRepository = createRepository("original");
     const reclassifiedRepository = createRepository("reclassified");
     const state = tempDir("order-daemon-r1-reclassification-");
@@ -2480,7 +2484,6 @@ describe("daemon control plane", () => {
     const output = bunEval(`
       const sourceCore = await import("./src/core/work-item-source.ts");
       const sourceShell = await import("./src/shell/work-item-source.ts");
-      const repo = await import("./src/shell/repository.ts");
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
@@ -2504,46 +2507,49 @@ describe("daemon control plane", () => {
         title: "reclassify before R1",
         concernIds: ["shell"],
       });
-      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], created.sourcePath,
+      const source = sourceShell.readWorkItemSource(
+        runtime.config.repositoryRoots[0],
+        created.sourcePath,
       );
       const changedMarkdown = sourceCore.renderWorkItemSourceMarkdown(
         { ...source.metadata, projectId: "reclassified" },
         source.title,
       );
-      sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], source.path,
+      sourceShell.replaceWorkItemSourceFile(
+        runtime.config.repositoryRoots[0],
+        source.path,
         source.sha256,
         changedMarkdown,
       );
-      const expectedBaseline = await repo.resolveHeadCommit(
-        ${JSON.stringify(reclassifiedRepository)},
-      );
-      const staleBaseline = await repo.resolveHeadCommit(
-        ${JSON.stringify(originalRepository)},
-      );
-      await coord.reconcileWorkItemSources(runtime);
-      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      const reconciliation = await coord.reconcileSources(runtime);
+      let startError = null;
+      try {
+        await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      } catch (error) {
+        startError = error instanceof Error ? error.message : String(error);
+      }
       const updated = coord.getWorkItem(runtime, created.id);
-      await coord.cancelRun(runtime, run.id);
       console.log(JSON.stringify({
+        codes: reconciliation.diagnostics.map((item) => item.code),
         projectId: updated.projectId,
         repositoryRoot: updated.repositoryRoot,
-        baselineCommit: run.baselineCommit,
-        expectedBaseline,
-        staleBaseline,
+        startError,
+        runCount: coord.listRuns(runtime, created.id).length,
       }));
       database.close();
     `, providerEnvironment(binary, state)) as {
+      codes: string[];
       projectId: string;
       repositoryRoot: string;
-      baselineCommit: string;
-      expectedBaseline: string;
-      staleBaseline: string;
+      startError: string | null;
+      runCount: number;
     };
 
-    expect(output.projectId).toBe("reclassified");
-    expect(output.repositoryRoot).toBe(reclassifiedRepository);
-    expect(output.baselineCommit).toBe(output.expectedBaseline);
-    expect(output.baselineCommit).not.toBe(output.staleBaseline);
+    expect(output.codes).toContain("UNRESOLVED_PROJECT");
+    expect(output.projectId).toBe("original");
+    expect(output.repositoryRoot).toBe(originalRepository);
+    expect(output.startError).toContain("reconciliation is required");
+    expect(output.runCount).toBe(0);
   }, 30_000);
 
   it("enforces same-project terminal investigation/audit lineage and delivery-only remediation", () => {
@@ -3115,6 +3121,7 @@ describe("daemon control plane", () => {
         source.sha256,
         changedMarkdown,
       );
+      await coord.reconcileSources(runtime);
       const after = await authority.resolveStageContext(
         runtime,
         coord.getWorkItem(runtime, id),
@@ -3626,7 +3633,7 @@ describe("daemon control plane", () => {
         events: coord.listRunEvents(runtime, waiting.id),
       };
       await coord.cancelRun(runtime, waiting.id);
-      await coord.reconcileWorkItemSources(runtime);
+      await coord.reconcileSources(runtime);
       console.log(JSON.stringify({
         rejected,
         beforeRecovery: {
@@ -3757,6 +3764,7 @@ describe("daemon control plane", () => {
         changed,
       );
       const after = await authority.approvalFreshness(runtime, approval);
+      await coord.reconcileSources(runtime);
       const updated = coord.getWorkItem(runtime, work);
       const tasks = await coord.listExecutionTasks(runtime, work);
       console.log(JSON.stringify({
@@ -3974,6 +3982,7 @@ describe("daemon control plane", () => {
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
       const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
       const run = await import("./src/daemon/run.ts");
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
@@ -4034,24 +4043,32 @@ describe("daemon control plane", () => {
       fs.writeFileSync(${JSON.stringify(repository)} + "/docs/plan.md", "plan externally changed\\n");
 
       const current = await coord.listCurrentLifecycleArtifacts(runtime, workItem.id);
-      const content = await coord.readArtifactContent(runtime, current[0].id);
+      const drafts = await authority.currentStageDraftArtifacts(
+        runtime,
+        coord.getWorkItem(runtime, workItem.id),
+        "PLAN",
+      );
+      const content = await coord.readArtifactContent(runtime, drafts[0].id);
       console.log(JSON.stringify({
         count: current.length,
+        draftCount: drafts.length,
         oldId: plan.id,
-        currentId: current[0]?.id ?? null,
-        currentHash: current[0]?.sha256 ?? null,
+        currentId: drafts[0]?.id ?? null,
+        currentHash: drafts[0]?.sha256 ?? null,
         text: new TextDecoder().decode(content),
       }));
       database.close();
     `) as {
       count: number;
+      draftCount: number;
       oldId: string;
       currentId: string | null;
       currentHash: string | null;
       text: string;
     };
 
-    expect(output.count).toBe(1);
+    expect(output.count).toBe(0);
+    expect(output.draftCount).toBe(1);
     expect(output.currentId).not.toBe(output.oldId);
     expect(output.currentHash).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(output.text).toBe("plan externally changed\n");
@@ -4259,14 +4276,25 @@ describe("daemon control plane", () => {
         mode: "INTERACTIVE",
         role: "STAGE",
         triggerEventId: null,
-        status: "COMPLETED",
+        status: "RUNNING",
         attempt: 1,
         baselineCommit: baseline,
         contextHash: "sha256:" + "a".repeat(64),
         providerSessionId: null,
         terminalClassification: null,
         startedAt: "2026-11-11T04:00:00.000Z",
-        endedAt: "2026-11-11T04:00:00.000Z",
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "proposal ready",
+        evidence: [],
       });
       const proposal = runStore.appendRunEvent(runtime, run.id, {
         tag: "ARTIFACT_PROPOSAL_CREATED",
@@ -4424,7 +4452,6 @@ describe("daemon control plane", () => {
         driftSource.sha256,
         driftSource.markdown.replace("# fixture", "# changed during builder"),
       );
-      await coord.reconcileSources(runtime);
       fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
       const tick = await tickPromise;
 
@@ -5011,6 +5038,12 @@ describe("daemon control plane", () => {
           terminalClassification: null,
           startedAt: timestamp,
           endedAt: null,
+        });
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "STAGE_STARTED",
+          stage: "PLAN",
+          mode: "INTERACTIVE",
+          contextHash: run.contextHash,
         });
         const requested = runStore.appendRunEvent(runtime, run.id, {
           tag: "HUMAN_INPUT_REQUESTED",
@@ -5740,7 +5773,7 @@ describe("daemon control plane", () => {
     expect(output.adoptionRequests).toBe(1);
     expect(output.dispositions).toEqual(["ADOPTED"]);
     expect(output.receivedCount).toBe(0);
-    expect(output.content).toBe("accepted\\n");
+    expect(output.content).toBe("accepted\n");
   }, 30_000);
 
   it("serializes sign-off against an upstream source mutation", () => {
