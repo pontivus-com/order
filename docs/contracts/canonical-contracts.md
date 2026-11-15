@@ -1194,7 +1194,7 @@ For pre-signoff interactive Runs, `WAITING_FOR_INPUT` survives restart unchanged
 
 Explicit human resume from an execution block does not erase historical losses and does not create an unlimited automatic retry loop.
 
-The P4 `RecoveryDisposition` projection is derived from these canonical facts. In particular, `AUTOMATIC_RECOVERY` is available only when the exact action-key/semantic-remediation history below still admits the bounded automatic path; once its budget is exhausted the projection cannot continue to report automatic recovery. No retry counter, recovery-state column or browser-owned entitlement is added.
+The bounded automatic replacement/remediation entitlement below remains execution policy, not a Workbench recovery state. The Workbench observes an admitted automatic continuation only through the canonical task/Run/RunEvent facts it produces. P4 `RecoveryDisposition` covers operator-facing Retry/Resume/Reconcile only; no retry counter, recovery-state column or browser-owned entitlement is added.
 
 Post-signoff validation routing is deterministic:
 
