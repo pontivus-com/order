@@ -190,7 +190,6 @@ export const PreSignoffStageWorkspace = ({
       case "STAGE_RUN":
         return (
           <StageRunMaterial
-            workItem={workItem}
             stage={stage}
             runs={runs}
             selectedRunId={material.runId}
