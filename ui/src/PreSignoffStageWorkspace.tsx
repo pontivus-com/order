@@ -6,6 +6,7 @@ import type {
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
 import {
   LifecycleDocumentMaterial,
@@ -49,6 +50,8 @@ export const PreSignoffStageWorkspace = ({
   artifacts,
   material,
   summary,
+  currentRunId,
+  currentInteraction,
   mutationsDisabled = false,
   onSelectMaterial,
   onDirtyChange,
@@ -65,6 +68,8 @@ export const PreSignoffStageWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   summary: ReactNode;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
   mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onDirtyChange: (dirty: boolean) => void;
@@ -178,6 +183,8 @@ export const PreSignoffStageWorkspace = ({
             workItem={workItem}
             stage={stage}
             selectedRunId={material.runId}
+            currentRunId={workItem.stage === stage ? currentRunId : null}
+            currentInteraction={workItem.stage === stage ? currentInteraction : null}
             mutationsDisabled={mutationsDisabled}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
