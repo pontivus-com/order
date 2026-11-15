@@ -1877,6 +1877,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await expect.poll(() => readFileSync(sourcePath, "utf8")).toContain(
     "saved through browser workbench",
   );
+  await expect(page.getByText("Unsaved", { exact: true })).toHaveCount(0);
 
   const workflowRail = page.getByTestId("workflow-rail");
   await expect(
