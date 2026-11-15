@@ -69,7 +69,7 @@ Implementation requirements:
 
 **Files:** all `ui/src/primitives/*` paths in the signed change surface, `ui/src/styles.css`, `ui/src/theme.css`, `ui/src/app.tsx`, `tests/architecture.test.ts`, `tests/browser.spec.ts`.
 
-Build the complete closed primitive vocabulary from `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §§8.12–8.20` and `GW-DOC-WORKBENCH-THEME-V1`; the signed task's `authorityRefs` contains each exact `GW-TR-092` through `GW-TR-103` identifier individually.
+Build the complete closed primitive vocabulary from `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §§8.12–8.20` and `GW-DOC-WORKBENCH-THEME-V1`; the signed task's `authorityRefs` enumerates every applicable primitive/theme technical-requirement identifier individually.
 
 Implementation requirements:
 - mount exactly one root Astryx `Theme` using the pinned built Neutral theme and the single System/Light/Dark preference owner;
