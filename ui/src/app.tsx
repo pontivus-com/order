@@ -1,8 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 import { Badge } from "@astryxdesign/core/Badge";
-import { Drawer } from "@astryxdesign/core/Drawer";
 import {
   SegmentedControl,
   SegmentedControlItem,
@@ -27,6 +25,8 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
+import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
@@ -452,8 +452,21 @@ export const App = () => {
       <WorkItemWorkspace
         key={selectedWorkItem.id}
         workItem={selectedWorkItem}
+        toolbar={toolbar}
+        contextOpen={contextOpen}
+        onContextOpenChange={setContextOpen}
+        contextContent={
+          <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
+            <WorkItemContext
+              workItem={selectedWorkItem}
+              selectedStep={contextStep}
+              selectedMaterial={contextMaterial}
+              selectedDocumentPath={contextDocumentPath}
+              selectedDocumentSha256={contextDocumentSha256}
+            />
+          </Suspense>
+        }
         onBack={() => requestSelection(null)}
-        onOpenContext={() => setContextOpen(true)}
         onContextSelectionChange={updateContextSelection}
         onContextDocumentChange={updateContextDocument}
         onCreateRemediation={startRemediation}
@@ -494,89 +507,69 @@ export const App = () => {
   );
 
   const body = workItemsQuery.isError ? (
-    <WorkbenchLayout toolbar={toolbar}>
-      <WorkbenchErrorState
-        title="Local browser session required"
-        description={
-          errorText(workItemsQuery.error).includes("browser session required")
-            ? "Run order open and open the one-time URL to establish the local session."
-            : errorText(workItemsQuery.error)
-        }
-        action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
-      />
-    </WorkbenchLayout>
-  ) : (
     <WorkbenchLayout
       toolbar={toolbar}
-      inspector={
-        selectedWorkItem && settingsSection === null
-          ? (
-            <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
-              <WorkItemContext
-                workItem={selectedWorkItem}
-                selectedStep={contextStep}
-                selectedMaterial={contextMaterial}
-                selectedDocumentPath={contextDocumentPath}
-                selectedDocumentSha256={contextDocumentSha256}
-              />
-            </Suspense>
-          )
-          : null
+      primary={
+        <WorkbenchErrorState
+          title="Local browser session required"
+          description={
+            errorText(workItemsQuery.error).includes("browser session required")
+              ? "Run order open and open the one-time URL to establish the local session."
+              : errorText(workItemsQuery.error)
+          }
+          action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
+        />
       }
-      inspectorOpen={contextOpen}
-      onInspectorOpenChange={setContextOpen}
-    >
-      {main}
-    </WorkbenchLayout>
+      workItemChrome={null}
+    />
+  ) : selectedWorkItem ? (
+    main
+  ) : (
+    <WorkbenchLayout toolbar={toolbar} primary={main} workItemChrome={null} />
   );
 
   return (
     <Theme theme={neutralTheme} mode={themePreference}>
       {body}
 
-      <Drawer
-        isOpen={createOpen}
+      <WorkbenchTaskPanel
+        open={createOpen}
         onOpenChange={(open) => {
           setCreateOpen(open);
           if (!open) resetCreate();
         }}
-        label={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
-        side="end"
-        width="26rem"
-      >
-        <div className="order-create-drawer">
-          <h2>{derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}</h2>
+        title={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
+        content={
           <Suspense fallback={<WorkbenchEmptyState compact title="Loading creation controls…" />}>
-          <CreateWorkItem
-            projects={projectsQuery.data ?? []}
-            schemas={schemasQuery.data ?? []}
-            projectId={projectId}
-            schemaId={schemaId}
-            title={title}
-            concernIds={concernIds}
-            availableConcernIds={availableConcernIds}
-            derivedFromWorkItemId={derivedFromWorkItemId}
-            pending={create.isPending}
-            error={create.error ? errorText(create.error) : null}
-            onProjectChange={setProjectId}
-            onSchemaChange={setSchemaId}
-            onTitleChange={setTitle}
-            onConcernIdsChange={setConcernIds}
-            onSubmit={() => create.mutate()}
-          />
+            <CreateWorkItem
+              projects={projectsQuery.data ?? []}
+              schemas={schemasQuery.data ?? []}
+              projectId={projectId}
+              schemaId={schemaId}
+              title={title}
+              concernIds={concernIds}
+              availableConcernIds={availableConcernIds}
+              derivedFromWorkItemId={derivedFromWorkItemId}
+              pending={create.isPending}
+              error={create.error ? errorText(create.error) : null}
+              onProjectChange={setProjectId}
+              onSchemaChange={setSchemaId}
+              onTitleChange={setTitle}
+              onConcernIdsChange={setConcernIds}
+              onSubmit={() => create.mutate()}
+            />
           </Suspense>
-        </div>
-      </Drawer>
+        }
+      />
 
-      <AlertDialog
-        isOpen={pendingDestination !== undefined}
+      <WorkbenchConfirmation
+        open={pendingDestination !== undefined}
         onOpenChange={(open) => { if (!open) setPendingDestination(undefined); }}
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
-        cancelLabel="Continue editing"
-        actionLabel="Discard unsaved changes"
-        actionVariant="destructive"
-        onAction={() => {
+        confirmLabel="Discard unsaved changes"
+        pending={false}
+        onConfirm={() => {
           const next = pendingDestination;
           setPendingDestination(undefined);
           if (next !== undefined) commitDestination(next);

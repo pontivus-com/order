@@ -1,6 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
 
 import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
@@ -20,6 +19,11 @@ import {
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
+import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
+import { WorkItemIdentityRow } from "./WorkItemIdentityRow.tsx";
+import { WorkflowRail } from "./WorkflowRail.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import {
   WorkbenchEmptyState,
@@ -102,16 +106,22 @@ const startLabelForStage = (stage: WorkItem["stage"]): string =>
 
 export const WorkItemWorkspace = ({
   workItem,
+  toolbar,
+  contextOpen,
+  onContextOpenChange,
+  contextContent,
   onBack,
-  onOpenContext,
   onContextSelectionChange,
   onContextDocumentChange,
   onCreateRemediation,
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
+  toolbar: ReactNode;
+  contextOpen: boolean;
+  onContextOpenChange: (open: boolean) => void;
+  contextContent: ReactNode;
   onBack: () => void;
-  onOpenContext: () => void;
   onContextSelectionChange: (
     step: WorkItem["stage"],
     material: WorkflowMaterial,
@@ -657,246 +667,208 @@ export const WorkItemWorkspace = ({
     />
   );
 
-  return (
-    <div className="order-workitem-workspace" data-testid="work-item-workspace">
-      <header className="order-workitem-header order-workitem-top-rail">
-        <div className="order-workitem-header-main">
-          <div className="order-inline-actions order-workitem-navigation-actions">
-            <WorkbenchAction
-              label="Back to work queue"
-              tone="ghost"
-              icon={<WorkbenchIcon name="back" />}
-              onClick={onBack}
-            />
-            <WorkbenchAction
-              label="Context"
-              tone="ghost"
-              icon={<WorkbenchIcon name="context" />}
-              onClick={onOpenContext}
-            />
+  const identity = (
+    <WorkItemIdentityRow
+      navigation={
+        <div className="order-inline-actions">
+          <WorkbenchAction label="Back to work queue" tone="ghost" icon={<WorkbenchIcon name="back" />} onClick={onBack} />
+          <WorkbenchAction label="Context" tone="ghost" icon={<WorkbenchIcon name="context" />} onClick={() => onContextOpenChange(true)} />
+        </div>
+      }
+      title={
+        titleEditing ? (
+          <div className="order-workitem-title-edit">
+            <input aria-label="Work item title" value={titleDraft} autoFocus onChange={(event) => setTitleDraft(event.currentTarget.value)} />
+            <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
+            <WorkbenchAction label="Cancel title edit" disabled={titleMutation.isPending} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(false); }} />
           </div>
-          <div className="order-workitem-heading-block">
-            {titleEditing ? (
-              <div className="order-workitem-title-edit">
-                <input
-                  aria-label="Work item title"
-                  value={titleDraft}
-                  autoFocus
-                  onChange={(event) => setTitleDraft(event.currentTarget.value)}
-                />
-                <WorkbenchAction
-                  label="Save title"
-                  tone="primary"
-                  loading={titleMutation.isPending}
-                  disabled={titleDraft.trim().length === 0 || titleMutation.isPending}
-                  onClick={() => titleMutation.mutate()}
-                />
-                <WorkbenchAction
-                  label="Cancel title edit"
-                  disabled={titleMutation.isPending}
-                  onClick={() => {
-                    setTitleDraft(workItem.title);
-                    setTitleError(null);
-                    setTitleEditing(false);
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="order-workitem-title-row">
-                <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
-                {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
-                  <WorkbenchAction
-                    label="Edit title"
-                    tone="ghost"
-                    onClick={() => {
-                      setTitleDraft(workItem.title);
-                      setTitleError(null);
-                      setTitleEditing(true);
-                    }}
-                  />
-                ) : null}
-              </div>
-            )}
-            <span>{workflow.label} · {workItem.status === "ACTIVE" ? "Active" : workItem.status.toLowerCase()}</span>
-            {titleError ? <span role="alert" className="order-error-text">{titleError}</span> : null}
-            {titleMutation.error ? (
-              <span role="alert" className="order-error-text">
-                {titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}
-              </span>
+        ) : (
+          <div className="order-workitem-title-row">
+            <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
+            {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
+              <WorkbenchAction label="Edit title" tone="ghost" onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
             ) : null}
           </div>
-          <div className="order-workitem-rail-actions">
-            <WorkbenchAction
-              label={workItem.archived ? "Restore work item" : "Archive work item"}
-              tone="ghost"
-              disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
-              onClick={() => setConfirmArchive(true)}
-            />
-          </div>
-        </div>
-      </header>
+        )
+      }
+      detail={
+        <span>
+          {workflow.label} · {workItem.status === "ACTIVE" ? "Active" : workItem.status.toLowerCase()}
+          {titleError ? <> · <span role="alert">{titleError}</span></> : null}
+          {titleMutation.error ? <> · <span role="alert">{titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}</span></> : null}
+        </span>
+      }
+      utilities={
+        <WorkbenchAction
+          label={workItem.archived ? "Restore work item" : "Archive work item"}
+          tone="ghost"
+          disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+          onClick={() => setConfirmArchive(true)}
+        />
+      }
+    />
+  );
 
-      <nav
-        className="order-workflow-progression"
-        aria-label="Workflow progression"
-        data-testid="workflow-progression"
-      >
-        {workflowSteps.map((step) => {
-          const state = workflowStepState(workItem, step.stage);
-          const selected = step.stage === selectedStep;
-          return (
-            <button
-              key={step.stage}
-              type="button"
-              aria-current={step.stage === workItem.stage ? "step" : undefined}
-              aria-pressed={selected}
-              data-reached={state === "UNREACHED" ? "false" : "true"}
-              data-selected={selected ? "true" : "false"}
-              title={step.purpose}
-              onClick={() => inspectWorkflowStep(step.stage)}
-            >
-              {step.label}
-            </button>
-          );
-        })}
-      </nav>
+  const workflowRail = (
+    <WorkflowRail workItem={workItem} selectedStep={selectedStep} onSelect={inspectWorkflowStep} />
+  );
 
-      <div
-        className="order-mode-canvas"
-        role="region"
-        aria-label={selectedWorkflow.label + " workspace"}
-        data-testid="workflow-step-workspace"
-      >
-        {sharedPreSignoffStage ? (
-          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workflow step…</strong></div>}>
-            <PreSignoffStageWorkspace
-              workItem={workItem}
-              stage={sharedPreSignoffStage}
-              runs={runs}
-              artifacts={artifacts}
-              material={material}
-              summary={stepSummary}
-              onSelectMaterial={(nextMaterial) =>
-                requestSelection({
-                  step: sharedPreSignoffStage,
-                  material: nextMaterial,
-                })}
-              onDirtyChange={setDirtyState}
-              onOpenArtifactEvidence={openArtifactEvidence}
-              onOpenEvidence={openEvidence}
-              onOpenProposalReview={openProposalReview}
-              onOpenSupportingMaterial={openSupportingMaterial}
-              onReturnFromTransient={returnFromTransient}
-              onContextDocumentChange={onContextDocumentChange}
-            />
-          </Suspense>
-        ) : selectedStep === "R3" ? (
-          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading readiness review…</strong></div>}>
-            <ReadinessWorkspace
-              workItem={workItem}
-              runs={runs}
-              artifacts={artifacts}
-              material={material}
-              summary={stepSummary}
-              onSelectMaterial={(nextMaterial) =>
-                requestSelection({
-                  step: "R3",
-                  material: nextMaterial,
-                })}
-              onOpenArtifactEvidence={openArtifactEvidence}
-              onOpenEvidence={openEvidence}
-              onReturnFromTransient={returnFromTransient}
-              onContextDocumentChange={onContextDocumentChange}
-            />
-          </Suspense>
-        ) : selectedStep === "AWAITING_SIGNOFF" ? (
-          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading approval package…</strong></div>}>
-            <SignoffReview
-              workItem={workItem}
-              summary={stepSummary}
-              onOpenArtifactEvidence={openArtifactEvidence}
-              onContextDocumentChange={onContextDocumentChange}
-            />
-          </Suspense>
-        ) : selectedStep === "EXECUTION" ? (
-          <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading implementation…</strong></div>}>
-            <ExecutionWorkspace
-              workItem={workItem}
-              material={material}
-              onSelectMaterial={(nextMaterial) =>
-                requestSelection({
-                  step: "EXECUTION",
-                  material: nextMaterial,
-                })}
-              onOpenEvidence={openEvidence}
-              onReturnFromEvidence={returnFromTransient}
-            />
-          </Suspense>
-        ) : (
-          <WorkflowStepFrame
+  const primary = (
+    <div className="order-workitem-workspace" data-testid="work-item-workspace">
+    <div
+      className="order-mode-canvas"
+      role="region"
+      aria-label={selectedWorkflow.label + " workspace"}
+      data-testid="workflow-step-workspace"
+    >
+      {sharedPreSignoffStage ? (
+        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workflow step…</strong></div>}>
+          <PreSignoffStageWorkspace
+            workItem={workItem}
+            stage={sharedPreSignoffStage}
+            runs={runs}
+            artifacts={artifacts}
+            material={material}
             summary={stepSummary}
-            primary={
-            <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
-              <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
-          {material.kind === "SOURCE_DOCUMENT" ? (
-            <SourceDocumentMaterial
-              workItem={workItem}
-              onDirtyChange={setDirtyState}
-              onContextDocumentChange={onContextDocumentChange}
-            />
-          ) : null}
-          {material.kind === "STAGE_DOCUMENT" ? (
-            <LifecycleDocumentMaterial
-              workItem={workItem}
-              artifactId={material.artifactId}
-              onDirtyChange={setDirtyState}
-              onOpenArtifactEvidence={openArtifactEvidence}
-              onContextDocumentChange={onContextDocumentChange}
-            />
-          ) : null}
-          {material.kind === "EVIDENCE" ? (
-            <EvidenceViewer
-              selection={evidence}
-              onBack={returnFromTransient}
-            />
-          ) : null}
-          {material.kind === "TERMINAL_RESULT" ? (
-            <TerminalResult
-              workItem={workItem}
-              onOpenEvidence={openEvidence}
-            />
-          ) : null}
-          {material.kind === "STEP_STATE" ? (
-            <WorkbenchEmptyState
-              compact
-              title={
-                selectedStep === workItem.stage && canStart
-                  ? selectedWorkflow.label + " is ready to start"
-                  : "No current material for " + selectedWorkflow.label
-              }
-              description={
-                selectedStep === workItem.stage && canStart
-                  ? "Use the current workflow action to begin this step."
-                  : "This reached workflow step has no current canonical material to inspect."
-              }
-            />
-          ) : null}
-          {material.kind === "UNREACHED" ? (
-            <WorkbenchEmptyState
-              compact
-              title={selectedWorkflow.label + " has not been reached"}
-              description="Workflow inspection does not create or promote lifecycle state."
-            />
-          ) : null}
-              </Suspense>
-            </PrimaryMaterialFrame>
-          }
+            onSelectMaterial={(nextMaterial) =>
+              requestSelection({
+                step: sharedPreSignoffStage,
+                material: nextMaterial,
+              })}
+            onDirtyChange={setDirtyState}
+            onOpenArtifactEvidence={openArtifactEvidence}
+            onOpenEvidence={openEvidence}
+            onOpenProposalReview={openProposalReview}
+            onOpenSupportingMaterial={openSupportingMaterial}
+            onReturnFromTransient={returnFromTransient}
+            onContextDocumentChange={onContextDocumentChange}
           />
-        )}
-      </div>
+        </Suspense>
+      ) : selectedStep === "R3" ? (
+        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading readiness review…</strong></div>}>
+          <ReadinessWorkspace
+            workItem={workItem}
+            runs={runs}
+            artifacts={artifacts}
+            material={material}
+            summary={stepSummary}
+            onSelectMaterial={(nextMaterial) =>
+              requestSelection({
+                step: "R3",
+                material: nextMaterial,
+              })}
+            onOpenArtifactEvidence={openArtifactEvidence}
+            onOpenEvidence={openEvidence}
+            onReturnFromTransient={returnFromTransient}
+            onContextDocumentChange={onContextDocumentChange}
+          />
+        </Suspense>
+      ) : selectedStep === "AWAITING_SIGNOFF" ? (
+        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading approval package…</strong></div>}>
+          <SignoffReview
+            workItem={workItem}
+            summary={stepSummary}
+            onOpenArtifactEvidence={openArtifactEvidence}
+            onContextDocumentChange={onContextDocumentChange}
+          />
+        </Suspense>
+      ) : selectedStep === "EXECUTION" ? (
+        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading implementation…</strong></div>}>
+          <ExecutionWorkspace
+            workItem={workItem}
+            material={material}
+            onSelectMaterial={(nextMaterial) =>
+              requestSelection({
+                step: "EXECUTION",
+                material: nextMaterial,
+              })}
+            onOpenEvidence={openEvidence}
+            onReturnFromEvidence={returnFromTransient}
+          />
+        </Suspense>
+      ) : (
+        <WorkflowStepFrame
+          summary={stepSummary}
+          primary={
+          <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
+            <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
+        {material.kind === "SOURCE_DOCUMENT" ? (
+          <SourceDocumentMaterial
+            workItem={workItem}
+            onDirtyChange={setDirtyState}
+            onContextDocumentChange={onContextDocumentChange}
+          />
+        ) : null}
+        {material.kind === "STAGE_DOCUMENT" ? (
+          <LifecycleDocumentMaterial
+            workItem={workItem}
+            artifactId={material.artifactId}
+            onDirtyChange={setDirtyState}
+            onOpenArtifactEvidence={openArtifactEvidence}
+            onContextDocumentChange={onContextDocumentChange}
+          />
+        ) : null}
+        {material.kind === "EVIDENCE" ? (
+          <EvidenceViewer
+            selection={evidence}
+            onBack={returnFromTransient}
+          />
+        ) : null}
+        {material.kind === "TERMINAL_RESULT" ? (
+          <TerminalResult
+            workItem={workItem}
+            onOpenEvidence={openEvidence}
+          />
+        ) : null}
+        {material.kind === "STEP_STATE" ? (
+          <WorkbenchEmptyState
+            compact
+            title={
+              selectedStep === workItem.stage && canStart
+                ? selectedWorkflow.label + " is ready to start"
+                : "No current material for " + selectedWorkflow.label
+            }
+            description={
+              selectedStep === workItem.stage && canStart
+                ? "Use the current workflow action to begin this step."
+                : "This reached workflow step has no current canonical material to inspect."
+            }
+          />
+        ) : null}
+        {material.kind === "UNREACHED" ? (
+          <WorkbenchEmptyState
+            compact
+            title={selectedWorkflow.label + " has not been reached"}
+            description="Workflow inspection does not create or promote lifecycle state."
+          />
+        ) : null}
+            </Suspense>
+          </PrimaryMaterialFrame>
+        }
+        />
+      )}
+    </div>
+    </div>
+  );
 
-      <AlertDialog
-        isOpen={confirmArchive}
+  return (
+    <>
+      <WorkbenchLayout
+        toolbar={toolbar}
+        primary={primary}
+        workItemChrome={{
+          identity,
+          workflowRail,
+          context: {
+            open: contextOpen,
+            onOpenChange: onContextOpenChange,
+            content: contextContent,
+          },
+        }}
+      />
+
+      <WorkbenchConfirmation
+        open={confirmArchive}
         onOpenChange={setConfirmArchive}
         title={workItem.archived ? "Restore work item?" : "Archive work item?"}
         description={
@@ -904,19 +876,21 @@ export const WorkItemWorkspace = ({
             ? "Restore this WorkItem to the active queue. Its lifecycle and history are unchanged."
             : "Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact."
         }
-        cancelLabel="Cancel"
-        actionLabel={workItem.archived ? "Restore work item" : "Archive work item"}
-        onAction={() => archiveMutation.mutate()}
+        confirmLabel={workItem.archived ? "Restore work item" : "Archive work item"}
+        pending={archiveMutation.isPending}
+        onConfirm={() => archiveMutation.mutate()}
       />
 
       {archiveMutation.error ? (
-        <div className="order-primary-action-error" role="alert">
-          {archiveMutation.error instanceof Error ? archiveMutation.error.message : String(archiveMutation.error)}
-        </div>
+        <WorkbenchNotice
+          tone="danger"
+          title="Work item update failed"
+          description={archiveMutation.error instanceof Error ? archiveMutation.error.message : String(archiveMutation.error)}
+        />
       ) : null}
 
-      <AlertDialog
-        isOpen={pendingSelection !== null}
+      <WorkbenchConfirmation
+        open={pendingSelection !== null}
         onOpenChange={(open) => {
           if (!open) {
             setPendingSelection(null);
@@ -925,10 +899,9 @@ export const WorkItemWorkspace = ({
         }}
         title="Discard unsaved Markdown?"
         description="Changing workflow step or material would discard the current unsaved Markdown buffer."
-        cancelLabel="Continue editing"
-        actionLabel="Discard unsaved changes"
-        actionVariant="destructive"
-        onAction={() => {
+        confirmLabel="Discard unsaved changes"
+        pending={false}
+        onConfirm={() => {
           const next = pendingSelection;
           const nextReturn = pendingReturnSelection;
           setPendingSelection(null);
@@ -937,6 +910,6 @@ export const WorkItemWorkspace = ({
           if (next) commitSelection(next, nextReturn);
         }}
       />
-    </div>
+    </>
   );
 };
