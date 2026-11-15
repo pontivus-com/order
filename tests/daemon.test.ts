@@ -3442,6 +3442,12 @@ describe("daemon control plane", () => {
         startedAt: rt.nowIsoDateTime(),
         endedAt: null,
       });
+      runStore.appendRunEvent(runtime, waiting.id, {
+        tag: "STAGE_STARTED",
+        stage: "PLAN",
+        mode: "INTERACTIVE",
+        contextHash: context.contextHash,
+      });
       const request = runStore.appendRunEvent(runtime, waiting.id, {
         tag: "HUMAN_INPUT_REQUESTED",
         category: "INFORMATION",
