@@ -1253,7 +1253,9 @@ The target ownership is:
 - `WorkflowRail.tsx` — pure nine-stage lifecycle adapter from the canonical reached/current projection into `WorkbenchRail`;
 - `WorkflowStepFrame.tsx` — thin workflow adapter over `WorkbenchAttention` + `WorkbenchSurface`, with no independent structural layout behavior;
 - `WorkflowMaterialSelector.tsx` — thin domain adapter over `WorkbenchSelector` for Run/document/proposal/evidence material;
-- `ActivityWorkspace.tsx` / `ActivityComposer.tsx` — dialogue content/policy adapters over `WorkbenchDialogue`; transcript/composer geometry remains primitive-owned.
+- `ActivityWorkspace.tsx` / `ActivityComposer.tsx` — dialogue content/policy adapters over `WorkbenchDialogue`; transcript/composer geometry remains primitive-owned;
+- `RunEventTimeline.tsx` — RunEvent presentation adapter over `WorkbenchTimeline`;
+- Queue/Settings/Create/Account renderers remain cohesive feature/service adapters, but all structure/forms/status/notices/tables/overlays resolve through the §8.12 primitives and §8.17 matrix.
 
 This is not a new UI framework or controller layer. These modules remain ordinary functional React composition over canonical typed data and callbacks. Any new production module is added to the architecture fitness dependency map in the same implementation change.
 
@@ -1273,6 +1275,8 @@ Implementation maps into `WorkbenchMasterDetail`; feature code does not create i
 
 Dirty/destructive navigation confirmation uses `WorkbenchConfirmation`; the navigation guard owns the policy/state while the primitive owns modal interaction mechanics.
 
+Queue uses `WorkbenchTable` and `WorkbenchNotice`; Create WorkItem uses `WorkbenchTaskPanel -> WorkbenchForm/Field`; Settings uses `WorkbenchSettingsLayout -> WorkbenchForm/Field/Status/Notice/Confirmation`; account utility entry uses `WorkbenchUtilityTrigger`.
+
 ### UI attention/presentation cleanup
 
 The current `Supporting context` disclosure is removed from the leading primary position in pre-signoff activity/document surfaces and is represented through the subordinate material selector/secondary access defined in §8.5.
@@ -1285,15 +1289,15 @@ Implementation validation presentation is sparse/current-state-first as defined 
 
 ### UI CSS
 
-`theme.css` is reduced to one live Workbench layout/interaction system whose structural and recurring-mechanic selectors belong to the §8.12 primitives. Duplicate base declarations and dead superseded Workbench layout selectors are removed. Feature selectors may style domain content/density but may not establish persistent Workbench columns, identity grids, anchored-composer layout, Context/selector drawer mechanics, confirmation layout or alternate structural breakpoints. Media overrides use the §8.10 breakpoint contract.
+`theme.css` becomes the single semantic token/presentation owner in §8.20. Duplicate/dead layout and feature-local visual systems are removed. Primitive selectors own all recurring structure/mechanics; specialist content selectors consume §8.18 semantic color/type/spacing/radius/focus tokens only. After token declarations, feature/service selectors may not contain raw palette values, independent type/spacing scales, feature-owned shadows/control chrome, or alternate structural breakpoints.
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
 ### Structural remediation boundary
 
-The current Workbench implementation is evidence of the failure modes described by this design; it is **not** the structural baseline that P7 incrementally patches into compliance.
+The current Workbench implementation is evidence of the failure modes described by this design; it is **not** the structural or visual baseline that P7 incrementally patches into compliance.
 
-P7 must perform an architecture-preserving **re-composition** around the canonical owners defined above. Visual refinements occur only after those ownership/topology changes have landed.
+P7 must perform an architecture-preserving **re-composition** around the canonical owners and visual language above. This is not a later cosmetic pass: §8.18 visual tokens and §8.12 primitive ownership are part of the architecture that every migrated renderer must consume.
 
 #### Required replacement order
 
@@ -1303,11 +1307,12 @@ The implementation sequence is structurally ordered:
 2. establish the dedicated selected-WorkItem canonical observation and one shared mutation-refetch boundary;
 3. make current attention/action independent from historical inspection state;
 4. reduce the generic workflow frame to summary/current-attention + primary material only;
-5. introduce the complete §8.12 primitive set and explicit §8.15 interaction-class compositions: identity/rail/surface/attention, compact selector, Dialogue, Review, dedicated Implementation master/detail, Context, disclosure and confirmation;
-6. perform the required same-layer component decomposition in §12 UI ownership above;
-7. remove the superseded generic side-index/layout and duplicate/dead CSS systems;
-8. only then tune spacing, typography, density and other visual details;
-9. certify geometry/state/action ownership permanently through §14.
+5. establish the §8.18 semantic token system and complete §8.12 primitive set, including application services (Queue/Create/Settings), forms, semantic status/notices, tables/timeline, task panel and confirmation;
+6. migrate every renderer in §8.17 onto its exact §8.15 primitive composition and approved §8.19 leaves;
+7. perform the required same-layer component decomposition in §12 UI ownership above;
+8. remove superseded generic side-index/layout, raw feature control/status/overlay styling, ad-hoc visual values and duplicate/dead CSS systems;
+9. tune only within the already-defined token/component language; do not invent visual values locally;
+10. certify state, renderer coverage, visual language, theme parity and geometry permanently through §14.
 
 A lower step must not compensate for a missing higher step.
 
@@ -1326,7 +1331,11 @@ The following current mechanisms are superseded and must disappear from the comp
 - simultaneous proposal disposition plus free-form continuation;
 - a wide Context control that can open but not explicitly close/toggle;
 - competing Workbench structural breakpoint authorities;
-- duplicate/unused structural CSS systems that preserve the old layout topology.
+- duplicate/unused structural CSS systems that preserve the old layout topology;
+- feature-styled native buttons/inputs/selects/textareas outside the §8.12 form/action primitives;
+- direct feature/service Drawer/AlertDialog/Dialog or semantic Badge ownership where §8.12 owns the mechanic;
+- raw feature-level hex/rgb/hsl/color-mix semantic colors and ad-hoc fractional spacing/type scales;
+- feature-specific table, timeline, status, notice, settings-navigation or account-trigger visual grammars.
 
 Removal means deleting the old structural responsibility and its obsolete selectors/branches once the new owner exists. Leaving the old mechanism in place behind CSS overrides, hidden DOM, an always-false branch, a compatibility wrapper or an additional synchronization effect is not compliant.
 
@@ -1462,9 +1471,25 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-220-PRESIGNOFF-CONTINUITY`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`, `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`.
 
-**Required behavior:** every WorkItem Workbench screen is built from the complete closed primitive vocabulary in §8.12 according to the canonical composition grammar in §8.15. Feature/content owners may supply domain-specific content and presentational leaf components inside primitive slots, but reusable Workbench topology/interaction mechanics remain primitive-owned.
+**Required behavior:** every rendered Order Workbench service is built from the complete closed primitive vocabulary in §8.12 according to §8.15. Feature/content owners may supply domain content and §8.19 leaves inside primitive slots, but reusable Workbench structure/interaction/visual semantics remain primitive-owned.
 
-**Acceptance:** architecture fitness rejects a Workbench feature that bypasses a local primitive to recreate shell/identity/rail/surface/selector/dialogue/review/master-detail/Context/disclosure/confirmation mechanics, rejects undeclared persistent screen grammars, and requires any new primitive to arrive with DESIGN authority plus permanent fitness coverage.
+**Acceptance:** architecture fitness rejects bypass of shell/toolbar/utility/identity/rail/surface/attention/form/selector/dialogue/review/master-detail/Context/task-panel/settings/status/notice/table/timeline/disclosure/confirmation mechanics, rejects undeclared screen grammars, and requires any new primitive to arrive with DESIGN authority plus permanent fitness coverage.
+
+### GW-TR-095-WORKBENCH-RENDERER-COVERAGE
+
+**Realizes:** `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`.
+
+**Required behavior:** every production UI renderer is classified in §8.17 (or its canonical successor) and resolves completely to §8.12 primitives plus explicitly approved §8.19 leaves/specialist renderers. Non-rendering modules are explicitly excluded rather than silently omitted.
+
+**Acceptance:** adding a production TSX renderer without a registered composition fails architecture fitness; every baseline renderer in §8.17 is migrated without retaining a parallel feature-owned grammar.
+
+### GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
+
+**Realizes:** `GW-FR-217-PRIMARY-INFORMATION-ECONOMY`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`.
+
+**Required behavior:** color, typography, spacing/density, borders/radii, elevation, control geometry, focus, semantic status/feedback, theme parity and motion use only the canonical §8.18 token/role system; `theme.css` owns raw palette/token values under §8.20.
+
+**Acceptance:** no feature/service establishes a competing palette/type/spacing/control/status/table/timeline/overlay language; light/dark themes preserve semantic roles; primitive/specialist rendering consumes semantic tokens only.
 
 ## 14. Permanent verification
 
@@ -1523,6 +1548,10 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - Dialogue transcript/composer geometry remains stable across active/historical state and wide/medium/narrow recomposition; absence of an admissible composer does not create another screen topology;
 - dirty/destructive confirmation uses one accessible modal mechanic with focus return and leaves the underlying primary screen mounted;
 - every P3 primary interaction class and auxiliary class is exercised through its §8.15 canonical primitive composition;
+- Queue, Create WorkItem and Settings exercise their canonical service compositions rather than bespoke screen grammars;
+- light and dark theme certification verifies the §8.18 semantic roles for normal/current/selected/info/success/warning/danger/focus states without state meaning changing;
+- form labels/help/errors, status/notices, operational tables, timeline rows, disclosure and task-panel/confirmation interaction are visually and keyboard consistent across representative services;
+- typography/readable measures, compact control/row density and focus indicators remain within the canonical token roles at wide/medium/narrow widths;
 - responsive continuity with no page-level horizontal overflow for current action/identity.
 
 ### 14.6 Architecture fitness
@@ -1538,12 +1567,16 @@ Permanent sensors prove:
 - the generic step frame has no content-count-dependent persistent side-index slot;
 - one dedicated selected WorkItem query (not the queue list) owns current WorkItem observation; shared-query secondary consumers cannot become competing workflow-policy/current-attention owners;
 - Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
-- Workbench feature surfaces do not import Astryx mechanics already owned by the closed primitive vocabulary, including structural `Layout`/`Drawer`, Workbench dialogue layout/composer scaffolding or confirmation `Dialog`, and do not choose structural markup through a local viewport hook;
+- Workbench feature/service renderers do not import foundation mechanics already owned by §8.12, including structural `Layout/Drawer`, direct `Button`, semantic-status `Badge`, Workbench dialogue scaffolding or confirmation `AlertDialog/Dialog`, and do not choose structural markup through local viewport hooks;
 - every required §8.12 primitive owner exists and no generic arbitrary-slot/layout mega-primitive replaces the closed vocabulary;
-- Workbench primitive modules are domain/query/policy blind and contain no content-count topology branching;
-- only the closed primitive selectors establish persistent Workbench columns/outer topology, identity grid, anchored dialogue composer, Context/selector drawer mechanics and confirmation layout;
-- Workbench feature/content modules use presentational Astryx leaves only inside primitive-owned screen composition;
-- obsolete competing Workbench layout/interaction selectors are absent from production CSS.
+- every production TSX renderer is classified by the §8.17 registry; bootstrap/non-renderers are explicitly excluded;
+- Workbench primitive modules are domain/query/policy blind and structural primitives contain no content-count topology branching;
+- only closed primitive selectors establish persistent topology, identity grid, form/control grammar, anchored dialogue composer, Settings/task-panel/Context geometry, status/notice treatment, operational-table/timeline grammar and confirmation layout;
+- §8.19 foundation leaves appear only inside their authorized primitive/specialist boundary;
+- raw semantic color literals (hex/rgb/hsl/color-mix), feature-owned font-size/spacing/radius/control-height scales and feature-owned box shadows are absent from production selectors outside the §8.20 token owner;
+- theme token definitions provide complete light/dark values for every §8.18 semantic color role;
+- specialist CodeMirror/Markdown/evidence renderers consume canonical color/type/focus tokens rather than an independent palette;
+- obsolete competing Workbench layout/interaction/visual selectors are absent from production CSS.
 
 ## 15. Non-goals
 
