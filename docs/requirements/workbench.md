@@ -478,7 +478,11 @@ Research, Requirements, Solution design and Implementation plan do **not** gain 
 
 Attempt history and material selection use one compact step-local selector/control treatment that does not change the primary canvas width when the second object appears.
 
-This is a binding stability requirement.
+Supporting Work request/upstream documents are secondary context. They do not precede the current blocker, required input, proposal decision, active dialogue or current governed document in the primary reading order.
+
+Provider/runtime mechanics such as OpenCode session identity/status are technical detail unless a provider failure is itself the current blocker; the ordinary primary surface uses user-facing workflow state such as Processing, Waiting for you, Failed or Blocked rather than provider-plumbing headings.
+
+This is a binding stability and information-hierarchy requirement.
 
 ### 11.5 Master/detail is reserved for real master/detail work
 
@@ -665,7 +669,7 @@ The selected detail shows:
 - current task state;
 - current Run/attempt;
 - current blocker or next action;
-- validation state;
+- validation state, emphasizing the current/recorded validation boundary rather than filling the primary surface with unreached empty validation rows;
 - chronological events;
 - evidence/resources.
 
@@ -748,6 +752,7 @@ Responsive changes preserve the same semantic hierarchy.
 
 ### Wide
 
+- one-line application toolbar;
 - one-line identity;
 - one-line workflow rail;
 - full primary task width;
@@ -761,6 +766,8 @@ Secondary selectors/context become temporary before the primary task is compress
 ### Narrow
 
 One primary material at a time.
+
+Application-global utilities collapse to a compact, non-wrapping treatment before they are allowed to consume additional Workbench rows; global account/settings/theme controls must not displace the WorkItem identity or current action.
 
 The workflow rail remains the lifecycle navigation owner and may scroll horizontally.
 
