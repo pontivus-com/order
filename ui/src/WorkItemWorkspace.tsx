@@ -943,6 +943,8 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             summary={stepSummary}
+            currentRunId={currentStageRun?.id ?? null}
+            currentInteraction={currentStageInteraction}
             mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
@@ -966,6 +968,8 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             summary={stepSummary}
+            currentRunId={currentStageRun?.id ?? null}
+            currentInteraction={currentStageInteraction}
             mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
@@ -993,6 +997,7 @@ export const WorkItemWorkspace = ({
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
+            executionOwner={executionOwner}
             mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
