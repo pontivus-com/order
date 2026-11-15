@@ -226,6 +226,7 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Save lifecycle document | editable already-reached owner; no active Run; expected hash current | return/remain at artifact owner |
 | Resume pre-signoff blocker | same stage / BLOCKED; blocker proven resolved; no active Run | same stage / ACTIVE |
 | Sign off | AWAITING_SIGNOFF / ACTIVE; exact displayed package still current; no competing mutation | EXECUTION / ACTIVE + Approval/tasks |
+| Reconcile stale approval authority | AWAITING_SIGNOFF / ACTIVE; package inspection reports exact STALE(owner); submitted expected owner still matches; no competing mutation | return lifecycle ownership to that exact upstream owner / ACTIVE; no repository bytes are changed |
 | Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; blocked task becomes eligible |
 | Archive/restore | existing archive policy; no active Run; no competing mutation | archive projection only; lifecycle unchanged |
 
@@ -330,6 +331,10 @@ type WorkItemTransitionCause =
   | { readonly tag: "RESUME_CURRENT_OWNER" }
   | { readonly tag: "SIGN_OFF" }
   | {
+      readonly tag: "RECONCILE_AUTHORITY";
+      readonly owner: UpstreamReturnStage;
+    }
+  | {
       readonly tag: "EXECUTION_RETURN";
       readonly owner: UpstreamReturnStage;
     }
@@ -342,6 +347,8 @@ type WorkItemTransitionCause =
 This is an internal pure decision union, not a persisted event stream. Existing canonical RunEvents/commands remain the durable causes/evidence. Shell/daemon code maps an admitted canonical command/event/classification into one cause, then `lifecycle.ts` returns the next lifecycle tuple. An unlisted cause cannot mutate lifecycle state.
 
 Existing specialized transition helpers may remain where they are the minimum clear implementation, but every one is exhaustively traceable to one variant above and no daemon module assigns an alternate lifecycle tuple.
+
+`RECONCILE_AUTHORITY(owner)` is the explicit pre-signoff stale-authority return used only from `AWAITING_SIGNOFF / ACTIVE` after observational package inspection has produced that exact owner. It changes only the canonical lifecycle tuple to `owner / ACTIVE / null`; it does not rewrite repository bytes, fabricate conformance or replace source reconciliation. Source-boundary conflicts continue to use the existing source reconciliation path.
 
 ### 4.10 Proposal, recovery and execution derivation
 
@@ -518,6 +525,8 @@ Sign-off is the only AWAITING_SIGNOFF -> EXECUTION command and executes under th
 
 The command computes the exact package read-only, compares the submitted expected hash, and immediately before storing Approval/tasks rechecks that the WorkItem is still AWAITING_SIGNOFF / ACTIVE and the exact package/currentness preconditions still hold.
 
+The distinct `reconcile-authority` command is valid only for `AWAITING_SIGNOFF / ACTIVE` when the observational package query has returned typed `STALE(owner)`. It runs under the same per-WorkItem operator-mutation guard, re-inspects the package/currentness before commit, requires the submitted expected owner to equal the still-current stale owner, then applies `RECONCILE_AUTHORITY(owner)`. It never performs source reconciliation and never changes repository bytes.
+
 Resume never performs source reconciliation implicitly. If source/authority drift prevents safe resume, Resume rejects with the owning reconciliation/blocker reason and leaves canonical state unchanged.
 
 ## 6. Observational read architecture
@@ -568,6 +577,8 @@ It may:
 - return the existing stable typed stale/precondition error when currentness cannot be proven.
 
 It never performs the upstream lifecycle return.
+
+The stale response carries the exact `UpstreamReturnStage` owner through the canonical P6 HTTP error contract; consumers do not parse the error message to recover workflow meaning.
 
 The Workbench keeps the reached R3/Plan/package material inspectable and exposes explicit reconciliation/current-owner action. Sign-off remains disabled until the package is current.
 
