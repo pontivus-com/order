@@ -20,6 +20,7 @@ import {
 import {
   artifactDirectEditIsAllowed,
   artifactReturnOwner,
+  transitionWorkItem,
 } from "../core/lifecycle.ts";
 import { workItemSchemaCatalog } from "../core/work-item-source.ts";
 import {
@@ -41,12 +42,15 @@ import {
 import {
   loadRunningRuns,
   loadWorkItems,
-  setWorkItemStatus,
   storeArtifact,
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { createCoordinatorRuntime, type CoordinatorRuntime } from "./runtime.ts";
+import {
+  createCoordinatorRuntime,
+  type CoordinatorRuntime,
+  withWorkItemOperatorMutation,
+} from "./runtime.ts";
 import {
   getRun,
   listRunEvents,
@@ -243,7 +247,7 @@ export const recoverInterruptedRuns = async (
   }
 };
 
-export const cancelRun = async (
+const cancelRunUnlocked = async (
   runtime: CoordinatorRuntime,
   runId: RunId,
 ): Promise<Run> => {
@@ -260,20 +264,36 @@ export const cancelRun = async (
   }
 
   return withTransaction(runtime.database, () => {
-    const cancelled = updateRun(runtime, run.id, {
+    const current = getRun(runtime, run.id);
+    if (current.status !== "RUNNING" && current.status !== "WAITING_FOR_INPUT") {
+      return current;
+    }
+    const cancelled = updateRun(runtime, current.id, {
       status: "CANCELLED",
       endedAt: nowIsoDateTime(),
       providerSessionId: null,
     });
-    if (run.executionTaskId !== null) {
-      markTaskState(runtime, run.executionTaskId, "BLOCKED");
-      setWorkItemExecutionBlocked(runtime, run.workItemId);
+    if (current.executionTaskId !== null) {
+      markTaskState(runtime, current.executionTaskId, "BLOCKED");
+      setWorkItemExecutionBlocked(runtime, current.workItemId);
     }
     return cancelled;
   });
 };
 
-export const resumeWorkItem = async (
+export const cancelRun = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+): Promise<Run> => {
+  const run = getRun(runtime, runId);
+  return withWorkItemOperatorMutation(
+    runtime,
+    run.workItemId,
+    () => cancelRunUnlocked(runtime, runId),
+  );
+};
+
+const resumeWorkItemUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
 ): Promise<WorkItem> => {
@@ -286,8 +306,14 @@ export const resumeWorkItem = async (
   }
 
   if (workItem.stage !== "EXECUTION") {
-    setWorkItemStatus(runtime.database, workItem.id, "ACTIVE");
-    return getWorkItem(runtime, workItem.id);
+    return withTransaction(runtime.database, () => {
+      const current = getWorkItem(runtime, workItem.id);
+      const transition = transitionWorkItem(current, {
+        tag: "RESUME_CURRENT_OWNER",
+      });
+      updateWorkItemLifecycle(runtime.database, current.id, transition);
+      return getWorkItem(runtime, current.id);
+    });
   }
 
   const approval = currentApprovalForWorkItem(runtime, workItem.id);
@@ -299,22 +325,36 @@ export const resumeWorkItem = async (
   }
   const task = blocked[0];
   if (task === undefined) throw new TypeError("blocked execution task is missing");
-  const current = await currentMaterialFresh(runtime, approval);
+  const currentMaterial = await currentMaterialFresh(runtime, approval);
   if (!executionResumeIsAllowed({
     workItemStatus: workItem.status,
     taskState: task.state,
-    approvalCurrent: current,
+    approvalCurrent: currentMaterial,
     blockerResolved: true,
   })) {
     throw new TypeError("execution resume preconditions are not satisfied");
   }
 
-  withTransaction(runtime.database, () => {
+  return withTransaction(runtime.database, () => {
+    const current = getWorkItem(runtime, workItem.id);
+    const transition = transitionWorkItem(current, {
+      tag: "RESUME_CURRENT_OWNER",
+    });
     markTaskState(runtime, task.id, "TODO");
-    setWorkItemStatus(runtime.database, workItem.id, "ACTIVE");
+    updateWorkItemLifecycle(runtime.database, current.id, transition);
+    return getWorkItem(runtime, current.id);
   });
-  return getWorkItem(runtime, workItem.id);
 };
+
+export const resumeWorkItem = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<WorkItem> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => resumeWorkItemUnlocked(runtime, workItemId),
+  );
 
 export const schedulerIntervalMillis = 3_600_000;
 
@@ -390,7 +430,7 @@ export const readArtifactContent = async (
   return bytes;
 };
 
-export const saveArtifactContent = async (
+const saveArtifactContentUnlocked = async (
   runtime: CoordinatorRuntime,
   artifactRefId: ArtifactRefId,
   input: ExpectedHashMarkdownWrite,
@@ -400,6 +440,12 @@ export const saveArtifactContent = async (
   const validated = await revalidateWorkItemSource(runtime, artifact.workItemId);
   const workItem = validated.workItem;
 
+  if (
+    listRuns(runtime, workItem.id)
+      .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
+  ) {
+    throw new TypeError("lifecycle Markdown cannot change while a Run is active");
+  }
   if (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") {
     throw new TypeError("lifecycle Markdown is read-only in EXECUTION/COMPLETE");
   }
@@ -429,14 +475,34 @@ export const saveArtifactContent = async (
     gitCommit: null,
   });
   withTransaction(runtime.database, () => {
-    storeArtifact(runtime.database, nextArtifact);
-    updateWorkItemLifecycle(runtime.database, workItem.id, {
-      stage: owner,
-      status: "ACTIVE",
-      outcome: null,
+    const current = getWorkItem(runtime, workItem.id);
+    if (
+      listRuns(runtime, current.id)
+        .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
+    ) {
+      throw new TypeError("a Run became active before lifecycle Markdown commit");
+    }
+    const transition = transitionWorkItem(current, {
+      tag: "LIFECYCLE_ARTIFACT_CHANGED",
+      owner,
     });
+    storeArtifact(runtime.database, nextArtifact);
+    updateWorkItemLifecycle(runtime.database, current.id, transition);
   });
   return result;
+};
+
+export const saveArtifactContent = (
+  runtime: CoordinatorRuntime,
+  artifactRefId: ArtifactRefId,
+  input: ExpectedHashMarkdownWrite,
+): Promise<ExpectedHashWriteResult> => {
+  const artifact = getArtifact(runtime, artifactRefId);
+  return withWorkItemOperatorMutation(
+    runtime,
+    artifact.workItemId,
+    () => saveArtifactContentUnlocked(runtime, artifactRefId, input),
+  );
 };
 
 export { createCoordinatorRuntime, type CoordinatorRuntime } from "./runtime.ts";
