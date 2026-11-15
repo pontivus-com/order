@@ -623,6 +623,7 @@ test("browser surfaces the canonical typed API failure message", async ({ page, 
         code: "CURRENT_STATE_CONFLICT",
         message: "Documentation changed; review the current state and retry.",
         sourceDiagnostic: null,
+        staleAuthorityOwner: null,
       }),
     });
   });
@@ -633,6 +634,71 @@ test("browser surfaces the canonical typed API failure message", async ({ page, 
   await expect(page.getByText("Local browser session required")).toBeVisible();
 
   await page.unroute("**/api/work-items");
+});
+
+test("Approval consumes the typed stale authority owner and returns to the exact canonical owner", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  const workItem = await workItemForTitle(page, "Awaiting sign-off");
+  const packagePath =
+    `**/api/work-items/${encodeURIComponent(workItem.id)}/signoff-package`;
+  const reconcilePath =
+    `**/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`;
+
+  await page.route(packagePath, async (route) => {
+    await route.fulfill({
+      status: 409,
+      contentType: "application/json",
+      body: JSON.stringify({
+        code: "STALE_AUTHORITY",
+        message: "current R3 conformance is missing or stale: PLAN",
+        sourceDiagnostic: null,
+        staleAuthorityOwner: "PLAN",
+      }),
+    });
+  });
+
+  let submittedOwner: unknown = null;
+  await page.route(reconcilePath, async (route) => {
+    submittedOwner = route.request().postDataJSON();
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...workItem,
+        stage: "PLAN",
+        status: "ACTIVE",
+        outcome: null,
+      }),
+    });
+  });
+
+  await openWorkItem(page, "Awaiting sign-off");
+  const summary = page.getByTestId("workflow-step-summary");
+  await expect(summary).toContainText("Package stale");
+  await expect(summary).toContainText("Approval authority is stale");
+  await expect(summary).toContainText(
+    "Return workflow ownership to Implementation plan before continuing.",
+  );
+
+  const reconcile = page.getByRole("button", {
+    name: "Return to Implementation plan",
+  });
+  await expect(reconcile).toBeVisible();
+
+  const requestObserved = page.waitForRequest((candidate) =>
+    candidate.method() === "POST" &&
+    candidate.url().endsWith(
+      `/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`,
+    ));
+  await reconcile.click();
+  await requestObserved;
+  expect(submittedOwner).toEqual({ expectedOwner: "PLAN" });
+
+  await page.unroute(packagePath);
+  await page.unroute(reconcilePath);
 });
 
 test("queue opens a primary workspace, keeps context compact, preserves URL history, responds with a Drawer, and creates real WorkItems", async ({
