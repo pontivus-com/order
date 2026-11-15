@@ -1,6 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Badge } from "@astryxdesign/core/Badge";
 import {
   SegmentedControl,
   SegmentedControlItem,
@@ -26,6 +25,7 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
+import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import {
   WorkbenchToolbar,
@@ -374,9 +374,10 @@ export const App = () => {
             />
           ) : null}
           {settingsSection !== null ? (
-            <WorkbenchAction
+            <WorkbenchUtilityLink
               label="Back to work queue"
-              onClick={() => requestSelection(null)}
+              href="/"
+              onNavigate={(event) => { event.preventDefault(); requestSelection(null); }}
             />
           ) : null}
         </WorkbenchToolbarGroup>
@@ -393,10 +394,13 @@ export const App = () => {
           ) : null}
           <WorkbenchToolbarUtilities>
             <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
-            <WorkbenchAction
+            <WorkbenchUtilityLink
               label="Settings"
-              tone="ghost"
-              onClick={() => navigateSettings(settingsSection ?? "repositories")}
+              href={"/settings/" + (settingsSection ?? "repositories")}
+              onNavigate={(event) => {
+                event.preventDefault();
+                navigateSettings(settingsSection ?? "repositories");
+              }}
             />
             <div className="order-theme-control">
               <WorkbenchIcon name={themePreference} />
