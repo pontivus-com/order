@@ -42,7 +42,7 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
+export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationError }: Readonly<{
   workItem: WorkItem; stage: PreSignoffStage; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
@@ -51,6 +51,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onOpenProposalReview?: (selection: ProposalSelection) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
   const [inputError, setInputError] = useState<unknown>(null);
@@ -98,7 +99,10 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
       return api.cancelRun(selectedRun.id);
     },
     onSuccess: async (run) => { onSelectedRunChange(run.id); await invalidate(); },
-    onError: invalidate,
+    onError: async (error) => {
+      onMutationError?.(error);
+      await invalidate();
+    },
   });
 
   if (runsQuery.isPending) return <WorkbenchState kind="loading" title="Loading workflow activity…" />;
@@ -169,7 +173,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
       <WorkbenchDialogue
         transcript={transcript}
         state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
-        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={async (error) => { setInputError(error); await invalidate(); }} /> : undefined}
+        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={async (error) => { setInputError(error); onMutationError?.(error); await invalidate(); }} /> : undefined}
       />
       </div>
     </section>
