@@ -71,6 +71,7 @@ import {
   reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
   signOffWorkItem,
+  staleAuthorityOwnerForFailure,
 } from "./authority.ts";
 import {
   adoptArtifactProposal,
@@ -121,6 +122,7 @@ export const createWorkItem = (
 ) => createWorkItemFromSource(runtime, input, repositoryRoots);
 
 export const sourceDiagnosticForFailure = sourceDiagnosticForSourceFailure;
+export { staleAuthorityOwnerForFailure };
 
 export const listWorkItemSchemas = () => workItemSchemaCatalog;
 
