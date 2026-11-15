@@ -159,6 +159,7 @@ export const WorkItemWorkspace = ({
   const [mutationConflict, setMutationConflict] = useState(false);
   const [terminalDrainPending, setTerminalDrainPending] = useState(false);
   const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
+  const mutationConflictObservation = useRef<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   const runsQuery = useQuery({
@@ -566,26 +567,33 @@ export const WorkItemWorkspace = ({
                 ? "success" as const
                 : "neutral" as const;
 
+  const observationVersion = [
+    workItem.stage,
+    workItem.status,
+    workItem.outcome ?? "",
+    workItem.sourceSha256,
+    runsQuery.dataUpdatedAt,
+    artifactsQuery.dataUpdatedAt,
+    tasksQuery.dataUpdatedAt,
+    sourceQuery.dataUpdatedAt,
+    diagnosticsQuery.dataUpdatedAt,
+    signoffPackageQuery.dataUpdatedAt,
+  ].join(":");
+
   useEffect(() => {
     headingRef.current?.focus();
   }, [workItem.id]);
 
   useEffect(() => {
-    if (!mutationConflict) return;
-    setMutationConflict(false);
-  }, [
-    artifactsQuery.dataUpdatedAt,
-    diagnosticsQuery.dataUpdatedAt,
-    mutationConflict,
-    runsQuery.dataUpdatedAt,
-    signoffPackageQuery.dataUpdatedAt,
-    sourceQuery.dataUpdatedAt,
-    tasksQuery.dataUpdatedAt,
-    workItem.outcome,
-    workItem.sourceSha256,
-    workItem.stage,
-    workItem.status,
-  ]);
+    if (
+      mutationConflict &&
+      mutationConflictObservation.current !== null &&
+      mutationConflictObservation.current !== observationVersion
+    ) {
+      mutationConflictObservation.current = null;
+      setMutationConflict(false);
+    }
+  }, [mutationConflict, observationVersion]);
 
   useEffect(() => {
     onContextSelectionChange(selectedStep, material);
@@ -637,7 +645,9 @@ export const WorkItemWorkspace = ({
     invalidateWorkbenchMutation(queryClient, workItem.id);
 
   const reportMutationError = (error: unknown): void => {
-    if (api.isCurrentStateConflict(error)) setMutationConflict(true);
+    if (!api.isCurrentStateConflict(error)) return;
+    mutationConflictObservation.current = observationVersion;
+    setMutationConflict(true);
   };
 
   const titleMutation = useMutation({
