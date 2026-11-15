@@ -169,7 +169,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
       <WorkbenchDialogue
         transcript={transcript}
         state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
-        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={setInputError} /> : undefined}
+        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={async (error) => { setInputError(error); await invalidate(); }} /> : undefined}
       />
       </div>
     </section>
