@@ -55,6 +55,24 @@ jobs:
         shell: bash
         run: |
           set +e
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("tests/browser.spec.ts")
+          text = path.read_text()
+          needle = '  await page.unroute(inputPattern);\n  await expect(\n    page.locator(\'[data-event-tag="HUMAN_INPUT_RECEIVED"]\'),'
+          replacement = '''  await page.unroute(inputPattern);
+  console.log("=== INPUT WORKSPACE ===");
+  console.log(await page.getByTestId("workflow-step-workspace").innerText());
+  console.log("=== INPUT EVENTS API ===");
+  console.log(await (await page.context().request.get(
+    "/api/runs/" + inputRun!.id + "/events?afterSequence=0",
+  )).text());
+  await expect(
+    page.locator('[data-event-tag="HUMAN_INPUT_RECEIVED"]'),'''
+          if needle not in text:
+              raise SystemExit("diagnostic injection anchor missing")
+          path.write_text(text.replace(needle, replacement, 1))
+          PY
           node node_modules/@playwright/test/cli.js test tests/browser.spec.ts --grep "successful workflow mutations reconcile to refreshed canonical state"
           status=$?
           echo "=== PLAYWRIGHT ERROR CONTEXTS ==="
