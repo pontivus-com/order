@@ -68,6 +68,7 @@ import {
   getWorkItem,
   listArtifacts,
   listExecutionTasks,
+  reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
   signOffWorkItem,
 } from "./authority.ts";
@@ -517,6 +518,7 @@ export {
   getWorkItem,
   listArtifacts,
   listExecutionTasks,
+  reconcileWorkItemAuthority,
   signoffPackageForWorkItem,
   signOffWorkItem,
 } from "./authority.ts";
