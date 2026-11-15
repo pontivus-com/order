@@ -601,10 +601,13 @@ The default productive UI is compact. Normal labels, controls, rows and supporti
 
 Equivalent interactions look and behave the same everywhere.
 
-- primary, secondary, destructive and ghost actions use one action grammar;
-- form fields use one label/help/error grammar;
-- semantic status uses one status grammar;
-- inline information/warning/error/success feedback uses one notice grammar;
+- primary, secondary, destructive and ghost **commands** use one action grammar; one view has at most one visually primary command;
+- commands use specific action labels; pure navigation uses link/navigation semantics rather than masquerading as a command button;
+- icon-only commands retain an accessible name and visible-tooltip equivalent;
+- form fields use one label/help/error grammar, with labels remaining available to assistive technology even when visually hidden;
+- disabled controls remain understandable: where the reason matters, it is available with the disabled control rather than hidden in unrelated copy;
+- semantic status uses one status grammar and ordinary/default state is not repeatedly promoted into attention-grabbing badges;
+- inline information/warning/error/success feedback uses one notice grammar; persistent actionable failure remains visible until resolved and asynchronous status is announced once rather than duplicated across live regions;
 - operational collections use one dense row/table grammar rather than card stacks;
 - chronological events use one timeline grammar;
 - transient task forms use one operator-opened task-panel grammar;
@@ -612,6 +615,8 @@ Equivalent interactions look and behave the same everywhere.
 - fixed peer-view choices may use one compact segmented/tab treatment but never create a second navigation hierarchy.
 
 A service-specific form, table, status badge, notice, timeline or drawer treatment is non-compliant when the same interaction already exists in the canonical UI language.
+
+The selected underlying control/container pattern must also match the interaction: a destructive irreversible decision is confirmation, a bounded form/task is a task/dialog surface, contextual side detail is Context/inspector behavior, and a docked operational region is not represented as a floating overlay merely for convenience.
 
 ### 11.11 Theme, focus and motion consistency
 
