@@ -98,6 +98,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
       return api.cancelRun(selectedRun.id);
     },
     onSuccess: async (run) => { onSelectedRunChange(run.id); await invalidate(); },
+    onError: invalidate,
   });
 
   if (runsQuery.isPending) return <WorkbenchState kind="loading" title="Loading workflow activity…" />;
