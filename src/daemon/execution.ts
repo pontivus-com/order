@@ -472,6 +472,7 @@ export const executeMutatingRun = async (
     return;
   }
   await stopActiveProvider(runtime, run.id);
+  if (!runAcceptsFinalization(runtime, run.id)) return;
 
   const stageBlocked = persisted.findLast((event) => event.event.tag === "STAGE_BLOCKED");
   if (stageBlocked !== undefined) {
@@ -796,6 +797,7 @@ export const executeReviewerRun = async (
     return;
   }
   await stopActiveProvider(runtime, run.id);
+  if (!runAcceptsFinalization(runtime, run.id)) return;
   const reviewFailure = reviewEvents.findLast((event) => event.event.tag === "REVIEW_FAILED");
   if (reviewFailure !== undefined && reviewFailure.event.tag === "REVIEW_FAILED") {
     const failure = appendValidationFailed(
