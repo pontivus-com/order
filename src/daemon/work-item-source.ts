@@ -36,7 +36,7 @@ import {
   unresolvedConcernIdsForProject,
   type WorkItemSourceDisposition,
 } from "../core/work-item-source.ts";
-import { sourceChangeLifecycleState } from "../core/lifecycle.ts";
+import { transitionWorkItem } from "../core/lifecycle.ts";
 import {
   loadConfiguredProjects,
   resolveConfiguredProject,
@@ -189,7 +189,7 @@ const planExistingSource = (
 
   const disposition = classification.disposition;
   const lifecycle = disposition === "UPDATED"
-    ? sourceChangeLifecycleState(existing)
+    ? transitionWorkItem(existing, { tag: "SOURCE_AUTHORITY_CHANGED" })
     : { stage: existing.stage, status: existing.status, outcome: existing.outcome };
 
   return {
@@ -696,7 +696,14 @@ export const createWorkItemFromSource = async (
   return value;
 };
 
-export const saveWorkItemSource = async (
+const activeRunExists = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): boolean =>
+  loadRunsForWorkItem(runtime.database, workItemId)
+    .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT");
+
+const saveWorkItemSourceUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   input: ExpectedHashMarkdownWrite,
@@ -704,6 +711,9 @@ export const saveWorkItemSource = async (
   const command = ExpectedHashMarkdownWriteSchema.parse(input);
   const validated = await revalidateWorkItemSource(runtime, workItemId);
   const existing = validated.workItem;
+  if (activeRunExists(runtime, existing.id)) {
+    throw new TypeError("WorkItem source cannot change while a Run is active");
+  }
   if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
     throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
   }
@@ -725,12 +735,16 @@ export const saveWorkItemSource = async (
   const classification = classifyExistingWorkItemSource(
     existing,
     proposed,
-    loadRunsForWorkItem(runtime.database, existing.id).some((run) => run.role === "STAGE"),
+    loadRunsForWorkItem(runtime.database, existing.id)
+      .some((run) => run.role === "STAGE"),
   );
   if (classification.tag === "REJECT") {
     throw new TypeError(classification.detail);
   }
 
+  if (activeRunExists(runtime, existing.id)) {
+    throw new TypeError("a Run became active before WorkItem source write");
+  }
   const result = replaceWorkItemSourceFile(
     existing.repositoryRoot,
     existing.sourcePath,
@@ -741,8 +755,12 @@ export const saveWorkItemSource = async (
 
   const source = readWorkItemSource(existing.repositoryRoot, existing.sourcePath);
   const lifecycle = classification.disposition === "UPDATED"
-    ? sourceChangeLifecycleState(existing)
-    : { stage: existing.stage, status: existing.status, outcome: existing.outcome };
+    ? transitionWorkItem(existing, { tag: "SOURCE_AUTHORITY_CHANGED" })
+    : {
+        stage: existing.stage,
+        status: existing.status,
+        outcome: existing.outcome,
+      };
   const next = WorkItemSchema.parse({
     ...existing,
     projectId: source.metadata.projectId,
@@ -754,11 +772,33 @@ export const saveWorkItemSource = async (
     concernIds: source.metadata.concernIds,
     ...lifecycle,
   });
-  updateWorkItemSourceProjection(runtime.database, next);
+  withTransaction(runtime.database, () => {
+    if (activeRunExists(runtime, existing.id)) {
+      throw new TypeError("a Run became active before WorkItem source commit");
+    }
+    updateWorkItemSourceProjection(runtime.database, next);
+    if (classification.disposition === "UPDATED") {
+      const approval = loadCurrentApprovalForWorkItem(runtime.database, existing.id);
+      if (approval !== null) {
+        blockExecutionTasksForApproval(runtime.database, approval.id);
+      }
+    }
+  });
   return result;
 };
 
-export const saveWorkItemSourceBody = async (
+export const saveWorkItemSource = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: ExpectedHashMarkdownWrite,
+): Promise<ExpectedHashWriteResult> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => saveWorkItemSourceUnlocked(runtime, workItemId, input),
+  );
+
+const saveWorkItemSourceBodyUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   input: ExpectedHashWorkItemBodyWrite,
@@ -779,13 +819,24 @@ export const saveWorkItemSourceBody = async (
     validated.source.markdown,
     command.bodyMarkdown,
   );
-  return saveWorkItemSource(runtime, workItemId, {
+  return saveWorkItemSourceUnlocked(runtime, workItemId, {
     expectedSha256: command.expectedSha256,
     markdown,
   });
 };
 
-export const updateWorkItemTitle = async (
+export const saveWorkItemSourceBody = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: ExpectedHashWorkItemBodyWrite,
+): Promise<ExpectedHashWriteResult> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => saveWorkItemSourceBodyUnlocked(runtime, workItemId, input),
+  );
+
+const updateWorkItemTitleUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   input: UpdateWorkItemTitle,
@@ -808,13 +859,24 @@ export const updateWorkItemTitle = async (
     validated.source.markdown,
     command.title,
   );
-  return saveWorkItemSource(runtime, workItemId, {
+  return saveWorkItemSourceUnlocked(runtime, workItemId, {
     expectedSha256: command.expectedSourceSha256,
     markdown,
   });
 };
 
-export const setWorkItemArchived = async (
+export const updateWorkItemTitle = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: UpdateWorkItemTitle,
+): Promise<ExpectedHashWriteResult> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => updateWorkItemTitleUnlocked(runtime, workItemId, input),
+  );
+
+const setWorkItemArchivedUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   input: SetWorkItemArchived,
@@ -831,10 +893,7 @@ export const setWorkItemArchived = async (
   if (workItem.stage === "EXECUTION") {
     throw new TypeError("WorkItem may not be archived or restored during EXECUTION");
   }
-  if (
-    loadRunsForWorkItem(runtime.database, workItem.id)
-      .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
-  ) {
+  if (activeRunExists(runtime, workItem.id)) {
     throw new TypeError("WorkItem archive state may not change while a Run is active");
   }
   const project = await resolveConfiguredProject(
@@ -853,3 +912,15 @@ export const setWorkItemArchived = async (
     command.archived,
   );
 };
+
+export const setWorkItemArchived = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  input: SetWorkItemArchived,
+): Promise<WorkItem> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => setWorkItemArchivedUnlocked(runtime, workItemId, input),
+  );
+
