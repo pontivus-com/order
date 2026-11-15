@@ -8,7 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
-- Replace the accumulated 0.3.0 Workbench functional-design/addendum stack with `GW-DOC-WORKBENCH-UX-V2`, defining one coherent workflow/state interaction contract for pure reads, atomic command outcomes, serialized agent turns, exact required-input ownership, monotonic reached history, proposal/edit authority, asynchronous state convergence, blocker precedence, and stable Foundation-style Workbench geometry; retain V1 only as historical provenance and mark the V1 component architecture for P4/P6 re-derivation before implementation.
+- Replace the accumulated 0.3.0 Workbench design with `GW-DOC-WORKBENCH-UX-V2` and reorganize the live Order documentation set by semantic concern (`product`, `requirements`, `governance`, `architecture`, `contracts`, `decisions`, `references`) instead of ordinal filenames; remove obsolete V1/completed-P7/cutover provenance from the live tree, consolidate still-live OpenCode/account/identity rules into their canonical owners, make documentation fitness validation recursive and path-aware, and explicitly block Workbench implementation redesign until the P4 state-machine/transition/observation design is completed.
 
 ### Fixed
 
