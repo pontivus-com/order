@@ -5075,18 +5075,18 @@ describe("daemon control plane", () => {
     const state = tempDir("order-daemon-start-start-");
     const binary = createFakeOpenCode("fix");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -5116,7 +5116,7 @@ describe("daemon control plane", () => {
         runCount: runs.length,
       }));
       database.close();
-    \`, providerEnvironment(binary, state)) as {
+    `, providerEnvironment(binary, state)) as {
       states: string[];
       rejected: string[];
       runCount: number;
@@ -5132,18 +5132,18 @@ describe("daemon control plane", () => {
     const state = tempDir("order-daemon-save-start-");
     const binary = createFakeOpenCode("fix");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -5174,7 +5174,7 @@ describe("daemon control plane", () => {
         body: saved.bodyMarkdown,
       }));
       database.close();
-    \`, providerEnvironment(binary, state)) as {
+    `, providerEnvironment(binary, state)) as {
       states: string[];
       current: { stage: string; status: string };
       runCount: number;
@@ -5193,7 +5193,7 @@ describe("daemon control plane", () => {
     const binary = createFakeOpenCode("stage-delay");
     const providerRelease = join(binary, "..", "provider-release");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
@@ -5201,15 +5201,15 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const authority = await import("./src/daemon/authority.ts");
       const runStore = await import("./src/daemon/run.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -5232,7 +5232,7 @@ describe("daemon control plane", () => {
         triggerEventId: null,
         status: "WAITING_FOR_INPUT",
         attempt: 1,
-        baselineCommit: await repo.resolveHeadCommit(\${JSON.stringify(repository)}),
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
         contextHash: context.contextHash,
         providerSessionId: null,
         terminalClassification: null,
@@ -5254,7 +5254,7 @@ describe("daemon control plane", () => {
         coord.submitRunInput(runtime, run.id, "first answer", request.id),
         coord.submitRunInput(runtime, run.id, "second answer", request.id),
       ]);
-      fs.writeFileSync(\${JSON.stringify(providerRelease)}, "release");
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
       await Promise.all(
         [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
       );
@@ -5271,7 +5271,7 @@ describe("daemon control plane", () => {
         ),
       }));
       database.close();
-    \`, providerEnvironment(binary, state)) as {
+    `, providerEnvironment(binary, state)) as {
       states: string[];
       received: (string | null)[];
     };
@@ -5287,7 +5287,7 @@ describe("daemon control plane", () => {
     const binary = createFakeOpenCode("stage-delay");
     const providerRelease = join(binary, "..", "provider-release");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
@@ -5295,15 +5295,15 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const authority = await import("./src/daemon/authority.ts");
       const runStore = await import("./src/daemon/run.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -5326,7 +5326,7 @@ describe("daemon control plane", () => {
         triggerEventId: null,
         status: "WAITING_FOR_INPUT",
         attempt: 1,
-        baselineCommit: await repo.resolveHeadCommit(\${JSON.stringify(repository)}),
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
         contextHash: context.contextHash,
         providerSessionId: null,
         terminalClassification: null,
@@ -5347,7 +5347,7 @@ describe("daemon control plane", () => {
       const input = coord.submitRunInput(runtime, run.id, "accepted answer", request.id);
       const cancel = coord.cancelRun(runtime, run.id);
       const settled = await Promise.allSettled([input, cancel]);
-      fs.writeFileSync(\${JSON.stringify(providerRelease)}, "release");
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
       await Promise.all(
         [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
       );
@@ -5362,7 +5362,7 @@ describe("daemon control plane", () => {
         beforeCleanupStatus: beforeCleanup.status,
       }));
       database.close();
-    \`, providerEnvironment(binary, state)) as {
+    `, providerEnvironment(binary, state)) as {
       states: string[];
       receivedCount: number;
       beforeCleanupStatus: string;
@@ -5442,19 +5442,19 @@ describe("daemon control plane", () => {
     const providerStarted = join(binary, "..", "provider-started");
     const providerRelease = join(binary, "..", "provider-release");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -5467,13 +5467,13 @@ describe("daemon control plane", () => {
       const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
       for (
         let attempt = 0;
-        attempt < 500 && !fs.existsSync(\${JSON.stringify(providerStarted)});
+        attempt < 500 && !fs.existsSync(${JSON.stringify(providerStarted)});
         attempt += 1
       ) {
         await Bun.sleep(10);
       }
       const cancelled = await coord.cancelRun(runtime, run.id);
-      fs.writeFileSync(\${JSON.stringify(providerRelease)}, "release");
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
       await Promise.all(
         [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
       );
@@ -5491,7 +5491,7 @@ describe("daemon control plane", () => {
         completions,
       }));
       database.close();
-    \`, providerEnvironment(binary, state), 30_000) as {
+    `, providerEnvironment(binary, state), 30_000) as {
       cancelled: string;
       finalRun: string;
       finalWorkItem: { stage: string; status: string };
@@ -5619,7 +5619,7 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-adopt-input-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const path = await import("node:path");
       const sql = await import("./src/shell/sqlite.ts");
@@ -5628,15 +5628,15 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const runStore = await import("./src/daemon/run.ts");
 
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -5650,12 +5650,12 @@ describe("daemon control plane", () => {
       const workItem = coord.getWorkItem(runtime, created.id);
       const proposalPath =
         "docs/order/work-items/" + workItem.id + "/research.md";
-      const absoluteProposal = path.join(\${JSON.stringify(repository)}, proposalPath);
+      const absoluteProposal = path.join(${JSON.stringify(repository)}, proposalPath);
       fs.writeFileSync(absoluteProposal, "accepted\\n");
       const proposalDiff = Bun.spawnSync(
         ["git", "diff", "--no-index", "--binary", "--", "/dev/null", proposalPath],
         {
-          cwd: \${JSON.stringify(repository)},
+          cwd: ${JSON.stringify(repository)},
           stdout: "pipe",
           stderr: "pipe",
         },
@@ -5677,7 +5677,7 @@ describe("daemon control plane", () => {
         triggerEventId: null,
         status: "RUNNING",
         attempt: 1,
-        baselineCommit: await repo.resolveHeadCommit(\${JSON.stringify(repository)}),
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
         contextHash,
         providerSessionId: null,
         terminalClassification: null,
@@ -5728,7 +5728,7 @@ describe("daemon control plane", () => {
         content: fs.readFileSync(absoluteProposal, "utf8"),
       }));
       database.close();
-    \`) as {
+    `) as {
       states: string[];
       adoptionRequests: number;
       dispositions: (string | null)[];
@@ -5750,7 +5750,7 @@ describe("daemon control plane", () => {
     const output = bunEval(seedSignoffScript(
       repository,
       state,
-      \`
+      `
         const currentSource = await coord.getWorkItemSource(runtime, work);
         const proposedBody = currentSource.bodyMarkdown.replace(
           "## Current context\\\\n",
@@ -5781,7 +5781,7 @@ describe("daemon control plane", () => {
         }));
         database.close();
         process.exit(0);
-      \`,
+      `,
     )) as {
       states: string[];
       finalWorkItem: { stage: string; status: string };
@@ -5909,8 +5909,8 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-resume-currentness-race-");
 
-    const output = bunEval(\`
-      \${seedSignoffScript(repository, state)}
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
       const fs = await import("node:fs");
       const task = (await coord.listExecutionTasks(runtime, work))[0];
       database.query(
@@ -5944,7 +5944,7 @@ describe("daemon control plane", () => {
         taskState: finalTask.state,
       }));
       database.close();
-    \`) as {
+    `) as {
       error: string | null;
       finalWorkItem: { stage: string; status: string };
       taskState: string;
@@ -5963,21 +5963,21 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-read-purity-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const path = await import("node:path");
       const sql = await import("./src/shell/sqlite.ts");
       const sourceShell = await import("./src/shell/work-item-source.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -6017,7 +6017,7 @@ describe("daemon control plane", () => {
         canonicalTitle: projectionAfter.title,
       }));
       database.close();
-    \`) as {
+    `) as {
       inspectedChanged: boolean;
       projectionUnchanged: boolean;
       bytesUnchanged: boolean;
@@ -6034,20 +6034,20 @@ describe("daemon control plane", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-artifact-read-purity-");
 
-    const output = bunEval(\`
+    const output = bunEval(`
       const fs = await import("node:fs");
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
       const authority = await import("./src/daemon/authority.ts");
-      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
         database,
-        \${JSON.stringify(state)},
+        ${JSON.stringify(state)},
         process.env,
         {
           version: 4,
           model: { providerID: "opencode", id: "glm-5.3-flash-free" },
-          repositoryRoots: [\${JSON.stringify(repository)}],
+          repositoryRoots: [${JSON.stringify(repository)}],
           referenceRoots: [],
         },
       );
@@ -6067,11 +6067,11 @@ describe("daemon control plane", () => {
         "P1",
       );
       fs.writeFileSync(
-        \${JSON.stringify(repository)} + "/docs/r1.md",
+        ${JSON.stringify(repository)} + "/docs/r1.md",
         "externally changed r1\\n",
       );
       const bytesBefore = fs.readFileSync(
-        \${JSON.stringify(repository)} + "/docs/r1.md",
+        ${JSON.stringify(repository)} + "/docs/r1.md",
         "utf8",
       );
       const projectionBefore = coord.getWorkItem(runtime, created.id);
@@ -6080,7 +6080,7 @@ describe("daemon control plane", () => {
       const projectionAfter = coord.getWorkItem(runtime, created.id);
       const artifactCountAfter = coord.listArtifacts(runtime, created.id).length;
       const bytesAfter = fs.readFileSync(
-        \${JSON.stringify(repository)} + "/docs/r1.md",
+        ${JSON.stringify(repository)} + "/docs/r1.md",
         "utf8",
       );
       console.log(JSON.stringify({
@@ -6091,7 +6091,7 @@ describe("daemon control plane", () => {
         bytesUnchanged: bytesAfter === bytesBefore,
       }));
       database.close();
-    \`) as {
+    `) as {
       staleArtifactExcluded: boolean;
       projectionUnchanged: boolean;
       artifactCountUnchanged: boolean;
