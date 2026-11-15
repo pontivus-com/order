@@ -576,6 +576,28 @@ export const WorkItemWorkspace = ({
     selectedStep === "R3"
       ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
       : null;
+  const explicitStageArtifactStillCurrent =
+    explicitMaterial?.kind === "STAGE_DOCUMENT" &&
+    artifacts.some((artifact) => artifact.id === explicitMaterial.artifactId);
+
+  useEffect(() => {
+    if (
+      explicitMaterial?.kind !== "STAGE_DOCUMENT" ||
+      explicitStageArtifactStillCurrent ||
+      selectedStageArtifact === null
+    ) {
+      return;
+    }
+    setExplicitMaterial({
+      kind: "STAGE_DOCUMENT",
+      artifactId: selectedStageArtifact.id,
+    });
+  }, [
+    explicitMaterial?.artifactId,
+    explicitMaterial?.kind,
+    explicitStageArtifactStillCurrent,
+    selectedStageArtifact?.id,
+  ]);
   const ordinaryClassification = (value: string): string =>
     value
       .replaceAll("_", " ")
