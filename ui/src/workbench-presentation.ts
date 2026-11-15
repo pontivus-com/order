@@ -151,6 +151,7 @@ export type WorkflowMaterialResolutionInput = Readonly<{
   runs: readonly Run[];
   artifacts: readonly ArtifactRef[];
   currentStageRunId: Run["id"] | null;
+  currentStageRunActive?: boolean;
   currentAttention: CurrentAttentionTag;
   stageInteraction: StageRunInteraction | null;
   executionOwner: ExecutionOwner;
@@ -382,10 +383,7 @@ export const resolveWorkflowMaterial = (
         input.stageInteraction?.tag === "REQUIRED_INPUT" ||
         (
           input.currentAttention === "CONVERGING" &&
-          (
-            ownerRun.status === "RUNNING" ||
-            ownerRun.status === "WAITING_FOR_INPUT"
-          )
+          input.currentStageRunActive === true
         )
       )
     ) {
