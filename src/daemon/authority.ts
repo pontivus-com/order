@@ -489,9 +489,7 @@ export const resolveStageContextState = async (
         gate.materialRefs,
       )) {
         artifacts.push(
-          await currentFileArtifact(
-            runtime,
-            workItem,
+          await resolveCurrentArtifact(
             path,
             "VERIFICATION_MATERIAL",
             null,
