@@ -172,14 +172,16 @@ Generic foundation guidance remains subordinate to the P3 product contract. The 
 
 `GW-DOC-WORKBENCH-UX-V2` is the current functional authority for Workbench behavior. The exact component/state-machine realization is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; exact theme/styling realization is owned by `GW-DOC-WORKBENCH-THEME-V1`. Both are derived from the functional authority rather than from the superseded presentation implementation.
 
-The technical architecture retains these foundation constraints while that P4 realization is being re-derived:
+The current binding Workbench realization is closed by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` together with `GW-DOC-WORKBENCH-THEME-V1`.
+
+Implementation therefore preserves these exact boundaries:
 
 1. reusable project-neutral UI behavior remains under `ui/src/primitives/`;
-2. Astryx remains an interaction-primitive/theme substrate beneath Order's semantic boundary and never owns lifecycle, information architecture, browser/server state or independent feature theming;
+2. Astryx remains the interaction/theme substrate beneath Order's semantic boundary and never owns lifecycle, information architecture, browser/server state or independent feature theming;
 3. the browser does not own a parallel workflow state machine or canonical mutation policy;
-4. Workbench actions and attention state derive from canonical daemon-owned workflow observations;
-5. presentation changes must preserve FCIS/SoC and must not introduce DTO/view-model families for canonical domain state;
-6. exact spatial/component rules that conflict with `GW-DOC-WORKBENCH-UX-V2` are non-authoritative until the P4 Workbench design is completed.
+4. Workbench actions and attention state derive from the canonical workflow observation/state language owned by the current Workbench P4 design;
+5. presentation changes preserve FCIS/SoC and do not introduce DTO/view-model families for canonical domain state;
+6. spatial composition, primitive ownership, renderer coverage, responsive behavior and theme/styling are implemented exactly from the current Workbench P4 owners; superseded implementation shapes have no authority.
 
 ### Live technical identity and predecessor migration
 
