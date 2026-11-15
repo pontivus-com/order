@@ -465,6 +465,8 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("currentExecutionObservationRequired");
     expect(workspace).toContain("tasksQuery.data === undefined");
     expect(workspace).toContain("currentExecutionTasks");
+    expect(workspace).toContain('workItem.stage === "EXECUTION" &&');
+    expect(workspace).toContain("executionEventsPending");
     expect(workspace).toContain("validationBoundary={validationBoundary}");
     expect(workspace).toContain("mutationConflict,");
     expect(workspace).not.toContain("mutationConflict: false");
