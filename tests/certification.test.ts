@@ -395,8 +395,20 @@ describe("Order cross-boundary certification", () => {
 
     const presentation = read("ui/src/workbench-presentation.ts");
     expect(presentation).toContain("reachStateForStage");
+    expect(presentation).toContain("type CurrentAttentionTag");
+    expect(presentation).toContain("type StageRunInteraction");
+    expect(presentation).toContain("type ExecutionOwner");
     expect(presentation).not.toContain("workflowStepIndex");
     expect(presentation).not.toContain("workflowSteps.findIndex");
+    const materialPolicy = presentation.slice(
+      presentation.indexOf("const currentStageRun"),
+      presentation.indexOf("export const runIsActive"),
+    );
+    expect(materialPolicy).toContain("input.currentAttention");
+    expect(materialPolicy).toContain("input.stageInteraction");
+    expect(materialPolicy).toContain("input.executionOwner");
+    expect(materialPolicy).not.toMatch(/\.status\s*===/);
+    expect(materialPolicy).not.toMatch(/\.state\s*===\s*["'](?:RUNNING|BLOCKED)["']/);
 
     const rail = read("ui/src/WorkflowRail.tsx");
     expect(rail).toContain("WorkflowRailItem");
@@ -420,6 +432,10 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("deriveCurrentAttention");
     expect(workspace).toContain("deriveWorkflowRail");
     expect(workspace).toContain('currentAttention === "CONVERGING"');
+    expect(workspace).toContain("currentStageRunId: currentStageRun?.id ?? null");
+    expect(workspace).toContain("currentAttention,");
+    expect(workspace).toContain("stageInteraction: currentStageInteraction");
+    expect(workspace).toContain("executionOwner,");
 
     const activity = read("ui/src/ActivityWorkspace.tsx");
     expect(activity).toContain("stageRunInteraction");
