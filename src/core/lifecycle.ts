@@ -949,6 +949,7 @@ export const deriveObservationCoherence = (
   runs: readonly Run[],
   events: readonly RunEvent[],
   tasks: readonly ExecutionTask[],
+  artifacts: readonly ArtifactRef[] = [],
 ): ObservationCoherence => {
   const active = (run: Run): boolean =>
     run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT";
@@ -968,7 +969,15 @@ export const deriveObservationCoherence = (
     const runEvents = events.filter((event) => event.runId === currentStageRun.id);
     const completion = runEvents.findLast((event) => event.event.tag === "STAGE_COMPLETED");
     if (completion?.event.tag === "STAGE_COMPLETED") {
-      return "CONVERGING";
+      const completionArtifactIds = completion.event.artifactRefIds;
+      const completionStillControlsCurrentAuthority =
+        completionArtifactIds.length === 0 ||
+        completionArtifactIds.every((artifactId) =>
+          artifacts.some((artifact) => artifact.id === artifactId)
+        );
+      if (completionStillControlsCurrentAuthority) {
+        return "CONVERGING";
+      }
     }
     const block = runEvents.findLast((event) => event.event.tag === "STAGE_BLOCKED");
     if (
