@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          node node_modules/@playwright/test/cli.js test tests/browser.spec.ts --grep "CodeMirror editor preserves exact source|canonical Run feedback remains visible|workflow-step geometry gives the selected task"
+          node node_modules/@playwright/test/cli.js test tests/browser.spec.ts --grep "Approval consumes the real typed stale authority owner|long Source and lifecycle Markdown|workflow step owns Run history|completed pre-signoff history|workflow mutations lock their owning controls|successful workflow mutations reconcile|proposal decisions are primary|dirty Markdown navigation"
           status=$?
           echo "=== PLAYWRIGHT ERROR CONTEXTS ==="
           find test-results -type f -name error-context.md -print -exec cat {} \; || true
