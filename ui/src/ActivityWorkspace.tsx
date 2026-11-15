@@ -166,7 +166,7 @@ export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, current
       <WorkbenchDialogue
         transcript={transcript}
         state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
-        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={async (error) => { setInputError(error); onMutationError?.(error); await invalidate(); }} /> : undefined}
+        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async (event) => { setInputError(null); queryClient.setQueryData<readonly RunEvent[]>(eventKey, (current = []) => current.some((item) => item.id === event.id) ? current : [...current, event].sort((left, right) => left.sequence - right.sequence || left.id.localeCompare(right.id))); await invalidate(); }} onError={async (error) => { setInputError(error); onMutationError?.(error); await invalidate(); }} /> : undefined}
       />
       </div>
     </section>
