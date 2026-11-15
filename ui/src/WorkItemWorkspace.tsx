@@ -922,6 +922,7 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             summary={stepSummary}
+            mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: "R3",
