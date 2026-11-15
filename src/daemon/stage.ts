@@ -217,7 +217,6 @@ export const stagePrompt = async (
 const persistStageCompletionBatch = async (
   runtime: CoordinatorRuntime,
   run: Run,
-  context: ResolvedContext,
   payloads: readonly RunEventPayload[],
   completionPayload: Extract<RunEventPayload, { tag: "STAGE_COMPLETED" }>,
 ): Promise<Readonly<{ run: Run; persisted: readonly RunEvent[] }>> => {
@@ -363,7 +362,6 @@ const persistStageCompletionBatch = async (
 const persistAndReactStageBatch = async (
   runtime: CoordinatorRuntime,
   run: Run,
-  context: ResolvedContext,
   payloads: readonly RunEventPayload[],
 ): Promise<Readonly<{ run: Run; persisted: readonly RunEvent[] }>> => {
   const currentRun = getRun(runtime, run.id);
@@ -386,7 +384,6 @@ const persistAndReactStageBatch = async (
     return persistStageCompletionBatch(
       runtime,
       currentRun,
-      context,
       payloads,
       completion,
     );
@@ -559,7 +556,6 @@ export const runStageTurn = async (
     const reaction = await persistAndReactStageBatch(
       runtime,
       run,
-      context,
       events,
     );
     const reacted = reaction.run;
