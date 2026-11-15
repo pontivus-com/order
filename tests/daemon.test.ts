@@ -5670,6 +5670,69 @@ describe("daemon control plane", () => {
     });
   }, 30_000);
 
+  it("rejects pre-signoff Resume while a Run remains active", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-resume-active-run-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        sql.updateWorkItemLifecycle(database, work, {
+          stage: "PLAN",
+          status: "BLOCKED",
+          outcome: null,
+        });
+        const active = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: work,
+          executionTaskId: null,
+          stage: "PLAN",
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "RUNNING",
+          attempt: runStore.nextAttempt(runtime, work, "PLAN", null),
+          baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+          contextHash: rt.sha256Text("blocked-active-run"),
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: timestamp,
+          endedAt: null,
+        });
+        let error = null;
+        try {
+          await coord.resumeWorkItem(runtime, work);
+        } catch (caught) {
+          error = caught instanceof Error ? caught.message : String(caught);
+        }
+        const finalWorkItem = coord.getWorkItem(runtime, work);
+        const finalRun = coord.getRun(runtime, active.id);
+        console.log(JSON.stringify({
+          error,
+          finalWorkItem: {
+            stage: finalWorkItem.stage,
+            status: finalWorkItem.status,
+          },
+          runStatus: finalRun.status,
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      error: string | null;
+      finalWorkItem: { stage: string; status: string };
+      runStatus: string;
+    };
+
+    expect(output.error).toMatch(/cannot resume while a Run is active/);
+    expect(output.finalWorkItem).toEqual({
+      stage: "PLAN",
+      status: "BLOCKED",
+    });
+    expect(output.runStatus).toBe("RUNNING");
+  }, 30_000);
+
   it("rejects Resume when approval currentness changes during admission", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-resume-currentness-race-");
