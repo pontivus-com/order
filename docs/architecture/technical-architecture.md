@@ -1331,7 +1331,7 @@ The architecture above does not authorize implementation by itself. It is the bi
 
 ## 30. Repository-native WorkItem documentation architecture
 
-This section is the current P4 architecture for `GW-FR-060..064`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
+This section is the current P4 architecture for `GW-FR-060..063`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
 
 ### 30.1 Boundary model
 
@@ -2098,7 +2098,7 @@ Floating `@main`, `@master` and mutable major-only action tags are not accepted 
 
 ## 34. Settings/configuration architecture
 
-This section is the P4 realization of `GW-FR-079..098` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
+This section is the P4 realization of `GW-FR-079..082`, `GW-FR-091..093`, `GW-FR-095` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
 
 The design preserves one canonical configuration/runtime ownership path rather than layering Settings behavior over independent state or file writes.
 
