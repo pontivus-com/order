@@ -424,6 +424,7 @@ export const WorkItemWorkspace = ({
   const mutationsDisabled = currentAttention === "CONVERGING";
   const workflowMutationsDisabled =
     mutationsDisabled ||
+    currentAttention === "MUTATION_CONFLICT" ||
     (currentness.tag === "STALE" && !runs.some(runIsActive));
 
   const material = resolveWorkflowMaterial({
@@ -865,12 +866,15 @@ export const WorkItemWorkspace = ({
     currentAttention === "ACTIONABLE";
   const canRetry =
     currentStepSelected &&
+    currentAttention !== "MUTATION_CONFLICT" &&
     recovery.tag === "RETRY_CURRENT_STAGE";
   const canResume =
     currentStepSelected &&
+    currentAttention !== "MUTATION_CONFLICT" &&
     recovery.tag === "RESUME_CURRENT_OWNER";
   const canReconcile =
     currentStepSelected &&
+    currentAttention !== "MUTATION_CONFLICT" &&
     recovery.tag === "RECONCILE_AUTHORITY" &&
     !runs.some(runIsActive);
   const summaryBlocker = !currentStepSelected
@@ -888,7 +892,14 @@ export const WorkItemWorkspace = ({
             description:
               "Reconcile the current Work request before continuing this workflow.",
           }
-        : start.error
+        : currentAttention === "MUTATION_CONFLICT"
+          ? {
+              status: "warning" as const,
+              title: "Workflow state changed during the action",
+              description:
+                "Review the refreshed current workflow state before attempting another mutation.",
+            }
+          : start.error
         ? {
             status: "error" as const,
             title: "Could not start current workflow step",
