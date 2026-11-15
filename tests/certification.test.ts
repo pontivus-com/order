@@ -455,6 +455,8 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("orderError.staleAuthorityOwner");
     expect(workspace).toContain("api.reconcileWorkItemAuthority");
     expect(workspace).toContain("onError: invalidate");
+    expect(workspace).toContain('"Returned upstream before sign-off"');
+    expect(workspace).not.toContain('if (selectedStepState === "HISTORICAL") return "Approved"');
     expect(workspace).not.toMatch(/message\.(?:match|includes)|parse.*message/i);
     expect(workspace).toContain("signoffPackageQuery.isFetching");
 
