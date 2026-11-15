@@ -1695,6 +1695,11 @@ describe("closed Workbench workflow-state kernel", () => {
       taskId: eligibleTask.id,
     });
     expect(deriveExecutionOwner([], [])).toEqual({ tag: "NONE" });
+    expect(deriveExecutionOwner([], [{
+      ...run,
+      status: "COMPLETED",
+      endedAt: "2026-11-11T03:30:03.000Z",
+    }])).toEqual({ tag: "NONE" });
     expect(deriveValidationBoundary(
       { tag: "NONE" },
       [],
