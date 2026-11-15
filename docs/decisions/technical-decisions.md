@@ -191,7 +191,7 @@ This decision introduces no provider abstraction, credential copy/import layer, 
 
 **Status:** RESOLVED
 
-Order uses the exact pinned Astryx dependency set owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` to implement generic accessible workbench interactions defined by `GW-DOC-WORKBENCH-UX-V1` and technically constrained by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`.
+Order uses the exact pinned Astryx dependency set owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` to implement generic accessible workbench interactions defined by `GW-DOC-WORKBENCH-UX-V2` and technically constrained by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`.
 
 Astryx remains below Order's local semantic UI boundary. Order continues to own information architecture, lifecycle/domain state, action semantics, responsive space allocation, canonical types, TanStack Query server state and browser presentation state. Astryx may supply layout, drawer, table/list, selector, segmented-control, icon, chat, status, code/evidence and related generic interaction primitives.
 
@@ -201,18 +201,16 @@ The exact Markdown source remains the human-editable authority. Astryx `RichText
 
 Astryx is beta and therefore follows Order's exact-pin and external-integration certification discipline. Upgrades are deliberate P4/factual changes rather than ambient dependency movement.
 
-The root Astryx Theme is the single mounted component owner of ongoing root theme-attribute synchronization and receives Order's existing System/Light/Dark browser-local preference. The precompiled CSS path and Order-over-Astryx token cascade are owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V1`. Arbitrary evidence remains escaped text; only known canonical Markdown may use Astryx Markdown rendering.
+The root Astryx Theme is the single mounted component owner of ongoing root theme-attribute synchronization and receives Order's existing System/Light/Dark browser-local preference. The precompiled CSS path and Order-over-Astryx token cascade are owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`. Arbitrary evidence remains escaped text; only known canonical Markdown may use Astryx Markdown rendering.
 
 
 ## D17 — Order product/technical identity cutover
 
 **Status:** RESOLVED
 
-Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`. The exact live technical namespace and bounded predecessor migration are owned by `GW-DOC-ORDER-TECHNICAL-IDENTITY-V1`.
+Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`. The live technical namespace and bounded predecessor migration are owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
 
 The identity change is a semantic-preserving product/technical rename, not a lifecycle or domain redesign. Stable `GW-*` authority identifiers remain unchanged. The productive runtime has one live identity after cutover; Gateweft recognition is limited to historical provenance, the final pre-cutover task-fence bootstrap, and bounded installer-owned predecessor migration.
-
-The workbench UX/Astryx package completed before the Order identity cutover. The verified public-safe Order source is published to the existing `pontivus-com/order` repository as a sanitized snapshot without importing private-origin history.
 
 
 
