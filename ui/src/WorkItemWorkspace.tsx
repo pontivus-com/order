@@ -793,7 +793,7 @@ export const WorkItemWorkspace = ({
   );
 
   const workflowRail = (
-    <WorkflowRail workItem={workItem} selectedStep={selectedStep} onSelect={inspectWorkflowStep} />
+    <WorkflowRail items={railItems} onSelect={inspectWorkflowStep} />
   );
 
   const primary = (
