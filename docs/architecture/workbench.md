@@ -609,125 +609,89 @@ Permanent architecture fitness treats duplicate base structural selectors and pr
 
 ### 8.12 Closed Workbench screen-construction primitive vocabulary
 
-The Workbench vocabulary is closed for **Order-owned screen structure and recurring interaction mechanics**. Feature/workflow modules map canonical state and domain content into this vocabulary; they do not create competing shell, navigation, selection, dialogue, review, master/detail, Context, disclosure or confirmation mechanics directly from Astryx or raw CSS.
+The Workbench vocabulary is closed for **Order-owned screen structure, recurring interaction mechanics and visual semantics**. Feature/service modules map canonical state and domain content into this vocabulary; they do not create competing shell, navigation, selection, form, dialogue, review, master/detail, Context, notice, timeline, overlay or confirmation mechanics directly from Astryx, raw HTML/CSS or feature-local styling.
 
-This closure is intentionally not a wrapper around every Astryx component. Presentational leaf components and cohesive domain/content mechanisms remain legal inside the named primitive slots as defined in §8.16.
+This closure is intentionally not a wrapper around every leaf widget. Complete coverage has two layers:
+
+1. **Order Workbench primitives** own every recurring structure, interaction mechanic and semantic visual role that must remain consistent.
+2. **Approved foundation leaves / specialized renderers** may render content inside those primitive slots only under §8.19. They cannot establish another Workbench grammar.
 
 The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 
 | Primitive | Sole Order-owned responsibility | Deliberately absent flexibility |
 |---|---|---|
-| `WorkbenchLayout` | one outer Workbench topology: toolbar, identity, workflow rail, primary surface and optional Context; owns responsive class and Context representation | no arbitrary left/start/sidebar slot; no caller breakpoint/width values; no domain/query logic |
-| `WorkbenchToolbar` | application/local toolbar grouping and compact utility behavior | no workflow-stage/current-attention policy; no arbitrary structural row creation |
-| `WorkbenchIdentity` | stable three-group WorkItem identity row: navigation, identity/status, utilities | no fourth placeholder/action column; no content-driven row/column topology |
-| `WorkbenchRail` | one stable equal-cell horizontal workflow navigation rail with constrained-width scrolling | no content/status-derived cell widths; no wrapping/multi-row mode; no lifecycle semantics |
-| `WorkbenchSurface` | stable current-attention region plus one primary material region and optional compact selector slot | no structural side rail/master slot; no caller responsive topology choice |
-| `WorkbenchAttention` | stable current-attention presentation: identity/state, concise purpose/status, one owning blocker/feedback region and one current action region | no lifecycle/current-attention derivation; no second competing action owner |
-| `WorkbenchSelector` | compact subordinate material selection; primitive-owned inline/disclosure/overlay representation by responsive class | item count never changes surrounding columns; no persistent rail mode; no caller width/breakpoint |
-| `WorkbenchDialogue` | remaining-height dialogue mechanics: transcript scrolling, anchored composer region, focus/keyboard continuity and empty/pending presentation slots | no Run/RunEvent/query ownership; no input-eligibility/provider-turn policy |
-| `WorkbenchReview` | one review hierarchy: currentness/verdict, substantive review body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
-| `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and primitive-owned constrained-width collapse | no caller-defined master width; master is not conditionally created from collection count; only explicitly master/detail interaction classes may use it |
-| `WorkbenchContextPanel` | compact secondary metadata/diagnostic body plus explicit close affordance; hosted only by `WorkbenchLayout` | no current-action/blocker ownership; no independent responsive/sidebar behavior |
-| `WorkbenchDisclosure` | one consistent collapsed/on-demand secondary-detail mechanic for technical/supporting information | no primary action ownership; no nested lifecycle/navigation axis; collapsed state cannot alter outer topology |
-| `WorkbenchConfirmation` | accessible modal confirmation mechanics for destructive/irreversible/dirty-navigation decisions, including focus return and confirm/cancel placement | no mutation or admission policy; no domain-specific decision semantics; no arbitrary modal-layout slots |
-| `WorkbenchAction` | shared Workbench action/button grammar, accessible labeling, loading/disabled/icon treatment and bounded tone vocabulary | no authorization/admission/current-action policy |
-| `WorkbenchState` family | non-domain empty/loading/error/pending state presentation used inside the owning primitive/material | no lifecycle-state derivation; no persistent layout ownership |
-| `WorkbenchResourceRow` | one scan-efficient resource identity/detail/open-action row | no resource query/mutation ownership; no nested card/panel system |
-| `WorkbenchIcon` | canonical icon mapping/presentation | no action or domain semantics |
+| `WorkbenchLayout` | one application topology: toolbar + primary destination; selected WorkItem mode additionally owns identity, workflow rail and optional Context | no arbitrary sidebar/column slots; no caller breakpoint/width values; no domain/query logic |
+| `WorkbenchToolbar` | application/local toolbar grouping, search and compact utilities | no workflow policy; no arbitrary structural row creation |
+| `WorkbenchUtilityTrigger` | compact toolbar utility/account trigger with primary label + optional secondary state | no feature-owned button chrome or popover/drawer geometry |
+| `WorkbenchIdentity` | stable three-group WorkItem identity row: navigation, identity/status, utilities | no fourth placeholder/action column; no content-driven topology |
+| `WorkbenchRail` | stable equal-cell workflow navigation with constrained-width scrolling | no content/status-derived widths; no wrapping/multi-row lifecycle navigation |
+| `WorkbenchSurface` | current-attention region + one primary material region + optional compact selector | no persistent side/master slot; no caller responsive topology choice |
+| `WorkbenchAttention` | stable current-attention presentation: title/purpose/status, one blocker/feedback region and one current action region | no lifecycle/current-attention derivation; no competing action owner |
+| `WorkbenchSectionHeader` | consistent material/subsection heading, description and local action alignment | no independent page/surface topology |
+| `WorkbenchSelector` | compact subordinate material selection with primitive-owned constrained representation | item count never changes surrounding columns; no persistent rail mode |
+| `WorkbenchDialogue` | transcript scrolling, anchored composer region, focus/keyboard continuity and empty/pending slots | no Run/RunEvent/query ownership; no input-admission policy |
+| `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
+| `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and constrained collapse | no caller master width; no collection-count activation |
+| `WorkbenchContextPanel` | secondary metadata/diagnostic body + explicit close; hosted only by `WorkbenchLayout` | no current-action/blocker ownership; no independent responsive/sidebar behavior |
+| `WorkbenchTaskPanel` | operator-opened transient drawer/sheet for one bounded Form/configuration task, such as Create WorkItem | no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute |
+| `WorkbenchSettingsLayout` | Settings-only navigation/content composition with primitive-owned wide/constrained geometry | no generic application sidebar primitive; no domain/query ownership |
+| `WorkbenchForm` | consistent field stack, form spacing, submission/error region and action alignment | no validation/admission policy |
+| `WorkbenchField` | label, description/help, control slot and field-level error grammar | no domain validation; no arbitrary feature control styling |
+| `WorkbenchStatus` | semantic neutral/info/success/warning/danger status presentation using text + bounded icon/badge treatment | no domain-state derivation; no raw color selection |
+| `WorkbenchNotice` | inline informational/success/warning/error feedback and optional owning action | no toast-only workflow-critical feedback; no arbitrary color |
+| `WorkbenchState` family | empty/loading/error/pending whole-region presentation inside an owning composition | no lifecycle-state derivation; no persistent layout ownership |
+| `WorkbenchTable` | dense operational/review table grammar: compact rows, dividers, selection/focus and overflow behavior | no domain columns; no dashboard/card substitution |
+| `WorkbenchTimeline` | chronological event-list rhythm, event heading/meta/action alignment and evidence attachment region | no RunEvent meaning/derivation |
+| `WorkbenchDisclosure` | consistent collapsed/on-demand technical/supporting-detail mechanic | no primary action ownership; no nested navigation axis |
+| `WorkbenchConfirmation` | modal confirmation mechanics, confirm/cancel placement, escape/focus return | no mutation/admission policy; no domain-specific decision semantics |
+| `WorkbenchAction` | primary/secondary/destructive/ghost action grammar, loading/disabled/icon treatment | no authorization/admission/current-action policy |
+| `WorkbenchResourceRow` | scan-efficient resource identity/detail/open-action row | no resource query/mutation ownership; no nested card system |
+| `WorkbenchIcon` | canonical icon mapping, size and decorative/accessibility handling | no action/domain semantics |
 
-The vocabulary is complete at the level that must be shared to prevent layout/interaction drift. Cohesive content owners such as `MarkdownEditor`, `MarkdownSourceEditor`, `EvidenceViewer`, proposal/package content and domain-specific tables remain feature/content mechanisms rather than being generalized into primitives merely to increase reuse.
+The vocabulary is complete at the level that must be shared to prevent UI drift. Cohesive content owners such as `MarkdownEditor`, `MarkdownSourceEditor`, Markdown/CodeBlock rendering, proposal diff content and domain-specific data projection remain feature/content mechanisms only. They are still fully governed by the primitive composition and visual language below.
 
-The exact filenames may be combined only when two rows remain one independently testable responsibility. Their semantic APIs/invariants may not be collapsed into a generic "panel/layout with arbitrary slots" primitive.
+The exact filenames may be combined only when two rows remain one independently testable responsibility. Their semantic APIs/invariants may not be collapsed into a generic "panel/layout/slots" mega-primitive.
 
-Adding a new Order-owned Workbench primitive is an architecture change. It requires an upstream DESIGN amendment proving that the mechanic is not already expressible by this vocabulary and that it represents a reusable interaction responsibility rather than a feature-specific convenience wrapper.
+Adding a new Order-owned Workbench primitive is an architecture change. It requires an upstream DESIGN amendment proving that the mechanic is not already expressible by this vocabulary and that it represents a reusable interaction responsibility rather than feature convenience.
 
 ### 8.13 Target primitive API shapes
 
-The primitive APIs are intentionally narrow. The following shapes are normative at the semantic level; P7 may adjust React typing syntax without adding another structural or interaction degree of freedom.
+The primitive APIs are intentionally narrow. P7 may adjust React typing syntax without adding another structural or interaction degree of freedom.
 
 ```ts
 WorkbenchLayout({
   toolbar,
-  identity,
-  workflowRail,
   primary,
-  context: {
-    open,
-    onOpenChange,
-    content,
+  workItemChrome: {
+    identity,
+    workflowRail,
+    context: { open, onOpenChange, content } | null,
   } | null,
 })
 ```
 
-There is no generic `children`-only outer Workbench contract and no `start`/`left`/`sidebar` slot. The primitive owns named outer grid areas and responsive Context behavior.
+Queue and Settings are application destinations in `primary`; selected WorkItem mode additionally enables the named WorkItem chrome. There is no generic `children` shell, `start`, `left`, `sidebar` or caller-defined grid.
 
 ```ts
-WorkbenchIdentity({
-  navigation,
-  identity,
-  utilities,
-})
+WorkbenchToolbar({ start, end })
+WorkbenchUtilityTrigger({ label, detail?, icon?, expanded?, onClick })
+WorkbenchIdentity({ navigation, identity, utilities })
+WorkbenchRail({ items })
 ```
 
-The primitive owns the three-group geometry in §8.2. Callers cannot add a fourth structural group or pass column definitions.
+Toolbar/identity/rail geometry is primitive-owned. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
 
 ```ts
-WorkbenchRail({
-  items: ReadonlyArray<{
-    id,
-    label,
-    state,
-    selected,
-    onSelect,
-  }>,
-})
+WorkbenchSurface({ attention, selector?, material })
+WorkbenchAttention({ title, purpose?, status?, blocker?, action? })
+WorkbenchSectionHeader({ title, description?, action? })
+WorkbenchSelector({ label, groups })
 ```
 
-The caller supplies generic item presentation only. The primitive owns equal-cell geometry and constrained-width scrolling. It exposes no per-item width.
+`WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. Selector groups carry generic item presentation only; item count never selects topology.
 
 ```ts
-WorkbenchSurface({
-  attention,
-  selector?,   // compact/non-structural only
-  material,
-})
-```
-
-It exposes no persistent `start`, `aside`, `master`, `columns` or breakpoint props. `selector` is always rendered inside the surface control/header region and cannot change primary x-position/width.
-
-```ts
-WorkbenchAttention({
-  title,
-  purpose?,
-  state?,
-  status?,
-  blocker?,
-  action?,
-})
-```
-
-The caller supplies already-derived presentation values. The primitive owns stable attention-band geometry and the single visible blocker/action regions; it does not derive which blocker/action is current.
-
-```ts
-WorkbenchSelector({
-  label,
-  groups,
-})
-```
-
-Groups/items contain generic id/label/description/status/selected/onSelect presentation only. The primitive chooses its compact representation from the shared responsive class. Item count never selects another topology.
-
-```ts
-WorkbenchDialogue({
-  transcript,
-  composer?,   // present only when the feature has already derived an admissible input action
-  state?,
-})
-```
-
-The primitive owns remaining-height transcript/composer geometry, transcript scrolling, anchored composer placement and accessible focus/keyboard mechanics. It does not know Run ids, provider state, whether input is currently admissible or which mutation sends a turn.
-
-```ts
+WorkbenchDialogue({ transcript, composer?, state? })
 WorkbenchReview({
   currentness,
   summary,
@@ -736,40 +700,33 @@ WorkbenchReview({
   technicalDetails?,
   selector?,
 })
+WorkbenchMasterDetail({ master, detail, masterLabel })
 ```
 
-`technicalDetails` is on-demand/collapsed through the shared disclosure mechanic. There is no navigation/sidebar slot.
+Dialogue owns transcript/composer mechanics but not send eligibility. Review technical detail uses the shared disclosure behavior. Master/detail exposes no master width/collapse/count configuration.
 
 ```ts
-WorkbenchMasterDetail({
-  master,
-  detail,
-  masterLabel,
-})
+WorkbenchContextPanel({ title, onClose, children })
+WorkbenchTaskPanel({ open, title, onOpenChange, content })
+WorkbenchSettingsLayout({ navigation, content })
 ```
 
-The master is required by the interaction-class choice and uses the single Workbench master-width token. There is no `masterWidth`, `collapseAt`, `showMasterWhen` or collection-count prop.
+Context and Task panel are different primitives: Context is secondary WorkItem information; Task panel is a transient operator task. Settings is the only persistent settings-navigation composition.
 
 ```ts
-WorkbenchContextPanel({
-  title,
-  onClose,
-  children,
-})
+WorkbenchForm({ fields, actions, feedback? })
+WorkbenchField({ label, description?, control, error? })
+WorkbenchStatus({ tone, label, icon? })
+WorkbenchNotice({ tone, title, description?, action? })
+WorkbenchState({ kind, title, description?, action? })
 ```
 
-The Context body may contain secondary metadata/diagnostics only. The enclosing `WorkbenchLayout` chooses wide inspector versus constrained drawer/overlay; the feature does not.
+Features derive semantic meaning and pass the resulting generic tone/kind. They do not choose raw color or feature-specific status chrome.
 
 ```ts
-WorkbenchDisclosure({
-  label,
-  content,
-})
-```
-
-It is collapsed by default for secondary technical/supporting detail and owns the shared accessible disclosure mechanic. A feature may not use it to hide the only blocker, required action or primary task material.
-
-```ts
+WorkbenchTable({ label, columns, rows, selection? })
+WorkbenchTimeline({ label, items })
+WorkbenchDisclosure({ label, content })
 WorkbenchConfirmation({
   open,
   title,
@@ -781,48 +738,51 @@ WorkbenchConfirmation({
 })
 ```
 
-It owns modal focus/escape/return and consistent confirm/cancel placement. The feature owns the decision to open it and the mutation executed by confirmation.
+Table/timeline data remains feature-owned; the primitives own visual rhythm and interaction mechanics. Confirmation owns modal accessibility, not the decision to open or mutation executed.
 
-The existing shared atoms retain narrow semantic contracts:
-
-- `WorkbenchToolbar` owns toolbar grouping/compact utility mechanics only;
-- `WorkbenchAction` owns button interaction/presentation only;
-- the `WorkbenchState` family owns non-domain empty/loading/error/pending presentation only;
-- `WorkbenchResourceRow` owns one resource row grammar only;
-- `WorkbenchIcon` owns icon mapping only.
+The existing `WorkbenchAction`, `WorkbenchResourceRow`, `WorkbenchIcon` and toolbar groups remain narrow atoms under these contracts.
 
 ### 8.14 Primitive API laws
 
-All Order-owned Workbench primitives obey the applicable laws below:
+All Order-owned Workbench primitives obey the applicable laws:
 
-1. **Domain-blind:** no primitive imports `WorkItem`, `Run`, `RunEvent`, `ExecutionTask`, `WorkStage`, proposal or Approval domain types. Feature composition maps canonical domain state into generic primitive props.
-2. **Query-blind:** primitives execute no TanStack queries/mutations and own no invalidation. They receive already-derived labels/items/actions/content.
-3. **Policy-blind:** primitives do not decide current attention, reached state, input eligibility, blocker ownership, lifecycle progression or command admission.
-4. **Count-blind topology:** collection length may alter selector/list/master rows but may never select a different persistent column/grid topology.
-5. **Single responsive owner:** structural responsive decisions are internal to the primitive layer using the §8.10 class contract. Feature components do not call an exported wide/narrow hook to choose alternate structural markup.
-6. **Token-owned geometry:** context width, operational master width, rail/identity/attention heights and structural gaps are CSS tokens defined once for the Workbench primitive system. Callers do not pass ad-hoc width values.
-7. **Named constrained slots:** primitives expose only the semantic slots they own. They do not expose arbitrary `start`, `end`, `sidebar`, `rail`, `columns`, `width`, `breakpoint`, `slots` or generic layout-variant props that recreate Astryx freedom above the primitive boundary.
-8. **Composition over configuration:** a different interaction class uses the corresponding primitive/composition rather than a `variant="review|dialogue|master"` mega-primitive whose props can combine invalid topologies.
-9. **Accessible behavior is primitive-owned:** drawer focus/escape, Context close, rail scrolling, selector disclosure, dialogue transcript/composer focus/scroll, secondary disclosure and modal confirmation focus-return behavior are implemented once in the primitive responsible for that behavior.
-10. **Astryx containment:** Astryx remains the low-level interaction substrate. Workbench feature surfaces do not directly import Astryx components that establish a mechanic already owned by this vocabulary, including structural `Layout`/`Drawer`, Workbench dialogue layout/composer scaffolding or confirmation `Dialog`. Those capabilities are wrapped by the corresponding local primitive.
-11. **Leaf-content freedom:** presentational Astryx/semantic-HTML leaves such as Badge, Table, MetadataList, CodeBlock, Markdown, TextInput and local Stack/flow composition may remain feature-local inside primitive slots when they cannot establish persistent Workbench topology or a competing recurring interaction mechanic.
-12. **Closed extension:** a feature-specific need does not justify a new primitive, prop family or CSS topology. A new reusable primitive requires DESIGN authority and permanent fitness coverage in the same implementation change.
+1. **Domain-blind:** primitives import no WorkItem/Run/RunEvent/ExecutionTask/WorkStage/proposal/Approval domain types.
+2. **Query-blind:** primitives execute no TanStack queries/mutations and own no invalidation.
+3. **Policy-blind:** primitives do not decide current attention, reached state, input eligibility, blocker ownership, lifecycle progression, validation or command admission.
+4. **Count-blind topology:** collection length may alter rows/items but never selects another persistent topology.
+5. **Single responsive owner:** structural responsive decisions are primitive-owned under §8.10; feature components do not choose structural markup through viewport hooks.
+6. **Token-owned geometry:** context/master widths, toolbar/identity/attention heights, field/control heights and structural gaps use §8.18 tokens; callers do not pass ad-hoc values.
+7. **Named constrained slots:** no arbitrary `start`, `sidebar`, `columns`, `width`, `breakpoint`, generic `slots` or mega-variant API.
+8. **Composition over configuration:** different interaction classes use their primitive composition rather than one configurable super-layout.
+9. **Accessible behavior is primitive-owned:** drawers, modal focus return, disclosure semantics, rail scrolling, dialogue focus/scroll, table selection/focus and field labeling are implemented once.
+10. **Semantic visual ownership:** status/notice/action tone is generic semantic input; raw palette values never cross into feature props.
+11. **Astryx containment:** feature surfaces do not directly import an Astryx component that realizes a mechanic already owned here, including structural Layout/Drawer, Button, status Badge semantics, AlertDialog confirmation or Workbench dialogue scaffolding.
+12. **Foundation-leaf containment:** approved leaves from §8.19 may render only inside the primitive slot that gives them context; they cannot create outer topology or a parallel visual grammar.
+13. **Specialized renderer containment:** CodeMirror/Markdown/raw evidence renderers own content mechanics only and consume the same design tokens/theme.
+14. **Closed extension:** a new reusable primitive, visual role or semantic tone requires DESIGN authority and permanent fitness coverage.
 
 ### 8.15 Canonical screen-construction grammar
 
-The functional interaction classes in `GW-DOC-WORKBENCH-UX-V2 §13` map to the primitive vocabulary exactly:
+The functional interaction classes in `GW-DOC-WORKBENCH-UX-V2 §13` map exactly:
 
 ```text
 Operational scan
-  -> WorkbenchSurface or an already-defined queue shell
-     + dense Table/List leaf content
-     + WorkbenchAction / WorkbenchState as needed
+  -> WorkbenchSurface
+     + WorkbenchSectionHeader as needed
+     + WorkbenchTable
+     + WorkbenchStatus / WorkbenchNotice / WorkbenchAction
+
+Form / configuration
+  -> WorkbenchForm
+     + WorkbenchField
+     + approved selection/input leaves
+     + WorkbenchNotice / WorkbenchStatus / WorkbenchAction
 
 Document
   -> WorkbenchSurface
      attention = WorkbenchAttention
      selector = optional WorkbenchSelector
-     material = document/editor/read-only content
+     material = specialized document/editor renderer
      secondary detail = optional WorkbenchDisclosure
 
 Dialogue
@@ -831,96 +791,312 @@ Dialogue
      selector = optional WorkbenchSelector
      material = WorkbenchDialogue(transcript, composer, state)
 
-Review (proposal/readiness/approval)
+Review
   -> WorkbenchReview
-     + optional WorkbenchSelector for subordinate material
-     + WorkbenchDisclosure for secondary technical detail
-     + WorkbenchAction for the already-derived decision action
+     + optional WorkbenchSelector
+     + WorkbenchStatus / WorkbenchNotice
+     + WorkbenchDisclosure for technical detail
+     + WorkbenchAction for already-derived decisions
 
-Operational master/detail (Implementation)
+Operational master/detail
   -> WorkbenchMasterDetail
-     master = task/attempt operational scan
-     detail = WorkbenchSurface
-              + WorkbenchAttention
-              + selected task/run/evidence content
+     master = WorkbenchTable or compact scan
+     detail = WorkbenchSurface + WorkbenchAttention + selected material
 
 Evidence
   -> WorkbenchSurface
-     + WorkbenchAttention when current action/return context exists
-     + raw/evidence viewer content
+     + WorkbenchSectionHeader / WorkbenchAttention
+     + approved CodeBlock/raw-content leaf
 
 Terminal result
   -> WorkbenchSurface
-     + terminal classification/result/evidence content
+     + WorkbenchStatus
+     + result content/evidence/resources
 
 Compact context
   -> WorkbenchContextPanel hosted only by WorkbenchLayout
-     + optional WorkbenchDisclosure for deeper diagnostics
+
+Task panel
+  -> WorkbenchTaskPanel
+     content = exactly one Form/configuration composition
 
 Safety/exception
-  -> WorkbenchState for inline owning-state feedback
+  -> WorkbenchNotice / WorkbenchState for inline owning feedback
      OR WorkbenchConfirmation for modal confirmation
 ```
 
-The selected WorkItem shell is always:
+Canonical application services resolve as:
 
-```text
-WorkbenchLayout
-  toolbar      = WorkbenchToolbar
-  identity     = WorkbenchIdentity
-  workflowRail = WorkbenchRail
-  primary      = exactly one primary interaction-class composition above
-  context      = null | WorkbenchContextPanel
-```
-
-Canonical Workbench screens therefore resolve predictably:
-
-| Screen/material | Required primitive tree |
+| Service/material | Required primitive composition |
 |---|---|
-| Work request / lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document content` |
-| Active/historical pre-signoff Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
-| Proposal review | `WorkbenchReview` |
-| Readiness | `WorkbenchReview + optional WorkbenchSelector` |
-| Approval | `WorkbenchReview + WorkbenchDisclosure(technical detail)` |
+| Work queue | `WorkbenchLayout -> WorkbenchSurface -> WorkbenchTable`; readiness/source diagnostics use `WorkbenchNotice` |
+| Create WorkItem/remediation | `WorkbenchTaskPanel -> WorkbenchForm -> WorkbenchField` |
+| Settings | `WorkbenchLayout -> WorkbenchSettingsLayout -> WorkbenchForm/Field/Status/Notice/Confirmation` |
+| WorkItem shell | `WorkbenchLayout -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
+| Work request/lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document renderer` |
+| Active/historical STAGE Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
+| Proposal / Readiness / Approval | `WorkbenchReview` (+ selector/disclosure/field where explicitly required) |
 | Implementation | `WorkbenchMasterDetail(master scan, detail WorkbenchSurface)` |
-| Evidence/raw material | `WorkbenchSurface` with evidence content |
-| Complete/result | `WorkbenchSurface` with terminal result content |
+| Run chronology | `WorkbenchTimeline` |
+| Evidence/raw material | `WorkbenchSurface` + approved raw-content leaf |
+| Complete/result | `WorkbenchSurface + WorkbenchStatus + result content` |
 | Context | `WorkbenchContextPanel` only through `WorkbenchLayout` |
 | Dirty/destructive confirmation | `WorkbenchConfirmation` |
 
-A feature service is therefore predictable: classify the screen under P3, map canonical state/current attention into the corresponding primitive slots, and add domain-specific content. It does not design a new layout or recurring interaction mechanic.
+A feature/service therefore classifies its interaction under P3, chooses the fixed composition above, maps canonical state into generic primitive values, then supplies domain content. It does not design a new UI grammar.
 
-### 8.16 Primitive-consumer and Astryx boundaries
+### 8.16 Primitive-consumer boundaries
 
-The target relationship is:
+The target dependency is:
 
 ```text
 canonical domain/query state
         |
 pure lifecycle + presentation policy
         |
-feature adapter / cohesive content owner
+feature/service adapter or specialized content renderer
         |
-Order Workbench screen-construction primitive
+Order Workbench primitives
         |
-Astryx interaction substrate + semantic HTML/CSS leaves
+approved foundation leaves / semantic HTML
+        |
+DOM/CSS
 ```
 
 Examples:
 
-- `WorkItemIdentityRow.tsx` maps WorkItem identity/status/utilities into `WorkbenchIdentity`; it does not own the three-column grid.
-- `WorkflowRail.tsx` maps reached/current WorkStage presentation into generic `WorkbenchRail` items.
-- `WorkflowStepFrame.tsx` maps the already-derived current-attention presentation into `WorkbenchAttention` and `WorkbenchSurface`; it owns no independent structural layout.
+- `app.tsx` supplies application destination state to `WorkbenchLayout`, creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityTrigger`; it does not import Drawer/AlertDialog directly.
+- `WorkItemIdentityRow.tsx` maps identity/status/utilities to `WorkbenchIdentity`.
+- `WorkflowRail.tsx` maps reached/current presentation into `WorkbenchRail`.
+- `WorkflowStepFrame.tsx` maps already-derived attention into `WorkbenchAttention + WorkbenchSurface`.
 - `WorkflowMaterialSelector.tsx` maps Run/document/proposal/evidence choices into `WorkbenchSelector`.
-- `ActivityWorkspace.tsx` / `ActivityComposer.tsx` map transcript/composer content and already-derived input eligibility into `WorkbenchDialogue`; they do not own transcript/composer geometry or responsive behavior.
-- `PreSignoffStageWorkspace.tsx` chooses Document, Dialogue, Review or Evidence content and places it in the canonical composition; collection count does not choose topology.
-- `ProposalReview.tsx`, `ReadinessWorkspace.tsx` and `SignoffReview.tsx` map their domain material into `WorkbenchReview`.
-- `ExecutionWorkspace.tsx` maps task/attempt collections into `WorkbenchMasterDetail` and uses `WorkbenchSurface` for the selected/current detail.
-- `WorkItemContext.tsx` supplies compact context content to `WorkbenchContextPanel`; it does not decide whether/how Context is structurally displayed.
-- technical/supporting detail maps to `WorkbenchDisclosure` rather than feature-specific persistent panels.
-- dirty/destructive navigation guards map already-derived confirmation state/actions into `WorkbenchConfirmation`.
+- `ActivityWorkspace.tsx` / `ActivityComposer.tsx` map transcript/composer content into `WorkbenchDialogue`.
+- `RunEventTimeline.tsx` maps canonical event presentation into `WorkbenchTimeline`.
+- `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` map review content into `WorkbenchReview`.
+- `ExecutionWorkspace.tsx` maps task/attempt scan into `WorkbenchMasterDetail`, detail into `WorkbenchSurface`, validation scan into `WorkbenchTable`, chronology into `WorkbenchTimeline`.
+- `WorkItemContext.tsx` supplies content to `WorkbenchContextPanel`.
+- `CreateWorkItem.tsx`, `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` map form/configuration semantics into `WorkbenchForm + WorkbenchField`.
+- technical/supporting detail uses `WorkbenchDisclosure`; semantic feedback uses `WorkbenchNotice`; semantic state uses `WorkbenchStatus`.
 
-Feature/content modules may directly use presentational Astryx leaves inside these slots, but they may not bypass an Order primitive to recreate a mechanic owned above. No feature adapter owns CSS that establishes a persistent Workbench column, outer topology, identity grid, anchored dialogue composer, Context/selector drawer behavior or confirmation layout.
+No feature/service adapter owns CSS establishing a primitive-owned layout/mechanic or chooses visual values outside §8.18.
+
+### 8.17 Complete production-renderer coverage audit
+
+The following matrix is exhaustive for the production TSX renderers present on the PR #59 design baseline. `main.tsx` is bootstrap only and is not a renderer contract. `http.ts`, `query-keys.ts`, `workbench-presentation.ts` and `markdown-source-formatting.ts` are non-rendering modules.
+
+| Production renderer | Target UI-language coverage | Current mechanism specifically superseded where applicable |
+|---|---|---|
+| `app.tsx` | Layout, Toolbar, UtilityTrigger, TaskPanel, Confirmation, Notice/State + approved theme choice leaf | direct Drawer/AlertDialog and bespoke theme/account utility chrome |
+| `OpenCodeAccountControl.tsx` | UtilityTrigger + Status | native feature-styled button |
+| `SettingsWorkspace.tsx` | SettingsLayout + Form/Field + SectionHeader + Status/Notice + Confirmation + Action | bespoke settings sidebar/buttons/cards/form controls |
+| `OpenCodeAccountSettings.tsx` | Form/Field + SectionHeader + Status/Notice + Confirmation + Action/ResourceRow | bespoke account rows/input styling and direct AlertDialog |
+| `CreateWorkItem.tsx` | Form/Field + Status/Notice + Action inside TaskPanel | raw feature-styled select/input/form spacing |
+| `WorkItemQueue.tsx` | Surface + Table + Status + Action | direct table grammar plus feature-owned responsive row styling |
+| `WorkItemWorkspace.tsx` | Identity + Rail + Confirmation + canonical primary composition | native workflow buttons, identity grid and direct AlertDialog |
+| `WorkflowStepFrame.tsx` | Attention + Surface only | generic side-index Layout/Drawer |
+| `PreSignoffStageWorkspace.tsx` | Selector + canonical Document/Dialogue/Review/Evidence composition | count-selected side index and bespoke supporting-context disclosure |
+| `ActivityWorkspace.tsx` | Dialogue + Status/Notice + Disclosure + Timeline + Action | bespoke dialogue heading/composer geometry and technical details |
+| `ActivityComposer.tsx` | Dialogue composer slot + approved Chat leaf + Notice/State | feature-level composer layout |
+| `RunEventTimeline.tsx` | Timeline + Status + Disclosure + ResourceRow/Action | bespoke ordered-list/event layout |
+| `DocumentWorkspace.tsx` | Surface + SectionHeader + Notice/State + Disclosure + Confirmation + MarkdownEditor | direct AlertDialog and bespoke technical state layout |
+| `MarkdownEditor.tsx` | specialized renderer inside Document composition; SectionHeader + Toolbar/Action + Disclosure + Status/Notice; approved Markdown/segmented leaves | bespoke toolbar/technical-details/dirty-state visual grammar |
+| `MarkdownSourceEditor.tsx` | specialized CodeMirror renderer consuming canonical tokens | editor-local colors/geometry outside token contract prohibited |
+| `ProposalReview.tsx` | Review + Status/Notice + Action + approved CodeBlock leaf | bespoke review headings/state blocks |
+| `ReadinessWorkspace.tsx` | Review + optional Selector + Status/Notice | generic WorkflowStepFrame composition |
+| `SignoffReview.tsx` | Review + Field + Status/Notice + Disclosure + Action + approved MetadataList leaf | generic side index and bespoke approval action/form layout |
+| `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + Disclosure + ResourceRow/Action | generic side index, bespoke validation matrix/task detail layout |
+| `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
+| `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
+| `WorkItemContext.tsx` | ContextPanel + Status/Notice + Disclosure + approved MetadataList leaf | bespoke context panel/technical disclosure |
+| existing `ui/src/primitives/*.tsx` | migrate/expand to exactly the closed §8.12 contracts | current primitive set is incomplete and WorkbenchLayout exports feature-visible responsive policy |
+
+Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
+
+### 8.18 Canonical Workbench visual language and design tokens
+
+#### 8.18.1 Design character
+
+Order's aperture/focus identity is expressed through **clarity and controlled emphasis**, not decorative aperture motifs throughout the interface.
+
+The Workbench is:
+
+- neutral-first with Order blue as the controlled accent;
+- flat and low-chrome;
+- compact, professional and scan-efficient;
+- border/spacing-driven rather than card/shadow-driven;
+- consistent between light/dark themes;
+- visually quiet until current action, selection, blocker or exceptional state requires emphasis.
+
+Persistent work surfaces have no decorative box shadow. Temporary drawers/dialogs may use one foundation-owned overlay elevation.
+
+#### 8.18.2 Semantic color contract
+
+Raw palette values exist only in the theme token owner. Feature/service CSS and React props use semantic roles.
+
+| Semantic token | Light | Dark | Meaning |
+|---|---:|---:|---|
+| canvas | `#FFFFFF` | `#111A29` | application/background |
+| surface | `#FFFFFF` | `#111A29` | primary persistent surface |
+| subtle | `#F8FAFC` | `#172233` | secondary/selected-neutral surface |
+| border | `#D9DEE8` | `#344256` | ordinary 1px separation |
+| text | `#0F172A` | `#EDF3FA` | primary text |
+| muted | `#657187` | `#A9B8CD` | secondary/technical text |
+| accent | `#1E3A8A` | `#93B4FF` | current/selected/link/focus identity |
+| primary-action | `#1E3A8A` | `#385AC1` | filled primary action |
+| primary-action-hover | `#1D4ED8` | `#4D6ED5` | primary hover |
+| on-primary | `#FFFFFF` | `#FFFFFF` | foreground on filled action |
+| info-bg | `#EFF6FF` | `#203554` | processing/information |
+| info-fg | `#1D4ED8` | `#BAD0FF` | processing/information foreground |
+| success-bg | `#D1FAE5` | `#173B31` | ready/success/complete |
+| success-fg | `#047857` | `#73E5B1` | success foreground |
+| warning-bg | `#FEF3C7` | `#463923` | waiting/stale/attention |
+| warning-fg | `#A16207` | `#FACC77` | warning foreground |
+| danger-bg | `#FEF2F2` | `#44282F` | failure/block/destructive |
+| danger-fg | `#B91C1C` | `#FFADB0` | danger foreground |
+
+`WorkbenchStatus` and `WorkbenchNotice` are the only semantic status-color owners above the foundation theme. Domain states map to these generic roles in presentation policy; features never select raw colors.
+
+Selection/current state uses accent + info/subtle surface and a structural/text marker. Reached/unreached/historical state is never encoded by color alone.
+
+#### 8.18.3 Typography
+
+One application sans stack and one technical monospace stack are canonical:
+
+```text
+sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif
+mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace
+```
+
+Canonical type roles:
+
+| Role | Size | Weight | Use |
+|---|---:|---:|---|
+| caption/technical-xs | `0.6875rem` | 400/600 | technical labels, compact metadata |
+| secondary/small | `0.75rem` | 400/600 | helper text, row metadata |
+| body/control | `0.875rem` | 400/600 | ordinary copy, controls, table/list rows |
+| section heading | `1rem` | 600 | material/subsection headings |
+| screen/work-item title | `1.25rem` | 600/700 | selected service/item title |
+| terminal result | `1.5rem` | 700 | terminal outcome only |
+
+Body line-height is `1.5`; compact control/metadata line-height is `1.35`. Feature CSS does not introduce another type scale.
+
+Technical ids/hashes/paths/code use mono only inside technical/detail/code contexts; ordinary user-facing labels remain sans.
+
+#### 8.18.4 Spacing and density
+
+All recurring spacing uses a 4px-derived semantic scale:
+
+```text
+space-0_5 = 0.125rem
+space-1   = 0.25rem
+space-2   = 0.5rem
+space-3   = 0.75rem
+space-4   = 1rem
+space-6   = 1.5rem
+space-8   = 2rem
+```
+
+No feature invents `.35rem`, `.55rem`, `.65rem`, `.85rem` etc. as independent design values.
+
+Canonical density:
+
+- compact action/input height: `2rem`;
+- standard field/control minimum height: `2.25rem`;
+- dense operational row minimum height: `2.25rem`;
+- toolbar minimum height: `3.25rem`;
+- WorkItem identity row: `3rem`;
+- Context width: `22rem`, hard max `24rem`;
+- operational master width: `18rem`;
+- readable Markdown measure: `52rem`;
+- result/review readable max measure: `72rem`.
+
+The workflow rail and structural heights use their primitive tokens; features never pass these dimensions.
+
+#### 8.18.5 Borders, radii and elevation
+
+- persistent region separation: `1px solid border`;
+- compact control radius: `0.375rem`;
+- small internal radius: `0.25rem`;
+- pill radius (`999px`) is reserved for compact status/segmented semantics where the underlying foundation component uses it;
+- persistent Workbench surfaces, tables, review bodies and master/detail regions do not use decorative shadows;
+- overlays/drawers/dialogs use one foundation-owned elevation and cannot define feature-local box shadows.
+
+Cards are not a primary hierarchy device. Configuration collections use flat bordered rows/sections, not floating dashboard cards.
+
+#### 8.18.6 Focus, hover, selection and disabled state
+
+Keyboard focus uses a `2px` accent outline/ring with at least `2px` separation from the control boundary where space permits. Focus is visually distinct from selected/current state.
+
+Interactive hover changes are subtle and cannot move geometry. Disabled controls preserve readable labels and expose the blocking reason in adjacent text/notice where the reason is material.
+
+Normal text must meet at least a 4.5:1 foreground/background contrast target; large text at least 3:1; focus indicators and meaningful non-text boundaries at least 3:1 against adjacent colors.
+
+#### 8.18.7 Status and feedback hierarchy
+
+`WorkbenchStatus` is compact and non-dominant; it labels state but does not replace the primary task text.
+
+`WorkbenchNotice` owns inline feedback:
+
+- info: processing/non-blocking information;
+- success: completed/ready confirmation when confirmation is useful;
+- warning: waiting/stale/attention;
+- danger: failed/blocked/destructive error.
+
+Workflow-critical failure/block/input feedback stays in the owning Attention/material region. Toast-only critical feedback remains prohibited.
+
+#### 8.18.8 Forms and controls
+
+`WorkbenchField` owns label/help/error spacing and accessibility linkage. Placeholder text never substitutes for a label.
+
+`WorkbenchForm` uses one-column field flow by default. Multi-column forms require a stable semantic pairing, not space-filling. Primary submit and destructive actions remain explicit; error text is adjacent to the owning field/form.
+
+Feature code does not style raw `input/select/textarea/button` elements. Native or Astryx controls are rendered only through the owning primitive contract.
+
+#### 8.18.9 Tables, lists, timeline and content
+
+Operational scanning uses `WorkbenchTable` or `WorkbenchResourceRow` with compact density, row dividers and clear selection. Repeated equal-weight cards are prohibited.
+
+`WorkbenchTimeline` uses chronological rows with compact time/status metadata, readable event summary and subordinate evidence/actions. Technical event payloads are disclosures, not default primary copy.
+
+Markdown/document reading uses the `52rem` readable measure when prose is the primary task; code/evidence may use the full available surface with bounded scrolling.
+
+#### 8.18.10 Theme and motion
+
+System/light/dark preference changes token values only; it does not change component hierarchy or introduce theme-specific component CSS.
+
+Functional transitions use at most a fast/standard motion token (`120ms` / `180ms`) for opacity/transform/disclosure where the foundation component already supports it. No decorative motion is required. Reduced-motion preference disables non-essential transition animation.
+
+### 8.19 Approved foundation leaves and specialist renderers
+
+The closed primitive system does not require pointless one-line wrappers. The following leaves are approved **only inside the owning primitive composition**:
+
+| Foundation/specialist | Allowed use | Boundary |
+|---|---|---|
+| Astryx `SegmentedControl` / `TabList` | small fixed peer-view choices such as theme or Edit/Preview/Split | never workflow navigation; cannot alter outer topology |
+| Astryx `RadioList` / `MultiSelector` / selector controls | field choices inside `WorkbenchField/Form` | field grammar remains primitive-owned |
+| native `input/select/textarea` where no suitable foundation control exists | control slot inside `WorkbenchField` only | no feature-owned styling; canonical control tokens apply |
+| Astryx `Markdown` | document/result rendering | readable measure/theme inherited from content owner |
+| Astryx `CodeBlock` | evidence/diff/raw code | bounded scrolling/theme inherited |
+| Astryx `MetadataList` | secondary/technical structured metadata | not primary workflow hierarchy |
+| Astryx Chat message/composer leaves | only inside `WorkbenchDialogue` | dialogue geometry/input policy remain outside leaf |
+| CodeMirror via `MarkdownSourceEditor` | exact Markdown source editing | consumes canonical editor/color/type/focus tokens; no independent palette |
+| semantic HTML (`section`, `p`, `dl`, `code`, lists) | content semantics inside primitive slots | no independent layout/color/type system |
+
+Direct Astryx `Button`, semantic-status `Badge`, structural `Layout/Drawer`, or `AlertDialog/Dialog` use in feature/service modules is not approved because those mechanics are owned by `WorkbenchAction`, `WorkbenchStatus`, structural/task/context primitives and `WorkbenchConfirmation`.
+
+### 8.20 CSS and token ownership
+
+`ui/src/theme.css` is the sole Order-owned token/presentation stylesheet. Its target organization is:
+
+1. raw light/dark palette definitions;
+2. semantic tokens from §8.18;
+3. primitive selectors corresponding exactly to §8.12;
+4. specialist content selectors that consume semantic tokens only;
+5. scoped media overrides using only §8.10 breakpoints.
+
+After the token blocks, production selectors do not contain raw hex/rgb/hsl/color-mix values for semantic styling. Feature selectors do not introduce their own font sizes, spacing scale, radii, control heights, semantic colors, shadows or structural breakpoints.
+
+The current CSS contains many ad-hoc fractional spacing/type values and feature-owned visual systems; those are implementation evidence to replace, not design authority.
 
 ## 9. Material and action composition
 
