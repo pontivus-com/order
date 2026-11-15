@@ -269,7 +269,7 @@ const cancelRunUnlocked = async (
   return withTransaction(runtime.database, () => {
     const current = getRun(runtime, run.id);
     if (current.status !== "RUNNING" && current.status !== "WAITING_FOR_INPUT") {
-      return current;
+      throw new TypeError("Run stopped being cancellable before Cancel commit");
     }
     const cancelled = updateRun(runtime, current.id, {
       status: "CANCELLED",
