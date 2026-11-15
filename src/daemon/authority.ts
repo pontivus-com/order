@@ -1185,9 +1185,13 @@ const signOffWorkItemUnlocked = async (
   approvedBy: string,
 ): Promise<Approval> => {
   if (approvedBy.length === 0) throw new TypeError("approvedBy must be non-empty");
-  const prepared = await computeSignoffPackage(runtime, workItemId, true);
-  if (prepared.packageHash !== expectedPackageHash) {
+  const inspected = await computeSignoffPackage(runtime, workItemId);
+  if (inspected.packageHash !== expectedPackageHash) {
     throw new TypeError("expectedPackageHash does not match the current sign-off package");
+  }
+  const prepared = await computeSignoffPackage(runtime, workItemId, true);
+  if (prepared.packageHash !== inspected.packageHash) {
+    throw new TypeError("sign-off package changed before materialization");
   }
   const block = prepared.taskBlock;
   const approval = ApprovalSchema.parse({
