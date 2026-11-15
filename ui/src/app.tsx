@@ -477,6 +477,8 @@ export const App = () => {
       <WorkItemWorkspace
         key={selectedWorkItem.id}
         workItem={selectedWorkItem}
+        selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
+        selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
         toolbar={toolbar}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
