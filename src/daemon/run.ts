@@ -208,24 +208,14 @@ export const nextAttempt = (
   executionTaskId,
 );
 
-export const validateProviderEventBatch = (
-  runtime: CoordinatorRuntime,
-  run: Run,
-  events: readonly RunEventPayload[],
-): void => {
-  for (const payload of events) {
-    validatePayloadEvidence(runtime, run.id, payload);
-  }
-};
-
 export const persistProviderEvents = (
   runtime: CoordinatorRuntime,
   run: Run,
   events: readonly RunEventPayload[],
 ): readonly RunEvent[] => {
-  validateProviderEventBatch(runtime, run, events);
   const persisted: RunEvent[] = [];
   for (const payload of events) {
+    validatePayloadEvidence(runtime, run.id, payload);
     persisted.push(appendRunEvent(runtime, run.id, payload));
   }
   return persisted;
