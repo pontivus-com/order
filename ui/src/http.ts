@@ -97,6 +97,12 @@ export const isOrderHttpRequestFailure = (
   "orderError" in error &&
   OrderHttpErrorSchema.safeParse(error.orderError).success;
 
+export const isCurrentStateConflict = (
+  error: unknown,
+): error is OrderHttpRequestFailure =>
+  isOrderHttpRequestFailure(error) &&
+  error.orderError.code === "CURRENT_STATE_CONFLICT";
+
 const requestFailure = (
   status: number,
   orderError: OrderHttpError,
