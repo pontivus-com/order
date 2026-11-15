@@ -550,6 +550,7 @@ const seedLifecycle = async (
     | "docs/stale-approval-plan.md"
     | "docs/long-wide-plan.md"
     | "docs/long-narrow-plan.md" = "docs/plan.md",
+  completeR3ToSignoff = false,
 ) => {
   const outputs = {
     R1: await currentFileArtifact(seedRuntime, item, "docs/r1.md", "R1", "P1"),
@@ -562,7 +563,14 @@ const seedLifecycle = async (
   await seedConformance(item, "R2", outputs.R2);
   await seedConformance(item, "DESIGN", outputs.DESIGN);
   await seedConformance(item, "PLAN", outputs.PLAN);
-  await seedConformance(item, "R3", outputs.R3);
+  await seedConformance(
+    item,
+    "R3",
+    outputs.R3,
+    completeR3ToSignoff
+      ? { stage: "R3", outcome: "READY_FOR_SIGNOFF" }
+      : undefined,
+  );
   return outputs;
 };
 
@@ -864,7 +872,11 @@ const staleApprovalItem = workItem(
   null,
 );
 storeWorkItem(database, staleApprovalItem);
-await seedLifecycle(staleApprovalItem, "docs/stale-approval-plan.md");
+await seedLifecycle(
+  staleApprovalItem,
+  "docs/stale-approval-plan.md",
+  true,
+);
 
 const sourceEditorItem = workItem(
   "Source editing workbench",
