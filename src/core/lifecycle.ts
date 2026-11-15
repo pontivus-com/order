@@ -7,6 +7,7 @@ import {
   type RunEventId,
   type RunEventPayload,
   type StageCompletion,
+  type UpstreamReturnStage,
   type ValidationClassification,
   type ValidationStage,
   type WorkItem,
@@ -14,7 +15,7 @@ import {
 } from "./contracts.ts";
 import { executionTaskIsEligible } from "./execution.ts";
 
-export type UpstreamReturnStage = "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
+export type { UpstreamReturnStage } from "./contracts.ts";
 
 export const directlyEditableArtifactRoles = [
   "R1",
@@ -250,6 +251,7 @@ export type WorkItemTransitionCause =
   | Readonly<{ tag: "BLOCK_CURRENT_OWNER" }>
   | Readonly<{ tag: "RESUME_CURRENT_OWNER" }>
   | Readonly<{ tag: "SIGN_OFF" }>
+  | Readonly<{ tag: "RECONCILE_AUTHORITY"; owner: UpstreamReturnStage }>
   | Readonly<{ tag: "EXECUTION_RETURN"; owner: UpstreamReturnStage }>
   | Readonly<{
       tag: "EXECUTION_COMPLETED";
@@ -321,6 +323,11 @@ export const transitionWorkItem = (
         throw new TypeError("SIGN_OFF requires AWAITING_SIGNOFF / ACTIVE");
       }
       return lifecycleTuple("EXECUTION", "ACTIVE", null);
+    case "RECONCILE_AUTHORITY":
+      if (workItem.stage !== "AWAITING_SIGNOFF" || workItem.status !== "ACTIVE") {
+        throw new TypeError("RECONCILE_AUTHORITY requires AWAITING_SIGNOFF / ACTIVE");
+      }
+      return lifecycleTuple(cause.owner, "ACTIVE", null);
     case "EXECUTION_RETURN":
       if (workItem.stage !== "EXECUTION") {
         throw new TypeError("EXECUTION_RETURN requires EXECUTION owner");
