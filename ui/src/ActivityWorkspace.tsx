@@ -113,6 +113,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
   const currentRunControlsOwnAttention =
     currentAttention !== "PROPOSAL_DECISION" &&
     currentAttention !== "PROPOSAL_ADOPTION" &&
+    currentAttention !== "MUTATION_CONFLICT" &&
     currentAttention !== "CONVERGING";
   const canCancel =
     selectedIsCurrent &&
