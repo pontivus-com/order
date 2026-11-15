@@ -177,14 +177,15 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
   });
+  const tasksRequired =
+    selectedStep === "AWAITING_SIGNOFF" ||
+    selectedStep === "EXECUTION" ||
+    workItem.stage === "EXECUTION" ||
+    workItem.stage === "COMPLETE";
   const tasksQuery = useQuery({
     queryKey: workbenchQueryKeys.tasks(workItem.id),
     queryFn: () => api.listExecutionTasks(workItem.id),
-    enabled:
-      selectedStep === "AWAITING_SIGNOFF" ||
-      selectedStep === "EXECUTION" ||
-      workItem.stage === "EXECUTION" ||
-      workItem.stage === "COMPLETE",
+    enabled: tasksRequired,
   });
   const sourceQuery = useQuery({
     queryKey: workbenchQueryKeys.workItemSource(workItem.id),
@@ -315,9 +316,15 @@ export const WorkItemWorkspace = ({
     : allRunEvents.filter((event) => event.runId === currentStageRun.id);
   const currentStageEventsPending =
     currentStageRun !== null &&
-    runEventQueries.some((query) =>
-      query.isPending &&
-      query.data === undefined);
+    runs.some((run, index) =>
+      run.id === currentStageRun.id &&
+      runEventQueries[index]?.data === undefined
+    );
+  const executionEventsPending =
+    runs.some((run, index) =>
+      run.executionTaskId !== null &&
+      runEventQueries[index]?.data === undefined
+    );
   const proposalDecision =
     currentStageRun === null || currentStageEventsPending
       ? { tag: "NONE" as const }
@@ -390,12 +397,18 @@ export const WorkItemWorkspace = ({
     changedAuthorityOwners,
   );
   const executionOwner = deriveExecutionOwner(tasks, runs);
-  const validationBoundary = deriveValidationBoundary(
-    executionOwner,
-    tasks,
-    runs,
-    allRunEvents,
-  );
+  const executionObservationPending =
+    runsQuery.data === undefined ||
+    (tasksRequired && tasksQuery.data === undefined) ||
+    executionEventsPending;
+  const validationBoundary = executionObservationPending
+    ? null
+    : deriveValidationBoundary(
+        executionOwner,
+        tasks,
+        runs,
+        allRunEvents,
+      );
   const recovery = deriveRecoveryDisposition(workItem, runs, currentness);
   const semanticCoherence = deriveObservationCoherence(
     workItem,
@@ -410,14 +423,14 @@ export const WorkItemWorkspace = ({
       runEventQueries[index]?.isFetching === true
     );
   const currentExecutionTasksFetching =
-    (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
-    tasksQuery.isFetching;
+    tasksRequired && tasksQuery.isFetching;
   const transportConverging =
     terminalDrainPending ||
     selectedWorkItemFetching ||
     runsQuery.isFetching ||
     artifactsQuery.isFetching ||
     currentExecutionTasksFetching ||
+    executionEventsPending ||
     currentStageEventsFetching ||
     currentStageEventsPending ||
     sourceQuery.isFetching ||
