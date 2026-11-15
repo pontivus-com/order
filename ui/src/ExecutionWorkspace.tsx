@@ -24,27 +24,29 @@ import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
 const validationStages: readonly ValidationStage[] = ["V0","V1","V2","V3","V4","V5","V6","V7"];
 
 const validationBoundaryTone = (
-  boundary: ValidationBoundary,
+  boundary: ValidationBoundary | null,
 ): "danger" | "success" | "neutral" =>
-  boundary.tag === "FAILED_AT"
+  boundary?.tag === "FAILED_AT"
     ? "danger"
-    : boundary.tag === "COMPLETE" || boundary.tag === "PASSED_THROUGH"
+    : boundary?.tag === "COMPLETE" || boundary?.tag === "PASSED_THROUGH"
       ? "success"
       : "neutral";
 
 const validationBoundaryLabel = (
-  boundary: ValidationBoundary,
+  boundary: ValidationBoundary | null,
 ): string =>
-  boundary.tag === "FAILED_AT"
-    ? "Current boundary: failed at " + boundary.stage
+  boundary === null
+    ? "Current boundary: updating"
+    : boundary.tag === "FAILED_AT"
+      ? "Current boundary: failed at " + boundary.stage
     : boundary.tag === "PASSED_THROUGH"
-      ? "Current boundary: passed through " + boundary.stage
-      : boundary.tag === "COMPLETE"
-        ? "Current boundary: complete"
-        : "Current boundary: none";
+        ? "Current boundary: passed through " + boundary.stage
+        : boundary.tag === "COMPLETE"
+          ? "Current boundary: complete"
+          : "Current boundary: none";
 
 const validationBoundaryStatus = (
-  boundary: ValidationBoundary,
+  boundary: ValidationBoundary | null,
 ) => (
   <WorkbenchStatus
     tone={validationBoundaryTone(boundary)}
@@ -172,7 +174,7 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, validat
   workItem: WorkItem;
   material: WorkflowMaterial;
   executionOwner: ExecutionOwner;
-  validationBoundary: ValidationBoundary;
+  validationBoundary: ValidationBoundary | null;
   mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
