@@ -1219,6 +1219,15 @@ export const WorkItemWorkspace = ({
           <SignoffReview
             workItem={workItem}
             summary={stepSummary}
+            packageValue={signoffPackageQuery.data ?? null}
+            packageFetching={signoffPackageQuery.isFetching}
+            packageError={signoffPackageQuery.error}
+            artifacts={artifacts}
+            artifactsPending={artifactsQuery.isPending}
+            artifactsError={artifactsQuery.error}
+            tasks={tasks}
+            tasksPending={tasksQuery.isPending}
+            tasksError={tasksQuery.error}
             mutationsDisabled={workflowMutationsDisabled}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
