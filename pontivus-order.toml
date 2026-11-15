@@ -230,6 +230,8 @@ GW-FR-224-TERMINAL-RESULT-PRIMACY = "docs/requirements/workbench.md"
 GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY = "docs/requirements/workbench.md"
 GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK = "docs/requirements/workbench.md"
 GW-FR-227-CERTIFICATION-MATRIX = "docs/requirements/workbench.md"
+GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE = "docs/requirements/workbench.md"
+GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY = "docs/requirements/workbench.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]
