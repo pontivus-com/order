@@ -402,7 +402,7 @@ src/core/
   contracts.ts    # canonical strict schemas/types only
   canonical.ts    # canonical deterministic representations/transforms
   governance.ts   # authority/context applicability, concern/material resolution, freshness/invalidation
-  lifecycle.ts    # WorkItem transition policy + browser-safe STAGE interaction/reached-history derivation
+  lifecycle.ts    # WorkItem transition policy + closed browser-safe workflow-state/attention/recovery/rail derivation
   execution.ts    # signed-task parsing/materialization, eligibility/completion, provider admission, repair/recovery policy
 
 src/shell/
@@ -477,7 +477,7 @@ shell ----------> core schemas where needed
 core -----------> no effectful Order module
 ```
 
-The browser-safe UI/core boundary is exact: UI may import canonical schemas/types from `src/core/contracts.ts` and the pure lifecycle policy owner `src/core/lifecycle.ts`. UI consumes that lifecycle owner for WorkItem transitions, editability, STAGE Run interaction/input admission and reached-history derivation rather than recreating those rules. Derived interaction/reach values are pure in-process decisions only; they are not persistence/transport models. No other core policy module becomes a UI dependency through this exception.
+The browser-safe UI/core boundary is exact: UI may import canonical schemas/types from `src/core/contracts.ts` and the pure lifecycle policy owner `src/core/lifecycle.ts`. UI consumes that lifecycle owner for WorkItem transition/editability policy and the closed `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` workflow-state language: STAGE interaction/input, reached state, proposal decision/adoption, currentness normalization, execution owner/validation boundary, recovery, coherence, current attention and workflow-rail projection. These are pure in-process decisions over canonical facts only; they are not persistence/transport/browser-state models. No other core policy module becomes a UI workflow-semantics dependency through this exception.
 
 Forbidden dependency directions:
 
