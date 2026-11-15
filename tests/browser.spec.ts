@@ -1584,7 +1584,12 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow resume action");
+  const resumeItem = await workItemForTitle(page, "Workflow resume action");
+  const resumeResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().includes("/api/work-items/" + resumeItem.id + "/resume"));
   await page.getByRole("button", { name: "Resume resolved blocker" }).click();
+  expect((await resumeResponse).status()).toBe(200);
   await expect(
     page.getByRole("button", { name: "Resume resolved blocker" }),
   ).toHaveCount(0);
