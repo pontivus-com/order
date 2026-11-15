@@ -192,6 +192,8 @@ GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE = "docs/architecture/workbench.md"
 GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION = "docs/architecture/workbench.md"
 GW-TR-095-WORKBENCH-RENDERER-COVERAGE = "docs/architecture/workbench.md"
 GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE = "docs/architecture/workbench.md"
+GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA = "docs/architecture/workbench.md"
+GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION = "docs/architecture/workbench.md"
 D1 = "docs/decisions/technical-decisions.md"
 D2 = "docs/decisions/technical-decisions.md"
 D3 = "docs/decisions/technical-decisions.md"
@@ -249,6 +251,8 @@ GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE = "docs/requirements/workbench.md"
 GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY = "docs/requirements/workbench.md"
 GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR = "docs/requirements/workbench.md"
 GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE = "docs/requirements/workbench.md"
+GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE = "docs/requirements/workbench.md"
+GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION = "docs/requirements/workbench.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]
