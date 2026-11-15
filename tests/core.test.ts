@@ -2145,6 +2145,34 @@ describe("closed Workbench workflow-state kernel", () => {
     expect(deriveObservationCoherence(active, [running], [completion], []))
       .toBe("CONVERGING");
 
+    const priorR1 = artifact(uuidB, "docs/r1.md", "R1", "P2", hashA);
+    const currentR1 = artifact(uuidC, "docs/r1.md", "R1", "P2", hashB);
+    const artifactCompletion = RunEventSchema.parse({
+      ...completion,
+      event: {
+        ...completion.event,
+        artifactRefIds: [priorR1.id],
+      },
+    });
+    expect(
+      deriveObservationCoherence(
+        active,
+        [running],
+        [artifactCompletion],
+        [],
+        [priorR1],
+      ),
+    ).toBe("CONVERGING");
+    expect(
+      deriveObservationCoherence(
+        active,
+        [running],
+        [artifactCompletion],
+        [],
+        [currentR1],
+      ),
+    ).toBe("COHERENT");
+
     const idea = WorkItemSchema.parse({
       ...active,
       stage: "IDEA",
