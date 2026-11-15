@@ -224,6 +224,8 @@ const resolveFixtureMaterial = (
   return resolveWorkflowMaterial({
     ...input,
     currentStageRunId: input.currentStageRunId ?? currentRun?.id ?? null,
+    currentStageRunActive:
+      currentRun?.status === "RUNNING" || currentRun?.status === "WAITING_FOR_INPUT",
     currentAttention,
     stageInteraction,
     executionOwner,
