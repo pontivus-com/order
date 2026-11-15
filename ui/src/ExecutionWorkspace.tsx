@@ -127,8 +127,8 @@ const ValidationMatrix = ({
   );
 };
 
-export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpenEvidence, onReturnFromEvidence }: Readonly<{
-  workItem: WorkItem; material: WorkflowMaterial; onSelectMaterial: (material: WorkflowMaterial) => void;
+export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence }: Readonly<{
+  workItem: WorkItem; material: WorkflowMaterial; mutationsDisabled?: boolean; onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void; onReturnFromEvidence: () => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -170,8 +170,8 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
 
   const canRunNext=workItem.stage==="EXECUTION"&&workItem.status==="ACTIVE"&&!runs.some(runIsActive);
   const canResume=workItem.stage==="EXECUTION"&&workItem.status==="BLOCKED"&&selectedTask?.state==="BLOCKED";
-  const currentAction=canResume?<WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={resume.isPending} onClick={()=>resume.mutate()}/>:
-    canRunNext?<WorkbenchAction label="Run next implementation step" tone="primary" loading={tick.isPending} disabled={tick.isPending} onClick={()=>tick.mutate()}/>:undefined;
+  const currentAction=canResume?<WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={()=>resume.mutate()}/>:
+    canRunNext?<WorkbenchAction label="Run next implementation step" tone="primary" loading={tick.isPending} disabled={mutationsDisabled || tick.isPending} onClick={()=>tick.mutate()}/>:undefined;
   const mutationError=tick.error??cancel.error??resume.error;
   const summaryBlocker=selectedTask?.state==="BLOCKED"?{status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
     selectedRun?.status==="FAILED"?{status:"error" as const,title:"Implementation attempt failed",description:"Inspect the attempt history and canonical failure feedback before continuing."}:
@@ -211,7 +211,7 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
         <div data-testid="selected-run-header">
           <WorkbenchSectionHeader
             title={runRoleLabel(selectedRun.role)+" · Attempt "+selectedRun.attempt}
-            action={<span className="order-inline-actions"><WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>{runIsActive(selectedRun)?<WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={cancel.isPending} onClick={()=>cancel.mutate()}/>:null}</span>}
+            action={<span className="order-inline-actions"><WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>{runIsActive(selectedRun)?<WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={()=>cancel.mutate()}/>:null}</span>}
           />
         </div>
         <WorkbenchDisclosure label="Technical details" content={<dl>
