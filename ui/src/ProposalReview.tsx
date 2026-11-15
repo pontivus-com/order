@@ -24,6 +24,7 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
   const decision = useMutation({
     mutationFn: async (action: "ADOPT" | "REJECT") => { if (action === "ADOPT") await api.adoptProposal(selection.eventId); else await api.rejectProposal(selection.eventId); },
     onSuccess: async () => { await invalidate(); onBack(); },
+    onError: invalidate,
   });
 
   if (eventsQuery.isPending) return <WorkbenchState kind="loading" title="Loading proposal review…" />;
