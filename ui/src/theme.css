@@ -125,7 +125,7 @@
 }
 .order-utility-link small { color: var(--color-text-secondary); }
 
-.order-workitem-layout {
+.order-workitem-layout-frame {
   height: calc(100dvh - var(--order-toolbar-height));
   min-height: 0;
 }
