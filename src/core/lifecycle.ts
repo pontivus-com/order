@@ -1,5 +1,4 @@
 import {
-  type Approval,
   type ArtifactRef,
   type ExecutionTask,
   type ExecutionTaskId,
@@ -793,19 +792,16 @@ export const deriveObservationCoherence = (
   events: readonly RunEvent[],
   tasks: readonly ExecutionTask[],
 ): ObservationCoherence => {
-  for (const run of runs.filter((candidate) => candidate.role === "STAGE")) {
-    const runEvents = events.filter((event) => event.runId === run.id);
+  const currentStageRun = latestCurrentStageRun(workItem, runs);
+  if (currentStageRun !== null) {
+    const runEvents = events.filter((event) => event.runId === currentStageRun.id);
     const completion = runEvents.findLast((event) => event.event.tag === "STAGE_COMPLETED");
-    if (
-      completion?.event.tag === "STAGE_COMPLETED" &&
-      workItem.stage === run.stage
-    ) {
+    if (completion?.event.tag === "STAGE_COMPLETED") {
       return "CONVERGING";
     }
     const block = runEvents.findLast((event) => event.event.tag === "STAGE_BLOCKED");
     if (
       block?.event.tag === "STAGE_BLOCKED" &&
-      workItem.stage === run.stage &&
       workItem.status === "ACTIVE"
     ) {
       return "CONVERGING";
