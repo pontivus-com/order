@@ -359,6 +359,124 @@ describe("Order cross-boundary certification", () => {
     expect(http).not.toContain("EventSource");
   });
 
+  it("certifies canonical Workbench workflow-state ownership and observational reads", () => {
+    const walk = (directory: string): string[] =>
+      readdirSync(join(root, directory), { withFileTypes: true }).flatMap((entry) => {
+        const relative = directory + "/" + entry.name;
+        return entry.isDirectory() ? walk(relative) : [relative];
+      });
+    const production = [
+      ...walk("src/core"),
+      ...walk("src/daemon"),
+      ...walk("ui/src"),
+    ]
+      .filter((path) => path.endsWith(".ts") || path.endsWith(".tsx"))
+      .map(read)
+      .join("\n");
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    for (const owner of [
+      "transitionWorkItem",
+      "stageRunInteraction",
+      "validateStageProviderTurn",
+      "deriveProposalDecision",
+      "deriveReachedStages",
+      "deriveExecutionOwner",
+      "deriveValidationBoundary",
+      "deriveRecoveryDisposition",
+      "deriveObservationCoherence",
+      "deriveCurrentAttention",
+      "deriveWorkflowRail",
+    ]) {
+      expect(lifecycle).toContain("export const " + owner);
+    }
+    expect(production).not.toMatch(/\b(?:type|interface|class)\s+WorkflowState\b/);
+    expect(production).not.toMatch(/z\.[A-Za-z]+\([^)]*WorkflowState/);
+
+    const presentation = read("ui/src/workbench-presentation.ts");
+    expect(presentation).toContain("reachStateForStage");
+    expect(presentation).not.toContain("workflowStepIndex");
+    expect(presentation).not.toContain("workflowSteps.findIndex");
+
+    const rail = read("ui/src/WorkflowRail.tsx");
+    expect(rail).toContain("WorkflowRailItem");
+    expect(rail).not.toContain("stageOrder");
+    expect(rail).not.toContain("stageRank");
+
+    const app = read("ui/src/app.tsx");
+    expect(app).toContain("api.getWorkItem(selectedWorkItemId)");
+    expect(app).toContain("workbenchQueryKeys.workItem(selectedWorkItemId)");
+    expect(app).not.toContain(
+      "workItems.find((item) => item.id === selectedWorkItemId)",
+    );
+
+    const queryKeys = read("ui/src/query-keys.ts");
+    expect(queryKeys).toContain("workbenchMutationInvalidationKeys");
+    expect(queryKeys).toContain("invalidateWorkbenchMutation");
+    expect(queryKeys).toContain("workbenchQueryKeys.workItem(workItemId)");
+
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workspace).toContain("deriveObservationCoherence");
+    expect(workspace).toContain("deriveCurrentAttention");
+    expect(workspace).toContain("deriveWorkflowRail");
+    expect(workspace).toContain('currentAttention === "CONVERGING"');
+
+    const activity = read("ui/src/ActivityWorkspace.tsx");
+    expect(activity).toContain("stageRunInteraction");
+    expect(activity).not.toContain("runNeedsAttention");
+    expect(activity).not.toContain("const canRetry");
+    expect(activity).not.toContain("const canResume");
+
+    const execution = read("ui/src/ExecutionWorkspace.tsx");
+    expect(execution).toContain("deriveExecutionOwner");
+    expect(execution).toContain("currentOwnerTask");
+    expect(execution).toContain("currentOwnerRun");
+    expect(execution).not.toContain(
+      'selectedTask?.state==="BLOCKED"',
+    );
+
+    const runtime = read("src/daemon/runtime.ts");
+    expect(runtime).toContain("operatorMutations: new Set()");
+    expect(runtime).toContain("withWorkItemOperatorMutation");
+    expect(runtime).not.toContain("operatorMutationQueue");
+
+    const source = read("src/daemon/work-item-source.ts");
+    const sourceRead = source.slice(
+      source.indexOf("export const revalidateWorkItemSource"),
+      source.indexOf("export const createWorkItemFromSource"),
+    );
+    expect(sourceRead).toContain("inspectWorkItemSource");
+    expect(sourceRead).not.toContain("applyPlan(");
+    expect(sourceRead).not.toContain("updateWorkItemLifecycle(");
+
+    const authority = read("src/daemon/authority.ts");
+    const lifecycleRead = authority.slice(
+      authority.indexOf("export const currentLifecycleArtifacts"),
+      authority.indexOf("export const resolveStageContextState"),
+    );
+    expect(lifecycleRead).not.toContain("currentFileArtifact(");
+    expect(lifecycleRead).not.toContain("storeArtifact(");
+    const signoffRead = authority.slice(
+      authority.indexOf("export const computeSignoffPackage"),
+      authority.indexOf("export const signoffPackageForWorkItem"),
+    );
+    expect(signoffRead).toContain("materializeCommittedArtifacts = false");
+    expect(signoffRead).not.toContain("updateWorkItemLifecycle(");
+
+    for (const daemonPath of [
+      "src/daemon/work-item-source.ts",
+      "src/daemon/authority.ts",
+      "src/daemon/stage.ts",
+      "src/daemon/coordinator.ts",
+      "src/daemon/execution.ts",
+    ]) {
+      const daemon = read(daemonPath);
+      expect(daemon).not.toContain("sourceChangeLifecycleState");
+      expect(daemon).not.toContain("promoteIdeaToR1");
+      expect(daemon).not.toContain("setWorkItemStatus(");
+    }
+  });
+
   it("keeps repository-native v4 as the only productive config persistence and v3 as migration input", () => {
     const contracts = read("src/core/contracts.ts");
     const sqlite = read("src/shell/sqlite.ts");
