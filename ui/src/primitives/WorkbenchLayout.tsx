@@ -36,19 +36,27 @@ export const WorkbenchLayout = ({
   const context = workItemChrome?.context ?? null;
   const hasInspector = context !== null;
   const inspectorOpen = context?.open === true;
-  const content = workItemChrome === null ? primary : (
-    <div className="order-workitem-layout-frame">
-      <Layout
-        height="fill"
-        padding={0}
-        header={<LayoutHeader padding={0} hasDivider><div className="order-workbench-chrome">{workItemChrome.identity}{workItemChrome.workflowRail}</div></LayoutHeader>}
+  const content = (
+    <Layout
+      height="fill"
+      padding={0}
+      header={
+        <LayoutHeader padding={0} hasDivider={workItemChrome !== null}>
+          {toolbar}
+          {workItemChrome !== null ? (
+            <div className="order-workbench-chrome">
+              {workItemChrome.identity}
+              {workItemChrome.workflowRail}
+            </div>
+          ) : null}
+        </LayoutHeader>
+      }
       content={<LayoutContent padding={0}>{primary}</LayoutContent>}
-        end={wide && hasInspector && inspectorOpen ? <LayoutPanel width="var(--order-context-width)" padding={0} hasDivider role="complementary" label="Work item context" data-testid="work-item-context">{context.content}</LayoutPanel> : undefined}
-      />
-    </div>
+      end={wide && hasInspector && inspectorOpen ? <LayoutPanel width="var(--order-context-width)" padding={0} hasDivider role="complementary" label="Work item context" data-testid="work-item-context">{context.content}</LayoutPanel> : undefined}
+    />
   );
   return (
-    <AppShell topNav={toolbar} mobileNav={false} contentPadding={0} height="fill" variant="section" data-testid="workbench-layout">
+    <AppShell mobileNav={false} contentPadding={0} height="fill" variant="section" data-testid="workbench-layout">
       {content}
       {!wide && context ? (
         <Drawer isOpen={context.open} onOpenChange={context.onOpenChange} label="Work item context"

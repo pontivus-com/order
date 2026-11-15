@@ -125,10 +125,6 @@
 }
 .order-utility-link small { color: var(--color-text-secondary); }
 
-.order-workitem-layout-frame {
-  height: calc(100dvh - var(--order-toolbar-height));
-  min-height: 0;
-}
 .order-workbench-chrome {
   display: grid;
   min-width: 0;
