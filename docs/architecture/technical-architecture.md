@@ -1331,7 +1331,7 @@ The architecture above does not authorize implementation by itself. It is the bi
 
 ## 30. Repository-native WorkItem documentation architecture
 
-This section is the current P4 architecture for `GW-FR-060..063`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
+This section is the current P4 architecture for the repository-native WorkItem/documentation requirements owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
 
 ### 30.1 Boundary model
 
@@ -1631,7 +1631,7 @@ This avoids a dual approval semantic and ensures every new v3 Approval is formed
 
 ## 31. OpenCode saved-account management architecture
 
-This section is the P4 realization of `GW-FR-073..076`. It governs switching among multiple saved OpenCode login accounts in Order's private OpenCode namespace. It does **not** introduce provider/model routing.
+This section is the P4 realization of the OpenCode account-management requirements owned by `GW-DOC-INSTALLATION-READINESS-V1`. It governs switching among multiple saved OpenCode login accounts in Order's private OpenCode namespace. It does **not** introduce provider/model routing.
 
 ### 31.1 Ownership boundary
 
@@ -2098,7 +2098,7 @@ Floating `@main`, `@master` and mutable major-only action tags are not accepted 
 
 ## 34. Settings/configuration architecture
 
-This section is the P4 realization of `GW-FR-079..082`, `GW-FR-091..093`, `GW-FR-095` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
+This section is the P4 realization of the installation/configuration requirements owned by `GW-DOC-INSTALLATION-READINESS-V1` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
 
 The design preserves one canonical configuration/runtime ownership path rather than layering Settings behavior over independent state or file writes.
 
