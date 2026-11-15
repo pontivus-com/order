@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 
 import type { ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "../../src/core/contracts.ts";
+import { deriveExecutionOwner } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
@@ -137,6 +138,15 @@ export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = fal
   const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.artifacts(workItem.id), queryFn: () => api.listArtifacts(workItem.id) });
   const tasks = tasksQuery.data ?? [];
   const runs = runsQuery.data ?? [];
+  const executionOwner = deriveExecutionOwner(tasks, runs);
+  const currentOwnerTask = executionOwner.tag === "NONE"
+    ? null
+    : tasks.find((task) => task.id === executionOwner.taskId) ?? null;
+  const currentOwnerRun = currentOwnerTask === null
+    ? null
+    : runs.find((run) =>
+        run.executionTaskId === currentOwnerTask.id &&
+        runIsActive(run)) ?? null;
   const materialTaskId = material.kind === "EXECUTION_TASK" ? material.taskId : null;
   const selectedTask = tasks.find((task) => task.id === materialTaskId) ?? tasks.find((task) => task.state === "RUNNING" || task.state === "BLOCKED") ?? tasks[0] ?? null;
   const taskRuns = selectedTask ? runs.filter((run) => run.executionTaskId === selectedTask.id) : [];
@@ -159,16 +169,32 @@ export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = fal
   const events=eventsQuery.data??[];
   const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
   const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate});
-  const cancel=useMutation({mutationFn:()=>{if(!selectedRun||!runIsActive(selectedRun))throw new TypeError("selected implementation attempt is not active");return api.cancelRun(selectedRun.id);},onSuccess:invalidate});
+  const cancel=useMutation({
+    mutationFn:()=>{
+      if(!currentOwnerRun)throw new TypeError("current implementation owner has no active attempt");
+      return api.cancelRun(currentOwnerRun.id);
+    },
+    onSuccess:invalidate,
+  });
   const resume=useMutation({mutationFn:()=>api.resumeWorkItem(workItem.id),onSuccess:invalidate});
 
-  const canRunNext=workItem.stage==="EXECUTION"&&workItem.status==="ACTIVE"&&!runs.some(runIsActive);
-  const canResume=workItem.stage==="EXECUTION"&&workItem.status==="BLOCKED"&&selectedTask?.state==="BLOCKED";
-  const currentAction=canResume?<WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={()=>resume.mutate()}/>:
+  const canRunNext=
+    workItem.stage==="EXECUTION"&&
+    workItem.status==="ACTIVE"&&
+    executionOwner.tag==="CURRENT_TASK"&&
+    currentOwnerTask?.state==="TODO"&&
+    currentOwnerRun===null;
+  const canResume=
+    workItem.stage==="EXECUTION"&&
+    workItem.status==="BLOCKED"&&
+    executionOwner.tag==="BLOCKED_TASK";
+  const currentAction=currentOwnerRun?
+    <WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={()=>cancel.mutate()}/>:
+    canResume?<WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={()=>resume.mutate()}/>:
     canRunNext?<WorkbenchAction label="Run next implementation step" tone="primary" loading={tick.isPending} disabled={mutationsDisabled || tick.isPending} onClick={()=>tick.mutate()}/>:undefined;
   const mutationError=tick.error??cancel.error??resume.error;
-  const summaryBlocker=selectedTask?.state==="BLOCKED"?{status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
-    selectedRun?.status==="FAILED"?{status:"error" as const,title:"Implementation attempt failed",description:"Inspect the attempt history and canonical failure feedback before continuing."}:
+  const summaryBlocker=executionOwner.tag==="BLOCKED_TASK"?
+    {status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
     mutationError?{status:"error" as const,title:"Implementation action failed",description:mutationError instanceof Error?mutationError.message:String(mutationError)}:null;
 
   const groups:WorkflowStepIndexGroup[]=[];
@@ -184,8 +210,8 @@ export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = fal
   const summary=<WorkflowStepSummary
     label="Implementation" purpose="Execute and verify the approved change"
     stateLabel={workItem.stage==="EXECUTION"?"Current":"Reached"} stateVariant={workItem.stage==="EXECUTION"?"info":"neutral"}
-    statusLabel={selectedTask?taskStateLabel(selectedTask):workItem.status==="COMPLETE"?"Complete":workItem.status.toLowerCase()}
-    statusVariant={selectedTask?taskVariant(selectedTask):workItem.status==="BLOCKED"?"error":workItem.status==="COMPLETE"?"success":"neutral"}
+    statusLabel={currentOwnerTask?taskStateLabel(currentOwnerTask):workItem.status==="COMPLETE"?"Complete":workItem.status.toLowerCase()}
+    statusVariant={currentOwnerTask?taskVariant(currentOwnerTask):workItem.status==="BLOCKED"?"error":workItem.status==="COMPLETE"?"success":"neutral"}
     blocker={summaryBlocker} action={currentAction}
   />;
 
@@ -205,7 +231,7 @@ export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = fal
         <div data-testid="selected-run-header">
           <WorkbenchSectionHeader
             title={runRoleLabel(selectedRun.role)+" · Attempt "+selectedRun.attempt}
-            action={<span className="order-inline-actions"><WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>{runIsActive(selectedRun)?<WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={()=>cancel.mutate()}/>:null}</span>}
+            action={<WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>} 
           />
         </div>
         <WorkbenchDisclosure label="Technical details" content={<dl>
