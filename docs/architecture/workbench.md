@@ -196,6 +196,28 @@ Execution current ownership is derived before historical selection:
 3. next eligible/current task;
 4. historical explicit selection only as inspection detail.
 
+### 4.7 Canonical action-admission matrix
+
+The daemon is authoritative for mutation admission. The browser uses the same pure core predicates where the relevant canonical inputs are already loaded so it can avoid offering predictably invalid actions; server rejection remains mandatory for stale/concurrent clients.
+
+| Action | Required current condition | State effect |
+|---|---|---|
+| Start Research | IDEA / ACTIVE; source valid/current enough; no active Run; observation coherent | explicit IDEA -> R1 + new STAGE Run / PROCESSING |
+| Start/Retry current pre-signoff stage | current R1/R2/DESIGN/PLAN/R3 / ACTIVE; no active Run; no reconciliation/context blocker | new same-stage STAGE Run / PROCESSING |
+| Send free-form continuation | current STAGE Run interaction OPEN; no pending required input; request id null | append input, same stage / PROCESSING |
+| Answer required input | current interaction REQUIRED_INPUT(Q); exact Q; unanswered | append bound input, same stage / PROCESSING |
+| Cancel STAGE Run | current Run active in PROCESSING/OPEN/REQUIRED_INPUT | terminal CANCELLED Run; same WorkItem stage |
+| Adopt lifecycle proposal | current stage Run OPEN; exactly one pending proposal; role/path match current stage | same WorkItem stage; authority/conformance changes, context refresh required |
+| Reject lifecycle proposal | same current/pending/open ownership as adoption; no adoption request persisted | same WorkItem/Run interaction, proposal closed |
+| Save Work request/source | pre-signoff/AWAITING_SIGNOFF; no active Run; expected hash current | IDEA stays IDEA; progressed work returns R1 |
+| Save lifecycle document | editable already-reached owner; no active Run; expected hash current | return/remain at artifact owner |
+| Resume pre-signoff blocker | same stage / BLOCKED; blocker proven resolved; no active Run | same stage / ACTIVE |
+| Sign off | AWAITING_SIGNOFF / ACTIVE; exact displayed package still current; no competing mutation | EXECUTION / ACTIVE + Approval/tasks |
+| Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; blocked task becomes eligible |
+| Archive/restore | existing archive policy; no active Run; no competing mutation | archive projection only; lifecycle unchanged |
+
+A selected historical material item never satisfies a current-action precondition merely because it contains an old control. Action ownership always resolves from the current canonical WorkItem/Run/task/proposal/input facts.
+
 ## 5. Daemon command architecture
 
 ### 5.1 Command admission principle
