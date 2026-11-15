@@ -413,7 +413,7 @@ const rejectionRun = RunSchema.parse({
   mode: "INTERACTIVE",
   role: "STAGE",
   triggerEventId: null,
-  status: "WAITING_FOR_INPUT",
+  status: "RUNNING",
   attempt: 1,
   baselineCommit,
   contextHash: sha256Text("proposal-rejection-context"),
@@ -521,6 +521,12 @@ const seedConformance = async (
     endedAt: stamp,
   }));
   withTransaction(database, () => {
+    appendRunEvent(seedRuntime, run.id, {
+      tag: "STAGE_STARTED",
+      stage,
+      mode: "INTERACTIVE",
+      contextHash: context.contextHash,
+    });
     for (const dependency of context.artifacts) {
       if (dependency.id !== output.id) {
         storeArtifactDependency(database, output.id, dependency.id);
@@ -550,7 +556,6 @@ const seedLifecycle = async (
     | "docs/stale-approval-plan.md"
     | "docs/long-wide-plan.md"
     | "docs/long-narrow-plan.md" = "docs/plan.md",
-  completeR3ToSignoff = false,
 ) => {
   const outputs = {
     R1: await currentFileArtifact(seedRuntime, item, "docs/r1.md", "R1", "P1"),
@@ -559,17 +564,35 @@ const seedLifecycle = async (
     PLAN: await currentFileArtifact(seedRuntime, item, planPath, "PLAN", "P7"),
     R3: await currentFileArtifact(seedRuntime, item, "docs/r3.md", "R3", "P7"),
   };
-  await seedConformance(item, "R1", outputs.R1);
-  await seedConformance(item, "R2", outputs.R2);
-  await seedConformance(item, "DESIGN", outputs.DESIGN);
-  await seedConformance(item, "PLAN", outputs.PLAN);
+  await seedConformance(
+    item,
+    "R1",
+    outputs.R1,
+    { stage: "R1", outcome: "CONFIRMED" },
+  );
+  await seedConformance(
+    item,
+    "R2",
+    outputs.R2,
+    { stage: "R2", outcome: "ACCEPTED" },
+  );
+  await seedConformance(
+    item,
+    "DESIGN",
+    outputs.DESIGN,
+    { stage: "DESIGN", outcome: "ACCEPTED" },
+  );
+  await seedConformance(
+    item,
+    "PLAN",
+    outputs.PLAN,
+    { stage: "PLAN", outcome: "ACCEPTED" },
+  );
   await seedConformance(
     item,
     "R3",
     outputs.R3,
-    completeR3ToSignoff
-      ? { stage: "R3", outcome: "READY_FOR_SIGNOFF" }
-      : undefined,
+    { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
   );
   return outputs;
 };
@@ -856,6 +879,12 @@ const waitingInputRun = RunSchema.parse({
 });
 storeRun(database, waitingInputRun);
 persistEvent(waitingInputRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: waitingInputRun.contextHash,
+});
+persistEvent(waitingInputRun.id, 2, {
   tag: "HUMAN_INPUT_REQUESTED",
   category: "INFORMATION",
   question: "Which constraint should the plan prioritize?",
@@ -875,7 +904,6 @@ storeWorkItem(database, staleApprovalItem);
 await seedLifecycle(
   staleApprovalItem,
   "docs/stale-approval-plan.md",
-  true,
 );
 
 const sourceEditorItem = workItem(
