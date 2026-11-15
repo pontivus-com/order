@@ -394,6 +394,11 @@ describe("Order cross-boundary certification", () => {
     expect(production).not.toMatch(/z\.[A-Za-z]+\([^)]*WorkflowState/);
 
     expect(lifecycle).toContain('"RECONCILE_AUTHORITY"');
+    expect(lifecycle).toContain("validationBoundaryFromEvents");
+    expect(lifecycle).toContain('run.role === "REMEDIATOR"');
+    expect(lifecycle).toContain("REMEDIATOR trigger must identify VALIDATION_FAILED");
+    expect(lifecycle).toContain('run.role === "REVIEWER"');
+    expect(lifecycle).toContain("candidateRun.triggerEventId === run.triggerEventId");
     expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
     expect(lifecycle).toContain("proposal has duplicate disposition");
     expect(lifecycle).toContain("rejected proposal cannot have adoption intent");
