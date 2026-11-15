@@ -109,7 +109,7 @@ const ValidationMatrix = ({
 }: Readonly<{
   events: readonly RunEvent[];
   active: boolean;
-  boundary: ValidationBoundary;
+  boundary: ValidationBoundary | null;
 }>) => {
   const recordedStages = validationStages.filter(
     (stage) => latestValidationEvent(events, stage) !== null,

@@ -264,7 +264,6 @@ describe("workflow presentation policy", () => {
       runId: failed.id,
     });
     expect(resolveFixtureMaterial({
-      reachedStages: reachedAll,
       ...base,
       runs: [waiting, running],
     })).toEqual({
@@ -272,7 +271,6 @@ describe("workflow presentation policy", () => {
       runId: waiting.id,
     });
     expect(resolveFixtureMaterial({
-      reachedStages: reachedAll,
       ...base,
       runs: [waiting],
       unresolvedInputRunId: null,
@@ -290,7 +288,6 @@ describe("workflow presentation policy", () => {
       eventId: proposal.eventId,
     };
     expect(resolveFixtureMaterial({
-      reachedStages: reachedAll,
       ...base,
       runs: [running],
       unresolvedInputRunId: null,
@@ -301,7 +298,6 @@ describe("workflow presentation policy", () => {
       eventId: runningProposal.eventId,
     });
     expect(resolveFixtureMaterial({
-      reachedStages: reachedAll,
       ...base,
       runs: [running],
       unresolvedInputRunId: null,
@@ -311,7 +307,6 @@ describe("workflow presentation policy", () => {
       runId: running.id,
     });
     expect(resolveFixtureMaterial({
-      reachedStages: reachedAll,
       ...base,
       runs: [],
       unresolvedInputRunId: null,
@@ -321,7 +316,6 @@ describe("workflow presentation policy", () => {
       artifactId: research.id,
     });
     expect(resolveFixtureMaterial({
-      reachedStages: reachedAll,
       ...base,
       runs: [],
       artifacts: [],

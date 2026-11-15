@@ -295,8 +295,9 @@ const selectedExecutionTask = (
     const selected = tasks.find((task) => task.id === selectedTaskId);
     if (selected) return selected;
   }
-  if (input.executionOwner.tag !== "NONE") {
-    const owned = tasks.find((task) => task.id === input.executionOwner.taskId);
+  const executionOwner = input.executionOwner;
+  if (executionOwner.tag !== "NONE") {
+    const owned = tasks.find((task) => task.id === executionOwner.taskId);
     if (owned === undefined) {
       if (input.currentAttention === "CONVERGING") {
         return tasks.at(0) ?? null;

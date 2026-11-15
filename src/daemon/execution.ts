@@ -224,11 +224,18 @@ export const maybeCompleteWorkItem = async (
 ): Promise<void> => {
   const tasks = await canonicalTasksForApproval(runtime, approval);
   const aggregate = aggregateTaskCompletion(tasks);
-  if (!aggregate.complete || aggregate.outcome === null) return;
+  const outcome = aggregate.outcome;
+  if (!aggregate.complete || outcome === null) return;
+  if (
+    outcome !== "ALREADY_SATISFIED" &&
+    outcome !== "CANDIDATE_DONE"
+  ) {
+    throw new TypeError("completed execution aggregate has invalid outcome");
+  }
   const current = getWorkItem(runtime, approval.workItemId);
   const transition = transitionWorkItem(current, {
     tag: "EXECUTION_COMPLETED",
-    outcome: aggregate.outcome,
+    outcome,
   });
   updateWorkItemLifecycle(runtime.database, approval.workItemId, transition);
 };
