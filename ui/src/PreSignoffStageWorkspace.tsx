@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type {
   ArtifactRef,
   Run,
+  RunEvent,
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
@@ -65,6 +66,7 @@ export const PreSignoffStageWorkspace = ({
   onOpenSupportingMaterial,
   onReturnFromTransient,
   onContextDocumentChange,
+  onMutationRefresh,
   onMutationError,
 }: Readonly<{
   workItem: WorkItem;
@@ -85,6 +87,7 @@ export const PreSignoffStageWorkspace = ({
   onOpenSupportingMaterial: (material: WorkflowMaterial) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const stageRuns = [...runs]
@@ -199,6 +202,7 @@ export const PreSignoffStageWorkspace = ({
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
             onOpenProposalReview={onOpenProposalReview}
+            onMutationRefresh={onMutationRefresh}
             onMutationError={onMutationError}
           />
         );
