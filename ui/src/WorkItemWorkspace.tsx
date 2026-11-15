@@ -321,11 +321,6 @@ export const WorkItemWorkspace = ({
           eventId: proposalDecision.proposalEventId,
         }
       : null;
-  const currentUnresolvedInput =
-    currentStageInteraction?.tag === "REQUIRED_INPUT"
-      ? currentStageInteraction.requestEventId
-      : null;
-
   const selectedTaskId =
     explicitMaterial?.kind === "EXECUTION_TASK"
       ? explicitMaterial.taskId
@@ -347,30 +342,6 @@ export const WorkItemWorkspace = ({
     tasks,
   );
 
-  const material = resolveWorkflowMaterial({
-    workItem,
-    selectedStep,
-    reachedStages,
-    runs,
-    artifacts,
-    pendingProposal,
-    unresolvedInputRunId:
-      sharedPreSignoffStage === null
-        ? undefined
-        : currentUnresolvedInput !== null
-          ? currentStageRun?.id ?? null
-          : null,
-    approvalPackageAvailable: signoffPackageQuery.data != null,
-    tasks,
-    selectedTaskId,
-    selectedRunId,
-    explicitSelection: explicitMaterial,
-    dirtyDocument: dirty,
-  });
-
-  const evidence =
-    material.kind === "EVIDENCE" ? material.selection : null;
-  const materialIdentity = workflowMaterialIdentity(material);
   const selectedStepState = workflowStepState(workItem, reachedStages, selectedStep);
   const selectedStateLabel =
     selectedStepState === "CURRENT"
@@ -423,6 +394,28 @@ export const WorkItemWorkspace = ({
     selectedStep,
   );
   const mutationsDisabled = currentAttention === "CONVERGING";
+
+  const material = resolveWorkflowMaterial({
+    workItem,
+    selectedStep,
+    reachedStages,
+    runs,
+    artifacts,
+    currentStageRunId: currentStageRun?.id ?? null,
+    currentAttention,
+    stageInteraction: currentStageInteraction,
+    executionOwner,
+    pendingProposal,
+    approvalPackageAvailable: signoffPackageQuery.data != null,
+    tasks,
+    selectedTaskId,
+    selectedRunId,
+    explicitSelection: explicitMaterial,
+    dirtyDocument: dirty,
+  });
+  const evidence =
+    material.kind === "EVIDENCE" ? material.selection : null;
+  const materialIdentity = workflowMaterialIdentity(material);
 
   const selectedLatestStageRun =
     selectedStep === "R1" ||
