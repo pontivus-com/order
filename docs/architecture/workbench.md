@@ -589,9 +589,91 @@ Continue to own post-signoff task/Run reaction; route every WorkItem lifecycle r
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
-## 13. Permanent verification
+## 13. Technical requirements
 
-### 13.1 Core transition matrix
+### GW-TR-082-WORKFLOW-TRANSITION-KERNEL
+
+**Realizes:** `GW-FR-200`, `GW-FR-202`, `GW-FR-205`, `GW-FR-211`, `GW-FR-212`, `GW-FR-228`.
+
+**Required behavior:** every WorkItem stage/status/outcome mutation is produced by the browser-safe pure lifecycle policy owner from canonical current state plus an admitted semantic cause; daemon modules do not invent alternate lifecycle transitions.
+
+**Acceptance:** every row of the P3 cross-step transition table maps to one core policy result and unlisted state/event combinations reject.
+
+### GW-TR-083-STAGE-RUN-INTERACTION-DERIVATION
+
+**Realizes:** `GW-FR-203`, `GW-FR-204`, `GW-FR-220`, `GW-FR-229`.
+
+**Required behavior:** PROCESSING / OPEN / REQUIRED_INPUT / CLOSED is derived purely from canonical Run + RunEvents and shared by daemon admission and browser presentation; no persisted turn-state field or browser heuristic based only on `Run.status` exists.
+
+**Acceptance:** the same canonical event history always yields the same interaction decision in core, daemon and UI tests.
+
+### GW-TR-084-STAGE-TURN-BATCH-ATOMICITY
+
+**Realizes:** `GW-FR-202`, `GW-FR-203`, `GW-FR-207`, `GW-FR-210`, `GW-FR-229`.
+
+**Required behavior:** one complete non-empty STAGE provider-result batch is validated for role/turn/proposal invariants before persistence and is committed with its coordinator reaction atomically when no filesystem effect intervenes.
+
+**Acceptance:** no reader can observe a partial provider-result batch or a provider control event without its corresponding Run/WorkItem reaction.
+
+### GW-TR-085-OBSERVATIONAL-QUERY-BOUNDARY
+
+**Realizes:** `GW-FR-201`, `GW-FR-212`.
+
+**Required behavior:** every GET/query is workflow-state and repository-byte read-only; source reconciliation, ArtifactRef materialization and lifecycle return happen only through explicit mutations.
+
+**Acceptance:** stale source/lifecycle/sign-off reads leave SQLite and repository bytes unchanged.
+
+### GW-TR-086-COMMAND-COMMIT-RECHECK
+
+**Realizes:** `GW-FR-202`, `GW-FR-204`, `GW-FR-207`, `GW-FR-208`, `GW-FR-209`.
+
+**Required behavior:** every workflow command that crosses an `await` before persistence reloads canonical DB state and repeats all DB-decidable admission checks inside its final transaction; expected-hash/durable-intent rules remain the filesystem concurrency boundary.
+
+**Acceptance:** concurrent Start/Input/Cancel/Save/Adopt/Sign-off/Resume races produce at most one admitted transition and cannot overwrite a winning transition.
+
+### GW-TR-087-MONOTONIC-REACHED-HISTORY-DERIVATION
+
+**Realizes:** `GW-FR-205`, `GW-FR-211`, `GW-FR-224`.
+
+**Required behavior:** reached workflow steps are derived from canonical WorkItem/Run/RunEvent/ArtifactRef/ExecutionTask evidence and remain reached after upstream returns; current-stage ordinal alone is never the history algorithm.
+
+**Acceptance:** R3/execution returns preserve previously reached downstream steps, while an R1-terminal investigation/audit does not fabricate later reached stages.
+
+### GW-TR-088-ASYNC-BROWSER-CONVERGENCE
+
+**Realizes:** `GW-FR-200`, `GW-FR-210`, `GW-FR-226`.
+
+**Required behavior:** while Runs are active the selected WorkItem participates in polling; terminal Run observation performs final RunEvent drain plus affected canonical refetch, and mutation actions remain suppressed until controlling reactions are coherently observed.
+
+**Acceptance:** stage completion/block/return appears without reload and final persisted events are not lost when polling stops.
+
+### GW-TR-089-CURRENT-ATTENTION-OWNERSHIP
+
+**Realizes:** `GW-FR-206`, `GW-FR-213`, `GW-FR-221`, `GW-FR-222`, `GW-FR-223`, `GW-FR-226`.
+
+**Required behavior:** current attention/action is a pure projection independent of historical selection; exactly one inline surface owns each mutation error/blocker/recovery action.
+
+**Acceptance:** historical Run/task selection cannot hide the current blocker/required input, and the same mutation failure is not rendered by both parent workspace and child composer.
+
+### GW-TR-090-STABLE-WORKBENCH-GEOMETRY
+
+**Realizes:** `GW-FR-214` through `GW-FR-225`.
+
+**Required behavior:** workflow rail, pre-signoff material selection, Approval, Implementation master/detail and Context obey the stable spatial contracts in §8 without content-count/status-driven persistent column insertion or width changes.
+
+**Acceptance:** second attempt/document, status/current styling and blocker changes do not move the primary pre-signoff canvas or workflow-cell widths; only explicit Context and responsive class changes alter structural columns.
+
+### GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION
+
+**Realizes:** `GW-FR-227`, `GW-FR-228`, `GW-FR-229`.
+
+**Required behavior:** permanent core/integration/browser/architecture tests close the positive and negative transition matrix, turn grammar, concurrency races, read purity, async convergence and geometry invariants.
+
+**Acceptance:** implementation cannot pass certification with an untested admitted transition, contradictory provider-turn combination, state-mutating GET, duplicate workflow state owner or ordinal-only history algorithm.
+
+## 14. Permanent verification
+
+### 14.1 Core transition matrix
 
 Table-driven core tests enumerate every row of:
 
@@ -602,11 +684,11 @@ For each state/event pair the test proves either exactly one expected transition
 
 The inverse/negative matrix proves unlisted transitions do not occur.
 
-### 13.2 Turn grammar
+### 14.2 Turn grammar
 
 Tests cover every pairwise contradictory controlling-event combination, duplicate input requests, empty provider batch, proposal/control coexistence, proposal role mismatch, unresolved-proposal duplication and exact required-input idempotence.
 
-### 13.3 Concurrency
+### 14.3 Concurrency
 
 Deterministic integration tests synchronize concurrent:
 
@@ -621,13 +703,13 @@ Deterministic integration tests synchronize concurrent:
 
 Exactly one admissible transition wins; the loser does not overwrite canonical state.
 
-### 13.4 Read purity
+### 14.4 Read purity
 
 For every GET/query, tests snapshot SQLite + relevant repository bytes before/after and prove no state/write change.
 
 Required coverage includes source, lifecycle-artifacts and signoff-package reads in stale/drifted conditions.
 
-### 13.5 Browser certification
+### 14.5 Browser certification
 
 Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, including:
 
@@ -643,7 +725,7 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - explicit Context only;
 - responsive continuity.
 
-### 13.6 Architecture fitness
+### 14.6 Architecture fitness
 
 Permanent sensors prove:
 
@@ -654,7 +736,7 @@ Permanent sensors prove:
 - GET handlers cannot call known reconcile/materialization mutation functions;
 - ordinal reached-history comparison is absent from production Workbench code.
 
-## 14. Non-goals
+## 15. Non-goals
 
 This design does not authorize:
 
