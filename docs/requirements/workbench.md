@@ -809,7 +809,263 @@ The following are non-compliant:
 21. auto-opening Context or another rail because state changed;
 22. allowing stale/historical task selection to hide the current execution blocker.
 
-## 21. Functional requirements
+## 21. Functional state-transition model
+
+The Workbench presents one governed workflow whose functional state has several orthogonal observable dimensions. This subsection closes the event-to-state behavior that P4/P6 must realize.
+
+The dimensions below are **not** a new DTO, persistence object or browser-owned aggregate. They are a functional proof model over canonical Order facts:
+
+```text
+current lifecycle position
++ WorkItem operational status
++ reached-history set
++ current Run interaction condition
++ current attention owner
++ material/package currentness
++ current execution owner, when in Implementation
+= one coherent operator-visible workflow condition
+```
+
+The canonical cross-step lifecycle transition relation is owned by `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3`. This section owns the Workbench consequence inside and around those transitions.
+
+### 21.1 Pre-signoff step interaction statechart
+
+Research, Requirements, Solution design and Implementation plan use the same interaction statechart. Readiness uses the same Run interaction semantics when an actual Run/input interaction exists, while retaining its Review-class presentation hierarchy.
+
+```text
+                         Start current stage Run
+        +--------------------------------------------------+
+        |                                                  v
++------------------+                                 +-------------+
+| READY / NO       |                                 | PROCESSING  |
+| ACTIVE RUN       |                                 | provider    |
++------------------+                                 | turn active |
+        ^                                             +------+------+ 
+        |                                                    |
+        |                                                    | turn settles with no
+        |                                                    | controlling event
+        |                                                    v
+        |                                             +-------------+
+        |                              free-form input | OPEN FOR    |
+        |                         +--------------------+ CONTINUATION|
+        |                         |                    +------+------+ 
+        |                         |                           |
+        |                         |                           | current proposal
+        |                         |                           | Adopt / Reject
+        |                         |                           v
+        |                         |                    +-------------+
+        |                         +--------------------| OPEN FOR    |
+        |                                              | CONTINUATION|
+        |                                              +-------------+
+        |
+        |                  exact answer
+        |              +------------------+
+        |              |                  v
+        |       +------+--------+      +-------------+
+        |       | REQUIRED      |      | PROCESSING  |
+        |       | HUMAN INPUT   |      +-------------+
+        |       +---------------+
+        |
+        | explicit Resume after blocker resolved
+        |
++-------+----------+       provider/invocation failure       +-------------+
+| BLOCKED          |<----------------------------------------| PROCESSING  |
+| same stage       |   only when failure class is blocker    +-------------+
++------------------+                                          |
+                                                              | provider failure
+                                                              v
+                                                        +-------------+
+                                                        | FAILED RUN  |
+                                                        | same stage  |
+                                                        +------+------+
+                                                               |
+                                                               | Start a new Run if
+                                                               | still eligible
+                                                               +-------------> PROCESSING
+
+PROCESSING -- HUMAN_INPUT_REQUESTED --> REQUIRED HUMAN INPUT
+PROCESSING -- STAGE_BLOCKED ---------> BLOCKED / same lifecycle stage
+PROCESSING -- STAGE_COMPLETED -------> canonical cross-step transition
+PROCESSING -- Cancel ----------------> CANCELLED Run / same stage
+OPEN       -- Cancel ----------------> CANCELLED Run / same stage
+REQUIRED   -- Cancel ----------------> CANCELLED Run / same stage
+```
+
+`FAILED` and `CANCELLED` above are terminal conditions of the prior Run, not new WorkItem lifecycle stages. If the WorkItem remains ACTIVE and the stage is still current, a retry is a new Run with normal admission and a fresh turn.
+
+### 21.2 Provider-turn closure law
+
+Each STAGE provider turn has exactly one controlling outcome.
+
+| Controlling outcome | Required provider/coordinator fact | Resulting interaction condition |
+|---|---|---|
+| open continuation | no required-input, block or completion control event | OPEN FOR CONTINUATION |
+| required input | exactly one `HUMAN_INPUT_REQUESTED` | REQUIRED HUMAN INPUT |
+| stage blocked | exactly one `STAGE_BLOCKED` | Run terminal BLOCKED; WorkItem remains at same stage / BLOCKED |
+| stage completed | exactly one `STAGE_COMPLETED` whose stage equals the Run stage | Run closes and the canonical cross-step lifecycle transition is applied |
+| provider/invocation failure | coordinator-owned failure classification | Run terminal FAILED; same lifecycle stage unless the failure separately owns a canonical blocker/return |
+
+The following combinations are invalid and must be rejected rather than resolved by priority:
+
+- more than one `HUMAN_INPUT_REQUESTED` in one provider turn;
+- `HUMAN_INPUT_REQUESTED` together with `STAGE_BLOCKED`;
+- `HUMAN_INPUT_REQUESTED` together with `STAGE_COMPLETED`;
+- `STAGE_BLOCKED` together with `STAGE_COMPLETED`;
+- more than one `STAGE_COMPLETED`;
+- more than one `STAGE_BLOCKED`.
+
+A lifecycle `ARTIFACT_PROPOSAL_CREATED` is not itself a controlling outcome. To avoid competing attention/authority states:
+
+- a provider turn may create at most one lifecycle proposal;
+- a Run may have at most one unresolved lifecycle proposal at a time;
+- a turn that creates a lifecycle proposal must otherwise end OPEN FOR CONTINUATION;
+- lifecycle proposal creation cannot coexist in the same turn with required input, stage block or stage completion.
+
+Messages, evidence and observations may accompany a valid controlling outcome where their own contracts permit; they do not select workflow state.
+
+### 21.3 Required-input statechart
+
+Required input has exact identity.
+
+```text
+OPEN/PROCESSING
+      |
+      | one HUMAN_INPUT_REQUESTED event Q
+      v
+REQUIRED INPUT(Q)
+      |
+      +-- answer(requestEventId = Q) --> PROCESSING
+      |
+      +-- answer(null) ----------------> REJECT / unchanged
+      |
+      +-- answer(other/stale Q) -------> REJECT / unchanged
+      |
+      +-- duplicate answer(Q) ---------> REJECT / unchanged
+      |
+      +-- Cancel ----------------------> CANCELLED Run / same stage
+```
+
+There is exactly one unresolved required-input owner for a Run. Once its bound answer is accepted, the request is resolved before the next provider turn begins.
+
+### 21.4 Proposal decision statechart
+
+Lifecycle proposal review is a subordinate attention state of an OPEN current-stage Run.
+
+```text
+OPEN FOR CONTINUATION
+        |
+        | one lifecycle proposal P
+        v
+OPEN + PROPOSAL PENDING(P)
+        |
+        +-- Reject(P) --> OPEN / authority unchanged
+        |
+        +-- Adopt(P) ---> OPEN / canonical bytes changed
+                          same lifecycle stage
+                          downstream conformance invalidated
+                          context must be re-resolved before next provider turn
+```
+
+Adopt/Reject is serialized with every other WorkItem mutation. A proposal from a historical/non-current stage cannot become a shortcut back into lifecycle authority.
+
+### 21.5 Approval statechart
+
+Approval inspection is observational.
+
+```text
+AWAITING_SIGNOFF / CURRENT PACKAGE
+        |
+        +-- inspect/read/refresh ------------------------------> same state
+        |
+        +-- package becomes observably stale -----------------> AWAITING_SIGNOFF / STALE
+        |                                                       sign-off unavailable
+        |
+        +-- explicit upstream authority mutation/reconcile ---> canonical upstream owner
+        |
+        +-- Sign off exact current package -------------------> EXECUTION / ACTIVE
+
+AWAITING_SIGNOFF / STALE
+        |
+        +-- inspect/read/refresh ------------------------------> same state
+        |
+        +-- Sign off ------------------------------------------> REJECT / unchanged
+        |
+        +-- explicit reconciliation/authority correction -----> canonical upstream owner
+```
+
+A GET/read may compute and expose stale currentness; it does not perform the upstream return.
+
+### 21.6 Implementation step statechart
+
+Implementation has one canonical current execution owner regardless of historical UI selection.
+
+```text
+EXECUTION / ACTIVE
+      |
+      | atomically select one eligible TODO task
+      | + create its required Run
+      v
+CURRENT TASK RUNNING
+      |
+      +-- bounded repair/review continuation -----------------> CURRENT TASK RUNNING
+      |
+      +-- task CANDIDATE_DONE / ALREADY_SATISFIED
+      |       |
+      |       +-- more eligible/incomplete tasks -------------> EXECUTION / ACTIVE
+      |       |
+      |       +-- all approved tasks successful -------------> COMPLETE / COMPLETE
+      |
+      +-- operational/precondition/environment blocker ------> EXECUTION / BLOCKED
+      |
+      +-- cancellation ---------------------------------------> EXECUTION / BLOCKED
+      |
+      +-- classified semantic return -------------------------> canonical upstream owner
+                                                               R1/R2/DESIGN/PLAN/R3
+
+EXECUTION / BLOCKED
+      |
+      +-- inspect historical/current task evidence -----------> same state
+      |
+      +-- Resume with blocker resolved + approval current ----> EXECUTION / ACTIVE
+                                                               blocked task becomes eligible
+```
+
+The classified upstream-return mapping is owned by `GW-DOC-WORK-LIFECYCLE-V1 §2.2` together with `GW-DOC-VALIDATION-STANDARD-V1`. Historical task/Run selection never changes the current execution owner.
+
+### 21.7 Read, selection and rejected-command law
+
+These operations never change canonical workflow state:
+
+- selecting a workflow step;
+- selecting historical Run/task/document/evidence material;
+- opening/closing Context;
+- changing responsive viewport/layout;
+- GET/read/refresh of any work material;
+- a rejected command;
+- a stale or duplicate required-input submission;
+- a rejected proposal disposition;
+- a failed stale-hash document save before bytes are written.
+
+An accepted mutation changes only the states explicitly admitted by the functional transition models. There is no implicit fallback transition.
+
+### 21.8 Reach-history transition rule
+
+For every accepted cross-step transition:
+
+```text
+newCurrentStage := transition(currentStage, acceptedEvent)
+reachedHistory  := reachedHistory U { newCurrentStage }
+```
+
+For every within-step interaction transition, blocker/resume, retry, failed command or historical selection:
+
+```text
+reachedHistory := unchanged
+```
+
+Therefore the Workbench can prove CURRENT / REACHED-HISTORICAL / UNREACHED without using current-stage ordinal comparison.
+
+## 22. Functional requirements
 
 ### GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION
 
@@ -931,7 +1187,19 @@ The following are non-compliant:
 
 **Required behavior:** permanent browser/integration certification covers every material combination of current stage, reached history, Run turn state, blocker/input/proposal state, backward return, async terminalization and wide/medium/narrow geometry.
 
-## 22. Required certification scenarios
+### GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE
+
+**Required behavior:** every accepted workflow event maps one valid functional state to exactly one admitted resulting state under §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3`; events not admitted by those models are rejected without an implicit lifecycle transition.
+
+**Acceptance:** P4/P6 can enumerate the complete transition relation without inventing a state, priority rule or recovery route not present in P3.
+
+### GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY
+
+**Required behavior:** one STAGE provider turn has exactly one controlling outcome under §21.2, with exact single-owner required input and no contradictory completion/block/input/proposal combination.
+
+**Acceptance:** contradictory provider control events are rejected before they can produce Run/WorkItem state, and a lifecycle proposal can exist only as the single pending proposal of an OPEN current-stage Run.
+
+## 23. Required certification scenarios
 
 At minimum, downstream implementation must prove these scenarios end to end:
 
@@ -953,14 +1221,20 @@ At minimum, downstream implementation must prove these scenarios end to end:
 16. Context never opens automatically and has one stable bounded width when explicitly opened.
 17. Wide/medium/narrow layouts preserve unsaved editor buffer and current attention.
 18. Mutation error after a separately observed canonical transition reconciles to the new state rather than presenting stale controls.
+19. Saving/refining an unprogressed Work request remains at IDEA; only explicit Start Research enters R1.
+20. A provider turn containing contradictory controlling events is rejected without changing Run/WorkItem state.
+21. A required-input request cannot coexist with a lifecycle proposal in the same provider turn and cannot be answered twice.
+22. Returning from R3 or Implementation preserves every previously reached downstream step as historical.
+23. Approval package read can expose stale currentness but cannot itself execute the upstream return.
+24. Rejected/stale commands and historical navigation are proven state-preserving across every workflow step.
 
-## 23. Downstream technical-design obligations
+## 24. Downstream technical-design obligations
 
 GW-DOC-TECHNICAL-ARCHITECTURE and GW-DOC-CANONICAL-CONTRACTS must be re-evaluated against this V2 functional authority before implementation remediation begins.
 
 The technical investigation must determine, without changing the behavior above:
 
-- the canonical state-machine/statechart representation;
+- the technical representation that realizes the complete P3 transition relation in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3`;
 - the single authoritative transition function(s);
 - how WorkItem lifecycle, Run lifecycle, turn occupancy, current attention and reach history are represented or derived;
 - how commands are serialized;
@@ -974,10 +1248,10 @@ The technical investigation must determine, without changing the behavior above:
 - how layout stability is enforced through the local Foundation/Astryx boundary;
 - how permanent state-transition and geometry fitness tests are expressed.
 
-No implementation task may invent those semantics locally.
+P4/P6 must include a transition-coverage proof mapping every functional transition in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` to one pure policy decision and one authorized imperative-shell mutation path. No implementation task may invent those semantics locally.
 
 
-## 24. Non-goals
+## 25. Non-goals
 
 This design does not authorize:
 
