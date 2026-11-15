@@ -125,7 +125,7 @@ The observable workflow language is closed. Every Workbench workflow condition i
 | reach state, per stage | `CURRENT | REACHED_HISTORICAL | UNREACHED` | whether a lifecycle stage is current, was actually reached, or has not been reached |
 | STAGE interaction | `PROCESSING | OPEN | REQUIRED_INPUT(Q) | CLOSED` | whether the current interactive Run is processing, accepts free continuation, requires one exact answer, or accepts no further input |
 | proposal decision | `NONE | PENDING(P) | ADOPTION_IN_PROGRESS(P)` | whether one current lifecycle proposal needs disposition or has durable adoption intent awaiting exact completion/reconciliation |
-| material currentness | `CURRENT | STALE(owner, reason)` | whether currently judged lifecycle/approval/execution authority is still current relative to its canonical dependencies |
+| material currentness | `CURRENT | STALE(owner)` | whether currently judged lifecycle/approval/execution authority is still current relative to its canonical dependencies; the human-readable cause comes from the owning canonical diagnostic/classification |
 | execution owner | `NONE | CURRENT_TASK(task) | BLOCKED_TASK(task)` | exact task that currently owns Implementation progress/attention |
 | validation boundary | `NONE | PASSED_THROUGH(Vn) | FAILED_AT(Vn, classification) | COMPLETE` | latest durable post-signoff validation boundary for the current task/candidate |
 | recovery route | `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY | AUTOMATIC_RECOVERY | RETURN_TO_OWNER(stage)` | the single governed recovery route, if any, for the current condition |
