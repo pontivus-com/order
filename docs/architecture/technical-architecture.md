@@ -147,7 +147,7 @@ No Node-only server framework, ORM, workflow engine, message broker, DI framewor
 
 ### UI primitive ownership
 
-Order owns its local Workbench visual language and semantic UI boundary.
+Order owns its local Workbench semantic UI boundary through two P4 owners: `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` owns primitive/composition responsibilities, while `GW-DOC-WORKBENCH-THEME-V1` owns exact theme tokens, component visual parity and stylesheet governance.
 
 v1 has no runtime or source dependency on a private Pontivus code repository. Reusable Order-local primitives live under `ui/src/primitives/`; interaction primitives may use the public Astryx dependencies authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`.
 
@@ -162,16 +162,18 @@ The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COM
 - content count may change rows/items but cannot select another persistent topology;
 - the primitive layer is therefore the mechanical enforcement boundary for the Workbench's interaction-space classes, not merely a visual convenience wrapper.
 
+The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one root theme preference/substrate, one semantic token system and one Order-authored presentation stylesheet. Primitives/specialists consume that theme language; feature modules cannot define local palettes, type/spacing systems, theme islands or alternate component chrome.
+
 Order does not introduce a replacement primitive framework merely to recreate straightforward semantic HTML/CSS. The selective Astryx integration authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` remains an interaction-primitive substrate beneath the Order local semantic boundary; it does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
 
 ### Workbench technical boundary
 
-`GW-DOC-WORKBENCH-UX-V2` is the current functional authority for Workbench behavior. The exact component/state-machine realization is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` and must be derived from that functional authority rather than from the superseded presentation implementation.
+`GW-DOC-WORKBENCH-UX-V2` is the current functional authority for Workbench behavior. The exact component/state-machine realization is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; exact theme/styling realization is owned by `GW-DOC-WORKBENCH-THEME-V1`. Both are derived from the functional authority rather than from the superseded presentation implementation.
 
 The technical architecture retains these foundation constraints while that P4 realization is being re-derived:
 
 1. reusable project-neutral UI behavior remains under `ui/src/primitives/`;
-2. Astryx remains an interaction-primitive substrate beneath Order's semantic boundary and never owns lifecycle, information architecture or browser/server state;
+2. Astryx remains an interaction-primitive/theme substrate beneath Order's semantic boundary and never owns lifecycle, information architecture, browser/server state or independent feature theming;
 3. the browser does not own a parallel workflow state machine or canonical mutation policy;
 4. Workbench actions and attention state derive from canonical daemon-owned workflow observations;
 5. presentation changes must preserve FCIS/SoC and must not introduce DTO/view-model families for canonical domain state;
@@ -738,7 +740,7 @@ The UI supports:
 - candidate/evidence inspection;
 - selecting `System | Light | Dark` appearance, with System as the default and live system-following mode.
 
-The appearance choice is presentation-local browser state. An explicit Light or Dark override may be retained in browser storage; System is represented by the absence of that override. Theme changes never call a daemon mutation, alter workflow state, or change canonical work material.
+The appearance choice is presentation-local browser state. An explicit Light or Dark override may be retained in browser storage; System is represented by the absence of that override. Theme changes never call a daemon mutation, alter workflow state, or change canonical work material. Exact root-theme activation, persistence key, token values, specialist coverage and stylesheet governance are owned by `GW-DOC-WORKBENCH-THEME-V1`.
 
 Sign-off is performed through the local UI using the daemon sign-off command and the exact currently displayed package hash.
 
@@ -1108,7 +1110,8 @@ The durable boundaries are:
 
 ```text
 ui/src/app.tsx
-  top-level queue/search/selected-work-item composition and browser-local global presentation controls only
+  top-level queue/search/selected-work-item composition and browser-local global presentation controls only,
+  including the single ThemePreference/root-theme owner governed by GW-DOC-WORKBENCH-THEME-V1
 
 ui/src/WorkItemWorkspace.tsx
   selected WorkItem presentation shell/navigation only
