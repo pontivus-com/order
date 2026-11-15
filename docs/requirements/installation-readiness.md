@@ -246,7 +246,7 @@ A successful update reports any configuration that still requires operator actio
 
 ### GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS
 
-**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration before productive work is attempted. The selected OpenCode account is an explicit trusted integration under `GW-FR-105`; provider-native Library/MCP semantics do not create a separate readiness blocker.
+**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration before productive work is attempted. The selected OpenCode account is an explicit trusted integration under `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE`; provider-native Library/MCP semantics do not create a separate readiness blocker.
 
 **Acceptance criterion:** an installation lacking a required OpenCode account, valid target repository or valid model selection opens a usable setup/recovery experience and cannot start affected productive Runs. A usable selected account may contribute its trusted Console integration context without additional operator setup.
 
