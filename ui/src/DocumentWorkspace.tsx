@@ -282,7 +282,7 @@ export const SourceDocumentMaterial = ({
 
   if (git.sourceQuery.isPending) {
     return (
-      <section data-testid="source-document-material">
+      <section className="order-document-material" data-testid="source-document-material">
         {!sourceReadOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
         <WorkbenchState kind="loading" title="Loading work request…" />
       </section>
@@ -290,7 +290,7 @@ export const SourceDocumentMaterial = ({
   }
   if (git.sourceQuery.isError || !git.sourceQuery.data) {
     return (
-      <section data-testid="source-document-material">
+      <section className="order-document-material" data-testid="source-document-material">
         <WorkbenchState
           kind="error"
           title="Work request unavailable"
@@ -301,7 +301,7 @@ export const SourceDocumentMaterial = ({
   }
 
   return (
-    <section data-testid="source-document-material">
+    <section className="order-document-material" data-testid="source-document-material">
       <MarkdownEditor
         key={"source-" + workItem.id}
         title="WorkItem source"
@@ -396,14 +396,14 @@ export const LifecycleDocumentMaterial = ({
   ]);
 
   if (artifactsQuery.isPending || contentQuery.isPending) {
-    return <section data-testid="lifecycle-document-material"><WorkbenchState kind="loading" title="Loading lifecycle document…" /></section>;
+    return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="loading" title="Loading lifecycle document…" /></section>;
   }
   if (artifactsQuery.isError || contentQuery.isError) {
     const error = artifactsQuery.error ?? contentQuery.error;
-    return <section data-testid="lifecycle-document-material"><WorkbenchState kind="error" title="Lifecycle document unavailable" description={errorText(error)} /></section>;
+    return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="error" title="Lifecycle document unavailable" description={errorText(error)} /></section>;
   }
   if (!selectedArtifact || !contentQuery.data) {
-    return <section data-testid="lifecycle-document-material"><WorkbenchState kind="empty" title="Lifecycle document is no longer current" /></section>;
+    return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="empty" title="Lifecycle document is no longer current" /></section>;
   }
 
   const markdown = decodeCanonicalMarkdown(contentQuery.data);
@@ -411,7 +411,7 @@ export const LifecycleDocumentMaterial = ({
     readOnly || !artifactDirectEditIsAllowed(workItem, selectedArtifact);
 
   return (
-    <section data-testid="lifecycle-document-material">
+    <section className="order-document-material" data-testid="lifecycle-document-material">
       {markdown === null ? (
         <WorkbenchNotice
           tone="warning"

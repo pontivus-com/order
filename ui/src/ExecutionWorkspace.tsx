@@ -208,10 +208,12 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
         <MetadataListItem label="Depends on">{selectedTask.dependsOn.length>0?selectedTask.dependsOn.join(", "):"None"}</MetadataListItem>
       </MetadataList>
       {selectedRun?<>
-        <WorkbenchSectionHeader
-          title={runRoleLabel(selectedRun.role)+" · Attempt "+selectedRun.attempt}
-          action={<span className="order-inline-actions"><WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>{runIsActive(selectedRun)?<WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={cancel.isPending} onClick={()=>cancel.mutate()}/>:null}</span>}
-        />
+        <div data-testid="selected-run-header">
+          <WorkbenchSectionHeader
+            title={runRoleLabel(selectedRun.role)+" · Attempt "+selectedRun.attempt}
+            action={<span className="order-inline-actions"><WorkbenchStatus tone={runTone(selectedRun)} label={runStatusLabel(selectedRun.status)}/>{runIsActive(selectedRun)?<WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={cancel.isPending} onClick={()=>cancel.mutate()}/>:null}</span>}
+          />
+        </div>
         <WorkbenchDisclosure label="Technical details" content={<dl>
           <div><dt>Task id</dt><dd><code>{selectedTask.id}</code></dd></div>
           <div><dt>Approval id</dt><dd><code>{selectedTask.approvalId}</code></dd></div>

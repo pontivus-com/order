@@ -33,7 +33,7 @@ export const RunEventTimeline = ({ run, events, onOpenEvidence, onOpenProposalRe
     />
     <WorkbenchDisclosure
       label="Timeline technical details"
-      content={<div>{events.map((event) => <details key={event.id}><summary>{event.event.tag} · sequence {event.sequence}</summary><pre>{JSON.stringify(event.event, null, 2)}</pre></details>)}</div>}
+      content={<div>{events.map((event) => <details key={event.id}><summary><code>{event.event.tag}</code><span> · sequence {event.sequence}</span></summary><pre>{JSON.stringify(event.event, null, 2)}</pre></details>)}</div>}
     />
   </div>
 );

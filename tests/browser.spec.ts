@@ -1158,18 +1158,13 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 
   await openWorkItem(page, "Failed implementation feedback");
-  const implementationIndex = page.getByTestId("workflow-step-index");
-  await implementationIndex
-    .getByText(/Independent review · Attempt 1/)
-    .click();
+  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
   await expect(
     page.getByText("Independent review failed", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Validation failed", { exact: true })).toBeVisible();
 
-  await implementationIndex
-    .getByText(/Implementation agent · Attempt 1/)
-    .click();
+  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
   await expect(page.getByText("Verification passed", { exact: true })).toBeVisible();
   await expect(page.getByText("Verification failed", { exact: true })).toBeVisible();
   await expect(page.getByRole("progressbar")).toHaveCount(0);
@@ -1899,13 +1894,12 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
 
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  const implementationIndex = page.getByTestId("workflow-step-index");
-  await implementationIndex.getByText(/Implementation agent · Attempt 1/).click();
+  await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
   await expect(
     page.getByText("Candidate state recorded", { exact: true }),
   ).toBeVisible();
 
-  await implementationIndex.getByText(/Independent review · Attempt 1/).click();
+  await selectWorkflowMaterial(page, "Independent review · Attempt 1");
   await expect(
     page.getByText("Independent review passed", { exact: true }),
   ).toBeVisible();
