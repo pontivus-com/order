@@ -801,6 +801,19 @@ export const deriveObservationCoherence = (
   events: readonly RunEvent[],
   tasks: readonly ExecutionTask[],
 ): ObservationCoherence => {
+  const active = (run: Run): boolean =>
+    run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT";
+
+  if (
+    runs.some((run) =>
+      run.role === "STAGE" &&
+      active(run) &&
+      run.stage !== workItem.stage
+    )
+  ) {
+    return "CONVERGING";
+  }
+
   const currentStageRun = latestCurrentStageRun(workItem, runs);
   if (currentStageRun !== null) {
     const runEvents = events.filter((event) => event.runId === currentStageRun.id);
@@ -816,16 +829,46 @@ export const deriveObservationCoherence = (
       return "CONVERGING";
     }
   }
+
   for (const run of runs) {
+    if (run.executionTaskId === null) continue;
+    const task = tasks.find((candidate) => candidate.id === run.executionTaskId);
+    if (active(run)) {
+      if (
+        workItem.stage !== "EXECUTION" ||
+        task === undefined ||
+        task.state !== "RUNNING"
+      ) {
+        return "CONVERGING";
+      }
+      continue;
+    }
+    if (task?.state === "RUNNING") return "CONVERGING";
+  }
+
+  for (const task of tasks) {
     if (
-      run.executionTaskId !== null &&
-      run.status !== "RUNNING" &&
-      run.status !== "WAITING_FOR_INPUT"
+      task.state === "RUNNING" &&
+      !runs.some((run) => run.executionTaskId === task.id && active(run))
     ) {
-      const task = tasks.find((candidate) => candidate.id === run.executionTaskId);
-      if (task?.state === "RUNNING") return "CONVERGING";
+      return "CONVERGING";
+    }
+    if (
+      task.state === "BLOCKED" &&
+      workItem.stage === "EXECUTION" &&
+      workItem.status === "ACTIVE"
+    ) {
+      return "CONVERGING";
     }
   }
+  if (
+    workItem.stage === "EXECUTION" &&
+    workItem.status === "BLOCKED" &&
+    !tasks.some((task) => task.state === "BLOCKED")
+  ) {
+    return "CONVERGING";
+  }
+
   return "COHERENT";
 };
 
