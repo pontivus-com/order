@@ -271,7 +271,6 @@ export const SourceDocumentMaterial = ({
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
     readOnly ||
-    mutationsDisabled ||
     workItem.stage === "EXECUTION" ||
     workItem.stage === "COMPLETE";
   const git = useDocumentationGitState(workItem, dirty, gitSourcePath(workItem, null));
@@ -316,6 +315,7 @@ export const SourceDocumentMaterial = ({
         sha256={git.sourceQuery.data.sha256}
         markdown={git.sourceQuery.data.bodyMarkdown}
         readOnly={sourceReadOnly}
+        saveDisabled={mutationsDisabled}
         onDirtyChange={(value) => {
           setDirty(value);
           onDirtyChange(value);
