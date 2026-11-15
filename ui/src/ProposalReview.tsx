@@ -10,7 +10,7 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
 
-export const ProposalReview = ({ workItem, selection, mutationsDisabled = false, onBack }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; mutationsDisabled?: boolean; onBack: () => void }>) => {
+export const ProposalReview = ({ workItem, selection, mutationsDisabled = false, onBack, onMutationError }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; mutationsDisabled?: boolean; onBack: () => void; onMutationError?: (error: unknown) => void }>) => {
   const queryClient = useQueryClient();
   const eventsQuery = useQuery({ queryKey: workbenchQueryKeys.runEvents(selection.runId), queryFn: () => api.listRunEvents(selection.runId, 0), refetchInterval: 1000 });
   const events = eventsQuery.data ?? [];
@@ -24,7 +24,10 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
   const decision = useMutation({
     mutationFn: async (action: "ADOPT" | "REJECT") => { if (action === "ADOPT") await api.adoptProposal(selection.eventId); else await api.rejectProposal(selection.eventId); },
     onSuccess: async () => { await invalidate(); onBack(); },
-    onError: invalidate,
+    onError: async (error) => {
+      onMutationError?.(error);
+      await invalidate();
+    },
   });
 
   if (eventsQuery.isPending) return <WorkbenchState kind="loading" title="Loading proposal review…" />;
