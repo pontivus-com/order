@@ -467,6 +467,7 @@ export const App = () => {
               selectedMaterial={contextMaterial}
               selectedDocumentPath={contextDocumentPath}
               selectedDocumentSha256={contextDocumentSha256}
+              onClose={() => setContextOpen(false)}
             />
           </Suspense>
         }

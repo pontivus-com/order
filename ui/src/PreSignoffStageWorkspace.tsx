@@ -28,6 +28,8 @@ import {
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
+import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 
@@ -137,16 +139,14 @@ export const PreSignoffStageWorkspace = ({
     });
   }
 
-  const meaningfulObjectCount = stageRuns.length + (stageArtifact ? 1 : 0);
-  const index = meaningfulObjectCount >= 2
-    ? <WorkflowStepIndex groups={groups} />
+  const index = groups.length > 0
+    ? <WorkflowStepIndex groups={groups} label={stage === "PLAN" ? "Plan work" : "Step work"} />
     : null;
 
-
   const supportingContext = (
-    <details className="order-supporting-context">
-      <summary>Supporting context</summary>
-      <div className="order-resource-list">
+    <WorkbenchDisclosure
+      label="Supporting context"
+      content={<div className="order-resource-list">
         <WorkbenchResourceRow
           label="Work request"
           detail="Canonical source context"
@@ -171,8 +171,8 @@ export const PreSignoffStageWorkspace = ({
             />
           );
         })}
-      </div>
-    </details>
+      </div>}
+    />
   );
 
   const primary = (() => {
@@ -202,17 +202,11 @@ export const PreSignoffStageWorkspace = ({
       case "SOURCE_DOCUMENT":
         return (
           <section className="order-supporting-material">
-            <div className="order-section-heading">
-              <div>
-                <strong>Supporting Work request</strong>
-                <span>Read-only source context for {stage}</span>
-              </div>
-              <WorkbenchAction
-                label="Back to workflow context"
-                tone="ghost"
-                onClick={onReturnFromTransient}
-              />
-            </div>
+            <WorkbenchSectionHeader
+              title="Supporting Work request"
+              description={"Read-only source context for " + stage}
+              action={<WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />}
+            />
             <SourceDocumentMaterial
               workItem={workItem}
               readOnly
@@ -224,17 +218,11 @@ export const PreSignoffStageWorkspace = ({
       case "SUPPORTING_DOCUMENT":
         return (
           <section className="order-supporting-material">
-            <div className="order-section-heading">
-              <div>
-                <strong>Supporting governed document</strong>
-                <span>Read-only lifecycle context</span>
-              </div>
-              <WorkbenchAction
-                label="Back to workflow context"
-                tone="ghost"
-                onClick={onReturnFromTransient}
-              />
-            </div>
+            <WorkbenchSectionHeader
+              title="Supporting governed document"
+              description="Read-only lifecycle context"
+              action={<WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />}
+            />
             <ReadOnlyLifecycleDocumentMaterial
               workItem={workItem}
               artifactId={material.artifactId}

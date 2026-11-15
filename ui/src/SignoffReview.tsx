@@ -18,12 +18,13 @@ import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import {
-  PrimaryMaterialFrame,
   WorkflowStepFrame,
   WorkflowStepIndex,
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
@@ -488,10 +489,22 @@ export const SignoffReview = ({
       index={<WorkflowStepIndex groups={groups} />}
       indexLabel="Approval package"
       primary={
-        <PrimaryMaterialFrame>
-          {primary}
-          {approvalAction}
-        </PrimaryMaterialFrame>
+        <WorkbenchReview
+          currentness={
+            <WorkbenchStatus
+              tone={currentApproval ? "warning" : "success"}
+              label={currentApproval ? "Awaiting authorization" : "Approved package history"}
+            />
+          }
+          summary={
+            <div>
+              <h2>{currentApproval ? "Exact approval package" : "Approved package"}</h2>
+              <p>{currentApproval ? "Review and authorize the exact signed package." : "Inspect the governed package retained after approval."}</p>
+            </div>
+          }
+          body={primary}
+          decisions={approvalAction ?? <></>}
+        />
       }
     />
   );

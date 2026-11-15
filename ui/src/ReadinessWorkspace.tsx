@@ -18,12 +18,13 @@ import {
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import {
-  PrimaryMaterialFrame,
   WorkflowStepFrame,
   WorkflowStepIndex,
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
+import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 const statusVariant = (
   status: Run["status"],
@@ -212,7 +213,14 @@ export const ReadinessWorkspace = ({
       summary={summary}
       index={<WorkflowStepIndex groups={groups} />}
       indexLabel="Readiness material"
-      primary={<PrimaryMaterialFrame>{primary}</PrimaryMaterialFrame>}
+      primary={
+        <WorkbenchReview
+          currentness={<WorkbenchStatus tone={readinessArtifact ? "success" : "info"} label={readinessArtifact ? "Governed review current" : "Review in progress"} />}
+          summary={<div><h2>Readiness review</h2><p>Independent verification of the exact governed package.</p></div>}
+          body={primary}
+          decisions={<></>}
+        />
+      }
     />
   );
 };

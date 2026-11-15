@@ -28,6 +28,7 @@ import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
+  WorkbenchState,
 } from "./primitives/WorkbenchState.tsx";
 import {
   PrimaryMaterialFrame,
@@ -786,6 +787,14 @@ export const WorkItemWorkspace = ({
             onReturnFromEvidence={returnFromTransient}
           />
         </Suspense>
+      ) : selectedStep === "COMPLETE" && material.kind !== "EVIDENCE" ? (
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading final outcome…" />}>
+          <TerminalResult
+            workItem={workItem}
+            onOpenEvidence={openEvidence}
+            onCreateRemediation={onCreateRemediation}
+          />
+        </Suspense>
       ) : (
         <WorkflowStepFrame
           summary={stepSummary}
@@ -812,12 +821,6 @@ export const WorkItemWorkspace = ({
           <EvidenceViewer
             selection={evidence}
             onBack={returnFromTransient}
-          />
-        ) : null}
-        {material.kind === "TERMINAL_RESULT" ? (
-          <TerminalResult
-            workItem={workItem}
-            onOpenEvidence={openEvidence}
           />
         ) : null}
         {material.kind === "STEP_STATE" ? (
