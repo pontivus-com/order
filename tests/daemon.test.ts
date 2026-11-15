@@ -371,7 +371,8 @@ const server = Bun.serve({
       const text = String(body.text ?? "");
       let output;
       const delayedPrompt =
-        (mode === "stage-delay" && text.includes("Order lifecycle stage:")) ||
+        ((mode === "stage-delay" || mode === "stage-complete-delay") &&
+          text.includes("Order lifecycle stage:")) ||
         (mode === "noop-delay" && text.includes("Order execution role: BUILDER"));
       if (delayedPrompt) {
         writeFileSync(join(own, "provider-started"), "started");
@@ -404,7 +405,7 @@ const server = Bun.serve({
         output = target === "fixed\\n" && hasV4Inputs
           ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
           : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
-      } else if (mode === "stage-invalid-r1") {
+      } else if (mode === "stage-invalid-r1" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
       } else {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
