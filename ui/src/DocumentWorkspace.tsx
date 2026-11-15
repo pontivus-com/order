@@ -148,7 +148,8 @@ type DocumentationGitState = ReturnType<typeof useDocumentationGitState>;
 const DocumentationControls = ({
   dirty,
   state,
-}: Readonly<{ dirty: boolean; state: DocumentationGitState }>) => {
+  mutationsDisabled = false,
+}: Readonly<{ dirty: boolean; state: DocumentationGitState; mutationsDisabled?: boolean }>) => {
   const blockers = state.gitStatusQuery.data?.blockers ?? [];
   const tone =
     dirty ? "warning" :
@@ -162,6 +163,7 @@ const DocumentationControls = ({
           label="Save documentation to Git"
           tone="primary"
           disabled={
+            mutationsDisabled ||
             dirty ||
             state.gitStatusQuery.data === undefined ||
             blockers.length > 0 ||
@@ -262,17 +264,22 @@ const gitSourcePath = (
 export const SourceDocumentMaterial = ({
   workItem,
   readOnly = false,
+  mutationsDisabled = false,
   onDirtyChange,
   onContextDocumentChange,
 }: Readonly<{
   workItem: WorkItem;
   readOnly?: boolean;
+  mutationsDisabled?: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
 }>) => {
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
-    readOnly || workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
+    readOnly ||
+    mutationsDisabled ||
+    workItem.stage === "EXECUTION" ||
+    workItem.stage === "COMPLETE";
   const git = useDocumentationGitState(workItem, dirty, gitSourcePath(workItem, null));
   const selectedRepositoryPath = git.sourceQuery.data?.path ?? workItem.sourcePath;
 
@@ -328,7 +335,7 @@ export const SourceDocumentMaterial = ({
           return result;
         }}
         toolbarAccessory={
-          sourceReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} />
+          sourceReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
         }
         technicalDetails={
           <DocumentationTechnicalDetails
@@ -351,6 +358,7 @@ export const LifecycleDocumentMaterial = ({
   workItem,
   artifactId,
   readOnly = false,
+  mutationsDisabled = false,
   onDirtyChange,
   onOpenArtifactEvidence,
   onContextDocumentChange,
@@ -358,6 +366,7 @@ export const LifecycleDocumentMaterial = ({
   workItem: WorkItem;
   artifactId: ArtifactRef["id"];
   readOnly?: boolean;
+  mutationsDisabled?: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
@@ -408,7 +417,9 @@ export const LifecycleDocumentMaterial = ({
 
   const markdown = decodeCanonicalMarkdown(contentQuery.data);
   const artifactReadOnly =
-    readOnly || !artifactDirectEditIsAllowed(workItem, selectedArtifact);
+    readOnly ||
+    mutationsDisabled ||
+    !artifactDirectEditIsAllowed(workItem, selectedArtifact);
 
   return (
     <section className="order-document-material" data-testid="lifecycle-document-material">
@@ -424,7 +435,7 @@ export const LifecycleDocumentMaterial = ({
                   label="Inspect exact bytes"
                   onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}
                 />
-                {!readOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
+                {!artifactReadOnly ? <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} /> : null}
               </span>
             </span>
           }
@@ -454,7 +465,7 @@ export const LifecycleDocumentMaterial = ({
             return result;
           }}
           toolbarAccessory={
-            readOnly ? undefined : <DocumentationControls dirty={dirty} state={git} />
+            artifactReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
           }
           technicalDetails={
             <DocumentationTechnicalDetails
@@ -464,7 +475,7 @@ export const LifecycleDocumentMaterial = ({
           }
         />
       )}
-      {!readOnly ? <DocumentationGitConfirmation state={git} /> : null}
+      {!artifactReadOnly ? <DocumentationGitConfirmation state={git} /> : null}
     </section>
   );
 };
