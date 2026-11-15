@@ -395,6 +395,9 @@ describe("Order cross-boundary certification", () => {
 
     expect(lifecycle).toContain('"RECONCILE_AUTHORITY"');
     expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
+    expect(lifecycle).toContain("proposal has duplicate disposition");
+    expect(lifecycle).toContain("rejected proposal cannot have adoption intent");
+    expect(lifecycle).toContain("adopted proposal requires durable adoption intent");
     expect(lifecycle.indexOf('if (input.currentness.tag === "STALE") return "STALE_AUTHORITY";'))
       .toBeLessThan(lifecycle.indexOf('if (input.recovery.tag !== "NONE") return "RECOVERY";'));
     const coherencePolicy = lifecycle.slice(
