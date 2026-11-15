@@ -1,17 +1,26 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@astryxdesign/core/Link";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
+import {
+  deriveCurrentAttention,
+  deriveExecutionOwner,
+  deriveObservationCoherence,
+  deriveProposalDecision,
+  deriveReachedStages,
+  deriveRecoveryDisposition,
+  deriveWorkflowRail,
+  normalizeMaterialCurrentness,
+  stageRunInteraction,
+} from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import {
-  pendingProposalForEvents,
   resolveWorkflowMaterial,
   runIsActive,
   runStatusLabel,
-  unresolvedHumanInput,
   workflowMaterialIdentity,
   workflowPresentation,
   workflowStepState,
@@ -180,6 +189,14 @@ export const WorkItemWorkspace = ({
   const runs = runsQuery.data ?? [];
   const artifacts = artifactsQuery.data ?? [];
   const tasks = tasksQuery.data ?? [];
+  const runEventQueries = useQueries({
+    queries: runs.map((run) => ({
+      queryKey: workbenchQueryKeys.runEvents(run.id),
+      queryFn: () => api.listRunEvents(run.id, 0),
+      refetchInterval: runIsActive(run) ? 1000 : false,
+    })),
+  });
+  const allRunEvents = runEventQueries.flatMap((query) => query.data ?? []);
   const workflow = workflowPresentation(workItem.stage);
   const selectedWorkflow = workflowPresentation(selectedStep);
   const sharedPreSignoffStage =
@@ -189,34 +206,47 @@ export const WorkItemWorkspace = ({
     selectedStep === "PLAN"
       ? selectedStep
       : null;
-  const currentProposalRun =
-    sharedPreSignoffStage !== null && selectedStep === workItem.stage
+  const currentStageRun =
+    workItem.stage === "R1" ||
+    workItem.stage === "R2" ||
+    workItem.stage === "DESIGN" ||
+    workItem.stage === "PLAN" ||
+    workItem.stage === "R3"
       ? [...runs]
-          .filter((run) =>
-            run.role === "STAGE" &&
-            run.stage === sharedPreSignoffStage)
+          .filter((run) => run.role === "STAGE" && run.stage === workItem.stage)
           .sort((left, right) =>
             left.attempt - right.attempt ||
             left.startedAt.localeCompare(right.startedAt) ||
             left.id.localeCompare(right.id))
           .at(-1) ?? null
       : null;
-  const proposalEventsQuery = useQuery({
-    queryKey: workbenchQueryKeys.runEvents(currentProposalRun?.id ?? null),
-    queryFn: () =>
-      currentProposalRun
-        ? api.listRunEvents(currentProposalRun.id, 0)
-        : Promise.resolve([]),
-    enabled: currentProposalRun !== null,
-    refetchInterval:
-      currentProposalRun && runIsActive(currentProposalRun) ? 1000 : false,
-  });
-  const pendingProposal = pendingProposalForEvents(
-    proposalEventsQuery.data ?? [],
-  );
-  const currentUnresolvedInput = unresolvedHumanInput(
-    proposalEventsQuery.data ?? [],
-  );
+  const currentStageEvents = currentStageRun === null
+    ? []
+    : allRunEvents.filter((event) => event.runId === currentStageRun.id);
+  const currentStageEventsPending =
+    currentStageRun !== null &&
+    runEventQueries.some((query) =>
+      query.isPending &&
+      query.data === undefined);
+  const proposalDecision =
+    currentStageRun === null || currentStageEventsPending
+      ? { tag: "NONE" as const }
+      : deriveProposalDecision(currentStageEvents);
+  const currentStageInteraction =
+    currentStageRun === null || currentStageEventsPending
+      ? null
+      : stageRunInteraction(currentStageRun, currentStageEvents);
+  const pendingProposal: ProposalSelection | null =
+    currentStageRun !== null && proposalDecision.tag !== "NONE"
+      ? {
+          runId: currentStageRun.id,
+          eventId: proposalDecision.proposalEventId,
+        }
+      : null;
+  const currentUnresolvedInput =
+    currentStageInteraction?.tag === "REQUIRED_INPUT"
+      ? currentStageInteraction.requestEventId
+      : null;
 
   const selectedTaskId =
     explicitMaterial?.kind === "EXECUTION_TASK"
@@ -231,17 +261,26 @@ export const WorkItemWorkspace = ({
           ? explicitMaterial.runId
           : null;
 
+  const reachedStages = deriveReachedStages(
+    workItem,
+    runs,
+    allRunEvents,
+    artifacts,
+    tasks,
+  );
+
   const material = resolveWorkflowMaterial({
     workItem,
     selectedStep,
+    reachedStages,
     runs,
     artifacts,
     pendingProposal,
     unresolvedInputRunId:
       sharedPreSignoffStage === null
         ? undefined
-        : currentUnresolvedInput
-          ? currentProposalRun?.id ?? null
+        : currentUnresolvedInput !== null
+          ? currentStageRun?.id ?? null
           : null,
     approvalPackageAvailable: signoffPackageQuery.data != null,
     tasks,
@@ -254,7 +293,7 @@ export const WorkItemWorkspace = ({
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
   const materialIdentity = workflowMaterialIdentity(material);
-  const selectedStepState = workflowStepState(workItem, selectedStep);
+  const selectedStepState = workflowStepState(workItem, reachedStages, selectedStep);
   const selectedStateLabel =
     selectedStepState === "CURRENT"
       ? "Current"
@@ -266,6 +305,47 @@ export const WorkItemWorkspace = ({
 
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
+  );
+  const currentness = normalizeMaterialCurrentness(
+    sourceDiagnostics.length === 0,
+    sourceDiagnostics.length === 0 ? [] : ["R1"],
+  );
+  const executionOwner = deriveExecutionOwner(tasks, runs);
+  const recovery = deriveRecoveryDisposition(workItem, runs, currentness);
+  const semanticCoherence = deriveObservationCoherence(
+    workItem,
+    runs,
+    allRunEvents,
+    tasks,
+  );
+  const transportConverging =
+    currentStageEventsPending ||
+    runEventQueries.some((query) => query.isFetching) ||
+    runsQuery.isFetching ||
+    tasksQuery.isFetching ||
+    artifactsQuery.isFetching;
+  const currentAttention = deriveCurrentAttention({
+    workItem,
+    coherence: transportConverging ? "CONVERGING" : semanticCoherence,
+    mutationConflict: false,
+    stageInteraction: currentStageInteraction,
+    proposal: proposalDecision,
+    recovery,
+    currentness,
+    executionOwner,
+    automaticWorkActive: runs.some(
+      (run) => run.role !== "STAGE" && runIsActive(run),
+    ),
+    ordinaryActionAvailable:
+      workItem.status === "ACTIVE" &&
+      !runs.some(runIsActive),
+  });
+  const railItems = deriveWorkflowRail(
+    workItem,
+    reachedStages,
+    currentAttention,
+    recovery,
+    selectedStep,
   );
 
   const selectedLatestStageRun =
