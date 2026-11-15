@@ -397,7 +397,7 @@ The productive-provider admission boundary proves the **source class and admissi
 
 The approved technical contract is:
 
-1. **repository instruction channel** — closed exactly by GW-TR-073..075; every provider-visible project `AGENTS.md` is byte-proved Order authority;
+1. **repository instruction channel** — closed exactly by `GW-TR-073-STAGE-INSPECTION-WORKSPACE-MATERIALIZATION`, `GW-TR-074-PROVIDER-INSTRUCTION-CLOSURE` and `GW-TR-075-PROVIDER-WORKSPACE-ESCAPE-PREVENTION`; every provider-visible project `AGENTS.md` is byte-proved Order authority;
 2. **Order role/canonical context channel** — supplied by the existing deterministic prompt/context assembly and remains canonical authority;
 3. **Run-specific OpenCode configuration** — Order starts each productive provider with a fresh process-private HOME/config root plus an Order-generated `OPENCODE_CONFIG_CONTENT` layer containing only explicit configuration required for that Run. The persistent installation-owned OpenCode database remains shared so saved-account authentication is frictionless, while filesystem-global `~/.agents`, `~/.claude` and global config/skill sources cannot accumulate into productive model context; project compatibility discovery remains disabled;
 4. **reference channel** — configured Order reference roots are explicit read-only context and never become project authority merely by being readable;
