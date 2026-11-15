@@ -334,3 +334,37 @@ P4/P6 and implementation work must resolve, without changing the functional beha
 7. the exact repository-owned document-root update/migration transaction and rollback behavior;
 8. the repository-context selector/presentation behavior owned by `GW-DOC-WORKBENCH-UX-V2`;
 9. tests covering fresh install, current-version update, predecessor update, retained account, missing account, exact repository retention, repository connect/disconnect, document-root configuration/migration, ambiguous repository recovery, repository-document migration and post-install productive blocking.
+
+## OpenCode account management requirements
+
+### GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY
+
+**Required behavior:** the global application shell shows the active saved OpenCode account and provides one account-management entry point independent of WorkItem/project state.
+
+**Acceptance criterion:** the operator can tell which saved OpenCode login will be used by subsequent OpenCode Go work without opening a terminal or inspecting OpenCode state files.
+
+**Failure/negative behavior:** the active account must not be hidden inside a provider/model picker, WorkItem Context panel or developer-only diagnostics.
+
+### GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING
+
+**Required behavior:** all saved OpenCode accounts remain available and the operator can switch the active account without deleting/re-authenticating the others.
+
+**Acceptance criterion:** switching from account A to B and later back to A changes only the active saved OpenCode account; the configured model/provider remains unchanged.
+
+**Failure/negative behavior:** account switching must not be implemented as provider switching, destructive logout/re-login, per-WorkItem credential state or an Order-owned duplicate credential store.
+
+### GW-FR-075-OPENCODE-ACCOUNT-LOGIN
+
+**Required behavior:** the browser can add another OpenCode account through OpenCode's own external device/OAuth login flow while Order stores no credential secret.
+
+**Acceptance criterion:** the operator supplies a human label (email recommended), completes OpenCode authentication externally, and the resulting saved account becomes available/active in the account manager.
+
+**Failure/negative behavior:** Order must not expose the private OpenCode server UI/listener, render secret-bearing credential values, or require terminal login for the normal browser workflow.
+
+### GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY
+
+**Required behavior:** account Add/Switch/Rename is blocked while any Order Run is RUNNING or WAITING_FOR_INPUT and only one account mutation/login attempt may be active at a time.
+
+**Acceptance criterion:** no productive Order Run can straddle an OpenCode account identity change.
+
+**Failure/negative behavior:** account mutation must not race active provider work or use provider failure as the mechanism for detecting an unsafe switch.
