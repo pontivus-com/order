@@ -23,6 +23,7 @@ import {
   StartOpenCodeAccountLoginSchema,
   SetWorkItemArchivedSchema,
   OrderHttpErrorSchema,
+  ReconcileWorkItemAuthoritySchema,
   RunEventSchema,
   ProjectManifestSchema,
   RunSchema,
@@ -58,6 +59,7 @@ import {
   type OpenCodeModelRef,
   type OrderConfigState,
   type OrderHttpError,
+  type ReconcileWorkItemAuthority,
   type RemoveOpenCodeAccount,
   type RenameOpenCodeAccount,
   type StartOpenCodeAccountLogin,
@@ -307,6 +309,15 @@ export const resumeWorkItem = async (
   WorkItemSchema.parse(await json(
     `/api/work-items/${encodeURIComponent(workItemId)}/resume`,
     mutation("POST", {}),
+  ));
+
+export const reconcileWorkItemAuthority = async (
+  workItemId: WorkItemId,
+  input: ReconcileWorkItemAuthority,
+): Promise<WorkItem> =>
+  WorkItemSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/reconcile-authority`,
+    mutation("POST", ReconcileWorkItemAuthoritySchema.parse(input)),
   ));
 
 export const signOffWorkItem = async (
