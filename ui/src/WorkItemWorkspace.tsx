@@ -8,6 +8,7 @@ import {
   deriveCurrentAttention,
   deriveExecutionOwner,
   deriveObservationCoherence,
+  deriveValidationBoundary,
   deriveProposalDecision,
   deriveReachedStages,
   deriveRecoveryDisposition,
@@ -385,6 +386,12 @@ export const WorkItemWorkspace = ({
     changedAuthorityOwners,
   );
   const executionOwner = deriveExecutionOwner(tasks, runs);
+  const validationBoundary = deriveValidationBoundary(
+    executionOwner,
+    tasks,
+    runs,
+    allRunEvents,
+  );
   const recovery = deriveRecoveryDisposition(workItem, runs, currentness);
   const semanticCoherence = deriveObservationCoherence(
     workItem,
@@ -1146,6 +1153,7 @@ export const WorkItemWorkspace = ({
             workItem={workItem}
             material={material}
             executionOwner={executionOwner}
+            validationBoundary={validationBoundary}
             mutationsDisabled={workflowMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
