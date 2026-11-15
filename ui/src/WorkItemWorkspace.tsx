@@ -347,12 +347,14 @@ export const WorkItemWorkspace = ({
       run.executionTaskId !== null &&
       runEventQueries[index]?.data === undefined
     );
+  const currentStageObservationPending =
+    currentStageEventsPending || mutationRefreshPending;
   const proposalDecision =
-    currentStageRun === null || currentStageEventsPending
+    currentStageRun === null || currentStageObservationPending
       ? { tag: "NONE" as const }
       : deriveProposalDecision(currentStageEvents);
   const currentStageInteraction =
-    currentStageRun === null || currentStageEventsPending
+    currentStageRun === null || currentStageObservationPending
       ? null
       : stageRunInteraction(currentStageRun, currentStageEvents);
   const pendingProposal: ProposalSelection | null =
@@ -798,8 +800,21 @@ export const WorkItemWorkspace = ({
     workItem.stage,
   ]);
 
-  const invalidate = async (): Promise<void> => {
+  const invalidate = async (acceptedEvent?: RunEvent): Promise<void> => {
     setMutationRefreshPending(true);
+    if (acceptedEvent !== undefined) {
+      const eventKey = workbenchQueryKeys.runEvents(acceptedEvent.runId);
+      queryClient.setQueryData<readonly RunEvent[]>(eventKey, (current = []) => {
+        const byId = new Map(
+          [...current, acceptedEvent].map((event) => [event.id, event] as const),
+        );
+        return [...byId.values()].sort(
+          (left, right) =>
+            left.sequence - right.sequence ||
+            left.id.localeCompare(right.id),
+        );
+      });
+    }
     try {
       await invalidateWorkbenchMutation(queryClient, workItem.id);
     } finally {
@@ -1276,6 +1291,7 @@ export const WorkItemWorkspace = ({
             onOpenSupportingMaterial={openSupportingMaterial}
             onReturnFromTransient={returnFromTransient}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationRefresh={invalidate}
             onMutationError={reportMutationError}
           />
         </Suspense>
@@ -1300,6 +1316,7 @@ export const WorkItemWorkspace = ({
             onOpenEvidence={openEvidence}
             onReturnFromTransient={returnFromTransient}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationRefresh={invalidate}
             onMutationError={reportMutationError}
           />
         </Suspense>
