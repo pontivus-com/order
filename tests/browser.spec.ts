@@ -1537,12 +1537,6 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   await messageInput.press("Enter");
   await inputResponse;
   await page.unroute(inputPattern);
-  console.log("INPUT_RECONCILIATION_DIAGNOSTIC", JSON.stringify({
-    header: await page.getByTestId("selected-run-header").textContent().catch(() => null),
-    timeline: await page.getByTestId("run-event-timeline").textContent().catch(() => null),
-    composerCount: await page.getByTestId("activity-composer").count(),
-    workspace: await page.getByTestId("work-item-workspace").textContent().catch(() => null),
-  }));
   await expect(
     page.locator('[data-event-tag="HUMAN_INPUT_RECEIVED"]'),
   ).toBeVisible();
