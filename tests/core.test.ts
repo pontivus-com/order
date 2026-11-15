@@ -1695,6 +1695,24 @@ describe("closed Workbench workflow-state kernel", () => {
       tag: "CURRENT_TASK",
       taskId: eligibleTask.id,
     });
+
+    const prerequisiteTask = baseTask(`task_${uuidC}`, "TODO");
+    const dependentTask = {
+      ...baseTask(`task_${uuidD}`, "TODO"),
+      dependsOn: [prerequisiteTask.id],
+    };
+    expect(deriveExecutionOwner([dependentTask, prerequisiteTask], [])).toEqual({
+      tag: "CURRENT_TASK",
+      taskId: prerequisiteTask.id,
+    });
+    expect(deriveExecutionOwner([
+      dependentTask,
+      { ...prerequisiteTask, state: "CANDIDATE_DONE" },
+    ], [])).toEqual({
+      tag: "CURRENT_TASK",
+      taskId: dependentTask.id,
+    });
+
     expect(deriveExecutionOwner([], [])).toEqual({ tag: "NONE" });
     expect(deriveExecutionOwner([], [{
       ...run,

@@ -404,7 +404,7 @@ export const SignoffReview = ({
           <p>
             {approvalCompleted
               ? "Signed task and governed document material remains inspectable here. Exact package hash and baseline are current-Approval facts and are not re-derived after sign-off."
-              : "Approval was reached, but no sign-off authority was created before the workflow returned upstream. Governed documents remain inspectable as reached history."}
+              : "Approval was reached, but no sign-off authority was created before the workflow returned upstream. Governed documents remain inspectable within reached history."}
           </p>
         </section>
       );

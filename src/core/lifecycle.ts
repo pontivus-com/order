@@ -13,8 +13,6 @@ import {
   type WorkItem,
   type WorkStage,
 } from "./contracts.ts";
-import { executionTaskIsEligible } from "./execution.ts";
-
 export type { UpstreamReturnStage } from "./contracts.ts";
 
 export const directlyEditableArtifactRoles = [
@@ -768,7 +766,20 @@ export const deriveExecutionOwner = (
     return { tag: "CURRENT_TASK", taskId: activeTaskId };
   }
 
-  const eligible = tasks.find((task) => executionTaskIsEligible(task, tasks));
+  const successfulTaskIds = new Set(
+    tasks
+      .filter(
+        (task) =>
+          task.state === "CANDIDATE_DONE" ||
+          task.state === "ALREADY_SATISFIED",
+      )
+      .map((task) => task.id),
+  );
+  const eligible = tasks.find(
+    (task) =>
+      task.state === "TODO" &&
+      task.dependsOn.every((dependencyId) => successfulTaskIds.has(dependencyId)),
+  );
   return eligible === undefined
     ? { tag: "NONE" }
     : { tag: "CURRENT_TASK", taskId: eligible.id };
