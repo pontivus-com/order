@@ -37,6 +37,7 @@ export type MarkdownEditorProps = Readonly<{
   sha256: Sha256;
   markdown: string;
   readOnly: boolean;
+  saveDisabled?: boolean;
   onSave: (expectedSha256: Sha256, markdown: string) => Promise<ExpectedHashWriteResult>;
   onDirtyChange?: (dirty: boolean) => void;
   toolbarAccessory?: ReactNode;
@@ -80,6 +81,7 @@ export const MarkdownEditor = ({
   sha256,
   markdown,
   readOnly,
+  saveDisabled = false,
   onSave,
   onDirtyChange,
   toolbarAccessory,
@@ -139,7 +141,7 @@ export const MarkdownEditor = ({
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    if (readOnly || !dirty || conflicted || saving) return;
+    if (readOnly || saveDisabled || !dirty || conflicted || saving) return;
     setSaving(true);
     setSaveError(null);
     try {
@@ -269,7 +271,7 @@ export const MarkdownEditor = ({
                   label={saving ? "Saving…" : "Save"}
                   tone="primary"
                   loading={saving}
-                  disabled={!dirty || conflicted || saving}
+                  disabled={saveDisabled || !dirty || conflicted || saving}
                 />
                 <WorkbenchAction
                   label="Cancel"
