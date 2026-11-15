@@ -689,7 +689,7 @@ This is the key layout boundary: interaction classes choose their own secondary-
 
 Research/Requirements/Design/Plan use no persistent step-local side rail.
 
-Runs/documents/proposals/evidence are selected through one compact step-local material selector inside the primary surface. It may be a compact disclosure/list control on wide/medium and a drawer/popover on narrow, but the control itself occupies the same structural slot whether it contains one item or many.
+Runs/documents/proposals/evidence are selected through one `WorkbenchSelector` inside the primary surface. Its exact substrate is Astryx `Selector` with the secondary variant and adaptive presentation; Astryx owns the anchored-pointer versus compact-touch bottom-sheet behavior. The same control occupies the same structural slot whether it contains one item or many, and feature code does not choose Drawer/Popover/BottomSheet alternatives.
 
 Adding a second attempt/document changes selector contents only. The primary surface x-position and width are invariant for the same viewport/Context state.
 
@@ -721,7 +721,7 @@ collapsed/on-demand technical identity
 
 Approval does not use a generic persistent package/document/task navigation rail.
 
-If the signed task collection becomes large enough to require genuine master/detail, that is one stable Approval layout state with a fixed master-width token; merely having more than one document/task does not toggle the layout.
+Approval remains Review-class for every signed task/material count. Large collections are rendered as `WorkbenchTable`/scan-efficient rows inside the substantive Review body; task/material count never activates `WorkbenchMasterDetail` or another persistent column.
 
 Package/source/baseline hashes and commit identity remain collapsed technical detail or explicit Context; they do not occupy the default primary top hierarchy.
 
@@ -797,13 +797,13 @@ The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 |---|---|---|
 | `WorkbenchLayout` | one application topology over one Astryx `AppShell`; toolbar + primary destination, with selected WorkItem mode additionally owning identity, workflow rail and optional Context; named internal regions use `Layout`/stack primitives rather than raw grid recreation | no SideNav merely because AppShell supports it; no arbitrary sidebar/column slots; no caller breakpoint/width values; no domain/query logic |
 | `WorkbenchToolbar` | application/local toolbar grouping, search and compact utilities | no workflow policy; no arbitrary structural row creation |
-| `WorkbenchUtilityTrigger` | compact toolbar utility/account trigger with primary label + optional secondary state | no feature-owned button chrome or popover/drawer geometry |
+| `WorkbenchUtilityLink` | compact toolbar navigation affordance over Astryx `Link`, with primary label + optional secondary state for destinations such as Settings/account management | navigation only; no command mutation semantics; no feature-owned button chrome or popover/drawer geometry |
 | `WorkbenchIdentity` | stable three-group WorkItem identity row: navigation, identity/status, utilities | no fourth placeholder/action column; no content-driven topology |
 | `WorkbenchRail` | stable equal-cell workflow navigation with constrained-width scrolling | no content/status-derived widths; no wrapping/multi-row lifecycle navigation |
 | `WorkbenchSurface` | current-attention region + one primary material region + optional compact selector | no persistent side/master slot; no caller responsive topology choice |
 | `WorkbenchAttention` | stable current-attention presentation: title/purpose/status, one blocker/feedback region and one current action region | no lifecycle/current-attention derivation; no competing action owner |
 | `WorkbenchSectionHeader` | consistent material/subsection heading, description and local action alignment | no independent page/surface topology |
-| `WorkbenchSelector` | compact subordinate material selection with primitive-owned constrained representation | item count never changes surrounding columns; no persistent rail mode |
+| `WorkbenchSelector` | compact subordinate single-material selection over Astryx `Selector`; uses the `secondary` visual variant and `presentation="adaptive"` so the same control owns anchored-pointer versus compact-touch bottom-sheet presentation | item count never changes surrounding columns; no persistent rail mode; no feature-selected Drawer/Popover/BottomSheet substrate |
 | `WorkbenchDialogue` | transcript scrolling, anchored composer region, focus/keyboard continuity and empty/pending slots | no Run/RunEvent/query ownership; no input-admission policy |
 | `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
 | `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and constrained collapse | no caller master width; no collection-count activation |
@@ -813,7 +813,7 @@ The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 | `WorkbenchForm` | consistent field stack, form spacing, submission/error region and action alignment | no validation/admission policy |
 | `WorkbenchField` | low-level field shell only for native/custom/third-party controls that do not already own Astryx field semantics; delegates label/description/status wiring to Astryx `Field` | no wrapping of Astryx `TextInput`/`TextArea`/`Selector`/`Typeahead` or another field-owning Astryx control; no domain validation; no arbitrary feature control styling |
 | `WorkbenchStatus` | semantic neutral/info/success/warning/danger state using readable text first, optional Astryx `StatusDot`, and `Badge` only for exceptional/actionable states where added emphasis is justified | no badge for ordinary healthy/common state or metadata; no clickable badge; no domain-state derivation; no raw color selection |
-| `WorkbenchNotice` | persistent inline/page/section feedback over Astryx `Banner`; status text remains explicit and async announcement is owned exactly once by the transition/notice boundary; transient supplemental confirmation may use Toast | no stacked duplicate banners; no auto-dismissing workflow-critical feedback; no color/icon-only meaning; no duplicate live announcement; no arbitrary color |
+| `WorkbenchNotice` | persistent inline/page/section feedback over Astryx `Banner`; status text remains explicit and async announcement is owned exactly once by the transition/notice boundary | no stacked duplicate banners; no auto-dismissing workflow-critical feedback; no color/icon-only meaning; no duplicate live announcement; no arbitrary color |
 | `WorkbenchState` family | empty/loading/error/pending whole-region presentation inside an owning composition | no lifecycle-state derivation; no persistent layout ownership |
 | `WorkbenchTable` | Astryx `Table`-backed uniform row/column grammar with compact/balanced density selected by the owning interaction, dividers, stable row identity, selection/focus and overflow behavior; only required table capabilities/plugins are enabled | no heterogeneous content forced into columns; no plugin accumulation; no domain columns; no dashboard/card substitution |
 | `WorkbenchTimeline` | chronological event-list rhythm, event heading/meta/action alignment and evidence attachment region | no RunEvent meaning/derivation |
@@ -857,6 +857,7 @@ Pinned Astryx guidance is incorporated as follows:
 | navigation | pure navigation uses Astryx `Link`/native link semantics in the owning Toolbar/Identity/content slot; application history interception may preserve SPA behavior, but the rendered affordance is not a command Button |
 | forms | use Astryx field-owning controls (`TextInput`, `TextArea`, `Selector`, `Typeahead`, etc.) directly inside `WorkbenchForm`; use `WorkbenchField`/Astryx `Field` only around a native/custom/third-party control that lacks its own field shell |
 | bounded peer mode | `SegmentedControl` is valid for 2-5 mutually exclusive modes such as System/Light/Dark or Edit/Preview/Split; it is never lifecycle/page navigation |
+| subordinate material selection | `WorkbenchSelector` uses Astryx `Selector` with `variant="secondary"` and `presentation="adaptive"`; this one documented foundation behavior owns popover versus compact-touch bottom-sheet presentation without feature-level overlay selection |
 | uniform operational data | `WorkbenchTable` delegates to `Table`, uses deliberate density/dividers, stable identity and only the capabilities/plugins the use case needs |
 | meaningful resource collection | prefer `List`/`ListItem` semantics to a button styled as a card/row; never place interactive descendants inside an interactive row |
 | contextual overlay detail | constrained Context uses `Drawer`, with caller-owned `isOpen`, visible close action and focus return; a wide Context that must consume layout width is docked, not Drawer |
@@ -899,12 +900,12 @@ Queue and Settings are application destinations in `primary`; selected WorkItem 
 
 ```ts
 WorkbenchToolbar({ start, end })
-WorkbenchUtilityTrigger({ label, detail?, icon?, expanded?, onClick })
+WorkbenchUtilityLink({ label, detail?, icon?, href, onNavigate? })
 WorkbenchIdentity({ navigation, identity, utilities })
 WorkbenchRail({ items })
 ```
 
-Toolbar/identity/rail geometry is primitive-owned. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
+Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is navigation-only and renders link semantics; it never converts Settings/account navigation into a command button. `WorkbenchRail.items` carries only generic id/label/state/selected/onSelect presentation; callers cannot set cell width.
 
 ```ts
 WorkbenchSurface({ attention, selector?, material })
@@ -1057,8 +1058,8 @@ Canonical application services resolve as:
 | Service/material | Required primitive composition |
 |---|---|
 | Work queue | `WorkbenchLayout -> WorkbenchSurface -> WorkbenchTable`; readiness/source diagnostics use `WorkbenchNotice` |
-| Create WorkItem/remediation | `WorkbenchTaskPanel -> WorkbenchForm -> WorkbenchField` |
-| Settings | `WorkbenchLayout -> WorkbenchSettingsLayout -> WorkbenchForm/Field/Status/Notice/Confirmation` |
+| Create WorkItem/remediation | `WorkbenchTaskPanel -> WorkbenchForm` + Astryx field-owning controls; `WorkbenchField` only for a control without its own field shell |
+| Settings | `WorkbenchLayout -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
 | WorkItem shell | `WorkbenchLayout -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
 | Work request/lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document renderer` |
 | Active/historical STAGE Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
@@ -1092,7 +1093,7 @@ DOM/CSS
 
 Examples:
 
-- `app.tsx` supplies application destination state to `WorkbenchLayout`, creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityTrigger`; it does not import Drawer/AlertDialog directly.
+- `app.tsx` supplies application destination state to `WorkbenchLayout`, creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; it does not import Drawer/AlertDialog directly.
 - `WorkItemIdentityRow.tsx` maps identity/status/utilities to `WorkbenchIdentity`.
 - `WorkflowRail.tsx` maps reached/current presentation into `WorkbenchRail`.
 - `WorkflowStepFrame.tsx` maps already-derived attention into `WorkbenchAttention + WorkbenchSurface`.
@@ -1102,7 +1103,7 @@ Examples:
 - `ProposalReview.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` map review content into `WorkbenchReview`.
 - `ExecutionWorkspace.tsx` maps task/attempt scan into `WorkbenchMasterDetail`, detail into `WorkbenchSurface`, validation scan into `WorkbenchTable`, chronology into `WorkbenchTimeline`.
 - `WorkItemContext.tsx` supplies content to `WorkbenchContextPanel`.
-- `CreateWorkItem.tsx`, `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` map form/configuration semantics into `WorkbenchForm + WorkbenchField`.
+- `CreateWorkItem.tsx`, `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` map form/configuration semantics into `WorkbenchForm`; they render Astryx field-owning controls directly and use `WorkbenchField` only for a native/custom/third-party control without its own field shell.
 - technical/supporting detail uses `WorkbenchDisclosure`; semantic feedback uses `WorkbenchNotice`; semantic state uses `WorkbenchStatus`.
 
 No feature/service adapter owns CSS establishing a primitive-owned layout/mechanic or chooses visual values outside `GW-DOC-WORKBENCH-THEME-V1`.
@@ -1115,9 +1116,9 @@ The following matrix is exhaustive for the production TSX renderers present on t
 |---|---|---|
 | `app.tsx` | Layout, Toolbar, UtilityTrigger, TaskPanel, Confirmation, Notice/State + approved theme choice leaf | direct Drawer/AlertDialog and bespoke theme/account utility chrome |
 | `OpenCodeAccountControl.tsx` | UtilityTrigger + Status | native feature-styled button |
-| `SettingsWorkspace.tsx` | SettingsLayout + Form/Field + SectionHeader + Status/Notice + Confirmation + Action | bespoke settings sidebar/buttons/cards/form controls |
-| `OpenCodeAccountSettings.tsx` | Form/Field + SectionHeader + Status/Notice + Confirmation + Action/ResourceRow | bespoke account rows/input styling and direct AlertDialog |
-| `CreateWorkItem.tsx` | Form/Field + Status/Notice + Action inside TaskPanel | raw feature-styled select/input/form spacing |
+| `SettingsWorkspace.tsx` | SettingsLayout + Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action | bespoke settings sidebar/buttons/cards/form controls |
+| `OpenCodeAccountSettings.tsx` | Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action/ResourceRow | bespoke account rows/input styling and direct AlertDialog |
+| `CreateWorkItem.tsx` | Form + Astryx field-owning controls / Field fallback + Status/Notice + Action inside TaskPanel | raw feature-styled select/input/form spacing |
 | `WorkItemQueue.tsx` | Surface + Table + Status + Action | direct table grammar plus feature-owned responsive row styling |
 | `WorkItemWorkspace.tsx` | Identity + Rail + Confirmation + canonical primary composition | native workflow buttons, identity grid and direct AlertDialog |
 | `WorkflowStepFrame.tsx` | Attention + Surface only | generic side-index Layout/Drawer |
@@ -1130,7 +1131,7 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `MarkdownSourceEditor.tsx` | specialized CodeMirror renderer consuming canonical tokens | editor-local colors/geometry outside token contract prohibited |
 | `ProposalReview.tsx` | Review + Status/Notice + Action + approved CodeBlock leaf | bespoke review headings/state blocks |
 | `ReadinessWorkspace.tsx` | Review + optional Selector + Status/Notice | generic WorkflowStepFrame composition |
-| `SignoffReview.tsx` | Review + Field + Status/Notice + Disclosure + Action + approved MetadataList leaf | generic side index and bespoke approval action/form layout |
+| `SignoffReview.tsx` | Review + Astryx field-owning approver control / Field fallback only if required + Status/Notice + Disclosure + Action + approved MetadataList leaf | generic side index and bespoke approval action/form layout |
 | `ExecutionWorkspace.tsx` | MasterDetail + Surface/Attention + Table + Timeline + Status/Notice + Disclosure + ResourceRow/Action | generic side index, bespoke validation matrix/task detail layout |
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
 | `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
@@ -1162,6 +1163,7 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | Astryx `Theme` | root theme substrate only | mounted once at application root; feature modules do not create theme islands |
 | Astryx `Link` | pure application/document/external navigation inside the owning Toolbar/Identity/content slot | use link semantics for navigation rather than `WorkbenchAction`/Button; external-link safety/accessible labeling remain foundation-owned |
 | Astryx `SegmentedControl` / `TabList` | SegmentedControl for 2-5 peer modes such as theme or Edit/Preview/Split; TabList only where true tab/page navigation semantics are required | SegmentedControl is never workflow navigation; neither may alter outer topology |
+| Astryx `Selector` | exact substrate of `WorkbenchSelector` for subordinate single-material selection | owned only by `WorkbenchSelector` for this mechanic; `presentation="adaptive"` is fixed and feature code cannot substitute another overlay |
 | Astryx field-owning controls (`TextInput`, `TextArea`, `Selector`, `Typeahead`, `RadioList`, `MultiSelector`, etc.) | ordinary Form/configuration fields inside `WorkbenchForm` | use their native label/description/status contract; do **not** wrap them in `WorkbenchField`/`Field` |
 | Astryx `Field` via `WorkbenchField` | label/help/status shell around a native/custom/third-party control that has no field shell | exact label/description/status accessibility wiring remains foundation-owned |
 | native control where no suitable Astryx control exists | control slot inside `WorkbenchField` only | use only when native semantics are required or the catalog has no fit; no feature-owned styling |
@@ -1172,7 +1174,7 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | CodeMirror via `MarkdownSourceEditor` | exact Markdown source editing | consumes canonical editor/color/type/focus tokens; no independent palette |
 | semantic HTML (`section`, `p`, `dl`, `code`, lists, `a`) | content semantics and true external/document links inside primitive slots | no independent layout/color/type system; links use accent/link token + underline/focus grammar |
 
-Direct feature/service use of Astryx `Button/IconButton`, reusable status `Badge/Banner`, structural `AppShell/Layout/Drawer/Dialog`, or `AlertDialog` is not approved when the corresponding mechanic is owned by a Workbench primitive. Those Astryx components are the preferred **substrates inside the owning primitive**, not an alternate feature-level UI language. Field-owning controls and other §8.19 leaves remain direct leaves only within their authorized composition.
+Direct feature/service use of Astryx `Button/IconButton`, reusable status `Badge/Banner`, structural `AppShell/Layout/Drawer/Dialog`, material-selection `Selector`, or `AlertDialog` is not approved when the corresponding mechanic is owned by a Workbench primitive. Those Astryx components are the preferred **substrates inside the owning primitive**, not an alternate feature-level UI language. Field-owning controls and other §8.19 leaves remain direct leaves only within their authorized composition.
 
 ### 8.20 CSS/theme ownership consequence
 
@@ -1370,7 +1372,7 @@ Implementation maps into `WorkbenchMasterDetail`; feature code does not create i
 
 Dirty/destructive navigation confirmation uses `WorkbenchConfirmation`; the navigation guard owns the policy/state while the primitive owns modal interaction mechanics.
 
-Queue uses `WorkbenchTable` and `WorkbenchNotice`; Create WorkItem uses `WorkbenchTaskPanel -> WorkbenchForm/Field`; Settings uses `WorkbenchSettingsLayout -> WorkbenchForm/Field/Status/Notice/Confirmation`; account utility entry uses `WorkbenchUtilityTrigger`.
+Queue uses `WorkbenchTable` and `WorkbenchNotice`; Create WorkItem uses `WorkbenchTaskPanel -> WorkbenchForm` plus field-owning Astryx controls (or `WorkbenchField` only where required); Settings uses the same field rule inside `WorkbenchSettingsLayout`; account utility entry uses navigation-only `WorkbenchUtilityLink`.
 
 ### UI attention/presentation cleanup
 
@@ -1609,7 +1611,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
 
-**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
+**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
 
 ## 14. Permanent verification
