@@ -13,7 +13,7 @@ This document owns the repository's exact v1 P6 contracts for canonical semantic
 
 ### 1.1 Product-identity contract
 
-Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`; the live technical namespace and bounded predecessor-migration semantics are owned by `GW-DOC-ORDER-TECHNICAL-IDENTITY-V1`.
+Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`; live installation/process namespace and bounded predecessor migration are realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, while this document owns the exact P6 names and contracts declared below.
 
 The Order cutover is complete for the productive runtime. Current productive contracts use only:
 
@@ -21,7 +21,7 @@ The Order cutover is complete for the productive runtime. Current productive con
 - executable task fence for newly authored productive plans: `order-tasks`;
 - state override: `PONTIVUS_ORDER_STATE_ROOT`;
 - database filename: `order.sqlite3`;
-- Order-named config/runtime implementation identities defined by `GW-DOC-ORDER-TECHNICAL-IDENTITY-V1`.
+- exact Order config/runtime identities declared by this P6 contract and realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
 
 The productive runtime does not retain Gateweft aliases or fallback readers. Gateweft naming is permitted only in historical provenance and the installer-owned, one-way migration boundary for the immediately preceding supported beta.
 
@@ -1355,7 +1355,7 @@ Before `orderd` becomes ready it validates the deterministic local portion of th
 CI/integration tests additionally prove:
 
 - **State-root/XDG + daemon-token boundary:** an absolute `PONTIVUS_ORDER_STATE_ROOT` wins; relative `PONTIVUS_ORDER_STATE_ROOT` is rejected; absent override uses an absolute `XDG_STATE_HOME/pontivus-order`; absent XDG uses absolute `HOME/.local/state/pontivus-order`; relative XDG/HOME values are rejected rather than resolved against cwd; no usable absolute base fails startup. A missing daemon-token file is created as a non-symlink owner-only file containing exactly one 64-lowercase-hex `secureTokenHex()`; an existing unsafe, symlinked, incorrectly permissioned or malformed token file fails startup rather than being accepted or silently replaced.
-- **OpenCode:** exact `opencode serve --hostname 127.0.0.1 --port 0` foreground bootstrap; bounded parsing of the loopback startup endpoint; 60-second authenticated exact-version readiness against `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; private HOME/XDG/DB; failure when `/etc/opencode` exists; pinned project/Claude discovery-disable flags; admitted provider-workspace/instruction closure under `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`; deny-first role permissions including `.git` and `.git/*` read denial plus exact literal edit paths; multi-resource patch authorization; exact deterministic `msg_` prompt-id derivation; same-session/same-type same-id admission does not create a second user input; strictly advanced `time.idle` plus `succeeded | failed | interrupted`; successful final context retrieval; 3600-second productive-turn bound/interrupt; no `session.active`, experimental wait or event-stream correctness dependency.
+- **OpenCode:** exact `opencode serve --hostname 127.0.0.1 --port 0` foreground bootstrap; bounded parsing of the loopback startup endpoint; 60-second authenticated exact-version readiness against `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; private HOME/XDG/DB; failure when `/etc/opencode` exists; pinned project/Claude discovery-disable flags; admitted provider-workspace/instruction closure under `GW-DOC-OPENCODE-INTEGRATION-V1`; deny-first role permissions including `.git` and `.git/*` read denial plus exact literal edit paths; multi-resource patch authorization; exact deterministic `msg_` prompt-id derivation; same-session/same-type same-id admission does not create a second user input; strictly advanced `time.idle` plus `succeeded | failed | interrupted`; successful final context retrieval; 3600-second productive-turn bound/interrupt; no `session.active`, experimental wait or event-stream correctness dependency.
 - **Bun/Linux runtime boundary:** startup rejects any `process.platform` other than `"linux"`; the installed Bun and `@types/bun` exactly match `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; `Bun.serve` binds only the configured loopback address with `development: false`; `Bun.TOML.parse` parses a UTF-8 manifest string that is then rejected on canonical-schema failure; `Bun.Glob` uses exactly the §14 options; UUID generation matches the canonical prefixed UUIDv4 grammar; the secure-token helper returns exactly 64 lowercase hexadecimal characters from a 32-byte `crypto.getRandomValues` call and no secret/token path uses `Math.random`; `Bun.CryptoHasher("sha256")` matches known SHA-256 vectors while `Bun.hash` is absent from canonical identity code; `statfsSync(stateRoot).type` accepts only the four §15 Linux filesystem magic values and the SQLite smoke test also passes; the one-shot/re-armed timer tests prove one immediate startup tick, exactly 3600 seconds between re-arms and no overlapping coordinator ticks.
 - **Process cancellation boundary:** every spawned external command receives explicit argv/cwd/allowlisted env and is started with `detached: true`; unattended/correctness-bearing commands use bounded captured output, while the sole operator-facing provider-login path inherits the TTY and produces no parsed semantic evidence; Order does not pass Bun `timeout`/AbortSignal as cancellation authority. The integration fixture starts a child that itself starts a long-lived descendant, then proves both timeout and explicit cancellation follow the same Linux group path: `process.kill(-pgid, "SIGTERM")`, at most 5 seconds of bounded wait, signal-`0` existence check, `process.kill(-pgid, "SIGKILL")` if still present, child settlement, and final group nonexistence before the operation settles.
 - **Git:** registered root equals `git rev-parse --show-toplevel`; every execution Run uses `git clone --no-local --no-checkout -- <source> <workspace>`, exact baseline verification/detached checkout/clean start, with Git system/global config and prompting disabled; candidate capture proves NUL-delimited no-rename changed paths including untracked files, temporary-index `--intent-to-add` inclusion of new files, binary/full-index/no-renames patch hashing, replay into a separate fresh checkout, and exact regenerated patch-hash/changed-path equality; gitlinks/submodules are not traversed automatically.
@@ -3149,7 +3149,7 @@ It must not fabricate defaults merely to reach ready state.
 
 ## 36. Productive OpenCode workspace and instruction-boundary contracts
 
-This section is the P6 realization of `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`. It extends the existing Run/RunEvent/task/provider contracts without introducing a second workspace or failure domain model.
+This section is the P6 realization of `GW-DOC-OPENCODE-INTEGRATION-V1`. It extends the existing Run/RunEvent/task/provider contracts without introducing a second workspace or failure domain model.
 
 ### 36.1 Productive invocation failure event
 
