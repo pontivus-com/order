@@ -802,23 +802,26 @@ Prior reached steps remain inspectable from the workflow rail.
 
 Investigation/audit remediation action appears only where canonically permitted and remains attached to the terminal result.
 
-## 15. Current-action precedence
+## 15. Current-attention/action precedence
 
-When multiple materials exist, the Workbench resolves current attention using this precedence:
+Observation coherence is evaluated first. While the canonical observation is `CONVERGING`, mutation controls are suppressed and the Workbench presents updating/processing continuity rather than guessing the missing reaction.
+
+For a coherent observation, the Workbench resolves current attention using this precedence:
 
 1. mutation conflict that prevents safe continuation;
 2. unresolved required human input;
 3. pending proposal decision required for progress;
-4. current canonical blocker or failed recovery owner;
-5. stale approval/readiness ownership;
-6. current active processing state;
-7. current startable/continuable workflow action;
-8. ordinary current document/review/operational material;
-9. historical operator selection.
+4. proposal adoption/reconciliation already in progress;
+5. current canonical blocker or governed recovery owner;
+6. stale approval/readiness/material ownership;
+7. current active processing/automatic-recovery state;
+8. current startable/continuable/sign-off action;
+9. ordinary current document/review/operational material;
+10. historical operator selection.
 
-Only the highest-precedence mutation action is presented as the current workflow action. In particular, a failed current-stage Run exposes its governed Retry/Resume/recovery action and suppresses the generic Start action; a pending lifecycle proposal exposes Adopt/Reject and suppresses free-form continuation until disposition.
+Only the highest-precedence mutation action is presented as the current workflow action. In particular, a failed current-stage Run exposes its governed Retry/Resume/recovery action and suppresses the generic Start action; a pending lifecycle proposal exposes Adopt/Reject and suppresses free-form continuation; an adoption already in progress exposes no competing Reject/continuation action.
 
-Historical selection may remain displayed, but levels 1–7 must remain visible and directly reachable.
+Historical selection may remain displayed, but levels 1–8 must remain visible and directly reachable.
 
 ## 16. Async state convergence
 
@@ -1271,25 +1274,28 @@ For each stage:
 
 ```text
 reach :=
-  selectedStage == currentStage  ? CURRENT
-  : canonical reached evidence   ? REACHED_HISTORICAL
-  :                                UNREACHED
+  stage == currentStage         ? CURRENT
+  : canonical reached evidence  ? REACHED_HISTORICAL
+  :                               UNREACHED
 ```
 
 The current stage receives exactly one summary marker:
 
 ```text
 WorkItem COMPLETE                           -> COMPLETE
-current attention STALE_AUTHORITY           -> STALE
-current attention BLOCKER or RECOVERY(block)-> BLOCKED
+current attention STALE_AUTHORITY                  -> STALE
+current attention BLOCKER                          -> BLOCKED
 current attention REQUIRED_INPUT
   or PROPOSAL_DECISION
-  or MUTATION_CONFLICT                      -> ACTION_REQUIRED
+  or MUTATION_CONFLICT
+  or recovery RETRY_CURRENT_STAGE
+  or recovery RESUME_CURRENT_OWNER
+  or recovery RECONCILE_AUTHORITY                 -> ACTION_REQUIRED
 current attention PROCESSING
   or PROPOSAL_ADOPTION
   or CONVERGING
-  or recovery AUTOMATIC_RECOVERY            -> PROCESSING
-otherwise                                   -> READY
+  or recovery AUTOMATIC_RECOVERY                   -> PROCESSING
+otherwise                                          -> READY
 ```
 
 The detailed current-attention/recovery value remains owned by the primary material. Rail markers are summary presentation only and never feed back into command admission or lifecycle transition policy.
