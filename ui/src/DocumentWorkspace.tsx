@@ -258,12 +258,14 @@ export const SourceDocumentMaterial = ({
   mutationsDisabled = false,
   onDirtyChange,
   onContextDocumentChange,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   readOnly?: boolean;
   mutationsDisabled?: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
@@ -323,6 +325,9 @@ export const SourceDocumentMaterial = ({
               expectedSha256,
               bodyMarkdown: value,
             });
+          } catch (error) {
+            onMutationError?.(error);
+            throw error;
           } finally {
             await git.invalidateDocumentation();
           }
@@ -355,6 +360,7 @@ export const LifecycleDocumentMaterial = ({
   onDirtyChange,
   onOpenArtifactEvidence,
   onContextDocumentChange,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   artifactId: ArtifactRef["id"];
@@ -363,6 +369,7 @@ export const LifecycleDocumentMaterial = ({
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const [dirty, setDirty] = useState(false);
   const artifactsQuery = useQuery({
@@ -455,6 +462,9 @@ export const LifecycleDocumentMaterial = ({
                 expectedSha256,
                 markdown: value,
               });
+            } catch (error) {
+              onMutationError?.(error);
+              throw error;
             } finally {
               await git.invalidateDocumentation();
             }
