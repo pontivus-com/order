@@ -147,13 +147,22 @@ No Node-only server framework, ORM, workflow engine, message broker, DI framewor
 
 ### UI primitive ownership
 
-Order owns its local workbench visual language and semantic UI boundary.
+Order owns its local Workbench visual language and semantic UI boundary.
 
-v1 has no runtime or source dependency on a private Pontivus code repository. Reusable Order-specific primitives live under `ui/src/primitives/`; interaction primitives may use the public Astryx dependencies authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`.
+v1 has no runtime or source dependency on a private Pontivus code repository. Reusable Order-local primitives live under `ui/src/primitives/`; interaction primitives may use the public Astryx dependencies authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`.
 
-No private-source vendoring contract is part of the current architecture. Local primitives must remain project-neutral, vendor-clean, free of deprecated Radix/Tremor imports, and must not acquire product/domain semantics that belong to higher composition layers.
+No private-source vendoring contract is part of the current architecture. Local primitives must remain target-project/domain neutral, vendor-clean, free of deprecated Radix/Tremor imports, and must not acquire WorkItem/Run/lifecycle/query semantics that belong to higher composition layers.
 
-Order does not introduce a replacement primitive framework merely to recreate straightforward semantic HTML/CSS. The selective Astryx integration authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` is an interaction-primitive implementation dependency beneath the Order local semantic boundary; it is not allowed to own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
+The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §8.12-§8.15`. In particular:
+
+- persistent Workbench topology is created only by the local structural primitives;
+- feature/workflow surfaces map canonical domain data into primitive slots rather than importing structural Astryx Layout/Drawer APIs directly;
+- structural primitives own responsive mechanics and fixed geometry tokens but no lifecycle policy or server state;
+- primitive APIs are deliberately constrained and do not expose arbitrary sidebar/column/width/breakpoint configuration;
+- content count may change rows/items but cannot select another persistent topology;
+- the primitive layer is therefore the mechanical enforcement boundary for the Workbench's interaction-space classes, not merely a visual convenience wrapper.
+
+Order does not introduce a replacement primitive framework merely to recreate straightforward semantic HTML/CSS. The selective Astryx integration authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` remains an interaction-primitive substrate beneath the Order local semantic boundary; it does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
 
 ### Workbench technical boundary
 
