@@ -256,7 +256,6 @@ type MaterialCurrentness =
   | {
       readonly tag: "STALE";
       readonly owner: "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
-      readonly reason: string;
     };
 
 type ExecutionOwner =
@@ -306,7 +305,7 @@ type RailMarker =
   | "COMPLETE";
 ```
 
-The concrete unions may carry additional canonical ids/reasons needed to identify their owner, but they may not add another semantic variant.
+The concrete unions may carry canonical ids needed to identify their owner, but they may not add another semantic variant. Human-readable/currentness reasons come from the existing typed canonical diagnostic/classification that caused the decision; the derived union does not duplicate that reason as an untyped string.
 
 No `WorkflowState` aggregate is introduced. Callers obtain the particular pure decisions they need from canonical values. A convenience input parameter object inside one pure function is not a semantic state owner and must not be persisted/transported/exported as a parallel domain model.
 
@@ -1338,32 +1337,39 @@ This directly removes the current duplicated `Workflow action failed` rendering 
 3. STAGE turn-result arrays are validated as one non-empty closed batch before persistence.
 4. provider turn batch + coordinator reaction + Run/WorkItem transition are one SQLite transaction where no filesystem effect intervenes.
 5. required-input request identity/null semantics are exact.
-6. lifecycle proposal role/current-stage/pending/open-turn invariants are exact.
+6. lifecycle proposal role/current-stage/pending/open-turn invariants are exact, including durable `ADOPTION_IN_PROGRESS(P)` derivation from proposal-adoption intent before repository effect/disposition.
 7. source/lifecycle Save is forbidden while a Run is active.
 8. Start/Input/Cancel/Proposal/Resume/Sign-off re-check DB-decidable admission at their final transaction boundary.
-9. browser observation polls the selected WorkItem while Runs are active and performs terminal event drain/refetch before exposing a next action.
-10. sign-off package/source/lifecycle-artifact GET paths perform no lifecycle/projection mutation.
-11. no new persistence table/column is introduced for reached history or turn interaction.
+9. bounded automatic operational/semantic recovery remains derived from the exact existing action-key/RunEvent history; no retry/recovery entitlement field is added.
+10. current execution owner and validation boundary are derivable only from the current Approval/task/Run/current-candidate event chain; historical UI selection and stale validation events cannot become authority.
+11. browser observation polls the selected WorkItem while Runs are active and performs terminal event drain/refetch before exposing a next action.
+12. sign-off package/source/lifecycle-artifact GET paths perform no lifecycle/projection mutation.
+13. no new persistence/transport field/table is introduced for reached history, turn interaction, proposal-decision phase, recovery route, execution owner, validation boundary, observation coherence, current attention or rail state.
 
 ## 12. Existing module consequences
 
 ### `src/core/lifecycle.ts`
 
-Extend the existing browser-safe owner with:
+Extend the existing browser-safe owner with the complete closed workflow language:
 
-- corrected source-change transition;
+- corrected source-change transition and the exhaustive §4.9 transition-cause mapping;
 - complete WorkItem transition helpers needed by the P3 diagram;
-- STAGE Run interaction derivation;
-- unresolved required-input derivation/admission;
+- STAGE Run interaction and exact required-input derivation/admission;
 - STAGE turn-grammar validation;
-- lifecycle-proposal current-stage admission;
-- reached-stage derivation.
+- lifecycle-proposal admission plus `NONE | PENDING | ADOPTION_IN_PROGRESS` derivation;
+- reached-stage/reach-state derivation;
+- material-currentness normalization from existing typed canonical freshness/diagnostic results;
+- execution-owner and current-candidate validation-boundary derivation;
+- recovery-disposition derivation using existing bounded execution policy/history;
+- canonical-observation coherence detection over the loaded canonical facts;
+- closed current-attention derivation;
+- the sole nine-stage workflow-rail projection.
 
-These are pure functions over canonical types. No Zod/transport/persistence model is added for derived interaction/reach values.
+These are pure functions over canonical types/facts. No Zod schema, transport/persistence model, browser store or generic aggregate `WorkflowState` is added for any derived decision.
 
 ### `src/core/execution.ts`
 
-Retain post-signoff task/provider-role admission and bounded repair/recovery policy. It does not become the Workbench state owner.
+Retain post-signoff task/provider-role admission and bounded repair/recovery policy as the canonical execution-policy input. It does not become the Workbench state owner and does not export a competing attention/rail/execution-status vocabulary; `lifecycle.ts` derives the closed Workbench recovery/execution projections from canonical execution facts/policy results.
 
 ### `src/daemon/runtime.ts`
 
