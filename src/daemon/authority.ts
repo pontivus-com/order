@@ -432,6 +432,7 @@ export const resolveStageContextState = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
   stage: PreSignoffStage,
+  materializeArtifacts = true,
 ): Promise<StageContextResolution> => {
   const validated = await revalidateWorkItemSource(runtime, workItem.id);
   workItem = validated.workItem;
@@ -442,13 +443,19 @@ export const resolveStageContextState = async (
   }
 
   const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
+  const resolveCurrentArtifact = (
+    path: RepositoryPath,
+    role: ArtifactRef["role"],
+    authorityLayer: ArtifactRef["authorityLayer"],
+  ): Promise<ArtifactRef> =>
+    materializeArtifacts
+      ? currentFileArtifact(runtime, workItem, path, role, authorityLayer)
+      : inspectCurrentFileArtifact(workItem, path, role, authorityLayer);
   const artifacts: ArtifactRef[] = [];
   for (const layer of authorityLayersForStage(stage)) {
     for (const path of sources[layer]) {
       artifacts.push(
-        await currentFileArtifact(
-          runtime,
-          workItem,
+        await resolveCurrentArtifact(
           path,
           "GOVERNANCE",
           authorityLayerForManifestLayer(layer),
@@ -458,9 +465,7 @@ export const resolveStageContextState = async (
   }
 
   artifacts.push(
-    await currentFileArtifact(
-      runtime,
-      workItem,
+    await resolveCurrentArtifact(
       normalizeRepositoryPath("pontivus-order.toml"),
       "PROJECT_MANIFEST",
       null,
@@ -473,7 +478,7 @@ export const resolveStageContextState = async (
     workItem.concernIds,
   )) {
     artifacts.push(
-      await currentFileArtifact(runtime, workItem, path, "GOVERNANCE", null),
+      await resolveCurrentArtifact(path, "GOVERNANCE", null),
     );
   }
 
@@ -501,6 +506,7 @@ export const resolveStageContextState = async (
       runtime,
       workItem,
       priorStage,
+      materializeArtifacts,
     );
     if (conformance.staleStage !== null) {
       return {
@@ -521,8 +527,14 @@ export const resolveStageConformanceState = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
   stage: PreSignoffStage,
+  materializeArtifacts = true,
 ): Promise<StageConformanceResolution> => {
-  const state = await resolveStageContextState(runtime, workItem, stage);
+  const state = await resolveStageContextState(
+    runtime,
+    workItem,
+    stage,
+    materializeArtifacts,
+  );
   if (state.staleStage !== null) {
     return { context: state.context, outputs: [], staleStage: state.staleStage };
   }
