@@ -629,12 +629,14 @@ export const WorkItemWorkspace = ({
     onSuccess: async (result) => {
       if (result.tag === "STALE") {
         setTitleError("The WorkItem source changed. Reload the current title before editing again.");
+        await invalidate();
         return;
       }
       setTitleEditing(false);
       setTitleError(null);
-      await invalidateWorkbenchMutation(queryClient, workItem.id);
+      await invalidate();
     },
+    onError: invalidate,
   });
 
   const archiveMutation = useMutation({
@@ -647,8 +649,9 @@ export const WorkItemWorkspace = ({
     },
     onSuccess: async () => {
       setConfirmArchive(false);
-      await invalidateWorkbenchMutation(queryClient, workItem.id);
+      await invalidate();
     },
+    onError: invalidate,
   });
 
   const commitSelection = (
@@ -689,6 +692,7 @@ export const WorkItemWorkspace = ({
       );
       await invalidate();
     },
+    onError: invalidate,
   });
 
   const resumeCurrent = useMutation({
@@ -699,6 +703,7 @@ export const WorkItemWorkspace = ({
       return api.resumeWorkItem(workItem.id);
     },
     onSuccess: invalidate,
+    onError: invalidate,
   });
 
   const reconcileAuthority = useMutation({
