@@ -5505,6 +5505,116 @@ describe("daemon control plane", () => {
   }, 30_000);
 
 
+  it("rejects lifecycle proposal decisions whose role does not match the owning Run", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-proposal-role-owner-");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "proposal role ownership",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const contextHash = rt.sha256Text("proposal-role-owner");
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "invalid proposal follows",
+        evidence: [],
+      });
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath:
+          "docs/order/work-items/" + workItem.id + "/requirements.md",
+        baseSha256: null,
+        role: "R2",
+        authorityLayer: "P3",
+        unifiedDiff: "--- /dev/null\\n+++ requirements.md\\n@@ -0,0 +1 @@\\n+invalid\\n",
+        rationale: "must be rejected because the R1 Run cannot own R2 authority",
+      });
+
+      let rejectError = null;
+      try {
+        coord.rejectArtifactProposal(runtime, proposal.id);
+      } catch (caught) {
+        rejectError = caught instanceof Error ? caught.message : String(caught);
+      }
+      let adoptError = null;
+      try {
+        await coord.adoptArtifactProposal(runtime, proposal.id);
+      } catch (caught) {
+        adoptError = caught instanceof Error ? caught.message : String(caught);
+      }
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        rejectError,
+        adoptError,
+        dispositions: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+        ).length,
+        adoptionRequests: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ).length,
+        stage: coord.getWorkItem(runtime, workItem.id).stage,
+      }));
+      database.close();
+    `) as {
+      rejectError: string | null;
+      adoptError: string | null;
+      dispositions: number;
+      adoptionRequests: number;
+      stage: string;
+    };
+
+    expect(output.rejectError).toMatch(/proposal role must equal owning Run stage/);
+    expect(output.adoptError).toMatch(/proposal role must equal owning Run stage/);
+    expect(output.dispositions).toBe(0);
+    expect(output.adoptionRequests).toBe(0);
+    expect(output.stage).toBe("R1");
+  });
+
   it("serializes proposal adoption against free-form input", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-adopt-input-");
