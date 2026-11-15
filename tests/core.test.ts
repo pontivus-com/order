@@ -1860,6 +1860,32 @@ describe("closed Workbench workflow-state kernel", () => {
       classification: "REVIEW_FAILURE",
     });
 
+    const foreignFailure = RunEventSchema.parse({
+      id: "event_13131313-1313-4313-8313-131313131313",
+      runId: "run_14141414-1414-4414-8414-141414141414",
+      sequence: 1,
+      occurredAt: "2026-11-11T03:33:04.000Z",
+      event: {
+        tag: "VALIDATION_FAILED",
+        stage: "V4",
+        classification: "REVIEW_FAILURE",
+        summary: "foreign task failure",
+        evidence: [],
+      },
+    });
+    const foreignTriggeredRemediator = RunSchema.parse({
+      ...remediator,
+      triggerEventId: foreignFailure.id,
+    });
+    expect(() =>
+      deriveValidationBoundary(
+        owner,
+        [runningTask],
+        [run, reviewerOne, reviewerTwo, foreignTriggeredRemediator],
+        [candidateEvent, foreignFailure, ...remediationPreflight],
+      ),
+    ).toThrow(/current ExecutionTask/);
+
     const replacementCandidate = RunEventSchema.parse({
       id: "event_ffffffff-ffff-4fff-8fff-ffffffffffff",
       runId: remediator.id,
