@@ -267,6 +267,7 @@ export const SourceDocumentMaterial = ({
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
+  const queryClient = useQueryClient();
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
     readOnly ||
@@ -321,10 +322,14 @@ export const SourceDocumentMaterial = ({
         }}
         onSave={async (expectedSha256, value) => {
           try {
-            return await api.saveWorkItemSourceBody(workItem.id, {
+            const result = await api.saveWorkItemSourceBody(workItem.id, {
               expectedSha256,
               bodyMarkdown: value,
             });
+            if (result.tag === "UPDATED") {
+              await invalidateWorkbenchMutation(queryClient, workItem.id);
+            }
+            return result;
           } catch (error) {
             onMutationError?.(error);
             throw error;
@@ -371,6 +376,7 @@ export const LifecycleDocumentMaterial = ({
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
   onMutationError?: (error: unknown) => void;
 }>) => {
+  const queryClient = useQueryClient();
   const [dirty, setDirty] = useState(false);
   const artifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
@@ -458,10 +464,14 @@ export const LifecycleDocumentMaterial = ({
           }}
           onSave={async (expectedSha256, value) => {
             try {
-              return await api.saveArtifactContent(selectedArtifact.id, {
+              const result = await api.saveArtifactContent(selectedArtifact.id, {
                 expectedSha256,
                 markdown: value,
               });
+              if (result.tag === "UPDATED") {
+                await invalidateWorkbenchMutation(queryClient, workItem.id);
+              }
+              return result;
             } catch (error) {
               onMutationError?.(error);
               throw error;
