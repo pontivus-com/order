@@ -5,8 +5,8 @@ import * as api from "./http.ts";
 import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 
-export const ActivityComposer = ({ run, pending, onSubmitted, onError }: Readonly<{
-  run: Run; pending: RunEvent | null; onSubmitted: () => Promise<void>; onError?: (error: unknown) => void;
+export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSubmitted, onError }: Readonly<{
+  run: Run; pending: RunEvent | null; mutationsDisabled?: boolean; onSubmitted: () => Promise<void>; onError?: (error: unknown) => void;
 }>) => {
   const input = useMutation({
     mutationFn: (text: string) => {
@@ -23,7 +23,7 @@ export const ActivityComposer = ({ run, pending, onSubmitted, onError }: Readonl
         <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your input is needed" : "Continue current work"}</strong>
         <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.event.question : "Send the next instruction or answer for this interactive activity."}</span>
       </div>
-      <ChatComposer onSubmit={(value) => { if (value.trim().length > 0) input.mutate(value); }} placeholder="Answer and continue" isDisabled={input.isPending} elevation="none" />
+      <ChatComposer onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }} placeholder="Answer and continue" isDisabled={mutationsDisabled || input.isPending} elevation="none" />
     </div>
   );
 };
