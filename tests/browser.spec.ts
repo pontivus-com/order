@@ -760,6 +760,12 @@ test("valid external Work request drift keeps source reconciliation distinct fro
     name: "Reconcile source authority",
   });
   await expect(reconcile).toBeVisible();
+  const staleSignoff = page.getByRole("button", {
+    name: "Sign off exact package",
+  });
+  if (await staleSignoff.count()) {
+    await expect(staleSignoff).toBeDisabled();
+  }
   await reconcile.click();
   await expect.poll(() => sourceReconcileCalled).toBe(true);
   expect(authorityReconcileCalled).toBe(false);
