@@ -1090,6 +1090,7 @@ export const WorkItemWorkspace = ({
             onOpenSupportingMaterial={openSupportingMaterial}
             onReturnFromTransient={returnFromTransient}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={reportMutationError}
           />
         </Suspense>
       ) : selectedStep === "R3" ? (
@@ -1113,6 +1114,7 @@ export const WorkItemWorkspace = ({
             onOpenEvidence={openEvidence}
             onReturnFromTransient={returnFromTransient}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={reportMutationError}
           />
         </Suspense>
       ) : selectedStep === "AWAITING_SIGNOFF" ? (
@@ -1123,6 +1125,7 @@ export const WorkItemWorkspace = ({
             mutationsDisabled={workflowMutationsDisabled}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={reportMutationError}
           />
         </Suspense>
       ) : selectedStep === "EXECUTION" ? (
@@ -1139,6 +1142,7 @@ export const WorkItemWorkspace = ({
               })}
             onOpenEvidence={openEvidence}
             onReturnFromEvidence={returnFromTransient}
+            onMutationError={reportMutationError}
           />
         </Suspense>
       ) : selectedStep === "COMPLETE" && material.kind !== "EVIDENCE" ? (
