@@ -430,7 +430,7 @@ Order-owned provider configuration is supplied through the pinned process-level 
 
 This is a closed admission model, not a closed capability model: required context and tools are deliberately available, while unselected ambient host/user configuration is not. The selected trusted integration/server set is itself the operator trust decision; Order does not attempt to infer external MCP side-effect semantics from tool names.
 
-## 8. Provider-visible file-set law
+### 14.1 Provider-visible file-set law
 
 The productive internal workspace is intentionally narrower than the physical source directory.
 
@@ -453,7 +453,7 @@ A tracked file is project material even when a later ignore rule matches its pat
 
 An untracked ignored file is not provider-visible project material merely because the provider could guess its physical source path.
 
-## 9. Instruction semantics
+### 14.2 Instruction semantics
 
 Repository AGENTS.md is not a second authority mechanism.
 
@@ -477,7 +477,7 @@ OpenCode's synthetic instruction message is therefore only a provider rendering 
 
 If an AGENTS.md is legitimate project instruction material but is not declared/resolved at P1, the correct result is an actionable precondition failure telling the project to resolve its authority map. Order does not make the file authoritative automatically.
 
-## 10. Role matrix
+### 14.3 Role matrix
 
 | Role/path | Internal workspace | Repository tools | Trusted integration capabilities | External refs | Instruction closure |
 |---|---|---|---|---|---|
@@ -492,11 +492,11 @@ If an AGENTS.md is legitimate project instruction material but is not declared/r
 | Format repair | already admitted session | no tools | none | none | inherits admitted session |
 | Account/model control | private non-project control workspace | non-productive integration operations | account/integration control only | none | project instruction closure not applicable |
 
-## 11. Required permanent test matrix
+### 14.4 Required permanent test matrix
 
 The following cases are minimum certification, not examples to sample from.
 
-### 11.1 Instruction discovery/materialization
+#### 14.4.1 Instruction discovery/materialization
 
 1. root tracked AGENTS.md resolved as P1 -> admitted;
 2. nested tracked AGENTS.md resolved as P1 -> admitted and exact bytes present;
@@ -511,7 +511,7 @@ The following cases are minimum certification, not examples to sample from.
 11. ignored directory name unrelated to JavaScript package managers -> same behavior, proving no node_modules special case;
 12. tracked file inside an otherwise ignored-looking path -> remains included as tracked project material.
 
-### 11.2 Provider read/search containment
+#### 14.4.2 Provider read/search containment
 
 13. direct read of a guessed ignored dependency path that exists only in the physical source repo -> unavailable from provider workspace;
 14. glob cannot return physical-source ignored dependency material absent from workspace;
@@ -524,7 +524,7 @@ The following cases are minimum certification, not examples to sample from.
 21. external reference root containing AGENTS.md does not add that file to project P1/instruction closure and does not trigger nearby instruction injection;
 22. Builder/Reviewer/Remediator external-directory access remains denied.
 
-### 11.3 Mutating-role instruction safety
+#### 14.4.3 Mutating-role instruction safety
 
 23. existing AGENTS.md path in ExecutionTask.changeSurface -> rejected before productive execution;
 24. nonexistent future path ending in AGENTS.md in changeSurface -> rejected before productive execution;
@@ -532,7 +532,7 @@ The following cases are minimum certification, not examples to sample from.
 26. candidate deleting/modifying signed AGENTS.md -> candidate rejected;
 27. remediation cannot broaden a task to instruction-file mutation.
 
-### 11.4 Every productive role
+#### 14.4.4 Every productive role
 
 28. Research productive session succeeds on a realistic installed repository with ignored dependencies;
 29. Requirements productive session succeeds through the same shared admission;
@@ -544,7 +544,7 @@ The following cases are minimum certification, not examples to sample from.
 35. Remediator productive session uses shared admission and exact edit permission;
 36. format-repair turn has deny-all tools after an otherwise admitted session.
 
-### 11.5 Failure-origin classification
+#### 14.4.5 Failure-origin classification
 
 37. unresolved project AGENTS.md -> PRECONDITION_FAILED, never PROVIDER_FAILED;
 38. workspace materialization failure -> PRECONDITION_FAILED, never PROVIDER_FAILED;
@@ -557,7 +557,7 @@ The following cases are minimum certification, not examples to sample from.
 45. invalid provider output after the one permitted format-repair path -> PROVIDER_FAILURE;
 46. coordinator restart/interruption -> COORDINATOR_INTERRUPTED, not PROVIDER_FAILURE.
 
-### 11.6 Freshness and restart
+#### 14.4.6 Freshness and restart
 
 47. repository project-visible bytes unchanged, ignored dependency bytes changed -> same admitted STAGE material identity;
 48. tracked/non-ignored project byte changes during an interactive STAGE session -> resumed productive turn detects staleness and does not use a silently changed workspace;
@@ -566,13 +566,13 @@ The following cases are minimum certification, not examples to sample from.
 51. daemon restart does not reuse a lost provider process/session as hidden correctness state;
 52. retried Run reconstructs provider workspace/instruction closure from canonical current state.
 
-### 11.7 Account/control isolation
+#### 14.4.7 Account/control isolation
 
 53. OpenCode account-control workspace contains no target-repository project instructions;
 54. saved-account listing/login/switch/rename/remove do not enumerate target repository AGENTS.md;
 55. account-control failure cannot be confused with productive repository-instruction admission.
 
-### 11.8 Architecture/certification sensors
+#### 14.4.8 Architecture/certification sensors
 
 56. architecture test proves STAGE and execution productive paths both call the shared admission owner;
 57. architecture test rejects a second unrestricted AGENTS.md filesystem scanner in productive source;
@@ -580,7 +580,7 @@ The following cases are minimum certification, not examples to sample from.
 59. architecture test proves task instruction-path mutation rejection remains wired;
 60. release/certification run executes the full opencode integration test set on the final candidate.
 
-### 11.9 Complete model-context/trusted-integration closure
+#### 14.4.9 Complete model-context/trusted-integration closure
 
 61. fresh productive session contains no unexpected API-managed instruction entries before the first prompt;
 62. production source has no ungoverned session-instruction-entry write path;
