@@ -4764,4 +4764,377 @@ describe("daemon control plane", () => {
     expect(output.afterResume.runs).toHaveLength(1);
     expect(output.afterResume.runs[0]?.status).toBe("CANCELLED");
   }, 30_000);
+
+  it("serializes concurrent Start commands to exactly one Run", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-start-start-");
+    const binary = createFakeOpenCode("fix");
+
+    const output = bunEval(\`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "concurrent start",
+        concernIds: ["shell"],
+      });
+      const settled = await Promise.allSettled([
+        coord.startStageRun(runtime, created.id, "INTERACTIVE"),
+        coord.startStageRun(runtime, created.id, "INTERACTIVE"),
+      ]);
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const runs = coord.listRuns(runtime, created.id);
+      const active = runs.find((run) =>
+        run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"
+      );
+      if (active) await coord.cancelRun(runtime, active.id);
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        rejected: settled
+          .filter((entry) => entry.status === "rejected")
+          .map((entry) => String(entry.reason)),
+        runCount: runs.length,
+      }));
+      database.close();
+    \`, providerEnvironment(binary, state)) as {
+      states: string[];
+      rejected: string[];
+      runCount: number;
+    };
+
+    expect(output.states.filter((state) => state === "fulfilled")).toHaveLength(1);
+    expect(output.states.filter((state) => state === "rejected")).toHaveLength(1);
+    expect(output.runCount).toBe(1);
+  }, 30_000);
+
+  it("serializes source Save against Start without partial lifecycle mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-save-start-");
+    const binary = createFakeOpenCode("fix");
+
+    const output = bunEval(\`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "save versus start",
+        concernIds: ["shell"],
+      });
+      const source = await coord.getWorkItemSource(runtime, created.id);
+      const body = source.bodyMarkdown.replace(
+        "## Current context\\n",
+        "## Current context\\nSaved before Start wins the mutation guard.\\n",
+      );
+      const settled = await Promise.allSettled([
+        coord.saveSourceBody(runtime, created.id, {
+          expectedSha256: source.sha256,
+          bodyMarkdown: body,
+        }),
+        coord.startStageRun(runtime, created.id, "INTERACTIVE"),
+      ]);
+      const current = coord.getWorkItem(runtime, created.id);
+      const saved = await coord.getWorkItemSource(runtime, created.id);
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        current: { stage: current.stage, status: current.status },
+        runCount: coord.listRuns(runtime, created.id).length,
+        body: saved.bodyMarkdown,
+      }));
+      database.close();
+    \`, providerEnvironment(binary, state)) as {
+      states: string[];
+      current: { stage: string; status: string };
+      runCount: number;
+      body: string;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.current).toEqual({ stage: "IDEA", status: "ACTIVE" });
+    expect(output.runCount).toBe(0);
+    expect(output.body).toContain("Saved before Start wins the mutation guard.");
+  }, 30_000);
+
+  it("serializes duplicate human input to one accepted response", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-input-input-");
+    const binary = createFakeOpenCode("stage-delay");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "duplicate input",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const context = await authority.resolveStageContext(runtime, workItem, "R1");
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "WAITING_FOR_INPUT",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(\${JSON.stringify(repository)}),
+        contextHash: context.contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: context.contextHash,
+      });
+      const request = runStore.appendRunEvent(runtime, run.id, {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "Choose once",
+      });
+      const settled = await Promise.allSettled([
+        coord.submitRunInput(runtime, run.id, "first answer", request.id),
+        coord.submitRunInput(runtime, run.id, "second answer", request.id),
+      ]);
+      fs.writeFileSync(\${JSON.stringify(providerRelease)}, "release");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const current = coord.getRun(runtime, run.id);
+      if (current.status === "RUNNING" || current.status === "WAITING_FOR_INPUT") {
+        await coord.cancelRun(runtime, run.id);
+      }
+      const received = coord.listRunEvents(runtime, run.id)
+        .filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED");
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        received: received.map((event) =>
+          event.event.tag === "HUMAN_INPUT_RECEIVED" ? event.event.text : null
+        ),
+      }));
+      database.close();
+    \`, providerEnvironment(binary, state)) as {
+      states: string[];
+      received: (string | null)[];
+    };
+
+    expect(output.states.filter((state) => state === "fulfilled")).toHaveLength(1);
+    expect(output.states.filter((state) => state === "rejected")).toHaveLength(1);
+    expect(output.received).toEqual(["first answer"]);
+  }, 30_000);
+
+  it("serializes human input against Cancel and preserves one command winner", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-input-cancel-");
+    const binary = createFakeOpenCode("stage-delay");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "input versus cancel",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const context = await authority.resolveStageContext(runtime, workItem, "R1");
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "WAITING_FOR_INPUT",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(\${JSON.stringify(repository)}),
+        contextHash: context.contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: context.contextHash,
+      });
+      const request = runStore.appendRunEvent(runtime, run.id, {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "Answer before cancel",
+      });
+      const input = coord.submitRunInput(runtime, run.id, "accepted answer", request.id);
+      const cancel = coord.cancelRun(runtime, run.id);
+      const settled = await Promise.allSettled([input, cancel]);
+      fs.writeFileSync(\${JSON.stringify(providerRelease)}, "release");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const beforeCleanup = coord.getRun(runtime, run.id);
+      if (beforeCleanup.status === "RUNNING" || beforeCleanup.status === "WAITING_FOR_INPUT") {
+        await coord.cancelRun(runtime, run.id);
+      }
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        receivedCount: coord.listRunEvents(runtime, run.id)
+          .filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED").length,
+        beforeCleanupStatus: beforeCleanup.status,
+      }));
+      database.close();
+    \`, providerEnvironment(binary, state)) as {
+      states: string[];
+      receivedCount: number;
+      beforeCleanupStatus: string;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.receivedCount).toBe(1);
+    expect(output.beforeCleanupStatus).toBe("RUNNING");
+  }, 30_000);
+
+  it("makes Cancel win over a delayed provider finalization without lifecycle mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-provider-cancel-");
+    const binary = createFakeOpenCode("stage-complete-delay");
+    const providerStarted = join(binary, "..", "provider-started");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "provider finalization versus cancel",
+        concernIds: ["shell"],
+      });
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      for (
+        let attempt = 0;
+        attempt < 500 && !fs.existsSync(\${JSON.stringify(providerStarted)});
+        attempt += 1
+      ) {
+        await Bun.sleep(10);
+      }
+      const cancelled = await coord.cancelRun(runtime, run.id);
+      fs.writeFileSync(\${JSON.stringify(providerRelease)}, "release");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const finalRun = coord.getRun(runtime, run.id);
+      const finalWorkItem = coord.getWorkItem(runtime, created.id);
+      const completions = coord.listRunEvents(runtime, run.id)
+        .filter((event) => event.event.tag === "STAGE_COMPLETED").length;
+      console.log(JSON.stringify({
+        cancelled: cancelled.status,
+        finalRun: finalRun.status,
+        finalWorkItem: {
+          stage: finalWorkItem.stage,
+          status: finalWorkItem.status,
+        },
+        completions,
+      }));
+      database.close();
+    \`, providerEnvironment(binary, state), 30_000) as {
+      cancelled: string;
+      finalRun: string;
+      finalWorkItem: { stage: string; status: string };
+      completions: number;
+    };
+
+    expect(output.cancelled).toBe("CANCELLED");
+    expect(output.finalRun).toBe("CANCELLED");
+    expect(output.finalWorkItem).toEqual({ stage: "R1", status: "ACTIVE" });
+    expect(output.completions).toBe(0);
+  }, 30_000);
+
 });
