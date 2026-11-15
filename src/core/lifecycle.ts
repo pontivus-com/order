@@ -422,7 +422,9 @@ export const stageRunInteraction = (
   if (triggerIndex < 0) {
     throw new TypeError("STAGE Run has no provider-turn trigger");
   }
-  const result = history.slice(triggerIndex + 1);
+  const result = history
+    .slice(triggerIndex + 1)
+    .filter((event) => event.event.tag !== "PROVIDER_DIAGNOSTICS_RECORDED");
   if (result.length === 0) return { tag: "PROCESSING" };
   if (
     result.some(
