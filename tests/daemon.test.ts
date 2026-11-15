@@ -5454,7 +5454,6 @@ describe("daemon control plane", () => {
           JSON.stringify(projectionAfter) === JSON.stringify(projectionBefore),
         bytesUnchanged: bytesAfter === bytesBefore,
         canonicalTitle: projectionAfter.title,
-        inspectedTitle: inspected.metadata.title ?? null,
       }));
       database.close();
     \`) as {
@@ -5462,7 +5461,6 @@ describe("daemon control plane", () => {
       projectionUnchanged: boolean;
       bytesUnchanged: boolean;
       canonicalTitle: string;
-      inspectedTitle: string | null;
     };
 
     expect(output.inspectedChanged).toBe(true);
