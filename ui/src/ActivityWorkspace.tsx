@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Run, RunEvent, WorkItem } from "../../src/core/contracts.ts";
-import { stageRunInteraction } from "../../src/core/lifecycle.ts";
+import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
@@ -39,8 +39,10 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
+export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId, currentInteraction, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
   workItem: WorkItem; stage: PreSignoffStage; selectedRunId: Run["id"] | null;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
   mutationsDisabled?: boolean;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -70,23 +72,8 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisa
     refetchInterval: selectedRun && runIsActive(selectedRun) ? 1000 : false,
   });
   const events = eventsQuery.data ?? [];
-  const currentRun =
-    workItem.stage === stage ? latestStageRun(stageRuns, stage) : null;
-  const selectedIsCurrent = selectedRun?.id === currentRun?.id;
-  let interaction: ReturnType<typeof stageRunInteraction> | null = null;
-  let interactionError: unknown = null;
-  if (
-    selectedRun !== null &&
-    selectedIsCurrent &&
-    !eventsQuery.isPending &&
-    !eventsQuery.isError
-  ) {
-    try {
-      interaction = stageRunInteraction(selectedRun, events);
-    } catch (error) {
-      interactionError = error;
-    }
-  }
+  const selectedIsCurrent = selectedRun?.id === currentRunId;
+  const interaction = selectedIsCurrent ? currentInteraction : null;
   const pending: RunEvent | null =
     interaction?.tag === "REQUIRED_INPUT"
       ? events.find((event) => event.id === interaction.requestEventId) ?? null
@@ -124,7 +111,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisa
       interaction?.tag === "OPEN" ||
       interaction?.tag === "REQUIRED_INPUT"
     );
-  const actionError = interactionError ?? inputError ?? cancel.error;
+  const actionError = inputError ?? cancel.error;
   const sessionStatus = openCodeSessionStatus(selectedRun);
   const technical = (
     <dl>
