@@ -778,6 +778,33 @@ const validationOrder: readonly ValidationStage[] = [
   "V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7",
 ];
 
+const validationBoundaryFromEvents = (
+  validationEvents: readonly RunEvent[],
+): ValidationBoundary => {
+  const failure = [...validationEvents]
+    .filter((event) => event.event.tag === "VALIDATION_FAILED")
+    .at(-1);
+  if (failure?.event.tag === "VALIDATION_FAILED") {
+    return {
+      tag: "FAILED_AT",
+      stage: failure.event.stage,
+      classification: failure.event.classification,
+    };
+  }
+
+  const passed = new Set(
+    validationEvents.flatMap((event) =>
+      event.event.tag === "VALIDATION_PASSED" ? [event.event.stage] : [],
+    ),
+  );
+  let last: ValidationStage | null = null;
+  for (const stage of validationOrder) {
+    if (!passed.has(stage)) break;
+    last = stage;
+  }
+  return last === null ? { tag: "NONE" } : { tag: "PASSED_THROUGH", stage: last };
+};
+
 export const deriveValidationBoundary = (
   owner: ExecutionOwner,
   tasks: readonly ExecutionTask[],
@@ -790,39 +817,72 @@ export const deriveValidationBoundary = (
   if (task.state === "CANDIDATE_DONE" || task.state === "ALREADY_SATISFIED") {
     return { tag: "COMPLETE" };
   }
-  const run = [...runs]
+
+  const taskRuns = [...runs]
     .filter((candidate) => candidate.executionTaskId === task.id)
     .sort(
       (left, right) =>
-        right.attempt - left.attempt ||
-        right.startedAt.localeCompare(left.startedAt) ||
-        right.id.localeCompare(left.id),
-    )
-    .at(0);
+        left.attempt - right.attempt ||
+        left.startedAt.localeCompare(right.startedAt) ||
+        left.id.localeCompare(right.id),
+    );
+  const run = taskRuns.at(-1);
   if (run === undefined) return { tag: "NONE" };
-  const runEvents = events.filter((event) => event.runId === run.id);
-  const failure = [...runEvents]
-    .filter((event) => event.event.tag === "VALIDATION_FAILED")
-    .sort((left, right) => right.sequence - left.sequence)
-    .at(0);
-  if (failure?.event.tag === "VALIDATION_FAILED") {
+  const runEvents = events
+    .filter((event) => event.runId === run.id)
+    .sort((left, right) => left.sequence - right.sequence);
+
+  const ownFailure = runEvents.findLast(
+    (event) => event.event.tag === "VALIDATION_FAILED",
+  );
+  if (ownFailure?.event.tag === "VALIDATION_FAILED") {
     return {
       tag: "FAILED_AT",
-      stage: failure.event.stage,
-      classification: failure.event.classification,
+      stage: ownFailure.event.stage,
+      classification: ownFailure.event.classification,
     };
   }
-  const passed = new Set(
-    runEvents.flatMap((event) =>
-      event.event.tag === "VALIDATION_PASSED" ? [event.event.stage] : [],
-    ),
+
+  const candidate = runEvents.findLast(
+    (event) => event.event.tag === "CANDIDATE_STATE_RECORDED",
   );
-  let last: ValidationStage | null = null;
-  for (const stage of validationOrder) {
-    if (!passed.has(stage)) break;
-    last = stage;
+  if (candidate !== undefined) {
+    return { tag: "NONE" };
   }
-  return last === null ? { tag: "NONE" } : { tag: "PASSED_THROUGH", stage: last };
+
+  if (run.role === "REMEDIATOR") {
+    if (run.triggerEventId === null) {
+      throw new TypeError("REMEDIATOR validation boundary requires triggering failure");
+    }
+    const trigger = events.find((event) => event.id === run.triggerEventId);
+    if (trigger?.event.tag !== "VALIDATION_FAILED") {
+      throw new TypeError("REMEDIATOR trigger must identify VALIDATION_FAILED");
+    }
+    return {
+      tag: "FAILED_AT",
+      stage: trigger.event.stage,
+      classification: trigger.event.classification,
+    };
+  }
+
+  if (run.role === "REVIEWER") {
+    if (run.triggerEventId === null) {
+      throw new TypeError("REVIEWER validation boundary requires candidate trigger");
+    }
+    const reviewerRuns = taskRuns.filter(
+      (candidateRun) =>
+        candidateRun.role === "REVIEWER" &&
+        candidateRun.triggerEventId === run.triggerEventId,
+    );
+    const candidateValidationEvents = reviewerRuns.flatMap((candidateRun) =>
+      events
+        .filter((event) => event.runId === candidateRun.id)
+        .sort((left, right) => left.sequence - right.sequence)
+    );
+    return validationBoundaryFromEvents(candidateValidationEvents);
+  }
+
+  return validationBoundaryFromEvents(runEvents);
 };
 
 const latestCurrentStageRun = (
