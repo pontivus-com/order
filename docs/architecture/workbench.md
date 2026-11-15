@@ -626,7 +626,95 @@ The target Order-local structural primitives under `ui/src/primitives/` are:
 
 The exact filenames may be combined only when two rows remain one independently testable responsibility; their semantic APIs/invariants may not be collapsed into a generic "panel/layout with arbitrary slots" primitive.
 
-### 8.13 Primitive API laws
+### 8.13 Target primitive API shapes
+
+The primitive APIs are intentionally narrow. The following shapes are normative at the semantic level; P7 may adjust React typing syntax without adding another structural degree of freedom.
+
+```ts
+WorkbenchLayout({
+  toolbar,
+  identity,
+  workflowRail,
+  primary,
+  context: {
+    open,
+    onOpenChange,
+    content,
+  } | null,
+})
+```
+
+There is no generic `children`-only outer Workbench contract and no `start`/`left`/`sidebar` slot. The primitive owns the named CSS grid areas and responsive Context behavior.
+
+```ts
+WorkbenchRail({
+  items: ReadonlyArray<{
+    id,
+    label,
+    state,
+    selected,
+    onSelect,
+  }>,
+})
+```
+
+The caller supplies semantic item presentation only. The primitive owns equal-cell geometry and constrained-width scrolling. It exposes no per-item width.
+
+```ts
+WorkbenchSurface({
+  attention,
+  selector?,   // compact/non-structural only
+  material,
+})
+```
+
+It exposes no persistent `start`, `aside`, `master`, `columns` or breakpoint props. `selector` is always rendered inside the surface control/header region and cannot change primary x-position/width.
+
+```ts
+WorkbenchSelector({
+  label,
+  groups,
+})
+```
+
+Groups/items contain generic id/label/description/status/selected/onSelect presentation only. The primitive chooses inline/disclosure/drawer representation from the shared responsive class. Item count never selects another topology.
+
+```ts
+WorkbenchReview({
+  currentness,
+  summary,
+  body,
+  decisions,
+  technicalDetails?,
+  selector?,
+})
+```
+
+`technicalDetails` is on-demand/collapsed by primitive behavior. There is no navigation/sidebar slot.
+
+```ts
+WorkbenchMasterDetail({
+  master,
+  detail,
+  masterLabel,
+})
+```
+
+The master is required by the interaction-class choice and uses the single Workbench master-width token. There is no `masterWidth`, `collapseAt`, `showMasterWhen` or collection-count prop.
+
+```ts
+WorkbenchContextPanel({
+  title,
+  onClose,
+  children,
+})
+```
+
+The Context body may contain secondary metadata/diagnostics only. The enclosing `WorkbenchLayout` chooses wide inspector versus constrained drawer/overlay; the feature does not.
+
+These APIs are purposefully **less flexible** than raw Astryx Layout/Drawer primitives. If a feature cannot be expressed through them, the first question is which existing interaction class it belongs to. Adding a generic structural slot/variant is an architecture change and requires DESIGN review, not a local convenience edit.
+
+### 8.14 Primitive API laws
 
 Structural primitives obey all of the following:
 
@@ -641,7 +729,7 @@ Structural primitives obey all of the following:
 9. **Accessible behavior is primitive-owned:** drawer focus/escape, Context close, rail scrolling semantics and selector disclosure behavior are implemented once in the primitive responsible for that behavior.
 10. **Astryx containment:** Astryx remains the low-level interaction substrate. Workbench feature surfaces do not import structural Astryx `Layout` or `Drawer` directly; those capabilities are wrapped by the local structural primitives. Presentational Astryx components such as Badge/Table/CodeBlock may remain feature-local where they do not create Workbench topology.
 
-### 8.14 Interaction-class composition map
+### 8.15 Interaction-class composition map
 
 The functional interaction classes in `GW-DOC-WORKBENCH-UX-V2 §13` map to the primitive vocabulary exactly:
 
@@ -686,7 +774,7 @@ Safety/exception
 
 A feature service is therefore predictable: choose its functional interaction class, map canonical data/current attention into the corresponding primitive slots, and add domain-specific content. It does not design a new layout.
 
-### 8.15 Primitive-consumer boundaries
+### 8.16 Primitive-consumer boundaries
 
 The target feature relationship is:
 
