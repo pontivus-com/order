@@ -720,7 +720,7 @@ Groups/items contain generic id/label/description/status/selected/onSelect prese
 ```ts
 WorkbenchDialogue({
   transcript,
-  composer,
+  composer?,   // present only when the feature has already derived an admissible input action
   state?,
 })
 ```
@@ -1344,6 +1344,9 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - Readiness/Approval review hierarchy without generic side-index dominance;
 - explicit open **and close** Context behavior;
 - wide identity-row three-group geometry;
+- Dialogue transcript/composer geometry remains stable across active/historical state and wide/medium/narrow recomposition; absence of an admissible composer does not create another screen topology;
+- dirty/destructive confirmation uses one accessible modal mechanic with focus return and leaves the underlying primary screen mounted;
+- every P3 primary interaction class and auxiliary class is exercised through its §8.15 canonical primitive composition;
 - responsive continuity with no page-level horizontal overflow for current action/identity.
 
 ### 14.6 Architecture fitness
