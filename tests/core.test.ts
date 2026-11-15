@@ -1430,6 +1430,30 @@ describe("closed Workbench workflow-state kernel", () => {
     const reached = deriveReachedStages(plan, [readinessRun], [], [], []);
     expect(reached.has("R3")).toBe(true);
     expect(reached.has("R2")).toBe(false);
+
+    const readinessCompleted = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: readinessRun.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "STAGE_COMPLETED",
+        completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+        artifactRefIds: [],
+      },
+    });
+    const returnedUpstream = deriveReachedStages(
+      plan,
+      [readinessRun],
+      [readinessCompleted],
+      [],
+      [],
+    );
+    expect(returnedUpstream.has("R3")).toBe(true);
+    expect(returnedUpstream.has("AWAITING_SIGNOFF")).toBe(true);
+    expect(
+      reachStateForStage(plan, returnedUpstream, "AWAITING_SIGNOFF"),
+    ).toBe("REACHED_HISTORICAL");
   });
 
   it("derives execution owner and current-candidate validation boundary independently of selection", () => {
