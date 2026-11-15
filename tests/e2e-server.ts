@@ -145,6 +145,7 @@ writeFileSync(join(repositoryRoot, "docs", "r1.md"), "# R1 confirmed\n");
 writeFileSync(join(repositoryRoot, "docs", "r2.md"), "# R2 accepted\n");
 writeFileSync(join(repositoryRoot, "docs", "design.md"), "# DESIGN accepted\n");
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+writeFileSync(join(repositoryRoot, "docs", "stale-approval-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-wide-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-narrow-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "r3.md"), r3Text);
@@ -544,7 +545,11 @@ const seedConformance = async (
 
 const seedLifecycle = async (
   item: ReturnType<typeof workItem>,
-  planPath: "docs/plan.md" | "docs/long-wide-plan.md" | "docs/long-narrow-plan.md" = "docs/plan.md",
+  planPath:
+    | "docs/plan.md"
+    | "docs/stale-approval-plan.md"
+    | "docs/long-wide-plan.md"
+    | "docs/long-narrow-plan.md" = "docs/plan.md",
 ) => {
   const outputs = {
     R1: await currentFileArtifact(seedRuntime, item, "docs/r1.md", "R1", "P1"),
@@ -852,6 +857,15 @@ const signoffItem = workItem("Awaiting sign-off", "AWAITING_SIGNOFF", "ACTIVE", 
 storeWorkItem(database, signoffItem);
 const signoffOutputs = await seedLifecycle(signoffItem);
 
+const staleApprovalItem = workItem(
+  "Stale approval recovery",
+  "AWAITING_SIGNOFF",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, staleApprovalItem);
+await seedLifecycle(staleApprovalItem, "docs/stale-approval-plan.md");
+
 const sourceEditorItem = workItem(
   "Source editing workbench",
   "AWAITING_SIGNOFF",
@@ -884,6 +898,11 @@ for (const [title, planPath] of [
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
+
+writeFileSync(
+  join(repositoryRoot, "docs", "stale-approval-plan.md"),
+  "# Browser certification plan\n\nstale after conformance\n",
+);
 
 const invalidLifecycleItem = workItem(
   "Invalid lifecycle Markdown",
