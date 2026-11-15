@@ -117,6 +117,7 @@ const useDocumentationGitState = (
       setConfirmGitSave(false);
       await invalidateDocumentation();
     },
+    onError: invalidateDocumentation,
   });
 
   return {
@@ -317,12 +318,14 @@ export const SourceDocumentMaterial = ({
           onDirtyChange(value);
         }}
         onSave={async (expectedSha256, value) => {
-          const result = await api.saveWorkItemSourceBody(workItem.id, {
-            expectedSha256,
-            bodyMarkdown: value,
-          });
-          await git.invalidateDocumentation();
-          return result;
+          try {
+            return await api.saveWorkItemSourceBody(workItem.id, {
+              expectedSha256,
+              bodyMarkdown: value,
+            });
+          } finally {
+            await git.invalidateDocumentation();
+          }
         }}
         toolbarAccessory={
           sourceReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
@@ -447,12 +450,14 @@ export const LifecycleDocumentMaterial = ({
             onDirtyChange(value);
           }}
           onSave={async (expectedSha256, value) => {
-            const result = await api.saveArtifactContent(selectedArtifact.id, {
-              expectedSha256,
-              markdown: value,
-            });
-            await git.invalidateDocumentation();
-            return result;
+            try {
+              return await api.saveArtifactContent(selectedArtifact.id, {
+                expectedSha256,
+                markdown: value,
+              });
+            } finally {
+              await git.invalidateDocumentation();
+            }
           }}
           toolbarAccessory={
             artifactReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
