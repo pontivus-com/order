@@ -6,7 +6,7 @@ import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 
 export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSubmitted, onError }: Readonly<{
-  run: Run; pending: RunEvent | null; mutationsDisabled?: boolean; onSubmitted: () => Promise<void>; onError?: (error: unknown) => void | Promise<void>;
+  run: Run; pending: RunEvent | null; mutationsDisabled?: boolean; onSubmitted: (event: RunEvent) => Promise<void>; onError?: (error: unknown) => void | Promise<void>;
 }>) => {
   const input = useMutation({
     mutationFn: (text: string) => {
