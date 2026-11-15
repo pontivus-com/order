@@ -170,7 +170,8 @@ Canonical mapping:
 | application canvas | `--color-background-body` |
 | persistent surface | `--color-background-surface` |
 | subtle/secondary surface | `--color-background-muted` |
-| ordinary boundary | `--color-border` / `--color-border-emphasized` according to foundation component contract |
+| ordinary foundation component boundary | `--color-border` inherited from the pinned built Neutral theme |
+| Order structural separation | `--color-border-emphasized` with the exact Order bridge value in §6.2 |
 | primary text | `--color-text-primary` |
 | muted/secondary text | `--color-text-secondary` |
 | current/selected/link/focus accent | `--color-text-accent`, `--color-icon-accent`, `--focus-outline-color` |
@@ -192,7 +193,7 @@ The fixed Order identity needs a neutral work surface and deep navy / Order-blue
 | `--color-background-body` | `#FFFFFF` | `#111A29` | application canvas |
 | `--color-background-surface` | `#FFFFFF` | `#111A29` | persistent surface |
 | `--color-background-muted` | `#F8FAFC` | `#172233` | subtle/selected-neutral surface |
-| `--color-border` / emphasized neutral boundary mapping | `#D9DEE8` | `#344256` | ordinary structural separation |
+| `--color-border-emphasized` | `#D9DEE8` | `#344256` | Order structural separation; ordinary foundation component boundaries continue to use inherited `--color-border` |
 | `--color-text-primary` | `#0F172A` | `#EDF3FA` | primary text |
 | `--color-text-secondary` | `#657187` | `#A9B8CD` | secondary/technical text |
 | `--color-accent` | `#1E3A8A` | `#385AC1` | filled primary action/current emphasis |
@@ -223,6 +224,7 @@ If P7 discovers that a required Order visual behavior needs an Astryx component 
 ### 6.4 Semantic role mapping
 
 - current/selected/link/focus -> accent plus readable structural/text indication;
+- ordinary component boundaries -> inherited `--color-border`; Order structural separators -> bridged `--color-border-emphasized`;
 - processing/information -> info;
 - ready/success/complete -> success;
 - waiting/stale/attention -> warning;
@@ -358,7 +360,7 @@ Component structure is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; th
 | section/material heading | heading token + stable subordinate description/action alignment |
 | workflow rail | component architecture owns geometry; theme owns accent/current/historical/unreached visual roles without changing cell size |
 | disclosure/technical detail | secondary/technical typography, muted role, bounded code treatment |
-| task panel/confirmation/overlay | Dialog/Drawer/AlertDialog chosen by the §8.12.1 interaction contract, inheriting foundation focus/dismissal/elevation mechanics and the same action language as the app |
+| task panel / Context overlay / confirmation | Task panel = Dialog; medium/narrow Context = Drawer; destructive/irreversible confirmation = AlertDialog. Each inherits the pinned foundation focus/dismissal/elevation mechanics; no caller chooses among them as interchangeable variants |
 | Markdown/code/evidence | content mechanics may differ; surrounding type/color/focus remains canonical |
 | source editor | specialist mechanics only; all colors/type/focus derive from canonical roles |
 
