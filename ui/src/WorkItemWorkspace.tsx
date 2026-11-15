@@ -695,6 +695,7 @@ export const WorkItemWorkspace = ({
       throw new TypeError("no stale authority owner is available for reconciliation");
     },
     onSuccess: invalidate,
+    onError: invalidate,
   });
 
   const setDirtyState = (value: boolean): void => {
@@ -825,7 +826,15 @@ export const WorkItemWorkspace = ({
                 ? resumeCurrent.error.message
                 : String(resumeCurrent.error),
             }
-          : currentAttention === "BLOCKER"
+          : reconcileAuthority.error
+            ? {
+                status: "error" as const,
+                title: "Could not reconcile current authority",
+                description: reconcileAuthority.error instanceof Error
+                  ? reconcileAuthority.error.message
+                  : String(reconcileAuthority.error),
+              }
+            : currentAttention === "BLOCKER"
             ? {
                 status: "error" as const,
                 title: selectedWorkflow.label + " is blocked",
