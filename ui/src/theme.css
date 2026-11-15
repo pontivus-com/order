@@ -186,7 +186,12 @@
 
 .order-workbench-surface {
   height: 100%;
-  min-height: 0;
+  min-height: calc(
+    100dvh
+    - var(--order-toolbar-height)
+    - var(--order-identity-height)
+    - var(--size-element-sm)
+  );
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
   background: var(--color-background-surface);
@@ -370,12 +375,7 @@
   min-height: 0;
 }
 .order-workitem-workspace {
-  height: calc(
-    100dvh
-    - var(--order-toolbar-height)
-    - var(--order-identity-height)
-    - var(--size-element-sm)
-  );
+  height: 100%;
   min-height: 0;
 }
 .order-queue-page {
