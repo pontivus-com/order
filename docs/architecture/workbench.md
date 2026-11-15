@@ -741,7 +741,7 @@ The master contains task scanning and subordinate attempt selection. The detail 
 
 Before validation evidence exists, the detail shows a compact validation state such as “Not started” rather than an eight-row V0–V7 table of identical “Not recorded” values. Once validation evidence exists, recorded/current validation stages are scan-visible and the complete matrix remains inspectable without overtaking the current task/action.
 
-On medium/narrow widths the master becomes a temporary drawer/stack before detail readability is compromised.
+On medium/narrow widths the `WorkbenchMasterDetail` master is a temporary Astryx `Drawer` from the inline start edge with `hasScrim={false}`, caller-owned open state and a visible close action; the detail remains the primary canvas behind it. It never switches to an alternate stacked master/detail topology.
 
 Historical task/attempt selection never displaces the independently derived current-attention owner.
 
@@ -753,7 +753,7 @@ The WorkItem-level Context control is a true toggle with `aria-expanded` semanti
 
 At wide width Context uses one fixed bounded context-width token. Opening/closing Context is the only state-driven addition/removal of this trailing column.
 
-Medium/narrow use a drawer/overlay and do not compress the primary canvas.
+Medium/narrow use the `WorkbenchContextPanel` Astryx `Drawer` overlay from the inline end edge and do not compress the primary canvas.
 
 Canonical diagnostics never auto-open or auto-close Context.
 
@@ -806,7 +806,7 @@ The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 | `WorkbenchSelector` | compact subordinate single-material selection over Astryx `Selector`; uses the `secondary` visual variant and `presentation="adaptive"` so the same control owns anchored-pointer versus compact-touch bottom-sheet presentation | item count never changes surrounding columns; no persistent rail mode; no feature-selected Drawer/Popover/BottomSheet substrate |
 | `WorkbenchDialogue` | transcript scrolling, anchored composer region, focus/keyboard continuity and empty/pending slots | no Run/RunEvent/query ownership; no input-admission policy |
 | `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
-| `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and constrained collapse | no caller master width; no collection-count activation |
+| `WorkbenchMasterDetail` | the one legal operational master/detail topology: fixed docked master on wide; medium/narrow master uses Astryx `Drawer side="start" hasScrim={false}` with visible close/focus return while detail remains primary | no caller master width/presentation choice; no collection-count activation; no stacked alternative |
 | `WorkbenchContextPanel` | secondary metadata/diagnostic body + explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
 | `WorkbenchTaskPanel` | one bounded operator Form/configuration task over Astryx `Dialog` with fixed `purpose="form"`; caller owns open state/content, foundation owns focus/dismissal mechanics | no Drawer fallback in the current grammar; no caller-selected Dialog purpose; no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute; no nested modal stack; a future full-height side task requires DESIGN rather than a hidden variant |
 | `WorkbenchSettingsLayout` | Settings-only navigation/content composition with primitive-owned wide/constrained geometry | no generic application sidebar primitive; no domain/query ownership |
