@@ -87,7 +87,7 @@ const ValidationMatrix = ({
           title={active ? "Validation in progress" : "Validation not started"}
           description={
             active
-              ? "Recorded validation stages will appear as this implementation attempt advances."
+              ? "Recorded validation stages will appear while this implementation attempt advances."
               : "No durable validation evidence has been recorded for this implementation attempt."
           }
         />
