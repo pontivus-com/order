@@ -564,7 +564,12 @@ type RunEventPayload =
 
 RunEvent invariants:
 
-- every `HUMAN_INPUT_REQUESTED` is blocking in v1 and moves an interactive Run to `WAITING_FOR_INPUT`; a non-blocking human request has no separate semantic state;
+- every `HUMAN_INPUT_REQUESTED` is blocking and moves an interactive STAGE Run to `WAITING_FOR_INPUT`; a non-blocking human request has no separate semantic state;
+- `HUMAN_INPUT_RECEIVED.requestEventId = null` is valid only when the same Run is canonically OPEN for free-form continuation; while the Run is waiting for required input it must equal the exact single unresolved `HUMAN_INPUT_REQUESTED` event id, and that request may be answered at most once;
+- one successful STAGE provider turn returns one non-empty provider-result array. The complete array is validated before any member is persisted;
+- within one STAGE provider-result array, `HUMAN_INPUT_REQUESTED`, `STAGE_BLOCKED` and `STAGE_COMPLETED` are mutually exclusive controlling outcomes and each may occur at most once; `STAGE_COMPLETED.completion.stage` must equal the owning Run stage;
+- a STAGE turn may create at most one lifecycle `ARTIFACT_PROPOSAL_CREATED`, only when that turn otherwise ends OPEN for continuation. Lifecycle proposal creation cannot coexist in that turn with required input, stage block or stage completion, and a Run may have at most one unresolved lifecycle proposal;
+- for lifecycle proposal roles `R1|R2|DESIGN|PLAN|R3`, proposal role must equal the owning STAGE Run stage; role/path admission is rechecked again at disposition time;
 - `ARTIFACT_PROPOSAL_CREATED.unifiedDiff` is complete Git unified-diff text and its decoded string must end with LF (`\\n`). A proposal missing that terminal LF is invalid provider output and may use only the existing single formatting-repair turn. Order never appends, trims, normalizes, or otherwise changes proposal patch bytes after provider validation;
 - `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` is coordinator/human-owned and is persisted before the repository patch effect; once present, rejection is no longer valid and a later adopt call may reconcile only that exact persisted proposal;
 - `ARTIFACT_PROPOSAL_DISPOSITIONED` with `ADOPTED` requires non-null `adoptedArtifactRefId`; `REJECTED` requires null;
@@ -584,7 +589,7 @@ An `ARTIFACT_PROPOSAL_CREATED` event id is its proposal identity.
 
 A proposal is pending until exactly one later `ARTIFACT_PROPOSAL_DISPOSITIONED` event references it.
 
-Adoption loads the exact persisted proposal event, proves the persisted base hash/path and exact patch applicability without mutating the repository, and only then persists exactly one `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` event for it. Order may then apply only that exact persisted patch. After the effect, Order hashes/read-backs the target, records the new ArtifactRef and `ADOPTED` disposition, invalidates dependent conformance and returns the WorkItem to the earliest lifecycle stage that owns the adopted artifact's canonical role/authority layer. The adoption request carries no replacement patch or base hash.
+Adoption loads the exact persisted proposal event, proves the persisted base hash/path and exact patch applicability without mutating the repository, and only then persists exactly one `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` event for it. Order may then apply only that exact persisted patch. For a lifecycle proposal, disposition additionally proves that the Run is the current WorkItem stage, the Run is canonically OPEN, the proposal is the Run's single unresolved lifecycle proposal, proposal role equals Run stage, and the deterministic target path is the path for that same stage. After the effect, Order hashes/read-backs the target, records the new ArtifactRef and `ADOPTED` disposition, invalidates dependent conformance, and leaves the WorkItem at that same owning stage / ACTIVE. Adoption does not promote or jump the lifecycle. The adoption request carries no replacement patch or base hash. Non-lifecycle proposals remain governed by their existing authority and cannot use a lifecycle-role return as a shortcut.
 
 If the repository effect succeeded but the final SQLite persistence failed, the next coordinator pass reconciles only because the durable adoption-request event proves human intent for that exact proposal. Reconciliation does not apply the patch again: Order proves the current target is the already-applied exact patch by an exact reverse-apply check and then persists the missing ArtifactRef/disposition. If interruption occurred after intent persistence but before the effect, the same coordinator reconciliation may apply the still-applicable exact patch. Without that durable adoption request, base-hash mismatch remains a hard failure.
 
@@ -934,10 +939,12 @@ These are one SQLite transaction:
 - lifecycle state transition;
 - successful stage conformance: append `CONFORMANCE_PASSED`, insert its artifact dependency edges, and perform the resulting promotion;
 - append RunEvent plus Run-state update when one reaction requires both;
+- successful STAGE provider-turn finalization: after the complete provider-result array, evidence and current context have been validated outside the transaction, reload the Run/WorkItem, prove the turn is still current/not cancelled, append the entire provider-result batch plus any coordinator-owned conformance/reaction events, and update Run/WorkItem state in one transaction; no partial provider-result batch is externally visible;
+- accepted STAGE human input: reload Run/events, prove OPEN free-form or exact REQUIRED_INPUT admission, append one `HUMAN_INPUT_RECEIVED`, and perform any `WAITING_FOR_INPUT -> RUNNING` update in one transaction before the next provider turn is scheduled asynchronously;
 - post-signoff task start: prove no other task is `RUNNING`, select one eligible `TODO`, set it to `RUNNING`, and create its `BUILDER` Run;
 - post-signoff continuation Run start: while exactly one ExecutionTask remains `RUNNING` and no Run for it is active, load the last durable controlling event, validate the unique required continuation role/trigger/lineage/semantic-or-operational budget, and create exactly one `REVIEWER`, `REMEDIATOR`, or permitted replacement Run; no second task may start;
 - create Approval plus all materialized ExecutionTasks;
-- persist `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` before the corresponding repository patch effect; the post-effect ArtifactRef/disposition/owning-stage return is a later SQLite transaction and is reconciled from repository facts if that persistence fails;
+- persist `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` before the corresponding repository patch effect; for lifecycle proposals the post-effect ArtifactRef/disposition/conformance invalidation keeps the WorkItem at the same current owning stage and is a later SQLite transaction reconciled from repository facts if persistence fails;
 - mutating Run candidate publication: append `CANDIDATE_STATE_RECORDED` and mark the producing Run `COMPLETED` after patch evidence has already been safely persisted/read-back/hashed;
 - post-signoff terminal/no-op reaction: append the controlling validation/provider evidence where applicable, terminalize the Run, and update ExecutionTask/WorkItem according to the reaction matrix, including the atomic `ALREADY_SATISFIED`, `SPEC_INVALID` and `PRECONDITION_FAILED` branches;
 - final candidate success: after the final REVIEWER Run has replay-verified its trigger candidate and produced its own current V0-V7 pass set (including REVIEW_PASSED-backed V4), append `CANDIDATE_RECORDED`, terminalize that REVIEWER Run as `COMPLETED / CANDIDATE_DONE`, set the ExecutionTask `CANDIDATE_DONE`, and perform aggregate WorkItem completion when applicable.
@@ -986,6 +993,8 @@ GET /api/runs/:runId/evidence?path=<EvidencePath> -> raw evidence bytes
 GET /api/artifacts/:artifactRefId/content       -> raw file bytes
 ```
 
+All GET/query operations are observational: they may read/validate repository/runtime facts and report currentness/diagnostics, but they do not update WorkItem lifecycle/status/outcome, store a new ArtifactRef, apply source reconciliation, create Approval/tasks, or mutate repository bytes. Canonicalization/reconciliation of changed repository material occurs only through explicit mutation paths.
+
 Commands:
 
 ```text
@@ -1033,6 +1042,8 @@ POST /api/runs/:runId/input
 body { text, requestEventId: "event_<uuid>" | null }
 -> HUMAN_INPUT_RECEIVED RunEvent
 
+The daemon derives STAGE interaction from the canonical Run + ordered RunEvents. Input is rejected while PROCESSING or CLOSED. OPEN accepts only `requestEventId: null`. REQUIRED_INPUT accepts only the exact unresolved request id and accepts it at most once. The command commits the `HUMAN_INPUT_RECEIVED` event first, schedules the next provider turn asynchronously, and returns immediately; it does not hold the HTTP mutation open for provider completion.
+
 POST /api/run-events/:proposalEventId/adopt
 body {}
 -> ArtifactRef
@@ -1053,7 +1064,7 @@ POST /api/work-items/:workItemId/signoff
 body { expectedPackageHash, approvedBy }
 -> Approval
 
-`GET /api/work-items/:workItemId/signoff-package` is valid only for an ACTIVE WorkItem at `AWAITING_SIGNOFF`. It recomputes current R3 conformance, the complete current resolved material set, exact working-tree/baseline byte identity, signed task validity and the canonical package hash. It returns the baseline/hash/task block that the UI displays; it does not create execution authority.
+`GET /api/work-items/:workItemId/signoff-package` is valid only for an ACTIVE WorkItem at `AWAITING_SIGNOFF`. It inspects current R3 conformance, the complete current resolved material set, exact working-tree/baseline byte identity, signed task validity and the canonical package hash without applying reconciliation or lifecycle mutation. It returns the baseline/hash/task block only when currentness is proven; stale/precondition failure is reported through the stable typed HTTP error contract and leaves WorkItem state unchanged. It does not create execution authority.
 
 `approvedBy` is a non-empty human-readable local operator identity confirmed by the user. The UI submits the exact currently displayed `SignoffPackage.packageHash`; the hash is not an editable browser-owned field. If the package changes between display and mutation, sign-off fails and the UI must refetch/review the new package.
 
@@ -1064,20 +1075,23 @@ body {}
 Cancelling a pre-signoff STAGE Run terminalizes that Run without changing the owning lifecycle stage. Cancelling a post-signoff Run interrupts the provider/active process group, marks the Run `CANCELLED`, abandons/retains its workspace as evidence, and atomically sets its ExecutionTask and WorkItem to `BLOCKED`. Human cancellation never triggers automatic retry; explicit resume is required.
 ```
 
-All mutations enforce current state/preconditions. The thin CLI uses only the health/tick/auth commands explicitly exposed by its v1 command surface; lifecycle mutations remain UI calls to these same HTTP endpoints.
+All mutations enforce current state/preconditions. Any command that performs asynchronous inspection before its commit boundary reloads canonical DB state inside the final transaction and re-runs every DB-decidable admission check before persistence. A stale concurrent command is rejected rather than overwriting the winning transition. The thin CLI uses only the health/tick/auth commands explicitly exposed by its v1 command surface; lifecycle mutations remain UI calls to these same HTTP endpoints.
 
 ## 19. Browser observation contract
 
-v1 has no browser streaming transport.
+v1 has no browser streaming transport and introduces no aggregate workflow-observation DTO.
 
-The browser reads canonical state through the existing HTTP queries.
+The browser reads the existing canonical values through ordinary HTTP queries. For the selected WorkItem, the single-WorkItem query is the current WorkItem owner; the queue-list snapshot is not used as the only current-state observation.
 
-While a Run is active, the UI polls exactly these canonical queries through the §19 TanStack Query policy:
+While any Run for the selected WorkItem is active, the UI polls through the normal TanStack Query policy:
 
 ```text
+GET /api/work-items/:workItemId
 GET /api/work-items/:workItemId/runs
-GET /api/runs/:runId/events?afterSequence=<last-seen>
+GET /api/runs/:runId/events?afterSequence=<last-seen>   # for each active Run
 ```
+
+Historical RunEvents required to derive reached history are loaded from the same existing per-Run endpoint; no duplicate history API/model is introduced.
 
 The browser owns exactly one `QueryClient`:
 
@@ -1097,9 +1111,18 @@ new QueryClient({
 });
 ```
 
-The active WorkItem Run-list query and active RunEvent query set `refetchInterval: 1000` while the relevant Run is active and `false` otherwise. No query or mutation relies on TanStack Query's implicit retry/focus/reconnect behavior as workflow behavior. After any successful mutation the UI invalidates/refetches only the affected canonical query keys.
+The selected WorkItem, active WorkItem Run list and active RunEvent queries use a 1000 ms interval while relevant Runs are active. No query or mutation relies on TanStack Query's implicit retry/focus/reconnect behavior as workflow behavior.
 
-Polling is presentation behavior, not another state mechanism. Missing an interval loses no information because RunEvents are persisted and sequence-ordered.
+When an active Run is first observed terminal, the browser performs one terminal drain before exposing the resulting next action:
+
+1. fetch RunEvents after the last seen sequence once more;
+2. refetch the selected WorkItem;
+3. refetch affected task/artifact/source-diagnostic/sign-off-package queries;
+4. derive reached history/current attention from the resulting canonical values.
+
+If canonical values temporarily show an unobserved reaction (for example `STAGE_COMPLETED` is present while the selected WorkItem still reports the prior stage), mutation controls remain suppressed and the affected queries are refetched. The browser never invents the missing transition.
+
+Successful mutations explicitly invalidate/refetch affected canonical query keys. Polling and the coherence barrier are presentation behavior, not another state mechanism. Missing an interval loses no information because RunEvents are persisted and sequence-ordered.
 
 OpenCode token/progress deltas are not exposed by Order v1.
 
@@ -1662,7 +1685,7 @@ The `registered`, `updated`, `moved` and `unchanged` sets are pairwise disjoint.
 
 A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary revalidation is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing or unresolved state of that recorded source is a source-boundary precondition failure, not a new lifecycle status/outcome: Order preserves the WorkItem's existing stage/status/outcome and rejects the current source-dependent action. A missing recorded path requires explicit/full reconciliation to discover a move. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced. A valid changed recorded source is different: it is reconciled and invokes the canonical source-change return to R1.
 
-For a known non-terminal WorkItem, external source changes to title/body/concern ids update the source projection and invoke the canonical source-change return to R1. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
+For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
 
 #### Source create/update mutation
 
@@ -1692,18 +1715,19 @@ The source-save command is the canonical `ExpectedHashMarkdownWrite` value parse
 
 For `/api/work-items/:id/source`, the daemon:
 
-1. revalidates the current reconciled source for the WorkItem;
+1. inspects the current source bytes/projection without applying reconciliation;
 2. requires current source hash == `expectedSha256`;
 3. rejects direct UI source mutation when the WorkItem is `EXECUTION` or `COMPLETE`;
-4. parses the proposed Markdown before writing and requires the stable id to remain the same;
-5. permits `schemaId` and `projectId` changes only while the WorkItem is an unprogressed IDEA with no STAGE Run; `derivedFromWorkItemId` and stable id are immutable after creation; `concernIds` and title/body changes may occur pre-signoff and then participate in the normal source-freshness return path;
-6. atomically writes the exact proposed Markdown through the source shell;
-7. reads/hashes/parses the result;
-8. reconciles the projection;
-9. applies the source-change transition selected by `core/lifecycle.ts` (pre-signoff source change returns to R1/ACTIVE/null outcome; AWAITING_SIGNOFF also returns to R1);
-10. returns `ExpectedHashWriteResult { tag: "UPDATED", sha256: <new source hash> }`; the browser invalidates/reloads the canonical source and WorkItem queries.
+4. rejects direct source mutation while any Run for the WorkItem is active;
+5. parses the proposed Markdown before writing and requires the stable id to remain the same;
+6. permits `schemaId` and `projectId` changes only while the WorkItem is an unprogressed IDEA with no STAGE Run; `derivedFromWorkItemId` and stable id are immutable after creation; `concernIds` and title/body changes may occur pre-signoff;
+7. immediately before the filesystem effect rechecks current WorkItem/active-Run admission and expected hash;
+8. atomically writes the exact proposed Markdown through the source shell;
+9. reads/hashes/parses the result;
+10. persists the projection and applies the source-change transition selected by `core/lifecycle.ts`: unprogressed IDEA remains IDEA / ACTIVE; progressed pre-signoff/AWAITING_SIGNOFF returns to R1 / ACTIVE;
+11. returns `ExpectedHashWriteResult { tag: "UPDATED", sha256: <new source hash> }`; the browser invalidates/reloads the canonical source and WorkItem queries.
 
-A hash mismatch performs no write and returns `ExpectedHashWriteResult { tag: "STALE", currentSha256 }`. If the atomic source write succeeds but the subsequent projection/lifecycle persistence fails, the next source reconciliation or productive-boundary revalidation repairs the SQLite projection from the exact file bytes; the file is not rolled back or rewritten.
+A hash mismatch performs no write and returns `ExpectedHashWriteResult { tag: "STALE", currentSha256 }`. If the atomic source write succeeds but subsequent projection/lifecycle persistence fails, the daemon first attempts explicit reconciliation from the exact written bytes before returning. If that cannot complete, the response is an explicit reconciliation-required failure; it is not reported as though the filesystem mutation were rejected. The file is not blindly rolled back or rewritten.
 
 There is no last-write-wins behavior and no merge algorithm. The expected-hash guard protects against stale state already observable when Order begins the write; v1 does not claim transactional locking against an unrelated external process racing the same filesystem path during that effect. Such external edits remain subject to subsequent source reconciliation/freshness checks.
 
@@ -1736,16 +1760,18 @@ The daemon:
 
 1. loads the canonical ArtifactRef and owning WorkItem;
 2. rejects direct editing while the owning WorkItem is `EXECUTION` or `COMPLETE`;
-3. proves the role is directly editable, the artifact owner is not downstream of the WorkItem's current stage, and path ends in `.md`;
-4. proves current repository bytes hash to `expectedSha256` and the selected ArtifactRef hash;
-5. after `repository.ts` proves repository containment/symlink/regular-file preconditions, it invokes the shared `shell/file-write.ts` expected-hash replacement primitive;
-6. reads/hash-verifies resulting bytes;
-7. stores a new ArtifactRef snapshot with the same role/authority layer/path and new hash;
-8. returns the WorkItem to `artifactReturnOwner(newArtifact)` with ACTIVE/null outcome;
-9. does not fabricate `CONFORMANCE_PASSED`;
-10. returns `ExpectedHashWriteResult { tag: "UPDATED", sha256: <new artifact hash> }`; the browser invalidates/reloads canonical ArtifactRef/WorkItem queries. A hash mismatch returns `STALE` and performs no repository write.
+3. rejects direct editing while any Run for the WorkItem is active;
+4. proves the role is directly editable, the artifact owner is the current stage or an already-reached upstream stage, and path ends in `.md`;
+5. proves current repository bytes hash to `expectedSha256` and the selected ArtifactRef hash;
+6. immediately before the filesystem effect rechecks current WorkItem/active-Run admission and expected hash;
+7. after `repository.ts` proves repository containment/symlink/regular-file preconditions, it invokes the shared `shell/file-write.ts` expected-hash replacement primitive;
+8. reads/hash-verifies resulting bytes;
+9. stores a new ArtifactRef snapshot with the same role/authority layer/path and new hash;
+10. returns the WorkItem to `artifactReturnOwner(newArtifact)` with ACTIVE/null outcome;
+11. does not fabricate `CONFORMANCE_PASSED`;
+12. returns `ExpectedHashWriteResult { tag: "UPDATED", sha256: <new artifact hash> }`; the browser invalidates/reloads canonical ArtifactRef/WorkItem queries. A hash mismatch returns `STALE` and performs no repository write.
 
-Existing downstream conformance becomes stale through current hash/output verification and must be re-established by the owning stage. If the repository write succeeds but ArtifactRef/lifecycle persistence fails, the next current-file/context resolution observes the changed repository bytes, materializes the current ArtifactRef snapshot if needed, and routes stale conformance to the owning stage; Order does not repeat or roll back the human write blindly.
+Existing downstream conformance becomes stale through current hash/output verification and must be re-established by the owning stage. If the repository write succeeds but ArtifactRef/lifecycle persistence fails, explicit reconciliation observes the changed repository bytes, materializes the current ArtifactRef snapshot and restores the owning-stage projection; ordinary GET/current-file inspection does not persist that repair. Order does not repeat or roll back the human write blindly.
 
 #### Reconformance of a human-edited stage document
 
@@ -1760,12 +1786,15 @@ Promotion still requires `STAGE_COMPLETED` referencing an exact current role Art
 Before every productive stage start/resume/promotion boundary:
 
 ```text
-revalidate current WorkItem source
-  -> WorkItemSourceSnapshot
+inspect current WorkItem source
+  -> if reconciliation required: reject productive command with owning reconciliation reason
+  -> else WorkItemSourceSnapshot
   -> resolve stage authority/upstream artifacts
   -> contextHash includes sourceSha256 as material root identity
   -> prompt projection
 ```
+
+Productive inspection is non-mutating. Only the explicit reconcile/save paths apply a source projection/lifecycle change.
 
 Prompt projection:
 
