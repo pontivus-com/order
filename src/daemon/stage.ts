@@ -24,7 +24,10 @@ import {
 } from "../core/governance.ts";
 import {
   artifactReturnOwner,
-  evaluateStageCompletion,
+  stageInputIsAdmitted,
+  stageRunInteraction,
+  transitionWorkItem,
+  validateStageProviderTurn,
 } from "../core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
@@ -56,15 +59,16 @@ import {
   workspacePathForRun,
 } from "../shell/runtime.ts";
 import {
-  promoteIdeaToR1,
   loadWorkItems,
-  setWorkItemStatus,
   storeArtifact,
   storeArtifactDependency,
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { type CoordinatorRuntime } from "./runtime.ts";
+import {
+  type CoordinatorRuntime,
+  withWorkItemOperatorMutation,
+} from "./runtime.ts";
 import {
   activeRunStatuses,
   appendRunEvent,
@@ -135,6 +139,11 @@ const blockStageRunForContextChange = (
   summary: string,
 ): Run =>
   withTransaction(runtime.database, () => {
+    const current = getWorkItem(runtime, run.workItemId);
+    const transition = transitionWorkItem(current, {
+      tag: "LIFECYCLE_ARTIFACT_CHANGED",
+      owner: returnTo,
+    });
     appendRunEvent(runtime, run.id, {
       tag: "CONFORMANCE_FAILED",
       stage: run.stage,
@@ -142,11 +151,7 @@ const blockStageRunForContextChange = (
       summary,
       evidence: [],
     });
-    updateWorkItemLifecycle(runtime.database, run.workItemId, {
-      stage: returnTo,
-      status: "ACTIVE",
-      outcome: null,
-    });
+    updateWorkItemLifecycle(runtime.database, run.workItemId, transition);
     return updateRun(runtime, run.id, {
       status: "BLOCKED",
       endedAt: nowIsoDateTime(),
