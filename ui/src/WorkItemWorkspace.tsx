@@ -291,6 +291,12 @@ export const WorkItemWorkspace = ({
   const artifacts = artifactsQuery.data ?? [];
   const allArtifacts = allArtifactsQuery.data ?? [];
   const tasks = tasksQuery.data ?? [];
+  const currentExecutionTasks =
+    workItem.stage === "EXECUTION" ? tasks : [];
+  const coherenceTasks =
+    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+      ? tasks
+      : [];
   const runEventQueries = useQueries({
     queries: runs.map((run) => ({
       queryKey: workbenchQueryKeys.runEvents(run.id),
@@ -407,16 +413,20 @@ export const WorkItemWorkspace = ({
     changedAuthorityOwners.length === 0,
     changedAuthorityOwners,
   );
-  const executionOwner = deriveExecutionOwner(tasks, runs);
+  const executionOwner = deriveExecutionOwner(currentExecutionTasks, runs);
+  const currentExecutionObservationRequired = workItem.stage === "EXECUTION";
   const executionObservationPending =
-    runsQuery.data === undefined ||
-    (tasksRequired && tasksQuery.data === undefined) ||
-    executionEventsPending;
+    currentExecutionObservationRequired &&
+    (
+      runsQuery.data === undefined ||
+      tasksQuery.data === undefined ||
+      executionEventsPending
+    );
   const validationBoundary = executionObservationPending
     ? null
     : deriveValidationBoundary(
         executionOwner,
-        tasks,
+        currentExecutionTasks,
         runs,
         allRunEvents,
       );
@@ -425,7 +435,7 @@ export const WorkItemWorkspace = ({
     workItem,
     runs,
     allRunEvents,
-    tasks,
+    coherenceTasks,
   );
   const currentStageEventsFetching =
     currentStageRun !== null &&
@@ -434,7 +444,8 @@ export const WorkItemWorkspace = ({
       runEventQueries[index]?.isFetching === true
     );
   const currentExecutionTasksFetching =
-    tasksRequired && tasksQuery.isFetching;
+    (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+    tasksQuery.isFetching;
   const transportConverging =
     terminalDrainPending ||
     selectedWorkItemFetching ||
