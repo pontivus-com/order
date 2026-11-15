@@ -486,7 +486,7 @@ export const SignoffReview = ({
   return (
     <WorkflowStepFrame
       summary={summary}
-      index={<WorkflowStepIndex groups={groups} />}
+      index={<WorkflowStepIndex groups={groups} label="Approval package" />}
       indexLabel="Approval package"
       primary={
         <WorkbenchReview

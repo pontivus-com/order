@@ -68,7 +68,7 @@ const openWorkItem = async (page: Page, title: string): Promise<void> => {
 };
 
 const backToQueue = async (page: Page): Promise<void> => {
-  await page.getByRole("button", { name: "Back to work queue" }).click();
+  await page.getByRole("link", { name: "Back to work queue" }).click();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
 };
 
@@ -90,6 +90,18 @@ const selectWorkflowStep = async (
     .getByRole("button", { name, exact: true });
   await button.click();
   await expect(button).toHaveAttribute("aria-pressed", "true");
+};
+
+const selectWorkflowMaterial = async (
+  page: Page,
+  optionName: string,
+): Promise<void> => {
+  const selector = page
+    .getByTestId("workflow-step-index")
+    .getByRole("combobox");
+  await expect(selector).toBeVisible();
+  await selector.click();
+  await page.getByRole("option", { name: optionName, exact: true }).click();
 };
 
 const markdownSourceValue = async (editor: Locator): Promise<string> =>
@@ -192,10 +204,9 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await expect(root).not.toHaveAttribute("data-theme");
   await expect(root).toHaveAttribute("data-astryx-theme");
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
-  await expect(page.getByTestId("workbench-search")).toHaveCSS(
-    "background-color",
-    "rgb(17, 26, 41)",
-  );
+  await expect(
+    page.getByTestId("workbench-search").getByRole("searchbox"),
+  ).toHaveCSS("background-color", "rgb(17, 26, 41)");
 
   await light.click();
   await expect(root).toHaveAttribute("data-theme", "light");
@@ -239,14 +250,19 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await repositories.getByRole("button", { name: "Cancel add repository" }).click();
   await expect(repositories.getByTestId("add-repository-form")).toHaveCount(0);
 
-  const repositoryCard = repositories.locator(".order-settings-card").first();
-  await expect(repositoryCard).toContainText(repositoryRoot);
-  await repositoryCard.getByRole("button", { name: "Disconnect repository" }).click();
+  const repositoryTable = repositories.getByRole("table", {
+    name: "Connected repositories",
+  });
+  const repositoryRow = repositoryTable
+    .getByRole("row")
+    .filter({ hasText: repositoryRoot });
+  await expect(repositoryRow).toBeVisible();
+  await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
   const disconnectDialog = page.getByRole("alertdialog", { name: "Disconnect repository?" });
   await expect(disconnectDialog).toContainText(repositoryRoot);
   await expect(disconnectDialog).toContainText("Repository files, WorkItem Markdown, Git history, and authority documents are not deleted.");
   await disconnectDialog.getByRole("button", { name: "Cancel" }).click();
-  await expect(repositoryCard).toBeVisible();
+  await expect(repositoryRow).toBeVisible();
 
   await settings.getByRole("link", { name: "Model & runtime", exact: true }).click();
   await expect(page).toHaveURL(baseURL + "/settings/model");
@@ -436,9 +452,9 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
 
   const panel = page.getByTestId("settings-opencode");
   await expect(panel).toBeVisible();
-  await expect(panel.getByTestId("opencode-account-list")).toContainText("alpha@example.com");
-  await expect(panel.getByTestId("opencode-account-list")).toContainText("beta@example.com");
-  await expect(panel.getByTestId("opencode-account-list")).toContainText("gamma@example.com");
+  await expect(panel.getByRole("table", { name: "Saved OpenCode accounts" })).toContainText("alpha@example.com");
+  await expect(panel.getByRole("table", { name: "Saved OpenCode accounts" })).toContainText("beta@example.com");
+  await expect(panel.getByRole("table", { name: "Saved OpenCode accounts" })).toContainText("gamma@example.com");
   await expect(panel).toContainText("Needs sign-in");
   await expect(panel).not.toContainText("cred_alpha");
 
@@ -480,7 +496,7 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
 
   await panel.getByRole("button", { name: "Remove alpha@example.com" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Remove account" }).click();
-  await expect(panel).toContainText("No saved OpenCode accounts.");
+  await expect(panel).toContainText("No saved OpenCode accounts");
   await expect(trigger).toContainText("No account");
 
   state = OpenCodeAccountStateSchema.parse({
@@ -583,12 +599,12 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await page.getByRole("radio", { name: "Light" }).click();
   await expect(cm).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(gutter).toHaveCSS("background-color", "rgb(248, 250, 252)");
-  await expect(headingToken).toHaveCSS("color", "rgb(30, 58, 138)");
+  await expect(headingToken).toHaveCSS("color", "rgb(15, 23, 42)");
 
   await page.getByRole("radio", { name: "Dark" }).click();
   await expect(cm).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await expect(gutter).toHaveCSS("background-color", "rgb(23, 34, 51)");
-  await expect(headingToken).toHaveCSS("color", "rgb(147, 180, 255)");
+  await expect(headingToken).toHaveCSS("color", "rgb(237, 243, 250)");
 
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(formatEditor).toBeVisible();
@@ -690,7 +706,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
-  await createDialog.getByLabel("Project").click();
+  await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await createDialog.getByRole("radio", { name: "CHANGE" }).click();
   await createDialog.getByLabel("Title").fill("Created in browser");
@@ -717,7 +733,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
-  await createDialog.getByLabel("Project").click();
+  await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await expect(createDialog.getByTestId("create-work-item-location"))
     .toContainText("docs/order/work-items");
@@ -949,7 +965,7 @@ test("narrow workflow work index returns focus and preserves dirty material acro
     initial + "\n# Responsive continuity\n",
   );
 
-  const trigger = page.getByLabel("Plan work");
+  const trigger = page.getByTestId("workflow-step-index").getByRole("combobox", { name: "Plan work" });
   await trigger.focus();
   await trigger.click();
   await page.keyboard.press("Escape");
@@ -984,8 +1000,7 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
     .toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-  const proposalRunIndex = page.getByTestId("workflow-step-index");
-  await proposalRunIndex.getByText("Attempt 2", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Attempt 2");
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toHaveCount(1);
@@ -1016,9 +1031,8 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await openWorkItem(page, "Completed investigation");
   await expect(page.getByTestId("result-workspace")).toBeVisible();
   await selectWorkflowStep(page, "Research");
-  const index = page.getByTestId("workflow-step-index");
-  await expect(index).toBeVisible();
-  await index.getByText("Attempt 1", { exact: true }).click();
+  await expect(page.getByTestId("workflow-step-index")).toBeVisible();
+  await selectWorkflowMaterial(page, "Attempt 1");
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Workflow step completed", { exact: true })).toBeVisible();
@@ -1067,9 +1081,8 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
 
     if (entry.currentStep === "Requirements") {
       await selectWorkflowStep(page, "Research");
-      const index = page.getByTestId("workflow-step-index");
-      await expect(index).toBeVisible();
-      await index.getByText("Attempt 1", { exact: true }).click();
+      await expect(page.getByTestId("workflow-step-index")).toBeVisible();
+      await selectWorkflowMaterial(page, "Attempt 1");
       await expect(page.getByTestId("stage-run-material")).toBeVisible();
       await expect(
         page.getByText("Workflow step completed", { exact: true }),
@@ -1106,14 +1119,13 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow failure feedback");
-  const failureIndex = page.getByTestId("workflow-step-index");
-  await failureIndex.getByText("Attempt 4", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Attempt 4");
   await expect(page.getByText("Work is blocked", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Conformance check failed", { exact: true }),
   ).toBeVisible();
 
-  await failureIndex.getByText("Attempt 2", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Attempt 2");
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
@@ -1124,7 +1136,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
     .getByRole("button", { name: "Evidence: provider-diagnostics.json" });
   await expect(setupEvidence).toBeVisible();
 
-  await failureIndex.getByText("Attempt 3", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Attempt 3");
   await expect(
     page.getByText("Agent execution failed", { exact: true }),
   ).toBeVisible();
@@ -1133,7 +1145,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   ).toBeVisible();
   await expect(page.getByText("Repository changed", { exact: true })).toBeVisible();
 
-  await failureIndex.getByText("Attempt 1", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Attempt 1");
   await expect(page.getByText("Cancelled", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Attempt cancelled", { exact: true })).toBeVisible();
   await backToQueue(page);
@@ -1448,8 +1460,7 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   }
 
   await selectWorkflowStep(page, "Research");
-  await page.getByText("Supporting context", { exact: true }).click();
-  await page.getByRole("button", { name: "Open supporting Work request" }).click();
+  await selectWorkflowMaterial(page, "Work request");
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
   await expect(
@@ -1459,8 +1470,7 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
 
   await selectWorkflowStep(page, "Requirements");
-  await page.getByText("Supporting context", { exact: true }).click();
-  await page.getByRole("button", { name: "Open supporting Research document" }).click();
+  await selectWorkflowMaterial(page, "Research document");
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
   await page.getByRole("button", { name: "Back to workflow context" }).click();
@@ -1527,8 +1537,7 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
     page.getByText("Document change adopted", { exact: true }).last(),
   ).toBeVisible();
   await page.unroute("**/api/run-events/*/adopt");
-  const proposalIndex = page.getByTestId("workflow-step-index");
-  await proposalIndex.getByText("Attempt 1", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Attempt 1");
   await expect(
     page.getByText("Document adoption in progress", { exact: true }),
   ).toBeVisible();
@@ -1578,18 +1587,18 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(page.getByTestId("signoff-package-hash")).toHaveText(
     /^sha256:[0-9a-f]{64}$/,
   );
-  const approvalIndex = page.getByTestId("workflow-step-index");
-  await expect(approvalIndex).toContainText("Governed documents");
-  await expect(approvalIndex).toContainText("Signed tasks");
-  await expect(approvalIndex.getByText("T1", { exact: true })).toBeVisible();
+  const approvalSelector = page
+    .getByTestId("workflow-step-index")
+    .getByRole("combobox", { name: "Approval package" });
+  await expect(approvalSelector).toBeVisible();
 
-  await approvalIndex.getByText("Implementation plan", { exact: true }).click();
+  await selectWorkflowMaterial(page, "Implementation plan");
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
   await expect(page.getByLabel("Approved by")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
 
-  await approvalIndex.getByText("T1", { exact: true }).click();
+  await selectWorkflowMaterial(page, "T1");
   await expect(page.getByTestId("approval-task-detail"))
     .toContainText("Prove the browser candidate surface");
   await expect(page.getByLabel("Approved by")).toBeVisible();
@@ -1723,13 +1732,13 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
   expect(workflowMutations).toEqual([]);
 
-  await page.getByRole("button", { name: "Back to work queue" }).click();
+  await page.getByRole("link", { name: "Back to work queue" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await expect(guard).toBeVisible();
   await guard.getByRole("button", { name: "Continue editing" }).click();
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
 
-  await page.getByRole("button", { name: "Back to work queue" }).click();
+  await page.getByRole("link", { name: "Back to work queue" }).click();
   await page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })
     .getByRole("button", { name: "Discard unsaved changes" })
     .click();
@@ -1879,10 +1888,12 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await selectWorkflowStep(page, "Approval");
   await expect(page.getByTestId("review-workspace"))
     .toContainText("Approved package history");
-  const historicalApprovalIndex = page.getByTestId("workflow-step-index");
-  await expect(historicalApprovalIndex.getByText("T1", { exact: true })).toBeVisible();
+  const historicalApprovalSelector = page
+    .getByTestId("workflow-step-index")
+    .getByRole("combobox", { name: "Approval package" });
+  await expect(historicalApprovalSelector).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
-  await historicalApprovalIndex.getByText("T1", { exact: true }).click();
+  await selectWorkflowMaterial(page, "T1");
   await expect(page.getByTestId("approval-task-detail"))
     .toContainText("Prove the browser candidate surface");
 
