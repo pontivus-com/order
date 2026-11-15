@@ -869,6 +869,19 @@ export const deriveValidationBoundary = (
     if (run.triggerEventId === null) {
       throw new TypeError("REVIEWER validation boundary requires candidate trigger");
     }
+    const candidateEvent = events.find((event) => event.id === run.triggerEventId);
+    if (candidateEvent?.event.tag !== "CANDIDATE_STATE_RECORDED") {
+      throw new TypeError("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
+    }
+    const candidateRun = taskRuns.find(
+      (candidateRun) => candidateRun.id === candidateEvent.runId,
+    );
+    if (
+      candidateRun === undefined ||
+      (candidateRun.role !== "BUILDER" && candidateRun.role !== "REMEDIATOR")
+    ) {
+      throw new TypeError("REVIEWER candidate must belong to the current ExecutionTask");
+    }
     const reviewerRuns = taskRuns.filter(
       (candidateRun) =>
         candidateRun.role === "REVIEWER" &&
