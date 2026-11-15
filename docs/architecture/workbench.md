@@ -1,69 +1,673 @@
 # Workbench technical architecture
 
-**Status:** Current P4 boundary; detailed state-machine/component realization pending  
+**Status:** Binding P4 technical design  
 **Canonical concern ID:** `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE`  
 **Versioned concern ID:** `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`  
 **Pyramid layer:** P4 technical architecture
 
 ## 1. Purpose
 
-This document is the current technical owner for the Order Workbench boundary under `GW-DOC-WORKBENCH-UX-V2`.
+This document is the technical owner for the Order Workbench realization under `GW-DOC-WORKBENCH-UX-V2`.
 
-It intentionally does **not** preserve the superseded 0.3.0 component/spatial specification. The current production implementation is evidence to be evaluated during redesign; it is not technical authority where it conflicts with the V2 functional design.
+It resolves the state-machine, transition, observation, command-admission, browser-reconciliation and spatial-design obligations that were deliberately left open by the functional design. It does not preserve the superseded 0.3.0 component/spatial implementation where that implementation conflicts with current authority.
 
-No implementation task may infer missing workflow semantics from the existing React components, CSS, query behavior or historical V1 documentation.
+The implementation remains a functional-core / imperative-shell system. This design does not introduce a workflow framework, service/object graph, DTO layer, browser workflow store, event bus or second canonical state representation.
 
 ## 2. Governing authority
 
-The Workbench realization must conform to:
+The realization conforms to:
 
-- `GW-DOC-WORKBENCH-UX-V2` for observable workflow, messaging, attention, history and spatial behavior;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` for FCIS/SoC topology, daemon/browser ownership and dependency direction;
-- `GW-DOC-CANONICAL-CONTRACTS-V1` for canonical state, persistence and transport contracts;
-- `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP` and `GW-P1-EXPLICIT-FLOW`.
+- `GW-DOC-WORKBENCH-UX-V2`, including its functional state-transition model and `GW-FR-200..229`;
+- `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` for the canonical cross-step lifecycle relation;
+- `GW-DOC-LIFECYCLE-CONTEXT-V1` for stage decision/context/conformance boundaries;
+- `GW-DOC-VALIDATION-STANDARD-V1` for post-signoff failure classification;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` for FCIS/SoC topology and module/dependency ownership;
+- `GW-DOC-CANONICAL-CONTRACTS-V1` for canonical P6 data, persistence and transport;
+- `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW` and `GW-P1-MINIMUM-CHANGE`.
 
-## 3. Retained implementation boundaries
+## 3. Technical thesis
 
-The following technical boundaries remain valid unless the state-machine investigation proves that a higher authority requires their revision:
+The existing canonical domain owners remain sufficient:
 
-1. Order remains a React/Vite client over the loopback daemon.
-2. TanStack Query remains the client mechanism for daemon-owned server state.
-3. Reusable project-neutral interaction primitives remain under `ui/src/primitives/**`.
-4. Astryx remains an implementation substrate beneath Order's local semantic UI boundary; it does not own lifecycle, information architecture or canonical state.
-5. Browser-local state is limited to presentation concerns. The browser must not own a parallel workflow state machine, mutation eligibility model or duplicate canonical domain representation.
-6. Canonical domain data is consumed directly through typed contracts and pure presentation functions; no DTO/view-model family is introduced for the same semantic state.
-7. The exact-source Markdown boundary remains owned by `GW-DOC-MARKDOWN-WORKBENCH-V1`.
-8. Existing production components and CSS may be reused only when they conform to V2; historical component names or layout structure create no preservation requirement.
+```text
+WorkItem
+Run
+RunEvent
+ArtifactRef
+Approval
+ExecutionTask
+WorkItemSourceSnapshot / diagnostics
+```
 
-## 4. Required state-machine investigation
+No new persisted `WorkflowState`, `WorkbenchState`, `TurnState`, `ReachedStage`, workflow-state table or browser-owned mirror is introduced.
 
-Before the Workbench remediation is implementation-ready, this owner must be completed with a technical design that resolves at least:
+The missing behavior is realized through:
 
-- the canonical WorkItem workflow state machine and legal transition relation;
-- backward-transition and monotonic reached-history representation;
-- Run lifecycle versus provider-turn occupancy versus operator-input eligibility;
-- exact unresolved-human-input ownership and idempotence;
-- proposal ownership/adoption admission;
-- document mutation exclusion while active work owns authority;
-- command serialization and atomicity;
-- side-effect-free read/query boundaries;
-- asynchronous Run-to-WorkItem convergence;
-- terminal RunEvent drain/observation semantics;
-- current-attention/current-action derivation;
-- execution-blocker ownership;
-- browser query invalidation/reconciliation rules;
-- stable Workbench layout realization for wide/medium/narrow classes;
-- permanent transition, concurrency, recovery and geometry fitness tests.
+1. pure transition/derivation functions over the existing canonical typed values;
+2. closed STAGE-turn event-batch validation;
+3. effectful daemon commands that re-check current state at the commit boundary;
+4. explicit read-versus-reconcile separation;
+5. browser observation of the existing canonical values with a deterministic coherence barrier;
+6. stable Workbench spatial primitives.
 
-These concerns must be represented through existing canonical semantic owners and pure functions where possible. A generic workflow-framework dependency, service/object graph, browser state store, DTO layer or duplicate lifecycle model is not authorized.
+The in-memory `runtime.stageTurnTasks` map remains process-occupancy bookkeeping only. It is never persisted, transported or treated as workflow authority.
 
-## 5. Implementation gate
+## 4. Pure state-machine policy
 
-Until §4 is resolved and this P4 owner plus any required P6 contract changes are complete:
+### 4.1 Cross-step WorkItem transitions
 
-- the existing Workbench implementation may be inspected and tested;
-- correctness defects may be documented;
-- no implementation task may choose new workflow states, transition rules, message admission policy, recovery semantics or canonical browser state locally;
-- no V1 Workbench section, release-specific implementation plan or superseded component mapping is standing implementation authority.
+`src/core/lifecycle.ts` remains the sole pure owner of WorkItem lifecycle transition policy.
 
-The next design activity is therefore the state-machine/transition/observation investigation required by `GW-DOC-WORKBENCH-UX-V2`.
+Every daemon mutation of `WorkItem.stage`, `WorkItem.status` or `WorkItem.outcome` must obtain the next lifecycle tuple from that owner. Daemon/shell code must not invent an ad-hoc stage/status/outcome assignment.
+
+The owner retains/refines the existing transition functions rather than introducing a generic state-machine dependency:
+
+- stage completion/promotion and R3 returns;
+- Work request/source-change return;
+- lifecycle-artifact-edit return;
+- current-stage block;
+- current-stage resume;
+- explicit sign-off transition;
+- classified execution return;
+- aggregate execution completion.
+
+The source-change rule is corrected to the P3 state model:
+
+```text
+IDEA source save                  -> IDEA / ACTIVE
+progressed pre-signoff source save -> R1 / ACTIVE
+AWAITING_SIGNOFF source change     -> R1 / ACTIVE
+COMPLETE source observation        -> COMPLETE / COMPLETE
+```
+
+Only explicit Start Research crosses IDEA -> R1.
+
+### 4.2 Derived STAGE Run interaction
+
+`src/core/lifecycle.ts` owns one browser-safe pure derivation from a canonical `Run` plus its ordered `RunEvent[]`.
+
+Conceptually:
+
+```text
+stageRunInteraction(run, events)
+  -> PROCESSING
+   | OPEN
+   | REQUIRED_INPUT(requestEventId)
+   | CLOSED
+```
+
+This is a pure decision value only. It is not a Zod schema, persisted record, HTTP response model or browser state store.
+
+Derivation rules:
+
+- terminal Run status -> CLOSED;
+- `WAITING_FOR_INPUT` requires exactly one unresolved `HUMAN_INPUT_REQUESTED` and derives REQUIRED_INPUT with that exact event id;
+- an active STAGE Run whose latest accepted turn trigger (`STAGE_STARTED` or `HUMAN_INPUT_RECEIVED`) has no later complete provider-result batch derives PROCESSING;
+- an active STAGE Run whose latest turn has settled without required input/block/completion derives OPEN;
+- contradictory/malformed event history is invalid canonical state and fails closed rather than being prioritized heuristically.
+
+The UI and daemon use this same pure function. `Run.status === "RUNNING"` is never used as Send eligibility.
+
+### 4.3 STAGE provider-turn grammar
+
+A pure core function validates the complete provider-result array before any event from that array is persisted.
+
+It enforces `GW-DOC-WORKBENCH-UX-V2 §21.2`:
+
+- provider-result array is non-empty;
+- at most one controlling event exists;
+- at most one `HUMAN_INPUT_REQUESTED`;
+- at most one `STAGE_BLOCKED`;
+- at most one `STAGE_COMPLETED`;
+- required-input/block/completion combinations are mutually exclusive;
+- at most one lifecycle proposal is emitted in a turn;
+- a lifecycle proposal exists only in an OPEN-result turn and cannot coexist with required input, block or completion;
+- no new lifecycle proposal is accepted while an earlier lifecycle proposal on that Run is unresolved;
+- a lifecycle proposal role equals the owning STAGE Run stage;
+- `STAGE_COMPLETED.completion.stage` equals the owning Run stage.
+
+General provider-role/tag admission remains owned by the existing provider-event admission policy. This Workbench rule adds the STAGE turn grammar; it does not create a second event union.
+
+### 4.4 Required-input admission
+
+Input admission is derived from the same canonical interaction function.
+
+```text
+PROCESSING
+  -> reject all input
+
+OPEN
+  + requestEventId == null
+  -> accept one free-form continuation
+
+REQUIRED_INPUT(Q)
+  + requestEventId == Q
+  -> accept exactly once
+
+REQUIRED_INPUT(Q)
+  + null / other Q / already-resolved Q
+  -> reject
+
+CLOSED
+  -> reject
+```
+
+The accepted `HUMAN_INPUT_RECEIVED` event resolves the required request before the next provider turn is scheduled.
+
+### 4.5 Monotonic reached history
+
+Reached history is derived, not separately persisted.
+
+A browser-safe pure function in `src/core/lifecycle.ts` consumes canonical `WorkItem`, `Run[]`, relevant `RunEvent[]`, `ArtifactRef[]` and `ExecutionTask[]` and returns the reached `WorkStage` set.
+
+The derivation uses evidence of actual entry:
+
+- IDEA is always reached;
+- current non-terminal stage is reached;
+- every STAGE/EXECUTION Run proves its Run stage was reached;
+- lifecycle ArtifactRefs prove their owning stage was reached;
+- each accepted `STAGE_COMPLETED` proves its destination was reached;
+- R3 `READY_FOR_SIGNOFF` proves AWAITING_SIGNOFF was reached;
+- materialized signed execution tasks or an EXECUTION Run prove AWAITING_SIGNOFF and EXECUTION were reached;
+- current COMPLETE proves COMPLETE, while prior-stage reach remains evidence-derived so an R1-terminal investigation/audit does not falsely appear to have traversed R2..EXECUTION.
+
+The function never infers historical reach solely from current-stage ordinal.
+
+`workflowStepState(...)` becomes:
+
+```text
+selected == current        -> CURRENT
+reached has selected       -> HISTORICAL
+otherwise                  -> UNREACHED
+```
+
+### 4.6 Current attention and action ownership
+
+Current attention remains a pure presentation derivation from canonical values and the shared lifecycle policy. It does not persist another status.
+
+The precedence is exactly `GW-DOC-WORKBENCH-UX-V2 §15`.
+
+Historical selection may choose what detail is displayed, but it never changes the derived current attention owner or mutation eligibility.
+
+Execution current ownership is derived before historical selection:
+
+1. current blocked task;
+2. current RUNNING task/active task Run;
+3. next eligible/current task;
+4. historical explicit selection only as inspection detail.
+
+## 5. Daemon command architecture
+
+### 5.1 Command admission principle
+
+Every workflow mutation follows:
+
+```text
+parse canonical command
+  -> perform required read-only external inspection
+  -> derive admission/transition with core policy
+  -> enter SQLite transaction
+  -> reload canonical DB state
+  -> re-run all DB-decidable admission checks
+  -> persist one coherent transition/event set
+  -> commit
+  -> perform/schedule only the explicitly authorized external continuation
+```
+
+No state-changing command relies solely on a pre-`await` state check.
+
+No generic mutation queue/service is introduced. SQLite transaction re-checks plus existing expected-hash/durable-intent mechanisms provide the concurrency boundary. The single daemon remains the sole state-mutating process.
+
+### 5.2 Start STAGE Run
+
+`startStageRun`:
+
+1. inspects source/context without reconciling/mutating;
+2. rejects with an actionable reconciliation-required conflict when the canonical repository source requires reconciliation;
+3. resolves context/provider prerequisites;
+4. inside the final transaction reloads the WorkItem, proves the same current stage/status and proves no active Run;
+5. applies IDEA -> R1 only for explicit Start Research;
+6. inserts the Run and `STAGE_STARTED` atomically;
+7. commits;
+8. schedules the provider turn asynchronously.
+
+Concurrent Start commands therefore cannot create two active Runs even though context resolution contains `await` boundaries.
+
+### 5.3 Provider-turn finalization
+
+Provider output is handled as one turn batch.
+
+The daemon:
+
+1. waits for OpenCode turn completion;
+2. validates every payload/evidence reference;
+3. validates the complete STAGE turn grammar before persisting any provider event;
+4. re-inspects current stage context without mutating repository/WorkItem state;
+5. derives the complete reaction;
+6. enters one transaction;
+7. reloads Run/WorkItem and proves the Run has not been cancelled/terminalized and the same turn trigger is still current;
+8. appends the entire provider-result batch;
+9. appends coordinator-owned conformance/reaction events where required;
+10. updates Run and WorkItem state atomically;
+11. commits.
+
+A browser never observes a partial provider-result batch.
+
+If cancellation wins the finalization race, the provider result cannot later promote/block/change the cancelled Run or WorkItem.
+
+### 5.4 Human input
+
+`submitRunInput` no longer waits synchronously for the next OpenCode turn.
+
+Inside one transaction it:
+
+1. reloads Run + events;
+2. derives current interaction;
+3. validates free-form versus exact-required-input admission;
+4. appends one `HUMAN_INPUT_RECEIVED`;
+5. changes `WAITING_FOR_INPUT -> RUNNING` when answering required input;
+6. commits.
+
+It then schedules the provider turn asynchronously and immediately returns the accepted canonical `HUMAN_INPUT_RECEIVED` event.
+
+This makes PROCESSING an observable state rather than a long-pending HTTP mutation.
+
+### 5.5 Cancel
+
+Cancel interrupts/stops the active provider effect first, then enters a transaction and reloads the Run.
+
+- if the Run is still active, cancel terminalizes it;
+- if provider finalization already terminalized it, Cancel is rejected as no longer admissible and does not overwrite the terminal result;
+- post-signoff cancellation additionally performs the existing atomic task/WorkItem block reaction.
+
+### 5.6 Proposal disposition
+
+Lifecycle-proposal adoption rechecks:
+
+- proposal belongs to a current STAGE Run;
+- Run stage equals current WorkItem stage;
+- Run interaction is OPEN;
+- proposal is the single unresolved lifecycle proposal for that Run;
+- proposal lifecycle role equals Run stage;
+- deterministic target path matches that same stage;
+- proposal is not already dispositioned/adoption-requested.
+
+Adoption retains the existing durable-intent-before-filesystem-effect pattern.
+
+For lifecycle proposals, successful adoption keeps the WorkItem at the same current owning stage. It stores the new ArtifactRef, invalidates downstream conformance, dispositions the proposal and requires context re-resolution before the next turn. Adoption itself never performs stage progression.
+
+Non-lifecycle proposal capability remains governed by its existing canonical authority and cannot use a lifecycle role/return as a shortcut.
+
+### 5.7 Direct Markdown/source mutations
+
+Source/title/body and lifecycle-artifact Save:
+
+- are rejected while any Run for the WorkItem is active;
+- use existing expected-hash compare/write semantics;
+- recheck active-Run/current-stage admission immediately before the filesystem effect;
+- read back/hash the exact written bytes;
+- persist the projection plus the pure lifecycle transition;
+- on a post-effect persistence failure, synchronously attempt the existing explicit reconciliation path before returning; if reconciliation cannot complete, return an explicit reconciliation-required failure rather than a generic rejected-action message.
+
+IDEA Work request Save remains IDEA. Progressed source mutation returns to R1. Lifecycle-artifact Save returns to the already-reached artifact owner.
+
+### 5.8 Sign-off and resume
+
+Sign-off is the only AWAITING_SIGNOFF -> EXECUTION command.
+
+The command computes the exact package read-only, compares the submitted expected hash, and immediately before storing Approval/tasks rechecks that the WorkItem is still AWAITING_SIGNOFF / ACTIVE and the exact package/currentness preconditions still hold.
+
+Resume never performs source reconciliation implicitly. If source/authority drift prevents safe resume, Resume rejects with the owning reconciliation/blocker reason and leaves canonical state unchanged.
+
+## 6. Observational read architecture
+
+### 6.1 Rule
+
+Every GET/query is side-effect free with respect to SQLite workflow state and repository bytes.
+
+The following current implementation patterns are removed:
+
+- `GET source -> revalidateWorkItemSource() -> applyPlan()`;
+- `GET lifecycle-artifacts -> currentFileArtifact() -> storeArtifact()`;
+- `GET signoff-package -> revalidate/currentness check -> update WorkItem lifecycle`.
+
+### 6.2 Source inspection versus reconciliation
+
+The existing source pipeline is split conceptually into:
+
+```text
+inspect source
+  -> current bytes/snapshot + diagnostic/reconciliation plan
+  -> NO mutation
+
+explicit reconcile
+  -> apply inspected plan
+  -> update WorkItem projection/lifecycle
+  -> materialize deterministic lifecycle drafts as needed
+```
+
+Productive commands may perform the same inspection as a precondition but must reject when reconciliation is required; they do not silently apply the reconciliation and then report their own command as failed.
+
+### 6.3 Lifecycle artifact inspection
+
+`GET lifecycle-artifacts` returns only already-canonical ArtifactRefs whose current repository bytes can be inspected without creating a new ArtifactRef.
+
+Changed/new deterministic lifecycle files become canonical through explicit reconcile/save/adopt/stage-output commands, not through the GET.
+
+Historical ArtifactRefs remain available through the ordinary artifact history query.
+
+### 6.4 Sign-off package inspection
+
+`GET signoff-package` is non-mutating.
+
+It may:
+
+- return the exact current sign-off package when currentness is proven; or
+- return the existing stable typed stale/precondition error when currentness cannot be proven.
+
+It never performs the upstream lifecycle return.
+
+The Workbench keeps the reached R3/Plan/package material inspectable and exposes explicit reconciliation/current-owner action. Sign-off remains disabled until the package is current.
+
+## 7. Browser canonical observation
+
+### 7.1 Canonical queries
+
+The browser continues to consume existing canonical values. No `WorkflowObservationDto`, view-model schema or second browser store is introduced.
+
+For a selected WorkItem the Workbench uses:
+
+- the existing single-WorkItem query as the current WorkItem owner, rather than relying only on the queue-list snapshot;
+- Run list;
+- canonical RunEvents for the relevant Runs;
+- lifecycle/historical ArtifactRefs;
+- source snapshot/diagnostics;
+- ExecutionTasks;
+- sign-off package when applicable.
+
+Historical STAGE RunEvents are loaded through their existing canonical per-Run event endpoint as needed to derive reached history. A new aggregate history DTO/endpoint is unnecessary.
+
+### 7.2 Active polling
+
+While any Run for the selected WorkItem is active:
+
+- selected WorkItem query polls every 1000 ms;
+- Run list polls every 1000 ms;
+- each active RunEvent query polls every 1000 ms;
+- current task/artifact/package queries needed by the current step are invalidated/refetched when the controlling Run changes.
+
+Polling remains transport behavior only.
+
+### 7.3 Terminal drain
+
+When a previously active Run is observed terminal:
+
+1. perform one final RunEvent fetch after the last seen sequence;
+2. refetch the selected WorkItem;
+3. refetch the affected task/artifact/sign-off/source-diagnostic queries;
+4. update reached history/current attention from those canonical values;
+5. only then expose the resulting next workflow action.
+
+The event query is not disabled merely because the Run list first reported terminal.
+
+### 7.4 Coherence barrier
+
+A pure presentation check suppresses mutation controls while canonical query values show an unobserved reaction.
+
+Examples:
+
+- RunEvents contain accepted `STAGE_COMPLETED` but selected WorkItem still reports the prior stage;
+- RunEvents contain accepted `STAGE_BLOCKED` but WorkItem status still reports ACTIVE;
+- an execution Run terminalized but task/WorkItem query has not yet observed its reaction;
+- a mutation is pending or a required dependent query is refetching after a controlling transition.
+
+The UI displays a neutral updating/processing state during this short reconciliation window. It does not infer the missing transition locally.
+
+## 8. Workbench presentation architecture
+
+### 8.1 Structural shell
+
+Wide layout is exactly:
+
+```text
+application toolbar
+work-item identity row
+workflow rail
+primary work area [ + explicit context column when opened ]
+```
+
+The first three rows have stable height. Long identity text truncates.
+
+### 8.2 Workflow rail
+
+Wide:
+
+```css
+grid-template-columns: repeat(9, minmax(0, 1fr));
+```
+
+State/current markers render inside the cell and never change border/width metrics.
+
+Constrained layout uses one horizontal row with stable auto-column sizing and horizontal overflow. It never wraps into multiple navigation rows.
+
+### 8.3 Pre-signoff steps
+
+Research/Requirements/Design/Plan use no persistent step-local side rail.
+
+Runs/documents/proposals/evidence are selected through one compact step-local material selector above/in the primary surface. Adding a second attempt/document changes selector contents only; it never changes primary-canvas columns.
+
+Readiness uses the same selector mechanism for secondary material but remains Review-class first.
+
+### 8.4 Approval
+
+Approval remains one primary Review surface. Repeated signed tasks use a dense table/list inside that surface.
+
+Approval does not conditionally acquire a persistent side master based on task count.
+
+### 8.5 Implementation
+
+Implementation alone uses a persistent operational master/detail split.
+
+The master width is one fixed Workbench token for the wide layout; task count/status does not alter it. The detail owns remaining width.
+
+On medium/narrow layouts the master becomes temporary/stacked before detail width is compromised.
+
+### 8.6 Context
+
+Context is closed by default and opens only through explicit operator action.
+
+At wide width it uses one fixed bounded context-width token; opening/closing Context is the only state-driven addition/removal of that column. Medium/narrow use a drawer/overlay.
+
+Canonical diagnostics never auto-open Context.
+
+## 9. Material and action composition
+
+### 9.1 Pre-signoff
+
+The current material resolver uses `deriveReachedStages` and the shared STAGE interaction derivation.
+
+For the current step:
+
+1. mutation conflict/reconciliation requirement;
+2. required human input;
+3. pending proposal;
+4. current blocker/failure;
+5. active PROCESSING;
+6. OPEN continuation;
+7. current document;
+8. historical explicit selection.
+
+Historical selection can remain visible, but a compact current-attention surface remains visible and navigates directly to its owner.
+
+### 9.2 Readiness
+
+Readiness defaults to verdict/findings/package material, not the latest generic Run.
+
+Only an actual REQUIRED_INPUT interaction temporarily owns the primary action.
+
+### 9.3 Execution
+
+Historical task selection is presentation state only.
+
+The Workbench derives current execution attention independently and renders it above/adjacent to the detail. Resume is attached to the current blocked task, never merely to `WorkItem.status === BLOCKED`.
+
+## 10. Workflow feedback ownership
+
+Each workflow mutation has exactly one visible feedback owner.
+
+- Start/Retry/Resume/Cancel/proposal/sign-off errors belong to the workflow material that owns that command.
+- composer input errors belong to the composer.
+- the parent Activity surface does not repeat the same composer mutation error.
+- current blockers are not copied into multiple equal-weight banners.
+- toast may supplement but never replace the owning inline feedback.
+
+This directly removes the current duplicated `Workflow action failed` rendering between Activity workspace and composer.
+
+## 11. Required P6 amendments
+
+`GW-DOC-CANONICAL-CONTRACTS-V1` must be amended in the same design package to bind:
+
+1. IDEA source Save remains IDEA; progressed source changes return to R1.
+2. GET/query operations in §18/§19 are non-mutating.
+3. STAGE turn-result arrays are validated as one non-empty closed batch before persistence.
+4. provider turn batch + coordinator reaction + Run/WorkItem transition are one SQLite transaction where no filesystem effect intervenes.
+5. required-input request identity/null semantics are exact.
+6. lifecycle proposal role/current-stage/pending/open-turn invariants are exact.
+7. source/lifecycle Save is forbidden while a Run is active.
+8. Start/Input/Cancel/Proposal/Resume/Sign-off re-check DB-decidable admission at their final transaction boundary.
+9. browser observation polls the selected WorkItem while Runs are active and performs terminal event drain/refetch before exposing a next action.
+10. sign-off package/source/lifecycle-artifact GET paths perform no lifecycle/projection mutation.
+11. no new persistence table/column is introduced for reached history or turn interaction.
+
+## 12. Existing module consequences
+
+### `src/core/lifecycle.ts`
+
+Extend the existing browser-safe owner with:
+
+- corrected source-change transition;
+- complete WorkItem transition helpers needed by the P3 diagram;
+- STAGE Run interaction derivation;
+- unresolved required-input derivation/admission;
+- STAGE turn-grammar validation;
+- lifecycle-proposal current-stage admission;
+- reached-stage derivation.
+
+These are pure functions over canonical types. No Zod/transport/persistence model is added for derived interaction/reach values.
+
+### `src/core/execution.ts`
+
+Retain post-signoff task/provider-role admission and bounded repair/recovery policy. It does not become the Workbench state owner.
+
+### `src/daemon/work-item-source.ts`
+
+Separate inspection from explicit reconciliation and remove read-path application of source plans.
+
+### `src/daemon/authority.ts`
+
+Separate query inspection from ArtifactRef materialization, remove lifecycle mutation from sign-off-package reads, and keep stage/sign-off command materialization explicit.
+
+### `src/daemon/stage.ts`
+
+Own async STAGE-turn orchestration, complete-batch finalization, transactional input admission, current-stage proposal disposition and cancel-safe finalization.
+
+### `src/daemon/coordinator.ts`
+
+Retain top-level cancel/resume/scheduler composition. Resume uses explicit current blocker/currentness admission and does not reconcile source implicitly.
+
+### `src/daemon/execution.ts`
+
+Continue to own post-signoff task/Run reaction; route every WorkItem lifecycle return through core lifecycle policy and expose current blocker through canonical task state.
+
+### UI
+
+`WorkItemWorkspace.tsx` becomes the canonical query-composition shell for the selected item and does not calculate lifecycle policy ad hoc.
+
+`workbench-presentation.ts` remains pure presentation/material resolution but consumes the core reached/interaction policy instead of stage ordinal or `Run.status` heuristics.
+
+`ActivityWorkspace.tsx` / `ActivityComposer.tsx` use the shared interaction derivation; Send is admitted only for OPEN or exact REQUIRED_INPUT, and mutation error ownership is singular.
+
+No production class/service/repository/controller/DTO/mapper module is introduced.
+
+## 13. Permanent verification
+
+### 13.1 Core transition matrix
+
+Table-driven core tests enumerate every row of:
+
+- `GW-DOC-WORK-LIFECYCLE-V1 §2.2`;
+- `GW-DOC-WORKBENCH-UX-V2 §21.1-§21.8`.
+
+For each state/event pair the test proves either exactly one expected transition or explicit rejection.
+
+The inverse/negative matrix proves unlisted transitions do not occur.
+
+### 13.2 Turn grammar
+
+Tests cover every pairwise contradictory controlling-event combination, duplicate input requests, empty provider batch, proposal/control coexistence, proposal role mismatch, unresolved-proposal duplication and exact required-input idempotence.
+
+### 13.3 Concurrency
+
+Deterministic integration tests synchronize concurrent:
+
+- Start/Start;
+- Input/Input;
+- Input/Cancel;
+- provider-finalize/Cancel;
+- Save/Start;
+- Adopt/Input;
+- Sign-off/upstream mutation;
+- Resume/currentness change.
+
+Exactly one admissible transition wins; the loser does not overwrite canonical state.
+
+### 13.4 Read purity
+
+For every GET/query, tests snapshot SQLite + relevant repository bytes before/after and prove no state/write change.
+
+Required coverage includes source, lifecycle-artifacts and signoff-package reads in stale/drifted conditions.
+
+### 13.5 Browser certification
+
+Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, including:
+
+- asynchronous next-stage orientation without reload;
+- final event drain;
+- required-input exactness;
+- history across R3/execution return;
+- current blocker dominance over historical selection;
+- one feedback owner;
+- stable workflow rail geometry;
+- no conditional pre-signoff rail;
+- stable Implementation master width;
+- explicit Context only;
+- responsive continuity.
+
+### 13.6 Architecture fitness
+
+Permanent sensors prove:
+
+- no new DTO/view-model/domain-copy family;
+- no browser workflow store;
+- UI workflow policy imports only the authorized browser-safe core lifecycle owner;
+- daemon modules do not implement a second stage-order/transition table;
+- GET handlers cannot call known reconcile/materialization mutation functions;
+- ordinal reached-history comparison is absent from production Workbench code.
+
+## 14. Non-goals
+
+This design does not authorize:
+
+- a generic state-machine/workflow library;
+- XState or equivalent dependency;
+- a persisted reached-history table/set;
+- a persisted provider-turn state field;
+- a `WorkflowObservation` transport DTO;
+- a browser Redux/Zustand/workflow state store;
+- WebSocket/SSE/token streaming;
+- a command/event bus;
+- a global mutation queue/service;
+- compatibility behavior for the superseded Workbench implementation;
+- redesign of OpenCode provider semantics unrelated to STAGE-turn admission/finalization.
+
+The minimum implementation is to make the existing canonical state and event stream actually obey the P3 state machine and to make the Workbench derive from that state consistently.
