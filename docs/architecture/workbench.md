@@ -278,9 +278,7 @@ type RecoveryDisposition =
   | { readonly tag: "NONE" }
   | { readonly tag: "RETRY_CURRENT_STAGE" }
   | { readonly tag: "RESUME_CURRENT_OWNER" }
-  | { readonly tag: "RECONCILE_AUTHORITY" }
-  | { readonly tag: "AUTOMATIC_RECOVERY" }
-  | { readonly tag: "RETURN_TO_OWNER"; readonly stage: UpstreamReturnStage };
+  | { readonly tag: "RECONCILE_AUTHORITY" };
 
 type ObservationCoherence = "COHERENT" | "CONVERGING";
 
@@ -355,7 +353,7 @@ Existing specialized transition helpers may remain where they are the minimum cl
 
 ADOPTION_IN_PROGRESS survives process restart because its owner is the durable adoption-request event. It suppresses Reject/free-form continuation until the exact P6 reconciliation/disposition path completes.
 
-Recovery is derived from canonical failure/block/currentness history, including P6's bounded post-signoff action-key and semantic-remediation rules. A retry counter/entitlement field is not added.
+Operator-facing recovery is derived from canonical failure/block/currentness history as `RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY | NONE`. It does not copy the post-signoff automatic replacement/remediation policy owned by `src/core/execution.ts`. When that execution policy admits automatic work, its canonical Run/task facts project through PROCESSING; when it performs an upstream return, the resulting WorkItem stage becomes the new lifecycle owner. A retry counter/entitlement field is not added.
 
 `deriveExecutionOwner` and `deriveValidationBoundary` consume current Approval/tasks/Runs/RunEvents. They do not use selected UI task/run as authority. The validation boundary is candidate-current: stale pass/fail events from an earlier candidate/Run cannot advance the projection.
 
@@ -1372,7 +1370,7 @@ These are pure functions over canonical types/facts. No Zod schema, transport/pe
 
 ### `src/core/execution.ts`
 
-Retain post-signoff task/provider-role admission and bounded repair/recovery policy as the canonical execution-policy input. It does not become the Workbench state owner and does not export a competing attention/rail/execution-status vocabulary; `lifecycle.ts` derives the closed Workbench recovery/execution projections from canonical execution facts/policy results.
+Retain post-signoff task/provider-role admission and bounded automatic repair/replacement policy as the sole execution-policy owner. It does not become the Workbench state owner or export a competing attention/rail/status vocabulary. The Workbench observes automatic execution work through the canonical task/Run/RunEvent facts that this owner produces; `lifecycle.ts` derives only the closed operator-facing recovery/execution projections from those facts.
 
 ### `src/daemon/runtime.ts`
 
