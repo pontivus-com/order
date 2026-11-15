@@ -17,7 +17,7 @@ The implementation remains a functional-core / imperative-shell system. This des
 
 The realization conforms to:
 
-- `GW-DOC-WORKBENCH-UX-V2`, including its functional state-transition model and `GW-FR-200..229`;
+- `GW-DOC-WORKBENCH-UX-V2`, including its functional state-transition model and §22 binding functional requirements;
 - `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` for the canonical cross-step lifecycle relation;
 - `GW-DOC-LIFECYCLE-CONTEXT-V1` for stage decision/context/conformance boundaries;
 - `GW-DOC-VALIDATION-STANDARD-V1` for post-signoff failure classification;
@@ -623,7 +623,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-082-WORKFLOW-TRANSITION-KERNEL
 
-**Realizes:** `GW-FR-200`, `GW-FR-202`, `GW-FR-205`, `GW-FR-211`, `GW-FR-212`, `GW-FR-228`.
+**Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-202-ATOMIC-COMMAND-OUTCOME`, `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-211-READINESS-RETURN-CONTINUITY`, `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`.
 
 **Required behavior:** every WorkItem stage/status/outcome mutation is produced by the browser-safe pure lifecycle policy owner from canonical current state plus an admitted semantic cause; daemon modules do not invent alternate lifecycle transitions.
 
@@ -631,7 +631,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-083-STAGE-RUN-INTERACTION-DERIVATION
 
-**Realizes:** `GW-FR-203`, `GW-FR-204`, `GW-FR-220`, `GW-FR-229`.
+**Realizes:** `GW-FR-203-SERIALIZED-RUN-TURNS`, `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP`, `GW-FR-220-PRESIGNOFF-CONTINUITY`, `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`.
 
 **Required behavior:** PROCESSING / OPEN / REQUIRED_INPUT / CLOSED is derived purely from canonical Run + RunEvents and shared by daemon admission and browser presentation; no persisted turn-state field or browser heuristic based only on `Run.status` exists.
 
@@ -639,7 +639,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-084-STAGE-TURN-BATCH-ATOMICITY
 
-**Realizes:** `GW-FR-202`, `GW-FR-203`, `GW-FR-207`, `GW-FR-210`, `GW-FR-229`.
+**Realizes:** `GW-FR-202-ATOMIC-COMMAND-OUTCOME`, `GW-FR-203-SERIALIZED-RUN-TURNS`, `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`.
 
 **Required behavior:** one complete non-empty STAGE provider-result batch is validated for role/turn/proposal invariants before persistence and is committed with its coordinator reaction atomically when no filesystem effect intervenes.
 
@@ -647,7 +647,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-085-OBSERVATIONAL-QUERY-BOUNDARY
 
-**Realizes:** `GW-FR-201`, `GW-FR-212`.
+**Realizes:** `GW-FR-201-OBSERVATIONAL-READS`, `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS`.
 
 **Required behavior:** every GET/query is workflow-state and repository-byte read-only; source reconciliation, ArtifactRef materialization and lifecycle return happen only through explicit mutations.
 
@@ -655,7 +655,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-086-COMMAND-COMMIT-RECHECK
 
-**Realizes:** `GW-FR-202`, `GW-FR-204`, `GW-FR-207`, `GW-FR-208`, `GW-FR-209`.
+**Realizes:** `GW-FR-202-ATOMIC-COMMAND-OUTCOME`, `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP`, `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY`, `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION`, `GW-FR-209-SOURCE-BLOCKER-ADMISSION`.
 
 **Required behavior:** operator workflow commands acquire the process-local per-WorkItem mutation guard across their full effect, and every command that crosses an `await` before persistence reloads canonical DB state and repeats all DB-decidable admission checks inside its final transaction; expected-hash/durable-intent rules remain the filesystem concurrency boundary.
 
@@ -663,7 +663,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-087-MONOTONIC-REACHED-HISTORY-DERIVATION
 
-**Realizes:** `GW-FR-205`, `GW-FR-211`, `GW-FR-224`.
+**Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-211-READINESS-RETURN-CONTINUITY`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`.
 
 **Required behavior:** reached workflow steps are derived from canonical WorkItem/Run/RunEvent/ArtifactRef/ExecutionTask evidence and remain reached after upstream returns; current-stage ordinal alone is never the history algorithm.
 
@@ -671,7 +671,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-088-ASYNC-BROWSER-CONVERGENCE
 
-**Realizes:** `GW-FR-200`, `GW-FR-210`, `GW-FR-226`.
+**Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`.
 
 **Required behavior:** while Runs are active the selected WorkItem participates in polling; terminal Run observation performs final RunEvent drain plus affected canonical refetch, and mutation actions remain suppressed until controlling reactions are coherently observed.
 
@@ -679,7 +679,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-089-CURRENT-ATTENTION-OWNERSHIP
 
-**Realizes:** `GW-FR-206`, `GW-FR-213`, `GW-FR-221`, `GW-FR-222`, `GW-FR-223`, `GW-FR-226`.
+**Realizes:** `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`.
 
 **Required behavior:** current attention/action is a pure projection independent of historical selection; exactly one inline surface owns each mutation error/blocker/recovery action.
 
@@ -687,7 +687,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-090-STABLE-WORKBENCH-GEOMETRY
 
-**Realizes:** `GW-FR-214` through `GW-FR-225`.
+**Realizes:** `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`, `GW-FR-215-STABLE-WORKFLOW-RAIL`, `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL`, `GW-FR-217-PRIMARY-INFORMATION-ECONOMY`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-219-EXPLICIT-CONTEXT`, `GW-FR-220-PRESIGNOFF-CONTINUITY`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`.
 
 **Required behavior:** workflow rail, pre-signoff material selection, Approval, Implementation master/detail and Context obey the stable spatial contracts in §8 without content-count/status-driven persistent column insertion or width changes.
 
@@ -695,7 +695,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 ### GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION
 
-**Realizes:** `GW-FR-227`, `GW-FR-228`, `GW-FR-229`.
+**Realizes:** `GW-FR-227-CERTIFICATION-MATRIX`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`.
 
 **Required behavior:** permanent core/integration/browser/architecture tests close the positive and negative transition matrix, turn grammar, concurrency races, read purity, async convergence and geometry invariants.
 
