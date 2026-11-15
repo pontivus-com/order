@@ -158,7 +158,6 @@ export const WorkItemWorkspace = ({
     useState<WorkspaceSelection | null>(null);
   const [returnSelection, setReturnSelection] = useState<WorkspaceSelection | null>(null);
   const [returnFocusName, setReturnFocusName] = useState<string | null>(null);
-  const [workflowInspectionActive, setWorkflowInspectionActive] = useState(false);
   const [titleEditing, setTitleEditing] = useState(false);
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
@@ -170,6 +169,7 @@ export const WorkItemWorkspace = ({
   const mutationConflictObservation = useRef<string | null>(null);
   const mutationConflictWorkItemUpdatedAt = useRef<number | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const priorWorkItemStage = useRef<WorkItem["stage"]>(workItem.stage);
 
   const runsQuery = useQuery({
     queryKey: workbenchQueryKeys.runs(workItem.id),
@@ -756,25 +756,19 @@ export const WorkItemWorkspace = ({
 
   useEffect(() => {
     if (dirty) return;
-    if (selectedStep === workItem.stage) {
-      if (workflowInspectionActive) setWorkflowInspectionActive(false);
-      return;
-    }
-    if (!workflowInspectionActive) {
-      if (selectedStep === "IDEA" && material.kind === "SOURCE_DOCUMENT") {
-        setWorkflowInspectionActive(true);
-        return;
-      }
-      setSelectedStep(workItem.stage);
-      setExplicitMaterial(null);
-      setReturnSelection(null);
-    }
+    const priorStage = priorWorkItemStage.current;
+    if (priorStage === workItem.stage) return;
+
+    priorWorkItemStage.current = workItem.stage;
+    if (selectedStep !== priorStage) return;
+
+    setSelectedStep(workItem.stage);
+    setExplicitMaterial(null);
+    setReturnSelection(null);
   }, [
     dirty,
-    material.kind,
     selectedStep,
     workItem.stage,
-    workflowInspectionActive,
   ]);
 
   const invalidate = async (): Promise<void> => {
@@ -837,7 +831,6 @@ export const WorkItemWorkspace = ({
     setSelectedStep(next.step);
     setExplicitMaterial(next.material);
     setReturnSelection(nextReturnSelection);
-    setWorkflowInspectionActive(next.step !== workItem.stage);
   };
 
   const requestSelection = (

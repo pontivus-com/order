@@ -532,6 +532,9 @@
   min-height: 0;
   display: grid;
 }
+.order-primary-material-frame > .order-primary-material-content:only-child {
+  grid-row: 1 / -1;
+}
 .order-document-material {
   height: 100%;
   min-height: 0;
