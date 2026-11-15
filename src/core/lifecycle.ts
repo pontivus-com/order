@@ -850,8 +850,8 @@ export const deriveCurrentAttention = (input: Readonly<{
     input.workItem.status === "BLOCKED" ||
     input.executionOwner.tag === "BLOCKED_TASK"
   ) return "BLOCKER";
-  if (input.recovery.tag !== "NONE") return "RECOVERY";
   if (input.currentness.tag === "STALE") return "STALE_AUTHORITY";
+  if (input.recovery.tag !== "NONE") return "RECOVERY";
   if (
     input.stageInteraction?.tag === "PROCESSING" ||
     input.automaticWorkActive
