@@ -511,6 +511,76 @@ Context never auto-opens or auto-closes because workflow state changes.
 
 Context contains compact metadata and secondary diagnostics only. It cannot become the sole location of the current blocker or required action.
 
+### 11.7 Canonical visual character
+
+Order is a focused, dense professional work surface. It is visually **flat, calm, precise and information-forward**.
+
+The visual character follows the product identity owned by `GW-DOC-PRODUCT-IDENTITY-V1`: deep navy / Order blue is the brand and interaction accent, while the Workbench itself is predominantly neutral so the current task, current action and exceptional state remain visually obvious.
+
+The Workbench does not use:
+
+- decorative dashboard cards;
+- gradients or decorative brand effects in task surfaces;
+- arbitrary per-feature accent colors;
+- large empty hero regions inside productive work;
+- persistent elevation/shadow to create hierarchy that should be expressed structurally;
+- badges/chips as a substitute for ordinary readable labels.
+
+Persistent surfaces are separated primarily by spacing, 1px boundaries and information hierarchy. Elevation is reserved for temporary overlays.
+
+### 11.8 Semantic color behavior
+
+Color communicates a small semantic vocabulary only:
+
+- **accent / current / selected** — Order blue;
+- **information / processing** — blue-family informational treatment;
+- **success / complete / ready** — green;
+- **warning / waiting / stale / attention required** — amber;
+- **danger / failed / blocked / destructive** — red;
+- **neutral / historical / secondary / technical** — neutral foreground and surface tones.
+
+Color is never the sole carrier of state. Every state that affects workflow meaning has readable text and, where useful, an icon or structural marker.
+
+Feature/service code does not invent another semantic color or use raw palette values to imply domain meaning.
+
+### 11.9 Typography and density
+
+The Workbench uses one sans-serif application type system and one monospace technical/code type system.
+
+Typography expresses role rather than decoration:
+
+- application/work-item title;
+- section/material heading;
+- normal body/control text;
+- secondary/caption text;
+- technical/code identity.
+
+The default productive UI is compact. Normal labels, controls, rows and supporting text do not grow independently by feature. Long identity values truncate or wrap within their designated technical region rather than forcing structural expansion.
+
+### 11.10 Controls, forms and operational scanning
+
+Equivalent interactions look and behave the same everywhere.
+
+- primary, secondary, destructive and ghost actions use one action grammar;
+- form fields use one label/help/error grammar;
+- semantic status uses one status grammar;
+- inline information/warning/error/success feedback uses one notice grammar;
+- operational collections use one dense row/table grammar rather than card stacks;
+- chronological events use one timeline grammar;
+- transient task forms use one operator-opened task-panel grammar;
+- Settings uses one configuration layout and field grammar;
+- fixed peer-view choices may use one compact segmented/tab treatment but never create a second navigation hierarchy.
+
+A service-specific form, table, status badge, notice, timeline or drawer treatment is non-compliant when the same interaction already exists in the canonical UI language.
+
+### 11.11 Theme, focus and motion consistency
+
+Light, dark and system theme preferences preserve the same information hierarchy and semantic status meaning. A feature cannot define its own light/dark palette.
+
+Keyboard focus is always visibly distinguishable from selection/current state. Reduced-motion preference is respected; motion is functional and brief rather than decorative.
+
+The same component/service retains semantic identity across responsive classes. Responsive recomposition may change representation but not styling vocabulary, action priority or state meaning.
+
 ## 12. Information hierarchy
 
 Every visible item belongs to one of three levels.
@@ -564,6 +634,7 @@ Order uses a small closed set of interaction classes.
 | Class | Primary use | Functional geometry |
 |---|---|---|
 | Operational scan | queue, task master | dense table/list |
+| Form / configuration | Create WorkItem, Settings and bounded configuration tasks | explicit field hierarchy + action region; no card dashboard |
 | Document | Work request, R1/R2/DESIGN/PLAN | wide primary authoring/reading surface |
 | Dialogue | active pre-signoff Run | remaining-height conversation with anchored composer |
 | Review | proposal, readiness, approval | wide comparison/judgment surface |
@@ -571,16 +642,17 @@ Order uses a small closed set of interaction classes.
 | Evidence | logs, patches, exact bytes | wide remaining-height raw viewer |
 | Terminal result | final outcome | concise classification + substantive result/evidence |
 | Compact context | metadata/small utilities | bounded inspector/drawer |
+| Task panel | short-lived creation/configuration task | operator-opened drawer/sheet containing one Form/configuration composition |
 | Safety/exception | conflict/confirmation | inline owning-state or modal confirmation |
 
 A screen does not invent a new card/panel grammar merely because its content is unique.
 
 The set is closed for WorkItem Workbench screen construction:
 
-- **primary interaction classes:** Operational scan, Document, Dialogue, Review, Operational master/detail, Evidence and Terminal result;
-- **auxiliary interaction classes:** Compact context and Safety/exception.
+- **primary interaction classes:** Operational scan, Form/configuration, Document, Dialogue, Review, Operational master/detail, Evidence and Terminal result;
+- **auxiliary interaction classes:** Compact context, Task panel and Safety/exception.
 
-Every WorkItem Workbench screen has exactly one primary interaction class. Auxiliary classes may appear only in support of that primary interaction and never become an independent persistent navigation/layout axis. A feature whose required behavior cannot be expressed by these classes returns to DESIGN and amends this canonical owner before implementation; implementation does not create a new geometry or interaction grammar by convenience.
+Every rendered Order Workbench service has exactly one primary interaction class. A Task panel hosts exactly one bounded primary Form/configuration composition. Other auxiliary classes may appear only in support of the owning primary interaction and never become an independent persistent navigation/layout axis. A feature whose required behavior cannot be expressed by these classes returns to DESIGN and amends this canonical owner before implementation; implementation does not create a new geometry or interaction grammar by convenience.
 
 ## 14. Per-step screen contract
 
@@ -1223,9 +1295,15 @@ Therefore the Workbench can prove CURRENT / REACHED-HISTORICAL / UNREACHED witho
 
 ### GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR
 
-**Required behavior:** every WorkItem Workbench screen is classified under exactly one primary interaction-space class from §13; subordinate selection, context and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation grammar.
+**Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, context, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation grammar.
 
-**Acceptance:** adding a new feature, material type, Run/document/task count or technical detail does not create a new screen geometry by implementation convenience. If none of the §13 classes can express the required user interaction, the change returns to DESIGN before implementation.
+**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry by implementation convenience. If none of the §13 classes can express the required user interaction, the change returns to DESIGN before implementation.
+
+### GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
+
+**Required behavior:** every rendered Workbench service uses the single visual language in §11 for hierarchy, semantic color, typography, density, controls/forms, operational scanning, feedback, themes, focus and responsive continuity.
+
+**Acceptance:** equivalent UI meaning is rendered equivalently across queue, creation, Settings and every WorkItem workflow surface; no feature/service owns a competing palette, typography scale, form/control grammar, status treatment, notice treatment, table/list density, timeline grammar or overlay style.
 
 ## 23. Required certification scenarios
 
@@ -1255,7 +1333,9 @@ At minimum, downstream implementation must prove these scenarios end to end:
 22. Returning from R3 or Implementation preserves every previously reached downstream step as historical.
 23. Approval package read can expose stale currentness but cannot itself execute the upstream return.
 24. Rejected/stale commands and historical navigation are proven state-preserving across every workflow step.
-25. Every WorkItem Workbench screen resolves to one §13 primary interaction class; subordinate selector/context/confirmation behavior does not introduce an undeclared persistent screen grammar.
+25. Every rendered Workbench service resolves to one §13 primary interaction class; subordinate selector/context/task-panel/confirmation behavior does not introduce an undeclared persistent screen grammar.
+26. Queue, creation, Settings, document/editor, dialogue, review, implementation, evidence, result and Context rendering all use the same semantic color, typography, spacing/density, control, status, feedback and focus language in light and dark themes.
+27. Every production rendering owner is accounted for by the P4 renderer-to-primitive coverage matrix; an unclassified renderer or direct recreation of an owned UI mechanic fails architecture fitness.
 
 ## 24. Downstream technical-design obligations
 
@@ -1275,7 +1355,9 @@ The technical investigation must determine, without changing the behavior above:
 - how final event draining is guaranteed;
 - how the UI consumes canonical state without a parallel browser state machine;
 - how layout stability is enforced through the local Foundation/Astryx boundary;
-- how permanent state-transition and geometry fitness tests are expressed.
+- the complete renderer-to-primitive/approved-leaf coverage matrix for every production UI renderer;
+- the canonical semantic design-token contract for color, typography, spacing/density, borders/radii, focus, status and theme parity;
+- how permanent state-transition, visual-language and geometry fitness tests are expressed.
 
 The binding P4/P6 realization must include a transition-coverage proof mapping every functional transition in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` to one pure policy decision and one authorized imperative-shell mutation path. `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` owns that realization. No implementation task may invent those semantics locally.
 
