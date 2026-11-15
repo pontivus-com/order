@@ -541,6 +541,7 @@ export const WorkItemWorkspace = ({
     runs,
     artifacts,
     currentStageRunId: currentStageRun?.id ?? null,
+    currentStageRunActive: currentStageRun !== null && runIsActive(currentStageRun),
     currentAttention,
     stageInteraction: currentStageInteraction,
     executionOwner,
