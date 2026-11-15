@@ -404,6 +404,8 @@ const server = Bun.serve({
         output = target === "fixed\\n" && hasV4Inputs
           ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
           : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+      } else if (mode === "stage-invalid-r1") {
+        output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
       } else {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
       }
@@ -2578,20 +2580,14 @@ describe("daemon control plane", () => {
     expect(output.selfCodes).toContain("INVALID_SOURCE");
   });
 
-  it("blocks a schema-invalid R1 completion as semantic conformance failure", () => {
+  it("blocks a schema-invalid R1 provider completion atomically", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-kind-invalid-r1-");
-    const workItemRoot = join(repository, "docs", "order", "work-items");
-    mkdirSync(workItemRoot, { recursive: true });
+    const binary = createFakeOpenCode("stage-invalid-r1");
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
-      const rt = await import("./src/shell/runtime.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const authority = await import("./src/daemon/authority.ts");
-      const stage = await import("./src/daemon/stage.ts");
-      const runStore = await import("./src/daemon/run.ts");
-      const repo = await import("./src/shell/repository.ts");
 
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
@@ -2611,56 +2607,32 @@ describe("daemon control plane", () => {
         title: "audit completion mismatch",
         concernIds: ["shell"],
       });
-      sql.promoteIdeaToR1(database, created.id);
-      const workItem = coord.getWorkItem(runtime, created.id);
-      const context = await authority.resolveStageContext(runtime, workItem, "R1");
-      const run = runStore.insertRun(runtime, {
-        id: rt.newRunId(),
-        workItemId: workItem.id,
-        executionTaskId: null,
-        stage: "R1",
-        mode: "INTERACTIVE",
-        role: "STAGE",
-        triggerEventId: null,
-        status: "RUNNING",
-        attempt: runStore.nextAttempt(runtime, workItem.id, "R1", null),
-        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
-        contextHash: context.contextHash,
-        providerSessionId: null,
-        terminalClassification: null,
-        startedAt: rt.nowIsoDateTime(),
-        endedAt: null,
-      });
-      const completion = runStore.appendRunEvent(runtime, run.id, {
-        tag: "STAGE_COMPLETED",
-        completion: { stage: "R1", outcome: "CONFIRMED" },
-        artifactRefIds: [],
-      });
-      const settled = await stage.applyStageCompletion(
-        runtime,
-        run,
-        context,
-        completion,
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
       );
-      const after = coord.getWorkItem(runtime, workItem.id);
-      const failures = runStore.listRunEvents(runtime, run.id)
-        .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
-        .map((event) => event.event.tag === "CONFORMANCE_FAILED"
-          ? event.event.summary
-          : "");
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, created.id);
+      const events = coord.listRunEvents(runtime, run.id);
       console.log(JSON.stringify({
         runStatus: settled.status,
         stage: after.stage,
         status: after.status,
         outcome: after.outcome,
-        failures,
+        completionCount: events.filter((event) => event.event.tag === "STAGE_COMPLETED").length,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
       }));
       database.close();
-    `) as {
+    `, providerEnvironment(binary, state)) as {
       runStatus: string;
       stage: string;
       status: string;
       outcome: string | null;
+      completionCount: number;
       failures: string[];
     };
 
@@ -2669,9 +2641,10 @@ describe("daemon control plane", () => {
       stage: "R1",
       status: "ACTIVE",
       outcome: null,
+      completionCount: 1,
       failures: ["R1 outcome CONFIRMED is invalid for schema audit-v1"],
     });
-  });
+  }, 30_000);
 
   it("keeps sign-off package inspection read-only when current Markdown diverges", () => {
     const repository = createRepository();
