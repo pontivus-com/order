@@ -39,20 +39,29 @@ ExecutionTask
 WorkItemSourceSnapshot / diagnostics
 ```
 
-No new persisted `WorkflowState`, `WorkbenchState`, `TurnState`, `ReachedStage`, workflow-state table or browser-owned mirror is introduced.
+No new persisted `WorkflowState`, `WorkbenchState`, `TurnState`, `ReachedStage`, workflow-state table, transport aggregate, DTO/view-model family or browser-owned mirror is introduced.
+
+The workflow language is realized as two cohesive pure-core responsibilities over those existing canonical values:
+
+- `src/core/lifecycle.ts` owns **mutation semantics**: admitted lifecycle causes, stage/status/outcome transitions, block/resume and upstream-return routing;
+- `src/core/workflow-state.ts` owns **read-only workflow semantics**: reach, STAGE interaction, proposal-decision/adoption state, material currentness, execution owner/validation boundary, recovery route, observation coherence, current attention and workflow-rail projection.
+
+This same-layer split is required by SoC: mutation transition policy and observation/presentation policy are independently testable responsibilities. It does not create two lifecycle owners. `workflow-state.ts` cannot assign lifecycle state and `lifecycle.ts` cannot own UI selection/rendering.
 
 The missing behavior is realized through:
 
-1. pure transition/derivation functions over the existing canonical typed values;
+1. closed pure transition and workflow-state decision functions over the existing canonical typed values;
 2. closed STAGE-turn event-batch validation;
 3. effectful daemon commands that re-check current state at the commit boundary;
 4. explicit read-versus-reconcile separation;
 5. browser observation of the existing canonical values with a deterministic coherence barrier;
-6. stable Workbench spatial primitives.
+6. one-way rail/current-attention projections into stable Workbench primitives.
 
 The in-memory `runtime.stageTurnTasks` map remains process-occupancy bookkeeping only. It is never persisted, transported or treated as workflow authority.
 
-## 4. Pure state-machine policy
+## 4. Pure workflow-state and transition policy
+
+The pure core exposes a closed decision language. These values are ordinary TypeScript discriminated unions/enums used for policy decisions; they are not Zod schemas, persistence records, HTTP payloads or browser stores.
 
 ### 4.1 Cross-step WorkItem transitions
 
@@ -183,18 +192,20 @@ otherwise                  -> UNREACHED
 
 ### 4.6 Current attention and action ownership
 
-Current attention remains a pure presentation derivation from canonical values and the shared lifecycle policy. It does not persist another status.
+`src/core/workflow-state.ts` derives exactly one `CurrentAttention` from the closed categories in `GW-DOC-WORKBENCH-UX-V2 §21.9`. It does not persist another status.
 
-The precedence is exactly `GW-DOC-WORKBENCH-UX-V2 §15`.
+The precedence is exact and exhaustive; downstream code cannot append a feature-local category or resolve ties differently.
 
-Historical selection may choose what detail is displayed, but it never changes the derived current attention owner or mutation eligibility.
+Historical selection may choose what detail is displayed, but it never changes the derived current attention owner, recovery route or mutation eligibility.
 
 Execution current ownership is derived before historical selection:
 
 1. current blocked task;
 2. current RUNNING task/active task Run;
 3. next eligible/current task;
-4. historical explicit selection only as inspection detail.
+4. no current owner when execution is terminal/has no eligible task.
+
+Historical explicit selection is inspection detail only and is never an `ExecutionOwner` candidate.
 
 ### 4.7 Canonical action-admission matrix
 
@@ -208,7 +219,7 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Send free-form continuation | current STAGE Run interaction OPEN; no pending required input; request id null | append input, same stage / PROCESSING |
 | Answer required input | current interaction REQUIRED_INPUT(Q); exact Q; unanswered | append bound input, same stage / PROCESSING |
 | Cancel STAGE Run | current Run active in PROCESSING/OPEN/REQUIRED_INPUT | terminal CANCELLED Run; same WorkItem stage |
-| Adopt lifecycle proposal | current stage Run OPEN; exactly one pending proposal; role/path match current stage | same WorkItem stage; authority/conformance changes, context refresh required; free-form continuation suppressed until disposition |
+| Adopt lifecycle proposal | current stage Run OPEN; exactly one pending proposal; role/path match current stage | persist exact adoption intent -> ADOPTION_IN_PROGRESS; only exact effect/reconciliation + disposition returns proposal state to NONE/OPEN; same WorkItem stage; free-form continuation and Reject suppressed while adopting |
 | Reject lifecycle proposal | same current/pending/open ownership as adoption; no adoption request persisted | same WorkItem/Run interaction, proposal closed; free-form continuation becomes eligible again |
 | Save Work request/source | pre-signoff/AWAITING_SIGNOFF; no active Run; expected hash current | IDEA stays IDEA; progressed work returns R1 |
 | Save lifecycle document | editable already-reached owner; no active Run; expected hash current | return/remain at artifact owner |
@@ -218,6 +229,169 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Archive/restore | existing archive policy; no active Run; no competing mutation | archive projection only; lifecycle unchanged |
 
 A selected historical material item never satisfies a current-action precondition merely because it contains an old control. Action ownership always resolves from the current canonical WorkItem/Run/task/proposal/input facts.
+
+### 4.8 Closed workflow-state decision algebra
+
+The complete derived workflow-state vocabulary is:
+
+```ts
+type ReachState =
+  | "CURRENT"
+  | "REACHED_HISTORICAL"
+  | "UNREACHED";
+
+type StageRunInteraction =
+  | { readonly tag: "PROCESSING" }
+  | { readonly tag: "OPEN" }
+  | { readonly tag: "REQUIRED_INPUT"; readonly requestEventId: RunEventId }
+  | { readonly tag: "CLOSED" };
+
+type ProposalDecision =
+  | { readonly tag: "NONE" }
+  | { readonly tag: "PENDING"; readonly proposalEventId: RunEventId }
+  | { readonly tag: "ADOPTION_IN_PROGRESS"; readonly proposalEventId: RunEventId };
+
+type MaterialCurrentness =
+  | { readonly tag: "CURRENT" }
+  | {
+      readonly tag: "STALE";
+      readonly owner: "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
+      readonly reason: string;
+    };
+
+type ExecutionOwner =
+  | { readonly tag: "NONE" }
+  | { readonly tag: "CURRENT_TASK"; readonly taskId: ExecutionTaskId }
+  | { readonly tag: "BLOCKED_TASK"; readonly taskId: ExecutionTaskId };
+
+type ValidationBoundary =
+  | { readonly tag: "NONE" }
+  | { readonly tag: "PASSED_THROUGH"; readonly stage: ValidationStage }
+  | {
+      readonly tag: "FAILED_AT";
+      readonly stage: ValidationStage;
+      readonly classification: RunTerminalClassification;
+    }
+  | { readonly tag: "COMPLETE" };
+
+type RecoveryDisposition =
+  | { readonly tag: "NONE" }
+  | { readonly tag: "RETRY_CURRENT_STAGE" }
+  | { readonly tag: "RESUME_CURRENT_OWNER" }
+  | { readonly tag: "RECONCILE_AUTHORITY" }
+  | { readonly tag: "AUTOMATIC_RECOVERY" }
+  | { readonly tag: "RETURN_TO_OWNER"; readonly stage: UpstreamReturnStage };
+
+type ObservationCoherence = "COHERENT" | "CONVERGING";
+
+type CurrentAttentionTag =
+  | "CONVERGING"
+  | "MUTATION_CONFLICT"
+  | "REQUIRED_INPUT"
+  | "PROPOSAL_DECISION"
+  | "PROPOSAL_ADOPTION"
+  | "BLOCKER"
+  | "RECOVERY"
+  | "STALE_AUTHORITY"
+  | "PROCESSING"
+  | "ACTIONABLE"
+  | "ORDINARY";
+
+type RailMarker =
+  | "READY"
+  | "PROCESSING"
+  | "ACTION_REQUIRED"
+  | "BLOCKED"
+  | "STALE"
+  | "COMPLETE";
+```
+
+The concrete unions may carry additional canonical ids/reasons needed to identify their owner, but they may not add another semantic variant.
+
+No `WorkflowState` aggregate is introduced. Callers obtain the particular pure decisions they need from canonical values. A convenience input parameter object inside one pure function is not a semantic state owner and must not be persisted/transported/exported as a parallel domain model.
+
+Malformed or contradictory canonical histories do not produce a guessed variant. The deriving function throws/rejects or returns the existing typed canonical-state error at the owning boundary; command admission fails closed.
+
+### 4.9 Closed lifecycle transition-cause language
+
+Every mutation of `WorkItem.stage/status/outcome` is attributable to exactly one semantic transition cause:
+
+```ts
+type WorkItemTransitionCause =
+  | { readonly tag: "START_RESEARCH" }
+  | { readonly tag: "STAGE_COMPLETED"; readonly completion: StageCompletion }
+  | { readonly tag: "SOURCE_AUTHORITY_CHANGED" }
+  | {
+      readonly tag: "LIFECYCLE_ARTIFACT_CHANGED";
+      readonly owner: UpstreamReturnStage;
+    }
+  | { readonly tag: "BLOCK_CURRENT_OWNER" }
+  | { readonly tag: "RESUME_CURRENT_OWNER" }
+  | { readonly tag: "SIGN_OFF" }
+  | {
+      readonly tag: "EXECUTION_RETURN";
+      readonly owner: UpstreamReturnStage;
+    }
+  | {
+      readonly tag: "EXECUTION_COMPLETED";
+      readonly outcome: "CANDIDATE_DONE" | "ALREADY_SATISFIED";
+    };
+```
+
+This is an internal pure decision union, not a persisted event stream. Existing canonical RunEvents/commands remain the durable causes/evidence. Shell/daemon code maps an admitted canonical command/event/classification into one cause, then `lifecycle.ts` returns the next lifecycle tuple. An unlisted cause cannot mutate lifecycle state.
+
+Existing specialized transition helpers may remain where they are the minimum clear implementation, but every one is exhaustively traceable to one variant above and no daemon module assigns an alternate lifecycle tuple.
+
+### 4.10 Proposal, recovery and execution derivation
+
+`deriveProposalDecision(events)` uses only one current STAGE Run's canonical events:
+
+- no unresolved proposal -> NONE;
+- proposal without disposition/adoption request -> PENDING(P);
+- exact `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED(P)` without disposition -> ADOPTION_IN_PROGRESS(P);
+- disposition -> NONE for current decision purposes.
+
+ADOPTION_IN_PROGRESS survives process restart because its owner is the durable adoption-request event. It suppresses Reject/free-form continuation until the exact P6 reconciliation/disposition path completes.
+
+Recovery is derived from canonical failure/block/currentness history, including P6's bounded post-signoff action-key and semantic-remediation rules. A retry counter/entitlement field is not added.
+
+`deriveExecutionOwner` and `deriveValidationBoundary` consume current Approval/tasks/Runs/RunEvents. They do not use selected UI task/run as authority. The validation boundary is candidate-current: stale pass/fail events from an earlier candidate/Run cannot advance the projection.
+
+### 4.11 Canonical workflow-rail projection
+
+`src/core/workflow-state.ts` is the sole semantic owner of the rail state projection.
+
+Conceptually:
+
+```text
+deriveReachedStages(canonical facts)
+        +
+current WorkItem stage/status/outcome
+        +
+deriveCurrentAttention(...)
+        +
+deriveRecoveryDisposition(...)
+        +
+selected stage (presentation-local only)
+        |
+        v
+deriveWorkflowRail(...)
+        |
+        v
+nine ordered rail items:
+  stage
+  reach = CURRENT | REACHED_HISTORICAL | UNREACHED
+  selected
+  marker = current-stage RailMarker | null
+```
+
+The nine items always follow the canonical `stageOrder`. Exactly one item is CURRENT for a non-corrupt WorkItem. Only that item may carry a marker.
+
+Marker mapping is exactly the P3 §21.11 law. Historical/unreached cells carry `marker = null`; old Run failures/blockers do not become current markers.
+
+`WorkflowRail.tsx` may translate labels/icons/accessibility text but does not derive reach or marker semantics. `WorkbenchRail` remains domain-blind and receives the already-derived presentation values.
+
+The dependency is one-way: command admission and lifecycle policy never consume a rail item/marker.
 
 ## 5. Daemon command architecture
 
@@ -1262,7 +1436,7 @@ The target ownership is:
 
 - `WorkItemWorkspace.tsx` — selected WorkItem workflow composition, subordinate canonical queries, dirty-buffer selection guard and step dispatch;
 - `WorkItemIdentityRow.tsx` — pure WorkItem adapter over `WorkbenchIdentity`; title/status/utilities and mutations/state are supplied by the parent, while three-group geometry remains primitive-owned;
-- `WorkflowRail.tsx` — pure nine-stage lifecycle adapter from the canonical reached/current projection into `WorkbenchRail`;
+- `WorkflowRail.tsx` — pure adapter from the canonical `deriveWorkflowRail(...)` projection into `WorkbenchRail`; it owns labels/accessibility wiring only and contains no reach/current-marker policy;
 - `WorkflowStepFrame.tsx` — thin workflow adapter over `WorkbenchAttention` + `WorkbenchSurface`, with no independent structural layout behavior;
 - `WorkflowMaterialSelector.tsx` — thin domain adapter over `WorkbenchSelector` for Run/document/proposal/evidence material;
 - `ActivityWorkspace.tsx` / `ActivityComposer.tsx` — dialogue content/policy adapters over `WorkbenchDialogue`; transcript/composer geometry remains primitive-owned;
@@ -1315,9 +1489,9 @@ P7 must perform an architecture-preserving **re-composition** around the canonic
 
 The implementation sequence is structurally ordered:
 
-1. establish the shared pure lifecycle/reached/interaction/current-attention policy in the existing browser-safe core owner;
+1. establish the closed lifecycle transition-cause policy in `src/core/lifecycle.ts` and the closed derived workflow-state/rail language in `src/core/workflow-state.ts`;
 2. establish the dedicated selected-WorkItem canonical observation and one shared mutation-refetch boundary;
-3. make current attention/action independent from historical inspection state;
+3. make current attention/recovery/execution ownership and rail projection independent from historical inspection state;
 4. reduce the generic workflow frame to summary/current-attention + primary material only;
 5. establish the §8.18 semantic token system and complete §8.12 primitive set, including application services (Queue/Create/Settings), forms, semantic status/notices, tables/timeline, task panel and confirmation;
 6. migrate every renderer in §8.17 onto its exact §8.15 primitive composition and approved §8.19 leaves;
@@ -1370,9 +1544,10 @@ If implementation discovers that the target ownership/topology in §§4–12 can
 
 The UI remediation is structurally complete only when all of the following are true before cosmetic acceptance is considered:
 
-- one core policy owner determines lifecycle/reach/interaction/current-attention semantics;
+- one pure lifecycle transition owner determines every stage/status/outcome mutation from the closed semantic cause language;
+- one pure workflow-state owner determines reach/interaction/proposal/currentness/execution/recovery/coherence/current-attention/rail semantics from canonical facts;
 - one selected-WorkItem query owns current WorkItem observation;
-- one current action owner exists for every state;
+- one current attention/recovery owner exists for every state;
 - one outer Workbench topology exists;
 - each interaction class has exactly the composition defined in §8;
 - the generic frame cannot create a persistent side service;
@@ -1387,9 +1562,9 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-202-ATOMIC-COMMAND-OUTCOME`, `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-211-READINESS-RETURN-CONTINUITY`, `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`.
 
-**Required behavior:** every WorkItem stage/status/outcome mutation is produced by the browser-safe pure lifecycle policy owner from canonical current state plus an admitted semantic cause; daemon modules do not invent alternate lifecycle transitions.
+**Required behavior:** every WorkItem stage/status/outcome mutation is produced by `src/core/lifecycle.ts` from canonical current state plus exactly one closed §4.9 semantic transition cause; daemon modules do not invent alternate lifecycle transitions or assign lifecycle tuples directly.
 
-**Acceptance:** every row of the P3 cross-step transition table maps to one core policy result and unlisted state/event combinations reject.
+**Acceptance:** every row of the P3 cross-step transition table maps to one semantic cause and one core policy result; every lifecycle-mutating production call site is traceable to that cause language and unlisted causes/state combinations reject.
 
 ### GW-TR-083-STAGE-RUN-INTERACTION-DERIVATION
 
@@ -1443,9 +1618,9 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`.
 
-**Required behavior:** current attention/action is a pure projection independent of historical selection; exactly one inline surface owns each mutation error/blocker/recovery action.
+**Required behavior:** current attention and recovery are closed pure §4.8 projections independent of historical selection; exactly one inline surface owns each mutation error/blocker/recovery action and lower-precedence actions are suppressed.
 
-**Acceptance:** historical Run/task selection cannot hide the current blocker/required input, and the same mutation failure is not rendered by both parent workspace and child composer.
+**Acceptance:** every canonical state fixture resolves to exactly one CurrentAttention category and one RecoveryDisposition; historical Run/task selection cannot hide/change them, and the same mutation failure is not rendered by both parent workspace and child composer.
 
 ### GW-TR-090-STABLE-WORKBENCH-GEOMETRY
 
@@ -1457,11 +1632,27 @@ The UI remediation is structurally complete only when all of the following are t
 
 ### GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION
 
-**Realizes:** `GW-FR-227-CERTIFICATION-MATRIX`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`.
+**Realizes:** `GW-FR-227-CERTIFICATION-MATRIX`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`, `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`, `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`.
 
-**Required behavior:** permanent core/integration/browser/architecture tests close the positive and negative transition matrix, turn grammar, concurrency races, read purity, async convergence and geometry invariants.
+**Required behavior:** permanent core/integration/browser/architecture tests close the positive and negative transition matrix, derived-state algebra, rail projection, turn grammar, proposal-adoption recovery, concurrency races, read purity, async convergence and geometry invariants.
 
-**Acceptance:** implementation cannot pass certification with an untested admitted transition, contradictory provider-turn combination, state-mutating GET, duplicate workflow state owner or ordinal-only history algorithm.
+**Acceptance:** implementation cannot pass certification with an untested admitted transition/state variant, contradictory provider-turn combination, unclassified workflow state, state-mutating GET, duplicate workflow/rail state owner or ordinal-only history algorithm.
+
+### GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA
+
+**Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`.
+
+**Required behavior:** `src/core/workflow-state.ts` owns the complete §4.8 read-only decision algebra over canonical P6 facts, while `src/core/lifecycle.ts` owns only §4.9 lifecycle mutation semantics. No feature/daemon/UI module creates another workflow status, attention/recovery category, execution owner, currentness rule or coherence rule.
+
+**Acceptance:** exhaustive pure tests cover every union variant and invalid/contradictory histories fail closed; architecture fitness rejects parallel workflow-state derivation outside the authorized core owners and rejects persistence/transport/browser-store representations of these derived values.
+
+### GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION
+
+**Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-215-STABLE-WORKFLOW-RAIL`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`, `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`.
+
+**Required behavior:** one pure `deriveWorkflowRail` projection produces all nine ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
+
+**Acceptance:** fixtures covering forward progress, R3/execution return, required input, proposal decision/adoption, processing, block/recovery, stale authority and completion produce exactly one CURRENT item and exactly one current-stage marker; historical/unreached items never carry current operational markers.
 
 ### GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP
 
@@ -1550,8 +1741,11 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - required-input exactness;
 - history across R3/execution return;
 - current blocker dominance over historical selection;
+- proposal adoption remains ADOPTION_IN_PROGRESS across interruption until exact reconciliation/disposition;
+- observation coherence suppresses mutation controls while dependent canonical facts converge;
+- deterministic execution owner/validation boundary independent of historical selection;
 - one feedback owner;
-- stable workflow rail geometry;
+- stable workflow rail geometry and exact READY/PROCESSING/ACTION_REQUIRED/BLOCKED/STALE/COMPLETE marker projection;
 - no conditional pre-signoff rail;
 - stable Implementation master width;
 - Readiness/Approval review hierarchy without generic side-index dominance;
@@ -1572,8 +1766,11 @@ Permanent sensors prove:
 
 - no new DTO/view-model/domain-copy family;
 - no browser workflow store;
-- UI workflow policy imports only the authorized browser-safe core lifecycle owner;
-- daemon modules do not implement a second stage-order/transition table;
+- UI workflow policy imports only the authorized browser-safe core lifecycle/workflow-state owners;
+- daemon modules do not implement a second stage-order/transition table or workflow-state/recovery/attention classifier;
+- no persisted/transport/browser-store `WorkflowState`/rail-state/view-model family exists;
+- lifecycle-mutating daemon call sites route through the closed §4.9 transition-cause owner rather than assigning stage/status/outcome ad hoc;
+- rail reach/current-marker semantics are referenced only from the authorized `deriveWorkflowRail` projection; UI adapters do not recalculate them;
 - GET handlers cannot call known reconcile/materialization mutation functions;
 - ordinal reached-history comparison is absent from production Workbench code;
 - the generic step frame has no content-count-dependent persistent side-index slot;
