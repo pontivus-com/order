@@ -2849,7 +2849,7 @@ Permanent tests prove:
 
 ## 35. Settings, readiness and human-first source-authoring contracts
 
-This section is the P6 realization of `GW-FR-079..098`. It extends the existing configuration, project-manifest, WorkItem-source and OpenCode-account contracts without introducing a parallel settings model.
+This section is the P6 realization of `GW-FR-079..082`, `GW-FR-091..093`, `GW-FR-095`. It extends the existing configuration, project-manifest, WorkItem-source and OpenCode-account contracts without introducing a parallel settings model.
 
 ### 35.1 Canonical configuration identity
 
