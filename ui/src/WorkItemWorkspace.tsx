@@ -441,6 +441,7 @@ export const WorkItemWorkspace = ({
     runs,
     allRunEvents,
     coherenceTasks,
+    artifacts,
   );
   const currentStageEventsError =
     currentStageRun === null
