@@ -808,7 +808,7 @@ The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 | `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
 | `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and constrained collapse | no caller master width; no collection-count activation |
 | `WorkbenchContextPanel` | secondary metadata/diagnostic body + explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
-| `WorkbenchTaskPanel` | one bounded operator task over Astryx `Dialog`; current Create/Settings-class transient forms use `purpose="form"` when accidental dismissal risks input | no Drawer fallback in the current grammar; no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute; no nested modal stack; a future full-height side task requires DESIGN rather than a hidden variant |
+| `WorkbenchTaskPanel` | one bounded operator Form/configuration task over Astryx `Dialog` with fixed `purpose="form"`; caller owns open state/content, foundation owns focus/dismissal mechanics | no Drawer fallback in the current grammar; no caller-selected Dialog purpose; no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute; no nested modal stack; a future full-height side task requires DESIGN rather than a hidden variant |
 | `WorkbenchSettingsLayout` | Settings-only navigation/content composition with primitive-owned wide/constrained geometry | no generic application sidebar primitive; no domain/query ownership |
 | `WorkbenchForm` | consistent field stack, form spacing, submission/error region and action alignment | no validation/admission policy |
 | `WorkbenchField` | low-level field shell only for native/custom/third-party controls that do not already own Astryx field semantics; delegates label/description/status wiring to Astryx `Field` | no wrapping of Astryx `TextInput`/`TextArea`/`Selector`/`Typeahead` or another field-owning Astryx control; no domain validation; no arbitrary feature control styling |
@@ -861,7 +861,7 @@ Pinned Astryx guidance is incorporated as follows:
 | uniform operational data | `WorkbenchTable` delegates to `Table`, uses deliberate density/dividers, stable identity and only the capabilities/plugins the use case needs |
 | meaningful resource collection | prefer `List`/`ListItem` semantics to a button styled as a card/row; never place interactive descendants inside an interactive row |
 | contextual overlay detail | constrained Context uses `Drawer`, with caller-owned `isOpen`, visible close action and focus return; a wide Context that must consume layout width is docked, not Drawer |
-| bounded task/form | current `WorkbenchTaskPanel` uses `Dialog`; `purpose="form"` prevents accidental backdrop dismissal where unsaved input is at risk; do not nest Dialogs; Drawer is not a generic form container |
+| bounded task/form | `WorkbenchTaskPanel` always uses `Dialog purpose="form"`; backdrop dismissal therefore cannot discard task input; do not nest Dialogs; Drawer is not a generic form container |
 | destructive confirmation | `AlertDialog` only; specific consequence/action copy, Cancel remains least-destructive focus target, and pending confirm remains open/loading until the effect settles |
 | persistent feedback | `Banner` semantics under `WorkbenchNotice`; combine related same-status feedback, keep actionable errors present, and do not infer a live region from visual status |
 | status emphasis | ordinary/common state is readable text/StatusDot; `Badge` is sparse emphasis for exceptional/actionable status, not metadata or every healthy row |
@@ -911,10 +911,13 @@ Toolbar/identity/rail geometry is primitive-owned. `WorkbenchUtilityLink` is nav
 WorkbenchSurface({ attention, selector?, material })
 WorkbenchAttention({ title, purpose?, status?, blocker?, action? })
 WorkbenchSectionHeader({ title, description?, action? })
-WorkbenchSelector({ label, groups })
+WorkbenchSelector({
+  label,
+  groups: [{ label?, items: [{ id, label, detail?, selected, onSelect }] }],
+})
 ```
 
-`WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. Selector groups carry generic item presentation only; item count never selects topology.
+`WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. `WorkbenchSelector` is single-selection presentation: exactly one item may be selected when a current selection exists, item `onSelect` is the only selection action, groups are labeling/organization only, and item count never selects topology.
 
 ```ts
 WorkbenchDialogue({ transcript, composer?, state? })
@@ -940,14 +943,14 @@ WorkbenchSettingsLayout({ navigation, content })
 Context and Task panel are different primitives: Context is secondary WorkItem information; Task panel is a transient operator task. Settings is the only persistent settings-navigation composition.
 
 ```ts
-WorkbenchForm({ fields, actions, feedback? })
+WorkbenchForm({ content, actions, feedback? })
 WorkbenchField({ label, description?, control, error? })
 WorkbenchStatus({ tone, label, icon? })
 WorkbenchNotice({ tone, title, description?, action? })
 WorkbenchState({ kind, title, description?, action? })
 ```
 
-Features derive semantic meaning and pass the resulting generic tone/kind. They do not choose raw color or feature-specific status chrome.
+`WorkbenchForm.content` contains Astryx field-owning controls directly plus `WorkbenchField` only for controls without their own field shell. Features derive semantic meaning and pass the resulting generic tone/kind; they do not choose raw color or feature-specific status chrome.
 
 ```ts
 WorkbenchTable({ label, columns, rows, selection? })
