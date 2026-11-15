@@ -67,7 +67,11 @@ import {
   updateWorkItemSourceProjection,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { type CoordinatorRuntime } from "./runtime.ts";
+import {
+  type CoordinatorRuntime,
+  withWorkItemOperatorMutation,
+  workItemOperatorMutationIsActive,
+} from "./runtime.ts";
 
 const SOURCE_BOUNDARY_FAILURE = "WORK_ITEM_SOURCE_BOUNDARY";
 
@@ -420,32 +424,66 @@ export const workItemSourceDiagnostics = async (
 ): Promise<readonly WorkItemSourceDiagnostic[]> =>
   (await inspectQueue(runtime, repositoryRoots)).diagnostics;
 
+const withSourceMutationGuards = async <T>(
+  runtime: CoordinatorRuntime,
+  workItemIds: readonly WorkItemId[],
+  operation: () => Promise<T>,
+  index = 0,
+): Promise<T> => {
+  const workItemId = workItemIds[index];
+  if (workItemId === undefined) return operation();
+  return withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => withSourceMutationGuards(runtime, workItemIds, operation, index + 1),
+  );
+};
+
 export const reconcileWorkItemSources = async (
   runtime: CoordinatorRuntime,
   repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<WorkItemSourceReconciliation> => {
   const inspected = await inspectQueue(runtime, repositoryRoots);
-  withTransaction(runtime.database, () => {
-    for (const plan of inspected.plans) applyPlan(runtime, plan);
-  });
-  for (const plan of inspected.plans) {
-    const project = inspected.projects.get(plan.workItem.projectId);
-    if (project !== undefined) {
-      await materializeLifecycleDrafts(runtime, plan.workItem, project);
+  const affectedIds = inspected.plans
+    .filter((plan) => plan.disposition !== "UNCHANGED")
+    .map((plan) => plan.workItem.id)
+    .sort();
+
+  for (const workItemId of affectedIds) {
+    if (workItemOperatorMutationIsActive(runtime, workItemId)) {
+      throw new TypeError("WorkItem source reconciliation conflicts with an active mutation");
+    }
+    if (
+      loadRunsForWorkItem(runtime.database, workItemId)
+        .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT")
+    ) {
+      throw new TypeError("WorkItem source reconciliation is unavailable while a Run is active");
     }
   }
-  const byDisposition = (
-    disposition: "REGISTERED" | WorkItemSourceDisposition,
-  ): readonly WorkItemId[] =>
-    inspected.plans
-      .filter((plan) => plan.disposition === disposition)
-      .map((plan) => plan.workItem.id)
-      .sort();
-  return WorkItemSourceReconciliationSchema.parse({
-    registered: byDisposition("REGISTERED"),
-    updated: byDisposition("UPDATED"),
-    unchanged: byDisposition("UNCHANGED"),
-    diagnostics: inspected.diagnostics,
+
+  return withSourceMutationGuards(runtime, affectedIds, async () => {
+    withTransaction(runtime.database, () => {
+      for (const plan of inspected.plans) applyPlan(runtime, plan);
+    });
+    for (const plan of inspected.plans) {
+      const project = inspected.projects.get(plan.workItem.projectId);
+      if (project !== undefined) {
+        await materializeLifecycleDrafts(runtime, plan.workItem, project);
+      }
+    }
+    const byDisposition = (
+      disposition: "REGISTERED" | WorkItemSourceDisposition,
+    ): readonly WorkItemId[] =>
+      inspected.plans
+        .filter((plan) => plan.disposition === disposition)
+        .map((plan) => plan.workItem.id)
+        .sort();
+    return WorkItemSourceReconciliationSchema.parse({
+      registered: byDisposition("REGISTERED"),
+      updated: byDisposition("UPDATED"),
+      unchanged: byDisposition("UNCHANGED"),
+      diagnostics: inspected.diagnostics,
+    });
   });
 };
 
