@@ -949,7 +949,6 @@ export const deriveObservationCoherence = (
   runs: readonly Run[],
   events: readonly RunEvent[],
   tasks: readonly ExecutionTask[],
-  artifacts: readonly ArtifactRef[] | null = null,
 ): ObservationCoherence => {
   const active = (run: Run): boolean =>
     run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT";
@@ -965,26 +964,11 @@ export const deriveObservationCoherence = (
   }
 
   const currentStageRun = latestCurrentStageRun(workItem, runs);
-  if (currentStageRun !== null) {
+  if (currentStageRun !== null && active(currentStageRun)) {
     const runEvents = events.filter((event) => event.runId === currentStageRun.id);
     const completion = runEvents.findLast((event) => event.event.tag === "STAGE_COMPLETED");
     if (completion?.event.tag === "STAGE_COMPLETED") {
-      const laterWorkflowRunExists = runs.some(
-        (run) =>
-          run.id !== currentStageRun.id &&
-          stageRank(run.stage) > stageRank(currentStageRun.stage) &&
-          run.startedAt > currentStageRun.startedAt,
-      );
-      const completionArtifactIds = completion.event.artifactRefIds;
-      const completionStillControlsCurrentAuthority =
-        artifacts === null ||
-        completionArtifactIds.length === 0 ||
-        completionArtifactIds.every((artifactId) =>
-          artifacts.some((artifact) => artifact.id === artifactId)
-        );
-      if (!laterWorkflowRunExists && completionStillControlsCurrentAuthority) {
-        return "CONVERGING";
-      }
+      return "CONVERGING";
     }
     const block = runEvents.findLast((event) => event.event.tag === "STAGE_BLOCKED");
     if (
