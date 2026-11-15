@@ -47,9 +47,22 @@ import {
 } from "../src/core/governance.ts";
 import {
   artifactReturnOwner,
+  deriveCurrentAttention,
+  deriveExecutionOwner,
+  deriveObservationCoherence,
+  deriveProposalDecision,
+  deriveReachedStages,
+  deriveRecoveryDisposition,
+  deriveValidationBoundary,
+  deriveWorkflowRail,
   evaluateStageCompletion,
+  normalizeMaterialCurrentness,
   routeApprovalStale,
   routeValidationFailure,
+  stageInputIsAdmitted,
+  stageRunInteraction,
+  transitionWorkItem,
+  validateStageProviderTurn,
 } from "../src/core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
@@ -1124,5 +1137,367 @@ describe("release version ownership", () => {
     };
     expect(orderVersion).toBe(packageJson.version);
     expect(orderVersion).toMatch(/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$/);
+  });
+});
+
+
+describe("closed Workbench workflow-state kernel", () => {
+  const stageRun = (
+    status: Run["status"] = "RUNNING",
+    stage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3" = "R1",
+    attempt = 1,
+  ): Run =>
+    RunSchema.parse({
+      ...baseRun(),
+      id: `run_${uuidB}`,
+      executionTaskId: null,
+      stage,
+      mode: "INTERACTIVE",
+      role: "STAGE",
+      triggerEventId: null,
+      status,
+      attempt,
+      terminalClassification: status === "FAILED" ? "PROVIDER_FAILURE" : null,
+      endedAt:
+        status === "COMPLETED" ||
+        status === "BLOCKED" ||
+        status === "FAILED" ||
+        status === "CANCELLED"
+          ? "2026-11-11T03:31:00.000Z"
+          : null,
+    });
+
+  const stageStarted = (run: Run, sequence = 1) =>
+    RunEventSchema.parse({
+      id: `event_${uuidA}`,
+      runId: run.id,
+      sequence,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "STAGE_STARTED",
+        stage: run.stage,
+        mode: "INTERACTIVE",
+        contextHash: hashA,
+      },
+    });
+
+  it("routes every lifecycle mutation through the closed transition-cause language", () => {
+    const idea = WorkItemSchema.parse({
+      ...baseWorkItem(),
+      stage: "IDEA",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(transitionWorkItem(idea, { tag: "START_RESEARCH" })).toEqual({
+      stage: "R1",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(transitionWorkItem(idea, { tag: "SOURCE_AUTHORITY_CHANGED" })).toEqual({
+      stage: "IDEA",
+      status: "ACTIVE",
+      outcome: null,
+    });
+
+    const research = baseWorkItem();
+    expect(transitionWorkItem(research, { tag: "BLOCK_CURRENT_OWNER" })).toEqual({
+      stage: "R1",
+      status: "BLOCKED",
+      outcome: null,
+    });
+    const blocked = WorkItemSchema.parse({ ...research, status: "BLOCKED" });
+    expect(transitionWorkItem(blocked, { tag: "RESUME_CURRENT_OWNER" })).toEqual({
+      stage: "R1",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(
+      transitionWorkItem(research, {
+        tag: "STAGE_COMPLETED",
+        completion: { stage: "R1", outcome: "CONFIRMED" },
+      }, ["CONFIRMED"]),
+    ).toEqual({ stage: "R2", status: "ACTIVE", outcome: null });
+
+    const awaiting = WorkItemSchema.parse({
+      ...research,
+      stage: "AWAITING_SIGNOFF",
+      status: "ACTIVE",
+    });
+    expect(transitionWorkItem(awaiting, { tag: "SIGN_OFF" })).toEqual({
+      stage: "EXECUTION",
+      status: "ACTIVE",
+      outcome: null,
+    });
+
+    const execution = WorkItemSchema.parse({
+      ...research,
+      stage: "EXECUTION",
+      status: "ACTIVE",
+    });
+    expect(
+      transitionWorkItem(execution, { tag: "EXECUTION_RETURN", owner: "DESIGN" }),
+    ).toEqual({ stage: "DESIGN", status: "ACTIVE", outcome: null });
+    expect(
+      transitionWorkItem(execution, {
+        tag: "EXECUTION_COMPLETED",
+        outcome: "CANDIDATE_DONE",
+      }),
+    ).toEqual({
+      stage: "COMPLETE",
+      status: "COMPLETE",
+      outcome: "CANDIDATE_DONE",
+    });
+    expect(() =>
+      transitionWorkItem(research, { tag: "SIGN_OFF" }),
+    ).toThrow(/AWAITING_SIGNOFF/);
+  });
+
+  it("derives PROCESSING, OPEN, REQUIRED_INPUT and CLOSED from canonical Run history", () => {
+    const running = stageRun();
+    const started = stageStarted(running);
+    expect(stageRunInteraction(running, [started])).toEqual({ tag: "PROCESSING" });
+
+    const message = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: running.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: { tag: "AGENT_MESSAGE_FINAL", text: "Ready", evidence: [] },
+    });
+    expect(stageRunInteraction(running, [started, message])).toEqual({ tag: "OPEN" });
+    expect(stageInputIsAdmitted({ tag: "OPEN" }, null)).toBe(true);
+    expect(stageInputIsAdmitted({ tag: "OPEN" }, `event_${uuidC}` as RunEventId)).toBe(false);
+
+    const request = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: running.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: { tag: "HUMAN_INPUT_REQUESTED", category: "INFORMATION", question: "Clarify?" },
+    });
+    const waiting = RunSchema.parse({ ...running, status: "WAITING_FOR_INPUT" });
+    expect(stageRunInteraction(waiting, [started, request])).toEqual({
+      tag: "REQUIRED_INPUT",
+      requestEventId: request.id,
+    });
+    expect(stageInputIsAdmitted(
+      { tag: "REQUIRED_INPUT", requestEventId: request.id },
+      request.id,
+    )).toBe(true);
+    expect(stageInputIsAdmitted(
+      { tag: "REQUIRED_INPUT", requestEventId: request.id },
+      null,
+    )).toBe(false);
+
+    const answer = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: running.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: { tag: "HUMAN_INPUT_RECEIVED", requestEventId: request.id, text: "Answer" },
+    });
+    expect(stageRunInteraction(running, [started, request, answer])).toEqual({
+      tag: "PROCESSING",
+    });
+
+    const closed = stageRun("CANCELLED");
+    expect(stageRunInteraction(closed, [])).toEqual({ tag: "CLOSED" });
+  });
+
+  it("rejects contradictory STAGE provider-result batches before persistence", () => {
+    const run = stageRun();
+    const prior = [stageStarted(run)];
+    const completion = {
+      tag: "STAGE_COMPLETED",
+      completion: { stage: "R1", outcome: "CONFIRMED" },
+      artifactRefIds: [],
+    } as const;
+    const request = {
+      tag: "HUMAN_INPUT_REQUESTED",
+      category: "INFORMATION",
+      question: "Clarify?",
+    } as const;
+    const proposal = {
+      tag: "ARTIFACT_PROPOSAL_CREATED",
+      targetPath: "docs/r1.md",
+      baseSha256: null,
+      role: "R1",
+      authorityLayer: "P1",
+      unifiedDiff: "--- a/docs/r1.md\n+++ b/docs/r1.md\n@@ -1 +1 @@\n-old\n+new\n",
+      rationale: "Update research",
+    } as const;
+
+    expect(() => validateStageProviderTurn(run, prior, [])).toThrow(/non-empty/);
+    expect(() =>
+      validateStageProviderTurn(run, prior, [request, completion]),
+    ).toThrow(/contradictory/);
+    expect(() =>
+      validateStageProviderTurn(run, prior, [request, proposal]),
+    ).toThrow(/cannot coexist/);
+    expect(() =>
+      validateStageProviderTurn(run, prior, [proposal]),
+    ).not.toThrow();
+    expect(() =>
+      validateStageProviderTurn(run, prior, [{
+        ...proposal,
+        role: "PLAN",
+      }]),
+    ).toThrow(/role must equal/);
+  });
+
+  it("derives durable proposal decision and adoption-in-progress from canonical events", () => {
+    const run = stageRun();
+    const proposal = RunEventSchema.parse({
+      id: `event_${uuidA}`,
+      runId: run.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/r1.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: "--- a/docs/r1.md\n+++ b/docs/r1.md\n@@ -1 +1 @@\n-old\n+new\n",
+        rationale: "Update research",
+      },
+    });
+    const requested = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: proposal.id,
+      },
+    });
+    const disposed = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "REJECTED",
+        adoptedArtifactRefId: null,
+      },
+    });
+
+    expect(deriveProposalDecision([proposal])).toEqual({
+      tag: "PENDING",
+      proposalEventId: proposal.id,
+    });
+    expect(deriveProposalDecision([proposal, requested])).toEqual({
+      tag: "ADOPTION_IN_PROGRESS",
+      proposalEventId: proposal.id,
+    });
+    expect(deriveProposalDecision([proposal, requested, disposed])).toEqual({
+      tag: "NONE",
+    });
+  });
+
+  it("derives reached history only from actual canonical evidence", () => {
+    const plan = WorkItemSchema.parse({
+      ...baseWorkItem(),
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    const withoutHistory = deriveReachedStages(plan, [], [], [], []);
+    expect([...withoutHistory]).toEqual(["IDEA", "PLAN"]);
+    expect(withoutHistory.has("R1")).toBe(false);
+    expect(withoutHistory.has("R3")).toBe(false);
+
+    const readinessRun = stageRun("COMPLETED", "R3");
+    const reached = deriveReachedStages(plan, [readinessRun], [], [], []);
+    expect(reached.has("R3")).toBe(true);
+    expect(reached.has("R2")).toBe(false);
+  });
+
+  it("derives execution owner and current-candidate validation boundary independently of selection", () => {
+    const runningTask = baseTask(`task_${uuidA}`, "RUNNING");
+    const run = baseRun({ executionTaskId: runningTask.id });
+    const v0 = RunEventSchema.parse({
+      id: `event_${uuidA}`,
+      runId: run.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: { tag: "VALIDATION_PASSED", stage: "V0", evidence: [] },
+    });
+    const v1 = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: { tag: "VALIDATION_PASSED", stage: "V1", evidence: [] },
+    });
+    const owner = deriveExecutionOwner([runningTask], [run]);
+    expect(owner).toEqual({ tag: "CURRENT_TASK", taskId: runningTask.id });
+    expect(deriveValidationBoundary(owner, [runningTask], [run], [v0, v1]))
+      .toEqual({ tag: "PASSED_THROUGH", stage: "V1" });
+
+    const blockedTask = { ...runningTask, state: "BLOCKED" as const };
+    expect(deriveExecutionOwner([blockedTask], [run])).toEqual({
+      tag: "BLOCKED_TASK",
+      taskId: blockedTask.id,
+    });
+  });
+
+  it("projects coherence, attention, recovery and rail through one canonical owner", () => {
+    const active = baseWorkItem();
+    const failed = stageRun("FAILED");
+    const currentness = normalizeMaterialCurrentness(true, []);
+    const recovery = deriveRecoveryDisposition(active, [failed], currentness);
+    expect(recovery).toEqual({ tag: "RETRY_CURRENT_STAGE" });
+
+    const attention = deriveCurrentAttention({
+      workItem: active,
+      coherence: "COHERENT",
+      mutationConflict: false,
+      stageInteraction: null,
+      proposal: { tag: "NONE" },
+      recovery,
+      currentness,
+      executionOwner: { tag: "NONE" },
+      automaticWorkActive: false,
+      ordinaryActionAvailable: true,
+    });
+    expect(attention).toBe("RECOVERY");
+
+    const reached = deriveReachedStages(active, [failed], [], [], []);
+    const rail = deriveWorkflowRail(active, reached, attention, recovery, "PLAN");
+    expect(rail).toHaveLength(9);
+    expect(rail.filter((item) => item.reach === "CURRENT")).toHaveLength(1);
+    expect(rail.find((item) => item.stage === "R1")?.marker).toBe("ACTION_REQUIRED");
+    expect(rail.find((item) => item.stage === "PLAN")?.marker).toBeNull();
+
+    const running = stageRun();
+    const completion = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: running.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "STAGE_COMPLETED",
+        completion: { stage: "R1", outcome: "CONFIRMED" },
+        artifactRefIds: [],
+      },
+    });
+    expect(deriveObservationCoherence(active, [running], [completion], []))
+      .toBe("CONVERGING");
+    expect(deriveCurrentAttention({
+      workItem: active,
+      coherence: "CONVERGING",
+      mutationConflict: true,
+      stageInteraction: { tag: "REQUIRED_INPUT", requestEventId: completion.id },
+      proposal: { tag: "PENDING", proposalEventId: completion.id },
+      recovery,
+      currentness: { tag: "STALE", owner: "R1" },
+      executionOwner: { tag: "NONE" },
+      automaticWorkActive: true,
+      ordinaryActionAvailable: true,
+    })).toBe("CONVERGING");
   });
 });
