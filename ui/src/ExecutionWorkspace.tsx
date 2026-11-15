@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 
 import type { ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "../../src/core/contracts.ts";
-import { deriveExecutionOwner } from "../../src/core/lifecycle.ts";
+import type { ExecutionOwner } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
@@ -128,9 +128,14 @@ const ValidationMatrix = ({
   );
 };
 
-export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence }: Readonly<{
-  workItem: WorkItem; material: WorkflowMaterial; mutationsDisabled?: boolean; onSelectMaterial: (material: WorkflowMaterial) => void;
-  onOpenEvidence: (selection: EvidenceSelection) => void; onReturnFromEvidence: () => void;
+export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence }: Readonly<{
+  workItem: WorkItem;
+  material: WorkflowMaterial;
+  executionOwner: ExecutionOwner;
+  mutationsDisabled?: boolean;
+  onSelectMaterial: (material: WorkflowMaterial) => void;
+  onOpenEvidence: (selection: EvidenceSelection) => void;
+  onReturnFromEvidence: () => void;
 }>) => {
   const queryClient = useQueryClient();
   const tasksQuery = useQuery({ queryKey: workbenchQueryKeys.tasks(workItem.id), queryFn: () => api.listExecutionTasks(workItem.id) });
@@ -138,7 +143,6 @@ export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = fal
   const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.artifacts(workItem.id), queryFn: () => api.listArtifacts(workItem.id) });
   const tasks = tasksQuery.data ?? [];
   const runs = runsQuery.data ?? [];
-  const executionOwner = deriveExecutionOwner(tasks, runs);
   const currentOwnerTask = executionOwner.tag === "NONE"
     ? null
     : tasks.find((task) => task.id === executionOwner.taskId) ?? null;
