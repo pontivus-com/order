@@ -1117,8 +1117,8 @@ The following matrix is exhaustive for the production TSX renderers present on t
 
 | Production renderer | Target UI-language coverage | Current mechanism specifically superseded where applicable |
 |---|---|---|
-| `app.tsx` | Layout, Toolbar, UtilityTrigger, TaskPanel, Confirmation, Notice/State + approved theme choice leaf | direct Drawer/AlertDialog and bespoke theme/account utility chrome |
-| `OpenCodeAccountControl.tsx` | UtilityTrigger + Status | native feature-styled button |
+| `app.tsx` | Layout, Toolbar, UtilityLink, TaskPanel, Confirmation, Notice/State + approved theme choice leaf | direct Drawer/AlertDialog and bespoke theme/account utility chrome |
+| `OpenCodeAccountControl.tsx` | UtilityLink + Status | native feature-styled button |
 | `SettingsWorkspace.tsx` | SettingsLayout + Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action | bespoke settings sidebar/buttons/cards/form controls |
 | `OpenCodeAccountSettings.tsx` | Form + Astryx field-owning controls / Field fallback + SectionHeader + Status/Notice + Confirmation + Action/ResourceRow | bespoke account rows/input styling and direct AlertDialog |
 | `CreateWorkItem.tsx` | Form + Astryx field-owning controls / Field fallback + Status/Notice + Action inside TaskPanel | raw feature-styled select/input/form spacing |
@@ -1232,7 +1232,7 @@ Each workflow mutation has exactly one visible feedback owner.
 - composer input errors belong to the composer.
 - the parent Activity surface does not repeat the same composer mutation error.
 - current blockers are not copied into multiple equal-weight banners.
-- toast may supplement but never replace the owning inline feedback.
+- the current closed Workbench grammar has no separate Toast feedback path; workflow feedback remains in the owning `WorkbenchNotice`/`WorkbenchStatus`/material surface, and adding a transient Toast mechanic requires DESIGN authority rather than feature-local use.
 
 This directly removes the current duplicated `Workflow action failed` rendering between Activity workspace and composer.
 
