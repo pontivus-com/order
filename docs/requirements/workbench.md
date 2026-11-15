@@ -115,6 +115,46 @@ Currentness is not inferred from whether the bytes exist.
 
 A stale artifact remains inspectable history. It is not presented as current authority and it does not silently disappear.
 
+### 3.7 Closed workflow-state language
+
+The observable workflow language is closed. Every Workbench workflow condition is expressed as a composition of the following orthogonal state primitives; feature/UI code does not invent another workflow-status vocabulary.
+
+| State primitive | Closed observable values | Meaning |
+|---|---|---|
+| lifecycle position | canonical `WorkStage / WorkStatus / WorkOutcome` | current owning lifecycle position and terminal outcome |
+| reach state, per stage | `CURRENT | REACHED_HISTORICAL | UNREACHED` | whether a lifecycle stage is current, was actually reached, or has not been reached |
+| STAGE interaction | `PROCESSING | OPEN | REQUIRED_INPUT(Q) | CLOSED` | whether the current interactive Run is processing, accepts free continuation, requires one exact answer, or accepts no further input |
+| proposal decision | `NONE | PENDING(P) | ADOPTION_IN_PROGRESS(P)` | whether one current lifecycle proposal needs disposition or has durable adoption intent awaiting exact completion/reconciliation |
+| material currentness | `CURRENT | STALE(owner, reason)` | whether currently judged lifecycle/approval/execution authority is still current relative to its canonical dependencies |
+| execution owner | `NONE | CURRENT_TASK(task) | BLOCKED_TASK(task)` | exact task that currently owns Implementation progress/attention |
+| validation boundary | `NONE | PASSED_THROUGH(Vn) | FAILED_AT(Vn, classification) | COMPLETE` | latest durable post-signoff validation boundary for the current task/candidate |
+| recovery route | `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY | AUTOMATIC_RECOVERY | RETURN_TO_OWNER(stage)` | the single governed recovery route, if any, for the current condition |
+| observation coherence | `COHERENT | CONVERGING` | whether the browser has one self-consistent canonical observation or is waiting for dependent canonical facts to catch up |
+| current attention | the closed categories in §21.9 | the one current workflow condition/action that must dominate presentation |
+
+These values are a functional language, not a persistence model. They may be derived from fewer durable facts, but a downstream layer may not add a new semantic state, recovery category or precedence rule merely because the implementation needs a convenient label.
+
+### 3.8 Workflow rail as canonical lifecycle projection
+
+The workflow rail is the persistent orientation projection of this state language. It is not another state machine and never owns mutation eligibility.
+
+For each of the nine lifecycle stages it presents:
+
+- the exact stage identity;
+- reach state: CURRENT, REACHED/HISTORICAL or UNREACHED;
+- whether the operator has selected that stage for inspection;
+- for the **current** stage only, one summary marker derived from the closed state language:
+  - **READY** — current owner is coherent and no higher-priority processing/attention condition exists;
+  - **PROCESSING** — provider/automatic workflow work is actively progressing;
+  - **ACTION REQUIRED** — exact human input, proposal decision or another current operator action owns attention;
+  - **BLOCKED** — the current owner is blocked and requires governed recovery;
+  - **STALE** — current authority/package is not current and must be reconciled/returned before progression;
+  - **COMPLETE** — the WorkItem is terminally complete.
+
+The rail summary never replaces the detailed owning material. It gives continuous lifecycle orientation while the current-attention surface explains the exact cause and action.
+
+Historical and unreached cells do not acquire pseudo-current blocker/processing markers from old Runs or artifacts.
+
 ## 4. Global workflow invariants
 
 ### 4.1 Reads are observational
@@ -911,12 +951,15 @@ The dimensions below are **not** a new DTO, persistence object or browser-owned 
 
 ```text
 current lifecycle position
-+ WorkItem operational status
-+ reached-history set
-+ current Run interaction condition
-+ current attention owner
++ WorkItem operational status/outcome
++ per-stage reach state
++ current STAGE interaction condition
++ current proposal-decision condition
 + material/package currentness
-+ current execution owner, when in Implementation
++ current execution owner + validation boundary, when in Implementation
++ governed recovery route
++ observation coherence
++ current attention
 = one coherent operator-visible workflow condition
 ```
 
@@ -1052,13 +1095,26 @@ OPEN FOR CONTINUATION
         v
 OPEN + PROPOSAL PENDING(P)
         |
-        +-- Reject(P) --> OPEN / authority unchanged
+        +-- Reject(P) --------------------> OPEN / authority unchanged
         |
-        +-- Adopt(P) ---> OPEN / canonical bytes changed
-                          same lifecycle stage
-                          downstream conformance invalidated
-                          context must be re-resolved before next provider turn
+        +-- Adopt(P)
+                |
+                | durable adoption intent recorded
+                v
+OPEN + ADOPTION IN PROGRESS(P)
+        |
+        +-- exact patch applied/reconciled
+        |   + disposition persisted ------> OPEN / canonical bytes changed
+        |                                  same lifecycle stage
+        |                                  downstream conformance invalidated
+        |                                  context must be re-resolved
+        |
+        +-- restart/interruption ----------> same ADOPTION IN PROGRESS(P)
+                                            until the exact durable intent is
+                                            reconciled or explicitly failed
 ```
+
+While `ADOPTION_IN_PROGRESS(P)` exists, Reject and free-form continuation are unavailable. The operator sees that the exact accepted proposal is being applied/reconciled; Order does not fall back to PENDING or OPEN merely because the repository effect crossed a process boundary.
 
 Adopt/Reject is serialized with every other WorkItem mutation. A proposal from a historical/non-current stage cannot become a shortcut back into lifecycle authority.
 
@@ -1158,6 +1214,85 @@ reachedHistory := unchanged
 ```
 
 Therefore the Workbench can prove CURRENT / REACHED-HISTORICAL / UNREACHED without using current-stage ordinal comparison.
+
+### 21.9 Closed current-attention and recovery language
+
+Exactly one current-attention category is selected from this ordered set:
+
+1. **CONVERGING** — canonical dependent observations have not yet converged after a controlling transition; mutation actions are suppressed.
+2. **MUTATION_CONFLICT** — a current optimistic-concurrency/reconciliation conflict prevents safe continuation.
+3. **REQUIRED_INPUT** — one exact unresolved human-input request owns the next response.
+4. **PROPOSAL_DECISION** — one exact proposal awaits Adopt/Reject.
+5. **PROPOSAL_ADOPTION** — durable adoption intent exists and the exact proposal is being applied/reconciled.
+6. **BLOCKER** — a canonical current-stage/task blocker owns recovery.
+7. **RECOVERY** — a retryable current failure or other governed recovery route owns the next action.
+8. **STALE_AUTHORITY** — approval/material currentness is stale and progression is unavailable.
+9. **PROCESSING** — provider/automatic work is progressing and no higher category owns attention.
+10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action.
+11. **ORDINARY** — current material is inspectable with no workflow action requiring emphasis.
+
+A lower category never exposes a competing primary mutation action while a higher category applies.
+
+Recovery is likewise closed. A current failure/block/currentness condition resolves to exactly one of:
+
+- `NONE`;
+- `RETRY_CURRENT_STAGE`;
+- `RESUME_CURRENT_OWNER`;
+- `RECONCILE_AUTHORITY`;
+- `AUTOMATIC_RECOVERY` for an already-authorized bounded replacement/remediation path;
+- `RETURN_TO_OWNER(stage)` when the canonical classification invalidates the current owner and returns work upstream.
+
+A generic Resume/Retry button is not a substitute for deriving the exact recovery route.
+
+### 21.10 Execution-state projection
+
+Implementation has one current task owner and one durable validation boundary.
+
+The Workbench derives:
+
+- `NONE` when no task currently owns execution attention;
+- `CURRENT_TASK(task)` for the current RUNNING/eligible execution owner;
+- `BLOCKED_TASK(task)` when that exact task owns the aggregate blocker.
+
+For the owning task/candidate, the latest durable validation projection is:
+
+- `NONE` before a durable V0-V7 result exists;
+- `PASSED_THROUGH(Vn)` after the highest contiguous current-candidate validation pass;
+- `FAILED_AT(Vn, classification)` when a current validation failure owns remediation/return/block;
+- `COMPLETE` only when the canonical candidate/task terminal result proves validation completion.
+
+Builder/Reviewer/Remediator Run roles and validation RunEvents provide the canonical evidence. Historical task selection never changes the execution owner or validation boundary.
+
+### 21.11 Workflow rail projection law
+
+The workflow rail is a pure summary of canonical workflow state.
+
+For each stage:
+
+```text
+reach :=
+  selectedStage == currentStage  ? CURRENT
+  : canonical reached evidence   ? REACHED_HISTORICAL
+  :                                UNREACHED
+```
+
+The current stage receives exactly one summary marker:
+
+```text
+WorkItem COMPLETE                           -> COMPLETE
+current attention STALE_AUTHORITY           -> STALE
+current attention BLOCKER or RECOVERY(block)-> BLOCKED
+current attention REQUIRED_INPUT
+  or PROPOSAL_DECISION
+  or MUTATION_CONFLICT                      -> ACTION_REQUIRED
+current attention PROCESSING
+  or PROPOSAL_ADOPTION
+  or CONVERGING
+  or recovery AUTOMATIC_RECOVERY            -> PROCESSING
+otherwise                                   -> READY
+```
+
+The detailed current-attention/recovery value remains owned by the primary material. Rail markers are summary presentation only and never feed back into command admission or lifecycle transition policy.
 
 ## 22. Functional requirements
 
@@ -1305,6 +1440,18 @@ Therefore the Workbench can prove CURRENT / REACHED-HISTORICAL / UNREACHED witho
 
 **Acceptance:** equivalent UI meaning is rendered equivalently across queue, creation, Settings and every WorkItem workflow surface; no feature/service owns a competing palette, typography scale, form/control grammar, status treatment, notice treatment, table/list density, timeline grammar or overlay style.
 
+### GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE
+
+**Required behavior:** every operator-visible workflow condition is expressible only through the closed orthogonal state primitives in §3.7 and the current-attention/recovery/execution projections in §21.9-§21.10.
+
+**Acceptance:** P4/P6 and UI implementation do not invent a new lifecycle status, attention category, recovery route, proposal-adoption state, execution-owner state, validation-progress state or observation-coherence state to handle a local feature.
+
+### GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION
+
+**Required behavior:** the nine-stage workflow rail is the one persistent lifecycle summary projection defined in §3.8/§21.11, derived from canonical stage/reach/current-attention state and never used as lifecycle or command-admission authority.
+
+**Acceptance:** the same canonical workflow facts always produce the same reach/current marker for every rail cell; historical selection cannot create a false current marker, and no feature supplies an independent rail status.
+
 ## 23. Required certification scenarios
 
 At minimum, downstream implementation must prove these scenarios end to end:
@@ -1336,6 +1483,11 @@ At minimum, downstream implementation must prove these scenarios end to end:
 25. Every rendered Workbench service resolves to one §13 primary interaction class; subordinate selector/context/task-panel/confirmation behavior does not introduce an undeclared persistent screen grammar.
 26. Queue, creation, Settings, document/editor, dialogue, review, implementation, evidence, result and Context rendering all use the same semantic color, typography, spacing/density, control, status, feedback and focus language in light and dark themes.
 27. Every production rendering owner is accounted for by the P4 renderer-to-primitive coverage matrix; an unclassified renderer or direct recreation of an owned UI mechanic fails architecture fitness.
+28. Proposal adoption survives interruption as ADOPTION_IN_PROGRESS for the exact durable proposal; Reject/free continuation remain unavailable until exact reconciliation/disposition completes.
+29. Every canonical state fixture resolves to one closed current-attention category and one recovery route; no fixture exposes two competing current actions.
+30. Every stage in every forward/backward lifecycle fixture produces a deterministic rail reach state, and the current stage produces exactly one READY/PROCESSING/ACTION_REQUIRED/BLOCKED/STALE/COMPLETE marker.
+31. A RunEvent/WorkItem/task observation that has not yet converged produces CONVERGING/PROCESSING presentation with mutation controls suppressed, then resolves without inventing the missing transition locally.
+32. Execution fixtures deterministically identify the current task owner and durable validation boundary independently from historical task/Run selection.
 
 ## 24. Downstream technical-design obligations
 
@@ -1345,7 +1497,8 @@ The technical investigation must determine, without changing the behavior above:
 
 - the technical representation that realizes the complete P3 transition relation in §21 and `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3`;
 - the single authoritative transition function(s);
-- how WorkItem lifecycle, Run lifecycle, turn occupancy, current attention and reach history are represented or derived;
+- how WorkItem lifecycle, Run lifecycle, turn occupancy, proposal adoption, currentness, recovery, observation coherence, current attention, execution ownership/validation boundary and reach history are represented or derived through one closed state language;
+- how the workflow rail is derived as a one-way summary projection from that language without becoming a state/admission owner;
 - how commands are serialized;
 - how command atomicity is guaranteed;
 - how required-input idempotence is enforced;
