@@ -606,6 +606,114 @@ Superseded duplicate base declarations and unused layout systems are removed rat
 
 Permanent architecture fitness treats duplicate base structural selectors and production CSS classes with no production consumer as review failures when they represent obsolete Workbench layout systems.
 
+
+### 8.12 Closed structural primitive vocabulary
+
+The Workbench structural vocabulary is closed. Feature/workflow components do not create persistent layout topology directly from Astryx `Layout`/`Drawer`, raw CSS grid columns or local viewport branches.
+
+The target Order-local structural primitives under `ui/src/primitives/` are:
+
+| Primitive | Sole structural responsibility | Deliberately absent flexibility |
+|---|---|---|
+| `WorkbenchLayout` | outer toolbar + identity + workflow rail + primary + optional Context topology; owns responsive class and Context representation | no arbitrary left/start/sidebar slot; no caller breakpoint/width values; no domain/query logic |
+| `WorkbenchRail` | one stable equal-cell horizontal navigation rail with constrained-width scrolling | no content/status-derived cell widths; no wrapping/multi-row mode; no lifecycle semantics |
+| `WorkbenchSurface` | stable current-attention/header band + one primary material region | no structural side rail/master slot; no responsive topology choice |
+| `WorkbenchSelector` | compact subordinate material selection; inline trigger/control on wide/medium and primitive-owned overlay/drawer behavior when needed | item count never changes surrounding columns; no persistent rail mode; no caller width/breakpoint |
+| `WorkbenchReview` | one review hierarchy: currentness/verdict, substantive review body, decision actions, collapsed/on-demand technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
+| `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and primitive-owned constrained-width collapse | no caller-defined master width; master is not conditionally created from collection count; imports restricted to explicitly master/detail interaction classes |
+| `WorkbenchContextPanel` | compact secondary metadata/diagnostic body plus explicit close affordance; hosted by `WorkbenchLayout` | no current-action/blocker ownership; no independent responsive/sidebar behavior |
+| existing `WorkbenchToolbar`, `WorkbenchAction`, `WorkbenchState`, `WorkbenchResourceRow`, `WorkbenchIcon` | global/local interaction atoms | no workflow/domain state ownership |
+
+The exact filenames may be combined only when two rows remain one independently testable responsibility; their semantic APIs/invariants may not be collapsed into a generic "panel/layout with arbitrary slots" primitive.
+
+### 8.13 Primitive API laws
+
+Structural primitives obey all of the following:
+
+1. **Domain-blind:** no structural primitive imports `WorkItem`, `Run`, `RunEvent`, `ExecutionTask`, `WorkStage`, proposal or Approval domain types. Feature composition maps canonical domain state into generic primitive props.
+2. **Query-blind:** primitives execute no TanStack queries/mutations and own no invalidation. They receive already-derived labels/items/actions/content.
+3. **Policy-blind:** primitives do not decide current attention, reached state, input eligibility, blocker ownership or lifecycle progression.
+4. **Count-blind topology:** collection length may alter selector/list rows but may never select a different persistent column/grid topology.
+5. **Single breakpoint owner:** structural responsive decisions are internal to the primitive layer using the §8.10 class contract. Feature components do not call an exported wide/narrow hook to choose alternate structural markup.
+6. **Token-owned geometry:** context width, operational master width, rail/identity/attention heights and structural gaps are CSS tokens defined once for the Workbench primitive system. Callers do not pass ad-hoc width values.
+7. **Named constrained slots:** primitives expose only the semantic slots they own. They do not expose arbitrary `start`, `end`, `sidebar`, `rail`, `columns`, `width`, `breakpoint` or generic layout-variant props that recreate Astryx Layout freedom above the primitive boundary.
+8. **Composition over configuration:** a different interaction class uses the corresponding primitive/composition rather than a `variant="review|dialogue|master"` mega-primitive whose props can combine invalid topologies.
+9. **Accessible behavior is primitive-owned:** drawer focus/escape, Context close, rail scrolling semantics and selector disclosure behavior are implemented once in the primitive responsible for that behavior.
+10. **Astryx containment:** Astryx remains the low-level interaction substrate. Workbench feature surfaces do not import structural Astryx `Layout` or `Drawer` directly; those capabilities are wrapped by the local structural primitives. Presentational Astryx components such as Badge/Table/CodeBlock may remain feature-local where they do not create Workbench topology.
+
+### 8.14 Interaction-class composition map
+
+The functional interaction classes in `GW-DOC-WORKBENCH-UX-V2 §13` map to the primitive vocabulary exactly:
+
+```text
+Operational scan
+  -> existing dense Table/List inside WorkbenchSurface or queue shell
+
+Document
+  -> WorkbenchSurface
+     + optional WorkbenchSelector
+     + document/editor content
+
+Dialogue
+  -> WorkbenchSurface
+     + optional WorkbenchSelector
+     + transcript
+     + anchored composer
+
+Review (proposal/readiness/approval)
+  -> WorkbenchReview
+     + optional WorkbenchSelector only for subordinate material
+
+Operational master/detail (Implementation)
+  -> WorkbenchMasterDetail
+     master: task/attempt scan
+     detail: WorkbenchSurface
+
+Evidence
+  -> WorkbenchSurface
+     + raw/evidence viewer
+
+Terminal result
+  -> WorkbenchSurface
+     + terminal classification/result
+
+Compact context
+  -> WorkbenchContextPanel hosted only by WorkbenchLayout
+
+Safety/exception
+  -> WorkbenchState / Astryx modal interaction inside the owning surface
+```
+
+A feature service is therefore predictable: choose its functional interaction class, map canonical data/current attention into the corresponding primitive slots, and add domain-specific content. It does not design a new layout.
+
+### 8.15 Primitive-consumer boundaries
+
+The target feature relationship is:
+
+```text
+canonical domain/query state
+        |
+pure lifecycle + presentation policy
+        |
+feature adapter
+        |
+Order structural primitive
+        |
+Astryx interaction primitive + semantic HTML/CSS
+```
+
+Examples:
+
+- `WorkflowRail.tsx` maps reached/current WorkStage presentation into generic `WorkbenchRail` items.
+- `PreSignoffStageWorkspace.tsx` maps Run/document/proposal/evidence choices into `WorkbenchSelector` and renders the chosen Document/Dialogue/Review content in `WorkbenchSurface`.
+- `ReadinessWorkspace.tsx` maps readiness findings/material into `WorkbenchReview`.
+- `SignoffReview.tsx` maps package/task/document/sign-off content into `WorkbenchReview`.
+- `ExecutionWorkspace.tsx` maps task/attempt collections into `WorkbenchMasterDetail` and uses `WorkbenchSurface` for the selected/current detail.
+- `WorkItemContext.tsx` supplies compact context content to `WorkbenchContextPanel`; it does not decide whether/how Context is structurally displayed.
+
+No feature adapter owns CSS that establishes a new persistent Workbench column or responsive topology.
+
+
 ## 9. Material and action composition
 
 ### 9.1 Pre-signoff
@@ -758,23 +866,23 @@ The target ownership is:
 
 - `WorkItemWorkspace.tsx` — selected WorkItem workflow composition, subordinate canonical queries, dirty-buffer selection guard and step dispatch;
 - `WorkItemIdentityRow.tsx` — pure identity-row/title/status/WorkItem-utility presentation; mutations/state are supplied by the parent;
-- `WorkflowRail.tsx` — pure nine-stage lifecycle navigation presentation from the canonical reached/current projection;
-- `WorkflowStepFrame.tsx` — summary/current-attention band plus primary material region only;
-- `WorkflowMaterialSelector.tsx` — compact subordinate material selector used by pre-signoff/Readiness where appropriate.
+- `WorkflowRail.tsx` — pure nine-stage lifecycle adapter from the canonical reached/current projection into `WorkbenchRail`;
+- `WorkflowStepFrame.tsx` — thin workflow adapter over `WorkbenchSurface`, with no independent structural layout behavior;
+- `WorkflowMaterialSelector.tsx` — thin domain adapter over `WorkbenchSelector` for Run/document/proposal/evidence material.
 
 This is not a new UI framework or controller layer. These modules remain ordinary functional React composition over canonical typed data and callbacks. Any new production module is added to the architecture fitness dependency map in the same implementation change.
 
 ### UI structural components
 
-`WorkflowStepFrame.tsx` loses the optional generic side-index/drawer responsibility and owns only summary + primary surface.
+`WorkflowStepFrame.tsx` loses the optional generic side-index/drawer responsibility and becomes a thin adapter over `WorkbenchSurface`.
 
-Pre-signoff/Readiness use one compact material selector that does not alter primary columns.
+Pre-signoff/Readiness use `WorkflowMaterialSelector` -> `WorkbenchSelector`; item count cannot alter primary columns.
 
-Approval owns its Review composition directly; it does not reuse a generic side-index simply because documents/tasks exist.
+Approval maps directly into `WorkbenchReview`; it does not reuse a generic side-index simply because documents/tasks exist.
 
-Implementation owns one dedicated stable master/detail composition and may reuse existing primitive interaction components beneath that boundary.
+Implementation maps into `WorkbenchMasterDetail`; feature code does not create its own persistent grid columns.
 
-`WorkbenchLayout.tsx` owns Context representation/responsive behavior; `App.tsx` owns the open/close boolean and supplies a true toggle. The wide inspector has a visible close affordance.
+`WorkbenchLayout` owns responsive outer topology/Context hosting; `WorkbenchContextPanel` owns the Context body/close affordance. `App.tsx` owns only the open/close boolean and supplies a true toggle.
 
 ### UI attention/presentation cleanup
 
@@ -788,7 +896,7 @@ Implementation validation presentation is sparse/current-state-first as defined 
 
 ### UI CSS
 
-`theme.css` is reduced to one live Workbench layout system. Duplicate base declarations and dead superseded Workbench layout selectors are removed. Media overrides use the §8.10 breakpoint contract.
+`theme.css` is reduced to one live Workbench layout system whose structural selectors belong to the §8.12 primitives. Duplicate base declarations and dead superseded Workbench layout selectors are removed. Feature selectors may style content/density but may not establish persistent Workbench columns or alternate structural breakpoints. Media overrides use the §8.10 breakpoint contract.
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
