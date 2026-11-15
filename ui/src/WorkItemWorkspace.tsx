@@ -177,6 +177,16 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
   });
+  const implementationArtifactsRequired =
+    selectedStep === "EXECUTION" ||
+    selectedStep === "COMPLETE" ||
+    workItem.stage === "EXECUTION" ||
+    workItem.stage === "COMPLETE";
+  const allArtifactsQuery = useQuery({
+    queryKey: workbenchQueryKeys.artifacts(workItem.id),
+    queryFn: () => api.listArtifacts(workItem.id),
+    enabled: implementationArtifactsRequired,
+  });
   const tasksRequired =
     selectedStep === "AWAITING_SIGNOFF" ||
     selectedStep === "EXECUTION" ||
@@ -279,6 +289,7 @@ export const WorkItemWorkspace = ({
   }, [queryClient, runs, workItem.id]);
 
   const artifacts = artifactsQuery.data ?? [];
+  const allArtifacts = allArtifactsQuery.data ?? [];
   const tasks = tasksQuery.data ?? [];
   const runEventQueries = useQueries({
     queries: runs.map((run) => ({
@@ -429,6 +440,10 @@ export const WorkItemWorkspace = ({
     selectedWorkItemFetching ||
     runsQuery.isFetching ||
     artifactsQuery.isFetching ||
+    (
+      (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+      allArtifactsQuery.isFetching
+    ) ||
     currentExecutionTasksFetching ||
     executionEventsPending ||
     currentStageEventsFetching ||
@@ -1204,6 +1219,19 @@ export const WorkItemWorkspace = ({
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
+            tasks={tasks}
+            runs={runs}
+            artifacts={allArtifacts}
+            statePending={
+              runsQuery.isPending ||
+              tasksQuery.isPending ||
+              allArtifactsQuery.isPending
+            }
+            stateError={
+              runsQuery.error ??
+              tasksQuery.error ??
+              allArtifactsQuery.error
+            }
             executionOwner={executionOwner}
             validationBoundary={validationBoundary}
             mutationsDisabled={workflowMutationsDisabled}
