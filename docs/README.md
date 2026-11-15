@@ -61,7 +61,7 @@ docs/order/work-items/<WorkItemId>/
 - [OpenCode integration](architecture/opencode-integration.md) — `GW-DOC-OPENCODE-INTEGRATION-V1`
 - [Workbench technical architecture](architecture/workbench.md) — `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`
 
-The Workbench technical owner is intentionally not yet implementation-ready: its detailed state-machine/transition/observation realization must be completed from the current V2 functional design before remediation implementation begins.
+The Workbench technical owner now contains the binding state-machine/transition/observation/spatial design and `GW-TR-082..091`. Runtime remediation remains unimplemented; the next lifecycle activity is a P7 implementation plan derived from the closed P3/P4/P6 authority.
 
 ## Decisions
 
