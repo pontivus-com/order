@@ -706,27 +706,34 @@ Continue to own post-signoff task/Run reaction; route every WorkItem lifecycle r
 
 ### UI query/state ownership
 
-`App.tsx` owns application destination, queue-level/global queries and global shell controls only. The queue list is not the current selected-WorkItem observation.
+`App.tsx` owns application destination, queue/global queries and the **dedicated selected-WorkItem canonical query** because it is the common ancestor of the WorkItem primary workspace and Context. The queue-list row is never reused as the current selected-WorkItem observation.
 
-`WorkItemWorkspace.tsx` owns the selected WorkItem canonical observation and work-item-level query composition:
+Required additions are the existing canonical boundary only:
 
-- dedicated `GET /api/work-items/:id` selected-item query;
+- `api.getWorkItem(workItemId)` over `GET /api/work-items/:workItemId`;
+- `workbenchQueryKeys.workItem(workItemId)`;
+- selected-item polling/refetch under the §7 convergence rules.
+
+No aggregate workflow DTO/query is introduced.
+
+`WorkItemWorkspace.tsx` composes the selected WorkItem with the subordinate canonical workflow collections required by the active workspace:
+
 - Run list;
 - current lifecycle ArtifactRefs;
 - ExecutionTasks when applicable;
 - source diagnostics/currentness needed by the current workspace;
 - sign-off package when applicable.
 
-Those existing canonical values are passed into step surfaces directly. No `WorkflowObservation`/view-model DTO is introduced.
+Those existing canonical values are passed into step surfaces for workflow decisions. A child may subscribe to an already-canonical shared TanStack query key solely for read-only secondary/detail presentation, but it may not become another workflow-policy/current-attention/action owner.
 
-Child surfaces do not re-query the same WorkItem-level collections merely to make independent workflow decisions:
+In particular:
 
-- `StageRunMaterial` may own the selected RunEvent detail query, but not a second Run-list owner;
-- `ExecutionWorkspace` consumes the parent Run/task/artifact collections and may own only selected RunEvent/evidence detail;
-- `SignoffReview` consumes the parent package/artifact/task state rather than independently deciding current package ownership;
-- `WorkItemContext` is a secondary presentation over passed selected canonical values and does not own duplicate Run/diagnostic workflow queries.
+- `StageRunMaterial` receives the parent Run list/current Run decision and owns only the selected RunEvent detail query;
+- `ExecutionWorkspace` receives parent task/Run/artifact collections and owns only selected RunEvent/evidence detail;
+- `SignoffReview` receives parent package/artifact/task state;
+- `WorkItemContext` may read shared canonical detail for technical display, but it never derives blocker/action/current-attention semantics and never owns mutation invalidation.
 
-A successful workflow mutation calls one parent-owned canonical-observation invalidation/refetch callback. Child components do not maintain divergent invalidation sets for the same WorkItem state.
+Workflow mutations use one shared WorkItem-observation invalidation/refetch function over the canonical query keys. Individual child components do not carry divergent copies of the "refresh WorkItem after mutation" key set.
 
 ### UI policy/presentation ownership
 
@@ -735,6 +742,20 @@ A successful workflow mutation calls one parent-owned canonical-observation inva
 Explicit historical selection is presentation state only and is never used as the source of current blocker/action ownership.
 
 `ActivityWorkspace.tsx` / `ActivityComposer.tsx` use the shared interaction derivation; Send is admitted only for OPEN or exact REQUIRED_INPUT, proposal/input/control states cannot coexist contrary to the P3 turn grammar, and mutation error ownership is singular.
+
+### Required same-layer UI decomposition
+
+Current implementation evidence shows that `WorkItemWorkspace.tsx` contains several independently testable present responsibilities. P7 therefore performs the minimum architecture-preserving split rather than continuing to grow that catch-all.
+
+The target ownership is:
+
+- `WorkItemWorkspace.tsx` — selected WorkItem workflow composition, subordinate canonical queries, dirty-buffer selection guard and step dispatch;
+- `WorkItemIdentityRow.tsx` — pure identity-row/title/status/WorkItem-utility presentation; mutations/state are supplied by the parent;
+- `WorkflowRail.tsx` — pure nine-stage lifecycle navigation presentation from the canonical reached/current projection;
+- `WorkflowStepFrame.tsx` — summary/current-attention band plus primary material region only;
+- `WorkflowMaterialSelector.tsx` — compact subordinate material selector used by pre-signoff/Readiness where appropriate.
+
+This is not a new UI framework or controller layer. These modules remain ordinary functional React composition over canonical typed data and callbacks. Any new production module is added to the architecture fitness dependency map in the same implementation change.
 
 ### UI structural components
 
@@ -903,7 +924,7 @@ Permanent sensors prove:
 - GET handlers cannot call known reconcile/materialization mutation functions;
 - ordinal reached-history comparison is absent from production Workbench code;
 - the generic step frame has no content-count-dependent persistent side-index slot;
-- one selected WorkItem query owns current WorkItem observation while child surfaces do not create duplicate WorkItem-level workflow-query owners;
+- one dedicated selected WorkItem query (not the queue list) owns current WorkItem observation; shared-query secondary consumers cannot become competing workflow-policy/current-attention owners;
 - Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
 - obsolete competing Workbench layout selectors are absent from production CSS.
 
