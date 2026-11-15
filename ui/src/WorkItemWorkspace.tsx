@@ -382,7 +382,8 @@ export const WorkItemWorkspace = ({
   );
   const transportConverging =
     terminalDrainPending ||
-    currentStageEventsPending;
+    currentStageEventsPending ||
+    (workItem.stage === "AWAITING_SIGNOFF" && signoffPackageQuery.isFetching);
   const currentAttention = deriveCurrentAttention({
     workItem,
     coherence: transportConverging ? "CONVERGING" : semanticCoherence,
@@ -502,7 +503,7 @@ export const WorkItemWorkspace = ({
     if (selectedStep === "AWAITING_SIGNOFF") {
       if (selectedStepState === "HISTORICAL") return "Approved";
       if (selectedStepState === "UNREACHED") return "Not yet reached";
-      if (signoffPackageQuery.isPending) return "Resolving package";
+      if (signoffPackageQuery.isFetching) return "Resolving package";
       if (packageStaleOwner !== null) return "Package stale";
       if (signoffPackageQuery.isError || !signoffPackageQuery.data) {
         return "Package unavailable";
