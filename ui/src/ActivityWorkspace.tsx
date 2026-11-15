@@ -111,6 +111,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRun
       <div><dt>Baseline</dt><dd><code>{selectedRun.baselineCommit}</code></dd></div>
       <div><dt>Context</dt><dd><code>{selectedRun.contextHash}</code></dd></div>
       <div><dt>Provider session</dt><dd><code>{selectedRun.providerSessionId ?? "—"}</code></dd></div>
+      <div><dt>Provider status</dt><dd>{sessionStatus}</dd></div>
       <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification ?? "—"}</code></dd></div>
     </dl>
   );
@@ -127,12 +128,11 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRun
       />
       <div className="order-run-status-strip" data-testid="selected-run-header">
         <WorkbenchStatus tone={statusTone(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
-        <WorkbenchStatus tone={runIsActive(selectedRun) ? "info" : "neutral"} label={sessionStatus} />
       </div>
       <WorkbenchDisclosure label="Technical details" content={technical} />
       {eventsQuery.isPending ? <WorkbenchState kind="loading" title="Loading activity timeline…" /> :
        eventsQuery.isError ? <WorkbenchState kind="error" title="Activity timeline unavailable" description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} /> :
-       events.length === 0 ? <WorkbenchState kind="empty" title={sessionStatus} description={runIsActive(selectedRun) ? "The selected Run is active. Persisted session results will appear here automatically." : "No persisted provider events were returned for this Run."} /> :
+       events.length === 0 ? <WorkbenchState kind="empty" title={runStatusLabel(selectedRun.status)} description={runIsActive(selectedRun) ? "This workflow attempt is processing. Persisted results will appear here automatically." : "No persisted workflow events were returned for this attempt."} /> :
        <RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview} />}
     </>
   );

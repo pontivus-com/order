@@ -9,6 +9,7 @@ import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
+import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
 import { workflowPresentation } from "./workbench-presentation.ts";
 
@@ -32,14 +33,18 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
   const visibleItems = showArchived ? archivedQuery.data ?? workItems : workItems;
 
   return (
-    <section className="order-queue" data-testid="work-item-queue">
-      <WorkbenchSectionHeader
-        title="Work items"
-        description={showArchived ? "Active and archived governed work." : "Active governed work."}
-        action={<WorkbenchAction label={showArchived ? "Hide archived" : "Show archived"} onClick={() => setShowArchived((value) => !value)} />}
-      />
-      {restore.error ? <WorkbenchNotice tone="danger" title="Restore failed" description={restore.error instanceof Error ? restore.error.message : String(restore.error)} /> : null}
-      <WorkbenchTable
+    <div data-testid="work-item-queue">
+      <WorkbenchSurface
+        attention={
+          <WorkbenchSectionHeader
+            title="Work items"
+            description={showArchived ? "Active and archived governed work." : "Active governed work."}
+            action={<WorkbenchAction label={showArchived ? "Hide archived" : "Show archived"} onClick={() => setShowArchived((value) => !value)} />}
+          />
+        }
+        material={<>
+          {restore.error ? <WorkbenchNotice tone="danger" title="Restore failed" description={restore.error instanceof Error ? restore.error.message : String(restore.error)} /> : null}
+          <WorkbenchTable
         label="Work items"
         selection="single"
         columns={[
@@ -71,7 +76,9 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
             },
           };
         })}
+          />
+        </>}
       />
-    </section>
+    </div>
   );
 };

@@ -28,9 +28,7 @@ import {
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -139,41 +137,36 @@ export const PreSignoffStageWorkspace = ({
     });
   }
 
+  groups.push({
+    id: "supporting",
+    label: "Supporting authority",
+    items: [
+      {
+        id: "supporting-work-request",
+        label: "Work request",
+        description: "Canonical source context",
+        selected: material.kind === "SOURCE_DOCUMENT",
+        onSelect: () => onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" }),
+      },
+      ...supportingArtifacts.map((artifact) => ({
+        id: "supporting-" + artifact.id,
+        label: lifecycleArtifactLabel(artifact.role) + " document",
+        description: artifact.repositoryPath,
+        selected:
+          material.kind === "SUPPORTING_DOCUMENT" &&
+          material.artifactId === artifact.id,
+        onSelect: () =>
+          onOpenSupportingMaterial({
+            kind: "SUPPORTING_DOCUMENT",
+            artifactId: artifact.id,
+          }),
+      })),
+    ],
+  });
+
   const index = groups.length > 0
     ? <WorkflowStepIndex groups={groups} label={stage === "PLAN" ? "Plan work" : "Step work"} />
     : null;
-
-  const supportingContext = (
-    <WorkbenchDisclosure
-      label="Supporting context"
-      content={<div className="order-resource-list">
-        <WorkbenchResourceRow
-          label="Work request"
-          detail="Canonical source context"
-          actionLabel="Open supporting Work request"
-          onOpen={() =>
-            onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" })}
-        />
-        {supportingArtifacts.map((artifact) => {
-          const label = lifecycleArtifactLabel(artifact.role) + " document";
-          const actionLabel = "Open supporting " + label;
-          return (
-            <WorkbenchResourceRow
-              key={artifact.id}
-              label={label}
-              detail={artifact.repositoryPath}
-              actionLabel={actionLabel}
-              onOpen={() =>
-                onOpenSupportingMaterial({
-                  kind: "SUPPORTING_DOCUMENT",
-                  artifactId: artifact.id,
-                })}
-            />
-          );
-        })}
-      </div>}
-    />
-  );
 
   const primary = (() => {
     switch (material.kind) {
@@ -279,12 +272,6 @@ export const PreSignoffStageWorkspace = ({
       indexLabel={stage === "PLAN" ? "Plan work" : "Step work"}
       primary={
         <PrimaryMaterialFrame>
-          {material.kind === "SOURCE_DOCUMENT" ||
-          material.kind === "SUPPORTING_DOCUMENT" ||
-          material.kind === "PROPOSAL" ||
-          material.kind === "EVIDENCE"
-            ? null
-            : supportingContext}
           {primary}
         </PrimaryMaterialFrame>
       }

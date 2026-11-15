@@ -24,6 +24,7 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
 import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
@@ -386,10 +387,8 @@ export const App = () => {
         <>
           {selectedWorkItem === null && settingsSection === null ? (
             <WorkbenchToolbarSearch
-              aria-label="Search work items"
-              placeholder="Search work items"
               value={search}
-              onChange={(event) => setSearch(event.currentTarget.value)}
+              onChange={setSearch}
             />
           ) : null}
           <WorkbenchToolbarUtilities>
@@ -481,31 +480,41 @@ export const App = () => {
   ) : (
     <div className="order-queue-page">
       {readinessQuery.data && !readinessQuery.data.ready ? (
-        <section className="order-setup-required" role="status">
-          <div>
-            <strong>Setup requires attention</strong>
-            <span>Complete installation Settings before productive work.</span>
-          </div>
-          <WorkbenchAction
-            label="Open Settings"
-            tone="primary"
-            onClick={() => navigateSettings(
-              settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
-            )}
-          />
-        </section>
+        <WorkbenchNotice
+          tone="warning"
+          title="Setup requires attention"
+          description="Complete installation Settings before productive work."
+          action={
+            <WorkbenchAction
+              label="Open Settings"
+              tone="primary"
+              onClick={() => navigateSettings(
+                settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
+              )}
+            />
+          }
+        />
       ) : null}
       {(diagnosticsQuery.data ?? []).length > 0 ? (
-        <section className="order-diagnostics" data-testid="source-diagnostics">
-          <h2>Source diagnostics</h2>
-          {(diagnosticsQuery.data ?? []).map((item, index) => (
-            <div key={item.code + "-" + (item.path ?? String(index))} role="alert">
-              <strong>{item.code}</strong>
-              <span>{item.path ?? item.workItemId ?? "unmaterialized source"}</span>
-              <span>{item.detail}</span>
-            </div>
-          ))}
-        </section>
+        <div data-testid="source-diagnostics">
+          <WorkbenchNotice
+            tone="danger"
+            title="Source diagnostics require attention"
+            description={
+              <ul>
+                {(diagnosticsQuery.data ?? []).map((item, index) => (
+                  <li key={item.code + "-" + (item.path ?? String(index))}>
+                    <strong>{item.code}</strong>
+                    {" · "}
+                    {item.path ?? item.workItemId ?? "unmaterialized source"}
+                    {" — "}
+                    {item.detail}
+                  </li>
+                ))}
+              </ul>
+            }
+          />
+        </div>
       ) : null}
       {queue}
     </div>

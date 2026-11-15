@@ -42,29 +42,90 @@ const taskStateLabel = (task: ExecutionTask): string => task.state.replaceAll("_
 const latestValidationEvent = (events: readonly RunEvent[], stage: ValidationStage): RunEvent | null =>
   events.findLast((event) => (event.event.tag === "VALIDATION_PASSED" || event.event.tag === "VALIDATION_FAILED") && event.event.stage === stage) ?? null;
 
-const ValidationMatrix = ({ events }: Readonly<{ events: readonly RunEvent[] }>) => (
-  <section data-testid="validation-matrix">
-    <WorkbenchSectionHeader title="Validation" />
-    <WorkbenchTable
-      label="Validation"
-      columns={[{key:"stage",label:"Stage"},{key:"state",label:"State"},{key:"result",label:"Result"}]}
-      rows={validationStages.map((stage) => {
-        const event = latestValidationEvent(events, stage);
-        const passed = event?.event.tag === "VALIDATION_PASSED";
-        const failed = event?.event.tag === "VALIDATION_FAILED";
-        return {
-          id: stage,
-          testId: "validation-stage-" + stage,
-          cells: {
-            stage: <code>{stage}</code>,
-            state: <WorkbenchStatus tone={passed ? "success" : failed ? "danger" : "neutral"} label={passed ? "Passed" : failed ? "Failed" : "Not recorded"} />,
-            result: failed && event.event.tag === "VALIDATION_FAILED" ? event.event.summary : passed ? "Validation passed." : "—",
-          },
-        };
-      })}
-    />
-  </section>
-);
+const validationRows = (
+  events: readonly RunEvent[],
+  stages: readonly ValidationStage[],
+) => stages.map((stage) => {
+  const event = latestValidationEvent(events, stage);
+  const passed = event?.event.tag === "VALIDATION_PASSED";
+  const failed = event?.event.tag === "VALIDATION_FAILED";
+  return {
+    id: stage,
+    testId: "validation-stage-" + stage,
+    cells: {
+      stage: <code>{stage}</code>,
+      state: (
+        <WorkbenchStatus
+          tone={passed ? "success" : failed ? "danger" : "neutral"}
+          label={passed ? "Passed" : failed ? "Failed" : "Not recorded"}
+        />
+      ),
+      result:
+        failed && event.event.tag === "VALIDATION_FAILED"
+          ? event.event.summary
+          : passed
+            ? "Validation passed."
+            : "—",
+    },
+  };
+});
+
+const ValidationMatrix = ({
+  events,
+  active,
+}: Readonly<{ events: readonly RunEvent[]; active: boolean }>) => {
+  const recordedStages = validationStages.filter(
+    (stage) => latestValidationEvent(events, stage) !== null,
+  );
+
+  if (recordedStages.length === 0) {
+    return (
+      <section data-testid="validation-matrix">
+        <WorkbenchSectionHeader title="Validation" />
+        <WorkbenchState
+          kind={active ? "pending" : "empty"}
+          title={active ? "Validation in progress" : "Validation not started"}
+          description={
+            active
+              ? "Recorded validation stages will appear as this implementation attempt advances."
+              : "No durable validation evidence has been recorded for this implementation attempt."
+          }
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section data-testid="validation-matrix">
+      <WorkbenchSectionHeader title="Validation" />
+      <WorkbenchTable
+        label="Recorded validation"
+        columns={[
+          { key: "stage", label: "Stage" },
+          { key: "state", label: "State" },
+          { key: "result", label: "Result" },
+        ]}
+        rows={validationRows(events, recordedStages)}
+      />
+      {recordedStages.length < validationStages.length ? (
+        <WorkbenchDisclosure
+          label="Complete validation matrix"
+          content={
+            <WorkbenchTable
+              label="Complete validation matrix"
+              columns={[
+                { key: "stage", label: "Stage" },
+                { key: "state", label: "State" },
+                { key: "result", label: "Result" },
+              ]}
+              rows={validationRows(events, validationStages)}
+            />
+          }
+        />
+      ) : null}
+    </section>
+  );
+};
 
 export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpenEvidence, onReturnFromEvidence }: Readonly<{
   workItem: WorkItem; material: WorkflowMaterial; onSelectMaterial: (material: WorkflowMaterial) => void;
@@ -135,13 +196,9 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
   />;
 
   const master=groups.length>0?<WorkflowStepIndex groups={groups} label="Implementation work"/>:<WorkbenchState kind="empty" title="No implementation work"/>;
-  if(tasksQuery.isError||runsQuery.isError||artifactsQuery.isError){
-    const error=tasksQuery.error??runsQuery.error??artifactsQuery.error;
-    return <WorkbenchSurface attention={summary} material={<WorkbenchState kind="error" title="Implementation state unavailable" description={error instanceof Error?error.message:String(error)}/>}/>;
-  }
-  if(tasksQuery.isPending||runsQuery.isPending||artifactsQuery.isPending)return <WorkbenchSurface attention={summary} material={<WorkbenchState kind="loading" title="Loading implementation state…"/>}/>;
-
-  const detail=material.kind==="EVIDENCE"?<EvidenceViewer selection={material.selection} onBack={onReturnFromEvidence}/>:
+  const implementationStateError=tasksQuery.error??runsQuery.error??artifactsQuery.error;
+  const detail=implementationStateError?<WorkbenchState kind="error" title="Implementation state unavailable" description={implementationStateError instanceof Error?implementationStateError.message:String(implementationStateError)}/>:
+    tasksQuery.isPending||runsQuery.isPending||artifactsQuery.isPending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
     selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
       <WorkbenchSectionHeader title={selectedTask.planTaskId} description={selectedTask.objective} action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
       <MetadataList columns="multi">
@@ -165,7 +222,7 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
           <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification??"—"}</code></dd></div>
         </dl>}/>
       </>:<WorkbenchState kind="empty" title="No attempts yet"/>}
-      <ValidationMatrix events={events}/>
+      <ValidationMatrix events={events} active={selectedRun !== null && runIsActive(selectedRun)}/>
       {eventsQuery.isPending?<WorkbenchState kind="loading" title="Loading attempt timeline…"/>:
        eventsQuery.isError?<WorkbenchState kind="error" title="Attempt timeline unavailable" description={eventsQuery.error instanceof Error?eventsQuery.error.message:String(eventsQuery.error)}/>:
        selectedRun&&events.length>0?<RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence}/>:<WorkbenchState kind="empty" title="No persisted attempt events"/>}
@@ -173,5 +230,17 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
       <div className="order-resource-list">{(artifactsQuery.data??[]).map((artifact)=><WorkbenchResourceRow key={artifact.id} label={artifact.role} detail={artifact.repositoryPath} actionLabel={"Open "+artifact.role+": "+artifact.repositoryPath} onOpen={()=>onOpenEvidence({kind:"ARTIFACT",artifactId:artifact.id,label:artifact.role+": "+artifact.repositoryPath})}/>)}</div>
     </section>:<WorkbenchState kind="empty" title="No implementation tasks materialized"/>;
 
-  return <div data-testid="execution-workspace"><WorkbenchSurface attention={summary} material={<WorkbenchMasterDetail master={master} detail={detail} masterLabel="Implementation work"/>}/></div>;
+  const detailSurface=material.kind==="EVIDENCE"&&implementationStateError===null&&!tasksQuery.isPending&&!runsQuery.isPending&&!artifactsQuery.isPending
+    ?<EvidenceViewer selection={material.selection} onBack={onReturnFromEvidence}/>
+    :<WorkbenchSurface attention={summary} material={detail}/>;
+
+  return (
+    <div data-testid="execution-workspace">
+      <WorkbenchMasterDetail
+        master={master}
+        detail={detailSurface}
+        masterLabel="Implementation work"
+      />
+    </div>
+  );
 };

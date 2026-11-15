@@ -8,7 +8,7 @@ import { LayoutPanel } from "@astryxdesign/core/Layout";
 
 const WIDE_QUERY = "(min-width: 1280px)";
 
-export const useWideWorkbench = (): boolean => {
+const useWideWorkbench = (): boolean => {
   const [wide, setWide] = useState(() => typeof window === "undefined" ||
     typeof window.matchMedia !== "function" || window.matchMedia(WIDE_QUERY).matches);
   useEffect(() => {

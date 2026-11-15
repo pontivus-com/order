@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
 
 export const OpenCodeAccountControl = ({ onOpenSettings }: Readonly<{ onOpenSettings: () => void }>) => {
@@ -12,7 +13,10 @@ export const OpenCodeAccountControl = ({ onOpenSettings }: Readonly<{ onOpenSett
   return (
     <WorkbenchUtilityLink
       label={"OpenCode: " + accountLabel}
-      detail={accountStateQuery.isError ? "Unavailable" : needsAttention ? "Needs attention" : "Ready"}
+      detail={<WorkbenchStatus
+        tone={accountStateQuery.isError ? "danger" : needsAttention ? "warning" : "success"}
+        label={accountStateQuery.isError ? "Unavailable" : needsAttention ? "Needs attention" : "Ready"}
+      />}
       href="/settings/opencode"
       testId="opencode-account-trigger"
       onNavigate={(event) => { event.preventDefault(); onOpenSettings(); }}

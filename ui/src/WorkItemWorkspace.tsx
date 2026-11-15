@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@astryxdesign/core/Link";
+import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type { ArtifactRef, Run, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
@@ -672,14 +674,14 @@ export const WorkItemWorkspace = ({
     <WorkItemIdentityRow
       navigation={
         <div className="order-inline-actions">
-          <WorkbenchAction label="Back to work queue" tone="ghost" icon={<WorkbenchIcon name="back" />} onClick={onBack} />
+          <Link href="/" isStandalone color="secondary" onClick={(event) => { event.preventDefault(); onBack(); }}>Back to work queue</Link>
           <WorkbenchAction label="Context" tone="ghost" icon={<WorkbenchIcon name="context" />} ariaExpanded={contextOpen} onClick={() => onContextOpenChange(!contextOpen)} />
         </div>
       }
       title={
         titleEditing ? (
           <div className="order-workitem-title-edit">
-            <input aria-label="Work item title" value={titleDraft} autoFocus onChange={(event) => setTitleDraft(event.currentTarget.value)} />
+            <TextInput label="Work item title" isLabelHidden size="sm" width="100%" value={titleDraft} hasAutoFocus onChange={setTitleDraft} />
             <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
             <WorkbenchAction label="Cancel title edit" disabled={titleMutation.isPending} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(false); }} />
           </div>
