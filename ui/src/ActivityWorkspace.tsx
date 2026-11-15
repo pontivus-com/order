@@ -9,7 +9,7 @@ import type {
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
-import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
+import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDialogue } from "./primitives/WorkbenchDialogue.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
@@ -42,7 +42,7 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationError }: Readonly<{
+export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
   workItem: WorkItem; stage: PreSignoffStage; runs: readonly Run[]; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
@@ -51,6 +51,7 @@ export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, current
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onOpenProposalReview?: (selection: ProposalSelection) => void;
+  onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
@@ -78,8 +79,6 @@ export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, current
       ? events.find((event) => event.id === interaction.requestEventId) ?? null
       : null;
 
-  const invalidate = (): Promise<void> =>
-    invalidateWorkbenchMutation(queryClient, workItem.id);
   const cancel = useMutation({
     mutationFn: () => {
       if (
@@ -92,10 +91,13 @@ export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, current
       }
       return api.cancelRun(selectedRun.id);
     },
-    onSuccess: async (run) => { onSelectedRunChange(run.id); await invalidate(); },
+    onSuccess: async (run) => {
+      onSelectedRunChange(run.id);
+      await onMutationRefresh();
+    },
     onError: async (error) => {
       onMutationError?.(error);
-      await invalidate();
+      await onMutationRefresh();
     },
   });
 
@@ -166,7 +168,20 @@ export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, current
       <WorkbenchDialogue
         transcript={transcript}
         state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
-        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async (event) => { setInputError(null); queryClient.setQueryData<readonly RunEvent[]>(eventKey, (current = []) => current.some((item) => item.id === event.id) ? current : [...current, event].sort((left, right) => left.sequence - right.sequence || left.id.localeCompare(right.id))); await invalidate(); }} onError={async (error) => { setInputError(error); onMutationError?.(error); await invalidate(); }} /> : undefined}
+        composer={canAnswer ? <ActivityComposer
+          run={selectedRun}
+          pending={pending}
+          mutationsDisabled={mutationsDisabled}
+          onSubmitted={async (event) => {
+            setInputError(null);
+            await onMutationRefresh(event);
+          }}
+          onError={async (error) => {
+            setInputError(error);
+            onMutationError?.(error);
+            await onMutationRefresh();
+          }}
+        /> : undefined}
       />
       </div>
     </section>
