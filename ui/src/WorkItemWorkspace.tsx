@@ -906,6 +906,17 @@ export const WorkItemWorkspace = ({
   });
 
   const setDirtyState = (value: boolean): void => {
+    if (
+      value &&
+      explicitMaterial === null &&
+      (
+        material.kind === "SOURCE_DOCUMENT" ||
+        material.kind === "STAGE_DOCUMENT" ||
+        material.kind === "SUPPORTING_DOCUMENT"
+      )
+    ) {
+      setExplicitMaterial(material);
+    }
     setDirty(value);
     onDirtyChange(value);
   };
