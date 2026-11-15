@@ -65,6 +65,7 @@ export const PreSignoffStageWorkspace = ({
   onOpenSupportingMaterial,
   onReturnFromTransient,
   onContextDocumentChange,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   stage: SharedPreSignoffStage;
@@ -84,6 +85,7 @@ export const PreSignoffStageWorkspace = ({
   onOpenSupportingMaterial: (material: WorkflowMaterial) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const stageRuns = [...runs]
     .filter((run) => run.role === "STAGE" && run.stage === stage)
@@ -196,6 +198,7 @@ export const PreSignoffStageWorkspace = ({
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
             onOpenProposalReview={onOpenProposalReview}
+            onMutationError={onMutationError}
           />
         );
       case "STAGE_DOCUMENT":
@@ -248,6 +251,7 @@ export const PreSignoffStageWorkspace = ({
             selection={{ runId: material.runId, eventId: material.eventId }}
             mutationsDisabled={mutationsDisabled}
             onBack={onReturnFromTransient}
+            onMutationError={onMutationError}
           />
         );
       case "EVIDENCE":
