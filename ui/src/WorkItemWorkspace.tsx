@@ -398,11 +398,7 @@ export const WorkItemWorkspace = ({
   );
   const transportConverging =
     terminalDrainPending ||
-    currentStageEventsPending ||
-    runEventQueries.some((query) => query.isFetching) ||
-    runsQuery.isFetching ||
-    tasksQuery.isFetching ||
-    artifactsQuery.isFetching;
+    currentStageEventsPending;
   const currentAttention = deriveCurrentAttention({
     workItem,
     coherence: transportConverging ? "CONVERGING" : semanticCoherence,
@@ -426,6 +422,7 @@ export const WorkItemWorkspace = ({
     recovery,
     selectedStep,
   );
+  const mutationsDisabled = currentAttention === "CONVERGING";
 
   const selectedLatestStageRun =
     selectedStep === "R1" ||
@@ -591,10 +588,13 @@ export const WorkItemWorkspace = ({
   };
 
   const titleMutation = useMutation({
-    mutationFn: () => api.updateWorkItemTitle(workItem.id, {
+    mutationFn: () => {
+      if (mutationsDisabled) throw new TypeError("workflow observation is converging");
+      return api.updateWorkItemTitle(workItem.id, {
       expectedSourceSha256: workItem.sourceSha256,
       title: titleDraft.trim(),
-    }),
+      });
+    },
     onSuccess: async (result) => {
       if (result.tag === "STALE") {
         setTitleError("The WorkItem source changed. Reload the current title before editing again.");
@@ -613,10 +613,13 @@ export const WorkItemWorkspace = ({
   });
 
   const archiveMutation = useMutation({
-    mutationFn: () => api.setWorkItemArchived(workItem.id, {
-      expectedArchived: workItem.archived,
-      archived: !workItem.archived,
-    }),
+    mutationFn: () => {
+      if (mutationsDisabled) throw new TypeError("workflow observation is converging");
+      return api.setWorkItemArchived(workItem.id, {
+        expectedArchived: workItem.archived,
+        archived: !workItem.archived,
+      });
+    },
     onSuccess: async () => {
       setConfirmArchive(false);
       await Promise.all([
@@ -649,7 +652,10 @@ export const WorkItemWorkspace = ({
   };
 
   const start = useMutation({
-    mutationFn: () => api.startInteractiveRun(workItem.id),
+    mutationFn: () => {
+      if (mutationsDisabled) throw new TypeError("workflow observation is converging");
+      return api.startInteractiveRun(workItem.id);
+    },
     onSuccess: async (run) => {
       commitSelection({
         step: run.stage,
@@ -810,7 +816,7 @@ export const WorkItemWorkspace = ({
             label={startLabelForStage(workItem.stage)}
             tone="primary"
             loading={start.isPending}
-            disabled={dirty || start.isPending}
+            disabled={mutationsDisabled || dirty || start.isPending}
             onClick={() => start.mutate()}
           />
         ) : selectedStep === "COMPLETE" &&
@@ -822,6 +828,7 @@ export const WorkItemWorkspace = ({
           <WorkbenchAction
             label="Create linked remediation"
             tone="primary"
+            disabled={mutationsDisabled}
             onClick={() => onCreateRemediation(workItem)}
           />
         ) : undefined
@@ -841,14 +848,14 @@ export const WorkItemWorkspace = ({
         titleEditing ? (
           <div className="order-workitem-title-edit">
             <TextInput label="Work item title" isLabelHidden size="sm" width="100%" value={titleDraft} hasAutoFocus onChange={setTitleDraft} />
-            <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
+            <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={mutationsDisabled || titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
             <WorkbenchAction label="Cancel title edit" disabled={titleMutation.isPending} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(false); }} />
           </div>
         ) : (
           <div className="order-workitem-title-row">
             <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
             {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
-              <WorkbenchAction label="Edit title" tone="ghost" onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
+              <WorkbenchAction label="Edit title" tone="ghost" disabled={mutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
             ) : null}
           </div>
         )
@@ -864,7 +871,7 @@ export const WorkItemWorkspace = ({
         <WorkbenchAction
           label={workItem.archived ? "Restore work item" : "Archive work item"}
           tone="ghost"
-          disabled={workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+          disabled={mutationsDisabled || workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
           onClick={() => setConfirmArchive(true)}
         />
       }
@@ -892,6 +899,7 @@ export const WorkItemWorkspace = ({
             artifacts={artifacts}
             material={material}
             summary={stepSummary}
+            mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: sharedPreSignoffStage,
@@ -930,6 +938,7 @@ export const WorkItemWorkspace = ({
           <SignoffReview
             workItem={workItem}
             summary={stepSummary}
+            mutationsDisabled={mutationsDisabled}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
           />
@@ -939,6 +948,7 @@ export const WorkItemWorkspace = ({
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
+            mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: "EXECUTION",
@@ -965,6 +975,7 @@ export const WorkItemWorkspace = ({
         {material.kind === "SOURCE_DOCUMENT" ? (
           <SourceDocumentMaterial
             workItem={workItem}
+            mutationsDisabled={mutationsDisabled}
             onDirtyChange={setDirtyState}
             onContextDocumentChange={onContextDocumentChange}
           />
@@ -973,6 +984,7 @@ export const WorkItemWorkspace = ({
           <LifecycleDocumentMaterial
             workItem={workItem}
             artifactId={material.artifactId}
+            mutationsDisabled={mutationsDisabled}
             onDirtyChange={setDirtyState}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
@@ -1042,7 +1054,9 @@ export const WorkItemWorkspace = ({
         }
         confirmLabel={workItem.archived ? "Restore work item" : "Archive work item"}
         pending={archiveMutation.isPending}
-        onConfirm={() => archiveMutation.mutate()}
+        onConfirm={() => {
+          if (!mutationsDisabled) archiveMutation.mutate();
+        }}
       />
 
       {archiveMutation.error ? (
