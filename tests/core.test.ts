@@ -1733,6 +1733,144 @@ describe("closed Workbench workflow-state kernel", () => {
       classification: "TEST_FAILURE",
     });
 
+    const candidateEvent = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:03.000Z",
+      event: {
+        tag: "CANDIDATE_STATE_RECORDED",
+        patch: {
+          relativePath: "candidate/patch.diff",
+          sha256: hashA,
+          mediaType: "text/x-diff",
+        },
+        changedPaths: ["src/core/contracts.ts"],
+      },
+    });
+    const reviewerOne = baseRun({
+      id: `run_${uuidB}`,
+      executionTaskId: runningTask.id,
+      role: "REVIEWER",
+      triggerEventId: candidateEvent.id,
+      attempt: 2,
+      status: "FAILED",
+      terminalClassification: "PROVIDER_FAILURE",
+      startedAt: "2026-11-11T03:31:00.000Z",
+      endedAt: "2026-11-11T03:31:10.000Z",
+    });
+    const reviewerTwo = baseRun({
+      id: "run_55555555-5555-4555-8555-555555555555",
+      executionTaskId: runningTask.id,
+      role: "REVIEWER",
+      triggerEventId: candidateEvent.id,
+      attempt: 3,
+      startedAt: "2026-11-11T03:32:00.000Z",
+    });
+    const reviewerPasses = ([
+      ["event_66666666-6666-4666-8666-666666666666", reviewerOne.id, 1, "V0"],
+      ["event_77777777-7777-4777-8777-777777777777", reviewerOne.id, 2, "V1"],
+      ["event_88888888-8888-4888-8888-888888888888", reviewerOne.id, 3, "V2"],
+      ["event_99999999-9999-4999-8999-999999999999", reviewerOne.id, 4, "V3"],
+      ["event_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", reviewerTwo.id, 1, "V0"],
+    ] as const).map(([id, runId, sequence, stage]) =>
+      RunEventSchema.parse({
+        id,
+        runId,
+        sequence,
+        occurredAt: "2026-11-11T03:32:01.000Z",
+        event: { tag: "VALIDATION_PASSED", stage, evidence: [] },
+      })
+    );
+    expect(
+      deriveValidationBoundary(
+        owner,
+        [runningTask],
+        [run, reviewerOne, reviewerTwo],
+        [candidateEvent, ...reviewerPasses],
+      ),
+    ).toEqual({ tag: "PASSED_THROUGH", stage: "V3" });
+
+    const reviewerFailure = RunEventSchema.parse({
+      id: "event_bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      runId: reviewerTwo.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:32:02.000Z",
+      event: {
+        tag: "VALIDATION_FAILED",
+        stage: "V4",
+        classification: "REVIEW_FAILURE",
+        summary: "candidate review failed",
+        evidence: [],
+      },
+    });
+    const remediator = baseRun({
+      id: "run_cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      executionTaskId: runningTask.id,
+      role: "REMEDIATOR",
+      triggerEventId: reviewerFailure.id,
+      attempt: 4,
+      startedAt: "2026-11-11T03:33:00.000Z",
+    });
+    const remediationPreflight = [
+      RunEventSchema.parse({
+        id: "event_dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        runId: remediator.id,
+        sequence: 1,
+        occurredAt: "2026-11-11T03:33:01.000Z",
+        event: { tag: "VALIDATION_PASSED", stage: "V0", evidence: [] },
+      }),
+      RunEventSchema.parse({
+        id: "event_eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+        runId: remediator.id,
+        sequence: 2,
+        occurredAt: "2026-11-11T03:33:02.000Z",
+        event: { tag: "VALIDATION_PASSED", stage: "V1", evidence: [] },
+      }),
+    ];
+    const remediationHistory = [
+      candidateEvent,
+      ...reviewerPasses,
+      reviewerFailure,
+      ...remediationPreflight,
+    ];
+    expect(
+      deriveValidationBoundary(
+        owner,
+        [runningTask],
+        [run, reviewerOne, reviewerTwo, remediator],
+        remediationHistory,
+      ),
+    ).toEqual({
+      tag: "FAILED_AT",
+      stage: "V4",
+      classification: "REVIEW_FAILURE",
+    });
+
+    const replacementCandidate = RunEventSchema.parse({
+      id: "event_ffffffff-ffff-4fff-8fff-ffffffffffff",
+      runId: remediator.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:33:03.000Z",
+      event: {
+        tag: "CANDIDATE_STATE_RECORDED",
+        patch: {
+          relativePath: "candidate/patch.diff",
+          sha256: hashB,
+          mediaType: "text/x-diff",
+        },
+        changedPaths: ["src/core/contracts.ts"],
+      },
+    });
+    expect(
+      deriveValidationBoundary(
+        owner,
+        [runningTask],
+        [run, reviewerOne, reviewerTwo, remediator],
+        [...remediationHistory, replacementCandidate],
+      ),
+    ).toEqual({ tag: "NONE" });
+
     const completeTask = {
       ...runningTask,
       state: "CANDIDATE_DONE" as const,
