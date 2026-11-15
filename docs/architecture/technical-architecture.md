@@ -400,7 +400,7 @@ src/shell/
   config.ts     # canonical OrderConfig file materialization/canonical root normalization
 
 src/daemon/
-  runtime.ts      # ephemeral daemon runtime data + constructor only
+  runtime.ts      # ephemeral daemon runtime data + constructor + process-local synchronization guards
   run.ts          # common Run/RunEvent/evidence/provider-session mechanics
   authority.ts    # resolved stage/approval context, signed authority closure, sign-off package/materialization
   stage.ts        # pre-signoff R1/R2/DESIGN/PLAN/R3 orchestration and proposal disposition
@@ -431,7 +431,7 @@ server      -> runtime + coordinator
 
 More exactly:
 
-- `runtime.ts` imports no other daemon module;
+- `runtime.ts` imports no other daemon module and owns only ephemeral process state/synchronization such as active provider/turn tracking and the per-WorkItem operator-mutation guard; none of that state is canonical workflow authority;
 - `run.ts` may depend on `runtime.ts`;
 - `authority.ts` may depend on `runtime.ts` and `run.ts`;
 - `stage.ts` may depend on `runtime.ts`, `run.ts` and `authority.ts`;
