@@ -582,6 +582,8 @@ The stale response carries the exact `UpstreamReturnStage` owner through the can
 
 The Workbench keeps the reached R3/Plan/package material inspectable and exposes explicit reconciliation/current-owner action. Sign-off remains disabled until the package is current.
 
+After a `RECONCILE_AUTHORITY(owner)` return, reached `AWAITING_SIGNOFF` remains historical. Its renderer distinguishes an actually signed historical Approval (canonical Approval/ExecutionTask facts exist) from an unsigned reached Approval stage (no Approval/tasks exist); the latter is never labelled `Approved`.
+
 ## 7. Browser canonical observation
 
 ### 7.1 Canonical queries
