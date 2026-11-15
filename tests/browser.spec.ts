@@ -1886,8 +1886,9 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 
   await selectWorkflowStep(page, "Implementation plan");
   await expect(
-    page.getByText("This workflow step has not been reached", { exact: true }),
-  ).toBeVisible();
+    workflowRail.getByRole("button", { name: "Research" }),
+  ).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
   await expect(page.getByLabel("Implementation plan document Markdown source")).toHaveCount(0);
 });
 
