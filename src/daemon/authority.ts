@@ -1020,7 +1020,6 @@ export const rematerializeCommittedApprovalClosure = async (
 export const computeSignoffPackage = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
-  materializeCommittedArtifacts = false,
 ): Promise<Readonly<{
   baselineCommit: GitCommit;
   packageHash: Sha256;
@@ -1040,7 +1039,7 @@ export const computeSignoffPackage = async (
     runtime,
     workItem,
     "R3",
-    materializeCommittedArtifacts,
+    false,
   );
   if (currentR3.staleStage !== null || currentR3.outputs.length !== 1) {
     const returnTo = currentR3.staleStage ?? "R3";
