@@ -386,6 +386,15 @@ describe("workflow presentation policy", () => {
       approvalPackageAvailable: true,
     })).toEqual({ kind: "APPROVAL_PACKAGE" });
 
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "AWAITING_SIGNOFF",
+      runs: [],
+      artifacts: [],
+      approvalPackageAvailable: false,
+    })).toEqual({ kind: "STEP_STATE" });
+
     const executionTask = task(uuidC, "RUNNING");
     const run = executionRun(executionTask, "RUNNING", uuidD);
     expect(resolveFixtureMaterial({
