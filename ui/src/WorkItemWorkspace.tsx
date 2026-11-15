@@ -156,6 +156,7 @@ export const WorkItemWorkspace = ({
   const [titleDraft, setTitleDraft] = useState(workItem.title);
   const [titleError, setTitleError] = useState<string | null>(null);
   const [confirmArchive, setConfirmArchive] = useState(false);
+  const [mutationConflict, setMutationConflict] = useState(false);
   const [terminalDrainPending, setTerminalDrainPending] = useState(false);
   const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -399,7 +400,7 @@ export const WorkItemWorkspace = ({
   const currentAttention = deriveCurrentAttention({
     workItem,
     coherence: transportConverging ? "CONVERGING" : semanticCoherence,
-    mutationConflict: false,
+    mutationConflict,
     stageInteraction: currentStageInteraction,
     proposal: proposalDecision,
     recovery,
@@ -570,6 +571,23 @@ export const WorkItemWorkspace = ({
   }, [workItem.id]);
 
   useEffect(() => {
+    if (!mutationConflict) return;
+    setMutationConflict(false);
+  }, [
+    artifactsQuery.dataUpdatedAt,
+    diagnosticsQuery.dataUpdatedAt,
+    mutationConflict,
+    runsQuery.dataUpdatedAt,
+    signoffPackageQuery.dataUpdatedAt,
+    sourceQuery.dataUpdatedAt,
+    tasksQuery.dataUpdatedAt,
+    workItem.outcome,
+    workItem.sourceSha256,
+    workItem.stage,
+    workItem.status,
+  ]);
+
+  useEffect(() => {
     onContextSelectionChange(selectedStep, material);
   }, [
     materialIdentity,
@@ -617,6 +635,10 @@ export const WorkItemWorkspace = ({
 
   const invalidate = (): Promise<void> =>
     invalidateWorkbenchMutation(queryClient, workItem.id);
+
+  const reportMutationError = (error: unknown): void => {
+    if (api.isCurrentStateConflict(error)) setMutationConflict(true);
+  };
 
   const titleMutation = useMutation({
     mutationFn: () => {
@@ -692,7 +714,10 @@ export const WorkItemWorkspace = ({
       );
       await invalidate();
     },
-    onError: invalidate,
+    onError: async (error) => {
+      reportMutationError(error);
+      await invalidate();
+    },
   });
 
   const resumeCurrent = useMutation({
@@ -703,7 +728,10 @@ export const WorkItemWorkspace = ({
       return api.resumeWorkItem(workItem.id);
     },
     onSuccess: invalidate,
-    onError: invalidate,
+    onError: async (error) => {
+      reportMutationError(error);
+      await invalidate();
+    },
   });
 
   const reconcileAuthority = useMutation({
@@ -724,7 +752,10 @@ export const WorkItemWorkspace = ({
       throw new TypeError("no stale authority owner is available for reconciliation");
     },
     onSuccess: invalidate,
-    onError: invalidate,
+    onError: async (error) => {
+      reportMutationError(error);
+      await invalidate();
+    },
   });
 
   const setDirtyState = (value: boolean): void => {
