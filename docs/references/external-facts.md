@@ -645,7 +645,7 @@ The following Order UI/test pins are deliberately fixed at the already-certified
 
 This is not version ignorance or an automatic upgrade backlog.
 
-The v1 decision is to keep the certified Order dependency baseline fixed until an explicit P4/P6 upgrade is approved. P7 must use the Order pin, not the upstream snapshot.
+The v1 decision is to keep the certified Order dependency baseline fixed until an explicit P4/P6 upgrade is approved. implementation must use the Order pin, not the upstream snapshot.
 
 A proposed upgrade is a P4/P6 change and must prove that the Order UI boundary and test/build toolchain still conform.
 
@@ -942,7 +942,7 @@ This matrix is a cross-reference only. It does not duplicate the semantic owners
 | Bearer + browser Fetch/Origin/cookie protocol behavior | §§12.3–12.4 | [GW-DOC-CANONICAL-CONTRACTS-V1 §§18–20,24](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
 | Node/Linux guarded Markdown replacement (`openSync`/`O_EXCL`/`O_NOFOLLOW`, `fsyncSync`, same-filesystem `rename`, directory fsync) | §14 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §29](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS-V1 §31](../contracts/canonical-contracts.md) | deterministic source/file-write integration tests required by P4/P6 |
 
-If an implementation dependency or relied-upon behavior has no applicable row in this matrix (and is not an explicitly excluded convenience in §8), or if two rows assign contradictory owners/contracts to the same behavior, the dependency surface is not closed and P7 must return to P4/P6 instead of choosing a library or behavior.
+If an implementation dependency or relied-upon behavior has no applicable row in this matrix (and is not an explicitly excluded convenience in §8), or if two rows assign contradictory owners/contracts to the same behavior, the dependency surface is not closed and implementation returns to P4/P6 instead of choosing a library or behavior.
 
 
 
