@@ -24,6 +24,7 @@ import {
 } from "../core/governance.ts";
 import {
   artifactReturnOwner,
+  deriveProposalDecision,
   stageInputIsAdmitted,
   stageRunInteraction,
   transitionWorkItem,
@@ -716,10 +717,14 @@ const submitRunInputUnlocked = async (
   if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") {
     throw new TypeError("Run is not accepting human input");
   }
-  const interaction = stageRunInteraction(
-    run,
-    listRunEvents(runtime, run.id),
-  );
+  const currentEvents = listRunEvents(runtime, run.id);
+  const proposal = deriveProposalDecision(currentEvents);
+  if (proposal.tag !== "NONE") {
+    throw new TypeError(
+      "human input is unavailable while a lifecycle proposal requires disposition",
+    );
+  }
+  const interaction = stageRunInteraction(run, currentEvents);
   if (!stageInputIsAdmitted(interaction, requestEventId)) {
     throw new TypeError("human input is not admitted by the current STAGE interaction");
   }
