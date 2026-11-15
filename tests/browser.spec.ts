@@ -965,14 +965,20 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await backToQueue(page);
     await openWorkItem(page, title);
     await selectWorkflowStep(page, tabName);
-    const reloaded = page.getByLabel(editorName);
-    await expect(reloaded).toBeVisible();
-    await reloaded.evaluate((node) => {
-      const scroller = node.closest(".cm-scroller");
-      if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
-      scroller.scrollTop = scroller.scrollHeight;
-    });
-    await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
+    if (tabName === "Work request") {
+      const reloaded = page.getByTestId("markdown-readonly");
+      await expect(reloaded).toBeVisible();
+      await expect(reloaded).toContainText(marker + " persisted");
+    } else {
+      const reloaded = page.getByLabel(editorName);
+      await expect(reloaded).toBeVisible();
+      await reloaded.evaluate((node) => {
+        const scroller = node.closest(".cm-scroller");
+        if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
+        scroller.scrollTop = scroller.scrollHeight;
+      });
+      await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
+    }
     await backToQueue(page);
   };
 
@@ -1540,7 +1546,7 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   await expect(
     page.locator('[data-event-tag="HUMAN_INPUT_RECEIVED"]'),
   ).toBeVisible();
-  await expect(page.getByText("Continue current work", { exact: true })).toBeVisible();
+  await expect(page.getByText("Continue current work", { exact: true })).toHaveCount(0);
 
   const cancelResponse = page.waitForResponse((response) =>
     response.request().method() === "POST" &&
@@ -1946,7 +1952,9 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
 
   await replaceMarkdownSource(page, editablePlan, fresh + "\nsaved plan edit\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect.poll(() => markdownSourceValue(editablePlan)).toContain("saved plan edit");
+  const savedPlan = page.getByLabel("Implementation plan document Markdown source");
+  await expect(savedPlan).toBeVisible();
+  await expect.poll(() => markdownSourceValue(savedPlan)).toContain("saved plan edit");
   await page.getByRole("button", { name: "Context" }).click();
   await expect(page.getByTestId("selected-view-context")).toContainText("Implementation plan");
   await expect(page.getByTestId("selected-view-context")).toContainText("Governed document");
