@@ -28,7 +28,12 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
   });
   const restore = useMutation({
     mutationFn: (workItem: WorkItem) => api.setWorkItemArchived(workItem.id, { expectedArchived: true, archived: false }),
-    onSuccess: async () => { await queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }); },
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemsIncludingArchived }),
+      ]);
+    },
   });
   const visibleItems = showArchived ? archivedQuery.data ?? workItems : workItems;
 
@@ -61,7 +66,6 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
             id: item.id,
             testId: "work-item-row-" + item.id,
             selected: item.id === selectedWorkItemId,
-            disabled: item.archived,
             onSelect: item.archived ? undefined : () => onSelect(item.id),
             cells: {
               workItem: <div className="order-queue-title"><strong>{item.title}</strong><span>{item.projectId}{item.archived ? " · Archived" : ""}</span></div>,

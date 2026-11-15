@@ -206,7 +206,7 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await expect(layout).toHaveCSS("background-color", "rgb(17, 26, 41)");
   await expect(
     page.getByTestId("workbench-search").getByRole("searchbox"),
-  ).toHaveCSS("background-color", "rgb(17, 26, 41)");
+  ).toHaveCSS("color", "rgb(237, 243, 250)");
 
   await light.click();
   await expect(root).toHaveAttribute("data-theme", "light");

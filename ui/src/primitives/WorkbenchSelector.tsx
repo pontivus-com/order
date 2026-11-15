@@ -1,4 +1,4 @@
-import { Selector, type SelectorOptionType } from "@astryxdesign/core/Selector";
+import { Selector, SelectorOption, type SelectorOptionType } from "@astryxdesign/core/Selector";
 
 export type WorkbenchSelectorItem = Readonly<{ id: string; label: string; detail?: string; selected: boolean; onSelect: () => void }>;
 export type WorkbenchSelectorGroup = Readonly<{ label?: string; items: readonly WorkbenchSelectorItem[] }>;
@@ -29,6 +29,17 @@ export const WorkbenchSelector = ({ label, groups }: Readonly<{ label: string; g
       options={options}
       value={selected?.id}
       onChange={(id) => items.find((item) => item.id === id)?.onSelect()}
+      renderOption={(option) => (
+        <SelectorOption
+          icon={option.icon}
+          label={option.label ?? option.value}
+          description={
+            option.description === undefined
+              ? undefined
+              : <span aria-hidden="true">{option.description}</span>
+          }
+        />
+      )}
       variant="secondary"
       presentation="adaptive"
       size="sm"

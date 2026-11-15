@@ -612,14 +612,16 @@
 .order-editor-preview-pane {
   min-width: 0;
   min-height: 0;
-  overflow: auto;
 }
+.order-editor-source-pane { overflow: hidden; }
+.order-editor-preview-pane { overflow: auto; }
 .order-editor-mode-split .order-editor-source-pane {
   border-inline-end: 1px solid var(--color-border-emphasized);
 }
 .order-markdown-source-editor {
   height: 100%;
   min-height: 0;
+  overflow: hidden;
 }
 .order-markdown-preview,
 .order-markdown-readonly {

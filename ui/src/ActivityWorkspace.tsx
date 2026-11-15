@@ -117,17 +117,19 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRun
   );
   const transcript = (
     <>
-      <WorkbenchSectionHeader
-        title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
-        description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
-        action={<span className="order-inline-actions">
-          {runIsActive(selectedRun) ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={cancel.isPending} onClick={() => cancel.mutate()} /> : null}
-          {canRetry ? <WorkbenchAction label={"Retry " + selectedStep.label} tone="primary" loading={retry.isPending} disabled={retry.isPending} onClick={() => retry.mutate()} /> : null}
-          {canResume ? <WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={resume.isPending} onClick={() => resume.mutate()} /> : null}
-        </span>}
-      />
-      <div className="order-run-status-strip" data-testid="selected-run-header">
-        <WorkbenchStatus tone={statusTone(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
+      <div data-testid="selected-run-header">
+        <WorkbenchSectionHeader
+          title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
+          description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
+          action={<span className="order-inline-actions">
+            {runIsActive(selectedRun) ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={cancel.isPending} onClick={() => cancel.mutate()} /> : null}
+            {canRetry ? <WorkbenchAction label={"Retry " + selectedStep.label} tone="primary" loading={retry.isPending} disabled={retry.isPending} onClick={() => retry.mutate()} /> : null}
+            {canResume ? <WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={resume.isPending} onClick={() => resume.mutate()} /> : null}
+          </span>}
+        />
+        <div className="order-run-status-strip">
+          <WorkbenchStatus tone={statusTone(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
+        </div>
       </div>
       <WorkbenchDisclosure label="Technical details" content={technical} />
       {eventsQuery.isPending ? <WorkbenchState kind="loading" title="Loading activity timeline…" /> :
