@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 
 import type { ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "../../src/core/contracts.ts";
-import type { ExecutionOwner } from "../../src/core/lifecycle.ts";
+import type { ExecutionOwner, ValidationBoundary } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
@@ -74,7 +74,12 @@ const validationRows = (
 const ValidationMatrix = ({
   events,
   active,
-}: Readonly<{ events: readonly RunEvent[]; active: boolean }>) => {
+  boundary,
+}: Readonly<{
+  events: readonly RunEvent[];
+  active: boolean;
+  boundary: ValidationBoundary;
+}>) => {
   const recordedStages = validationStages.filter(
     (stage) => latestValidationEvent(events, stage) !== null,
   );
@@ -82,7 +87,27 @@ const ValidationMatrix = ({
   if (recordedStages.length === 0) {
     return (
       <section data-testid="validation-matrix">
-        <WorkbenchSectionHeader title="Validation" />
+        <WorkbenchSectionHeader
+          title="Validation"
+          action={<WorkbenchStatus
+            tone={
+              boundary.tag === "FAILED_AT"
+                ? "danger"
+                : boundary.tag === "COMPLETE" || boundary.tag === "PASSED_THROUGH"
+                  ? "success"
+                  : "neutral"
+            }
+            label={
+              boundary.tag === "FAILED_AT"
+                ? "Current boundary: failed at " + boundary.stage
+                : boundary.tag === "PASSED_THROUGH"
+                  ? "Current boundary: passed through " + boundary.stage
+                  : boundary.tag === "COMPLETE"
+                    ? "Current boundary: complete"
+                    : "Current boundary: none"
+            }
+          />}
+        />
         <WorkbenchState
           kind={active ? "pending" : "empty"}
           title={active ? "Validation in progress" : "Validation not started"}
@@ -98,7 +123,27 @@ const ValidationMatrix = ({
 
   return (
     <section data-testid="validation-matrix">
-      <WorkbenchSectionHeader title="Validation" />
+      <WorkbenchSectionHeader
+        title="Validation"
+        action={<WorkbenchStatus
+          tone={
+            boundary.tag === "FAILED_AT"
+              ? "danger"
+              : boundary.tag === "COMPLETE" || boundary.tag === "PASSED_THROUGH"
+                ? "success"
+                : "neutral"
+          }
+          label={
+            boundary.tag === "FAILED_AT"
+              ? "Current boundary: failed at " + boundary.stage
+              : boundary.tag === "PASSED_THROUGH"
+                ? "Current boundary: passed through " + boundary.stage
+                : boundary.tag === "COMPLETE"
+                  ? "Current boundary: complete"
+                  : "Current boundary: none"
+          }
+        />}
+      />
       <WorkbenchTable
         label="Recorded validation"
         columns={[
@@ -128,10 +173,11 @@ const ValidationMatrix = ({
   );
 };
 
-export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence, onMutationError }: Readonly<{
+export const ExecutionWorkspace = ({ workItem, material, executionOwner, validationBoundary, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence, onMutationError }: Readonly<{
   workItem: WorkItem;
   material: WorkflowMaterial;
   executionOwner: ExecutionOwner;
+  validationBoundary: ValidationBoundary;
   mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -255,7 +301,11 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutatio
           <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification??"—"}</code></dd></div>
         </dl>}/>
       </>:<WorkbenchState kind="empty" title="No attempts yet"/>}
-      <ValidationMatrix events={events} active={selectedRun !== null && runIsActive(selectedRun)}/>
+      <ValidationMatrix
+        events={events}
+        active={selectedRun !== null && runIsActive(selectedRun)}
+        boundary={validationBoundary}
+      />
       {eventsQuery.isPending?<WorkbenchState kind="loading" title="Loading attempt timeline…"/>:
        eventsQuery.isError?<WorkbenchState kind="error" title="Attempt timeline unavailable" description={eventsQuery.error instanceof Error?eventsQuery.error.message:String(eventsQuery.error)}/>:
        selectedRun&&events.length>0?<RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence}/>:<WorkbenchState kind="empty" title="No persisted attempt events"/>}
