@@ -42,8 +42,8 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationError }: Readonly<{
-  workItem: WorkItem; stage: PreSignoffStage; selectedRunId: Run["id"] | null;
+export const StageRunMaterial = ({ workItem, stage, runs, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationError }: Readonly<{
+  workItem: WorkItem; stage: PreSignoffStage; runs: readonly Run[]; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
@@ -55,12 +55,6 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
 }>) => {
   const queryClient = useQueryClient();
   const [inputError, setInputError] = useState<unknown>(null);
-  const runsQuery = useQuery({
-    queryKey: workbenchQueryKeys.runs(workItem.id),
-    queryFn: () => api.listRuns(workItem.id),
-    refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false,
-  });
-  const runs = runsQuery.data ?? [];
   const stageRuns = runs.filter((run) => run.role === "STAGE" && run.stage === stage);
   const selectedRun = stageRuns.find((run) => run.id === selectedRunId) ?? latestStageRun(stageRuns, stage);
   const eventKey = workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
@@ -105,8 +99,6 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, currentRunId,
     },
   });
 
-  if (runsQuery.isPending) return <WorkbenchState kind="loading" title="Loading workflow activity…" />;
-  if (runsQuery.isError) return <WorkbenchState kind="error" title="Workflow activity unavailable" description={runsQuery.error instanceof Error ? runsQuery.error.message : String(runsQuery.error)} />;
   if (selectedRun === null) return <WorkbenchState kind="empty" title={"No " + workflowPresentation(stage).label + " activity yet"} description="Start this workflow step to create its first attempt." />;
 
   const selectedStep = workflowPresentation(stage);
