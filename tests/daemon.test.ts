@@ -4918,6 +4918,68 @@ describe("daemon control plane", () => {
     expect(output.afterResume.runs[0]?.status).toBe("CANCELLED");
   }, 30_000);
 
+  it("rejects stale upstream context Start without changing lifecycle state", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stale-context-start-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const fs = await import("node:fs");
+        sql.updateWorkItemLifecycle(database, work, {
+          stage: "PLAN",
+          status: "ACTIVE",
+          outcome: null,
+        });
+        const before = coord.getWorkItem(runtime, work);
+        const runCountBefore = coord.listRuns(runtime, work).length;
+        fs.writeFileSync(
+          repositoryRoot + "/docs/design.md",
+          "design changed after conformance\\n",
+        );
+        let error = null;
+        try {
+          await coord.startStageRun(runtime, work, "INTERACTIVE");
+        } catch (caught) {
+          error = caught instanceof Error ? caught.message : String(caught);
+        }
+        const after = coord.getWorkItem(runtime, work);
+        const runCountAfter = coord.listRuns(runtime, work).length;
+        console.log(JSON.stringify({
+          error,
+          before: {
+            stage: before.stage,
+            status: before.status,
+            outcome: before.outcome,
+          },
+          after: {
+            stage: after.stage,
+            status: after.status,
+            outcome: after.outcome,
+          },
+          runCountUnchanged: runCountAfter === runCountBefore,
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      error: string | null;
+      before: { stage: string; status: string; outcome: string | null };
+      after: { stage: string; status: string; outcome: string | null };
+      runCountUnchanged: boolean;
+    };
+
+    expect(output.error).toMatch(/upstream conformance is missing or stale: DESIGN/);
+    expect(output.after).toEqual(output.before);
+    expect(output.after).toEqual({
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(output.runCountUnchanged).toBe(true);
+  }, 30_000);
+
   it("serializes concurrent Start commands to exactly one Run", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-start-start-");
