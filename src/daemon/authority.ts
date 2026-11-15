@@ -954,7 +954,6 @@ export const rematerializeCommittedApprovalClosure = async (
   workItem: WorkItem,
   baselineCommit: GitCommit,
   priorR3: ArtifactRef,
-  persist = true,
 ): Promise<Readonly<{
   plan: ArtifactRef;
   r3: ArtifactRef;
@@ -1003,24 +1002,7 @@ export const rematerializeCommittedApprovalClosure = async (
         })
       : existing;
 
-    if (persist && existing === null) {
-      storeArtifact(runtime.database, committed);
-    }
     idMap.set(prior.id, committed);
-  }
-
-  const priorEdges = loadArtifactDependencyEdgesForOwners(
-    runtime.database,
-    priorIds,
-  );
-
-  if (persist) {
-    for (const edge of priorEdges) {
-      const owner = idMap.get(edge[0]);
-      const dependency = idMap.get(edge[1]);
-      if (owner === undefined || dependency === undefined) continue;
-      storeArtifactDependency(runtime.database, owner.id, dependency.id);
-    }
   }
 
   const r3 = idMap.get(priorR3.id);
@@ -1047,6 +1029,7 @@ export const computeSignoffPackage = async (
   r3: ArtifactRef;
   material: readonly ArtifactRef[];
   taskBlock: ReturnType<typeof parseSignedTaskBlockFromPlan>;
+  conformedR3: ArtifactRef;
 }>> => {
   const validatedSource = await revalidateWorkItemSource(runtime, workItemId);
   const workItem = validatedSource.workItem;
@@ -1104,7 +1087,6 @@ export const computeSignoffPackage = async (
     workItem,
     baselineCommit,
     r3Root,
-    materializeCommittedArtifacts,
   );
   const { plan, r3, material } = committedClosure;
 
@@ -1162,7 +1144,71 @@ export const computeSignoffPackage = async (
     r3,
     material,
     taskBlock,
+    conformedR3: r3Root,
   };
+};
+
+const persistCommittedApprovalClosure = (
+  runtime: CoordinatorRuntime,
+  priorR3: ArtifactRef,
+  committed: Readonly<{
+    plan: ArtifactRef;
+    r3: ArtifactRef;
+    material: readonly ArtifactRef[];
+  }>,
+): void => {
+  const priorIds = [priorR3.id, ...dependencyClosure(runtime, priorR3.id)];
+  const priorArtifacts = priorIds.map((id) => getArtifact(runtime, id));
+  const committedArtifacts = [
+    committed.plan,
+    committed.r3,
+    ...committed.material,
+  ];
+
+  const committedForPrior = (prior: ArtifactRef): ArtifactRef => {
+    const matches = committedArtifacts.filter((artifact) =>
+      artifact.repositoryPath === prior.repositoryPath &&
+      artifact.role === prior.role &&
+      artifact.authorityLayer === prior.authorityLayer &&
+      artifact.sha256 === prior.sha256
+    );
+    if (matches.length !== 1 || matches[0] === undefined) {
+      throw new TypeError(
+        "committed sign-off closure does not map one-to-one to conformed material",
+      );
+    }
+    return matches[0];
+  };
+
+  for (const artifact of committedArtifacts) {
+    const existing = findArtifactSnapshot(runtime.database, {
+      workItemId: artifact.workItemId,
+      repositoryPath: artifact.repositoryPath,
+      role: artifact.role,
+      authorityLayer: artifact.authorityLayer,
+      sha256: artifact.sha256,
+      gitCommit: artifact.gitCommit,
+    });
+    if (existing === null) storeArtifact(runtime.database, artifact);
+  }
+
+  for (const [ownerId, dependencyId] of loadArtifactDependencyEdgesForOwners(
+    runtime.database,
+    priorIds,
+  )) {
+    const priorOwner = priorArtifacts.find((artifact) => artifact.id === ownerId);
+    const priorDependency = priorArtifacts.find(
+      (artifact) => artifact.id === dependencyId,
+    );
+    if (priorOwner === undefined || priorDependency === undefined) {
+      throw new TypeError("conformed dependency edge references missing material");
+    }
+    storeArtifactDependency(
+      runtime.database,
+      committedForPrior(priorOwner).id,
+      committedForPrior(priorDependency).id,
+    );
+  }
 };
 
 export const signoffPackageForWorkItem = async (
@@ -1185,13 +1231,15 @@ const signOffWorkItemUnlocked = async (
   approvedBy: string,
 ): Promise<Approval> => {
   if (approvedBy.length === 0) throw new TypeError("approvedBy must be non-empty");
-  const inspected = await computeSignoffPackage(runtime, workItemId);
-  if (inspected.packageHash !== expectedPackageHash) {
+  const prepared = await computeSignoffPackage(runtime, workItemId);
+  if (prepared.packageHash !== expectedPackageHash) {
     throw new TypeError("expectedPackageHash does not match the current sign-off package");
   }
-  const prepared = await computeSignoffPackage(runtime, workItemId, true);
-  if (prepared.packageHash !== inspected.packageHash) {
-    throw new TypeError("sign-off package changed before materialization");
+  const finalBaseline = await resolveHeadCommit(
+    getWorkItem(runtime, workItemId).repositoryRoot,
+  );
+  if (finalBaseline !== prepared.baselineCommit) {
+    throw new TypeError("sign-off baseline changed before commit");
   }
   const block = prepared.taskBlock;
   const approval = ApprovalSchema.parse({
@@ -1210,7 +1258,40 @@ const signOffWorkItemUnlocked = async (
 
   withTransaction(runtime.database, () => {
     const current = getWorkItem(runtime, workItemId);
+    if (current.sourceSha256 !== prepared.sourceSha256) {
+      throw new TypeError("WorkItem source authority changed before sign-off commit");
+    }
+    if (
+      sha256(
+        readWorkingTreeFile(current.repositoryRoot, current.sourcePath),
+      ) !== prepared.sourceSha256
+    ) {
+      throw new TypeError("WorkItem source bytes changed before sign-off commit");
+    }
+    for (const artifact of [
+      prepared.plan,
+      prepared.r3,
+      ...prepared.material,
+    ]) {
+      if (
+        sha256(
+          readWorkingTreeFile(
+            current.repositoryRoot,
+            artifact.repositoryPath,
+          ),
+        ) !== artifact.sha256
+      ) {
+        throw new TypeError(
+          `sign-off material changed before commit: ${artifact.repositoryPath}`,
+        );
+      }
+    }
     const transition = transitionWorkItem(current, { tag: "SIGN_OFF" });
+    persistCommittedApprovalClosure(
+      runtime,
+      prepared.conformedR3,
+      prepared,
+    );
     storeApproval(runtime.database, approval);
     for (const task of tasks) {
       storeExecutionTask(runtime.database, task);
