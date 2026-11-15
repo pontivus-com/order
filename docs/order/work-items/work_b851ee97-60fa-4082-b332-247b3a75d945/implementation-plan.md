@@ -67,7 +67,7 @@ Implementation requirements:
 
 ### Unit 4 — Astryx-conformant theme and complete Workbench primitive foundation
 
-**Files:** all `ui/src/primitives/*` paths in the signed change surface, `ui/src/styles.css`, `ui/src/theme.css`, `ui/src/app.tsx`, `tests/architecture.test.ts`, `tests/certification.test.ts`, `tests/browser.spec.ts`.
+**Files:** all `ui/src/primitives/*` paths in the signed change surface, `ui/src/styles.css`, `ui/src/theme.css`, `ui/src/app.tsx`, `tests/certification.test.ts`, `tests/browser.spec.ts`.
 
 Build the complete closed primitive vocabulary from `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §§8.12–8.20` and `GW-DOC-WORKBENCH-THEME-V1`; the signed task's `authorityRefs` enumerates every applicable primitive/theme technical-requirement identifier individually.
 
@@ -78,7 +78,7 @@ Implementation requirements:
 - implement all 27 semantic Workbench primitives with their exact P4 APIs/substrates, including navigation-only `WorkbenchUtilityLink`, `WorkbenchSelector` over `Selector variant="secondary" presentation="adaptive"`, Dialog-based TaskPanel, wide/drawer Context, Review, MasterDetail, Status/Notice, Table/Timeline and AlertDialog confirmation;
 - use field-owning Astryx controls directly; use `WorkbenchField` only for controls without a foundation-owned field shell;
 - use Astryx props/layout/density/public tokens before residual Order CSS;
-- register every new production UI module in architecture fitness in the same change.
+- register every new production UI module with permanent Workbench-specific dependency/ownership assertions in `tests/certification.test.ts` in the same change; keep the signed verification-material source `tests/architecture.test.ts` unchanged.
 
 **Dependency:** Unit 3 for final shell integration; primitive files themselves may be built while Unit 3 is being completed, but feature migration must target the final Unit 3 observation owner.
 
@@ -147,7 +147,7 @@ Implementation requirements:
 
 ### Unit 9 — permanent architecture, state and interaction certification
 
-**Files:** `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/workbench-presentation.test.ts`, `tests/architecture.test.ts`, `tests/certification.test.ts`, `tests/e2e-server.ts`.
+**Files:** `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/workbench-presentation.test.ts`, `tests/certification.test.ts`, `tests/e2e-server.ts`.
 
 Complete permanent non-browser certification concurrently with the implementation, then perform the final comprehensive pass.
 
@@ -155,7 +155,7 @@ Required sensors/tests include:
 - exhaustive lifecycle transition, turn grammar, required-input, proposal, reach, attention/recovery/execution-owner/validation-boundary and rail projections;
 - read-purity and deterministic concurrency/race coverage;
 - renderer registry completeness and required primitive-module presence, including replacement of the predecessor six-file primitive-directory certification in `tests/certification.test.ts` with the complete closed primitive set;
-- primitive domain/query/policy blindness and same-layer dependency-map registration;
+- primitive domain/query/policy blindness and same-layer dependency-map registration in `tests/certification.test.ts`, without editing the immutable baseline `tests/architecture.test.ts`;
 - rejection of feature-level foundation bypass, private Astryx internals, raw semantic values, extra Order stylesheets, count-driven topology, local structural breakpoints and obsolete layout systems;
 - selected WorkItem—not queue snapshot—as current observation owner;
 - no browser workflow store, DTO/view-model family or persisted derived workflow state.
@@ -282,7 +282,6 @@ The signed `acceptanceRefs` contains every current functional requirement owned 
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
 - `tests/workbench-presentation.test.ts`
-- `tests/architecture.test.ts`
 - `tests/browser.spec.ts`
 - `tests/e2e-server.ts`
 
@@ -311,6 +310,10 @@ No other production/runtime file is authorized. In particular this plan does **n
 Remove obsolete code/selectors/imports/branches rather than retaining compatibility paths: ordinal/reach heuristics, active-Run input heuristics, generic side-index topology, content-count layout switching, feature-owned action/form/status/notice/table/dialog/drawer chrome, duplicated workflow feedback, legacy raw/hex palette aliases, duplicate theme blocks, obsolete breakpoints and dead competing layout systems.
 
 No production file deletion is required by the design. If a now-empty superseded file would need deletion, that path must already be in `changeSurface`; otherwise return to PLAN rather than widening scope during execution.
+
+## Verification-material boundary and permanent sensor placement
+
+`tests/architecture.test.ts` is referenced by `[verification.architecture].materialRefs` in the authoritative project manifest, and therefore enters the PLAN/R3 Approval dependency closure as `VERIFICATION_MATERIAL`. Under `GW-DOC-CANONICAL-CONTRACTS-V1`, it must **not** be included in this task's `changeSurface` or modified by the candidate. The existing `architecture` gate continues to run that immutable baseline file. For this Workbench V2 change, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §14.6` explicitly place all additional permanent Workbench-specific architecture fitness (new UI module/dependency registration, the complete 27-primitive vocabulary, renderer registry completeness, domain/query/policy blindness, and forbidden legacy/foundation bypasses) in `tests/certification.test.ts`. That file already exists, is not a manifest `materialRefs` source, and is executed by the mandatory `test` gate. Both `architecture` and `test` remain required; no baseline architecture assertion may be weakened, disabled or replaced. If a future design actually requires editing `tests/architecture.test.ts`, stop and return upstream before signing; do not edit signed verification material or delete its manifest binding.
 
 ## Validation sequence
 
@@ -502,7 +505,6 @@ No production file deletion is required by the design. If a now-empty superseded
         "tests/core.test.ts",
         "tests/daemon.test.ts",
         "tests/workbench-presentation.test.ts",
-        "tests/architecture.test.ts",
         "tests/browser.spec.ts",
         "tests/e2e-server.ts"
       ],
