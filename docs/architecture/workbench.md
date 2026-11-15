@@ -1643,22 +1643,6 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Acceptance:** implementation cannot pass certification with an untested admitted transition/state variant, contradictory provider-turn combination, unclassified workflow state, state-mutating GET, duplicate workflow/rail state owner or ordinal-only history algorithm.
 
-### GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA
-
-**Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`.
-
-**Required behavior:** the existing browser-safe `src/core/lifecycle.ts` owner contains the complete §4.8 read-only decision algebra and §4.9 lifecycle mutation-cause semantics as separate pure function families over canonical P6 facts. No feature/daemon/UI module creates another workflow status, attention/recovery category, execution owner, currentness rule, coherence rule or lifecycle transition table.
-
-**Acceptance:** exhaustive pure tests cover every union variant and invalid/contradictory histories fail closed; architecture fitness rejects parallel workflow-state derivation outside `src/core/lifecycle.ts` and rejects persistence/transport/browser-store representations of these derived values.
-
-### GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION
-
-**Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-215-STABLE-WORKFLOW-RAIL`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`, `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`.
-
-**Required behavior:** one pure `deriveWorkflowRail` projection produces all nine ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
-
-**Acceptance:** fixtures covering forward progress, R3/execution return, required input, proposal decision/adoption, processing, block/recovery, stale authority and completion produce exactly one CURRENT item and exactly one current-stage marker; historical/unreached items never carry current operational markers.
-
 ### GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP
 
 **Realizes:** `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`, `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-219-EXPLICIT-CONTEXT`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`.
@@ -1698,6 +1682,23 @@ The UI remediation is structurally complete only when all of the following are t
 **Required behavior:** color, typography, spacing/density, borders/radii, elevation, control geometry, focus, semantic status/feedback, theme parity and motion use only the canonical §8.18 token/role system; `theme.css` owns raw palette/token values under §8.20.
 
 **Acceptance:** no feature/service establishes a competing palette/type/spacing/control/status/table/timeline/overlay language; light/dark themes preserve semantic roles; primitive/specialist rendering consumes semantic tokens only.
+
+### GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA
+
+**Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`.
+
+**Required behavior:** the existing browser-safe `src/core/lifecycle.ts` owner contains the complete §4.8 read-only decision algebra and §4.9 lifecycle mutation-cause semantics as separate pure function families over canonical P6 facts. No feature/daemon/UI module creates another workflow status, attention/recovery category, execution owner, currentness rule, coherence rule or lifecycle transition table.
+
+**Acceptance:** exhaustive pure tests cover every union variant and invalid/contradictory histories fail closed; architecture fitness rejects parallel workflow-state derivation outside `src/core/lifecycle.ts` and rejects persistence/transport/browser-store representations of these derived values.
+
+### GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION
+
+**Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-215-STABLE-WORKFLOW-RAIL`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`, `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`.
+
+**Required behavior:** one pure `deriveWorkflowRail` projection produces all nine ordered rail states from canonical reach/current-attention/recovery facts plus presentation-local selection. UI code may format but cannot reinterpret reach/current markers; rail output is never consumed by command admission.
+
+**Acceptance:** fixtures covering forward progress, R3/execution return, required input, proposal decision/adoption, processing, block/recovery, stale authority and completion produce exactly one CURRENT item and exactly one current-stage marker; historical/unreached items never carry current operational markers.
+
 
 ## 14. Permanent verification
 
