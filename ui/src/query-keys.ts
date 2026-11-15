@@ -1,3 +1,4 @@
+import type { QueryClient } from "@tanstack/react-query";
 import type {
   ArtifactRefId,
   EvidencePath,
@@ -65,3 +66,14 @@ export const workbenchMutationInvalidationKeys = (
   workbenchQueryKeys.workItemDocumentationGitStatus(workItemId),
   workbenchQueryKeys.signoffPackage(workItemId),
 ] as const;
+
+
+export const invalidateWorkbenchMutation = async (
+  queryClient: QueryClient,
+  workItemId: WorkItemId,
+): Promise<void> => {
+  await Promise.all(
+    workbenchMutationInvalidationKeys(workItemId)
+      .map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+  );
+};
