@@ -2660,6 +2660,12 @@ describe("daemon control plane", () => {
           repositoryRoot + "/docs/plan.md",
           "plan changed after conformance\\n",
         );
+        const beforeWorkItem = coord.getWorkItem(runtime, work);
+        const beforeArtifactCount = coord.listArtifacts(runtime, work).length;
+        const beforeBytes = fsForRecovery.readFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "utf8",
+        );
         let error = null;
         try {
           await coord.computeSignoffPackage(runtime, work);
@@ -2667,18 +2673,37 @@ describe("daemon control plane", () => {
           error = caught instanceof Error ? caught.message : String(caught);
         }
         const recovered = coord.getWorkItem(runtime, work);
+        const afterArtifactCount = coord.listArtifacts(runtime, work).length;
+        const afterBytes = fsForRecovery.readFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "utf8",
+        );
         console.log(JSON.stringify({
           error,
           stage: recovered.stage,
           status: recovered.status,
+          projectionUnchanged:
+            JSON.stringify(recovered) === JSON.stringify(beforeWorkItem),
+          artifactCountUnchanged: afterArtifactCount === beforeArtifactCount,
+          bytesUnchanged: afterBytes === beforeBytes,
         }));
         database.close();
         process.exit(0);
       `,
-    )) as { error: string | null; stage: string; status: string };
+    )) as {
+      error: string | null;
+      stage: string;
+      status: string;
+      projectionUnchanged: boolean;
+      artifactCountUnchanged: boolean;
+      bytesUnchanged: boolean;
+    };
 
     expect(output.error).toMatch(/missing or stale: PLAN/);
     expect(output).toMatchObject({ stage: "AWAITING_SIGNOFF", status: "ACTIVE" });
+    expect(output.projectionUnchanged).toBe(true);
+    expect(output.artifactCountUnchanged).toBe(true);
+    expect(output.bytesUnchanged).toBe(true);
   });
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
@@ -5371,5 +5396,155 @@ describe("daemon control plane", () => {
     });
     expect(output.taskState).toBe("BLOCKED");
   }, 30_000);
+
+
+  it("keeps source inspection observational across external source drift", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-source-read-purity-");
+
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "source read purity",
+        concernIds: ["shell"],
+      });
+      const source = sourceShell.readWorkItemSource(
+        created.repositoryRoot,
+        created.sourcePath,
+      );
+      const changed = sourceShell.replaceWorkItemSourceFile(
+        created.repositoryRoot,
+        source.path,
+        source.sha256,
+        source.markdown.replace(
+          "# source read purity",
+          "# externally changed source read purity",
+        ),
+      );
+      if (changed.tag !== "UPDATED") {
+        throw new TypeError("external source fixture update failed");
+      }
+      const absolute = path.join(created.repositoryRoot, created.sourcePath);
+      const bytesBefore = fs.readFileSync(absolute, "utf8");
+      const projectionBefore = coord.getWorkItem(runtime, created.id);
+      const inspected = await coord.getWorkItemSource(runtime, created.id);
+      const projectionAfter = coord.getWorkItem(runtime, created.id);
+      const bytesAfter = fs.readFileSync(absolute, "utf8");
+      console.log(JSON.stringify({
+        inspectedChanged: inspected.sha256 !== projectionBefore.sourceSha256,
+        projectionUnchanged:
+          JSON.stringify(projectionAfter) === JSON.stringify(projectionBefore),
+        bytesUnchanged: bytesAfter === bytesBefore,
+        canonicalTitle: projectionAfter.title,
+        inspectedTitle: inspected.metadata.title ?? null,
+      }));
+      database.close();
+    \`) as {
+      inspectedChanged: boolean;
+      projectionUnchanged: boolean;
+      bytesUnchanged: boolean;
+      canonicalTitle: string;
+      inspectedTitle: string | null;
+    };
+
+    expect(output.inspectedChanged).toBe(true);
+    expect(output.projectionUnchanged).toBe(true);
+    expect(output.bytesUnchanged).toBe(true);
+    expect(output.canonicalTitle).toBe("source read purity");
+  });
+
+  it("keeps lifecycle-artifact inspection from materializing changed repository bytes", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-artifact-read-purity-");
+
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "artifact read purity",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const canonical = await authority.currentFileArtifact(
+        runtime,
+        workItem,
+        "docs/r1.md",
+        "R1",
+        "P1",
+      );
+      fs.writeFileSync(
+        \${JSON.stringify(repository)} + "/docs/r1.md",
+        "externally changed r1\\n",
+      );
+      const bytesBefore = fs.readFileSync(
+        \${JSON.stringify(repository)} + "/docs/r1.md",
+        "utf8",
+      );
+      const projectionBefore = coord.getWorkItem(runtime, created.id);
+      const artifactCountBefore = coord.listArtifacts(runtime, created.id).length;
+      const current = await coord.listCurrentLifecycleArtifacts(runtime, created.id);
+      const projectionAfter = coord.getWorkItem(runtime, created.id);
+      const artifactCountAfter = coord.listArtifacts(runtime, created.id).length;
+      const bytesAfter = fs.readFileSync(
+        \${JSON.stringify(repository)} + "/docs/r1.md",
+        "utf8",
+      );
+      console.log(JSON.stringify({
+        staleArtifactExcluded: !current.some((artifact) => artifact.id === canonical.id),
+        projectionUnchanged:
+          JSON.stringify(projectionAfter) === JSON.stringify(projectionBefore),
+        artifactCountUnchanged: artifactCountAfter === artifactCountBefore,
+        bytesUnchanged: bytesAfter === bytesBefore,
+      }));
+      database.close();
+    \`) as {
+      staleArtifactExcluded: boolean;
+      projectionUnchanged: boolean;
+      artifactCountUnchanged: boolean;
+      bytesUnchanged: boolean;
+    };
+
+    expect(output).toEqual({
+      staleArtifactExcluded: true,
+      projectionUnchanged: true,
+      artifactCountUnchanged: true,
+      bytesUnchanged: true,
+    });
+  });
 
 });
