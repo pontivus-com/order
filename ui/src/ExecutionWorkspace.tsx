@@ -172,15 +172,20 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutatio
   });
   const events=eventsQuery.data??[];
   const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
-  const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate});
+  const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate,onError:invalidate});
   const cancel=useMutation({
     mutationFn:()=>{
       if(!currentOwnerRun)throw new TypeError("current implementation owner has no active attempt");
       return api.cancelRun(currentOwnerRun.id);
     },
     onSuccess:invalidate,
+    onError:invalidate,
   });
-  const resume=useMutation({mutationFn:()=>api.resumeWorkItem(workItem.id),onSuccess:invalidate});
+  const resume=useMutation({
+    mutationFn:()=>api.resumeWorkItem(workItem.id),
+    onSuccess:invalidate,
+    onError:invalidate,
+  });
 
   const canRunNext=
     workItem.stage==="EXECUTION"&&
