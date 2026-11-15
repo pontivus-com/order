@@ -442,6 +442,10 @@ describe("Order cross-boundary certification", () => {
       "workItems.find((item) => item.id === selectedWorkItemId)",
     );
 
+    const http = read("ui/src/http.ts");
+    expect(http).toContain("export const isCurrentStateConflict");
+    expect(http).toContain('error.orderError.code === "CURRENT_STATE_CONFLICT"');
+
     const queryKeys = read("ui/src/query-keys.ts");
     expect(queryKeys).toContain("workbenchMutationInvalidationKeys");
     expect(queryKeys).toContain("invalidateWorkbenchMutation");
@@ -450,6 +454,11 @@ describe("Order cross-boundary certification", () => {
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
     expect(workspace).toContain("deriveObservationCoherence");
     expect(workspace).toContain("deriveCurrentAttention");
+    expect(workspace).toContain("mutationConflict,");
+    expect(workspace).not.toContain("mutationConflict: false");
+    expect(workspace).toContain("api.isCurrentStateConflict(error)");
+    expect(workspace).toContain('currentAttention === "MUTATION_CONFLICT"');
+    expect(workspace).toContain("onMutationError={reportMutationError}");
     expect(workspace).toContain("deriveWorkflowRail");
     expect(workspace).toContain('currentAttention === "CONVERGING"');
     expect(workspace).toContain("currentStageRunId: currentStageRun?.id ?? null");
@@ -475,8 +484,12 @@ describe("Order cross-boundary certification", () => {
     expect(signoffReview).toContain("!packageQuery.isError");
     expect(signoffReview).toContain("!packageQuery.isFetching");
 
+    const documents = read("ui/src/DocumentWorkspace.tsx");
+    expect(documents).toContain("onMutationError?.(error)");
+
     const activity = read("ui/src/ActivityWorkspace.tsx");
-    expect(activity).toContain("onError: invalidate");
+    expect(activity).toContain("onMutationError?.(error)");
+    expect(activity).toContain('currentAttention !== "MUTATION_CONFLICT"');
     expect(activity).toContain("currentRunId");
     expect(activity).toContain("currentInteraction");
     expect(activity).not.toContain("stageRunInteraction");
@@ -485,12 +498,13 @@ describe("Order cross-boundary certification", () => {
     expect(activity).not.toContain("const canResume");
 
     const proposalReview = read("ui/src/ProposalReview.tsx");
-    expect(proposalReview).toContain("onError: invalidate");
+    expect(proposalReview).toContain("onMutationError?.(error)");
     expect(proposalReview).not.toContain("ActivityComposer");
     expect(proposalReview).not.toContain("unresolvedHumanInput");
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
-    expect(execution).toContain("onError:invalidate");
+    expect(execution).toContain("onMutationError?.(error)");
+    expect(execution).toContain("onError:reportError");
     expect(execution).toContain("executionOwner: ExecutionOwner");
     expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");
