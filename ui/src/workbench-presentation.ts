@@ -379,7 +379,21 @@ export const resolveWorkflowMaterial = (
       (
         input.currentAttention === "BLOCKER" ||
         input.currentAttention === "RECOVERY" ||
-        input.stageInteraction?.tag === "REQUIRED_INPUT"
+        input.stageInteraction?.tag === "REQUIRED_INPUT" ||
+        (
+          input.currentAttention === "CONVERGING" &&
+          (
+            ownerRun.status === "RUNNING" ||
+            ownerRun.status === "WAITING_FOR_INPUT"
+          )
+        ) ||
+        (
+          input.currentAttention === "CONVERGING" &&
+          (
+            ownerRun.status === "RUNNING" ||
+            ownerRun.status === "WAITING_FOR_INPUT"
+          )
+        )
       )
     ) {
       return { kind: "STAGE_RUN", runId: ownerRun.id };
