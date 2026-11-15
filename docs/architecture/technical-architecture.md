@@ -162,9 +162,11 @@ The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COM
 - content count may change rows/items but cannot select another persistent topology;
 - the primitive layer is therefore the mechanical enforcement boundary for the Workbench's interaction-space classes, not merely a visual convenience wrapper.
 
-The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one root theme preference/substrate, one semantic token system and one Order-authored presentation stylesheet. Primitives/specialists consume that theme language; feature modules cannot define local palettes, type/spacing systems, theme islands or alternate component chrome.
+The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one root theme preference/substrate, the pinned public Astryx token language plus only genuinely Order-specific structural/readability tokens, and one Order-authored presentation stylesheet. Primitives/specialists consume that theme language; feature modules cannot define local palettes, type/spacing systems, theme islands or alternate component chrome.
 
-Order does not introduce a replacement primitive framework merely to recreate straightforward semantic HTML/CSS. The selective Astryx integration authorized by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` remains an interaction-primitive substrate beneath the Order local semantic boundary; it does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
+Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
+
+Generic foundation guidance remains subordinate to the P3 product contract. The nine-stage rail therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
 
 ### Workbench technical boundary
 
