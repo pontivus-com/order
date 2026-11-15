@@ -12,15 +12,16 @@ The single-task structure is mandatory under `GW-DOC-CANONICAL-CONTRACTS-V1`: Ex
 
 Implementation evidence exposed one producer/consumer gap in the previously closed state design: observational Approval-package currentness could determine an exact stale upstream owner internally, but the canonical P6 HTTP failure contract could not transport that owner to the browser. The browser therefore could not realize the already-required `STALE(owner)` / `RECONCILE_AUTHORITY` semantics without either parsing human-readable error text or incorrectly routing every stale condition through source reconciliation.
 
-The owning P4/P6 authorities have now been corrected before further implementation:
+The owning P3/P4/P6 authorities have now been corrected before further implementation:
 
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` adds the explicit `RECONCILE_AUTHORITY(owner)` lifecycle cause and owner-correct Approval reconciliation command;
+- `GW-DOC-WORKBENCH-UX-V2` clarifies that `STALE(owner)` projects to current attention `STALE_AUTHORITY` while `RECONCILE_AUTHORITY` remains its exact recovery action; generic `RECOVERY` is reserved for retry/resume-class recovery;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` adds the explicit `RECONCILE_AUTHORITY(owner)` lifecycle cause, owner-correct Approval reconciliation command, and the same stale-before-generic-recovery attention precedence;
 - `GW-DOC-TECHNICAL-ARCHITECTURE-V1` adds the corresponding canonical browser mutation/convergence invalidation path and keeps it distinct from source reconciliation;
 - `GW-DOC-CANONICAL-CONTRACTS-V1` adds canonical `UpstreamReturnStage`, `ReconcileWorkItemAuthority`, `OrderHttpError.staleAuthorityOwner`, `STALE_AUTHORITY` failure semantics and `POST /api/work-items/:workItemId/reconcile-authority`;
 - the correction extends the implementation surface only as required to realize that contract: `src/core/contracts.ts` and `src/daemon/server.ts` are now authorized in addition to the previously signed files;
 - no DTO, persisted currentness field, parallel workflow state, message parser or generic reconciliation service is introduced.
 
-This amendment changes applicable P4/P6 authority and therefore invalidates any prior Approval/sign-off over the earlier contract revision. The corrected P7 package must pass the normal R3/readiness and explicit human sign-off path again before the candidate can be promoted. This amendment records scope and traceability; it does not self-authorize execution.
+This amendment changes applicable P3/P4/P6 authority and therefore invalidates any prior Approval/sign-off over the earlier contract revision. The corrected P7 package must pass the normal R3/readiness and explicit human sign-off path again before the candidate can be promoted. This amendment records scope and traceability; it does not self-authorize execution.
 
 ### Contract-correction prerequisite
 
