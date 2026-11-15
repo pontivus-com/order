@@ -6,7 +6,9 @@ import type {
   RunEvent,
   RunEventId,
   WorkItem,
+  WorkStage,
 } from "../../src/core/contracts.ts";
+import { reachStateForStage } from "../../src/core/lifecycle.ts";
 
 export type ProposalSelection = Readonly<{
   runId: Run["id"];
@@ -140,6 +142,7 @@ export const workflowMaterialIdentity = (
 export type WorkflowMaterialResolutionInput = Readonly<{
   workItem: Pick<WorkItem, "stage" | "status" | "outcome">;
   selectedStep: WorkItem["stage"];
+  reachedStages: ReadonlySet<WorkStage>;
   runs: readonly Run[];
   artifacts: readonly ArtifactRef[];
   unresolvedInputRunId?: Run["id"] | null;
@@ -152,20 +155,17 @@ export type WorkflowMaterialResolutionInput = Readonly<{
   dirtyDocument?: boolean;
 }>;
 
-const workflowStepIndex = (stage: WorkItem["stage"]): number => {
-  const index = workflowSteps.findIndex((step) => step.stage === stage);
-  if (index < 0) throw new TypeError(`unknown WorkItem stage: ${stage}`);
-  return index;
-};
-
 export const workflowStepState = (
   workItem: Pick<WorkItem, "stage">,
+  reachedStages: ReadonlySet<WorkStage>,
   selectedStep: WorkItem["stage"],
 ): WorkflowStepState => {
-  const current = workflowStepIndex(workItem.stage);
-  const selected = workflowStepIndex(selectedStep);
-  if (selected === current) return "CURRENT";
-  return selected < current ? "HISTORICAL" : "UNREACHED";
+  const reach = reachStateForStage(workItem, reachedStages, selectedStep);
+  return reach === "CURRENT"
+    ? "CURRENT"
+    : reach === "REACHED_HISTORICAL"
+      ? "HISTORICAL"
+      : "UNREACHED";
 };
 
 const runOrder = (left: Run, right: Run): number =>
@@ -199,7 +199,7 @@ const selectedMaterialIsAvailable = (
   input: WorkflowMaterialResolutionInput,
   selection: WorkflowMaterial,
 ): boolean => {
-  const stepState = workflowStepState(input.workItem, input.selectedStep);
+  const stepState = workflowStepState(input.workItem, input.reachedStages, input.selectedStep);
   if (stepState === "UNREACHED") return selection.kind === "UNREACHED";
 
   switch (selection.kind) {
@@ -339,7 +339,7 @@ const selectedExecutionRun = (
 export const resolveWorkflowMaterial = (
   input: WorkflowMaterialResolutionInput,
 ): WorkflowMaterial => {
-  const stepState = workflowStepState(input.workItem, input.selectedStep);
+  const stepState = workflowStepState(input.workItem, input.reachedStages, input.selectedStep);
   if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   const explicit = input.explicitSelection ?? null;
