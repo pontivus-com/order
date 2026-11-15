@@ -5137,4 +5137,239 @@ describe("daemon control plane", () => {
     expect(output.completions).toBe(0);
   }, 30_000);
 
+
+  it("serializes proposal adoption against free-form input", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-adopt-input-");
+
+    const output = bunEval(\`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(\${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        \${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [\${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "adopt versus input",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const proposalPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      const absoluteProposal = path.join(\${JSON.stringify(repository)}, proposalPath);
+      fs.writeFileSync(absoluteProposal, "accepted\\n");
+      const proposalDiff = Bun.spawnSync(
+        ["git", "diff", "--no-index", "--binary", "--", "/dev/null", proposalPath],
+        {
+          cwd: \${JSON.stringify(repository)},
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      );
+      if (proposalDiff.exitCode !== 1) {
+        throw new TypeError("failed to create proposal diff");
+      }
+      const diff = new TextDecoder().decode(proposalDiff.stdout);
+      fs.rmSync(absoluteProposal);
+
+      const contextHash = "sha256:" + "a".repeat(64);
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(\${JSON.stringify(repository)}),
+        contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "proposal follows",
+        evidence: [],
+      });
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: proposalPath,
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: diff,
+        rationale: "adopt exactly once",
+      });
+
+      const settled = await Promise.allSettled([
+        coord.adoptArtifactProposal(runtime, proposal.id),
+        coord.submitRunInput(runtime, run.id, "must not be accepted", null),
+      ]);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        adoptionRequests: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ).length,
+        dispositions: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+        ).map((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+            ? event.event.disposition
+            : null
+        ),
+        receivedCount: events.filter((event) =>
+          event.event.tag === "HUMAN_INPUT_RECEIVED"
+        ).length,
+        content: fs.readFileSync(absoluteProposal, "utf8"),
+      }));
+      database.close();
+    \`) as {
+      states: string[];
+      adoptionRequests: number;
+      dispositions: (string | null)[];
+      receivedCount: number;
+      content: string;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.adoptionRequests).toBe(1);
+    expect(output.dispositions).toEqual(["ADOPTED"]);
+    expect(output.receivedCount).toBe(0);
+    expect(output.content).toBe("accepted\\n");
+  }, 30_000);
+
+  it("serializes sign-off against an upstream source mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-signoff-source-race-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      \`
+        const currentSource = await coord.getWorkItemSource(runtime, work);
+        const proposedBody = currentSource.bodyMarkdown.replace(
+          "## Current context\\\\n",
+          "## Current context\\\\nThis source change must lose to sign-off.\\\\n",
+        );
+        const inspected = await coord.computeSignoffPackage(runtime, work);
+        const settled = await Promise.allSettled([
+          coord.signOffWorkItem(
+            runtime,
+            work,
+            inspected.packageHash,
+            "race operator",
+          ),
+          coord.saveSourceBody(runtime, work, {
+            expectedSha256: currentSource.sha256,
+            bodyMarkdown: proposedBody,
+          }),
+        ]);
+        const finalWorkItem = coord.getWorkItem(runtime, work);
+        const finalSource = await coord.getWorkItemSource(runtime, work);
+        console.log(JSON.stringify({
+          states: settled.map((entry) => entry.status),
+          finalWorkItem: {
+            stage: finalWorkItem.stage,
+            status: finalWorkItem.status,
+          },
+          sourceUnchanged: finalSource.sha256 === currentSource.sha256,
+        }));
+        database.close();
+        process.exit(0);
+      \`,
+    )) as {
+      states: string[];
+      finalWorkItem: { stage: string; status: string };
+      sourceUnchanged: boolean;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.finalWorkItem).toEqual({
+      stage: "EXECUTION",
+      status: "ACTIVE",
+    });
+    expect(output.sourceUnchanged).toBe(true);
+  }, 30_000);
+
+  it("rejects Resume when approval currentness changes during admission", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-resume-currentness-race-");
+
+    const output = bunEval(\`
+      \${seedSignoffScript(repository, state)}
+      const fs = await import("node:fs");
+      const task = (await coord.listExecutionTasks(runtime, work))[0];
+      database.query(
+        "UPDATE executionTasks SET state='BLOCKED' WHERE id=?1",
+      ).run(task.id);
+      sql.updateWorkItemLifecycle(database, work, {
+        stage: "EXECUTION",
+        status: "BLOCKED",
+        outcome: null,
+      });
+
+      const resume = coord.resumeWorkItem(runtime, work);
+      fs.writeFileSync(
+        repositoryRoot + "/docs/plan.md",
+        "plan changed during resume admission\\n",
+      );
+      let error = null;
+      try {
+        await resume;
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      const finalWorkItem = coord.getWorkItem(runtime, work);
+      const finalTask = (await coord.listExecutionTasks(runtime, work))[0];
+      console.log(JSON.stringify({
+        error,
+        finalWorkItem: {
+          stage: finalWorkItem.stage,
+          status: finalWorkItem.status,
+        },
+        taskState: finalTask.state,
+      }));
+      database.close();
+    \`) as {
+      error: string | null;
+      finalWorkItem: { stage: string; status: string };
+      taskState: string;
+    };
+
+    expect(output.error).toMatch(/resume preconditions are not satisfied/);
+    expect(output.finalWorkItem).toEqual({
+      stage: "EXECUTION",
+      status: "BLOCKED",
+    });
+    expect(output.taskState).toBe("BLOCKED");
+  }, 30_000);
+
 });
