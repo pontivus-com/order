@@ -259,7 +259,7 @@ describe("workflow presentation policy", () => {
       pendingProposal: proposal,
     };
 
-    expect(resolveWorkflowMaterial(base)).toEqual({
+    expect(resolveFixtureMaterial(base)).toEqual({
       kind: "STAGE_RUN",
       runId: failed.id,
     });
