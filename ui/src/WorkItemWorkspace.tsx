@@ -815,7 +815,8 @@ export const WorkItemWorkspace = ({
     recovery.tag === "RESUME_CURRENT_OWNER";
   const canReconcile =
     currentStepSelected &&
-    recovery.tag === "RECONCILE_AUTHORITY";
+    recovery.tag === "RECONCILE_AUTHORITY" &&
+    !runs.some(runIsActive);
   const summaryBlocker = !currentStepSelected
     ? null
     : sourceDiagnostics[0]
