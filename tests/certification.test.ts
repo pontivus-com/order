@@ -465,6 +465,7 @@ describe("Order cross-boundary certification", () => {
     expect(signoffReview).toContain("!packageQuery.isFetching");
 
     const activity = read("ui/src/ActivityWorkspace.tsx");
+    expect(activity).toContain("onError: invalidate");
     expect(activity).toContain("currentRunId");
     expect(activity).toContain("currentInteraction");
     expect(activity).not.toContain("stageRunInteraction");
@@ -473,10 +474,12 @@ describe("Order cross-boundary certification", () => {
     expect(activity).not.toContain("const canResume");
 
     const proposalReview = read("ui/src/ProposalReview.tsx");
+    expect(proposalReview).toContain("onError: invalidate");
     expect(proposalReview).not.toContain("ActivityComposer");
     expect(proposalReview).not.toContain("unresolvedHumanInput");
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
+    expect(execution).toContain("onError:invalidate");
     expect(execution).toContain("executionOwner: ExecutionOwner");
     expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");
@@ -486,6 +489,8 @@ describe("Order cross-boundary certification", () => {
     );
 
     const coordinator = read("src/daemon/coordinator.ts");
+    expect(coordinator).toContain("WorkItem cannot resume while a Run is active");
+    expect(coordinator).toContain("a Run became active before Resume commit");
     const cancelPolicy = coordinator.slice(
       coordinator.indexOf("const cancelRunUnlocked"),
       coordinator.indexOf("export const cancelRun"),
@@ -506,6 +511,23 @@ describe("Order cross-boundary certification", () => {
     expect(sourceRead).toContain("inspectWorkItemSource");
     expect(sourceRead).not.toContain("applyPlan(");
     expect(sourceRead).not.toContain("updateWorkItemLifecycle(");
+
+    const stageDaemon = read("src/daemon/stage.ts");
+    const startStagePolicy = stageDaemon.slice(
+      stageDaemon.indexOf("const startStageRunUnlocked"),
+      stageDaemon.indexOf("export const startStageRun"),
+    );
+    expect(startStagePolicy).toContain("contextState.staleStage");
+    expect(startStagePolicy).not.toContain('tag: "LIFECYCLE_ARTIFACT_CHANGED"');
+    const inputPolicy = stageDaemon.slice(
+      stageDaemon.indexOf("const submitRunInputUnlocked"),
+      stageDaemon.indexOf("export const submitRunInput"),
+    );
+    expect(inputPolicy).toContain("contextState.staleStage");
+    expect(inputPolicy).not.toContain("updateWorkItemLifecycle");
+    expect(stageDaemon).toContain("requireCurrentProposalDecision");
+    expect(stageDaemon).toContain("proposal decision requires an OPEN current STAGE Run");
+    expect(stageDaemon).toContain("lifecycle proposal role must equal owning Run stage");
 
     const authority = read("src/daemon/authority.ts");
     const lifecycleRead = authority.slice(
