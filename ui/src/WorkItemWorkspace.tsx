@@ -847,7 +847,9 @@ export const WorkItemWorkspace = ({
       setTitleError(null);
       await invalidate();
     },
-    onError: invalidate,
+    onError: async () => {
+      await invalidate();
+    },
   });
 
   const archiveMutation = useMutation({
@@ -863,7 +865,9 @@ export const WorkItemWorkspace = ({
       await invalidate();
       onBack();
     },
-    onError: invalidate,
+    onError: async () => {
+      await invalidate();
+    },
   });
 
   const commitSelection = (
