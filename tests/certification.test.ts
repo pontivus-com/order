@@ -476,7 +476,7 @@ describe("Order cross-boundary certification", () => {
       authority.indexOf("export const computeSignoffPackage"),
       authority.indexOf("export const signoffPackageForWorkItem"),
     );
-    expect(signoffRead).toContain("materializeCommittedArtifacts = false");
+    expect(signoffRead).toContain('"R3",\n    false,');
     expect(signoffRead).not.toContain("updateWorkItemLifecycle(");
 
     for (const daemonPath of [
