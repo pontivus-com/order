@@ -6,7 +6,7 @@ import type { ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "..
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { runIsActive, runRoleLabel, runStatusLabel, type EvidenceSelection, type WorkflowMaterial } from "./workbench-presentation.ts";
 import { WorkflowStepIndex, WorkflowStepSummary, type WorkflowStepIndexGroup } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -157,13 +157,7 @@ export const ExecutionWorkspace = ({ workItem, material, mutationsDisabled = fal
     refetchInterval:selectedRun&&runIsActive(selectedRun)?1000:false,
   });
   const events=eventsQuery.data??[];
-  const invalidate=async():Promise<void>=>{await Promise.all([
-    queryClient.invalidateQueries({queryKey:workbenchQueryKeys.workItems}),
-    queryClient.invalidateQueries({queryKey:workbenchQueryKeys.tasks(workItem.id)}),
-    queryClient.invalidateQueries({queryKey:workbenchQueryKeys.runs(workItem.id)}),
-    queryClient.invalidateQueries({queryKey:workbenchQueryKeys.runEventsRoot}),
-    queryClient.invalidateQueries({queryKey:workbenchQueryKeys.artifacts(workItem.id)}),
-  ]);};
+  const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
   const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate});
   const cancel=useMutation({mutationFn:()=>{if(!selectedRun||!runIsActive(selectedRun))throw new TypeError("selected implementation attempt is not active");return api.cancelRun(selectedRun.id);},onSuccess:invalidate});
   const resume=useMutation({mutationFn:()=>api.resumeWorkItem(workItem.id),onSuccess:invalidate});
