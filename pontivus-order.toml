@@ -268,7 +268,7 @@ paths = [".bun-version", ".node-version", ".gitignore", ".github/**", "CHANGELOG
 gates = ["dependency-lock", "typecheck", "architecture", "test", "build"]
 
 [concerns.core]
-authority = ["docs/requirements/work-lifecycle.md", "docs/requirements/specification-standard.md", "docs/requirements/validation-standard.md", "docs/governance/minimum-change.md", "docs/requirements/project-governance-integration.md", "docs/governance/systems-governance.md", "docs/requirements/lifecycle-context.md", "docs/architecture/technical-architecture.md", "docs/contracts/canonical-contracts.md", "docs/requirements/work-item-documents.md", "docs/requirements/markdown-workbench.md"]
+authority = ["docs/requirements/work-lifecycle.md", "docs/requirements/workbench.md", "docs/requirements/specification-standard.md", "docs/requirements/validation-standard.md", "docs/governance/minimum-change.md", "docs/requirements/project-governance-integration.md", "docs/governance/systems-governance.md", "docs/requirements/lifecycle-context.md", "docs/architecture/technical-architecture.md", "docs/architecture/workbench.md", "docs/contracts/canonical-contracts.md", "docs/requirements/work-item-documents.md", "docs/requirements/markdown-workbench.md"]
 paths = ["src/core/**"]
 gates = ["typecheck", "architecture", "test"]
 
@@ -278,7 +278,7 @@ paths = ["src/shell/**"]
 gates = ["typecheck", "architecture", "test"]
 
 [concerns.daemon]
-authority = ["docs/product/system-brief.md", "docs/requirements/work-lifecycle.md", "docs/architecture/execution-control-plane.md", "docs/requirements/validation-standard.md", "docs/architecture/opencode-integration.md", "docs/architecture/technical-architecture.md", "docs/contracts/canonical-contracts.md", "docs/references/external-facts.md", "docs/requirements/work-item-documents.md", "docs/requirements/markdown-workbench.md", "docs/requirements/installation-readiness.md"]
+authority = ["docs/product/system-brief.md", "docs/requirements/work-lifecycle.md", "docs/requirements/workbench.md", "docs/architecture/execution-control-plane.md", "docs/requirements/validation-standard.md", "docs/architecture/opencode-integration.md", "docs/architecture/technical-architecture.md", "docs/architecture/workbench.md", "docs/contracts/canonical-contracts.md", "docs/references/external-facts.md", "docs/requirements/work-item-documents.md", "docs/requirements/markdown-workbench.md", "docs/requirements/installation-readiness.md"]
 paths = ["src/daemon/**", "src/cli.ts"]
 gates = ["typecheck", "architecture", "test"]
 
