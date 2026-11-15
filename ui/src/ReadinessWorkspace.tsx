@@ -214,12 +214,14 @@ export const ReadinessWorkspace = ({
       index={<WorkflowStepIndex groups={groups} />}
       indexLabel="Readiness material"
       primary={
+        <div data-testid="review-workspace">
         <WorkbenchReview
           currentness={<WorkbenchStatus tone={readinessArtifact ? "success" : "info"} label={readinessArtifact ? "Governed review current" : "Review in progress"} />}
           summary={<div><h2>Readiness review</h2><p>Independent verification of the exact governed package.</p></div>}
           body={primary}
           decisions={<></>}
         />
+        </div>
       }
     />
   );

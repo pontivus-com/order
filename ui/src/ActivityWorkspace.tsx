@@ -138,11 +138,13 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRun
   );
   return (
     <section data-testid="stage-run-material">
+      <div data-testid="activity-detail">
       <WorkbenchDialogue
         transcript={transcript}
         state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
         composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={setInputError} /> : undefined}
       />
+      </div>
     </section>
   );
 };

@@ -673,7 +673,7 @@ export const WorkItemWorkspace = ({
       navigation={
         <div className="order-inline-actions">
           <WorkbenchAction label="Back to work queue" tone="ghost" icon={<WorkbenchIcon name="back" />} onClick={onBack} />
-          <WorkbenchAction label="Context" tone="ghost" icon={<WorkbenchIcon name="context" />} onClick={() => onContextOpenChange(true)} />
+          <WorkbenchAction label="Context" tone="ghost" icon={<WorkbenchIcon name="context" />} ariaExpanded={contextOpen} onClick={() => onContextOpenChange(!contextOpen)} />
         </div>
       }
       title={
@@ -903,6 +903,7 @@ export const WorkItemWorkspace = ({
         title="Discard unsaved Markdown?"
         description="Changing workflow step or material would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
+        cancelLabel="Continue editing"
         pending={false}
         onConfirm={() => {
           const next = pendingSelection;

@@ -28,7 +28,7 @@ export type WorkflowStepIndexGroup = Omit<WorkflowMaterialSelectorGroup, "items"
 
 export const WorkflowStepIndex = ({ groups, label = "Workflow material" }: Readonly<{
   groups: readonly WorkflowStepIndexGroup[]; label?: string;
-}>) => <WorkflowMaterialSelector groups={groups} label={label} />;
+}>) => <div data-testid="workflow-step-index"><WorkflowMaterialSelector groups={groups} label={label} /></div>;
 
 export type WorkflowStepSummaryBlocker = Readonly<{
   status: WorkflowNoticeStatus;
@@ -46,6 +46,7 @@ export const WorkflowStepSummary = ({
   label: string; purpose: string; stateLabel: string; stateVariant?: WorkflowStatusVariant;
   statusLabel?: string; statusVariant?: WorkflowStatusVariant; blocker?: WorkflowStepSummaryBlocker | null; action?: ReactNode;
 }>) => (
+  <div data-testid="workflow-step-summary">
   <WorkbenchAttention
     title={label}
     purpose={purpose}
@@ -53,6 +54,7 @@ export const WorkflowStepSummary = ({
     blocker={blocker ? <WorkbenchNotice tone={blocker.status === "error" ? "danger" : blocker.status} title={blocker.title} description={blocker.description} /> : undefined}
     action={action}
   />
+  </div>
 );
 
 export const PrimaryMaterialFrame = ({

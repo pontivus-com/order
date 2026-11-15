@@ -57,7 +57,10 @@ export const ProposalReview = ({ workItem, selection, onBack }: Readonly<{ workI
         currentness={currentness}
         summary={<div><h2>Artifact proposal review</h2><p>{proposalPayload.targetPath}</p><p>{proposalPayload.rationale}</p></div>}
         body={<>
+          <section data-testid="proposal-review-diff">
+            <h3>Proposed document diff</h3>
           <CodeBlock code={proposalPayload.unifiedDiff} language="diff" isDiff isWrapped hasCopyButton container="section" width="100%" />
+          </section>
           {run && run.role === "STAGE" && runIsActive(run) ? <ActivityComposer run={run} pending={pending} onSubmitted={invalidate} /> : null}
           {adoptionRequested && disposition === null ? <WorkbenchNotice tone="warning" title="Adoption in progress" description="The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded." /> : null}
           {decision.error ? <WorkbenchNotice tone="danger" title="Proposal decision failed" description={decision.error instanceof Error ? decision.error.message : String(decision.error)} /> : null}

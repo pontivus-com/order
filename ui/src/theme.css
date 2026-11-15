@@ -1,17 +1,17 @@
 /* 1. Root public Astryx token bridge. Exact Order color literals live only here. */
 :root,
 :root[data-theme="light"] {
-  --color-background-body: #FFFFFF;
-  --color-background-surface: #FFFFFF;
-  --color-background-muted: #F8FAFC;
-  --color-border-emphasized: #D9DEE8;
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #657187;
-  --color-accent: #1E3A8A;
-  --color-on-accent: #FFFFFF;
-  --color-text-accent: #1E3A8A;
-  --color-icon-accent: #1E3A8A;
-  --color-accent-muted: #EFF6FF;
+  --color-background-body: #FFFFFF !important;
+  --color-background-surface: #FFFFFF !important;
+  --color-background-muted: #F8FAFC !important;
+  --color-border-emphasized: #D9DEE8 !important;
+  --color-text-primary: #0F172A !important;
+  --color-text-secondary: #657187 !important;
+  --color-accent: #1E3A8A !important;
+  --color-on-accent: #FFFFFF !important;
+  --color-text-accent: #1E3A8A !important;
+  --color-icon-accent: #1E3A8A !important;
+  --color-accent-muted: #EFF6FF !important;
   --font-family-body:
     ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
@@ -23,33 +23,33 @@
 }
 
 :root[data-theme="dark"] {
-  --color-background-body: #111A29;
-  --color-background-surface: #111A29;
-  --color-background-muted: #172233;
-  --color-border-emphasized: #344256;
-  --color-text-primary: #EDF3FA;
-  --color-text-secondary: #A9B8CD;
-  --color-accent: #385AC1;
-  --color-on-accent: #FFFFFF;
-  --color-text-accent: #93B4FF;
-  --color-icon-accent: #93B4FF;
-  --color-accent-muted: #203554;
+  --color-background-body: #111A29 !important;
+  --color-background-surface: #111A29 !important;
+  --color-background-muted: #172233 !important;
+  --color-border-emphasized: #344256 !important;
+  --color-text-primary: #EDF3FA !important;
+  --color-text-secondary: #A9B8CD !important;
+  --color-accent: #385AC1 !important;
+  --color-on-accent: #FFFFFF !important;
+  --color-text-accent: #93B4FF !important;
+  --color-icon-accent: #93B4FF !important;
+  --color-accent-muted: #203554 !important;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --color-background-body: #111A29;
-    --color-background-surface: #111A29;
-    --color-background-muted: #172233;
-    --color-border-emphasized: #344256;
-    --color-text-primary: #EDF3FA;
-    --color-text-secondary: #A9B8CD;
-    --color-accent: #385AC1;
-    --color-on-accent: #FFFFFF;
-    --color-text-accent: #93B4FF;
-    --color-icon-accent: #93B4FF;
-    --color-accent-muted: #203554;
+    --color-background-body: #111A29 !important;
+    --color-background-surface: #111A29 !important;
+    --color-background-muted: #172233 !important;
+    --color-border-emphasized: #344256 !important;
+    --color-text-primary: #EDF3FA !important;
+    --color-text-secondary: #A9B8CD !important;
+    --color-accent: #385AC1 !important;
+    --color-on-accent: #FFFFFF !important;
+    --color-text-accent: #93B4FF !important;
+    --color-icon-accent: #93B4FF !important;
+    --color-accent-muted: #203554 !important;
     color-scheme: dark;
   }
 }

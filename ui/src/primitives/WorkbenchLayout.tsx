@@ -42,7 +42,7 @@ export const WorkbenchLayout = ({
       padding={0}
       header={<LayoutHeader padding={0} hasDivider><div className="order-workbench-chrome">{workItemChrome.identity}{workItemChrome.workflowRail}</div></LayoutHeader>}
       content={<LayoutContent padding={0}>{primary}</LayoutContent>}
-      end={wide && hasInspector && inspectorOpen ? <LayoutPanel width="var(--order-context-width)" padding={0} hasDivider role="complementary" label="Work item context">{context.content}</LayoutPanel> : undefined}
+      end={wide && hasInspector && inspectorOpen ? <LayoutPanel width="var(--order-context-width)" padding={0} hasDivider role="complementary" label="Work item context" data-testid="work-item-context">{context.content}</LayoutPanel> : undefined}
     />
   );
   return (

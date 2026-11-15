@@ -156,7 +156,7 @@ const DocumentationControls = ({
     state.changedGitPaths.length === 0 ? "success" : "info";
   return (
     <div className="order-document-controls" data-testid="document-git-controls">
-      <WorkbenchStatus tone={tone} label={state.gitStateLabel} />
+      <span data-testid="document-git-state"><WorkbenchStatus tone={tone} label={state.gitStateLabel} /></span>
       {state.changedGitPaths.length > 0 ? (
         <WorkbenchAction
           label="Save documentation to Git"

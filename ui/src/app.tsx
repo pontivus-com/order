@@ -573,6 +573,7 @@ export const App = () => {
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
+        cancelLabel="Continue editing"
         pending={false}
         onConfirm={() => {
           const next = pendingDestination;

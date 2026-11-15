@@ -186,7 +186,7 @@ export const MarkdownEditor = ({
   );
 
   const formatting = readOnly ? undefined : (
-    <>
+    <div data-testid="markdown-format-toolbar" className="order-markdown-format-toolbar">
       <WorkbenchToolbarGroup>
         <WorkbenchAction
           label={historyActions[0].label}
@@ -227,7 +227,7 @@ export const MarkdownEditor = ({
           />
         ))}
       </WorkbenchToolbarGroup>
-    </>
+    </div>
   );
 
   return (

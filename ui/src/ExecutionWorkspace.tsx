@@ -142,7 +142,7 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
   if(tasksQuery.isPending||runsQuery.isPending||artifactsQuery.isPending)return <WorkbenchSurface attention={summary} material={<WorkbenchState kind="loading" title="Loading implementation state…"/>}/>;
 
   const detail=material.kind==="EVIDENCE"?<EvidenceViewer selection={material.selection} onBack={onReturnFromEvidence}/>:
-    selectedTask?<section className="order-execution-task-material" data-testid="execution-workspace">
+    selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
       <WorkbenchSectionHeader title={selectedTask.planTaskId} description={selectedTask.objective} action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
       <MetadataList columns="multi">
         <MetadataListItem label="Gates">{selectedTask.gateIds.join(", ")||"None"}</MetadataListItem>
@@ -171,8 +171,7 @@ export const ExecutionWorkspace = ({ workItem, material, onSelectMaterial, onOpe
        selectedRun&&events.length>0?<RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence}/>:<WorkbenchState kind="empty" title="No persisted attempt events"/>}
       <WorkbenchSectionHeader title="Implementation material"/>
       <div className="order-resource-list">{(artifactsQuery.data??[]).map((artifact)=><WorkbenchResourceRow key={artifact.id} label={artifact.role} detail={artifact.repositoryPath} actionLabel={"Open "+artifact.role+": "+artifact.repositoryPath} onOpen={()=>onOpenEvidence({kind:"ARTIFACT",artifactId:artifact.id,label:artifact.role+": "+artifact.repositoryPath})}/>)}</div>
-      {mutationError?<WorkbenchNotice tone="danger" title="Implementation action failed" description={mutationError instanceof Error?mutationError.message:String(mutationError)}/>:null}
     </section>:<WorkbenchState kind="empty" title="No implementation tasks materialized"/>;
 
-  return <WorkbenchSurface attention={summary} material={<WorkbenchMasterDetail master={master} detail={detail} masterLabel="Implementation work"/>}/>;
+  return <div data-testid="execution-workspace"><WorkbenchSurface attention={summary} material={<WorkbenchMasterDetail master={master} detail={detail} masterLabel="Implementation work"/>}/></div>;
 };
