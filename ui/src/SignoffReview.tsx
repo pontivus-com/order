@@ -283,6 +283,7 @@ export const SignoffReview = ({
 
   const currentTasks = packageQuery.data?.taskBlock.tasks ?? [];
   const historicalTasks = tasksQuery.data ?? [];
+  const approvalCompleted = !currentApproval && historicalTasks.length > 0;
   if (
     (currentApproval && currentTasks.length > 0) ||
     (!currentApproval && historicalTasks.length > 0)
@@ -378,7 +379,6 @@ export const SignoffReview = ({
     }
 
     if (!currentApproval) {
-      const approvalCompleted = historicalTasks.length > 0;
       return (
         <section
           className="order-workspace-section order-approval-overview"
@@ -490,14 +490,32 @@ export const SignoffReview = ({
         <WorkbenchReview
           currentness={
             <WorkbenchStatus
-              tone={currentApproval ? "warning" : "success"}
-              label={currentApproval ? "Awaiting authorization" : "Approved package history"}
+              tone={currentApproval ? "warning" : approvalCompleted ? "success" : "neutral"}
+              label={
+                currentApproval
+                  ? "Awaiting authorization"
+                  : approvalCompleted
+                    ? "Approved package history"
+                    : "Returned before sign-off"
+              }
             />
           }
           summary={
             <div>
-              <h2>{currentApproval ? "Exact approval package" : "Approved package"}</h2>
-              <p>{currentApproval ? "Review and authorize the exact signed package." : "Inspect the governed package retained after approval."}</p>
+              <h2>
+                {currentApproval
+                  ? "Exact approval package"
+                  : approvalCompleted
+                    ? "Approved package"
+                    : "Approval history"}
+              </h2>
+              <p>
+                {currentApproval
+                  ? "Review and authorize the exact signed package."
+                  : approvalCompleted
+                    ? "Inspect the governed package retained after approval."
+                    : "Inspect the reached Approval stage retained after the workflow returned upstream without sign-off."}
+              </p>
             </div>
           }
           body={primary}
