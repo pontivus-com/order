@@ -269,7 +269,8 @@ type ValidationBoundary =
   | {
       readonly tag: "FAILED_AT";
       readonly stage: ValidationStage;
-      readonly classification: RunTerminalClassification;
+      readonly classification:
+        Extract<RunEventPayload, { readonly tag: "VALIDATION_FAILED" }>["classification"];
     }
   | { readonly tag: "COMPLETE" };
 
@@ -310,6 +311,8 @@ The concrete unions may carry canonical ids needed to identify their owner, but 
 No `WorkflowState` aggregate is introduced. Callers obtain the particular pure decisions they need from canonical values. A convenience input parameter object inside one pure function is not a semantic state owner and must not be persisted/transported/exported as a parallel domain model.
 
 Malformed or contradictory canonical histories do not produce a guessed variant. The deriving function throws/rejects or returns the existing typed canonical-state error at the owning boundary; command admission fails closed.
+
+`ObservationCoherence` is also closed: it is `CONVERGING` only when already-loaded canonical facts expose a controlling reaction not yet reflected by its dependent owner (for example STAGE completion before the selected WorkItem stage changes, STAGE block before WorkItem status changes, or execution Run terminalization before task/WorkItem reaction is visible). Otherwise those canonical facts are `COHERENT`. Browser query-pending/refetch state may additionally suppress controls as transport behavior, but it does not create another workflow semantic state and never authorizes the UI to synthesize the missing transition.
 
 ### 4.9 Closed lifecycle transition-cause language
 
