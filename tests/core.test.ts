@@ -2097,6 +2097,9 @@ describe("closed Workbench workflow-state kernel", () => {
     expect(deriveRecoveryDisposition(active, [], current)).toEqual({
       tag: "NONE",
     });
+    expect(deriveRecoveryDisposition(active, [stageRun("BLOCKED")], current)).toEqual({
+      tag: "RETRY_CURRENT_STAGE",
+    });
   });
 
   it("projects coherence, attention, recovery and rail through one canonical owner", () => {
