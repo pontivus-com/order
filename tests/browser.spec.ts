@@ -526,6 +526,25 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await selectWorkflowStep(page, "Implementation plan");
 
   const editor = page.getByLabel("Implementation plan document Markdown source");
+  const selectionDiagnostic = await page.evaluate(() => {
+    const rail = document.querySelector('[data-testid="workflow-rail"]');
+    const buttons = Array.from(rail?.querySelectorAll("button") ?? []).map((button) => ({
+      text: button.textContent?.trim() ?? "",
+      pressed: button.getAttribute("aria-pressed"),
+      current: button.getAttribute("aria-current"),
+    }));
+    const text = (testId: string) =>
+      document.querySelector(`[data-testid="${testId}"]`)?.textContent?.trim() ?? null;
+    return {
+      buttons,
+      summary: text("workflow-step-summary"),
+      primary: text("primary-material-frame"),
+      lifecycleDocument: text("lifecycle-document-material"),
+      stageRun: text("stage-run-material"),
+      proposal: text("proposal-review-workspace"),
+    };
+  });
+  console.log("WORKBENCH_SELECTION_DIAGNOSTIC " + JSON.stringify(selectionDiagnostic));
   await expect(editor).toBeVisible();
   await expect(page.getByTestId("markdown-format-toolbar")).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
