@@ -144,6 +144,18 @@ export const App = () => {
   const originatingRowId = useRef<WorkItemId | null>(null);
 
   const workItemsQuery = useQuery({ queryKey: workbenchQueryKeys.workItems, queryFn: api.listWorkItems });
+  const selectedWorkItemQuery = useQuery({
+    queryKey: selectedWorkItemId === null
+      ? (["workItem", null] as const)
+      : workbenchQueryKeys.workItem(selectedWorkItemId),
+    queryFn: () => {
+      if (selectedWorkItemId === null) {
+        throw new TypeError("selected WorkItem query requires a WorkItem id");
+      }
+      return api.getWorkItem(selectedWorkItemId);
+    },
+    enabled: selectedWorkItemId !== null && settingsSection === null,
+  });
   const projectsQuery = useQuery({ queryKey: workbenchQueryKeys.projects, queryFn: api.listProjects });
   const schemasQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSchemas, queryFn: api.listWorkItemSchemas });
   const diagnosticsQuery = useQuery({
@@ -159,6 +171,11 @@ export const App = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        ...(selectedWorkItemId === null
+          ? []
+          : [queryClient.invalidateQueries({
+              queryKey: workbenchQueryKeys.workItem(selectedWorkItemId),
+            })]),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceDiagnostics }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceRoot }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifactsRoot }),
@@ -168,8 +185,7 @@ export const App = () => {
   });
 
   const workItems = workItemsQuery.data ?? [];
-  const selectedWorkItem =
-    workItems.find((item) => item.id === selectedWorkItemId) ?? null;
+  const selectedWorkItem = selectedWorkItemQuery.data ?? null;
 
   useEffect(() => {
     if (projectId.length === 0 && projectsQuery.data?.length) {
@@ -204,13 +220,14 @@ export const App = () => {
   useEffect(() => {
     if (
       selectedWorkItemId !== null &&
-      selectedWorkItem === null &&
-      !workItemsQuery.isPending
+      selectedWorkItemQuery.isError &&
+      api.isOrderHttpRequestFailure(selectedWorkItemQuery.error) &&
+      selectedWorkItemQuery.error.status === 404
     ) {
       setSelectedWorkItemId(null);
       updateDestinationUrl({ workItemId: null, settingsSection: null }, "replace");
     }
-  }, [selectedWorkItem, selectedWorkItemId, workItemsQuery.isPending]);
+  }, [selectedWorkItemId, selectedWorkItemQuery.error, selectedWorkItemQuery.isError]);
 
   const selectedProject =
     (projectsQuery.data ?? []).find((project) => project.projectId === projectId) ?? null;
@@ -438,6 +455,11 @@ export const App = () => {
     </Suspense>
   );
 
+  const selectedWorkItemPending =
+    settingsSection === null &&
+    selectedWorkItemId !== null &&
+    selectedWorkItemQuery.isPending;
+
   const main = settingsSection !== null ? (
     <Suspense fallback={<WorkbenchEmptyState title="Loading Settings…" />}>
       <SettingsWorkspace
@@ -477,6 +499,14 @@ export const App = () => {
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>
+  ) : selectedWorkItemPending ? (
+    <WorkbenchEmptyState title="Loading selected work item…" />
+  ) : selectedWorkItemQuery.isError && selectedWorkItemId !== null ? (
+    <WorkbenchErrorState
+      title="Selected work item unavailable"
+      description={errorText(selectedWorkItemQuery.error)}
+      action={<WorkbenchAction label="Retry" onClick={() => void selectedWorkItemQuery.refetch()} />}
+    />
   ) : (
     <div className="order-queue-page">
       {readinessQuery.data && !readinessQuery.data.ready ? (
