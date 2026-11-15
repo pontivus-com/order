@@ -945,6 +945,7 @@ export const WorkItemWorkspace = ({
             summary={stepSummary}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
+            currentAttention={currentAttention}
             mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
@@ -970,6 +971,7 @@ export const WorkItemWorkspace = ({
             summary={stepSummary}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
+            currentAttention={currentAttention}
             mutationsDisabled={mutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
