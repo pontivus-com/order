@@ -576,13 +576,17 @@ export const WorkItemWorkspace = ({
     selectedStep === "R3"
       ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
       : null;
+  const explicitStageArtifactId =
+    explicitMaterial?.kind === "STAGE_DOCUMENT"
+      ? explicitMaterial.artifactId
+      : null;
   const explicitStageArtifactStillCurrent =
-    explicitMaterial?.kind === "STAGE_DOCUMENT" &&
-    artifacts.some((artifact) => artifact.id === explicitMaterial.artifactId);
+    explicitStageArtifactId !== null &&
+    artifacts.some((artifact) => artifact.id === explicitStageArtifactId);
 
   useEffect(() => {
     if (
-      explicitMaterial?.kind !== "STAGE_DOCUMENT" ||
+      explicitStageArtifactId === null ||
       explicitStageArtifactStillCurrent ||
       selectedStageArtifact === null
     ) {
@@ -593,8 +597,7 @@ export const WorkItemWorkspace = ({
       artifactId: selectedStageArtifact.id,
     });
   }, [
-    explicitMaterial?.artifactId,
-    explicitMaterial?.kind,
+    explicitStageArtifactId,
     explicitStageArtifactStillCurrent,
     selectedStageArtifact?.id,
   ]);
