@@ -1053,6 +1053,22 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Acceptance:** implementation cannot pass certification with an untested admitted transition, contradictory provider-turn combination, state-mutating GET, duplicate workflow state owner or ordinal-only history algorithm.
 
+### GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP
+
+**Realizes:** `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`, `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-219-EXPLICIT-CONTEXT`, `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`, `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`, `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`.
+
+**Required behavior:** every persistent Workbench topology is produced by the closed structural primitive vocabulary in §8.12. Feature/workflow components map canonical state into those primitives and may not directly invent persistent columns, Context/drawer behavior, responsive structural branches or content-count-selected layout modes.
+
+**Acceptance:** architecture fitness proves Workbench feature surfaces do not import structural Astryx `Layout`/`Drawer` directly, do not call a feature-visible responsive-layout hook to choose structural markup, and do not own CSS selectors that create another persistent Workbench column/topology.
+
+### GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE
+
+**Realizes:** `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`, `GW-FR-217-PRIMARY-INFORMATION-ECONOMY`, `GW-FR-218-SPACE-CLASS-CONSISTENCY`, `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`.
+
+**Required behavior:** structural primitives are domain/query/policy blind and count-blind for topology. Their APIs expose only named constrained slots and fixed Workbench geometry tokens; they do not accept arbitrary sidebar/column/width/breakpoint/mega-variant configuration that lets callers reconstruct a competing layout system.
+
+**Acceptance:** adding/removing Run/document/task rows can change only rows/content inside the chosen primitive; it cannot select another persistent topology. Primitive modules contain no WorkItem/Run/lifecycle imports, TanStack Query ownership, current-attention policy or content-count structural branching.
+
 ## 14. Permanent verification
 
 ### 14.1 Core transition matrix
@@ -1122,6 +1138,9 @@ Permanent sensors prove:
 - the generic step frame has no content-count-dependent persistent side-index slot;
 - one dedicated selected WorkItem query (not the queue list) owns current WorkItem observation; shared-query secondary consumers cannot become competing workflow-policy/current-attention owners;
 - Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
+- Workbench feature surfaces do not import structural Astryx `Layout`/`Drawer` directly or choose structural markup through a local viewport hook;
+- structural primitive modules are domain/query/policy blind and contain no content-count topology branching;
+- only the closed primitive structural selectors establish persistent Workbench columns/outer topology;
 - obsolete competing Workbench layout selectors are absent from production CSS.
 
 ## 15. Non-goals
