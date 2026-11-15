@@ -564,7 +564,7 @@ This extension does not authorize:
 
 ### GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR
 
-**Required behavior:** editable governed Markdown uses a syntax-aware source editor over the exact human-authored Markdown authority: the complete file for wholly human-authored documents and the body region for a WorkItem source whose metadata envelope is system-owned under `GW-FR-087`.
+**Required behavior:** editable governed Markdown uses a syntax-aware source editor over the exact human-authored Markdown authority: the complete file for wholly human-authored documents and the body region for a WorkItem source whose metadata envelope is system-owned under `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP`.
 
 **Acceptance criterion:** the operator authors exact Markdown text with syntax-aware ergonomics; Save persists the exact authored text and, for WorkItem body editing, recomposes it with the unchanged validated metadata envelope into the one canonical repository source.
 
