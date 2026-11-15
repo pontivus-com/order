@@ -4980,6 +4980,96 @@ describe("daemon control plane", () => {
     expect(output.runCountUnchanged).toBe(true);
   }, 30_000);
 
+  it("rejects stale upstream context input without changing canonical state", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stale-context-input-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const fs = await import("node:fs");
+        sql.updateWorkItemLifecycle(database, work, {
+          stage: "PLAN",
+          status: "ACTIVE",
+          outcome: null,
+        });
+        const before = coord.getWorkItem(runtime, work);
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: work,
+          executionTaskId: null,
+          stage: "PLAN",
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "WAITING_FOR_INPUT",
+          attempt: runStore.nextAttempt(runtime, work, "PLAN", null),
+          baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+          contextHash: rt.sha256Text("stale-input-context"),
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: timestamp,
+          endedAt: null,
+        });
+        const requested = runStore.appendRunEvent(runtime, run.id, {
+          tag: "HUMAN_INPUT_REQUESTED",
+          category: "INFORMATION",
+          question: "Confirm the current implementation constraint.",
+        });
+        const beforeEvents = coord.listRunEvents(runtime, run.id);
+        fs.writeFileSync(
+          repositoryRoot + "/docs/design.md",
+          "design changed before human input\\n",
+        );
+        let error = null;
+        try {
+          await coord.submitRunInput(
+            runtime,
+            run.id,
+            "Use the current constraint.",
+            requested.id,
+          );
+        } catch (caught) {
+          error = caught instanceof Error ? caught.message : String(caught);
+        }
+        const after = coord.getWorkItem(runtime, work);
+        const finalRun = coord.getRun(runtime, run.id);
+        const afterEvents = coord.listRunEvents(runtime, run.id);
+        console.log(JSON.stringify({
+          error,
+          before: {
+            stage: before.stage,
+            status: before.status,
+            outcome: before.outcome,
+          },
+          after: {
+            stage: after.stage,
+            status: after.status,
+            outcome: after.outcome,
+          },
+          runStatus: finalRun.status,
+          eventIdsUnchanged:
+            JSON.stringify(afterEvents.map((event) => event.id)) ===
+            JSON.stringify(beforeEvents.map((event) => event.id)),
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      error: string | null;
+      before: { stage: string; status: string; outcome: string | null };
+      after: { stage: string; status: string; outcome: string | null };
+      runStatus: string;
+      eventIdsUnchanged: boolean;
+    };
+
+    expect(output.error).toMatch(/upstream conformance is missing or stale: DESIGN/);
+    expect(output.after).toEqual(output.before);
+    expect(output.runStatus).toBe("WAITING_FOR_INPUT");
+    expect(output.eventIdsUnchanged).toBe(true);
+  }, 30_000);
+
   it("serializes concurrent Start commands to exactly one Run", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-start-start-");
