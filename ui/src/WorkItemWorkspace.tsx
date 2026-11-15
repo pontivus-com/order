@@ -403,16 +403,22 @@ export const WorkItemWorkspace = ({
     allRunEvents,
     tasks,
   );
-  const dependentRunEventsFetching = runEventQueries.some(
-    (query) => query.isFetching,
-  );
+  const currentStageEventsFetching =
+    currentStageRun !== null &&
+    runs.some((run, index) =>
+      run.id === currentStageRun.id &&
+      runEventQueries[index]?.isFetching === true
+    );
+  const currentExecutionTasksFetching =
+    (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
+    tasksQuery.isFetching;
   const transportConverging =
     terminalDrainPending ||
     selectedWorkItemFetching ||
     runsQuery.isFetching ||
     artifactsQuery.isFetching ||
-    tasksQuery.isFetching ||
-    dependentRunEventsFetching ||
+    currentExecutionTasksFetching ||
+    currentStageEventsFetching ||
     currentStageEventsPending ||
     sourceQuery.isFetching ||
     diagnosticsQuery.isFetching ||
@@ -587,9 +593,24 @@ export const WorkItemWorkspace = ({
                 ? "success" as const
                 : "neutral" as const;
 
-  const runEventObservationVersion = runEventQueries
-    .map((query) => query.dataUpdatedAt)
-    .join(",");
+  const currentStageEventUpdatedAt =
+    currentStageRun === null
+      ? 0
+      : runs.reduce(
+          (updatedAt, run, index) =>
+            run.id === currentStageRun.id
+              ? runEventQueries[index]?.dataUpdatedAt ?? updatedAt
+              : updatedAt,
+          0,
+        );
+  const currentTaskUpdatedAt =
+    workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"
+      ? tasksQuery.dataUpdatedAt
+      : 0;
+  const currentSignoffUpdatedAt =
+    workItem.stage === "AWAITING_SIGNOFF"
+      ? signoffPackageQuery.dataUpdatedAt
+      : 0;
   const observationVersion = [
     workItem.id,
     workItem.stage,
@@ -598,12 +619,12 @@ export const WorkItemWorkspace = ({
     workItem.sourceSha256,
     selectedWorkItemUpdatedAt,
     runsQuery.dataUpdatedAt,
-    runEventObservationVersion,
+    currentStageEventUpdatedAt,
     artifactsQuery.dataUpdatedAt,
-    tasksQuery.dataUpdatedAt,
+    currentTaskUpdatedAt,
     sourceQuery.dataUpdatedAt,
     diagnosticsQuery.dataUpdatedAt,
-    signoffPackageQuery.dataUpdatedAt,
+    currentSignoffUpdatedAt,
   ].join(":");
 
   useEffect(() => {
