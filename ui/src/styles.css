@@ -9,10 +9,10 @@
 @import "./theme.css";
 
 html, body, #root { min-height: 100%; }
-body { margin: 0; background: var(--order-workbench-bg); color: var(--order-workbench-text); }
-* { box-sizing: border-box; }
-
-.order-opencode-account-trigger,
-.order-opencode-account-panel input {
-  font: inherit;
+body {
+  margin: 0;
+  background: var(--color-background-body);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-body);
 }
+* { box-sizing: border-box; }

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
+import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 
 import {
   MarkdownTextSchema,
@@ -14,10 +14,10 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 import { MarkdownEditor } from "./MarkdownEditor.tsx";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import {
-  WorkbenchEmptyState,
-  WorkbenchErrorState,
-} from "./primitives/WorkbenchState.tsx";
+import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
+import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
+import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
@@ -96,18 +96,10 @@ const useDocumentationGitState = (
   const invalidateDocumentation = async (): Promise<void> => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({
-        queryKey: workbenchQueryKeys.workItemSource(workItem.id),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: workbenchQueryKeys.artifacts(workItem.id),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
-      }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSource(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.artifacts(workItem.id) }),
+      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
     ]);
     void queryClient.invalidateQueries({
       queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id),
@@ -124,13 +116,10 @@ const useDocumentationGitState = (
           .filter((path) =>
             path.state === "MODIFIED" ||
             path.state === "UNTRACKED" ||
-            path.state === "DELETED"
-          )
+            path.state === "DELETED")
           .map((path) => ({
             repositoryPath: path.repositoryPath,
-            sha256: path.state === "DELETED"
-              ? null
-              : path.workingTreeSha256,
+            sha256: path.state === "DELETED" ? null : path.workingTreeSha256,
           })),
       });
     },
@@ -159,48 +148,54 @@ type DocumentationGitState = ReturnType<typeof useDocumentationGitState>;
 const DocumentationControls = ({
   dirty,
   state,
-}: Readonly<{
-  dirty: boolean;
-  state: DocumentationGitState;
-}>) => (
-  <div
-    className="order-document-toolbar-controls"
-    data-testid="document-git-controls"
-  >
-    <span className="order-document-git-state" data-testid="document-git-state">
-      {state.gitStateLabel}
-    </span>
-    {state.changedGitPaths.length > 0 ? (
-      <WorkbenchAction
-        label="Save documentation to Git"
-        tone="primary"
-        disabled={
-          dirty ||
-          state.gitStatusQuery.data === undefined ||
-          state.gitStatusQuery.data.blockers.length > 0 ||
-          state.commitDocumentation.isPending
-        }
-        loading={state.commitDocumentation.isPending}
-        onClick={() => state.setConfirmGitSave(true)}
-      />
-    ) : null}
-    {state.gitStatusQuery.isError ? (
-      <span className="order-error-text">
-        {errorText(state.gitStatusQuery.error)}
-      </span>
-    ) : null}
-    {state.gitStatusQuery.data?.blockers.map((blocker) => (
-      <span key={blocker} className="order-warning-text">
-        {gitBlockerText(blocker)}
-      </span>
-    ))}
-    {state.commitDocumentation.error ? (
-      <span className="order-error-text">
-        {errorText(state.commitDocumentation.error)}
-      </span>
-    ) : null}
-  </div>
-);
+}: Readonly<{ dirty: boolean; state: DocumentationGitState }>) => {
+  const blockers = state.gitStatusQuery.data?.blockers ?? [];
+  const tone =
+    dirty ? "warning" :
+    state.gitStatusQuery.isError ? "danger" :
+    state.changedGitPaths.length === 0 ? "success" : "info";
+  return (
+    <div className="order-document-controls" data-testid="document-git-controls">
+      <WorkbenchStatus tone={tone} label={state.gitStateLabel} />
+      {state.changedGitPaths.length > 0 ? (
+        <WorkbenchAction
+          label="Save documentation to Git"
+          tone="primary"
+          disabled={
+            dirty ||
+            state.gitStatusQuery.data === undefined ||
+            blockers.length > 0 ||
+            state.commitDocumentation.isPending
+          }
+          loading={state.commitDocumentation.isPending}
+          onClick={() => state.setConfirmGitSave(true)}
+        />
+      ) : null}
+      {state.gitStatusQuery.isError ? (
+        <WorkbenchNotice
+          tone="danger"
+          title="Git state unavailable"
+          description={errorText(state.gitStatusQuery.error)}
+        />
+      ) : null}
+      {blockers.map((blocker) => (
+        <WorkbenchNotice
+          key={blocker}
+          tone="warning"
+          title="Documentation cannot be saved to Git"
+          description={gitBlockerText(blocker)}
+        />
+      ))}
+      {state.commitDocumentation.error ? (
+        <WorkbenchNotice
+          tone="danger"
+          title="Documentation Git save failed"
+          description={errorText(state.commitDocumentation.error)}
+        />
+      ) : null}
+    </div>
+  );
+};
 
 const DocumentationTechnicalDetails = ({
   selectedRepositoryPath,
@@ -212,62 +207,57 @@ const DocumentationTechnicalDetails = ({
   children?: ReactNode;
 }>) => (
   <>
-    <div className="order-document-technical-details">
-      <div>
-        <span>Selected path</span>
+    <MetadataList columns="single">
+      <MetadataListItem label="Selected path">
         <code>{selectedRepositoryPath ?? state.workItemDirectory}</code>
-      </div>
+      </MetadataListItem>
       {state.selectedGitPath ? (
-        <div>
-          <span>Working tree</span>
-          <code>
-            {state.selectedGitPath.state.replaceAll("_", " ").toLowerCase()}
-          </code>
-        </div>
+        <MetadataListItem label="Working tree">
+          <code>{state.selectedGitPath.state.replaceAll("_", " ").toLowerCase()}</code>
+        </MetadataListItem>
       ) : null}
-      <div>
-        <span>WorkItem directory</span>
+      <MetadataListItem label="WorkItem directory">
         <code>{state.workItemDirectory}</code>
-      </div>
+      </MetadataListItem>
       {state.gitStatusQuery.data ? (
         <>
-          <div>
-            <span>Branch</span>
+          <MetadataListItem label="Branch">
             <code>{state.gitStatusQuery.data.branch ?? "detached HEAD"}</code>
-          </div>
-          <div>
-            <span>HEAD</span>
+          </MetadataListItem>
+          <MetadataListItem label="HEAD">
             <code>{state.gitStatusQuery.data.headCommit}</code>
-          </div>
+          </MetadataListItem>
         </>
       ) : null}
-    </div>
+    </MetadataList>
     {children}
   </>
 );
 
 const DocumentationGitConfirmation = ({
   state,
-}: Readonly<{
-  state: DocumentationGitState;
-}>) => (
-  <AlertDialog
-    isOpen={state.confirmGitSave}
+}: Readonly<{ state: DocumentationGitState }>) => (
+  <WorkbenchConfirmation
+    open={state.confirmGitSave}
     onOpenChange={state.setConfirmGitSave}
     title="Save WorkItem documentation to Git?"
     description={
       state.changedGitPaths.length === 0
         ? "No governed WorkItem paths differ from HEAD."
         : "Only these governed paths will be committed: " +
-          state.changedGitPaths
-            .map((path) => path.repositoryPath)
-            .join(", ")
+          state.changedGitPaths.map((path) => path.repositoryPath).join(", ")
     }
-    cancelLabel="Cancel"
-    actionLabel="Save documentation to Git"
-    onAction={() => state.commitDocumentation.mutate()}
+    confirmLabel="Save documentation to Git"
+    actionTone="primary"
+    pending={state.commitDocumentation.isPending}
+    onConfirm={() => state.commitDocumentation.mutate()}
   />
 );
+
+const gitSourcePath = (
+  workItem: WorkItem,
+  repositoryPath: string | null,
+): string => repositoryPath ?? workItem.sourcePath;
 
 export const SourceDocumentMaterial = ({
   workItem,
@@ -283,36 +273,26 @@ export const SourceDocumentMaterial = ({
   const [dirty, setDirty] = useState(false);
   const sourceReadOnly =
     readOnly || workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE";
-  const git = useDocumentationGitState(
-    workItem,
-    dirty,
-    gitSourcePath(workItem, null),
-  );
+  const git = useDocumentationGitState(workItem, dirty, gitSourcePath(workItem, null));
   const selectedRepositoryPath = git.sourceQuery.data?.path ?? workItem.sourcePath;
 
   useEffect(() => {
-    onContextDocumentChange(
-      selectedRepositoryPath,
-      git.sourceQuery.data?.sha256 ?? null,
-    );
-  }, [
-    git.sourceQuery.data?.sha256,
-    onContextDocumentChange,
-    selectedRepositoryPath,
-  ]);
+    onContextDocumentChange(selectedRepositoryPath, git.sourceQuery.data?.sha256 ?? null);
+  }, [git.sourceQuery.data?.sha256, onContextDocumentChange, selectedRepositoryPath]);
 
   if (git.sourceQuery.isPending) {
     return (
-      <section className="order-workspace-section" data-testid="source-document-material">
+      <section data-testid="source-document-material">
         {!sourceReadOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
-        <WorkbenchEmptyState compact title="Loading work request…" />
+        <WorkbenchState kind="loading" title="Loading work request…" />
       </section>
     );
   }
   if (git.sourceQuery.isError || !git.sourceQuery.data) {
     return (
-      <section className="order-workspace-section" data-testid="source-document-material">
-        <WorkbenchErrorState
+      <section data-testid="source-document-material">
+        <WorkbenchState
+          kind="error"
           title="Work request unavailable"
           description={errorText(git.sourceQuery.error)}
         />
@@ -321,60 +301,51 @@ export const SourceDocumentMaterial = ({
   }
 
   return (
-    <section className="order-workspace-section" data-testid="source-document-material">
-      <div className="order-source-authoring">
-        <MarkdownEditor
-          key={"source-" + workItem.id}
-          title="WorkItem source"
-          description={
-            readOnly
-              ? "Read-only supporting Work request context."
-              : sourceReadOnly
-                ? "Read-only in execution/completed state."
-                : "Canonical human-authored work definition."
-          }
-          sha256={git.sourceQuery.data.sha256}
-          markdown={git.sourceQuery.data.bodyMarkdown}
-          readOnly={sourceReadOnly}
-          onDirtyChange={(value) => {
-            setDirty(value);
-            onDirtyChange(value);
-          }}
-          onSave={async (expectedSha256, value) => {
-            const result = await api.saveWorkItemSourceBody(workItem.id, {
-              expectedSha256,
-              bodyMarkdown: value,
-            });
-            await git.invalidateDocumentation();
-            return result;
-          }}
-          toolbarAccessory={
-            sourceReadOnly
-              ? undefined
-              : <DocumentationControls dirty={dirty} state={git} />
-          }
-          technicalDetails={
-            <DocumentationTechnicalDetails
-              selectedRepositoryPath={selectedRepositoryPath}
-              state={git}
-            >
-              <div className="order-source-technical">
-                <strong>Complete portable source</strong>
-                <pre><code>{git.sourceQuery.data.markdown}</code></pre>
-              </div>
-            </DocumentationTechnicalDetails>
-          }
-        />
-      </div>
+    <section data-testid="source-document-material">
+      <MarkdownEditor
+        key={"source-" + workItem.id}
+        title="WorkItem source"
+        description={
+          readOnly
+            ? "Read-only supporting Work request context."
+            : sourceReadOnly
+              ? "Read-only in execution/completed state."
+              : "Canonical human-authored work definition."
+        }
+        sha256={git.sourceQuery.data.sha256}
+        markdown={git.sourceQuery.data.bodyMarkdown}
+        readOnly={sourceReadOnly}
+        onDirtyChange={(value) => {
+          setDirty(value);
+          onDirtyChange(value);
+        }}
+        onSave={async (expectedSha256, value) => {
+          const result = await api.saveWorkItemSourceBody(workItem.id, {
+            expectedSha256,
+            bodyMarkdown: value,
+          });
+          await git.invalidateDocumentation();
+          return result;
+        }}
+        toolbarAccessory={
+          sourceReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} />
+        }
+        technicalDetails={
+          <DocumentationTechnicalDetails
+            selectedRepositoryPath={selectedRepositoryPath}
+            state={git}
+          >
+            <div className="order-source-technical">
+              <strong>Complete portable source</strong>
+              <pre><code>{git.sourceQuery.data.markdown}</code></pre>
+            </div>
+          </DocumentationTechnicalDetails>
+        }
+      />
       {!sourceReadOnly ? <DocumentationGitConfirmation state={git} /> : null}
     </section>
   );
 };
-
-const gitSourcePath = (
-  workItem: WorkItem,
-  repositoryPath: string | null,
-): string => repositoryPath ?? workItem.sourcePath;
 
 export const LifecycleDocumentMaterial = ({
   workItem,
@@ -397,14 +368,11 @@ export const LifecycleDocumentMaterial = ({
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
   });
   const selectedArtifact =
-    (artifactsQuery.data ?? []).find((artifact) => artifact.id === artifactId) ??
-    null;
+    (artifactsQuery.data ?? []).find((artifact) => artifact.id === artifactId) ?? null;
   const contentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
-      if (!selectedArtifact) {
-        throw new TypeError("lifecycle artifact selection required");
-      }
+      if (!selectedArtifact) throw new TypeError("lifecycle artifact selection required");
       return api.readArtifactContent(selectedArtifact.id);
     },
     enabled: selectedArtifact !== null,
@@ -428,32 +396,14 @@ export const LifecycleDocumentMaterial = ({
   ]);
 
   if (artifactsQuery.isPending || contentQuery.isPending) {
-    return (
-      <section className="order-workspace-section" data-testid="lifecycle-document-material">
-        <WorkbenchEmptyState compact title="Loading lifecycle document…" />
-      </section>
-    );
+    return <section data-testid="lifecycle-document-material"><WorkbenchState kind="loading" title="Loading lifecycle document…" /></section>;
   }
   if (artifactsQuery.isError || contentQuery.isError) {
     const error = artifactsQuery.error ?? contentQuery.error;
-    return (
-      <section className="order-workspace-section" data-testid="lifecycle-document-material">
-        <WorkbenchErrorState
-          title="Lifecycle document unavailable"
-          description={errorText(error)}
-        />
-      </section>
-    );
+    return <section data-testid="lifecycle-document-material"><WorkbenchState kind="error" title="Lifecycle document unavailable" description={errorText(error)} /></section>;
   }
   if (!selectedArtifact || !contentQuery.data) {
-    return (
-      <section className="order-workspace-section" data-testid="lifecycle-document-material">
-        <WorkbenchEmptyState
-          compact
-          title="Lifecycle document is no longer current"
-        />
-      </section>
-    );
+    return <section data-testid="lifecycle-document-material"><WorkbenchState kind="empty" title="Lifecycle document is no longer current" /></section>;
   }
 
   const markdown = decodeCanonicalMarkdown(contentQuery.data);
@@ -461,22 +411,24 @@ export const LifecycleDocumentMaterial = ({
     readOnly || !artifactDirectEditIsAllowed(workItem, selectedArtifact);
 
   return (
-    <section className="order-workspace-section" data-testid="lifecycle-document-material">
+    <section data-testid="lifecycle-document-material">
       {markdown === null ? (
-        <div className="order-state">
-          <strong>Lifecycle document is not canonical editable Markdown</strong>
-          <div>
-            The exact bytes remain inspection-only and will not be normalized
-            or overwritten.
-          </div>
-          <div className="order-inline-actions">
-            <WorkbenchAction
-              label="Inspect exact bytes"
-              onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}
-            />
-            {!readOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
-          </div>
-        </div>
+        <WorkbenchNotice
+          tone="warning"
+          title="Lifecycle document is not canonical editable Markdown"
+          description={
+            <span>
+              The exact bytes remain inspection-only and will not be normalized or overwritten.
+              <span className="order-inline-actions">
+                <WorkbenchAction
+                  label="Inspect exact bytes"
+                  onClick={() => onOpenArtifactEvidence(selectedArtifact.id)}
+                />
+                {!readOnly ? <DocumentationControls dirty={dirty} state={git} /> : null}
+              </span>
+            </span>
+          }
+        />
       ) : (
         <MarkdownEditor
           key={selectedArtifact.id}
@@ -502,9 +454,7 @@ export const LifecycleDocumentMaterial = ({
             return result;
           }}
           toolbarAccessory={
-            readOnly
-              ? undefined
-              : <DocumentationControls dirty={dirty} state={git} />
+            readOnly ? undefined : <DocumentationControls dirty={dirty} state={git} />
           }
           technicalDetails={
             <DocumentationTechnicalDetails

@@ -244,8 +244,91 @@ describe("Order cross-boundary certification", () => {
     expect(layout).not.toContain("inspector-fallback");
 
     const theme = read("ui/src/theme.css");
-    expect(theme).toContain("--order-workbench-bg");
+    expect(theme).toContain("--color-background-body: #FFFFFF");
+    expect(theme).toContain("--color-background-body: #111A29");
+    expect(theme).toContain("--order-context-width: 22rem");
+    expect(theme).not.toContain("--order-color-");
+    expect(theme).not.toContain("--order-workbench-");
+    expect(theme).not.toContain("--order-editor-");
+    expect(theme).not.toContain("--_");
+    expect(theme).not.toContain("color-mix(");
     expect(theme).not.toContain("--pontivus-plugin-panel-inspector-width-standard: 26.25rem");
+    expect(theme.split("/* 2. Order-only structural/readability roles. */")[1]).not.toMatch(/#[0-9A-Fa-f]{3,8}\b/);
+
+    const styles = read("ui/src/styles.css");
+    expect(styles).not.toMatch(/\.order-[A-Za-z0-9_-]+/);
+    expect(styles).toContain("var(--color-background-body)");
+    expect(styles).toContain("var(--color-text-primary)");
+
+    const media = [...theme.matchAll(/@media\s*\(([^)]+)\)/g)].map((match) => match[1]).sort();
+    expect(media).toEqual([
+      "max-width: 1279px",
+      "max-width: 799px",
+      "prefers-color-scheme: dark",
+    ]);
+
+    const renderers = readdirSync(join(root, "ui", "src"), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".tsx"))
+      .map((entry) => entry.name)
+      .sort();
+    expect(renderers).toEqual([
+      "ActivityComposer.tsx",
+      "ActivityWorkspace.tsx",
+      "CreateWorkItem.tsx",
+      "DocumentWorkspace.tsx",
+      "EvidenceViewer.tsx",
+      "ExecutionWorkspace.tsx",
+      "MarkdownEditor.tsx",
+      "MarkdownSourceEditor.tsx",
+      "OpenCodeAccountControl.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "PreSignoffStageWorkspace.tsx",
+      "ProposalReview.tsx",
+      "ReadinessWorkspace.tsx",
+      "RunEventTimeline.tsx",
+      "SettingsWorkspace.tsx",
+      "SignoffReview.tsx",
+      "TerminalResult.tsx",
+      "WorkItemContext.tsx",
+      "WorkItemIdentityRow.tsx",
+      "WorkItemQueue.tsx",
+      "WorkItemWorkspace.tsx",
+      "WorkflowMaterialSelector.tsx",
+      "WorkflowRail.tsx",
+      "WorkflowStepFrame.tsx",
+      "app.tsx",
+      "main.tsx",
+    ]);
+
+    const bootstrap = new Set(["main.tsx"]);
+    const rendererSource = renderers
+      .filter((name) => !bootstrap.has(name))
+      .map((name) => read("ui/src/" + name))
+      .join("\n");
+    for (const foundationMechanic of [
+      "@astryxdesign/core/AppShell",
+      "@astryxdesign/core/Layout",
+      "@astryxdesign/core/Drawer",
+      "@astryxdesign/core/Dialog",
+      "@astryxdesign/core/AlertDialog",
+      "@astryxdesign/core/Button",
+      "@astryxdesign/core/IconButton",
+      "@astryxdesign/core/StatusDot",
+      "@astryxdesign/core/Banner",
+      "@astryxdesign/core/Table",
+      "@astryxdesign/core/List",
+    ]) {
+      expect(rendererSource).not.toContain(foundationMechanic);
+    }
+    expect(rendererSource).not.toContain("@astryxdesign/core/Badge");
+
+    for (const adapter of [
+      "WorkItemIdentityRow.tsx",
+      "WorkflowMaterialSelector.tsx",
+      "WorkflowRail.tsx",
+    ]) {
+      expect(existsSync(join(root, "ui", "src", adapter))).toBe(true);
+    }
   });
 
   it("keeps browser state and transport on the canonical HTTP boundary", () => {
