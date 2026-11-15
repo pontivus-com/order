@@ -479,6 +479,7 @@ export const App = () => {
         workItem={selectedWorkItem}
         selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
         selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
+        selectedWorkItemError={selectedWorkItemQuery.error}
         toolbar={toolbar}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
