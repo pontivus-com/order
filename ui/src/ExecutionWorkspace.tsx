@@ -128,7 +128,7 @@ const ValidationMatrix = ({
   );
 };
 
-export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence }: Readonly<{
+export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence, onMutationError }: Readonly<{
   workItem: WorkItem;
   material: WorkflowMaterial;
   executionOwner: ExecutionOwner;
@@ -136,6 +136,7 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutatio
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onReturnFromEvidence: () => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
   const tasksQuery = useQuery({ queryKey: workbenchQueryKeys.tasks(workItem.id), queryFn: () => api.listExecutionTasks(workItem.id) });
@@ -172,19 +173,20 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, mutatio
   });
   const events=eventsQuery.data??[];
   const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
-  const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate,onError:invalidate});
+  const reportError=async(error:unknown):Promise<void>=>{onMutationError?.(error);await invalidate();};
+  const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate,onError:reportError});
   const cancel=useMutation({
     mutationFn:()=>{
       if(!currentOwnerRun)throw new TypeError("current implementation owner has no active attempt");
       return api.cancelRun(currentOwnerRun.id);
     },
     onSuccess:invalidate,
-    onError:invalidate,
+    onError:reportError,
   });
   const resume=useMutation({
     mutationFn:()=>api.resumeWorkItem(workItem.id),
     onSuccess:invalidate,
-    onError:invalidate,
+    onError:reportError,
   });
 
   const canRunNext=
