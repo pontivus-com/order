@@ -55,7 +55,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          node node_modules/@playwright/test/cli.js test tests/browser.spec.ts --grep "Approval consumes the real typed stale authority owner|long Source and lifecycle Markdown|workflow step owns Run history|completed pre-signoff history|workflow mutations lock their owning controls|successful workflow mutations reconcile|proposal decisions are primary|dirty Markdown navigation"
+          node node_modules/@playwright/test/cli.js test tests/browser.spec.ts --grep "long Source and lifecycle Markdown|source editor preserves stale buffers|dirty Markdown navigation"
           status=$?
           echo "=== PLAYWRIGHT ERROR CONTEXTS ==="
           find test-results -type f -name error-context.md -print -exec cat {} \; || true
