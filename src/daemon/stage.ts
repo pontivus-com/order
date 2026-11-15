@@ -750,16 +750,40 @@ const submitRunInputUnlocked = async (
   }
 
   const received = withTransaction(runtime.database, () => {
-    if (run.status === "WAITING_FOR_INPUT") {
-      updateRun(runtime, run.id, { status: "RUNNING" });
+    const currentRun = getRun(runtime, run.id);
+    if (
+      currentRun.status !== "RUNNING" &&
+      currentRun.status !== "WAITING_FOR_INPUT"
+    ) {
+      throw new TypeError("Run stopped accepting human input before commit");
+    }
+    const currentEvents = listRunEvents(runtime, currentRun.id);
+    if (deriveProposalDecision(currentEvents).tag !== "NONE") {
+      throw new TypeError(
+        "lifecycle proposal became current before human input commit",
+      );
+    }
+    const currentInteraction = stageRunInteraction(currentRun, currentEvents);
+    if (!stageInputIsAdmitted(currentInteraction, requestEventId)) {
+      throw new TypeError("human input admission changed before commit");
+    }
+    const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
+    if (
+      currentWorkItem.stage !== currentRun.stage ||
+      currentWorkItem.status !== "ACTIVE"
+    ) {
+      throw new TypeError("WorkItem lifecycle changed before human input commit");
+    }
+    if (currentRun.status === "WAITING_FOR_INPUT") {
+      updateRun(runtime, currentRun.id, { status: "RUNNING" });
     }
     if (contextChanged) {
-      updateRun(runtime, run.id, {
+      updateRun(runtime, currentRun.id, {
         contextHash: context.contextHash,
         providerSessionId: null,
       });
     }
-    return appendRunEvent(runtime, run.id, {
+    return appendRunEvent(runtime, currentRun.id, {
       tag: "HUMAN_INPUT_RECEIVED",
       requestEventId,
       text,
@@ -862,7 +886,21 @@ const adoptArtifactProposalUnlocked = async (
       proposal.event.unifiedDiff,
     );
     withTransaction(runtime.database, () => {
-      appendRunEvent(runtime, run.id, {
+      const currentRun = getRun(runtime, run.id);
+      const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
+      if (
+        currentWorkItem.stage !== currentRun.stage ||
+        currentWorkItem.status !== "ACTIVE"
+      ) {
+        throw new TypeError("proposal owner changed before adoption intent commit");
+      }
+      if (proposalDisposition(runtime, proposal) !== null) {
+        throw new TypeError("artifact proposal was dispositioned before adoption intent commit");
+      }
+      if (proposalAdoptionRequest(runtime, proposal) !== null) {
+        throw new TypeError("artifact proposal adoption intent was already recorded");
+      }
+      appendRunEvent(runtime, currentRun.id, {
         tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
         proposalEventId: proposal.id,
       });
