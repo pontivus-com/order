@@ -216,7 +216,9 @@ parse canonical command
 
 No state-changing command relies solely on a pre-`await` state check.
 
-No generic mutation queue/service is introduced. SQLite transaction re-checks plus existing expected-hash/durable-intent mechanisms provide the concurrency boundary. The single daemon remains the sole state-mutating process.
+No generic mutation queue/service is introduced. The single daemon uses one process-local per-WorkItem mutation guard for operator commands, held across any asynchronous inspection/filesystem effect and final persistence. A concurrent operator mutation for the same WorkItem is rejected rather than queued. The guard is ephemeral synchronization only: it is not persisted, transported or treated as workflow state.
+
+Inside that guard, SQLite transaction re-checks plus existing expected-hash/durable-intent mechanisms close the final commit boundary. Background provider-turn finalization is not held behind a long-lived guard while OpenCode executes; it uses final transactional compare/recheck so provider completion and Cancel have a deterministic winner.
 
 ### 5.2 Start STAGE Run
 
@@ -302,6 +304,7 @@ Non-lifecycle proposal capability remains governed by its existing canonical aut
 
 Source/title/body and lifecycle-artifact Save:
 
+- execute under the per-WorkItem operator-mutation guard;
 - are rejected while any Run for the WorkItem is active;
 - use existing expected-hash compare/write semantics;
 - recheck active-Run/current-stage admission immediately before the filesystem effect;
@@ -313,7 +316,7 @@ IDEA Work request Save remains IDEA. Progressed source mutation returns to R1. L
 
 ### 5.8 Sign-off and resume
 
-Sign-off is the only AWAITING_SIGNOFF -> EXECUTION command.
+Sign-off is the only AWAITING_SIGNOFF -> EXECUTION command and executes under the per-WorkItem operator-mutation guard.
 
 The command computes the exact package read-only, compares the submitted expected hash, and immediately before storing Approval/tasks rechecks that the WorkItem is still AWAITING_SIGNOFF / ACTIVE and the exact package/currentness preconditions still hold.
 
@@ -559,6 +562,10 @@ These are pure functions over canonical types. No Zod/transport/persistence mode
 
 Retain post-signoff task/provider-role admission and bounded repair/recovery policy. It does not become the Workbench state owner.
 
+### `src/daemon/runtime.ts`
+
+Add only the process-local per-WorkItem operator-mutation guard state/helper required by §5.1. It remains ephemeral synchronization and does not become canonical workflow state or a queued job system.
+
 ### `src/daemon/work-item-source.ts`
 
 Separate inspection from explicit reconciliation and remove read-path application of source plans.
@@ -627,9 +634,9 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 **Realizes:** `GW-FR-202`, `GW-FR-204`, `GW-FR-207`, `GW-FR-208`, `GW-FR-209`.
 
-**Required behavior:** every workflow command that crosses an `await` before persistence reloads canonical DB state and repeats all DB-decidable admission checks inside its final transaction; expected-hash/durable-intent rules remain the filesystem concurrency boundary.
+**Required behavior:** operator workflow commands acquire the process-local per-WorkItem mutation guard across their full effect, and every command that crosses an `await` before persistence reloads canonical DB state and repeats all DB-decidable admission checks inside its final transaction; expected-hash/durable-intent rules remain the filesystem concurrency boundary.
 
-**Acceptance:** concurrent Start/Input/Cancel/Save/Adopt/Sign-off/Resume races produce at most one admitted transition and cannot overwrite a winning transition.
+**Acceptance:** concurrent operator Start/Input/Cancel/Save/Adopt/Sign-off/Resume commands for one WorkItem cannot overlap their mutation effects; background provider-finalize/Cancel races produce one transactional winner and cannot overwrite the winning transition.
 
 ### GW-TR-087-MONOTONIC-REACHED-HISTORY-DERIVATION
 
@@ -748,7 +755,7 @@ This design does not authorize:
 - a browser Redux/Zustand/workflow state store;
 - WebSocket/SSE/token streaming;
 - a command/event bus;
-- a global mutation queue/service;
+- a global mutation queue/service or persisted mutation-lock model;
 - compatibility behavior for the superseded Workbench implementation;
 - redesign of OpenCode provider semantics unrelated to STAGE-turn admission/finalization.
 
