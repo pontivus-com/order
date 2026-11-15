@@ -4,7 +4,7 @@ import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import type { WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
@@ -24,15 +24,8 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
   const disposition = proposalPayload ? proposalDispositionFor(events, selection.eventId) : null;
   const adoptionRequested = events.some((event) => event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" && event.event.proposalEventId === selection.eventId);
 
-  const invalidate = async (): Promise<void> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runEvents(selection.runId) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
-    ]);
-  };
+  const invalidate = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
   const decision = useMutation({
     mutationFn: async (action: "ADOPT" | "REJECT") => { if (action === "ADOPT") await api.adoptProposal(selection.eventId); else await api.rejectProposal(selection.eventId); },
     onSuccess: async () => { await invalidate(); onBack(); },
