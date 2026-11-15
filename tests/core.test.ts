@@ -1198,8 +1198,39 @@ describe("closed Workbench workflow-state kernel", () => {
       status: "ACTIVE",
       outcome: null,
     });
+    expect(() =>
+      transitionWorkItem(baseWorkItem(), { tag: "START_RESEARCH" }),
+    ).toThrow(/IDEA/);
 
     const research = baseWorkItem();
+    const plan = WorkItemSchema.parse({
+      ...research,
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(transitionWorkItem(plan, { tag: "SOURCE_AUTHORITY_CHANGED" })).toEqual({
+      stage: "R1",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(
+      transitionWorkItem(plan, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: "DESIGN",
+      }),
+    ).toEqual({
+      stage: "DESIGN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(() =>
+      transitionWorkItem(research, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: "R3",
+      }),
+    ).toThrow(/has not been reached/);
+
     expect(transitionWorkItem(research, { tag: "BLOCK_CURRENT_OWNER" })).toEqual({
       stage: "R1",
       status: "BLOCKED",
@@ -1211,6 +1242,12 @@ describe("closed Workbench workflow-state kernel", () => {
       status: "ACTIVE",
       outcome: null,
     });
+    expect(() =>
+      transitionWorkItem(blocked, { tag: "BLOCK_CURRENT_OWNER" }),
+    ).toThrow(/requires ACTIVE/);
+    expect(() =>
+      transitionWorkItem(research, { tag: "RESUME_CURRENT_OWNER" }),
+    ).toThrow(/requires BLOCKED/);
     expect(
       transitionWorkItem(research, {
         tag: "STAGE_COMPLETED",
@@ -1222,6 +1259,11 @@ describe("closed Workbench workflow-state kernel", () => {
       ...research,
       stage: "AWAITING_SIGNOFF",
       status: "ACTIVE",
+    });
+    expect(transitionWorkItem(awaiting, { tag: "SOURCE_AUTHORITY_CHANGED" })).toEqual({
+      stage: "R1",
+      status: "ACTIVE",
+      outcome: null,
     });
     expect(transitionWorkItem(awaiting, { tag: "SIGN_OFF" })).toEqual({
       stage: "EXECUTION",
@@ -1257,6 +1299,18 @@ describe("closed Workbench workflow-state kernel", () => {
       status: "COMPLETE",
       outcome: "CANDIDATE_DONE",
     });
+    expect(() =>
+      transitionWorkItem(research, {
+        tag: "EXECUTION_RETURN",
+        owner: "R1",
+      }),
+    ).toThrow(/EXECUTION owner/);
+    expect(() =>
+      transitionWorkItem(research, {
+        tag: "EXECUTION_COMPLETED",
+        outcome: "ALREADY_SATISFIED",
+      }),
+    ).toThrow(/EXECUTION owner/);
     expect(() =>
       transitionWorkItem(research, { tag: "SIGN_OFF" }),
     ).toThrow(/AWAITING_SIGNOFF/);
