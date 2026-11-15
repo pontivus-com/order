@@ -960,6 +960,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await expect(page.getByRole("button", { name: "Save", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByText("Unsaved", { exact: true })).toHaveCount(0);
 
     await backToQueue(page);
     await openWorkItem(page, title);
@@ -1490,7 +1491,7 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
       .getByRole("button", { name: "Research", exact: true }),
   ).toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("selected-run-header")).toContainText("Running");
-  await expect(page.getByTestId("activity-composer")).toBeVisible();
+  await expect(page.getByTestId("activity-composer")).toHaveCount(0);
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow input required");
@@ -1573,7 +1574,7 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   await page.unroute(retryPattern);
   await expect(page.getByTestId("selected-run-header")).toContainText("Attempt 2");
   await expect(page.getByTestId("selected-run-header")).toContainText("Running");
-  await expect(page.getByTestId("activity-composer")).toBeVisible();
+  await expect(page.getByTestId("activity-composer")).toHaveCount(0);
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow resume action");
