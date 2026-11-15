@@ -489,18 +489,65 @@ export const deriveProposalDecision = (
   const adoptions = events.filter(
     (event) => event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
   );
+  const proposalById = new Map(created.map((proposal) => [proposal.id, proposal] as const));
 
-  for (const event of [...dispositions, ...adoptions]) {
+  for (const control of [...dispositions, ...adoptions]) {
     const proposalEventId =
-      event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" ||
-      event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
-        ? event.event.proposalEventId
+      control.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" ||
+      control.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ? control.event.proposalEventId
         : null;
-    if (
-      proposalEventId === null ||
-      !created.some((proposal) => proposal.id === proposalEventId)
-    ) {
+    const proposal = proposalEventId === null
+      ? undefined
+      : proposalById.get(proposalEventId);
+    if (proposal === undefined) {
       throw new TypeError("proposal control event references unknown proposal");
+    }
+    if (control.sequence <= proposal.sequence) {
+      throw new TypeError("proposal control event precedes its proposal");
+    }
+  }
+
+  for (const proposal of created) {
+    const proposalDispositions = dispositions.filter(
+      (event) =>
+        event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+        event.event.proposalEventId === proposal.id,
+    );
+    const proposalAdoptions = adoptions.filter(
+      (event) =>
+        event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" &&
+        event.event.proposalEventId === proposal.id,
+    );
+    if (proposalDispositions.length > 1) {
+      throw new TypeError("proposal has duplicate disposition");
+    }
+    if (proposalAdoptions.length > 1) {
+      throw new TypeError("proposal has duplicate adoption intent");
+    }
+
+    const disposition = proposalDispositions[0];
+    const adoption = proposalAdoptions[0];
+    if (
+      disposition !== undefined &&
+      adoption !== undefined &&
+      adoption.sequence >= disposition.sequence
+    ) {
+      throw new TypeError("proposal adoption intent must precede disposition");
+    }
+    if (
+      disposition?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+      disposition.event.disposition === "ADOPTED" &&
+      adoption === undefined
+    ) {
+      throw new TypeError("adopted proposal requires durable adoption intent");
+    }
+    if (
+      disposition?.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+      disposition.event.disposition === "REJECTED" &&
+      adoption !== undefined
+    ) {
+      throw new TypeError("rejected proposal cannot have adoption intent");
     }
   }
 
@@ -522,9 +569,6 @@ export const deriveProposalDecision = (
       event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" &&
       event.event.proposalEventId === proposal.id,
   );
-  if (adoption.length > 1) {
-    throw new TypeError("proposal has duplicate adoption intent");
-  }
   return adoption.length === 1
     ? { tag: "ADOPTION_IN_PROGRESS", proposalEventId: proposal.id }
     : { tag: "PENDING", proposalEventId: proposal.id };
