@@ -677,6 +677,20 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   await expect(page.getByTestId("workflow-step-summary")).toContainText(
     "Implementation plan",
   );
+
+  await selectWorkflowStep(page, "Approval");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText(
+    "Returned upstream before sign-off",
+  );
+  await expect(page.getByTestId("review-workspace")).toContainText(
+    "Sign-off not completed · workflow returned upstream",
+  );
+  await expect(page.getByTestId("review-workspace")).toContainText(
+    "no sign-off authority was created",
+  );
+  await expect(
+    page.getByRole("button", { name: "Sign off exact package" }),
+  ).toHaveCount(0);
 });
 
 test("valid external Work request drift keeps source reconciliation distinct from Approval authority reconciliation", async ({
