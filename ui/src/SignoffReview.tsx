@@ -169,12 +169,14 @@ export const SignoffReview = ({
   mutationsDisabled = false,
   onOpenArtifactEvidence,
   onContextDocumentChange,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   summary: ReactNode;
   mutationsDisabled?: boolean;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
   const [selection, setSelection] = useState<ApprovalSelection>({
@@ -245,7 +247,8 @@ export const SignoffReview = ({
       setApprovedBy("");
       await invalidate();
     },
-    onError: async () => {
+    onError: async (error) => {
+      onMutationError?.(error);
       if (currentApproval) await invalidate();
     },
   });
