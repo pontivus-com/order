@@ -14,7 +14,7 @@ The single-task structure is mandatory under `GW-DOC-CANONICAL-CONTRACTS-V1`: Ex
 
 **Files:** `src/core/lifecycle.ts`, `tests/core.test.ts`.
 
-Extend the existing browser-safe lifecycle owner; do not create another core workflow module. Materialize the complete P4 decision language already closed by `GW-TR-082..084`, `GW-TR-087`, `GW-TR-089`, `GW-TR-091`, `GW-TR-097..098`: lifecycle transition causes, STAGE interaction/input admission, closed provider-turn grammar, proposal decision/adoption phase, monotonic reach, material currentness normalization, execution owner/current validation boundary, operator recovery, observation coherence, current attention and the sole nine-stage rail projection.
+Extend the existing browser-safe lifecycle owner; do not create another core workflow module. Materialize the complete P4 decision language already closed by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §§4.1–4.11` and the exact `GW-TR-082-WORKFLOW-TRANSITION-KERNEL`, `GW-TR-083-STAGE-RUN-INTERACTION-DERIVATION`, `GW-TR-084-STAGE-TURN-BATCH-ATOMICITY`, `GW-TR-087-MONOTONIC-REACHED-HISTORY-DERIVATION`, `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`, `GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION`, `GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA` and `GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION`: lifecycle transition causes, STAGE interaction/input admission, closed provider-turn grammar, proposal decision/adoption phase, monotonic reach, material currentness normalization, execution owner/current validation boundary, operator recovery, observation coherence, current attention and the sole nine-stage rail projection.
 
 Implementation requirements:
 - keep all decisions pure over existing canonical types/facts;
@@ -29,7 +29,7 @@ Implementation requirements:
 
 **Files:** `src/daemon/runtime.ts`, `src/daemon/work-item-source.ts`, `src/daemon/authority.ts`, `src/daemon/stage.ts`, `src/daemon/coordinator.ts`, `src/daemon/execution.ts`, `tests/daemon.test.ts`, `tests/e2e-server.ts`.
 
-Make the imperative shell conform to `GW-TR-085`, `GW-TR-086` and the state policy from Unit 1.
+Make the imperative shell conform to `GW-TR-085-OBSERVATIONAL-QUERY-BOUNDARY`, `GW-TR-086-COMMAND-COMMIT-RECHECK` and the state policy from Unit 1.
 
 Implementation requirements:
 - add the process-local per-WorkItem operator-mutation guard in `runtime.ts`; it is synchronization only, never canonical state or a queue;
@@ -51,7 +51,7 @@ Implementation requirements:
 
 **Files:** `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/app.tsx`, `ui/src/WorkItemWorkspace.tsx`, `ui/src/workbench-presentation.ts`, `tests/workbench-presentation.test.ts`, `tests/browser.spec.ts`, `tests/e2e-server.ts`.
 
-Implement `GW-TR-088` and consume Unit 1 rather than rebuilding workflow policy in React.
+Implement `GW-TR-088-ASYNC-BROWSER-CONVERGENCE` and consume Unit 1 rather than rebuilding workflow policy in React.
 
 Implementation requirements:
 - add/use `api.getWorkItem(workItemId)` over the existing `GET /api/work-items/:workItemId` route and one canonical `workbenchQueryKeys.workItem(workItemId)` key;
@@ -69,7 +69,7 @@ Implementation requirements:
 
 **Files:** all `ui/src/primitives/*` paths in the signed change surface, `ui/src/styles.css`, `ui/src/theme.css`, `ui/src/app.tsx`, `tests/architecture.test.ts`, `tests/browser.spec.ts`.
 
-Build the complete closed primitive vocabulary from `GW-TR-092..096` and `GW-TR-099..103` before feature migration.
+Build the complete closed primitive vocabulary from `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §§8.12–8.20` and `GW-DOC-WORKBENCH-THEME-V1`; the signed task's `authorityRefs` contains each exact `GW-TR-092` through `GW-TR-103` identifier individually.
 
 Implementation requirements:
 - mount exactly one root Astryx `Theme` using the pinned built Neutral theme and the single System/Light/Dark preference owner;
@@ -166,7 +166,7 @@ Required sensors/tests include:
 
 **Files:** `tests/browser.spec.ts`, `tests/e2e-server.ts`, `CHANGELOG.md`.
 
-Complete the browser matrix required by `GW-FR-227`, component P4 §14 and theme P4 §15, then run the complete signed gate union.
+Complete the browser matrix required by `GW-FR-227-CERTIFICATION-MATRIX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §14` and `GW-DOC-WORKBENCH-THEME-V1 §15`, then run the complete signed gate union.
 
 Browser certification must cover:
 - all forward/backward lifecycle fixtures and exact rail/current-attention markers;
@@ -186,20 +186,22 @@ Update `[Unreleased]` in `CHANGELOG.md` for the actual runtime/UI implementation
 
 ## Requirement/design traceability
 
-| Internal unit | Primary functional authority | Primary technical authority |
-|---|---|---|
-| 1 | `GW-FR-200`, `GW-FR-204..208`, `GW-FR-228..233` | `GW-TR-082..084`, `GW-TR-087`, `GW-TR-089`, `GW-TR-091`, `GW-TR-097..098` |
-| 2 | `GW-FR-201..204`, `GW-FR-207..213`, `GW-FR-228..229` | `GW-TR-083..086`, `GW-TR-088..089`, P6 command/read contracts |
-| 3 | `GW-FR-200`, `GW-FR-205..206`, `GW-FR-210`, `GW-FR-226`, `GW-FR-232..233` | `GW-TR-087..091`, `GW-TR-097..098` |
-| 4 | `GW-FR-230..231`, `GW-FR-234..235` | `GW-TR-092..103`, `GW-DOC-WORKBENCH-THEME-V1` |
-| 5 | preserved Queue/Create/Settings/account requirements plus `GW-FR-230..235` | `GW-TR-092..096`, `GW-TR-099..103` |
-| 6 | `GW-FR-214..222`, `GW-FR-225..226`, `GW-FR-230..234` | `GW-TR-090`, `GW-TR-092..098`, `GW-TR-103` |
-| 7 | `GW-FR-213..214`, `GW-FR-219`, `GW-FR-223..226`, `GW-FR-230..235` | `GW-TR-089..090`, `GW-TR-092..103` |
-| 8 | Markdown/editor preservation requirements plus `GW-FR-231`, `GW-FR-234..235` | `GW-TR-096`, `GW-TR-099..103` |
-| 9 | `GW-FR-227..235` and all state acceptance rows | `GW-TR-091..103` |
-| 10 | `GW-FR-227` plus the complete signed acceptance set | complete Workbench P4/P6 certification contract |
+The signed task block below is the machine-resolved traceability fence. The following unit mapping identifies the principal exact owners without creating a second specification:
 
-The signed `acceptanceRefs` below contains every current functional requirement owned by the Workbench, WorkItem-document, Markdown-workbench and installation/readiness surfaces touched by this re-composition, plus the governing lifecycle/local-workbench requirements. This is deliberate preservation coverage: the implementation changes presentation/state ownership without silently dropping existing source/editor/Settings/account behavior.
+| Internal unit | Principal exact functional references | Principal exact technical references |
+|---|---|---|
+| 1 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`; `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP`; `GW-FR-205-MONOTONIC-REACH-HISTORY`; `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`; `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY`; `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION`; `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`; `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`; `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`; `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `GW-TR-082-WORKFLOW-TRANSITION-KERNEL`; `GW-TR-083-STAGE-RUN-INTERACTION-DERIVATION`; `GW-TR-084-STAGE-TURN-BATCH-ATOMICITY`; `GW-TR-087-MONOTONIC-REACHED-HISTORY-DERIVATION`; `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`; `GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION`; `GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA`; `GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION` |
+| 2 | `GW-FR-201-OBSERVATIONAL-READS`; `GW-FR-202-ATOMIC-COMMAND-OUTCOME`; `GW-FR-203-SERIALIZED-RUN-TURNS`; `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP`; `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY`; `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION`; `GW-FR-209-SOURCE-BLOCKER-ADMISSION`; `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`; `GW-FR-211-READINESS-RETURN-CONTINUITY`; `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS`; `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `GW-TR-083-STAGE-RUN-INTERACTION-DERIVATION`; `GW-TR-084-STAGE-TURN-BATCH-ATOMICITY`; `GW-TR-085-OBSERVATIONAL-QUERY-BOUNDARY`; `GW-TR-086-COMMAND-COMMIT-RECHECK`; `GW-TR-088-ASYNC-BROWSER-CONVERGENCE`; `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`; `GW-DOC-CANONICAL-CONTRACTS-V1` |
+| 3 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`; `GW-FR-205-MONOTONIC-REACH-HISTORY`; `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`; `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`; `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`; `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`; `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `GW-TR-087-MONOTONIC-REACHED-HISTORY-DERIVATION`; `GW-TR-088-ASYNC-BROWSER-CONVERGENCE`; `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`; `GW-TR-090-STABLE-WORKBENCH-GEOMETRY`; `GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION`; `GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA`; `GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION` |
+| 4 | `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`; `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`; `GW-FR-235-GLOBAL-THEME-PARITY` | `GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP`; `GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE`; `GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION`; `GW-TR-095-WORKBENCH-RENDERER-COVERAGE`; `GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-TR-099-CANONICAL-THEME-TOKEN-OWNERSHIP`; `GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY`; `GW-TR-101-COMPONENT-VISUAL-PARITY`; `GW-TR-102-THEME-STYLESHEET-GOVERNANCE`; `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` |
+| 5 | the exact Queue/Create/Settings/account requirements present in signed `acceptanceRefs`; `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`; `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`; `GW-FR-235-GLOBAL-THEME-PARITY` | `GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP`; `GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION`; `GW-TR-095-WORKBENCH-RENDERER-COVERAGE`; `GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-TR-099-CANONICAL-THEME-TOKEN-OWNERSHIP`; `GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY`; `GW-TR-101-COMPONENT-VISUAL-PARITY`; `GW-TR-102-THEME-STYLESHEET-GOVERNANCE`; `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` |
+| 6 | `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`; `GW-FR-215-STABLE-WORKFLOW-RAIL`; `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL`; `GW-FR-217-PRIMARY-INFORMATION-ECONOMY`; `GW-FR-218-SPACE-CLASS-CONSISTENCY`; `GW-FR-220-PRESIGNOFF-CONTINUITY`; `GW-FR-221-READINESS-REVIEW-HIERARCHY`; `GW-FR-222-APPROVAL-REVIEW-HIERARCHY`; `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`; `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`; `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`; `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `GW-TR-090-STABLE-WORKBENCH-GEOMETRY`; `GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP`; `GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE`; `GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION`; `GW-TR-095-WORKBENCH-RENDERER-COVERAGE`; `GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA`; `GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION`; `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` |
+| 7 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`; `GW-FR-214-STABLE-WORKBENCH-GEOMETRY`; `GW-FR-219-EXPLICIT-CONTEXT`; `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL`; `GW-FR-224-TERMINAL-RESULT-PRIMACY`; `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY`; `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK`; `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`; `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`; `GW-FR-235-GLOBAL-THEME-PARITY` | `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`; `GW-TR-090-STABLE-WORKBENCH-GEOMETRY`; `GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP`; `GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION`; `GW-TR-095-WORKBENCH-RENDERER-COVERAGE`; `GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA`; `GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION`; `GW-TR-099-CANONICAL-THEME-TOKEN-OWNERSHIP`; `GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY`; `GW-TR-101-COMPONENT-VISUAL-PARITY`; `GW-TR-102-THEME-STYLESHEET-GOVERNANCE`; `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` |
+| 8 | the exact Markdown/editor requirements present in signed `acceptanceRefs`; `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`; `GW-FR-235-GLOBAL-THEME-PARITY` | `GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-TR-099-CANONICAL-THEME-TOKEN-OWNERSHIP`; `GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY`; `GW-TR-101-COMPONENT-VISUAL-PARITY`; `GW-TR-102-THEME-STYLESHEET-GOVERNANCE`; `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` |
+| 9 | `GW-FR-227-CERTIFICATION-MATRIX`; `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`; `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY`; `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`; `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`; `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION`; `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`; `GW-FR-235-GLOBAL-THEME-PARITY` | `GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION`; `GW-TR-092-STRUCTURAL-UI-PRIMITIVE-OWNERSHIP`; `GW-TR-093-UI-PRIMITIVE-STATE-INDEPENDENCE`; `GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION`; `GW-TR-095-WORKBENCH-RENDERER-COVERAGE`; `GW-TR-096-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`; `GW-TR-097-CLOSED-WORKFLOW-STATE-ALGEBRA`; `GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION`; `GW-TR-099-CANONICAL-THEME-TOKEN-OWNERSHIP`; `GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY`; `GW-TR-101-COMPONENT-VISUAL-PARITY`; `GW-TR-102-THEME-STYLESHEET-GOVERNANCE`; `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` |
+| 10 | `GW-FR-227-CERTIFICATION-MATRIX` plus every exact identifier in the signed task's `acceptanceRefs` | every exact identifier in the signed task's `authorityRefs` and `GW-DOC-CANONICAL-CONTRACTS-V1` certification contract |
+
+The signed `acceptanceRefs` contains every current functional requirement owned by the Workbench, WorkItem-document, Markdown-workbench and installation/readiness surfaces touched by this re-composition, plus the governing lifecycle/local-workbench requirements. This is deliberate preservation coverage: the implementation changes presentation/state ownership without silently dropping existing source/editor/Settings/account behavior.
 
 ## Expected change surface
 
