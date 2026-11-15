@@ -1791,6 +1791,18 @@ describe("closed Workbench workflow-state kernel", () => {
       ),
     ).toEqual({ tag: "PASSED_THROUGH", stage: "V3" });
 
+    expect(() =>
+      deriveValidationBoundary(
+        owner,
+        [runningTask],
+        [run, {
+          ...reviewerTwo,
+          triggerEventId: "event_12121212-1212-4212-8212-121212121212",
+        }],
+        reviewerPasses.filter((event) => event.runId === reviewerTwo.id),
+      ),
+    ).toThrow(/CANDIDATE_STATE_RECORDED/);
+
     const reviewerFailure = RunEventSchema.parse({
       id: "event_bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
       runId: reviewerTwo.id,
