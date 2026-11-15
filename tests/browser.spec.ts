@@ -687,6 +687,9 @@ test("Approval consumes the typed stale authority owner and returns to the exact
     name: "Return to Implementation plan",
   });
   await expect(reconcile).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Sign off exact package" }),
+  ).toHaveCount(0);
 
   const requestObserved = page.waitForRequest((candidate) =>
     candidate.method() === "POST" &&
