@@ -355,9 +355,22 @@ export const WorkItemWorkspace = ({
   const sourceDiagnostics = (diagnosticsQuery.data ?? []).filter(
     (item) => item.workItemId === workItem.id || item.path === workItem.sourcePath,
   );
+  const packageStaleOwner =
+    workItem.stage === "AWAITING_SIGNOFF" &&
+    signoffPackageQuery.isError &&
+    api.isOrderHttpRequestFailure(signoffPackageQuery.error) &&
+    signoffPackageQuery.error.orderError.code === "STALE_AUTHORITY"
+      ? signoffPackageQuery.error.orderError.staleAuthorityOwner
+      : null;
+  const changedAuthorityOwners =
+    sourceDiagnostics.length > 0
+      ? (["R1"] as const)
+      : packageStaleOwner === null
+        ? []
+        : [packageStaleOwner];
   const currentness = normalizeMaterialCurrentness(
-    sourceDiagnostics.length === 0,
-    sourceDiagnostics.length === 0 ? [] : ["R1"],
+    changedAuthorityOwners.length === 0,
+    changedAuthorityOwners,
   );
   const executionOwner = deriveExecutionOwner(tasks, runs);
   const recovery = deriveRecoveryDisposition(workItem, runs, currentness);
@@ -490,6 +503,7 @@ export const WorkItemWorkspace = ({
       if (selectedStepState === "HISTORICAL") return "Approved";
       if (selectedStepState === "UNREACHED") return "Not yet reached";
       if (signoffPackageQuery.isPending) return "Resolving package";
+      if (packageStaleOwner !== null) return "Package stale";
       if (signoffPackageQuery.isError || !signoffPackageQuery.data) {
         return "Package unavailable";
       }
@@ -514,8 +528,12 @@ export const WorkItemWorkspace = ({
           ? "warning" as const
           : selectedStep === "AWAITING_SIGNOFF" &&
               selectedStepState === "CURRENT" &&
-              (signoffPackageQuery.isError || !signoffPackageQuery.data)
-            ? "error" as const
+              packageStaleOwner !== null
+            ? "warning" as const
+            : selectedStep === "AWAITING_SIGNOFF" &&
+                selectedStepState === "CURRENT" &&
+                (signoffPackageQuery.isError || !signoffPackageQuery.data)
+              ? "error" as const
             : selectedStep === "COMPLETE" ||
                 selectedStepState === "HISTORICAL" ||
                 selectedLatestStageRun?.status === "COMPLETED"
@@ -659,11 +677,21 @@ export const WorkItemWorkspace = ({
   });
 
   const reconcileAuthority = useMutation({
-    mutationFn: () => {
+    mutationFn: async (): Promise<void> => {
       if (mutationsDisabled) {
         throw new TypeError("workflow observation is converging");
       }
-      return api.reconcileWorkItemSources();
+      if (sourceDiagnostics.length > 0) {
+        await api.reconcileWorkItemSources();
+        return;
+      }
+      if (packageStaleOwner !== null) {
+        await api.reconcileWorkItemAuthority(workItem.id, {
+          expectedOwner: packageStaleOwner,
+        });
+        return;
+      }
+      throw new TypeError("no stale authority owner is available for reconciliation");
     },
     onSuccess: invalidate,
   });
@@ -810,9 +838,18 @@ export const WorkItemWorkspace = ({
                   description:
                     "Use the current governed recovery action before continuing.",
                 }
-              : selectedStep === "AWAITING_SIGNOFF" &&
-                  signoffPackageQuery.isError
+              : currentness.tag === "STALE"
                 ? {
+                    status: "warning" as const,
+                    title: "Approval authority is stale",
+                    description:
+                      "Return workflow ownership to " +
+                      workflowPresentation(currentness.owner).label +
+                      " before continuing.",
+                  }
+                : selectedStep === "AWAITING_SIGNOFF" &&
+                    signoffPackageQuery.isError
+                  ? {
                     status: "error" as const,
                     title: "Approval package unavailable",
                     description: signoffPackageQuery.error instanceof Error
@@ -849,7 +886,13 @@ export const WorkItemWorkspace = ({
           />
         ) : canReconcile ? (
           <WorkbenchAction
-            label="Reconcile source authority"
+            label={
+              sourceDiagnostics.length > 0
+                ? "Reconcile source authority"
+                : currentness.tag === "STALE"
+                  ? "Return to " + workflowPresentation(currentness.owner).label
+                  : "Reconcile authority"
+            }
             tone="primary"
             loading={reconcileAuthority.isPending}
             disabled={mutationsDisabled || reconcileAuthority.isPending}
