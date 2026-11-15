@@ -704,6 +704,73 @@ test("Approval consumes the typed stale authority owner and returns to the exact
   await page.unroute(reconcilePath);
 });
 
+test("valid external Work request drift keeps source reconciliation distinct from Approval authority reconciliation", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  const workItem = await workItemForTitle(page, "Awaiting sign-off");
+  const sourceResponse = await page.context().request.get(
+    `/api/work-items/${encodeURIComponent(workItem.id)}/source`,
+  );
+  expect(sourceResponse.status()).toBe(200);
+  const source = WorkItemSourceSnapshotSchema.parse(await sourceResponse.json());
+  const sourcePath =
+    `**/api/work-items/${encodeURIComponent(workItem.id)}/source`;
+
+  await page.route(sourcePath, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...source,
+        sha256: `sha256:${"f".repeat(64)}`,
+      }),
+    });
+  });
+
+  let sourceReconcileCalled = false;
+  await page.route("**/api/work-item-sources/reconcile", async (route) => {
+    sourceReconcileCalled = true;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        registered: [],
+        updated: [workItem.id],
+        unchanged: [],
+        diagnostics: [],
+      }),
+    });
+  });
+
+  let authorityReconcileCalled = false;
+  await page.route(
+    `**/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`,
+    async (route) => {
+      authorityReconcileCalled = true;
+      await route.abort();
+    },
+  );
+
+  await openWorkItem(page, "Awaiting sign-off");
+  const summary = page.getByTestId("workflow-step-summary");
+  await expect(summary).toContainText("Work request source changed");
+  const reconcile = page.getByRole("button", {
+    name: "Reconcile source authority",
+  });
+  await expect(reconcile).toBeVisible();
+  await reconcile.click();
+  await expect.poll(() => sourceReconcileCalled).toBe(true);
+  expect(authorityReconcileCalled).toBe(false);
+
+  await page.unroute(sourcePath);
+  await page.unroute("**/api/work-item-sources/reconcile");
+  await page.unroute(
+    `**/api/work-items/${encodeURIComponent(workItem.id)}/reconcile-authority`,
+  );
+});
+
 test("queue opens a primary workspace, keeps context compact, preserves URL history, responds with a Drawer, and creates real WorkItems", async ({
   page,
   request,
