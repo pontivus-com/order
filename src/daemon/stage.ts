@@ -586,8 +586,15 @@ const scheduleStageTurn = (
   run: Run,
   triggeringEventId: RunEventId,
   context: ResolvedContext,
+  userInput?: string,
 ): void => {
-  const task = runStageTurn(runtime, run, triggeringEventId, context);
+  const task = runStageTurn(
+    runtime,
+    run,
+    triggeringEventId,
+    context,
+    userInput,
+  );
   runtime.stageTurnTasks.set(run.id, task);
   void task.then(
     () => {
@@ -762,6 +769,7 @@ const submitRunInputUnlocked = async (
     getRun(runtime, run.id),
     received.id,
     context,
+    text,
   );
   return received;
 };
