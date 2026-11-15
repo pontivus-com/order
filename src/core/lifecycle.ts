@@ -937,7 +937,7 @@ export const deriveRecoveryDisposition = (
   if (
     latest !== null &&
     workItem.status === "ACTIVE" &&
-    (latest.status === "FAILED" || latest.status === "CANCELLED")
+    (latest.status === "FAILED" || latest.status === "CANCELLED" || latest.status === "BLOCKED")
   ) {
     return { tag: "RETRY_CURRENT_STAGE" };
   }
