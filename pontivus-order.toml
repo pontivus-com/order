@@ -198,6 +198,7 @@ GW-TR-099-CANONICAL-THEME-TOKEN-OWNERSHIP = "docs/architecture/workbench-theme.m
 GW-TR-100-GLOBAL-THEME-ACTIVATION-AND-PARITY = "docs/architecture/workbench-theme.md"
 GW-TR-101-COMPONENT-VISUAL-PARITY = "docs/architecture/workbench-theme.md"
 GW-TR-102-THEME-STYLESHEET-GOVERNANCE = "docs/architecture/workbench-theme.md"
+GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE = "docs/architecture/workbench.md"
 D1 = "docs/decisions/technical-decisions.md"
 D2 = "docs/decisions/technical-decisions.md"
 D3 = "docs/decisions/technical-decisions.md"
