@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 
-import type { ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, ExecutionTask, Run, RunEvent, ValidationStage, WorkItem } from "../../src/core/contracts.ts";
 import type { ExecutionOwner, ValidationBoundary } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
@@ -170,9 +170,14 @@ const ValidationMatrix = ({
   );
 };
 
-export const ExecutionWorkspace = ({ workItem, material, executionOwner, validationBoundary, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence, onMutationError }: Readonly<{
+export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts, statePending, stateError, executionOwner, validationBoundary, mutationsDisabled = false, onSelectMaterial, onOpenEvidence, onReturnFromEvidence, onMutationError }: Readonly<{
   workItem: WorkItem;
   material: WorkflowMaterial;
+  tasks: readonly ExecutionTask[];
+  runs: readonly Run[];
+  artifacts: readonly ArtifactRef[];
+  statePending: boolean;
+  stateError: unknown;
   executionOwner: ExecutionOwner;
   validationBoundary: ValidationBoundary | null;
   mutationsDisabled?: boolean;
@@ -182,11 +187,6 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, validat
   onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
-  const tasksQuery = useQuery({ queryKey: workbenchQueryKeys.tasks(workItem.id), queryFn: () => api.listExecutionTasks(workItem.id) });
-  const runsQuery = useQuery({ queryKey: workbenchQueryKeys.runs(workItem.id), queryFn: () => api.listRuns(workItem.id), refetchInterval: (query) => query.state.data?.some(runIsActive) === true ? 1000 : false });
-  const artifactsQuery = useQuery({ queryKey: workbenchQueryKeys.artifacts(workItem.id), queryFn: () => api.listArtifacts(workItem.id) });
-  const tasks = tasksQuery.data ?? [];
-  const runs = runsQuery.data ?? [];
   const currentOwnerTask = executionOwner.tag === "NONE"
     ? null
     : tasks.find((task) => task.id === executionOwner.taskId) ?? null;
@@ -270,9 +270,8 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, validat
   />;
 
   const master=groups.length>0?<WorkflowStepIndex groups={groups} label="Implementation work"/>:<WorkbenchState kind="empty" title="No implementation work"/>;
-  const implementationStateError=tasksQuery.error??runsQuery.error??artifactsQuery.error;
-  const detail=implementationStateError?<WorkbenchState kind="error" title="Implementation state unavailable" description={implementationStateError instanceof Error?implementationStateError.message:String(implementationStateError)}/>:
-    tasksQuery.isPending||runsQuery.isPending||artifactsQuery.isPending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
+  const detail=stateError?<WorkbenchState kind="error" title="Implementation state unavailable" description={stateError instanceof Error?stateError.message:String(stateError)}/>:
+    statePending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
     selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
       <WorkbenchSectionHeader title={selectedTask.planTaskId} description={selectedTask.objective} action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
       <MetadataList columns="multi">
@@ -307,10 +306,10 @@ export const ExecutionWorkspace = ({ workItem, material, executionOwner, validat
        eventsQuery.isError?<WorkbenchState kind="error" title="Attempt timeline unavailable" description={eventsQuery.error instanceof Error?eventsQuery.error.message:String(eventsQuery.error)}/>:
        selectedRun&&events.length>0?<RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence}/>:<WorkbenchState kind="empty" title="No persisted attempt events"/>}
       <WorkbenchSectionHeader title="Implementation material"/>
-      <div className="order-resource-list">{(artifactsQuery.data??[]).map((artifact)=><WorkbenchResourceRow key={artifact.id} label={artifact.role} detail={artifact.repositoryPath} actionLabel={"Open "+artifact.role+": "+artifact.repositoryPath} onOpen={()=>onOpenEvidence({kind:"ARTIFACT",artifactId:artifact.id,label:artifact.role+": "+artifact.repositoryPath})}/>)}</div>
+      <div className="order-resource-list">{artifacts.map((artifact)=><WorkbenchResourceRow key={artifact.id} label={artifact.role} detail={artifact.repositoryPath} actionLabel={"Open "+artifact.role+": "+artifact.repositoryPath} onOpen={()=>onOpenEvidence({kind:"ARTIFACT",artifactId:artifact.id,label:artifact.role+": "+artifact.repositoryPath})}/>)}</div>
     </section>:<WorkbenchState kind="empty" title="No implementation tasks materialized"/>;
 
-  const detailSurface=material.kind==="EVIDENCE"&&implementationStateError===null&&!tasksQuery.isPending&&!runsQuery.isPending&&!artifactsQuery.isPending
+  const detailSurface=material.kind==="EVIDENCE"&&stateError===null&&!statePending
     ?<EvidenceViewer selection={material.selection} onBack={onReturnFromEvidence}/>
     :<WorkbenchSurface attention={summary} material={detail}/>;
 
