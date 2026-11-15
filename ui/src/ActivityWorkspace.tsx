@@ -38,8 +38,9 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
+export const StageRunMaterial = ({ workItem, stage, selectedRunId, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview }: Readonly<{
   workItem: WorkItem; stage: PreSignoffStage; selectedRunId: Run["id"] | null;
+  mutationsDisabled?: boolean;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onOpenProposalReview?: (selection: ProposalSelection) => void;
@@ -122,9 +123,9 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRun
           title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
           description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
           action={<span className="order-inline-actions">
-            {runIsActive(selectedRun) ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={cancel.isPending} onClick={() => cancel.mutate()} /> : null}
-            {canRetry ? <WorkbenchAction label={"Retry " + selectedStep.label} tone="primary" loading={retry.isPending} disabled={retry.isPending} onClick={() => retry.mutate()} /> : null}
-            {canResume ? <WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={resume.isPending} onClick={() => resume.mutate()} /> : null}
+            {runIsActive(selectedRun) ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={() => cancel.mutate()} /> : null}
+            {canRetry ? <WorkbenchAction label={"Retry " + selectedStep.label} tone="primary" loading={retry.isPending} disabled={mutationsDisabled || retry.isPending} onClick={() => retry.mutate()} /> : null}
+            {canResume ? <WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={() => resume.mutate()} /> : null}
           </span>}
         />
         <div className="order-run-status-strip">
@@ -144,7 +145,7 @@ export const StageRunMaterial = ({ workItem, stage, selectedRunId, onSelectedRun
       <WorkbenchDialogue
         transcript={transcript}
         state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
-        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={setInputError} /> : undefined}
+        composer={canAnswer ? <ActivityComposer run={selectedRun} pending={pending} mutationsDisabled={mutationsDisabled} onSubmitted={async () => { setInputError(null); await invalidate(); }} onError={setInputError} /> : undefined}
       />
       </div>
     </section>
