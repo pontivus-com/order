@@ -860,12 +860,13 @@ For a coherent observation, the Workbench resolves current attention using this 
 2. unresolved required human input;
 3. pending proposal decision required for progress;
 4. proposal adoption/reconciliation already in progress;
-5. current canonical blocker or governed recovery owner;
-6. stale approval/readiness/material ownership;
-7. current active processing/automatic-recovery state;
-8. current startable/continuable/sign-off action;
-9. ordinary current document/review/operational material;
-10. historical operator selection.
+5. current canonical blocker;
+6. stale approval/readiness/material ownership, with exact `RECONCILE_AUTHORITY` recovery where applicable;
+7. retryable/resumable governed recovery owner;
+8. current active processing/automatic-recovery state;
+9. current startable/continuable/sign-off action;
+10. ordinary current document/review/operational material;
+11. historical operator selection.
 
 Only the highest-precedence mutation action is presented as the current workflow action. In particular, a failed current-stage Run exposes its governed Retry/Resume/recovery action and suppresses the generic Start action; a pending lifecycle proposal exposes Adopt/Reject and suppresses free-form continuation; an adoption already in progress exposes no competing Reject/continuation action.
 
@@ -1276,8 +1277,8 @@ Exactly one current-attention category is selected from this ordered set:
 4. **PROPOSAL_DECISION** — one exact proposal awaits Adopt/Reject.
 5. **PROPOSAL_ADOPTION** — durable adoption intent exists and the exact proposal is being applied/reconciled.
 6. **BLOCKER** — a canonical current-stage/task blocker owns recovery.
-7. **RECOVERY** — a retryable current failure or other governed recovery route owns the next action.
-8. **STALE_AUTHORITY** — approval/material currentness is stale and progression is unavailable.
+7. **STALE_AUTHORITY** — approval/material currentness is stale and progression is unavailable; its operator recovery route is `RECONCILE_AUTHORITY`.
+8. **RECOVERY** — a retryable current failure or resumable current-owner condition owns the next action; stale-currentness reconciliation does not collapse into this category.
 9. **PROCESSING** — provider/automatic work is progressing and no higher category owns attention.
 10. **ACTIONABLE** — the current coherent owner exposes its ordinary Start/Continue/Sign-off/Resume-class action.
 11. **ORDINARY** — current material is inspectable with no workflow action requiring emphasis.
@@ -1290,6 +1291,9 @@ Recovery is likewise closed. A current failure/block/currentness condition resol
 - `RETRY_CURRENT_STAGE`;
 - `RESUME_CURRENT_OWNER`;
 - `RECONCILE_AUTHORITY`;
+
+When material currentness is `STALE(owner)`, current attention is `STALE_AUTHORITY` and the recovery route is `RECONCILE_AUTHORITY`. The recovery route supplies the exact action; it does not reclassify stale currentness as generic `RECOVERY`.
+
 Automatic post-signoff replacement/remediation is not a Workbench recovery route. It remains governed by the execution policy; while it is running the Workbench observes canonical processing/Run state. A classified upstream return changes the canonical lifecycle owner and therefore does not remain as a separate recovery disposition.
 
 A generic Resume/Retry button is not a substitute for deriving the exact recovery route.
