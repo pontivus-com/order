@@ -449,10 +449,14 @@ export const reconcileWorkItemSources = async (
   });
 };
 
-export const revalidateWorkItemSource = async (
+const inspectWorkItemSource = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
-): Promise<Readonly<{ workItem: WorkItem; source: WorkItemSourceSnapshot }>> => {
+): Promise<Readonly<{
+  workItem: WorkItem;
+  source: WorkItemSourceSnapshot;
+  plan: QueuePlan;
+}>> => {
   const before = loadWorkItem(runtime.database, workItemId);
   const projectForPath = await resolveConfiguredProject(
     [before.repositoryRoot],
@@ -560,14 +564,13 @@ export const revalidateWorkItemSource = async (
       project.manifest.projectId,
       current,
       "INVALID_SOURCE",
-      "WorkItem source revalidation produced no valid source plan",
+      "WorkItem source inspection produced no valid source plan",
       before.id,
     ));
   }
 
-  withTransaction(runtime.database, () => applyPlan(runtime, plan));
   return {
-    workItem: loadWorkItem(runtime.database, workItemId),
+    workItem: before,
     source: WorkItemSourceSnapshotSchema.parse({
       path: current.path,
       sha256: current.sha256,
@@ -575,22 +578,28 @@ export const revalidateWorkItemSource = async (
       markdown: current.markdown,
       bodyMarkdown: current.bodyMarkdown,
     }),
+    plan,
   };
+};
+
+export const revalidateWorkItemSource = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<Readonly<{ workItem: WorkItem; source: WorkItemSourceSnapshot }>> => {
+  const inspected = await inspectWorkItemSource(runtime, workItemId);
+  if (inspected.plan.disposition !== "UNCHANGED") {
+    throw new TypeError(
+      "WorkItem source reconciliation is required before this mutation",
+    );
+  }
+  return { workItem: inspected.workItem, source: inspected.source };
 };
 
 export const currentWorkItemSource = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
-): Promise<WorkItemSourceSnapshot> => {
-  const source = (await revalidateWorkItemSource(runtime, workItemId)).source;
-  return WorkItemSourceSnapshotSchema.parse({
-    path: source.path,
-    sha256: source.sha256,
-    metadata: source.metadata,
-    markdown: source.markdown,
-    bodyMarkdown: source.bodyMarkdown,
-  });
-};
+): Promise<WorkItemSourceSnapshot> =>
+  (await inspectWorkItemSource(runtime, workItemId)).source;
 
 export const createWorkItemFromSource = async (
   runtime: CoordinatorRuntime,
