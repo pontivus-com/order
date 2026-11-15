@@ -135,32 +135,6 @@ const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
         ].join("\n")
       : "";
 
-const blockStageRunForContextChange = (
-  runtime: CoordinatorRuntime,
-  run: Run,
-  returnTo: PreSignoffStage,
-  summary: string,
-): Run =>
-  withTransaction(runtime.database, () => {
-    const current = getWorkItem(runtime, run.workItemId);
-    const transition = transitionWorkItem(current, {
-      tag: "LIFECYCLE_ARTIFACT_CHANGED",
-      owner: returnTo,
-    });
-    appendRunEvent(runtime, run.id, {
-      tag: "CONFORMANCE_FAILED",
-      stage: run.stage,
-      defectiveLayer: null,
-      summary,
-      evidence: [],
-    });
-    updateWorkItemLifecycle(runtime.database, run.workItemId, transition);
-    return updateRun(runtime, run.id, {
-      status: "BLOCKED",
-      endedAt: nowIsoDateTime(),
-    });
-  });
-
 export const stageDecisionText: Record<PreSignoffStage, string> = {
   R1: "Establish facts/root cause only. Do not invent product behavior, architecture, or implementation.",
   R2: "Resolve product intent/functional requirements only. Do not decide architecture or implementation.",
@@ -728,12 +702,6 @@ const submitRunInputUnlocked = async (
   const workItem = getWorkItem(runtime, run.workItemId);
   const contextState = await resolveStageContextState(runtime, workItem, run.stage);
   if (contextState.staleStage !== null) {
-    blockStageRunForContextChange(
-      runtime,
-      run,
-      contextState.staleStage,
-      `upstream conformance is missing or stale: ${contextState.staleStage}`,
-    );
     await stopActiveProvider(runtime, run.id);
     throw new TypeError(
       `current upstream conformance is missing or stale: ${contextState.staleStage}`,
