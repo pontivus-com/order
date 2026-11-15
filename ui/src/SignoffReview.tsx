@@ -15,7 +15,7 @@ import type {
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import {
   WorkflowStepFrame,
@@ -226,15 +226,8 @@ export const SignoffReview = ({
     onContextDocumentChange(null, null);
   }, [onContextDocumentChange, selectedArtifact]);
 
-  const invalidate = async (): Promise<void> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.tasks(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
-    ]);
-  };
+  const invalidate = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
 
   const signoff = useMutation({
     mutationFn: () => {
