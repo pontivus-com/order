@@ -67,7 +67,7 @@ Implementation requirements:
 
 ### Unit 4 — Astryx-conformant theme and complete Workbench primitive foundation
 
-**Files:** all `ui/src/primitives/*` paths in the signed change surface, `ui/src/styles.css`, `ui/src/theme.css`, `ui/src/app.tsx`, `tests/architecture.test.ts`, `tests/browser.spec.ts`.
+**Files:** all `ui/src/primitives/*` paths in the signed change surface, `ui/src/styles.css`, `ui/src/theme.css`, `ui/src/app.tsx`, `tests/architecture.test.ts`, `tests/certification.test.ts`, `tests/browser.spec.ts`.
 
 Build the complete closed primitive vocabulary from `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §§8.12–8.20` and `GW-DOC-WORKBENCH-THEME-V1`; the signed task's `authorityRefs` enumerates every applicable primitive/theme technical-requirement identifier individually.
 
@@ -147,14 +147,14 @@ Implementation requirements:
 
 ### Unit 9 — permanent architecture, state and interaction certification
 
-**Files:** `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/workbench-presentation.test.ts`, `tests/architecture.test.ts`, `tests/e2e-server.ts`.
+**Files:** `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/workbench-presentation.test.ts`, `tests/architecture.test.ts`, `tests/certification.test.ts`, `tests/e2e-server.ts`.
 
 Complete permanent non-browser certification concurrently with the implementation, then perform the final comprehensive pass.
 
 Required sensors/tests include:
 - exhaustive lifecycle transition, turn grammar, required-input, proposal, reach, attention/recovery/execution-owner/validation-boundary and rail projections;
 - read-purity and deterministic concurrency/race coverage;
-- renderer registry completeness and required primitive-module presence;
+- renderer registry completeness and required primitive-module presence, including replacement of the predecessor six-file primitive-directory certification in `tests/certification.test.ts` with the complete closed primitive set;
 - primitive domain/query/policy blindness and same-layer dependency-map registration;
 - rejection of feature-level foundation bypass, private Astryx internals, raw semantic values, extra Order stylesheets, count-driven topology, local structural breakpoints and obsolete layout systems;
 - selected WorkItem—not queue snapshot—as current observation owner;
@@ -278,6 +278,7 @@ The signed `acceptanceRefs` contains every current functional requirement owned 
 ### Verification and delivery metadata
 
 - `CHANGELOG.md`
+- `tests/certification.test.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
 - `tests/workbench-presentation.test.ts`
@@ -497,6 +498,7 @@ No production file deletion is required by the design. If a now-empty superseded
         "ui/src/primitives/WorkbenchConfirmation.tsx",
         "ui/src/styles.css",
         "ui/src/theme.css",
+        "tests/certification.test.ts",
         "tests/core.test.ts",
         "tests/daemon.test.ts",
         "tests/workbench-presentation.test.ts",
