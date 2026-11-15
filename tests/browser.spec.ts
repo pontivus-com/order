@@ -965,20 +965,14 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await backToQueue(page);
     await openWorkItem(page, title);
     await selectWorkflowStep(page, tabName);
-    if (tabName === "Work request") {
-      const reloaded = page.getByTestId("markdown-readonly");
-      await expect(reloaded).toBeVisible();
-      await expect(reloaded).toContainText(marker + " persisted");
-    } else {
-      const reloaded = page.getByLabel(editorName);
-      await expect(reloaded).toBeVisible();
-      await reloaded.evaluate((node) => {
-        const scroller = node.closest(".cm-scroller");
-        if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
-        scroller.scrollTop = scroller.scrollHeight;
-      });
-      await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
-    }
+    const reloaded = page.getByLabel(editorName);
+    await expect(reloaded).toBeVisible();
+    await reloaded.evaluate((node) => {
+      const scroller = node.closest(".cm-scroller");
+      if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
+      scroller.scrollTop = scroller.scrollHeight;
+    });
+    await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
     await backToQueue(page);
   };
 
