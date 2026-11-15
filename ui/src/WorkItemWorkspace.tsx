@@ -16,7 +16,7 @@ import {
   stageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
   resolveWorkflowMaterial,
   runIsActive,
@@ -579,13 +579,8 @@ export const WorkItemWorkspace = ({
     workflowInspectionActive,
   ]);
 
-  const invalidate = async (): Promise<void> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runEventsRoot }),
-    ]);
-  };
+  const invalidate = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
 
   const titleMutation = useMutation({
     mutationFn: () => {
@@ -602,13 +597,7 @@ export const WorkItemWorkspace = ({
       }
       setTitleEditing(false);
       setTitleError(null);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSource(workItem.id) }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
-      ]);
+      await invalidateWorkbenchMutation(queryClient, workItem.id);
     },
   });
 
@@ -622,10 +611,7 @@ export const WorkItemWorkspace = ({
     },
     onSuccess: async () => {
       setConfirmArchive(false);
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemDocumentationGitStatus(workItem.id) }),
-      ]);
+      await invalidateWorkbenchMutation(queryClient, workItem.id);
     },
   });
 
