@@ -419,6 +419,8 @@ export const WorkItemWorkspace = ({
     selectedStep,
   );
   const mutationsDisabled = currentAttention === "CONVERGING";
+  const workflowMutationsDisabled =
+    mutationsDisabled || currentness.tag === "STALE";
 
   const material = resolveWorkflowMaterial({
     workItem,
@@ -1017,7 +1019,7 @@ export const WorkItemWorkspace = ({
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
-            mutationsDisabled={mutationsDisabled}
+            mutationsDisabled={workflowMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: sharedPreSignoffStage,
@@ -1043,7 +1045,7 @@ export const WorkItemWorkspace = ({
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
-            mutationsDisabled={mutationsDisabled}
+            mutationsDisabled={workflowMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: "R3",
@@ -1060,7 +1062,7 @@ export const WorkItemWorkspace = ({
           <SignoffReview
             workItem={workItem}
             summary={stepSummary}
-            mutationsDisabled={mutationsDisabled}
+            mutationsDisabled={workflowMutationsDisabled}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
           />
@@ -1071,7 +1073,7 @@ export const WorkItemWorkspace = ({
             workItem={workItem}
             material={material}
             executionOwner={executionOwner}
-            mutationsDisabled={mutationsDisabled}
+            mutationsDisabled={workflowMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: "EXECUTION",
@@ -1098,7 +1100,7 @@ export const WorkItemWorkspace = ({
         {material.kind === "SOURCE_DOCUMENT" ? (
           <SourceDocumentMaterial
             workItem={workItem}
-            mutationsDisabled={mutationsDisabled}
+            mutationsDisabled={workflowMutationsDisabled}
             onDirtyChange={setDirtyState}
             onContextDocumentChange={onContextDocumentChange}
           />
@@ -1107,7 +1109,7 @@ export const WorkItemWorkspace = ({
           <LifecycleDocumentMaterial
             workItem={workItem}
             artifactId={material.artifactId}
-            mutationsDisabled={mutationsDisabled}
+            mutationsDisabled={workflowMutationsDisabled}
             onDirtyChange={setDirtyState}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
