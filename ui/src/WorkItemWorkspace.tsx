@@ -822,6 +822,7 @@ export const WorkItemWorkspace = ({
     onSuccess: async () => {
       setConfirmArchive(false);
       await invalidate();
+      onBack();
     },
     onError: invalidate,
   });

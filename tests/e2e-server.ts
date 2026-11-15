@@ -422,26 +422,6 @@ const rejectionRun = RunSchema.parse({
   startedAt: stamp,
   endedAt: null,
 });
-storeRun(database, rejectionRun);
-persistEvent(rejectionRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: rejectionRun.contextHash,
-});
-persistEvent(rejectionRun.id, 2, {
-  tag: "ARTIFACT_PROPOSAL_CREATED",
-  targetPath: `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md`,
-  baseSha256: null,
-  role: "PLAN",
-  authorityLayer: "P7",
-  unifiedDiff:
-    "--- /dev/null\n+++ b/" +
-    `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
-    "\n@@ -0,0 +1 @@\n+reject proposal\n",
-  rationale: "Exercise the canonical Reject mutation.",
-});
-
 const adoptionPendingItem = workItem(
   "Proposal adoption in progress",
   "PLAN",
@@ -1377,6 +1357,26 @@ const environment: NodeJS.ProcessEnv = {
 };
 const daemon = await startOrderDaemon(environment);
 updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
+
+insertRun(daemon.coordinator, rejectionRun);
+appendRunEvent(daemon.coordinator, rejectionRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: rejectionRun.contextHash,
+});
+appendRunEvent(daemon.coordinator, rejectionRun.id, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md`,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" +
+    `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
+    "\n@@ -0,0 +1 @@\n+reject proposal\n",
+  rationale: "Exercise the canonical Reject mutation.",
+});
 
 insertRun(daemon.coordinator, {
   ...adoptionPendingRun,
