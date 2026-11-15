@@ -665,6 +665,16 @@ export const WorkItemWorkspace = ({
     onSuccess: invalidate,
   });
 
+  const reconcileAuthority = useMutation({
+    mutationFn: () => {
+      if (mutationsDisabled) {
+        throw new TypeError("workflow observation is converging");
+      }
+      return api.reconcileWorkItemSources();
+    },
+    onSuccess: invalidate,
+  });
+
   const setDirtyState = (value: boolean): void => {
     setDirty(value);
     onDirtyChange(value);
@@ -766,6 +776,9 @@ export const WorkItemWorkspace = ({
   const canResume =
     currentStepSelected &&
     recovery.tag === "RESUME_CURRENT_OWNER";
+  const canReconcile =
+    currentStepSelected &&
+    recovery.tag === "RECONCILE_AUTHORITY";
   const summaryBlocker = !currentStepSelected
     ? null
     : sourceDiagnostics[0]
@@ -840,6 +853,14 @@ export const WorkItemWorkspace = ({
             loading={resumeCurrent.isPending}
             disabled={mutationsDisabled || resumeCurrent.isPending}
             onClick={() => resumeCurrent.mutate()}
+          />
+        ) : canReconcile ? (
+          <WorkbenchAction
+            label="Reconcile source authority"
+            tone="primary"
+            loading={reconcileAuthority.isPending}
+            disabled={mutationsDisabled || reconcileAuthority.isPending}
+            onClick={() => reconcileAuthority.mutate()}
           />
         ) : canStart ? (
           <WorkbenchAction
