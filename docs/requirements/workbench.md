@@ -526,11 +526,11 @@ This is a binding stability and information-hierarchy requirement.
 
 ### 11.5 Master/detail is reserved for real master/detail work
 
-A persistent master column is appropriate only when the operator genuinely scans a collection while working a selected detail, such as:
+A persistent master column is appropriate only when the interaction is canonically classified as **Operational master/detail**. In the current Workbench that means **Implementation**.
 
-- Implementation tasks;
-- a sufficiently large Approval task/material set;
-- another interaction explicitly classified as operational master/detail.
+Approval remains Review-class regardless of task/material count. Large Approval collections use scan-efficient rows/tables inside the Review surface; collection size never changes Approval into another primary interaction class.
+
+A future interaction may use persistent master/detail only after this functional owner explicitly classifies it as Operational master/detail.
 
 When used:
 
@@ -545,7 +545,7 @@ Context is secondary and closed by default.
 
 Opening Context is an explicit operator action. Once open, Context always provides an explicit close/toggle action in a predictable location; navigating away from the selected material is never required merely to recover primary width.
 
-On wide layouts it may use one bounded fixed-width trailing inspector if the primary task remains usable. Otherwise it is a drawer/overlay.
+On **wide** layouts Context is one bounded fixed-width trailing inspector that participates in the Workbench layout. On **medium and narrow** layouts Context is an overlay drawer. The responsive class alone selects those representations; content amount, current workflow state and feature-local usability judgments do not switch between them.
 
 Context never auto-opens or auto-closes because workflow state changes.
 
@@ -730,7 +730,7 @@ Order uses a small closed set of interaction classes.
 | Evidence | logs, patches, exact bytes | wide remaining-height raw viewer |
 | Terminal result | final outcome | concise classification + substantive result/evidence |
 | Compact context | metadata/small utilities | bounded inspector/drawer |
-| Task panel | short-lived creation/configuration task | operator-opened drawer/sheet containing one Form/configuration composition |
+| Task panel | short-lived creation/configuration task | operator-opened modal task/dialog surface containing exactly one Form/configuration composition |
 | Safety/exception | conflict/confirmation | inline owning-state or modal confirmation |
 
 A screen does not invent a new card/panel grammar merely because its content is unique.
@@ -820,7 +820,7 @@ Primary hierarchy:
 4. approver identity and Sign off exact package;
 5. technical package hashes/commit identity.
 
-Repeated signed tasks use scan-efficient rows/table/master-detail as needed. They do not become a vertical stack of cards.
+Repeated signed tasks use scan-efficient rows/tables **inside the same Review surface**. Approval never becomes persistent master/detail based on task/material count and does not become a vertical stack of cards.
 
 Approval does not default to a generic persistent package/document/task navigation rail. Technical package hashes/commit identity are collapsed/on-demand secondary detail and may not displace package currentness, task meaning or the sign-off decision from the primary review hierarchy.
 
