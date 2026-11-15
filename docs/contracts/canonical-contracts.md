@@ -1683,7 +1683,7 @@ scan exact source files
 
 The `registered`, `updated`, `moved` and `unchanged` sets are pairwise disjoint. `moved` means source path changed while the exact source SHA-256 stayed unchanged; a path change accompanied by changed bytes is `updated` and therefore follows source-change freshness.
 
-A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary revalidation is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing or unresolved state of that recorded source is a source-boundary precondition failure, not a new lifecycle status/outcome: Order preserves the WorkItem's existing stage/status/outcome and rejects the current source-dependent action. A missing recorded path requires explicit/full reconciliation to discover a move. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced. A valid changed recorded source is different: it is reconciled and invokes the canonical source-change return to R1.
+A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary inspection is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing, unresolved or valid-but-changed state of that recorded source is a source-boundary precondition/reconciliation-required condition for the attempted productive command: Order preserves the WorkItem's existing stage/status/outcome and rejects that command. A missing/moved/changed source becomes a lifecycle transition only through explicit reconciliation/save. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced.
 
 For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
 
@@ -1822,7 +1822,7 @@ The approval package hash includes `sourceSha256` together with the existing exa
 
 The source path is not hashed as semantic authority because an unchanged source may move while preserving WorkItem identity/content.
 
-V0 validates the signed package/source binding from persisted approval material without consulting mutable current source bytes. V1 then performs the canonical targeted revalidation of the WorkItem's recorded source path and compares the current source SHA-256 with `Approval.sourceSha256`. V1 does not perform a full-queue duplicate/move discovery scan; duplicate-id discovery remains owned by startup/explicit reconciliation.
+V0 validates the signed package/source binding from persisted approval material without consulting mutable current source bytes. V1 then performs canonical targeted read-only inspection of the WorkItem's recorded source path and compares the current source SHA-256 with `Approval.sourceSha256`. V1 does not apply source reconciliation and does not perform a full-queue duplicate/move discovery scan; duplicate-id discovery and lifecycle projection changes remain owned by explicit reconciliation.
 
 A different hash, missing recorded source, invalid recorded source or unresolved recorded-source classification means current originating material cannot be proven equal to the signed source and yields `APPROVAL_STALE`; it routes through the existing upstream freshness path before any productive builder/reviewer/remediator work. Pure operational inability to access an otherwise unchanged configured filesystem remains classified by the existing environment/precondition rules rather than being mislabeled as semantic source change.
 
@@ -2719,14 +2719,15 @@ body { expectedSourceSha256, title }
 
 The daemon:
 
-1. resolves/revalidates the deterministic Work request;
+1. inspects the deterministic Work request without applying reconciliation;
 2. rejects `EXECUTION`/`COMPLETE`;
-3. requires current source hash equal `expectedSourceSha256`;
-4. calls the canonical pure source-title rewrite;
-5. requires all parsed source identity/classification fields except title to remain identical;
-6. writes through the existing guarded source replacement;
-7. read-back/hash/parses/reconciles;
-8. applies the existing source-change lifecycle reaction.
+3. rejects title mutation while any Run for the WorkItem is active;
+4. requires current source hash equal `expectedSourceSha256`;
+5. calls the canonical pure source-title rewrite;
+6. requires all parsed source identity/classification fields except title to remain identical;
+7. writes through the existing guarded source replacement;
+8. read-back/hash/parses and persists the source projection;
+9. applies the canonical source-change lifecycle reaction: IDEA remains IDEA; progressed pre-signoff/AWAITING_SIGNOFF returns to R1.
 
 No title persistence occurs outside the Work request projection.
 
