@@ -34,13 +34,15 @@ export const WorkbenchLayout = ({
 }>) => {
   const wide = useWideWorkbench();
   const context = workItemChrome?.context ?? null;
+  const hasInspector = context !== null;
+  const inspectorOpen = context?.open === true;
   const content = workItemChrome === null ? primary : (
     <Layout
       height="fill"
       padding={0}
       header={<LayoutHeader padding={0} hasDivider><div className="order-workbench-chrome">{workItemChrome.identity}{workItemChrome.workflowRail}</div></LayoutHeader>}
       content={<LayoutContent padding={0}>{primary}</LayoutContent>}
-      end={wide && context?.open ? <LayoutPanel width="var(--order-context-width)" padding={0} hasDivider role="complementary" label="Work item context">{context.content}</LayoutPanel> : undefined}
+      end={wide && hasInspector && inspectorOpen ? <LayoutPanel width="var(--order-context-width)" padding={0} hasDivider role="complementary" label="Work item context">{context.content}</LayoutPanel> : undefined}
     />
   );
   return (

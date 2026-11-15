@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 import type { BadgeVariant } from "@astryxdesign/core/Badge";
 import type { BannerStatus } from "@astryxdesign/core/Banner";
 
-import { WorkflowMaterialSelector } from "./WorkflowMaterialSelector.tsx";
+import {
+  WorkflowMaterialSelector,
+  type WorkflowMaterialSelectorGroup,
+} from "./WorkflowMaterialSelector.tsx";
 import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
@@ -10,11 +13,8 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus, type WorkbenchStatusTone } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 
-export type WorkflowStepIndexItem = Readonly<{
-  id: string; label: string; description?: string; statusLabel?: string;
-  statusVariant?: BadgeVariant; selected?: boolean; onSelect: () => void;
-}>;
-export type WorkflowStepIndexGroup = Readonly<{ id: string; label: string; items: readonly WorkflowStepIndexItem[] }>;
+export type WorkflowStepIndexItem = WorkflowMaterialSelectorGroup["items"][number];
+export type WorkflowStepIndexGroup = WorkflowMaterialSelectorGroup;
 
 export const WorkflowStepIndex = ({ groups, label = "Workflow material" }: Readonly<{
   groups: readonly WorkflowStepIndexGroup[]; label?: string;

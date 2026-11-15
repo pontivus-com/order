@@ -1,8 +1,22 @@
 import { WorkbenchSelector } from "./primitives/WorkbenchSelector.tsx";
-import type { WorkflowStepIndexGroup } from "./WorkflowStepFrame.tsx";
+
+export type WorkflowMaterialSelectorItem = Readonly<{
+  id: string;
+  label: string;
+  description?: string;
+  statusLabel?: string;
+  selected?: boolean;
+  onSelect: () => void;
+}>;
+
+export type WorkflowMaterialSelectorGroup = Readonly<{
+  id: string;
+  label: string;
+  items: readonly WorkflowMaterialSelectorItem[];
+}>;
 
 export const WorkflowMaterialSelector = ({ groups, label }: Readonly<{
-  groups: readonly WorkflowStepIndexGroup[];
+  groups: readonly WorkflowMaterialSelectorGroup[];
   label: string;
 }>) => (
   <WorkbenchSelector
