@@ -442,7 +442,7 @@ describe("workflow presentation policy", () => {
     })).toThrow(/execution owner must identify a loaded ExecutionTask/);
   });
 
-  it("preserves safe explicit selection but promotes required attention", () => {
+  it("preserves available explicit selection independently of current attention", () => {
     const research = artifact("R1", uuidB);
     const running = stageRun("R1", "RUNNING", 1, uuidC);
     const failed = stageRun("R1", "FAILED", 2, uuidD);
@@ -469,10 +469,7 @@ describe("workflow presentation policy", () => {
       artifacts: [research],
       explicitSelection: explicit,
       dirtyDocument: false,
-    })).toEqual({
-      kind: "STAGE_RUN",
-      runId: failed.id,
-    });
+    })).toEqual(explicit);
 
     expect(resolveFixtureMaterial({
       reachedStages: reachedAll,
