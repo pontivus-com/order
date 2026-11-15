@@ -2173,6 +2173,27 @@ describe("closed Workbench workflow-state kernel", () => {
       ),
     ).toBe("COHERENT");
 
+    const completedR1 = stageRun("COMPLETED", "R1");
+    const laterR2 = RunSchema.parse({
+      ...stageRun("COMPLETED", "R2"),
+      id: `run_${uuidC}`,
+      startedAt: "2026-11-11T03:32:00.000Z",
+      endedAt: "2026-11-11T03:33:00.000Z",
+    });
+    const historicalCompletion = RunEventSchema.parse({
+      ...artifactCompletion,
+      runId: completedR1.id,
+    });
+    expect(
+      deriveObservationCoherence(
+        active,
+        [completedR1, laterR2],
+        [historicalCompletion],
+        [],
+        [priorR1],
+      ),
+    ).toBe("COHERENT");
+
     const idea = WorkItemSchema.parse({
       ...active,
       stage: "IDEA",
