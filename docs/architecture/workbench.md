@@ -808,7 +808,7 @@ The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 | `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
 | `WorkbenchMasterDetail` | the one legal persistent operational master/detail topology with fixed master-width token and constrained collapse | no caller master width; no collection-count activation |
 | `WorkbenchContextPanel` | secondary metadata/diagnostic body + explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
-| `WorkbenchTaskPanel` | one bounded operator task; short forms/decisions use Astryx `Dialog` (`purpose="form"` when accidental dismissal risks input), while a full-height contextual side task may use `Drawer` only when keeping the underlying page visible is part of the task | no default-to-Drawer policy; no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute; no nested modal/drawer stack |
+| `WorkbenchTaskPanel` | one bounded operator task over Astryx `Dialog`; current Create/Settings-class transient forms use `purpose="form"` when accidental dismissal risks input | no Drawer fallback in the current grammar; no persistent navigation; no arbitrary width/breakpoint; no use as Context substitute; no nested modal stack; a future full-height side task requires DESIGN rather than a hidden variant |
 | `WorkbenchSettingsLayout` | Settings-only navigation/content composition with primitive-owned wide/constrained geometry | no generic application sidebar primitive; no domain/query ownership |
 | `WorkbenchForm` | consistent field stack, form spacing, submission/error region and action alignment | no validation/admission policy |
 | `WorkbenchField` | low-level field shell only for native/custom/third-party controls that do not already own Astryx field semantics; delegates label/description/status wiring to Astryx `Field` | no wrapping of Astryx `TextInput`/`TextArea`/`Selector`/`Typeahead` or another field-owning Astryx control; no domain validation; no arbitrary feature control styling |
@@ -819,7 +819,7 @@ The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 | `WorkbenchTimeline` | chronological event-list rhythm, event heading/meta/action alignment and evidence attachment region | no RunEvent meaning/derivation |
 | `WorkbenchDisclosure` | consistent collapsed/on-demand technical/supporting-detail mechanic | no primary action ownership; no nested navigation axis |
 | `WorkbenchConfirmation` | Astryx `AlertDialog` only for destructive/irreversible confirmation: specific action label, consequence description, least-destructive initial focus, loading state retained until the mutation settles, then explicit close | no AlertDialog for ordinary/non-destructive decisions; no early close while confirm mutation is pending; no mutation/admission policy; no domain-specific decision semantics |
-| `WorkbenchAction` | semantic command wrapper over Astryx `Button`; `IconButton` is used for dedicated icon-only actions; one primary action per view, specific action labels, foundation loading/disabled/focus behavior | no button for pure navigation; no multiple primary actions in one view; no destructive irreversible action without Confirmation; no authorization/admission/current-action policy |
+| `WorkbenchAction` | **command-only** semantic wrapper over Astryx `Button`; `IconButton` is used for dedicated icon-only commands; one primary command per view, specific action labels, foundation loading/disabled/focus behavior | no pure navigation; no multiple primary commands in one view; no destructive irreversible action without Confirmation; no authorization/admission/current-action policy |
 | `WorkbenchResourceRow` | scan-efficient resource identity/detail/open-action row; repeated heterogeneous-but-related resources use Astryx `List`/`ListItem` semantics where they fit, without nested interactive targets | no resource query/mutation ownership; no interactive child inside an interactive row; no single-item pseudo-list or nested card system |
 | `WorkbenchIcon` | canonical icon mapping, size and decorative/accessibility handling | no action/domain semantics |
 
@@ -854,12 +854,13 @@ Pinned Astryx guidance is incorporated as follows:
 | application shell | `WorkbenchLayout` composes one outer `AppShell`; it does not recreate the viewport shell/skip-to-content/responsive app-frame mechanics in raw containers |
 | named sub-page regions | use `Layout` for genuine named header/start/content/end/footer regions; use HStack/VStack/Grid-style layout primitives for simple stacking rather than a five-slot layout |
 | action | `WorkbenchAction` delegates to `Button` or `IconButton`; one primary action per view, explicit verb/object labels, loading state for asynchronous actions, accessible label/tooltip for icon-only actions |
+| navigation | pure navigation uses Astryx `Link`/native link semantics in the owning Toolbar/Identity/content slot; application history interception may preserve SPA behavior, but the rendered affordance is not a command Button |
 | forms | use Astryx field-owning controls (`TextInput`, `TextArea`, `Selector`, `Typeahead`, etc.) directly inside `WorkbenchForm`; use `WorkbenchField`/Astryx `Field` only around a native/custom/third-party control that lacks its own field shell |
 | bounded peer mode | `SegmentedControl` is valid for 2-5 mutually exclusive modes such as System/Light/Dark or Edit/Preview/Split; it is never lifecycle/page navigation |
 | uniform operational data | `WorkbenchTable` delegates to `Table`, uses deliberate density/dividers, stable identity and only the capabilities/plugins the use case needs |
 | meaningful resource collection | prefer `List`/`ListItem` semantics to a button styled as a card/row; never place interactive descendants inside an interactive row |
 | contextual overlay detail | constrained Context uses `Drawer`, with caller-owned `isOpen`, visible close action and focus return; a wide Context that must consume layout width is docked, not Drawer |
-| bounded task/form | ordinary short task/form uses `Dialog`; `purpose="form"` prevents accidental backdrop dismissal where unsaved input is at risk; do not nest Dialogs |
+| bounded task/form | current `WorkbenchTaskPanel` uses `Dialog`; `purpose="form"` prevents accidental backdrop dismissal where unsaved input is at risk; do not nest Dialogs; Drawer is not a generic form container |
 | destructive confirmation | `AlertDialog` only; specific consequence/action copy, Cancel remains least-destructive focus target, and pending confirm remains open/loading until the effect settles |
 | persistent feedback | `Banner` semantics under `WorkbenchNotice`; combine related same-status feedback, keep actionable errors present, and do not infer a live region from visual status |
 | status emphasis | ordinary/common state is readable text/StatusDot; `Badge` is sparse emphasis for exceptional/actionable status, not metadata or every healthy row |
@@ -956,7 +957,7 @@ WorkbenchConfirmation({
   title,
   description,
   confirmLabel,
-  confirmTone,
+  pending,
   onConfirm,
   onOpenChange,
 })
@@ -1000,8 +1001,8 @@ Operational scan
 
 Form / configuration
   -> WorkbenchForm
-     + WorkbenchField
-     + approved selection/input leaves
+     + Astryx field-owning controls directly
+       OR WorkbenchField only for a control without its own field shell
      + WorkbenchNotice / WorkbenchStatus / WorkbenchAction
 
 Document
@@ -1159,6 +1160,7 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | Foundation/specialist | Allowed use | Boundary |
 |---|---|---|
 | Astryx `Theme` | root theme substrate only | mounted once at application root; feature modules do not create theme islands |
+| Astryx `Link` | pure application/document/external navigation inside the owning Toolbar/Identity/content slot | use link semantics for navigation rather than `WorkbenchAction`/Button; external-link safety/accessible labeling remain foundation-owned |
 | Astryx `SegmentedControl` / `TabList` | SegmentedControl for 2-5 peer modes such as theme or Edit/Preview/Split; TabList only where true tab/page navigation semantics are required | SegmentedControl is never workflow navigation; neither may alter outer topology |
 | Astryx field-owning controls (`TextInput`, `TextArea`, `Selector`, `Typeahead`, `RadioList`, `MultiSelector`, etc.) | ordinary Form/configuration fields inside `WorkbenchForm` | use their native label/description/status contract; do **not** wrap them in `WorkbenchField`/`Field` |
 | Astryx `Field` via `WorkbenchField` | label/help/status shell around a native/custom/third-party control that has no field shell | exact label/description/status accessibility wiring remains foundation-owned |
@@ -1607,7 +1609,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
 
-**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, nested/incorrect modal-drawer patterns, field double-wrapping, multiple-primary-action views, badge saturation, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
+**Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
 
 ## 14. Permanent verification
