@@ -347,18 +347,18 @@ Component structure is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; th
 
 | Component role | Canonical visual treatment |
 |---|---|
-| primary action | primary background + on-primary foreground; primary-hover on hover; canonical control height/radius/focus |
-| secondary action | surface/text/border; subtle hover; canonical control height/radius/focus |
-| ghost action | transparent/text; subtle hover; canonical focus; no private chrome |
-| destructive action | danger role with explicit destructive label/icon semantics; canonical action geometry |
-| field | canonical label/help/error typography and spacing; standard control height; surface/text/border/focus |
+| primary action | Astryx `Button` primary variant with accent/on-accent foundation treatment, one dominant primary command, and foundation hover/press/loading/focus behavior |
+| secondary action | Astryx secondary variant with foundation surface/border/state behavior and the same size family as peer controls |
+| ghost action | Astryx ghost variant; no feature-restyled chrome |
+| destructive action | foundation destructive/error treatment plus explicit destructive label semantics; irreversible actions are confirmed through AlertDialog |
+| field | Astryx field-owning control where available; otherwise WorkbenchField/Astryx Field with canonical label/help/status wiring; one control size per row |
 | status | compact neutral/info/success/warning/danger treatment; text/icon accompanies color |
 | notice | inline semantic info/success/warning/danger surface; action remains subordinate unless it is the current workflow action |
 | table/resource row | dense row height, border separation, consistent current/selected treatment |
 | section/material heading | heading token + stable subordinate description/action alignment |
 | workflow rail | component architecture owns geometry; theme owns accent/current/historical/unreached visual roles without changing cell size |
 | disclosure/technical detail | secondary/technical typography, muted role, bounded code treatment |
-| task panel/confirmation/overlay | same surface/text/border/action language as underlying app plus foundation-owned elevation |
+| task panel/confirmation/overlay | Dialog/Drawer/AlertDialog chosen by the §8.12.1 interaction contract, inheriting foundation focus/dismissal/elevation mechanics and the same action language as the app |
 | Markdown/code/evidence | content mechanics may differ; surrounding type/color/focus remains canonical |
 | source editor | specialist mechanics only; all colors/type/focus derive from canonical roles |
 
