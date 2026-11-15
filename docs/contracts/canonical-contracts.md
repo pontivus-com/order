@@ -1995,7 +1995,7 @@ GET /api/work-items/:workItemId/lifecycle-artifacts
 -> ArtifactRef[]
 ```
 
-`src/daemon/authority.ts` owns resolution of this set because it already owns current WorkItem artifact/context material. For each R1/R2/DESIGN/PLAN/R3 stage, candidate paths come only from ArtifactRefs referenced by the latest STAGE Run for that stage (adopted proposal or stage-completion/conformance events), falling back to the latest conformant output paths when the current Run has not established a path. For each candidate path, the daemon materializes/returns the exact current file snapshot if it remains a regular Markdown file; superseded historical paths and non-current hashes are not returned. The UI does not choose a current snapshot from unfiltered artifact history.
+`src/daemon/authority.ts` owns read-only resolution of this set because it already owns current WorkItem artifact/context material. For each R1/R2/DESIGN/PLAN/R3 stage, candidate paths come only from ArtifactRefs referenced by the latest STAGE Run for that stage (adopted proposal or stage-completion/conformance events), falling back to the latest conformant output paths when the current Run has not established a path. The query returns an existing canonical ArtifactRef only when its referenced repository bytes still match that exact snapshot. It does not create/store a new ArtifactRef for changed/new bytes; explicit reconcile/save/adopt/stage-output commands materialize such snapshots. Superseded historical paths and non-current hashes are not returned. The UI does not choose a current snapshot from unfiltered artifact history.
 
 Existing artifact content query remains:
 
