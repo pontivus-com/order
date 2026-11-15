@@ -378,6 +378,7 @@ export const SignoffReview = ({
     }
 
     if (!currentApproval) {
+      const approvalCompleted = historicalTasks.length > 0;
       return (
         <section
           className="order-workspace-section order-approval-overview"
@@ -385,17 +386,20 @@ export const SignoffReview = ({
         >
           <div className="order-section-heading">
             <div>
-              <h2>Approved package history</h2>
+              <h2>{approvalCompleted ? "Approved package history" : "Approval history"}</h2>
               <span>
-                {historicalTasks.length} signed task
-                {historicalTasks.length === 1 ? "" : "s"} · approval completed
+                {approvalCompleted
+                  ? historicalTasks.length + " signed task" +
+                    (historicalTasks.length === 1 ? "" : "s") +
+                    " · approval completed"
+                  : "Sign-off not completed · workflow returned upstream"}
               </span>
             </div>
           </div>
           <p>
-            Signed task and governed document material remains inspectable here.
-            Exact package hash and baseline are current-Approval facts and are
-            not re-derived after sign-off.
+            {approvalCompleted
+              ? "Signed task and governed document material remains inspectable here. Exact package hash and baseline are current-Approval facts and are not re-derived after sign-off."
+              : "Approval was reached, but no sign-off authority was created before the workflow returned upstream. Governed documents remain inspectable as reached history."}
           </p>
         </section>
       );
