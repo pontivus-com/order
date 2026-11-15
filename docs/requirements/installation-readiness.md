@@ -34,7 +34,7 @@ Productive readiness requires, at minimum:
 1. at least one valid configured target repository;
 2. a valid configured model/provider selection;
 3. when the selected productive model requires an authenticated OpenCode account, at least one usable saved OpenCode account in Order's private OpenCode namespace;
-4. the selected OpenCode account/integration and exact provider pin must satisfy the trusted-integration/admission contract in `GW-DOC-OPENCODE-PRODUCTIVE-WORKSPACE-V1`;
+4. the selected OpenCode account/integration and exact provider pin must satisfy the trusted-integration/admission contract in `GW-DOC-OPENCODE-INTEGRATION-V1`;
 5. repository-local project/WorkItem configuration required by the selected target repository to be valid or to have an explicit recovery path.
 
 Readiness is derived from canonical configuration and integration state. It is not a second lifecycle state and need not be persisted as an independent status value.
@@ -332,5 +332,5 @@ P4/P6 and implementation work must resolve, without changing the functional beha
 5. the single Configuration surface and its repository/account mutation commands;
 6. the exact connected-repository add/remove safety rules and active-work blockers;
 7. the exact repository-owned document-root update/migration transaction and rollback behavior;
-8. the repository-context selector/presentation behavior owned by `GW-DOC-WORKBENCH-UX-V1`;
+8. the repository-context selector/presentation behavior owned by `GW-DOC-WORKBENCH-UX-V2`;
 9. tests covering fresh install, current-version update, predecessor update, retained account, missing account, exact repository retention, repository connect/disconnect, document-root configuration/migration, ambiguous repository recovery, repository-document migration and post-install productive blocking.
