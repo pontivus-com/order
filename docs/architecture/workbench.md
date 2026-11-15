@@ -451,20 +451,40 @@ The UI displays a neutral updating/processing state during this short reconcilia
 
 ## 8. Workbench presentation architecture
 
-### 8.1 Structural shell
+### 8.1 Structural shell and layout ownership
 
-Wide layout is exactly:
+The Workbench has one outer layout topology:
 
 ```text
 application toolbar
 work-item identity row
 workflow rail
-primary work area [ + explicit context column when opened ]
+primary task surface [ + explicit Context when opened ]
 ```
 
-The first three rows have stable height. Long identity text truncates.
+The first three rows are structurally stable. Their geometry is owned by the Workbench shell, not by the selected workflow material.
 
-### 8.2 Workflow rail
+No step component may insert another persistent outer navigation column into that topology merely because its local collection grows.
+
+### 8.2 WorkItem identity row
+
+Wide identity layout uses exactly three structural groups:
+
+```css
+grid-template-columns: auto minmax(0, 1fr) auto;
+```
+
+1. navigation controls such as Back;
+2. WorkItem identity/title plus concise overall status;
+3. true WorkItem-level utilities such as Context/archive.
+
+There is no unused/future placeholder column and no content-sized middle utility column.
+
+The title is single-line/truncated at wide/medium widths. Adding/removing an action or changing action text does not change the structural column count or create a new row.
+
+At narrow width the same three semantic groups may recompose into a deterministic two-row layout; content length does not create an arbitrary third row.
+
+### 8.3 Workflow rail
 
 Wide:
 
@@ -472,39 +492,114 @@ Wide:
 grid-template-columns: repeat(9, minmax(0, 1fr));
 ```
 
-State/current markers render inside the cell and never change border/width metrics.
+All nine stage cells occupy one stable rail. State/current markers render inside the cell and never change border/width metrics.
 
-Constrained layout uses one horizontal row with stable auto-column sizing and horizontal overflow. It never wraps into multiple navigation rows.
+Medium/narrow layout keeps one horizontal rail with stable item geometry and horizontal overflow. It never wraps into multiple lifecycle-navigation rows.
 
-### 8.3 Pre-signoff steps
+Responsive scrolling is confined to the workflow rail; the page itself must not require horizontal scrolling to identify the current step or primary action.
+
+### 8.4 Generic step frame boundary
+
+The generic `WorkflowStepFrame` owns only:
+
+- step summary/current-attention band;
+- one primary material region.
+
+It does **not** own an optional `start`/side-index slot, content-count-dependent rail, or generic master/detail behavior.
+
+This is the key layout boundary: interaction classes choose their own secondary-navigation treatment without allowing an object count to alter the outer frame.
+
+### 8.5 Pre-signoff document/dialogue steps
 
 Research/Requirements/Design/Plan use no persistent step-local side rail.
 
-Runs/documents/proposals/evidence are selected through one compact step-local material selector above/in the primary surface. Adding a second attempt/document changes selector contents only; it never changes primary-canvas columns.
+Runs/documents/proposals/evidence are selected through one compact step-local material selector inside the primary surface. It may be a compact disclosure/list control on wide/medium and a drawer/popover on narrow, but the control itself occupies the same structural slot whether it contains one item or many.
 
-Readiness uses the same selector mechanism for secondary material but remains Review-class first.
+Adding a second attempt/document changes selector contents only. The primary surface x-position and width are invariant for the same viewport/Context state.
 
-### 8.4 Approval
+Supporting context is subordinate material, not another navigation rail.
 
-Approval remains one primary Review surface. Repeated signed tasks use a dense table/list inside that surface.
+### 8.6 Readiness
 
-Approval does not conditionally acquire a persistent side master based on task count.
+Readiness is Review-class first.
 
-### 8.5 Implementation
+Its stable primary region contains verdict/currentness, findings/defective owner and the governed R3 review material. Attempts/package/evidence use the same compact subordinate selector pattern as secondary review material.
 
-Implementation alone uses a persistent operational master/detail split.
+Readiness does not use the generic persistent side-index treatment.
 
-The master width is one fixed Workbench token for the wide layout; task count/status does not alter it. The detail owns remaining width.
+A real REQUIRED_INPUT state may temporarily own the current action/composer without changing the surrounding Review layout class.
 
-On medium/narrow layouts the master becomes temporary/stacked before detail width is compromised.
+### 8.7 Approval
 
-### 8.6 Context
+Approval is one coherent Review surface.
 
-Context is closed by default and opens only through explicit operator action.
+Default wide composition is:
 
-At wide width it uses one fixed bounded context-width token; opening/closing Context is the only state-driven addition/removal of that column. Medium/narrow use a drawer/overlay.
+```text
+package currentness/readiness
+signed task table/list
+governed document access
+approver + Sign off exact package
+collapsed/on-demand technical identity
+```
 
-Canonical diagnostics never auto-open Context.
+Approval does not use a generic persistent package/document/task navigation rail.
+
+If the signed task collection becomes large enough to require genuine master/detail, that is one stable Approval layout state with a fixed master-width token; merely having more than one document/task does not toggle the layout.
+
+Package/source/baseline hashes and commit identity remain collapsed technical detail or explicit Context; they do not occupy the default primary top hierarchy.
+
+### 8.8 Implementation
+
+Implementation alone uses the default persistent operational master/detail split.
+
+Wide:
+
+```text
+fixed task/attempt master | minmax(0, 1fr) detail
+```
+
+The master uses one fixed Workbench width token for the entire Implementation workspace. Task count, task state, attempt count and badges do not alter that width.
+
+The master contains task scanning and subordinate attempt selection. The detail owns objective/scope, current action/blocker, selected Run, validation, chronology and evidence/resources.
+
+On medium/narrow widths the master becomes a temporary drawer/stack before detail readability is compromised.
+
+Historical task/attempt selection never displaces the independently derived current-attention owner.
+
+### 8.9 Context
+
+Context is closed by default.
+
+The WorkItem-level Context control is a true toggle with `aria-expanded` semantics. The open inspector/drawer also exposes a visible explicit close action.
+
+At wide width Context uses one fixed bounded context-width token. Opening/closing Context is the only state-driven addition/removal of this trailing column.
+
+Medium/narrow use a drawer/overlay and do not compress the primary canvas.
+
+Canonical diagnostics never auto-open or auto-close Context.
+
+### 8.10 Responsive class ownership
+
+Workbench responsive classes have one technical owner and one breakpoint set:
+
+```text
+wide   >= 1280px
+medium 800px .. 1279px
+narrow < 800px
+```
+
+The React layout hook and Workbench CSS use these same thresholds. A second Workbench breakpoint such as 1000px is not allowed to independently change the same structural regions.
+
+The responsive class may change the representation of secondary selectors/master/Context, but it does not change semantic ownership, current attention, selected material or unsaved state.
+
+### 8.11 CSS/layout hygiene
+
+Each structural Workbench selector has one live declaration owner outside intentionally scoped media overrides.
+
+Superseded duplicate base declarations and unused layout systems are removed rather than left as latent alternatives. In particular, an abandoned Implementation master/detail CSS system and a generic side-index system may not coexist as competing layout authorities.
+
+Permanent architecture fitness treats duplicate base structural selectors and production CSS classes with no production consumer as review failures when they represent obsolete Workbench layout systems.
 
 ## 9. Material and action composition
 
@@ -609,13 +704,53 @@ Retain top-level cancel/resume/scheduler composition. Resume uses explicit curre
 
 Continue to own post-signoff task/Run reaction; route every WorkItem lifecycle return through core lifecycle policy and expose current blocker through canonical task state.
 
-### UI
+### UI query/state ownership
 
-`WorkItemWorkspace.tsx` becomes the canonical query-composition shell for the selected item and does not calculate lifecycle policy ad hoc.
+`App.tsx` owns application destination, queue-level/global queries and global shell controls only. The queue list is not the current selected-WorkItem observation.
 
-`workbench-presentation.ts` remains pure presentation/material resolution but consumes the core reached/interaction policy instead of stage ordinal or `Run.status` heuristics.
+`WorkItemWorkspace.tsx` owns the selected WorkItem canonical observation and work-item-level query composition:
 
-`ActivityWorkspace.tsx` / `ActivityComposer.tsx` use the shared interaction derivation; Send is admitted only for OPEN or exact REQUIRED_INPUT, and mutation error ownership is singular.
+- dedicated `GET /api/work-items/:id` selected-item query;
+- Run list;
+- current lifecycle ArtifactRefs;
+- ExecutionTasks when applicable;
+- source diagnostics/currentness needed by the current workspace;
+- sign-off package when applicable.
+
+Those existing canonical values are passed into step surfaces directly. No `WorkflowObservation`/view-model DTO is introduced.
+
+Child surfaces do not re-query the same WorkItem-level collections merely to make independent workflow decisions:
+
+- `StageRunMaterial` may own the selected RunEvent detail query, but not a second Run-list owner;
+- `ExecutionWorkspace` consumes the parent Run/task/artifact collections and may own only selected RunEvent/evidence detail;
+- `SignoffReview` consumes the parent package/artifact/task state rather than independently deciding current package ownership;
+- `WorkItemContext` is a secondary presentation over passed selected canonical values and does not own duplicate Run/diagnostic workflow queries.
+
+A successful workflow mutation calls one parent-owned canonical-observation invalidation/refetch callback. Child components do not maintain divergent invalidation sets for the same WorkItem state.
+
+### UI policy/presentation ownership
+
+`workbench-presentation.ts` remains pure material/presentation resolution but consumes the core reached/interaction/current-attention policy instead of stage ordinal or `Run.status` heuristics.
+
+Explicit historical selection is presentation state only and is never used as the source of current blocker/action ownership.
+
+`ActivityWorkspace.tsx` / `ActivityComposer.tsx` use the shared interaction derivation; Send is admitted only for OPEN or exact REQUIRED_INPUT, proposal/input/control states cannot coexist contrary to the P3 turn grammar, and mutation error ownership is singular.
+
+### UI structural components
+
+`WorkflowStepFrame.tsx` loses the optional generic side-index/drawer responsibility and owns only summary + primary surface.
+
+Pre-signoff/Readiness use one compact material selector that does not alter primary columns.
+
+Approval owns its Review composition directly; it does not reuse a generic side-index simply because documents/tasks exist.
+
+Implementation owns one dedicated stable master/detail composition and may reuse existing primitive interaction components beneath that boundary.
+
+`WorkbenchLayout.tsx` owns Context representation/responsive behavior; `App.tsx` owns the open/close boolean and supplies a true toggle. The wide inspector has a visible close affordance.
+
+### UI CSS
+
+`theme.css` is reduced to one live Workbench layout system. Duplicate base declarations and dead superseded Workbench layout selectors are removed. Media overrides use the §8.10 breakpoint contract.
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
@@ -691,7 +826,7 @@ No production class/service/repository/controller/DTO/mapper module is introduce
 
 **Required behavior:** workflow rail, pre-signoff material selection, Approval, Implementation master/detail and Context obey the stable spatial contracts in §8 without content-count/status-driven persistent column insertion or width changes.
 
-**Acceptance:** second attempt/document, status/current styling and blocker changes do not move the primary pre-signoff canvas or workflow-cell widths; only explicit Context and responsive class changes alter structural columns.
+**Acceptance:** at the same viewport and Context state, a pre-signoff step with one versus multiple attempts/documents has identical primary-surface x-position and width; Readiness/Approval do not acquire the generic side-index rail; Implementation master width is invariant across task/attempt state; workflow-cell widths are state-invariant; Context has an explicit close/toggle; only explicit Context and the single responsive-class transition alter structural columns.
 
 ### GW-TR-091-WORKFLOW-STATE-MACHINE-CERTIFICATION
 
@@ -752,8 +887,10 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 - stable workflow rail geometry;
 - no conditional pre-signoff rail;
 - stable Implementation master width;
-- explicit Context only;
-- responsive continuity.
+- Readiness/Approval review hierarchy without generic side-index dominance;
+- explicit open **and close** Context behavior;
+- wide identity-row three-group geometry;
+- responsive continuity with no page-level horizontal overflow for current action/identity.
 
 ### 14.6 Architecture fitness
 
@@ -764,7 +901,11 @@ Permanent sensors prove:
 - UI workflow policy imports only the authorized browser-safe core lifecycle owner;
 - daemon modules do not implement a second stage-order/transition table;
 - GET handlers cannot call known reconcile/materialization mutation functions;
-- ordinal reached-history comparison is absent from production Workbench code.
+- ordinal reached-history comparison is absent from production Workbench code;
+- the generic step frame has no content-count-dependent persistent side-index slot;
+- one selected WorkItem query owns current WorkItem observation while child surfaces do not create duplicate WorkItem-level workflow-query owners;
+- Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
+- obsolete competing Workbench layout selectors are absent from production CSS.
 
 ## 15. Non-goals
 
