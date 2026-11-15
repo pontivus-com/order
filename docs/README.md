@@ -60,8 +60,9 @@ docs/order/work-items/<WorkItemId>/
 - [Execution control plane](architecture/execution-control-plane.md) — `GW-DOC-EXECUTION-CONTROL-PLANE-V1`
 - [OpenCode integration](architecture/opencode-integration.md) — `GW-DOC-OPENCODE-INTEGRATION-V1`
 - [Workbench technical architecture](architecture/workbench.md) — `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`
+- [Workbench theme and styling architecture](architecture/workbench-theme.md) — `GW-DOC-WORKBENCH-THEME-V1`
 
-The Workbench technical owner now contains the binding state-machine/transition/observation/spatial design and `GW-TR-082..091`. Runtime remediation remains unimplemented; the next lifecycle activity is a P7 implementation plan derived from the closed P3/P4/P6 authority.
+The Workbench P4 design is split by concern: the component owner defines state/transition/observation/spatial/component composition and renderer coverage, while the theme owner defines exact System/Light/Dark behavior, semantic tokens, cross-component visual parity, foundation bridging and `theme.css`/stylesheet governance. Runtime remediation remains unimplemented; the next lifecycle activity is a P7 implementation plan derived from the closed P3/P4/P6 authority.
 
 ## Decisions
 
