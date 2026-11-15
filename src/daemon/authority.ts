@@ -395,7 +395,7 @@ export const currentLifecycleArtifacts = async (
   workItemId: WorkItemId,
 ): Promise<readonly ArtifactRef[]> => {
   const workItem = getWorkItem(runtime, workItemId);
-  const materialized: ArtifactRef[] = [];
+  const current: ArtifactRef[] = [];
 
   for (const role of lifecycleRoleOrder) {
     const candidates = latestRunCandidateArtifacts(runtime, workItemId, role);
@@ -409,47 +409,15 @@ export const currentLifecycleArtifacts = async (
       ]);
       semantic.set(key, candidate);
     }
-
     for (const candidate of semantic.values()) {
-      try {
-        materialized.push(await currentFileArtifact(
-          runtime,
-          workItem,
-          candidate.repositoryPath,
-          candidate.role,
-          candidate.authorityLayer,
-        ));
-        continue;
-      } catch {
-        // A document-root migration leaves historical ArtifactRefs immutable.
-      }
-
-      const suffix = `/${workItem.id}/work-request.md`;
-      if (!workItem.sourcePath.endsWith(suffix)) continue;
-      const workItemsRoot = workItem.sourcePath.slice(0, -suffix.length);
-      if (workItemsRoot.length === 0) continue;
-      const migratedPath = workItemDocumentPath(
-        workItemsRoot,
-        workItem.id,
-        role,
-      );
-      if (migratedPath === candidate.repositoryPath) continue;
-      try {
-        materialized.push(await currentFileArtifact(
-          runtime,
-          workItem,
-          migratedPath,
-          candidate.role,
-          candidate.authorityLayer,
-        ));
-      } catch {
-        // Missing/non-regular lifecycle Markdown has no current migrated draft.
-      }
+      if (currentArtifactBytesMatch(workItem, candidate)) current.push(candidate);
     }
   }
 
-  const roleRank = new Map(lifecycleRoleOrder.map((role, index) => [role, index] as const));
-  return [...deduplicateArtifacts(materialized)].sort((left, right) => {
+  const roleRank = new Map(
+    lifecycleRoleOrder.map((role, index) => [role, index] as const),
+  );
+  return [...deduplicateArtifacts(current)].sort((left, right) => {
     const leftRank = roleRank.get(left.role as LifecycleRole) ?? 99;
     const rightRank = roleRank.get(right.role as LifecycleRole) ?? 99;
     if (leftRank !== rightRank) return leftRank - rightRank;
