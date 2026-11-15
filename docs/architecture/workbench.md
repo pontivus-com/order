@@ -41,12 +41,12 @@ WorkItemSourceSnapshot / diagnostics
 
 No new persisted `WorkflowState`, `WorkbenchState`, `TurnState`, `ReachedStage`, workflow-state table, transport aggregate, DTO/view-model family or browser-owned mirror is introduced.
 
-The workflow language is realized as two cohesive pure-core responsibilities over those existing canonical values:
+`src/core/lifecycle.ts` remains the **single browser-safe pure workflow-semantics owner** already authorized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`. Within that owner, mutation and observation are separate pure function families:
 
-- `src/core/lifecycle.ts` owns **mutation semantics**: admitted lifecycle causes, stage/status/outcome transitions, block/resume and upstream-return routing;
-- `src/core/workflow-state.ts` owns **read-only workflow semantics**: reach, STAGE interaction, proposal-decision/adoption state, material currentness, execution owner/validation boundary, recovery route, observation coherence, current attention and workflow-rail projection.
+- **mutation semantics:** admitted lifecycle causes, stage/status/outcome transitions, block/resume and upstream-return routing;
+- **read-only workflow semantics:** reach, STAGE interaction, proposal-decision/adoption state, material currentness, execution owner/validation boundary, recovery route, observation coherence, current attention and workflow-rail projection.
 
-This same-layer split is required by SoC: mutation transition policy and observation/presentation policy are independently testable responsibilities. It does not create two lifecycle owners. `workflow-state.ts` cannot assign lifecycle state and `lifecycle.ts` cannot own UI selection/rendering.
+This is one semantic owner, not one aggregate state object. The function families remain independently testable and neither owns UI selection/rendering. No new core module is required by this design; ordinary architecture-preserving decomposition remains available only if implementation evidence later proves the existing module has acquired a genuinely separate responsibility under the global P4 cohesion law.
 
 The missing behavior is realized through:
 
@@ -192,7 +192,7 @@ otherwise                  -> UNREACHED
 
 ### 4.6 Current attention and action ownership
 
-`src/core/workflow-state.ts` derives exactly one `CurrentAttention` from the closed categories in `GW-DOC-WORKBENCH-UX-V2 §21.9`. It does not persist another status.
+`src/core/lifecycle.ts` derives exactly one `CurrentAttention` from the closed categories in `GW-DOC-WORKBENCH-UX-V2 §21.9`. It does not persist another status.
 
 The precedence is exact and exhaustive; downstream code cannot append a feature-local category or resolve ties differently.
 
@@ -359,7 +359,7 @@ Recovery is derived from canonical failure/block/currentness history, including 
 
 ### 4.11 Canonical workflow-rail projection
 
-`src/core/workflow-state.ts` is the sole semantic owner of the rail state projection.
+`src/core/lifecycle.ts` is the sole semantic owner of the rail state projection.
 
 Conceptually:
 
@@ -1489,7 +1489,7 @@ P7 must perform an architecture-preserving **re-composition** around the canonic
 
 The implementation sequence is structurally ordered:
 
-1. establish the closed lifecycle transition-cause policy in `src/core/lifecycle.ts` and the closed derived workflow-state/rail language in `src/core/workflow-state.ts`;
+1. establish the closed lifecycle transition-cause and derived workflow-state/rail language in the existing browser-safe `src/core/lifecycle.ts` owner;
 2. establish the dedicated selected-WorkItem canonical observation and one shared mutation-refetch boundary;
 3. make current attention/recovery/execution ownership and rail projection independent from historical inspection state;
 4. reduce the generic workflow frame to summary/current-attention + primary material only;
@@ -1544,8 +1544,7 @@ If implementation discovers that the target ownership/topology in §§4–12 can
 
 The UI remediation is structurally complete only when all of the following are true before cosmetic acceptance is considered:
 
-- one pure lifecycle transition owner determines every stage/status/outcome mutation from the closed semantic cause language;
-- one pure workflow-state owner determines reach/interaction/proposal/currentness/execution/recovery/coherence/current-attention/rail semantics from canonical facts;
+- one browser-safe pure lifecycle owner determines every stage/status/outcome mutation and every reach/interaction/proposal/currentness/execution/recovery/coherence/current-attention/rail derivation through separate closed function families;
 - one selected-WorkItem query owns current WorkItem observation;
 - one current attention/recovery owner exists for every state;
 - one outer Workbench topology exists;
@@ -1642,9 +1641,9 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION`, `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE`, `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE`, `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE`, `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE`, `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE`.
 
-**Required behavior:** `src/core/workflow-state.ts` owns the complete §4.8 read-only decision algebra over canonical P6 facts, while `src/core/lifecycle.ts` owns only §4.9 lifecycle mutation semantics. No feature/daemon/UI module creates another workflow status, attention/recovery category, execution owner, currentness rule or coherence rule.
+**Required behavior:** the existing browser-safe `src/core/lifecycle.ts` owner contains the complete §4.8 read-only decision algebra and §4.9 lifecycle mutation-cause semantics as separate pure function families over canonical P6 facts. No feature/daemon/UI module creates another workflow status, attention/recovery category, execution owner, currentness rule, coherence rule or lifecycle transition table.
 
-**Acceptance:** exhaustive pure tests cover every union variant and invalid/contradictory histories fail closed; architecture fitness rejects parallel workflow-state derivation outside the authorized core owners and rejects persistence/transport/browser-store representations of these derived values.
+**Acceptance:** exhaustive pure tests cover every union variant and invalid/contradictory histories fail closed; architecture fitness rejects parallel workflow-state derivation outside `src/core/lifecycle.ts` and rejects persistence/transport/browser-store representations of these derived values.
 
 ### GW-TR-098-CANONICAL-WORKFLOW-RAIL-PROJECTION
 
@@ -1766,8 +1765,8 @@ Permanent sensors prove:
 
 - no new DTO/view-model/domain-copy family;
 - no browser workflow store;
-- UI workflow policy imports only the authorized browser-safe core lifecycle/workflow-state owners;
-- daemon modules do not implement a second stage-order/transition table or workflow-state/recovery/attention classifier;
+- UI workflow policy imports only the authorized browser-safe core lifecycle owner;
+- daemon/UI modules do not implement a second stage-order/transition table or workflow-state/recovery/attention/rail classifier;
 - no persisted/transport/browser-store `WorkflowState`/rail-state/view-model family exists;
 - lifecycle-mutating daemon call sites route through the closed §4.9 transition-cause owner rather than assigning stage/status/outcome ad hoc;
 - rail reach/current-marker semantics are referenced only from the authorized `deriveWorkflowRail` projection; UI adapters do not recalculate them;
