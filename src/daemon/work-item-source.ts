@@ -703,25 +703,39 @@ const activeRunExists = (
   loadRunsForWorkItem(runtime.database, workItemId)
     .some((run) => run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT");
 
+const applyObservedSourceChange = (
+  runtime: CoordinatorRuntime,
+  plan: QueuePlan,
+): void => {
+  if (plan.disposition === "UNCHANGED") return;
+  withTransaction(runtime.database, () => applyPlan(runtime, plan));
+};
+
 const saveWorkItemSourceUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   input: ExpectedHashMarkdownWrite,
 ): Promise<ExpectedHashWriteResult> => {
   const command = ExpectedHashMarkdownWriteSchema.parse(input);
-  const validated = await revalidateWorkItemSource(runtime, workItemId);
-  const existing = validated.workItem;
+  const inspected = await inspectWorkItemSource(runtime, workItemId);
+
+  if (command.expectedSha256 !== inspected.source.sha256) {
+    if (activeRunExists(runtime, inspected.workItem.id)) {
+      throw new TypeError("WorkItem source cannot change while a Run is active");
+    }
+    applyObservedSourceChange(runtime, inspected.plan);
+    return ExpectedHashWriteResultSchema.parse({
+      tag: "STALE",
+      currentSha256: inspected.source.sha256,
+    });
+  }
+
+  const existing = inspected.plan.workItem;
   if (activeRunExists(runtime, existing.id)) {
     throw new TypeError("WorkItem source cannot change while a Run is active");
   }
   if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
     throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
-  }
-  if (command.expectedSha256 !== existing.sourceSha256) {
-    return ExpectedHashWriteResultSchema.parse({
-      tag: "STALE",
-      currentSha256: existing.sourceSha256,
-    });
   }
 
   const proposedHash = sha256(new TextEncoder().encode(command.markdown));
@@ -745,15 +759,17 @@ const saveWorkItemSourceUnlocked = async (
   if (activeRunExists(runtime, existing.id)) {
     throw new TypeError("a Run became active before WorkItem source write");
   }
+  const sourceRepositoryRoot = inspected.workItem.repositoryRoot;
+  const sourcePath = inspected.workItem.sourcePath;
   const result = replaceWorkItemSourceFile(
-    existing.repositoryRoot,
-    existing.sourcePath,
+    sourceRepositoryRoot,
+    sourcePath,
     command.expectedSha256,
     command.markdown,
   );
   if (result.tag === "STALE") return result;
 
-  const source = readWorkItemSource(existing.repositoryRoot, existing.sourcePath);
+  const source = readWorkItemSource(sourceRepositoryRoot, sourcePath);
   const lifecycle = classification.disposition === "UPDATED"
     ? transitionWorkItem(existing, { tag: "SOURCE_AUTHORITY_CHANGED" })
     : {
@@ -804,19 +820,25 @@ const saveWorkItemSourceBodyUnlocked = async (
   input: ExpectedHashWorkItemBodyWrite,
 ): Promise<ExpectedHashWriteResult> => {
   const command = ExpectedHashWorkItemBodyWriteSchema.parse(input);
-  const validated = await revalidateWorkItemSource(runtime, workItemId);
-  const existing = validated.workItem;
+  const inspected = await inspectWorkItemSource(runtime, workItemId);
+
+  if (command.expectedSha256 !== inspected.source.sha256) {
+    if (activeRunExists(runtime, inspected.workItem.id)) {
+      throw new TypeError("WorkItem source cannot change while a Run is active");
+    }
+    applyObservedSourceChange(runtime, inspected.plan);
+    return ExpectedHashWriteResultSchema.parse({
+      tag: "STALE",
+      currentSha256: inspected.source.sha256,
+    });
+  }
+
+  const existing = inspected.plan.workItem;
   if (existing.stage === "EXECUTION" || existing.stage === "COMPLETE") {
     throw new TypeError("WorkItem source is read-only in EXECUTION/COMPLETE");
   }
-  if (command.expectedSha256 !== existing.sourceSha256) {
-    return ExpectedHashWriteResultSchema.parse({
-      tag: "STALE",
-      currentSha256: existing.sourceSha256,
-    });
-  }
   const markdown = recomposeWorkItemSourceBody(
-    validated.source.markdown,
+    inspected.source.markdown,
     command.bodyMarkdown,
   );
   return saveWorkItemSourceUnlocked(runtime, workItemId, {

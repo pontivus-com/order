@@ -263,25 +263,30 @@ const cancelRunUnlocked = async (
     await active.server.client.session
       .interrupt({ sessionID: active.sessionId, resume: false })
       .catch(() => undefined);
-    await stopActiveProvider(runtime, run.id);
   }
 
-  return withTransaction(runtime.database, () => {
-    const current = getRun(runtime, run.id);
-    if (current.status !== "RUNNING" && current.status !== "WAITING_FOR_INPUT") {
-      throw new TypeError("Run stopped being cancellable before Cancel commit");
-    }
-    const cancelled = updateRun(runtime, current.id, {
-      status: "CANCELLED",
-      endedAt: nowIsoDateTime(),
-      providerSessionId: null,
+  try {
+    return withTransaction(runtime.database, () => {
+      const current = getRun(runtime, run.id);
+      if (current.status !== "RUNNING" && current.status !== "WAITING_FOR_INPUT") {
+        throw new TypeError("Run stopped being cancellable before Cancel commit");
+      }
+      const cancelled = updateRun(runtime, current.id, {
+        status: "CANCELLED",
+        endedAt: nowIsoDateTime(),
+        providerSessionId: null,
+      });
+      if (current.executionTaskId !== null) {
+        markTaskState(runtime, current.executionTaskId, "BLOCKED");
+        setWorkItemExecutionBlocked(runtime, current.workItemId);
+      }
+      return cancelled;
     });
-    if (current.executionTaskId !== null) {
-      markTaskState(runtime, current.executionTaskId, "BLOCKED");
-      setWorkItemExecutionBlocked(runtime, current.workItemId);
+  } finally {
+    if (active !== undefined) {
+      await stopActiveProvider(runtime, run.id);
     }
-    return cancelled;
-  });
+  }
 };
 
 export const cancelRun = (
