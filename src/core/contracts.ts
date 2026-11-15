@@ -533,6 +533,12 @@ export const OrderHttpErrorSchema = z.strictObject({
       message: "STALE_AUTHORITY requires staleAuthorityOwner and other errors forbid it",
     });
   }
+  if (value.staleAuthorityOwner !== null && value.sourceDiagnostic !== null) {
+    ctx.addIssue({
+      code: "custom",
+      message: "stale authority and source diagnostic recovery owners are mutually exclusive",
+    });
+  }
 });
 
 export const WorkItemSourceReconciliationSchema = z.strictObject({
