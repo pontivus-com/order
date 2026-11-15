@@ -35,6 +35,10 @@ const uuidI = "99999999-9999-4999-8999-999999999999";
 const commit = "a".repeat(40);
 const hash = `sha256:${"a".repeat(64)}`;
 const stamp = "2026-11-14T00:00:00.000Z";
+const reachedAll = new Set<WorkItem["stage"]>([
+  "IDEA", "R1", "R2", "DESIGN", "PLAN", "R3",
+  "AWAITING_SIGNOFF", "EXECUTION", "COMPLETE",
+]);
 
 const workItem = (
   stage: WorkItem["stage"],
@@ -151,9 +155,10 @@ const executionRun = (
 describe("workflow presentation policy", () => {
   it("projects current, historical and unreached workflow steps", () => {
     const current = workItem("PLAN");
-    expect(workflowStepState(current, "PLAN")).toBe("CURRENT");
-    expect(workflowStepState(current, "R1")).toBe("HISTORICAL");
-    expect(workflowStepState(current, "R3")).toBe("UNREACHED");
+    const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "PLAN"]);
+    expect(workflowStepState(current, reached, "PLAN")).toBe("CURRENT");
+    expect(workflowStepState(current, reached, "R1")).toBe("HISTORICAL");
+    expect(workflowStepState(current, reached, "R3")).toBe("UNREACHED");
   });
 
   it("resolves current pre-signoff material by the canonical priority", () => {
@@ -180,6 +185,7 @@ describe("workflow presentation policy", () => {
       runId: failed.id,
     });
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       ...base,
       runs: [waiting, running],
     })).toEqual({
@@ -187,6 +193,7 @@ describe("workflow presentation policy", () => {
       runId: waiting.id,
     });
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       ...base,
       runs: [waiting],
       unresolvedInputRunId: null,
@@ -204,6 +211,7 @@ describe("workflow presentation policy", () => {
       eventId: proposal.eventId,
     };
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       ...base,
       runs: [running],
       unresolvedInputRunId: null,
@@ -214,6 +222,7 @@ describe("workflow presentation policy", () => {
       eventId: runningProposal.eventId,
     });
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       ...base,
       runs: [running],
       unresolvedInputRunId: null,
@@ -223,6 +232,7 @@ describe("workflow presentation policy", () => {
       runId: running.id,
     });
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       ...base,
       runs: [],
       unresolvedInputRunId: null,
@@ -232,6 +242,7 @@ describe("workflow presentation policy", () => {
       artifactId: research.id,
     });
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       ...base,
       runs: [],
       artifacts: [],
@@ -247,6 +258,7 @@ describe("workflow presentation policy", () => {
     const newerRun = stageRun("R1", "COMPLETED", 2, uuidD);
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: current,
       selectedStep: "R1",
       runs: [newerRun, oldRun],
@@ -257,6 +269,7 @@ describe("workflow presentation policy", () => {
     });
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: current,
       selectedStep: "R1",
       runs: [newerRun, oldRun],
@@ -270,6 +283,7 @@ describe("workflow presentation policy", () => {
   it("resolves Readiness, Approval, Implementation and Complete without generic modes", () => {
     const blocked = stageRun("R3", "BLOCKED", 1, uuidB);
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R3"),
       selectedStep: "R3",
       runs: [blocked],
@@ -277,6 +291,7 @@ describe("workflow presentation policy", () => {
     })).toEqual({ kind: "STAGE_RUN", runId: blocked.id });
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R3"),
       selectedStep: "R3",
       runs: [],
@@ -284,6 +299,7 @@ describe("workflow presentation policy", () => {
     })).toEqual({ kind: "READINESS_REVIEW" });
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("AWAITING_SIGNOFF"),
       selectedStep: "AWAITING_SIGNOFF",
       runs: [],
@@ -294,6 +310,7 @@ describe("workflow presentation policy", () => {
     const executionTask = task(uuidC, "RUNNING");
     const run = executionRun(executionTask, "RUNNING", uuidD);
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("EXECUTION"),
       selectedStep: "EXECUTION",
       runs: [run],
@@ -306,6 +323,7 @@ describe("workflow presentation policy", () => {
     });
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("COMPLETE", "CANDIDATE_DONE"),
       selectedStep: "COMPLETE",
       runs: [],
@@ -323,6 +341,7 @@ describe("workflow presentation policy", () => {
     };
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [running],
@@ -332,6 +351,7 @@ describe("workflow presentation policy", () => {
     })).toEqual(explicit);
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [failed],
@@ -344,6 +364,7 @@ describe("workflow presentation policy", () => {
     });
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [failed],
@@ -353,6 +374,7 @@ describe("workflow presentation policy", () => {
     })).toEqual(explicit);
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [running],
@@ -375,6 +397,7 @@ describe("workflow presentation policy", () => {
     };
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("PLAN"),
       selectedStep: "PLAN",
       runs: [running],
@@ -389,6 +412,7 @@ describe("workflow presentation policy", () => {
     const currentBlocker = stageRun("PLAN", "BLOCKED", 4, uuidC);
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("PLAN"),
       selectedStep: "PLAN",
       runs: [selectedAttempt, currentBlocker],
@@ -399,6 +423,7 @@ describe("workflow presentation policy", () => {
     });
 
     expect(resolveWorkflowMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("PLAN"),
       selectedStep: "PLAN",
       runs: [selectedAttempt, currentBlocker],
@@ -464,6 +489,7 @@ describe("workflow presentation policy", () => {
 
   it("returns an explicit unreached material without mutating lifecycle meaning", () => {
     expect(resolveWorkflowMaterial({
+      reachedStages: new Set<WorkItem["stage"]>(["IDEA", "R1"]),
       workItem: workItem("R1"),
       selectedStep: "PLAN",
       runs: [],
