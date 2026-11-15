@@ -792,13 +792,13 @@ Implementation validation presentation is sparse/current-state-first as defined 
 
 No production class/service/repository/controller/DTO/mapper module is introduced.
 
-## 12. Structural remediation boundary
+### Structural remediation boundary
 
 The current Workbench implementation is evidence of the failure modes described by this design; it is **not** the structural baseline that P7 incrementally patches into compliance.
 
 P7 must perform an architecture-preserving **re-composition** around the canonical owners defined above. Visual refinements occur only after those ownership/topology changes have landed.
 
-### 12.1 Required replacement order
+#### Required replacement order
 
 The implementation sequence is structurally ordered:
 
@@ -814,7 +814,7 @@ The implementation sequence is structurally ordered:
 
 A lower step must not compensate for a missing higher step.
 
-### 12.2 Existing mechanisms that are removed, not patched
+#### Existing mechanisms that are removed, not patched
 
 The following current mechanisms are superseded and must disappear from the compliant implementation:
 
@@ -833,7 +833,7 @@ The following current mechanisms are superseded and must disappear from the comp
 
 Removal means deleting the old structural responsibility and its obsolete selectors/branches once the new owner exists. Leaving the old mechanism in place behind CSS overrides, hidden DOM, an always-false branch, a compatibility wrapper or an additional synchronization effect is not compliant.
 
-### 12.3 Prohibited remediation patterns
+#### Prohibited remediation patterns
 
 P7 must not solve these failures by:
 
@@ -848,7 +848,7 @@ P7 must not solve these failures by:
 
 If implementation discovers that the target ownership/topology in §§4–12 cannot be realized without changing canonical state meaning, public contracts or dependency direction, execution returns to DESIGN. It does not invent an implementation-layer workaround.
 
-### 12.4 Definition of structural completion
+#### Definition of structural completion
 
 The UI remediation is structurally complete only when all of the following are true before cosmetic acceptance is considered:
 
