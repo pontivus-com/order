@@ -491,10 +491,22 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).not.toContain('if (selectedStepState === "HISTORICAL") return "Approved"');
     expect(workspace).not.toMatch(/message\.(?:match|includes)|parse.*message/i);
     expect(workspace).toContain("signoffPackageQuery.isFetching");
+    expect(workspace).toContain("api.listExecutionTasks(workItem.id)");
+    expect(workspace).toContain("api.listArtifacts(workItem.id)");
+    expect(workspace).toContain("packageValue={signoffPackageQuery.data ?? null}");
+    expect(workspace).toContain("tasks={tasks}");
+    expect(workspace).toContain("runs={runs}");
+    expect(workspace).toContain("artifacts={allArtifacts}");
 
     const signoffReview = read("ui/src/SignoffReview.tsx");
-    expect(signoffReview).toContain("!packageQuery.isError");
-    expect(signoffReview).toContain("!packageQuery.isFetching");
+    expect(signoffReview).toContain("packageValue: SignoffPackage | null");
+    expect(signoffReview).toContain("packageFetching: boolean");
+    expect(signoffReview).not.toContain("api.getSignoffPackage(");
+    expect(signoffReview).not.toContain("api.listLifecycleArtifacts(");
+    expect(signoffReview).not.toContain("api.listExecutionTasks(");
+    expect(signoffReview).not.toContain("workbenchQueryKeys.signoffPackage(");
+    expect(signoffReview).not.toContain("workbenchQueryKeys.lifecycleArtifacts(");
+    expect(signoffReview).not.toContain("workbenchQueryKeys.tasks(");
 
     const documents = read("ui/src/DocumentWorkspace.tsx");
     expect(documents).toContain("onMutationError?.(error)");
@@ -504,6 +516,9 @@ describe("Order cross-boundary certification", () => {
     expect(activity).toContain('currentAttention !== "MUTATION_CONFLICT"');
     expect(activity).toContain("currentRunId");
     expect(activity).toContain("currentInteraction");
+    expect(activity).toContain("runs: readonly Run[]");
+    expect(activity).not.toContain("api.listRuns(");
+    expect(activity).not.toContain("workbenchQueryKeys.runs(");
     expect(activity).not.toContain("stageRunInteraction");
     expect(activity).not.toContain("runNeedsAttention");
     expect(activity).not.toContain("const canRetry");
@@ -518,7 +533,16 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain("onMutationError?.(error)");
     expect(execution).toContain("onError:reportError");
     expect(execution).toContain("executionOwner: ExecutionOwner");
+    expect(execution).toContain("tasks: readonly ExecutionTask[]");
+    expect(execution).toContain("runs: readonly Run[]");
+    expect(execution).toContain("artifacts: readonly ArtifactRef[]");
     expect(execution).toContain("validationBoundary: ValidationBoundary | null");
+    expect(execution).not.toContain("api.listExecutionTasks(");
+    expect(execution).not.toContain("api.listRuns(");
+    expect(execution).not.toContain("api.listArtifacts(");
+    expect(execution).not.toContain("workbenchQueryKeys.tasks(");
+    expect(execution).not.toContain("workbenchQueryKeys.runs(");
+    expect(execution).not.toContain("workbenchQueryKeys.artifacts(");
     expect(execution).toContain('"Current boundary: updating"');
     expect(execution).toContain("boundary={validationBoundary}");
     expect(execution).toContain("validationBoundaryStatus(boundary)");
