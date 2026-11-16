@@ -1286,6 +1286,12 @@ export const WorkItemWorkspace = ({
             disabled={mutationsDisabled}
             onClick={() => onCreateRemediation(workItem)}
           />
+        ) : inspectedHistorical ? (
+          <WorkbenchAction
+            label={"Return to " + workflow.label}
+            tone="primary"
+            onClick={() => inspectWorkflowStep(workItem.stage)}
+          />
         ) : undefined
       }
     />
