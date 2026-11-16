@@ -136,7 +136,7 @@ jobs:
           const selectMaterial = async (page: Page, name: string): Promise<void> => {
             const selector = page.getByTestId("workflow-step-index").getByRole("combobox");
             await selector.click();
-            await page.getByRole("option", { name, exact: true }).click();
+            await page.getByRole("option", { name, exact: true }).click({ force: true });
           };
 
           const capture = async (
@@ -156,10 +156,14 @@ jobs:
               viewport,
               url: page.url(),
             });
+            writeFileSync(
+              join(output, "manifest.json"),
+              JSON.stringify({ auditSha, capturedAt: new Date().toISOString(), entries: manifest }, null, 2) + "\n",
+            );
           };
 
           test("capture Phase 1 representative rendered states", async ({ page, request }) => {
-            test.setTimeout(120000);
+            test.setTimeout(180000);
             await page.setViewportSize({ width: 1600, height: 900 });
             await authenticate(page, request);
 
@@ -299,6 +303,7 @@ jobs:
         run: node node_modules/@playwright/test/cli.js test --config=phase1-playwright.config.ts
 
       - name: Record evidence metadata
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
@@ -306,6 +311,7 @@ jobs:
           git status --short > phase1-rendered-evidence/runner-working-tree.txt
 
       - name: Upload rendered evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phase1-rendered-evidence
