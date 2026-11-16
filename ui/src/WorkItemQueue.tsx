@@ -5,7 +5,6 @@ import type { WorkItem, WorkItemId, WorkItemSchemaCatalogEntry } from "../../src
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -79,10 +78,11 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
               stage: workflowPresentation(item.stage).label,
               status: <WorkbenchStatus tone={item.status === "ACTIVE" ? "info" : "neutral"} label={item.status === "ACTIVE" ? "Active" : item.status.toLowerCase()} />,
               concerns: item.concernIds.join(", ") || "—",
-              actions: <div className="order-inline-actions">
-                {item.archived ? <WorkbenchAction label={"Restore " + item.title} tone="ghost" loading={restore.isPending} onClick={(event) => { event.stopPropagation(); restore.mutate(item); }} /> : null}
-                <WorkbenchAction label={"Copy work item id for " + item.title} tone="ghost" icon={<WorkbenchIcon name="copy" />} iconOnly onClick={(event) => { event.stopPropagation(); void navigator.clipboard?.writeText(item.id); }} />
-              </div>,
+              actions: item.archived ? (
+                <div className="order-inline-actions">
+                  <WorkbenchAction label={"Restore " + item.title} tone="ghost" loading={restore.isPending} onClick={(event) => { event.stopPropagation(); restore.mutate(item); }} />
+                </div>
+              ) : null,
             },
           };
         })}
