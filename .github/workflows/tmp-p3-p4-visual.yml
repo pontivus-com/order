@@ -412,6 +412,28 @@ jobs:
 
           test("exact safety confirmations", async ({ page, request }) => {
             await page.setViewportSize({ width: 1600, height: 900 });
+            await page.route("**/api/opencode/accounts**", async (route) => {
+              const browserRequest = route.request();
+              const url = new URL(browserRequest.url());
+              if (url.pathname === "/api/opencode/accounts" && browserRequest.method() === "GET") {
+                await route.fulfill({
+                  status: 200,
+                  contentType: "application/json",
+                  body: JSON.stringify({
+                    accounts: [{
+                      id: "cred_visual",
+                      label: "visual@example.com",
+                      active: true,
+                      status: { status: "READY" },
+                    }],
+                    activeAccountId: "cred_visual",
+                    mutationBlockers: [],
+                  }),
+                });
+                return;
+              }
+              await route.fallback();
+            });
             await auth(page, request);
 
             await open(page, "Lifecycle editing workbench");
@@ -464,7 +486,7 @@ jobs:
 
             await page.getByRole("link", { name: "OpenCode", exact: true }).click();
             await expect(page.getByTestId("settings-opencode")).toBeVisible();
-            const removeAccount = page.getByRole("button", { name: /^Remove /u }).first();
+            const removeAccount = page.getByRole("button", { name: "Remove visual@example.com", exact: true });
             await expect(removeAccount).toBeVisible();
             await removeAccount.click();
             dialog = page.getByRole("alertdialog", { name: "Remove saved OpenCode account?" });
