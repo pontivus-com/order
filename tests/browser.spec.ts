@@ -932,7 +932,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   }).getByRole("button", { name: "Save documentation to Git" }).click();
   await expect(documentState).toContainText("Saved to Git");
 
-  await page.getByRole("button", { name: "Archive work item" }).click();
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
   await page.getByRole("alertdialog", { name: "Archive work item?" })
     .getByRole("button", { name: "Archive work item" }).click();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
