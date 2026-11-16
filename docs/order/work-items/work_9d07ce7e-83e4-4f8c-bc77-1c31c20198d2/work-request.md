@@ -541,6 +541,8 @@ PHASE 4 — readiness and delivery
 
 ### Phase 1 — foundational investigation / prerequisite obligations
 
+Phase 1 execution is governed procedurally by the supporting [Phase 1 investigation plan](phase-1-investigation-plan.md). That plan defines the investigation sequence, supporting evidence artifacts, cross-document ownership, completion criteria and the exact fact set required at the Phase 1 → Phase 2 gate. It is an R1 investigation-control document, not the P7 implementation plan.
+
 Phase 1 exists to establish the complete factual basis required before Order can make valid product-design or technical-design decisions. It must not choose the replacement UX, invent new workflow semantics or pre-commit to an OpenCode implementation solution.
 
 Phase 1 is complete only when the interaction map and all of its derived state/OpenCode/material analyses provide a sufficiently closed fact set for Phase 2. Any material unknown that would force R2 or DESIGN to guess product behavior, current implementation behavior, provider capability, state ownership or interaction consequences keeps Phase 1 open.
