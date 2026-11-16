@@ -1859,7 +1859,12 @@ describe("daemon control plane", () => {
     expect(output.beforeManifestBytes).toContain('projectId = "document-root"');
     expect(output.afterManifestBytes).toContain('projectId = "document-root"');
     expect(output.allArtifacts).toContainEqual(expect.objectContaining(output.historical));
-    expect(output.currentLifecycle).toEqual([]);
+    expect(output.currentLifecycle).toEqual([
+      expect.objectContaining({
+        path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
+        role: "PLAN",
+      }),
+    ]);
     expect(output.allArtifacts).toContainEqual(expect.objectContaining({
       path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
       role: "PLAN",
@@ -2194,6 +2199,14 @@ describe("daemon control plane", () => {
           headers: { cookie, origin, "content-type": "application/json" },
           body: "{}",
         });
+        const cliTick = await fetch(origin + "/api/tick", {
+          method: "POST",
+          headers: {
+            "authorization": "Bearer " + daemonToken,
+            "content-type": "application/json",
+          },
+          body: "{}",
+        });
 
         const expiring = await fetch(origin + "/api/auth/connect-token", {
           method: "POST",
@@ -2229,6 +2242,8 @@ describe("daemon control plane", () => {
           wrongOrigin: wrongOrigin.status,
           tickStatus: tick.status,
           tickBody: await tick.json(),
+          cliTickStatus: cliTick.status,
+          cliTickBody: await cliTick.json(),
           expired: expired.status,
           cors: tick.headers.get("access-control-allow-origin"),
         }));
@@ -2277,10 +2292,14 @@ describe("daemon control plane", () => {
       sourceDiagnostic: null,
       staleAuthorityOwner: null,
     });
-    expect(output.missingOrigin).toBe(403);
-    expect(output.wrongOrigin).toBe(403);
-    expect(output.tickStatus).toBe(409);
+    expect(output.missingOrigin).toBe(401);
+    expect(output.wrongOrigin).toBe(401);
+    expect(output.tickStatus).toBe(401);
     expect(output.tickBody).toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+    expect(output.cliTickStatus).toBe(409);
+    expect(output.cliTickBody).toMatchObject({
       code: "CURRENT_STATE_CONFLICT",
     });
     expect(output.expired).toBe(401);
@@ -4606,6 +4625,69 @@ describe("daemon control plane", () => {
       run.failureEvidence.length > 0 &&
       JSON.stringify(run.failureEvidence) === JSON.stringify(run.diagnosticEvidence)
     )).toBe(true);
+  }, 30_000);
+
+  it("manual execution start rejects another eligible task instead of globally retargeting", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-exact-manual-start-");
+    const twoTaskPlan = fixturePlan.replace(
+      '{"id":"T1","objective":"make the target correct","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]}',
+      '{"id":"T1","objective":"first task","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]},{"id":"T2","objective":"second task","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]}',
+    );
+    writeFileSync(join(repository, "docs", "plan.md"), twoTaskPlan);
+    runGit(repository, "add", "docs/plan.md");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      let wrongRejected = false;
+      let wrongMessage = "";
+      try {
+        await coord.startCurrentExecutionTask(runtime, work, tasks[1].id);
+      } catch (error) {
+        wrongRejected = true;
+        wrongMessage = error instanceof Error ? error.message : String(error);
+      }
+      const before = await coord.listExecutionTasks(runtime, work);
+      const started = await coord.startCurrentExecutionTask(runtime, work, tasks[0].id);
+      const after = await coord.listExecutionTasks(runtime, work);
+      console.log(JSON.stringify({
+        wrongRejected,
+        wrongMessage,
+        before: before.map((task) => ({ id: task.id, state: task.state })),
+        started: {
+          workItemId: started.workItemId,
+          executionTaskId: started.executionTaskId,
+          role: started.role,
+          status: started.status,
+        },
+        after: after.map((task) => ({ id: task.id, state: task.state })),
+      }));
+      database.close();
+    `) as {
+      wrongRejected: boolean;
+      wrongMessage: string;
+      before: Array<{ id: string; state: string }>;
+      started: {
+        workItemId: string;
+        executionTaskId: string | null;
+        role: string;
+        status: string;
+      };
+      after: Array<{ id: string; state: string }>;
+    };
+
+    expect(output.wrongRejected).toBe(true);
+    expect(output.wrongMessage).toContain("canonical current task");
+    expect(output.before.map((task) => task.state)).toEqual(["TODO", "TODO"]);
+    expect(output.started).toMatchObject({
+      workItemId: "work_11111111-1111-4111-8111-111111111111",
+      executionTaskId: output.before[0]?.id,
+      role: "BUILDER",
+      status: "RUNNING",
+    });
+    expect(output.after[0]?.state).toBe("RUNNING");
+    expect(output.after[1]?.state).toBe("TODO");
   }, 30_000);
 
   it("executes sign-off through BUILDER, one REMEDIATOR, final REVIEWER V0-V7, and aggregate completion", () => {
