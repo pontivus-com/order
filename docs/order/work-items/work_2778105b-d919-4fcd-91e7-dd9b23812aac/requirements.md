@@ -2,7 +2,7 @@
 
 # 0.5.0 integrated workflow task experience — functional requirements
 
-**Status:** Functional design reviewed — ready for Solution design  
+**Status:** Functional design reviewed — accepted Phase 2A authority  
 **WorkItem:** `work_2778105b-d919-4fcd-91e7-dd9b23812aac`  
 **Derived factual authority:** parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Functional design model:** workflow step → primary task → subtasks → information/input/interaction requirements → observable outcome
