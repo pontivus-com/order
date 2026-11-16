@@ -172,6 +172,152 @@ In addition to the nine workflow steps, audit the surrounding service surfaces:
 
 Evaluate recurring UX/UI defects as potential failures of shared primitives, composition rules, information hierarchy or theme/layout ownership. Do not accept local cosmetic patches when the defect is structurally shared.
 
+### Complete application surface, information and interaction map
+
+Before proposing any replacement UX, R1 must reconstruct the **complete current application map from the production renderer graph and its daemon/API dependencies**. This is a current-state audit, not a design exercise.
+
+The inventory must be exhaustive. A surface is in scope whether it is a route, primary workspace, nested work area, overlay, drawer, dialog, confirmation, context panel, editor, timeline, evidence view, selector, toolbar region, conditional notice or state-dependent action cluster. Reused components must be audited in every materially different semantic context in which their information or business rules differ.
+
+The current production inventory must at minimum trace the surfaces represented by:
+
+- application shell and global toolbar/navigation/theme/OpenCode-account controls in `ui/src/app.tsx`;
+- WorkItem Queue in `ui/src/WorkItemQueue.tsx`;
+- Create WorkItem in `ui/src/CreateWorkItem.tsx`;
+- Settings and readiness surfaces in `ui/src/SettingsWorkspace.tsx` and `ui/src/OpenCodeAccountSettings.tsx`;
+- selected WorkItem shell, workflow dispatch and current-attention composition in `ui/src/WorkItemWorkspace.tsx`;
+- Work request/source and lifecycle-document work in `ui/src/DocumentWorkspace.tsx`, `ui/src/MarkdownSourceEditor.tsx` and `ui/src/MarkdownEditor.tsx`;
+- R1/R2/DESIGN/PLAN in `ui/src/PreSignoffStageWorkspace.tsx`;
+- R3 in `ui/src/ReadinessWorkspace.tsx`;
+- Approval in `ui/src/SignoffReview.tsx`;
+- Implementation in `ui/src/ExecutionWorkspace.tsx`;
+- Complete/result in `ui/src/TerminalResult.tsx`;
+- dialogue/Run interaction in `ui/src/ActivityWorkspace.tsx`, `ui/src/ActivityComposer.tsx` and `ui/src/RunEventTimeline.tsx`;
+- proposal review in `ui/src/ProposalReview.tsx`;
+- WorkItem Context in `ui/src/WorkItemContext.tsx`;
+- evidence inspection in `ui/src/EvidenceViewer.tsx`;
+- workflow identity/navigation/material framing in `ui/src/WorkItemIdentityRow.tsx`, `ui/src/WorkflowRail.tsx`, `ui/src/WorkflowStepFrame.tsx` and `ui/src/WorkflowMaterialSelector.tsx`;
+- every shared Workbench primitive whose semantics affect information hierarchy, action priority, status, notices, task panels, confirmation, tables or responsive composition.
+
+This file list is a baseline sensor, not a closed whitelist. R1 must follow the actual render/call graph and include any additional productive UI surface discovered on `version/0.5.0`.
+
+#### Presentation/information inventory
+
+For **every visible information element or region** on every surface, record:
+
+| Field | Required audit fact |
+|---|---|
+| surface / parent surface | where the information is rendered and what contains it |
+| workflow/application condition | exact conditions under which the surface/element exists |
+| operator purpose | what question or task this information is intended to support |
+| exact information shown | label, text, status, metadata, document content, event, diagnostic or derived presentation |
+| information class | one of: identity/navigation; primary work; current attention/action; workflow progress/state; document/material maturity/currentness; conversation; operational agent activity; proposal/review; evidence; domain/supporting context; history; configuration/readiness; technical detail; developer/debug diagnostic |
+| canonical source/owner | exact WorkItem/Run/RunEvent/ArtifactRef/Approval/ExecutionTask/config/repository/provider fact or other canonical owner |
+| raw versus derived | whether the UI renders canonical data directly or a pure derived presentation |
+| authority/currentness | whether the fact is current authority, historical authority, observational state, secondary metadata or non-authoritative diagnostic detail |
+| display priority | primary, secondary/on-demand, exceptional/current-attention, or diagnostic-only |
+| present placement | where it currently appears in the screen hierarchy |
+| duplication | every other place the same semantic fact is presented |
+| audit verdict | correct, misplaced, duplicated, noisy, ambiguous, missing, technical-leak, debug-leak, or ungoverned |
+| R2 obligation | the functional question that must be resolved if the current presentation is not correct |
+
+The information audit must be **content-complete**, not component-complete. A single component containing twelve materially different information items produces twelve audit entries where their semantic ownership or presentation role differs.
+
+In particular, R1 must identify all text or metadata that currently reaches the operator merely because it is available in runtime state. Provider/session identifiers, hashes, paths, schema/concern identifiers, raw statuses, event tags, validation internals, diagnostic strings and implementation metadata must each be justified as product information, moved to a secondary technical/debug class, or identified as a leak.
+
+#### Interaction and destination inventory
+
+For **every operator interaction**, record:
+
+| Field | Required audit fact |
+|---|---|
+| interaction id / label | stable audit identity and current visible label |
+| originating surface | where the operator invokes it |
+| interaction class | navigation/inspection; local UI state; canonical read/reconcile; canonical mutation; conversation continuation; required-input response; proposal disposition; recovery; configuration; destructive/confirmation |
+| visible-when rule | exact canonical/business conditions under which the interaction is presented |
+| enabled-when rule | exact conditions under which it is actionable rather than disabled |
+| governing business rule | exact P3/P4/P6/lifecycle/configuration authority controlling availability |
+| source facts | canonical facts used to derive visibility/enabled state |
+| UI handler | current component/handler owner |
+| API/daemon/core path | read/command endpoint and downstream command/transition owner |
+| precondition/recheck | server-side/current-state validation performed at commit time |
+| canonical effect | durable mutation or explicit statement that the action is non-mutating |
+| workflow/state effect | exact lifecycle, Run, proposal, material, approval, execution or configuration consequence |
+| destination | resulting route, selected workflow step/material, opened overlay/context, focus target, or no navigation |
+| pending behavior | what remains inspectable and what becomes unavailable while pending |
+| success behavior | resulting presentation and focus/orientation |
+| failure behavior | where the failure remains visible and which owner/recovery action is exposed |
+| stale/conflict behavior | behavior when browser state is no longer current |
+| audit verdict | correct, incorrectly available, incorrectly hidden, wrong destination, wrong owner, ambiguous, duplicate action, missing action, or unproven |
+
+The audit must distinguish **visibility** from **enablement**. Hiding a valid action, showing an invalid action and showing a disabled action without an intelligible reason are three different product behaviors and must be assessed separately.
+
+#### Business-rule and interaction graph
+
+After the element-level inventory, construct one application-wide graph/matrix that maps:
+
+~~~text
+canonical facts / business rules
+        |
+        v
+derived presentation state
+        |
+        +--> information shown
+        +--> current attention owner
+        +--> interactions visible
+        +--> interactions enabled
+        |
+        v
+operator interaction
+        |
+        v
+read / command / provider turn / canonical mutation
+        |
+        v
+resulting canonical facts
+        |
+        v
+resulting screen / selected material / focus / recovery
+~~~
+
+The graph must prove where each business rule is owned. The browser may derive presentation from canonical facts, but it must not become a second owner of workflow eligibility, proposal rules, source-currentness, sign-off eligibility, execution ownership, provider-turn admission or recovery policy.
+
+For every conditional action, R1 must answer:
+
+1. **Why does this action exist here?**
+2. **What canonical facts make it visible?**
+3. **What additional facts make it enabled?**
+4. **What business rule authorizes or prohibits it?**
+5. **What command/read does it invoke?**
+6. **What can that operation change?**
+7. **Where does the operator land afterward?**
+8. **What happens if the facts changed between render and commit?**
+9. **How is failure/recovery presented without losing the owning work context?**
+
+#### Cross-surface flow map
+
+R1 must also produce complete user-flow traces for all ordinary and exceptional paths, including at minimum:
+
+- Queue → WorkItem → selected workflow step → material/history selection;
+- Queue → Create → newly created Work request/IDEA;
+- Queue/WorkItem → Settings and return;
+- Work request → Start Research;
+- R1 → R2 → DESIGN → PLAN → R3 → Approval → Implementation → Complete;
+- every governed backward return;
+- interactive Run processing → open continuation → next provider turn;
+- interactive Run processing → required input → response → next provider turn;
+- interactive Run → proposal pending → proposal review → adopt/reject → resulting document/workflow state;
+- direct document edit/save → invalidation/return/currentness consequence;
+- stale authority/source → reconciliation → resulting owner;
+- stage failure/block → exact recovery action;
+- Approval stale/unsigned/signed paths;
+- Implementation current task → Builder/Reviewer/Remediator/validation paths;
+- execution failure/block/reanalysis/upstream return;
+- provider/session failure and reconstructed/resumed interaction;
+- archived/restored WorkItems;
+- repository/account/model/readiness configuration changes that block or unblock productive work.
+
+Each flow must identify the surfaces traversed, information required at each decision point, action conditions, commands/events produced, canonical state changes and resulting orientation. This flow map is the bridge between the UI audit and the lifecycle/state-machine audit: any interaction that cannot be explained from the state/business-rule model is a release blocker, and any state/business rule with no coherent operator presentation is likewise a release blocker.
+
 ### Integrated workflow interaction audit
 
 The three problem domains must then be recombined into end-to-end interaction scenarios. At minimum, audit the complete operator loop for R1 Research, R2 Requirements, DESIGN and PLAN because these are the interactive preparation stages where human feedback and agent work must coexist:
@@ -255,18 +401,22 @@ For every audited proposition record:
 
 The audit output must include:
 
-1. a complete lifecycle/state-transition matrix with all commands/events and negative combinations;
-2. a complete STAGE/provider-turn matrix including proposal/input/block/completion/open semantics;
-3. an OpenCode productive-context diagram from canonical authority/context resolution through provider invocation and returned-event reaction;
-4. a role-by-role OpenCode contract audit for STAGE, BUILDER, REMEDIATOR and REVIEWER, including execution/session failure classes and the exact operator-visible observability available from the pinned integration;
-5. a **per-workflow-step screen contract** for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete, including primary work, conversation, agent activity, context, technical/debug separation, actions, errors, history and responsive states;
-6. a cross-screen information-governance inventory that classifies every persistent information class as primary work, current attention/action, supporting context, operational agent activity, technical detail or developer/debug diagnostic and identifies its one canonical presentation owner;
-7. an integrated R1/R2/DESIGN/PLAN interaction blueprint proving the complete conversation → agent activity → proposal/document mutation → maturity/conformance → continuation/promotion loop;
-8. a document/material maturity matrix for every governed lifecycle artifact, explicitly separated from WorkItem lifecycle position and mapped to canonical source facts;
-9. a certification coverage matrix mapping each material invariant to the test layer that proves both producer and consumer correctness;
-10. a consolidated release-blocker list ordered by upstream root cause rather than symptom;
-11. a final verdict on whether current P3/P4/P6 authority is itself correct or must be amended before any 0.5.0 remediation plan is written;
-12. the exact set of linked DEFECT/CHANGE WorkItems required to remediate the confirmed findings, without implementing them inside this AUDIT.
+1. a **complete current-state application surface inventory** derived from the production render graph, covering every route/workspace/nested surface/overlay and every materially distinct conditional state;
+2. a **complete information-presentation matrix** classifying every visible information item by semantic class, canonical source/owner, authority/currentness, display priority, placement, duplication and audit verdict;
+3. a **complete interaction/business-rule matrix** for every control/action, including visibility, enablement, source facts, governing rule, UI→API→daemon/core path, mutation/state effect, destination, pending/success/failure/stale behavior;
+4. an **application-wide interaction/flow graph** connecting canonical business rules → presentation → action availability → command/read/provider turn → canonical effect → resulting surface/focus/recovery;
+5. a complete lifecycle/state-transition matrix with all commands/events and negative combinations;
+6. a complete STAGE/provider-turn matrix including proposal/input/block/completion/open semantics;
+7. an OpenCode productive-context diagram from canonical authority/context resolution through provider invocation and returned-event reaction;
+8. a role-by-role OpenCode contract audit for STAGE, BUILDER, REMEDIATOR and REVIEWER, including execution/session failure classes and the exact operator-visible observability available from the pinned integration;
+9. a **per-workflow-step screen contract** for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete, including primary work, conversation, agent activity, context, technical/debug separation, actions, errors, history and responsive states;
+10. a cross-screen information-governance inventory that identifies the one canonical presentation owner for each persistent information class and all current violations;
+11. an integrated R1/R2/DESIGN/PLAN interaction blueprint proving the complete conversation → agent activity → proposal/document mutation → maturity/conformance → continuation/promotion loop;
+12. a document/material maturity matrix for every governed lifecycle artifact, explicitly separated from WorkItem lifecycle position and mapped to canonical source facts;
+13. a certification coverage matrix mapping each material invariant to the test layer that proves both producer and consumer correctness;
+14. a consolidated release-blocker list ordered by upstream root cause rather than symptom;
+15. a final verdict on whether current P3/P4/P6 authority is itself correct or must be amended before any 0.5.0 remediation plan is written;
+16. the exact set of linked DEFECT/CHANGE WorkItems required to remediate the confirmed findings, without implementing them inside this AUDIT.
 
 ## 0.5.0 release character and governed delivery sequence
 
