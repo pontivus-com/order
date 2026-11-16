@@ -273,6 +273,8 @@ export const PreSignoffStageWorkspace = ({
           <ProposalReview
             workItem={workItem}
             selection={{ runId: material.runId, eventId: material.eventId }}
+            currentRunId={workItem.stage === stage ? currentRunId : null}
+            currentInteraction={workItem.stage === stage ? currentInteraction : null}
             mutationsDisabled={mutationsDisabled}
             onBack={onReturnFromTransient}
             onMutationError={onMutationError}

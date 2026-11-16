@@ -10,7 +10,23 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
 
-export const ProposalReview = ({ workItem, selection, mutationsDisabled = false, onBack, onMutationError }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; mutationsDisabled?: boolean; onBack: () => void; onMutationError?: (error: unknown) => void }>) => {
+export const ProposalReview = ({
+  workItem,
+  selection,
+  currentRunId,
+  currentInteraction,
+  mutationsDisabled = false,
+  onBack,
+  onMutationError,
+}: Readonly<{
+  workItem: WorkItem;
+  selection: ProposalSelection;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
+  mutationsDisabled?: boolean;
+  onBack: () => void;
+  onMutationError?: (error: unknown) => void;
+}>) => {
   const queryClient = useQueryClient();
   const eventsQuery = useQuery({ queryKey: workbenchQueryKeys.runEvents(selection.runId), queryFn: () => api.listRunEvents(selection.runId, 0), refetchInterval: 1000 });
   const events = eventsQuery.data ?? [];
@@ -38,10 +54,18 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
     tone={disposition === "ADOPTED" ? "success" : disposition === "REJECTED" ? "neutral" : adoptionRequested ? "warning" : "info"}
     label={disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : adoptionRequested ? "Adoption in progress" : "Pending review"}
   />;
-  const decisions = disposition === null && !adoptionRequested ? <>
-    <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
-    <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
-  </> : null;
+  const ownsCurrentDecision =
+    selection.runId === currentRunId &&
+    currentInteraction?.tag === "OPEN";
+  const decisions =
+    disposition === null &&
+    !adoptionRequested &&
+    ownsCurrentDecision
+      ? <>
+          <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
+          <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
+        </>
+      : null;
 
   return (
     <section data-testid="proposal-review-workspace">
