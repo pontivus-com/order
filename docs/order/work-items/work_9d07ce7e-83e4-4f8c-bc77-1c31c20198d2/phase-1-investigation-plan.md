@@ -81,13 +81,44 @@ Derived audits must reference its stable identifiers instead of copying its full
 
 ### 3.3 Evidence before inference
 
-Every material claim must cite direct evidence from one or more of:
+Every material claim must cite direct evidence. Phase 1 uses two mandatory evidence lanes for UI/application-map work.
 
-- current production UI source on `version/0.5.0`;
+**A. Source/contract evidence**
+
+For every mapped surface, information item and interaction, Phase 1 must trace the exact production source that makes the behavior possible:
+
+- current production UI renderer/component on `version/0.5.0`;
+- exact typed model/schema/contract fields consumed by that renderer;
+- query/API response or locally derived projection supplying those fields;
+- pure derivation/presentation function where applicable;
+- exact conditional predicate controlling whether the surface/item/action is rendered, hidden, enabled or disabled;
+- event handler/mutation/read owner for interactions;
+- downstream daemon/core/shell/provider owner where the interaction crosses the browser boundary;
+- current canonical authority and permanent tests relevant to the behavior.
+
+A screenshot alone is never sufficient evidence for a UI fact because it cannot prove the data owner, type, conditional rule or downstream effect.
+
+**B. Rendered/runtime evidence**
+
+For each materially distinct visual/application condition, Phase 1 must capture the actual rendered product state. Where the required browser/runtime execution cannot be performed through the available local runtime/connectors, the rendered evidence **must be produced through temporary GitHub Actions operational scaffolding** under the repository's temporary-workflow rules.
+
+Temporary screenshot workflows must:
+
+- run only on `version/0.5.0`;
+- use the repository's pinned runtime/package manager/browser dependencies and existing productive/e2e startup path;
+- create no production behavior or alternate application path;
+- capture only ordinary verification evidence;
+- identify the exact commit SHA under audit;
+- be removed from the branch immediately after the required evidence is collected;
+- leave no temporary workflow YAML in the release candidate tree.
+
+Rendered evidence must record the workflow run/commit, viewport, theme where material, fixture/runtime state, `SURF-` id and screenshot/evidence filename so the image can be correlated back to source evidence.
+
+Other direct evidence may also include:
+
 - current daemon/core/shell/provider integration source;
-- current canonical Order authority;
 - current permanent tests and architecture sensors;
-- reproducible runtime behavior/logs/diagnostics;
+- reproducible runtime logs/diagnostics;
 - exact pinned OpenCode facts and integration evidence.
 
 Where evidence is unavailable, the fact remains `UNPROVEN`; it is not filled with design inference.
@@ -217,9 +248,18 @@ Each surface receives a `SURF-` id and records:
 - route/selection condition;
 - workflow/application condition;
 - source renderer(s);
+- exact typed input models/schemas/contracts consumed by the surface;
+- exact query/API/projection sources supplying those inputs;
 - canonical facts needed to render it;
+- all conditional predicates that materially alter its composition;
 - current operator purpose if supported by authority;
-- surfaces it can enter/return to.
+- surfaces it can enter/return to;
+- every modal, drawer, popover, confirmation, task panel, inspector or other overlapping UI the surface can open;
+- the trigger and close/return path for each overlapping UI.
+
+An overlapping UI is part of the originating screen's interaction model **and** receives its own `SURF-` identity when it presents materially distinct information or interactions. The map must therefore preserve both relationships: `originating surface -> trigger -> overlay surface -> result/return`.
+
+**Rendered-state evidence:** every primary surface and every materially distinct overlay/conditional composition must have rendered evidence tied to its `SURF-` id. Source inspection may prove existence and conditions, but it does not substitute for evidence of actual hierarchy, density, geometry, clipping, responsive behavior or visual dominance.
 
 **Artifact:** `application-interaction-map.md`.
 
@@ -237,14 +277,23 @@ For every `SURF-`, enumerate every materially distinct visible information item 
 
 - exact content/label/value class;
 - semantic category;
+- exact TypeScript/domain model type and schema/contract field(s) supplying it;
+- exact query/API/selector/projection path supplying the value;
 - canonical producer/owner;
-- raw vs derived presentation;
+- raw vs derived presentation, including the derivation function/owner where applicable;
 - current vs historical vs diagnostic authority;
 - current placement and hierarchy;
-- display condition;
+- exact render/show predicate;
+- the state/data values that make it absent;
 - duplication elsewhere;
+- the operator question/decision the information currently supports, if any;
+- the `ACT-`/`FLOW-` interactions that consume or depend on the information;
 - whether current authority explains why it belongs there;
+- source evidence reference(s);
+- rendered evidence reference(s);
 - current-state verdict: correct, misplaced, duplicated, noisy, ambiguous, missing, technical leak, debug leak or ungoverned.
+
+The inventory must trace **data actually presented**, not merely component props. If a component receives a compound model but renders only six properties, the six presented properties are individually mapped. If a derived label combines multiple canonical facts, all contributing fields and the derivation owner are recorded.
 
 Information categories include at minimum:
 
@@ -277,22 +326,28 @@ Information categories include at minimum:
 
 Assign every operator action an `ACT-` id and record:
 
+- originating `SURF-`;
 - visible-when condition;
 - enabled-when condition;
+- exact typed fields/derived facts used by those predicates;
 - disabled explanation if any;
 - interaction class;
 - source facts;
 - governing business/lifecycle/configuration rule;
+- information prerequisites: the `INFO-` items the operator needs to understand the action/decision;
 - current UI handler;
 - HTTP/daemon/core/provider path;
 - commit-time recheck;
 - canonical mutation or non-mutating effect;
 - resulting lifecycle/Run/proposal/material/configuration effect;
-- destination/selection/focus result;
+- destination `SURF-`, selected material and focus result;
+- overlay behavior where the action opens a dialog/drawer/popover/confirmation/task panel;
 - pending state;
 - success orientation;
 - error presentation and recovery;
-- stale/conflict behavior.
+- stale/conflict behavior;
+- source evidence reference(s);
+- rendered evidence reference(s).
 
 Then construct `FLOW-` traces for ordinary and exceptional journeys, including forward workflow progression, backward returns, chat continuation, required input, proposal review/adoption/rejection, document save/currentness changes, reconciliation, Approval, Implementation, provider failure, retry/resume and Settings/readiness changes.
 
@@ -457,16 +512,35 @@ The synthesis must also include a Phase 2 input register containing:
 
 Required sections:
 
-1. evidence/source registry;
+1. evidence/source registry, separating source/contract evidence from rendered/runtime evidence;
 2. application/navigation topology;
-3. surface registry;
-4. per-surface information inventory;
-5. per-surface interaction inventory;
-6. global/business-rule interaction matrix;
-7. cross-surface normal flows;
-8. cross-surface exceptional/recovery flows;
-9. duplication/leakage inventory;
-10. current-state gaps requiring derived audit.
+3. surface registry, including parent/child and originating-surface/overlay relationships;
+4. per-surface typed data/model/schema input map;
+5. per-surface conditional-render/state-scenario matrix;
+6. per-surface rendered evidence manifest (commit/run/fixture/viewport/theme/`SURF-`/evidence file);
+7. per-surface information inventory with `INFO-` → typed field → source owner → predicate → rendered-evidence trace;
+8. per-surface interaction inventory with `ACT-` → required information → predicate → handler → downstream owner → destination/overlay trace;
+9. global/business-rule interaction matrix;
+10. cross-surface normal flows;
+11. cross-surface exceptional/recovery flows;
+12. overlay/modal/drawer/popover/confirmation interaction graph;
+13. duplication/leakage inventory;
+14. cross-artifact closure ledger;
+15. current-state gaps requiring derived audit.
+
+The cross-artifact closure ledger must have one row per `SURF-` and prove that every materially distinct surface/condition has:
+
+- source renderer evidence;
+- typed data/schema evidence;
+- conditional-render evidence;
+- rendered evidence;
+- all `INFO-` rows;
+- all `ACT-` rows;
+- relevant `FLOW-` rows;
+- required `STATE-`, `OC-`, `MAT-` and `CERT-` derivations or an explicit not-applicable reason;
+- closure status.
+
+A surface cannot be marked closed merely because its React component has been read.
 
 This artifact owns **what the current user can see and do**. It does not own the lifecycle correctness verdict, OpenCode capability verdict, or future UX design.
 
@@ -604,12 +678,17 @@ Phase 2 may start only when all of the following are true.
 
 ### 10.1 Application-map closure
 
-- every productive UI surface is inventoried;
-- every persistent visible information class is mapped to a source/owner and presentation role;
-- every operator interaction has visibility and enablement conditions;
-- every interaction has a traced command/read/provider path and destination;
+- every productive UI surface, including every materially distinct modal/drawer/popover/confirmation/task-panel/inspector state, is inventoried;
+- every surface has both source/contract evidence and rendered/runtime evidence;
+- every persistent visible information item is mapped to the exact typed model/schema/contract fields that supply it, its source/derivation owner, presentation role and render predicate;
+- every material absence/conditional presentation is explained by the exact state/data predicate that suppresses it;
+- every operator interaction has visibility and enablement conditions backed by exact typed source facts;
+- every interaction identifies the information the operator needs to make that decision;
+- every interaction has a traced handler, command/read/provider path, commit-time recheck, canonical effect and destination/overlay/return path;
 - every ordinary and material exceptional flow is mapped;
-- no known productive surface or interaction remains unclassified.
+- representative state/data-density scenarios have rendered evidence at the viewport/theme combinations that materially alter composition;
+- the cross-artifact closure ledger has no open productive `SURF-` rows;
+- no known productive surface, information item or interaction remains unclassified.
 
 ### 10.2 Workflow/state closure
 
@@ -656,9 +735,10 @@ Failure of any gate keeps Phase 1 open.
 
 Phase 2A must receive, without re-investigating current implementation:
 
-- complete current application surface topology;
-- complete information inventory and current hierarchy problems;
-- complete interaction inventory and current visibility/enabled business rules;
+- complete current application surface topology, including nested and overlapping UI;
+- rendered evidence for every materially distinct screen/overlay condition needed to judge actual hierarchy, density and composition;
+- complete information inventory with exact typed model/schema fields, source/derivation owners, render predicates and current hierarchy problems;
+- complete interaction inventory with exact typed predicate facts, information prerequisites and current visibility/enabled business rules;
 - current user-flow/recovery map;
 - state/UI mismatch findings;
 - OpenCode facts that affect user-facing transparency and conversation;
