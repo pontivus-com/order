@@ -292,8 +292,8 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await expect(repositoryRow).toBeVisible();
   await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
   const disconnectDialog = page.getByRole("alertdialog", { name: "Disconnect repository?" });
-  await expect(disconnectDialog).toContainText(repositoryRoot);
-  await expect(disconnectDialog).toContainText("Repository files, WorkItem Markdown, Git history, and authority documents are not deleted.");
+  await expect(disconnectDialog).toContainText("Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted.");
+  await expect(disconnectDialog).not.toContainText(repositoryRoot);
   await disconnectDialog.getByRole("button", { name: "Cancel" }).click();
   await expect(repositoryRow).toBeVisible();
 
@@ -502,7 +502,8 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
 
   await panel.getByRole("button", { name: "Remove gamma@example.com" }).click();
   const removeDialog = page.getByRole("alertdialog");
-  await expect(removeDialog).toContainText("Remove gamma@example.com");
+  await expect(removeDialog).toContainText("Remove the selected saved OpenCode credential from this installation.");
+  await expect(removeDialog).not.toContainText("gamma@example.com");
   await removeDialog.getByRole("button", { name: "Remove account" }).click();
   await expect(panel).not.toContainText("gamma@example.com");
 
@@ -921,7 +922,8 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   const gitDialog = page.getByRole("alertdialog", {
     name: "Save WorkItem documentation to Git?",
   });
-  await expect(gitDialog).toContainText("work-request.md");
+  await expect(gitDialog).toContainText("Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.");
+  await expect(gitDialog).not.toContainText("work-request.md");
   await gitDialog.getByRole("button", { name: "Save documentation to Git" }).click();
   await expect(documentState).toContainText("Saved to Git");
 
@@ -2104,14 +2106,14 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
     .click();
   const workflowGuard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await expect(workflowGuard).toBeVisible();
-  await workflowGuard.getByRole("button", { name: "Continue editing" }).click();
+  await workflowGuard.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
   expect(workflowMutations).toEqual([]);
 
   await page.getByRole("link", { name: "Back to queue" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await expect(guard).toBeVisible();
-  await guard.getByRole("button", { name: "Continue editing" }).click();
+  await guard.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
 
   await page.getByRole("link", { name: "Back to queue" }).click();
