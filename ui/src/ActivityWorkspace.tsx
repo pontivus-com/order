@@ -202,7 +202,7 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
         );
 
   const activityRegion = activityEvents.length === 0
-    ? (runIsActive(selectedRun) ? <WorkbenchState kind="empty" compact title="Agent activity" description="Waiting for bounded operational activity…" /> : undefined)
+    ? (runIsActive(selectedRun) ? <WorkbenchState kind="empty" title="Agent activity" description="Waiting for bounded operational activity…" /> : undefined)
     : (
       <WorkbenchTimeline
         label="Agent activity"
