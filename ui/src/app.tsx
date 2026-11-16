@@ -372,11 +372,10 @@ export const App = () => {
                   : "Governed work queue"}
             </span>
           </div>
-          {settingsSection === null ? (
+          {settingsSection === null && selectedWorkItem === null ? (
             <WorkbenchAction
               label="New work item"
               icon={<WorkbenchIcon name="add" />}
-              iconOnly={selectedWorkItem !== null}
               onClick={() => {
                 resetCreate();
                 setCreateOpen(true);
