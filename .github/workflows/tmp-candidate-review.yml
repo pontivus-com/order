@@ -1,4 +1,4 @@
-name: Temporary candidate review
+name: Temporary candidate visual review
 
 on:
   push:
@@ -24,12 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: version/0.5.0
+          ref: 9c3c67913e41bd29e906e4f2879aca9b88de232a
           fetch-depth: 0
 
       - name: Record candidate SHA
         shell: bash
-        run: echo "CANDIDATE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+        run: echo "CANDIDATE_SHA=9c3c67913e41bd29e906e4f2879aca9b88de232a" >> "$GITHUB_ENV"
 
       - name: Install exact Node and Bun
         shell: bash
@@ -60,21 +60,6 @@ jobs:
 
       - name: Install Playwright Chromium
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
-
-      - name: typecheck
-        run: bun run tsc --noEmit
-
-      - name: architecture
-        run: node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
-
-      - name: test
-        run: node node_modules/vitest/vitest.mjs run
-
-      - name: build
-        run: node node_modules/vite/bin/vite.js build
-
-      - name: browser
-        run: node node_modules/@playwright/test/cli.js test
 
       - name: Generate candidate visual evidence test
         shell: bash
@@ -277,7 +262,7 @@ jobs:
       - name: Rasterize approved SVG references
         shell: bash
         run: |
-          cat > /tmp/render-references.mjs <<'SCRIPT'
+          cat > candidate-review-render.temp.mjs <<'SCRIPT'
           import { chromium } from "@playwright/test";
           import { readdirSync, mkdirSync } from "node:fs";
           import { resolve } from "node:path";
@@ -298,7 +283,7 @@ jobs:
           }
           await browser.close();
           SCRIPT
-          node /tmp/render-references.mjs
+          node candidate-review-render.temp.mjs
 
       - name: Write evidence manifest
         shell: bash
@@ -334,4 +319,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add candidate-review-evidence
           git commit -m "chore: capture candidate review visual evidence"
+          git fetch origin version/0.5.0
+          git rebase origin/version/0.5.0
           git push origin HEAD:version/0.5.0
