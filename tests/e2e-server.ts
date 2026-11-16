@@ -222,7 +222,7 @@ const workItem = (
     | "DUPLICATE"
     | "ALREADY_SATISFIED"
     | null,
-  schemaId: "change-v1" | "investigation-v1" | "audit-v1" = "change-v1",
+  schemaId: "change-v1" | "defect-v1" | "investigation-v1" | "audit-v1" = "change-v1",
 ) => {
   const id = newWorkItemId();
   const markdown = renderWorkItemSourceMarkdown(
@@ -283,6 +283,14 @@ const storePlanArtifacts = (workItemId: WorkItemId) => {
   storeArtifact(database, r3);
   return { plan, r3 };
 };
+
+const workTypeItems = [
+  workItem("Change work type", "IDEA", "ACTIVE", null, "change-v1"),
+  workItem("Defect work type", "IDEA", "ACTIVE", null, "defect-v1"),
+  workItem("Investigation work type", "IDEA", "ACTIVE", null, "investigation-v1"),
+  workItem("Audit work type", "IDEA", "ACTIVE", null, "audit-v1"),
+] as const;
+for (const item of workTypeItems) storeWorkItem(database, item);
 
 const startResearchItem = workItem("Work request start success", "IDEA", "ACTIVE", null);
 storeWorkItem(database, startResearchItem);
@@ -834,6 +842,43 @@ persistEvent(resumeRun.id, 1, {
   tag: "STAGE_BLOCKED",
   reason: "Synthetic blocker for browser Resume certification.",
   owningStage: "PLAN",
+});
+
+const openContinuationItem = workItem(
+  "Workflow open continuation",
+  "PLAN",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, openContinuationItem);
+const openContinuationRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: openContinuationItem.id,
+  executionTaskId: null,
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "RUNNING",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("open-continuation-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, openContinuationRun);
+persistEvent(openContinuationRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: openContinuationRun.contextHash,
+});
+persistEvent(openContinuationRun.id, 2, {
+  tag: "AGENT_MESSAGE_FINAL",
+  text: "The current plan is ready for your continuation.",
+  evidence: [],
 });
 
 const waitingInputItem = workItem(
