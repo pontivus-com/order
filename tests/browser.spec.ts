@@ -1068,7 +1068,10 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   await expect(page.locator(".order-editor-actionbar")).toHaveCount(0);
 
   const workspace = page.getByTestId("lifecycle-document-material");
-  const editor = page.getByTestId("markdown-source-editor");
+  const editor = await openMarkdownEditor(
+    page,
+    "Implementation plan document Markdown source",
+  );
   const save = page.getByRole("button", { name: "Save", exact: true });
   await expect(workspace).toBeVisible();
   await expect(editor).toBeVisible();
@@ -1116,8 +1119,10 @@ test("narrow workflow work index returns focus and preserves dirty material acro
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
 
-  const editor = page.getByLabel("Implementation plan document Markdown source");
-  await expect(editor).toBeVisible();
+  const editor = await openMarkdownEditor(
+    page,
+    "Implementation plan document Markdown source",
+  );
   const initial = await markdownSourceValue(editor);
   await replaceMarkdownSource(
     page,
@@ -2017,9 +2022,14 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   const fresh = await markdownSourceValue(editablePlan);
   await replaceMarkdownSource(page, editablePlan, fresh + "\ncancelled plan edit\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect.poll(() => markdownSourceValue(editablePlan)).toBe(fresh);
+  await expect(page.getByTestId("markdown-document-view")).toBeVisible();
+  const reopenedPlan = await openMarkdownEditor(
+    page,
+    "Implementation plan document Markdown source",
+  );
+  await expect.poll(() => markdownSourceValue(reopenedPlan)).toBe(fresh);
 
-  await replaceMarkdownSource(page, editablePlan, fresh + "\nsaved plan edit\n");
+  await replaceMarkdownSource(page, reopenedPlan, fresh + "\nsaved plan edit\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   const savedPlan = page.getByLabel("Implementation plan document Markdown source");
   await expect(savedPlan).toBeVisible();
