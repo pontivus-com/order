@@ -1766,10 +1766,10 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   request,
 }) => {
   await authenticate(page, request);
-  await openWorkItem(page, "Workflow open continuation");
+  await openWorkItem(page, "Research open continuation");
   const detail = page.getByTestId("activity-detail");
   await expect(detail).toBeVisible();
-  await expect(detail).toContainText("The current plan is ready for your continuation.");
+  await expect(detail).toContainText("The current Research findings are ready for your continuation.");
   await expect(detail.getByPlaceholder("Continue current work")).toBeVisible();
   await expect(detail.getByPlaceholder("Answer and continue")).toHaveCount(0);
   await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
