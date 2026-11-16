@@ -979,9 +979,9 @@
   gap: var(--spacing-2);
   padding: var(--spacing-3);
   background: var(--color-accent);
-  color: currentColor;
+  color: var(--color-on-accent);
 }
-.order-evidence-code-label span { color: currentColor; }
+.order-evidence-code-label span { color: var(--color-on-accent); }
 
 .order-code-view {
   min-height: 0;
