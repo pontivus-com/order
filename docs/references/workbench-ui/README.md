@@ -76,7 +76,7 @@ Every Phase 1 surface from `application-interaction-map.md §8` maps to a reposi
 |---|---|
 | `SURF-APP-001` | [Queue/application shell](queue.svg), [application notices/states](application-notices-states.svg), [installation readiness](installation-readiness.svg), [theme parity](theme-parity.svg) |
 | `SURF-QUEUE-001` | [Queue](queue.svg), [queue states](queue-states.svg) |
-| `SURF-CREATE-001` | [Create WorkItem](create-work-item.svg) |
+| `SURF-CREATE-001` | [Create WorkItem](create-work-item.svg), [linked remediation variant](create-linked-remediation.svg) |
 | `SURF-SET-001` | [Repositories settings](settings-repositories.svg), [OpenCode settings](settings-opencode.svg), [Model/runtime settings](settings-model.svg) |
 | `SURF-SET-REPO-001` | [Repositories settings](settings-repositories.svg) |
 | `SURF-SET-REPO-ADD-001` | [Add repository](settings-repository-add.svg) |
@@ -84,7 +84,7 @@ Every Phase 1 surface from `application-interaction-map.md §8` maps to a reposi
 | `SURF-SET-OC-001` | [OpenCode accounts](settings-opencode.svg) |
 | `SURF-SET-OC-RENAME-001` | [Rename OpenCode account](settings-opencode-rename.svg) |
 | `SURF-SET-OC-ADD-001` | [Add OpenCode account](settings-opencode-add.svg) |
-| `SURF-SET-OC-LOGIN-001` | [OpenCode sign-in](settings-opencode-login.svg) |
+| `SURF-SET-OC-LOGIN-001` | [OpenCode sign-in](settings-opencode-login.svg), [login terminal states](settings-opencode-login-states.svg) |
 | `SURF-SET-MODEL-001` | [Model & runtime](settings-model.svg) |
 | `SURF-WI-001` | [WorkItem shell controls](workitem-shell-controls.svg), all workflow-step references, [current-attention states](current-attention-states.svg) |
 | `SURF-WI-CONTEXT-001` | [Technical Context](workitem-context.svg) |
@@ -96,7 +96,7 @@ Every Phase 1 surface from `application-interaction-map.md §8` maps to a reposi
 | `SURF-STEP-R3-001` | [Readiness review](readiness-review.svg), [dialogue states](dialogue-states.svg) for legitimate input interaction |
 | `SURF-STEP-APPROVAL-001` | [Approval](approval.svg) |
 | `SURF-STEP-EXEC-001` | [Implementation](implementation.svg), [Implementation states](implementation-states.svg) |
-| `SURF-STEP-COMPLETE-001` | [Complete](complete.svg) |
+| `SURF-STEP-COMPLETE-001` | [Complete](complete.svg), [Audit/Investigation linked-remediation branch](complete-linked-remediation.svg) |
 | `SURF-MAT-SOURCE-001` | [Document authoring](document-authoring.svg), [document states](document-states.svg) |
 | `SURF-MAT-DOC-001` | [Document authoring](document-authoring.svg), [document states](document-states.svg) |
 | `SURF-MAT-DOC-RO-001` | [Read-only document](document-readonly.svg), [document states](document-states.svg) |
@@ -147,6 +147,9 @@ The visual system is shared. The work-type-specific input/Research semantics and
 - [Queue states](queue-states.svg)
 - [Application notices/shared states](application-notices-states.svg)
 - [Installation readiness](installation-readiness.svg)
+- [Create linked remediation](create-linked-remediation.svg)
+- [Audit/Investigation linked-remediation terminal branch](complete-linked-remediation.svg)
+- [OpenCode login-attempt terminal states](settings-opencode-login-states.svg)
 - [Safety/confirmation surfaces](safety-confirmations.svg)
 - [Responsive composition](responsive-composition.svg)
 - [Theme parity](theme-parity.svg)
