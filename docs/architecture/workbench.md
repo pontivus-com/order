@@ -1587,7 +1587,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-205-MONOTONIC-REACH-HISTORY`, `GW-FR-211-READINESS-RETURN-CONTINUITY`, `GW-FR-224-TERMINAL-RESULT-PRIMACY`.
 
-**Required behavior:** reached workflow steps are derived from canonical WorkItem/Run/RunEvent/ArtifactRef/ExecutionTask evidence and remain reached after upstream returns; current-stage ordinal alone is never the history algorithm.
+**Required behavior:** reached workflow steps are derived from canonical WorkItem/Run/RunEvent/ExecutionTask entry evidence and remain reached after upstream returns; current-stage ordinal and lifecycle ArtifactRef existence are never history algorithms. Repository draft ArtifactRefs remain material evidence only.
 
 **Acceptance:** R3/execution returns preserve previously reached downstream steps, while an R1-terminal investigation/audit does not fabricate later reached stages.
 
