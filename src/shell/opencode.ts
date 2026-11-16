@@ -1538,7 +1538,7 @@ export const runOpenCodeTurn = async (
     record: ProviderDiagnosticRecord,
     stderr: Uint8Array | null,
   ) => void | Promise<void>,
-  onActivity: AgentActivitySink,
+  onActivity: AgentActivitySink = () => undefined,
 ): Promise<readonly RunEventPayload[]> => {
   const productivePermissions = openCodePermissionRules(role, task, referenceRoots);
   const promptId = openCodePromptId(run, triggeringRunEventId);
