@@ -356,6 +356,29 @@ Where safe and useful, an activity entry may include a bounded repository-relati
 
 Useful activity is shown live while processing when the selected technical integration can provide it reliably. After the turn settles, a bounded activity summary may remain inspectable with the attempt when it materially helps explain the work performed or a failure. Canonical Order messages, questions, proposals, blockers, completions, reviews and validation outcomes remain workflow authority.
 
+### 5.6 Conversation transcript and reply context
+
+A reply-capable workflow interaction is always a **Dialogue** interaction, not an isolated input control.
+
+Whenever the operator can submit a free-form continuation or answer required input, the primary Dialogue surface must visibly provide the human/agent conversation needed to understand that response.
+
+The conversation transcript must:
+
+- present substantive human-facing agent messages from the selected current attempt;
+- present accepted operator responses in conversational order;
+- present the exact required question inline when the agent is waiting for input;
+- preserve enough prior turn context from the same attempt to make the current reply intelligible;
+- remain visible while the current agent turn is processing so new activity does not replace the discussion being continued;
+- keep system/workflow events, operational activity and technical diagnostics visually distinguishable from human/agent messages.
+
+A free-form composer must never appear as an orphaned control beneath a status/event feed that does not show the agent statement being replied to.
+
+When an attempt is **open for continuation**, the preceding completed agent turn must expose at least one substantive human-facing agent message that provides the conversational anchor for continuation. If no such message is available, free-form continuation is not meaningfully admissible and the Workbench must not present an ordinary reply composer.
+
+When the attempt is **waiting for required input**, the exact question is itself the current conversational anchor. Any additional agent explanation returned for that turn remains visible with the question rather than being hidden in technical/event detail.
+
+Operational activity supplements this transcript; it does not replace it. Raw provider output, provider-native message structures, hidden reasoning and tool payloads are not the conversation surface.
+
 ## 6. Proposal contract
 
 ### 6.1 Proposal ownership
@@ -1657,6 +1680,12 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Acceptance:** material maturity is intelligible without a duplicate persisted status owner and repository-draft visibility does not fabricate lifecycle history.
 
+### GW-FR-242-DIALOGUE-REPLY-CONTEXT
+
+**Required behavior:** every reply-capable pre-signoff interaction presents the selected attempt's human/agent conversation transcript and the substantive conversational anchor being replied to under §5.6.
+
+**Acceptance:** free-form continuation is never offered without a visible preceding agent message; required input shows its exact question inline with the conversation; operational/system/technical events cannot replace or obscure the dialogue required to understand the reply.
+
 ## 23. Required certification scenarios
 
 At minimum, downstream implementation must prove these scenarios end to end:
@@ -1703,6 +1732,9 @@ At minimum, downstream implementation must prove these scenarios end to end:
 40. A deterministic repository lifecycle draft with no historical Run remains visible as Draft without fabricated reach/completion/conformance/readiness/approval state.
 41. Change/Defect/Investigation/Audit task fixtures render the correct kind-specific Work request/Research information, and shared Change/Defect delivery steps preserve their distinct upstream obligations.
 42. Processing can display bounded activity without exposing raw provider/session/tool payloads; optional activity telemetry loss does not alter canonical workflow state.
+43. Every free-form continuation fixture shows the preceding substantive agent message and prior accepted operator/agent turns in the same Dialogue surface; removing that conversational anchor makes the composer unavailable.
+44. Every required-input fixture shows the exact agent question inline with the selected attempt transcript and binds the composer to that question while preserving any additional agent explanation from the same turn.
+45. Agent/user messages remain visually distinguishable from workflow events, operational activity, evidence and technical diagnostics even when all are present for the same attempt.
 
 ## 24. Downstream technical-design obligations
 
