@@ -405,6 +405,8 @@ const server = Bun.serve({
         output = target === "fixed\\n" && hasV4Inputs
           ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
           : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+      } else if (mode === "stage-invalid-batch") {
+        output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
       } else {
@@ -2680,6 +2682,88 @@ describe("daemon control plane", () => {
     expect(output.selfCodes).toContain("INVALID_SOURCE");
   });
 
+  it("records causal admission evidence and applies no effects for a provider-success invalid STAGE batch", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-invalid-stage-batch-");
+    const binary = createFakeOpenCode("stage-invalid-batch");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "invalid batch",
+        concernIds: ["shell"],
+      });
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)));
+      const settled = coord.getRun(runtime, run.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      const diagnosticRefs = events
+        .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+        .flatMap((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED" ? event.event.evidence : []);
+      const admissionRef = diagnosticRefs.find((ref) =>
+        ref.relativePath.endsWith("/order-stage-batch-admission.json")
+      );
+      const admission = admissionRef === undefined
+        ? null
+        : JSON.parse(new TextDecoder().decode(
+            rt.readRunEvidenceBytes(runtime.stateRoot, run.id, admissionRef.relativePath),
+          ));
+      const failure = events.findLast((event) => event.event.tag === "PROVIDER_FAILED");
+      console.log(JSON.stringify({
+        status: settled.status,
+        classification: settled.terminalClassification,
+        messages: events.filter((event) => event.event.tag === "AGENT_MESSAGE_FINAL").length,
+        admission,
+        failure: failure?.event ?? null,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      status: string;
+      classification: string | null;
+      messages: number;
+      admission: {
+        phase: string;
+        code: string;
+        eventTags: string[];
+        truncated: boolean;
+      } | null;
+      failure: { tag: string; detail: string; evidence: Array<{ relativePath: string }> } | null;
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.classification).toBe("PROVIDER_FAILURE");
+    expect(output.messages).toBe(0);
+    expect(output.admission).toEqual({
+      phase: "ORDER_STAGE_BATCH_ADMISSION",
+      code: "MULTIPLE_AGENT_MESSAGES",
+      eventTags: ["AGENT_MESSAGE_FINAL", "AGENT_MESSAGE_FINAL"],
+      truncated: false,
+    });
+    expect(output.failure).toMatchObject({
+      tag: "PROVIDER_FAILED",
+      detail: "Agent result could not be accepted",
+    });
+    expect(output.failure?.evidence.some((ref) =>
+      ref.relativePath.endsWith("/order-stage-batch-admission.json")
+    )).toBe(true);
+  }, 30_000);
+
   it("blocks a schema-invalid R1 provider completion atomically", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-kind-invalid-r1-");
@@ -4639,17 +4723,18 @@ describe("daemon control plane", () => {
     runGit(repository, "commit", "--amend", "--no-edit");
 
     const output = bunEval(seedSignoffScript(repository, state) + `
+      const execOwner = await import("./src/daemon/execution.ts");
       const tasks = await coord.listExecutionTasks(runtime, work);
       let wrongRejected = false;
       let wrongMessage = "";
       try {
-        await coord.startCurrentExecutionTask(runtime, work, tasks[1].id);
+        await execOwner.startExactExecutionTask(runtime, work, tasks[1].id);
       } catch (error) {
         wrongRejected = true;
         wrongMessage = error instanceof Error ? error.message : String(error);
       }
       const before = await coord.listExecutionTasks(runtime, work);
-      const started = await coord.startCurrentExecutionTask(runtime, work, tasks[0].id);
+      const started = await execOwner.startExactExecutionTask(runtime, work, tasks[0].id);
       const after = await coord.listExecutionTasks(runtime, work);
       console.log(JSON.stringify({
         wrongRejected,
@@ -5498,6 +5583,92 @@ describe("daemon control plane", () => {
     expect(output.receivedCount).toBe(1);
     expect(output.beforeCleanupStatus).toBe("RUNNING");
   }, 30_000);
+
+  it("rejects Cancel while a current lifecycle proposal owns STAGE attention", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-proposal-cancel-");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "proposal cancel",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: rt.sha256Text("proposal-cancel"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "Review this proposal",
+        evidence: [],
+      });
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/r1.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: "--- a/docs/r1.md\\n+++ b/docs/r1.md\\n@@ -1 +1 @@\\n-old\\n+new\\n",
+        rationale: "Update research",
+      });
+      let pendingError = "";
+      try {
+        await coord.cancelRun(runtime, run.id);
+      } catch (error) {
+        pendingError = error instanceof Error ? error.message : String(error);
+      }
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "REJECTED",
+        adoptedArtifactRefId: null,
+      });
+      const cancelled = await coord.cancelRun(runtime, run.id);
+      console.log(JSON.stringify({ pendingError, finalStatus: cancelled.status }));
+      database.close();
+    `) as { pendingError: string; finalStatus: string };
+
+    expect(output.pendingError).toContain("proposal owns attention");
+    expect(output.finalStatus).toBe("CANCELLED");
+  });
 
   it("rejects Cancel when the Run is already terminal", () => {
     const repository = createRepository();
