@@ -346,7 +346,7 @@ export const MarkdownEditor = ({
                   ref={sourceEditorRef}
                   value={buffer}
                   disabled={conflicted || saving}
-                  ariaLabel={title + " Markdown source"}
+                  ariaLabel={(editingTitle ?? title) + " Markdown source"}
                   onChange={setBuffer}
                 />
               </div>
