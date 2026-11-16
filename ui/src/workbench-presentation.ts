@@ -532,6 +532,36 @@ export const pendingProposalForEvents = (
     : null;
 };
 
+export type RunEventPlane = "CONVERSATION" | "ACTIVITY" | "WORKFLOW";
+
+export const runEventPlane = (event: RunEvent): RunEventPlane => {
+  switch (event.event.tag) {
+    case "AGENT_MESSAGE_FINAL":
+    case "HUMAN_INPUT_REQUESTED":
+    case "HUMAN_INPUT_RECEIVED":
+      return "CONVERSATION";
+    case "AGENT_ACTIVITY_RECORDED":
+      return "ACTIVITY";
+    default:
+      return "WORKFLOW";
+  }
+};
+
+export const conversationRunEvents = (
+  events: readonly RunEvent[],
+): readonly RunEvent[] =>
+  events.filter((event) => runEventPlane(event) === "CONVERSATION");
+
+export const agentActivityRunEvents = (
+  events: readonly RunEvent[],
+): readonly RunEvent[] =>
+  events.filter((event) => runEventPlane(event) === "ACTIVITY");
+
+export const workflowRunEvents = (
+  events: readonly RunEvent[],
+): readonly RunEvent[] =>
+  events.filter((event) => runEventPlane(event) === "WORKFLOW");
+
 export type RunEventPresentation = Readonly<{
   label: string;
   detail: string;
