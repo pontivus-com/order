@@ -100,9 +100,9 @@ export const ReadinessWorkspace = ({
       left.repositoryPath.localeCompare(right.repositoryPath));
 
   const supportingMaterial =
-    stageRuns.length > 0 || packageArtifacts.length > 0 ? (
+    stageRuns.length > 0 ? (
       <WorkbenchDisclosure
-        label="Package material and attempt history"
+        label="Evidence / attempt history"
         content={
           <div className="order-resource-list">
             {stageRuns.map((run) => (
@@ -112,15 +112,6 @@ export const ReadinessWorkspace = ({
                 detail={runStatusLabel(run.status) + " · " + new Date(run.startedAt).toLocaleString()}
                 actionLabel={"Open readiness attempt " + run.attempt}
                 onOpen={() => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id })}
-              />
-            ))}
-            {packageArtifacts.map((artifact) => (
-              <WorkbenchResourceRow
-                key={artifact.id}
-                label={lifecycleArtifactLabel(artifact.role)}
-                detail="Read-only governed package material"
-                actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
-                onOpen={() => onSelectMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id })}
               />
             ))}
           </div>
