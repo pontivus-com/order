@@ -798,38 +798,63 @@ Required canonical template:
 
 Within that template, `research.md` must synthesize—not duplicate—the supporting artifacts and explicitly record the Phase 1 → Phase 2 gate result.
 
-## 8. Phase 1 dependency order
+## 8. Task-to-artifact production chain
+
+The Phase 1 artifacts are built incrementally. The table below is the authoritative production chain; an artifact is not considered complete merely because a file exists.
+
+| Task | Intermediate output produced | Owning artifact | Required downstream consumer |
+|---|---|---|---|
+| P1-T01 | authority/evidence registry; application root topology; permanent-test registry | `application-interaction-map.md`, `certification-evidence-map.md` | P1-T02 through P1-T10 |
+| P1-T02 | complete `SURF-` registry; overlay graph; state-scenario matrix; closure-ledger skeleton | `application-interaction-map.md` | P1-T03, P1-T04, P1-T05 |
+| P1-T03 | screenshot/runtime evidence manifest keyed by `SURF-` and exact commit/state | `application-interaction-map.md`, `certification-evidence-map.md` | P1-T04, P1-T05, P1-T09 |
+| P1-T04 | complete `INFO-` inventory and typed data lineage | `application-interaction-map.md` | P1-T05, P1-T06, P1-T07, P1-T08 |
+| P1-T05 | complete `ACT-` and `FLOW-` inventory; business-rule/destination/overlay map | `application-interaction-map.md` | P1-T06, P1-T07, P1-T08 |
+| P1-T06 | `STATE-` propositions, transition matrices, state/UI mismatch findings | `workflow-state-audit.md` | P1-T08, P1-T09, P1-T10 |
+| P1-T07 | `OC-` propositions, provider/session path, observability/failure facts | `opencode-interaction-audit.md` | P1-T09, P1-T10 |
+| P1-T08 | `MAT-` propositions and material-currentness/maturity matrix | `document-material-maturity-audit.md` | P1-T09, P1-T10 |
+| P1-T09 | `CERT-` coverage; completed closure ledger; explicit unresolved-fact list | `certification-evidence-map.md`, `application-interaction-map.md` | P1-T10 |
+| P1-T10 | consolidated `F-` findings; Phase 2 prerequisite package; gate verdict | `research.md` | Phase 2A and Phase 2B |
+
+The production rule is:
 
 ~~~text
-Step 1 authority/production census
+raw authority/code/runtime evidence
         |
         v
-Step 2 surface census
+SURF scenario model
         |
         v
-Step 3 information inventory
+rendered evidence + typed INFO lineage
         |
         v
-Step 4 interaction/business-rule inventory
+ACT/FLOW/business-rule map
         |
-        +-------------------+
-        |                   |
-        v                   v
-Step 5 state audit     Step 6 OpenCode audit
-        |                   |
-        +---------+---------+
-                  |
-                  v
-        Step 7 material maturity
-                  |
-                  v
-        Step 8 certification/evidence
-                  |
-                  v
-        Step 9 research.md synthesis/gate
+        +-----------------------+
+        |                       |
+        v                       v
+STATE facts                 OpenCode facts
+        |                       |
+        +-----------+-----------+
+                    |
+                    v
+            material-maturity facts
+                    |
+                    v
+          certification/coverage closure
+                    |
+                    v
+        consolidated findings + decision registers
+                    |
+                    v
+            PHASE 2 PREREQUISITE PACKAGE
 ~~~
 
-Steps 5 and 6 may proceed in parallel only after Step 4 has established stable interaction-map identifiers. Step 7 may begin earlier for obvious document facts, but it cannot close until the state and interaction derivations are available.
+The final Phase 1 output is therefore **not one giant duplicated document**. It is:
+
+1. the closed evidence package formed by the five supporting audit artifacts; and
+2. `research.md` as the canonical R1 index/synthesis containing the findings, exact Phase 2 decision registers, authority-amendment register, proposed linked WorkItem boundary and PASS/FAIL gate verdict.
+
+Phase 2 consumes `research.md` as its entry document and follows its stable identifiers into the supporting artifacts when exact evidence is required. Phase 2 must not reinterpret or independently reconstruct Phase 1 facts.
 
 ## 9. Phase 1 finding discipline
 
@@ -853,6 +878,8 @@ Findings must be grouped by upstream root cause, not by repeated screen symptom.
 ## 10. Phase 1 → Phase 2 entry gate
 
 Phase 2 may start only when all of the following are true.
+
+The gate is evaluated by P1-T10 against the outputs of P1-T01 through P1-T09. A PASS is invalid if any required intermediate artifact, register or closure-ledger relationship is missing. `AUDIT_COMPLETE` and "ready for Phase 2" are therefore evidence conclusions, not administrative labels.
 
 ### 10.1 Application-map closure
 
