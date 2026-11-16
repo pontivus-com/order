@@ -1580,7 +1580,7 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   await inputResponse;
   await page.unroute(inputPattern);
   await expect(
-    page.locator('[data-event-tag="HUMAN_INPUT_RECEIVED"]'),
+    page.getByText("Keep the approved constraint.", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Continue current work", { exact: true })).toHaveCount(0);
 
