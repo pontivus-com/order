@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 through P1-T09 complete; P1-T10 synthesis pending  
+**Status:** P1-T01 through P1-T10 complete  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -1214,3 +1214,10 @@ P1-T05 adds one release-blocking control-plane defect and one state-closure ques
 6. **ACT-F02 — Proposal Adopt/Reject browser admission is weaker than daemon current-owner admission.** P1-T06 must prove the browser-visible discrepant state is impossible or classify it as a defect.
 
 P1-T06/P1-T08 must determine whether these and the earlier presentation mismatches originate in deeper state/material semantics rather than UI composition alone.
+
+
+## 21. P1-T10 synthesis closure
+
+P1-T10 is complete in [research.md](research.md).
+
+The canonical synthesis consolidates this map with the state, OpenCode, material-maturity and certification audits into the Phase 2 prerequisite package. This interaction map remains the detailed factual owner for `SURF-`, `INFO-`, `ACT-` and `FLOW-` evidence; `research.md` is the R1 lifecycle synthesis and gate verdict.
