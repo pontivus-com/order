@@ -1420,11 +1420,18 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await backToQueue(page);
 
   await openWorkItem(page, "Implementation action ready");
-  const runNext = page.getByRole("button", { name: "Run next implementation step" });
+  const implementationItem = await workItemForTitle(page, "Implementation action ready");
+  const taskResponse = await page.context().request.get(
+    "/api/work-items/" + implementationItem.id + "/tasks",
+  );
+  expect(taskResponse.status()).toBe(200);
+  const currentTask = ExecutionTaskSchema.array().parse(await taskResponse.json())[0];
+  expect(currentTask).toBeDefined();
+  const startCurrent = page.getByRole("button", { name: "Start current task" });
   await failNext(
-    "**/api/tick",
-    async () => runNext.click(),
-    async () => expect(runNext).toBeDisabled(),
+    "**/api/work-items/" + implementationItem.id + "/tasks/" + currentTask!.id + "/start",
+    async () => startCurrent.click(),
+    async () => expect(startCurrent).toBeDisabled(),
   );
   await expect(page.getByText("Implementation action failed", { exact: true }))
     .toBeVisible();
@@ -1679,10 +1686,10 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
 
   const cases = [
     ["Work request", "Source current"],
-    ["Research", "document current"],
-    ["Requirements", "document current"],
-    ["Solution design", "document current"],
-    ["Implementation plan", "document current"],
+    ["Research", "Current"],
+    ["Requirements", "Current"],
+    ["Solution design", "Current"],
+    ["Implementation plan", "Current"],
     ["Readiness review", "Ready for sign-off"],
     ["Approval", "Package current · ready to sign"],
   ] as const;
@@ -2161,7 +2168,8 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     page.getByText("Verified candidate recorded", { exact: true }).first(),
   ).toBeVisible();
   await expect(
-    page.getByTestId("execution-task-detail").getByText("T1", { exact: true }),
+    page.getByTestId("execution-task-detail")
+      .getByText("Prove the browser candidate surface", { exact: true }),
   ).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
 
