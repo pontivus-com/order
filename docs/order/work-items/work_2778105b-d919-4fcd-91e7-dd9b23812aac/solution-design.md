@@ -619,32 +619,66 @@ At canonical wide/medium/narrow widths and Light/Dark:
 - keyboard paths reach dialogue, selectors, Review decisions and Implementation actions;
 - switching theme or breakpoint does not discard dirty buffers or mutate workflow.
 
+### V-11 Direct-authoring and active-agent exclusion
+
+Integrated core/daemon/browser proof preserves the existing direct-authoring contract while closing STATE-F05:
+
+- Work request title/body and editable lifecycle-document Save are unavailable in the browser while any WorkItem agent Run is active;
+- the daemon independently rejects those same canonical mutations while a Run is active;
+- required human input remains available only through the owning Dialogue/question interaction;
+- after the active Run closes and no higher-priority condition blocks mutation, authorized direct Save works through the existing expected-hash boundary;
+- successful direct Save remains canonical human mutation, creates no synthetic proposal, invalidates affected downstream conformance/currentness and reorients to the owning workflow step;
+- execution/completed material remains read-only.
+
 ## Requirement/design traceability
 
-| Phase 2A requirement area | Technical decision(s) |
-|---|---|
-| task-first workflow/current attention | D-01, D-08 |
-| information hierarchy | D-05, D-08 |
-| material maturity | D-06 + maturity derivation |
-| bounded agent activity | D-03, D-04 |
-| serial dialogue/reply context | D-05 + STAGE anchor grammar |
-| proposal attention closure | proposal-aware Cancel + existing adoption intent |
-| direct authoring / active-agent exclusion | preserved existing daemon/core admission |
-| work-type/stage information maturity | current document/material projection + visual reference pack |
-| Readiness/Approval/Implementation distinctions | existing primitive interaction classes + exact command scope |
-| manual Implementation execution | D-02 |
-| repository draft visibility | D-06 |
-| rejected agent result semantics | D-07 |
-| dialogue reply context | D-05 + open-turn final-message invariant |
-| responsive/accessibility continuity | D-08 + V-10 |
-| no duplicate product state | D-01, D-03, D-06 |
+| Requirement | Phase 2B realization | Permanent proof |
+|---|---|---|
+| WF-FR-001 TASK-FIRST-WORKFLOW | D-01 + D-08; existing Workbench interaction classes and application-wide reference pack | V-09 |
+| WF-FR-002 CURRENT-ATTENTION-OWNERSHIP | existing pure current-attention/recovery derivations preserved; historical selection remains presentation-only | V-02, V-09 |
+| WF-FR-003 INFORMATION-HIERARCHY | D-05 + D-08; structural conversation/activity/workflow separation and Technical/Context boundary | V-02, V-09 |
+| WF-FR-004 MATERIAL-MATURITY-LANGUAGE | D-06 + pure MaterialPresentationState derivation | V-05, V-06 |
+| WF-FR-005 BOUNDED-AGENT-ACTIVITY | D-03 + D-04; bounded coordinator-owned activity RunEvent over best-effort live + terminal reconciliation | V-07 |
+| WF-FR-006 SERIAL-HUMAN-AGENT-DIALOGUE | existing StageRunInteraction + D-05; one active provider turn, explicit OPEN/REQUIRED_INPUT/CLOSED presentation | V-02 |
+| WF-FR-007 PROPOSAL-ATTENTION-CLOSURE | proposal-aware Cancel admission + existing durable adoption-intent/disposition algebra | V-03 |
+| WF-FR-008 DIRECT-AUTHORING | existing expected-hash direct Save/adoption boundaries preserved; no synthetic proposal | V-11 |
+| WF-FR-009 PRESIGNOFF-GRAMMAR | D-05 + D-08; shared Dialogue/Review/Document/Evidence composition | V-02, V-09 |
+| WF-FR-010 WORK-REQUEST-TASK | existing source owner/direct authoring + reference-pack Work request composition | V-09, V-11 |
+| WF-FR-011 RESEARCH-TASK | shared pre-signoff composition + Dialogue/activity/evidence separation | V-02, V-07, V-09 |
+| WF-FR-012 REQUIREMENTS-TASK | shared pre-signoff composition + current-stage document primacy | V-02, V-09 |
+| WF-FR-013 SOLUTION-DESIGN-TASK | broad current-stage document composition + existing authority/context resolution | V-09 |
+| WF-FR-014 IMPLEMENTATION-PLAN-TASK | Plan remains sole executable document authority; derived task inspection remains secondary | V-09 |
+| WF-FR-015 READINESS-TASK | existing Review-class hierarchy; no sign-off; required input temporarily owns attention when legitimate | V-02, V-09 |
+| WF-FR-016 APPROVAL-TASK | exact current SignoffPackage Review + explicit exact-package sign-off | V-09 |
+| WF-FR-017 TASK-SCOPED-MANUAL-EXECUTION | D-02 exact WorkItem/task start command; global tick retained separately | V-04 |
+| WF-FR-018 IMPLEMENTATION-TASK | existing operational master/detail + D-02 exact current owner/action | V-04, V-09 |
+| WF-FR-019 TERMINAL-RESULT-TASK | existing Terminal-result class and reference-pack result-first hierarchy | V-09 |
+| WF-FR-020 POST-ACTION-ORIENTATION | existing canonical mutation invalidation/refetch + current-attention/material resolver; no local authority inference | V-02, V-04, V-09, V-11 |
+| WF-FR-021 RESPONSIVE-SEMANTIC-CONTINUITY | D-08; existing wide/medium/narrow Workbench recomposition | V-10 |
+| WF-FR-022 ACCESSIBLE-INTERACTION-CONTINUITY | existing Workbench/Astryx accessibility ownership plus Dialogue/Review recomposition | V-10 |
+| WF-FR-023 SUPPORTING-SERVICE-BOUNDARIES | D-08; Queue/Create/Settings/Context/Evidence remain their existing application services, never workflow owners | V-09 |
+| WF-FR-024 NO-DUPLICATE-PRODUCT-STATE | D-01 + D-03 + D-06; only activity adds a genuinely missing durable observation | V-05, V-06, V-07 |
+| WF-FR-025 LIFECYCLE-INFORMATION-MATURITY | existing context/authority resolution + D-06 draft projection; current stage receives only legitimate upstream material | V-05, V-09 |
+| WF-FR-026 CURRENT-STAGE-DOCUMENT-PRIMACY | D-06 + D-08; current stage-owned material primary, upstream supporting, unreached drafts read-only | V-05, V-09 |
+| WF-FR-027 REQUIREMENT-TO-SOLUTION-BOUNDARY | no state/transport change; existing lifecycle-context authority boundaries remain the technical gate | V-09 plus canonical stage-context/conformance tests |
+| WF-FR-028 WORK-TYPE-AWARE-DOCUMENTATION | existing schema/template catalog and context resolution; reference pack preserves kind-specific context | V-09 |
+| WF-FR-029 PROGRESSIVE-DOCUMENTATION | D-06; repository drafts visible without progression and later artifacts add only their owned semantic layer | V-05, V-09 |
+| WF-FR-030 USER-FACING-WORKFLOW-LANGUAGE | D-08; internal stage/role ids stay Technical while Workbench presentation uses canonical user-facing labels | V-09 |
+| WF-FR-031 TASK-AREA-CONTEXT-CLOSURE | D-08; current task output plus minimum supporting upstream information, no flat file browser | V-09 |
+| WF-FR-032 ACTIVE-AGENT-AUTHORING-EXCLUSION | existing daemon no-active-Run mutation admission + browser command availability aligned | V-11 |
+| WF-FR-033 REJECTED-AGENT-RESULT-SEMANTICS | D-07; bounded Order-admission evidence, atomic rejected batch, existing provider-failure recovery | V-01, V-08 |
+| WF-FR-034 REPOSITORY-DRAFT-VISIBILITY | D-06; run-independent current lifecycle-artifact projection, ArtifactRef removed from reach proof | V-05 |
+| WF-FR-035 DIALOGUE-REPLY-CONTEXT | D-05 + STAGE open-turn agent-message invariant + pinned Astryx Chat leaves | V-01, V-02 |
 
 ## Canonical amendments required by this design
 
-The same Phase 2B package must amend:
+The Phase 2B package amends these canonical owners:
 
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — reached-history/draft projection, proposal Cancel admission, task-scoped execution command, material maturity projection, Dialogue/activity composition and UI ownership;
 - `GW-DOC-OPENCODE-INTEGRATION-V1` — best-effort live activity source, terminal context reconciliation and complete STAGE producer contract;
-- `GW-DOC-CANONICAL-CONTRACTS-V1` — activity event schema, batch/message grammar, admission diagnostics, exact manual-start HTTP command, observational draft projection and certification.
+- `GW-DOC-EXECUTION-CONTROL-PLANE-V1` — automatic versus exact manual task admission over one atomic execution transition, and non-authoritative activity-stream use;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` — narrow daemon/CLI tick versus Workbench exact-task command wording and observational event-stream allowance; the module dependency graph is unchanged;
+- `GW-DOC-CANONICAL-CONTRACTS-V1` — activity event schema, batch/message grammar, admission diagnostics, exact manual-start HTTP command, observational draft projection and certification;
+- `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` — exact pinned Astryx v0.7.13 Chat leaf exports relied upon by the Workbench composition.
 
-No amendment is required to the global module dependency architecture or theme owner unless implementation proves an existing declared boundary cannot realize this design. That would be an upstream design issue, not implementation discretion.
+No theme-owner amendment or new dependency is required. If implementation proves an existing declared module boundary cannot realize this design, that is an upstream Solution-design issue and must return here rather than being solved by implementation discretion.
