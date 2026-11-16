@@ -69,7 +69,7 @@ const openWorkItem = async (page: Page, title: string): Promise<void> => {
 };
 
 const backToQueue = async (page: Page): Promise<void> => {
-  await page.getByRole("link", { name: "Back to work queue" }).click();
+  await page.getByRole("link", { name: "Back to queue" }).click();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
 };
 
@@ -91,6 +91,20 @@ const selectWorkflowStep = async (
     .getByRole("button", { name, exact: true });
   await button.click();
   await expect(button).toHaveAttribute("aria-pressed", "true");
+};
+
+const openMarkdownEditor = async (
+  page: Page,
+  editorName: string,
+) => {
+  const editor = page.getByLabel(editorName);
+  if (!(await editor.isVisible().catch(() => false))) {
+    const edit = page.getByRole("button", { name: "Edit", exact: true });
+    await expect(edit).toBeVisible();
+    await edit.click();
+  }
+  await expect(editor).toBeVisible();
+  return editor;
 };
 
 const selectWorkflowMaterial = async (
@@ -538,8 +552,7 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
 
-  const editor = page.getByLabel("Implementation plan document Markdown source");
-  await expect(editor).toBeVisible();
+  const editor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   await expect(page.getByTestId("markdown-format-toolbar")).toBeVisible();
   await expect(page.locator("textarea")).toHaveCount(0);
 
@@ -953,8 +966,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await openWorkItem(page, title);
     await selectWorkflowStep(page, tabName);
 
-    const editor = page.getByLabel(editorName);
-    await expect(editor).toBeVisible();
+    const editor = await openMarkdownEditor(page, editorName);
     const currentMarkdown = await markdownSourceValue(editor);
     const longMarkdown = currentMarkdown + "\n" + Array.from(
       { length: 260 },
@@ -982,8 +994,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
     await backToQueue(page);
     await openWorkItem(page, title);
     await selectWorkflowStep(page, tabName);
-    const reloaded = page.getByLabel(editorName);
-    await expect(reloaded).toBeVisible();
+    const reloaded = await openMarkdownEditor(page, editorName);
     await reloaded.evaluate((node) => {
       const scroller = node.closest(".cm-scroller");
       if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
@@ -1891,8 +1902,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   await selectWorkflowStep(page, "Work request");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 
-  const sourceEditor = page.getByLabel("WorkItem source Markdown source");
-  await expect(sourceEditor).toBeVisible();
+  const sourceEditor = await openMarkdownEditor(page, "WorkItem source Markdown source");
   const original = await markdownSourceValue(sourceEditor);
   expect(original).toContain("# Source editing workbench");
   expect(original).not.toContain('"formatVersion"');
@@ -1971,8 +1981,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   expect(workflowMutations).toEqual([]);
 
   await selectWorkflowStep(page, "Implementation plan");
-  const planEditor = page.getByLabel("Implementation plan document Markdown source");
-  await expect(planEditor).toBeVisible();
+  const planEditor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   const initial = await markdownSourceValue(planEditor);
   await replaceMarkdownSource(page, planEditor, initial + "\nunsaved guard\n");
 
@@ -1985,13 +1994,13 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
   expect(workflowMutations).toEqual([]);
 
-  await page.getByRole("link", { name: "Back to work queue" }).click();
+  await page.getByRole("link", { name: "Back to queue" }).click();
   const guard = page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" });
   await expect(guard).toBeVisible();
   await guard.getByRole("button", { name: "Continue editing" }).click();
   await expect.poll(() => markdownSourceValue(planEditor)).toContain("unsaved guard");
 
-  await page.getByRole("link", { name: "Back to work queue" }).click();
+  await page.getByRole("link", { name: "Back to queue" }).click();
   await page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })
     .getByRole("button", { name: "Discard unsaved changes" })
     .click();
@@ -2004,7 +2013,7 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(page.getByLabel("Readiness review document Markdown source")).toHaveCount(0);
 
   await selectWorkflowStep(page, "Implementation plan");
-  const editablePlan = page.getByLabel("Implementation plan document Markdown source");
+  const editablePlan = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   const fresh = await markdownSourceValue(editablePlan);
   await replaceMarkdownSource(page, editablePlan, fresh + "\ncancelled plan edit\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
