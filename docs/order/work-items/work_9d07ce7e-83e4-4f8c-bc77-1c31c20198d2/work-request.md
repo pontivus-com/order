@@ -174,7 +174,29 @@ Evaluate recurring UX/UI defects as potential failures of shared primitives, com
 
 ### Complete application surface, information and interaction map
 
-Before proposing any replacement UX, R1 must reconstruct the **complete current application map from the production renderer graph and its daemon/API dependencies**. This is a current-state audit, not a design exercise.
+This map is the **foundational R1 investigation artifact for the entire 0.5.0 release**. Before separately judging UX quality, lifecycle/state correctness or OpenCode integration quality, R1 must reconstruct the complete current user-interaction model from the production renderer graph and its daemon/API/provider dependencies.
+
+The map is the common evidence plane for all three problem domains because every productive behavior eventually appears to the operator as some combination of:
+
+~~~text
+information presented
+        +
+presentation location / hierarchy
+        +
+interaction options
+        +
+conditions under which those options appear or become enabled
+        +
+resulting command/read/provider interaction
+        +
+resulting workflow/material/provider state
+~~~
+
+The foundational question is therefore not merely "what screens exist?" It is:
+
+> For every application condition, what can the operator see, what does that information mean, what can the operator do, why is that action available, where does it go, what canonical/provider facts govern it, and what becomes visible or actionable afterward?
+
+This is a current-state audit, not a design exercise.
 
 The inventory must be exhaustive. A surface is in scope whether it is a route, primary workspace, nested work area, overlay, drawer, dialog, confirmation, context panel, editor, timeline, evidence view, selector, toolbar region, conditional notice or state-dependent action cluster. Reused components must be audited in every materially different semantic context in which their information or business rules differ.
 
@@ -280,6 +302,66 @@ resulting screen / selected material / focus / recovery
 ~~~
 
 The graph must prove where each business rule is owned. The browser may derive presentation from canonical facts, but it must not become a second owner of workflow eligibility, proposal rules, source-currentness, sign-off eligibility, execution ownership, provider-turn admission or recovery policy.
+
+#### Foundational derivations from the interaction map
+
+Once the current interaction map exists, R1 must use that same map to derive and test the two other major 0.5.0 concerns rather than starting independent inventories.
+
+**Workflow/state-machine derivation**
+
+For every mapped surface condition and interaction, identify the exact workflow/state facts required to explain it. This produces the practical state-machine audit from the user-facing boundary inward:
+
+~~~text
+visible UI condition / available action
+        |
+        v
+required canonical state predicate
+        |
+        v
+owning WorkItem / Run / RunEvent / ArtifactRef / Approval / ExecutionTask facts
+        |
+        v
+valid transition / mutation
+        |
+        v
+resulting observable condition
+~~~
+
+This derivation must expose:
+
+- UI states that have no valid canonical state explanation;
+- canonical states that have no coherent UI representation;
+- interactions whose visibility/enabled logic is inconsistent with the core transition law;
+- missing distinctions between lifecycle position, Run interaction state, proposal state, material currentness and document maturity;
+- duplicated or contradictory state ownership between browser, daemon and core;
+- impossible or ambiguous transition combinations;
+- missing recovery/orientation behavior after valid transitions.
+
+The state-machine audit therefore starts from the complete user-interaction map and proves that every presented state and every permitted action corresponds to a valid canonical state and transition.
+
+**OpenCode transparency and agent-interaction derivation**
+
+For every mapped area where an Order agent is active or where provider state affects operator decisions, identify what the operator currently sees and what the pinned OpenCode/Order integration actually knows.
+
+Classify each potentially observable provider/agent fact into one of three categories:
+
+1. **must be product-visible** — required for the operator to understand current work, converse with the active agent, judge whether progress is occurring, respond to required input, understand a proposal, or recover from failure;
+2. **secondary technical visibility** — useful for diagnosis or expert inspection but not part of the ordinary primary workflow;
+3. **closed/internal** — implementation/provider detail that should remain hidden because it does not improve the operator decision, is unsafe/sensitive, is unstable provider plumbing, or would expose private model reasoning.
+
+For each fact, record:
+
+- exact Order/OpenCode source;
+- whether the pinned integration can expose it reliably;
+- whether it is persisted or transient;
+- whether it is safe to display;
+- whether it is needed for ordinary workflow comprehension;
+- appropriate presentation tier: primary work, operational activity, Context/technical detail, diagnostic evidence, or hidden;
+- interaction implications, such as whether the operator can respond, inspect, retry, resume, cancel or only observe.
+
+The OpenCode audit must therefore answer the product question **"what should Order make transparent about an agent's work, and what should remain closed?"** from the needs of each mapped interaction, not from a generic desire to expose provider telemetry.
+
+Together these derivations make the application interaction map the single evidence backbone for UX, workflow/state and OpenCode analysis.
 
 For every conditional action, R1 must answer:
 
@@ -401,22 +483,25 @@ For every audited proposition record:
 
 The audit output must include:
 
-1. a **complete current-state application surface inventory** derived from the production render graph, covering every route/workspace/nested surface/overlay and every materially distinct conditional state;
-2. a **complete information-presentation matrix** classifying every visible information item by semantic class, canonical source/owner, authority/currentness, display priority, placement, duplication and audit verdict;
-3. a **complete interaction/business-rule matrix** for every control/action, including visibility, enablement, source facts, governing rule, UI→API→daemon/core path, mutation/state effect, destination, pending/success/failure/stale behavior;
-4. an **application-wide interaction/flow graph** connecting canonical business rules → presentation → action availability → command/read/provider turn → canonical effect → resulting surface/focus/recovery;
-5. a complete lifecycle/state-transition matrix with all commands/events and negative combinations;
-6. a complete STAGE/provider-turn matrix including proposal/input/block/completion/open semantics;
-7. an OpenCode productive-context diagram from canonical authority/context resolution through provider invocation and returned-event reaction;
-8. a role-by-role OpenCode contract audit for STAGE, BUILDER, REMEDIATOR and REVIEWER, including execution/session failure classes and the exact operator-visible observability available from the pinned integration;
-9. a **per-workflow-step screen contract** for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete, including primary work, conversation, agent activity, context, technical/debug separation, actions, errors, history and responsive states;
-10. a cross-screen information-governance inventory that identifies the one canonical presentation owner for each persistent information class and all current violations;
-11. an integrated R1/R2/DESIGN/PLAN interaction blueprint proving the complete conversation → agent activity → proposal/document mutation → maturity/conformance → continuation/promotion loop;
-12. a document/material maturity matrix for every governed lifecycle artifact, explicitly separated from WorkItem lifecycle position and mapped to canonical source facts;
-13. a certification coverage matrix mapping each material invariant to the test layer that proves both producer and consumer correctness;
-14. a consolidated release-blocker list ordered by upstream root cause rather than symptom;
-15. a final verdict on whether current P3/P4/P6 authority is itself correct or must be amended before any 0.5.0 remediation plan is written;
-16. the exact set of linked DEFECT/CHANGE WorkItems required to remediate the confirmed findings, without implementing them inside this AUDIT.
+1. a **foundational complete current-state user-interaction map** derived from the production render graph and backend/provider paths, covering every route/workspace/nested surface/overlay and every materially distinct condition, and explicitly serving as the evidence base for the UX, workflow/state-machine and OpenCode transparency audits;
+2. a **complete application surface inventory** within that map, covering every route/workspace/nested surface/overlay and every materially distinct conditional state;
+3. a **complete information-presentation matrix** classifying every visible information item by semantic class, canonical source/owner, authority/currentness, display priority, placement, duplication and audit verdict;
+4. a **complete interaction/business-rule matrix** for every control/action, including visibility, enablement, source facts, governing rule, UI→API→daemon/core path, mutation/state effect, destination, pending/success/failure/stale behavior;
+5. an **application-wide interaction/flow graph** connecting canonical business rules → presentation → action availability → command/read/provider turn → canonical effect → resulting surface/focus/recovery;
+6. a **state-machine derivation from the interaction map** proving the canonical state predicate and transition behind every mapped condition/action and identifying canonical states with no coherent UI representation;
+7. a complete lifecycle/state-transition matrix with all commands/events and negative combinations;
+8. a complete STAGE/provider-turn matrix including proposal/input/block/completion/open semantics;
+9. an **OpenCode transparency derivation from the interaction map** classifying provider/agent facts as product-visible, secondary technical, or closed/internal, with exact source, reliability, safety and presentation tier;
+10. an OpenCode productive-context diagram from canonical authority/context resolution through provider invocation and returned-event reaction;
+11. a role-by-role OpenCode contract audit for STAGE, BUILDER, REMEDIATOR and REVIEWER, including execution/session failure classes and the exact operator-visible observability available from the pinned integration;
+12. a **per-workflow-step screen contract** for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete, including primary work, conversation, agent activity, context, technical/debug separation, actions, errors, history and responsive states;
+13. a cross-screen information-governance inventory that identifies the one canonical presentation owner for each persistent information class and all current violations;
+14. an integrated R1/R2/DESIGN/PLAN interaction blueprint proving the complete conversation → agent activity → proposal/document mutation → maturity/conformance → continuation/promotion loop;
+15. a document/material maturity matrix for every governed lifecycle artifact, explicitly separated from WorkItem lifecycle position and mapped to canonical source facts;
+16. a certification coverage matrix mapping each material invariant to the test layer that proves both producer and consumer correctness;
+17. a consolidated release-blocker list ordered by upstream root cause rather than symptom;
+18. a final verdict on whether current P3/P4/P6 authority is itself correct or must be amended before any 0.5.0 remediation plan is written;
+19. the exact set of linked DEFECT/CHANGE WorkItems required to remediate the confirmed findings, without implementing them inside this AUDIT.
 
 ## 0.5.0 release character and governed delivery sequence
 
