@@ -73,7 +73,7 @@ jobs:
           const start = source.indexOf(marker);
           if (start < 0) throw new Error("fakeOpenCodeSource marker missing");
           const literalStart = start + marker.length;
-          const endMarker = "\n;\n\nconst createFakeOpenCode";
+          const endMarker = "\n`;\n\nconst createFakeOpenCode";
           const end = source.indexOf(endMarker, literalStart);
           if (end < 0) throw new Error("fakeOpenCodeSource end marker missing");
           const literal = source.slice(literalStart, end);
@@ -300,7 +300,6 @@ jobs:
             await page.getByRole("radio", { name: "Dark", exact: true }).click();
             await capture(page, "SURF-APP-001", "explicit dark theme application shell", "45-theme-dark.png");
           });
-          SPEC
           SPEC
 
       - name: Capture rendered states
