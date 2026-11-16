@@ -84,7 +84,9 @@ orderd
              +-- eligible TODO -> claim -> execute
 ```
 
-`order tick` remains a manual thin-client command for invoking the same coordinator operation on demand.
+`order tick` remains a manual thin-client command for invoking the same global coordinator operation on demand.
+
+The Workbench Implementation action is distinct: **Start current task** submits the exact current approved WorkItem/task identity. That command does not scan the global queue; after exact admission/claim it enters the same coordinator execution loop used by scheduled/tick work. There is still one task/run control plane and one global RUNNING-task exclusion.
 
 No executable task means no model call.
 
@@ -118,12 +120,19 @@ A task is eligible only when:
 
 v1 has one daemon and one state writer, so it does not implement worker leases or a separate claim state.
 
-One SQLite transaction:
+Task start has two admission modes over the **same** canonical task/run transition:
 
-1. selects the single eligible `TODO`;
+- an automatic/tick start selects the single globally eligible `TODO`;
+- an operator Start current task command supplies a WorkItem/task id and must prove that task is exactly the current eligible execution owner for that WorkItem.
+
+In both modes one SQLite transaction:
+
+1. proves/identifies the single exact eligible `TODO`;
 2. creates its `Run`;
-3. changes the task directly to `RUNNING`;
+3. changes that exact task directly to `RUNNING`;
 4. commits before OpenCode is invoked.
+
+The manual command cannot cause another globally eligible task to be selected. It does not create a second queue, scheduler or claim state.
 
 If the daemon stops while a post-signoff Run is `RUNNING`, startup recovery marks that Run `FAILED / COORDINATOR_INTERRUPTED`, abandons its workspace, and applies the bounded operational-action retry policy in [GW-DOC-CANONICAL-CONTRACTS-V1 §§8,21](../contracts/canonical-contracts.md). When the single automatic replacement is permitted the ExecutionTask remains `RUNNING` and the coordinator creates the same-role/same-trigger continuation Run; otherwise task and WorkItem block. Automatic recovery never routes through `TODO`.
 
@@ -157,7 +166,7 @@ OpenCode integration follows [GW-DOC-OPENCODE-INTEGRATION-V1](opencode-integrati
 
 v1 uses the released OpenCode V2 server API through the exactly matching `@opencode/client` package. Order owns the OpenCode server process, its isolated configuration/data namespace, authentication secret, stage permissions and session lifecycle.
 
-Order does not subscribe to OpenCode's live event stream in v1. Prompt admission, completion proof, uncertain-admission handling and foreground-provider recovery use only the OpenCode contract, pinned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` and defined by [GW-DOC-OPENCODE-INTEGRATION-V1](opencode-integration.md); experimental event/wait APIs are not correctness dependencies. Provider-process loss follows Order's role-specific recovery policy below rather than an assumed hidden provider resume.
+Order does not depend on OpenCode's live event stream for prompt admission, completion proof, uncertain-admission handling, recovery or any lifecycle/task decision. The pinned integration may consume that stream **best-effort** only to derive the bounded/redacted operator-visible activity defined by [GW-DOC-OPENCODE-INTEGRATION-V1](opencode-integration.md) and P6. Missing/disconnected live activity changes no correctness behavior. Terminal completion still uses the released `session.get` outcome/idle projection plus successful `session.context`; experimental wait/event APIs remain non-authoritative. Provider-process loss follows Order's role-specific recovery policy below rather than an assumed hidden provider resume.
 
 Three post-signoff Run roles are required:
 
