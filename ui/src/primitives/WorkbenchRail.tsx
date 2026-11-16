@@ -29,7 +29,7 @@ export const WorkbenchRail = ({ items }: Readonly<{ items: readonly WorkbenchRai
         >
           <span className="order-workbench-rail-marker" aria-hidden="true">{marker(item.state)}</span>
           <span className="order-workbench-rail-label">{item.label}</span>
-          {item.statusLabel === undefined ? null : <small id={statusId}>{item.statusLabel}</small>}
+          {item.statusLabel === undefined ? null : <span id={statusId} hidden>{item.statusLabel}</span>}
         </button>
       </li>;
     })}</ol>
