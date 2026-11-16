@@ -105,6 +105,18 @@ const selectWorkflowMaterial = async (
   await page.getByRole("option", { name: optionName, exact: true }).click();
 };
 
+const openDisclosureResource = async (
+  page: Page,
+  disclosureName: string,
+  actionName: string,
+): Promise<void> => {
+  const disclosure = page.getByRole("button", { name: disclosureName, exact: true });
+  await expect(disclosure).toBeVisible();
+  const expanded = await disclosure.getAttribute("aria-expanded");
+  if (expanded !== "true") await disclosure.click();
+  await page.getByRole("button", { name: actionName, exact: true }).click();
+};
+
 const markdownSourceValue = async (editor: Locator): Promise<string> =>
   editor.evaluate((node) =>
     Array.from(node.querySelectorAll(".cm-line"))
@@ -1102,16 +1114,18 @@ test("narrow workflow work index returns focus and preserves dirty material acro
     initial + "\n# Responsive continuity\n",
   );
 
-  const trigger = page.getByTestId("workflow-step-index").getByRole("combobox", { name: "Plan work" });
-  await trigger.focus();
-  await trigger.click();
+  const supporting = page.getByRole("button", { name: "Supporting material and history", exact: true });
+  await supporting.focus();
+  await supporting.click();
   await page.keyboard.press("Escape");
-  await expect(trigger).toBeFocused();
+  await expect(supporting).toBeFocused();
+  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
 
   await page.setViewportSize({ width: 1600, height: 900 });
-  await expect(page.getByTestId("workflow-step-index")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toBeVisible();
+  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
 });
@@ -1168,8 +1182,12 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await openWorkItem(page, "Completed investigation");
   await expect(page.getByTestId("result-workspace")).toBeVisible();
   await selectWorkflowStep(page, "Research");
-  await expect(page.getByTestId("workflow-step-index")).toBeVisible();
-  await selectWorkflowMaterial(page, "Attempt 1");
+  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+  await openDisclosureResource(
+    page,
+    "Supporting material and history",
+    "Open attempt 1",
+  );
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Workflow step completed", { exact: true })).toBeVisible();
@@ -1218,8 +1236,12 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
 
     if (entry.currentStep === "Requirements") {
       await selectWorkflowStep(page, "Research");
-      await expect(page.getByTestId("workflow-step-index")).toBeVisible();
-      await selectWorkflowMaterial(page, "Attempt 1");
+      await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+      await openDisclosureResource(
+        page,
+        "Supporting material and history",
+        "Open attempt 1",
+      );
       await expect(page.getByTestId("stage-run-material")).toBeVisible();
       await expect(
         page.getByText("Workflow step completed", { exact: true }),
@@ -1800,18 +1822,23 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(page.getByTestId("signoff-package-hash")).toHaveText(
     /^sha256:[0-9a-f]{64}$/,
   );
-  const approvalSelector = page
-    .getByTestId("workflow-step-index")
-    .getByRole("combobox", { name: "Approval package" });
-  await expect(approvalSelector).toBeVisible();
+  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
 
-  await selectWorkflowMaterial(page, "Implementation plan");
+  await openDisclosureResource(
+    page,
+    "Package material",
+    "Open Implementation plan",
+  );
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
   await expect(page.getByLabel("Approved by")).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
 
-  await selectWorkflowMaterial(page, "T1");
+  await openDisclosureResource(
+    page,
+    "Package material",
+    "Inspect task: Prove the browser candidate surface",
+  );
   await expect(page.getByTestId("approval-task-detail"))
     .toContainText("Prove the browser candidate surface");
   await expect(page.getByLabel("Approved by")).toBeVisible();
@@ -2105,12 +2132,13 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await selectWorkflowStep(page, "Approval");
   await expect(page.getByTestId("review-workspace"))
     .toContainText("Approved package history");
-  const historicalApprovalSelector = page
-    .getByTestId("workflow-step-index")
-    .getByRole("combobox", { name: "Approval package" });
-  await expect(historicalApprovalSelector).toBeVisible();
+  await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
-  await selectWorkflowMaterial(page, "T1");
+  await openDisclosureResource(
+    page,
+    "Package material",
+    "Inspect task: Prove the browser candidate surface",
+  );
   await expect(page.getByTestId("approval-task-detail"))
     .toContainText("Prove the browser candidate surface");
 
