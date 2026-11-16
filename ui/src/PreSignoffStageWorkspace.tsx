@@ -190,7 +190,7 @@ export const PreSignoffStageWorkspace = ({
       onSelect: () => onSelectMaterial({ kind: "STAGE_DOCUMENT", artifactId: stageArtifact.id }),
     }] : []),
   ];
-  const materialSelector = currentMaterialItems.length > 1
+  const materialSelector = currentMaterialItems.length > 0
     ? <WorkflowMaterialSelector groups={[{ id: "current", label: "Current work", items: currentMaterialItems }]} label="Current workflow material" />
     : undefined;
 
