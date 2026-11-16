@@ -808,6 +808,32 @@ Every rendered Order Workbench service has exactly one primary interaction class
 
 ## 14. Per-step screen contract
 
+### 14.0 Work type × workflow step information contract
+
+The primary task area is determined by both the selected WorkItem type and the current workflow step.
+
+**Work request**
+- Change foregrounds requested outcome/current context/constraints/references.
+- Defect foregrounds observed behavior/expected behavior/reproduction/preserved behavior/impact.
+- Investigation foregrounds question/why it matters/known evidence/boundary.
+- Audit foregrounds target/criteria/scope/requested evidence or verdict.
+
+**Research**
+- Change establishes current state/absence, evidence, governing authority, affected path and downstream invariants.
+- Defect establishes reproduction, proven root cause, producer→carrier→consumer path, downstream effects/invariants and governing authority.
+- Investigation establishes evidence for/against, findings, unresolved questions and conclusion.
+- Audit establishes evidence by criterion, findings and verdict.
+
+Only confirmed Change/Defect delivery work proceeds to Requirements, Solution design, Implementation plan and Readiness review.
+
+For shared delivery steps, kind-specific upstream semantics remain directly available:
+- Change Requirements/Solution design/Implementation plan remain traceable to the requested outcome and proven current-state/absence.
+- Defect Requirements preserve expected corrected behavior and unchanged-behavior/regression obligations.
+- Defect Solution design remains traceable to the proven root cause/producing boundary and preservation invariants.
+- Defect Implementation plan includes exact remediation plus reproduction/regression/preservation verification.
+
+The current step-owned output remains primary. Upstream documents are supporting authority/evidence rather than a flat set of equally weighted files. Unreached downstream documents are not rendered as empty productive authority.
+
 ### 14.1 Work request
 
 **Primary:** source Markdown.
@@ -905,6 +931,10 @@ The selected detail shows:
 - evidence/resources.
 
 Current blocker ownership overrides stale selection for attention while still preserving historical inspection.
+
+The manual Implementation start action means exactly: **start the canonical current approved task for this WorkItem**.
+
+It does not mean “ask a global scheduler to run any eligible work.” If the operator is inspecting a historical or non-current task, that selection remains read-only and cannot retarget the current start action. Automatic/background scheduling may remain a separate system mechanism but is not represented by the task-local manual command.
 
 ### 14.9 Complete
 
@@ -1157,6 +1187,7 @@ Each STAGE provider turn has exactly one controlling outcome.
 | stage blocked | exactly one `STAGE_BLOCKED` | Run terminal BLOCKED; WorkItem remains at same stage / BLOCKED |
 | stage completed | exactly one `STAGE_COMPLETED` whose stage equals the Run stage | Run closes and the canonical cross-step lifecycle transition is applied |
 | provider/invocation failure | coordinator-owned failure classification | Run terminal FAILED; same lifecycle stage unless the failure separately owns a canonical blocker/return |
+| provider result rejected by Order | provider turn completed but its combined requested workflow effects violate the closed turn/proposal grammar | none of the rejected result effects apply; Run terminal FAILED; WorkItem remains at the same lifecycle stage; governed Retry/recovery may be offered |
 
 The following combinations are invalid and must be rejected rather than resolved by priority:
 
@@ -1175,6 +1206,8 @@ A lifecycle `ARTIFACT_PROPOSAL_CREATED` is not itself a controlling outcome. To 
 - lifecycle proposal creation cannot coexist in the same turn with required input, stage block or stage completion.
 
 Messages, evidence and observations may accompany a valid controlling outcome where their own contracts permit; they do not select workflow state.
+
+When a returned provider result is rejected because its combined workflow effects are invalid, no proposal/input/block/completion member from that result is applied. The attempt fails at the same lifecycle stage and the operator sees a product-facing failure with governed Retry/recovery where eligible. Technical rejection detail remains on demand.
 
 ### 21.3 Required-input statechart
 
@@ -1210,6 +1243,8 @@ OPEN FOR CONTINUATION
         | one lifecycle proposal P
         v
 OPEN + PROPOSAL PENDING(P)
+        |
+        +-- Cancel -----------------------> UNAVAILABLE / REJECT / unchanged
         |
         +-- Reject(P) --------------------> OPEN / authority unchanged
         |
@@ -1268,7 +1303,7 @@ Implementation has one canonical current execution owner regardless of historica
 ```text
 EXECUTION / ACTIVE
       |
-      | atomically select one eligible TODO task
+      | manual action: start this WorkItem's canonical current approved task
       | + create its required Run
       v
 CURRENT TASK RUNNING
@@ -1297,6 +1332,8 @@ EXECUTION / BLOCKED
 ```
 
 The classified upstream-return mapping is owned by `GW-DOC-WORK-LIFECYCLE-V1 §2.2` together with `GW-DOC-VALIDATION-STANDARD-V1`. Historical task/Run selection never changes the current execution owner.
+
+Automatic/background scheduler selection, if used, is a separate system behavior. The task-local manual Workbench action must carry and honor the current WorkItem/task owner rather than invoking an unscoped global scheduler action.
 
 ### 21.7 Read, selection and rejected-command law
 
@@ -1584,6 +1621,42 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Acceptance:** theme switching changes only presentation tokens/theme rendering, requires no reload, preserves workflow/selection/dirty state, produces no local theme island, and all workflow-significant states remain readable/distinguishable in both light and dark.
 
+### GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION
+
+**Required behavior:** Workbench task areas preserve the selected Change/Defect/Investigation/Audit information semantics throughout every applicable workflow step under §14.0.
+
+**Acceptance:** a Defect never degrades into a generic Change after Research, and Investigation/Audit can terminate without empty downstream delivery documents.
+
+### GW-FR-237-BOUNDED-AGENT-ACTIVITY
+
+**Required behavior:** active agent work exposes bounded useful operational activity under §5.5 without exposing hidden reasoning, secrets or raw unbounded provider data.
+
+**Acceptance:** Processing is not a black box when reliable activity is available, while missing optional telemetry never causes fabricated progress.
+
+### GW-FR-238-PROPOSAL-CANCEL-CLOSURE
+
+**Required behavior:** a pending or applying lifecycle proposal remains the sole mutation owner until explicit disposition/reconciliation; Cancel cannot orphan an unresolved proposal.
+
+**Acceptance:** no admitted cancellation path can produce a closed/cancelled Run with a still-pending proposal that lacks a valid Adopt/Reject owner.
+
+### GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION
+
+**Required behavior:** the manual Implementation start action is scoped to the canonical current approved task of the selected WorkItem.
+
+**Acceptance:** with multiple runnable WorkItems/tasks, invoking the visible current-task action cannot start another globally eligible task.
+
+### GW-FR-240-REJECTED-PROVIDER-RESULT-FAILURE
+
+**Required behavior:** a provider result rejected by Order's combined workflow grammar applies none of its requested workflow effects, fails the Run and leaves the WorkItem at the same workflow step.
+
+**Acceptance:** the operator sees Failed plus governed Retry/recovery where eligible; no returned proposal/input/block/completion effect is partially applied.
+
+### GW-FR-241-DERIVED-MATERIAL-MATURITY
+
+**Required behavior:** Draft / Updated — validation required / Current / Stale / Historical / Signed & locked are derived presentation semantics over canonical facts, including repository drafts with no historical Run.
+
+**Acceptance:** material maturity is intelligible without a duplicate persisted status owner and repository-draft visibility does not fabricate lifecycle history.
+
 ## 23. Required certification scenarios
 
 At minimum, downstream implementation must prove these scenarios end to end:
@@ -1607,7 +1680,7 @@ At minimum, downstream implementation must prove these scenarios end to end:
 17. Wide/medium/narrow layouts preserve unsaved editor buffer and current attention.
 18. Mutation error after a separately observed canonical transition reconciles to the new state rather than presenting stale controls.
 19. Saving/refining an unprogressed Work request remains at IDEA; only explicit Start Research enters R1.
-20. A provider turn containing contradictory controlling events is rejected without changing Run/WorkItem state.
+20. A provider turn containing contradictory controlling events applies none of those returned workflow effects, fails the Run, leaves the WorkItem at the same workflow step and exposes governed Retry/recovery where eligible.
 21. A required-input request cannot coexist with a lifecycle proposal in the same provider turn and cannot be answered twice.
 22. Returning from R3 or Implementation preserves every previously reached downstream step as historical.
 23. Approval package read can expose stale currentness but cannot itself execute the upstream return.
@@ -1624,6 +1697,12 @@ At minimum, downstream implementation must prove these scenarios end to end:
 34. System/Light/Dark switching updates the complete application—including overlays, Markdown, code/evidence and source editor—without reload or loss of selected WorkItem/material, dirty buffer, focusable task context or workflow state.
 35. Light and dark render every neutral/current/selected/info/success/warning/danger/focus semantic role distinctly using the same meaning; no feature or specialist renderer exposes a conflicting local palette.
 36. System preference follows effective browser/OS color scheme when no explicit Light/Dark preference exists; explicit Light/Dark remains stable until changed, and preference-storage failure does not affect live theme behavior.
+37. While any Run is active, Work request/title and editable lifecycle-document Save remain unavailable in the browser and rejected by the daemon.
+38. A pending proposal makes Cancel unavailable; rejection restores ordinary open continuation and only then may Cancel become available.
+39. With two runnable WorkItems/tasks, the manual Implementation current-task action starts exactly the displayed canonical current task and cannot advance the other WorkItem.
+40. A deterministic repository lifecycle draft with no historical Run remains visible as Draft without fabricated reach/completion/conformance/readiness/approval state.
+41. Change/Defect/Investigation/Audit task fixtures render the correct kind-specific Work request/Research information, and shared Change/Defect delivery steps preserve their distinct upstream obligations.
+42. Processing can display bounded activity without exposing raw provider/session/tool payloads; optional activity telemetry loss does not alter canonical workflow state.
 
 ## 24. Downstream technical-design obligations
 
