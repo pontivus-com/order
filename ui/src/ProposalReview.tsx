@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
-import type { WorkItem } from "../../src/core/contracts.ts";
+import type { Run, WorkItem } from "../../src/core/contracts.ts";
+import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
