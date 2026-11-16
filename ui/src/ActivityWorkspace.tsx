@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import {
   stageRunCancellationIsAdmitted,
+  stageRunInteraction,
   type CurrentAttentionTag,
   type StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
@@ -87,7 +88,12 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
   const activityEvents = agentActivityRunEvents(events);
   const workflowEvents = workflowRunEvents(events);
   const selectedIsCurrent = selectedRun?.id === currentRunId;
-  const interaction = selectedIsCurrent ? currentInteraction : null;
+  const interaction =
+    selectedIsCurrent && selectedRun !== null
+      ? eventsQuery.data === undefined
+        ? currentInteraction
+        : stageRunInteraction(selectedRun, events)
+      : null;
   const pending: RunEvent | null =
     interaction?.tag === "REQUIRED_INPUT"
       ? events.find((event) => event.id === interaction.requestEventId) ?? null
