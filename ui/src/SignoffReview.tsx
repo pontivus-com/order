@@ -24,6 +24,7 @@ import {
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
@@ -52,11 +53,12 @@ const TaskDetail = ({
   <section className="order-approval-task-detail" data-testid="approval-task-detail">
     <div className="order-section-heading">
       <div>
-        <h2>{task.id}</h2>
-        <span>{task.objective}</span>
+        <h2>{task.objective}</h2>
+        <span>Signed implementation task</span>
       </div>
     </div>
     <MetadataList columns="multi">
+      <MetadataListItem label="Task id"><code>{task.id}</code></MetadataListItem>
       <MetadataListItem label="Depends on">
         {task.dependsOn.length > 0 ? task.dependsOn.join(", ") : "None"}
       </MetadataListItem>
@@ -109,11 +111,12 @@ const HistoricalTaskDetail = ({
   <section className="order-approval-task-detail" data-testid="approval-task-detail">
     <div className="order-section-heading">
       <div>
-        <h2>{task.planTaskId}</h2>
-        <span>{task.objective}</span>
+        <h2>{task.objective}</h2>
+        <span>Approved historical task</span>
       </div>
     </div>
     <MetadataList columns="multi">
+      <MetadataListItem label="Task id"><code>{task.planTaskId}</code></MetadataListItem>
       <MetadataListItem label="Approval">
         <code>{task.approvalId}</code>
       </MetadataListItem>
@@ -276,7 +279,7 @@ export const SignoffReview = ({
       items: packageArtifacts.map((artifact) => ({
         id: artifact.id,
         label: lifecycleArtifactLabel(artifact.role),
-        description: artifact.repositoryPath,
+        description: "Current governed package material",
         selected:
           selection.kind === "DOCUMENT" &&
           selection.artifactId === artifact.id,
@@ -299,15 +302,15 @@ export const SignoffReview = ({
       items: currentApproval
         ? currentTasks.map((task) => ({
             id: task.id,
-            label: task.id,
-            description: task.objective,
+            label: task.objective,
+            description: "Signed task · " + task.id,
             selected: selection.kind === "TASK" && selection.taskId === task.id,
             onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
           }))
         : historicalTasks.map((task) => ({
             id: task.id,
-            label: task.planTaskId,
-            description: task.objective,
+            label: task.objective,
+            description: "Approved task · " + task.planTaskId,
             selected: selection.kind === "TASK" && selection.taskId === task.id,
             onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
           })),
@@ -423,31 +426,57 @@ export const SignoffReview = ({
       <section className="order-workspace-section order-approval-overview" data-testid="review-workspace">
         <div className="order-section-heading">
           <div>
-            <h2>Exact approval package</h2>
+            <h2>Package currentness</h2>
             <span>
               {packageValue.taskBlock.tasks.length} signed task
-              {packageValue.taskBlock.tasks.length === 1 ? "" : "s"} · package current
+              {packageValue.taskBlock.tasks.length === 1 ? "" : "s"} · exact package current
             </span>
           </div>
+          <WorkbenchStatus tone="success" label="Current" />
         </div>
 
-        <MetadataList
-          columns="multi"
-          title="Technical identity"
-          data-testid="approval-package-metadata"
-        >
-          <MetadataListItem label="Package">
-            <code data-testid="signoff-package-hash">{packageValue.packageHash}</code>
-          </MetadataListItem>
-          <MetadataListItem label="Source">
-            <code>{packageValue.sourceSha256}</code>
-          </MetadataListItem>
-          <MetadataListItem label="Baseline">
-            <code>{packageValue.baselineCommit}</code>
-          </MetadataListItem>
-        </MetadataList>
+        <section>
+          <h3>Signed task meaning / scope / gates</h3>
+          <div className="order-resource-list">
+            {packageValue.taskBlock.tasks.map((task) => (
+              <button
+                key={task.id}
+                type="button"
+                className="order-resource-row"
+                onClick={() => setSelection({ kind: "TASK", taskId: task.id })}
+              >
+                <strong>{task.objective}</strong>
+                <span>{task.scope.length} scope item{task.scope.length === 1 ? "" : "s"} · {task.gateIds.length} gate{task.gateIds.length === 1 ? "" : "s"}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
+        <section>
+          <h3>Governed documents</h3>
+          <p>{packageArtifacts.length} current package document{packageArtifacts.length === 1 ? "" : "s"} available for inspection.</p>
+        </section>
 
+        <WorkbenchDisclosure
+          label="Technical details"
+          content={
+            <MetadataList
+              columns="multi"
+              title="Technical identity"
+              data-testid="approval-package-metadata"
+            >
+              <MetadataListItem label="Package">
+                <code data-testid="signoff-package-hash">{packageValue.packageHash}</code>
+              </MetadataListItem>
+              <MetadataListItem label="Source">
+                <code>{packageValue.sourceSha256}</code>
+              </MetadataListItem>
+              <MetadataListItem label="Baseline">
+                <code>{packageValue.baselineCommit}</code>
+              </MetadataListItem>
+            </MetadataList>
+          }
+        />
       </section>
     );
   })();

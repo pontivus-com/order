@@ -51,6 +51,13 @@ export const TerminalResult=({workItem,onOpenEvidence,onCreateRemediation}:Reado
   />;
 
   const material=<div className="order-result-material-root">
+    <section className="order-workspace-section" data-testid="final-governed-outcome">
+      <WorkbenchSectionHeader title="Final governed outcome"/>
+      <div>
+        <h3>{outcomeLabel(workItem)}</h3>
+        <p>{resultText(workItem)}</p>
+      </div>
+    </section>
     {candidateDone?<section data-testid="candidate-result-material">
       <WorkbenchSectionHeader title="Verified candidate resources"/>
       {runsQuery.isPending||eventQueries.some((query)=>query.isPending)?<WorkbenchState kind="loading" title="Loading candidate resources…"/>:

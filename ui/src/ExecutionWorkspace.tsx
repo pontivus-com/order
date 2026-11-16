@@ -8,7 +8,15 @@ import * as api from "./http.ts";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
-import { runIsActive, runRoleLabel, runStatusLabel, type EvidenceSelection, type WorkflowMaterial } from "./workbench-presentation.ts";
+import {
+  agentActivityRunEvents,
+  runEventPresentation,
+  runIsActive,
+  runRoleLabel,
+  runStatusLabel,
+  type EvidenceSelection,
+  type WorkflowMaterial,
+} from "./workbench-presentation.ts";
 import { WorkflowStepIndex, WorkflowStepSummary, type WorkflowStepIndexGroup } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
@@ -20,6 +28,7 @@ import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
+import { WorkbenchTimeline } from "./primitives/WorkbenchTimeline.tsx";
 
 const validationStages: readonly ValidationStage[] = ["V0","V1","V2","V3","V4","V5","V6","V7"];
 
@@ -215,6 +224,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
     refetchInterval:selectedRun&&runIsActive(selectedRun)?1000:false,
   });
   const events=eventsQuery.data??[];
+  const activityEvents=agentActivityRunEvents(events);
   const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
   const reportError=async(error:unknown):Promise<void>=>{onMutationError?.(error);await invalidate();};
   const start=useMutation({
@@ -260,7 +270,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
 
   const groups:WorkflowStepIndexGroup[]=[];
   if(tasks.length>0)groups.push({id:"tasks",label:"Approved tasks",items:tasks.map((task)=>({
-    id:task.id,label:task.planTaskId,description:task.objective,statusLabel:taskStateLabel(task),statusVariant:taskVariant(task),selected:task.id===selectedTask?.id,
+    id:task.id,label:task.objective,description:"Approved task · "+task.planTaskId,statusLabel:taskStateLabel(task),statusVariant:taskVariant(task),selected:task.id===selectedTask?.id,
     onSelect:()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:task.id,runId:runs.findLast((run)=>run.executionTaskId===task.id)?.id??null}),
   }))});
   if(selectedTask&&taskRuns.length>0)groups.push({id:"attempts",label:"Attempts",items:taskRuns.map((run)=>({
@@ -280,7 +290,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
   const detail=stateError?<WorkbenchState kind="error" title="Implementation state unavailable" description={stateError instanceof Error?stateError.message:String(stateError)}/>:
     statePending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
     selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
-      <WorkbenchSectionHeader title={selectedTask.planTaskId} description={selectedTask.objective} action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
+      <WorkbenchSectionHeader title={selectedTask.objective} description={"Approved task · "+selectedTask.planTaskId} action={<WorkbenchStatus tone={taskTone(selectedTask)} label={taskStateLabel(selectedTask)}/>} />
       <MetadataList columns="multi">
         <MetadataListItem label="Gates">{selectedTask.gateIds.join(", ")||"None"}</MetadataListItem>
         <MetadataListItem label="Scope">{selectedTask.scope.join(", ")||"None"}</MetadataListItem>
@@ -304,6 +314,24 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
           <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification??"—"}</code></dd></div>
         </dl>}/>
       </>:<WorkbenchState kind="empty" title="No attempts yet"/>}
+      {activityEvents.length > 0 ? (
+        <WorkbenchTimeline
+          label="Agent activity"
+          items={activityEvents.map((event) => {
+            const presentation = runEventPresentation(event);
+            return {
+              id: event.id,
+              heading: <strong>{presentation.detail}</strong>,
+              meta: <time>{new Date(event.occurredAt).toLocaleString()}</time>,
+              body: event.event.tag === "AGENT_ACTIVITY_RECORDED" && event.event.resource
+                ? <code>{event.event.resource}</code>
+                : undefined,
+            };
+          })}
+        />
+      ) : selectedRun !== null && runIsActive(selectedRun) ? (
+        <WorkbenchState kind="pending" title="Agent activity" description="Waiting for bounded operational activity…" />
+      ) : null}
       <ValidationMatrix
         events={events}
         active={selectedRun !== null && runIsActive(selectedRun)}
