@@ -317,7 +317,7 @@ const proposalRun = RunSchema.parse({
   mode: "INTERACTIVE",
   role: "STAGE",
   triggerEventId: null,
-  status: "WAITING_FOR_INPUT",
+  status: "RUNNING",
   attempt: 2,
   baselineCommit,
   contextHash: sha256Text("proposal-context"),
