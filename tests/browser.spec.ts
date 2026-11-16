@@ -790,9 +790,11 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("button", { name: "Refresh sources" }).click();
   await expect(page.getByTestId("source-diagnostics")).toContainText("INVALID_SOURCE");
 
+  const proposalItem = await workItemForTitle(page, "Proposal review");
   const proposalRow = rowFor(page, "Proposal review");
-  await proposalRow.getByRole("button", { name: "Copy work item id for Proposal review" }).click();
-  await expect(page.getByTestId("work-item-workspace")).toHaveCount(0);
+  await expect(
+    proposalRow.getByRole("button", { name: /Copy work item id/ }),
+  ).toHaveCount(0);
 
   await proposalRow.focus();
   await proposalRow.press("Enter");
@@ -806,6 +808,8 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("button", { name: "Context" }).click();
   await expect(context).toBeVisible();
   await expect(page.getByTestId("selected-view-context")).toBeVisible();
+  await page.getByRole("button", { name: "WorkItem technical details" }).click();
+  await expect(context).toContainText(proposalItem.id);
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
   await expect(context.locator(
