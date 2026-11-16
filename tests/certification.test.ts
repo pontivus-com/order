@@ -1026,6 +1026,27 @@ describe("Order cross-boundary certification", () => {
     expect(sqlite).not.toContain("credentialSecret");
   });
 
+  it("keeps pre-signoff, Readiness and Approval free of a persistent generic material-selector axis", () => {
+    const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
+    const readiness = read("ui/src/ReadinessWorkspace.tsx");
+    const approval = read("ui/src/SignoffReview.tsx");
+    const implementation = read("ui/src/ExecutionWorkspace.tsx");
+
+    for (const source of [preSignoff, readiness, approval]) {
+      expect(source).not.toContain("WorkflowStepIndex");
+      expect(source).not.toContain('data-testid="workflow-step-index"');
+    }
+
+    expect(preSignoff).toContain('"Supporting material and history"');
+    expect(readiness).toContain('"Package material and attempt history"');
+    expect(approval).toContain('"Package material"');
+
+    // Implementation is the sole workflow step allowed to retain persistent
+    // operational master/detail material selection.
+    expect(implementation).toContain("WorkflowStepIndex");
+    expect(implementation).toContain("WorkbenchMasterDetail");
+  });
+
   it("keeps the one-command productive installer purpose-built and bootstrap-only", () => {
     const bootstrap = read("install.sh");
     const installer = read("src/installer.ts");
