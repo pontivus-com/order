@@ -1591,7 +1591,7 @@ export const WorkItemWorkspace = ({
         title="Discard unsaved Markdown?"
         description="Changing workflow step or material would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
-        cancelLabel="Continue editing"
+        cancelLabel="Cancel"
         pending={false}
         onConfirm={() => {
           const next = pendingSelection;
