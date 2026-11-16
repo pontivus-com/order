@@ -618,6 +618,51 @@ const seedProgressionReadyItem = async (
   return item;
 };
 
+const seedCurrentStageDocumentItem = async (
+  title: string,
+  currentStage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
+) => {
+  const item = workItem(title, currentStage, "ACTIVE", null);
+  storeWorkItem(database, item);
+  const definitions = [
+    { stage: "R1", path: "docs/r1.md", role: "R1", layer: "P1" },
+    { stage: "R2", path: "docs/r2.md", role: "R2", layer: "P3" },
+    { stage: "DESIGN", path: "docs/design.md", role: "DESIGN", layer: "P6" },
+    { stage: "PLAN", path: "docs/plan.md", role: "PLAN", layer: "P7" },
+    { stage: "R3", path: "docs/r3.md", role: "R3", layer: "P7" },
+  ] as const;
+  const currentIndex = definitions.findIndex((definition) => definition.stage === currentStage);
+  for (let index = 0; index < currentIndex; index += 1) {
+    const definition = definitions[index]!;
+    const upstream = await currentFileArtifact(
+      seedRuntime,
+      item,
+      definition.path,
+      definition.role,
+      definition.layer,
+    );
+    const completion =
+      definition.stage === "R1"
+        ? { stage: "R1", outcome: "CONFIRMED" } as const
+        : definition.stage === "R2"
+          ? { stage: "R2", outcome: "ACCEPTED" } as const
+          : definition.stage === "DESIGN"
+            ? { stage: "DESIGN", outcome: "ACCEPTED" } as const
+            : { stage: "PLAN", outcome: "ACCEPTED" } as const;
+    await seedConformance(item, definition.stage, upstream, completion);
+  }
+  const current = definitions[currentIndex]!;
+  const output = await currentFileArtifact(
+    seedRuntime,
+    item,
+    current.path,
+    current.role,
+    current.layer,
+  );
+  await seedConformance(item, current.stage, output);
+  return item;
+};
+
 await seedProgressionReadyItem(
   "Requirements ready after Research",
   "R2",
@@ -634,6 +679,10 @@ await seedProgressionReadyItem(
   "Readiness ready after Plan",
   "R3",
 );
+await seedCurrentStageDocumentItem("Requirements document visual", "R2");
+await seedCurrentStageDocumentItem("Solution design document visual", "DESIGN");
+await seedCurrentStageDocumentItem("Implementation plan document visual", "PLAN");
+await seedCurrentStageDocumentItem("Readiness review document visual", "R3");
 
 const readinessInputItem = await seedProgressionReadyItem(
   "Readiness input required",
@@ -844,37 +893,20 @@ persistEvent(resumeRun.id, 1, {
   owningStage: "PLAN",
 });
 
-const processingVisualItem = workItem(
-  "Research processing visual",
-  "R1",
+const processingAttentionItem = workItem(
+  "Research processing attention visual",
+  "IDEA",
   "ACTIVE",
   null,
 );
-storeWorkItem(database, processingVisualItem);
-const processingVisualRun = RunSchema.parse({
-  id: newRunId(),
-  workItemId: processingVisualItem.id,
-  executionTaskId: null,
-  stage: "R1",
-  mode: "INTERACTIVE",
-  role: "STAGE",
-  triggerEventId: null,
-  status: "RUNNING",
-  attempt: 1,
-  baselineCommit,
-  contextHash: sha256Text("research-processing-visual-context"),
-  providerSessionId: null,
-  terminalClassification: null,
-  startedAt: stamp,
-  endedAt: null,
-});
-storeRun(database, processingVisualRun);
-persistEvent(processingVisualRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "R1",
-  mode: "INTERACTIVE",
-  contextHash: processingVisualRun.contextHash,
-});
+storeWorkItem(database, processingAttentionItem);
+const processingDialogueItem = workItem(
+  "Research processing dialogue visual",
+  "IDEA",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, processingDialogueItem);
 
 const openContinuationItem = workItem(
   "Research open continuation",
@@ -883,6 +915,13 @@ const openContinuationItem = workItem(
   null,
 );
 storeWorkItem(database, openContinuationItem);
+await currentFileArtifact(
+  seedRuntime,
+  openContinuationItem,
+  "docs/r1.md",
+  "R1",
+  "P1",
+);
 const openContinuationRun = RunSchema.parse({
   id: newRunId(),
   workItemId: openContinuationItem.id,
