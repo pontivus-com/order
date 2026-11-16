@@ -2,7 +2,7 @@
 
 # 0.5.0 integrated workflow task experience — factual closure
 
-**Status:** R1 factual-closure draft derived from completed parent AUDIT  
+**Status:** R1 factual closure — CONFIRMED from completed parent AUDIT  
 **WorkItem:** `work_2778105b-d919-4fcd-91e7-dd9b23812aac`  
 **Derived from:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`
 
