@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-16
+
 ### Changed
 
 - Recompose the Workbench onto the closed V2 semantic primitive, Astryx theme, workflow-state and browser-observation architecture.
