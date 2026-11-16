@@ -1,14 +1,18 @@
 import {
+  type AgentActivityCategory,
   type ArtifactRef,
   EvidencePathSchema,
   type EvidenceRef,
   type ExecutionTaskId,
   ProviderDiagnosticRecordSchema,
   type ProviderDiagnosticRecord,
+  StageProviderBatchAdmissionDiagnosticSchema,
+  type StageProviderBatchRejectionCode,
   type Run,
   type RunEvent,
   type RunEventId,
   type RunEventPayload,
+  RunEventPayloadSchema,
   RunEventSchema,
   type RunId,
   RunSchema,
@@ -219,6 +223,63 @@ export const persistProviderEvents = (
     persisted.push(appendRunEvent(runtime, run.id, payload));
   }
   return persisted;
+};
+
+type AgentActivityEvent = Extract<
+  RunEventPayload,
+  { tag: "AGENT_ACTIVITY_RECORDED" }
+>;
+
+export const createAgentActivityRecorder = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+): ((activity: AgentActivityEvent) => void) => {
+  let count = 0;
+  let lastKey: string | null = null;
+  return (activity) => {
+    if (count >= 32) return;
+    const payload = RunEventPayloadSchema.parse(activity);
+    if (payload.tag !== "AGENT_ACTIVITY_RECORDED") {
+      throw new TypeError("activity recorder accepts only AGENT_ACTIVITY_RECORDED");
+    }
+    const key = canonicalJson({
+      category: payload.category,
+      resource: payload.resource,
+      summary: payload.summary,
+    });
+    if (key === lastKey) return;
+    appendRunEvent(runtime, runId, payload);
+    lastKey = key;
+    count += 1;
+  };
+};
+
+export const recordStageProviderBatchAdmissionDiagnostic = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+  triggeringRunEventId: RunEventId,
+  code: StageProviderBatchRejectionCode,
+  payloads: readonly RunEventPayload[],
+): readonly EvidenceRef[] => {
+  const tags = payloads.map((payload) => payload.tag);
+  const diagnostic = StageProviderBatchAdmissionDiagnosticSchema.parse({
+    phase: "ORDER_STAGE_BATCH_ADMISSION",
+    code,
+    eventTags: tags.slice(0, 32),
+    truncated: tags.length > 32,
+  });
+  const evidence = [writeRunEvidence(
+    runtime,
+    runId,
+    `provider/${triggeringRunEventId}/order-stage-batch-admission.json`,
+    new TextEncoder().encode(canonicalJson(diagnostic) + "\n"),
+    "application/json",
+  )];
+  appendRunEvent(runtime, runId, {
+    tag: "PROVIDER_DIAGNOSTICS_RECORDED",
+    evidence,
+  });
+  return evidence;
 };
 
 export const recordProviderDiagnostics = (

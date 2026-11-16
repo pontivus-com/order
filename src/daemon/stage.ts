@@ -26,6 +26,7 @@ import {
   artifactReturnOwner,
   deriveProposalDecision,
   stageInputIsAdmitted,
+  stageProviderBatchRejectionCode,
   stageRunInteraction,
   transitionWorkItem,
   validateStageProviderTurn,
@@ -74,6 +75,7 @@ import {
 import {
   activeRunStatuses,
   appendRunEvent,
+  createAgentActivityRecorder,
   failRunForProductiveInvocation,
   failRunForProvider,
   getRun,
@@ -84,6 +86,7 @@ import {
   nextAttempt,
   persistProviderEvents,
   recordProviderDiagnostics,
+  recordStageProviderBatchAdmissionDiagnostic,
   validatePayloadEvidence,
   renderArtifacts,
   stopActiveProvider,
@@ -161,7 +164,6 @@ export const stagePrompt = async (
     `Order lifecycle stage: ${stage}`,
     stageDecisionText[stage],
     `Canonical output path for this stage: ${expectedOutputPath}. Any ARTIFACT_PROPOSAL_CREATED for role ${stage} must target exactly this path.`,
-    "Return only a JSON array of canonical provider-emittable RunEventPayload values for STAGE role.",
     `WorkItem: ${canonicalJson(workItem)}`,
     stage === "R1" || stage === "R2"
       ? `Canonical WorkItem source Markdown:\n${context.source.markdown}`
@@ -531,7 +533,29 @@ export const runStageTurn = async (
           stderr,
         );
       },
+      createAgentActivityRecorder(runtime, run.id),
     );
+    const rejection = stageProviderBatchRejectionCode(
+      getRun(runtime, run.id),
+      listRunEvents(runtime, run.id),
+      events,
+    );
+    if (rejection !== null) {
+      const admissionEvidence = recordStageProviderBatchAdmissionDiagnostic(
+        runtime,
+        run.id,
+        triggeringEventId,
+        rejection,
+        events,
+      );
+      await stopActiveProvider(runtime, run.id);
+      return failRunForProvider(
+        runtime,
+        run.id,
+        new TypeError("Agent result could not be accepted"),
+        [...diagnosticEvidence, ...admissionEvidence],
+      );
+    }
     const reaction = await persistAndReactStageBatch(
       runtime,
       run,

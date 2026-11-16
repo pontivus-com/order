@@ -70,6 +70,7 @@ import {
 import { type ActiveProvider, type CoordinatorRuntime } from "./runtime.ts";
 import {
   appendRunEvent,
+  createAgentActivityRecorder,
   failRunForProductiveInvocation,
   failRunForProvider,
   getRun,
@@ -461,6 +462,7 @@ export const executeMutatingRun = async (
           stderr,
         );
       },
+      createAgentActivityRecorder(runtime, run.id),
     );
     const accepted = persistExecutionProviderEvents(runtime, run, payloads);
     if (accepted === null) return;
@@ -786,6 +788,7 @@ export const executeReviewerRun = async (
           stderr,
         );
       },
+      createAgentActivityRecorder(runtime, run.id),
     );
     const accepted = persistExecutionProviderEvents(runtime, run, payloads);
     if (accepted === null) return;
