@@ -564,14 +564,14 @@ export const WorkItemWorkspace = ({
     selectedStep,
   );
   const mutationsDisabled = currentAttention === "CONVERGING";
+  const interactionMutationsDisabled =
+    mutationsDisabled || currentAttention === "MUTATION_CONFLICT";
   const activeRunOwnsAuthoring = runs.some(runIsActive);
   const documentMutationsDisabled =
-    mutationsDisabled ||
-    currentAttention === "MUTATION_CONFLICT" ||
-    activeRunOwnsAuthoring;
+    interactionMutationsDisabled || activeRunOwnsAuthoring;
   const workflowMutationsDisabled =
-    documentMutationsDisabled ||
-    (currentness.tag === "STALE" && !runs.some(runIsActive));
+    interactionMutationsDisabled ||
+    (currentness.tag === "STALE" && !activeRunOwnsAuthoring);
 
   const material = resolveWorkflowMaterial({
     workItem,
@@ -877,7 +877,7 @@ export const WorkItemWorkspace = ({
 
   const titleMutation = useMutation({
     mutationFn: () => {
-      if (mutationsDisabled) throw new TypeError("workflow observation is converging");
+      if (documentMutationsDisabled) throw new TypeError("work item title authoring is not currently admitted");
       return api.updateWorkItemTitle(workItem.id, {
       expectedSourceSha256: workItem.sourceSha256,
       title: titleDraft.trim(),
@@ -1330,6 +1330,7 @@ export const WorkItemWorkspace = ({
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
             mutationsDisabled={workflowMutationsDisabled}
+            authoringMutationsDisabled={documentMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: sharedPreSignoffStage,
@@ -1450,7 +1451,7 @@ export const WorkItemWorkspace = ({
           <LifecycleDocumentMaterial
             workItem={workItem}
             artifactId={material.artifactId}
-            mutationsDisabled={workflowMutationsDisabled}
+            mutationsDisabled={documentMutationsDisabled}
             onDirtyChange={setDirtyState}
             onOpenArtifactEvidence={openArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
