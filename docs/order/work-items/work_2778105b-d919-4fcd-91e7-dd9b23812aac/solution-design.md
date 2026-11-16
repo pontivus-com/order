@@ -86,6 +86,7 @@ This design does **not**:
 | lifecycle/reach/proposal/current-attention/material presentation derivation | `src/core/lifecycle.ts` |
 | provider role/event admission | existing core provider-admission owner |
 | STAGE prompt/turn orchestration and batch reaction | `src/daemon/stage.ts` |
+| RunEvent append, bounded activity recording and provider/admission diagnostic evidence | `src/daemon/run.ts` |
 | repository/source draft materialization | `src/daemon/work-item-source.ts` |
 | current lifecycle material projection/context/conformance | `src/daemon/authority.ts` |
 | post-signoff task/run mechanics | `src/daemon/execution.ts` |
@@ -306,6 +307,17 @@ Work request source currentness continues to use its existing source-validity/fr
 
 ### 8. Bounded agent activity
 
+The daemon creates one per-provider-turn activity recorder through the existing Run owner:
+
+~~~text
+createAgentActivityRecorder(runtime, runId)
+  -> (activity: Extract<RunEventPayload, { tag: "AGENT_ACTIVITY_RECORDED" }>) => void
+~~~
+
+The closure owns only ephemeral per-turn deduplication/count state and appends through the existing RunEvent owner. STAGE and post-signoff execution both use this same helper; neither reimplements the cap/dedup rule.
+
+`opencode.ts::invokeProvider` accepts that typed callback as an imperative effect sink. The shell may call it after normalizing an allowlisted provider-native activity, but it never imports daemon persistence or writes RunEvents itself. Provider-native types never cross the callback. The same callback receives terminal `session.context` reconciliation records before the provider invocation returns.
+
 Canonical addition:
 
 ~~~text
@@ -351,7 +363,7 @@ Live-stream loss/disconnect is not a Run failure. Terminal `session.get`/outcome
 
 A provider can succeed at OpenCode transport/execution yet return a semantically invalid STAGE batch. That distinction becomes explicit evidence.
 
-The core validator exposes a stable `StageProviderBatchRejectionCode` decision for the closed grammar. On rejection the daemon records one bounded Order-owned diagnostic evidence JSON containing:
+The core validator exposes a stable `StageProviderBatchRejectionCode` decision for the closed grammar. `src/daemon/run.ts`, which already owns Run evidence and provider diagnostics, also owns the small evidence-writing helper for this Order-admission diagnostic; `stage.ts` decides when to call it. On rejection the daemon records one bounded Order-owned diagnostic evidence JSON containing:
 
 - fixed phase `ORDER_STAGE_BATCH_ADMISSION`;
 - stable rejection code;
