@@ -683,7 +683,7 @@ The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INT
 - treat pinned read-triggered nested `AGENTS.md` injection only as a rendering of Order-pre-resolved, material P1 authority; unresolved repository instruction files block productive invocation;
 - install deny-first, exact role-specific permissions; STAGE may receive only the configured P6 reference-root `external_directory` read boundary and its prompt lists those roots as non-authoritative read-only locations, while every post-signoff role remains external-directory denied and mutation is allowed only for exact literal `ExecutionTask.changeSurface` paths;
 - bind and read back the exact provider/model from the canonical persisted Order configuration; silent fallback is rejected;
-- derive one deterministic prompt id from persisted Order identity; no event stream or experimental wait endpoint is correctness authority;
+- derive one deterministic prompt id from persisted Order identity; no event stream or experimental wait endpoint is correctness authority; the event stream may be consumed best-effort only for bounded/redacted operator-visible activity under `GW-DOC-OPENCODE-INTEGRATION-V1`;
 - prove terminal completion through advancing `time.idle` + outcome + final context;
 - bound every productive turn to 3600 seconds and interrupt/fail if terminal success cannot be proved;
 - allow at most one tool-disabled format-repair turn.
@@ -765,7 +765,7 @@ order provider login <provider>
 - `setup` is the explicit post-install reconfiguration/recovery surface for the same canonical P6 configuration. Bare `order setup` reuses an already-valid configuration/credential binding without prompting; `order setup --reconfigure` explicitly reopens model/root choices. The productive installer does not invoke either CLI form; both the installer and CLI reuse one canonical guided-configuration functional boundary;
 - `provider login <provider>` remains a narrow maintenance/recovery command for the same private OpenCode credential namespace; normal first-run authentication is driven directly by the custom installer through the same canonical provider shell functions;
 - `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
-- `status` and `tick` call the same daemon HTTP contracts used by the UI. Lifecycle resume and sign-off remain UI actions rather than duplicate CLI workflows.
+- `status` and `tick` call daemon HTTP contracts through CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
 
 `orderd` owns periodic scheduling directly:
 
@@ -776,7 +776,9 @@ order provider login <provider>
 5. on each timer firing, start a coordinator tick only when no coordinator tick is already active;
 6. after each completed/failed tick, preserve the normal durable task/Run reaction semantics and wait for the next interval.
 
-Manual `order tick` invokes the same coordinator operation. It does not create another scheduler, queue or mutation path.
+Manual `order tick` invokes the same global coordinator operation. It does not create another scheduler, queue or mutation path.
+
+The Workbench's manual **Start current task** command is not a scheduler scan. It identifies the exact current approved WorkItem/task, proves final eligibility under the same global single-running-task exclusion, atomically creates that task's BUILDER Run, and then enters the same coordinator execution loop asynchronously. Automatic ticks retain the existing global eligible-task ordering.
 
 No model call occurs merely because the timer fires: a tick with no eligible approved task is `NO_WORK`.
 
