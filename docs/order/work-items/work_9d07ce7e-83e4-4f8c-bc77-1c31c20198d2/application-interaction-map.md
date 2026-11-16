@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 through P1-T05 complete; P1-T06+ pending  
+**Status:** P1-T01 through P1-T06 complete; P1-T07+ pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -1163,6 +1163,16 @@ The current renderer graph has been classified into application, workflow-step, 
 P1-T03 may now capture rendered evidence against §10. P1-T04 must not start final INFO closure until the relevant rendered evidence exists.
 
 ## 20. Current-state gaps requiring derived audit
+
+P1-T06 adds three state/control-plane blockers:
+
+- **STATE-F01:** Cancel can produce `CANCELLED + unresolved proposal`, leaving proposal attention visible but impossible to Adopt/Reject.
+- **STATE-F02:** WorkItem-local execution ownership is not carried into the task-local manual command; `/api/tick` remains global.
+- **STATE-F03:** STAGE provider producer instructions do not state the closed turn-batch grammar enforced by `validateStageProviderTurn`.
+
+See [workflow-state-audit.md](workflow-state-audit.md) for the complete state-owner, transition, impossible-combination and producer→consumer analysis.
+
+### Prior information/interaction gaps
 
 P1-T04 establishes the first evidence-backed gaps:
 
