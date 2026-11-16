@@ -24,21 +24,16 @@ jobs:
         with:
           ref: 9c3c67913e41bd29e906e4f2879aca9b88de232a
           fetch-depth: 0
-      - name: Install exact Node and Bun
-        shell: bash
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.13.0"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.4"
+      - name: Verify toolchain
         run: |
-          set -euo pipefail
-          node_root="${RUNNER_TEMP}/node"
-          mkdir -p "${node_root}"
-          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
-          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
-          echo "${node_root}/bin" >> "${GITHUB_PATH}"
-          curl -fsSLo "${RUNNER_TEMP}/bun.zip" "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
-          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
-          mkdir -p "${RUNNER_TEMP}/bun-bin"
-          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
-          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
-          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH>"
+          test "$(node --version)" = "v26.13.0"
+          test "$(bun --version)" = "1.4.4"
       - name: Install exact OpenCode
         shell: bash
         run: |
