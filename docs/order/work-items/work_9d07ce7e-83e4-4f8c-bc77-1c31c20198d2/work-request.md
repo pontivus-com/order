@@ -268,9 +268,116 @@ The audit output must include:
 11. a final verdict on whether current P3/P4/P6 authority is itself correct or must be amended before any 0.5.0 remediation plan is written;
 12. the exact set of linked DEFECT/CHANGE WorkItems required to remediate the confirmed findings, without implementing them inside this AUDIT.
 
+## 0.5.0 release character and governed delivery sequence
+
+0.5.0 is **not a bug-fix release**. It is the next feature-level product release intended to move Order materially closer to a usable software-work environment. The current 0.4.0 product remains blocked by fundamental usability, interaction, integration and correctness problems: workflow screens do not yet have sufficiently governed information architecture, OpenCode work is too opaque and has unresolved session/execution failures, and lifecycle/document-state behavior is not yet proven to align with the intended user interaction model.
+
+The audit described above is therefore the **evidence and problem-closure front end** of the 0.5.0 delivery lifecycle. It is not itself the governing implementation plan and must not collapse requirements, technical design and implementation planning into one document.
+
+The 0.5.0 work must proceed through the ordinary governed sequence:
+
+~~~text
+0.5.0 scope / observed product failures
+        |
+        v
+R1 — audit / research / factual closure
+        |
+        v
+R2 — functional requirements
+        |
+        v
+DESIGN — technical architecture + canonical contracts
+        |
+        v
+PLAN — governing implementation plan
+        |
+        v
+R3 — readiness review
+        |
+        v
+Approval
+        |
+        v
+Implementation + validation
+~~~
+
+### R1 — audit / research obligations
+
+R1 must establish the actual current-state failures and root causes across the integrated UX/UI, OpenCode and lifecycle/state domains. It must distinguish:
+
+- observed product symptoms from upstream causes;
+- incorrect implementation from missing/incorrect canonical design;
+- UX information-hierarchy failures from primitive/theme defects;
+- OpenCode provider/integration defects from Order state/reaction defects;
+- lifecycle-state defects from missing document/material maturity semantics;
+- test coverage from actual end-to-end contract proof.
+
+R1 must close the factual questions needed for requirements work. It must not decide the replacement product behavior, technical architecture or implementation shape.
+
+### R2 — functional requirements obligations
+
+R2 must convert the validated 0.5.0 findings into complete observable product behavior.
+
+The functional requirements must define at minimum:
+
+- the operator experience and information hierarchy for every workflow step;
+- the primary work area, current-action area, supporting context, operational agent activity and technical/debug separation;
+- the human↔agent conversation model for Research, Requirements, Solution design and Implementation plan;
+- the product-visible OpenCode activity, failure and recovery behavior;
+- document/material maturity behavior and how maturity relates to lifecycle progression;
+- proposal/review/adoption behavior;
+- editing/saving/conformance behavior;
+- historical/current/stale/blocked/failed/recovery behavior;
+- responsive and accessibility behavior;
+- acceptance criteria for every material state and screen transition.
+
+R2 must be complete enough that DESIGN does not have to invent product behavior.
+
+### DESIGN — technical authority obligations
+
+DESIGN must translate the accepted functional requirements into the exact P4/P5/P6 system design required to implement them.
+
+It must define at minimum:
+
+- the closed lifecycle/interaction/document-maturity algebra;
+- canonical state derivation and ownership;
+- event/command transition rules and impossible combinations;
+- STAGE/OpenCode producer→carrier→consumer contracts;
+- session/context continuity, restart and failure semantics;
+- the exact bounded OpenCode observability surface and its data source;
+- UI information/composition ownership for every workflow screen;
+- shared screen primitives/compositions versus step-specific content;
+- canonical browser projections and mutation boundaries;
+- technical/debug evidence separation;
+- persistence/non-persistence decisions;
+- exact API/contract changes;
+- permanent architecture/integration/browser certification obligations.
+
+DESIGN must preserve FCIS, SoC, semantic DRY, strict typing and minimum sufficient change. It must not introduce duplicated workflow/document state merely to simplify rendering.
+
+### PLAN — governing implementation-plan obligations
+
+Only after R1, R2 and DESIGN are closed may the 0.5.0 governing implementation plan be written.
+
+That implementation plan must be executable without material inference by the implementation team. It must:
+
+- trace every task to the accepted functional and technical authority;
+- cover the complete integrated UX/UI, OpenCode and state-machine change rather than isolated fixes;
+- identify the exact repository change surface and canonical owners;
+- define ordered implementation units and dependencies;
+- include required deletions/replacements of superseded 0.4.0 behavior;
+- define screen-by-screen implementation/certification work for all workflow steps;
+- define OpenCode integration/session/observability/error remediation;
+- define state-machine/document-maturity implementation and migration implications, if any;
+- include the known provider-turn proposal/control-event defect in the correct upstream contract task rather than as a standalone local patch;
+- define the complete test/certification matrix, including negative/contradictory cases and browser-visible integrated scenarios;
+- preserve the single `version/0.5.0` branch as the complete release work surface.
+
+The implementation plan is therefore the **downstream execution contract for the complete 0.5.0 product correction**, not the place where unresolved product behavior or architecture is decided.
+
 ### 0.5.0 design/implementation entry criteria
 
-No corrective implementation plan is acceptable until the audit establishes, and the governing P3/P4/P6 authority is amended where required to contain:
+No 0.5.0 governing implementation plan is acceptable until the audit establishes, and the governing R2/DESIGN P3/P4/P6 authority is amended where required to contain:
 
 - one explicit screen contract for every workflow step;
 - one explicit information-hierarchy rule separating productive work from context, operational agent activity, technical detail and developer/debug diagnostics;
