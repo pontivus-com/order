@@ -1100,25 +1100,19 @@ export const WorkItemWorkspace = ({
 
   const currentStepSelected = selectedStep === workItem.stage;
   const canStart =
-    currentStepSelected &&
     preSignoff.has(workItem.stage) &&
     currentAttention === "ACTIONABLE";
   const canRetry =
-    currentStepSelected &&
     currentAttention !== "MUTATION_CONFLICT" &&
     recovery.tag === "RETRY_CURRENT_STAGE";
   const canResume =
-    currentStepSelected &&
     currentAttention !== "MUTATION_CONFLICT" &&
     recovery.tag === "RESUME_CURRENT_OWNER";
   const canReconcile =
-    currentStepSelected &&
     currentAttention !== "MUTATION_CONFLICT" &&
     recovery.tag === "RECONCILE_AUTHORITY" &&
     !runs.some(runIsActive);
-  const summaryBlocker = !currentStepSelected
-    ? null
-    : sourceDiagnostics[0]
+  const summaryBlocker = sourceDiagnostics[0]
       ? {
           status: "error" as const,
           title: "Work request source needs attention",
@@ -1165,14 +1159,14 @@ export const WorkItemWorkspace = ({
             : currentAttention === "BLOCKER"
             ? {
                 status: "error" as const,
-                title: selectedWorkflow.label + " is blocked",
+                title: workflow.label + " is blocked",
                 description:
                   "Resolve the current canonical blocker before continuing.",
               }
             : currentAttention === "RECOVERY"
               ? {
                   status: "warning" as const,
-                  title: selectedWorkflow.label + " requires recovery",
+                  title: workflow.label + " requires recovery",
                   description:
                     "Use the current governed recovery action before continuing.",
                 }
@@ -1196,13 +1190,31 @@ export const WorkItemWorkspace = ({
                   }
                 : null;
 
+  const inspectedHistorical = !currentStepSelected;
+  const currentAttentionStatusLabel = (() => {
+    if (!inspectedHistorical) return summaryStatusLabel;
+    switch (currentAttention) {
+      case "CONVERGING": return "Applying change";
+      case "MUTATION_CONFLICT": return "Mutation conflict";
+      case "REQUIRED_INPUT": return "Waiting for you";
+      case "PROPOSAL_DECISION": return "Proposal review required";
+      case "PROPOSAL_ADOPTION": return "Applying change";
+      case "BLOCKER": return "Blocked";
+      case "RECOVERY": return "Recovery required";
+      case "STALE_AUTHORITY": return "Stale authority";
+      case "PROCESSING": return "Processing";
+      case "ACTIONABLE": return "Action required";
+      case "ORDINARY": return "Current material";
+    }
+  })();
+
   const stepSummary = (
     <WorkflowStepSummary
-      label={selectedWorkflow.label}
-      purpose={selectedWorkflow.purpose}
-      stateLabel={selectedStateLabel}
-      stateVariant={selectedStateVariant}
-      statusLabel={summaryStatusLabel}
+      label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
+      purpose={inspectedHistorical ? workflow.purpose : selectedWorkflow.purpose}
+      stateLabel={inspectedHistorical ? "Current" : selectedStateLabel}
+      stateVariant={inspectedHistorical ? "info" : selectedStateVariant}
+      statusLabel={currentAttentionStatusLabel}
       statusVariant={summaryStatusVariant}
       blocker={summaryBlocker}
       action={
@@ -1244,8 +1256,7 @@ export const WorkItemWorkspace = ({
             disabled={mutationsDisabled || dirty || start.isPending}
             onClick={() => start.mutate()}
           />
-        ) : selectedStep === "COMPLETE" &&
-          workItem.stage === "COMPLETE" &&
+        ) : workItem.stage === "COMPLETE" &&
           (
             workItem.outcome === "INVESTIGATION_COMPLETE" ||
             workItem.outcome === "AUDIT_COMPLETE"
