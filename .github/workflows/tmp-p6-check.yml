@@ -1,4 +1,5 @@
 name: Temporary P6 checkpoint
+# verify-current-candidate
 
 on:
   push:
