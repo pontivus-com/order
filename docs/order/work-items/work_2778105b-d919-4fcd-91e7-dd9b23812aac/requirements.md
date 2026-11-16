@@ -829,6 +829,9 @@ The following stable requirement identities are owned by this R2 artifact for do
 - **R2-FR-022 ACCESSIBLE-INTERACTION-CONTINUITY** — material interactions, focus, state and failure feedback remain keyboard/assistive-technology usable.
 - **R2-FR-023 SUPPORTING-SERVICE-BOUNDARIES** — Queue/Create/Settings/Context/Evidence support workflow tasks without becoming workflow authority.
 - **R2-FR-024 NO-DUPLICATE-PRODUCT-STATE** — required presentation/maturity behavior is derived from canonical facts unless DESIGN proves a genuinely missing fact.
+- **R2-FR-025 LIFECYCLE-INFORMATION-MATURITY** — each stage consumes only the authoritative information legitimately available at that point and adds only the semantic layer it owns.
+- **R2-FR-026 CURRENT-STAGE-DOCUMENT-PRIMACY** — the current stage-owned task/output is primary; upstream documents remain supporting authority/evidence and unreached downstream documents are not presented as empty productive artifacts.
+- **R2-FR-027 REQUIREMENT-TO-SOLUTION-BOUNDARY** — R2 closes observable functional requirements plus applicable binding constraints; DESIGN resolves the technical requirements/architecture/contracts that realize them without inventing product behavior.
 
 ## Acceptance criteria
 
@@ -904,6 +907,17 @@ The R2 functional design is satisfied only when all of the following observable 
 48. F-07 is closed functionally by the material-maturity language.
 49. F-04/F-06 and the certification gaps remain technical realization obligations for DESIGN; R2 does not weaken or reinterpret the functional behavior to fit current implementation.
 
+### H. Lifecycle information maturity
+
+50. Work request presents the originating source as the primary productive document and does not imply that Research/Requirements/Design/Plan authority already exists.
+51. Research consumes the Work request plus applicable authority/evidence and produces factual closure without inventing Requirements, architecture or implementation.
+52. Requirements consumes accepted Research/product intent and produces observable functional requirements plus applicable binding constraints without choosing technical architecture or lower-level contracts.
+53. Solution design consumes accepted Requirements plus technical authority/evidence and explicitly resolves the requirement-to-technical-solution relationship before PLAN begins.
+54. Implementation plan consumes accepted Design/Requirements and is the sole current executable delivery authority; it does not require implementation to reconstruct design from earlier documents.
+55. Readiness, Approval, Implementation and Complete present the accumulated package according to their own task purpose rather than rendering every lifecycle document with equal default prominence.
+56. Unreached downstream lifecycle documents are not represented as current productive authority merely to fill the workspace.
+57. Every later stage can trace its owned output to the minimum sufficient upstream authority without copying that authority into a second normative source.
+
 ## Scope/exclusions
 
 ### In scope
@@ -916,6 +930,7 @@ The R2 functional design is satisfied only when all of the following observable 
 - proposal disposition/cancellation semantics;
 - manual Implementation execution meaning;
 - per-step information hierarchy and post-action orientation;
+- lifecycle information maturity, stage-entry documentation expectations and stage-owned output boundaries;
 - Queue/Create/Settings/Context/Evidence where they support the workflow task model;
 - responsive/accessibility continuity;
 - functional acceptance and downstream traceability.
