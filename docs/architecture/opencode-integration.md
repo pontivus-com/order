@@ -155,7 +155,11 @@ OpenCode's live event stream is authorized only as a **best-effort observational
 
 For each productive turn the shell may consume the pinned authenticated event stream and may inspect released `session.context` tool parts, but provider-native values remain inside the shell.
 
-The shell projects only allowlisted, bounded facts into the coordinator-owned activity contract in `GW-DOC-CANONICAL-CONTRACTS-V1`:
+The shell projects only allowlisted, bounded facts into the coordinator-owned activity contract in `GW-DOC-CANONICAL-CONTRACTS-V1`.
+
+The effect boundary is explicit: the daemon's existing Run owner creates one per-provider-turn activity-recorder callback and passes that callback into the provider invocation. The callback accepts only the canonical `AGENT_ACTIVITY_RECORDED` payload shape. `opencode.ts` does not import daemon persistence or append RunEvents. Provider-native event/tool types are normalized/redacted before the callback is invoked, so they never cross the shell boundary. The Run owner, not the shell, enforces the persisted per-turn cap/deduplication law.
+
+Within that boundary:
 
 - Order-owned phases such as preparing context, waiting on provider, running checks, reviewing results and retry/recovery are recorded directly where objectively known;
 - recognized public provider tool activity may map to reading, searching or editing;
