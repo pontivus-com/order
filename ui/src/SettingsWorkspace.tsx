@@ -361,7 +361,7 @@ const RepositorySettings = ({
         open={disconnectRepositoryRoot !== null}
         onOpenChange={(open) => { if (!open) setDisconnectRepositoryRoot(null); }}
         title="Disconnect repository?"
-        description={disconnectRepositoryRoot === null ? "" : "Remove only Order's connection to " + disconnectRepositoryRoot + ". Repository files, WorkItem Markdown, Git history, and authority documents are not deleted."}
+        description="Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted."
         confirmLabel="Disconnect repository"
         pending={disconnect.isPending}
         onConfirm={() => { if (disconnectRepositoryRoot !== null) disconnect.mutate(disconnectRepositoryRoot); }}
