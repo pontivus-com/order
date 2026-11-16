@@ -304,7 +304,8 @@ export const SourceDocumentMaterial = ({
     <section className="order-document-material" data-testid="source-document-material">
       <MarkdownEditor
         key={"source-" + workItem.id}
-        title="WorkItem source"
+        title="Work request"
+        editingTitle="WorkItem source"
         description={
           readOnly
             ? "Read-only supporting Work request context."
@@ -339,6 +340,13 @@ export const SourceDocumentMaterial = ({
         }}
         toolbarAccessory={
           sourceReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
+        }
+        viewAside={
+          <dl className="order-work-request-meta">
+            <div><dt>Work type</dt><dd>{git.sourceQuery.data.metadata.schemaId.replace("-v1", "").replace(/^./, (value) => value.toUpperCase())}</dd></div>
+            <div><dt>Project</dt><dd>{git.sourceQuery.data.metadata.projectId}</dd></div>
+            <div><dt>Concerns</dt><dd>{git.sourceQuery.data.metadata.concernIds.length === 0 ? "—" : git.sourceQuery.data.metadata.concernIds.join(", ")}</dd></div>
+          </dl>
         }
         technicalDetails={
           <DocumentationTechnicalDetails
