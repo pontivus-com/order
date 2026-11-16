@@ -172,7 +172,7 @@ jobs:
                 if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") continue;
                 const cancelled = await page.context().request.post(
                   "/api/runs/" + encodeURIComponent(run.id) + "/cancel",
-                  { data: {} },
+                  { data: {}, headers: { origin: baseURL } },
                 );
                 expect([200, 409]).toContain(cancelled.status());
               }
