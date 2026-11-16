@@ -879,7 +879,7 @@ Long titles, long Markdown, multiple attempts/tasks, dense evidence, diagnostics
 
 The six Phase 1 functional decisions are closed as follows:
 
-| Decision | R2 resolution |
+| Decision | Functional resolution |
 |---|---|
 | FD-01 — per-screen information/action hierarchy | **CLOSED:** task-first hierarchy and per-step contracts in §§10–19; primary/current/supporting/activity/history/technical classes in §6 |
 | FD-02 — operator-visible OpenCode activity | **CLOSED:** bounded live operational activity + bounded post-turn inspectability in §8; no hidden reasoning/raw provider plumbing |
@@ -906,8 +906,8 @@ The following stable requirement identities are owned by this functional design 
 - **WF-FR-010 WORK-REQUEST-TASK** — Work request supports author/validate/start-Research behavior in §10.
 - **WF-FR-011 RESEARCH-TASK** — Research supports evidence-backed investigation behavior in §11.
 - **WF-FR-012 REQUIREMENTS-TASK** — Requirements supports closure of observable product behavior in §12.
-- **WF-FR-013 DESIGN-TASK** — Solution design supports technical closure without changing accepted product intent in §13.
-- **WF-FR-014 PLAN-TASK** — Plan supports exact executable delivery authority in §14.
+- **WF-FR-013 SOLUTION-DESIGN-TASK** — Solution design supports technical closure without changing accepted product intent in §13.
+- **WF-FR-014 IMPLEMENTATION-PLAN-TASK** — Implementation plan supports exact executable delivery authority in §14.
 - **WF-FR-015 READINESS-TASK** — Readiness review supports adversarial verdict/defective-owner/evidence behavior in §15.
 - **WF-FR-016 APPROVAL-TASK** — Approval supports current-package understanding and explicit sign-off in §16.
 - **WF-FR-017 TASK-SCOPED-MANUAL-EXECUTION** — manual Implementation start is scoped to the canonical current approved task.
