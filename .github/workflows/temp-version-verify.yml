@@ -1,0 +1,46 @@
+name: Temporary version verification
+
+on:
+  push:
+    branches: [version/0.5.0]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: temp-version-verify
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-test-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+      - name: dependency-lock
+        run: bun ci
+      - name: typecheck
+        run: bun run tsc --noEmit
+      - name: targeted unit tests
+        run: node node_modules/vitest/vitest.mjs run tests/core.test.ts tests/workbench-presentation.test.ts tests/certification.test.ts
+      - name: build
+        run: node node_modules/vite/bin/vite.js build
