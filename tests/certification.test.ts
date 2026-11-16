@@ -1054,13 +1054,14 @@ describe("Order cross-boundary certification", () => {
     const approval = read("ui/src/SignoffReview.tsx");
     const implementation = read("ui/src/ExecutionWorkspace.tsx");
 
-    for (const source of [preSignoff, readiness, approval]) {
+    for (const source of [readiness, approval]) {
       expect(source).not.toContain("WorkflowStepIndex");
       expect(source).not.toContain('data-testid="workflow-step-index"');
     }
-
+    expect(preSignoff).not.toContain("WorkflowStepIndex");
+    expect(preSignoff).toContain("WorkflowMaterialSelector");
     expect(preSignoff).toContain('"Supporting material and history"');
-    expect(readiness).toContain('"Package material and attempt history"');
+    expect(readiness).toContain('"Evidence / attempt history"');
     expect(approval).toContain('"Package material"');
 
     // Implementation is the sole workflow step allowed to retain persistent
