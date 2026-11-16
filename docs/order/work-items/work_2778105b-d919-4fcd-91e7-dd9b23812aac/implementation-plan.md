@@ -49,7 +49,7 @@ The entire change is represented by one signed ExecutionTask.
 
 This is required by the canonical execution model: every ExecutionTask starts from Approval.baselineCommit and dependency candidate bytes are not promoted into later task baselines. The 0.5.0 change is cumulative across core contracts, daemon/provider behavior and UI composition; splitting those layers into dependent signed tasks would make later tasks unable to consume earlier candidate bytes.
 
-The single task therefore contains nine mandatory implementation phases with hard checkpoints.
+The single task contains seven ordered implementation phases. Each phase exists because it either changes a distinct semantic/UI layer or catches a defect class before later work compounds it.
 
 A phase checkpoint is not advisory. The worker must not continue into the next phase while the current checkpoint has an unresolved failure or unexplained visual deviation.
 
@@ -103,27 +103,18 @@ The SVG pack is derived visual authority rather than semantic authority. During 
 
 ### 4.1 Reference comparison is a release gate
 
-For every reference assigned to a UI phase, implementation must produce the corresponding runtime state using the real SPA/e2e path and compare it against the reviewed SVG.
+For every reference assigned to a UI phase, render the corresponding state through the real SPA/e2e path and compare the implemented outcome directly against the approved SVG.
 
-Each comparison records:
+The comparison is intentionally lightweight:
 
-- reference filename;
-- runtime scenario/fixture;
-- viewport class and exact viewport size;
-- theme;
-- actual runtime screenshot;
-- structural result;
-- interaction/action result;
-- hierarchy result;
-- visual result;
-- any variance and its classification;
-- final PASS/FAIL.
+- a clean match needs only the reference, runtime scenario and actual screenshot/result;
+- a variance/failure additionally records the exact mismatch and required correction;
+- no current-UI screenshot or before/after comparison is required;
+- no separate review document is created for each reference.
 
-Checkpoint screenshots and comparison summaries are verification evidence. They are not new product authority and must not be committed as product/reference material.
+C3-C6 are implementation feedback checkpoints, not independent review stages. The builder fixes obvious mismatches immediately. Human/design escalation is required only when the implementation/reference comparison is genuinely ambiguous or appears to expose a design contradiction.
 
-For C3-C7, retain one candidate-scoped evidence bundle containing the actual screenshots and comparison summaries. The bundle is carried into canonical V3/V4 through the existing Run evidence/EvidenceRef mechanism; no new evidence table, product state or repository authority is introduced. A comparison summary must name the exact candidate state/hash it evaluates so a later edit cannot reuse stale visual evidence.
-
-C3-C6 are development feedback gates inside the one BUILDER task, not new lifecycle/validation states. A developer may not continue past a failed checkpoint. Where a comparison needs human visual judgment, a design reviewer must inspect the side-by-side evidence before the phase is marked PASS. That phase review is provisional evidence only: the canonical V4 read-only reviewer re-evaluates the complete candidate and may invalidate any earlier checkpoint PASS.
+The final C7 pass renders the complete 41-reference inventory from the final integrated candidate. That final comparison set is the visual evidence supplied to canonical V4 independent review. Intermediate C3-C6 screenshots may remain ordinary test artifacts and do not require a durable evidence bundle unless they document a failure that must be handed off.
 
 ### 4.2 Canonical comparison viewports
 
@@ -185,7 +176,7 @@ They may not be logged for a final polish pass unless the defect is provably on 
 
 The final C7 comparison is a completeness audit, not the first time visual quality is evaluated.
 
-Every C3-C6 failure must return actionable feedback containing: reference id/file, runtime scenario, violated zero-deviation dimension, actual screenshot/evidence pointer, responsible implementation owner, required correction and the exact checkpoint/tests invalidated by the correction.
+Every C3-C6 failure must identify the reference/state that failed, the concrete mismatch, and the owning implementation surface. Record more detail only when it is needed to hand the defect to another worker or to resolve an ambiguous design contradiction.
 
 ## 5. Expected change surface
 
@@ -247,7 +238,6 @@ No new dependency, package pin, database migration, persistent state table, tran
 
 | Phase | Purpose | Hard checkpoint |
 |---|---|---|
-| P0 | establish reference-validation fixtures and comparison matrix | C0 reference harness ready |
 | P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure |
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure |
 | P3 | shared Workbench interaction foundation | C3 foundation visual conformance |
@@ -255,61 +245,24 @@ No new dependency, package pin, database migration, persistent state table, tran
 | P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance |
 | P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance |
 | P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance |
-| P8 | full gate union and independent candidate review | C8 candidate-ready |
 
 No phase may be marked complete while its checkpoint is FAIL.
 
-## 7. Phase P0 — reference-validation harness
+## 7. Reference-fixture rule — no separate implementation phase
 
-### Objective
+There is no P0 implementation phase.
 
-Establish the minimum deterministic runtime/reference comparison mechanism required to validate the implemented 0.5.0 UI against the approved SVG reference pack.
+Canonical V0/V1 already own package, approval, repository and governance preflight. The implementation does not repeat them.
 
-The current 0.4.0/early-0.5.0 UI is **not** a visual baseline and is not captured for comparison. The only visual comparison authority used by this implementation is:
+Reference fixtures are added **just in time** in P3-P6 only when the real SPA cannot already render an approved SVG state deterministically. The plan's §16 reference ownership matrix already maps all 41 references to their owning checkpoint, so implementation must not create a second reference manifest merely to restate that mapping.
+
+The current UI is not captured or compared. The visual quality loop is only:
 
 ```text
-approved SVG reference
-        ↓
-implemented runtime state
-        ↓
-structured comparison + PASS/FAIL
+approved SVG -> implemented runtime state -> fix any mismatch
 ```
 
-### Work
-
-Canonical V0 package/approval validation and V1 repository/governance preflight occur before implementation editing under the existing execution control plane. P0 does not duplicate those checks.
-
-1. Record the exact Approval/execution baseline commit required by the canonical execution model. This identifies the signed candidate origin; it is not a UX comparison baseline.
-2. Reuse the existing browser/e2e runtime and fixtures. Do not create a parallel demo application or screenshot-only prototype.
-3. Add/prepare deterministic fixture coverage in `tests/e2e-server.ts` only where an approved reference state cannot currently be rendered through the real SPA path.
-4. Build the reference-conformance manifest in the existing browser-test structure so every one of the 41 approved Workbench SVGs maps to:
-   - runtime scenario/fixture;
-   - expected state;
-   - applicable viewport class/exact viewport;
-   - applicable theme;
-   - owning implementation checkpoint.
-5. Verify that the harness can render representative wide, medium and narrow states and explicit Light/Dark/System theme conditions needed by the reference inventory.
-6. Prove that no reference SVG or canonical authority document is in the signed implementation candidate change surface.
-
-Do **not**:
-
-- capture screenshots of the current UI for later comparison;
-- compare the candidate against the current UI;
-- run a second full pre-implementation gate cycle merely to establish a visual baseline;
-- preserve an existing UI defect because it appears in the pre-change implementation.
-
-### C0 — reference-harness checkpoint
-
-PASS requires:
-
-- all 41 approved Workbench references have a deterministic runtime scenario owner;
-- no reference is left as “visual only / cannot validate” without an explicit implementation-blocking reason;
-- wide/medium/narrow reference scenarios use the canonical responsive classes;
-- Light/Dark/System reference scenarios are renderable where applicable;
-- the reference-comparison evidence format required by §4.1 and §17.5 is available;
-- no current-UI baseline screenshot/evidence set is required or produced.
-
-If the real SPA/e2e harness cannot render a required approved reference state, classify that as a concrete implementation/precondition problem and fix the harness or fixture. Do not substitute a mock visual baseline.
+No separate baseline screenshot exercise, pre-implementation visual gate, mock prototype, or reference-harness phase is authorized.
 
 ## 8. Phase P1 — core contracts and pure workflow semantics
 
@@ -399,7 +352,6 @@ tests/core.test.ts and tests/workbench-presentation.test.ts must cover:
 PASS requires:
 
 - typecheck;
-- unchanged architecture test;
 - targeted core/workbench-presentation tests;
 - every new union variant exhaustively covered;
 - invalid/contradictory histories fail closed;
@@ -930,75 +882,37 @@ PASS requires:
 - no obsolete parallel behavior remains;
 - visual reviewer can compare actual runtime evidence to every reference without inferring what was intended.
 
-## 15. Phase P8 — full gates and candidate closeout
+## 15. Canonical candidate validation — not another implementation phase
 
-### Objective
+After P7 completes, implementation stops. The candidate enters the existing canonical validation control plane in GW-DOC-VALIDATION-STANDARD-V1.
 
-Establish the exact verified candidate for independent review.
+The PLAN does **not** run a second bespoke “P8” review/gate process on top of V2-V7.
 
-### Required full gates
+The existing stages own final validation:
 
-Run the manifest-owned commands exactly:
+- **V2** — actual diff/scope validation against the signed task;
+- **V3** — mechanical behavior validation using the project-authoritative gates;
+- **V4** — one fresh independent semantic review, including the final C7 visual/reference evidence;
+- **V5** — architecture/governance validation;
+- **V6** — minimum-change/anti-bloat validation;
+- **V7** — rerun only gates/evidence invalidated by any remediation/review edits.
 
-1. dependency-lock
-   bun ci
+The manifest-owned final gate commands remain:
 
-2. typecheck
-   bun run tsc --noEmit
+1. `bun ci`
+2. `bun run tsc --noEmit`
+3. `node node_modules/vitest/vitest.mjs run tests/architecture.test.ts`
+4. `node node_modules/vitest/vitest.mjs run`
+5. `node node_modules/vite/bin/vite.js build`
+6. `node node_modules/@playwright/test/cli.js test`
 
-3. architecture
-   node node_modules/vitest/vitest.mjs run tests/architecture.test.ts
+These commands are executed where the canonical validation stages require them; the implementation phases do not rerun the complete union simply for ceremony.
 
-4. test
-   node node_modules/vitest/vitest.mjs run
+V4 receives the exact signed task, final diff, permanent test evidence and the C7 41-reference comparison. It independently checks semantic correctness and visual/reference conformance once on the integrated candidate.
 
-5. build
-   node node_modules/vite/bin/vite.js build
+A material visual drift found at V4 returns to the owning implementation surface as a classified repairable review failure when the correction is already designed and in scope. It is not accepted as cosmetic debt.
 
-6. browser
-   node node_modules/@playwright/test/cli.js test
-
-### Final semantic review
-
-Independent reviewer must verify:
-
-- implementation matches requirements.md and solution-design.md;
-- every changed path is within the signed changeSurface;
-- no unrelated refactor/bloat;
-- no canonical owner was duplicated;
-- provider activity remains observational;
-- manual execution is exactly task-scoped;
-- proposal/cancel dead state is impossible;
-- repository drafts do not fabricate reach;
-- material maturity remains derived;
-- active-agent direct authoring is excluded;
-- browser state never becomes workflow authority.
-
-### Final visual review
-
-Reviewer receives the C7 comparison evidence and independently samples/validates:
-
-- all workflow steps;
-- all materially distinct state sheets;
-- all three responsive classes;
-- both Light and Dark plus System behavior;
-- Queue/Create/Settings/Context/Evidence;
-- Approval/Implementation/Complete;
-- dialogue/proposal/document states.
-
-Any material visual drift returns the candidate to the owning UI phase. It is not accepted as cosmetic debt.
-
-### C8 — candidate-ready checkpoint
-
-C8 may report candidate-ready only when the canonical coordinator can establish CANDIDATE_DONE, and CANDIDATE_DONE is permitted only when:
-
-- C0 through C7 all passed;
-- all six final gates passed;
-- independent semantic review passed;
-- independent visual/reference review passed;
-- no unresolved deviation ledger item remains;
-- no reference/canonical authority was edited by the implementation candidate;
-- no out-of-scope file changed.
+`CANDIDATE_DONE` remains solely the canonical coordinator result after the required V0-V7 evidence exists.
 
 ## 16. Reference ownership matrix
 
@@ -1072,13 +986,12 @@ C7 repeats the entire 41-file inventory as the final completeness check.
 | P5 | WF-FR-016..020, WF-FR-023, WF-FR-030..033; TD-02, TD-07 |
 | P6 | WF-FR-021..023, WF-FR-028, WF-FR-030..031; TD-07 |
 | P7 | all WF-FR-001..035; TD-08; V-01..V-11 |
-| P8 | complete signed-package acceptance through canonical V0-V7 evidence |
 
 The accepted requirement/design documents remain the semantic owners. This PLAN makes their implementation/proof ownership explicit; it does not copy their authority.
 
 ### 17.2 Complete observable acceptance coverage
 
-Every one of the 74 accepted observable criteria in requirements.md has an implementation owner and permanent proof. A criterion is not complete merely because its parent WF-FR id appears elsewhere.
+Every one of the 74 accepted observable criteria in requirements.md is mapped to an implementation owner and the test/reference family that collectively proves it. This is a completeness map, not a demand for 74 separate tests, evidence files or review records. One meaningful scenario may satisfy multiple mapped criteria when it genuinely proves them.
 
 | Criterion | Accepted observable behavior | Implementing phase | Production owner | Permanent proof |
 |---|---|---|---|---|
@@ -1159,7 +1072,7 @@ Every one of the 74 accepted observable criteria in requirements.md has an imple
 
 ### 17.3 Complete Phase-1 interaction closure ledger
 
-Functional acceptance criterion G43 is closed here. The parent Audit remains factual evidence for the current interaction descriptions; this PLAN assigns every one of its 97 material ACT ids a target disposition and proof.
+Functional acceptance criterion G43 is closed here. The parent Audit remains factual evidence for the current interaction descriptions; this PLAN assigns every one of its 97 material ACT ids a target disposition and proof family. This is a coverage ledger, not a requirement to create 97 new test cases or evidence records. Existing tests remain valid where they already prove a PRESERVE row, and one scenario may prove multiple interactions.
 
 Disposition meanings:
 
@@ -1268,43 +1181,44 @@ Disposition meanings:
 | ACT-WI-006 | workflow rail selection | PRESERVE | Preserve the audited interaction semantics under its current canonical owner; presentation may recompose only as required by the accepted task hierarchy/reference pack. | P2-P4/C3-C4; core/daemon/browser proof as applicable |
 | ACT-WI-007 | continue editing/discard unsaved document before changing step/material | PRESERVE | Preserve the audited interaction semantics under its current canonical owner; presentation may recompose only as required by the accepted task hierarchy/reference pack. | P2-P4/C3-C4; core/daemon/browser proof as applicable |
 
-C7 certification must mechanically prove that no SUPERSEDE/PROHIBIT row remains reachable and must exercise the changed positive replacement path. PRESERVE rows are regression obligations; changing them requires upstream authority rather than implementation discretion.
+C7 certification must prove that SUPERSEDE/PROHIBIT behavior is gone and that each changed replacement path works. PRESERVE rows are regression obligations, but they require new test work only where existing coverage is insufficient. Changing preserved semantics requires upstream authority rather than implementation discretion.
 
 ### 17.4 Canonical V0-V7 integration
 
-C0-C8 are PLAN-level development checkpoints only. They do not create another validation state machine and cannot substitute for the canonical validation branches in GW-DOC-VALIDATION-STANDARD-V1.
+C1-C7 are focused implementation checkpoints only. They do not create another validation state machine and cannot substitute for the canonical validation branches in GW-DOC-VALIDATION-STANDARD-V1.
 
 | Canonical stage | Relationship to this PLAN |
 |---|---|
 | V0 package/approval | occurs before editing; proves this exact signed task, current package/source and dependencies |
 | V1 repository/governance preflight | occurs before editing; proves baseline/governance/current implementation still admit this PLAN |
-| IMPLEMENT | P0-P7 execute inside the one signed BUILDER task; C0-C7 provide progressive developer feedback/evidence |
+| IMPLEMENT | P1-P7 execute inside the one signed BUILDER task; C1-C7 provide focused developer feedback so defects are corrected before they compound |
 | V2 diff/scope | validates the final actual changed paths against this exact changeSurface, exclusions and deletion obligations |
 | V3 mechanical behavior | consumes targeted phase test evidence plus the complete final gate/reference-mechanical results; no C checkpoint replaces V3 |
-| V4 independent semantic review | fresh read-only reviewer receives the exact task, diff, 74-criterion matrix, 97-ACT ledger, V-01..V-11 evidence and C7 visual bundle; it independently re-evaluates semantic and visual conformance |
+| V4 independent semantic review | fresh read-only reviewer receives the exact task, final diff, permanent validation evidence and C7 visual comparison; §17.2/§17.3 are traceability aids, not separate review ceremonies |
 | V5 architecture/governance | runs immutable architecture fitness plus certification sensors; green UI/tests cannot override a governance failure |
 | V6 minimum-change/anti-bloat | proves every production edit is necessary and no contingency-authorized renderer/primitive was changed without a failed invariant/reference justification |
 | V7 final required gates | reruns every gate/evidence invalidated by builder/remediator/reviewer-driven edits |
 | CANDIDATE_DONE | only canonical coordinator evidence with one current VALIDATION_PASSED for V0-V7 plus CANDIDATE_RECORDED may establish completion |
 
-C8 is therefore a PLAN reporting checkpoint that means “canonical candidate evidence is complete”; it never self-declares CANDIDATE_DONE.
+There is no C8. Canonical V2-V7 own final candidate validation and CANDIDATE_DONE.
 
-### 17.5 Checkpoint evidence and development feedback
+### 17.5 Checkpoint feedback — minimum useful evidence
 
-For C1-C7 the implementation log/evidence must contain:
+C1-C7 exist to catch defects close to where they are introduced. They are not documentation milestones.
 
-1. checkpoint id and exact candidate hash/state;
-2. commands/scenarios executed;
-3. PASS/FAIL results;
-4. affected requirement ids and acceptance-criterion ids;
-5. for UI checkpoints, reference file + viewport + theme + actual screenshot + structured comparison;
-6. every finding with owning module/surface and correction required;
-7. tests/checkpoints invalidated by the correction;
-8. rerun result before progression.
+For a passing checkpoint, retain only the test/comparison output naturally produced by the tooling. Do not create a separate checkpoint report.
 
-C3-C6 phase review is an early development feedback mechanism, not canonical independent validation. A human/design reviewer must resolve visual judgments that cannot be mechanically proven before the next UI phase continues. V4 independently re-reviews the complete candidate, including the visual bundle, and is authoritative for semantic review.
+For a failing checkpoint, record only what another worker needs to fix it:
 
-Final C7 evidence is retained with the exact candidate and attached through the existing Run evidence/EvidenceRef machinery when V3/V4 records validation/review evidence. Screenshots/comparison summaries are not committed product authority and no new evidence persistence model is introduced.
+- failing test/reference/runtime state;
+- concrete mismatch/failure;
+- owning implementation surface;
+- required correction when already determined;
+- rerun result after correction.
+
+For C3-C6 visual work, screenshots are ordinary comparison/test artifacts. Human/design review is invoked only for an ambiguous comparison or suspected design/reference contradiction.
+
+C7 produces the one complete 41-reference comparison set used by canonical V4. No duplicate per-phase evidence bundle is required.
 
 ### 17.6 Permanent Workbench certification binding
 
@@ -1404,8 +1318,8 @@ The 0.5.0 implementation is complete only when all of the following are true:
 
 - the changed semantic contracts work end to end;
 - all 35 accepted WorkItem requirements are realized;
-- all 74 observable functional acceptance criteria have current passing proof under §17.2;
-- all 97 audited ACT interactions have the §17.3 disposition realized and proved;
+- the §17.2 coverage map has no uncovered functional acceptance criterion and the permanent test/reference suite collectively proves the required outcomes;
+- the §17.3 interaction ledger has no unresolved disposition and changed/superseded interaction paths are proved without requiring redundant one-test-per-row evidence;
 - all V-01..V-11 obligations are permanent tests;
 - the complete Workbench §14.5 browser-certification and §14.6 architecture-fitness matrices pass;
 - all 41 visual references have a runtime comparison result;
