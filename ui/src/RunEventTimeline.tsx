@@ -4,15 +4,15 @@ import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchTimeline } from "./primitives/WorkbenchTimeline.tsx";
-import { eventEvidence, proposalDispositionFor, runEventPresentation, type EvidenceSelection, type ProposalSelection } from "./workbench-presentation.ts";
+import { eventEvidence, proposalDispositionFor, runEventPresentation, workflowRunEvents, type EvidenceSelection, type ProposalSelection } from "./workbench-presentation.ts";
 
 export const RunEventTimeline = ({ run, events, onOpenEvidence, onOpenProposalReview }: Readonly<{
   run: Run; events: readonly RunEvent[]; onOpenEvidence: (selection: EvidenceSelection) => void; onOpenProposalReview?: (selection: ProposalSelection) => void;
 }>) => (
   <div data-testid="run-event-timeline">
     <WorkbenchTimeline
-      label="Run activity"
-      items={events.map((event) => {
+      label="Workflow activity"
+      items={workflowRunEvents(events).map((event) => {
         const presentation = runEventPresentation(event);
         const evidence = eventEvidence(event);
         const proposalState = event.event.tag === "ARTIFACT_PROPOSAL_CREATED" ? proposalDispositionFor(events, event.id) : null;
@@ -33,7 +33,7 @@ export const RunEventTimeline = ({ run, events, onOpenEvidence, onOpenProposalRe
     />
     <WorkbenchDisclosure
       label="Timeline technical details"
-      content={<div>{events.map((event) => <details key={event.id}><summary><code>{event.event.tag}</code><span> · sequence {event.sequence}</span></summary><pre>{JSON.stringify(event.event, null, 2)}</pre></details>)}</div>}
+      content={<div>{workflowRunEvents(events).map((event) => <details key={event.id}><summary><code>{event.event.tag}</code><span> · sequence {event.sequence}</span></summary><pre>{JSON.stringify(event.event, null, 2)}</pre></details>)}</div>}
     />
   </div>
 );
