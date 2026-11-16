@@ -31,6 +31,8 @@ import {
 import {
   PrimaryMaterialFrame,
   WorkflowStepFrame,
+  WorkflowStepIndex,
+  type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
@@ -168,6 +170,28 @@ export const PreSignoffStageWorkspace = ({
     />
   );
 
+  const currentMaterialItems: WorkflowStepIndexGroup["items"] = [
+    ...stageRuns.map((run) => ({
+      id: "run-" + run.id,
+      label: "Attempt " + run.attempt,
+      description: new Date(run.startedAt).toLocaleString(),
+      statusLabel: runStatusLabel(run.status),
+      selected: material.kind === "STAGE_RUN" && material.runId === run.id,
+      onSelect: () => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id }),
+    })),
+    ...(stageArtifact ? [{
+      id: "document-" + stageArtifact.id,
+      label: lifecycleArtifactLabel(stageArtifact.role) + " document",
+      description: "Governed current-stage material",
+      statusLabel: materialState === null ? undefined : materialPresentationStateLabel(materialState),
+      selected: material.kind === "STAGE_DOCUMENT" && material.artifactId === stageArtifact.id,
+      onSelect: () => onSelectMaterial({ kind: "STAGE_DOCUMENT", artifactId: stageArtifact.id }),
+    }] : []),
+  ];
+  const materialSelector = currentMaterialItems.length > 1
+    ? <WorkflowStepIndex groups={[{ id: "current", label: "Current work", items: currentMaterialItems }]} label="Current workflow material" />
+    : undefined;
+
   const primary = (() => {
     switch (material.kind) {
       case "STAGE_RUN":
@@ -291,6 +315,8 @@ export const PreSignoffStageWorkspace = ({
   return (
     <WorkflowStepFrame
       summary={summary}
+      index={materialSelector}
+      indexLabel="Current workflow material"
       primary={
         <PrimaryMaterialFrame>
           <div className="order-step-material-stack">
