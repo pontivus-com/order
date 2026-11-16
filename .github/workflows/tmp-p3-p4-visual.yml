@@ -148,13 +148,17 @@ jobs:
             await shot(page, "theme-parity.svg", "dark");
             await page.getByRole("radio", { name: "Light" }).click();
 
+            await open(page, "Implementation plan ready after Design");
+            await selectCurrentDocument(page, "Implementation plan document");
             await page.setViewportSize({ width: 1600, height: 900 });
             await shot(page, "responsive-composition.svg", "wide");
             await page.setViewportSize({ width: 1000, height: 800 });
             await expect(page.getByTestId("workflow-rail")).toBeVisible();
+            await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
             await shot(page, "responsive-composition.svg", "medium");
             await page.setViewportSize({ width: 700, height: 800 });
             await expect(page.getByTestId("workflow-rail")).toBeVisible();
+            await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
             await shot(page, "responsive-composition.svg", "narrow");
           });
 
