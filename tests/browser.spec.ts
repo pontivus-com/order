@@ -1142,12 +1142,14 @@ test("narrow workflow work index returns focus and preserves dirty material acro
   await page.keyboard.press("Escape");
   await expect(supporting).toBeFocused();
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Current workflow material" })).toBeVisible();
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
 
   await page.setViewportSize({ width: 1600, height: 900 });
   await expect(page.getByRole("button", { name: "Supporting material and history", exact: true })).toBeVisible();
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Current workflow material" })).toBeVisible();
   await expect.poll(() => markdownSourceValue(editor))
     .toContain("# Responsive continuity");
 });
@@ -1750,6 +1752,26 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await selectWorkflowStep(page, "Complete");
   await expect(page.getByTestId("result-workspace")).toContainText("Verified candidate");
+});
+
+test("Readiness keeps verdict and findings primary while subordinate material changes", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Readiness ready after Plan");
+  const review = page.getByTestId("review-workspace");
+  await expect(review).toBeVisible();
+  await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
+  await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
+  const selector = page.getByRole("combobox", { name: "Readiness material" });
+  await expect(selector).toBeVisible();
+  await selector.click();
+  await page.getByRole("option", { name: "Implementation plan", exact: true }).click();
+  await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
+  await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
+  await expect(review.getByText("Selected supporting material", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
 test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off attached to selected material", async ({
