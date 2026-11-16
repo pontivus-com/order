@@ -158,7 +158,8 @@ jobs:
             });
           };
 
-          test("capture Phase 1 representative rendered states", async ({ page, request }) => {\n            test.setTimeout(120000);
+          test("capture Phase 1 representative rendered states", async ({ page, request }) => {
+            test.setTimeout(120000);
             await page.setViewportSize({ width: 1600, height: 900 });
             await authenticate(page, request);
 
