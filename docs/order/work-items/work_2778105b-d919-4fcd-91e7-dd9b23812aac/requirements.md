@@ -2,9 +2,9 @@
 
 # 0.5.0 integrated workflow task experience — functional requirements
 
-**Status:** R2 functional-design complete draft — pending review/acceptance  
+**Status:** Functional design complete draft — pending review/acceptance  
 **WorkItem:** `work_2778105b-d919-4fcd-91e7-dd9b23812aac`  
-**Derived factual authority:** parent AUDIT `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
+**Derived factual authority:** parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Functional design model:** workflow step → primary task → subtasks → information/input/interaction requirements → observable outcome
 
 ## Required observable outcome
@@ -78,119 +78,208 @@ Complete
 
 A return upstream changes the **current task owner**. It does not erase reached/historical work. Historical material remains inspectable but never becomes current mutation authority merely because the operator selects it.
 
-#### 2.1 Lifecycle information maturity
+#### 2.1 The workflow has two information dimensions
 
-The workflow is also an **information-maturity pipeline**. Each stage receives the minimum sufficient authoritative material that can legitimately exist at that point, adds the semantic layer owned by that stage, and makes that new layer available to later stages.
+The Workbench must resolve both of these before deciding what the operator sees:
 
-The governing accumulation is:
+1. **Work type** — Change, Defect, Investigation or Audit.
+2. **Workflow step** — Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation or Complete.
+
+The current interaction condition — processing, required input, proposal review, document editing, blocker, recovery, history inspection and so on — then determines which subtask owns attention inside that work-type/workflow-step combination.
+
+The product model is therefore:
 
 ~~~text
-Work request
-  originating intent / observation
-        |
-        v
-Research
-  + validated facts / evidence / root cause / authority
-        |
-        v
-Requirements
-  + required observable behavior / acceptance / scope / failure semantics
-  + applicable product, compatibility, security, performance and other binding constraints
-        |
-        v
-Solution design
-  + technical requirements/architecture needed to satisfy the functional contract
-  + canonical ownership / data-control flow / contract and design decisions
-        |
-        v
-Implementation plan
-  + exact executable task decomposition / dependencies / change surface / verification
-        |
-        v
-Readiness
-  + adversarial package-level verdict / findings / exact defective owner
-        |
-        v
-Approval
-  + exact frozen package authorization
-        |
-        v
-Implementation
-  + candidate / execution / review / validation evidence
-        |
-        v
-Complete
-  + governed terminal result
+work type
+   ×
+workflow step
+   ×
+current interaction
+   =
+task purpose + available information + expected output + valid actions
 ~~~
 
-The amount of available authoritative information generally increases as the WorkItem progresses, but each stage still receives and presents only the **minimum sufficient context** needed for its task.
+The product must not render a generic Research or Requirements experience without also respecting the selected WorkItem kind and the kind-specific information that must remain relevant downstream.
 
-A later stage does not make all earlier documents equally primary. It normally leads with its own current task/output and exposes earlier material as supporting authority, evidence or traceability.
+#### 2.2 Existing governed WorkItem kinds and progressive source documents
 
-A stage must not fabricate later-stage documentation merely to make the workspace appear complete. Unreached documents are absent as productive authority rather than represented by empty pseudo-artifacts.
+The existing governed authoring catalog already defines four user-facing work types with different starting documents.
 
-#### 2.2 Documentation and information contract by workflow stage
-
-| Stage | Authoritative information normally available on entry | Stage-owned output / new information | What the operator should primarily work with | Supporting information that should remain available |
+| Work type | Initial operator intent | Work request starts with | What Research must establish | Delivery consequence |
 |---|---|---|---|---|
-| **Work request / IDEA** | originating human request/observation; selected project/kind/concerns; any explicitly supplied references or higher product context | durable `work-request.md` recording intent and constraints known at intake | the Work request itself | supplied references, project identity, source validity/Git state; technical source identity on demand |
-| **Research / R1** | current Work request; applicable P0/P1 rules; available P2 intent; project/repository authority; current repository/runtime evidence | `research.md`: validated facts, evidence, root cause/producing boundary, affected path, governing authority, unresolved factual questions, verdict | current investigation/dialogue and Research result | Work request, repository/runtime evidence, governing authority, prior attempts/evidence |
-| **Requirements / R2** | validated Research; current Work request/P2 intent where materially needed; applicable P0/P1 product principles; existing domain/product constraints; already-binding technical/non-functional constraints | `requirements.md`: required observable outcome, P3 functional requirements, acceptance criteria, scope/exclusions, failure/negative behavior, compatibility/security/performance constraints | current Requirements contract and unresolved product decisions | Research facts/evidence, Work request, existing product authority and binding technical/non-functional constraints |
-| **Solution design / DESIGN** | accepted Requirements; validated Research facts; applicable P1 engineering rules; existing P4 architecture/technical constraints; P5 ADRs; P6 canonical contracts/state owners; relevant repository boundaries/evidence | `solution-design.md`: technical requirements/architecture that realize the functional contract, canonical owner/boundaries, data/control flow, necessary contract decisions, alternatives, failure behavior, downstream invariants, validation obligations | the technical solution and the requirement-to-solution relationship | Requirements first; Research evidence and existing architecture/contracts/ADRs as supporting authority |
-| **Implementation plan / PLAN** | accepted Design; accepted Requirements; applicable P1-P6 authority; current repository structure; project verification authority; R1 evidence where needed for traceability | `implementation-plan.md`: exact task units/dependencies, requirement/design traceability, change surface, deletions/additions/modifications, validation sequence and executable task definitions | the Plan as the sole executable delivery authority | Design as immediate upstream authority; Requirements and relevant Research/evidence for traceability; verification/governance sources |
-| **Readiness / R3** | complete current R1/R2/DESIGN/PLAN package; applicable governance; current repository evidence; compact prior conformance evidence | `readiness-review.md`: readiness verdict, evidence, adversarial findings and exact defective/return stage | verdict/findings and the package evidence necessary to judge them | the complete package on demand, with the defective layer emphasized rather than all documents presented equally |
-| **Approval** | exact current Work request/R1/R2/DESIGN/PLAN/R3 package and signed task block; exact package currentness | explicit Approval/sign-off over the frozen exact package; no replacement design document | package currentness, signed task meaning and explicit authorization decision | governed documents needed for judgment; exact hashes/commit/package identity only on demand |
-| **Implementation** | signed package; exact approved task definitions; current execution owner; repository/candidate/runtime evidence generated during execution | implementation candidate plus Run/review/remediation/validation evidence; no new P1-P7 authority | current approved task, active role/blocker/next action, current validation boundary | signed Plan/Design/Requirements and evidence as read-only authority; prior attempts/history |
-| **Complete** | terminal WorkItem state, governed result/candidate, execution/review/validation evidence, reached history | terminal result and any separately governed linked follow-up | substantive final outcome/result | evidence and prior lifecycle material as history |
+| **Change** | introduce or change behavior/capability | requested outcome; current context; known constraints/non-goals; references/evidence | current state/absence; evidence; governing authority; affected path; downstream invariants; unresolved facts; factual verdict | confirmed work continues through Requirements, Solution design, Implementation plan, Readiness review, Approval and Implementation |
+| **Defect** | correct behavior that appears wrong | observed behavior; expected behavior; reproduction/evidence if known; behavior that must remain unchanged; impact/context | symptom/reproduction; proven root cause; producer→carrier→consumer path; downstream effects/invariants; governing authority; unresolved facts; factual verdict | confirmed work continues through Requirements, Solution design, Implementation plan, Readiness review, Approval and Implementation |
+| **Investigation** | establish a technical fact or answer a software-engineering question | question; why it matters; known evidence/context; investigation boundary | evidence for/against; findings; unresolved questions; conclusion | successful investigation can complete directly; delivery work becomes a separate linked Change or Defect |
+| **Audit** | evaluate an artifact, implementation or change against explicit criteria | target under audit; governing authority/criteria; scope/exclusions; requested evidence/verdict | evidence by criterion; findings; verdict | successful audit can complete directly; remediation becomes a separate linked Change or Defect |
 
-#### 2.3 Functional versus technical requirements across the lifecycle
+These are progressive authoring templates, not intake completeness gates. A new WorkItem may begin with partial information. Empty or incomplete intake sections are valid when the operator does not yet know the answer. The owning workflow step resolves missing facts or decisions; the product must not force the operator to pretend the work is more mature than it is.
 
-The Requirements and Solution design stages have different information responsibilities.
+The initial Work request remains the canonical originating narrative for the selected work type. Later documents add authority; they do not rewrite the original request into a generic form.
 
-**Requirements / R2** answers **what must be true observably**. It owns P3 functional requirements and records the material compatibility, security, performance and other constraints that the solution must satisfy. When a technical/non-functional constraint is already binding project authority, R2 must surface/reference it because it constrains the required outcome.
-
-R2 does **not** choose architecture, canonical ownership, data/control flow, APIs, schemas or implementation mechanisms merely to fill a perceived “technical requirements” section.
-
-**Solution design / DESIGN** answers **how the accepted functional contract is correctly realized technically**. It receives the complete accepted Requirements plus existing technical constraints and resolves the necessary P4/P5/P6 technical requirements and design decisions. Therefore DESIGN is where functional requirements and technical constraints become one coherent technical solution.
-
-The resulting relationship is:
+#### 2.3 Work-type progression through the workflow
 
 ~~~text
-R1 facts
-   +
-P2 intent
-   |
-   v
-R2 functional requirements
-   + binding non-functional/technical constraints
-   |
-   v
-DESIGN technical requirements + architecture + contracts
-   |
-   v
-PLAN exact implementation tasks
+CHANGE
+Change request
+  -> Research: prove current state/absence and constraints
+  -> Requirements: define required changed behavior
+  -> Solution design: define the technical solution
+  -> Implementation plan: define exact delivery work
+  -> Readiness review
+  -> Approval
+  -> Implementation
+  -> Complete
+
+DEFECT
+Bug/defect report
+  -> Research: reproduce and prove root cause + preserved invariants
+  -> Requirements: define corrected behavior + behavior that must remain unchanged
+  -> Solution design: define root-cause-correct remediation
+  -> Implementation plan: define exact remediation + regression verification
+  -> Readiness review
+  -> Approval
+  -> Implementation
+  -> Complete
+
+INVESTIGATION
+Question / investigation brief
+  -> Research: evidence-backed answer
+  -> Complete
+  -> optional separate linked Change/Defect for delivery
+
+AUDIT
+Audit brief / target / criteria
+  -> Research: evidence by criterion + findings/verdict
+  -> Complete
+  -> optional separate linked Change/Defect for remediation
 ~~~
 
-This distinction prevents two opposite errors:
+Change and Defect deliberately converge onto the same later workflow steps, but they do not lose their kind-specific semantics.
 
-- R2 inventing technical solutions before the required behavior is closed;
-- DESIGN inventing missing product behavior because Requirements were incomplete.
+A Defect Requirements task must continue to carry the proven defect, expected corrected behavior and preserved-behavior invariants. A Change Requirements task must continue to carry the requested outcome, proven current state/absence and relevant constraints. The shared document shape does not make those two contexts interchangeable.
 
-#### 2.4 Stage-specific information presentation rules
+#### 2.4 Information maturity by workflow step
 
-The Workbench must reflect the information maturity of the current stage.
+| Workflow step | Information normally available on entry | Information created/closed here | Primary task-area information | Supporting information |
+|---|---|---|---|---|
+| **Work request** | originating request/observation/question/audit brief; project/work type/concerns; references already known | durable originating intent in the work-type-specific source document | source narrative and immediate validity/conflict state | project/work-type metadata, supplied references, source/Git status; technical identity on demand |
+| **Research** | Work request; applicable governing principles/authority; repository/runtime evidence; known product intent | validated facts/evidence; root cause or current-state absence; affected path; governing authority; unresolved factual questions; verdict/conclusion | current investigation, required evidence/input and emerging Research result | Work request, repository/runtime evidence, authority, previous attempts |
+| **Requirements** | confirmed Change/Defect Research; originating intent; existing product/domain authority; binding constraints | required observable behavior, acceptance, scope/exclusions, failure behavior, compatibility/security/performance constraints | Requirements contract for the selected work type | Research facts/evidence, Work request, binding product/technical constraints |
+| **Solution design** | accepted Requirements; Research facts; engineering principles; existing architecture, ADRs, contracts/state owners; relevant repository evidence | technical requirements/architecture, canonical ownership, affected boundaries, data/control flow, necessary contract decisions, alternatives and validation obligations | technical solution and its coverage of accepted Requirements | Requirements first; Research evidence and existing architecture/contracts/ADRs |
+| **Implementation plan** | accepted Solution design and Requirements; applicable governing authority; repository structure; verification authority | exact task decomposition, dependencies, change surface, deletions/additions/modifications, validation sequence and executable task definitions | Plan as current delivery authority | Solution design first; Requirements and relevant Research/evidence for traceability |
+| **Readiness review** | complete current Work request/Research/Requirements/Solution design/Implementation plan package plus current repository evidence | readiness verdict, adversarial findings, exact defective workflow step when not ready | verdict/findings and package material necessary to judge them | complete package on demand, emphasizing the defective layer rather than all files equally |
+| **Approval** | exact current package and signed task definitions | explicit authorization of that frozen package | package currentness, task meaning/scope/gates and sign-off decision | governed documents needed for judgment; hashes/commit/package identity on demand |
+| **Implementation** | signed package, exact approved task definitions and current execution state | candidate changes, execution/review/remediation/validation evidence | current approved task, active role, blocker/next action and current validation boundary | signed Plan/Design/Requirements as read-only authority; prior attempts/evidence |
+| **Complete** | terminal result/candidate and reached history/evidence | final governed result and any separately governed follow-up | substantive outcome/result | evidence and earlier lifecycle documents as history |
 
-- **Work request:** do not surround a sparse originating request with empty downstream-document chrome. The source narrative is the work.
-- **Research:** foreground evidence gathering, current investigation and the emerging Research result. Requirements/Design/Plan do not yet exist as authoritative productive material.
-- **Requirements:** foreground the Requirements contract. Research and Work request become supporting authority; the UI must make it easy to inspect the facts behind a requirement without giving those earlier documents equal visual weight.
-- **Solution design:** foreground the technical solution and requirement coverage. Requirements are the immediate governing input; Research is principally supporting evidence. Existing architecture/contracts/ADRs are supporting technical authority.
-- **Implementation plan:** foreground the Plan and its traceability to the accepted Design/Requirements. Earlier documents are inspectable but the Plan is the current delivery authority.
-- **Readiness:** foreground verdict/findings and the defective layer. The package is a review set, not a row of equally weighted documents.
-- **Approval:** foreground package currentness, signed-task meaning and authorization. The whole package is inspectable, but approval is a decision task, not document authoring.
-- **Implementation:** foreground current task execution and validation. Signed upstream documents are read-only governing authority, not editable workspaces.
-- **Complete:** foreground terminal result; all earlier documentation is historical/supporting.
+#### 2.5 Kind-specific information obligations in shared delivery steps
 
-For every stage, the default information hierarchy must make the **current stage-owned output and current attention** easier to understand than upstream support material or technical identity.
+Because Change and Defect share the same Requirements, Solution design and Implementation plan workflow steps, the task area must preserve the differences established by their Work request and Research documents.
+
+**Change — Requirements**
+- requested outcome;
+- proven current state/absence;
+- affected behavior/users/system capability;
+- required new/changed observable behavior;
+- acceptance criteria;
+- scope/exclusions;
+- relevant compatibility/security/performance constraints.
+
+**Defect — Requirements**
+- proven defect and reproduction;
+- expected corrected behavior;
+- behavior/invariants that must remain unchanged;
+- downstream effects that must be restored or preserved;
+- acceptance criteria that prove the original defect is corrected;
+- regression/preservation expectations;
+- scope/exclusions and relevant constraints.
+
+**Change — Solution design**
+- requirement-to-solution mapping for the changed/new behavior;
+- affected ownership/boundaries;
+- technical requirements and architecture;
+- necessary contract/state/data-flow changes;
+- compatibility and validation obligations.
+
+**Defect — Solution design**
+- proven root cause and producing boundary;
+- correction mechanism at the correct owner;
+- explicit preservation of unaffected behavior/invariants;
+- downstream consumers affected by the root cause;
+- regression/verification obligations tied to the original reproduction;
+- minimum-sufficient remediation rather than symptom patching.
+
+**Change — Implementation plan**
+- exact tasks required to realize the accepted change;
+- traceability to Requirements and Solution design;
+- change surface and verification.
+
+**Defect — Implementation plan**
+- exact root-cause remediation tasks;
+- required deletion/replacement of incorrect behavior;
+- reproduction/regression verification;
+- preservation tests for unchanged behavior;
+- traceability to the proven defect and accepted remediation design.
+
+The Workbench must expose this kind-specific context in the task area and supporting material rather than forcing the operator to reconstruct it mentally from the original Work request.
+
+#### 2.6 Functional requirements versus technical solution
+
+The **Requirements** workflow step answers **what must be true observably**. It owns functional requirements and records applicable binding constraints such as compatibility, security and performance.
+
+It does not choose architecture, canonical ownership, data/control flow, API/schema shape or implementation mechanism merely to make the document appear technically complete.
+
+The **Solution design** workflow step answers **how the accepted functional contract is correctly realized technically**. It combines the accepted functional requirements, proven Research facts, existing engineering/architecture constraints and relevant repository boundaries into the technical requirements, architecture, ownership, contracts and validation obligations required by the solution.
+
+~~~text
+Research facts + originating intent
+              |
+              v
+Requirements
+observable behavior + acceptance + binding constraints
+              |
+              v
+Solution design
+technical requirements + architecture + contracts
+              |
+              v
+Implementation plan
+exact executable tasks + verification
+~~~
+
+This prevents Requirements from prematurely inventing a solution and prevents Solution design from inventing missing product behavior.
+
+#### 2.7 Workflow-screen information rules
+
+- **Work request:** use the correct kind-specific intake structure. A Change request must not look like a bug report; a Defect must foreground observed/expected/preserved behavior; an Investigation its question/boundary; an Audit its target/criteria/scope.
+- **Research:** use the kind-specific Research purpose and expected result. Defect Research is diagnosis/root-cause work; Change Research proves current state/absence; Investigation answers its question; Audit evaluates against criteria.
+- **Requirements:** only Change and Defect reach this step. Foreground the kind-specific Requirements contract. Research and Work request are supporting authority.
+- **Solution design:** foreground the technical solution and requirement coverage; for Defects, keep root cause and preservation/regression obligations directly available.
+- **Implementation plan:** foreground the exact Plan and traceability to accepted Solution design/Requirements; Defect plans make remediation and regression proof explicit.
+- **Readiness review:** foreground verdict/findings and exact defective workflow step; use the accumulated package as evidence, not as a flat file browser.
+- **Approval:** foreground package currentness, signed-task meaning and authorization; inspect prior documents only as required for the decision.
+- **Implementation:** foreground the current approved task and validation; upstream documents are read-only governing authority.
+- **Complete:** foreground the result. For Investigation/Audit, linked remediation is separate work rather than continuation of the completed item.
+
+Unreached downstream documents are absent as productive authority. The interface must not present empty Requirements/Solution design/Implementation plan placeholders merely because deterministic filenames exist.
+
+#### 2.8 User-facing terminology
+
+Product-facing functional documentation and Workbench copy use these workflow names:
+
+- Work request
+- Research
+- Requirements
+- Solution design
+- Implementation plan
+- Readiness review
+- Approval
+- Implementation
+- Complete
+
+Internal lifecycle codes may appear only where needed for implementation traceability, schema/template identifiers, contracts or diagnostics. They must not be the primary language used to explain the workflow to operators, define task purpose, label screens/actions, or describe expected outputs.
+
+Work-type language is likewise user-facing: **Change**, **Defect**, **Investigation**, and **Audit**.
 
 ### 3. Stable Workbench composition
 
