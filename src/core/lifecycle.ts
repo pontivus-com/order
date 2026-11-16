@@ -834,6 +834,37 @@ export const deriveMaterialPresentationState = (
     : { tag: "UPDATED_VALIDATION_REQUIRED" };
 };
 
+export const materialCurrentnessForStage = (
+  currentness: MaterialCurrentness,
+  stage: UpstreamReturnStage,
+): MaterialCurrentness =>
+  currentness.tag === "STALE" &&
+    stageRank(stage) >= stageRank(currentness.owner)
+    ? currentness
+    : { tag: "CURRENT" };
+
+export const artifactHasCurrentStageConformance = (
+  artifact: ArtifactRef,
+  events: readonly RunEvent[],
+): boolean => {
+  const owner = artifactOwnerStage(artifact);
+  if (
+    owner !== "R1" &&
+    owner !== "R2" &&
+    owner !== "DESIGN" &&
+    owner !== "PLAN" &&
+    owner !== "R3"
+  ) {
+    return false;
+  }
+  return events.some(
+    (event) =>
+      event.event.tag === "CONFORMANCE_PASSED" &&
+      event.event.stage === owner &&
+      event.event.outputArtifactRefIds.includes(artifact.id),
+  );
+};
+
 export const deriveExecutionOwner = (
   tasks: readonly ExecutionTask[],
   runs: readonly Run[],

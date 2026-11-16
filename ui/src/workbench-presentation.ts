@@ -79,6 +79,19 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
 
+export const materialPresentationStateLabel = (
+  state: import("../../src/core/lifecycle.ts").MaterialPresentationState,
+): string => {
+  switch (state.tag) {
+    case "DRAFT": return "Draft";
+    case "UPDATED_VALIDATION_REQUIRED": return "Updated — validation required";
+    case "CURRENT": return "Current";
+    case "STALE": return "Stale";
+    case "HISTORICAL": return "Historical";
+    case "SIGNED_LOCKED": return "Signed & locked";
+  }
+};
+
 export const workflowMaterialLabel = (
   material: WorkflowMaterial,
 ): string => {

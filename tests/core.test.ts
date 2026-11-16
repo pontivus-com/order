@@ -49,7 +49,9 @@ import {
   artifactReturnOwner,
   deriveCurrentAttention,
   deriveExecutionOwner,
+  artifactHasCurrentStageConformance,
   deriveMaterialPresentationState,
+  materialCurrentnessForStage,
   deriveObservationCoherence,
   deriveProposalDecision,
   deriveReachedStages,
@@ -1768,6 +1770,37 @@ describe("closed Workbench workflow-state kernel", () => {
       true,
       true,
     )).toEqual({ tag: "SIGNED_LOCKED" });
+  });
+
+  it("scopes stale currentness to the changed owner and downstream stages", () => {
+    const stale = { tag: "STALE", owner: "DESIGN" } as const;
+    expect(materialCurrentnessForStage(stale, "R1")).toEqual({ tag: "CURRENT" });
+    expect(materialCurrentnessForStage(stale, "R2")).toEqual({ tag: "CURRENT" });
+    expect(materialCurrentnessForStage(stale, "DESIGN")).toEqual(stale);
+    expect(materialCurrentnessForStage(stale, "PLAN")).toEqual(stale);
+    expect(materialCurrentnessForStage({ tag: "CURRENT" }, "PLAN"))
+      .toEqual({ tag: "CURRENT" });
+  });
+
+  it("matches conformance only when the exact current ArtifactRef was covered", () => {
+    const current = artifact(uuidA, "docs/r2.md", "R2", "P3", hashA);
+    const other = artifact(uuidB, "docs/r2.md", "R2", "P3", hashA);
+    const run = stageRun("COMPLETED", "R2");
+    const event = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "CONFORMANCE_PASSED",
+        stage: "R2",
+        outputArtifactRefIds: [current.id],
+        contextHash: run.contextHash,
+        evidence: [],
+      },
+    });
+    expect(artifactHasCurrentStageConformance(current, [event])).toBe(true);
+    expect(artifactHasCurrentStageConformance(other, [event])).toBe(false);
   });
 
   it("derives reached history only from actual canonical evidence", () => {
