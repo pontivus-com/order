@@ -129,7 +129,7 @@ Order does not use OpenCode steering/queue features to create concurrent Order d
 
 ## 8. Completion and reconciliation
 
-v1 does not subscribe to OpenCode's live event stream and does not use experimental `session.wait` for correctness.
+v1 does not use OpenCode's live event stream or experimental `session.wait` as correctness/completion authority. It may subscribe to the released authenticated event stream only for the bounded best-effort operator activity defined in §8.1; missing activity never changes the completion algorithm below.
 
 For each serialized productive turn Order:
 
