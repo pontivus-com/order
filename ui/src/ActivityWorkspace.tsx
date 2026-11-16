@@ -164,8 +164,8 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
   const header = (
     <div data-testid="selected-run-header">
       <WorkbenchSectionHeader
-        title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
-        description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
+        title="Conversation"
+        description={selectedStep.label + " · Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
         action={<span className="order-inline-actions">
           {canCancel ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={() => cancel.mutate()} /> : null}
         </span>}
@@ -202,10 +202,10 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
         );
 
   const activityRegion = activityEvents.length === 0
-    ? (runIsActive(selectedRun) ? <WorkbenchState kind="empty" title="Agent activity" description="Waiting for bounded operational activity…" /> : undefined)
+    ? (runIsActive(selectedRun) ? <WorkbenchState kind="empty" title="OpenCode activity" description="Waiting for bounded operational activity…" /> : undefined)
     : (
       <WorkbenchTimeline
-        label="Agent activity"
+        label="OpenCode activity"
         items={activityEvents.map((event) => {
           const presentation = runEventPresentation(event);
           return {
