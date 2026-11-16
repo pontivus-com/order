@@ -621,7 +621,7 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("api.getWorkItemSource(workItem.id)");
     expect(workspace).toContain("sourceQuery.data.sha256 !== workItem.sourceSha256");
     expect(workspace).toContain("sourceAuthorityRequiresReconciliation");
-    expect(workspace).toContain('currentness.tag === "STALE" && !runs.some(runIsActive)');
+    expect(workspace).toContain('currentness.tag === "STALE" && !activeRunOwnsAuthoring');
     expect(workspace).toMatch(/recovery\.tag === "RECONCILE_AUTHORITY"[\s\S]*!runs\.some\(runIsActive\)/);
     expect(workspace).toContain('orderError.code === "STALE_AUTHORITY"');
     expect(workspace).toContain("orderError.staleAuthorityOwner");
