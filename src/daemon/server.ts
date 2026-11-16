@@ -22,6 +22,7 @@ import {
   OpenCodeAccountIdSchema,
   OpenCodeAccountLoginAttemptIdSchema,
   OrderHttpErrorSchema,
+  ReconcileWorkItemAuthoritySchema,
   RemoveOpenCodeAccountSchema,
   RenameOpenCodeAccountSchema,
   StartOpenCodeAccountLoginSchema,
@@ -67,12 +68,14 @@ import {
   readArtifactContent,
   readReferencedEvidence,
   reconcileSources,
+  reconcileWorkItemAuthority,
   rejectArtifactProposal,
   resumeWorkItem,
   saveArtifactContent,
   saveSource,
   saveSourceBody,
   sourceDiagnosticForFailure,
+  staleAuthorityOwnerForFailure,
   setArchived,
   signOffWorkItem,
   startStageRun,
@@ -181,11 +184,13 @@ const errorResponse = (
   code: string,
   message: string,
   sourceDiagnostic: ReturnType<typeof sourceDiagnosticForFailure> = null,
+  staleAuthorityOwner: ReturnType<typeof staleAuthorityOwnerForFailure> = null,
 ): Response =>
   jsonResponse(OrderHttpErrorSchema.parse({
     code,
     message,
     sourceDiagnostic,
+    staleAuthorityOwner,
   }), status);
 
 type BadRequestFailure = TypeError & Readonly<{ orderHttpStatus: 400 }>;
@@ -219,6 +224,7 @@ export const classifyHttpFailure = (
   code: string;
   message: string;
   sourceDiagnostic: ReturnType<typeof sourceDiagnosticForFailure>;
+  staleAuthorityOwner: ReturnType<typeof staleAuthorityOwnerForFailure>;
 }> => {
   const sourceDiagnostic = sourceDiagnosticForFailure(error);
   if (sourceDiagnostic !== null) {
@@ -227,6 +233,18 @@ export const classifyHttpFailure = (
       code: "WORK_ITEM_SOURCE_CONFLICT",
       message: sourceDiagnostic.detail,
       sourceDiagnostic,
+      staleAuthorityOwner: null,
+    };
+  }
+
+  const staleAuthorityOwner = staleAuthorityOwnerForFailure(error);
+  if (staleAuthorityOwner !== null) {
+    return {
+      status: 409,
+      code: "STALE_AUTHORITY",
+      message: error instanceof Error ? error.message : "approval authority is stale",
+      sourceDiagnostic: null,
+      staleAuthorityOwner,
     };
   }
 
@@ -240,6 +258,7 @@ export const classifyHttpFailure = (
       code: "INVALID_REQUEST",
       message: error instanceof Error ? error.message : "Invalid request",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     };
   }
 
@@ -252,6 +271,7 @@ export const classifyHttpFailure = (
       code: "NOT_FOUND",
       message: error.message,
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     };
   }
 
@@ -261,6 +281,7 @@ export const classifyHttpFailure = (
       code: "CURRENT_STATE_CONFLICT",
       message: error.message,
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     };
   }
 
@@ -269,6 +290,7 @@ export const classifyHttpFailure = (
     code: "INTERNAL_ERROR",
     message: "Internal daemon error",
     sourceDiagnostic: null,
+    staleAuthorityOwner: null,
   };
 };
 
@@ -840,6 +862,20 @@ const routeApi = async (
       requireKeys(body, []);
       return jsonResponse(await resumeWorkItem(runtime, workItemId));
     }
+    if (
+      parts[3] === "reconcile-authority" &&
+      parts.length === 4 &&
+      request.method === "POST"
+    ) {
+      const body = await parseRequest(async () =>
+        ReconcileWorkItemAuthoritySchema.parse(await readJsonBody(request))
+      );
+      return jsonResponse(await reconcileWorkItemAuthority(
+        runtime,
+        workItemId,
+        body.expectedOwner,
+      ));
+    }
     if (parts[3] === "signoff" && parts.length === 4 && request.method === "POST") {
       const body = await readJsonBody(request);
       requireKeys(body, ["expectedPackageHash", "approvedBy"]);
@@ -994,6 +1030,7 @@ export const startDaemonServer = (
             failure.code,
             failure.message,
             failure.sourceDiagnostic,
+            failure.staleAuthorityOwner,
           );
         }
       }

@@ -3,9 +3,14 @@ import type { ReactNode } from "react";
 import type {
   ArtifactRef,
   Run,
+  RunEvent,
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import type {
+  CurrentAttentionTag,
+  StageRunInteraction,
+} from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
 import {
   ReadOnlyLifecycleDocumentMaterial,
@@ -18,12 +23,13 @@ import {
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
 import {
-  PrimaryMaterialFrame,
   WorkflowStepFrame,
   WorkflowStepIndex,
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
+import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 const statusVariant = (
   status: Run["status"],
@@ -47,22 +53,34 @@ export const ReadinessWorkspace = ({
   artifacts,
   material,
   summary,
+  currentRunId,
+  currentInteraction,
+  currentAttention,
+  mutationsDisabled = false,
   onSelectMaterial,
   onOpenArtifactEvidence,
   onOpenEvidence,
   onReturnFromTransient,
   onContextDocumentChange,
+  onMutationRefresh,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   runs: readonly Run[];
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   summary: ReactNode;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
+  currentAttention: CurrentAttentionTag;
+  mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const readinessArtifact =
     artifacts.find((artifact) => artifact.role === "R3") ?? null;
@@ -154,12 +172,18 @@ export const ReadinessWorkspace = ({
       case "STAGE_RUN":
         return (
           <StageRunMaterial
-            workItem={workItem}
             stage="R3"
+            runs={runs}
             selectedRunId={material.runId}
+            currentRunId={workItem.stage === "R3" ? currentRunId : null}
+            currentInteraction={workItem.stage === "R3" ? currentInteraction : null}
+            currentAttention={currentAttention}
+            mutationsDisabled={mutationsDisabled}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
+            onMutationRefresh={onMutationRefresh}
+            onMutationError={onMutationError}
           />
         );
       case "SUPPORTING_DOCUMENT":
@@ -212,7 +236,16 @@ export const ReadinessWorkspace = ({
       summary={summary}
       index={<WorkflowStepIndex groups={groups} />}
       indexLabel="Readiness material"
-      primary={<PrimaryMaterialFrame>{primary}</PrimaryMaterialFrame>}
+      primary={
+        <div data-testid="review-workspace">
+        <WorkbenchReview
+          currentness={<WorkbenchStatus tone={readinessArtifact ? "success" : "info"} label={readinessArtifact ? "Governed review current" : "Review in progress"} />}
+          summary={<div><h2>Readiness review</h2><p>Independent verification of the exact governed package.</p></div>}
+          body={primary}
+          decisions={<></>}
+        />
+        </div>
+      }
     />
   );
 };

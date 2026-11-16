@@ -1197,6 +1197,7 @@ Existing WorkItem/artifact/run/task/signoff keys remain canonical.
 Successful mutations invalidate only affected keys:
 
 - source reconcile -> workItems + selected WorkItem + sourceDiagnostics + affected source/lifecycle-artifact keys;
+- Approval authority reconcile -> workItems + selected WorkItem + runs/tasks/lifecycleArtifacts/artifacts/source/signoff/sourceDiagnostics observation keys for that WorkItem; this command changes lifecycle ownership only and never routes through source reconciliation;
 - create -> workItems + sourceDiagnostics; select created item/source;
 - WorkItem source save -> workItems + selected WorkItem + selected source + lifecycleArtifacts + runs/artifacts/signoff package for that WorkItem;
 - lifecycle Markdown save -> workItems + selected WorkItem + lifecycleArtifacts + artifacts + runs/signoff package for that WorkItem;

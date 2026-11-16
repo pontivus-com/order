@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   MetadataList,
   MetadataListItem,
@@ -10,20 +10,22 @@ import type {
   ArtifactRef,
   ExecutionTask,
   Sha256,
+  SignoffPackage,
   SignedTaskDefinition,
   WorkItem,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
-import { workbenchQueryKeys } from "./query-keys.ts";
+import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import {
-  PrimaryMaterialFrame,
   WorkflowStepFrame,
   WorkflowStepIndex,
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
   WorkbenchEmptyState,
   WorkbenchErrorState,
@@ -165,13 +167,35 @@ const HistoricalTaskDetail = ({
 export const SignoffReview = ({
   workItem,
   summary,
+  packageValue,
+  packageFetching,
+  packageError,
+  artifacts,
+  artifactsPending,
+  artifactsError,
+  tasks,
+  tasksPending,
+  tasksError,
+  mutationsDisabled = false,
   onOpenArtifactEvidence,
   onContextDocumentChange,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   summary: ReactNode;
+  packageValue: SignoffPackage | null;
+  packageFetching: boolean;
+  packageError: unknown;
+  artifacts: readonly ArtifactRef[];
+  artifactsPending: boolean;
+  artifactsError: unknown;
+  tasks: readonly ExecutionTask[];
+  tasksPending: boolean;
+  tasksError: unknown;
+  mutationsDisabled?: boolean;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const queryClient = useQueryClient();
   const [selection, setSelection] = useState<ApprovalSelection>({
@@ -181,23 +205,7 @@ export const SignoffReview = ({
 
   const currentApproval = workItem.stage === "AWAITING_SIGNOFF";
 
-  const packageQuery = useQuery({
-    queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
-    queryFn: () => api.getSignoffPackage(workItem.id),
-    enabled: currentApproval,
-  });
-  const artifactsQuery = useQuery({
-    queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
-    queryFn: () => api.listLifecycleArtifacts(workItem.id),
-    enabled: true,
-  });
-  const tasksQuery = useQuery({
-    queryKey: workbenchQueryKeys.tasks(workItem.id),
-    queryFn: () => api.listExecutionTasks(workItem.id),
-    enabled: !currentApproval,
-  });
-
-  const packageArtifacts = (artifactsQuery.data ?? [])
+  const packageArtifacts = artifacts
     .filter((artifact) => packageDocumentRoles.has(artifact.role))
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
@@ -207,13 +215,13 @@ export const SignoffReview = ({
       : null;
   const selectedCurrentTask =
     selection.kind === "TASK" && currentApproval
-      ? packageQuery.data?.taskBlock.tasks.find(
+      ? packageValue?.taskBlock.tasks.find(
           (task) => task.id === selection.taskId,
         ) ?? null
       : null;
   const selectedHistoricalTask =
     selection.kind === "TASK" && !currentApproval
-      ? (tasksQuery.data ?? []).find(
+      ? tasks.find(
           (task) => task.id === selection.taskId,
         ) ?? null
       : null;
@@ -223,19 +231,11 @@ export const SignoffReview = ({
     onContextDocumentChange(null, null);
   }, [onContextDocumentChange, selectedArtifact]);
 
-  const invalidate = async (): Promise<void> => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.runs(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.tasks(workItem.id) }),
-      queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.signoffPackage(workItem.id) }),
-    ]);
-  };
+  const invalidate = (): Promise<void> =>
+    invalidateWorkbenchMutation(queryClient, workItem.id);
 
   const signoff = useMutation({
     mutationFn: () => {
-      const packageValue = packageQuery.data;
       if (!packageValue) {
         throw new TypeError("current sign-off package is unavailable");
       }
@@ -249,12 +249,9 @@ export const SignoffReview = ({
       setApprovedBy("");
       await invalidate();
     },
-    onError: async () => {
-      if (currentApproval) {
-        await queryClient.invalidateQueries({
-          queryKey: workbenchQueryKeys.signoffPackage(workItem.id),
-        });
-      }
+    onError: async (error) => {
+      onMutationError?.(error);
+      if (currentApproval) await invalidate();
     },
   });
 
@@ -289,8 +286,9 @@ export const SignoffReview = ({
     });
   }
 
-  const currentTasks = packageQuery.data?.taskBlock.tasks ?? [];
-  const historicalTasks = tasksQuery.data ?? [];
+  const currentTasks = packageValue?.taskBlock.tasks ?? [];
+  const historicalTasks = tasks;
+  const approvalCompleted = !currentApproval && historicalTasks.length > 0;
   if (
     (currentApproval && currentTasks.length > 0) ||
     (!currentApproval && historicalTasks.length > 0)
@@ -318,8 +316,8 @@ export const SignoffReview = ({
 
   const primary = (() => {
     if (
-      artifactsQuery.isPending ||
-      (currentApproval ? packageQuery.isPending : tasksQuery.isPending)
+      artifactsPending ||
+      (currentApproval ? packageFetching : tasksPending)
     ) {
       return (
         <WorkbenchEmptyState
@@ -331,11 +329,11 @@ export const SignoffReview = ({
       );
     }
     if (
-      artifactsQuery.isError ||
-      (currentApproval ? packageQuery.isError : tasksQuery.isError)
+      artifactsError !== null ||
+      (currentApproval ? packageError !== null : tasksError !== null)
     ) {
-      const error = artifactsQuery.error ??
-        (currentApproval ? packageQuery.error : tasksQuery.error);
+      const error = artifactsError ??
+        (currentApproval ? packageError : tasksError);
       return (
         <WorkbenchErrorState
           title={currentApproval
@@ -345,7 +343,7 @@ export const SignoffReview = ({
         />
       );
     }
-    if (currentApproval && !packageQuery.data) {
+    if (currentApproval && !packageValue) {
       return (
         <WorkbenchEmptyState
           title="No current sign-off package"
@@ -393,23 +391,25 @@ export const SignoffReview = ({
         >
           <div className="order-section-heading">
             <div>
-              <h2>Approved package history</h2>
+              <h2>{approvalCompleted ? "Approved package history" : "Approval history"}</h2>
               <span>
-                {historicalTasks.length} signed task
-                {historicalTasks.length === 1 ? "" : "s"} · approval completed
+                {approvalCompleted
+                  ? historicalTasks.length + " signed task" +
+                    (historicalTasks.length === 1 ? "" : "s") +
+                    " · approval completed"
+                  : "Sign-off not completed · workflow returned upstream"}
               </span>
             </div>
           </div>
           <p>
-            Signed task and governed document material remains inspectable here.
-            Exact package hash and baseline are current-Approval facts and are
-            not re-derived after sign-off.
+            {approvalCompleted
+              ? "Signed task and governed document material remains inspectable here. Exact package hash and baseline are current-Approval facts and are not re-derived after sign-off."
+              : "Approval was reached, but no sign-off authority was created before the workflow returned upstream. Governed documents remain inspectable within reached history."}
           </p>
         </section>
       );
     }
 
-    const packageValue = packageQuery.data;
     if (!packageValue) {
       return (
         <WorkbenchEmptyState
@@ -453,7 +453,10 @@ export const SignoffReview = ({
   })();
 
   const approvalAction =
-    currentApproval && packageQuery.data ? (
+    currentApproval &&
+    packageValue &&
+    packageError === null &&
+    !packageFetching ? (
       <div className="order-approval-action-region">
         <TextInput
           label="Approved by"
@@ -461,14 +464,14 @@ export const SignoffReview = ({
           value={approvedBy}
           onChange={(value) => setApprovedBy(value)}
           placeholder="Local operator identity"
-          isDisabled={signoff.isPending}
+          isDisabled={mutationsDisabled || signoff.isPending}
           width="100%"
         />
         <WorkbenchAction
           label="Sign off exact package"
           tone="primary"
           loading={signoff.isPending}
-          disabled={approvedBy.trim().length === 0 || signoff.isPending}
+          disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
           onClick={() => signoff.mutate()}
         />
         {signoff.error ? (
@@ -485,13 +488,43 @@ export const SignoffReview = ({
   return (
     <WorkflowStepFrame
       summary={summary}
-      index={<WorkflowStepIndex groups={groups} />}
+      index={<WorkflowStepIndex groups={groups} label="Approval package" />}
       indexLabel="Approval package"
       primary={
-        <PrimaryMaterialFrame>
-          {primary}
-          {approvalAction}
-        </PrimaryMaterialFrame>
+        <WorkbenchReview
+          currentness={
+            <WorkbenchStatus
+              tone={currentApproval ? "warning" : approvalCompleted ? "success" : "neutral"}
+              label={
+                currentApproval
+                  ? "Awaiting authorization"
+                  : approvalCompleted
+                    ? "Approved package history"
+                    : "Returned before sign-off"
+              }
+            />
+          }
+          summary={
+            <div>
+              <h2>
+                {currentApproval
+                  ? "Exact approval package"
+                  : approvalCompleted
+                    ? "Approved package"
+                    : "Approval history"}
+              </h2>
+              <p>
+                {currentApproval
+                  ? "Review and authorize the exact signed package."
+                  : approvalCompleted
+                    ? "Inspect the governed package retained after approval."
+                    : "Inspect the reached Approval stage retained after the workflow returned upstream without sign-off."}
+              </p>
+            </div>
+          }
+          body={primary}
+          decisions={approvalAction ?? <></>}
+        />
       }
     />
   );

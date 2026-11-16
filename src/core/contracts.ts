@@ -506,6 +506,18 @@ export const WorkItemSourceDiagnosticSchema = z.strictObject({
   detail: z.string().min(1),
 });
 
+export const UpstreamReturnStageSchema = z.enum([
+  "R1",
+  "R2",
+  "DESIGN",
+  "PLAN",
+  "R3",
+]);
+
+export const ReconcileWorkItemAuthoritySchema = z.strictObject({
+  expectedOwner: UpstreamReturnStageSchema,
+});
+
 export const StableHttpErrorCodeSchema = z.string()
   .regex(/^[A-Z][A-Z0-9_]*$/);
 
@@ -513,6 +525,20 @@ export const OrderHttpErrorSchema = z.strictObject({
   code: StableHttpErrorCodeSchema,
   message: z.string().min(1),
   sourceDiagnostic: WorkItemSourceDiagnosticSchema.nullable(),
+  staleAuthorityOwner: UpstreamReturnStageSchema.nullable(),
+}).superRefine((value, ctx) => {
+  if ((value.code === "STALE_AUTHORITY") !== (value.staleAuthorityOwner !== null)) {
+    ctx.addIssue({
+      code: "custom",
+      message: "STALE_AUTHORITY requires staleAuthorityOwner and other errors forbid it",
+    });
+  }
+  if (value.staleAuthorityOwner !== null && value.sourceDiagnostic !== null) {
+    ctx.addIssue({
+      code: "custom",
+      message: "stale authority and source diagnostic recovery owners are mutually exclusive",
+    });
+  }
 });
 
 export const WorkItemSourceReconciliationSchema = z.strictObject({
@@ -534,6 +560,8 @@ export type ExpectedHashMarkdownWrite = Readonly<z.infer<typeof ExpectedHashMark
 export type ExpectedHashWorkItemBodyWrite = Readonly<z.infer<typeof ExpectedHashWorkItemBodyWriteSchema>>;
 export type UpdateWorkItemTitle = Readonly<z.infer<typeof UpdateWorkItemTitleSchema>>;
 export type SetWorkItemArchived = Readonly<z.infer<typeof SetWorkItemArchivedSchema>>;
+export type UpstreamReturnStage = z.infer<typeof UpstreamReturnStageSchema>;
+export type ReconcileWorkItemAuthority = Readonly<z.infer<typeof ReconcileWorkItemAuthoritySchema>>;
 export type StableHttpErrorCode = z.infer<typeof StableHttpErrorCodeSchema>;
 export type OrderHttpError = Readonly<z.infer<typeof OrderHttpErrorSchema>>;
 export type WorkItemDocumentGitState = z.infer<typeof WorkItemDocumentGitStateSchema>;

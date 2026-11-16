@@ -13,6 +13,8 @@ import {
   type Sha256,
   type SignoffPackage,
   SignoffPackageSchema,
+  type UpstreamReturnStage,
+  UpstreamReturnStageSchema,
   type WorkItemSourceSnapshot,
   type WorkItem,
   type WorkItemId,
@@ -25,7 +27,8 @@ import {
 } from "../core/canonical.ts";
 import {
   artifactReturnOwner,
-  stageRank,
+  routeApprovalStale,
+  transitionWorkItem,
 } from "../core/lifecycle.ts";
 import {
   approvalMaterialIsFresh,
@@ -85,12 +88,50 @@ import {
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { type CoordinatorRuntime } from "./runtime.ts";
+import {
+  type CoordinatorRuntime,
+  withWorkItemOperatorMutation,
+} from "./runtime.ts";
 import { getRun, listRunEvents, listRuns } from "./run.ts";
 import {
+  currentWorkItemSource,
   isSourceBoundaryFailure,
   revalidateWorkItemSource,
 } from "./work-item-source.ts";
+
+const STALE_AUTHORITY_FAILURE = "STALE_AUTHORITY";
+
+type StaleAuthorityFailure = TypeError & Readonly<{
+  orderCode: typeof STALE_AUTHORITY_FAILURE;
+  staleAuthorityOwner: UpstreamReturnStage;
+}>;
+
+const staleAuthorityFailure = (
+  staleAuthorityOwner: UpstreamReturnStage,
+  message: string,
+): StaleAuthorityFailure =>
+  Object.assign(new TypeError(message), {
+    orderCode: STALE_AUTHORITY_FAILURE as typeof STALE_AUTHORITY_FAILURE,
+    staleAuthorityOwner: UpstreamReturnStageSchema.parse(staleAuthorityOwner),
+  });
+
+const isStaleAuthorityFailure = (
+  error: unknown,
+): error is StaleAuthorityFailure =>
+  error instanceof TypeError &&
+  "orderCode" in error &&
+  (error as { orderCode?: unknown }).orderCode === STALE_AUTHORITY_FAILURE &&
+  "staleAuthorityOwner" in error &&
+  UpstreamReturnStageSchema.safeParse(
+    (error as { staleAuthorityOwner?: unknown }).staleAuthorityOwner,
+  ).success;
+
+export const staleAuthorityOwnerForFailure = (
+  error: unknown,
+): UpstreamReturnStage | null =>
+  isStaleAuthorityFailure(error)
+    ? UpstreamReturnStageSchema.parse(error.staleAuthorityOwner)
+    : null;
 
 export const getWorkItem = (
   runtime: CoordinatorRuntime,
@@ -267,6 +308,29 @@ const currentArtifactBytesMatch = (
   }
 };
 
+const persistedCurrentArtifactSnapshot = (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  artifact: ArtifactRef,
+): ArtifactRef | null => {
+  try {
+    const currentSha256 = sha256(
+      readWorkingTreeFile(workItem.repositoryRoot, artifact.repositoryPath),
+    );
+    if (currentSha256 === artifact.sha256) return artifact;
+    return findArtifactSnapshot(runtime.database, {
+      workItemId: artifact.workItemId,
+      repositoryPath: artifact.repositoryPath,
+      role: artifact.role,
+      authorityLayer: artifact.authorityLayer,
+      sha256: currentSha256,
+      gitCommit: null,
+    });
+  } catch {
+    return null;
+  }
+};
+
 const lifecycleRoleOrder = ["R1", "R2", "DESIGN", "PLAN", "R3"] as const;
 type LifecycleRole = (typeof lifecycleRoleOrder)[number];
 
@@ -395,7 +459,7 @@ export const currentLifecycleArtifacts = async (
   workItemId: WorkItemId,
 ): Promise<readonly ArtifactRef[]> => {
   const workItem = getWorkItem(runtime, workItemId);
-  const materialized: ArtifactRef[] = [];
+  const current: ArtifactRef[] = [];
 
   for (const role of lifecycleRoleOrder) {
     const candidates = latestRunCandidateArtifacts(runtime, workItemId, role);
@@ -409,47 +473,20 @@ export const currentLifecycleArtifacts = async (
       ]);
       semantic.set(key, candidate);
     }
-
     for (const candidate of semantic.values()) {
-      try {
-        materialized.push(await currentFileArtifact(
-          runtime,
-          workItem,
-          candidate.repositoryPath,
-          candidate.role,
-          candidate.authorityLayer,
-        ));
-        continue;
-      } catch {
-        // A document-root migration leaves historical ArtifactRefs immutable.
-      }
-
-      const suffix = `/${workItem.id}/work-request.md`;
-      if (!workItem.sourcePath.endsWith(suffix)) continue;
-      const workItemsRoot = workItem.sourcePath.slice(0, -suffix.length);
-      if (workItemsRoot.length === 0) continue;
-      const migratedPath = workItemDocumentPath(
-        workItemsRoot,
-        workItem.id,
-        role,
+      const snapshot = persistedCurrentArtifactSnapshot(
+        runtime,
+        workItem,
+        candidate,
       );
-      if (migratedPath === candidate.repositoryPath) continue;
-      try {
-        materialized.push(await currentFileArtifact(
-          runtime,
-          workItem,
-          migratedPath,
-          candidate.role,
-          candidate.authorityLayer,
-        ));
-      } catch {
-        // Missing/non-regular lifecycle Markdown has no current migrated draft.
-      }
+      if (snapshot !== null) current.push(snapshot);
     }
   }
 
-  const roleRank = new Map(lifecycleRoleOrder.map((role, index) => [role, index] as const));
-  return [...deduplicateArtifacts(materialized)].sort((left, right) => {
+  const roleRank = new Map(
+    lifecycleRoleOrder.map((role, index) => [role, index] as const),
+  );
+  return [...deduplicateArtifacts(current)].sort((left, right) => {
     const leftRank = roleRank.get(left.role as LifecycleRole) ?? 99;
     const rightRank = roleRank.get(right.role as LifecycleRole) ?? 99;
     if (leftRank !== rightRank) return leftRank - rightRank;
@@ -464,6 +501,7 @@ export const resolveStageContextState = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
   stage: PreSignoffStage,
+  materializeArtifacts = true,
 ): Promise<StageContextResolution> => {
   const validated = await revalidateWorkItemSource(runtime, workItem.id);
   workItem = validated.workItem;
@@ -474,13 +512,19 @@ export const resolveStageContextState = async (
   }
 
   const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
+  const resolveCurrentArtifact = (
+    path: RepositoryPath,
+    role: ArtifactRef["role"],
+    authorityLayer: ArtifactRef["authorityLayer"],
+  ): Promise<ArtifactRef> =>
+    materializeArtifacts
+      ? currentFileArtifact(runtime, workItem, path, role, authorityLayer)
+      : inspectCurrentFileArtifact(workItem, path, role, authorityLayer);
   const artifacts: ArtifactRef[] = [];
   for (const layer of authorityLayersForStage(stage)) {
     for (const path of sources[layer]) {
       artifacts.push(
-        await currentFileArtifact(
-          runtime,
-          workItem,
+        await resolveCurrentArtifact(
           path,
           "GOVERNANCE",
           authorityLayerForManifestLayer(layer),
@@ -490,9 +534,7 @@ export const resolveStageContextState = async (
   }
 
   artifacts.push(
-    await currentFileArtifact(
-      runtime,
-      workItem,
+    await resolveCurrentArtifact(
       normalizeRepositoryPath("pontivus-order.toml"),
       "PROJECT_MANIFEST",
       null,
@@ -505,7 +547,7 @@ export const resolveStageContextState = async (
     workItem.concernIds,
   )) {
     artifacts.push(
-      await currentFileArtifact(runtime, workItem, path, "GOVERNANCE", null),
+      await resolveCurrentArtifact(path, "GOVERNANCE", null),
     );
   }
 
@@ -516,9 +558,7 @@ export const resolveStageContextState = async (
         gate.materialRefs,
       )) {
         artifacts.push(
-          await currentFileArtifact(
-            runtime,
-            workItem,
+          await resolveCurrentArtifact(
             path,
             "VERIFICATION_MATERIAL",
             null,
@@ -533,6 +573,7 @@ export const resolveStageContextState = async (
       runtime,
       workItem,
       priorStage,
+      materializeArtifacts,
     );
     if (conformance.staleStage !== null) {
       return {
@@ -553,8 +594,14 @@ export const resolveStageConformanceState = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
   stage: PreSignoffStage,
+  materializeArtifacts = true,
 ): Promise<StageConformanceResolution> => {
-  const state = await resolveStageContextState(runtime, workItem, stage);
+  const state = await resolveStageContextState(
+    runtime,
+    workItem,
+    stage,
+    materializeArtifacts,
+  );
   if (state.staleStage !== null) {
     return { context: state.context, outputs: [], staleStage: state.staleStage };
   }
@@ -864,33 +911,10 @@ const currentApprovalMaterialSet = async (
   return deduplicateArtifacts(current);
 };
 
-export const approvalFreshness = async (
-  runtime: CoordinatorRuntime,
-  approval: Approval,
-): Promise<Readonly<{
-  fresh: boolean;
-  changedOwners: readonly ("R1" | "R2" | "DESIGN" | "PLAN" | "R3")[];
-}>> => {
-  try {
-    const validated = await revalidateWorkItemSource(runtime, approval.workItemId);
-    if (validated.workItem.sourceSha256 !== approval.sourceSha256) {
-      return { fresh: false, changedOwners: ["R1"] };
-    }
-  } catch (error) {
-    if (isSourceBoundaryFailure(error)) {
-      return { fresh: false, changedOwners: ["R1"] };
-    }
-    throw error;
-  }
-
-  const closure = approvalClosure(runtime, approval);
-  const signed = deduplicateArtifacts([closure.plan, closure.r3, ...closure.material]);
-  const current = await currentApprovalMaterialSet(runtime, approval);
-
-  if (approvalMaterialIsFresh(signed, current)) {
-    return { fresh: true, changedOwners: [] };
-  }
-
+const changedMaterialOwners = (
+  signed: readonly ArtifactRef[],
+  current: readonly ArtifactRef[],
+): readonly UpstreamReturnStage[] => {
   const signedByIdentity = new Map(
     signed.map((artifact) => [artifactSemanticIdentityKey(artifact), artifact] as const),
   );
@@ -901,7 +925,7 @@ export const approvalFreshness = async (
     ...signedByIdentity.keys(),
     ...currentByIdentity.keys(),
   ]);
-  const changedOwners: ("R1" | "R2" | "DESIGN" | "PLAN" | "R3")[] = [];
+  const changedOwners: UpstreamReturnStage[] = [];
 
   for (const identity of identities) {
     const signedArtifact = signedByIdentity.get(identity);
@@ -919,16 +943,46 @@ export const approvalFreshness = async (
     }
   }
 
+  return [...new Set(changedOwners)];
+};
+
+export const approvalFreshness = async (
+  runtime: CoordinatorRuntime,
+  approval: Approval,
+): Promise<Readonly<{
+  fresh: boolean;
+  changedOwners: readonly UpstreamReturnStage[];
+}>> => {
+  try {
+    const source = await currentWorkItemSource(runtime, approval.workItemId);
+    if (source.sha256 !== approval.sourceSha256) {
+      return { fresh: false, changedOwners: ["R1"] };
+    }
+  } catch (error) {
+    if (isSourceBoundaryFailure(error)) {
+      return { fresh: false, changedOwners: ["R1"] };
+    }
+    throw error;
+  }
+
+  const closure = approvalClosure(runtime, approval);
+  const signed = deduplicateArtifacts([closure.plan, closure.r3, ...closure.material]);
+  const current = await currentApprovalMaterialSet(runtime, approval);
+
+  if (approvalMaterialIsFresh(signed, current)) {
+    return { fresh: true, changedOwners: [] };
+  }
+
   return {
     fresh: false,
-    changedOwners: [...new Set(changedOwners)],
+    changedOwners: changedMaterialOwners(signed, current),
   };
 };
 
 export const approvalChangedOwners = async (
   runtime: CoordinatorRuntime,
   approval: Approval,
-): Promise<readonly ("R1" | "R2" | "DESIGN" | "PLAN" | "R3")[]> =>
+): Promise<readonly UpstreamReturnStage[]> =>
   (await approvalFreshness(runtime, approval)).changedOwners;
 
 export const currentMaterialFresh = async (
@@ -1020,22 +1074,7 @@ export const rematerializeCommittedApprovalClosure = async (
         })
       : existing;
 
-    if (existing === null) {
-      storeArtifact(runtime.database, committed);
-    }
     idMap.set(prior.id, committed);
-  }
-
-  const priorEdges = loadArtifactDependencyEdgesForOwners(
-    runtime.database,
-    priorIds,
-  );
-
-  for (const edge of priorEdges) {
-    const owner = idMap.get(edge[0]);
-    const dependency = idMap.get(edge[1]);
-    if (owner === undefined || dependency === undefined) continue;
-    storeArtifactDependency(runtime.database, owner.id, dependency.id);
   }
 
   const r3 = idMap.get(priorR3.id);
@@ -1043,9 +1082,10 @@ export const rematerializeCommittedApprovalClosure = async (
   if (r3 === undefined || plan === undefined) {
     throw new TypeError("committed sign-off closure rematerialization failed");
   }
-  const material = dependencyClosure(runtime, r3.id)
-    .filter((id) => id !== plan.id && id !== r3.id)
-    .map((id) => getArtifact(runtime, id));
+  const material = priorIds
+    .filter((id) => id !== priorPlan.id && id !== priorR3.id)
+    .map((id) => idMap.get(id))
+    .filter((artifact): artifact is ArtifactRef => artifact !== undefined);
   return { plan, r3, material };
 };
 
@@ -1060,23 +1100,25 @@ export const computeSignoffPackage = async (
   r3: ArtifactRef;
   material: readonly ArtifactRef[];
   taskBlock: ReturnType<typeof parseSignedTaskBlockFromPlan>;
+  conformedR3: ArtifactRef;
 }>> => {
   const validatedSource = await revalidateWorkItemSource(runtime, workItemId);
   const workItem = validatedSource.workItem;
   if (workItem.stage !== "AWAITING_SIGNOFF" || workItem.status !== "ACTIVE") {
     throw new TypeError("WorkItem is not awaiting sign-off");
   }
-  const currentR3 = await resolveStageConformanceState(runtime, workItem, "R3");
+  const currentR3 = await resolveStageConformanceState(
+    runtime,
+    workItem,
+    "R3",
+    false,
+  );
   if (currentR3.staleStage !== null || currentR3.outputs.length !== 1) {
-    const returnTo = currentR3.staleStage ?? "R3";
-    withTransaction(runtime.database, () => {
-      updateWorkItemLifecycle(runtime.database, workItem.id, {
-        stage: returnTo,
-        status: "ACTIVE",
-        outcome: null,
-      });
-    });
-    throw new TypeError(
+    const returnTo = UpstreamReturnStageSchema.parse(
+      currentR3.staleStage ?? "R3",
+    );
+    throw staleAuthorityFailure(
+      returnTo,
       `current R3 conformance is missing or stale: ${returnTo}`,
     );
   }
@@ -1091,7 +1133,13 @@ export const computeSignoffPackage = async (
     r3Root,
   ]);
   if (!approvalMaterialIsFresh(conformedClosure, currentMaterial)) {
-    throw new TypeError("R3 dependency closure does not match the current resolved material set");
+    const owner = routeApprovalStale(
+      changedMaterialOwners(conformedClosure, currentMaterial),
+    );
+    throw staleAuthorityFailure(
+      owner,
+      "R3 dependency closure does not match the current resolved material set",
+    );
   }
 
   const baselineCommit = await resolveHeadCommit(workItem.repositoryRoot);
@@ -1176,7 +1224,71 @@ export const computeSignoffPackage = async (
     r3,
     material,
     taskBlock,
+    conformedR3: r3Root,
   };
+};
+
+const persistCommittedApprovalClosure = (
+  runtime: CoordinatorRuntime,
+  priorR3: ArtifactRef,
+  committed: Readonly<{
+    plan: ArtifactRef;
+    r3: ArtifactRef;
+    material: readonly ArtifactRef[];
+  }>,
+): void => {
+  const priorIds = [priorR3.id, ...dependencyClosure(runtime, priorR3.id)];
+  const priorArtifacts = priorIds.map((id) => getArtifact(runtime, id));
+  const committedArtifacts = [
+    committed.plan,
+    committed.r3,
+    ...committed.material,
+  ];
+
+  const committedForPrior = (prior: ArtifactRef): ArtifactRef => {
+    const matches = committedArtifacts.filter((artifact) =>
+      artifact.repositoryPath === prior.repositoryPath &&
+      artifact.role === prior.role &&
+      artifact.authorityLayer === prior.authorityLayer &&
+      artifact.sha256 === prior.sha256
+    );
+    if (matches.length !== 1 || matches[0] === undefined) {
+      throw new TypeError(
+        "committed sign-off closure does not map one-to-one to conformed material",
+      );
+    }
+    return matches[0];
+  };
+
+  for (const artifact of committedArtifacts) {
+    const existing = findArtifactSnapshot(runtime.database, {
+      workItemId: artifact.workItemId,
+      repositoryPath: artifact.repositoryPath,
+      role: artifact.role,
+      authorityLayer: artifact.authorityLayer,
+      sha256: artifact.sha256,
+      gitCommit: artifact.gitCommit,
+    });
+    if (existing === null) storeArtifact(runtime.database, artifact);
+  }
+
+  for (const [ownerId, dependencyId] of loadArtifactDependencyEdgesForOwners(
+    runtime.database,
+    priorIds,
+  )) {
+    const priorOwner = priorArtifacts.find((artifact) => artifact.id === ownerId);
+    const priorDependency = priorArtifacts.find(
+      (artifact) => artifact.id === dependencyId,
+    );
+    if (priorOwner === undefined || priorDependency === undefined) {
+      throw new TypeError("conformed dependency edge references missing material");
+    }
+    storeArtifactDependency(
+      runtime.database,
+      committedForPrior(priorOwner).id,
+      committedForPrior(priorDependency).id,
+    );
+  }
 };
 
 export const signoffPackageForWorkItem = async (
@@ -1192,7 +1304,65 @@ export const signoffPackageForWorkItem = async (
   });
 };
 
-export const signOffWorkItem = async (
+const inspectStaleSignoffAuthorityOwner = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+): Promise<UpstreamReturnStage | null> => {
+  try {
+    await computeSignoffPackage(runtime, workItemId);
+    return null;
+  } catch (error) {
+    const owner = staleAuthorityOwnerForFailure(error);
+    if (owner !== null) return owner;
+    throw error;
+  }
+};
+
+const reconcileWorkItemAuthorityUnlocked = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedOwner: UpstreamReturnStage,
+): Promise<WorkItem> => {
+  const expected = UpstreamReturnStageSchema.parse(expectedOwner);
+  const inspectedOwner = await inspectStaleSignoffAuthorityOwner(runtime, workItemId);
+  if (inspectedOwner === null) {
+    throw new TypeError("approval authority is current; reconciliation is not required");
+  }
+  if (inspectedOwner !== expected) {
+    throw new TypeError("stale authority owner changed before reconciliation");
+  }
+
+  const recheckedOwner = await inspectStaleSignoffAuthorityOwner(runtime, workItemId);
+  if (recheckedOwner === null) {
+    throw new TypeError("approval authority became current before reconciliation");
+  }
+  if (recheckedOwner !== expected) {
+    throw new TypeError("stale authority owner changed before reconciliation commit");
+  }
+
+  return withTransaction(runtime.database, () => {
+    const current = getWorkItem(runtime, workItemId);
+    const transition = transitionWorkItem(current, {
+      tag: "RECONCILE_AUTHORITY",
+      owner: expected,
+    });
+    updateWorkItemLifecycle(runtime.database, workItemId, transition);
+    return getWorkItem(runtime, workItemId);
+  });
+};
+
+export const reconcileWorkItemAuthority = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedOwner: UpstreamReturnStage,
+): Promise<WorkItem> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => reconcileWorkItemAuthorityUnlocked(runtime, workItemId, expectedOwner),
+  );
+
+const signOffWorkItemUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   expectedPackageHash: Sha256,
@@ -1202,6 +1372,12 @@ export const signOffWorkItem = async (
   const prepared = await computeSignoffPackage(runtime, workItemId);
   if (prepared.packageHash !== expectedPackageHash) {
     throw new TypeError("expectedPackageHash does not match the current sign-off package");
+  }
+  const finalBaseline = await resolveHeadCommit(
+    getWorkItem(runtime, workItemId).repositoryRoot,
+  );
+  if (finalBaseline !== prepared.baselineCommit) {
+    throw new TypeError("sign-off baseline changed before commit");
   }
   const block = prepared.taskBlock;
   const approval = ApprovalSchema.parse({
@@ -1219,15 +1395,63 @@ export const signOffWorkItem = async (
   const tasks = materializeExecutionTasks(approval.id, block, taskIds);
 
   withTransaction(runtime.database, () => {
+    const current = getWorkItem(runtime, workItemId);
+    if (current.sourceSha256 !== prepared.sourceSha256) {
+      throw new TypeError("WorkItem source authority changed before sign-off commit");
+    }
+    if (
+      sha256(
+        readWorkingTreeFile(current.repositoryRoot, current.sourcePath),
+      ) !== prepared.sourceSha256
+    ) {
+      throw new TypeError("WorkItem source bytes changed before sign-off commit");
+    }
+    for (const artifact of [
+      prepared.plan,
+      prepared.r3,
+      ...prepared.material,
+    ]) {
+      if (
+        sha256(
+          readWorkingTreeFile(
+            current.repositoryRoot,
+            artifact.repositoryPath,
+          ),
+        ) !== artifact.sha256
+      ) {
+        throw new TypeError(
+          `sign-off material changed before commit: ${artifact.repositoryPath}`,
+        );
+      }
+    }
+    const transition = transitionWorkItem(current, { tag: "SIGN_OFF" });
+    persistCommittedApprovalClosure(
+      runtime,
+      prepared.conformedR3,
+      prepared,
+    );
     storeApproval(runtime.database, approval);
     for (const task of tasks) {
       storeExecutionTask(runtime.database, task);
     }
-    updateWorkItemLifecycle(runtime.database, workItemId, {
-      stage: "EXECUTION",
-      status: "ACTIVE",
-      outcome: null,
-    });
+    updateWorkItemLifecycle(runtime.database, workItemId, transition);
   });
   return approval;
 };
+
+export const signOffWorkItem = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  expectedPackageHash: Sha256,
+  approvedBy: string,
+): Promise<Approval> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => signOffWorkItemUnlocked(
+      runtime,
+      workItemId,
+      expectedPackageHash,
+      approvedBy,
+    ),
+  );

@@ -1,8 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertDialog } from "@astryxdesign/core/AlertDialog";
-import { Badge } from "@astryxdesign/core/Badge";
-import { Drawer } from "@astryxdesign/core/Drawer";
 import {
   SegmentedControl,
   SegmentedControlItem,
@@ -27,6 +24,10 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
 import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
+import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
+import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
+import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import {
   WorkbenchToolbar,
   WorkbenchToolbarGroup,
@@ -143,6 +144,18 @@ export const App = () => {
   const originatingRowId = useRef<WorkItemId | null>(null);
 
   const workItemsQuery = useQuery({ queryKey: workbenchQueryKeys.workItems, queryFn: api.listWorkItems });
+  const selectedWorkItemQuery = useQuery({
+    queryKey: selectedWorkItemId === null
+      ? (["workItem", null] as const)
+      : workbenchQueryKeys.workItem(selectedWorkItemId),
+    queryFn: () => {
+      if (selectedWorkItemId === null) {
+        throw new TypeError("selected WorkItem query requires a WorkItem id");
+      }
+      return api.getWorkItem(selectedWorkItemId);
+    },
+    enabled: selectedWorkItemId !== null && settingsSection === null,
+  });
   const projectsQuery = useQuery({ queryKey: workbenchQueryKeys.projects, queryFn: api.listProjects });
   const schemasQuery = useQuery({ queryKey: workbenchQueryKeys.workItemSchemas, queryFn: api.listWorkItemSchemas });
   const diagnosticsQuery = useQuery({
@@ -158,6 +171,11 @@ export const App = () => {
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        ...(selectedWorkItemId === null
+          ? []
+          : [queryClient.invalidateQueries({
+              queryKey: workbenchQueryKeys.workItem(selectedWorkItemId),
+            })]),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceDiagnostics }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceRoot }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.lifecycleArtifactsRoot }),
@@ -167,8 +185,7 @@ export const App = () => {
   });
 
   const workItems = workItemsQuery.data ?? [];
-  const selectedWorkItem =
-    workItems.find((item) => item.id === selectedWorkItemId) ?? null;
+  const selectedWorkItem = selectedWorkItemQuery.data ?? null;
 
   useEffect(() => {
     if (projectId.length === 0 && projectsQuery.data?.length) {
@@ -203,13 +220,14 @@ export const App = () => {
   useEffect(() => {
     if (
       selectedWorkItemId !== null &&
-      selectedWorkItem === null &&
-      !workItemsQuery.isPending
+      selectedWorkItemQuery.isError &&
+      api.isOrderHttpRequestFailure(selectedWorkItemQuery.error) &&
+      selectedWorkItemQuery.error.status === 404
     ) {
       setSelectedWorkItemId(null);
       updateDestinationUrl({ workItemId: null, settingsSection: null }, "replace");
     }
-  }, [selectedWorkItem, selectedWorkItemId, workItemsQuery.isPending]);
+  }, [selectedWorkItemId, selectedWorkItemQuery.error, selectedWorkItemQuery.isError]);
 
   const selectedProject =
     (projectsQuery.data ?? []).find((project) => project.projectId === projectId) ?? null;
@@ -374,9 +392,10 @@ export const App = () => {
             />
           ) : null}
           {settingsSection !== null ? (
-            <WorkbenchAction
+            <WorkbenchUtilityLink
               label="Back to work queue"
-              onClick={() => requestSelection(null)}
+              href="/"
+              onNavigate={(event) => { event.preventDefault(); requestSelection(null); }}
             />
           ) : null}
         </WorkbenchToolbarGroup>
@@ -385,18 +404,19 @@ export const App = () => {
         <>
           {selectedWorkItem === null && settingsSection === null ? (
             <WorkbenchToolbarSearch
-              aria-label="Search work items"
-              placeholder="Search work items"
               value={search}
-              onChange={(event) => setSearch(event.currentTarget.value)}
+              onChange={setSearch}
             />
           ) : null}
           <WorkbenchToolbarUtilities>
             <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
-            <WorkbenchAction
+            <WorkbenchUtilityLink
               label="Settings"
-              tone="ghost"
-              onClick={() => navigateSettings(settingsSection ?? "repositories")}
+              href={"/settings/" + (settingsSection ?? "repositories")}
+              onNavigate={(event) => {
+                event.preventDefault();
+                navigateSettings(settingsSection ?? "repositories");
+              }}
             />
             <div className="order-theme-control">
               <WorkbenchIcon name={themePreference} />
@@ -435,6 +455,11 @@ export const App = () => {
     </Suspense>
   );
 
+  const selectedWorkItemPending =
+    settingsSection === null &&
+    selectedWorkItemId !== null &&
+    selectedWorkItemQuery.isPending;
+
   const main = settingsSection !== null ? (
     <Suspense fallback={<WorkbenchEmptyState title="Loading Settings…" />}>
       <SettingsWorkspace
@@ -452,131 +477,147 @@ export const App = () => {
       <WorkItemWorkspace
         key={selectedWorkItem.id}
         workItem={selectedWorkItem}
+        selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
+        selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
+        selectedWorkItemError={selectedWorkItemQuery.error}
+        toolbar={toolbar}
+        contextOpen={contextOpen}
+        onContextOpenChange={setContextOpen}
+        contextContent={
+          <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
+            <WorkItemContext
+              workItem={selectedWorkItem}
+              selectedStep={contextStep}
+              selectedMaterial={contextMaterial}
+              selectedDocumentPath={contextDocumentPath}
+              selectedDocumentSha256={contextDocumentSha256}
+              onClose={() => setContextOpen(false)}
+            />
+          </Suspense>
+        }
         onBack={() => requestSelection(null)}
-        onOpenContext={() => setContextOpen(true)}
         onContextSelectionChange={updateContextSelection}
         onContextDocumentChange={updateContextDocument}
         onCreateRemediation={startRemediation}
         onDirtyChange={setWorkspaceDirty}
       />
     </Suspense>
+  ) : selectedWorkItemPending ? (
+    <WorkbenchEmptyState title="Loading selected work item…" />
+  ) : selectedWorkItemQuery.isError && selectedWorkItemId !== null ? (
+    <WorkbenchErrorState
+      title="Selected work item unavailable"
+      description={errorText(selectedWorkItemQuery.error)}
+      action={<WorkbenchAction label="Retry" onClick={() => void selectedWorkItemQuery.refetch()} />}
+    />
   ) : (
     <div className="order-queue-page">
       {readinessQuery.data && !readinessQuery.data.ready ? (
-        <section className="order-setup-required" role="status">
-          <div>
-            <strong>Setup requires attention</strong>
-            <span>Complete installation Settings before productive work.</span>
-          </div>
-          <WorkbenchAction
-            label="Open Settings"
-            tone="primary"
-            onClick={() => navigateSettings(
-              settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
-            )}
-          />
-        </section>
+        <WorkbenchNotice
+          tone="warning"
+          title="Setup requires attention"
+          description="Complete installation Settings before productive work."
+          action={
+            <WorkbenchAction
+              label="Open Settings"
+              tone="primary"
+              onClick={() => navigateSettings(
+                settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
+              )}
+            />
+          }
+        />
       ) : null}
       {(diagnosticsQuery.data ?? []).length > 0 ? (
-        <section className="order-diagnostics" data-testid="source-diagnostics">
-          <h2>Source diagnostics</h2>
-          {(diagnosticsQuery.data ?? []).map((item, index) => (
-            <div key={item.code + "-" + (item.path ?? String(index))} role="alert">
-              <strong>{item.code}</strong>
-              <span>{item.path ?? item.workItemId ?? "unmaterialized source"}</span>
-              <span>{item.detail}</span>
-            </div>
-          ))}
-        </section>
+        <div data-testid="source-diagnostics">
+          <WorkbenchNotice
+            tone="danger"
+            title="Source diagnostics require attention"
+            description={
+              <ul>
+                {(diagnosticsQuery.data ?? []).map((item, index) => (
+                  <li key={item.code + "-" + (item.path ?? String(index))}>
+                    <strong>{item.code}</strong>
+                    {" · "}
+                    {item.path ?? item.workItemId ?? "unmaterialized source"}
+                    {" — "}
+                    {item.detail}
+                  </li>
+                ))}
+              </ul>
+            }
+          />
+        </div>
       ) : null}
       {queue}
     </div>
   );
 
   const body = workItemsQuery.isError ? (
-    <WorkbenchLayout toolbar={toolbar}>
-      <WorkbenchErrorState
-        title="Local browser session required"
-        description={
-          errorText(workItemsQuery.error).includes("browser session required")
-            ? "Run order open and open the one-time URL to establish the local session."
-            : errorText(workItemsQuery.error)
-        }
-        action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
-      />
-    </WorkbenchLayout>
-  ) : (
     <WorkbenchLayout
       toolbar={toolbar}
-      inspector={
-        selectedWorkItem && settingsSection === null
-          ? (
-            <Suspense fallback={<WorkbenchEmptyState compact title="Loading context…" />}>
-              <WorkItemContext
-                workItem={selectedWorkItem}
-                selectedStep={contextStep}
-                selectedMaterial={contextMaterial}
-                selectedDocumentPath={contextDocumentPath}
-                selectedDocumentSha256={contextDocumentSha256}
-              />
-            </Suspense>
-          )
-          : null
+      primary={
+        <WorkbenchErrorState
+          title="Local browser session required"
+          description={
+            errorText(workItemsQuery.error).includes("browser session required")
+              ? "Run order open and open the one-time URL to establish the local session."
+              : errorText(workItemsQuery.error)
+          }
+          action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
+        />
       }
-      inspectorOpen={contextOpen}
-      onInspectorOpenChange={setContextOpen}
-    >
-      {main}
-    </WorkbenchLayout>
+      workItemChrome={null}
+    />
+  ) : selectedWorkItem ? (
+    main
+  ) : (
+    <WorkbenchLayout toolbar={toolbar} primary={main} workItemChrome={null} />
   );
 
   return (
     <Theme theme={neutralTheme} mode={themePreference}>
       {body}
 
-      <Drawer
-        isOpen={createOpen}
+      <WorkbenchTaskPanel
+        open={createOpen}
         onOpenChange={(open) => {
           setCreateOpen(open);
           if (!open) resetCreate();
         }}
-        label={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
-        side="end"
-        width="26rem"
-      >
-        <div className="order-create-drawer">
-          <h2>{derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}</h2>
+        title={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
+        content={
           <Suspense fallback={<WorkbenchEmptyState compact title="Loading creation controls…" />}>
-          <CreateWorkItem
-            projects={projectsQuery.data ?? []}
-            schemas={schemasQuery.data ?? []}
-            projectId={projectId}
-            schemaId={schemaId}
-            title={title}
-            concernIds={concernIds}
-            availableConcernIds={availableConcernIds}
-            derivedFromWorkItemId={derivedFromWorkItemId}
-            pending={create.isPending}
-            error={create.error ? errorText(create.error) : null}
-            onProjectChange={setProjectId}
-            onSchemaChange={setSchemaId}
-            onTitleChange={setTitle}
-            onConcernIdsChange={setConcernIds}
-            onSubmit={() => create.mutate()}
-          />
+            <CreateWorkItem
+              projects={projectsQuery.data ?? []}
+              schemas={schemasQuery.data ?? []}
+              projectId={projectId}
+              schemaId={schemaId}
+              title={title}
+              concernIds={concernIds}
+              availableConcernIds={availableConcernIds}
+              derivedFromWorkItemId={derivedFromWorkItemId}
+              pending={create.isPending}
+              error={create.error ? errorText(create.error) : null}
+              onProjectChange={setProjectId}
+              onSchemaChange={setSchemaId}
+              onTitleChange={setTitle}
+              onConcernIdsChange={setConcernIds}
+              onSubmit={() => create.mutate()}
+            />
           </Suspense>
-        </div>
-      </Drawer>
+        }
+      />
 
-      <AlertDialog
-        isOpen={pendingDestination !== undefined}
+      <WorkbenchConfirmation
+        open={pendingDestination !== undefined}
         onOpenChange={(open) => { if (!open) setPendingDestination(undefined); }}
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
+        confirmLabel="Discard unsaved changes"
         cancelLabel="Continue editing"
-        actionLabel="Discard unsaved changes"
-        actionVariant="destructive"
-        onAction={() => {
+        pending={false}
+        onConfirm={() => {
           const next = pendingDestination;
           setPendingDestination(undefined);
           if (next !== undefined) commitDestination(next);

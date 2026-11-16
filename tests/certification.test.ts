@@ -198,11 +198,32 @@ describe("Order cross-boundary certification", () => {
     const names = readdirSync(primitiveDirectory).sort();
     expect(names).toEqual([
       "WorkbenchAction.tsx",
+      "WorkbenchAttention.tsx",
+      "WorkbenchConfirmation.tsx",
+      "WorkbenchContextPanel.tsx",
+      "WorkbenchDialogue.tsx",
+      "WorkbenchDisclosure.tsx",
+      "WorkbenchField.tsx",
+      "WorkbenchForm.tsx",
       "WorkbenchIcon.tsx",
+      "WorkbenchIdentity.tsx",
       "WorkbenchLayout.tsx",
+      "WorkbenchMasterDetail.tsx",
+      "WorkbenchNotice.tsx",
+      "WorkbenchRail.tsx",
       "WorkbenchResourceRow.tsx",
+      "WorkbenchReview.tsx",
+      "WorkbenchSectionHeader.tsx",
+      "WorkbenchSelector.tsx",
+      "WorkbenchSettingsLayout.tsx",
       "WorkbenchState.tsx",
+      "WorkbenchStatus.tsx",
+      "WorkbenchSurface.tsx",
+      "WorkbenchTable.tsx",
+      "WorkbenchTaskPanel.tsx",
+      "WorkbenchTimeline.tsx",
       "WorkbenchToolbar.tsx",
+      "WorkbenchUtilityLink.tsx",
     ]);
 
     const source = names.map((name) => read("ui/src/primitives/" + name)).join("\n");
@@ -217,12 +238,97 @@ describe("Order cross-boundary certification", () => {
 
     const layout = read("ui/src/primitives/WorkbenchLayout.tsx");
     expect(layout).toContain('"(min-width: 1280px)"');
+    expect(layout).toContain("<AppShell");
+    expect(layout).toContain("<Layout");
     expect(layout).toContain("<Drawer");
     expect(layout).not.toContain("inspector-fallback");
 
     const theme = read("ui/src/theme.css");
-    expect(theme).toContain("--order-workbench-bg");
+    expect(theme).toContain("--color-background-body: #FFFFFF");
+    expect(theme).toContain("--color-background-body: #111A29");
+    expect(theme).toContain("--order-context-width: 22rem");
+    expect(theme).not.toContain("--order-color-");
+    expect(theme).not.toContain("--order-workbench-");
+    expect(theme).not.toContain("--order-editor-");
+    expect(theme).not.toContain("--_");
+    expect(theme).not.toContain("color-mix(");
     expect(theme).not.toContain("--pontivus-plugin-panel-inspector-width-standard: 26.25rem");
+    expect(theme.split("/* 2. Order-only structural/readability roles. */")[1]).not.toMatch(/#[0-9A-Fa-f]{3,8}\b/);
+
+    const styles = read("ui/src/styles.css");
+    expect(styles).not.toMatch(/\.order-[A-Za-z0-9_-]+/);
+    expect(styles).toContain("var(--color-background-body)");
+    expect(styles).toContain("var(--color-text-primary)");
+
+    const media = [...theme.matchAll(/@media\s*\(([^)]+)\)/g)].map((match) => match[1]).sort();
+    expect(media).toEqual([
+      "max-width: 1279px",
+      "max-width: 799px",
+      "prefers-color-scheme: dark",
+    ]);
+
+    const renderers = readdirSync(join(root, "ui", "src"), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".tsx"))
+      .map((entry) => entry.name)
+      .sort();
+    expect(renderers).toEqual([
+      "ActivityComposer.tsx",
+      "ActivityWorkspace.tsx",
+      "CreateWorkItem.tsx",
+      "DocumentWorkspace.tsx",
+      "EvidenceViewer.tsx",
+      "ExecutionWorkspace.tsx",
+      "MarkdownEditor.tsx",
+      "MarkdownSourceEditor.tsx",
+      "OpenCodeAccountControl.tsx",
+      "OpenCodeAccountSettings.tsx",
+      "PreSignoffStageWorkspace.tsx",
+      "ProposalReview.tsx",
+      "ReadinessWorkspace.tsx",
+      "RunEventTimeline.tsx",
+      "SettingsWorkspace.tsx",
+      "SignoffReview.tsx",
+      "TerminalResult.tsx",
+      "WorkItemContext.tsx",
+      "WorkItemIdentityRow.tsx",
+      "WorkItemQueue.tsx",
+      "WorkItemWorkspace.tsx",
+      "WorkflowMaterialSelector.tsx",
+      "WorkflowRail.tsx",
+      "WorkflowStepFrame.tsx",
+      "app.tsx",
+      "main.tsx",
+    ]);
+
+    const bootstrap = new Set(["main.tsx"]);
+    const rendererSource = renderers
+      .filter((name) => !bootstrap.has(name))
+      .map((name) => read("ui/src/" + name))
+      .join("\n");
+    for (const foundationMechanic of [
+      "@astryxdesign/core/AppShell",
+      "@astryxdesign/core/Layout",
+      "@astryxdesign/core/Drawer",
+      "@astryxdesign/core/Dialog",
+      "@astryxdesign/core/AlertDialog",
+      "@astryxdesign/core/Button",
+      "@astryxdesign/core/IconButton",
+      "@astryxdesign/core/StatusDot",
+      "@astryxdesign/core/Banner",
+      "@astryxdesign/core/Table",
+      "@astryxdesign/core/List",
+    ]) {
+      expect(rendererSource).not.toContain(foundationMechanic);
+    }
+    expect(rendererSource).not.toContain("@astryxdesign/core/Badge");
+
+    for (const adapter of [
+      "WorkItemIdentityRow.tsx",
+      "WorkflowMaterialSelector.tsx",
+      "WorkflowRail.tsx",
+    ]) {
+      expect(existsSync(join(root, "ui", "src", adapter))).toBe(true);
+    }
   });
 
   it("keeps browser state and transport on the canonical HTTP boundary", () => {
@@ -251,6 +357,295 @@ describe("Order cross-boundary certification", () => {
     expect(http).not.toContain("Bearer ");
     expect(http).not.toContain("WebSocket");
     expect(http).not.toContain("EventSource");
+  });
+
+  it("certifies canonical Workbench workflow-state ownership and observational reads", () => {
+    const walk = (directory: string): string[] =>
+      readdirSync(join(root, directory), { withFileTypes: true }).flatMap((entry) => {
+        const relative = directory + "/" + entry.name;
+        return entry.isDirectory() ? walk(relative) : [relative];
+      });
+    const production = [
+      ...walk("src/core"),
+      ...walk("src/daemon"),
+      ...walk("ui/src"),
+    ]
+      .filter((path) => path.endsWith(".ts") || path.endsWith(".tsx"))
+      .map(read)
+      .join("\n");
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    for (const owner of [
+      "transitionWorkItem",
+      "stageRunInteraction",
+      "validateStageProviderTurn",
+      "deriveProposalDecision",
+      "deriveReachedStages",
+      "deriveExecutionOwner",
+      "deriveValidationBoundary",
+      "deriveRecoveryDisposition",
+      "deriveObservationCoherence",
+      "deriveCurrentAttention",
+      "deriveWorkflowRail",
+    ]) {
+      expect(lifecycle).toContain("export const " + owner);
+    }
+    expect(production).not.toMatch(/\b(?:type|interface|class)\s+WorkflowState\b/);
+    expect(production).not.toMatch(/z\.[A-Za-z]+\([^)]*WorkflowState/);
+
+    expect(lifecycle).toContain('"RECONCILE_AUTHORITY"');
+    expect(lifecycle).toContain("validationBoundaryFromEvents");
+    expect(lifecycle).toContain('run.role === "REMEDIATOR"');
+    expect(lifecycle).toContain("REMEDIATOR trigger must identify VALIDATION_FAILED");
+    expect(lifecycle).toContain("REMEDIATOR failure must belong to the current ExecutionTask");
+    expect(lifecycle).toContain('run.role === "REVIEWER"');
+    expect(lifecycle).toContain("REVIEWER trigger must identify CANDIDATE_STATE_RECORDED");
+    expect(lifecycle).toContain("REVIEWER candidate must belong to the current ExecutionTask");
+    expect(lifecycle).toContain("candidateRun.triggerEventId === run.triggerEventId");
+    expect(lifecycle).not.toContain("export const sourceChangeLifecycleState");
+    expect(lifecycle).toContain("proposal has duplicate disposition");
+    expect(lifecycle).toContain("rejected proposal cannot have adoption intent");
+    expect(lifecycle).toContain("adopted proposal requires durable adoption intent");
+    expect(lifecycle.indexOf('if (input.currentness.tag === "STALE") return "STALE_AUTHORITY";'))
+      .toBeLessThan(lifecycle.indexOf('if (input.recovery.tag !== "NONE") return "RECOVERY";'));
+    const coherencePolicy = lifecycle.slice(
+      lifecycle.indexOf("export const deriveObservationCoherence"),
+      lifecycle.indexOf("export const deriveCurrentAttention"),
+    );
+    expect(coherencePolicy).toContain('run.stage !== workItem.stage');
+    expect(coherencePolicy).toContain('task.state !== "RUNNING"');
+    expect(coherencePolicy).toContain('task.state === "BLOCKED"');
+    expect(coherencePolicy).toContain('workItem.status === "BLOCKED"');
+    const contracts = read("src/core/contracts.ts");
+    expect(contracts).toContain("UpstreamReturnStageSchema");
+    expect(contracts).toContain("ReconcileWorkItemAuthoritySchema");
+    expect(contracts).toContain("staleAuthorityOwner: UpstreamReturnStageSchema.nullable()");
+
+    const presentation = read("ui/src/workbench-presentation.ts");
+    expect(presentation).toContain("reachStateForStage");
+    expect(presentation).toContain("type CurrentAttentionTag");
+    expect(presentation).toContain("type StageRunInteraction");
+    expect(presentation).toContain("type ExecutionOwner");
+    expect(presentation).not.toContain("workflowStepIndex");
+    expect(presentation).not.toContain("workflowSteps.findIndex");
+    const materialPolicy = presentation.slice(
+      presentation.indexOf("const currentStageRun"),
+      presentation.indexOf("export const runIsActive"),
+    );
+    expect(materialPolicy).toContain("input.currentAttention");
+    expect(materialPolicy).toContain("input.stageInteraction");
+    expect(materialPolicy).toContain("input.executionOwner");
+    expect(materialPolicy).toContain('input.currentAttention === "CONVERGING"');
+    expect(materialPolicy).toContain("execution owner must identify a loaded ExecutionTask");
+    expect(materialPolicy).not.toMatch(/\.status\s*===/);
+    expect(materialPolicy).not.toMatch(/\.state\s*===\s*["'](?:RUNNING|BLOCKED)["']/);
+
+    const rail = read("ui/src/WorkflowRail.tsx");
+    expect(rail).toContain("WorkflowRailItem");
+    expect(rail).not.toContain("stageOrder");
+    expect(rail).not.toContain("stageRank");
+
+    const app = read("ui/src/app.tsx");
+    expect(app).toContain("api.getWorkItem(selectedWorkItemId)");
+    expect(app).toContain("workbenchQueryKeys.workItem(selectedWorkItemId)");
+    expect(app).not.toContain(
+      "workItems.find((item) => item.id === selectedWorkItemId)",
+    );
+
+    const http = read("ui/src/http.ts");
+    expect(http).toContain("export const isCurrentStateConflict");
+    expect(http).toContain('error.orderError.code === "CURRENT_STATE_CONFLICT"');
+
+    const queryKeys = read("ui/src/query-keys.ts");
+    expect(queryKeys).toContain("workbenchMutationInvalidationKeys");
+    expect(queryKeys).toContain("invalidateWorkbenchMutation");
+    expect(queryKeys).toContain("workbenchQueryKeys.workItem(workItemId)");
+
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workspace).toContain("deriveObservationCoherence");
+    expect(workspace).toContain("deriveCurrentAttention");
+    expect(workspace).toContain("deriveValidationBoundary");
+    expect(workspace).toContain('workItem.stage === "EXECUTION" ? tasks : []');
+    expect(workspace).toContain('workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE"');
+    expect(workspace).toContain("deriveObservationCoherence(\n    workItem,\n    runs,\n    allRunEvents,\n    coherenceTasks");
+    expect(workspace).toContain("executionObservationPending");
+    expect(workspace).toContain("executionEventsPending");
+    expect(workspace).toContain("currentExecutionObservationRequired");
+    expect(workspace).toContain("tasksQuery.data === undefined");
+    expect(workspace).toContain("currentExecutionTasks");
+    expect(workspace).toContain('workItem.stage === "EXECUTION" &&');
+    expect(workspace).toContain("executionEventsPending");
+    expect(workspace).toContain("validationBoundary={validationBoundary}");
+    expect(workspace).toContain("mutationConflict,");
+    expect(workspace).not.toContain("mutationConflict: false");
+    expect(workspace).toContain("api.isCurrentStateConflict(error)");
+    expect(workspace).toContain('currentAttention === "MUTATION_CONFLICT"');
+    expect(workspace).toContain("mutationConflictWorkItemUpdatedAt");
+    expect(workspace).toContain("selectedWorkItemUpdatedAt !== mutationConflictWorkItemUpdatedAt.current");
+    expect(workspace).toContain("currentObservationError === null");
+    expect(workspace).toContain("selectedWorkItemError");
+    expect(workspace).toContain("mutationConflictObservation.current = observationVersion");
+    expect(workspace).toContain("Workflow state changed during the action");
+    expect(workspace).toContain("onMutationError={reportMutationError}");
+    expect(workspace).toContain("deriveWorkflowRail");
+    expect(workspace).toContain('currentAttention === "CONVERGING"');
+    expect(workspace).toContain("currentStageRunId: currentStageRun?.id ?? null");
+    expect(workspace).toContain("currentAttention,");
+    expect(workspace).toContain("stageInteraction: currentStageInteraction");
+    expect(workspace).toContain("executionOwner,");
+
+    expect(workspace).toContain("api.getWorkItemSource(workItem.id)");
+    expect(workspace).toContain("sourceQuery.data.sha256 !== workItem.sourceSha256");
+    expect(workspace).toContain("sourceAuthorityRequiresReconciliation");
+    expect(workspace).toContain('currentness.tag === "STALE" && !runs.some(runIsActive)');
+    expect(workspace).toMatch(/recovery\.tag === "RECONCILE_AUTHORITY"[\s\S]*!runs\.some\(runIsActive\)/);
+    expect(workspace).toContain('orderError.code === "STALE_AUTHORITY"');
+    expect(workspace).toContain("orderError.staleAuthorityOwner");
+    expect(workspace).toContain("api.reconcileWorkItemAuthority");
+    expect(workspace).toContain("onError: invalidate");
+    expect(workspace).toContain('"Returned upstream before sign-off"');
+    expect(workspace).not.toContain('if (selectedStepState === "HISTORICAL") return "Approved"');
+    expect(workspace).not.toMatch(/message\.(?:match|includes)|parse.*message/i);
+    expect(workspace).toContain("signoffPackageQuery.isFetching");
+    expect(workspace).toContain("api.listExecutionTasks(workItem.id)");
+    expect(workspace).toContain("api.listArtifacts(workItem.id)");
+    expect(workspace).toContain("packageValue={signoffPackageQuery.data ?? null}");
+    expect(workspace).toContain("tasks={tasks}");
+    expect(workspace).toContain("runs={runs}");
+    expect(workspace).toContain("artifacts={allArtifacts}");
+
+    const signoffReview = read("ui/src/SignoffReview.tsx");
+    expect(signoffReview).toContain("packageValue: SignoffPackage | null");
+    expect(signoffReview).toContain("packageFetching: boolean");
+    expect(signoffReview).not.toContain("api.getSignoffPackage(");
+    expect(signoffReview).not.toContain("api.listLifecycleArtifacts(");
+    expect(signoffReview).not.toContain("api.listExecutionTasks(");
+    expect(signoffReview).not.toContain("workbenchQueryKeys.signoffPackage(");
+    expect(signoffReview).not.toContain("workbenchQueryKeys.lifecycleArtifacts(");
+    expect(signoffReview).not.toContain("workbenchQueryKeys.tasks(");
+
+    const documents = read("ui/src/DocumentWorkspace.tsx");
+    expect(documents).toContain("onMutationError?.(error)");
+
+    const activity = read("ui/src/ActivityWorkspace.tsx");
+    expect(activity).toContain("onMutationError?.(error)");
+    expect(activity).toContain('currentAttention !== "MUTATION_CONFLICT"');
+    expect(activity).toContain("currentRunId");
+    expect(activity).toContain("currentInteraction");
+    expect(activity).toContain("runs: readonly Run[]");
+    expect(activity).not.toContain("api.listRuns(");
+    expect(activity).not.toContain("workbenchQueryKeys.runs(");
+    expect(activity).not.toContain("stageRunInteraction");
+    expect(activity).not.toContain("runNeedsAttention");
+    expect(activity).not.toContain("const canRetry");
+    expect(activity).not.toContain("const canResume");
+
+    const proposalReview = read("ui/src/ProposalReview.tsx");
+    expect(proposalReview).toContain("onMutationError?.(error)");
+    expect(proposalReview).not.toContain("ActivityComposer");
+    expect(proposalReview).not.toContain("unresolvedHumanInput");
+
+    const execution = read("ui/src/ExecutionWorkspace.tsx");
+    expect(execution).toContain("onMutationError?.(error)");
+    expect(execution).toContain("onError:reportError");
+    expect(execution).toContain("executionOwner: ExecutionOwner");
+    expect(execution).toContain("tasks: readonly ExecutionTask[]");
+    expect(execution).toContain("runs: readonly Run[]");
+    expect(execution).toContain("artifacts: readonly ArtifactRef[]");
+    expect(execution).toContain("validationBoundary: ValidationBoundary | null");
+    expect(execution).not.toContain("api.listExecutionTasks(");
+    expect(execution).not.toContain("api.listRuns(");
+    expect(execution).not.toContain("api.listArtifacts(");
+    expect(execution).not.toContain("workbenchQueryKeys.tasks(");
+    expect(execution).not.toContain("workbenchQueryKeys.runs(");
+    expect(execution).not.toContain("workbenchQueryKeys.artifacts(");
+    expect(execution).toContain('"Current boundary: updating"');
+    expect(execution).toContain("boundary={validationBoundary}");
+    expect(execution).toContain("validationBoundaryStatus(boundary)");
+    expect(execution).not.toContain("deriveValidationBoundary");
+    expect(execution).not.toContain("deriveExecutionOwner");
+    expect(execution).toContain("currentOwnerTask");
+    expect(execution).toContain("currentOwnerRun");
+    expect(execution).not.toContain(
+      'selectedTask?.state==="BLOCKED"',
+    );
+
+    const coordinator = read("src/daemon/coordinator.ts");
+    expect(coordinator).toContain("WorkItem cannot resume while a Run is active");
+    expect(coordinator).toContain("a Run became active before Resume commit");
+    const cancelPolicy = coordinator.slice(
+      coordinator.indexOf("const cancelRunUnlocked"),
+      coordinator.indexOf("export const cancelRun"),
+    );
+    expect(cancelPolicy).toContain("Run stopped being cancellable before Cancel commit");
+    expect(cancelPolicy).not.toContain("return current");
+
+    const runtime = read("src/daemon/runtime.ts");
+    expect(runtime).toContain("operatorMutations: new Set()");
+    expect(runtime).toContain("withWorkItemOperatorMutation");
+    expect(runtime).not.toContain("operatorMutationQueue");
+
+    const source = read("src/daemon/work-item-source.ts");
+    const sourceRead = source.slice(
+      source.indexOf("export const revalidateWorkItemSource"),
+      source.indexOf("export const createWorkItemFromSource"),
+    );
+    expect(sourceRead).toContain("inspectWorkItemSource");
+    expect(sourceRead).not.toContain("applyPlan(");
+    expect(sourceRead).not.toContain("updateWorkItemLifecycle(");
+
+    const stageDaemon = read("src/daemon/stage.ts");
+    const startStagePolicy = stageDaemon.slice(
+      stageDaemon.indexOf("const startStageRunUnlocked"),
+      stageDaemon.indexOf("export const startStageRun"),
+    );
+    expect(startStagePolicy).toContain("contextState.staleStage");
+    expect(startStagePolicy).not.toContain('tag: "LIFECYCLE_ARTIFACT_CHANGED"');
+    const inputPolicy = stageDaemon.slice(
+      stageDaemon.indexOf("const submitRunInputUnlocked"),
+      stageDaemon.indexOf("export const submitRunInput"),
+    );
+    expect(inputPolicy).toContain("contextState.staleStage");
+    expect(inputPolicy).not.toContain("updateWorkItemLifecycle");
+    expect(stageDaemon).toContain("requireCurrentProposalDecision");
+    expect(stageDaemon).toContain("proposal decision requires an OPEN current STAGE Run");
+    expect(stageDaemon).toContain("lifecycle proposal role must equal owning Run stage");
+
+    const authority = read("src/daemon/authority.ts");
+    const lifecycleRead = authority.slice(
+      authority.indexOf("export const currentLifecycleArtifacts"),
+      authority.indexOf("export const resolveStageContextState"),
+    );
+    expect(lifecycleRead).not.toContain("currentFileArtifact(");
+    expect(lifecycleRead).not.toContain("storeArtifact(");
+    const signoffRead = authority.slice(
+      authority.indexOf("export const computeSignoffPackage"),
+      authority.indexOf("export const signoffPackageForWorkItem"),
+    );
+    expect(signoffRead).toContain('"R3",\n    false,');
+    expect(signoffRead).not.toContain("updateWorkItemLifecycle(");
+
+    expect(authority).toContain("staleAuthorityOwnerForFailure");
+    expect(authority).toContain("reconcileWorkItemAuthority");
+    expect(authority).toContain('tag: "RECONCILE_AUTHORITY"');
+
+    const server = read("src/daemon/server.ts");
+    expect(server).toContain('code: "STALE_AUTHORITY"');
+    expect(server).toContain('parts[3] === "reconcile-authority"');
+    expect(server).toContain("ReconcileWorkItemAuthoritySchema.parse");
+
+    for (const daemonPath of [
+      "src/daemon/work-item-source.ts",
+      "src/daemon/authority.ts",
+      "src/daemon/stage.ts",
+      "src/daemon/coordinator.ts",
+      "src/daemon/execution.ts",
+    ]) {
+      const daemon = read(daemonPath);
+      expect(daemon).not.toContain("sourceChangeLifecycleState");
+      expect(daemon).not.toContain("promoteIdeaToR1");
+      expect(daemon).not.toContain("setWorkItemStatus(");
+    }
   });
 
   it("keeps repository-native v4 as the only productive config persistence and v3 as migration input", () => {

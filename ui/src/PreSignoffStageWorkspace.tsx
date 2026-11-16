@@ -3,9 +3,14 @@ import type { ReactNode } from "react";
 import type {
   ArtifactRef,
   Run,
+  RunEvent,
   Sha256,
   WorkItem,
 } from "../../src/core/contracts.ts";
+import type {
+  CurrentAttentionTag,
+  StageRunInteraction,
+} from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
 import {
   LifecycleDocumentMaterial,
@@ -28,7 +33,7 @@ import {
   type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 
 export type SharedPreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN";
@@ -49,6 +54,10 @@ export const PreSignoffStageWorkspace = ({
   artifacts,
   material,
   summary,
+  currentRunId,
+  currentInteraction,
+  currentAttention,
+  mutationsDisabled = false,
   onSelectMaterial,
   onDirtyChange,
   onOpenArtifactEvidence,
@@ -57,6 +66,8 @@ export const PreSignoffStageWorkspace = ({
   onOpenSupportingMaterial,
   onReturnFromTransient,
   onContextDocumentChange,
+  onMutationRefresh,
+  onMutationError,
 }: Readonly<{
   workItem: WorkItem;
   stage: SharedPreSignoffStage;
@@ -64,6 +75,10 @@ export const PreSignoffStageWorkspace = ({
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   summary: ReactNode;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
+  currentAttention: CurrentAttentionTag;
+  mutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
@@ -72,6 +87,8 @@ export const PreSignoffStageWorkspace = ({
   onOpenSupportingMaterial: (material: WorkflowMaterial) => void;
   onReturnFromTransient: () => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+  onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
+  onMutationError?: (error: unknown) => void;
 }>) => {
   const stageRuns = [...runs]
     .filter((run) => run.role === "STAGE" && run.stage === stage)
@@ -137,56 +154,55 @@ export const PreSignoffStageWorkspace = ({
     });
   }
 
-  const meaningfulObjectCount = stageRuns.length + (stageArtifact ? 1 : 0);
-  const index = meaningfulObjectCount >= 2
-    ? <WorkflowStepIndex groups={groups} />
+  groups.push({
+    id: "supporting",
+    label: "Supporting authority",
+    items: [
+      {
+        id: "supporting-work-request",
+        label: "Work request",
+        description: "Canonical source context",
+        selected: material.kind === "SOURCE_DOCUMENT",
+        onSelect: () => onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" }),
+      },
+      ...supportingArtifacts.map((artifact) => ({
+        id: "supporting-" + artifact.id,
+        label: lifecycleArtifactLabel(artifact.role) + " document",
+        description: artifact.repositoryPath,
+        selected:
+          material.kind === "SUPPORTING_DOCUMENT" &&
+          material.artifactId === artifact.id,
+        onSelect: () =>
+          onOpenSupportingMaterial({
+            kind: "SUPPORTING_DOCUMENT",
+            artifactId: artifact.id,
+          }),
+      })),
+    ],
+  });
+
+  const index = groups.length > 0
+    ? <WorkflowStepIndex groups={groups} label={stage === "PLAN" ? "Plan work" : "Step work"} />
     : null;
-
-
-  const supportingContext = (
-    <details className="order-supporting-context">
-      <summary>Supporting context</summary>
-      <div className="order-resource-list">
-        <WorkbenchResourceRow
-          label="Work request"
-          detail="Canonical source context"
-          actionLabel="Open supporting Work request"
-          onOpen={() =>
-            onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" })}
-        />
-        {supportingArtifacts.map((artifact) => {
-          const label = lifecycleArtifactLabel(artifact.role) + " document";
-          const actionLabel = "Open supporting " + label;
-          return (
-            <WorkbenchResourceRow
-              key={artifact.id}
-              label={label}
-              detail={artifact.repositoryPath}
-              actionLabel={actionLabel}
-              onOpen={() =>
-                onOpenSupportingMaterial({
-                  kind: "SUPPORTING_DOCUMENT",
-                  artifactId: artifact.id,
-                })}
-            />
-          );
-        })}
-      </div>
-    </details>
-  );
 
   const primary = (() => {
     switch (material.kind) {
       case "STAGE_RUN":
         return (
           <StageRunMaterial
-            workItem={workItem}
             stage={stage}
+            runs={runs}
             selectedRunId={material.runId}
+            currentRunId={workItem.stage === stage ? currentRunId : null}
+            currentInteraction={workItem.stage === stage ? currentInteraction : null}
+            currentAttention={currentAttention}
+            mutationsDisabled={mutationsDisabled}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
             onOpenProposalReview={onOpenProposalReview}
+            onMutationRefresh={onMutationRefresh}
+            onMutationError={onMutationError}
           />
         );
       case "STAGE_DOCUMENT":
@@ -194,25 +210,21 @@ export const PreSignoffStageWorkspace = ({
           <LifecycleDocumentMaterial
             workItem={workItem}
             artifactId={material.artifactId}
+            mutationsDisabled={mutationsDisabled}
             onDirtyChange={onDirtyChange}
             onOpenArtifactEvidence={onOpenArtifactEvidence}
             onContextDocumentChange={onContextDocumentChange}
+            onMutationError={onMutationError}
           />
         );
       case "SOURCE_DOCUMENT":
         return (
           <section className="order-supporting-material">
-            <div className="order-section-heading">
-              <div>
-                <strong>Supporting Work request</strong>
-                <span>Read-only source context for {stage}</span>
-              </div>
-              <WorkbenchAction
-                label="Back to workflow context"
-                tone="ghost"
-                onClick={onReturnFromTransient}
-              />
-            </div>
+            <WorkbenchSectionHeader
+              title="Supporting Work request"
+              description={"Read-only source context for " + stage}
+              action={<WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />}
+            />
             <SourceDocumentMaterial
               workItem={workItem}
               readOnly
@@ -224,17 +236,11 @@ export const PreSignoffStageWorkspace = ({
       case "SUPPORTING_DOCUMENT":
         return (
           <section className="order-supporting-material">
-            <div className="order-section-heading">
-              <div>
-                <strong>Supporting governed document</strong>
-                <span>Read-only lifecycle context</span>
-              </div>
-              <WorkbenchAction
-                label="Back to workflow context"
-                tone="ghost"
-                onClick={onReturnFromTransient}
-              />
-            </div>
+            <WorkbenchSectionHeader
+              title="Supporting governed document"
+              description="Read-only lifecycle context"
+              action={<WorkbenchAction label="Back to workflow context" tone="ghost" onClick={onReturnFromTransient} />}
+            />
             <ReadOnlyLifecycleDocumentMaterial
               workItem={workItem}
               artifactId={material.artifactId}
@@ -248,7 +254,9 @@ export const PreSignoffStageWorkspace = ({
           <ProposalReview
             workItem={workItem}
             selection={{ runId: material.runId, eventId: material.eventId }}
+            mutationsDisabled={mutationsDisabled}
             onBack={onReturnFromTransient}
+            onMutationError={onMutationError}
           />
         );
       case "EVIDENCE":
@@ -291,12 +299,6 @@ export const PreSignoffStageWorkspace = ({
       indexLabel={stage === "PLAN" ? "Plan work" : "Step work"}
       primary={
         <PrimaryMaterialFrame>
-          {material.kind === "SOURCE_DOCUMENT" ||
-          material.kind === "SUPPORTING_DOCUMENT" ||
-          material.kind === "PROPOSAL" ||
-          material.kind === "EVIDENCE"
-            ? null
-            : supportingContext}
           {primary}
         </PrimaryMaterialFrame>
       }

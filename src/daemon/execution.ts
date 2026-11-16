@@ -28,6 +28,7 @@ import {
 import {
   routeApprovalStale,
   routeValidationFailure,
+  transitionWorkItem,
 } from "../core/lifecycle.ts";
 import {
   loadValidatedProjectManifest,
@@ -62,7 +63,6 @@ import {
   loadRunsForExecutionTask,
   reconstructExecutionTask,
   setExecutionTaskState,
-  setWorkItemStatus,
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
@@ -186,11 +186,36 @@ export const markTaskState = (
   setExecutionTaskState(runtime.database, taskId, state);
 };
 
+const runAcceptsFinalization = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+): boolean => getRun(runtime, runId).status === "RUNNING";
+
+const persistExecutionProviderEvents = (
+  runtime: CoordinatorRuntime,
+  run: Run,
+  payloads: readonly RunEventPayload[],
+): readonly RunEvent[] | null =>
+  withTransaction(runtime.database, () => {
+    const current = getRun(runtime, run.id);
+    if (current.status === "CANCELLED") return null;
+    if (current.status !== "RUNNING") {
+      throw new TypeError(
+        `execution Run cannot accept provider result from status ${current.status}`,
+      );
+    }
+    return persistProviderEvents(runtime, current, payloads);
+  });
+
 export const setWorkItemExecutionBlocked = (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
 ): void => {
-  setWorkItemStatus(runtime.database, workItemId, "BLOCKED");
+  const current = getWorkItem(runtime, workItemId);
+  const transition = transitionWorkItem(current, {
+    tag: "BLOCK_CURRENT_OWNER",
+  });
+  updateWorkItemLifecycle(runtime.database, workItemId, transition);
 };
 
 export const maybeCompleteWorkItem = async (
@@ -199,12 +224,20 @@ export const maybeCompleteWorkItem = async (
 ): Promise<void> => {
   const tasks = await canonicalTasksForApproval(runtime, approval);
   const aggregate = aggregateTaskCompletion(tasks);
-  if (!aggregate.complete) return;
-  updateWorkItemLifecycle(runtime.database, approval.workItemId, {
-    stage: "COMPLETE",
-    status: "COMPLETE",
-    outcome: aggregate.outcome,
+  const outcome = aggregate.outcome;
+  if (!aggregate.complete || outcome === null) return;
+  if (
+    outcome !== "ALREADY_SATISFIED" &&
+    outcome !== "CANDIDATE_DONE"
+  ) {
+    throw new TypeError("completed execution aggregate has invalid outcome");
+  }
+  const current = getWorkItem(runtime, approval.workItemId);
+  const transition = transitionWorkItem(current, {
+    tag: "EXECUTION_COMPLETED",
+    outcome,
   });
+  updateWorkItemLifecycle(runtime.database, approval.workItemId, transition);
 };
 
 export const blockOldApprovalAndReturn = (
@@ -212,12 +245,13 @@ export const blockOldApprovalAndReturn = (
   approval: Approval,
   targetStage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
 ): void => {
-  blockExecutionTasksForApproval(runtime.database, approval.id);
-  updateWorkItemLifecycle(runtime.database, approval.workItemId, {
-    stage: targetStage,
-    status: "ACTIVE",
-    outcome: null,
+  const current = getWorkItem(runtime, approval.workItemId);
+  const transition = transitionWorkItem(current, {
+    tag: "EXECUTION_RETURN",
+    owner: targetStage,
   });
+  blockExecutionTasksForApproval(runtime.database, approval.id);
+  updateWorkItemLifecycle(runtime.database, approval.workItemId, transition);
 };
 
 export const terminateValidationFailure = (
@@ -263,6 +297,15 @@ export const publishCandidate = (
     "text/x-diff",
   );
   return withTransaction(runtime.database, () => {
+    const current = getRun(runtime, run.id);
+    if (current.status === "CANCELLED") {
+      throw new TypeError("cancelled execution Run cannot publish a candidate");
+    }
+    if (current.status !== "RUNNING") {
+      throw new TypeError(
+        `execution Run cannot publish a candidate from status ${current.status}`,
+      );
+    }
     const event = appendRunEvent(runtime, run.id, {
       tag: "CANDIDATE_STATE_RECORDED",
       patch,
@@ -416,7 +459,9 @@ export const executeMutatingRun = async (
         );
       },
     );
-    persisted = persistProviderEvents(runtime, run, payloads);
+    const accepted = persistExecutionProviderEvents(runtime, run, payloads);
+    if (accepted === null) return;
+    persisted = accepted;
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
     const classification = productiveInvocationFailureClassification(error);
@@ -434,10 +479,12 @@ export const executeMutatingRun = async (
     return;
   }
   await stopActiveProvider(runtime, run.id);
+  if (!runAcceptsFinalization(runtime, run.id)) return;
 
   const stageBlocked = persisted.findLast((event) => event.event.tag === "STAGE_BLOCKED");
   if (stageBlocked !== undefined) {
     withTransaction(runtime.database, () => {
+      if (!runAcceptsFinalization(runtime, run.id)) return;
       updateRun(runtime, run.id, {
         status: "BLOCKED",
         terminalClassification: "PRECONDITION_FAILED",
@@ -468,14 +515,17 @@ export const executeMutatingRun = async (
     if (!(await executionAuthorityIsFreshForSuccess(runtime, run, approval, task))) {
       return;
     }
-    withTransaction(runtime.database, () => {
+    const finalized = withTransaction(runtime.database, () => {
+      if (!runAcceptsFinalization(runtime, run.id)) return false;
       updateRun(runtime, run.id, {
         status: "COMPLETED",
         terminalClassification: "ALREADY_SATISFIED",
         endedAt: nowIsoDateTime(),
       });
       markTaskState(runtime, task.id, "ALREADY_SATISFIED");
+      return true;
     });
+    if (!finalized) return;
     await maybeCompleteWorkItem(runtime, approval);
     return;
   }
@@ -500,6 +550,7 @@ export const reviewFailureReaction = async (
   task: ExecutionTask,
   failure: RunEvent,
 ): Promise<void> => {
+  if (!runAcceptsFinalization(runtime, run.id)) return;
   if (failure.event.tag !== "VALIDATION_FAILED") {
     throw new TypeError("review failure reaction requires VALIDATION_FAILED");
   }
@@ -532,6 +583,7 @@ export const reviewFailureReaction = async (
     }
     const returnTo = review.event.returnTo;
     withTransaction(runtime.database, () => {
+      if (!runAcceptsFinalization(runtime, run.id)) return;
       updateRun(runtime, run.id, {
         status: "BLOCKED",
         terminalClassification: "BLOCKED_FOR_REANALYSIS",
@@ -544,8 +596,10 @@ export const reviewFailureReaction = async (
 
   if (classification === "APPROVAL_STALE") {
     const owners = await approvalChangedOwners(runtime, approval);
+    if (!runAcceptsFinalization(runtime, run.id)) return;
     const returnTo = owners.length === 0 ? "PLAN" : routeApprovalStale(owners);
     withTransaction(runtime.database, () => {
+      if (!runAcceptsFinalization(runtime, run.id)) return;
       updateRun(runtime, run.id, {
         status: "BLOCKED",
         terminalClassification: "APPROVAL_STALE",
@@ -558,6 +612,7 @@ export const reviewFailureReaction = async (
 
   const route = routeValidationFailure(classification);
   withTransaction(runtime.database, () => {
+    if (!runAcceptsFinalization(runtime, run.id)) return;
     updateRun(runtime, run.id, {
       status: "BLOCKED",
       terminalClassification: classification,
@@ -729,7 +784,9 @@ export const executeReviewerRun = async (
         );
       },
     );
-    reviewEvents = persistProviderEvents(runtime, run, payloads);
+    const accepted = persistExecutionProviderEvents(runtime, run, payloads);
+    if (accepted === null) return;
+    reviewEvents = accepted;
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
     const classification = productiveInvocationFailureClassification(error);
@@ -747,6 +804,7 @@ export const executeReviewerRun = async (
     return;
   }
   await stopActiveProvider(runtime, run.id);
+  if (!runAcceptsFinalization(runtime, run.id)) return;
   const reviewFailure = reviewEvents.findLast((event) => event.event.tag === "REVIEW_FAILED");
   if (reviewFailure !== undefined && reviewFailure.event.tag === "REVIEW_FAILED") {
     const failure = appendValidationFailed(
@@ -846,7 +904,8 @@ export const executeReviewerRun = async (
     return event.id;
   });
 
-  withTransaction(runtime.database, () => {
+  const finalized = withTransaction(runtime.database, () => {
+    if (!runAcceptsFinalization(runtime, run.id)) return false;
     appendRunEvent(runtime, run.id, {
       tag: "CANDIDATE_RECORDED",
       candidateStateEventId: candidateEvent.id,
@@ -858,7 +917,9 @@ export const executeReviewerRun = async (
       endedAt: nowIsoDateTime(),
     });
     markTaskState(runtime, task.id, "CANDIDATE_DONE");
+    return true;
   });
+  if (!finalized) return;
   await maybeCompleteWorkItem(runtime, approval);
 };
 

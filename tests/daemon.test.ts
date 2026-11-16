@@ -371,7 +371,8 @@ const server = Bun.serve({
       const text = String(body.text ?? "");
       let output;
       const delayedPrompt =
-        (mode === "stage-delay" && text.includes("Order lifecycle stage:")) ||
+        ((mode === "stage-delay" || mode === "stage-complete-delay") &&
+          text.includes("Order lifecycle stage:")) ||
         (mode === "noop-delay" && text.includes("Order execution role: BUILDER"));
       if (delayedPrompt) {
         writeFileSync(join(own, "provider-started"), "started");
@@ -404,6 +405,8 @@ const server = Bun.serve({
         output = target === "fixed\\n" && hasV4Inputs
           ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
           : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+      } else if (mode === "stage-invalid-r1" || mode === "stage-complete-delay") {
+        output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
       } else {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
       }
@@ -751,37 +754,69 @@ describe("daemon control plane", () => {
       } catch (error) {
         unexpectedSchema = server.classifyHttpFailure(error);
       }
-      console.log(JSON.stringify({ malformed, absent, conflict, unexpected, unexpectedSchema }));
+      const staleWithoutOwnerAccepted = contracts.OrderHttpErrorSchema.safeParse({
+        code: "STALE_AUTHORITY",
+        message: "stale",
+        sourceDiagnostic: null,
+        staleAuthorityOwner: null,
+      }).success;
+      const mixedRecoveryOwnersAccepted = contracts.OrderHttpErrorSchema.safeParse({
+        code: "STALE_AUTHORITY",
+        message: "stale",
+        sourceDiagnostic: {
+          projectId: "fixture",
+          path: null,
+          workItemId: null,
+          code: "MISSING_SOURCE",
+          detail: "missing",
+        },
+        staleAuthorityOwner: "PLAN",
+      }).success;
+      console.log(JSON.stringify({
+        malformed,
+        absent,
+        conflict,
+        unexpected,
+        unexpectedSchema,
+        staleWithoutOwnerAccepted,
+        mixedRecoveryOwnersAccepted,
+      }));
     `) as {
-      malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      absent: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown };
-      unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown };
+      malformed: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      absent: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      conflict: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      unexpected: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      unexpectedSchema: { status: number; code: string; message: string; sourceDiagnostic: unknown; staleAuthorityOwner: unknown };
+      staleWithoutOwnerAccepted: boolean;
+      mixedRecoveryOwnersAccepted: boolean;
     };
 
     expect(output.malformed).toMatchObject({
       status: 400,
       code: "INVALID_REQUEST",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.absent).toEqual({
       status: 404,
       code: "NOT_FOUND",
       message: "WorkItem does not exist",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.conflict).toEqual({
       status: 409,
       code: "CURRENT_STATE_CONFLICT",
       message: "WorkItem is not awaiting sign-off",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.unexpected).toEqual({
       status: 500,
       code: "INTERNAL_ERROR",
       message: "Internal daemon error",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.unexpected.message).not.toContain("secret internal detail");
     expect(output.unexpectedSchema).toEqual({
@@ -789,7 +824,10 @@ describe("daemon control plane", () => {
       code: "INTERNAL_ERROR",
       message: "Internal daemon error",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
+    expect(output.staleWithoutOwnerAccepted).toBe(false);
+    expect(output.mixedRecoveryOwnersAccepted).toBe(false);
   });
 
   it("preserves the exact canonical source diagnostic on HTTP conflict classification", () => {
@@ -843,6 +881,7 @@ describe("daemon control plane", () => {
           code: string;
           detail: string;
         };
+        staleAuthorityOwner: null;
       };
     };
 
@@ -855,6 +894,7 @@ describe("daemon control plane", () => {
         workItemId: output.created.id,
         code: "MISSING_SOURCE",
       },
+      staleAuthorityOwner: null,
     });
     expect(output.classified.message).toBe(output.classified.sourceDiagnostic.detail);
   });
@@ -1819,11 +1859,15 @@ describe("daemon control plane", () => {
     expect(output.beforeManifestBytes).toContain('projectId = "document-root"');
     expect(output.afterManifestBytes).toContain('projectId = "document-root"');
     expect(output.allArtifacts).toContainEqual(expect.objectContaining(output.historical));
-    expect(output.currentLifecycle).toContainEqual(expect.objectContaining({
+    expect(output.currentLifecycle).toEqual([]);
+    expect(output.allArtifacts).toContainEqual(expect.objectContaining({
       path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
       role: "PLAN",
     }));
-    const migratedPlan = output.currentLifecycle.find((artifact) => artifact.role === "PLAN");
+    const migratedPlan = output.allArtifacts.find((artifact) =>
+      artifact.role === "PLAN" &&
+      artifact.path === `${targetRoot}/${output.createdId}/implementation-plan.md`
+    );
     expect(migratedPlan?.id).not.toBe(output.historical.id);
   });
 
@@ -2117,6 +2161,24 @@ describe("daemon control plane", () => {
           { headers: { cookie } },
         );
         const absentBody = await absent.json();
+        const invalidAuthorityReconcile = await fetch(
+          origin + "/api/work-items/work_00000000-0000-4000-8000-000000000000/reconcile-authority",
+          {
+            method: "POST",
+            headers: { cookie, origin, "content-type": "application/json" },
+            body: JSON.stringify({ expectedOwner: "EXECUTION" }),
+          },
+        );
+        const invalidAuthorityReconcileBody = await invalidAuthorityReconcile.json();
+        const absentAuthorityReconcile = await fetch(
+          origin + "/api/work-items/work_00000000-0000-4000-8000-000000000000/reconcile-authority",
+          {
+            method: "POST",
+            headers: { cookie, origin, "content-type": "application/json" },
+            body: JSON.stringify({ expectedOwner: "PLAN" }),
+          },
+        );
+        const absentAuthorityReconcileBody = await absentAuthorityReconcile.json();
         const missingOrigin = await fetch(origin + "/api/tick", {
           method: "POST",
           headers: { cookie, "content-type": "application/json" },
@@ -2159,6 +2221,10 @@ describe("daemon control plane", () => {
           malformedBody,
           absentStatus: absent.status,
           absentBody,
+          invalidAuthorityReconcileStatus: invalidAuthorityReconcile.status,
+          invalidAuthorityReconcileBody,
+          absentAuthorityReconcileStatus: absentAuthorityReconcile.status,
+          absentAuthorityReconcileBody,
           missingOrigin: missingOrigin.status,
           wrongOrigin: wrongOrigin.status,
           tickStatus: tick.status,
@@ -2189,12 +2255,27 @@ describe("daemon control plane", () => {
       code: "INVALID_REQUEST",
       message: "request body must contain valid JSON",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.absentStatus).toBe(404);
     expect(output.absentBody).toEqual({
       code: "NOT_FOUND",
       message: "WorkItem does not exist",
       sourceDiagnostic: null,
+      staleAuthorityOwner: null,
+    });
+    expect(output.invalidAuthorityReconcileStatus).toBe(400);
+    expect(output.invalidAuthorityReconcileBody).toMatchObject({
+      code: "INVALID_REQUEST",
+      sourceDiagnostic: null,
+      staleAuthorityOwner: null,
+    });
+    expect(output.absentAuthorityReconcileStatus).toBe(404);
+    expect(output.absentAuthorityReconcileBody).toEqual({
+      code: "NOT_FOUND",
+      message: "WorkItem does not exist",
+      sourceDiagnostic: null,
+      staleAuthorityOwner: null,
     });
     expect(output.missingOrigin).toBe(403);
     expect(output.wrongOrigin).toBe(403);
@@ -2392,7 +2473,7 @@ describe("daemon control plane", () => {
   }, 30_000);
 
 
-  it("binds first R1 baseline to the repository selected by current IDEA source reclassification", () => {
+  it("rejects cross-project IDEA source reclassification outside the owning repository", () => {
     const originalRepository = createRepository("original");
     const reclassifiedRepository = createRepository("reclassified");
     const state = tempDir("order-daemon-r1-reclassification-");
@@ -2403,7 +2484,6 @@ describe("daemon control plane", () => {
     const output = bunEval(`
       const sourceCore = await import("./src/core/work-item-source.ts");
       const sourceShell = await import("./src/shell/work-item-source.ts");
-      const repo = await import("./src/shell/repository.ts");
       const sql = await import("./src/shell/sqlite.ts");
       const coord = await import("./src/daemon/coordinator.ts");
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
@@ -2427,45 +2507,49 @@ describe("daemon control plane", () => {
         title: "reclassify before R1",
         concernIds: ["shell"],
       });
-      const source = sourceShell.readWorkItemSource(runtime.config.repositoryRoots[0], created.sourcePath,
+      const source = sourceShell.readWorkItemSource(
+        runtime.config.repositoryRoots[0],
+        created.sourcePath,
       );
       const changedMarkdown = sourceCore.renderWorkItemSourceMarkdown(
         { ...source.metadata, projectId: "reclassified" },
         source.title,
       );
-      sourceShell.replaceWorkItemSourceFile(runtime.config.repositoryRoots[0], source.path,
+      sourceShell.replaceWorkItemSourceFile(
+        runtime.config.repositoryRoots[0],
+        source.path,
         source.sha256,
         changedMarkdown,
       );
-      const expectedBaseline = await repo.resolveHeadCommit(
-        ${JSON.stringify(reclassifiedRepository)},
-      );
-      const staleBaseline = await repo.resolveHeadCommit(
-        ${JSON.stringify(originalRepository)},
-      );
-      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      const reconciliation = await coord.reconcileSources(runtime);
+      let startError = null;
+      try {
+        await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      } catch (error) {
+        startError = error instanceof Error ? error.message : String(error);
+      }
       const updated = coord.getWorkItem(runtime, created.id);
-      await coord.cancelRun(runtime, run.id);
       console.log(JSON.stringify({
+        codes: reconciliation.diagnostics.map((item) => item.code),
         projectId: updated.projectId,
         repositoryRoot: updated.repositoryRoot,
-        baselineCommit: run.baselineCommit,
-        expectedBaseline,
-        staleBaseline,
+        startError,
+        runCount: coord.listRuns(runtime, created.id).length,
       }));
       database.close();
     `, providerEnvironment(binary, state)) as {
+      codes: string[];
       projectId: string;
       repositoryRoot: string;
-      baselineCommit: string;
-      expectedBaseline: string;
-      staleBaseline: string;
+      startError: string | null;
+      runCount: number;
     };
 
-    expect(output.projectId).toBe("reclassified");
-    expect(output.repositoryRoot).toBe(reclassifiedRepository);
-    expect(output.baselineCommit).toBe(output.expectedBaseline);
-    expect(output.baselineCommit).not.toBe(output.staleBaseline);
+    expect(output.codes).toContain("UNRESOLVED_PROJECT");
+    expect(output.projectId).toBe("original");
+    expect(output.repositoryRoot).toBe(originalRepository);
+    expect(output.startError).toContain("reconciliation is required");
+    expect(output.runCount).toBe(0);
   }, 30_000);
 
   it("enforces same-project terminal investigation/audit lineage and delivery-only remediation", () => {
@@ -2577,20 +2661,14 @@ describe("daemon control plane", () => {
     expect(output.selfCodes).toContain("INVALID_SOURCE");
   });
 
-  it("blocks a schema-invalid R1 completion as semantic conformance failure", () => {
+  it("blocks a schema-invalid R1 provider completion atomically", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-kind-invalid-r1-");
-    const workItemRoot = join(repository, "docs", "order", "work-items");
-    mkdirSync(workItemRoot, { recursive: true });
+    const binary = createFakeOpenCode("stage-invalid-r1");
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
-      const rt = await import("./src/shell/runtime.ts");
       const coord = await import("./src/daemon/coordinator.ts");
-      const authority = await import("./src/daemon/authority.ts");
-      const stage = await import("./src/daemon/stage.ts");
-      const runStore = await import("./src/daemon/run.ts");
-      const repo = await import("./src/shell/repository.ts");
 
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
@@ -2610,56 +2688,32 @@ describe("daemon control plane", () => {
         title: "audit completion mismatch",
         concernIds: ["shell"],
       });
-      sql.promoteIdeaToR1(database, created.id);
-      const workItem = coord.getWorkItem(runtime, created.id);
-      const context = await authority.resolveStageContext(runtime, workItem, "R1");
-      const run = runStore.insertRun(runtime, {
-        id: rt.newRunId(),
-        workItemId: workItem.id,
-        executionTaskId: null,
-        stage: "R1",
-        mode: "INTERACTIVE",
-        role: "STAGE",
-        triggerEventId: null,
-        status: "RUNNING",
-        attempt: runStore.nextAttempt(runtime, workItem.id, "R1", null),
-        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
-        contextHash: context.contextHash,
-        providerSessionId: null,
-        terminalClassification: null,
-        startedAt: rt.nowIsoDateTime(),
-        endedAt: null,
-      });
-      const completion = runStore.appendRunEvent(runtime, run.id, {
-        tag: "STAGE_COMPLETED",
-        completion: { stage: "R1", outcome: "CONFIRMED" },
-        artifactRefIds: [],
-      });
-      const settled = await stage.applyStageCompletion(
-        runtime,
-        run,
-        context,
-        completion,
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
       );
-      const after = coord.getWorkItem(runtime, workItem.id);
-      const failures = runStore.listRunEvents(runtime, run.id)
-        .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
-        .map((event) => event.event.tag === "CONFORMANCE_FAILED"
-          ? event.event.summary
-          : "");
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, created.id);
+      const events = coord.listRunEvents(runtime, run.id);
       console.log(JSON.stringify({
         runStatus: settled.status,
         stage: after.stage,
         status: after.status,
         outcome: after.outcome,
-        failures,
+        completionCount: events.filter((event) => event.event.tag === "STAGE_COMPLETED").length,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
       }));
       database.close();
-    `) as {
+    `, providerEnvironment(binary, state)) as {
       runStatus: string;
       stage: string;
       status: string;
       outcome: string | null;
+      completionCount: number;
       failures: string[];
     };
 
@@ -2668,11 +2722,12 @@ describe("daemon control plane", () => {
       stage: "R1",
       status: "ACTIVE",
       outcome: null,
+      completionCount: 1,
       failures: ["R1 outcome CONFIRMED is invalid for schema audit-v1"],
     });
-  });
+  }, 30_000);
 
-  it("returns AWAITING_SIGNOFF to the stale lifecycle owner when current Markdown diverges", () => {
+  it("keeps sign-off package inspection read-only when current Markdown diverges", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-signoff-recovery-");
 
@@ -2685,25 +2740,104 @@ describe("daemon control plane", () => {
           repositoryRoot + "/docs/plan.md",
           "plan changed after conformance\\n",
         );
+        const beforeWorkItem = coord.getWorkItem(runtime, work);
+        const beforeArtifactCount = coord.listArtifacts(runtime, work).length;
+        const beforeBytes = fsForRecovery.readFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "utf8",
+        );
+        const serverForRecovery = await import("./src/daemon/server.ts");
         let error = null;
+        let classified = null;
         try {
           await coord.computeSignoffPackage(runtime, work);
         } catch (caught) {
           error = caught instanceof Error ? caught.message : String(caught);
+          classified = serverForRecovery.classifyHttpFailure(caught);
         }
         const recovered = coord.getWorkItem(runtime, work);
+        const afterArtifactCount = coord.listArtifacts(runtime, work).length;
+        const afterBytes = fsForRecovery.readFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "utf8",
+        );
+        let wrongOwnerError = null;
+        try {
+          await coord.reconcileWorkItemAuthority(runtime, work, "DESIGN");
+        } catch (caught) {
+          wrongOwnerError = caught instanceof Error ? caught.message : String(caught);
+        }
+        const afterWrongOwner = coord.getWorkItem(runtime, work);
+        const reconciled = await coord.reconcileWorkItemAuthority(runtime, work, "PLAN");
+        const finalArtifactCount = coord.listArtifacts(runtime, work).length;
+        const finalBytes = fsForRecovery.readFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "utf8",
+        );
         console.log(JSON.stringify({
           error,
+          classified,
           stage: recovered.stage,
           status: recovered.status,
+          projectionUnchanged:
+            JSON.stringify(recovered) === JSON.stringify(beforeWorkItem),
+          artifactCountUnchanged: afterArtifactCount === beforeArtifactCount,
+          bytesUnchanged: afterBytes === beforeBytes,
+          wrongOwnerError,
+          wrongOwnerStateUnchanged:
+            JSON.stringify(afterWrongOwner) === JSON.stringify(recovered),
+          reconciled: {
+            stage: reconciled.stage,
+            status: reconciled.status,
+            outcome: reconciled.outcome,
+          },
+          recoveryArtifactCountUnchanged: finalArtifactCount === beforeArtifactCount,
+          recoveryBytesUnchanged: finalBytes === beforeBytes,
         }));
         database.close();
         process.exit(0);
       `,
-    )) as { error: string | null; stage: string; status: string };
+    )) as {
+      error: string | null;
+      classified: {
+        status: number;
+        code: string;
+        message: string;
+        sourceDiagnostic: null;
+        staleAuthorityOwner: string | null;
+      } | null;
+      stage: string;
+      status: string;
+      projectionUnchanged: boolean;
+      artifactCountUnchanged: boolean;
+      bytesUnchanged: boolean;
+      wrongOwnerError: string | null;
+      wrongOwnerStateUnchanged: boolean;
+      reconciled: { stage: string; status: string; outcome: string | null };
+      recoveryArtifactCountUnchanged: boolean;
+      recoveryBytesUnchanged: boolean;
+    };
 
     expect(output.error).toMatch(/missing or stale: PLAN/);
-    expect(output).toMatchObject({ stage: "PLAN", status: "ACTIVE" });
+    expect(output.classified).toMatchObject({
+      status: 409,
+      code: "STALE_AUTHORITY",
+      sourceDiagnostic: null,
+      staleAuthorityOwner: "PLAN",
+    });
+    expect(output).toMatchObject({ stage: "AWAITING_SIGNOFF", status: "ACTIVE" });
+    expect(output.projectionUnchanged).toBe(true);
+    expect(output.artifactCountUnchanged).toBe(true);
+    expect(output.bytesUnchanged).toBe(true);
+    expect(output.wrongOwnerError).toMatch(/owner changed/);
+    expect(output.wrongOwnerStateUnchanged).toBe(true);
+    expect(output.reconciled).toEqual({
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(output.recoveryArtifactCountUnchanged).toBe(true);
+    expect(output.recoveryBytesUnchanged).toBe(true);
   });
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
@@ -2987,6 +3121,7 @@ describe("daemon control plane", () => {
         source.sha256,
         changedMarkdown,
       );
+      await coord.reconcileSources(runtime);
       const after = await authority.resolveStageContext(
         runtime,
         coord.getWorkItem(runtime, id),
@@ -3309,7 +3444,7 @@ describe("daemon control plane", () => {
     expect(output.exact).toContain("# newer source");
     expect(output.exact).not.toContain("not valid");
     expect(output.title).toBe("newer source");
-    expect(output.stage).toBe("R1");
+    expect(output.stage).toBe("IDEA");
   });
 
 
@@ -3468,6 +3603,12 @@ describe("daemon control plane", () => {
         startedAt: rt.nowIsoDateTime(),
         endedAt: null,
       });
+      runStore.appendRunEvent(runtime, waiting.id, {
+        tag: "STAGE_STARTED",
+        stage: "PLAN",
+        mode: "INTERACTIVE",
+        contextHash: context.contextHash,
+      });
       const request = runStore.appendRunEvent(runtime, waiting.id, {
         tag: "HUMAN_INPUT_REQUESTED",
         category: "INFORMATION",
@@ -3486,29 +3627,41 @@ describe("daemon control plane", () => {
       } catch {
         rejected = true;
       }
-      const afterRun = coord.listRuns(runtime, work).find((candidate) => candidate.id === waiting.id);
-      const events = coord.listRunEvents(runtime, waiting.id);
+      const beforeRecovery = {
+        workItem: coord.getWorkItem(runtime, work),
+        run: coord.listRuns(runtime, work).find((candidate) => candidate.id === waiting.id),
+        events: coord.listRunEvents(runtime, waiting.id),
+      };
+      await coord.cancelRun(runtime, waiting.id);
+      await coord.reconcileSources(runtime);
       console.log(JSON.stringify({
         rejected,
-        workItem: coord.getWorkItem(runtime, work),
-        runStatus: afterRun?.status ?? null,
-        receivedCount: events.filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED").length,
-        conformanceFailures: events.filter((event) => event.event.tag === "CONFORMANCE_FAILED").length,
+        beforeRecovery: {
+          workItem: beforeRecovery.workItem,
+          runStatus: beforeRecovery.run?.status ?? null,
+          receivedCount: beforeRecovery.events.filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED").length,
+          conformanceFailures: beforeRecovery.events.filter((event) => event.event.tag === "CONFORMANCE_FAILED").length,
+        },
+        afterRecovery: coord.getWorkItem(runtime, work),
       }));
       database.close();
     `) as {
       rejected: boolean;
-      workItem: { stage: string; status: string };
-      runStatus: string | null;
-      receivedCount: number;
-      conformanceFailures: number;
+      beforeRecovery: {
+        workItem: { stage: string; status: string };
+        runStatus: string | null;
+        receivedCount: number;
+        conformanceFailures: number;
+      };
+      afterRecovery: { stage: string; status: string };
     };
 
     expect(output.rejected).toBe(true);
-    expect(output.workItem).toMatchObject({ stage: "R1", status: "ACTIVE" });
-    expect(output.runStatus).toBe("BLOCKED");
-    expect(output.receivedCount).toBe(0);
-    expect(output.conformanceFailures).toBe(1);
+    expect(output.beforeRecovery.workItem).toMatchObject({ stage: "PLAN", status: "ACTIVE" });
+    expect(output.beforeRecovery.runStatus).toBe("WAITING_FOR_INPUT");
+    expect(output.beforeRecovery.receivedCount).toBe(0);
+    expect(output.beforeRecovery.conformanceFailures).toBe(0);
+    expect(output.afterRecovery).toMatchObject({ stage: "R1", status: "ACTIVE" });
   });
 
   it("rejects a resumed STAGE session after a clean source HEAD advance", () => {
@@ -3611,6 +3764,7 @@ describe("daemon control plane", () => {
         changed,
       );
       const after = await authority.approvalFreshness(runtime, approval);
+      await coord.reconcileSources(runtime);
       const updated = coord.getWorkItem(runtime, work);
       const tasks = await coord.listExecutionTasks(runtime, work);
       console.log(JSON.stringify({
@@ -3828,6 +3982,7 @@ describe("daemon control plane", () => {
       const sql = await import("./src/shell/sqlite.ts");
       const rt = await import("./src/shell/runtime.ts");
       const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
       const run = await import("./src/daemon/run.ts");
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const runtime = coord.createCoordinatorRuntime(
@@ -3888,24 +4043,32 @@ describe("daemon control plane", () => {
       fs.writeFileSync(${JSON.stringify(repository)} + "/docs/plan.md", "plan externally changed\\n");
 
       const current = await coord.listCurrentLifecycleArtifacts(runtime, workItem.id);
-      const content = await coord.readArtifactContent(runtime, current[0].id);
+      const drafts = await authority.currentStageDraftArtifacts(
+        runtime,
+        coord.getWorkItem(runtime, workItem.id),
+        "PLAN",
+      );
+      const content = await coord.readArtifactContent(runtime, drafts[0].id);
       console.log(JSON.stringify({
         count: current.length,
+        draftCount: drafts.length,
         oldId: plan.id,
-        currentId: current[0]?.id ?? null,
-        currentHash: current[0]?.sha256 ?? null,
+        currentId: drafts[0]?.id ?? null,
+        currentHash: drafts[0]?.sha256 ?? null,
         text: new TextDecoder().decode(content),
       }));
       database.close();
     `) as {
       count: number;
+      draftCount: number;
       oldId: string;
       currentId: string | null;
       currentHash: string | null;
       text: string;
     };
 
-    expect(output.count).toBe(1);
+    expect(output.count).toBe(0);
+    expect(output.draftCount).toBe(1);
     expect(output.currentId).not.toBe(output.oldId);
     expect(output.currentHash).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(output.text).toBe("plan externally changed\n");
@@ -4001,6 +4164,8 @@ describe("daemon control plane", () => {
         markdown: "plan after\\n",
       });
       const after = coord.getWorkItem(runtime, workItem.id);
+      const currentLifecycle = await coord.listCurrentLifecycleArtifacts(runtime, workItem.id);
+      const currentPlan = currentLifecycle.find((artifact) => artifact.role === "PLAN") ?? null;
       const drafts = await authority.currentStageDraftArtifacts(runtime, after, "PLAN");
       const contextState = await authority.resolveStageContextState(runtime, after, "PLAN");
       const prompt = await stageOwner.stagePrompt(
@@ -4022,6 +4187,9 @@ describe("daemon control plane", () => {
       console.log(JSON.stringify({
         saved,
         stage: after.stage,
+        originalPlanId: plan.id,
+        currentPlanId: currentPlan?.id ?? null,
+        currentPlanSha256: currentPlan?.sha256 ?? null,
         draftCount: drafts.length,
         draftSha256: drafts[0]?.sha256 ?? null,
         promptHasDraft:
@@ -4035,6 +4203,9 @@ describe("daemon control plane", () => {
     `) as {
       saved: { tag: string; sha256: string };
       stage: string;
+      originalPlanId: string;
+      currentPlanId: string | null;
+      currentPlanSha256: string | null;
       draftCount: number;
       draftSha256: string | null;
       promptHasDraft: boolean;
@@ -4045,6 +4216,9 @@ describe("daemon control plane", () => {
     expect(output.saved.tag).toBe("UPDATED");
     expect(output.saved.sha256).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(output.stage).toBe("PLAN");
+    expect(output.currentPlanId).not.toBeNull();
+    expect(output.currentPlanId).not.toBe(output.originalPlanId);
+    expect(output.currentPlanSha256).toBe(output.saved.sha256);
     expect(output.draftCount).toBe(1);
     expect(output.draftSha256).toBe(output.saved.sha256);
     expect(output.promptHasDraft).toBe(true);
@@ -4113,14 +4287,25 @@ describe("daemon control plane", () => {
         mode: "INTERACTIVE",
         role: "STAGE",
         triggerEventId: null,
-        status: "COMPLETED",
+        status: "RUNNING",
         attempt: 1,
         baselineCommit: baseline,
         contextHash: "sha256:" + "a".repeat(64),
         providerSessionId: null,
         terminalClassification: null,
         startedAt: "2026-11-11T04:00:00.000Z",
-        endedAt: "2026-11-11T04:00:00.000Z",
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "proposal ready",
+        evidence: [],
       });
       const proposal = runStore.appendRunEvent(runtime, run.id, {
         tag: "ARTIFACT_PROPOSAL_CREATED",
@@ -4278,7 +4463,6 @@ describe("daemon control plane", () => {
         driftSource.sha256,
         driftSource.markdown.replace("# fixture", "# changed during builder"),
       );
-      await coord.reconcileSources(runtime);
       fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
       const tick = await tickPromise;
 
@@ -4771,4 +4955,1199 @@ describe("daemon control plane", () => {
     expect(output.afterResume.runs).toHaveLength(1);
     expect(output.afterResume.runs[0]?.status).toBe("CANCELLED");
   }, 30_000);
+
+  it("rejects stale upstream context Start without changing lifecycle state", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stale-context-start-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const fs = await import("node:fs");
+        sql.updateWorkItemLifecycle(database, work, {
+          stage: "PLAN",
+          status: "ACTIVE",
+          outcome: null,
+        });
+        const before = coord.getWorkItem(runtime, work);
+        const runCountBefore = coord.listRuns(runtime, work).length;
+        fs.writeFileSync(
+          repositoryRoot + "/docs/design.md",
+          "design changed after conformance\\n",
+        );
+        let error = null;
+        try {
+          await coord.startStageRun(runtime, work, "INTERACTIVE");
+        } catch (caught) {
+          error = caught instanceof Error ? caught.message : String(caught);
+        }
+        const after = coord.getWorkItem(runtime, work);
+        const runCountAfter = coord.listRuns(runtime, work).length;
+        console.log(JSON.stringify({
+          error,
+          before: {
+            stage: before.stage,
+            status: before.status,
+            outcome: before.outcome,
+          },
+          after: {
+            stage: after.stage,
+            status: after.status,
+            outcome: after.outcome,
+          },
+          runCountUnchanged: runCountAfter === runCountBefore,
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      error: string | null;
+      before: { stage: string; status: string; outcome: string | null };
+      after: { stage: string; status: string; outcome: string | null };
+      runCountUnchanged: boolean;
+    };
+
+    expect(output.error).toMatch(/upstream conformance is missing or stale: DESIGN/);
+    expect(output.after).toEqual(output.before);
+    expect(output.after).toEqual({
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+    expect(output.runCountUnchanged).toBe(true);
+  }, 30_000);
+
+  it("rejects stale upstream context input without changing canonical state", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-stale-context-input-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const fs = await import("node:fs");
+        sql.updateWorkItemLifecycle(database, work, {
+          stage: "PLAN",
+          status: "ACTIVE",
+          outcome: null,
+        });
+        const before = coord.getWorkItem(runtime, work);
+        const run = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: work,
+          executionTaskId: null,
+          stage: "PLAN",
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "WAITING_FOR_INPUT",
+          attempt: runStore.nextAttempt(runtime, work, "PLAN", null),
+          baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+          contextHash: rt.sha256Text("stale-input-context"),
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: timestamp,
+          endedAt: null,
+        });
+        runStore.appendRunEvent(runtime, run.id, {
+          tag: "STAGE_STARTED",
+          stage: "PLAN",
+          mode: "INTERACTIVE",
+          contextHash: run.contextHash,
+        });
+        const requested = runStore.appendRunEvent(runtime, run.id, {
+          tag: "HUMAN_INPUT_REQUESTED",
+          category: "INFORMATION",
+          question: "Confirm the current implementation constraint.",
+        });
+        const beforeEvents = coord.listRunEvents(runtime, run.id);
+        fs.writeFileSync(
+          repositoryRoot + "/docs/design.md",
+          "design changed before human input\\n",
+        );
+        let error = null;
+        try {
+          await coord.submitRunInput(
+            runtime,
+            run.id,
+            "Use the current constraint.",
+            requested.id,
+          );
+        } catch (caught) {
+          error = caught instanceof Error ? caught.message : String(caught);
+        }
+        const after = coord.getWorkItem(runtime, work);
+        const finalRun = coord.getRun(runtime, run.id);
+        const afterEvents = coord.listRunEvents(runtime, run.id);
+        console.log(JSON.stringify({
+          error,
+          before: {
+            stage: before.stage,
+            status: before.status,
+            outcome: before.outcome,
+          },
+          after: {
+            stage: after.stage,
+            status: after.status,
+            outcome: after.outcome,
+          },
+          runStatus: finalRun.status,
+          eventIdsUnchanged:
+            JSON.stringify(afterEvents.map((event) => event.id)) ===
+            JSON.stringify(beforeEvents.map((event) => event.id)),
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      error: string | null;
+      before: { stage: string; status: string; outcome: string | null };
+      after: { stage: string; status: string; outcome: string | null };
+      runStatus: string;
+      eventIdsUnchanged: boolean;
+    };
+
+    expect(output.error).toMatch(/upstream conformance is missing or stale: DESIGN/);
+    expect(output.after).toEqual(output.before);
+    expect(output.runStatus).toBe("WAITING_FOR_INPUT");
+    expect(output.eventIdsUnchanged).toBe(true);
+  }, 30_000);
+
+  it("serializes concurrent Start commands to exactly one Run", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-start-start-");
+    const binary = createFakeOpenCode("fix");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "concurrent start",
+        concernIds: ["shell"],
+      });
+      const settled = await Promise.allSettled([
+        coord.startStageRun(runtime, created.id, "INTERACTIVE"),
+        coord.startStageRun(runtime, created.id, "INTERACTIVE"),
+      ]);
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const runs = coord.listRuns(runtime, created.id);
+      const active = runs.find((run) =>
+        run.status === "RUNNING" || run.status === "WAITING_FOR_INPUT"
+      );
+      if (active) await coord.cancelRun(runtime, active.id);
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        rejected: settled
+          .filter((entry) => entry.status === "rejected")
+          .map((entry) => String(entry.reason)),
+        runCount: runs.length,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      states: string[];
+      rejected: string[];
+      runCount: number;
+    };
+
+    expect(output.states.filter((state) => state === "fulfilled")).toHaveLength(1);
+    expect(output.states.filter((state) => state === "rejected")).toHaveLength(1);
+    expect(output.runCount).toBe(1);
+  }, 30_000);
+
+  it("serializes source Save against Start without partial lifecycle mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-save-start-");
+    const binary = createFakeOpenCode("fix");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "save versus start",
+        concernIds: ["shell"],
+      });
+      const source = await coord.getWorkItemSource(runtime, created.id);
+      const body = source.bodyMarkdown.replace(
+        "## Current context\\n",
+        "## Current context\\nSaved before Start wins the mutation guard.\\n",
+      );
+      const settled = await Promise.allSettled([
+        coord.saveSourceBody(runtime, created.id, {
+          expectedSha256: source.sha256,
+          bodyMarkdown: body,
+        }),
+        coord.startStageRun(runtime, created.id, "INTERACTIVE"),
+      ]);
+      const current = coord.getWorkItem(runtime, created.id);
+      const saved = await coord.getWorkItemSource(runtime, created.id);
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        current: { stage: current.stage, status: current.status },
+        runCount: coord.listRuns(runtime, created.id).length,
+        body: saved.bodyMarkdown,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      states: string[];
+      current: { stage: string; status: string };
+      runCount: number;
+      body: string;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.current).toEqual({ stage: "IDEA", status: "ACTIVE" });
+    expect(output.runCount).toBe(0);
+    expect(output.body).toContain("Saved before Start wins the mutation guard.");
+  }, 30_000);
+
+  it("serializes duplicate human input to one accepted response", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-input-input-");
+    const binary = createFakeOpenCode("stage-delay");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "duplicate input",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const context = await authority.resolveStageContext(runtime, workItem, "R1");
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "WAITING_FOR_INPUT",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: context.contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: context.contextHash,
+      });
+      const request = runStore.appendRunEvent(runtime, run.id, {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "Choose once",
+      });
+      const settled = await Promise.allSettled([
+        coord.submitRunInput(runtime, run.id, "first answer", request.id),
+        coord.submitRunInput(runtime, run.id, "second answer", request.id),
+      ]);
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const current = coord.getRun(runtime, run.id);
+      if (current.status === "RUNNING" || current.status === "WAITING_FOR_INPUT") {
+        await coord.cancelRun(runtime, run.id);
+      }
+      const received = coord.listRunEvents(runtime, run.id)
+        .filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED");
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        received: received.map((event) =>
+          event.event.tag === "HUMAN_INPUT_RECEIVED" ? event.event.text : null
+        ),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      states: string[];
+      received: (string | null)[];
+    };
+
+    expect(output.states.filter((state) => state === "fulfilled")).toHaveLength(1);
+    expect(output.states.filter((state) => state === "rejected")).toHaveLength(1);
+    expect(output.received).toEqual(["first answer"]);
+  }, 30_000);
+
+  it("serializes human input against Cancel and preserves one command winner", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-input-cancel-");
+    const binary = createFakeOpenCode("stage-delay");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "input versus cancel",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const context = await authority.resolveStageContext(runtime, workItem, "R1");
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "WAITING_FOR_INPUT",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: context.contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: context.contextHash,
+      });
+      const request = runStore.appendRunEvent(runtime, run.id, {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "Answer before cancel",
+      });
+      const input = coord.submitRunInput(runtime, run.id, "accepted answer", request.id);
+      const cancel = coord.cancelRun(runtime, run.id);
+      const settled = await Promise.allSettled([input, cancel]);
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const beforeCleanup = coord.getRun(runtime, run.id);
+      if (beforeCleanup.status === "RUNNING" || beforeCleanup.status === "WAITING_FOR_INPUT") {
+        await coord.cancelRun(runtime, run.id);
+      }
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        receivedCount: coord.listRunEvents(runtime, run.id)
+          .filter((event) => event.event.tag === "HUMAN_INPUT_RECEIVED").length,
+        beforeCleanupStatus: beforeCleanup.status,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      states: string[];
+      receivedCount: number;
+      beforeCleanupStatus: string;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.receivedCount).toBe(1);
+    expect(output.beforeCleanupStatus).toBe("RUNNING");
+  }, 30_000);
+
+  it("rejects Cancel when the Run is already terminal", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-cancel-terminal-");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "terminal cancel",
+        concernIds: ["shell"],
+      });
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: rt.sha256Text("terminal-cancel"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: rt.nowIsoDateTime(),
+      });
+      let error = null;
+      try {
+        await coord.cancelRun(runtime, run.id);
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      console.log(JSON.stringify({
+        error,
+        finalStatus: coord.getRun(runtime, run.id).status,
+      }));
+      database.close();
+    `) as { error: string | null; finalStatus: string };
+
+    expect(output.error).toMatch(/Run is not cancellable/);
+    expect(output.finalStatus).toBe("COMPLETED");
+  });
+
+  it("makes Cancel win over a delayed provider finalization without lifecycle mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-provider-cancel-");
+    const binary = createFakeOpenCode("stage-complete-delay");
+    const providerStarted = join(binary, "..", "provider-started");
+    const providerRelease = join(binary, "..", "provider-release");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "provider finalization versus cancel",
+        concernIds: ["shell"],
+      });
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      for (
+        let attempt = 0;
+        attempt < 500 && !fs.existsSync(${JSON.stringify(providerStarted)});
+        attempt += 1
+      ) {
+        await Bun.sleep(10);
+      }
+      const cancelled = await coord.cancelRun(runtime, run.id);
+      fs.writeFileSync(${JSON.stringify(providerRelease)}, "release");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const finalRun = coord.getRun(runtime, run.id);
+      const finalWorkItem = coord.getWorkItem(runtime, created.id);
+      const completions = coord.listRunEvents(runtime, run.id)
+        .filter((event) => event.event.tag === "STAGE_COMPLETED").length;
+      console.log(JSON.stringify({
+        cancelled: cancelled.status,
+        finalRun: finalRun.status,
+        finalWorkItem: {
+          stage: finalWorkItem.stage,
+          status: finalWorkItem.status,
+        },
+        completions,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      cancelled: string;
+      finalRun: string;
+      finalWorkItem: { stage: string; status: string };
+      completions: number;
+    };
+
+    expect(output.cancelled).toBe("CANCELLED");
+    expect(output.finalRun).toBe("CANCELLED");
+    expect(output.finalWorkItem).toEqual({ stage: "R1", status: "ACTIVE" });
+    expect(output.completions).toBe(0);
+  }, 30_000);
+
+
+  it("rejects lifecycle proposal decisions whose role does not match the owning Run", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-proposal-role-owner-");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "proposal role ownership",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const contextHash = rt.sha256Text("proposal-role-owner");
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "invalid proposal follows",
+        evidence: [],
+      });
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath:
+          "docs/order/work-items/" + workItem.id + "/requirements.md",
+        baseSha256: null,
+        role: "R2",
+        authorityLayer: "P3",
+        unifiedDiff: "--- /dev/null\\n+++ requirements.md\\n@@ -0,0 +1 @@\\n+invalid\\n",
+        rationale: "must be rejected because the R1 Run cannot own R2 authority",
+      });
+
+      let rejectError = null;
+      try {
+        coord.rejectArtifactProposal(runtime, proposal.id);
+      } catch (caught) {
+        rejectError = caught instanceof Error ? caught.message : String(caught);
+      }
+      let adoptError = null;
+      try {
+        await coord.adoptArtifactProposal(runtime, proposal.id);
+      } catch (caught) {
+        adoptError = caught instanceof Error ? caught.message : String(caught);
+      }
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        rejectError,
+        adoptError,
+        dispositions: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+        ).length,
+        adoptionRequests: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ).length,
+        stage: coord.getWorkItem(runtime, workItem.id).stage,
+      }));
+      database.close();
+    `) as {
+      rejectError: string | null;
+      adoptError: string | null;
+      dispositions: number;
+      adoptionRequests: number;
+      stage: string;
+    };
+
+    expect(output.rejectError).toMatch(/proposal role must equal owning Run stage/);
+    expect(output.adoptError).toMatch(/proposal role must equal owning Run stage/);
+    expect(output.dispositions).toBe(0);
+    expect(output.adoptionRequests).toBe(0);
+    expect(output.stage).toBe("R1");
+  });
+
+  it("serializes proposal adoption against free-form input", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-adopt-input-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "adopt versus input",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const proposalPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      const absoluteProposal = path.join(${JSON.stringify(repository)}, proposalPath);
+      fs.writeFileSync(absoluteProposal, "accepted\\n");
+      const proposalDiff = Bun.spawnSync(
+        ["git", "diff", "--no-index", "--binary", "--", "/dev/null", proposalPath],
+        {
+          cwd: ${JSON.stringify(repository)},
+          stdout: "pipe",
+          stderr: "pipe",
+        },
+      );
+      if (proposalDiff.exitCode !== 1) {
+        throw new TypeError("failed to create proposal diff");
+      }
+      const diff = new TextDecoder().decode(proposalDiff.stdout);
+      fs.rmSync(absoluteProposal);
+
+      const contextHash = "sha256:" + "a".repeat(64);
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash,
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "proposal follows",
+        evidence: [],
+      });
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: proposalPath,
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: diff,
+        rationale: "adopt exactly once",
+      });
+
+      const settled = await Promise.allSettled([
+        coord.adoptArtifactProposal(runtime, proposal.id),
+        coord.submitRunInput(runtime, run.id, "must not be accepted", null),
+      ]);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        states: settled.map((entry) => entry.status),
+        adoptionRequests: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ).length,
+        dispositions: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+        ).map((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+            ? event.event.disposition
+            : null
+        ),
+        receivedCount: events.filter((event) =>
+          event.event.tag === "HUMAN_INPUT_RECEIVED"
+        ).length,
+        content: fs.readFileSync(absoluteProposal, "utf8"),
+      }));
+      database.close();
+    `) as {
+      states: string[];
+      adoptionRequests: number;
+      dispositions: (string | null)[];
+      receivedCount: number;
+      content: string;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.adoptionRequests).toBe(1);
+    expect(output.dispositions).toEqual(["ADOPTED"]);
+    expect(output.receivedCount).toBe(0);
+    expect(output.content).toBe("accepted\n");
+  }, 30_000);
+
+  it("serializes sign-off against an upstream source mutation", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-signoff-source-race-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const currentSource = await coord.getWorkItemSource(runtime, work);
+        const proposedBody = currentSource.bodyMarkdown.replace(
+          "## Current context\\\\n",
+          "## Current context\\\\nThis source change must lose to sign-off.\\\\n",
+        );
+        const inspected = await coord.computeSignoffPackage(runtime, work);
+        const settled = await Promise.allSettled([
+          coord.signOffWorkItem(
+            runtime,
+            work,
+            inspected.packageHash,
+            "race operator",
+          ),
+          coord.saveSourceBody(runtime, work, {
+            expectedSha256: currentSource.sha256,
+            bodyMarkdown: proposedBody,
+          }),
+        ]);
+        const finalWorkItem = coord.getWorkItem(runtime, work);
+        const finalSource = await coord.getWorkItemSource(runtime, work);
+        console.log(JSON.stringify({
+          states: settled.map((entry) => entry.status),
+          finalWorkItem: {
+            stage: finalWorkItem.stage,
+            status: finalWorkItem.status,
+          },
+          sourceUnchanged: finalSource.sha256 === currentSource.sha256,
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      states: string[];
+      finalWorkItem: { stage: string; status: string };
+      sourceUnchanged: boolean;
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.finalWorkItem).toEqual({
+      stage: "EXECUTION",
+      status: "ACTIVE",
+    });
+    expect(output.sourceUnchanged).toBe(true);
+  }, 30_000);
+
+  it("serializes duplicate stale-authority reconciliation to one lifecycle return", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-authority-reconcile-race-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        const fs = await import("node:fs");
+        fs.writeFileSync(
+          repositoryRoot + "/docs/plan.md",
+          "plan changed before authority reconciliation\\n",
+        );
+        const settled = await Promise.allSettled([
+          coord.reconcileWorkItemAuthority(runtime, work, "PLAN"),
+          coord.reconcileWorkItemAuthority(runtime, work, "PLAN"),
+        ]);
+        const finalWorkItem = coord.getWorkItem(runtime, work);
+        console.log(JSON.stringify({
+          states: settled.map((entry) => entry.status),
+          finalWorkItem: {
+            stage: finalWorkItem.stage,
+            status: finalWorkItem.status,
+            outcome: finalWorkItem.outcome,
+          },
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      states: string[];
+      finalWorkItem: {
+        stage: string;
+        status: string;
+        outcome: string | null;
+      };
+    };
+
+    expect(output.states).toEqual(["fulfilled", "rejected"]);
+    expect(output.finalWorkItem).toEqual({
+      stage: "PLAN",
+      status: "ACTIVE",
+      outcome: null,
+    });
+  }, 30_000);
+
+  it("rejects pre-signoff Resume while a Run remains active", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-resume-active-run-");
+
+    const output = bunEval(seedSignoffScript(
+      repository,
+      state,
+      `
+        sql.updateWorkItemLifecycle(database, work, {
+          stage: "PLAN",
+          status: "BLOCKED",
+          outcome: null,
+        });
+        const active = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: work,
+          executionTaskId: null,
+          stage: "PLAN",
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "RUNNING",
+          attempt: runStore.nextAttempt(runtime, work, "PLAN", null),
+          baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+          contextHash: rt.sha256Text("blocked-active-run"),
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: timestamp,
+          endedAt: null,
+        });
+        let error = null;
+        try {
+          await coord.resumeWorkItem(runtime, work);
+        } catch (caught) {
+          error = caught instanceof Error ? caught.message : String(caught);
+        }
+        const finalWorkItem = coord.getWorkItem(runtime, work);
+        const finalRun = coord.getRun(runtime, active.id);
+        console.log(JSON.stringify({
+          error,
+          finalWorkItem: {
+            stage: finalWorkItem.stage,
+            status: finalWorkItem.status,
+          },
+          runStatus: finalRun.status,
+        }));
+        database.close();
+        process.exit(0);
+      `,
+    )) as {
+      error: string | null;
+      finalWorkItem: { stage: string; status: string };
+      runStatus: string;
+    };
+
+    expect(output.error).toMatch(/cannot resume while a Run is active/);
+    expect(output.finalWorkItem).toEqual({
+      stage: "PLAN",
+      status: "BLOCKED",
+    });
+    expect(output.runStatus).toBe("RUNNING");
+  }, 30_000);
+
+  it("rejects Resume when approval currentness changes during admission", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-resume-currentness-race-");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      const fs = await import("node:fs");
+      const task = (await coord.listExecutionTasks(runtime, work))[0];
+      database.query(
+        "UPDATE executionTasks SET state='BLOCKED' WHERE id=?1",
+      ).run(task.id);
+      sql.updateWorkItemLifecycle(database, work, {
+        stage: "EXECUTION",
+        status: "BLOCKED",
+        outcome: null,
+      });
+
+      const resume = coord.resumeWorkItem(runtime, work);
+      fs.writeFileSync(
+        repositoryRoot + "/docs/plan.md",
+        "plan changed during resume admission\\n",
+      );
+      let error = null;
+      try {
+        await resume;
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      const finalWorkItem = coord.getWorkItem(runtime, work);
+      const finalTask = (await coord.listExecutionTasks(runtime, work))[0];
+      console.log(JSON.stringify({
+        error,
+        finalWorkItem: {
+          stage: finalWorkItem.stage,
+          status: finalWorkItem.status,
+        },
+        taskState: finalTask.state,
+      }));
+      database.close();
+    `) as {
+      error: string | null;
+      finalWorkItem: { stage: string; status: string };
+      taskState: string;
+    };
+
+    expect(output.error).toMatch(/resume preconditions are not satisfied/);
+    expect(output.finalWorkItem).toEqual({
+      stage: "EXECUTION",
+      status: "BLOCKED",
+    });
+    expect(output.taskState).toBe("BLOCKED");
+  }, 30_000);
+
+
+  it("keeps source inspection observational across external source drift", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-source-read-purity-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "source read purity",
+        concernIds: ["shell"],
+      });
+      const source = sourceShell.readWorkItemSource(
+        created.repositoryRoot,
+        created.sourcePath,
+      );
+      const changed = sourceShell.replaceWorkItemSourceFile(
+        created.repositoryRoot,
+        source.path,
+        source.sha256,
+        source.markdown.replace(
+          "# source read purity",
+          "# externally changed source read purity",
+        ),
+      );
+      if (changed.tag !== "UPDATED") {
+        throw new TypeError("external source fixture update failed");
+      }
+      const absolute = path.join(created.repositoryRoot, created.sourcePath);
+      const bytesBefore = fs.readFileSync(absolute, "utf8");
+      const projectionBefore = coord.getWorkItem(runtime, created.id);
+      const inspected = await coord.getWorkItemSource(runtime, created.id);
+      const projectionAfter = coord.getWorkItem(runtime, created.id);
+      const bytesAfter = fs.readFileSync(absolute, "utf8");
+      console.log(JSON.stringify({
+        inspectedChanged: inspected.sha256 !== projectionBefore.sourceSha256,
+        projectionUnchanged:
+          JSON.stringify(projectionAfter) === JSON.stringify(projectionBefore),
+        bytesUnchanged: bytesAfter === bytesBefore,
+        canonicalTitle: projectionAfter.title,
+      }));
+      database.close();
+    `) as {
+      inspectedChanged: boolean;
+      projectionUnchanged: boolean;
+      bytesUnchanged: boolean;
+      canonicalTitle: string;
+    };
+
+    expect(output.inspectedChanged).toBe(true);
+    expect(output.projectionUnchanged).toBe(true);
+    expect(output.bytesUnchanged).toBe(true);
+    expect(output.canonicalTitle).toBe("source read purity");
+  });
+
+  it("keeps lifecycle-artifact inspection from materializing changed repository bytes", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-artifact-read-purity-");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "artifact read purity",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const canonical = await authority.currentFileArtifact(
+        runtime,
+        workItem,
+        "docs/r1.md",
+        "R1",
+        "P1",
+      );
+      fs.writeFileSync(
+        ${JSON.stringify(repository)} + "/docs/r1.md",
+        "externally changed r1\\n",
+      );
+      const bytesBefore = fs.readFileSync(
+        ${JSON.stringify(repository)} + "/docs/r1.md",
+        "utf8",
+      );
+      const projectionBefore = coord.getWorkItem(runtime, created.id);
+      const artifactCountBefore = coord.listArtifacts(runtime, created.id).length;
+      const current = await coord.listCurrentLifecycleArtifacts(runtime, created.id);
+      const projectionAfter = coord.getWorkItem(runtime, created.id);
+      const artifactCountAfter = coord.listArtifacts(runtime, created.id).length;
+      const bytesAfter = fs.readFileSync(
+        ${JSON.stringify(repository)} + "/docs/r1.md",
+        "utf8",
+      );
+      console.log(JSON.stringify({
+        staleArtifactExcluded: !current.some((artifact) => artifact.id === canonical.id),
+        projectionUnchanged:
+          JSON.stringify(projectionAfter) === JSON.stringify(projectionBefore),
+        artifactCountUnchanged: artifactCountAfter === artifactCountBefore,
+        bytesUnchanged: bytesAfter === bytesBefore,
+      }));
+      database.close();
+    `) as {
+      staleArtifactExcluded: boolean;
+      projectionUnchanged: boolean;
+      artifactCountUnchanged: boolean;
+      bytesUnchanged: boolean;
+    };
+
+    expect(output).toEqual({
+      staleArtifactExcluded: true,
+      projectionUnchanged: true,
+      artifactCountUnchanged: true,
+      bytesUnchanged: true,
+    });
+  });
+
 });

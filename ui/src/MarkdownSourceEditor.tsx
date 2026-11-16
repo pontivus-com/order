@@ -34,65 +34,65 @@ const orderEditorTheme = EditorView.theme({
   "&": {
     height: "100%",
     minHeight: "0",
-    backgroundColor: "var(--order-editor-bg)",
-    color: "var(--order-editor-text)",
-    border: "1px solid var(--order-editor-border)",
+    backgroundColor: "var(--color-background-surface)",
+    color: "var(--color-text-primary)",
+    border: "1px solid var(--color-border-emphasized)",
   },
   "&.cm-focused": {
-    outline: "2px solid var(--order-editor-accent)",
-    outlineOffset: "-2px",
+    outline: "var(--focus-outline-width) var(--focus-outline-style) var(--focus-outline-color)",
+    outlineOffset: "var(--focus-outline-offset)",
   },
   ".cm-scroller": {
     height: "100%",
     minHeight: "0",
     overflow: "auto",
-    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+    fontFamily: "var(--font-family-code)",
     lineHeight: "1.55",
   },
   ".cm-content": {
     minHeight: "100%",
-    padding: "0.75rem 0",
-    caretColor: "var(--order-editor-accent)",
+    padding: "var(--spacing-3) 0",
+    caretColor: "var(--color-text-accent)",
   },
   ".cm-line": {
-    padding: "0 0.85rem",
+    padding: "0 var(--spacing-3)",
   },
   ".cm-cursor, .cm-dropCursor": {
-    borderLeftColor: "var(--order-editor-accent)",
+    borderLeftColor: "var(--color-text-accent)",
   },
   ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
-    backgroundColor: "var(--order-editor-selection-bg)",
+    backgroundColor: "var(--color-info-muted)",
   },
   ".cm-activeLine": {
-    backgroundColor: "var(--order-editor-active-line-bg)",
+    backgroundColor: "var(--color-background-muted)",
   },
   ".cm-gutters": {
-    backgroundColor: "var(--order-editor-gutter-bg)",
-    color: "var(--order-editor-gutter-text)",
-    borderRight: "1px solid var(--order-editor-border)",
+    backgroundColor: "var(--color-background-muted)",
+    color: "var(--color-text-secondary)",
+    borderRight: "1px solid var(--color-border-emphasized)",
   },
   ".cm-activeLineGutter": {
-    backgroundColor: "var(--order-editor-active-line-bg)",
-    color: "var(--order-editor-text)",
+    backgroundColor: "var(--color-background-muted)",
+    color: "var(--color-text-primary)",
   },
   ".cm-panels": {
-    backgroundColor: "var(--order-editor-gutter-bg)",
-    color: "var(--order-editor-text)",
+    backgroundColor: "var(--color-background-muted)",
+    color: "var(--color-text-primary)",
   },
   ".cm-panel.cm-search": {
-    borderBottom: "1px solid var(--order-editor-border)",
+    borderBottom: "1px solid var(--color-border-emphasized)",
   },
   ".cm-searchMatch": {
-    backgroundColor: "var(--order-editor-search-bg)",
-    outline: "1px solid var(--order-editor-search-outline)",
+    backgroundColor: "var(--color-warning-muted)",
+    outline: "1px solid var(--color-text-warning)",
   },
   ".cm-searchMatch.cm-searchMatch-selected": {
-    backgroundColor: "var(--order-editor-selection-bg)",
+    backgroundColor: "var(--color-info-muted)",
   },
   ".cm-tooltip": {
-    backgroundColor: "var(--order-editor-bg)",
-    color: "var(--order-editor-text)",
-    border: "1px solid var(--order-editor-border)",
+    backgroundColor: "var(--color-background-surface)",
+    color: "var(--color-text-primary)",
+    border: "1px solid var(--color-border-emphasized)",
   },
 });
 
@@ -106,23 +106,23 @@ const orderMarkdownHighlight = HighlightStyle.define([
       tags.heading5,
       tags.heading6,
     ],
-    color: "var(--order-editor-accent)",
+    color: "var(--color-text-primary)",
     fontWeight: "700",
   },
   { tag: tags.strong, fontWeight: "700" },
   { tag: tags.emphasis, fontStyle: "italic" },
   {
     tag: [tags.link, tags.url],
-    color: "var(--order-editor-link)",
+    color: "var(--color-text-accent)",
     textDecoration: "underline",
   },
-  { tag: tags.monospace, color: "var(--order-editor-code)" },
+  { tag: tags.monospace, color: "var(--color-text-primary)" },
   {
     tag: tags.quote,
-    color: "var(--order-editor-muted)",
+    color: "var(--color-text-secondary)",
     fontStyle: "italic",
   },
-  { tag: tags.list, color: "var(--order-editor-accent)" },
+  { tag: tags.list, color: "var(--color-text-primary)" },
   {
     tag: [
       tags.processingInstruction,
@@ -130,9 +130,9 @@ const orderMarkdownHighlight = HighlightStyle.define([
       tags.contentSeparator,
       tags.punctuation,
     ],
-    color: "var(--order-editor-muted)",
+    color: "var(--color-text-secondary)",
   },
-  { tag: tags.comment, color: "var(--order-editor-muted)" },
+  { tag: tags.comment, color: "var(--color-text-secondary)" },
 ]);
 
 const minimalChange = (

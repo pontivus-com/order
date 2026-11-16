@@ -35,6 +35,10 @@ const uuidI = "99999999-9999-4999-8999-999999999999";
 const commit = "a".repeat(40);
 const hash = `sha256:${"a".repeat(64)}`;
 const stamp = "2026-11-14T00:00:00.000Z";
+const reachedAll = new Set<WorkItem["stage"]>([
+  "IDEA", "R1", "R2", "DESIGN", "PLAN", "R3",
+  "AWAITING_SIGNOFF", "EXECUTION", "COMPLETE",
+]);
 
 const workItem = (
   stage: WorkItem["stage"],
@@ -148,12 +152,93 @@ const executionRun = (
         : null,
   });
 
+type MaterialFixtureInput = Omit<
+  Parameters<typeof resolveWorkflowMaterial>[0],
+  "currentStageRunId" | "currentAttention" | "stageInteraction" | "executionOwner"
+> & Readonly<{
+  currentStageRunId?: Run["id"] | null;
+  currentAttention?: Parameters<typeof resolveWorkflowMaterial>[0]["currentAttention"];
+  stageInteraction?: Parameters<typeof resolveWorkflowMaterial>[0]["stageInteraction"];
+  executionOwner?: Parameters<typeof resolveWorkflowMaterial>[0]["executionOwner"];
+  unresolvedInputRunId?: Run["id"] | null;
+}>;
+
+const resolveFixtureMaterial = (
+  input: MaterialFixtureInput,
+): WorkflowMaterial => {
+  const currentRun = [...input.runs]
+    .filter((run) => run.role === "STAGE" && run.stage === input.workItem.stage)
+    .sort((left, right) =>
+      left.attempt - right.attempt ||
+      left.startedAt.localeCompare(right.startedAt) ||
+      left.id.localeCompare(right.id))
+    .at(-1) ?? null;
+
+  let stageInteraction = input.stageInteraction ?? null;
+  let currentAttention = input.currentAttention ?? "ORDINARY";
+  if (currentRun !== null && stageInteraction === null) {
+    if (
+      input.unresolvedInputRunId !== undefined &&
+      input.unresolvedInputRunId === currentRun.id
+    ) {
+      stageInteraction = {
+        tag: "REQUIRED_INPUT",
+        requestEventId: `event_${uuidI}`,
+      };
+      if (currentAttention === "ORDINARY") currentAttention = "REQUIRED_INPUT";
+    } else if (
+      currentRun.status === "RUNNING" ||
+      currentRun.status === "WAITING_FOR_INPUT"
+    ) {
+      stageInteraction = { tag: "OPEN" };
+    } else {
+      stageInteraction = { tag: "CLOSED" };
+    }
+  }
+  if (currentAttention === "ORDINARY" && currentRun?.status === "BLOCKED") {
+    currentAttention = "BLOCKER";
+  } else if (
+    currentAttention === "ORDINARY" &&
+    (currentRun?.status === "FAILED" || currentRun?.status === "CANCELLED")
+  ) {
+    currentAttention = "RECOVERY";
+  } else if (
+    currentAttention === "ORDINARY" &&
+    input.pendingProposal !== undefined &&
+    input.pendingProposal !== null
+  ) {
+    currentAttention = "PROPOSAL_DECISION";
+  }
+
+  const tasks = input.tasks ?? [];
+  const executionOwner =
+    input.executionOwner ??
+    (() => {
+      const blocked = tasks.find((task) => task.state === "BLOCKED");
+      if (blocked) return { tag: "BLOCKED_TASK" as const, taskId: blocked.id };
+      const running = tasks.find((task) => task.state === "RUNNING");
+      if (running) return { tag: "CURRENT_TASK" as const, taskId: running.id };
+      return { tag: "NONE" as const };
+    })();
+
+  return resolveWorkflowMaterial({
+    ...input,
+    currentStageRunId: input.currentStageRunId ?? currentRun?.id ?? null,
+    currentStageRunActive:
+      currentRun?.status === "RUNNING" || currentRun?.status === "WAITING_FOR_INPUT",
+    currentAttention,
+    stageInteraction,
+    executionOwner,
+  });
+};
+
 describe("workflow presentation policy", () => {
   it("projects current, historical and unreached workflow steps", () => {
     const current = workItem("PLAN");
-    expect(workflowStepState(current, "PLAN")).toBe("CURRENT");
-    expect(workflowStepState(current, "R1")).toBe("HISTORICAL");
-    expect(workflowStepState(current, "R3")).toBe("UNREACHED");
+    const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "PLAN"]);
+    expect(workflowStepState(current, reached, "PLAN")).toBe("CURRENT");
+    expect(workflowStepState(current, reached, "R1")).toBe("HISTORICAL");
+    expect(workflowStepState(current, reached, "R3")).toBe("UNREACHED");
   });
 
   it("resolves current pre-signoff material by the canonical priority", () => {
@@ -167,6 +252,7 @@ describe("workflow presentation policy", () => {
     };
 
     const base = {
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1" as const,
       runs: [failed, waiting, running],
@@ -175,18 +261,18 @@ describe("workflow presentation policy", () => {
       pendingProposal: proposal,
     };
 
-    expect(resolveWorkflowMaterial(base)).toEqual({
+    expect(resolveFixtureMaterial(base)).toEqual({
       kind: "STAGE_RUN",
       runId: failed.id,
     });
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
       ...base,
       runs: [waiting, running],
     })).toEqual({
       kind: "STAGE_RUN",
       runId: waiting.id,
     });
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
       ...base,
       runs: [waiting],
       unresolvedInputRunId: null,
@@ -203,7 +289,7 @@ describe("workflow presentation policy", () => {
       runId: running.id,
       eventId: proposal.eventId,
     };
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
       ...base,
       runs: [running],
       unresolvedInputRunId: null,
@@ -213,7 +299,7 @@ describe("workflow presentation policy", () => {
       runId: runningProposal.runId,
       eventId: runningProposal.eventId,
     });
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
       ...base,
       runs: [running],
       unresolvedInputRunId: null,
@@ -222,7 +308,7 @@ describe("workflow presentation policy", () => {
       kind: "STAGE_RUN",
       runId: running.id,
     });
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
       ...base,
       runs: [],
       unresolvedInputRunId: null,
@@ -231,7 +317,7 @@ describe("workflow presentation policy", () => {
       kind: "STAGE_DOCUMENT",
       artifactId: research.id,
     });
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
       ...base,
       runs: [],
       artifacts: [],
@@ -246,7 +332,8 @@ describe("workflow presentation policy", () => {
     const oldRun = stageRun("R1", "COMPLETED", 1, uuidC);
     const newerRun = stageRun("R1", "COMPLETED", 2, uuidD);
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: current,
       selectedStep: "R1",
       runs: [newerRun, oldRun],
@@ -256,7 +343,8 @@ describe("workflow presentation policy", () => {
       artifactId: research.id,
     });
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: current,
       selectedStep: "R1",
       runs: [newerRun, oldRun],
@@ -269,21 +357,24 @@ describe("workflow presentation policy", () => {
 
   it("resolves Readiness, Approval, Implementation and Complete without generic modes", () => {
     const blocked = stageRun("R3", "BLOCKED", 1, uuidB);
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R3"),
       selectedStep: "R3",
       runs: [blocked],
       artifacts: [],
     })).toEqual({ kind: "STAGE_RUN", runId: blocked.id });
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R3"),
       selectedStep: "R3",
       runs: [],
       artifacts: [],
     })).toEqual({ kind: "READINESS_REVIEW" });
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("AWAITING_SIGNOFF"),
       selectedStep: "AWAITING_SIGNOFF",
       runs: [],
@@ -291,9 +382,19 @@ describe("workflow presentation policy", () => {
       approvalPackageAvailable: true,
     })).toEqual({ kind: "APPROVAL_PACKAGE" });
 
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "AWAITING_SIGNOFF",
+      runs: [],
+      artifacts: [],
+      approvalPackageAvailable: false,
+    })).toEqual({ kind: "STEP_STATE" });
+
     const executionTask = task(uuidC, "RUNNING");
     const run = executionRun(executionTask, "RUNNING", uuidD);
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("EXECUTION"),
       selectedStep: "EXECUTION",
       runs: [run],
@@ -305,7 +406,8 @@ describe("workflow presentation policy", () => {
       runId: run.id,
     });
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("COMPLETE", "CANDIDATE_DONE"),
       selectedStep: "COMPLETE",
       runs: [],
@@ -313,7 +415,64 @@ describe("workflow presentation policy", () => {
     })).toEqual({ kind: "TERMINAL_RESULT" });
   });
 
-  it("preserves safe explicit selection but promotes required attention", () => {
+  it("treats a missing execution-owner task as transport convergence only", () => {
+    const executionTask = task(uuidC, "RUNNING");
+    const run = executionRun(executionTask, "RUNNING", uuidD);
+    const input = {
+      workItem: workItem("EXECUTION"),
+      selectedStep: "EXECUTION" as const,
+      reachedStages: reachedAll,
+      runs: [run],
+      artifacts: [],
+      currentStageRunId: null,
+      stageInteraction: null,
+      executionOwner: {
+        tag: "CURRENT_TASK" as const,
+        taskId: executionTask.id,
+      },
+      tasks: [],
+    };
+
+    expect(resolveWorkflowMaterial({
+      ...input,
+      currentAttention: "CONVERGING",
+    })).toEqual({ kind: "STEP_STATE" });
+
+    expect(() => resolveWorkflowMaterial({
+      ...input,
+      currentAttention: "ORDINARY",
+    })).toThrow(/execution owner must identify a loaded ExecutionTask/);
+  });
+
+  it("keeps an active current STAGE Run stable during transport convergence", () => {
+    const plan = artifact("PLAN", uuidB);
+    const running = stageRun("PLAN", "RUNNING", 1, uuidC);
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN",
+      runs: [running],
+      artifacts: [plan],
+      currentAttention: "CONVERGING",
+      stageInteraction: null,
+    })).toEqual({ kind: "STAGE_RUN", runId: running.id });
+  });
+
+  it("keeps canonical lifecycle document material stable during transport convergence", () => {
+    const plan = artifact("PLAN", uuidB);
+    const completed = stageRun("PLAN", "COMPLETED", 1, uuidC);
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN",
+      runs: [completed],
+      artifacts: [plan],
+      currentAttention: "CONVERGING",
+      stageInteraction: { tag: "CLOSED" },
+    })).toEqual({ kind: "STAGE_DOCUMENT", artifactId: plan.id });
+  });
+
+  it("preserves available explicit selection independently of current attention", () => {
     const research = artifact("R1", uuidB);
     const running = stageRun("R1", "RUNNING", 1, uuidC);
     const failed = stageRun("R1", "FAILED", 2, uuidD);
@@ -322,7 +481,8 @@ describe("workflow presentation policy", () => {
       artifactId: research.id,
     };
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [running],
@@ -331,19 +491,18 @@ describe("workflow presentation policy", () => {
       dirtyDocument: false,
     })).toEqual(explicit);
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [failed],
       artifacts: [research],
       explicitSelection: explicit,
       dirtyDocument: false,
-    })).toEqual({
-      kind: "STAGE_RUN",
-      runId: failed.id,
-    });
+    })).toEqual(explicit);
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [failed],
@@ -352,7 +511,8 @@ describe("workflow presentation policy", () => {
       dirtyDocument: true,
     })).toEqual(explicit);
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("R1"),
       selectedStep: "R1",
       runs: [running],
@@ -374,7 +534,8 @@ describe("workflow presentation policy", () => {
       eventId: `event_${uuidC}`,
     };
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("PLAN"),
       selectedStep: "PLAN",
       runs: [running],
@@ -384,11 +545,12 @@ describe("workflow presentation policy", () => {
     })).toEqual(explicit);
   });
 
-  it("promotes current blocking attention above an explicitly selected historical attempt", () => {
+  it("keeps explicit historical inspection while current attention remains independently owned", () => {
     const selectedAttempt = stageRun("PLAN", "FAILED", 2, uuidB);
     const currentBlocker = stageRun("PLAN", "BLOCKED", 4, uuidC);
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("PLAN"),
       selectedStep: "PLAN",
       runs: [selectedAttempt, currentBlocker],
@@ -398,7 +560,8 @@ describe("workflow presentation policy", () => {
       runId: currentBlocker.id,
     });
 
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: reachedAll,
       workItem: workItem("PLAN"),
       selectedStep: "PLAN",
       runs: [selectedAttempt, currentBlocker],
@@ -409,7 +572,7 @@ describe("workflow presentation policy", () => {
       },
     })).toEqual({
       kind: "STAGE_RUN",
-      runId: currentBlocker.id,
+      runId: selectedAttempt.id,
     });
   });
 
@@ -463,7 +626,8 @@ describe("workflow presentation policy", () => {
   });
 
   it("returns an explicit unreached material without mutating lifecycle meaning", () => {
-    expect(resolveWorkflowMaterial({
+    expect(resolveFixtureMaterial({
+      reachedStages: new Set<WorkItem["stage"]>(["IDEA", "R1"]),
       workItem: workItem("R1"),
       selectedStep: "PLAN",
       runs: [],

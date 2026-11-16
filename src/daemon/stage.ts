@@ -24,7 +24,11 @@ import {
 } from "../core/governance.ts";
 import {
   artifactReturnOwner,
-  evaluateStageCompletion,
+  deriveProposalDecision,
+  stageInputIsAdmitted,
+  stageRunInteraction,
+  transitionWorkItem,
+  validateStageProviderTurn,
 } from "../core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
@@ -56,15 +60,17 @@ import {
   workspacePathForRun,
 } from "../shell/runtime.ts";
 import {
-  promoteIdeaToR1,
   loadWorkItems,
-  setWorkItemStatus,
   storeArtifact,
   storeArtifactDependency,
   updateWorkItemLifecycle,
   withTransaction,
 } from "../shell/sqlite.ts";
-import { type CoordinatorRuntime } from "./runtime.ts";
+import {
+  type CoordinatorRuntime,
+  withWorkItemOperatorMutation,
+  withWorkItemOperatorMutationSync,
+} from "./runtime.ts";
 import {
   activeRunStatuses,
   appendRunEvent,
@@ -78,6 +84,7 @@ import {
   nextAttempt,
   persistProviderEvents,
   recordProviderDiagnostics,
+  validatePayloadEvidence,
   renderArtifacts,
   stopActiveProvider,
   updateRun,
@@ -127,31 +134,6 @@ const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
           `Canonical SignedTaskBlock JSON Schema: ${SignedTaskBlockJsonSchemaText}`,
         ].join("\n")
       : "";
-
-const blockStageRunForContextChange = (
-  runtime: CoordinatorRuntime,
-  run: Run,
-  returnTo: PreSignoffStage,
-  summary: string,
-): Run =>
-  withTransaction(runtime.database, () => {
-    appendRunEvent(runtime, run.id, {
-      tag: "CONFORMANCE_FAILED",
-      stage: run.stage,
-      defectiveLayer: null,
-      summary,
-      evidence: [],
-    });
-    updateWorkItemLifecycle(runtime.database, run.workItemId, {
-      stage: returnTo,
-      status: "ACTIVE",
-      outcome: null,
-    });
-    return updateRun(runtime, run.id, {
-      status: "BLOCKED",
-      endedAt: nowIsoDateTime(),
-    });
-  });
 
 export const stageDecisionText: Record<PreSignoffStage, string> = {
   R1: "Establish facts/root cause only. Do not invent product behavior, architecture, or implementation.",
@@ -208,57 +190,100 @@ export const stagePrompt = async (
   ].filter((value) => value.length > 0).join("\n\n");
 };
 
-export const applyStageCompletion = async (
+const persistStageCompletionBatch = async (
   runtime: CoordinatorRuntime,
   run: Run,
-  context: ResolvedContext,
-  completionEvent: RunEvent,
-): Promise<Run> => {
-  if (completionEvent.event.tag !== "STAGE_COMPLETED") {
-    throw new TypeError("expected STAGE_COMPLETED");
-  }
-  const completion = completionEvent.event.completion;
+  payloads: readonly RunEventPayload[],
+  completionPayload: Extract<RunEventPayload, { tag: "STAGE_COMPLETED" }>,
+): Promise<Readonly<{ run: Run; persisted: readonly RunEvent[] }>> => {
+  const completion = completionPayload.completion;
   if (!isPreSignoffStage(run.stage) || completion.stage !== run.stage) {
     throw new TypeError("stage completion does not match Run stage");
   }
 
   const workItem = getWorkItem(runtime, run.workItemId);
   const current = await resolveStageContextState(runtime, workItem, run.stage);
-  if (
+  const staleReturnTo =
     current.staleStage !== null ||
     current.context.contextHash !== run.contextHash
-  ) {
-    const returnTo = current.staleStage ?? run.stage;
-    return blockStageRunForContextChange(
-      runtime,
-      run,
-      returnTo,
-      current.staleStage === null
-        ? "stage context changed before promotion"
-        : `upstream conformance is missing or stale: ${current.staleStage}`,
-    );
-  }
+      ? current.staleStage ?? run.stage
+      : null;
 
-  const outputArtifacts = completionEvent.event.artifactRefIds.map((id) => getArtifact(runtime, id));
+  const outputArtifacts = completionPayload.artifactRefIds.map((id) =>
+    getArtifact(runtime, id)
+  );
   for (const artifact of outputArtifacts) {
     if (
       artifact.workItemId !== run.workItemId ||
       artifact.role !== artifactRoleForStage(run.stage) ||
-      sha256(readWorkingTreeFile(workItem.repositoryRoot, artifact.repositoryPath)) !== artifact.sha256
+      sha256(
+        readWorkingTreeFile(
+          workItem.repositoryRoot,
+          artifact.repositoryPath,
+        ),
+      ) !== artifact.sha256
     ) {
-      throw new TypeError("stage completion references an invalid or stale output ArtifactRef");
+      throw new TypeError(
+        "stage completion references an invalid or stale output ArtifactRef",
+      );
     }
   }
 
-  const allowedR1Completions = completion.stage === "R1"
-    ? allowedR1CompletionsForSchema(workItem.schemaId)
-    : null;
-  if (
+  const allowedR1Completions =
+    completion.stage === "R1"
+      ? allowedR1CompletionsForSchema(workItem.schemaId)
+      : null;
+  const invalidR1Outcome =
     completion.stage === "R1" &&
-    (allowedR1Completions === null ||
-      !allowedR1Completions.includes(completion.outcome))
-  ) {
-    return withTransaction(runtime.database, () => {
+    (
+      allowedR1Completions === null ||
+      !allowedR1Completions.includes(completion.outcome)
+    );
+
+  return withTransaction(runtime.database, () => {
+    const currentRun = getRun(runtime, run.id);
+    if (currentRun.status === "CANCELLED") {
+      return { run: currentRun, persisted: [] };
+    }
+    if (currentRun.status !== "RUNNING") {
+      throw new TypeError(
+        `STAGE Run cannot accept provider result from status ${currentRun.status}`,
+      );
+    }
+
+    const persisted = persistProviderEvents(runtime, currentRun, payloads);
+    const currentWorkItem = getWorkItem(runtime, run.workItemId);
+
+    if (staleReturnTo !== null) {
+      const transition = transitionWorkItem(currentWorkItem, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: staleReturnTo,
+      });
+      appendRunEvent(runtime, run.id, {
+        tag: "CONFORMANCE_FAILED",
+        stage: run.stage,
+        defectiveLayer: null,
+        summary:
+          current.staleStage === null
+            ? "stage context changed before promotion"
+            : `upstream conformance is missing or stale: ${current.staleStage}`,
+        evidence: [],
+      });
+      updateWorkItemLifecycle(runtime.database, run.workItemId, transition);
+      return {
+        persisted,
+        run: updateRun(runtime, run.id, {
+          status: "BLOCKED",
+          endedAt: nowIsoDateTime(),
+        }),
+      };
+    }
+
+    if (invalidR1Outcome) {
+      const transition = transitionWorkItem(currentWorkItem, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: "R1",
+      });
       appendRunEvent(runtime, run.id, {
         tag: "CONFORMANCE_FAILED",
         stage: "R1",
@@ -267,28 +292,29 @@ export const applyStageCompletion = async (
           `R1 outcome ${completion.outcome} is invalid for schema ${workItem.schemaId}`,
         evidence: [],
       });
-      updateWorkItemLifecycle(runtime.database, workItem.id, {
-        stage: "R1",
-        status: "ACTIVE",
-        outcome: null,
-      });
-      return updateRun(runtime, run.id, {
-        status: "BLOCKED",
-        endedAt: nowIsoDateTime(),
-      });
-    });
-  }
+      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
+      return {
+        persisted,
+        run: updateRun(runtime, run.id, {
+          status: "BLOCKED",
+          endedAt: nowIsoDateTime(),
+        }),
+      };
+    }
 
-  const transition = evaluateStageCompletion(
-    getWorkItem(runtime, workItem.id),
-    completion,
-    allowedR1Completions,
-  );
-  return withTransaction(runtime.database, () => {
+    const transition = transitionWorkItem(
+      currentWorkItem,
+      { tag: "STAGE_COMPLETED", completion },
+      allowedR1Completions,
+    );
     for (const output of outputArtifacts) {
       for (const dependency of current.context.artifacts) {
         if (output.id === dependency.id) continue;
-        storeArtifactDependency(runtime.database, output.id, dependency.id);
+        storeArtifactDependency(
+          runtime.database,
+          output.id,
+          dependency.id,
+        );
       }
     }
     appendRunEvent(runtime, run.id, {
@@ -299,36 +325,97 @@ export const applyStageCompletion = async (
       evidence: [],
     });
     updateWorkItemLifecycle(runtime.database, workItem.id, transition);
-    return updateRun(runtime, run.id, {
-      status: "COMPLETED",
-      endedAt: nowIsoDateTime(),
-    });
+    return {
+      persisted,
+      run: updateRun(runtime, run.id, {
+        status: "COMPLETED",
+        endedAt: nowIsoDateTime(),
+      }),
+    };
   });
 };
 
-export const reactToStageEvents = async (
+const persistAndReactStageBatch = async (
   runtime: CoordinatorRuntime,
   run: Run,
-  context: ResolvedContext,
-  events: readonly RunEvent[],
-): Promise<Run> => {
-  const requested = events.findLast((event) => event.event.tag === "HUMAN_INPUT_REQUESTED");
-  if (requested !== undefined) {
-    return updateRun(runtime, run.id, { status: "WAITING_FOR_INPUT" });
+  payloads: readonly RunEventPayload[],
+): Promise<Readonly<{ run: Run; persisted: readonly RunEvent[] }>> => {
+  const currentRun = getRun(runtime, run.id);
+  if (currentRun.status === "CANCELLED") {
+    return { run: currentRun, persisted: [] };
   }
-  const blocked = events.findLast((event) => event.event.tag === "STAGE_BLOCKED");
-  if (blocked !== undefined) {
-    return withTransaction(runtime.database, () => {
-      setWorkItemStatus(runtime.database, run.workItemId, "BLOCKED");
-      return updateRun(runtime, run.id, {
-        status: "BLOCKED",
-        endedAt: nowIsoDateTime(),
+  validateStageProviderTurn(
+    currentRun,
+    listRunEvents(runtime, currentRun.id),
+    payloads,
+  );
+  for (const payload of payloads) {
+    validatePayloadEvidence(runtime, currentRun.id, payload);
+  }
+
+  const completion = payloads.find(
+    (payload): payload is Extract<
+      RunEventPayload,
+      { tag: "STAGE_COMPLETED" }
+    > => payload.tag === "STAGE_COMPLETED",
+  );
+  if (completion !== undefined) {
+    return persistStageCompletionBatch(
+      runtime,
+      currentRun,
+      payloads,
+      completion,
+    );
+  }
+
+  return withTransaction(runtime.database, () => {
+    const recheckedRun = getRun(runtime, currentRun.id);
+    if (recheckedRun.status === "CANCELLED") {
+      return { run: recheckedRun, persisted: [] };
+    }
+    if (recheckedRun.status !== "RUNNING") {
+      throw new TypeError(
+        `STAGE Run cannot accept provider result from status ${recheckedRun.status}`,
+      );
+    }
+
+    const persisted = persistProviderEvents(runtime, recheckedRun, payloads);
+    const requested = persisted.findLast(
+      (event) => event.event.tag === "HUMAN_INPUT_REQUESTED",
+    );
+    if (requested !== undefined) {
+      return {
+        persisted,
+        run: updateRun(runtime, recheckedRun.id, {
+          status: "WAITING_FOR_INPUT",
+        }),
+      };
+    }
+
+    const blocked = persisted.findLast(
+      (event) => event.event.tag === "STAGE_BLOCKED",
+    );
+    if (blocked !== undefined) {
+      const workItem = getWorkItem(runtime, recheckedRun.workItemId);
+      const transition = transitionWorkItem(workItem, {
+        tag: "BLOCK_CURRENT_OWNER",
       });
-    });
-  }
-  const completed = events.findLast((event) => event.event.tag === "STAGE_COMPLETED");
-  if (completed !== undefined) return applyStageCompletion(runtime, run, context, completed);
-  return getRun(runtime, run.id);
+      updateWorkItemLifecycle(
+        runtime.database,
+        recheckedRun.workItemId,
+        transition,
+      );
+      return {
+        persisted,
+        run: updateRun(runtime, recheckedRun.id, {
+          status: "BLOCKED",
+          endedAt: nowIsoDateTime(),
+        }),
+      };
+    }
+
+    return { persisted, run: getRun(runtime, recheckedRun.id) };
+  });
 };
 
 export const runStageTurn = async (
@@ -344,7 +431,6 @@ export const runStageTurn = async (
   const initialCancellation = cancelledStageRun(runtime, run.id);
   if (initialCancellation !== null) return initialCancellation;
 
-  let persisted: readonly RunEvent[];
   let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
     const workItem = getWorkItem(runtime, run.workItemId);
@@ -446,7 +532,16 @@ export const runStageTurn = async (
         );
       },
     );
-    persisted = persistProviderEvents(runtime, run, events);
+    const reaction = await persistAndReactStageBatch(
+      runtime,
+      run,
+      events,
+    );
+    const reacted = reaction.run;
+    if (!activeRunStatuses.has(reacted.status)) {
+      await stopActiveProvider(runtime, run.id);
+    }
+    return reacted;
   } catch (error) {
     await stopActiveProvider(runtime, run.id);
     const classification = productiveInvocationFailureClassification(error);
@@ -460,17 +555,6 @@ export const runStageTurn = async (
           diagnosticEvidence,
         );
   }
-
-  const reacted = await reactToStageEvents(
-    runtime,
-    getRun(runtime, run.id),
-    context,
-    persisted,
-  );
-  if (!activeRunStatuses.has(reacted.status)) {
-    await stopActiveProvider(runtime, run.id);
-  }
-  return reacted;
 };
 
 const scheduleStageTurn = (
@@ -478,8 +562,15 @@ const scheduleStageTurn = (
   run: Run,
   triggeringEventId: RunEventId,
   context: ResolvedContext,
+  userInput?: string,
 ): void => {
-  const task = runStageTurn(runtime, run, triggeringEventId, context);
+  const task = runStageTurn(
+    runtime,
+    run,
+    triggeringEventId,
+    context,
+    userInput,
+  );
   runtime.stageTurnTasks.set(run.id, task);
   void task.then(
     () => {
@@ -499,7 +590,7 @@ const scheduleStageTurn = (
   );
 };
 
-export const startStageRun = async (
+const startStageRunUnlocked = async (
   runtime: CoordinatorRuntime,
   workItemId: WorkItemId,
   mode: RunMode,
@@ -517,13 +608,6 @@ export const startStageRun = async (
 
   const contextState = await resolveStageContextState(runtime, workItem, targetStage);
   if (contextState.staleStage !== null) {
-    withTransaction(runtime.database, () => {
-      updateWorkItemLifecycle(runtime.database, workItem.id, {
-        stage: contextState.staleStage!,
-        status: "ACTIVE",
-        outcome: null,
-      });
-    });
     throw new TypeError(
       `current upstream conformance is missing or stale: ${contextState.staleStage}`,
     );
@@ -532,8 +616,22 @@ export const startStageRun = async (
   const currentWorkItem = getWorkItem(runtime, workItem.id);
   const baselineCommit = await resolveHeadCommit(currentWorkItem.repositoryRoot);
   const run = withTransaction(runtime.database, () => {
+    const recheckedWorkItem = getWorkItem(runtime, workItem.id);
+    const activeRun = listRuns(runtime, workItem.id)
+      .find((candidate) => activeRunStatuses.has(candidate.status));
+    if (activeRun !== undefined) {
+      throw new TypeError("WorkItem already has an active Run");
+    }
     if (storedWorkItem.stage === "IDEA") {
-      promoteIdeaToR1(runtime.database, workItem.id);
+      const transition = transitionWorkItem(recheckedWorkItem, {
+        tag: "START_RESEARCH",
+      });
+      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
+    } else if (
+      recheckedWorkItem.stage !== workItem.stage ||
+      recheckedWorkItem.status !== "ACTIVE"
+    ) {
+      throw new TypeError("WorkItem lifecycle changed before Run creation");
     }
     const value = insertRun(runtime, RunSchema.parse({
       id: newRunId(),
@@ -565,7 +663,18 @@ export const startStageRun = async (
   return run.value;
 };
 
-export const submitRunInput = async (
+export const startStageRun = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  mode: RunMode,
+): Promise<Run> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => startStageRunUnlocked(runtime, workItemId, mode),
+  );
+
+const submitRunInputUnlocked = async (
   runtime: CoordinatorRuntime,
   runId: RunId,
   text: string,
@@ -578,25 +687,21 @@ export const submitRunInput = async (
   if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") {
     throw new TypeError("Run is not accepting human input");
   }
-  if (requestEventId !== null) {
-    const request = getRunEvent(runtime, requestEventId);
-    if (
-      request.runId !== run.id ||
-      request.event.tag !== "HUMAN_INPUT_REQUESTED"
-    ) {
-      throw new TypeError("requestEventId does not identify this Run's human-input request");
-    }
+  const currentEvents = listRunEvents(runtime, run.id);
+  const proposal = deriveProposalDecision(currentEvents);
+  if (proposal.tag !== "NONE") {
+    throw new TypeError(
+      "human input is unavailable while a lifecycle proposal requires disposition",
+    );
+  }
+  const interaction = stageRunInteraction(run, currentEvents);
+  if (!stageInputIsAdmitted(interaction, requestEventId)) {
+    throw new TypeError("human input is not admitted by the current STAGE interaction");
   }
 
   const workItem = getWorkItem(runtime, run.workItemId);
   const contextState = await resolveStageContextState(runtime, workItem, run.stage);
   if (contextState.staleStage !== null) {
-    blockStageRunForContextChange(
-      runtime,
-      run,
-      contextState.staleStage,
-      `upstream conformance is missing or stale: ${contextState.staleStage}`,
-    );
     await stopActiveProvider(runtime, run.id);
     throw new TypeError(
       `current upstream conformance is missing or stale: ${contextState.staleStage}`,
@@ -609,23 +714,47 @@ export const submitRunInput = async (
   }
 
   const received = withTransaction(runtime.database, () => {
-    if (run.status === "WAITING_FOR_INPUT") {
-      updateRun(runtime, run.id, { status: "RUNNING" });
+    const currentRun = getRun(runtime, run.id);
+    if (
+      currentRun.status !== "RUNNING" &&
+      currentRun.status !== "WAITING_FOR_INPUT"
+    ) {
+      throw new TypeError("Run stopped accepting human input before commit");
+    }
+    const currentEvents = listRunEvents(runtime, currentRun.id);
+    if (deriveProposalDecision(currentEvents).tag !== "NONE") {
+      throw new TypeError(
+        "lifecycle proposal became current before human input commit",
+      );
+    }
+    const currentInteraction = stageRunInteraction(currentRun, currentEvents);
+    if (!stageInputIsAdmitted(currentInteraction, requestEventId)) {
+      throw new TypeError("human input admission changed before commit");
+    }
+    const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
+    if (
+      currentWorkItem.stage !== currentRun.stage ||
+      currentWorkItem.status !== "ACTIVE"
+    ) {
+      throw new TypeError("WorkItem lifecycle changed before human input commit");
+    }
+    if (currentRun.status === "WAITING_FOR_INPUT") {
+      updateRun(runtime, currentRun.id, { status: "RUNNING" });
     }
     if (contextChanged) {
-      updateRun(runtime, run.id, {
+      updateRun(runtime, currentRun.id, {
         contextHash: context.contextHash,
         providerSessionId: null,
       });
     }
-    return appendRunEvent(runtime, run.id, {
+    return appendRunEvent(runtime, currentRun.id, {
       tag: "HUMAN_INPUT_RECEIVED",
       requestEventId,
       text,
     });
   });
 
-  await runStageTurn(
+  scheduleStageTurn(
     runtime,
     getRun(runtime, run.id),
     received.id,
@@ -633,6 +762,20 @@ export const submitRunInput = async (
     text,
   );
   return received;
+};
+
+export const submitRunInput = (
+  runtime: CoordinatorRuntime,
+  runId: RunId,
+  text: string,
+  requestEventId: RunEventId | null,
+): Promise<RunEvent> => {
+  const run = getRun(runtime, runId);
+  return withWorkItemOperatorMutation(
+    runtime,
+    run.workItemId,
+    () => submitRunInputUnlocked(runtime, runId, text, requestEventId),
+  );
 };
 
 export const proposalDisposition = (
@@ -655,7 +798,50 @@ export const proposalAdoptionRequest = (
       event.event.proposalEventId === proposal.id
     ) ?? null;
 
-export const adoptArtifactProposal = async (
+const lifecycleProposalRole = (
+  role: ArtifactRef["role"],
+): role is PreSignoffStage =>
+  role === "R1" ||
+  role === "R2" ||
+  role === "DESIGN" ||
+  role === "PLAN" ||
+  role === "R3";
+
+const requireCurrentProposalDecision = (
+  runtime: CoordinatorRuntime,
+  proposal: RunEvent,
+  run: Run,
+): ReturnType<typeof deriveProposalDecision> => {
+  const currentRun = getRun(runtime, run.id);
+  const workItem = getWorkItem(runtime, currentRun.workItemId);
+  if (
+    workItem.stage !== currentRun.stage ||
+    workItem.status !== "ACTIVE"
+  ) {
+    throw new TypeError("proposal Run no longer owns the current WorkItem stage");
+  }
+  const events = listRunEvents(runtime, currentRun.id);
+  if (stageRunInteraction(currentRun, events).tag !== "OPEN") {
+    throw new TypeError("proposal decision requires an OPEN current STAGE Run");
+  }
+  const decision = deriveProposalDecision(events);
+  if (
+    decision.tag === "NONE" ||
+    decision.proposalEventId !== proposal.id
+  ) {
+    throw new TypeError("proposal is not the single current proposal decision");
+  }
+  if (
+    proposal.event.tag === "ARTIFACT_PROPOSAL_CREATED" &&
+    lifecycleProposalRole(proposal.event.role) &&
+    proposal.event.role !== currentRun.stage
+  ) {
+    throw new TypeError("lifecycle proposal role must equal owning Run stage");
+  }
+  return decision;
+};
+
+const adoptArtifactProposalUnlocked = async (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
 ): Promise<ArtifactRef> => {
@@ -671,6 +857,7 @@ export const adoptArtifactProposal = async (
   if (!isPreSignoffStage(run.stage)) {
     throw new TypeError("artifact proposals are pre-signoff only");
   }
+  const initialDecision = requireCurrentProposalDecision(runtime, proposal, run);
   if (
     workItem.stage === "EXECUTION" ||
     workItem.stage === "COMPLETE"
@@ -679,13 +866,7 @@ export const adoptArtifactProposal = async (
   }
 
   const project = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  if (
-    proposal.event.role === "R1" ||
-    proposal.event.role === "R2" ||
-    proposal.event.role === "DESIGN" ||
-    proposal.event.role === "PLAN" ||
-    proposal.event.role === "R3"
-  ) {
+  if (lifecycleProposalRole(proposal.event.role)) {
     const expectedPath = workItemDocumentPath(
       project.workItems.root,
       workItem.id,
@@ -699,6 +880,11 @@ export const adoptArtifactProposal = async (
   }
 
   let adoptionRequested = proposalAdoptionRequest(runtime, proposal) !== null;
+  if (
+    adoptionRequested !== (initialDecision.tag === "ADOPTION_IN_PROGRESS")
+  ) {
+    throw new TypeError("proposal adoption intent does not match current proposal decision");
+  }
   if (!adoptionRequested) {
     await verifyProposalPatchAdoption(
       workItem.repositoryRoot,
@@ -707,7 +893,25 @@ export const adoptArtifactProposal = async (
       proposal.event.unifiedDiff,
     );
     withTransaction(runtime.database, () => {
-      appendRunEvent(runtime, run.id, {
+      const currentRun = getRun(runtime, run.id);
+      const currentDecision = requireCurrentProposalDecision(
+        runtime,
+        proposal,
+        currentRun,
+      );
+      if (
+        currentDecision.tag !== "PENDING" ||
+        currentDecision.proposalEventId !== proposal.id
+      ) {
+        throw new TypeError("proposal is no longer pending before adoption intent commit");
+      }
+      if (proposalDisposition(runtime, proposal) !== null) {
+        throw new TypeError("artifact proposal was dispositioned before adoption intent commit");
+      }
+      if (proposalAdoptionRequest(runtime, proposal) !== null) {
+        throw new TypeError("artifact proposal adoption intent was already recorded");
+      }
+      appendRunEvent(runtime, currentRun.id, {
         tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
         proposalEventId: proposal.id,
       });
@@ -733,6 +937,26 @@ export const adoptArtifactProposal = async (
   });
 
   withTransaction(runtime.database, () => {
+    if (proposalDisposition(runtime, proposal) !== null) {
+      throw new TypeError("artifact proposal was dispositioned during adoption");
+    }
+    const currentRun = getRun(runtime, run.id);
+    const currentDecision = requireCurrentProposalDecision(
+      runtime,
+      proposal,
+      currentRun,
+    );
+    if (
+      currentDecision.tag !== "ADOPTION_IN_PROGRESS" ||
+      currentDecision.proposalEventId !== proposal.id
+    ) {
+      throw new TypeError("proposal adoption is no longer the current decision");
+    }
+    const currentWorkItem = getWorkItem(runtime, workItem.id);
+    const transition = transitionWorkItem(currentWorkItem, {
+      tag: "LIFECYCLE_ARTIFACT_CHANGED",
+      owner: artifactReturnOwner(artifact),
+    });
     storeArtifact(runtime.database, artifact);
     appendRunEvent(runtime, run.id, {
       tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
@@ -740,13 +964,22 @@ export const adoptArtifactProposal = async (
       disposition: "ADOPTED",
       adoptedArtifactRefId: artifact.id,
     });
-    updateWorkItemLifecycle(runtime.database, workItem.id, {
-      stage: artifactReturnOwner(artifact),
-      status: "ACTIVE",
-      outcome: null,
-    });
+    updateWorkItemLifecycle(runtime.database, workItem.id, transition);
   });
   return artifact;
+};
+
+export const adoptArtifactProposal = (
+  runtime: CoordinatorRuntime,
+  proposalEventId: RunEventId,
+): Promise<ArtifactRef> => {
+  const proposal = getRunEvent(runtime, proposalEventId);
+  const run = getRun(runtime, proposal.runId);
+  return withWorkItemOperatorMutation(
+    runtime,
+    run.workItemId,
+    () => adoptArtifactProposalUnlocked(runtime, proposalEventId),
+  );
 };
 
 export const reconcilePendingArtifactProposals = async (
@@ -765,7 +998,7 @@ export const reconcilePendingArtifactProposals = async (
   }
 };
 
-export const rejectArtifactProposal = (
+const rejectArtifactProposalUnlocked = (
   runtime: CoordinatorRuntime,
   proposalEventId: RunEventId,
 ): RunEvent => {
@@ -779,12 +1012,45 @@ export const rejectArtifactProposal = (
   if (proposalAdoptionRequest(runtime, proposal) !== null) {
     throw new TypeError("artifact proposal adoption is already in progress");
   }
-  return withTransaction(runtime.database, () =>
-    appendRunEvent(runtime, proposal.runId, {
+  const run = getRun(runtime, proposal.runId);
+  const decision = requireCurrentProposalDecision(runtime, proposal, run);
+  if (
+    decision.tag !== "PENDING" ||
+    decision.proposalEventId !== proposal.id
+  ) {
+    throw new TypeError("proposal is not pending for rejection");
+  }
+  return withTransaction(runtime.database, () => {
+    const currentRun = getRun(runtime, run.id);
+    const currentDecision = requireCurrentProposalDecision(
+      runtime,
+      proposal,
+      currentRun,
+    );
+    if (
+      currentDecision.tag !== "PENDING" ||
+      currentDecision.proposalEventId !== proposal.id
+    ) {
+      throw new TypeError("proposal is no longer pending before rejection commit");
+    }
+    return appendRunEvent(runtime, proposal.runId, {
       tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
       proposalEventId: proposal.id,
       disposition: "REJECTED",
       adoptedArtifactRefId: null,
-    })
+    });
+  });
+};
+
+export const rejectArtifactProposal = (
+  runtime: CoordinatorRuntime,
+  proposalEventId: RunEventId,
+): RunEvent => {
+  const proposal = getRunEvent(runtime, proposalEventId);
+  const run = getRun(runtime, proposal.runId);
+  return withWorkItemOperatorMutationSync(
+    runtime,
+    run.workItemId,
+    () => rejectArtifactProposalUnlocked(runtime, proposalEventId),
   );
 };

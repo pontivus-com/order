@@ -23,6 +23,7 @@ import {
   StartOpenCodeAccountLoginSchema,
   SetWorkItemArchivedSchema,
   OrderHttpErrorSchema,
+  ReconcileWorkItemAuthoritySchema,
   RunEventSchema,
   ProjectManifestSchema,
   RunSchema,
@@ -58,6 +59,7 @@ import {
   type OpenCodeModelRef,
   type OrderConfigState,
   type OrderHttpError,
+  type ReconcileWorkItemAuthority,
   type RemoveOpenCodeAccount,
   type RenameOpenCodeAccount,
   type StartOpenCodeAccountLogin,
@@ -94,6 +96,12 @@ export const isOrderHttpRequestFailure = (
   typeof error.status === "number" &&
   "orderError" in error &&
   OrderHttpErrorSchema.safeParse(error.orderError).success;
+
+export const isCurrentStateConflict = (
+  error: unknown,
+): error is OrderHttpRequestFailure =>
+  isOrderHttpRequestFailure(error) &&
+  error.orderError.code === "CURRENT_STATE_CONFLICT";
 
 const requestFailure = (
   status: number,
@@ -144,6 +152,13 @@ export const listWorkItems = async (): Promise<readonly WorkItem[]> =>
 
 export const listWorkItemsIncludingArchived = async (): Promise<readonly WorkItem[]> =>
   WorkItemSchema.array().parse(await json("/api/work-items?includeArchived=true"));
+
+export const getWorkItem = async (
+  workItemId: WorkItemId,
+): Promise<WorkItem> =>
+  WorkItemSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}`,
+  ));
 
 export const listWorkItemSchemas = async (): Promise<readonly WorkItemSchemaCatalogEntry[]> =>
   WorkItemSchemaCatalogEntrySchema.array().parse(await json("/api/work-item-schemas"));
@@ -300,6 +315,15 @@ export const resumeWorkItem = async (
   WorkItemSchema.parse(await json(
     `/api/work-items/${encodeURIComponent(workItemId)}/resume`,
     mutation("POST", {}),
+  ));
+
+export const reconcileWorkItemAuthority = async (
+  workItemId: WorkItemId,
+  input: ReconcileWorkItemAuthority,
+): Promise<WorkItem> =>
+  WorkItemSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/reconcile-authority`,
+    mutation("POST", ReconcileWorkItemAuthoritySchema.parse(input)),
   ));
 
 export const signOffWorkItem = async (

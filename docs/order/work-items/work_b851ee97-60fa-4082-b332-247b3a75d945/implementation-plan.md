@@ -8,6 +8,27 @@
 
 The single-task structure is mandatory under `GW-DOC-CANONICAL-CONTRACTS-V1`: ExecutionTask dependencies control eligibility only and every task starts from the same Approval baseline. Later tasks do not receive earlier candidate bytes. Because the Workbench state/UI remediation is one cumulative repository transition, splitting the following units into separately signed dependent tasks would be semantically incorrect.
 
+## 2026-11-15 upstream contract-correction amendment
+
+Implementation evidence exposed one producer/consumer gap in the previously closed state design: observational Approval-package currentness could determine an exact stale upstream owner internally, but the canonical P6 HTTP failure contract could not transport that owner to the browser. The browser therefore could not realize the already-required `STALE(owner)` / `RECONCILE_AUTHORITY` semantics without either parsing human-readable error text or incorrectly routing every stale condition through source reconciliation.
+
+The owning P3/P4/P6 authorities have now been corrected before further implementation:
+
+- `GW-DOC-WORKBENCH-UX-V2` clarifies that `STALE(owner)` projects to current attention `STALE_AUTHORITY` while `RECONCILE_AUTHORITY` remains its exact recovery action; generic `RECOVERY` is reserved for retry/resume-class recovery;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` adds the explicit `RECONCILE_AUTHORITY(owner)` lifecycle cause, owner-correct Approval reconciliation command, and the same stale-before-generic-recovery attention precedence;
+- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` adds the corresponding canonical browser mutation/convergence invalidation path and keeps it distinct from source reconciliation;
+- `GW-DOC-CANONICAL-CONTRACTS-V1` adds canonical `UpstreamReturnStage`, `ReconcileWorkItemAuthority`, `OrderHttpError.staleAuthorityOwner`, `STALE_AUTHORITY` failure semantics and `POST /api/work-items/:workItemId/reconcile-authority`;
+- the correction extends the implementation surface only as required to realize that contract: `src/core/contracts.ts` and `src/daemon/server.ts` are now authorized in addition to the previously signed files;
+- no DTO, persisted currentness field, parallel workflow state, message parser or generic reconciliation service is introduced.
+
+This amendment changes applicable P3/P4/P6 authority and therefore invalidates any prior Approval/sign-off over the earlier contract revision. The corrected P7 package must pass the normal R3/readiness and explicit human sign-off path again before the candidate can be promoted. This amendment records scope and traceability; it does not self-authorize execution.
+
+### Contract-correction prerequisite
+
+**Files:** `src/core/contracts.ts`, `src/core/lifecycle.ts`, `src/daemon/authority.ts`, `src/daemon/coordinator.ts`, `src/daemon/server.ts`, `ui/src/http.ts`, `ui/src/WorkItemWorkspace.tsx`, `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/certification.test.ts`, `tests/browser.spec.ts`.
+
+Before treating Units 1–3 as closed, implement and certify the corrected producer/consumer chain end to end: exact stale owner derivation -> typed P6 failure -> browser `MaterialCurrentness.STALE(owner)` -> exact owner-specific reconciliation command -> canonical lifecycle transition. Source-boundary reconciliation remains a separate existing producer/command path.
+
 ## Exact task units/dependencies
 
 ### Unit 1 — canonical lifecycle/workflow decision language
@@ -27,7 +48,7 @@ Implementation requirements:
 
 ### Unit 2 — daemon read purity, mutation serialization and atomic reactions
 
-**Files:** `src/daemon/runtime.ts`, `src/daemon/work-item-source.ts`, `src/daemon/authority.ts`, `src/daemon/stage.ts`, `src/daemon/coordinator.ts`, `src/daemon/execution.ts`, `tests/daemon.test.ts`, `tests/e2e-server.ts`.
+**Files:** `src/daemon/runtime.ts`, `src/daemon/work-item-source.ts`, `src/daemon/authority.ts`, `src/daemon/stage.ts`, `src/daemon/coordinator.ts`, `src/daemon/execution.ts`, `src/daemon/server.ts`, `tests/daemon.test.ts`, `tests/e2e-server.ts`.
 
 Make the imperative shell conform to `GW-TR-085-OBSERVATIONAL-QUERY-BOUNDARY`, `GW-TR-086-COMMAND-COMMIT-RECHECK` and the state policy from Unit 1.
 
@@ -207,6 +228,7 @@ The signed `acceptanceRefs` contains every current functional requirement owned 
 
 ### Core/daemon state and effect owners
 
+- `src/core/contracts.ts`
 - `src/core/lifecycle.ts`
 - `src/daemon/runtime.ts`
 - `src/daemon/work-item-source.ts`
@@ -214,6 +236,7 @@ The signed `acceptanceRefs` contains every current functional requirement owned 
 - `src/daemon/stage.ts`
 - `src/daemon/coordinator.ts`
 - `src/daemon/execution.ts`
+- `src/daemon/server.ts`
 
 ### Browser state, feature renderers, adapters, primitives and styling
 
@@ -285,7 +308,7 @@ The signed `acceptanceRefs` contains every current functional requirement owned 
 - `tests/browser.spec.ts`
 - `tests/e2e-server.ts`
 
-No other production/runtime file is authorized. In particular this plan does **not** authorize changes to `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/server.ts`, `package.json`, `bun.lock`, `pontivus-order.toml`, `AGENTS.md` or the canonical P1–P6 design documents. If implementation proves one of those must change semantically, return to the owning design/contract layer.
+No other production/runtime file is authorized. In particular this amended plan does **not** authorize changes to `src/core/execution.ts`, `package.json`, `bun.lock`, `pontivus-order.toml`, `AGENTS.md` or any additional production/runtime file. The P4/P6 authority edits described in the amendment are upstream authority corrections and are not candidate implementation files; any further semantic authority change requires another return to its owning layer.
 
 ## Deletions/additions/modifications
 
@@ -437,6 +460,7 @@ No production file deletion is required by the design. If a now-empty superseded
       ],
       "changeSurface": [
         "CHANGELOG.md",
+        "src/core/contracts.ts",
         "src/core/lifecycle.ts",
         "src/daemon/runtime.ts",
         "src/daemon/work-item-source.ts",
@@ -444,6 +468,7 @@ No production file deletion is required by the design. If a now-empty superseded
         "src/daemon/stage.ts",
         "src/daemon/coordinator.ts",
         "src/daemon/execution.ts",
+        "src/daemon/server.ts",
         "ui/src/http.ts",
         "ui/src/query-keys.ts",
         "ui/src/workbench-presentation.ts",

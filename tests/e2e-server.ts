@@ -145,6 +145,7 @@ writeFileSync(join(repositoryRoot, "docs", "r1.md"), "# R1 confirmed\n");
 writeFileSync(join(repositoryRoot, "docs", "r2.md"), "# R2 accepted\n");
 writeFileSync(join(repositoryRoot, "docs", "design.md"), "# DESIGN accepted\n");
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+writeFileSync(join(repositoryRoot, "docs", "stale-approval-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-wide-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-narrow-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "r3.md"), r3Text);
@@ -412,7 +413,7 @@ const rejectionRun = RunSchema.parse({
   mode: "INTERACTIVE",
   role: "STAGE",
   triggerEventId: null,
-  status: "WAITING_FOR_INPUT",
+  status: "RUNNING",
   attempt: 1,
   baselineCommit,
   contextHash: sha256Text("proposal-rejection-context"),
@@ -421,26 +422,6 @@ const rejectionRun = RunSchema.parse({
   startedAt: stamp,
   endedAt: null,
 });
-storeRun(database, rejectionRun);
-persistEvent(rejectionRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: rejectionRun.contextHash,
-});
-persistEvent(rejectionRun.id, 2, {
-  tag: "ARTIFACT_PROPOSAL_CREATED",
-  targetPath: `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md`,
-  baseSha256: null,
-  role: "PLAN",
-  authorityLayer: "P7",
-  unifiedDiff:
-    "--- /dev/null\n+++ b/" +
-    `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
-    "\n@@ -0,0 +1 @@\n+reject proposal\n",
-  rationale: "Exercise the canonical Reject mutation.",
-});
-
 const adoptionPendingItem = workItem(
   "Proposal adoption in progress",
   "PLAN",
@@ -520,6 +501,12 @@ const seedConformance = async (
     endedAt: stamp,
   }));
   withTransaction(database, () => {
+    appendRunEvent(seedRuntime, run.id, {
+      tag: "STAGE_STARTED",
+      stage,
+      mode: "INTERACTIVE",
+      contextHash: context.contextHash,
+    });
     for (const dependency of context.artifacts) {
       if (dependency.id !== output.id) {
         storeArtifactDependency(database, output.id, dependency.id);
@@ -544,7 +531,11 @@ const seedConformance = async (
 
 const seedLifecycle = async (
   item: ReturnType<typeof workItem>,
-  planPath: "docs/plan.md" | "docs/long-wide-plan.md" | "docs/long-narrow-plan.md" = "docs/plan.md",
+  planPath:
+    | "docs/plan.md"
+    | "docs/stale-approval-plan.md"
+    | "docs/long-wide-plan.md"
+    | "docs/long-narrow-plan.md" = "docs/plan.md",
 ) => {
   const outputs = {
     R1: await currentFileArtifact(seedRuntime, item, "docs/r1.md", "R1", "P1"),
@@ -553,11 +544,36 @@ const seedLifecycle = async (
     PLAN: await currentFileArtifact(seedRuntime, item, planPath, "PLAN", "P7"),
     R3: await currentFileArtifact(seedRuntime, item, "docs/r3.md", "R3", "P7"),
   };
-  await seedConformance(item, "R1", outputs.R1);
-  await seedConformance(item, "R2", outputs.R2);
-  await seedConformance(item, "DESIGN", outputs.DESIGN);
-  await seedConformance(item, "PLAN", outputs.PLAN);
-  await seedConformance(item, "R3", outputs.R3);
+  await seedConformance(
+    item,
+    "R1",
+    outputs.R1,
+    { stage: "R1", outcome: "CONFIRMED" },
+  );
+  await seedConformance(
+    item,
+    "R2",
+    outputs.R2,
+    { stage: "R2", outcome: "ACCEPTED" },
+  );
+  await seedConformance(
+    item,
+    "DESIGN",
+    outputs.DESIGN,
+    { stage: "DESIGN", outcome: "ACCEPTED" },
+  );
+  await seedConformance(
+    item,
+    "PLAN",
+    outputs.PLAN,
+    { stage: "PLAN", outcome: "ACCEPTED" },
+  );
+  await seedConformance(
+    item,
+    "R3",
+    outputs.R3,
+    { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+  );
   return outputs;
 };
 
@@ -843,6 +859,12 @@ const waitingInputRun = RunSchema.parse({
 });
 storeRun(database, waitingInputRun);
 persistEvent(waitingInputRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: waitingInputRun.contextHash,
+});
+persistEvent(waitingInputRun.id, 2, {
   tag: "HUMAN_INPUT_REQUESTED",
   category: "INFORMATION",
   question: "Which constraint should the plan prioritize?",
@@ -851,6 +873,18 @@ persistEvent(waitingInputRun.id, 1, {
 const signoffItem = workItem("Awaiting sign-off", "AWAITING_SIGNOFF", "ACTIVE", null);
 storeWorkItem(database, signoffItem);
 const signoffOutputs = await seedLifecycle(signoffItem);
+
+const staleApprovalItem = workItem(
+  "Stale approval recovery",
+  "AWAITING_SIGNOFF",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, staleApprovalItem);
+await seedLifecycle(
+  staleApprovalItem,
+  "docs/stale-approval-plan.md",
+);
 
 const sourceEditorItem = workItem(
   "Source editing workbench",
@@ -884,6 +918,11 @@ for (const [title, planPath] of [
 git("add", "--", workItemsRoot);
 git("commit", "-q", "-m", "browser WorkItem sources");
 baselineCommit = await resolveHeadCommit(repositoryRoot);
+
+writeFileSync(
+  join(repositoryRoot, "docs", "stale-approval-plan.md"),
+  "# Browser certification plan\n\nstale after conformance\n",
+);
 
 const invalidLifecycleItem = workItem(
   "Invalid lifecycle Markdown",
@@ -1318,6 +1357,26 @@ const environment: NodeJS.ProcessEnv = {
 };
 const daemon = await startOrderDaemon(environment);
 updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
+
+insertRun(daemon.coordinator, rejectionRun);
+appendRunEvent(daemon.coordinator, rejectionRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: rejectionRun.contextHash,
+});
+appendRunEvent(daemon.coordinator, rejectionRun.id, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md`,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" +
+    `${workItemsRoot}/${rejectionItem.id}/implementation-plan.md` +
+    "\n@@ -0,0 +1 @@\n+reject proposal\n",
+  rationale: "Exercise the canonical Reject mutation.",
+});
 
 insertRun(daemon.coordinator, {
   ...adoptionPendingRun,
