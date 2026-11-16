@@ -1623,11 +1623,11 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
       body: JSON.stringify(run),
     });
   });
-  const startResponse = page.waitForResponse((response) =>
+  const executionStartResponse = page.waitForResponse((response) =>
     response.request().method() === "POST" &&
     response.url().endsWith(startPath));
   await page.getByRole("button", { name: "Start current task" }).click();
-  expect((await startResponse).status()).toBe(201);
+  expect((await executionStartResponse).status()).toBe(201);
   await page.unroute("**" + startPath);
   await expect(page.getByTestId("selected-run-header"))
     .toContainText("Implementation agent · Attempt 1");
