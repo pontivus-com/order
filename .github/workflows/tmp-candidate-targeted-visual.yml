@@ -1,0 +1,102 @@
+name: Temporary targeted candidate visual review
+
+on:
+  push:
+    branches: [version/0.5.0]
+    paths-ignore:
+      - "candidate-review-targeted/**"
+
+permissions:
+  contents: write
+
+jobs:
+  visual:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-targeted-review-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+      CANDIDATE_SHA: 9c3c67913e41bd29e906e4f2879aca9b88de232a
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 9c3c67913e41bd29e906e4f2879aca9b88de232a
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "26.13.0"
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.4"
+      - name: Install exact OpenCode
+        run: |
+          rm -rf /tmp/pontivus-order-opencode
+          BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
+      - run: bun ci
+      - run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Generate targeted settled visual tests
+        shell: bash
+        run: |
+          cat > tests/candidate-targeted.temp.spec.ts <<'VISUAL'
+          import { readFileSync } from "node:fs";
+          import { join } from "node:path";
+          import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+          const root=process.env.PONTIVUS_ORDER_TEST_STATE_ROOT!;
+          const token=readFileSync(join(root,"daemon-token"),"utf8").trim();
+          const auth=async(page:Page,request:APIRequestContext)=>{
+            const r=await request.post("/api/auth/connect-token",{headers:{authorization:"Bearer "+token},data:{}});
+            expect(r.status()).toBe(200);
+            const t=String((await r.json() as {token:string}).token);
+            await page.goto("/connect?token="+t);
+            await expect(page.getByText("Order",{exact:true})).toBeVisible();
+          };
+          const rowFor=(p:Page,t:string)=>p.locator('[data-testid^="work-item-row-"]').filter({has:p.getByText(t,{exact:true})}).first();
+          const open=async(p:Page,t:string)=>{await p.goto("/");const r=rowFor(p,t);await expect(r).toBeVisible({timeout:30000});await r.click();await expect(p.getByTestId("work-item-heading")).toHaveText(t);};
+          const step=async(p:Page,n:string)=>{const b=p.getByTestId("workflow-rail").getByRole("button",{name:n,exact:true});await b.click();await expect(b).toHaveAttribute("aria-pressed","true");};
+          const shot=async(p:Page,n:string)=>p.screenshot({path:"candidate-review-targeted/"+n.replace(/\.svg$/,".png"),fullPage:true});
+
+          test("settled queue and application notices",async({page,request})=>{
+            await page.setViewportSize({width:1600,height:900});await auth(page,request);
+            await expect(rowFor(page,"Lifecycle editing workbench")).toBeVisible({timeout:30000});
+            await shot(page,"queue.svg");await shot(page,"queue-states.svg");await shot(page,"application-notices-states.svg");
+          });
+          test("settled Research dialogue",async({page,request})=>{
+            await page.setViewportSize({width:1600,height:900});await auth(page,request);await open(page,"Lifecycle editing workbench");await step(page,"Research");
+            await expect(page.getByText("Loading workflow step...",{exact:true})).toHaveCount(0,{timeout:30000});
+            await page.waitForTimeout(300);await shot(page,"research.svg");await shot(page,"dialogue-states.svg");
+          });
+          test("settled Readiness",async({page,request})=>{
+            await page.setViewportSize({width:1600,height:900});await auth(page,request);await open(page,"Awaiting sign-off");await step(page,"Readiness review");
+            await expect(page.getByText("Loading readiness review...",{exact:true})).toHaveCount(0,{timeout:30000});
+            await page.waitForTimeout(300);await shot(page,"readiness-review.svg");
+          });
+          test("settled Settings surfaces",async({page,request})=>{
+            await page.setViewportSize({width:1600,height:900});await auth(page,request);
+            await page.getByRole("link",{name:"Settings",exact:true}).click();
+            await expect(page.getByText("Loading Settings...",{exact:true})).toHaveCount(0,{timeout:30000});
+            await expect(page.getByText("Repositories",{exact:true}).first()).toBeVisible();
+            await shot(page,"settings-repositories.svg");await shot(page,"installation-readiness.svg");
+            await page.getByRole("link",{name:"OpenCode",exact:true}).click();
+            await expect(page.getByText("Checking saved accounts...",{exact:true})).toHaveCount(0,{timeout:30000});
+            await shot(page,"settings-opencode.svg");
+            await page.getByRole("link",{name:"Model & runtime",exact:true}).click();
+            await expect(page.getByText("Loading available models...",{exact:true})).toHaveCount(0,{timeout:30000});
+            await shot(page,"settings-model.svg");
+          });
+          VISUAL
+          cat > playwright.targeted.temp.config.ts <<'CONFIG'
+          import {defineConfig} from "@playwright/test";
+          export default defineConfig({testDir:"./tests",testMatch:"candidate-targeted.temp.spec.ts",workers:1,retries:0,use:{baseURL:"http://127.0.0.1:17347"},projects:[{name:"chromium",use:{browserName:"chromium"}}],webServer:{command:"bun tests/e2e-server.ts",url:"http://127.0.0.1:17347/api/health",reuseExistingServer:false,timeout:120000}});
+          CONFIG
+      - run: node node_modules/@playwright/test/cli.js test --config=playwright.targeted.temp.config.ts
+      - name: Persist targeted evidence
+        run: |
+          test "$(find candidate-review-targeted -name '*.png' | wc -l)" -eq 10
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add candidate-review-targeted
+          git commit -m "chore: capture targeted settled candidate evidence"
+          git fetch origin version/0.5.0
+          git rebase origin/version/0.5.0
+          git push origin HEAD:version/0.5.0
