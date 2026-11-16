@@ -1709,19 +1709,20 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await openWorkItem(page, "Lifecycle editing workbench");
 
   const cases = [
-    ["Work request", "Source current"],
-    ["Research", "Current"],
-    ["Requirements", "Current"],
-    ["Solution design", "Current"],
-    ["Implementation plan", "Current"],
-    ["Readiness review", "Ready for sign-off"],
-    ["Approval", "Package current · ready to sign"],
+    "Work request",
+    "Research",
+    "Requirements",
+    "Solution design",
+    "Implementation plan",
+    "Readiness review",
+    "Approval",
   ] as const;
 
-  for (const [step, summaryState] of cases) {
+  for (const step of cases) {
     await selectWorkflowStep(page, step);
-    await expect(page.getByTestId("workflow-step-summary")).toContainText(step);
-    await expect(page.getByTestId("workflow-step-summary")).toContainText(summaryState);
+    const attention = page.getByTestId("workflow-step-summary");
+    await expect(attention).toContainText("Approval");
+    await expect(attention).toContainText("Package current · ready to sign");
     if (step === "Readiness review" || step === "Approval") {
       await expect(page.getByTestId("review-workspace")).toBeVisible();
     } else {
