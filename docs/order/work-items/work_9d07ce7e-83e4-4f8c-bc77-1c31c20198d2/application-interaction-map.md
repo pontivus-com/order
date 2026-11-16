@@ -603,165 +603,229 @@ The registered primary compositions, overlays, responsive Context modes, long-co
 
 P1-T04 may now attach typed data lineage and render predicates to these captured surfaces.
 
-## 12. Per-surface information inventory
+## 12. Per-surface information inventory — P1-T04
 
-Verdicts in this section compare **current rendering** with current governing authority. They do not choose the future Phase-2 design.
+P1-T04 traces every materially distinct persistent information region from canonical/typed source to rendered presentation. Rows group labels only when they share the same semantic owner, predicate and hierarchy role; independently governed values receive separate rows.
 
-### 12.1 Application shell / Queue / Create
+**Information classes used below**
 
-| INFO id | SURF | Information shown | Exact field / derivation | Show predicate | Class / authority | Render evidence | Verdict |
+- **identity/navigation** — where the operator is / what object is selected;
+- **primary work** — material necessary to perform the current task;
+- **current attention/action** — blocker, request, failure, proposal or next governed action;
+- **workflow state** — lifecycle/Run/execution state meaningful to ordinary operation;
+- **material currentness** — source/document/proposal/package currentness;
+- **conversation/agent activity** — product-facing persisted human/agent interaction;
+- **proposal/review** — proposed mutation and disposition evidence;
+- **evidence** — referenced exact material;
+- **supporting context/history** — useful but subordinate inspection;
+- **configuration/readiness** — installation configuration facts;
+- **technical** — exact implementation/audit identity, intended on demand;
+- **debug diagnostic** — raw implementation/provider/event detail.
+
+### 12.1 Application shell, Queue and Create
+
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-APP-001` | APP | Order + destination subtitle | static label + local destination | always | identity/navigation; presentation | 01,04,08 | CORRECT |
-| `INFO-APP-002` | APP | active OpenCode account label | active `OpenCodeAccount.label` | toolbar always | configuration/readiness; current provider-account projection | 01–45 | CORRECT, but provider mechanics must stay compact |
-| `INFO-APP-003` | APP | account Ready/Needs attention/Unavailable | active account `status`, mutation blockers, query error | toolbar always | configuration/readiness | 01–45 | CORRECT |
-| `INFO-APP-004` | APP | Settings + theme selector | local destination + `themePreference` | always | navigation/presentation preference | 01–45 | CORRECT |
-| `INFO-APP-005` | APP/Queue | setup-required notice | `InstallationReadiness.ready/blockers` | `ready === false` | current attention/configuration | fixture dependent | CORRECT |
-| `INFO-APP-006` | APP/Queue | full source diagnostic code/path/detail list | `WorkItemSourceDiagnostic.code,path/workItemId,detail` | diagnostics length > 0 | developer/technical diagnostic with blocking product consequence | 01 | **MIXED: current blocker is valid; raw code/path is technical leakage into primary queue** |
-| `INFO-Q-001` | Queue | WorkItem title | `WorkItem.title` | row exists | identity/primary scan | 01,02 | CORRECT |
-| `INFO-Q-002` | Queue | project id / archived marker | `projectId,archived` | row exists | domain/supporting context | 01 | CORRECT |
-| `INFO-Q-003` | Queue | kind | schema catalog `schemaId -> kind` | row exists | domain/supporting context | 01 | CORRECT |
-| `INFO-Q-004` | Queue | stage | `WorkItem.stage -> workflowPresentation.label` | row exists | workflow progress | 01 | CORRECT |
-| `INFO-Q-005` | Queue | status | `WorkItem.status` | row exists | workflow state | 01 | CORRECT |
-| `INFO-Q-006` | Queue | concern IDs | `WorkItem.concernIds` | row exists | supporting context | 01 | CORRECT |
-| `INFO-Q-007` | Queue | copied WorkItem id affordance | `WorkItem.id` | every row | technical identity | 01 | **NOISY: technical utility repeated on every row** |
-| `INFO-Q-008` | Queue | active/archived collection mode | local `showArchived` | queue | history/navigation | 01 | CORRECT |
-| `INFO-C-001` | Create | Project choices | `ProjectManifest.projectId` | panel open | domain/authoring | 03 | CORRECT |
-| `INFO-C-002` | Create | Work item type choices | schema catalog `kind` | panel open | domain/authoring | 03 | CORRECT |
-| `INFO-C-003` | Create | title draft | local title | panel open | primary authoring | 03 | CORRECT |
-| `INFO-C-004` | Create | concern choices | selected project's `concerns` keys | project chosen | domain/authoring | 03 | CORRECT |
-| `INFO-C-005` | Create | linked-remediation mode | `derivedFromWorkItemId !== null` | linked creation | provenance/current task | not separate capture | CORRECT |
+| INFO-APP-001 | SURF-APP-001 | “Order” + destination description (“Governed work queue”, “Governed work item”, “Settings”) | browser destination state in `app.tsx`: `selectedWorkItemId`, `settingsSection` | always; description selected by destination | identity/navigation; local presentation state | CORRECT | 01, 04, 07 |
+| INFO-APP-002 | SURF-APP-001 | Queue search field | local `search` state | only queue destination | navigation/inspection; non-authoritative local state | CORRECT | 01, 02 |
+| INFO-APP-003 | SURF-APP-001 | installation “Setup requires attention” warning and Settings destination | `InstallationReadiness.ready/blockers[]` from `GET /api/settings/readiness`; blocker→section pure mapping | readiness loaded and `ready === false` | current attention/configuration; canonical daemon readiness projection | CORRECT; current blocker is kept outside hidden technical context | captured in Settings/readiness corpus |
+| INFO-APP-004 | SURF-APP-001 | source diagnostic warning | `WorkItemSourceDiagnostic[]` from `GET /api/work-item-sources/diagnostics` | relevant diagnostics exist | current attention; canonical source diagnostic | CORRECT when actionable; T05 must prove owning recovery destination | 01 |
+| INFO-APP-005 | SURF-APP-001 | selected WorkItem loading/error state | TanStack query state + `OrderHttpError` | selected WorkItem query pending/error | current attention; observational transport state | CORRECT | composition family captured by WorkItem states |
+| INFO-QUEUE-001 | SURF-QUEUE-001 | WorkItem title | `WorkItem.title` | each visible row | primary scan identity; canonical WorkItem projection | CORRECT | 01, 02 |
+| INFO-QUEUE-002 | SURF-QUEUE-001 | project id + Archived marker | `WorkItem.projectId`, `WorkItem.archived` | each row; Archived suffix iff archived | supporting identity/workflow state | CORRECT; project is useful queue disambiguation | 01, 02 |
+| INFO-QUEUE-003 | SURF-QUEUE-001 | work kind | schema catalog lookup `WorkItem.schemaId -> WorkItemSchemaCatalogEntry.kind`; fallback schema id | each row | supporting classification; canonical catalog-derived | CORRECT | 01, 02 |
+| INFO-QUEUE-004 | SURF-QUEUE-001 | workflow stage label | `WorkItem.stage -> workflowPresentation(stage).label` | each row | workflow state; canonical field + pure presentation | CORRECT | 01, 02 |
+| INFO-QUEUE-005 | SURF-QUEUE-001 | Active/blocked/complete status | `WorkItem.status` | each row | workflow state; canonical | CORRECT | 01, 02 |
+| INFO-QUEUE-006 | SURF-QUEUE-001 | concerns | `WorkItem.concernIds[]` | each row | supporting domain context; canonical | CORRECT, though density should be reconsidered only if Phase 2 finds scan cost excessive | 01, 02 |
+| INFO-QUEUE-007 | SURF-QUEUE-001 | Active-only vs Active-and-archived queue description | local `showArchived`; archived query presence | toggle state | supporting navigation state; local | CORRECT | 01, 02 |
+| INFO-CREATE-001 | SURF-CREATE-001 | selectable project ids | `ProjectManifest.projectId[]` | create panel open | configuration/domain context; canonical manifest | CORRECT | 03 |
+| INFO-CREATE-002 | SURF-CREATE-001 | repository documentation root | selected `ProjectManifest.workItems.root` | selected project exists | supporting configuration; canonical manifest | CORRECT because creation destination is materially relevant | 03 |
+| INFO-CREATE-003 | SURF-CREATE-001 | WorkItem type choices | `WorkItemSchemaCatalogEntry.kind/schemaId`; linked remediation filters to CHANGE/DEFECT | create panel open; filtered when `derivedFromWorkItemId !== null` | primary form choice; canonical catalog | CORRECT | 03 |
+| INFO-CREATE-004 | SURF-CREATE-001 | title + concern choices | local title; `Object.keys(ProjectManifest.concerns)` | create panel open | primary form input | CORRECT | 03 |
+| INFO-CREATE-005 | SURF-CREATE-001 | “Derived from …” exact WorkItem id | local `derivedFromWorkItemId: WorkItemId` originating from completed audit/investigation action | only linked-remediation creation | supporting provenance; canonical identity once child created | CORRECT as provenance, but exact UUID-like identity is technical-looking; Phase 2 may choose friendlier parent labeling while retaining traceability | linked creation composition family |
+| INFO-CREATE-006 | SURF-CREATE-001 | creation failure | mutation error text | create mutation failed | current attention | CORRECT | composition family captured |
 
-### 12.2 Settings
+### 12.2 Settings and OpenCode account configuration
 
-| INFO id | SURF | Information shown | Field / derivation | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-SET-001` | Settings | installation readiness / blocker links | `InstallationReadiness.ready,blockers[]` + `blockerText` | Settings loaded | configuration/readiness | 04–06 | CORRECT |
-| `INFO-SET-002` | Repositories | project | `ConnectedRepositoryState.projectId` | repo row | configuration | 04 | CORRECT |
-| `INFO-SET-003` | Repositories | exact Git root | `repositoryRoot` | repo row | configuration; exact path is necessary in this settings task | 04 | CORRECT |
-| `INFO-SET-004` | Repositories | WorkItem document root | `workItemsRoot` | repo row | configuration | 04 | CORRECT |
-| `INFO-SET-005` | Repositories | readiness/attention | `status,attention[] -> repositoryAttentionText` | repo row | configuration/readiness | 04 | CORRECT |
-| `INFO-SET-006` | Repositories | STAGE reference roots | `OrderConfig.referenceRoots` | repositories section | configuration | 04 | CORRECT |
-| `INFO-SET-007` | OpenCode | account label | `OpenCodeAccount.label` | account row | configuration | 34 | CORRECT |
-| `INFO-SET-008` | OpenCode | Active/Saved/Needs sign-in | `active,status.status -> accountStatusText` | account row | configuration/readiness | 34 | CORRECT |
-| `INFO-SET-009` | OpenCode | auth problem message + sign-in URL | NEEDS_AUTH `message,url` | status NEEDS_AUTH | configuration/recovery | 34 | CORRECT |
-| `INFO-SET-010` | OpenCode | account mutation blocker explanation | `mutationBlockers[] -> blockerText` | blockers present | current attention/configuration | source/browser tests | CORRECT |
-| `INFO-SET-011` | OpenCode login | instructions + authorization URL + attempt status/message | `OpenCodeAccountLoginAttempt` | login attempt selected | configuration/recovery | 38 | CORRECT |
-| `INFO-SET-012` | Model | provider/model choices | `OpenCodeModelRef.providerID,id` | models loaded | configuration | 06 | CORRECT |
+| INFO-SET-001 | SURF-SET-001 | readiness state and blocker links | `InstallationReadiness.ready/blockers[]`; `blockerText/blockerSection` | loading/error/not-ready/ready branches | configuration/readiness; canonical daemon projection | CORRECT | 04–06 |
+| INFO-SET-REPO-001 | SURF-SET-REPO-001 | project, Git root, WorkItem document root | `ConnectedRepositoryState.projectId/repositoryRoot/workItemsRoot` | repository row exists | primary configuration; canonical settings projection | CORRECT: exact paths are necessary configuration inputs here, unlike ordinary workflow screens | 04 |
+| INFO-SET-REPO-002 | SURF-SET-REPO-001 | repository readiness/attention | `ConnectedRepositoryState.status/attention[]` -> `repositoryAttentionText` | row exists | configuration/readiness | CORRECT | 04 |
+| INFO-SET-REPO-003 | SURF-SET-REPO-001 | repository loading/error/empty | query state | query branch | current attention/configuration | CORRECT | 04 composition family |
+| INFO-SET-REPO-004 | SURF-SET-REPO-MOVE-001 | target repository identity + new document root | selected `ConnectedRepositoryState.projectId/repositoryRoot/workItemsRoot/manifestSha256` + local target root | migration target selected | primary bounded configuration task | CORRECT | 32 |
+| INFO-SET-REPO-005 | SURF-SET-REPO-ADD-001 | exact Git root input | local `repositoryRoot`; commit uses config `sha256` as hidden optimistic precondition | add form open | primary bounded configuration task | CORRECT | 31 |
+| INFO-SET-REPO-006 | SURF-SET-REPO-001 | queue/creation project context | ready repository `projectId` list + local `queueProjectId` | >1 ready project | supporting configuration | CORRECT | repository settings family |
+| INFO-SET-REPO-007 | SURF-SET-REPO-001 | STAGE reference roots | `OrderConfigState.config.referenceRoots[]` | repository section | primary configuration | CORRECT | 04 |
+| INFO-SET-MODEL-001 | SURF-SET-MODEL-001 | configured model and available provider/model choices | `OrderConfigState.config.model`; `OpenCodeModelRef.providerID/id[]` | model Settings | primary configuration | CORRECT | 06 |
+| INFO-SET-MODEL-002 | SURF-SET-MODEL-001 | model loading/error/update failure | query/mutation state | corresponding failure/pending branch | current attention/configuration | CORRECT | 06 composition family |
+| INFO-SET-OC-001 | SURF-SET-OC-001 | saved account label | `OpenCodeAccount.label` | account exists | primary configuration | CORRECT | 34 |
+| INFO-SET-OC-002 | SURF-SET-OC-001 | account active/auth state | `OpenCodeAccount.active`, discriminated `status.status`; `accountStatusText` | account exists | configuration/readiness | CORRECT | 34 |
+| INFO-SET-OC-003 | SURF-SET-OC-001 | NEEDS_AUTH message and optional sign-in URL | `OpenCodeAccount.status.message/url` when `status === NEEDS_AUTH` | NEEDS_AUTH only | current attention/configuration | CORRECT | account-state family |
+| INFO-SET-OC-004 | SURF-SET-OC-001 | account mutation-blocker notices | `OpenCodeAccountState.mutationBlockers[]` | non-empty | current attention/configuration | CORRECT | 34 |
+| INFO-SET-OC-005 | SURF-SET-OC-001 | loading/error/empty saved-account states | account query state + `accounts.length` | branch-specific | current attention/configuration | CORRECT | 05, 34 |
+| INFO-SET-OC-006 | SURF-SET-OC-RENAME-001 | account being renamed + editable label | selected `OpenCodeAccount.id/label` + local `renameLabel` | `renameAccountId !== null` and account still exists | primary bounded configuration task | CORRECT | 35 |
+| INFO-SET-OC-007 | SURF-SET-OC-ADD-001 | new account label | local `addLabel`, validated by `OpenCodeAccountLabelSchema` | adding and no login attempt | primary bounded configuration task | CORRECT | 37 |
+| INFO-SET-OC-008 | SURF-SET-OC-LOGIN-001 | authorization instructions, URL, expiry/status result | `OpenCodeAccountLoginAttempt.instructions/authorizationUrl/status/message` | login attempt exists | primary current task | CORRECT | 38 |
+| INFO-SET-OC-009 | SURF-SET-OC-001 | account/provider-model separation footnote | static product copy | OpenCode account section | supporting explanatory context | CORRECT and prevents conflation of identity with model choice | 34 |
 
-### 12.3 WorkItem shell / workflow navigation
+### 12.3 WorkItem shell, workflow rail and Context
 
-| INFO id | SURF | Information shown | Field / derivation | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-WI-001` | WI | WorkItem title | `WorkItem.title` | selected item | identity | 08,14,21,23 | CORRECT |
-| `INFO-WI-002` | WI | current lifecycle label + WorkItem status beneath title | `workflowPresentation(workItem.stage).label`, `WorkItem.status` | selected item | workflow progress/state | 08,14,21,23 | **DUPLICATED: same lifecycle/state is also conveyed by rail + step summary** |
-| `INFO-WI-003` | WI | workflow rail step labels | static `workflowSteps` | selected item | navigation | all WorkItem captures | CORRECT |
-| `INFO-WI-004` | WI | rail current/reached/unreached/attention markers | `deriveWorkflowRail(workItem,reachedStages,currentAttention,recovery,selectedStep)` | selected item | workflow progress/current attention | 08,14,21,23 | CORRECT |
-| `INFO-WI-005` | WI | selected step name/purpose | `workflowPresentation(selectedStep)` | step selected | primary task orientation | 08,14,21,23 | CORRECT |
-| `INFO-WI-006` | WI | Current/Reached/Not reached | `workflowStepState` | step selected | workflow progress | 08,21 | CORRECT |
-| `INFO-WI-007` | WI | step status such as document current, Waiting for you, package current | current run/artifact/package/outcome derivation | step selected | material currentness/current attention | 08,14,21 | CORRECT semantically; frequently repeats nearby status |
-| `INFO-WI-008` | WI | current blocker/recovery description | source diagnostics/current attention/currentness/mutation errors | selected current step | current attention | 17,18 | CORRECT |
-| `INFO-WI-009` | WI | selected material/attempt selector | runs/artifacts/material projection | available groups | history/supporting context | 08,14,21,23 | CORRECT |
-| `INFO-WI-010` | WI | archive state/action | `WorkItem.archived` | selected item | utility | 39 | CORRECT |
-| `INFO-WI-011` | WI | raw source diagnostic detail in summary blocker | first matching diagnostic `detail` | diagnostic on current item | current blocker sourced from diagnostic | source | **MIXED: user-facing blocker needed; raw implementation diagnostic wording is not governed product copy** |
+| INFO-WI-001 | SURF-WI-001 | WorkItem title | `WorkItem.title` | selected WorkItem | identity/navigation | CORRECT | 07–28 |
+| INFO-WI-002 | SURF-WI-001 | current lifecycle label + WorkItem status in identity row | `WorkItem.stage -> workflowPresentation`; `WorkItem.status` | selected WorkItem | concise workflow identity | CORRECT under identity-row contract | 07–28 |
+| INFO-WI-003 | SURF-WI-001 | workflow rail labels/current-reached-unreached/markers | `deriveWorkflowRail(workItem,reachedStages,currentAttention,recovery,selectedStep)` -> `WorkflowRailItem`; labels via `workflowPresentation` | selected WorkItem | workflow navigation/state; pure core derivation | CORRECT; canonical rail owner is pure lifecycle projection | 07–28 |
+| INFO-WI-004 | SURF-WI-001 | selected step label/purpose/current-vs-reached-vs-unreached | `selectedStep`; `workflowPresentation`; `workflowStepState(workItem,reachedStages,selectedStep)` | selected step | primary workflow orientation | CORRECT | 07–28 |
+| INFO-WI-005 | SURF-WI-001 | selected-step status summary | derived from source diagnostics, latest stage Run `status/terminalClassification`, current artifact presence, R3 state, signoff package state, tasks, WorkItem outcome | step-specific branch | workflow/material currentness; derived browser presentation from canonical facts | GENERALLY CORRECT; P1-T06 must verify state derivation closure | 07–28 |
+| INFO-WI-006 | SURF-WI-001 | current blocker/recovery/stale-authority/mutation-conflict notice | `WorkItemSourceDiagnostic`, source SHA comparison, `CurrentAttentionTag`, `RecoveryDisposition`, normalized material currentness, signoff query error | only current selected step and corresponding condition | current attention/action | CORRECT placement: blocker remains with owning work | 17, 18, 21 |
+| INFO-WI-007 | SURF-WI-001 | title mutation error/stale-source title error | title mutation result/error | only error | current attention | CORRECT in identity row because it belongs to title mutation | composition family |
+| INFO-CTX-001 | SURF-WI-CONTEXT-001 | selected workflow step + material label | selected step/material -> `workflowPresentation/workflowMaterialLabel` | Context open | technical/supporting orientation | CORRECT | 19, 20 |
+| INFO-CTX-002 | SURF-WI-CONTEXT-001 | selected document path + exact SHA | selected document state supplied by document material, `Sha256` | relevant selected document and path present | technical | CORRECT: on-demand Context is canonical home for exact path/hash | 19, 20 |
+| INFO-CTX-003 | SURF-WI-CONTEXT-001 | selected Run id, role, status, attempt, started time | `Run.id/role/status/attempt/startedAt`; labels pure presentation | selected material identifies a Run and it is loaded | technical + supporting history | CORRECT in on-demand Context | activity Context family |
+| INFO-CTX-004 | SURF-WI-CONTEXT-001 | source issue count | filtered `WorkItemSourceDiagnostic[]` | diagnostics exist | supporting diagnostic | CORRECT as secondary corroboration; current blocker must remain primary elsewhere | 19, 20 |
+| INFO-CTX-005 | SURF-WI-CONTEXT-001 | canonical stage/status/outcome/project/kind/schema/concerns | `WorkItem.stage/status/outcome/projectId/schemaId/concernIds`; kind via schema catalog | disclosure opened | technical | CORRECT on demand | 19, 20 |
 
 ### 12.4 Work request and lifecycle documents
 
-| INFO id | SURF | Information shown | Exact source | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-DOC-001` | Source | WorkItem source Markdown | `WorkItemSourceSnapshot.bodyMarkdown/markdown` | source loaded | primary work | 07,42,43 | CORRECT |
-| `INFO-DOC-002` | Source | source editor title/description | static label + stage/editability | source loaded | primary orientation | 07 | CORRECT |
-| `INFO-DOC-003` | Source | exact source path | `WorkItemSourceSnapshot.path` | source loaded | technical detail | 07 | **TECHNICAL LEAK: exact path is persistently adjacent to primary document** |
-| `INFO-DOC-004` | Source | current source hash/exact raw Markdown | `sha256,markdown` | technical disclosure | technical detail | source | CORRECT only while on-demand |
-| `INFO-DOC-005` | Source/Doc | Git state Saved to Git / unsaved / changes pending | dirty + git-status `paths[].state` | document loaded | document currentness/supporting | 08,41 | CORRECT |
-| `INFO-DOC-006` | Source/Doc | Git blockers/errors | `WorkItemDocumentationGitStatus.blockers[]` / errors | blocker/error | current attention/recovery | source | CORRECT |
-| `INFO-DOC-007` | Source/Doc | branch/HEAD/worktree exact identities | git status exact fields | technical disclosure | technical detail | source | CORRECT only while on-demand |
-| `INFO-DOC-008` | Lifecycle doc | governed Markdown | selected ArtifactRef + content bytes | current selected artifact | primary work | 08–12 | CORRECT |
-| `INFO-DOC-009` | Lifecycle doc | document role label | `ArtifactRef.role -> lifecycleArtifactLabel` | artifact current | primary orientation | 08–12 | CORRECT |
-| `INFO-DOC-010` | Lifecycle doc | exact `repositoryPath` under document heading | `ArtifactRef.repositoryPath` | editable artifact | technical detail | 08 | **TECHNICAL LEAK: persistent exact path conflicts with current Workbench hierarchy** |
-| `INFO-DOC-011` | Lifecycle doc | non-Markdown canonicality warning | Markdown decode failure + editability | decode fails | exceptional/current attention | not directly captured | CORRECT |
-| `INFO-DOC-012` | Lifecycle doc | exact bytes affordance | selected artifact id | non-Markdown or evidence request | evidence/technical | 26 | CORRECT as explicit inspection |
+| INFO-DOC-001 | SURF-MAT-SOURCE-001 | Work request body | `WorkItemSourceSnapshot.bodyMarkdown` from `GET /api/work-items/:id/source` | source query success | **primary work**, canonical source | CORRECT | 07, 42, 43 |
+| INFO-DOC-002 | SURF-MAT-SOURCE-001 | source role/read-only explanation | `readOnly` + `WorkItem.stage` | source material | supporting material state | CORRECT | 07 |
+| INFO-DOC-003 | SURF-MAT-SOURCE-001 | document presentation mode Edit/Preview/Split | local `MarkdownPresentationMode` | not read-only | local presentation control | CORRECT | 07 |
+| INFO-DOC-004 | SURF-MAT-SOURCE-001 / SURF-MAT-DOC-001 | Unsaved/Current save state | editor buffer vs loaded Markdown | editable document | material currentness within local editor | CORRECT | 07–11 |
+| INFO-DOC-005 | document materials | canonical-changed conflict + reload; save failure | incoming `sha256` vs loaded SHA + dirty/conflicted state; save mutation error | conflict/error only | current attention | CORRECT and owning | document conflict family |
+| INFO-DOC-006 | source/lifecycle docs | Git state (“Unsaved edits”, “Checking Git…”, “Git state unavailable”, “Saved to Git”, “Saved to project, not Git”) | `WorkItemDocumentationGitStatus.paths[]`, local dirty, query state | editable document toolbar | supporting material/repository state | CORRECT as secondary control state | 07–11 |
+| INFO-DOC-007 | source/lifecycle docs | Git blocker notices | `WorkItemDocumentationGitStatus.blockers[]` -> `gitBlockerText` | blockers non-empty | current attention for Git save only | CORRECT near Git action | document family |
+| INFO-DOC-008 | SURF-MAT-SOURCE-001 | SHA-256, selected path, working-tree state, WorkItem directory, branch, HEAD, complete portable source | `WorkItemSourceSnapshot.sha256/path/markdown`; `WorkItemDocumentationGitStatus` | Technical details disclosure opened | technical | CORRECT: exact technical identity is disclosure-only | 07, 42, 43 |
+| INFO-DOC-009 | SURF-MAT-DOC-001 / RO | lifecycle document Markdown | `ArtifactRef.id/role/sha256/repositoryPath` + bytes from `GET /api/artifacts/:id/content`, decoded under `MarkdownTextSchema` | selected current artifact + canonical Markdown bytes | primary work/supporting doc depending selection; ArtifactRef canonical identity | CORRECT | 08–13 |
+| INFO-DOC-010 | SURF-MAT-DOC-001 | lifecycle document description displays `ArtifactRef.repositoryPath` when editable | selected artifact and editable | technical path presented persistently in primary document heading | **MISPLACED / TECHNICAL LEAK** against Workbench requirement that raw paths are technical/on-demand | 08–11 |
+| INFO-DOC-011 | SURF-MAT-DOC-001 | non-canonical Markdown warning + “Inspect exact bytes” | decode failure under `MarkdownTextSchema` | artifact bytes not canonical editable Markdown | current attention/material compatibility | CORRECT | evidence path family |
+| INFO-DOC-012 | document materials | exact Git/path/branch/HEAD metadata | `ArtifactRef.repositoryPath/sha256`, Git status | Technical details disclosure opened | technical | CORRECT on demand | 08–11 |
 
-### 12.5 Dialogue / Run activity / proposal
+### 12.5 R1/R2/DESIGN/PLAN activity, conversation, proposal and supporting context
 
-| INFO id | SURF | Information shown | Exact field / derivation | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-ACT-001` | Activity | workflow step + “Workflow agent” | `Run.stage,role -> workflowPresentation/runRoleLabel` | selected run | conversation orientation | 14 | CORRECT |
-| `INFO-ACT-002` | Activity | attempt number + started time | `Run.attempt,startedAt` | selected run | history/supporting | 14 | CORRECT |
-| `INFO-ACT-003` | Activity | Running/Waiting for you/Completed/etc. | `Run.status -> runStatusLabel` | selected run | operational agent activity | 14 | CORRECT |
-| `INFO-ACT-004` | Activity | Run id/stage/role/raw status/baseline/context hash/provider session/terminal classification | exact `Run` fields | Technical details disclosure | technical detail | 14 | CORRECT as on-demand, but disclosure heading is visually prominent |
-| `INFO-ACT-005` | Activity | provider session status sentence | `runIsActive,status,providerSessionId -> openCodeSessionStatus` | technical disclosure | technical/provider detail | source | CORRECT as on-demand; Phase 2 must decide richer operational transparency separately |
-| `INFO-ACT-006` | Timeline | event human label/detail | `RunEvent.event -> runEventPresentation` | events available | conversation/operational activity | 14,24,25 | CORRECT in principle |
-| `INFO-ACT-007` | Timeline | event timestamp | `RunEvent.occurredAt` | each event | history/supporting | 14 | CORRECT |
-| `INFO-ACT-008` | Timeline | proposal disposition suffix | proposal + disposition events | proposal event | proposal/review | 15,16 | CORRECT |
-| `INFO-ACT-009` | Timeline | evidence path | `EvidenceRef.relativePath` | event evidence exists | evidence/supporting; path-like technical identity | 26 | MIXED; exact path is useful to evidence inspection but can be overly implementation-centric |
-| `INFO-ACT-010` | Timeline | raw event tag, sequence and JSON payload | `RunEvent.event.tag,sequence,event` | Timeline technical details disclosure | developer/debug diagnostic | source | CORRECT only on-demand |
-| `INFO-ACT-011` | Composer | “Your input is needed” + exact question | unresolved HUMAN_INPUT_REQUESTED event | current attention REQUIRED_INPUT | **current attention/action** | 14 | CORRECT |
-| `INFO-ACT-012` | Timeline + composer | same required-input question appears once as timeline event and again as composer prompt | same `HUMAN_INPUT_REQUESTED.question` | REQUIRED_INPUT | conversation/current action | 14 | **DUPLICATED: current question is repeated in competing hierarchy positions** |
-| `INFO-ACT-013` | Composer | free-form continuation helper copy | no pending request, interaction OPEN | current attention ORDINARY + OPEN | current action/conversation | source | CORRECT |
-| `INFO-PROP-001` | Proposal | Pending review / Adoption in progress / Adopted / Rejected | proposal disposition/adoption events | proposal selected | proposal currentness | 15,16 | CORRECT |
-| `INFO-PROP-002` | Proposal | exact target path | `ARTIFACT_PROPOSAL_CREATED.targetPath` | proposal selected | technical/supporting identity | 15,19 | **MISPLACED: exact repository path occupies proposal summary premium space** |
-| `INFO-PROP-003` | Proposal | rationale | proposal `rationale` | proposal selected | primary review context | 15,19 | CORRECT |
-| `INFO-PROP-004` | Proposal | unified diff | proposal `unifiedDiff` | proposal selected | primary review | 15,19 | CORRECT |
+| INFO-PRE-001 | SURF-STEP-R1/2/DESIGN/PLAN-001 | Activity attempt labels, timestamps, statuses | stage-filtered `Run.attempt/startedAt/status`; status via `runStatusLabel` | stage has Runs | supporting history/current activity selector | CORRECT compact selector | 14–18 |
+| INFO-PRE-002 | same | governed document label | stage `ArtifactRef.role` | current stage artifact exists | primary/supporting material selector | CORRECT | 08–11 |
+| INFO-PRE-003 | same | Supporting Work request “Canonical source context” | static label + source material availability | pre-signoff stage | supporting context | CORRECT as secondary selector | 08–11 |
+| INFO-PRE-004 | same | supporting upstream document label **and repository path** | upstream `ArtifactRef.role/repositoryPath` | stage-specific supporting artifact exists | supporting context plus technical path | **PARTIALLY MISPLACED**: document availability is correct; persistent raw repository path is technical leakage into the step index | 08–11 |
+| INFO-ACT-001 | SURF-MAT-ACTIVITY-001 | stage + agent-role heading | selected `Run.stage/role` -> workflow/run-role labels | selected Run | conversation/agent activity orientation | CORRECT | 14, 17, 18 |
+| INFO-ACT-002 | SURF-MAT-ACTIVITY-001 | Attempt N + started timestamp | `Run.attempt/startedAt` | selected Run | supporting history | CORRECT | 14 |
+| INFO-ACT-003 | SURF-MAT-ACTIVITY-001 | human-readable Run status | `Run.status -> runStatusLabel` | selected Run | workflow/agent activity state | CORRECT | 14, 17, 18 |
+| INFO-ACT-004 | SURF-MAT-ACTIVITY-001 | Run id, stage, role, raw status, baseline commit, context hash, provider session id, terminal classification | exact `Run` fields | Technical details disclosure opened | technical/debug | CORRECT on demand | activity family |
+| INFO-ACT-005 | SURF-MAT-ACTIVITY-001 | derived provider/session status (“Starting…”, “processing…”, “failed/completed…”) | `Run.status/providerSessionId` -> `openCodeSessionStatus` | Technical details disclosure opened | technical provider state | CORRECT under current authority: provider plumbing stays technical unless failure owns current blocker; P1-T07 must assess future transparency needs | activity family |
+| INFO-ACT-006 | SURF-MAT-ACTIVITY-001 | product-facing timeline label/detail/time | `RunEvent.event` -> exhaustive `runEventPresentation`; `occurredAt` | events loaded | conversation/agent activity/current feedback; persisted canonical RunEvent | CORRECT separation from raw event payload | 14, 17, 18, 24, 25 |
+| INFO-ACT-007 | SURF-MAT-ACTIVITY-001 | proposal disposition suffix | `ARTIFACT_PROPOSAL_CREATED` + later disposition event -> `proposalDispositionFor` | proposal timeline event | proposal state | CORRECT | 15, 16 |
+| INFO-ACT-008 | SURF-MAT-ACTIVITY-001 | evidence resource paths | event `EvidenceRef.relativePath` via `eventEvidence` | event has evidence | evidence/supporting technical identity | ACCEPTABLE as resource identity; exact file path is intrinsic to evidence selection, but remains subordinate to timeline | 26 |
+| INFO-ACT-009 | SURF-MAT-ACTIVITY-001 | raw event tag, sequence, JSON payload | `RunEvent.event.tag/sequence/event` | “Timeline technical details” disclosure opened | debug diagnostic | CORRECT on demand | activity family |
+| INFO-ACT-010 | SURF-MAT-ACTIVITY-001 | “Your input is needed” + exact question, or “Continue current work” guidance | unresolved `HUMAN_INPUT_REQUESTED` event and `StageRunInteraction`; otherwise OPEN interaction | composer admitted by current attention + interaction | **current attention/action** | CORRECT; user question/continuation is visibly coupled to current conversation | 14 |
+| INFO-ACT-011 | SURF-MAT-ACTIVITY-001 | timeline loading/error/empty-processing text | event query state + selected Run active/terminal | corresponding query/event branch | current activity state | CORRECT | composition family |
+| INFO-PROP-001 | SURF-MAT-PROPOSAL-001 | currentness: Pending review / Adoption in progress / Adopted / Rejected | RunEvent proposal/disposition/adoption-requested events | proposal exists | proposal/review state | CORRECT | 15, 16 |
+| INFO-PROP-002 | SURF-MAT-PROPOSAL-001 | target path + rationale | `ARTIFACT_PROPOSAL_CREATED.targetPath/rationale` | proposal exists | proposal identity/meaning; target path exact identity | CORRECT for review, although path is technical-looking it is the actual mutation target and therefore materially relevant here | 15 |
+| INFO-PROP-003 | SURF-MAT-PROPOSAL-001 | unified diff | `ARTIFACT_PROPOSAL_CREATED.unifiedDiff` | proposal exists | **primary review work** | CORRECT | 15, 16 |
+| INFO-PROP-004 | SURF-MAT-PROPOSAL-001 | adoption-in-progress / decision error | adoption-requested event / mutation error | corresponding condition | current attention | CORRECT | 16 |
 
-### 12.6 R3 / Approval
+### 12.6 Readiness review
 
-| INFO id | SURF | Information shown | Exact source | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-R3-001` | R3 | Governed review current / Review in progress | R3 ArtifactRef existence | R3 selected | review currentness | 12 | CORRECT |
-| `INFO-R3-002` | R3 | R3 attempts | R3 STAGE Run attempt/start/status | runs exist | history/supporting | 12 | CORRECT |
-| `INFO-R3-003` | R3 | package upstream documents + exact paths in selector detail | ArtifactRef role/repositoryPath | artifacts exist | supporting context with technical path | 12 | MIXED; document identity needed, exact path is technical |
-| `INFO-APPROVAL-001` | Approval | Awaiting authorization / approved history / returned before sign-off | WorkItem stage + historical tasks | Approval selected | review currentness | 21 | CORRECT |
-| `INFO-APPROVAL-002` | Approval | task count + package current | `SignoffPackage.taskBlock.tasks.length` | current package | review summary | 21 | CORRECT |
-| `INFO-APPROVAL-003` | Approval | package hash | `SignoffPackage.packageHash` | current overview | **technical detail** | 21 | **TECHNICAL LEAK / MISPLACED: rendered in primary review body** |
-| `INFO-APPROVAL-004` | Approval | source SHA-256 | `SignoffPackage.sourceSha256` | current overview | **technical detail** | 21 | **TECHNICAL LEAK / MISPLACED** |
-| `INFO-APPROVAL-005` | Approval | baseline commit | `SignoffPackage.baselineCommit` | current overview | **technical detail** | 21 | **TECHNICAL LEAK / MISPLACED** |
-| `INFO-APPROVAL-006` | Approval task | task objective | signed task `objective` | task selected | primary review | 22 | CORRECT |
-| `INFO-APPROVAL-007` | Approval task | dependencies/gates/concerns/acceptance | signed task fields | task selected | review/supporting | 22 | CORRECT |
-| `INFO-APPROVAL-008` | Approval task | scope/exclusions/change surface/authority | signed task fields | task selected | primary review evidence | 22 | CORRECT |
-| `INFO-APPROVAL-009` | historical Approval task | raw approval id | `ExecutionTask.approvalId` | historical task selected | technical detail | source | **TECHNICAL LEAK if persistently shown outside technical disclosure** |
-| `INFO-APPROVAL-010` | Approval | approver identity input | local `approvedBy` | current package | current action | 21 | CORRECT |
+| INFO-R3-001 | SURF-STEP-R3-001 | “Governed review current” vs “Review in progress” | presence of R3 `ArtifactRef` | R3 surface | material currentness | CORRECT | 12 |
+| INFO-R3-002 | SURF-STEP-R3-001 | review purpose | static governed copy | R3 surface | primary orientation | CORRECT | 12 |
+| INFO-R3-003 | SURF-STEP-R3-001 | Readiness review selector and status | R3 `ArtifactRef` presence | R3 surface | primary review selector | CORRECT | 12 |
+| INFO-R3-004 | SURF-STEP-R3-001 | attempt label/time/status | R3 stage `Run.attempt/startedAt/status` | R3 Runs exist | supporting history/activity | CORRECT | 12 |
+| INFO-R3-005 | SURF-STEP-R3-001 | package document labels **and repository paths** | R1/R2/DESIGN/PLAN `ArtifactRef.role/repositoryPath` | package artifacts exist | supporting package context + technical path | **PARTIALLY MISPLACED**: package document access is correct; persistent raw path is technical leakage | 12 |
+| INFO-R3-006 | SURF-STEP-R3-001 | governed R3 Markdown or “in progress” state | R3 ArtifactRef + content bytes; fallback absence | readiness artifact present/absent | primary review work | CORRECT | 12 |
 
-### 12.7 Implementation
+### 12.7 Approval
 
-| INFO id | SURF | Information shown | Exact field / derivation | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-EXEC-001` | Implementation | task list id/objective/state | `ExecutionTask.planTaskId,objective,state` | tasks exist | operational master | 23–25 | CORRECT |
-| `INFO-EXEC-002` | Implementation | attempts role/attempt/start/status | `Run.role,attempt,startedAt,status` | selected task has runs | history/operational | 24,25 | CORRECT |
-| `INFO-EXEC-003` | task detail | objective/state | task fields | task selected | primary work | 23 | CORRECT |
-| `INFO-EXEC-004` | task detail | gates/scope/change surface/dependencies | task fields | task selected | operational/supporting context | 23 | CORRECT |
-| `INFO-EXEC-005` | task detail | raw task id/approval id/run id/baseline/context hash/provider session/terminal classification | task + run exact fields | Technical details disclosure | technical/provider detail | 25 | CORRECT only on-demand |
-| `INFO-EXEC-006` | validation | current boundary | `ValidationBoundary -> validationBoundaryLabel` | task detail | current execution state | 23–25 | CORRECT |
-| `INFO-EXEC-007` | validation | each V-stage Passed/Failed/Not recorded + summary | validation RunEvents | recorded/full disclosure | execution evidence | 24,25 | CORRECT |
-| `INFO-EXEC-008` | timeline | run events | RunEvent presentation | selected run | operational history | 24,25 | CORRECT |
-| `INFO-EXEC-009` | implementation material | artifact role + exact repository path | ArtifactRef role/repositoryPath | artifacts exist | supporting material + technical identity | 23 | **MIXED: role is useful; persistent exact paths are technical/noisy** |
-| `INFO-EXEC-010` | summary | blocked task / action failure | ExecutionOwner + mutation errors | blocked/error | current attention/recovery | 24 | CORRECT |
+| INFO-APR-001 | SURF-STEP-APPROVAL-001 | currentness status: Awaiting authorization / Approved package history / Returned before sign-off | `WorkItem.stage`, historical `ExecutionTask[]` presence | Approval view | primary review currentness | CORRECT | 13, 21 |
+| INFO-APR-002 | SURF-STEP-APPROVAL-001 | Approval purpose and current/historical package framing | `currentApproval = stage===AWAITING_SIGNOFF`, historical task count | Approval view | primary orientation | CORRECT | 13, 21 |
+| INFO-APR-003 | SURF-STEP-APPROVAL-001 | governed-document selector labels **and repository paths** | package `ArtifactRef.role/repositoryPath` | package artifacts exist | supporting package context + technical path | **PARTIALLY MISPLACED**: raw repository path should be on demand, not persistent selector copy | 13 |
+| INFO-APR-004 | SURF-STEP-APPROVAL-001 | signed-task selector id + objective | `SignoffPackage.taskBlock.tasks[].id/objective` or historical `ExecutionTask.planTaskId/objective` | tasks exist | primary review/task meaning | CORRECT | 22 |
+| INFO-APR-005 | SURF-STEP-APPROVAL-001 | package task count/current state | `SignoffPackage.taskBlock.tasks.length` | current package overview | primary review summary | CORRECT | 21 |
+| INFO-APR-006 | SURF-STEP-APPROVAL-001 | **Package hash, source SHA, baseline commit** under “Technical identity” in primary overview | `SignoffPackage.packageHash/sourceSha256/baselineCommit` | current package overview | technical exact identity | **MISPLACED / CANONICAL UX VIOLATION**: `GW-DOC-WORKBENCH-UX-V2` requires package hashes/commit identity collapsed/on-demand secondary and forbids displacement of package currentness/task meaning/sign-off | 13, 21 |
+| INFO-APR-007 | SURF-MAT-APPROVAL-TASK-001 | task id/objective | `SignedTaskDefinition.id/objective` or historical `ExecutionTask.planTaskId/objective` | selected task | primary review work | CORRECT | 22 |
+| INFO-APR-008 | SURF-MAT-APPROVAL-TASK-001 | dependencies, gates, concerns, acceptance refs | task fields `dependsOn/gateIds/concernIds/acceptanceRefs` | selected task | task meaning/supporting authority | CORRECT; gates/acceptance are specifically material to approval | 22 |
+| INFO-APR-009 | SURF-MAT-APPROVAL-TASK-001 | scope, exclusions, change surface, authority refs | task fields | selected task | primary/supporting review material | CORRECT in task detail; dense but semantically relevant | 22 |
+| INFO-APR-010 | historical approval task | approval id + execution state | `ExecutionTask.approvalId/state` | historical selected task | technical/history + workflow state | **MIXED**: execution state is useful history; exact Approval id is technical identity and should be on demand | historical Approval composition |
+| INFO-APR-011 | SURF-STEP-APPROVAL-001 | “Approved by” input + sign-off failure | local `approvedBy`; signoff mutation error | current package available and fetch/error clear | current action | CORRECT | 21 |
+| INFO-APR-012 | SURF-STEP-APPROVAL-001 | loading/package-currentness error/no-current-package states | artifacts/signoff/tasks query state | branch-specific | current attention | CORRECT | Approval state family |
 
-### 12.8 Complete / Evidence / Context
+### 12.8 Implementation
 
-| INFO id | SURF | Information shown | Exact source | Show predicate | Class | Evidence | Verdict |
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
 |---|---|---|---|---|---|---|---|
-| `INFO-COMPLETE-001` | Complete | terminal outcome label/description | `WorkItem.outcome -> outcomeLabel/outcomeDescription` | COMPLETE | primary result | 27,28 | CORRECT |
-| `INFO-COMPLETE-002` | Complete | governed result artifacts | ArtifactRef role + content | evidence-backed terminal outcome | primary result/evidence | 27 | CORRECT |
-| `INFO-COMPLETE-003` | Complete | candidate evidence resources | execution Runs + `eventEvidence` | CANDIDATE_DONE | result evidence | 28 | CORRECT |
-| `INFO-COMPLETE-004` | Complete | evidence resource exact path + event tag/role | EvidenceRef.relativePath + event tag/Run role | candidate evidence | evidence/supporting + technical identity | 28 | MIXED; useful exact evidence locator but implementation-centric label |
-| `INFO-EVID-001` | Evidence | evidence/artifact label | selection label/path | selection exists | evidence orientation | 26 | CORRECT |
-| `INFO-EVID-002` | Evidence | exact raw content | response bytes decoded | query success | **primary evidence** | 26 | CORRECT |
-| `INFO-CTX-001` | Context | selected step + material | `workflowPresentation(step)`, `workflowMaterialLabel(material)` | Context open | technical/supporting orientation | 20 | CORRECT |
-| `INFO-CTX-002` | Context | selected document path + SHA | selected path/hash | relevant document material | technical detail | source/narrow capture for other data | CORRECT in Context |
-| `INFO-CTX-003` | Context | selected Run id/role/status/attempt/started | Run fields | selected material owns run | technical/operational detail | 20 | CORRECT in Context |
-| `INFO-CTX-004` | Context | source issue count | matching source diagnostics | diagnostics exist | secondary diagnostic | source | CORRECT only because current blocker is also owned outside Context |
-| `INFO-CTX-005` | Context | canonical stage/status/outcome/project/kind/schema/concerns | WorkItem + schema catalog | disclosure open | technical detail | 20 | CORRECT in on-demand Context |
+| INFO-EXEC-001 | SURF-STEP-EXEC-001 | approved task list: plan task id, objective, state | `ExecutionTask.planTaskId/objective/state` | tasks exist | primary operational master | CORRECT | 23–25 |
+| INFO-EXEC-002 | SURF-STEP-EXEC-001 | attempt list: role, attempt, startedAt, status | task-filtered `Run.role/attempt/startedAt/status` | selected task has Runs | supporting history/current owner | CORRECT | 24, 25 |
+| INFO-EXEC-003 | SURF-MAT-EXEC-TASK-001 | selected task id/objective/state | `ExecutionTask.planTaskId/objective/state` | selected task | primary work | CORRECT | 23–25 |
+| INFO-EXEC-004 | SURF-MAT-EXEC-TASK-001 | gates, scope, change surface, dependencies | `ExecutionTask.gateIds/scope/changeSurface/dependsOn` | selected task | primary/supporting implementation contract | CORRECT | 23–25 |
+| INFO-EXEC-005 | SURF-MAT-EXEC-TASK-001 | selected attempt role/attempt/status | selected `Run.role/attempt/status` | selected Run | workflow/agent activity state | CORRECT | 24, 25 |
+| INFO-EXEC-006 | SURF-MAT-EXEC-TASK-001 | task id, approval id, Run id, baseline, context hash, provider session, terminal classification | exact `ExecutionTask.id/approvalId`, `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | Technical details disclosure opened | technical/debug | CORRECT on demand | 24, 25 |
+| INFO-EXEC-007 | SURF-MAT-EXEC-TASK-001 | current validation boundary | derived `ValidationBoundary` from canonical RunEvents | selected task | primary current verification state | CORRECT | 24, 25 |
+| INFO-EXEC-008 | SURF-MAT-EXEC-TASK-001 | recorded validation stages/results; complete V0–V7 matrix on disclosure | `VALIDATION_PASSED/FAILED` RunEvents; pure `latestValidationEvent` | selected Run/events | verification state/history | CORRECT: unreached matrix stays disclosed rather than filling primary surface | 24, 25 |
+| INFO-EXEC-009 | SURF-MAT-EXEC-TASK-001 | implementation timeline | RunEvents -> `runEventPresentation` | events loaded | agent activity/history | CORRECT | 24, 25 |
+| INFO-EXEC-010 | SURF-MAT-EXEC-TASK-001 | implementation material role + repository path | `ArtifactRef.role/repositoryPath` | artifacts exist | evidence/resource context | **MIXED**: resource identity is useful, but persistent exact path is technical; acceptable only as subordinate resource label, not primary status | 23–25 |
+| INFO-EXEC-011 | SURF-STEP-EXEC-001 | blocker / mutation failure / next owner status | derived `ExecutionOwner`, `WorkItem.status`, mutation errors | blocked/failure/current-owner condition | current attention/action | CORRECT | 23, 24 |
+| INFO-EXEC-012 | SURF-STEP-EXEC-001 | loading/error/no-work/no-task/no-attempt states | query state + empty arrays | branch-specific | current attention/empty state | CORRECT | implementation composition family |
 
-### 12.9 P1-T04 information-governance facts
+### 12.9 Complete / terminal result and evidence
 
-The inventory establishes these direct current-state facts for later root-cause synthesis:
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
+|---|---|---|---|---|---|---|---|
+| INFO-TERM-001 | SURF-STEP-COMPLETE-001 | terminal outcome label/explanation | `WorkItem.outcome` -> terminal presentation | Complete | primary final result | CORRECT | 27, 28 |
+| INFO-TERM-002 | SURF-STEP-COMPLETE-001 | “Verified candidate” vs “Terminal outcome” status | `outcome === CANDIDATE_DONE` | Complete | workflow result state | CORRECT | 27, 28 |
+| INFO-TERM-003 | SURF-STEP-COMPLETE-001 | candidate evidence resources | candidate Runs + RunEvents -> `eventEvidence`; unique by run/path | CANDIDATE_DONE | evidence | CORRECT | 28 |
+| INFO-TERM-004 | SURF-STEP-COMPLETE-001 | governed audit/investigation result artifact(s) | terminal evidence-backed outcome + `ArtifactRef[]` + artifact bytes | INVESTIGATION_COMPLETE/AUDIT_COMPLETE | **primary final result** | CORRECT | 27 |
+| INFO-TERM-005 | SURF-STEP-COMPLETE-001 | candidate/result loading/error/empty states | query state | corresponding branch | current result state | CORRECT | 27, 28 composition family |
+| INFO-EVID-001 | SURF-MAT-EVIDENCE-001 | evidence/artifact label or relative path | `EvidenceSelection.label/relativePath` | selection exists | evidence identity | CORRECT | 26 |
+| INFO-EVID-002 | SURF-MAT-EVIDENCE-001 | exact read-only bytes/text | artifact content or `readEvidence(runId,relativePath)`; UTF-8 decode else bounded binary hex preview | query success | **primary evidence work** | CORRECT | 26 |
+| INFO-EVID-003 | SURF-MAT-EVIDENCE-001 | loading/read error | query state | corresponding branch | current attention | CORRECT | evidence family |
 
-1. **Exact technical identity is not consistently contained.** Approval renders package/source hashes and baseline commit in its primary review body; lifecycle documents render repository paths persistently; proposal review renders exact target path in primary summary; Implementation resource rows render exact repository paths.
-2. **Workflow state is multiply presented.** WorkItem identity detail, workflow rail and step summary each repeat lifecycle/status information. This is not necessarily wrong individually, but the current composition contains semantic duplication that Phase 2A must rationalize.
-3. **Current required input is duplicated.** The same `HUMAN_INPUT_REQUESTED.question` appears in both timeline history and the owning composer/current-action region.
-4. **Technical disclosures exist but do not consistently solve hierarchy.** Run/task technical fields are generally placed behind disclosures, whereas document paths and Approval hashes are not.
-5. **Context is correctly sourced as a secondary projection rather than another authority owner.**
-6. **The typed information lineage is predominantly canonical.** Current presentation problems are primarily classification/placement/duplication issues, not a browser DTO/state-family problem.
+### 12.10 Confirmations and bounded nested tasks
+
+| INFO | SURF | Presented information | Typed source / derivation | Show/suppress predicate | Class / authority | Current placement verdict | Rendered evidence |
+|---|---|---|---|---|---|---|---|
+| INFO-CONF-001 | SURF-CONF-DIRTY-DEST-001 | unsaved-change warning + requested destination consequence | local `workspaceDirty/pendingDestination` | dirty + application navigation attempted | safety/current attention | CORRECT | 40 |
+| INFO-CONF-002 | SURF-CONF-DIRTY-MATERIAL-001 | unsaved Markdown warning before step/material change | local `dirty/pendingSelection` | dirty + workspace selection attempted | safety/current attention | CORRECT | 29 |
+| INFO-CONF-003 | SURF-CONF-ARCHIVE-001 | archive/restore consequence | `WorkItem.archived/title` + local confirmation | archive action requested | safety/current action | CORRECT | 39 |
+| INFO-CONF-004 | SURF-CONF-DOC-GIT-001 | exact governed paths to be committed | changed `WorkItemDocumentationGitStatus.paths[].repositoryPath` | Git-save confirmation open | safety/technical scope necessary to irreversible-ish repository action | CORRECT | 41 |
+| INFO-CONF-005 | SURF-CONF-REPO-DISCONNECT-001 | exact repository root + preservation statement | selected repository root | disconnect requested | safety/configuration | CORRECT | 33 |
+| INFO-CONF-006 | SURF-CONF-OC-REMOVE-001 | account label + credential-removal consequence | selected `OpenCodeAccount.label` | remove requested | safety/configuration | CORRECT | 36 |
+
+### 12.11 P1-T04 source-lineage and hierarchy findings
+
+The following findings are factual current-state presentation mismatches established by source + rendered evidence. They are not replacement-design decisions.
+
+| Finding | Evidence | Current authority comparison | Verdict |
+|---|---|---|---|
+| INFO-F01 | `LifecycleDocumentMaterial` uses `ArtifactRef.repositoryPath` as the persistent document description | Workbench §12.3 defines raw paths as Technical and §14 requires technical identity on demand | **INCOMPLETE / MISPLACED** |
+| INFO-F02 | pre-signoff, R3 and Approval material selectors persist `ArtifactRef.repositoryPath` under ordinary document labels | supporting documents are secondary, but raw path identity is Technical | **INCOMPLETE / TECHNICAL LEAK** |
+| INFO-F03 | Approval primary overview renders package hash, source SHA and baseline commit directly under “Technical identity” | Workbench §14.7 explicitly requires technical package hashes/commit identity collapsed/on-demand and not displacing package currentness/task meaning/sign-off | **CONTRADICTORY IMPLEMENTATION** |
+| INFO-F04 | historical Approval task detail renders exact `approvalId` in ordinary task metadata | exact IDs are Technical under Workbench §12.3 | **INCOMPLETE / TECHNICAL LEAK** |
+| INFO-F05 | exact Run/provider/context/baseline identities are disclosure-only in Activity/Implementation and exact document/hash identity is in Context/technical disclosure | matches current Technical/on-demand requirements | **CORRECT** |
+| INFO-F06 | product-facing agent messages, questions, blockers, validation/review failures and proposal events come from typed persisted `RunEvent` payloads through exhaustive presentation functions, while raw event JSON is separately disclosed | matches product-facing operational state vs debug-detail separation | **CORRECT** |
+| INFO-F07 | OpenCode session identity/status is currently present only in Activity technical disclosure unless a provider failure is represented through product-facing RunEvent/current blocker | matches current P3 rule; Phase 1 P1-T07 must determine whether current authority itself is sufficient for 0.5.0 transparency needs | **CORRECT AGAINST CURRENT AUTHORITY; PRODUCT QUESTION REMAINS** |
+| INFO-F08 | Settings legitimately exposes exact repository/reference/model/account identifiers because those values are the configuration being edited | Workbench technical-detail restriction applies to ordinary operation; exact configuration identity is necessary in configuration surfaces | **CORRECT** |
+
+### 12.12 P1-T04 completion verdict
+
+**P1-T04: COMPLETE for current production information lineage.**
+
+Completion basis:
+
+- every registered productive `SURF-` family has its materially distinct persistent information regions classified above;
+- every dynamic region is traced to canonical typed fields, local presentation state, query state, or a named pure derivation;
+- conditional presentation/suppression is recorded at the semantic branch level;
+- technical/debug information is distinguished from product-facing workflow/agent information;
+- source-backed placement is compared against current `GW-DOC-WORKBENCH-UX-V2` authority;
+- rendered evidence from P1-T03 is cross-referenced;
+- the concrete leakage/misplacement findings are recorded without selecting a replacement design.
+
+P1-T05 must now assign exact `ACT-`/`FLOW-` ids to the interactions consuming these `INFO-` facts and prove visibility, enablement, command path, commit-time recheck, canonical effect and destination.
 
 ## 13. Per-surface interaction inventory
 
@@ -829,17 +893,17 @@ At P1-T02 completion every surface has a source owner and scenario contract. Lat
 
 | SURF family | Source | Scenario contract | Rendered evidence | INFO | ACT/FLOW | STATE/OC/MAT/CERT | Status |
 |---|---|---|---|---|---|---|---|
-| application shell/queue/create | §§8.1 | §10 | P1-T03 | P1-T04 | P1-T05 | later | OPEN |
-| Settings + nested account/repository tasks | §§8.1 | §10 | P1-T03 | P1-T04 | P1-T05 | OC/MAT/CERT later | OPEN |
-| WorkItem shell/Context | §8.2 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
-| Work request | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
-| R1/R2/DESIGN/PLAN | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
-| R3 | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
-| Approval | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
-| Implementation | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
-| Complete | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
-| shared activity/proposal/evidence/doc materials | §8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | all applicable later | OPEN |
-| confirmations/safety overlays | §8.4 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT as applicable | OPEN |
+| application shell/queue/create | §§8.1 | §10 | P1-T03 | **COMPLETE §12.1** | P1-T05 | later | OPEN |
+| Settings + nested account/repository tasks | §§8.1 | §10 | P1-T03 | **COMPLETE §12.2** | P1-T05 | OC/MAT/CERT later | OPEN |
+| WorkItem shell/Context | §8.2 | §10 | P1-T03 | **COMPLETE §12.3** | P1-T05 | STATE/MAT/CERT later | OPEN |
+| Work request | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.4** | P1-T05 | STATE/MAT/CERT later | OPEN |
+| R1/R2/DESIGN/PLAN | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.5** | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
+| R3 | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.6** | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
+| Approval | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.7** | P1-T05 | STATE/MAT/CERT later | OPEN |
+| Implementation | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.8** | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
+| Complete | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.9** | P1-T05 | STATE/MAT/CERT later | OPEN |
+| shared activity/proposal/evidence/doc materials | §8.3 | §10 | P1-T03 | **COMPLETE §§12.4–12.9** | P1-T05 | all applicable later | OPEN |
+| confirmations/safety overlays | §8.4 | §10 | P1-T03 | **COMPLETE §12.10** | P1-T05 | STATE/MAT/CERT as applicable | OPEN |
 
 ### 19.1 P1-T02 completion verdict
 
@@ -851,4 +915,11 @@ P1-T03 may now capture rendered evidence against §10. P1-T04 must not start fin
 
 ## 20. Current-state gaps requiring derived audit
 
-**Pending findings from P1-T04 onward.** P1-T02 records existence/coverage only and deliberately does not yet judge presentation quality or state correctness.
+P1-T04 establishes the first evidence-backed gaps:
+
+1. **INFO-F01/F02 — persistent raw repository-path leakage** across lifecycle-document headings and document/package selectors.
+2. **INFO-F03 — Approval technical identity is in primary content**, contradicting the current Approval screen contract.
+3. **INFO-F04 — historical Approval exposes exact Approval id in ordinary task metadata.**
+4. **INFO-F07 — current OpenCode visibility conforms to current authority but may be insufficient for the 0.5.0 product goal; this is explicitly deferred to P1-T07 rather than inferred here.**
+
+P1-T05 must determine whether the interaction availability and destinations surrounding these information regions are also incorrect. P1-T06/P1-T08 must determine whether any presentation mismatch originates in deeper state/material semantics rather than UI composition alone.
