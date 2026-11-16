@@ -509,36 +509,43 @@ The audit output must include:
 
 The audit described above is therefore the **evidence and problem-closure front end** of the 0.5.0 delivery lifecycle. It is not itself the governing implementation plan and must not collapse requirements, technical design and implementation planning into one document.
 
-The 0.5.0 work must proceed through the ordinary governed sequence:
+The 0.5.0 work must be executed as explicit phases. The phase boundary is important: **Phase 1 is prerequisite investigation only; Phase 2 is where product and technical design decisions are made from the complete Phase 1 fact set.**
 
 ~~~text
-0.5.0 scope / observed product failures
+PHASE 1 — foundational investigation / prerequisite fact closure
+  R1 audit + research
+  complete application interaction map
+  UI information/presentation map
+  interaction/business-rule map
+  workflow/state derivation
+  OpenCode transparency/integration derivation
+  document/material maturity facts
+        |
+        |  hard gate: complete evidence set + unresolved questions closed
+        v
+PHASE 2 — design closure
+  2A: R2 functional requirements / functional design
+  2B: DESIGN technical architecture + canonical contracts
+        |
+        |  hard gate: accepted P3 behavior + accepted P4/P5/P6 solution
+        v
+PHASE 3 — governing implementation plan
+  PLAN / P7 exact repository transition and verification contract
         |
         v
-R1 — audit / research / factual closure
-        |
-        v
-R2 — functional requirements
-        |
-        v
-DESIGN — technical architecture + canonical contracts
-        |
-        v
-PLAN — governing implementation plan
-        |
-        v
-R3 — readiness review
-        |
-        v
-Approval
-        |
-        v
-Implementation + validation
+PHASE 4 — readiness and delivery
+  R3 readiness review
+  Approval
+  Implementation + validation
 ~~~
 
-### R1 — audit / research obligations
+### Phase 1 — foundational investigation / prerequisite obligations
 
-R1 must establish the actual current-state failures and root causes across the integrated UX/UI, OpenCode and lifecycle/state domains. It must distinguish:
+Phase 1 exists to establish the complete factual basis required before Order can make valid product-design or technical-design decisions. It must not choose the replacement UX, invent new workflow semantics or pre-commit to an OpenCode implementation solution.
+
+Phase 1 is complete only when the interaction map and all of its derived state/OpenCode/material analyses provide a sufficiently closed fact set for Phase 2. Any material unknown that would force R2 or DESIGN to guess product behavior, current implementation behavior, provider capability, state ownership or interaction consequences keeps Phase 1 open.
+
+Phase 1 must establish the actual current-state failures and root causes across the integrated UX/UI, OpenCode and lifecycle/state domains. It must distinguish:
 
 - observed product symptoms from upstream causes;
 - incorrect implementation from missing/incorrect canonical design;
@@ -547,11 +554,13 @@ R1 must establish the actual current-state failures and root causes across the i
 - lifecycle-state defects from missing document/material maturity semantics;
 - test coverage from actual end-to-end contract proof.
 
-R1 must close the factual questions needed for requirements work. It must not decide the replacement product behavior, technical architecture or implementation shape.
+The complete application interaction map is the primary Phase 1 artifact. The lifecycle/state-machine audit, OpenCode transparency/integration audit and document/material maturity audit are derived from that same interaction evidence rather than conducted as independent design exercises.
 
-### R2 — functional requirements obligations
+### Phase 2A — functional requirements / functional design obligations
 
-R2 must convert the validated 0.5.0 findings into complete observable product behavior.
+Phase 2 begins only after Phase 1 has produced the complete fact set needed to make product decisions.
+
+R2 must convert the validated 0.5.0 findings into complete observable product behavior. It decides **what the operator experience and workflow behavior must be**, not how the implementation realizes it.
 
 The functional requirements must define at minimum:
 
@@ -563,14 +572,16 @@ The functional requirements must define at minimum:
 - proposal/review/adoption behavior;
 - editing/saving/conformance behavior;
 - historical/current/stale/blocked/failed/recovery behavior;
+- visibility and enablement rules for every material interaction;
+- expected destination/orientation after every material interaction;
 - responsive and accessibility behavior;
-- acceptance criteria for every material state and screen transition.
+- acceptance criteria for every material state, screen condition and transition.
 
-R2 must be complete enough that DESIGN does not have to invent product behavior.
+R2 must resolve the product/business-rule decisions exposed by Phase 1. It must be complete enough that technical DESIGN does not have to invent product behavior.
 
-### DESIGN — technical authority obligations
+### Phase 2B — technical design obligations
 
-DESIGN must translate the accepted functional requirements into the exact P4/P5/P6 system design required to implement them.
+After the Phase 2A functional requirements are accepted, DESIGN must translate them into the exact P4/P5/P6 system design required to implement them.
 
 It must define at minimum:
 
@@ -590,9 +601,24 @@ It must define at minimum:
 
 DESIGN must preserve FCIS, SoC, semantic DRY, strict typing and minimum sufficient change. It must not introduce duplicated workflow/document state merely to simplify rendering.
 
-### PLAN — governing implementation-plan obligations
+Phase 2 is complete only when both the functional behavior and its technical realization are closed and mutually traceable.
 
-Only after R1, R2 and DESIGN are closed may the 0.5.0 governing implementation plan be written.
+### Phase 3 — governing implementation-plan obligations
+
+R1 must establish the actual current-state failures and root causes across the integrated UX/UI, OpenCode and lifecycle/state domains. It must distinguish:
+
+- observed product symptoms from upstream causes;
+- incorrect implementation from missing/incorrect canonical design;
+- UX information-hierarchy failures from primitive/theme defects;
+- OpenCode provider/integration defects from Order state/reaction defects;
+- lifecycle-state defects from missing document/material maturity semantics;
+- test coverage from actual end-to-end contract proof.
+
+R1 must close the factual questions needed for requirements work. It must not decide the replacement product behavior, technical architecture or implementation shape.
+
+
+
+Only after Phase 1 and both Phase 2A/2B are closed may the 0.5.0 governing implementation plan be written.
 
 That implementation plan must be executable without material inference by the implementation team. It must:
 
@@ -610,9 +636,17 @@ That implementation plan must be executable without material inference by the im
 
 The implementation plan is therefore the **downstream execution contract for the complete 0.5.0 product correction**, not the place where unresolved product behavior or architecture is decided.
 
-### 0.5.0 design/implementation entry criteria
+### Phase 4 — readiness, approval and delivery
 
-No 0.5.0 governing implementation plan is acceptable until the audit establishes, and the governing R2/DESIGN P3/P4/P6 authority is amended where required to contain:
+Phase 4 begins only after the governing implementation plan is complete.
+
+R3 must adversarially prove that the Phase 2 functional/technical authority and Phase 3 implementation plan are mutually complete, current and executable. Approval then authorizes the exact package. Implementation and validation execute that approved package without making new material P1-P6 decisions.
+
+### 0.5.0 phase gates
+
+**Phase 1 → Phase 2 gate:** no functional or technical design decision is considered closed until the foundational interaction/state/OpenCode/material fact set is complete enough that the decision does not depend on guessing current behavior or capability.
+
+**Phase 2 → Phase 3 gate:** no 0.5.0 governing implementation plan is acceptable until the Phase 2A functional requirements and Phase 2B technical design are complete and the governing P3/P4/P5/P6 authority contains:
 
 - one explicit screen contract for every workflow step;
 - one explicit information-hierarchy rule separating productive work from context, operational agent activity, technical detail and developer/debug diagnostics;
