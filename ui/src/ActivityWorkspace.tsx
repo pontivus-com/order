@@ -2,24 +2,35 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
-import type {
-  CurrentAttentionTag,
-  StageRunInteraction,
+import {
+  stageRunCancellationIsAdmitted,
+  type CurrentAttentionTag,
+  type StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
-import { WorkbenchDialogue } from "./primitives/WorkbenchDialogue.tsx";
+import {
+  WorkbenchDialogue,
+  WorkbenchDialogueMessage,
+  WorkbenchDialogueMessages,
+} from "./primitives/WorkbenchDialogue.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
+import { WorkbenchTimeline } from "./primitives/WorkbenchTimeline.tsx";
 import {
+  agentActivityRunEvents,
+  conversationRunEvents,
+  runEventPresentation,
   runIsActive, runRoleLabel, runStatusLabel,
-  workflowPresentation, type EvidenceSelection, type ProposalSelection,
+  workflowPresentation,
+  workflowRunEvents,
+  type EvidenceSelection, type ProposalSelection,
 } from "./workbench-presentation.ts";
 
 export type PreSignoffStage = "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
@@ -72,6 +83,9 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
     refetchInterval: selectedRun && runIsActive(selectedRun) ? 1000 : false,
   });
   const events = eventsQuery.data ?? [];
+  const conversationEvents = conversationRunEvents(events);
+  const activityEvents = agentActivityRunEvents(events);
+  const workflowEvents = workflowRunEvents(events);
   const selectedIsCurrent = selectedRun?.id === currentRunId;
   const interaction = selectedIsCurrent ? currentInteraction : null;
   const pending: RunEvent | null =
@@ -112,18 +126,24 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
   const canCancel =
     selectedIsCurrent &&
     currentRunControlsOwnAttention &&
-    interaction !== null &&
-    interaction.tag !== "CLOSED";
+    stageRunCancellationIsAdmitted(selectedRun, events);
+  const hasVisibleAgentAnchor = conversationEvents.some(
+    (event) =>
+      event.event.tag === "AGENT_MESSAGE_FINAL" &&
+      event.event.text.trim().length > 0,
+  );
   const canAnswer =
     selectedIsCurrent &&
     (
       (
         currentAttention === "ORDINARY" &&
-        interaction?.tag === "OPEN"
+        interaction?.tag === "OPEN" &&
+        hasVisibleAgentAnchor
       ) ||
       (
         currentAttention === "REQUIRED_INPUT" &&
-        interaction?.tag === "REQUIRED_INPUT"
+        interaction?.tag === "REQUIRED_INPUT" &&
+        pending?.event.tag === "HUMAN_INPUT_REQUESTED"
       )
     );
   const actionError = inputError ?? cancel.error;
@@ -141,33 +161,81 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
       <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification ?? "—"}</code></dd></div>
     </dl>
   );
-  const transcript = (
-    <>
-      <div data-testid="selected-run-header">
-        <WorkbenchSectionHeader
-          title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
-          description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
-          action={<span className="order-inline-actions">
-            {canCancel ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={() => cancel.mutate()} /> : null}
-          </span>}
-        />
-        <div className="order-run-status-strip">
-          <WorkbenchStatus tone={statusTone(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
-        </div>
+  const header = (
+    <div data-testid="selected-run-header">
+      <WorkbenchSectionHeader
+        title={selectedStep.label + " · " + runRoleLabel(selectedRun.role)}
+        description={"Attempt " + selectedRun.attempt + " · " + new Date(selectedRun.startedAt).toLocaleString()}
+        action={<span className="order-inline-actions">
+          {canCancel ? <WorkbenchAction label="Cancel current activity" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={() => cancel.mutate()} /> : null}
+        </span>}
+      />
+      <div className="order-run-status-strip">
+        <WorkbenchStatus tone={statusTone(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
       </div>
-      <WorkbenchDisclosure label="Technical details" content={technical} />
-      {eventsQuery.isPending ? <WorkbenchState kind="loading" title="Loading activity timeline…" /> :
-       eventsQuery.isError ? <WorkbenchState kind="error" title="Activity timeline unavailable" description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} /> :
-       events.length === 0 ? <WorkbenchState kind="empty" title={runStatusLabel(selectedRun.status)} description={runIsActive(selectedRun) ? "This workflow attempt is processing. Persisted results will appear here automatically." : "No persisted workflow events were returned for this attempt."} /> :
-       <RunEventTimeline run={selectedRun} events={events} onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview} />}
-    </>
+    </div>
   );
+
+  const transcript = eventsQuery.isPending
+    ? <WorkbenchState kind="loading" title="Loading conversation…" />
+    : eventsQuery.isError
+      ? <WorkbenchState kind="error" title="Conversation unavailable" description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} />
+      : conversationEvents.length === 0
+        ? <WorkbenchState kind="empty" title={runStatusLabel(selectedRun.status)} description={runIsActive(selectedRun) ? "This workflow attempt is processing. Conversation will appear when the agent has something substantive to say." : "No human/agent conversation was recorded for this attempt."} />
+        : (
+          <WorkbenchDialogueMessages>
+            {conversationEvents.map((event) => {
+              const payload = event.event;
+              const timestamp = new Date(event.occurredAt).toLocaleString();
+              if (payload.tag === "HUMAN_INPUT_RECEIVED") {
+                return <WorkbenchDialogueMessage key={event.id} sender="user" timestamp={timestamp} name="You">{payload.text}</WorkbenchDialogueMessage>;
+              }
+              if (payload.tag === "HUMAN_INPUT_REQUESTED") {
+                return <WorkbenchDialogueMessage key={event.id} sender="assistant" timestamp={timestamp} name="Agent · Waiting for you">{payload.question}</WorkbenchDialogueMessage>;
+              }
+              if (payload.tag === "AGENT_MESSAGE_FINAL") {
+                return <WorkbenchDialogueMessage key={event.id} sender="assistant" timestamp={timestamp} name="Agent">{payload.text}</WorkbenchDialogueMessage>;
+              }
+              return null;
+            })}
+          </WorkbenchDialogueMessages>
+        );
+
+  const activityRegion = activityEvents.length === 0
+    ? (runIsActive(selectedRun) ? <WorkbenchState kind="empty" compact title="Agent activity" description="Waiting for bounded operational activity…" /> : undefined)
+    : (
+      <WorkbenchTimeline
+        label="Agent activity"
+        items={activityEvents.map((event) => {
+          const presentation = runEventPresentation(event);
+          return {
+            id: event.id,
+            heading: <strong>{presentation.detail}</strong>,
+            meta: <time>{new Date(event.occurredAt).toLocaleString()}</time>,
+            body: event.event.tag === "AGENT_ACTIVITY_RECORDED" && event.event.resource
+              ? <code>{event.event.resource}</code>
+              : undefined,
+          };
+        })}
+      />
+    );
+
+  const workflow = workflowEvents.length === 0
+    ? undefined
+    : <RunEventTimeline run={selectedRun} events={workflowEvents} onOpenEvidence={onOpenEvidence} onOpenProposalReview={onOpenProposalReview} />;
+
   return (
     <section data-testid="stage-run-material">
       <div data-testid="activity-detail">
       <WorkbenchDialogue
+        header={header}
         transcript={transcript}
-        state={actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : undefined}
+        activity={activityRegion}
+        state={<>
+          {actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : null}
+          {workflow}
+        </>}
+        technical={<WorkbenchDisclosure label="Technical details" content={technical} />}
         composer={canAnswer ? <ActivityComposer
           run={selectedRun}
           pending={pending}
