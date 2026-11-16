@@ -346,7 +346,7 @@ export const OpenCodeAccountSettings = () => {
         open={removeAccountId !== null}
         onOpenChange={(open) => { if (!open) setRemoveAccountId(null); }}
         title="Remove saved OpenCode account?"
-        description={removing === null ? "Remove this saved account from OpenCode?" : `Remove ${removing.label}? This removes the saved OpenCode credential from this installation.`}
+        description="Remove the selected saved OpenCode credential from this installation."
         confirmLabel="Remove account"
         pending={remove.isPending}
         onConfirm={() => { if (removeAccountId !== null) remove.mutate(removeAccountId); }}
