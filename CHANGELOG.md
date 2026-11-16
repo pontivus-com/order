@@ -8,7 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
-- Open the 0.5.0 corrective release train with a governed end-to-end audit of the released 0.4.0 lifecycle/state-machine semantics, STAGE/OpenCode execution contract, and complete Workbench screen structure. The audit treats the confirmed lifecycle-proposal/provider-control contract mismatch as one release-blocking defect and requires state-transition, execution-context, screen-by-screen UX/UI, and certification evidence before corrective design or implementation is accepted.
+- Open the 0.5.0 corrective release train with one integrated audit of the released 0.4.0 Workbench UX, OpenCode interaction/execution boundary and lifecycle state model. Require an explicit screen contract for every workflow step, a clear separation between productive work, context, operational agent activity and technical/debug detail, first-class R1/R2/DESIGN/PLAN agent conversation, bounded OpenCode activity/error visibility, document-material maturity semantics, complete state-transition/provider-turn validation, and end-to-end certification before corrective implementation is accepted; treat the confirmed lifecycle-proposal/provider-control contract mismatch as one release-blocking instance of the broader producer/consumer closure problem.
 
 ## [0.4.0] - 2026-11-16
 
