@@ -1749,6 +1749,8 @@ The technical investigation must determine, without changing the behavior above:
 - how commands are serialized;
 - how command atomicity is guaranteed;
 - how required-input idempotence is enforced;
+- how the productive STAGE result contract guarantees a human-readable conversational anchor whenever the resulting interaction is open for continuation, while preserving exact required-input question ownership when waiting for input;
+- how the browser projects the persisted human/agent transcript independently from workflow-event/activity/technical feeds so reply eligibility and visible conversation cannot diverge;
 - how proposal authority is admitted;
 - how reads are made side-effect-free;
 - how asynchronous transitions expose one coherent browser observation;
