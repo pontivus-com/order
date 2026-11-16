@@ -53,10 +53,11 @@ describe("Order cross-boundary certification", () => {
 
     const server = read("src/daemon/server.ts");
     expect(server).toContain('parts[5] === "start"');
-    const tickRoute = server.slice(
-      server.indexOf('pathname === "/api/tick"'),
-      server.indexOf('pathname === "/api/work-items"', server.indexOf('pathname === "/api/tick"')),
-    );
+    const tickRouteStart = server.indexOf('pathname === "/api/tick"');
+    const browserMutationAuth = server.indexOf("requireBrowserMutation", tickRouteStart);
+    expect(tickRouteStart).toBeGreaterThanOrEqual(0);
+    expect(browserMutationAuth).toBeGreaterThan(tickRouteStart);
+    const tickRoute = server.slice(tickRouteStart, browserMutationAuth);
     expect(tickRoute).toContain("requireCliBearer");
     expect(tickRoute).not.toContain("requireBrowserMutation");
 
