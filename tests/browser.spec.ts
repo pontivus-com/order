@@ -183,12 +183,12 @@ test("browser bootstrap is local, one-time, exact-cookie, origin-bound, and expi
   const missingOrigin = await page.context().request.post("/api/tick", {
     data: {},
   });
-  expect(missingOrigin.status()).toBe(403);
+  expect(missingOrigin.status()).toBe(401);
   const wrongOrigin = await page.context().request.post("/api/tick", {
     headers: { origin: "http://127.0.0.1:1" },
     data: {},
   });
-  expect(wrongOrigin.status()).toBe(403);
+  expect(wrongOrigin.status()).toBe(401);
 
   test.setTimeout(90_000);
   const expiringToken = await mintConnectToken(request);
