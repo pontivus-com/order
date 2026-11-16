@@ -302,7 +302,6 @@ jobs:
             await capture(page, "SURF-APP-001", "explicit dark theme application shell", "45-theme-dark.png");
           });
           SPEC
-          SPEC
 
       - name: Capture rendered states
         run: node node_modules/@playwright/test/cli.js test --config=phase1-playwright.config.ts
