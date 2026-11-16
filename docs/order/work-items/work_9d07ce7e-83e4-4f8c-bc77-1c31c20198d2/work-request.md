@@ -494,7 +494,7 @@ The audit output must include:
 9. an **OpenCode transparency derivation from the interaction map** classifying provider/agent facts as product-visible, secondary technical, or closed/internal, with exact source, reliability, safety and presentation tier;
 10. an OpenCode productive-context diagram from canonical authority/context resolution through provider invocation and returned-event reaction;
 11. a role-by-role OpenCode contract audit for STAGE, BUILDER, REMEDIATOR and REVIEWER, including execution/session failure classes and the exact operator-visible observability available from the pinned integration;
-12. a **per-workflow-step screen contract** for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete, including primary work, conversation, agent activity, context, technical/debug separation, actions, errors, history and responsive states;
+12. a **per-workflow-step current-state surface assessment** for Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete, recording the actual primary work, conversation, agent activity, context, technical/debug information, actions, errors, history, responsive states and all observed gaps without yet choosing the replacement design;
 13. a cross-screen information-governance inventory that identifies the one canonical presentation owner for each persistent information class and all current violations;
 14. an integrated R1/R2/DESIGN/PLAN interaction blueprint proving the complete conversation → agent activity → proposal/document mutation → maturity/conformance → continuation/promotion loop;
 15. a document/material maturity matrix for every governed lifecycle artifact, explicitly separated from WorkItem lifecycle position and mapped to canonical source facts;
@@ -604,19 +604,6 @@ DESIGN must preserve FCIS, SoC, semantic DRY, strict typing and minimum sufficie
 Phase 2 is complete only when both the functional behavior and its technical realization are closed and mutually traceable.
 
 ### Phase 3 — governing implementation-plan obligations
-
-R1 must establish the actual current-state failures and root causes across the integrated UX/UI, OpenCode and lifecycle/state domains. It must distinguish:
-
-- observed product symptoms from upstream causes;
-- incorrect implementation from missing/incorrect canonical design;
-- UX information-hierarchy failures from primitive/theme defects;
-- OpenCode provider/integration defects from Order state/reaction defects;
-- lifecycle-state defects from missing document/material maturity semantics;
-- test coverage from actual end-to-end contract proof.
-
-R1 must close the factual questions needed for requirements work. It must not decide the replacement product behavior, technical architecture or implementation shape.
-
-
 
 Only after Phase 1 and both Phase 2A/2B are closed may the 0.5.0 governing implementation plan be written.
 
