@@ -232,11 +232,39 @@ export const ReadinessWorkspace = ({
                 : materialPresentationStateLabel(materialState)
             }
           />}
-          summary={<div><h2>Readiness review</h2><p>Independent verification of the exact governed package.</p></div>}
+          summary={<div><h2>Readiness review</h2></div>}
           body={
-            <div className="order-review-material-stack">
-              {primary}
-              {supportingMaterial ? <div className="order-review-supporting-disclosure">{supportingMaterial}</div> : null}
+            <div className="order-readiness-review-body">
+              <section className="order-readiness-verdict">
+                <strong>Readiness verdict</strong>
+                <span>{materialState === null ? "Derived from governed readiness-review material when present" : materialPresentationStateLabel(materialState)}</span>
+              </section>
+              <section className="order-readiness-findings">
+                <h3>Findings / defective owner</h3>
+                {primary}
+              </section>
+              <div className="order-readiness-support-grid">
+                <section>
+                  <h3>Package material needed to understand the verdict</h3>
+                  <p>Only reached/current package material is inspectable; unreached documents are not authority.</p>
+                  {packageArtifacts.length === 0 ? <p className="order-secondary-copy">No governed package material is currently available.</p> : (
+                    <div className="order-resource-list">{packageArtifacts.map((artifact) => (
+                      <WorkbenchResourceRow
+                        key={artifact.id}
+                        label={lifecycleArtifactLabel(artifact.role)}
+                        detail="Read-only governed package material"
+                        actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
+                        onOpen={() => onSelectMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id })}
+                      />
+                    ))}</div>
+                  )}
+                </section>
+                <section>
+                  <h3>Evidence / attempt history</h3>
+                  <p>Read-only supporting material. Required input may temporarily own attention. Sign-off is not available here.</p>
+                  {supportingMaterial}
+                </section>
+              </div>
             </div>
           }
           decisions={<></>}
