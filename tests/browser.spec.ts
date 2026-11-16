@@ -1812,6 +1812,14 @@ test("work-type variants preserve their canonical Work request information contr
     const source = page.getByTestId("source-document-material");
     await expect(source).toBeVisible();
     for (const heading of variant.headings) await expect(source).toContainText(heading);
+    await expect(source).not.toContainText("Order template:");
+    if (variant.kind === "Change") {
+      const editor = await openMarkdownEditor(page, "WorkItem source Markdown source");
+      await expect.poll(() => markdownSourceValue(editor)).toContain(
+        "<!-- Order template: change-intake-v1;",
+      );
+      await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    }
     await expect(page.getByRole("button", { name: "Start Research", exact: true })).toBeVisible();
     await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   }
