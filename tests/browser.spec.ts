@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  ExecutionTaskSchema,
   OpenCodeAccountLoginAttemptSchema,
   OpenCodeAccountStateSchema,
   RunEventSchema,
@@ -1241,12 +1242,16 @@ test("canonical Run feedback remains visible in the owning workflow context with
       .getByText("Waiting for you", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText("Your input is needed", { exact: true }).first(),
+    page.getByText("Which constraint should the plan prioritize?", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByTestId("activity-composer")
+      .getByText("Answer the question above", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByTestId("activity-composer")
       .getByText("Which constraint should the plan prioritize?", { exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
   await expect(page.getByRole("progressbar")).toHaveCount(0);
   await backToQueue(page);
 
@@ -1594,29 +1599,41 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
 
   await openWorkItem(page, "Implementation action ready");
   const executionItem = await workItemForTitle(page, "Implementation action ready");
-  await fixtureMutation(
-    page.context().request,
-    "/tick",
-    { workItemId: executionItem.id },
+  const tasksResponse = await page.request.get(
+    "/api/work-items/" + executionItem.id + "/tasks",
   );
-  await page.route("**/api/tick", async (route) => {
+  expect(tasksResponse.status()).toBe(200);
+  const executionTasks = ExecutionTaskSchema.array().parse(
+    await tasksResponse.json(),
+  );
+  const executionTask = executionTasks[0];
+  expect(executionTask).toBeDefined();
+  const startPath =
+    "/api/work-items/" + executionItem.id +
+    "/tasks/" + executionTask!.id + "/start";
+  await page.route("**" + startPath, async (route) => {
+    const run = RunSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/tick",
+      { workItemId: executionItem.id },
+    ));
     await route.fulfill({
-      status: 200,
+      status: 201,
       contentType: "application/json",
-      body: "{}",
+      body: JSON.stringify(run),
     });
   });
-  const tickResponse = page.waitForResponse((response) =>
+  const startResponse = page.waitForResponse((response) =>
     response.request().method() === "POST" &&
-    response.url().endsWith("/api/tick"));
-  await page.getByRole("button", { name: "Run next implementation step" }).click();
-  await tickResponse;
-  await page.unroute("**/api/tick");
+    response.url().endsWith(startPath));
+  await page.getByRole("button", { name: "Start current task" }).click();
+  expect((await startResponse).status()).toBe(201);
+  await page.unroute("**" + startPath);
   await expect(page.getByTestId("selected-run-header"))
     .toContainText("Implementation agent · Attempt 1");
   await expect(page.getByTestId("selected-run-header")).toContainText("Running");
   await expect(
-    page.getByRole("button", { name: "Run next implementation step" }),
+    page.getByRole("button", { name: "Start current task" }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Cancel current implementation attempt" }),
