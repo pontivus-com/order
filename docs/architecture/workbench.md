@@ -1345,15 +1345,19 @@ Separate query inspection from ArtifactRef materialization, remove lifecycle mut
 
 ### `src/daemon/stage.ts`
 
-Retain STAGE orchestration and transactional batch reaction. Recheck proposal-aware Cancel at the daemon mutation boundary, consume the complete producer grammar from the shell, and record bounded Order-admission diagnostic evidence before failing a provider-successful but semantically rejected turn.
+Own async STAGE-turn orchestration, complete-batch finalization, transactional input admission, current-stage proposal disposition and cancel-safe finalization. Recheck proposal-aware Cancel at the daemon mutation boundary, consume the complete producer grammar from the shell, and record bounded Order-admission diagnostic evidence before failing a provider-successful but semantically rejected turn.
+
+### `src/daemon/run.ts`
+
+Retain the existing RunEvent append/evidence/provider-diagnostics ownership. Add one per-provider-turn `createAgentActivityRecorder(runtime, runId)` closure that owns only ephemeral count/dedup state, admits at most the canonical 32 bounded activity payloads and appends them through the existing RunEvent path. The same owner writes bounded Order STAGE-batch-admission diagnostic evidence when `stage.ts` requests it. No activity table/store or parallel event owner is added.
 
 ### `src/shell/opencode.ts`
 
-Retain all provider-native V2 shapes. Extend the existing shell boundary with best-effort live activity observation plus terminal `session.context` reconciliation. Normalize/allowlist/redact into coordinator-owned activity values before they can cross into Order RunEvents; raw provider tool/event payloads never cross the shell.
+Retain all provider-native V2 shapes. Extend the existing shell boundary with best-effort live activity observation plus terminal `session.context` reconciliation. `invokeProvider` receives only a daemon-supplied typed activity callback over the canonical `AGENT_ACTIVITY_RECORDED` payload; provider-native event/tool shapes are normalized/allowlisted/redacted before that callback and never cross into daemon/browser state.
 
 ### `src/daemon/execution.ts` / `src/daemon/coordinator.ts`
 
-Factor exact current-task start from global task discovery. The manual WorkItem/task command creates exactly the submitted canonical current task Run and immediately hands that already-running task to the existing coordinator loop asynchronously. Global automatic scheduling continues to discover eligible tasks exactly as before.
+Factor exact current-task start from global task discovery while preserving the same post-signoff task/Run reaction loop. The manual WorkItem/task command creates exactly the submitted canonical current task Run and immediately hands that already-running task to the existing coordinator loop asynchronously. Global automatic scheduling continues to discover eligible tasks exactly as before. Resume uses explicit current blocker/currentness admission and does not reconcile source implicitly. Every lifecycle return remains routed through core lifecycle policy.
 
 ### `ui/src/ActivityWorkspace.tsx` / dialogue adapters
 
@@ -1362,18 +1366,6 @@ Split RunEvent presentation into conversation, agent activity and workflow/syste
 ### `ui/src/ExecutionWorkspace.tsx`
 
 Replace the task-local `api.tick` mutation with the exact current WorkItem/task start command. Current execution ownership remains derived before selection; historical selection cannot change the submitted command target.
-
-### `src/daemon/stage.ts`
-
-Own async STAGE-turn orchestration, complete-batch finalization, transactional input admission, current-stage proposal disposition and cancel-safe finalization.
-
-### `src/daemon/coordinator.ts`
-
-Retain top-level cancel/resume/scheduler composition. Resume uses explicit current blocker/currentness admission and does not reconcile source implicitly.
-
-### `src/daemon/execution.ts`
-
-Continue to own post-signoff task/Run reaction; route every WorkItem lifecycle return through core lifecycle policy and expose current blocker through canonical task state.
 
 ### UI query/state ownership
 
