@@ -20,6 +20,7 @@ import {
 import {
   artifactDirectEditIsAllowed,
   artifactReturnOwner,
+  stageRunCancellationIsAdmitted,
   transitionWorkItem,
 } from "../core/lifecycle.ts";
 import { workItemSchemaCatalog } from "../core/work-item-source.ts";
@@ -89,6 +90,7 @@ import {
   reconcileInterruptedCandidate,
   setWorkItemExecutionBlocked,
   startEligibleTask,
+  startExactExecutionTask,
 } from "./execution.ts";
 import {
   commitWorkItemDocumentation,
@@ -154,15 +156,58 @@ export type TickResult = Readonly<{
   runId: RunId | null;
 }>;
 
+const driveExecutionTask = async (
+  runtime: CoordinatorRuntime,
+  taskId: ExecutionTaskId,
+  repositoryRoots: readonly string[],
+): Promise<RunId | null> => {
+  let firstRunId: RunId | null = null;
+  while (true) {
+    const refreshed = await currentRunningTask(runtime);
+    if (
+      refreshed === null ||
+      refreshed.task.id !== taskId ||
+      !repositoryRoots.includes(refreshed.workItem.repositoryRoot)
+    ) {
+      break;
+    }
+
+    const active = activeExecutionRun(runtime, refreshed.task.id);
+    if (active !== null) {
+      firstRunId ??= active.id;
+      await executePostSignoffRun(
+        runtime,
+        active,
+        refreshed.task,
+        refreshed.approval,
+      );
+      continue;
+    }
+
+    const continuation = await continuationForRunningTask(
+      runtime,
+      refreshed.workItem,
+      refreshed.task,
+      refreshed.approval,
+    );
+    if (continuation === null) break;
+    firstRunId ??= continuation.id;
+    await executePostSignoffRun(
+      runtime,
+      continuation,
+      refreshed.task,
+      refreshed.approval,
+    );
+  }
+  return firstRunId;
+};
+
 export const runCoordinatorTick = async (
   runtime: CoordinatorRuntime,
   repositoryRoots: readonly string[] = runtime.config.repositoryRoots,
 ): Promise<TickResult> => {
   if (runtime.tickActive) throw new TypeError("TICK_ALREADY_ACTIVE");
   runtime.tickActive = true;
-  let startedTaskId: ExecutionTaskId | null = null;
-  let firstRunId: RunId | null = null;
-
   try {
     await reconcilePendingArtifactProposals(runtime);
     let current = await currentRunningTask(runtime);
@@ -179,59 +224,65 @@ export const runCoordinatorTick = async (
         approval: started.approval,
         task: started.task,
       };
-      startedTaskId = started.task.id;
-      firstRunId = started.run.id;
-      await executePostSignoffRun(
-        runtime,
-        started.run,
-        started.task,
-        started.approval,
-      );
-    } else {
-      startedTaskId = current.task.id;
     }
 
-    while (true) {
-      const refreshed = await currentRunningTask(runtime);
-      if (
-        refreshed === null ||
-        refreshed.task.id !== startedTaskId ||
-        !repositoryRoots.includes(refreshed.workItem.repositoryRoot)
-      ) break;
-      const active = activeExecutionRun(runtime, refreshed.task.id);
-      if (active !== null) {
-        if (active.id !== firstRunId) firstRunId ??= active.id;
-        await executePostSignoffRun(
-          runtime,
-          active,
-          refreshed.task,
-          refreshed.approval,
-        );
-        continue;
-      }
-      const continuation = await continuationForRunningTask(
-        runtime,
-        refreshed.workItem,
-        refreshed.task,
-        refreshed.approval,
-      );
-      if (continuation === null) break;
-      firstRunId ??= continuation.id;
-      await executePostSignoffRun(
-        runtime,
-        continuation,
-        refreshed.task,
-        refreshed.approval,
-      );
-    }
-
+    const firstRunId = await driveExecutionTask(
+      runtime,
+      current.task.id,
+      repositoryRoots,
+    );
     return firstRunId === null
       ? { result: "NO_WORK", executionTaskId: null, runId: null }
-      : { result: "STARTED", executionTaskId: startedTaskId, runId: firstRunId };
+      : {
+          result: "STARTED",
+          executionTaskId: current.task.id,
+          runId: firstRunId,
+        };
   } finally {
     runtime.tickActive = false;
   }
 };
+
+const startCurrentExecutionTaskUnlocked = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  executionTaskId: ExecutionTaskId,
+): Promise<Run> => {
+  if (runtime.tickActive) throw new TypeError("TICK_ALREADY_ACTIVE");
+  runtime.tickActive = true;
+  try {
+    const started = await startExactExecutionTask(
+      runtime,
+      workItemId,
+      executionTaskId,
+    );
+    const repositoryRoots = [started.workItem.repositoryRoot];
+    void driveExecutionTask(
+      runtime,
+      started.task.id,
+      repositoryRoots,
+    ).catch((error: unknown) => {
+      console.error("Order manual execution task loop failed", error);
+    }).finally(() => {
+      runtime.tickActive = false;
+    });
+    return started.run;
+  } catch (error) {
+    runtime.tickActive = false;
+    throw error;
+  }
+};
+
+export const startCurrentExecutionTask = (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  executionTaskId: ExecutionTaskId,
+): Promise<Run> =>
+  withWorkItemOperatorMutation(
+    runtime,
+    workItemId,
+    () => startCurrentExecutionTaskUnlocked(runtime, workItemId, executionTaskId),
+  );
 
 export const recoverInterruptedRuns = async (
   runtime: CoordinatorRuntime,
@@ -258,6 +309,12 @@ const cancelRunUnlocked = async (
   if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") {
     throw new TypeError("Run is not cancellable");
   }
+  if (
+    run.role === "STAGE" &&
+    !stageRunCancellationIsAdmitted(run, listRunEvents(runtime, run.id))
+  ) {
+    throw new TypeError("STAGE Run is not cancellable while a proposal owns attention");
+  }
   const active = runtime.activeProviders.get(run.id);
   if (active !== undefined) {
     await active.server.client.session
@@ -270,6 +327,17 @@ const cancelRunUnlocked = async (
       const current = getRun(runtime, run.id);
       if (current.status !== "RUNNING" && current.status !== "WAITING_FOR_INPUT") {
         throw new TypeError("Run stopped being cancellable before Cancel commit");
+      }
+      if (
+        current.role === "STAGE" &&
+        !stageRunCancellationIsAdmitted(
+          current,
+          listRunEvents(runtime, current.id),
+        )
+      ) {
+        throw new TypeError(
+          "STAGE Run proposal state changed before Cancel commit",
+        );
       }
       const cancelled = updateRun(runtime, current.id, {
         status: "CANCELLED",

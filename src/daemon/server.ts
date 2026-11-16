@@ -18,6 +18,7 @@ import {
   CreateWorkItemSourceSchema,
   ExpectedHashMarkdownWriteSchema,
   ExpectedHashWorkItemBodyWriteSchema,
+  ExecutionTaskIdSchema,
   ActivateOpenCodeAccountSchema,
   OpenCodeAccountIdSchema,
   OpenCodeAccountLoginAttemptIdSchema,
@@ -78,6 +79,7 @@ import {
   staleAuthorityOwnerForFailure,
   setArchived,
   signOffWorkItem,
+  startCurrentExecutionTask,
   startStageRun,
   stopCoordinatorScheduler,
   submitRunInput,
@@ -565,9 +567,7 @@ const routeApi = async (
   }
 
   if (request.method === "POST" && url.pathname === "/api/tick") {
-    const auth = hasDaemonBearer(request, sessions)
-      ? null
-      : requireBrowserMutation(request, sessions, bind.origin);
+    const auth = requireCliBearer(request, sessions);
     if (auth) return auth;
     const body = await readJsonBody(request);
     requireKeys(body, []);
@@ -840,6 +840,25 @@ const routeApi = async (
     }
     if (parts[3] === "tasks" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await listExecutionTasks(runtime, workItemId));
+    }
+    if (
+      parts[3] === "tasks" &&
+      parts[4] &&
+      parts[5] === "start" &&
+      parts.length === 6 &&
+      request.method === "POST"
+    ) {
+      const body = await readJsonBody(request);
+      requireKeys(body, []);
+      requireOpenCodeAccountStableForRunStart(owner);
+      await requireExecutionReadiness(owner);
+      const executionTaskId = await parseRequest(() =>
+        ExecutionTaskIdSchema.parse(parts[4])
+      );
+      return jsonResponse(
+        await startCurrentExecutionTask(runtime, workItemId, executionTaskId),
+        201,
+      );
     }
     if (parts[3] === "signoff-package" && parts.length === 4 && request.method === "GET") {
       return jsonResponse(await signoffPackageForWorkItem(runtime, workItemId));

@@ -217,7 +217,14 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
   const events=eventsQuery.data??[];
   const invalidate=():Promise<void>=>invalidateWorkbenchMutation(queryClient,workItem.id);
   const reportError=async(error:unknown):Promise<void>=>{onMutationError?.(error);await invalidate();};
-  const tick=useMutation({mutationFn:api.tick,onSuccess:invalidate,onError:reportError});
+  const start=useMutation({
+    mutationFn:()=>{
+      if(!currentOwnerTask)throw new TypeError("current execution owner has no task");
+      return api.startExecutionTask(workItem.id,currentOwnerTask.id);
+    },
+    onSuccess:invalidate,
+    onError:reportError,
+  });
   const cancel=useMutation({
     mutationFn:()=>{
       if(!currentOwnerRun)throw new TypeError("current implementation owner has no active attempt");
@@ -245,8 +252,8 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
   const currentAction=currentOwnerRun?
     <WorkbenchAction label="Cancel current implementation attempt" tone="destructive" loading={cancel.isPending} disabled={mutationsDisabled || cancel.isPending} onClick={()=>cancel.mutate()}/>:
     canResume?<WorkbenchAction label="Resume resolved blocker" tone="primary" loading={resume.isPending} disabled={mutationsDisabled || resume.isPending} onClick={()=>resume.mutate()}/>:
-    canRunNext?<WorkbenchAction label="Run next implementation step" tone="primary" loading={tick.isPending} disabled={mutationsDisabled || tick.isPending} onClick={()=>tick.mutate()}/>:undefined;
-  const mutationError=tick.error??cancel.error??resume.error;
+    canRunNext?<WorkbenchAction label="Start current task" tone="primary" loading={start.isPending} disabled={mutationsDisabled || start.isPending} onClick={()=>start.mutate()}/>:undefined;
+  const mutationError=start.error??cancel.error??resume.error;
   const summaryBlocker=executionOwner.tag==="BLOCKED_TASK"?
     {status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
     mutationError?{status:"error" as const,title:"Implementation action failed",description:mutationError instanceof Error?mutationError.message:String(mutationError)}:null;
