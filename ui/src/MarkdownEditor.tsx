@@ -66,6 +66,12 @@ const inlineActions: readonly FormatAction[] = [
   { command: "LINK", label: "Link", icon: "link" },
 ];
 
+const presentationMarkdown = (value: string): string =>
+  value
+    .split("\n")
+    .filter((line) => !(line.startsWith("<!-- Order template: ") && line.endsWith(" -->")))
+    .join("\n");
+
 const structureActions: readonly FormatAction[] = [
   { command: "HEADING_1", label: "Heading 1", icon: "heading1" },
   { command: "HEADING_2", label: "Heading 2", icon: "heading2" },
@@ -177,7 +183,7 @@ export const MarkdownEditor = ({
       className="order-markdown-preview"
     >
       <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
-        {buffer}
+        {presentationMarkdown(buffer)}
       </Markdown>
     </div>
   );
