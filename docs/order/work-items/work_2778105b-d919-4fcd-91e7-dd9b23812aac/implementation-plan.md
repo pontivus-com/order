@@ -2,7 +2,7 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** P7 implementation plan — audit-corrected; ready for independent R3 readiness review  
+**Status:** IMPLEMENTATION REOPENED — P1/P2 preserve as done; P3-P6 incomplete; P7 not complete; candidate readiness rejected  
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
@@ -236,17 +236,122 @@ No new dependency, package pin, database migration, persistent state table, tran
 
 ## 6. Phase/checkpoint summary
 
-| Phase | Purpose | Hard checkpoint |
-|---|---|---|
-| P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure |
-| P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure |
-| P3 | shared Workbench interaction foundation | C3 foundation visual conformance |
-| P4 | Work request through Readiness | C4 pre-signoff visual conformance |
-| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance |
-| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance |
-| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance |
+| Phase | Purpose | Hard checkpoint | Current implementation status |
+|---|---|---|---|
+| P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure | **DONE — preserve** |
+| P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure | **DONE — preserve; rerun regression gates after later UI work** |
+| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **PARTIAL — C3 prior PASS invalid; phase reopened** |
+| P4 | Work request through Readiness | C4 pre-signoff visual conformance | **PARTIAL — major UI/reference work outstanding; C4 prior PASS invalid; phase reopened** |
+| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **PARTIAL — major UI/reference work outstanding; C5 prior PASS invalid; phase reopened** |
+| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **LARGELY NOT DONE — C6 prior PASS invalid; phase reopened** |
+| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **NOT DONE — C7 not established; candidate readiness rejected** |
 
-No phase may be marked complete while its checkpoint is FAIL.
+No phase may be marked complete while its checkpoint is FAIL, invalid, unproven or superseded by later evidence.
+
+### 6.1 Current implementation audit status — 2026-11-16
+
+This subsection records implementation progress only. It does not redefine the accepted requirements, solution design, canonical P3/P4/P6 owners or visual baseline.
+
+**Audit baseline:** `version/0.5.0` at `b8823453986aa893ba229e3c9f5c293c7515707b`, immediately before this documentation-only correction. The two commits after the original visual audit removed temporary candidate-review workflows and invalid screenshot evidence; they did not implement the missing P3-P6 UI work. The implementation verdict therefore remains unchanged.
+
+The repository audit establishes the following current state:
+
+1. **P1 is implemented and should be preserved.**
+   - STAGE batch grammar, proposal/cancel ownership, bounded activity contracts, material-presentation derivation, reached-history correction and exact execution-owner semantics are present with permanent tests.
+   - No P1 UI/reference debt was identified because P1 is semantic-kernel work.
+
+2. **P2 is implemented and should be preserved.**
+   - Bounded OpenCode activity, provider grammar/admission diagnostics, exact task-scoped execution start, proposal-aware cancellation and current lifecycle-artifact projection are present in the daemon/control plane.
+   - P2 remains subject to ordinary regression reruns after P3-P6 corrections; it is not the source of the visual-conformance failure.
+
+3. **P3 is only partially implemented and C3 was falsely certified.**
+   - Conversation/activity/workflow partitioning and Dialogue semantics landed.
+   - The required Workbench shell, current-attention presentation, document/proposal state presentation, responsive composition, theme parity and common visual topology do not conform to the reviewed SVG baseline.
+   - The historical P3 checkpoint ran typecheck/tests/build but did **not** launch and compare the real SPA against the C3 SVGs. Its green result is therefore not valid C3 evidence.
+
+4. **P4 is only partially implemented and C4 was falsely certified.**
+   - Material-maturity/proposal-ownership semantics landed.
+   - Work request, Research, Requirements, Solution design, Implementation plan, Readiness, document authoring/read-only, proposal review, Evidence and work-type presentation remain materially divergent from the accepted reference compositions.
+   - Audited runtime captures included unresolved loading states such as `Loading workspace...`, `Loading workflow step...` and `Loading readiness review...`.
+   - The historical P4 checkpoint likewise ran mechanical tests/build without rendering and comparing the real SPA against the C4 SVGs. C4 is invalid and must be rerun only after the actual UI implementation is complete.
+
+5. **P5 is only partially implemented and C5 was falsely certified.**
+   - Some post-signoff hierarchy and exact task-start semantics landed.
+   - Approval, signed-task detail, Implementation master/detail and Complete/linked-remediation compositions remain materially different from their accepted references.
+   - The historical P5 checkpoint did not perform runtime SVG comparison. C5 is invalid.
+
+6. **P6 is largely not implemented and C6 was falsely certified.**
+   - The P6 implementation commit changed only `ui/src/WorkItemContext.tsx` in production; it did not perform the application-wide Queue/Create/Settings/readiness/service conversion required by this plan.
+   - Queue, Create WorkItem, linked remediation, repository/OpenCode/model settings, installation readiness and other supporting surfaces remain materially divergent or unproven against the C6 references.
+   - The historical P6 checkpoint did run Playwright, but it performed behavioral browser checks rather than direct SVG/reference conformance. That is insufficient to establish C6.
+
+7. **P7 is not complete and C7 has never been validly established.**
+   - No complete 41-reference `MATCH | ALLOWED_RENDERING_VARIANCE(reason) | FAIL` verdict ledger exists for the integrated candidate.
+   - The historical screenshot machinery only created actual/reference PNGs and checked inventory/filenames; it did not compare the images or adjudicate conformance.
+   - Several multi-state reference sheets were represented by one runtime screenshot, which cannot prove all states contained in the reference.
+   - The historical “final implementation validation” omitted the required Playwright/browser gate from the signed final command union.
+   - No valid integrated visual evidence therefore exists for canonical V4 review.
+
+### 6.2 Audit consequence — prior completion claims are withdrawn
+
+The following prior implications must not be reused as implementation evidence:
+
+- green typecheck/unit/presentation/build results as proof of C3-C5 visual conformance;
+- Playwright behavioral success as proof of C6 visual conformance;
+- screenshot existence, filename equality or reference-count equality as proof of C7;
+- one runtime screenshot as proof of a multi-state reference sheet;
+- the removed temporary candidate-review evidence as a valid final comparison package;
+- a final-validation run that omitted the browser gate as proof that the signed final gate union passed.
+
+The current candidate is therefore **not implementation-complete, not C7-complete and not ready for independent V4/candidate validation**.
+
+### 6.3 Remaining implementation sequence
+
+Remediation proceeds from the existing semantic foundation; P1/P2 are not rewritten merely because the UI failed.
+
+1. **Repair visual verification first.**
+   - Render deterministic real-SPA fixtures for every required reference state.
+   - Wait for the intended settled state; loading placeholders are never accepted as the compared result.
+   - For state-sheet references, exercise every represented state rather than assigning the sheet filename to one screenshot.
+   - Record one explicit verdict per reference/state: `MATCH`, `ALLOWED_RENDERING_VARIANCE(reason)` or `FAIL`.
+
+2. **Reopen P3 and implement the actual shared Workbench visual foundation.**
+   - Bring shell/identity/rail/current-attention/Dialogue/Document/Review/Evidence/Context/confirmation/responsive/theme composition into near-exact reference conformance using the existing canonical primitive owners.
+   - Existing UI code survives only where direct comparison proves it already conforms.
+
+3. **Reopen P4 and implement the complete pre-signoff task experience.**
+   - Work request, Research, Requirements, Solution design, Implementation plan, Readiness, authoring/read-only material, proposal review, Evidence and work-type variants must reproduce the accepted information hierarchy and topology rather than preserve the old editor-centric composition.
+
+4. **Reopen P5 and implement the accepted post-signoff compositions.**
+   - Approval must be the accepted exact-package Review.
+   - Implementation must be the accepted persistent Approved Tasks/current-task MasterDetail.
+   - Complete must be result-first with the correct eligible remediation branch.
+
+5. **Reopen P6 and implement application/supporting services.**
+   - Queue, Create, Settings, installation readiness, Context, Evidence, notices and confirmations must each be proven against their assigned references and corrected where they fail.
+
+6. **Run P7 only after C3-C6 are validly green.**
+   - Produce the complete 41-reference verdict set.
+   - Run all V-01..V-11 permanent proof and the complete final gate union including browser.
+   - Remove temporary verification scaffolding.
+   - Only then hand the integrated candidate to canonical V4/V5/V6/V7.
+
+### 6.4 Candidate-readiness verdict
+
+**REJECTED.**
+
+At this audit state:
+
+- **P1: DONE**
+- **P2: DONE / preserve**
+- **P3: PARTIAL; C3 invalid**
+- **P4: PARTIAL; C4 invalid**
+- **P5: PARTIAL; C5 invalid**
+- **P6: LARGELY NOT DONE; C6 invalid**
+- **P7: NOT DONE; C7 not established**
+- **0.5.0 candidate readiness: REJECTED**
+
+This status remains in force until later repository evidence closes the corresponding implementation work and reruns the exact owning checkpoint. A later green test run may update only the phase/checkpoint it actually proves; mechanical green alone cannot silently promote visual-conformance status.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
