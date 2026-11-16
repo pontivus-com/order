@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 through P1-T07 complete; P1-T08+ pending  
+**Status:** P1-T01 through P1-T08 complete; P1-T09+ pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -1163,6 +1163,16 @@ The current renderer graph has been classified into application, workflow-step, 
 P1-T03 may now capture rendered evidence against §10. P1-T04 must not start final INFO closure until the relevant rendered evidence exists.
 
 ## 20. Current-state gaps requiring derived audit
+
+P1-T08 adds material-maturity findings:
+
+- **MAT-F01:** deterministic lifecycle drafts rediscovered without Run history are materialized as ArtifactRefs but omitted by `currentLifecycleArtifacts()`, contradicting portable-draft visibility requirements.
+- **MAT-F02:** the canonical facts already distinguish draft/current/conformed/stale/historical/signed material, but the operator-facing maturity vocabulary is incomplete.
+- **MAT-F05:** proposal material maturity inherits the CLOSED + PENDING dead-state defect from STATE-F01.
+
+See [document-material-maturity-audit.md](document-material-maturity-audit.md).
+
+### Prior OpenCode/state/information/interaction gaps
 
 P1-T07 adds OpenCode/integration findings:
 
