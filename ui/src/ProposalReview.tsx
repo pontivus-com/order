@@ -72,8 +72,12 @@ export const ProposalReview = ({
     <section data-testid="proposal-review-workspace">
       <WorkbenchReview
         currentness={currentness}
-        summary={<div><h2>Artifact proposal review</h2><p>{proposalPayload.targetPath}</p><p>{proposalPayload.rationale}</p></div>}
+        summary={<div><h2>Artifact proposal review</h2></div>}
         body={<>
+          <dl className="order-proposal-summary">
+            <div><dt>Target document</dt><dd>{proposalPayload.targetPath}</dd></div>
+            <div><dt>Rationale</dt><dd>{proposalPayload.rationale}</dd></div>
+          </dl>
           <section data-testid="proposal-review-diff">
             <h3>Proposed document diff</h3>
           <CodeBlock code={proposalPayload.unifiedDiff} language="diff" isDiff isWrapped hasCopyButton container="section" width="100%" />
@@ -81,7 +85,10 @@ export const ProposalReview = ({
           {adoptionRequested && disposition === null ? <WorkbenchNotice tone="warning" title="Adoption in progress" description="The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded." /> : null}
           {decision.error ? <WorkbenchNotice tone="danger" title="Proposal decision failed" description={decision.error instanceof Error ? decision.error.message : String(decision.error)} /> : null}
         </>}
-        decisions={<><WorkbenchAction label="Back to workflow attempt" tone="ghost" onClick={onBack} />{decisions}</>}
+        decisions={<>
+          <div className="order-review-back"><WorkbenchAction label="Back to workflow attempt" tone="secondary" onClick={onBack} /></div>
+          <div className="order-review-primary-decisions">{decisions}</div>
+        </>}
       />
     </section>
   );
