@@ -1073,7 +1073,16 @@ This is the browser/manual **Start current task** command. At the final command 
 - no coordinator tick is active;
 - no competing per-WorkItem operator mutation owns the WorkItem.
 
-After any asynchronous approval/context inspection the daemon reloads/rechecks all DB-decidable conditions before persistence. It transactionally marks exactly that task `RUNNING` and creates exactly its first `BUILDER` Run using the existing execution contract. Before returning the Run, it starts the existing coordinator loop against that already-running task asynchronously; the coordinator's process-local tick exclusion remains held for that execution pass. A race or stale task id returns 409 and must not cause another eligible WorkItem/task to start.
+After any asynchronous approval/context inspection the daemon reloads/rechecks all DB-decidable conditions before persistence. It transactionally marks exactly that task `RUNNING` and creates exactly its first `BUILDER` Run using the existing execution contract. Before returning the Run, it starts the existing coordinator loop against that already-running task asynchronously; the coordinator's process-local tick exclusion remains held for that execution pass. A race or stale task id must not cause another eligible WorkItem/task to start.
+
+Failure classification is exact:
+
+- missing WorkItem/task -> HTTP 404 / `NOT_FOUND`;
+- stale Approval/material authority -> HTTP 409 / `STALE_AUTHORITY` with the canonical upstream owner;
+- active coordinator tick -> HTTP 409 / `TICK_ALREADY_ACTIVE`;
+- submitted task not the exact current execution owner, task/dependency state changed, another ExecutionTask became RUNNING, WorkItem is no longer EXECUTION/ACTIVE, or another same-WorkItem mutation owns admission -> HTTP 409 / `CURRENT_STATE_CONFLICT`.
+
+The browser uses the stable code/message response and does not parse exception text for task ownership.
 
 The command introduces no second scheduler or queue. Automatic/background execution continues through the existing global eligible-task scan.
 
