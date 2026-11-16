@@ -245,6 +245,34 @@ describe("workflow presentation policy", () => {
     expect(workflowStepState(current, reached, "R3")).toBe("UNREACHED");
   });
 
+  it("shows an unreached persisted lifecycle draft without fabricating reach", () => {
+    const plan = artifact("PLAN", uuidB);
+    const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "R2", "DESIGN"]);
+    expect(resolveFixtureMaterial({
+      reachedStages: reached,
+      workItem: workItem("DESIGN"),
+      selectedStep: "PLAN",
+      runs: [],
+      artifacts: [plan],
+    })).toEqual({
+      kind: "STAGE_DOCUMENT",
+      artifactId: plan.id,
+    });
+    expect(workflowStepState(workItem("DESIGN"), reached, "PLAN"))
+      .toBe("UNREACHED");
+  });
+
+  it("keeps an unreached lifecycle step empty when no repository draft exists", () => {
+    const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "R2", "DESIGN"]);
+    expect(resolveFixtureMaterial({
+      reachedStages: reached,
+      workItem: workItem("DESIGN"),
+      selectedStep: "PLAN",
+      runs: [],
+      artifacts: [],
+    })).toEqual({ kind: "UNREACHED" });
+  });
+
   it("resolves current pre-signoff material by the canonical priority", () => {
     const failed = stageRun("R1", "FAILED", 3, uuidB);
     const waiting = stageRun("R1", "WAITING_FOR_INPUT", 2, uuidC);

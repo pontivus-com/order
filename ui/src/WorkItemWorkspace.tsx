@@ -5,20 +5,25 @@ import { TextInput } from "@astryxdesign/core/TextInput";
 
 import type { ArtifactRef, Run, RunEvent, Sha256, WorkItem } from "../../src/core/contracts.ts";
 import {
+  artifactHasCurrentStageConformance,
   deriveCurrentAttention,
   deriveExecutionOwner,
   deriveObservationCoherence,
   deriveValidationBoundary,
   deriveProposalDecision,
+  deriveMaterialPresentationState,
   deriveReachedStages,
   deriveRecoveryDisposition,
   deriveWorkflowRail,
+  materialCurrentnessForStage,
   normalizeMaterialCurrentness,
+  reachStateForStage,
   stageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import {
+  materialPresentationStateLabel,
   resolveWorkflowMaterial,
   runIsActive,
   runStatusLabel,
@@ -386,6 +391,30 @@ export const WorkItemWorkspace = ({
   );
 
   const selectedStepState = workflowStepState(workItem, reachedStages, selectedStep);
+  const selectedLatestStageRun =
+    selectedStep === "R1" ||
+    selectedStep === "R2" ||
+    selectedStep === "DESIGN" ||
+    selectedStep === "PLAN" ||
+    selectedStep === "R3"
+      ? [...runs]
+          .filter((run) =>
+            run.role === "STAGE" &&
+            run.stage === selectedStep)
+          .sort((left, right) =>
+            left.attempt - right.attempt ||
+            left.startedAt.localeCompare(right.startedAt) ||
+            left.id.localeCompare(right.id))
+          .at(-1) ?? null
+      : null;
+  const selectedStageArtifact =
+    selectedStep === "R1" ||
+    selectedStep === "R2" ||
+    selectedStep === "DESIGN" ||
+    selectedStep === "PLAN" ||
+    selectedStep === "R3"
+      ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
+      : null;
   const selectedStateLabel =
     selectedStepState === "CURRENT"
       ? "Current"
@@ -467,6 +496,13 @@ export const WorkItemWorkspace = ({
   const currentExecutionTasksFetching =
     (workItem.stage === "EXECUTION" || workItem.stage === "COMPLETE") &&
     tasksQuery.isFetching;
+  const selectedStageConformancePending =
+    selectedStageArtifact !== null &&
+    runs.some((run, index) =>
+      run.role === "STAGE" &&
+      run.stage === selectedStep &&
+      runEventQueries[index]?.data === undefined
+    );
   const transportConverging =
     terminalDrainPending ||
     mutationRefreshPending ||
@@ -481,6 +517,7 @@ export const WorkItemWorkspace = ({
     currentExecutionTasksFetching ||
     executionEventsPending ||
     currentStageEventsPending ||
+    selectedStageConformancePending ||
     (
       workItem.stage === "AWAITING_SIGNOFF" &&
       signoffPackageQuery.isPending
@@ -527,9 +564,11 @@ export const WorkItemWorkspace = ({
     selectedStep,
   );
   const mutationsDisabled = currentAttention === "CONVERGING";
+  const activeRunOwnsAuthoring = runs.some(runIsActive);
   const documentMutationsDisabled =
     mutationsDisabled ||
-    currentAttention === "MUTATION_CONFLICT";
+    currentAttention === "MUTATION_CONFLICT" ||
+    activeRunOwnsAuthoring;
   const workflowMutationsDisabled =
     documentMutationsDisabled ||
     (currentness.tag === "STALE" && !runs.some(runIsActive));
@@ -556,31 +595,27 @@ export const WorkItemWorkspace = ({
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
   const materialIdentity = workflowMaterialIdentity(material);
+  const selectedStageMaterialState =
+    selectedStageArtifact !== null &&
+    (
+      selectedStep === "R1" ||
+      selectedStep === "R2" ||
+      selectedStep === "DESIGN" ||
+      selectedStep === "PLAN" ||
+      selectedStep === "R3"
+    )
+      ? deriveMaterialPresentationState(
+          true,
+          reachStateForStage(workItem, reachedStages, selectedStep),
+          materialCurrentnessForStage(currentness, selectedStep),
+          artifactHasCurrentStageConformance(selectedStageArtifact, allRunEvents),
+          (
+            workItem.stage === "EXECUTION" ||
+            workItem.stage === "COMPLETE"
+          ) && tasks.length > 0,
+        )
+      : null;
 
-  const selectedLatestStageRun =
-    selectedStep === "R1" ||
-    selectedStep === "R2" ||
-    selectedStep === "DESIGN" ||
-    selectedStep === "PLAN" ||
-    selectedStep === "R3"
-      ? [...runs]
-          .filter((run) =>
-            run.role === "STAGE" &&
-            run.stage === selectedStep)
-          .sort((left, right) =>
-            left.attempt - right.attempt ||
-            left.startedAt.localeCompare(right.startedAt) ||
-            left.id.localeCompare(right.id))
-          .at(-1) ?? null
-      : null;
-  const selectedStageArtifact =
-    selectedStep === "R1" ||
-    selectedStep === "R2" ||
-    selectedStep === "DESIGN" ||
-    selectedStep === "PLAN" ||
-    selectedStep === "R3"
-      ? artifacts.find((artifact) => artifact.role === selectedStep) ?? null
-      : null;
   const explicitStageArtifactId =
     explicitMaterial?.kind === "STAGE_DOCUMENT"
       ? explicitMaterial.artifactId
@@ -632,12 +667,16 @@ export const WorkItemWorkspace = ({
             ? ""
             : " · " +
               ordinaryClassification(selectedLatestStageRun.terminalClassification);
-        const documentState = selectedStageArtifact ? " · document current" : "";
+        const documentState = selectedStageMaterialState === null
+          ? ""
+          : " · " + materialPresentationStateLabel(selectedStageMaterialState);
         return runStatusLabel(selectedLatestStageRun.status) +
           classification +
           documentState;
       }
-      if (selectedStageArtifact) return "Document current";
+      if (selectedStageMaterialState !== null) {
+        return materialPresentationStateLabel(selectedStageMaterialState);
+      }
       return selectedStepState === "CURRENT" ? "Ready to start" : "No governed material";
     }
     if (selectedStep === "R3") {
@@ -646,6 +685,9 @@ export const WorkItemWorkspace = ({
         return selectedLatestStageRun.terminalClassification
           ? ordinaryClassification(selectedLatestStageRun.terminalClassification)
           : runStatusLabel(selectedLatestStageRun.status);
+      }
+      if (selectedStageMaterialState !== null) {
+        return materialPresentationStateLabel(selectedStageMaterialState);
       }
       return selectedStepState === "CURRENT"
         ? "Review in progress"
@@ -1231,14 +1273,14 @@ export const WorkItemWorkspace = ({
         titleEditing ? (
           <div className="order-workitem-title-edit">
             <TextInput label="Work item title" isLabelHidden size="sm" width="100%" value={titleDraft} hasAutoFocus onChange={setTitleDraft} />
-            <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={mutationsDisabled || titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
+            <WorkbenchAction label="Save title" tone="primary" loading={titleMutation.isPending} disabled={documentMutationsDisabled || titleDraft.trim().length === 0 || titleMutation.isPending} onClick={() => titleMutation.mutate()} />
             <WorkbenchAction label="Cancel title edit" disabled={titleMutation.isPending} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(false); }} />
           </div>
         ) : (
           <div className="order-workitem-title-row">
             <h1 ref={headingRef} tabIndex={-1} data-testid="work-item-heading">{workItem.title}</h1>
             {workItem.stage !== "EXECUTION" && workItem.stage !== "COMPLETE" ? (
-              <WorkbenchAction label="Edit title" tone="ghost" disabled={mutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
+              <WorkbenchAction label="Edit title" tone="ghost" disabled={documentMutationsDisabled} onClick={() => { setTitleDraft(workItem.title); setTitleError(null); setTitleEditing(true); }} />
             ) : null}
           </div>
         )
@@ -1282,6 +1324,7 @@ export const WorkItemWorkspace = ({
             runs={runs}
             artifacts={artifacts}
             material={material}
+            materialState={selectedStageMaterialState}
             summary={stepSummary}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
@@ -1310,6 +1353,7 @@ export const WorkItemWorkspace = ({
             runs={runs}
             artifacts={artifacts}
             material={material}
+            materialState={selectedStageMaterialState}
             summary={stepSummary}
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}

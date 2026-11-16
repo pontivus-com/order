@@ -9,6 +9,7 @@ import type {
 } from "../../src/core/contracts.ts";
 import type {
   CurrentAttentionTag,
+  MaterialPresentationState,
   StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
@@ -18,6 +19,7 @@ import {
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   lifecycleArtifactLabel,
+  materialPresentationStateLabel,
   runStatusLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
@@ -52,6 +54,7 @@ export const ReadinessWorkspace = ({
   runs,
   artifacts,
   material,
+  materialState,
   summary,
   currentRunId,
   currentInteraction,
@@ -69,6 +72,7 @@ export const ReadinessWorkspace = ({
   runs: readonly Run[];
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
+  materialState: MaterialPresentationState | null;
   summary: ReactNode;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
@@ -102,8 +106,8 @@ export const ReadinessWorkspace = ({
       items: [{
         id: "readiness-review",
         label: "Readiness review",
-        description: readinessArtifact
-          ? "Current governed readiness findings"
+        description: readinessArtifact && materialState
+          ? materialPresentationStateLabel(materialState)
           : "Review state and findings",
         selected: material.kind === "READINESS_REVIEW",
         onSelect: () => onSelectMaterial({ kind: "READINESS_REVIEW" }),
@@ -134,7 +138,7 @@ export const ReadinessWorkspace = ({
       items: packageArtifacts.map((artifact) => ({
         id: artifact.id,
         label: lifecycleArtifactLabel(artifact.role),
-        description: artifact.repositoryPath,
+        description: "Read-only package authority",
         selected:
           material.kind === "SUPPORTING_DOCUMENT" &&
           material.artifactId === artifact.id,
@@ -239,7 +243,20 @@ export const ReadinessWorkspace = ({
       primary={
         <div data-testid="review-workspace">
         <WorkbenchReview
-          currentness={<WorkbenchStatus tone={readinessArtifact ? "success" : "info"} label={readinessArtifact ? "Governed review current" : "Review in progress"} />}
+          currentness={<WorkbenchStatus
+            tone={
+              materialState?.tag === "STALE"
+                ? "warning"
+                : materialState?.tag === "CURRENT" || materialState?.tag === "SIGNED_LOCKED"
+                  ? "success"
+                  : "info"
+            }
+            label={
+              materialState === null
+                ? "Review in progress"
+                : materialPresentationStateLabel(materialState)
+            }
+          />}
           summary={<div><h2>Readiness review</h2><p>Independent verification of the exact governed package.</p></div>}
           body={primary}
           decisions={<></>}

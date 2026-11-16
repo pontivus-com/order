@@ -9,6 +9,7 @@ import type {
 } from "../../src/core/contracts.ts";
 import type {
   CurrentAttentionTag,
+  MaterialPresentationState,
   StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
@@ -21,6 +22,7 @@ import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { ProposalReview } from "./ProposalReview.tsx";
 import {
   lifecycleArtifactLabel,
+  materialPresentationStateLabel,
   runStatusLabel,
   type EvidenceSelection,
   type ProposalSelection,
@@ -53,6 +55,7 @@ export const PreSignoffStageWorkspace = ({
   runs,
   artifacts,
   material,
+  materialState,
   summary,
   currentRunId,
   currentInteraction,
@@ -74,6 +77,7 @@ export const PreSignoffStageWorkspace = ({
   runs: readonly Run[];
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
+  materialState: MaterialPresentationState | null;
   summary: ReactNode;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
@@ -142,6 +146,10 @@ export const PreSignoffStageWorkspace = ({
               : stage === "DESIGN"
                 ? "Solution design document"
                 : "Implementation plan document",
+        statusLabel:
+          materialState === null
+            ? undefined
+            : materialPresentationStateLabel(materialState),
         selected:
           material.kind === "STAGE_DOCUMENT" &&
           material.artifactId === stageArtifact.id,
@@ -168,7 +176,7 @@ export const PreSignoffStageWorkspace = ({
       ...supportingArtifacts.map((artifact) => ({
         id: "supporting-" + artifact.id,
         label: lifecycleArtifactLabel(artifact.role) + " document",
-        description: artifact.repositoryPath,
+        description: "Read-only upstream authority",
         selected:
           material.kind === "SUPPORTING_DOCUMENT" &&
           material.artifactId === artifact.id,
@@ -206,17 +214,28 @@ export const PreSignoffStageWorkspace = ({
           />
         );
       case "STAGE_DOCUMENT":
-        return (
-          <LifecycleDocumentMaterial
-            workItem={workItem}
-            artifactId={material.artifactId}
-            mutationsDisabled={mutationsDisabled}
-            onDirtyChange={onDirtyChange}
-            onOpenArtifactEvidence={onOpenArtifactEvidence}
-            onContextDocumentChange={onContextDocumentChange}
-            onMutationError={onMutationError}
-          />
-        );
+        return materialState?.tag === "DRAFT" ||
+          materialState?.tag === "HISTORICAL" ||
+          materialState?.tag === "SIGNED_LOCKED"
+          ? (
+            <ReadOnlyLifecycleDocumentMaterial
+              workItem={workItem}
+              artifactId={material.artifactId}
+              onOpenArtifactEvidence={onOpenArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          )
+          : (
+            <LifecycleDocumentMaterial
+              workItem={workItem}
+              artifactId={material.artifactId}
+              mutationsDisabled={mutationsDisabled}
+              onDirtyChange={onDirtyChange}
+              onOpenArtifactEvidence={onOpenArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+              onMutationError={onMutationError}
+            />
+          );
       case "SOURCE_DOCUMENT":
         return (
           <section className="order-supporting-material">
