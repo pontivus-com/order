@@ -78,6 +78,120 @@ Complete
 
 A return upstream changes the **current task owner**. It does not erase reached/historical work. Historical material remains inspectable but never becomes current mutation authority merely because the operator selects it.
 
+#### 2.1 Lifecycle information maturity
+
+The workflow is also an **information-maturity pipeline**. Each stage receives the minimum sufficient authoritative material that can legitimately exist at that point, adds the semantic layer owned by that stage, and makes that new layer available to later stages.
+
+The governing accumulation is:
+
+~~~text
+Work request
+  originating intent / observation
+        |
+        v
+Research
+  + validated facts / evidence / root cause / authority
+        |
+        v
+Requirements
+  + required observable behavior / acceptance / scope / failure semantics
+  + applicable product, compatibility, security, performance and other binding constraints
+        |
+        v
+Solution design
+  + technical requirements/architecture needed to satisfy the functional contract
+  + canonical ownership / data-control flow / contract and design decisions
+        |
+        v
+Implementation plan
+  + exact executable task decomposition / dependencies / change surface / verification
+        |
+        v
+Readiness
+  + adversarial package-level verdict / findings / exact defective owner
+        |
+        v
+Approval
+  + exact frozen package authorization
+        |
+        v
+Implementation
+  + candidate / execution / review / validation evidence
+        |
+        v
+Complete
+  + governed terminal result
+~~~
+
+The amount of available authoritative information generally increases as the WorkItem progresses, but each stage still receives and presents only the **minimum sufficient context** needed for its task.
+
+A later stage does not make all earlier documents equally primary. It normally leads with its own current task/output and exposes earlier material as supporting authority, evidence or traceability.
+
+A stage must not fabricate later-stage documentation merely to make the workspace appear complete. Unreached documents are absent as productive authority rather than represented by empty pseudo-artifacts.
+
+#### 2.2 Documentation and information contract by workflow stage
+
+| Stage | Authoritative information normally available on entry | Stage-owned output / new information | What the operator should primarily work with | Supporting information that should remain available |
+|---|---|---|---|---|
+| **Work request / IDEA** | originating human request/observation; selected project/kind/concerns; any explicitly supplied references or higher product context | durable `work-request.md` recording intent and constraints known at intake | the Work request itself | supplied references, project identity, source validity/Git state; technical source identity on demand |
+| **Research / R1** | current Work request; applicable P0/P1 rules; available P2 intent; project/repository authority; current repository/runtime evidence | `research.md`: validated facts, evidence, root cause/producing boundary, affected path, governing authority, unresolved factual questions, verdict | current investigation/dialogue and Research result | Work request, repository/runtime evidence, governing authority, prior attempts/evidence |
+| **Requirements / R2** | validated Research; current Work request/P2 intent where materially needed; applicable P0/P1 product principles; existing domain/product constraints; already-binding technical/non-functional constraints | `requirements.md`: required observable outcome, P3 functional requirements, acceptance criteria, scope/exclusions, failure/negative behavior, compatibility/security/performance constraints | current Requirements contract and unresolved product decisions | Research facts/evidence, Work request, existing product authority and binding technical/non-functional constraints |
+| **Solution design / DESIGN** | accepted Requirements; validated Research facts; applicable P1 engineering rules; existing P4 architecture/technical constraints; P5 ADRs; P6 canonical contracts/state owners; relevant repository boundaries/evidence | `solution-design.md`: technical requirements/architecture that realize the functional contract, canonical owner/boundaries, data/control flow, necessary contract decisions, alternatives, failure behavior, downstream invariants, validation obligations | the technical solution and the requirement-to-solution relationship | Requirements first; Research evidence and existing architecture/contracts/ADRs as supporting authority |
+| **Implementation plan / PLAN** | accepted Design; accepted Requirements; applicable P1-P6 authority; current repository structure; project verification authority; R1 evidence where needed for traceability | `implementation-plan.md`: exact task units/dependencies, requirement/design traceability, change surface, deletions/additions/modifications, validation sequence and executable task definitions | the Plan as the sole executable delivery authority | Design as immediate upstream authority; Requirements and relevant Research/evidence for traceability; verification/governance sources |
+| **Readiness / R3** | complete current R1/R2/DESIGN/PLAN package; applicable governance; current repository evidence; compact prior conformance evidence | `readiness-review.md`: readiness verdict, evidence, adversarial findings and exact defective/return stage | verdict/findings and the package evidence necessary to judge them | the complete package on demand, with the defective layer emphasized rather than all documents presented equally |
+| **Approval** | exact current Work request/R1/R2/DESIGN/PLAN/R3 package and signed task block; exact package currentness | explicit Approval/sign-off over the frozen exact package; no replacement design document | package currentness, signed task meaning and explicit authorization decision | governed documents needed for judgment; exact hashes/commit/package identity only on demand |
+| **Implementation** | signed package; exact approved task definitions; current execution owner; repository/candidate/runtime evidence generated during execution | implementation candidate plus Run/review/remediation/validation evidence; no new P1-P7 authority | current approved task, active role/blocker/next action, current validation boundary | signed Plan/Design/Requirements and evidence as read-only authority; prior attempts/history |
+| **Complete** | terminal WorkItem state, governed result/candidate, execution/review/validation evidence, reached history | terminal result and any separately governed linked follow-up | substantive final outcome/result | evidence and prior lifecycle material as history |
+
+#### 2.3 Functional versus technical requirements across the lifecycle
+
+The Requirements and Solution design stages have different information responsibilities.
+
+**Requirements / R2** answers **what must be true observably**. It owns P3 functional requirements and records the material compatibility, security, performance and other constraints that the solution must satisfy. When a technical/non-functional constraint is already binding project authority, R2 must surface/reference it because it constrains the required outcome.
+
+R2 does **not** choose architecture, canonical ownership, data/control flow, APIs, schemas or implementation mechanisms merely to fill a perceived “technical requirements” section.
+
+**Solution design / DESIGN** answers **how the accepted functional contract is correctly realized technically**. It receives the complete accepted Requirements plus existing technical constraints and resolves the necessary P4/P5/P6 technical requirements and design decisions. Therefore DESIGN is where functional requirements and technical constraints become one coherent technical solution.
+
+The resulting relationship is:
+
+~~~text
+R1 facts
+   +
+P2 intent
+   |
+   v
+R2 functional requirements
+   + binding non-functional/technical constraints
+   |
+   v
+DESIGN technical requirements + architecture + contracts
+   |
+   v
+PLAN exact implementation tasks
+~~~
+
+This distinction prevents two opposite errors:
+
+- R2 inventing technical solutions before the required behavior is closed;
+- DESIGN inventing missing product behavior because Requirements were incomplete.
+
+#### 2.4 Stage-specific information presentation rules
+
+The Workbench must reflect the information maturity of the current stage.
+
+- **Work request:** do not surround a sparse originating request with empty downstream-document chrome. The source narrative is the work.
+- **Research:** foreground evidence gathering, current investigation and the emerging Research result. Requirements/Design/Plan do not yet exist as authoritative productive material.
+- **Requirements:** foreground the Requirements contract. Research and Work request become supporting authority; the UI must make it easy to inspect the facts behind a requirement without giving those earlier documents equal visual weight.
+- **Solution design:** foreground the technical solution and requirement coverage. Requirements are the immediate governing input; Research is principally supporting evidence. Existing architecture/contracts/ADRs are supporting technical authority.
+- **Implementation plan:** foreground the Plan and its traceability to the accepted Design/Requirements. Earlier documents are inspectable but the Plan is the current delivery authority.
+- **Readiness:** foreground verdict/findings and the defective layer. The package is a review set, not a row of equally weighted documents.
+- **Approval:** foreground package currentness, signed-task meaning and authorization. The whole package is inspectable, but approval is a decision task, not document authoring.
+- **Implementation:** foreground current task execution and validation. Signed upstream documents are read-only governing authority, not editable workspaces.
+- **Complete:** foreground terminal result; all earlier documentation is historical/supporting.
+
+For every stage, the default information hierarchy must make the **current stage-owned output and current attention** easier to understand than upstream support material or technical identity.
+
 ### 3. Stable Workbench composition
 
 The ordinary selected-WorkItem experience uses one stable product topology:
