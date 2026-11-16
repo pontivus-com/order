@@ -134,9 +134,14 @@ It enforces `GW-DOC-WORKBENCH-UX-V2 §21.2`:
 - a lifecycle proposal exists only in an OPEN-result turn and cannot coexist with required input, block or completion;
 - no new lifecycle proposal is accepted while an earlier lifecycle proposal on that Run is unresolved;
 - a lifecycle proposal role equals the owning STAGE Run stage;
-- `STAGE_COMPLETED.completion.stage` equals the owning Run stage.
+- `STAGE_COMPLETED.completion.stage` equals the owning Run stage;
+- at most one `AGENT_MESSAGE_FINAL` exists in one STAGE provider-result batch;
+- every turn with no controlling event contains exactly one non-blank `AGENT_MESSAGE_FINAL`; this includes proposal-producing OPEN turns;
+- a required-input question is itself the reply anchor, so a controlling `HUMAN_INPUT_REQUESTED` turn does not require `AGENT_MESSAGE_FINAL`;
+- block/completion turns do not create a reply surface and therefore do not require `AGENT_MESSAGE_FINAL`;
+- `OBSERVATION_RECORDED` and coordinator-owned operational activity never satisfy the conversational-anchor rule.
 
-General provider-role/tag admission remains owned by the existing provider-event admission policy. This Workbench rule adds the STAGE turn grammar; it does not create a second event union.
+The shell renders this complete grammar through the single STAGE branch of `providerOutputContract`; `stagePrompt` does not maintain a second partial output grammar. General provider-role/tag admission remains owned by the existing provider-event admission policy. This Workbench rule adds the STAGE turn grammar; it does not create a second event union.
 
 ### 4.4 Required-input admission
 
@@ -168,20 +173,21 @@ The accepted `HUMAN_INPUT_RECEIVED` event resolves the required request before t
 
 Reached history is derived, not separately persisted.
 
-A browser-safe pure function in `src/core/lifecycle.ts` consumes canonical `WorkItem`, `Run[]`, relevant `RunEvent[]`, `ArtifactRef[]` and `ExecutionTask[]` and returns the reached `WorkStage` set.
+A browser-safe pure function in `src/core/lifecycle.ts` consumes canonical `WorkItem`, `Run[]`, relevant `RunEvent[]` and `ExecutionTask[]` and returns the reached `WorkStage` set.
 
 The derivation uses evidence of actual entry:
 
 - IDEA is always reached;
 - current non-terminal stage is reached;
 - every STAGE/EXECUTION Run proves its Run stage was reached;
-- lifecycle ArtifactRefs prove their owning stage was reached;
-- each accepted `STAGE_COMPLETED` proves its destination was reached;
+- each accepted `STAGE_COMPLETED` proves its owning stage and destination were reached;
 - R3 `READY_FOR_SIGNOFF` proves AWAITING_SIGNOFF was reached;
 - materialized signed execution tasks or an EXECUTION Run prove AWAITING_SIGNOFF and EXECUTION were reached;
 - current COMPLETE proves COMPLETE, while prior-stage reach remains evidence-derived so an R1-terminal investigation/audit does not falsely appear to have traversed R2..EXECUTION.
 
-The function never infers historical reach solely from current-stage ordinal.
+A lifecycle `ArtifactRef` **does not prove stage entry**. Repository-native deterministic lifecycle Markdown may exist as a rediscovered draft before its owner stage is reached. Treating that material fact as reach evidence would fabricate lifecycle history.
+
+The function never infers historical reach solely from current-stage ordinal or repository material existence.
 
 `workflowStepState(...)` becomes:
 
@@ -219,7 +225,7 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Retry failed current-stage Run | current stage / ACTIVE; latest current-owner Run is retryable failure; no active Run | new same-stage STAGE Run / PROCESSING; generic Start suppressed |
 | Send free-form continuation | current STAGE Run interaction OPEN; no pending required input; request id null | append input, same stage / PROCESSING |
 | Answer required input | current interaction REQUIRED_INPUT(Q); exact Q; unanswered | append bound input, same stage / PROCESSING |
-| Cancel STAGE Run | current Run active in PROCESSING/OPEN/REQUIRED_INPUT | terminal CANCELLED Run; same WorkItem stage |
+| Cancel STAGE Run | current Run active in PROCESSING/OPEN/REQUIRED_INPUT **and proposal decision is NONE** | terminal CANCELLED Run; same WorkItem stage |
 | Adopt lifecycle proposal | current stage Run OPEN; exactly one pending proposal; role/path match current stage | persist exact adoption intent -> ADOPTION_IN_PROGRESS; only exact effect/reconciliation + disposition returns proposal state to NONE/OPEN; same WorkItem stage; free-form continuation and Reject suppressed while adopting |
 | Reject lifecycle proposal | same current/pending/open ownership as adoption; no adoption request persisted | same WorkItem/Run interaction, proposal closed; free-form continuation becomes eligible again |
 | Save Work request/source | pre-signoff/AWAITING_SIGNOFF; no active Run; expected hash current | IDEA stays IDEA; progressed work returns R1 |
@@ -228,6 +234,7 @@ The daemon is authoritative for mutation admission. The browser uses the same pu
 | Sign off | AWAITING_SIGNOFF / ACTIVE; exact displayed package still current; no competing mutation | EXECUTION / ACTIVE + Approval/tasks |
 | Reconcile stale approval authority | AWAITING_SIGNOFF / ACTIVE; package inspection reports exact STALE(owner); submitted expected owner still matches; no competing mutation | return lifecycle ownership to that exact upstream owner / ACTIVE; no repository bytes are changed |
 | Resume execution | EXECUTION / BLOCKED; exactly current blocked task; approval current; blocker resolved | EXECUTION / ACTIVE; blocked task becomes eligible |
+| Start current implementation task | EXECUTION / ACTIVE; submitted WorkItem/task identifies the exact derived `ExecutionOwner.CURRENT_TASK`; task TODO/eligible; approval current; no running task/coordinator execution | exact task RUNNING + exact BUILDER Run; existing coordinator continues that task asynchronously |
 | Archive/restore | existing archive policy; no active Run; no competing mutation | archive projection only; lifecycle unchanged |
 
 A selected historical material item never satisfies a current-action precondition merely because it contains an old control. Action ownership always resolves from the current canonical WorkItem/Run/task/proposal/input facts.
@@ -259,6 +266,17 @@ type MaterialCurrentness =
       readonly tag: "STALE";
       readonly owner: "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
     };
+
+type MaterialPresentationState =
+  | { readonly tag: "DRAFT" }
+  | { readonly tag: "UPDATED_VALIDATION_REQUIRED" }
+  | { readonly tag: "CURRENT" }
+  | {
+      readonly tag: "STALE";
+      readonly owner: "R1" | "R2" | "DESIGN" | "PLAN" | "R3";
+    }
+  | { readonly tag: "HISTORICAL" }
+  | { readonly tag: "SIGNED_LOCKED" };
 
 type ExecutionOwner =
   | { readonly tag: "NONE" }
@@ -308,7 +326,7 @@ type RailMarker =
 
 The concrete unions may carry canonical ids needed to identify their owner, but they may not add another semantic variant. Human-readable/currentness reasons come from the existing typed canonical diagnostic/classification that caused the decision; the derived union does not duplicate that reason as an untyped string.
 
-No `WorkflowState` aggregate is introduced. Callers obtain the particular pure decisions they need from canonical values. A convenience input parameter object inside one pure function is not a semantic state owner and must not be persisted/transported/exported as a parallel domain model.
+No `WorkflowState` aggregate is introduced. Callers obtain the particular pure decisions they need from canonical values. `MaterialPresentationState` is likewise a pure display decision over current ArtifactRef/conformance/reach/Approval facts; it is not a persisted document-status model or HTTP DTO. Proposal Pending/Applying remains interaction state and Git state remains orthogonal. A convenience input parameter object inside one pure function is not a semantic state owner and must not be persisted/transported/exported as a parallel domain model.
 
 Malformed or contradictory canonical histories do not produce a guessed variant. The deriving function throws/rejects or returns the existing typed canonical-state error at the owning boundary; command admission fails closed.
 
@@ -1186,7 +1204,7 @@ The closed primitive system does not require pointless one-line wrappers. The fo
 | Astryx `Markdown` | document/result rendering | readable measure/theme inherited from content owner |
 | Astryx `CodeBlock` | evidence/diff/raw code | bounded scrolling/theme inherited |
 | Astryx `MetadataList` | secondary/technical structured metadata | not primary workflow hierarchy |
-| Astryx Chat message/composer leaves | only inside `WorkbenchDialogue` | dialogue geometry/input policy remain outside leaf |
+| Astryx `ChatLayout`, `ChatMessage`, `ChatMessageMetadata` and `ChatComposer` leaves | only inside `WorkbenchDialogue` | dialogue geometry/input policy remain Workbench-owned; provider-native/raw tool records are not rendered as Chat tool-call content |
 | CodeMirror via `MarkdownSourceEditor` | exact Markdown source editing | consumes canonical editor/color/type/focus tokens; no independent palette |
 | semantic HTML (`section`, `p`, `dl`, `code`, lists, `a`) | content semantics and true external/document links inside primitive slots | no independent layout/color/type system; links use accent/link token + underline/focus grammar |
 
@@ -1223,7 +1241,15 @@ For the current step:
 
 Historical selection can remain visible, but a compact current-attention surface remains visible and navigates directly to its owner. Only the highest-precedence current mutation action is rendered: failed/recovery ownership suppresses generic Start, and pending proposal disposition suppresses free-form continuation.
 
-Run/provider plumbing is not a parallel primary information block. The activity header presents workflow role/attempt plus human-relevant interaction state; provider session id, baseline/context hash and ordinary provider-process status remain inside Technical details. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
+Run/provider plumbing is not a parallel primary information block. The Dialogue surface partitions the same ordered RunEvent chronology into three presentation planes:
+
+1. **Conversation** — `AGENT_MESSAGE_FINAL`, `HUMAN_INPUT_REQUESTED`, `HUMAN_INPUT_RECEIVED`, rendered with approved Astryx Chat leaves;
+2. **Agent activity** — coordinator-owned bounded `AGENT_ACTIVITY_RECORDED` observations, rendered as supporting activity rather than chat;
+3. **Workflow/system** — proposals, conformance, completion/block/failure, evidence and other canonical workflow events.
+
+`WorkbenchDialogue` owns that composition. On wide layouts it keeps a stable conversation region plus a bounded supporting-activity region and an anchored composer. Medium/narrow layouts recompose activity subordinately without creating another navigation rail or hiding the conversation/composer. Provider session id, baseline/context hash and ordinary provider-process status remain inside Technical details. A provider admission/failure appears in primary only as the canonical human-facing blocker/failure.
+
+A free-form composer is rendered only for OPEN interaction backed by a visible substantive agent message from that turn. An exact required-input question is itself the reply anchor.
 
 ### 9.2 Readiness
 
@@ -1236,6 +1262,8 @@ Only an actual REQUIRED_INPUT interaction temporarily owns the primary action.
 Historical task selection is presentation state only.
 
 The Workbench derives current execution attention independently and renders it above/adjacent to the detail. Resume is attached to the current blocked task, never merely to `WorkItem.status === BLOCKED`.
+
+The manual action is **Start current task** and calls only the exact WorkItem/task-scoped start command. The browser does not use the global scheduler `/api/tick` as a task-local control. Automatic/background scheduling remains a separate system mechanism over the same canonical task/run machinery.
 
 ## 10. Workflow feedback ownership
 
@@ -1266,6 +1294,13 @@ This directly removes the current duplicated `Workflow action failed` rendering 
 11. browser observation polls the selected WorkItem while Runs are active and performs terminal event drain/refetch before exposing a next action.
 12. sign-off package/source/lifecycle-artifact GET paths perform no lifecycle/projection mutation.
 13. no new persistence/transport field/table is introduced for reached history, turn interaction, proposal-decision phase, recovery route, execution owner, validation boundary, observation coherence, current attention or rail state.
+14. STAGE producer and consumer bind the same closed complete-array grammar, including at most one final agent message and exactly one non-blank final agent message for every non-controlling turn.
+15. STAGE Cancel is invalid while proposal decision is PENDING or ADOPTION_IN_PROGRESS.
+16. `AGENT_ACTIVITY_RECORDED` is one bounded coordinator-owned observational RunEvent with closed category/summary/resource bounds and cannot affect workflow semantics.
+17. post-provider Order STAGE-batch rejection records bounded admission evidence identifying stable rejection code and event tags without raw provider output.
+18. the browser manual execution command identifies the exact current WorkItem/task and returns its canonical BUILDER Run; global `/api/tick` is not the browser task command.
+19. lifecycle-artifact projection can return reconciled repository drafts without Run history, while ArtifactRef existence is not lifecycle reach evidence and GET remains non-mutating.
+20. material maturity labels are pure derived presentation values and add no persisted/transport owner.
 
 ## 12. Existing module consequences
 
@@ -1278,7 +1313,9 @@ Extend the existing browser-safe owner with the complete closed workflow languag
 - STAGE Run interaction and exact required-input derivation/admission;
 - STAGE turn-grammar validation;
 - lifecycle-proposal admission plus `NONE | PENDING | ADOPTION_IN_PROGRESS` derivation;
-- reached-stage/reach-state derivation;
+- reached-stage/reach-state derivation that explicitly excludes ArtifactRef-only reach;
+- proposal-aware STAGE cancellation admission;
+- pure lifecycle-material presentation derivation for Draft / Updated — validation required / Current / Stale / Historical / Signed & locked;
 - material-currentness normalization from existing typed canonical freshness/diagnostic results;
 - execution-owner and current-candidate validation-boundary derivation;
 - recovery-disposition derivation using existing bounded execution policy/history;
@@ -1303,6 +1340,28 @@ Separate inspection from explicit reconciliation and remove read-path applicatio
 ### `src/daemon/authority.ts`
 
 Separate query inspection from ArtifactRef materialization, remove lifecycle mutation from sign-off-package reads, and keep stage/sign-off command materialization explicit.
+
+`currentLifecycleArtifacts` enumerates already-persisted current lifecycle-role snapshots independently of Run history and proves their repository bytes still match. It never creates a snapshot on GET. This allows reconciled repository drafts to remain visible while reached-history derivation stays independent.
+
+### `src/daemon/stage.ts`
+
+Retain STAGE orchestration and transactional batch reaction. Recheck proposal-aware Cancel at the daemon mutation boundary, consume the complete producer grammar from the shell, and record bounded Order-admission diagnostic evidence before failing a provider-successful but semantically rejected turn.
+
+### `src/shell/opencode.ts`
+
+Retain all provider-native V2 shapes. Extend the existing shell boundary with best-effort live activity observation plus terminal `session.context` reconciliation. Normalize/allowlist/redact into coordinator-owned activity values before they can cross into Order RunEvents; raw provider tool/event payloads never cross the shell.
+
+### `src/daemon/execution.ts` / `src/daemon/coordinator.ts`
+
+Factor exact current-task start from global task discovery. The manual WorkItem/task command creates exactly the submitted canonical current task Run and immediately hands that already-running task to the existing coordinator loop asynchronously. Global automatic scheduling continues to discover eligible tasks exactly as before.
+
+### `ui/src/ActivityWorkspace.tsx` / dialogue adapters
+
+Split RunEvent presentation into conversation, agent activity and workflow/system planes while retaining one RunEvent source/query. `WorkbenchDialogue` owns stable chat/activity/composer geometry and uses the approved Astryx Chat leaves only for the human/agent transcript.
+
+### `ui/src/ExecutionWorkspace.tsx`
+
+Replace the task-local `api.tick` mutation with the exact current WorkItem/task start command. Current execution ownership remains derived before selection; historical selection cannot change the submitted command target.
 
 ### `src/daemon/stage.ts`
 
