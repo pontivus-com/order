@@ -76,7 +76,7 @@ jobs:
           const endMarker = "\n`;\n\nconst createFakeOpenCode";
           const end = source.indexOf(endMarker, literalStart);
           if (end < 0) throw new Error("fakeOpenCodeSource end marker missing");
-          const literal = source.slice(literalStart, end);
+          const literal = source.slice(literalStart, end + 2);
           const fakeSource = (0, eval)(literal);
           const dir = process.env.RUNNER_TEMP + "/phase1-fake-opencode";
           const binary = join(dir, "fake-opencode.ts");
