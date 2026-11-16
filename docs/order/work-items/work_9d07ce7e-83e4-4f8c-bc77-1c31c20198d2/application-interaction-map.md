@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 baseline complete; P1-T02+ pending  
+**Status:** P1-T01 and P1-T02 complete; P1-T03+ pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -256,23 +256,177 @@ P1-T02 may now assign the exhaustive `SURF-` registry and state-scenario coverag
 
 ## 7. Application/navigation topology
 
-**Pending P1-T02 expansion.** The P1-T01 root topology in §2 is the input.
+P1-T02 expands the root topology into one explicit application navigation graph.
+
+~~~text
+/connect bootstrap
+   |
+   v
+SURF-APP-001 application shell
+   |
+   +--> SURF-QUEUE-001 WorkItem queue
+   |      |
+   |      +--> SURF-CREATE-001 create WorkItem task panel
+   |      +--> select active WorkItem -------------------+
+   |                                                    |
+   +--> SURF-SET-001 Settings shell                     |
+   |      +--> SURF-SET-REPO-001 Repositories           |
+   |      |      +--> SURF-SET-REPO-ADD-001             |
+   |      |      +--> SURF-SET-REPO-MOVE-001            |
+   |      |      +--> SURF-CONF-REPO-DISCONNECT-001     |
+   |      +--> SURF-SET-OC-001 OpenCode accounts        |
+   |      |      +--> SURF-SET-OC-RENAME-001            |
+   |      |      +--> SURF-SET-OC-ADD-001               |
+   |      |      +--> SURF-SET-OC-LOGIN-001             |
+   |      |      +--> SURF-CONF-OC-REMOVE-001           |
+   |      +--> SURF-SET-MODEL-001 Model/runtime         |
+   |                                                    |
+   +--> SURF-WI-001 selected WorkItem shell <-----------+
+          |
+          +--> SURF-WI-CONTEXT-001 Context
+          +--> SURF-STEP-WR-001 Work request
+          +--> SURF-STEP-R1-001 Research
+          +--> SURF-STEP-R2-001 Requirements
+          +--> SURF-STEP-DESIGN-001 Solution design
+          +--> SURF-STEP-PLAN-001 Implementation plan
+          +--> SURF-STEP-R3-001 Readiness review
+          +--> SURF-STEP-APPROVAL-001 Approval
+          +--> SURF-STEP-EXEC-001 Implementation
+          +--> SURF-STEP-COMPLETE-001 Complete
+          |
+          +--> reusable selected materials
+          |      +--> SURF-MAT-SOURCE-001 source document
+          |      +--> SURF-MAT-DOC-001 lifecycle document
+          |      +--> SURF-MAT-DOC-RO-001 read-only lifecycle/supporting document
+          |      +--> SURF-MAT-ACTIVITY-001 Run dialogue/activity
+          |      +--> SURF-MAT-PROPOSAL-001 proposal review
+          |      +--> SURF-MAT-EVIDENCE-001 evidence/raw-content view
+          |      +--> SURF-MAT-APPROVAL-TASK-001 signed/historical task detail
+          |      +--> SURF-MAT-EXEC-TASK-001 execution task detail
+          |
+          +--> safety/commit overlays
+                 +--> SURF-CONF-DIRTY-DEST-001
+                 +--> SURF-CONF-DIRTY-MATERIAL-001
+                 +--> SURF-CONF-ARCHIVE-001
+                 +--> SURF-CONF-DOC-GIT-001
+~~~
+
+The reusable material surfaces remain children of the selected workflow-step context. Opening them does not create another lifecycle/navigation owner.
 
 ## 8. Surface registry
 
-**Pending P1-T02.**
+### 8.1 Application and queue/settings surfaces
+
+| SURF id | Surface | Source owner | Parent / entry condition |
+|---|---|---|---|
+| `SURF-APP-001` | application shell/toolbar/destination composition | `ui/src/app.tsx` + `WorkbenchLayout` | authenticated SPA |
+| `SURF-QUEUE-001` | active/archived WorkItem queue | `ui/src/WorkItemQueue.tsx` | no selected WorkItem and no Settings section |
+| `SURF-CREATE-001` | Create WorkItem / linked-remediation task panel | `app.tsx` + `CreateWorkItem.tsx` + `WorkbenchTaskPanel` | `createOpen` |
+| `SURF-SET-001` | Settings frame/readiness/navigation | `ui/src/SettingsWorkspace.tsx` | any `/settings/*` destination |
+| `SURF-SET-REPO-001` | repository/reference-root settings | `SettingsWorkspace.tsx::RepositorySettings` | Settings section `repositories` |
+| `SURF-SET-REPO-ADD-001` | add-repository bounded form | `SettingsWorkspace.tsx` | add-repository local state open |
+| `SURF-SET-REPO-MOVE-001` | move WorkItem document root bounded form | `SettingsWorkspace.tsx` | per-repository move-root local state open |
+| `SURF-SET-OC-001` | saved OpenCode accounts | `ui/src/OpenCodeAccountSettings.tsx` | Settings section `opencode` |
+| `SURF-SET-OC-RENAME-001` | rename-account bounded form | `OpenCodeAccountSettings.tsx` | `renaming !== null` |
+| `SURF-SET-OC-ADD-001` | add-account form | `OpenCodeAccountSettings.tsx` | `adding && loginAttemptId === null` |
+| `SURF-SET-OC-LOGIN-001` | OpenCode login-attempt state | `OpenCodeAccountSettings.tsx` | `adding && loginAttemptId !== null` |
+| `SURF-SET-MODEL-001` | configured model/runtime settings | `SettingsWorkspace.tsx::ModelRuntimeSettings` | Settings section `model` |
+
+### 8.2 Selected WorkItem and workflow-step surfaces
+
+| SURF id | Surface | Source owner | Parent / entry condition |
+|---|---|---|---|
+| `SURF-WI-001` | selected WorkItem shell, identity, rail, current-attention composition | `ui/src/WorkItemWorkspace.tsx` | selected WorkItem loaded |
+| `SURF-WI-CONTEXT-001` | technical Context | `ui/src/WorkItemContext.tsx` + `WorkbenchLayout` | explicit Context open; wide panel or constrained Drawer |
+| `SURF-STEP-WR-001` | Work request | `WorkItemWorkspace.tsx` + `SourceDocumentMaterial` | selected workflow step `IDEA` |
+| `SURF-STEP-R1-001` | Research | `WorkItemWorkspace.tsx` + `PreSignoffStageWorkspace` | selected step `R1` |
+| `SURF-STEP-R2-001` | Requirements | same shared pre-signoff renderer | selected step `R2` |
+| `SURF-STEP-DESIGN-001` | Solution design | same shared pre-signoff renderer | selected step `DESIGN` |
+| `SURF-STEP-PLAN-001` | Implementation plan | same shared pre-signoff renderer | selected step `PLAN` |
+| `SURF-STEP-R3-001` | Readiness review | `ui/src/ReadinessWorkspace.tsx` | selected step `R3` |
+| `SURF-STEP-APPROVAL-001` | Approval review | `ui/src/SignoffReview.tsx` | selected step `AWAITING_SIGNOFF` |
+| `SURF-STEP-EXEC-001` | Implementation master/detail | `ui/src/ExecutionWorkspace.tsx` | selected step `EXECUTION` |
+| `SURF-STEP-COMPLETE-001` | terminal result | `ui/src/TerminalResult.tsx` | selected step `COMPLETE` with terminal material |
+
+### 8.3 Reusable workflow material surfaces
+
+| SURF id | Surface | Source owner | Reached from |
+|---|---|---|---|
+| `SURF-MAT-SOURCE-001` | Work request Markdown document/editor | `ui/src/DocumentWorkspace.tsx::SourceDocumentMaterial` | Work request or supporting source selection |
+| `SURF-MAT-DOC-001` | editable lifecycle Markdown document | `DocumentWorkspace.tsx::LifecycleDocumentMaterial` | current R1/R2/DESIGN/PLAN governed document |
+| `SURF-MAT-DOC-RO-001` | read-only lifecycle/supporting document | `DocumentWorkspace.tsx::ReadOnlyLifecycleDocumentMaterial` | historical/supporting/R3/Approval material |
+| `SURF-MAT-ACTIVITY-001` | STAGE Run dialogue/activity | `ui/src/ActivityWorkspace.tsx::StageRunMaterial` | R1/R2/DESIGN/PLAN/R3 Run selection |
+| `SURF-MAT-PROPOSAL-001` | artifact proposal review | `ui/src/ProposalReview.tsx` | unresolved/resolved proposal selection |
+| `SURF-MAT-EVIDENCE-001` | raw evidence/artifact bytes | `ui/src/EvidenceViewer.tsx` | event/resource/evidence selection |
+| `SURF-MAT-APPROVAL-TASK-001` | signed or historical task detail | `ui/src/SignoffReview.tsx` | Approval task selection |
+| `SURF-MAT-EXEC-TASK-001` | selected execution task/attempt/validation detail | `ui/src/ExecutionWorkspace.tsx` | Implementation task/attempt selection |
+
+### 8.4 Safety and confirmation overlays
+
+| SURF id | Overlay | Source owner | Trigger |
+|---|---|---|---|
+| `SURF-CONF-DIRTY-DEST-001` | discard unsaved Markdown on app destination change | `ui/src/app.tsx` | attempted WorkItem/Settings/queue navigation while workspace dirty |
+| `SURF-CONF-DIRTY-MATERIAL-001` | discard unsaved Markdown on workflow/material selection | `WorkItemWorkspace.tsx` | selection change while dirty |
+| `SURF-CONF-ARCHIVE-001` | archive/restore WorkItem | `WorkItemWorkspace.tsx` | archive/restore command |
+| `SURF-CONF-DOC-GIT-001` | commit governed WorkItem documentation | `DocumentWorkspace.tsx::DocumentationGitConfirmation` | explicit documentation Git save |
+| `SURF-CONF-REPO-DISCONNECT-001` | disconnect repository | `SettingsWorkspace.tsx` | disconnect command |
+| `SURF-CONF-OC-REMOVE-001` | remove saved OpenCode account | `OpenCodeAccountSettings.tsx` | remove-account command |
 
 ## 9. Per-surface typed data/model/schema input map
 
-**Pending P1-T04.**
+**Pending P1-T04.** P1-T02 records renderer ownership only; exact field lineage is deliberately deferred to P1-T04.
 
 ## 10. Per-surface conditional-render/state-scenario matrix
 
-**Pending P1-T02.**
+The matrix defines the **minimum covering scenarios** that P1-T03 must render. It does not require a Cartesian product. A combination may be omitted only when source/core state rules prove it impossible or when the differing axis cannot change presentation/interactions for that surface.
+
+| Surface family | Required scenario axes / covering states |
+|---|---|
+| `SURF-APP-001` | queue vs selected WorkItem vs Settings; app/query loading; selected-WorkItem 404/error; installation-readiness loading/error/ready/blocker; source diagnostics present/absent; create panel closed/open; dirty-destination confirmation; System/Light/Dark theme |
+| `SURF-QUEUE-001` | active list populated/empty; archived hidden/shown; archived-query loading/error; restore pending/error; long title/concern density; narrow vs wide row representation |
+| `SURF-CREATE-001` | ordinary creation vs linked remediation; no project/schema/title vs valid form; project selected root visible; concern selection; submit pending; submit failure; compact/wide dialog |
+| `SURF-SET-001` | readiness loading/error/ready; each blocker class; repositories/opencode/model navigation |
+| `SURF-SET-REPO-001` | repository list loading/error/empty/populated; ready vs attention repository; add form closed/open; move-root closed/open; connect/migrate/reference-root mutation pending/error; disconnect confirmation |
+| `SURF-SET-OC-001` | accounts loading/error/empty/populated; account mutation allowed vs blocked by active Run/login mutation; active/inactive account; activation/rename/remove errors |
+| `SURF-SET-OC-RENAME-001` | valid/invalid label; rename pending; cancel |
+| `SURF-SET-OC-ADD-001` | valid/invalid label; start-login pending/error; cancel |
+| `SURF-SET-OC-LOGIN-001` | login query pending/error; attempt PENDING/COMPLETED/FAILED/EXPIRED/CANCELLED; cancel pending |
+| `SURF-SET-MODEL-001` | models loading/error/populated; configured model valid/invalid/unavailable; update pending/error |
+| `SURF-WI-001` | selected step CURRENT/HISTORICAL/UNREACHED; observation COHERENT/CONVERGING; each `CurrentAttentionTag`: CONVERGING, MUTATION_CONFLICT, REQUIRED_INPUT, PROPOSAL_DECISION, PROPOSAL_ADOPTION, BLOCKER, RECOVERY, STALE_AUTHORITY, PROCESSING, ACTIONABLE, ORDINARY; WorkItem ACTIVE/BLOCKED/COMPLETE where legal; wide/medium/narrow |
+| `SURF-WI-CONTEXT-001` | closed/open; wide inline panel vs medium/narrow Drawer; source/document material vs Run material vs non-document material; selected Run present/absent; diagnostics present/absent |
+| `SURF-STEP-WR-001` / `SURF-MAT-SOURCE-001` | source loading/error/current; edit/view/preview modes; clean/dirty; save pending/error/conflict; source diagnostic present; IDEA current vs progressed/historical inspection; Git status loading/error/clean/dirty; Git-save confirmation |
+| R1/R2/DESIGN/PLAN step surfaces | CURRENT/HISTORICAL/UNREACHED; no Run/no artifact; Run activity selected; current lifecycle document; supporting document; proposal selected; evidence selected; multiple attempts/documents; each relevant current-attention state; wide/medium/narrow material selector; long Markdown/activity density |
+| `SURF-MAT-ACTIVITY-001` | no selected Run; events loading/error/empty/populated; Run PROCESSING/OPEN/REQUIRED_INPUT/CLOSED derived interaction; current vs historical attempt; cancel allowed/hidden; composer free-form/required-input/absent; action mutation pending/error; technical disclosure; proposal/evidence events present |
+| `SURF-MAT-DOC-001` | artifact/content loading/error/current/missing; editable vs mutations-disabled; clean/dirty; save pending/error/conflict; Git state variants; preview/source/edit modes; long document |
+| `SURF-MAT-DOC-RO-001` | content loading/error/current; supporting/historical/R3/Approval usage; long document |
+| `SURF-MAT-PROPOSAL-001` | events loading/error; proposal missing; pending disposition; adoption requested/in progress; adopted; rejected; decision pending/error; mutations disabled |
+| `SURF-STEP-R3-001` | CURRENT/HISTORICAL/UNREACHED; readiness artifact absent/present; Run attempts absent/present; current required input/processing/blocker; package documents; evidence; long findings/package |
+| `SURF-STEP-APPROVAL-001` | package loading/error/available; current vs historical vs unreached; package current/stale owner; overview/document/task selection; approver input absent/present; signoff pending/error; many tasks/documents |
+| `SURF-MAT-APPROVAL-TASK-001` | signed task vs historical ExecutionTask; long scope/exclusions/change-surface/authority lists |
+| `SURF-STEP-EXEC-001` / `SURF-MAT-EXEC-TASK-001` | tasks loading/error/empty; current owner NONE/CURRENT_TASK/BLOCKED_TASK; selected current vs historical task; no attempts vs attempts; Run active/waiting/completed/failed/blocked/cancelled; events loading/error/empty/populated; validation boundary NONE/PASSED_THROUGH/FAILED_AT/COMPLETE; evidence selected; recovery/resume; many tasks/attempts |
+| `SURF-MAT-EVIDENCE-001` | no selection; evidence loading/error/success; long text/binary-decoded content; return/focus path |
+| `SURF-STEP-COMPLETE-001` | AUDIT_COMPLETE/INVESTIGATION_COMPLETE; CANDIDATE_DONE; ALREADY_SATISFIED and other legal terminal outcomes; governed result loading/error/empty/content; multiple result artifacts; candidate runs/evidence loading/error/empty/populated; linked remediation available/not applicable |
+| confirmation overlays | closed/open; pending false/true when mutation-backed; confirm/cancel; originating focus return; narrow/wide browser |
+
+### 10.1 Canonical state axes used by scenario selection
+
+P1-T02 does not define new state. The scenario axes are sourced from current core types/derivations:
+
+- `StageRunInteraction`: `PROCESSING | OPEN | REQUIRED_INPUT | CLOSED`;
+- `ProposalDecision`: `NONE | PENDING | ADOPTION_IN_PROGRESS`;
+- `MaterialCurrentness`: `CURRENT | STALE(owner)`;
+- `ExecutionOwner`: `NONE | CURRENT_TASK | BLOCKED_TASK`;
+- `ValidationBoundary`: `NONE | PASSED_THROUGH | FAILED_AT | COMPLETE`;
+- `RecoveryDisposition`: `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY`;
+- `ObservationCoherence`: `COHERENT | CONVERGING`;
+- `CurrentAttentionTag`: the ten tags enumerated in the WorkItem-shell row above;
+- workflow reach: current / reached-historical / unreached.
+
+Impossible combinations are resolved by the canonical core rules in P1-T06; P1-T03 should not fabricate fixtures for states the core rejects.
 
 ## 11. Rendered evidence manifest
 
-**Pending P1-T03.**
+**Pending P1-T03.** The scenario matrix in §10 is the capture contract.
 
 ## 12. Per-surface information inventory
 
@@ -296,7 +450,24 @@ P1-T02 may now assign the exhaustive `SURF-` registry and state-scenario coverag
 
 ## 17. Overlay interaction graph
 
-**Pending P1-T02/P1-T05.**
+| Origin | Trigger | Overlay / nested task | Close/result |
+|---|---|---|---|
+| `SURF-APP-001` / queue / WorkItem toolbar | New work item / linked remediation | `SURF-CREATE-001` | close resets local creation state; success creates/selects through App mutation path |
+| any dirty WorkItem destination | navigate queue/Settings/other WorkItem | `SURF-CONF-DIRTY-DEST-001` | cancel remains editing; confirm commits requested destination |
+| `SURF-WI-001` | workflow/material selection while dirty | `SURF-CONF-DIRTY-MATERIAL-001` | cancel remains; confirm clears dirty state and commits selection |
+| `SURF-WI-001` | archive/restore command | `SURF-CONF-ARCHIVE-001` | cancel remains; confirm executes archive mutation |
+| source/lifecycle document | explicit Git documentation save | `SURF-CONF-DOC-GIT-001` | cancel remains; confirm commits exact governed paths |
+| `SURF-SET-REPO-001` | add repository | `SURF-SET-REPO-ADD-001` nested bounded form | cancel closes; connect mutation refreshes Settings |
+| `SURF-SET-REPO-001` | move document root | `SURF-SET-REPO-MOVE-001` nested bounded form | cancel/complete returns to repository state |
+| `SURF-SET-REPO-001` | disconnect | `SURF-CONF-REPO-DISCONNECT-001` | cancel/confirm |
+| `SURF-SET-OC-001` | rename | `SURF-SET-OC-RENAME-001` nested form | cancel/save |
+| `SURF-SET-OC-001` | add account | `SURF-SET-OC-ADD-001` -> `SURF-SET-OC-LOGIN-001` | cancel; terminal login Done returns to account surface |
+| `SURF-SET-OC-001` | remove | `SURF-CONF-OC-REMOVE-001` | cancel/confirm |
+| R1/R2/DESIGN/PLAN activity timeline | proposal event | `SURF-MAT-PROPOSAL-001` | Back returns to owning attempt; adopt/reject refreshes and returns |
+| workflow event/resource/task | evidence link | `SURF-MAT-EVIDENCE-001` | Back returns to recorded transient-origin selection |
+| `SURF-WI-001` | Context | `SURF-WI-CONTEXT-001` | explicit close; wide panel vs Drawer representation |
+
+P1-T05 will add exact `ACT-` ids, predicates, mutation effects and focus behavior to this graph.
 
 ## 18. Duplication/leakage inventory
 
@@ -304,8 +475,30 @@ P1-T02 may now assign the exhaustive `SURF-` registry and state-scenario coverag
 
 ## 19. Cross-artifact closure ledger
 
-**Pending P1-T02 skeleton; completed by P1-T09.**
+At P1-T02 completion every surface has a source owner and scenario contract. Later columns are intentionally open.
+
+| SURF family | Source | Scenario contract | Rendered evidence | INFO | ACT/FLOW | STATE/OC/MAT/CERT | Status |
+|---|---|---|---|---|---|---|---|
+| application shell/queue/create | §§8.1 | §10 | P1-T03 | P1-T04 | P1-T05 | later | OPEN |
+| Settings + nested account/repository tasks | §§8.1 | §10 | P1-T03 | P1-T04 | P1-T05 | OC/MAT/CERT later | OPEN |
+| WorkItem shell/Context | §8.2 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
+| Work request | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
+| R1/R2/DESIGN/PLAN | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
+| R3 | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
+| Approval | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
+| Implementation | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
+| Complete | §§8.2–8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT later | OPEN |
+| shared activity/proposal/evidence/doc materials | §8.3 | §10 | P1-T03 | P1-T04 | P1-T05 | all applicable later | OPEN |
+| confirmations/safety overlays | §8.4 | §10 | P1-T03 | P1-T04 | P1-T05 | STATE/MAT/CERT as applicable | OPEN |
+
+### 19.1 P1-T02 completion verdict
+
+**P1-T02: COMPLETE.**
+
+The current renderer graph has been classified into application, workflow-step, reusable-material, nested-task and safety/confirmation surfaces. Every registered surface has an owning renderer and a minimum scenario contract. The registry explicitly includes responsive Context representations and all confirmation/task overlays discovered from the production composition.
+
+P1-T03 may now capture rendered evidence against §10. P1-T04 must not start final INFO closure until the relevant rendered evidence exists.
 
 ## 20. Current-state gaps requiring derived audit
 
-**Pending findings from P1-T04 onward.**
+**Pending findings from P1-T04 onward.** P1-T02 records existence/coverage only and deliberately does not yet judge presentation quality or state correctness.
