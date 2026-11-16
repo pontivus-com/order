@@ -247,7 +247,7 @@ No new dependency, package pin, database migration, persistent state table, tran
 
 | Phase | Purpose | Hard checkpoint |
 |---|---|---|
-| P0 | freeze baseline, fixtures and comparison matrix | C0 baseline health/evidence |
+| P0 | establish reference-validation fixtures and comparison matrix | C0 reference harness ready |
 | P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure |
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure |
 | P3 | shared Workbench interaction foundation | C3 foundation visual conformance |
@@ -259,46 +259,57 @@ No new dependency, package pin, database migration, persistent state table, tran
 
 No phase may be marked complete while its checkpoint is FAIL.
 
-## 7. Phase P0 — baseline freeze and conformance harness
+## 7. Phase P0 — reference-validation harness
 
 ### Objective
 
-Establish a reproducible before-state and the exact comparison/evidence mechanism before changing production behavior.
+Establish the minimum deterministic runtime/reference comparison mechanism required to validate the implemented 0.5.0 UI against the approved SVG reference pack.
+
+The current 0.4.0/early-0.5.0 UI is **not** a visual baseline and is not captured for comparison. The only visual comparison authority used by this implementation is:
+
+```text
+approved SVG reference
+        ↓
+implemented runtime state
+        ↓
+structured comparison + PASS/FAIL
+```
 
 ### Work
 
-Canonical V0 package/approval validation and V1 repository/governance preflight occur before implementation editing under the existing execution control plane. P0 does not replace either stage; it is the builder's baseline-health/evidence checkpoint after V1 has admitted implementation.
+Canonical V0 package/approval validation and V1 repository/governance preflight occur before implementation editing under the existing execution control plane. P0 does not duplicate those checks.
 
-1. Record the exact implementation baseline commit used by the execution Run.
-2. Run the complete current gate union before mutation:
-   - dependency-lock;
-   - typecheck;
-   - architecture;
-   - test;
-   - build;
-   - browser.
-3. Reuse the existing browser/e2e runtime and fixtures. Do not create a parallel demo application.
-4. Add/prepare deterministic fixture coverage in tests/e2e-server.ts only where a reviewed reference state cannot currently be produced.
-5. Build a reference-conformance manifest inside tests/browser.spec.ts/test structure that maps every 0.5.0 reference file to:
-   - scenario;
+1. Record the exact Approval/execution baseline commit required by the canonical execution model. This identifies the signed candidate origin; it is not a UX comparison baseline.
+2. Reuse the existing browser/e2e runtime and fixtures. Do not create a parallel demo application or screenshot-only prototype.
+3. Add/prepare deterministic fixture coverage in `tests/e2e-server.ts` only where an approved reference state cannot currently be rendered through the real SPA path.
+4. Build the reference-conformance manifest in the existing browser-test structure so every one of the 41 approved Workbench SVGs maps to:
+   - runtime scenario/fixture;
    - expected state;
-   - viewport/theme requirements;
-   - checkpoint owner.
-6. Capture baseline runtime screenshots for the same comparison states where practical so the implementation review can distinguish inherited defects from new regressions.
-7. Prove no reference SVG or canonical document is in the signed candidate change surface.
+   - applicable viewport class/exact viewport;
+   - applicable theme;
+   - owning implementation checkpoint.
+5. Verify that the harness can render representative wide, medium and narrow states and explicit Light/Dark/System theme conditions needed by the reference inventory.
+6. Prove that no reference SVG or canonical authority document is in the signed implementation candidate change surface.
 
-### C0 — baseline checkpoint
+Do **not**:
+
+- capture screenshots of the current UI for later comparison;
+- compare the candidate against the current UI;
+- run a second full pre-implementation gate cycle merely to establish a visual baseline;
+- preserve an existing UI defect because it appears in the pre-change implementation.
+
+### C0 — reference-harness checkpoint
 
 PASS requires:
 
-- all six baseline gates pass before candidate changes;
-- all 41 references have a runtime scenario owner;
-- no reference is left as “visual only / cannot test” without a named reason;
-- wide/medium/narrow fixtures use the canonical responsive classes;
-- Light/Dark/System test setup is available;
-- baseline screenshots/evidence are retained for later comparison.
+- all 41 approved Workbench references have a deterministic runtime scenario owner;
+- no reference is left as “visual only / cannot validate” without an explicit implementation-blocking reason;
+- wide/medium/narrow reference scenarios use the canonical responsive classes;
+- Light/Dark/System reference scenarios are renderable where applicable;
+- the reference-comparison evidence format required by §4.1 and §17.5 is available;
+- no current-UI baseline screenshot/evidence set is required or produced.
 
-If baseline gates fail for an unrelated pre-existing reason, stop and classify that failure before implementation. Do not build 0.5.0 on an unknown baseline.
+If the real SPA/e2e harness cannot render a required approved reference state, classify that as a concrete implementation/precondition problem and fix the harness or fixture. Do not substitute a mock visual baseline.
 
 ## 8. Phase P1 — core contracts and pure workflow semantics
 
