@@ -1,123 +1,192 @@
 # Order Workbench 0.5.0 visual reference pack
 
-**Status:** Reviewed derived visual reference set — Phase 2A complete  
-**Scope:** wide-layout WorkItem workflow surfaces only  
-**Authority:** derived reference only; semantic authority remains with the canonical owners listed below
+**Status:** Reviewed derived visual reference set — application-wide Phase 2A UX/UI baseline  
+**Scope:** every application/workflow/material/confirmation surface identified by the completed Phase 1 `SURF-*` registry, plus materially distinct interaction/state grammars  
+**Authority:** derived visual reference only; semantic authority remains with the canonical owners below
 
-These SVGs are reproducible visual references for the reviewed 0.5.0 Workbench functional model. They are deliberately not a second functional or technical specification. If a visual conflicts with a canonical owner, the canonical owner wins and the visual must be corrected.
+These SVGs are reproducible design references for the 0.5.0 application. They are not runtime screenshots and they are not a second product specification.
+
+If a visual conflicts with canonical authority, the authority wins and the SVG must be corrected.
+
+## Evidence rule — no fabricated product state
+
+Permanent references follow this rule:
+
+1. **Repository-backed value where one exists.**  
+   Example: the Queue reference uses the actual repository WorkItems/titles/kinds; Work request/Research/Requirements references use the actual linked Change material.
+2. **Canonical typed/template field name where no runtime value exists.**  
+   Example: Proposal review shows `ARTIFACT_PROPOSAL_CREATED.targetPath/rationale/unifiedDiff`; Approval task detail shows `SignedTaskDefinition` fields.
+3. **Canonical state pattern where the reference demonstrates a condition.**  
+   Example: PROCESSING / open-for-continuation / required-input dialogue states come directly from the closed interaction algebra.
+4. **Never invent lifecycle history or business evidence.**  
+   The pack does not invent Runs, agent conclusions, proposals, findings, signed tasks, evidence resources, approvals, deployment claims, validation results or terminal outcomes.
+
+Each schematic SVG is visibly marked as a **Reference composition** or **Reference state sheet** and must not be interpreted as persisted runtime evidence.
 
 ## Governing source basis
 
-The reference pack was checked against:
+The reference pack is derived from and checked against:
 
-- `GW-DOC-WORKBENCH-UX-V2` — canonical Workbench product behavior, information hierarchy, interaction classes, lifecycle rail, dialogue/reply context and per-step screen contracts;
-- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` — Change / Defect / Investigation / Audit intake and progressive document semantics;
-- `GW-DOC-MARKDOWN-WORKBENCH-V1` — governed document editing/currentness behavior;
-- `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT-V1` — lifecycle ownership and stage decision boundaries;
-- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` — already-binding stable shell, rail, interaction-space and responsive composition constraints;
-- `GW-DOC-WORKBENCH-THEME-V1` — already-binding visual character, Order color/token posture, density and theme rules;
-- parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`, especially:
-  - `application-interaction-map.md`;
-  - `workflow-state-audit.md`;
-  - `opencode-interaction-audit.md`;
-  - `document-material-maturity-audit.md`;
-  - `certification-evidence-map.md`;
-  - `research.md`;
-- linked Change `work_2778105b-d919-4fcd-91e7-dd9b23812aac/requirements.md` — reviewed Phase 2A functional model.
+- `GW-DOC-WORKBENCH-UX-V2`;
+- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`;
+- `GW-DOC-MARKDOWN-WORKBENCH-V1`;
+- `GW-DOC-WORK-LIFECYCLE-V1`;
+- `GW-DOC-LIFECYCLE-CONTEXT-V1`;
+- `GW-DOC-INSTALLATION-READINESS-V1`;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`;
+- `GW-DOC-WORKBENCH-THEME-V1`;
+- parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`, especially `application-interaction-map.md`, `workflow-state-audit.md`, `opencode-interaction-audit.md`, `document-material-maturity-audit.md`, `certification-evidence-map.md`, and `research.md`;
+- linked Change `work_2778105b-d919-4fcd-91e7-dd9b23812aac/requirements.md`.
 
-## Visual-system invariants demonstrated by every reference
+## Canonical visual invariants
 
-The reference set uses the stable Workbench topology:
+Workbench workflow surfaces use:
 
 ```text
 application toolbar
-work-item identity
+work-item identity row
 workflow rail
 current-attention / current-task region
 primary interaction surface
-[optional Context only when explicitly opened]
+[explicit Context only when opened]
 ```
 
-The references intentionally demonstrate:
+The references preserve:
 
-- one persistent lifecycle rail with **completed = success/green**, **current = Order blue**, **unreached = neutral**;
-- one compact WorkItem identity region;
+- completed lifecycle step = success/green plus non-color completion mark;
+- current lifecycle step = Order blue plus semantic current indication;
+- unreached lifecycle step = neutral;
+- one compact stable WorkItem identity row;
 - one current-attention owner;
-- flat, neutral-first, low-chrome surfaces;
-- deep navy / Order-blue product identity;
-- structural borders and spacing rather than dashboard-card decoration;
-- technical details collapsed/on demand;
-- no raw paths, hashes, provider-session ids or other technical identity in premium task space;
-- no additional persistent pre-signoff navigation rail;
-- no content-count-driven geometry changes;
-- one visually primary task/action;
-- supporting authority/evidence subordinate to current work.
+- flat, neutral-first, low-chrome presentation;
+- deep navy / Order-blue identity;
+- border/spacing hierarchy rather than decorative card-dashboard styling;
+- technical identity on demand;
+- one primary command per current task;
+- no persistent second pre-signoff navigation rail;
+- supporting material subordinate to current work;
+- human/agent dialogue distinct from workflow events and operational activity;
+- Implementation as the only persistent workflow master/detail geometry.
 
-The SVGs are desktop/wide-layout references. Medium/narrow recomposition remains governed by `GW-DOC-WORKBENCH-UX-V2` and `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; this pack does not create another responsive contract.
+## Complete audited surface coverage
 
-## Workflow screen references
+Every Phase 1 surface from `application-interaction-map.md §8` maps to a repository reference.
 
-| Reference | Primary interaction class | Required visual purpose | Phase 1 / Phase 2 closure represented |
-|---|---|---|---|
-| [Work request](work-request.svg) | Document | sparse kind-specific intake; no invented downstream authority | Defect intake semantics; source-first hierarchy; Start Research only when ready |
-| [Research](research.svg) | Dialogue | visible human/agent discussion with reply context; OpenCode activity secondary | OC-F01/OC-F02 transparency; persisted agent/human messages; dialogue/reply requirement; evidence and attempt history subordinate |
-| [Requirements](requirements.svg) | Document | observable behavioral contract dominates; Defect invariants remain close | kind-specific Defect context; acceptance/scope/failure/preservation; Research supporting |
-| [Solution design](solution-design.svg) | Document | broad technical solution and requirement coverage | accepted Requirements first; root cause/preservation remains relevant; architecture content gets broad working width |
-| [Implementation plan](implementation-plan.svg) | Document | exact executable delivery authority | task/dependency/change/verification structure; no premature execution master/detail |
-| [Readiness review](readiness-review.svg) | Review | verdict → finding → defective owner → relevant material | judgment-first hierarchy; read-only; no sign-off action; exact upstream return ownership |
-| [Approval](approval.svg) | Review | understand and authorize exact current package | package currentness → signed task meaning → documents → explicit sign-off; technical identity on demand |
-| [Implementation](implementation.svg) | Operational master/detail | scan approved tasks and act on canonical current task | only persistent master/detail workflow step; task-scoped manual execution; blocker/validation/evidence detail |
-| [Complete](complete.svg) | Terminal result | final governed outcome first | substantive result/evidence before history; no automatic reopen; follow-up governed separately |
-
-## Work-type variation reference
-
-[Work type variants](work-type-variants.svg) records the content/authority differences that must remain visible while using the same product visual language:
-
-- **Change** — requested outcome → proven current state/absence → changed behavior → delivery;
-- **Defect** — observed/expected/preserved behavior → reproduction/root cause → corrected behavior + preservation → delivery;
-- **Investigation** — question → evidence-backed conclusion → Complete;
-- **Audit** — target/criteria → evidence/findings/verdict → Complete.
-
-Investigation and Audit do not acquire empty Requirements / Solution design / Implementation plan authority merely to fill the workspace.
-
-## Completion check
-
-The pack was reviewed against the four Phase 2A closure gates and the UI-specific findings from Phase 1.
-
-| Check | Result |
+| SURF id | Reference |
 |---|---|
-| every user-facing workflow step has a reference | PASS |
-| Change / Defect / Investigation / Audit progression is represented without flattening semantics | PASS |
-| current task / current attention is visually dominant | PASS |
-| reply-capable interaction contains visible substantive agent context | PASS |
-| OpenCode operational activity is visible but cannot replace conversation | PASS |
-| pre-signoff screens avoid a permanent second navigation rail | PASS |
-| Readiness is verdict/finding-first and cannot sign off | PASS |
-| Approval is authorization-first and does not expose technical package identity as primary | PASS |
-| Implementation alone uses persistent master/detail | PASS |
-| Complete is result-first rather than an artifact index | PASS |
-| technical metadata is disclosure-only | PASS |
-| no unreached downstream document is shown as current authority | PASS |
-| reference content does not invent runtime history/conformance/approval | PASS |
-| visuals use the reviewed Order visual character and stable lifecycle rail | PASS |
+| `SURF-APP-001` | [Queue/application shell](queue.svg), [application notices/states](application-notices-states.svg), [installation readiness](installation-readiness.svg), [theme parity](theme-parity.svg) |
+| `SURF-QUEUE-001` | [Queue](queue.svg), [queue states](queue-states.svg) |
+| `SURF-CREATE-001` | [Create WorkItem](create-work-item.svg) |
+| `SURF-SET-001` | [Repositories settings](settings-repositories.svg), [OpenCode settings](settings-opencode.svg), [Model/runtime settings](settings-model.svg) |
+| `SURF-SET-REPO-001` | [Repositories settings](settings-repositories.svg) |
+| `SURF-SET-REPO-ADD-001` | [Add repository](settings-repository-add.svg) |
+| `SURF-SET-REPO-MOVE-001` | [Move WorkItem documents](settings-repository-move.svg) |
+| `SURF-SET-OC-001` | [OpenCode accounts](settings-opencode.svg) |
+| `SURF-SET-OC-RENAME-001` | [Rename OpenCode account](settings-opencode-rename.svg) |
+| `SURF-SET-OC-ADD-001` | [Add OpenCode account](settings-opencode-add.svg) |
+| `SURF-SET-OC-LOGIN-001` | [OpenCode sign-in](settings-opencode-login.svg) |
+| `SURF-SET-MODEL-001` | [Model & runtime](settings-model.svg) |
+| `SURF-WI-001` | [WorkItem shell controls](workitem-shell-controls.svg), all workflow-step references, [current-attention states](current-attention-states.svg) |
+| `SURF-WI-CONTEXT-001` | [Technical Context](workitem-context.svg) |
+| `SURF-STEP-WR-001` | [Work request](work-request.svg) |
+| `SURF-STEP-R1-001` | [Research](research.svg), [dialogue states](dialogue-states.svg) |
+| `SURF-STEP-R2-001` | [Requirements](requirements.svg), [dialogue states](dialogue-states.svg) |
+| `SURF-STEP-DESIGN-001` | [Solution design](solution-design.svg), [dialogue states](dialogue-states.svg) |
+| `SURF-STEP-PLAN-001` | [Implementation plan](implementation-plan.svg), [dialogue states](dialogue-states.svg) |
+| `SURF-STEP-R3-001` | [Readiness review](readiness-review.svg), [dialogue states](dialogue-states.svg) for legitimate input interaction |
+| `SURF-STEP-APPROVAL-001` | [Approval](approval.svg) |
+| `SURF-STEP-EXEC-001` | [Implementation](implementation.svg), [Implementation states](implementation-states.svg) |
+| `SURF-STEP-COMPLETE-001` | [Complete](complete.svg) |
+| `SURF-MAT-SOURCE-001` | [Document authoring](document-authoring.svg), [document states](document-states.svg) |
+| `SURF-MAT-DOC-001` | [Document authoring](document-authoring.svg), [document states](document-states.svg) |
+| `SURF-MAT-DOC-RO-001` | [Read-only document](document-readonly.svg), [document states](document-states.svg) |
+| `SURF-MAT-ACTIVITY-001` | [Research dialogue/activity](research.svg), [dialogue states](dialogue-states.svg) |
+| `SURF-MAT-PROPOSAL-001` | [Proposal review](proposal-review.svg), [proposal states](proposal-states.svg) |
+| `SURF-MAT-EVIDENCE-001` | [Evidence viewer](evidence-viewer.svg) |
+| `SURF-MAT-APPROVAL-TASK-001` | [Approval task detail](approval-task-detail.svg) |
+| `SURF-MAT-EXEC-TASK-001` | [Implementation](implementation.svg), [Implementation states](implementation-states.svg) |
+| `SURF-CONF-DIRTY-DEST-001` | [Safety confirmations](safety-confirmations.svg) |
+| `SURF-CONF-DIRTY-MATERIAL-001` | [Safety confirmations](safety-confirmations.svg) |
+| `SURF-CONF-ARCHIVE-001` | [Safety confirmations](safety-confirmations.svg) |
+| `SURF-CONF-DOC-GIT-001` | [Safety confirmations](safety-confirmations.svg) |
+| `SURF-CONF-REPO-DISCONNECT-001` | [Safety confirmations](safety-confirmations.svg) |
+| `SURF-CONF-OC-REMOVE-001` | [Safety confirmations](safety-confirmations.svg) |
+
+## Workflow-step reference set
+
+| Step | Reference | Information source used |
+|---|---|---|
+| Work request | [work-request.svg](work-request.svg) | actual `work_2778105b.../work-request.md` |
+| Research | [research.svg](research.svg) | actual Research artifact plus canonical RunEvent/dialogue fields; no invented transcript |
+| Requirements | [requirements.svg](requirements.svg) | actual reviewed `requirements.md` |
+| Solution design | [solution-design.svg](solution-design.svg) | canonical `delivery-design-v1` template; no Solution-design artifact is claimed to exist yet |
+| Implementation plan | [implementation-plan.svg](implementation-plan.svg) | canonical `delivery-plan-v1` template; no Plan artifact is claimed for this WorkItem |
+| Readiness review | [readiness-review.svg](readiness-review.svg) | canonical `delivery-r3-v1` template and Review hierarchy; no verdict/finding is fabricated |
+| Approval | [approval.svg](approval.svg) | canonical `SignoffPackage` / signed-task behavior; no package is fabricated |
+| Implementation | [implementation.svg](implementation.svg) | canonical `ExecutionTask[]`, Run and validation projection fields; no task list is fabricated |
+| Complete | [complete.svg](complete.svg) | canonical terminal-result branches; no outcome/deployment is fabricated |
+
+## Work-type progression
+
+[work-type-variants.svg](work-type-variants.svg) records the canonical information differences across:
+
+- Change;
+- Defect;
+- Investigation;
+- Audit.
+
+The visual system is shared. The work-type-specific input/Research semantics and downstream obligations are not flattened.
+
+## State and interaction reference sheets
+
+- [Current-attention precedence](current-attention-states.svg)
+- [Dialogue interaction states](dialogue-states.svg)
+- [Proposal states](proposal-states.svg)
+- [Document mutation states](document-states.svg)
+- [Implementation task states](implementation-states.svg)
+- [Queue states](queue-states.svg)
+- [Application notices/shared states](application-notices-states.svg)
+- [Installation readiness](installation-readiness.svg)
+- [Safety/confirmation surfaces](safety-confirmations.svg)
+- [Responsive composition](responsive-composition.svg)
+- [Theme parity](theme-parity.svg)
 
 ## Rejected exploratory-image elements
 
-The earlier generated concept images were useful for direction but were **not** stored as the final reference because they contained generated details that contradicted or exceeded the facts.
+The earlier image-generation concepts were useful only to establish direction. They are not the repository reference standard.
 
-The reviewed pack removes/rejects:
+The reviewed SVG pack rejects:
 
-- the generated persistent left application sidebar inside the Workbench; the canonical shell has no additional persistent outer navigation axis;
-- a Readiness-review sign-off button; sign-off belongs only to Approval;
-- Work request references to downstream Requirements/Solution design that do not yet legitimately exist;
-- generated deployment/production claims in Complete that were not established by the functional model;
-- generated owner/estimate fields in Implementation plan that are not required by Phase 2A;
-- raw paths/hashes/ids as ordinary primary information;
-- event-feed presentation as a substitute for the human/agent conversation;
-- persistent pre-signoff material/history sidebars that would change geometry with collection size.
+- a generated persistent application/sidebar axis inside the Workbench;
+- a Readiness sign-off action;
+- invented downstream Work request authority;
+- invented agent dialogue;
+- invented proposal/evidence/findings/tasks/validation;
+- invented deployment/production results;
+- generated owner/estimate fields not required by accepted behavior;
+- primary raw ids/paths/hashes;
+- an event feed as a substitute for human/agent dialogue;
+- content-count-driven pre-signoff sidebars;
+- any UI element whose field/action cannot be traced to a canonical contract, template, current renderer, or accepted Phase 2A requirement.
+
+## Completion criteria
+
+The application-wide reference baseline is complete only while all of the following remain true:
+
+| Check | Result |
+|---|---|
+| every Phase 1 `SURF-*` id maps to a reference | PASS |
+| every user-facing workflow step maps to a reference | PASS |
+| supporting Queue/Create/Settings/Context/Evidence services map to references | PASS |
+| proposal/document/dialogue/execution materially distinct state grammars are represented | PASS |
+| all confirmation/dirty/destructive overlays are represented | PASS |
+| responsive recomposition is represented | PASS |
+| light/dark semantic parity is represented | PASS |
+| references use repository-backed values or canonical field/template/state labels only | PASS |
+| no reference claims unobserved lifecycle/runtime facts | PASS |
 
 ## Solution-design handoff
 
-Phase 2B may choose the exact Astryx primitive composition and technical projection required to realize these references. It must preserve the semantics and visual hierarchy above without introducing a parallel state model, DTO/view-model family, browser workflow store, or feature-local visual system.
+Phase 2B chooses the exact Astryx primitive composition and technical projection required to realize these references.
 
-The references therefore answer **what the screen must communicate and look/feel like**; Solution design answers **how the existing canonical data, lifecycle policy, OpenCode integration and Astryx primitives realize it**.
+It must not use the SVGs to invent a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme. The SVGs constrain **presentation, hierarchy and interaction composition**; canonical P3/P4/P6 owners constrain semantics and technical ownership.
