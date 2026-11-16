@@ -991,84 +991,86 @@ The accepted requirement/design documents remain the semantic owners. This PLAN 
 
 ### 17.2 Complete observable acceptance coverage
 
-Every one of the 74 accepted observable criteria in requirements.md is mapped to an implementation owner and the test/reference family that collectively proves it. This is a completeness map, not a demand for 74 separate tests, evidence files or review records. One meaningful scenario may satisfy multiple mapped criteria when it genuinely proves them.
+Requirements `requirements.md §Acceptance criteria` remains the sole semantic owner for A1-J74. This PLAN maps each criterion id to implementation and proof ownership without copying the requirement text into a second normative source.
 
-| Criterion | Accepted observable behavior | Implementing phase | Production owner | Permanent proof |
-|---|---|---|---|---|
-| A1 | Every lifecycle step has one explicit primary task and completion outcome. | P3-P6 | step/service renderers + WorkItemWorkspace | browser.spec + certification.test |
-| A2 | Every material subtask has a trigger, goal, required information, accepted human input/decision, valid interaction, effect and post-action orientation. | P3-P6 | step/service renderers + WorkItemWorkspace | browser.spec + certification.test |
-| A3 | Every current workflow condition has one intelligible attention owner or explicit no-action processing state. | P1, P3-P5 | core current-attention derivation + WorkItemWorkspace | core.test + workbench-presentation.test + browser.spec |
-| A4 | Historical selection never changes current mutation authority. | P1, P5 | core current-owner derivation + local historical selection | workbench-presentation.test + browser.spec |
-| A5 | The operator does not need provider/session/runtime knowledge to understand ordinary workflow ownership. | P3-P6 | canonical primary/supporting/technical hierarchy + Context | browser.spec reference assertions + certification.test |
-| A6 | Technical ids/hashes/paths do not displace task meaning/current action. | P3-P6 | canonical primary/supporting/technical hierarchy + Context | browser.spec reference assertions + certification.test |
-| A7 | All material mutations expose pending, success, conflict/failure and valid recovery behavior. | P2-P6 | daemon mutation owners + Workbench feedback primitives | daemon.test + browser.spec |
-| A8 | After asynchronous transition, no new mutation is offered until the browser has observed a coherent canonical result. | P2-P3 | canonical observation/query convergence + mutation admission | daemon.test + browser.spec + certification.test |
-| B9 | Research, Requirements, Solution design and Implementation plan share one recognizable interaction grammar. | P3-P4 | shared pre-signoff Dialogue/Review/Document/Evidence composition | browser.spec + C4 reference comparison |
-| B10 | Processing shows bounded useful operational activity. | P2-P3, P5 | Run activity recorder + OpenCode mapping + Dialogue/Implementation activity | opencode.test + daemon.test + browser.spec |
-| B11 | An agent attempt that is open for continuation allows free continuation only when no higher-priority input/proposal/blocker owns attention. | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
-| B12 | Waiting for you / required-input state shows the exact question and binds the response to it. | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
-| B13 | Pending proposal removes free continuation and Cancel until explicit disposition. | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
-| B14 | Adoption in progress removes competing Reject/Cancel/edit mutation actions. | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
-| B15 | Successful adoption keeps lifecycle ownership at the same stage, updates material, invalidates affected conformance and requires fresh context before productive continuation. | P2, P4 | proposal adoption + artifact/conformance invalidation | daemon.test + browser.spec |
-| B16 | Direct human Save does not become a synthetic proposal. | P2, P4 | direct Markdown Save mutation owners | daemon.test + browser.spec |
-| B17 | Historical attempts/evidence remain inspectable without hiding current attention. | P3-P4 | material/attempt selection + current-attention composition | workbench-presentation.test + browser.spec |
-| C18 | Readiness leads with verdict/currentness, findings and defective owner before history. | P4 | Readiness Review composition | browser.spec + readiness-review.svg |
-| C19 | Readiness can temporarily surface exact required input without becoming a generic chat-first screen. | P4 | Readiness Review composition | browser.spec + readiness-review.svg |
-| C20 | Approval leads with package currentness and signed-task meaning before technical package identity. | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
-| C21 | Stale/returned Approval material remains inspectable but cannot be signed or represented as approved. | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
-| C22 | Large Approval collections remain Review-class and do not become persistent master/detail. | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
-| C23 | Sign-off is one explicit action over the exact current package. | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
-| D24 | Implementation alone uses persistent operational master/detail. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| D25 | Manual start always identifies and starts the canonical current approved task for the current WorkItem. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| D26 | Inspecting another task cannot retarget the current action. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| D27 | Active builder/reviewer/remediator work shows bounded operational activity. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| D28 | Current blocker/recovery overrides historical selection for attention. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| D29 | Validation shows current/recorded proof first and does not lead with unreached empty stages. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| D30 | Cancel/Resume behavior remains attached to the exact current execution owner. | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
-| E31 | Draft, Updated — validation required, Current, Stale, Historical and Signed & locked are distinguishable where the distinction changes what the operator can do. | P1, P4-P5 | MaterialPresentationState + document/package/task presentation | core.test/workbench-presentation.test + browser.spec |
-| E32 | Proposal pending/Applying change are interaction states, not duplicate persisted document status. | P1-P2, P4-P5 | canonical proposal/Git/sign-off facts + mutation boundaries | core.test + daemon.test + browser.spec |
-| E33 | Git save/recording does not imply conformance/currentness. | P1-P2, P4-P5 | canonical proposal/Git/sign-off facts + mutation boundaries | core.test + daemon.test + browser.spec |
-| E34 | Signed material is not directly edited in place. | P1-P2, P4-P5 | canonical proposal/Git/sign-off facts + mutation boundaries | core.test + daemon.test + browser.spec |
-| E35 | Complete presents terminal outcome/substantive result before generic history/artifacts. | P5-P6 | TerminalResult + linked-remediation Create flow | daemon.test + browser.spec + complete references |
-| E36 | Linked remediation appears only for canonically eligible completed Audit/Investigation results and creates a distinct governed WorkItem. | P5-P6 | TerminalResult + linked-remediation Create flow | daemon.test + browser.spec + complete references |
-| F37 | Wide/medium/narrow representations preserve current task, action priority and state meaning. | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
-| F38 | Focus returns to the correct originating/current control after modal/overlay/material transitions. | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
-| F39 | Material actions are keyboard reachable and have accessible names. | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
-| F40 | Workflow-semantic state is never communicated by color alone. | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
-| F41 | Actionable failures remain visible until resolved and asynchronous state is announced without duplicate competing notifications. | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
-| G42 | Every productive investigative-baseline `SURF-` family maps to one task/subtask contract in this document. | P3-P7 | all audited SURF families via reviewed reference inventory | reference-pack completion matrix + browser.spec + C7 |
-| G43 | Every material investigative-baseline `ACT-` interaction is either preserved with explicit semantics, superseded by an explicit functional requirement, or prohibited by a negative requirement. | P1-P7 | all audited ACT interactions through §17.3 closure ledger | interaction ledger + core/daemon/browser/certification proof named per row |
-| G44 | F-01 is closed functionally by the information hierarchy. | P3-P7 | task-first information hierarchy | browser.spec + C3-C7 references |
-| G45 | F-02 is closed functionally by proposal-attention/cancellation semantics. | P1-P4 | proposal/cancel closure | core.test + daemon.test + browser.spec |
-| G46 | F-03 is closed functionally by task-scoped manual execution. | P2, P5 | exact task-scoped manual execution | daemon.test + browser.spec multi-runnable fixture |
-| G47 | F-05 is closed functionally by bounded agent activity. | P2-P3, P5 | bounded agent activity | opencode.test + daemon.test + browser.spec |
-| G48 | F-07 is closed functionally by the material-maturity language. | P1, P4-P5 | derived material maturity | core/workbench-presentation tests + browser.spec |
-| G49 | F-04/F-06 and the certification gaps remain technical realization obligations for Solution design; this functional design does not weaken or reinterpret the required behavior to fit current implementation. | P1-P7 | all Phase-1 certification gaps resolved by V-01..V-11 | tests named by V-01..V-11 + §17.4/17.6 |
-| H50 | Work request presents the originating source as the primary productive document and does not imply that Research, Requirements, Solution design or Implementation plan authority already exists. | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
-| H51 | Research consumes the Work request plus applicable authority/evidence and produces factual closure without inventing Requirements, architecture or implementation. | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
-| H52 | Requirements consumes accepted Research/product intent and produces observable functional requirements plus applicable binding constraints without choosing technical architecture or lower-level contracts. | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
-| H53 | Solution design consumes accepted Requirements plus technical authority/evidence and explicitly resolves the requirement-to-solution relationship before Implementation plan begins. | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
-| H54 | Implementation plan consumes accepted Solution design/Requirements and is the sole current executable delivery authority; it does not require implementation to reconstruct design from earlier documents. | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
-| H55 | Readiness, Approval, Implementation and Complete present the accumulated package according to their own task purpose rather than rendering every lifecycle document with equal default prominence. | P4-P5 | stage-specific accumulated-package hierarchy | browser.spec + C4/C5 references |
-| H56 | Unreached downstream lifecycle documents are not represented as current productive authority merely to fill the workspace. | P1, P4 | reached-history/draft derivation + material resolver | core.test + workbench-presentation.test + browser.spec |
-| H57 | Every later stage can trace its owned output to the minimum sufficient upstream authority without copying that authority into a second normative source. | P4-P5 | supporting-authority/context projection | browser.spec + certification.test |
-| H58 | Change, Defect, Investigation and Audit each open with their governed kind-specific Work request structure rather than a generic intake document. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H59 | Research presents and produces the kind-specific factual result required by the selected work type. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H60 | Investigation and Audit can terminate successfully after Research without empty Requirements, Solution design or Implementation plan artifacts. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H61 | Confirmed Change and Defect work continue into shared delivery steps while preserving their distinct upstream semantics. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H62 | Defect Requirements explicitly preserve expected corrected behavior and unchanged-behavior/regression obligations derived from Work request and Research. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H63 | Defect Solution design and Implementation plan remain traceable to the proven root cause and original reproduction rather than degrading into generic change work. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H64 | Change Requirements, Solution design and Implementation plan remain traceable to the requested outcome and proven current-state/absence. | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
-| H65 | Operator-facing workflow documentation and UI use user-facing workflow names; internal lifecycle codes appear only in technical traceability contexts. | P3-P6 | user-facing workflow presentation labels | workbench-presentation.test + browser.spec |
-| H66 | The task area for every workflow step shows the current step-owned output plus the kind-specific upstream information needed to perform that task without mental reconstruction from unrelated documents. | P4-P6 | current task output + minimum supporting upstream context | browser.spec + C4-C6 references |
-| I67 | While an agent attempt is active, Work request/title and editable lifecycle-document Save actions are unavailable; required input remains available through its owning interaction. | P2, P4 | active-agent direct-authoring exclusion | daemon.test + browser.spec |
-| I68 | When Order rejects an otherwise completed agent result because its requested workflow effects are mutually invalid, none of those effects apply, the agent attempt is Failed, the WorkItem remains at the same workflow step and governed Retry/recovery is shown. | P1-P3 | atomic rejected provider batch + governed recovery | core.test + daemon.test + browser.spec |
-| I69 | A deterministic repository lifecycle draft with no historical agent attempt remains visible as Draft without fabricating workflow-step reach, completion, conformance, readiness or approval. | P1-P2, P4 | repository draft projection without reach/conformance fabrication | core.test + daemon.test + browser.spec |
-| I70 | Canonical observation convergence suppresses mutation until one coherent current workflow observation is available. | P2-P3 | canonical observation convergence | daemon.test + browser.spec + certification.test |
-| I71 | The functional design preserves the existing single lifecycle owner, monotonic reached history, currentness/recovery ownership, exact sign-off freshness and signed-material locking rather than introducing a replacement state model. | P1-P2, P5, P7 | single lifecycle/state ownership + sign-off/currentness locking | architecture gate + certification.test + core/daemon tests |
-| J72 | Every free-form continuation surface visibly presents the preceding substantive agent message and relevant prior human/agent turns from the selected attempt. | P1, P3-P4 | Dialogue/reply context + STAGE message/question grammar | core.test + browser.spec + dialogue references |
-| J73 | Every required-input surface presents the exact agent question inline with the conversation and binds the response to that question. | P1, P3-P4 | Dialogue/reply context + STAGE message/question grammar | core.test + browser.spec + dialogue references |
-| J74 | Operational activity, workflow events, proposals, evidence and technical diagnostics remain distinguishable from the human/agent conversation and cannot substitute for the transcript when a reply is available. | P1, P3-P4 | Dialogue/reply context + STAGE message/question grammar | core.test + browser.spec + dialogue references |
+This is a completeness map, not a demand for 74 separate tests, evidence files or review records. One meaningful scenario may satisfy multiple mapped criteria when it genuinely proves them.
+
+| Criterion | Implementing phase | Production owner | Permanent proof |
+|---|---|---|---|
+| A1 | P3-P6 | step/service renderers + WorkItemWorkspace | browser.spec + certification.test |
+| A2 | P3-P6 | step/service renderers + WorkItemWorkspace | browser.spec + certification.test |
+| A3 | P1, P3-P5 | core current-attention derivation + WorkItemWorkspace | core.test + workbench-presentation.test + browser.spec |
+| A4 | P1, P5 | core current-owner derivation + local historical selection | workbench-presentation.test + browser.spec |
+| A5 | P3-P6 | canonical primary/supporting/technical hierarchy + Context | browser.spec reference assertions + certification.test |
+| A6 | P3-P6 | canonical primary/supporting/technical hierarchy + Context | browser.spec reference assertions + certification.test |
+| A7 | P2-P6 | daemon mutation owners + Workbench feedback primitives | daemon.test + browser.spec |
+| A8 | P2-P3 | canonical observation/query convergence + mutation admission | daemon.test + browser.spec + certification.test |
+| B9 | P3-P4 | shared pre-signoff Dialogue/Review/Document/Evidence composition | browser.spec + C4 reference comparison |
+| B10 | P2-P3, P5 | Run activity recorder + OpenCode mapping + Dialogue/Implementation activity | opencode.test + daemon.test + browser.spec |
+| B11 | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
+| B12 | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
+| B13 | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
+| B14 | P1-P3 | stage interaction/proposal algebra + daemon admission + Dialogue | core.test + daemon.test + browser.spec |
+| B15 | P2, P4 | proposal adoption + artifact/conformance invalidation | daemon.test + browser.spec |
+| B16 | P2, P4 | direct Markdown Save mutation owners | daemon.test + browser.spec |
+| B17 | P3-P4 | material/attempt selection + current-attention composition | workbench-presentation.test + browser.spec |
+| C18 | P4 | Readiness Review composition | browser.spec + readiness-review.svg |
+| C19 | P4 | Readiness Review composition | browser.spec + readiness-review.svg |
+| C20 | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
+| C21 | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
+| C22 | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
+| C23 | P5 | Approval Review + exact sign-off composition | daemon.test + browser.spec + approval references |
+| D24 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| D25 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| D26 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| D27 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| D28 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| D29 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| D30 | P5 | ExecutionWorkspace + exact execution-owner/command mechanics | core.test + daemon.test + browser.spec + implementation references |
+| E31 | P1, P4-P5 | MaterialPresentationState + document/package/task presentation | core.test/workbench-presentation.test + browser.spec |
+| E32 | P1-P2, P4-P5 | canonical proposal/Git/sign-off facts + mutation boundaries | core.test + daemon.test + browser.spec |
+| E33 | P1-P2, P4-P5 | canonical proposal/Git/sign-off facts + mutation boundaries | core.test + daemon.test + browser.spec |
+| E34 | P1-P2, P4-P5 | canonical proposal/Git/sign-off facts + mutation boundaries | core.test + daemon.test + browser.spec |
+| E35 | P5-P6 | TerminalResult + linked-remediation Create flow | daemon.test + browser.spec + complete references |
+| E36 | P5-P6 | TerminalResult + linked-remediation Create flow | daemon.test + browser.spec + complete references |
+| F37 | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
+| F38 | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
+| F39 | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
+| F40 | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
+| F41 | P3-P7 | responsive/focus/accessibility/feedback primitive system | browser.spec + Workbench §14.5 certification + C3-C7 visual evidence |
+| G42 | P3-P7 | all audited SURF families via reviewed reference inventory | reference-pack completion matrix + browser.spec + C7 |
+| G43 | P1-P7 | all audited ACT interactions through §17.3 closure ledger | interaction ledger + core/daemon/browser/certification proof named per row |
+| G44 | P3-P7 | task-first information hierarchy | browser.spec + C3-C7 references |
+| G45 | P1-P4 | proposal/cancel closure | core.test + daemon.test + browser.spec |
+| G46 | P2, P5 | exact task-scoped manual execution | daemon.test + browser.spec multi-runnable fixture |
+| G47 | P2-P3, P5 | bounded agent activity | opencode.test + daemon.test + browser.spec |
+| G48 | P1, P4-P5 | derived material maturity | core/workbench-presentation tests + browser.spec |
+| G49 | P1-P7 | all Phase-1 certification gaps resolved by V-01..V-11 | tests named by V-01..V-11 + §17.4/17.6 |
+| H50 | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
+| H51 | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
+| H52 | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
+| H53 | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
+| H54 | P4 | stage-owned information/output boundaries | browser.spec kind/stage fixtures + certification.test |
+| H55 | P4-P5 | stage-specific accumulated-package hierarchy | browser.spec + C4/C5 references |
+| H56 | P1, P4 | reached-history/draft derivation + material resolver | core.test + workbench-presentation.test + browser.spec |
+| H57 | P4-P5 | supporting-authority/context projection | browser.spec + certification.test |
+| H58 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H59 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H60 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H61 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H62 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H63 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H64 | P4 | work-type-aware source/Research/shared-delivery projections | browser.spec Change/Defect/Investigation/Audit fixtures + certification.test |
+| H65 | P3-P6 | user-facing workflow presentation labels | workbench-presentation.test + browser.spec |
+| H66 | P4-P6 | current task output + minimum supporting upstream context | browser.spec + C4-C6 references |
+| I67 | P2, P4 | active-agent direct-authoring exclusion | daemon.test + browser.spec |
+| I68 | P1-P3 | atomic rejected provider batch + governed recovery | core.test + daemon.test + browser.spec |
+| I69 | P1-P2, P4 | repository draft projection without reach/conformance fabrication | core.test + daemon.test + browser.spec |
+| I70 | P2-P3 | canonical observation convergence | daemon.test + browser.spec + certification.test |
+| I71 | P1-P2, P5, P7 | single lifecycle/state ownership + sign-off/currentness locking | architecture gate + certification.test + core/daemon tests |
+| J72 | P1, P3-P4 | Dialogue/reply context + STAGE message/question grammar | core.test + browser.spec + dialogue references |
+| J73 | P1, P3-P4 | Dialogue/reply context + STAGE message/question grammar | core.test + browser.spec + dialogue references |
+| J74 | P1, P3-P4 | Dialogue/reply context + STAGE message/question grammar | core.test + browser.spec + dialogue references |
 
 ### 17.3 Phase-1 interaction closure — default preserve, explicit exceptions
 
@@ -1135,61 +1137,19 @@ C7 produces the one complete 41-reference comparison set used by canonical V4. N
 
 ### 17.6 Permanent Workbench certification binding
 
-P7 must satisfy the complete current browser-certification matrix in GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §14.5, including:
+P7 must satisfy the complete current certification contracts owned by:
 
-- asynchronous next-stage orientation without reload;
-- final event drain;
-- required-input exactness;
-- history across R3/execution return;
-- current blocker dominance over historical selection;
-- proposal adoption remains ADOPTION_IN_PROGRESS across interruption until exact reconciliation/disposition;
-- observation coherence suppresses mutation controls while dependent canonical facts converge;
-- deterministic execution owner/validation boundary independent of historical selection;
-- one feedback owner;
-- stable workflow rail geometry and exact READY/PROCESSING/ACTION_REQUIRED/BLOCKED/STALE/COMPLETE marker projection;
-- no conditional pre-signoff rail;
-- stable Implementation master width;
-- Readiness/Approval review hierarchy without generic side-index dominance;
-- explicit open **and close** Context behavior;
-- wide identity-row three-group geometry;
-- Dialogue transcript/composer geometry remains stable across active/historical state and wide/medium/narrow recomposition; absence of an admissible composer does not create another screen topology;
-- dirty/destructive confirmation uses one accessible modal mechanic with focus return and leaves the underlying primary screen mounted;
-- every P3 primary interaction class and auxiliary class is exercised through its §8.15 canonical primitive composition;
-- Queue, Create WorkItem and Settings exercise their canonical service compositions rather than bespoke screen grammars;
-- Light/Dark/System certification follows `GW-DOC-WORKBENCH-THEME-V1` and verifies normal/current/selected/info/success/warning/danger/focus roles without state meaning changing;
-- form labels/help/errors, status/notices, operational tables, timeline rows, disclosure and task-panel/confirmation interaction are visually and keyboard consistent across representative services;
-- Astryx-backed primitives preserve the pinned foundation behavior: one primary action, focus-retaining loading/disabled actions, correct field ownership, visible Drawer close/focus return, Dialog form-dismissal safety, AlertDialog pending-action behavior, sparse Badge use and non-duplicated Banner announcements;
-- lifecycle rail certification proves it is neither SegmentedControl nor Stepper and still exposes all nine canonical stages accessibly;
-- typography/readable measures, compact control/row density and focus indicators remain within `GW-DOC-WORKBENCH-THEME-V1` token roles at wide/medium/narrow widths;
-- responsive continuity with no page-level horizontal overflow for current action/identity.
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §14.5` — browser certification;
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §14.6` — architecture fitness.
 
-P7/V5 must also satisfy the complete architecture-fitness matrix in §14.6. tests/architecture.test.ts remains immutable verification material; new Workbench-specific sensors belong in tests/certification.test.ts. Permanent sensors include:
+Those sections remain the sole normative owners; this PLAN does not duplicate their checklists.
 
-- no new DTO/view-model/domain-copy family;
-- no browser workflow store;
-- UI workflow policy imports only the authorized browser-safe core lifecycle owner;
-- daemon/UI modules do not implement a second stage-order/transition table or workflow-state/recovery/attention/rail classifier;
-- no persisted/transport/browser-store `WorkflowState`/rail-state/view-model family exists;
-- lifecycle-mutating daemon call sites route through the closed §4.9 transition-cause owner rather than assigning stage/status/outcome ad hoc;
-- rail reach/current-marker semantics are referenced only from the authorized `deriveWorkflowRail` projection; UI adapters do not recalculate them;
-- GET handlers cannot call known reconcile/materialization mutation functions;
-- ordinal reached-history comparison is absent from production Workbench code;
-- the generic step frame has no content-count-dependent persistent side-index slot;
-- one dedicated selected WorkItem query (not the queue list) owns current WorkItem observation; shared-query secondary consumers cannot become competing workflow-policy/current-attention owners;
-- Workbench responsive structural breakpoints are singular/consistent across JS and CSS;
-- Workbench feature/service renderers do not import foundation mechanics already owned by §8.12; the owning primitive is the only reusable bridge to `AppShell/Layout/Drawer/Dialog/AlertDialog/Button/IconButton/Banner/Badge/Table/List` mechanics, while explicitly approved field/content leaves remain allowed under §8.19;
-- primitive implementations with a mapped Astryx substrate actually use that substrate/public API rather than recreating equivalent keyboard/focus/modal/field/loading/table/list behavior in raw HTML/CSS;
-- production code does not depend on Astryx private `--_` variables, generated/internal class names or undocumented component internals;
-- every required §8.12 primitive owner exists and no generic arbitrary-slot/layout mega-primitive replaces the closed vocabulary;
-- every production TSX renderer is classified by the §8.17 registry; bootstrap/non-renderers are explicitly excluded;
-- Workbench primitive modules are domain/query/policy blind and structural primitives contain no content-count topology branching;
-- only closed primitive selectors establish persistent topology, identity grid, form/control grammar, anchored dialogue composer, Settings/task-panel/Context geometry, status/notice treatment, operational-table/timeline grammar and confirmation layout;
-- §8.19 foundation leaves appear only inside their authorized primitive/specialist boundary;
-- `GW-DOC-WORKBENCH-THEME-V1` fitness proves raw-value containment, complete token definitions, one foundation bridge, component parity and stylesheet ownership;
-- specialist CodeMirror/Markdown/evidence renderers consume the canonical theme roles rather than an independent palette;
-- obsolete competing Workbench layout/interaction/visual selectors are absent from production CSS.
+Implementation consequence:
 
-The V-01..V-11 obligations in solution-design.md are additive 0.5.0 closure obligations over these existing certification matrices; they do not replace them.
+- existing `tests/architecture.test.ts` remains immutable verification material;
+- new Workbench-specific permanent sensors required by §14.6 belong in `tests/certification.test.ts`;
+- browser scenarios required by §14.5 belong in the existing browser/e2e verification owners;
+- V-01..V-11 in `solution-design.md` are additive 0.5.0 closure obligations and do not replace the canonical matrices.
 
 ## 18. Failure classification, feedback and return rules
 
