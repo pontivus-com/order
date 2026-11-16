@@ -124,6 +124,13 @@ jobs:
             await page.getByRole("option", { name: label, exact: true }).click();
             await expect(page.getByTestId("lifecycle-document-material")).toBeVisible({ timeout: 30000 });
           };
+          const selectReadinessReview = async (page: Page) => {
+            const selector = page.getByRole("combobox", { name: "Readiness material" });
+            await expect(selector).toBeVisible({ timeout: 30000 });
+            await selector.click();
+            await page.getByRole("option", { name: "Readiness review", exact: true }).click();
+            await expect(page.getByText("Readiness verdict", { exact: true })).toBeVisible({ timeout: 30000 });
+          };
           const edit = async (page: Page, editorName: string) => {
             const action = page.getByRole("button", { name: "Edit", exact: true });
             await expect(action).toBeVisible({ timeout: 30000 });
@@ -148,7 +155,7 @@ jobs:
             await shot(page, "theme-parity.svg", "dark");
             await page.getByRole("radio", { name: "Light" }).click();
 
-            await open(page, "Implementation plan ready after Design");
+            await open(page, "Implementation plan document visual");
             await selectCurrentDocument(page, "Implementation plan document");
             await page.setViewportSize({ width: 1600, height: 900 });
             await shot(page, "responsive-composition.svg", "wide");
@@ -190,11 +197,13 @@ jobs:
             await expect(page.getByRole("button", { name: "Retry Implementation plan", exact: true })).toBeVisible();
             await shot(page, "current-attention-states.svg", "07-retry-recovery");
 
-            await open(page, "Research processing visual");
+            const processingItem = await itemFor(page, "Research processing attention visual");
+            await fixture(page.context().request, "/start-stage", { workItemId: processingItem.id });
+            await open(page, "Research processing attention visual");
             await expect(page.getByTestId("selected-run-header")).toContainText("Running");
             await shot(page, "current-attention-states.svg", "08-processing");
 
-            await open(page, "Requirements ready after Research");
+            await open(page, "Requirements document visual");
             await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toBeVisible();
             await shot(page, "current-attention-states.svg", "09-actionable");
 
@@ -207,8 +216,8 @@ jobs:
             await expect(page.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
             await shot(page, "current-attention-states.svg", "11-historical-inspection");
 
-            await open(page, "Requirements ready after Research");
-            const item = await itemFor(page, "Requirements ready after Research");
+            await open(page, "Requirements document visual");
+            const item = await itemFor(page, "Requirements document visual");
             const selectedPath = "**/api/work-items/" + encodeURIComponent(item.id);
             const startPath = selectedPath + "/runs";
             await page.route(selectedPath, async (route) => {
@@ -239,7 +248,9 @@ jobs:
             await page.setViewportSize({ width: 1600, height: 900 });
             await auth(page, request);
 
-            await open(page, "Research processing visual");
+            const processingItem = await itemFor(page, "Research processing dialogue visual");
+            await fixture(page.context().request, "/start-stage", { workItemId: processingItem.id });
+            await open(page, "Research processing dialogue visual");
             await expect(page.getByTestId("selected-run-header")).toContainText("Running");
             await expect(page.getByTestId("activity-composer")).toHaveCount(0);
             await shot(page, "dialogue-states.svg", "processing");
@@ -254,7 +265,7 @@ jobs:
             await expect(page.getByPlaceholder("Answer and continue")).toBeVisible();
             await shot(page, "dialogue-states.svg", "waiting-for-you");
 
-            await open(page, "Requirements ready after Research");
+            await open(page, "Requirements document visual");
             await step(page, "Research");
             await disclosure(page, "Supporting material and history", "Open attempt 1");
             await expect(page.getByText("Completed", { exact: true }).first()).toBeVisible();
@@ -293,7 +304,7 @@ jobs:
             await page.setViewportSize({ width: 1600, height: 900 });
             await auth(page, request);
 
-            await open(page, "Implementation plan ready after Design");
+            await open(page, "Implementation plan document visual");
             await selectCurrentDocument(page, "Implementation plan document");
             await expect(page.getByTestId("markdown-document-view")).toBeVisible({ timeout: 30000 });
             await shot(page, "implementation-plan.svg", "current-document");
@@ -307,7 +318,7 @@ jobs:
             await shot(page, "document-states.svg", "dirty");
             await page.getByRole("button", { name: "Cancel", exact: true }).click();
 
-            const activeItem = await itemFor(page, "Implementation plan ready after Design");
+            const activeItem = await itemFor(page, "Implementation plan document visual");
             await fixture(page.context().request, "/start-stage", { workItemId: activeItem.id });
             await page.reload();
             await expect(page.getByTestId("selected-run-header")).toContainText("Running");
@@ -365,15 +376,15 @@ jobs:
             await expect(page.getByTestId("source-document-material")).toContainText("Requested evidence/verdict");
             await shot(page, "work-type-variants.svg", "audit");
 
-            await open(page, "Requirements ready after Research");
+            await open(page, "Requirements document visual");
             await selectCurrentDocument(page, "Requirements document");
             await shot(page, "requirements.svg", "current");
 
-            await open(page, "Solution design ready after Requirements");
+            await open(page, "Solution design document visual");
             await selectCurrentDocument(page, "Solution design document");
             await shot(page, "solution-design.svg", "current");
 
-            await open(page, "Implementation plan ready after Design");
+            await open(page, "Implementation plan document visual");
             await selectCurrentDocument(page, "Implementation plan document");
             await shot(page, "implementation-plan.svg", "wide");
             await page.setViewportSize({ width: 1000, height: 800 });
@@ -382,8 +393,8 @@ jobs:
             await shot(page, "implementation-plan.svg", "narrow");
 
             await page.setViewportSize({ width: 1600, height: 900 });
-            await open(page, "Readiness ready after Plan");
-            await expect(page.getByText("Readiness verdict", { exact: true })).toBeVisible();
+            await open(page, "Readiness review document visual");
+            await selectReadinessReview(page);
             await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
             await shot(page, "readiness-review.svg", "verdict-first");
 
