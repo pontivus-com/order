@@ -205,6 +205,9 @@
   min-height: 0;
   overflow: auto;
 }
+.order-workbench-surface-material:nth-child(2) {
+  grid-row: 2 / -1;
+}
 
 .order-workbench-attention {
   min-height: 5rem;
