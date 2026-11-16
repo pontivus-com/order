@@ -2,7 +2,7 @@
 
 # 0.5.0 integrated workflow task experience — solution design
 
-**Status:** Solution design complete draft — canonical P4/P6 amendments pending verification  
+**Status:** Solution design reviewed — ready for Implementation plan  
 **WorkItem:** `work_2778105b-d919-4fcd-91e7-dd9b23812aac`  
 **Derived factual authority:** parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Accepted functional authority:** this WorkItem's reviewed `requirements.md`  
@@ -682,7 +682,7 @@ Integrated core/daemon/browser proof preserves the existing direct-authoring con
 | WF-FR-034 REPOSITORY-DRAFT-VISIBILITY | D-06; run-independent current lifecycle-artifact projection, ArtifactRef removed from reach proof | V-05 |
 | WF-FR-035 DIALOGUE-REPLY-CONTEXT | D-05 + STAGE open-turn agent-message invariant + pinned Astryx Chat leaves | V-01, V-02 |
 
-## Canonical amendments required by this design
+## Canonical amendments materialized by this design
 
 The Phase 2B package amends these canonical owners:
 
@@ -694,3 +694,22 @@ The Phase 2B package amends these canonical owners:
 - `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` — exact pinned Astryx v0.7.13 Chat leaf exports relied upon by the Workbench composition.
 
 No theme-owner amendment or new dependency is required. If implementation proves an existing declared module boundary cannot realize this design, that is an upstream Solution-design issue and must return here rather than being solved by implementation discretion.
+
+
+## Phase 2B closure
+
+**Closure gate:** PASS.
+
+The repository documentation package now records:
+
+- complete technical closure for TD-01 through TD-08;
+- one-to-one technical traceability for all 35 accepted `WF-FR-001` through `WF-FR-035` requirements;
+- permanent verification obligations V-01 through V-11;
+- aligned P4 execution, Workbench and OpenCode ownership;
+- aligned P6 RunEvent, STAGE-batch, manual-task-start, repository-draft and diagnostic contracts;
+- exact pinned Astryx Chat-leaf capability evidence;
+- the application-wide source-grounded visual reference pack.
+
+No material technical choice identified by Phase 1 or required by the accepted Phase 2A behavior is delegated to Implementation plan or implementation.
+
+The next document-level activity is **Implementation plan**: define the exact minimum repository transition, dependency order, change surface and verification sequence from this accepted design. This closure statement records documentation/design readiness only; it does not assert or fabricate runtime lifecycle promotion, conformance, sign-off or execution state.
