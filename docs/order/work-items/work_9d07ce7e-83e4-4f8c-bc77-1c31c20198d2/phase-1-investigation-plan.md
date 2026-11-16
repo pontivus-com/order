@@ -198,313 +198,491 @@ To keep the artifacts traceable without semantic duplication, Phase 1 uses local
 
 Derived documents reference `SURF/INFO/ACT/FLOW` identifiers rather than recreating their current-state UI definitions.
 
-## 6. Investigation sequence
+## 6. Executable Phase 1 task set
 
-### Step 1 — authority and production-boundary census
+The Phase 1 work is executed through the following tasks. A task is complete only when its declared output exists in the owning artifact and satisfies the stated completion criteria. Later tasks may consume only completed upstream outputs or explicitly marked `UNPROVEN` facts; they may not silently fill missing evidence.
 
-**Question:** What sources are allowed to tell Phase 1 what the product currently is and what it is supposed to mean?
+### P1-T01 — establish authority, code and evidence baseline
 
-**Work:**
+**Depends on:** none.
 
-- resolve the current canonical authority graph relevant to UI, lifecycle, WorkItem documents, OpenCode, contracts, validation and technical architecture;
-- enumerate the productive UI render graph;
-- enumerate the browser HTTP calls and daemon/core/shell owners reachable from those surfaces;
-- enumerate permanent tests that claim to certify those paths;
-- identify runtime evidence needed where source inspection is insufficient.
+**Inputs:**
 
-**Recorded in:**
-
-- evidence/source section of `application-interaction-map.md`;
-- test/evidence source registry in `certification-evidence-map.md`.
-
-**Why:** all later rows need a fixed evidence basis. Without this step, current implementation behavior, intended behavior and provider capability can be accidentally conflated.
-
-**Exit condition:** every productive UI root and every governing concern relevant to the audit has an identified source.
-
-### Step 2 — complete application surface census
-
-**Question:** What can the operator actually reach or see?
+- this WorkItem and Phase 1 plan;
+- current `version/0.5.0` repository tree;
+- canonical authority resolved through `pontivus-order.toml [refs]`;
+- current permanent tests and browser/e2e harness;
+- current pinned OpenCode integration facts.
 
 **Work:**
 
-Enumerate every:
+1. resolve the authority graph relevant to Workbench UX, lifecycle, WorkItem documents, contracts, OpenCode, validation and architecture;
+2. enumerate the productive UI root/render graph;
+3. enumerate browser API/query dependencies reachable from those roots;
+4. enumerate daemon/core/shell/provider owners behind those APIs;
+5. enumerate current permanent test owners;
+6. identify which facts require rendered/runtime evidence rather than source inspection alone;
+7. create the evidence-source registry used by all later tasks.
 
-- route and top-level service;
-- workflow-step workspace;
-- nested task/work area;
-- toolbar/action area;
-- context inspector/drawer;
-- editor;
-- conversation/timeline;
-- proposal/review view;
-- evidence/code view;
-- dialog/confirmation/task panel;
-- empty/loading/processing/waiting/blocked/failed/stale/historical/terminal variant;
-- responsive representation that materially changes interaction.
+**Produces:**
 
-Each surface receives a `SURF-` id and records:
+- `application-interaction-map.md` skeleton containing the evidence/source registry and application root topology;
+- `certification-evidence-map.md` skeleton containing the permanent-test/evidence registry.
 
-- parent/child composition;
-- route/selection condition;
-- workflow/application condition;
-- source renderer(s);
-- exact typed input models/schemas/contracts consumed by the surface;
-- exact query/API/projection sources supplying those inputs;
-- canonical facts needed to render it;
-- all conditional predicates that materially alter its composition;
-- current operator purpose if supported by authority;
-- surfaces it can enter/return to;
-- every modal, drawer, popover, confirmation, task panel, inspector or other overlapping UI the surface can open;
-- the trigger and close/return path for each overlapping UI.
+**Done means:**
 
-An overlapping UI is part of the originating screen's interaction model **and** receives its own `SURF-` identity when it presents materially distinct information or interactions. The map must therefore preserve both relationships: `originating surface -> trigger -> overlay surface -> result/return`.
+- every productive UI root has a source owner;
+- every governing concern used later has a resolved authority owner;
+- every browser→backend boundary has an identified entry point;
+- every permanent test family relevant to the audit is registered;
+- no later task needs to rediscover where its evidence should come from.
 
-**Rendered-state evidence:** every primary surface and every materially distinct overlay/conditional composition must have rendered evidence tied to its `SURF-` id. Source inspection may prove existence and conditions, but it does not substitute for evidence of actual hierarchy, density, geometry, clipping, responsive behavior or visual dominance.
+---
 
-**Artifact:** `application-interaction-map.md`.
+### P1-T02 — build the complete surface and state-scenario census
 
-**Why:** Phase 2 cannot design the complete product if Phase 1 has not first proven what the complete product surface currently contains.
+**Depends on:** P1-T01.
 
-**Exit condition:** the production render graph has no unclassified productive surface.
+**Inputs:**
 
-### Step 3 — information and presentation inventory
-
-**Question:** What information is presented, what kind of information is it, and why is it there?
+- productive render graph from P1-T01;
+- canonical workflow stages and Workbench interaction classes;
+- current renderer composition and conditional branches.
 
 **Work:**
 
-For every `SURF-`, enumerate every materially distinct visible information item as `INFO-` and record:
+1. enumerate every top-level and nested productive surface;
+2. assign stable `SURF-` identifiers;
+3. record parent/child composition and route/selection conditions;
+4. enumerate every modal, drawer, popover, confirmation, task panel, inspector and materially distinct overlapping surface reachable from each screen;
+5. record trigger, close/return and resulting navigation/focus relationships;
+6. define the minimal state-scenario coverage needed for each surface, including materially distinct combinations of lifecycle state, Run state, proposal state, material currentness, blocker/failure/recovery, attempt/history selection, loading/error/empty state and responsive class;
+7. explicitly mark impossible/equivalent scenario combinations so coverage does not become an uncontrolled Cartesian product.
 
-- exact content/label/value class;
-- semantic category;
-- exact TypeScript/domain model type and schema/contract field(s) supplying it;
-- exact query/API/selector/projection path supplying the value;
-- canonical producer/owner;
-- raw vs derived presentation, including the derivation function/owner where applicable;
-- current vs historical vs diagnostic authority;
-- current placement and hierarchy;
-- exact render/show predicate;
-- the state/data values that make it absent;
-- duplication elsewhere;
-- the operator question/decision the information currently supports, if any;
-- the `ACT-`/`FLOW-` interactions that consume or depend on the information;
-- whether current authority explains why it belongs there;
-- source evidence reference(s);
-- rendered evidence reference(s);
-- current-state verdict: correct, misplaced, duplicated, noisy, ambiguous, missing, technical leak, debug leak or ungoverned.
+**Produces:**
 
-The inventory must trace **data actually presented**, not merely component props. If a component receives a compound model but renders only six properties, the six presented properties are individually mapped. If a derived label combines multiple canonical facts, all contributing fields and the derivation owner are recorded.
+- `application-interaction-map.md` surface registry;
+- originating-surface→overlay graph;
+- per-surface conditional-render/state-scenario matrix;
+- preliminary cross-artifact closure ledger with one row per `SURF-`.
 
-Information categories include at minimum:
+**Done means:**
 
-- identity/navigation;
-- primary work;
-- current attention/action;
-- workflow progress/state;
-- document/material maturity/currentness;
-- conversation;
-- operational agent activity;
-- proposal/review;
-- evidence;
-- supporting domain/context;
-- history;
-- configuration/readiness;
-- technical detail;
-- developer/debug diagnostic.
+- no production renderer branch can create a user-visible productive surface without a `SURF-` row;
+- every materially distinct overlay is represented;
+- every surface has a defined scenario coverage set;
+- omitted scenario combinations are justified as impossible or semantically equivalent.
 
-**Artifact:** `application-interaction-map.md`.
+---
 
-**Why:** this is the factual input Phase 2A needs to decide the future information architecture instead of merely rearranging current components.
+### P1-T03 — capture rendered/runtime evidence for the surface census
 
-**Exit condition:** no persistent visible datum on a productive surface is unclassified.
+**Depends on:** P1-T02.
 
-### Step 4 — interaction, business-rule and destination inventory
+**Inputs:**
 
-**Question:** What can the operator do, when can they do it, what rule allows it, and where does it lead?
+- `SURF-` registry and state-scenario matrix;
+- existing e2e/browser harness and fixtures;
+- repository temporary GitHub Actions rules.
 
 **Work:**
 
-Assign every operator action an `ACT-` id and record:
+1. determine which scenarios already have reproducible runtime fixture support;
+2. create temporary GitHub Actions scaffolding when the required browser execution cannot be produced through available local/runtime connectors;
+3. run the exact `version/0.5.0` commit under audit;
+4. capture rendered evidence for every primary surface and every materially distinct conditional/overlay state;
+5. capture wide/medium/narrow variants when layout class changes composition;
+6. capture light/dark/system-theme evidence where theme materially affects readability, hierarchy or state meaning;
+7. include representative and stress data where density affects usability: long titles, long Markdown, multiple attempts, multiple tasks, evidence/history volume, provider messages and diagnostic/error conditions;
+8. record the exact commit, workflow run, fixture condition, viewport, theme, `SURF-` id and evidence filename;
+9. remove all temporary workflow YAML immediately after evidence collection and prove the branch tree is clean of scaffolding.
 
-- originating `SURF-`;
-- visible-when condition;
-- enabled-when condition;
-- exact typed fields/derived facts used by those predicates;
-- disabled explanation if any;
-- interaction class;
-- source facts;
-- governing business/lifecycle/configuration rule;
-- information prerequisites: the `INFO-` items the operator needs to understand the action/decision;
-- current UI handler;
-- HTTP/daemon/core/provider path;
-- commit-time recheck;
-- canonical mutation or non-mutating effect;
-- resulting lifecycle/Run/proposal/material/configuration effect;
-- destination `SURF-`, selected material and focus result;
-- overlay behavior where the action opens a dialog/drawer/popover/confirmation/task panel;
-- pending state;
-- success orientation;
-- error presentation and recovery;
-- stale/conflict behavior;
-- source evidence reference(s);
-- rendered evidence reference(s).
+**Produces:**
 
-Then construct `FLOW-` traces for ordinary and exceptional journeys, including forward workflow progression, backward returns, chat continuation, required input, proposal review/adoption/rejection, document save/currentness changes, reconciliation, Approval, Implementation, provider failure, retry/resume and Settings/readiness changes.
+- rendered evidence files/artifacts for the audited commit;
+- rendered-evidence manifest in `application-interaction-map.md`;
+- runtime-evidence entries in `certification-evidence-map.md`.
 
-**Artifact:** `application-interaction-map.md`.
+**Done means:**
 
-**Why:** this is the bridge between UX and business rules. It exposes interactions whose current availability cannot be justified by canonical state and state transitions that have no usable operator path.
+- every required `SURF-` scenario has rendered evidence or is explicitly `UNPROVEN` with a blocking reason;
+- screenshots are correlated to exact source commit and fixture state;
+- temporary GitHub Actions scaffolding does not remain in the branch tree.
 
-**Exit condition:** every interactive control and every material workflow path has a traced rule and destination.
+---
 
-### Step 5 — workflow/state derivation
+### P1-T04 — map every presented datum to its typed source and presentation rule
 
-**Question:** Can the current canonical state model explain every mapped condition and interaction without contradiction or duplicate ownership?
+**Depends on:** P1-T02 and P1-T03.
+
+**Inputs:**
+
+- surface registry;
+- rendered evidence;
+- UI source and typed contracts;
+- browser queries/API contracts and presentation derivations.
 
 **Work:**
 
-Starting from `SURF/INFO/ACT/FLOW` rows, derive:
+For every `SURF-`:
 
-- required WorkItem lifecycle predicates;
-- Run interaction conditions;
-- proposal conditions;
-- current-attention ownership;
-- material currentness;
-- recovery ownership;
-- execution ownership/validation boundaries;
-- state transitions and negative/impossible combinations;
-- stale/current/reconciliation behavior;
-- UI-visible states with no canonical explanation;
-- canonical states with no coherent presentation;
-- business rules duplicated in browser/daemon/core;
-- the known proposal/control-event producer/consumer mismatch and any same-class failures.
+1. enumerate every materially distinct visible datum/region as `INFO-`;
+2. identify the exact TypeScript/domain model type and field(s) supplying it;
+3. trace the query/API/selector/projection path that supplies the value;
+4. identify the canonical producer/owner;
+5. identify any pure derivation/presentation function;
+6. record the exact show/render predicate and the values that suppress the information;
+7. classify authority/currentness and information category;
+8. record placement, hierarchy and duplication;
+9. record the operator question/decision the information supports, if any;
+10. link the `ACT-`/`FLOW-` interactions that consume that information;
+11. compare actual rendered placement against current governing Workbench authority;
+12. record source and rendered evidence references.
 
-Each proposition receives a `STATE-` id and cites the interaction-map ids that require it.
+**Produces:**
 
-**Artifact:** `workflow-state-audit.md`.
+- complete per-surface typed data/model/schema input map in `application-interaction-map.md`;
+- complete `INFO-` inventory;
+- actual-rendering versus current-authority comparison for information hierarchy;
+- duplication/technical-leak/debug-leak inventory.
 
-**Why:** Phase 2 must know whether it is designing on a valid underlying state model or whether P3/P4/P6 state semantics themselves require correction.
+**Done means:**
 
-**Exit condition:** every mapped material interaction condition is either explained by one canonical state predicate/transition or recorded as a finding.
+- every persistent visible datum is accounted for;
+- every presented value has a typed source lineage;
+- every conditional absence has an exact predicate;
+- every item has a semantic class and authority/currentness classification;
+- nothing is justified merely because the runtime happened to have the data.
 
-### Step 6 — OpenCode integration, interaction and transparency derivation
+---
 
-**Question:** What does Order currently know about agent work, what can the pinned OpenCode integration expose reliably, and which facts are relevant to mapped operator decisions?
+### P1-T05 — map every interaction, business rule, overlay and destination
 
-**Work:**
+**Depends on:** P1-T04.
 
-Trace the productive OpenCode path for STAGE, BUILDER, REVIEWER and REMEDIATOR:
+**Inputs:**
 
-- context/workspace construction;
-- authority/instruction projection;
-- account/model/session creation and continuation;
-- prompt and output contract;
-- tools/permissions/trusted integrations;
-- provider turn;
-- response extraction/repair/admission;
-- batch validation/persistence/reaction;
-- diagnostics and failure classification;
-- restart/session-loss behavior.
-
-For every potentially observable agent/provider fact, create an `OC-` proposition recording:
-
-- exact source;
-- reliability under the pinned integration;
-- transient/persisted status;
-- safety/sensitivity;
-- current UI exposure;
-- interaction-map decisions that need it;
-- whether current evidence supports classifying it as product-relevant, secondary technical, or closed/internal;
-- gaps where Phase 2 must decide the final transparency treatment.
-
-Do not request or expose hidden model reasoning.
-
-**Artifact:** `opencode-interaction-audit.md`.
-
-**Why:** Phase 2 needs facts about actual provider capability and current interaction needs before it can decide what "agent transparency" should mean in the product.
-
-**Exit condition:** every OpenCode fact required by a mapped interaction is proven available/unavailable/unreliable, and every current provider/session failure path has an evidence-backed origin classification or an explicit unresolved fact.
-
-### Step 7 — document/material maturity derivation
-
-**Question:** What facts currently determine the condition of each governed document/material independently of WorkItem lifecycle position?
+- `SURF-` and `INFO-` inventories;
+- UI handlers and browser mutation/query code;
+- daemon/core/shell/provider command paths;
+- lifecycle/configuration business rules.
 
 **Work:**
 
-For Work request, Research, Requirements, Solution design, Implementation plan, Readiness material, Approval package and signed execution material, create `MAT-` propositions covering:
+For every interactive control:
 
-- existence/source;
-- draft/editable condition;
-- proposal ownership;
-- adoption state;
-- conformance/currentness;
-- stale/historical condition;
-- direct-edit lock;
-- consuming lifecycle stage;
-- current UI representation/actions;
-- current derivation source;
-- missing/ambiguous maturity distinctions.
+1. assign an `ACT-` id;
+2. record the originating surface;
+3. record visible-when and enabled-when predicates;
+4. trace the exact typed fields/derived facts used by those predicates;
+5. identify the `INFO-` entries required for the operator to understand the decision;
+6. identify the governing business/lifecycle/configuration rule;
+7. trace handler → HTTP/query/mutation → daemon/core/shell/provider owner;
+8. record server-side/commit-time revalidation;
+9. record canonical mutation or explicit non-mutating effect;
+10. record lifecycle/Run/proposal/material/configuration consequences;
+11. record destination `SURF-`, selection, focus and overlay behavior;
+12. record pending, success, failure, stale/conflict and recovery behavior;
+13. compare actual action availability with current governing authority.
 
-The audit tests whether each condition can be derived from existing canonical facts. It does not introduce a new persisted material-state machine.
+Then create `FLOW-` traces for every normal and material exceptional journey.
 
-**Artifact:** `document-material-maturity-audit.md`.
+**Produces:**
 
-**Why:** Phase 2 must know which material conditions are real facts, which are missing distinctions, and which are merely UI labels before defining the future workflow/document experience.
+- complete `ACT-` inventory in `application-interaction-map.md`;
+- global business-rule interaction matrix;
+- normal-flow map;
+- exceptional/recovery-flow map;
+- complete overlay/modal/drawer/popover/confirmation interaction graph;
+- actual-interaction versus current-authority comparison.
 
-**Exit condition:** every governed material has a complete current-state condition matrix or an explicit factual gap.
+**Done means:**
 
-### Step 8 — certification and evidence closure
+- every operator control has an explained visibility rule, enablement rule, business owner, data predicate, downstream path and destination;
+- every material user journey is traceable end-to-end;
+- there is no interaction whose product meaning must be inferred from its component label alone.
 
-**Question:** What current tests/evidence actually prove the mapped behavior, and what remains unproven?
+---
 
-**Work:**
+### P1-T06 — derive and audit the workflow/state model from the interaction map
 
-For each material `ACT/STATE/OC/MAT` proposition, create a `CERT-` row recording:
+**Depends on:** P1-T05.
 
-- expected invariant;
-- current test/evidence owner;
-- layer tested;
-- positive path covered;
-- negative/contradictory path covered;
-- producer covered;
-- consumer covered;
-- browser-visible integrated behavior covered;
-- runtime evidence available;
-- verdict: proven, partial, absent or misleading.
+**Inputs:**
 
-**Artifact:** `certification-evidence-map.md`.
-
-**Why:** Phase 2 technical design and Phase 3 planning need to know which permanent sensors can be retained, which need expansion, and where current green tests do not establish real productive correctness.
-
-**Exit condition:** every material Phase 1 proposition has known proof status.
-
-### Step 9 — R1 synthesis and Phase 2 readiness gate
-
-**Question:** Is the fact set complete enough to make product and technical decisions without guessing?
+- closed `SURF/INFO/ACT/FLOW` map;
+- canonical lifecycle/context authority;
+- core/daemon persistence and transition implementation;
+- current tests.
 
 **Work:**
 
-Synthesize the supporting artifacts into the canonical `audit-r1-v1` structure in `research.md`:
+1. derive the exact canonical state predicate required to explain each material UI condition and action;
+2. map WorkItem lifecycle state separately from Run interaction state, proposal state, material currentness/maturity, current-attention ownership and execution/validation state;
+3. construct the full lifecycle transition matrix;
+4. construct the STAGE interaction/proposal/control matrix;
+5. enumerate impossible/negative combinations;
+6. trace browser→daemon→core ownership for each eligibility rule;
+7. identify duplicated/contradictory state ownership;
+8. identify canonical states with no coherent UI representation;
+9. identify UI conditions/actions with no valid canonical state explanation;
+10. factually close the known proposal/control-event producer→consumer mismatch and search for same-class failures.
 
-- **Target/criteria** — identify the audited 0.4.0/0.5.0-baseline product and governing criteria;
-- **Evidence by criterion** — summarize the supporting artifacts and direct evidence without duplicating their full matrices;
-- **Findings** — consolidate upstream root causes as `F-` findings, with severity, affected surfaces/flows/states/roles and authority layer implicated;
-- **Verdict** — state whether `AUDIT_COMPLETE` is justified and whether the Phase 2 prerequisite gate is satisfied.
+**Produces:**
 
-The synthesis must also include a Phase 2 input register containing:
+- complete `workflow-state-audit.md` with `STATE-` propositions and findings;
+- state/UI cross-reference back to the interaction map.
 
-- closed factual decisions Phase 2 may rely on;
-- explicit product questions Phase 2A must decide;
-- explicit technical questions Phase 2B must decide after Phase 2A;
-- any current authority that must be amended because Phase 1 proved it incomplete/contradictory;
-- recommended linked `CHANGE`/`DEFECT` WorkItem boundary for the 0.5.0 design/delivery work;
-- zero material unresolved factual questions that would force Phase 2 to guess.
+**Done means:**
 
-**Artifact:** `research.md`.
+- every material `SURF/ACT/FLOW` condition is explained by one canonical state predicate/transition or recorded as an explicit finding;
+- every negative combination relevant to productive behavior is classified;
+- no Phase 2 state decision depends on rediscovering current state ownership.
 
-**Why:** `research.md` is the lifecycle-owned boundary between evidence collection and design. Supporting artifacts make the audit complete; `research.md` makes the result governable.
+---
 
-**Exit condition:** the Phase 1 gate in §10 passes or the audit remains open.
+### P1-T07 — derive and audit OpenCode execution, interaction and transparency facts
+
+**Depends on:** P1-T05.
+
+**Inputs:**
+
+- interaction map;
+- pinned OpenCode integration authority/facts;
+- shell/daemon provider code;
+- runtime diagnostics/logs where required;
+- current OpenCode tests.
+
+**Work:**
+
+1. trace STAGE, BUILDER, REVIEWER and REMEDIATOR context/workspace construction;
+2. trace authority/instruction projection;
+3. trace account/model/session creation, continuation and loss;
+4. trace prompt/output contracts, tools/permissions and trusted integrations;
+5. trace provider response extraction/repair/admission and downstream batch validation/reaction;
+6. enumerate provider/session failure classes and current recovery behavior;
+7. enumerate every potentially operator-relevant provider/agent fact;
+8. prove whether each fact is available, unavailable or unreliable under the pinned integration;
+9. classify persistence/transience and safety/sensitivity;
+10. link each fact to the `SURF/INFO/ACT/FLOW` decisions that need it;
+11. identify what current UI exposes and what it leaves opaque;
+12. distinguish factual capability from the later Phase 2 product decision about whether the fact should be product-visible, technical/on-demand or closed.
+
+**Produces:**
+
+- complete `opencode-interaction-audit.md` with `OC-` propositions;
+- provider/session error taxonomy;
+- current observability/capability matrix;
+- exact factual inputs needed for Phase 2A transparency/conversation decisions.
+
+**Done means:**
+
+- every OpenCode fact needed by a mapped interaction is proven available/unavailable/unreliable;
+- every observed provider/session failure path has an upstream classification or is an explicit unresolved blocker;
+- Phase 2 does not need to re-investigate the pinned integration to decide product transparency.
+
+---
+
+### P1-T08 — derive and audit document/material maturity facts
+
+**Depends on:** P1-T05 and consumes relevant completed P1-T06 findings.
+
+**Inputs:**
+
+- interaction map;
+- WorkItem document system;
+- lifecycle/context authority;
+- ArtifactRef/Run/RunEvent/Approval/execution facts;
+- persistence/currentness implementation.
+
+**Work:**
+
+For Work request, Research, Requirements, Solution design, Implementation plan, Readiness material, Approval package and signed execution material:
+
+1. identify creation/existence facts;
+2. identify editability/direct-save rules;
+3. identify proposal/adoption ownership;
+4. identify conformance/currentness facts;
+5. identify stale/historical causes;
+6. identify locking/sign-off conditions;
+7. identify consuming lifecycle stages;
+8. identify UI representation/actions for every material condition;
+9. determine which conditions are derivable from existing canonical facts;
+10. identify ambiguous/missing maturity distinctions without inventing a replacement state model.
+
+**Produces:**
+
+- complete `document-material-maturity-audit.md` with `MAT-` propositions;
+- material→UI→action cross-reference;
+- factual distinction between lifecycle position and material maturity/currentness.
+
+**Done means:**
+
+- every governed material has a complete current-state fact matrix or explicit missing-semantics finding;
+- Phase 2 can decide the future maturity model without first reconstructing current document behavior.
+
+---
+
+### P1-T09 — close evidence, certification and cross-artifact coverage
+
+**Depends on:** P1-T03 through P1-T08.
+
+**Inputs:**
+
+- all `SURF/INFO/ACT/FLOW/STATE/OC/MAT` propositions;
+- permanent tests and sensors;
+- rendered/runtime evidence;
+- current runtime diagnostics.
+
+**Work:**
+
+1. assign `CERT-` rows to every material invariant/proposition;
+2. record current proof owner/layer;
+3. record positive, negative and contradictory-path coverage;
+4. record producer and consumer coverage separately;
+5. record browser-visible integrated coverage;
+6. record runtime evidence coverage;
+7. classify proof as proven, partial, absent or misleading;
+8. finish the `application-interaction-map.md` cross-artifact closure ledger;
+9. verify that every productive `SURF-` resolves to its required `INFO/ACT/FLOW/STATE/OC/MAT/CERT` coverage or a justified not-applicable entry;
+10. identify all remaining factual unknowns.
+
+**Produces:**
+
+- completed `certification-evidence-map.md`;
+- completed cross-artifact closure ledger in `application-interaction-map.md`;
+- explicit unresolved-fact list.
+
+**Done means:**
+
+- every material proposition has known proof status;
+- there are no silently uncovered productive surfaces or interactions;
+- any remaining unknown is explicit and can be judged against the Phase 1 gate.
+
+---
+
+### P1-T10 — synthesize the canonical R1 result and Phase 2 prerequisite package
+
+**Depends on:** P1-T09 and all preceding tasks.
+
+**Inputs:**
+
+- completed Phase 1 supporting artifacts;
+- Phase 1 gate criteria in §10.
+
+**Work:**
+
+1. synthesize the audit under the canonical `audit-r1-v1` headings in `research.md`;
+2. consolidate repeated symptoms into upstream/root-cause `F-` findings;
+3. classify each finding by severity, affected surfaces/flows/states/roles, authority layer and Phase 2 ownership;
+4. decide whether every Phase 1 → Phase 2 gate is satisfied;
+5. if not satisfied, return the unresolved factual gap to the exact owning Phase 1 task rather than weakening the gate;
+6. if satisfied, produce the final **Phase 2 prerequisite package** inside `research.md`.
+
+The Phase 2 prerequisite package must contain exactly these registers:
+
+**A. Current-product fact register**
+
+- complete surface/overlay topology reference;
+- complete information/data-lineage reference;
+- complete interaction/business-rule/flow reference;
+- current state-model findings;
+- current OpenCode capability/failure/transparency facts;
+- current document/material maturity facts;
+- current certification/proof status.
+
+**B. Functional-decision register for Phase 2A**
+
+For every unresolved product question, record:
+
+- decision id;
+- affected `SURF/INFO/ACT/FLOW/F-` ids;
+- closed Phase 1 facts constraining the decision;
+- governing current authority and whether it is correct/incomplete/contradictory/absent;
+- the exact functional decision Phase 2A must make;
+- acceptance questions Phase 2A must close;
+- no proposed solution.
+
+**C. Technical-decision register for Phase 2B**
+
+For every technical question that remains after the functional behavior is chosen, record:
+
+- decision id;
+- affected `STATE/OC/MAT/CERT/F-` ids;
+- current owner/path;
+- proven technical constraints;
+- authority layer requiring amendment, if any;
+- the exact technical decision Phase 2B must make after consuming the accepted Phase 2A decision;
+- no implementation task.
+
+**D. Authority-amendment register**
+
+- exact P3/P4/P5/P6 concern owner;
+- Phase 1 finding proving amendment is required;
+- whether the problem is missing, contradictory or obsolete authority;
+- which Phase 2A/2B decision must resolve it.
+
+**E. Phase 2 WorkItem boundary**
+
+- recommended linked `CHANGE`/`DEFECT` WorkItem or WorkItems;
+- exact `derivedFromWorkItemId`;
+- scope assigned to each;
+- reason the boundary preserves one coherent delivery authority;
+- explicit statement that the completed AUDIT remains immutable provenance.
+
+**F. Gate verdict**
+
+- each §10 gate marked PASS/FAIL;
+- zero material unresolved factual questions when PASS;
+- canonical R1 verdict, including whether `AUDIT_COMPLETE` is justified.
+
+**Produces:**
+
+- completed canonical `research.md`;
+- the exact Phase 2 prerequisite package that downstream R2/DESIGN work consumes.
+
+**Done means:**
+
+- Phase 2 can begin without reopening 0.4.0 implementation merely to understand current behavior;
+- every remaining question is explicitly a product decision or technical decision, not a missing fact;
+- every Phase 2 decision traces back to Phase 1 evidence and affected user interactions;
+- no functional or technical solution has been prematurely selected in Phase 1.
+
+## 6.1 Task dependency graph
+
+~~~text
+P1-T01  authority/code/evidence baseline
+   |
+   v
+P1-T02  surface + scenario census
+   |
+   v
+P1-T03  rendered/runtime evidence
+   |
+   v
+P1-T04  information + typed data lineage
+   |
+   v
+P1-T05  interactions + business rules + flows
+   |
+   +--------------------+
+   |                    |
+   v                    v
+P1-T06 state audit   P1-T07 OpenCode audit
+   |                    |
+   +---------+----------+
+             |
+             v
+P1-T08 material maturity audit
+             |
+             v
+P1-T09 certification + closure
+             |
+             v
+P1-T10 research.md + Phase 2 prerequisite package
+~~~
+
+P1-T06 and P1-T07 may execute in parallel after P1-T05. P1-T08 may begin early for obvious document facts but cannot close until the relevant state derivations from P1-T06 are available. P1-T09 is the only task allowed to declare cross-artifact evidence closure. P1-T10 is the only task allowed to declare the Phase 1 → Phase 2 gate satisfied.
 
 ## 7. Artifact content contracts
 
