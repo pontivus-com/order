@@ -6,15 +6,18 @@
 **Consumes:** `application-interaction-map.md` through P1-T05  
 **Governing authority:** `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V1`, `GW-DOC-WORKBENCH-UX-V2`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-CANONICAL-CONTRACTS-V1`
 
-## 1. Purpose and verdict
+## 1. Purpose and overall verdict
 
-This audit derives the current workflow/state model from the complete user-interaction map and tests whether every mapped UI condition/action is explainable by one canonical state predicate and one admitted transition.
+This audit derives the current workflow/state model from the user-interaction map and tests whether every mapped UI condition/action is explainable by canonical facts and one admitted transition.
 
-The current implementation already has the correct **orthogonal-state architecture**. It does not reduce the product to one overloaded `WorkItem.stage` value. The browser-safe pure owner in `src/core/lifecycle.ts` separately derives:
+**Overall verdict: INCOMPLETE end-to-end, but the orthogonal state architecture is fundamentally correct.**
 
-- lifecycle position and reached history;
+The implementation does **not** need another persisted workflow-state aggregate. It already separates:
+
+- WorkItem lifecycle position;
+- reached history;
 - STAGE Run interaction;
-- lifecycle proposal decision state;
+- lifecycle proposal decision;
 - material currentness;
 - execution owner;
 - validation boundary;
@@ -23,239 +26,168 @@ The current implementation already has the correct **orthogonal-state architectu
 - current attention;
 - workflow-rail summary.
 
-That decomposition is consistent with FCIS, SoC, semantic DRY and the no-duplicate-state requirement.
+That shape is consistent with FCIS, SoC, semantic DRY and canonical ownership.
 
-However, the state/control system is **not closed end-to-end**. P1-T06 confirms three material defects:
+P1-T06 confirms six material closure findings:
 
-1. **STATE-F01 — unresolved proposal can be terminalized by Cancel, producing a dead proposal state.**
-2. **STATE-F02 — task-local Implementation action invokes an unscoped global coordinator tick, so UI current ownership is not the command scope.**
-3. **STATE-F03 — STAGE provider producer contract does not state the closed batch grammar enforced by the consumer, allowing individually valid provider payloads to fail the productive turn after provider completion.**
+1. **STATE-F01 — unresolved proposal + Cancel can produce a CLOSED Run with an unresolved proposal.**
+2. **STATE-F02 — the task-local Implementation command invokes an unscoped global coordinator tick.**
+3. **STATE-F03 — the STAGE provider producer contract omits the closed batch grammar enforced by the consumer.**
+4. **STATE-F04 — the browser convergence barrier is not closed over independently refetched WorkItem/Run observations.**
+5. **STATE-F05 — browser document/source mutation availability does not enforce the canonical active-Run exclusion.**
+6. **STATE-F06 — P3 wording is ambiguous about whether a contradictory provider batch may terminalize the Run as provider failure.**
 
-STATE-F01 also exposes a contradiction in current P4 authority: the action-admission matrix admits Cancel for any active `OPEN` STAGE Run, while the proposal statechart defines `OPEN + PENDING(P)` as a subordinate proposal state whose resolution requires that same Run to remain OPEN.
+The first five are current design/implementation closure defects. STATE-F06 is an authority wording ambiguity that Phase 2A must resolve before Phase 2B can certify one exact failure behavior.
 
 ## 2. State-owner map
 
 | STATE | Semantic owner | Canonical inputs | Persisted separately? | UI use | Verdict |
-|---|---|---|---|---|---|
-| STATE-001 WorkItem lifecycle | `transitionWorkItem`, `evaluateStageCompletion` | `WorkItem.stage/status/outcome` + one `WorkItemTransitionCause` | WorkItem lifecycle fields only | current lifecycle step/action eligibility | CORRECT |
-| STATE-002 reached history | `deriveReachedStages`, `reachStateForStage` | WorkItem + Runs + RunEvents + ArtifactRefs + ExecutionTasks | no | rail reached/current/unreached | CORRECT |
+|---|---|---|---:|---|---|
+| STATE-001 lifecycle | `transitionWorkItem`, `evaluateStageCompletion` | WorkItem + one transition cause | no second lifecycle object | current workflow owner | CORRECT |
+| STATE-002 reached history | `deriveReachedStages` | WorkItem + Runs + RunEvents + ArtifactRefs + tasks | no | CURRENT / REACHED_HISTORICAL / UNREACHED | CORRECT |
 | STATE-003 STAGE interaction | `stageRunInteraction` | one STAGE Run + ordered RunEvents | no | PROCESSING / OPEN / REQUIRED_INPUT / CLOSED | CORRECT |
-| STATE-004 proposal decision | `deriveProposalDecision` | proposal/adoption/disposition RunEvents | no | proposal current action and adoption progress | CORRECT derivation; transition closure defect STATE-F01 |
-| STATE-005 material currentness | `normalizeMaterialCurrentness` | typed currentness result + changed-material owner(s) | no | current/stale + reconcile owner | CORRECT |
-| STATE-006 recovery | `deriveRecoveryDisposition` | WorkItem + current-stage Runs + material currentness | no | retry/resume/reconcile | CORRECT |
-| STATE-007 execution owner | `deriveExecutionOwner` | selected WorkItem's ExecutionTasks + Runs | no | current/blocked task attention | CORRECT derivation; command-scope defect STATE-F02 |
-| STATE-008 validation boundary | `deriveValidationBoundary` | execution owner + task Runs + RunEvents | no | current validation state | CORRECT |
-| STATE-009 observation coherence | `deriveObservationCoherence` | WorkItem + Runs + events + tasks | no | transient suppression during dependent-observation convergence | CORRECT |
-| STATE-010 current attention | `deriveCurrentAttention` | coherence, conflict, interaction, proposal, blocker, currentness, recovery, execution owner, automatic work | no | one current action/attention owner | CORRECT |
-| STATE-011 rail marker | `deriveWorkflowRail` | WorkItem + reached + current attention + recovery + selected stage | no | nine-stage lifecycle summary only | CORRECT |
+| STATE-004 proposal decision | `deriveProposalDecision` | proposal/adoption/disposition events | no | proposal current action | derivation CORRECT; cancel closure STATE-F01 |
+| STATE-005 material currentness | `normalizeMaterialCurrentness` | typed changed-owner facts | no | CURRENT / STALE(owner) | CORRECT |
+| STATE-006 recovery | `deriveRecoveryDisposition` | WorkItem + current-stage Runs + currentness | no | retry/resume/reconcile | CORRECT |
+| STATE-007 execution owner | `deriveExecutionOwner` | tasks + Runs | no | current/blocked task | derivation CORRECT; manual command scope STATE-F02 |
+| STATE-008 validation boundary | `deriveValidationBoundary` | execution owner + task Runs/events | no | current validation state | CORRECT |
+| STATE-009 observation coherence | `deriveObservationCoherence` + browser transport barrier | WorkItem + Runs + events + tasks + query state | no | mutation suppression while observations converge | semantic derivation CORRECT; browser barrier INCOMPLETE STATE-F04 |
+| STATE-010 current attention | `deriveCurrentAttention` | coherence/conflict/interaction/proposal/currentness/recovery/execution | no | one current action owner | CORRECT |
+| STATE-011 rail marker | `deriveWorkflowRail` | WorkItem + reached + attention + recovery + selection | no | lifecycle summary only | CORRECT |
 
-No new persisted workflow-state model is justified by the evidence.
+**Architectural conclusion:** preserve these canonical owners. No new DTO/state-store/state-machine layer is justified.
 
-## 3. Lifecycle transition matrix
-
-The following is the current closed WorkItem lifecycle relation implemented by `transitionWorkItem`.
+## 3. Closed WorkItem lifecycle relation
 
 | Current condition | Cause | Result | Interaction-map relation | Verdict |
 |---|---|---|---|---|
-| IDEA / ACTIVE | START_RESEARCH | R1 / ACTIVE | FLOW-003 / ACT-STAGE-001 | CORRECT |
-| R1 / ACTIVE | STAGE_COMPLETED(CONFIRMED) | R2 / ACTIVE | FLOW-004 | CORRECT |
-| R1 / ACTIVE | schema-valid terminal outcome | COMPLETE / COMPLETE / outcome | FLOW-004, FLOW-008 | CORRECT |
-| R2 / ACTIVE | STAGE_COMPLETED | DESIGN / ACTIVE | FLOW-004 | CORRECT |
-| DESIGN / ACTIVE | STAGE_COMPLETED | PLAN / ACTIVE | FLOW-004 | CORRECT |
-| PLAN / ACTIVE | STAGE_COMPLETED | R3 / ACTIVE | FLOW-004 | CORRECT |
-| R3 / ACTIVE | READY_FOR_SIGNOFF | AWAITING_SIGNOFF / ACTIVE | FLOW-006 | CORRECT |
-| R3 / ACTIVE | RETURN_TO_RESEARCH | R1 / ACTIVE | backward flow | CORRECT |
-| R3 / ACTIVE | RETURN_TO_REQUIREMENTS | R2 / ACTIVE | backward flow | CORRECT |
-| R3 / ACTIVE | RETURN_TO_DESIGN | DESIGN / ACTIVE | backward flow | CORRECT |
-| R3 / ACTIVE | RETURN_TO_PLAN | PLAN / ACTIVE | backward flow | CORRECT |
-| IDEA source mutation | SOURCE_AUTHORITY_CHANGED | IDEA / ACTIVE | ACT-DOC-002 | CORRECT |
-| progressed pre-signoff/AWAITING_SIGNOFF source mutation | SOURCE_AUTHORITY_CHANGED | R1 / ACTIVE | FLOW-005/X04 | CORRECT |
-| COMPLETE source mutation | SOURCE_AUTHORITY_CHANGED | COMPLETE unchanged | historical integrity diagnostic | CORRECT |
-| reached lifecycle artifact mutation | LIFECYCLE_ARTIFACT_CHANGED(owner) | owner / ACTIVE | ACT-DOC-003 / proposal adoption | CORRECT |
-| current ACTIVE owner | BLOCK_CURRENT_OWNER | same stage / BLOCKED | FLOW-X03 | CORRECT |
-| current BLOCKED owner | RESUME_CURRENT_OWNER | same stage / ACTIVE | ACT-STAGE-002 / ACT-EXEC-004 | CORRECT |
-| AWAITING_SIGNOFF / ACTIVE | SIGN_OFF | EXECUTION / ACTIVE | ACT-APR-004 | CORRECT |
-| AWAITING_SIGNOFF / ACTIVE | RECONCILE_AUTHORITY(owner) | owner / ACTIVE | FLOW-X04/X07 | CORRECT |
-| EXECUTION | EXECUTION_RETURN(owner) | owner / ACTIVE | classified execution failure | CORRECT |
-| EXECUTION | EXECUTION_COMPLETED(CANDIDATE_DONE/ALREADY_SATISFIED) | COMPLETE / COMPLETE | FLOW-007 | CORRECT |
+| IDEA / ACTIVE | START_RESEARCH | R1 / ACTIVE | `FLOW-003`, `ACT-WI-009` | CORRECT |
+| R1 / ACTIVE | STAGE_COMPLETED(CONFIRMED) | R2 / ACTIVE | pre-signoff flow | CORRECT |
+| R1 / ACTIVE | schema-valid terminal outcome | COMPLETE / COMPLETE + outcome | terminal Audit/Investigation flow | CORRECT |
+| R2 / ACTIVE | accepted completion | DESIGN / ACTIVE | pre-signoff flow | CORRECT |
+| DESIGN / ACTIVE | accepted completion | PLAN / ACTIVE | pre-signoff flow | CORRECT |
+| PLAN / ACTIVE | accepted completion | R3 / ACTIVE | pre-signoff flow | CORRECT |
+| R3 / ACTIVE | READY_FOR_SIGNOFF | AWAITING_SIGNOFF / ACTIVE | `FLOW-008` | CORRECT |
+| R3 / ACTIVE | RETURN_TO_RESEARCH | R1 / ACTIVE | governed backward return | CORRECT |
+| R3 / ACTIVE | RETURN_TO_REQUIREMENTS | R2 / ACTIVE | governed backward return | CORRECT |
+| R3 / ACTIVE | RETURN_TO_DESIGN | DESIGN / ACTIVE | governed backward return | CORRECT |
+| R3 / ACTIVE | RETURN_TO_PLAN | PLAN / ACTIVE | governed backward return | CORRECT |
+| IDEA source mutation | SOURCE_AUTHORITY_CHANGED | IDEA / ACTIVE | `ACT-DOC-003` | CORRECT |
+| progressed pre-signoff / AWAITING_SIGNOFF source mutation | SOURCE_AUTHORITY_CHANGED | R1 / ACTIVE | `FLOW-007`, `FLOW-X04` | CORRECT |
+| COMPLETE source mutation | SOURCE_AUTHORITY_CHANGED | COMPLETE unchanged | historical-integrity diagnostic only | CORRECT |
+| reached lifecycle artifact mutation | LIFECYCLE_ARTIFACT_CHANGED(owner) | owner / ACTIVE | `ACT-DOC-004`, proposal adoption | CORRECT |
+| current owner / ACTIVE | BLOCK_CURRENT_OWNER | same stage / BLOCKED | blocker flow | CORRECT |
+| current owner / BLOCKED | RESUME_CURRENT_OWNER | same stage / ACTIVE | `ACT-WI-011`, `ACT-EXEC-005` | CORRECT |
+| AWAITING_SIGNOFF / ACTIVE | SIGN_OFF | EXECUTION / ACTIVE | `ACT-APPROVAL-003` | CORRECT |
+| AWAITING_SIGNOFF / ACTIVE | RECONCILE_AUTHORITY(owner) | owner / ACTIVE | `FLOW-X05` | CORRECT |
+| EXECUTION | EXECUTION_RETURN(owner) | R1/R2/DESIGN/PLAN/R3 / ACTIVE | classified execution return | CORRECT |
+| EXECUTION | EXECUTION_COMPLETED | COMPLETE / COMPLETE | `FLOW-008` | CORRECT |
 
-Unlisted stage/status/cause combinations reject.
+Unlisted stage/status/cause combinations reject. Reached history is evidence-derived and monotonic; backward returns do not erase downstream historical reach.
 
-### 3.1 Reached-history law
-
-`deriveReachedStages` correctly keeps lifecycle position separate from history. It derives reached stages from canonical evidence including Runs, lifecycle artifacts, STAGE completion destinations and ExecutionTasks. A backward return does not erase downstream reached history.
-
-This satisfies `GW-FR-205-MONOTONIC-REACH-HISTORY` and prevents the UI from using ordinal `selectedStage < currentStage` logic as history authority.
-
-## 4. STAGE Run interaction and proposal matrix
+## 4. STAGE interaction and proposal algebra
 
 ### 4.1 Run interaction
 
-| Run/event condition | Derived interaction | Allowed human action | Verdict |
-|---|---|---|---|
-| RUNNING + exactly one STAGE_STARTED + no result after latest trigger | PROCESSING | none | CORRECT |
-| RUNNING + provider result exists, no terminal control, no unresolved input | OPEN | free continuation unless proposal owns attention | CORRECT |
-| WAITING_FOR_INPUT + exactly one unresolved request | REQUIRED_INPUT(Q) | exact response bound to Q | CORRECT |
-| COMPLETED/BLOCKED/FAILED/CANCELLED | CLOSED | no continuation/input | CORRECT |
-| RUNNING + unresolved required input | invalid history | reject/throw | CORRECT |
-| WAITING_FOR_INPUT without unresolved request | invalid history | reject/throw | CORRECT |
-| active STAGE Run with STAGE_BLOCKED/STAGE_COMPLETED already in event history | invalid/converging history | mutation suppressed until dependent owner converges | CORRECT |
+| Run/event condition | Derived interaction | Human action |
+|---|---|---|
+| RUNNING + latest trigger has no provider result | PROCESSING | no input |
+| RUNNING + valid non-controlling result | OPEN | free continuation if no proposal owns attention |
+| WAITING_FOR_INPUT + exactly one unresolved request Q | REQUIRED_INPUT(Q) | exact answer bound to Q |
+| COMPLETED/BLOCKED/FAILED/CANCELLED | CLOSED | no input |
+| RUNNING + unresolved required input | invalid history | reject |
+| WAITING_FOR_INPUT without exact unresolved request | invalid history | reject |
 
 `stageInputIsAdmitted` is exact:
 - OPEN accepts only `requestEventId=null`;
-- REQUIRED_INPUT accepts only the exact current request id;
+- REQUIRED_INPUT(Q) accepts only Q;
 - PROCESSING/CLOSED accept nothing.
 
-Browser `ActivityWorkspace` and daemon `submitRunInput` consume the same derivation, and the daemon repeats admission at commit time.
+Browser and daemon both consume the same core interaction derivation.
 
 ### 4.2 Proposal state
 
-| Event history | ProposalDecision | Required current action |
+| Event history | Proposal state | Required action |
 |---|---|---|
-| no unresolved proposal | NONE | normal OPEN continuation may apply |
-| exactly one proposal, no disposition/adoption intent | PENDING(P) | Adopt or Reject P |
-| proposal + durable adoption intent, no disposition | ADOPTION_IN_PROGRESS(P) | wait/reconcile exact adoption |
-| disposition ADOPTED after adoption intent | NONE | OPEN continuation after context re-resolution |
-| disposition REJECTED and no adoption intent | NONE | OPEN continuation |
+| no unresolved proposal | NONE | ordinary OPEN continuation may apply |
+| one unresolved proposal | PENDING(P) | Adopt/Reject P |
+| proposal + durable adoption intent | ADOPTION_IN_PROGRESS(P) | wait/reconcile exact adoption |
+| adopted after adoption intent | NONE | re-resolve context/currentness |
+| rejected before adoption intent | NONE | OPEN continuation may resume |
 
-The derivation rejects:
-- proposal controls for unknown proposals;
-- control before proposal;
-- duplicate disposition;
-- duplicate adoption intent;
-- ADOPTED without adoption intent;
-- REJECTED with adoption intent;
-- multiple unresolved proposals.
+The derivation rejects unknown controls, control-before-proposal, duplicate disposition/adoption, adoption without durable intent, rejection after adoption intent and multiple unresolved proposals.
 
-### 4.3 STATE-F01 — Cancel can strand an unresolved proposal
+### STATE-F01 — Cancel can strand an unresolved proposal
 
-**Canonical facts:**
+**Verdict:** CONTRADICTORY, release blocker.
 
-1. P3 proposal statechart defines `OPEN + PENDING(P)` and `OPEN + ADOPTION_IN_PROGRESS(P)`.
-2. P3 current-attention precedence gives `PROPOSAL_DECISION` / `PROPOSAL_ADOPTION` higher priority than ordinary actions.
-3. P4 action-admission matrix currently states: “Cancel STAGE Run — current Run active in PROCESSING/OPEN/REQUIRED_INPUT”.
-4. `src/daemon/coordinator.ts::cancelRunUnlocked` checks only active Run status; it does not reject unresolved proposal/adoption state.
-5. `stageRunInteraction` maps CANCELLED to CLOSED.
-6. `deriveProposalDecision` derives proposal state solely from proposal-control events and still returns PENDING/ADOPTION_IN_PROGRESS for a closed Run.
-7. WorkItem UI derives `proposalDecision` from the latest current-stage Run even when that Run is terminal, therefore the proposal remains the current attention owner.
-8. Proposal Adopt/Reject daemon admission requires the Run interaction to be OPEN.
+P4 §4.7 admits Cancel whenever the current STAGE Run is active in PROCESSING/OPEN/REQUIRED_INPUT. The daemon `cancelRunUnlocked` likewise checks only active Run status. It does not exclude a pending/adopting lifecycle proposal.
 
-**Resulting reachable contradiction:**
+The normal browser currently suppresses Cancel while `PROPOSAL_DECISION` or `PROPOSAL_ADOPTION` owns attention, but the authoritative command boundary remains reachable and permits:
 
 ~~~text
 RUNNING + OPEN + PENDING(P)
         |
-        | Cancel through canonical HTTP/daemon command
+        | cancelRun
         v
 CANCELLED + CLOSED + PENDING(P)
-        |
-        +--> UI derives PROPOSAL_DECISION
-        +--> Adopt rejects because Run is not OPEN
-        +--> Reject rejects because Run is not OPEN
-        +--> input rejects because CLOSED
-        +--> proposal remains unresolved
 ~~~
 
-The ordinary UI currently suppresses Cancel while proposal attention owns the surface, which reduces normal-browser reachability but does not close the canonical command/state algebra. The HTTP command and daemon function remain valid for the state.
+`deriveProposalDecision` continues to see PENDING because no proposal disposition event was written, while proposal Adopt/Reject requires the Run interaction to remain OPEN. The state therefore has no valid proposal-resolution action.
 
-**Verdict:** `CONTRADICTORY`, release-blocking.  
-**Minimum authority impact:** P3/P4/P6 behavior must be made internally closed in Phase 2; implementation-only patching is insufficient because current P4 explicitly admits Cancel for OPEN without excluding proposal ownership.
+**Minimum authority impact:** Phase 2 must close proposal-vs-cancel semantics at P3/P4/P6; this is not safely resolved as a browser-only patch.
 
-## 5. Provider-turn closed grammar
+## 5. STAGE provider-turn batch grammar
 
-`validateStageProviderTurn` is a strong consumer-side batch validator.
+The current consumer grammar in `validateStageProviderTurn` is:
 
-For one RUNNING/PROCESSING STAGE provider turn:
+- non-empty batch;
+- at most one HUMAN_INPUT_REQUESTED;
+- at most one STAGE_BLOCKED;
+- at most one STAGE_COMPLETED;
+- input/block/completion mutually exclusive;
+- at most one lifecycle proposal;
+- proposal cannot coexist with input/block/completion;
+- new proposal forbidden while another proposal remains unresolved;
+- proposal role must match Run stage;
+- completion stage must match Run stage;
+- blocker owner must match Run stage.
 
-- payload array must be non-empty;
-- maximum one HUMAN_INPUT_REQUESTED;
-- maximum one STAGE_BLOCKED;
-- maximum one STAGE_COMPLETED;
-- input/block/completion are mutually exclusive;
-- maximum one lifecycle proposal;
-- a lifecycle proposal cannot coexist with input/block/completion;
-- a new proposal is forbidden while an unresolved proposal already exists;
-- proposal role must equal Run stage;
-- STAGE_COMPLETED stage must equal Run stage;
-- STAGE_BLOCKED owner must equal Run stage.
+A proposal-only turn is OPEN continuation with proposal attention. Messages/evidence/observations may accompany a valid controlling/open result where their own contracts permit.
 
-This correctly implements the consumer-side intent of `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY` and `GW-TR-084-STAGE-TURN-BATCH-ATOMICITY`.
+### STATE-F03 — productive producer contract omits this batch grammar
 
-### 5.1 Provider-turn matrix
+**Verdict:** INCOMPLETE producer→consumer contract, release blocker.
 
-| Proposal | Input request | Block | Completion | Valid? |
-|---:|---:|---:|---:|---|
-| 0 | 0 | 0 | 0 | yes, if batch contains at least one admitted non-control event |
-| 0 | 1 | 0 | 0 | yes |
-| 0 | 0 | 1 | 0 | yes |
-| 0 | 0 | 0 | 1 | yes |
-| 1 | 0 | 0 | 0 | yes, iff no prior unresolved proposal and role matches |
-| 1 | 1 | 0 | 0 | **no** |
-| 1 | 0 | 1 | 0 | **no** |
-| 1 | 0 | 0 | 1 | **no** |
-| 0 | 1 | 1 | 0 | **no** |
-| 0 | 1 | 0 | 1 | **no** |
-| 0 | 0 | 1 | 1 | **no** |
-| any duplicate control | — | — | — | **no** |
-| >1 proposal | — | — | — | **no** |
+Producer path:
 
-### 5.2 STATE-F03 — producer contract does not state the closed batch grammar
+- `stagePrompt` requests only a JSON array of canonical provider-emittable STAGE payloads plus stage work;
+- `providerOutputContract("STAGE")` gives individual admitted tags, canonical JSON Schema and proposal diff formatting;
+- `runOpenCodeTurn` parses `RunEventPayloadSchema.array()`;
+- `validateProviderAdmission` validates individual event admission.
 
-The productive producer path does not provide the model with the consumer grammar above.
+Consumer path:
 
-Current producer instructions:
+- `persistAndReactStageBatch` later calls `validateStageProviderTurn` before any returned provider payload is persisted.
 
-- `stagePrompt` says only: return a JSON array of canonical provider-emittable STAGE `RunEventPayload` values, plus output-path and stage content requirements.
-- `providerOutputContract("STAGE")` lists admitted individual event tags and canonical JSON Schema and gives proposal unified-diff formatting guidance.
-- `parseCanonicalProviderEvents` and provider admission validate individual payload syntax/tag admission.
-- only later does `persistAndReactStageBatch` call `validateStageProviderTurn` and reject invalid cross-event combinations.
+Thus an individually valid batch such as proposal + completion or proposal + required input is accepted by the producer-facing syntax/tag contract and rejected only after the provider turn finishes.
 
-Therefore a provider can emit individually schema-valid/admitted events such as:
-
-~~~text
-ARTIFACT_PROPOSAL_CREATED + STAGE_COMPLETED
-~~~
-
-or:
-
-~~~text
-ARTIFACT_PROPOSAL_CREATED + HUMAN_INPUT_REQUESTED
-~~~
-
-and only discover the illegal combination after the OpenCode turn completes.
-
-This is the proven mechanism behind the observed runtime failure:
-
+This exactly explains the observed failure:
 `lifecycle proposal cannot coexist with a controlling event`.
 
-**Verdict:** `INCOMPLETE producer→consumer contract`, release-blocking.  
-**Authority:** current P3/P4 consumer semantics are directionally correct; producer-side technical contract/certification is incomplete. Phase 2B must close the producer→carrier→consumer contract without weakening the validator.
+**Required Phase 2 direction:** keep the closed consumer invariant; close the productive producer contract and producer→consumer certification.
 
-## 6. Material currentness, recovery and current attention
+## 6. Currentness, recovery and current-attention precedence
 
-### 6.1 Material currentness
+Material currentness remains only CURRENT or STALE(owner).
 
-`normalizeMaterialCurrentness` correctly represents only:
-
-- CURRENT
-- STALE(owner)
-
-The owner is the earliest governing upstream stage from typed changed-material owners. It does not invent another persisted currentness status.
-
-### 6.2 Recovery
-
-`deriveRecoveryDisposition` precedence:
-
-1. stale material -> RECONCILE_AUTHORITY;
-2. WorkItem BLOCKED -> RESUME_CURRENT_OWNER;
-3. latest current-stage Run FAILED/CANCELLED/BLOCKED while WorkItem ACTIVE -> RETRY_CURRENT_STAGE;
+Recovery precedence:
+1. stale material → RECONCILE_AUTHORITY;
+2. WorkItem BLOCKED → RESUME_CURRENT_OWNER;
+3. latest current-stage Run FAILED/CANCELLED/BLOCKED while WorkItem ACTIVE → RETRY_CURRENT_STAGE;
 4. otherwise NONE.
 
-This matches the current closed recovery vocabulary.
-
-### 6.3 Current attention precedence
-
-Current implementation exactly follows the declared ordering:
+Current-attention precedence in exact current source matches P3/P4:
 
 1. CONVERGING
 2. MUTATION_CONFLICT
@@ -269,173 +201,293 @@ Current implementation exactly follows the declared ordering:
 10. ACTIONABLE
 11. ORDINARY
 
-This is structurally correct because a lower-priority action cannot become primary while a higher-priority owner exists.
+The permanent core test explicitly verifies stale currentness + RECONCILE_AUTHORITY → STALE_AUTHORITY.
 
-STATE-F01 is notable precisely because it creates a logically impossible **high-priority proposal owner whose required action is no longer admissible**.
+**Verdict:** CORRECT. No stale-attention defect.
 
-## 7. Execution owner and validation-state derivation
+## 7. Execution owner, validation boundary and manual command scope
 
-### 7.1 Execution owner
+`deriveExecutionOwner` correctly derives current task ownership independently from historical selection:
 
-`deriveExecutionOwner` is WorkItem-local and follows:
+1. blocked task → BLOCKED_TASK;
+2. RUNNING/current active task → CURRENT_TASK;
+3. next eligible TODO task with successful dependencies → CURRENT_TASK;
+4. otherwise NONE.
 
-1. BLOCKED task -> BLOCKED_TASK(task);
-2. RUNNING task -> CURRENT_TASK(task);
-3. active execution Run's task -> CURRENT_TASK(task);
-4. first TODO task whose dependencies are all successful -> CURRENT_TASK(task);
-5. otherwise NONE.
+`deriveValidationBoundary` likewise uses only the current task/candidate chain.
 
-Historical explicit task selection is not part of this derivation.
+### STATE-F02 — task-local UI action invokes global unscoped coordinator work
 
-**Verdict:** state derivation is CORRECT.
+**Verdict:** CONTRADICTORY operator/control-plane semantics, release blocker.
 
-### 7.2 STATE-F02 — current execution owner is not the command scope
-
-The UI uses the WorkItem-local `ExecutionOwner` to render ACT-EXEC-005 “Run next implementation step”.
-
-But `ui/src/http.ts::tick()` sends only:
+The Implementation UI presents a task-local current owner and a command equivalent to “Run next implementation step”, but:
 
 ~~~text
-POST /api/tick
-{}
-~~~
-
-The daemon's `runCoordinatorTick` then chooses global current/runnable work across configured repository roots. The visible `WorkItem.id`, `ExecutionTask.id` and derived `CURRENT_TASK(task)` are not command inputs.
-
-Thus:
-
-~~~text
-selected WorkItem A
-  -> deriveExecutionOwner(A) = CURRENT_TASK(A1)
-  -> UI says "Run next implementation step"
+ui/src/http.ts::tick()
   -> POST /api/tick
-  -> daemon may admit globally selected runnable task B1
+  -> settings.runReadyCoordinatorTick(...)
+  -> runCoordinatorTick(runtime, readyRepositoryRoots)
+  -> currentRunningTask(...) or startEligibleTask(...) globally
 ~~~
 
-This violates the semantic expectation that a task-local command performs the action whose owner is visibly selected/current. It also undermines `GW-FR-003-DURABLE-BOUNDED-EXECUTION` from the operator boundary even though the scheduler itself remains bounded to an approved task.
+No selected WorkItem id or ExecutionTask id is submitted.
 
-**Verdict:** `CONTRADICTORY`, release-blocking.  
-**Minimum authority impact:** Phase 2A must decide the intended operator semantics of manual execution; Phase 2B must align the control boundary accordingly. Phase 1 does not choose whether the eventual action is task-scoped, scheduler-scoped, renamed, relocated or removed.
+Therefore the UI's visible `CURRENT_TASK(task A)` is not the scope of the command. Another globally runnable/current task can own the coordinator tick.
 
-### 7.3 Validation boundary
+**Phase 2A obligation:** define the actual operator semantics of manual execution.  
+**Phase 2B obligation:** make the command boundary match that functional decision.  
+Phase 1 does not choose whether the future action becomes task-scoped, scheduler-scoped/renamed, relocated or removed.
 
-`deriveValidationBoundary` is correctly tied to the current execution owner and its current candidate chain.
+## 8. Observation coherence and transport convergence
 
-It:
+### 8.1 Pure semantic coherence
 
-- uses current task Runs only;
-- handles the latest own validation failure;
-- treats candidate recording as a new current-candidate boundary;
-- requires REMEDIATOR failure trigger to belong to same current task;
-- requires REVIEWER candidate trigger from BUILDER/REMEDIATOR of same task;
-- derives reviewer validation only from reviewer Runs for the same candidate.
+`deriveObservationCoherence` correctly detects loaded contradictions including:
 
-Historical task selection cannot become validation authority.
+- active STAGE Run belongs to a different WorkItem stage;
+- active STAGE completion observed before WorkItem stage reaction;
+- active STAGE block observed before WorkItem BLOCKED status;
+- active execution Run without matching EXECUTION/RUNNING task;
+- terminal execution Run while task remains RUNNING;
+- RUNNING task without active Run;
+- BLOCKED task while WorkItem still ACTIVE;
+- EXECUTION/BLOCKED WorkItem without blocked task.
+
+### 8.2 Browser transport barrier
+
+The browser additionally suppresses mutation while several dependent observations are unavailable/refetching through `transportConverging`, including terminal drain, mutation refresh, missing initial collections, execution task/event fetch, stage-event fetch and sign-off package fetch.
+
+### STATE-F04 — independent WorkItem/Run refetch can escape the convergence barrier for one render
+
+**Verdict:** INCOMPLETE implementation + certification, high severity.
+
+Evidence:
+
+- `App` passes `selectedWorkItemFetching` into `WorkItemWorkspace`;
+- `WorkItemWorkspace` declares that prop but never uses it;
+- `runsQuery.isFetching` is not included in `transportConverging`;
+- terminal drain is enabled in an effect after a render observes an active→terminal Run change.
+
+Possible observation order:
+
+~~~text
+server atomically reacts:
+  Run terminal + WorkItem stage/status updated
+
+browser Runs query observes terminal first
+  +
+browser WorkItem prop still older
+  +
+terminalDrainPending still false until post-render effect
+        |
+        v
+one render derives attention/action from mixed-generation facts
+        |
+        v
+effect starts drain and later suppresses/refetches
+~~~
+
+The pure coherence function's STAGE completion/block mismatch branches examine the current Run while it is active; they do not cover every terminal-STAGE + older-WorkItem combination.
+
+**Server safety:** daemon commit-time admission remains authoritative, so this does not prove invalid lifecycle mutation can commit. It does prove P3 `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` / P4 convergence presentation is not fully guaranteed.
+
+**Do not fix by:** persisting an aggregate browser/workflow state.
+
+## 9. Active-Run source/document authority exclusion
+
+P3 `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` and P4 §4.7 require source/lifecycle Save only with **no active Run**.
+
+Daemon enforcement is correct:
+
+- WorkItem source/body save rejects while a Run is RUNNING/WAITING_FOR_INPUT;
+- lifecycle artifact save rejects while any Run is active and rechecks transactionally;
+- canonical bytes remain protected.
+
+### STATE-F05 — browser still offers canonical source/document mutations while a Run is active
+
+**Verdict:** INCOMPLETE browser admission, high severity.
+
+Current browser predicates are:
+
+~~~ts
+mutationsDisabled =
+  currentAttention === "CONVERGING";
+
+documentMutationsDisabled =
+  mutationsDisabled ||
+  currentAttention === "MUTATION_CONFLICT";
+
+workflowMutationsDisabled =
+  documentMutationsDisabled ||
+  (currentness.tag === "STALE" && !runs.some(runIsActive));
+~~~
+
+Neither document predicate directly disables writes for `runs.some(runIsActive)`.
+
+Consequences:
+
+- Work request Save receives `documentMutationsDisabled`;
+- lifecycle document Save receives `workflowMutationsDisabled`;
+- title edit/save, which mutates the Work request H1/source, is guarded by convergence but not the active-Run exclusion;
+- archive is correctly stricter and explicitly checks active Runs.
+
+So the browser can offer a command the daemon is guaranteed to reject.
+
+**Required Phase 2 direction:** retain server recheck and make browser availability consume the same active-interaction fact; do not weaken the daemon exclusion.
+
+## 10. Historical selection and inspection
+
+Historical workflow-step/task/attempt/material selection is browser-local presentation state. Current attention, current stage, proposal ownership, execution owner, currentness and validation boundary are derived before historical selection and remain canonical.
+
+Evidence/Context navigation uses explicit return origins but does not mutate lifecycle state.
 
 **Verdict:** CORRECT.
 
-## 8. Observation coherence and asynchronous transition closure
+## 11. Provider batch rejection outcome ambiguity
 
-`deriveObservationCoherence` correctly marks CONVERGING only when already-loaded canonical facts expose a controlling reaction not yet reflected by the dependent owner, including:
+### STATE-F06 — P3 wording does not uniquely define Run state after a grammar-invalid provider batch
 
-- active STAGE Run for a different stage than current WorkItem;
-- STAGE_COMPLETED observed before WorkItem stage changes;
-- STAGE_BLOCKED observed while WorkItem remains ACTIVE;
-- active execution Run not aligned with EXECUTION/RUNNING task;
-- RUNNING task without active Run;
-- BLOCKED task while EXECUTION WorkItem still ACTIVE;
-- EXECUTION/BLOCKED WorkItem without BLOCKED task.
+**Verdict:** CONTRADICTORY/AMBIGUOUS authority wording; Phase 2A decision required.
 
-The browser additionally treats query/refetch pending as transport convergence and suppresses mutations until the canonical observation is coherent.
+P3 §21.2 states provider/invocation failure results in a terminal FAILED Run at the same lifecycle stage.
 
-**Verdict:** CORRECT and consistent with `GW-FR-210` / `GW-TR-088`.
+P3 certification scenario 20 states a provider turn containing contradictory controlling events is rejected “without changing Run/WorkItem state.”
 
-## 9. Interaction-map cross-reference
+Current implementation:
 
-| Interaction-map item | Required state proposition | State verdict |
+1. returned payloads parse and pass individual role admission;
+2. `validateStageProviderTurn` rejects the contradictory batch before any returned member is persisted;
+3. `runStageTurn` catches the exception;
+4. `failRunForProvider` persists PROVIDER_FAILED;
+5. Run becomes FAILED / PROVIDER_FAILURE;
+6. WorkItem remains at the same lifecycle stage.
+
+So the invalid batch does **not** cause its requested proposal/input/block/completion effects, but the Run itself changes to FAILED.
+
+Phase 1 will not infer which reading P3 intended. Phase 2A must make this observable failure semantic explicit; Phase 2B must then align failure classification and permanent certification.
+
+## 12. Negative/impossible combination matrix
+
+| Combination | Current handling | Verdict |
 |---|---|---|
-| FLOW-003 Start Research | STATE-001 lifecycle + STATE-010 attention | CORRECT |
-| FLOW-004 interactive loop | STATE-003 interaction + STATE-004 proposal + STATE-010 attention | CORRECT except STATE-F01/STATE-F03 |
-| ACT-ACTIVITY-002 input | STATE-003 exact input ownership | CORRECT |
-| ACT-PROP-002/003 proposal disposition | STATE-003 OPEN + STATE-004 PENDING | **CONTRADICTORY when Cancel created CLOSED+PENDING** |
-| ACT-DOC-002/003 direct Save | STATE-001 lifecycle + active-Run exclusion + material owner | CORRECT |
-| FLOW-X03 retry/resume | STATE-006 recovery | CORRECT |
-| FLOW-X04/X07 stale authority | STATE-005 currentness + STATE-006 reconcile | CORRECT |
-| ACT-APR-004 Sign off | STATE-001 exact AWAITING_SIGNOFF + package currentness | CORRECT |
-| ACT-EXEC-004 execution resume | STATE-007 BLOCKED_TASK + current material | CORRECT |
-| ACT-EXEC-005 next implementation step | STATE-007 CURRENT_TASK | **state correct, command scope contradictory STATE-F02** |
-| workflow rail | STATE-002 reach + STATE-010 attention | CORRECT |
-| historical selection | local presentation only | CORRECT |
+| multiple active Runs for one WorkItem | start/transaction guard | CORRECT |
+| concurrent provider turns for one Run | serialized stage orchestration/input admission | CORRECT |
+| free continuation while required input unresolved | rejects | CORRECT |
+| stale/duplicate required-input answer | rejects | CORRECT |
+| multiple unresolved proposals | rejects | CORRECT |
+| proposal + input/block/completion same provider batch | consumer rejects | consumer CORRECT; producer incomplete F03 |
+| duplicate input/block/completion controls | consumer rejects | CORRECT |
+| proposal/completion/block owner differs from Run stage | rejects | CORRECT |
+| adopted proposal without adoption intent | rejects | CORRECT |
+| reject after adoption intent | rejects | CORRECT |
+| Cancel while unresolved proposal exists | command permits terminalization | **CONTRADICTORY F01** |
+| source/lifecycle write stale expected SHA | STALE/reject | CORRECT |
+| source/lifecycle write during active Run | daemon rejects; browser may still offer | **INCOMPLETE F05** |
+| signoff over stale package | recompute/reject | CORRECT |
+| historical selection authorizes current action | not used as owner | CORRECT |
+| execution active Run vs wrong/non-running task | CONVERGING/reject | CORRECT |
+| terminal execution Run while task still RUNNING | CONVERGING | CORRECT |
+| terminal STAGE observation + older WorkItem projection | not guaranteed to suppress first mixed render | **INCOMPLETE F04** |
+| visible current task A + manual global tick starts B | reachable by scheduler scope | **CONTRADICTORY F02** |
+| grammar-invalid batch leaves Run unchanged | authority wording not unique | **AMBIGUOUS F06** |
+| COMPLETE WorkItem mutable transition | rejects | CORRECT |
 
-## 10. Impossible/contradictory-combination audit
+## 13. Interaction-map cross-reference
 
-| Combination | Intended status | Current enforcement |
+| Interaction-map item | Required state | Verdict |
 |---|---|---|
-| two active Runs for one WorkItem | impossible | rejected at stage start/commit and mutation guards |
-| RUNNING STAGE with unresolved required input | impossible | `stageRunInteraction` rejects |
-| WAITING_FOR_INPUT without exact unresolved request | impossible | rejects |
-| two unresolved proposals in one Run | impossible | `deriveProposalDecision` / provider-turn validator reject |
-| proposal + input/block/completion in one provider batch | impossible | consumer rejects; **producer contract incomplete STATE-F03** |
-| proposal role != Run stage | impossible | provider-turn + proposal disposition reject |
-| active source/document Save during Run | impossible | browser suppresses; daemon rejects/rechecks |
-| stale expected source/artifact hash silently overwrites | impossible | STALE result |
-| AWAITING_SIGNOFF sign-off over changed package | impossible | recomputed package/hash/bytes reject |
-| historical task becomes execution owner | impossible | execution owner ignores selection |
-| multiple blocked execution tasks for resume | invalid for resume | daemon requires exactly one |
-| CLOSED STAGE Run + unresolved proposal | **should be impossible or explicitly recoverable** | **currently reachable through Cancel; dead state STATE-F01** |
-| task-local current owner + global unscoped manual command | **semantic contradiction** | **currently reachable STATE-F02** |
+| `ACT-WI-007/008` inspection | local selection only | CORRECT |
+| `ACT-WI-009/010/011/012` Start/Retry/Resume/Reconcile | lifecycle + recovery + attention | server CORRECT; browser observation affected by F04 |
+| `ACT-DOC-003/004` canonical Markdown Save | expected hash + direct-edit eligibility + no active Run | server CLOSED; browser availability F05 |
+| `ACT-ACT-001` Cancel | active Run + proposal/current attention | proposal closure F01 |
+| `ACT-ACT-002/003` free/required input | exact StageRunInteraction | CORRECT |
+| `ACT-PROP-001/002` proposal disposition | OPEN + PENDING exact proposal | CORRECT unless F01 created CLOSED+PENDING |
+| `ACT-APPROVAL-003` signoff | current exact package + SIGN_OFF transition | CORRECT |
+| `ACT-EXEC-003` Run next implementation step | WorkItem-local ExecutionOwner | command scope F02 |
+| `ACT-EXEC-004/005` cancel/resume execution | active/block owner | CORRECT |
+| `FLOW-X03` optimistic conflict | MUTATION_CONFLICT + refresh | CORRECT |
+| `FLOW-X04/X05` source/stale authority | currentness + reconcile | CORRECT |
+| `FLOW-X06/X07` retry/resume | recovery | CORRECT |
+| `FLOW-X08` provider failure | provider failure + batch contract | F03/F06 |
+| all transition-sensitive surfaces | coherent canonical observation | F04 |
 
-## 11. State/UI mismatch findings
-
-### STATE-F01 — terminal proposal dead state
-
-- **Affected:** ACT-PROP-002/003, FLOW-X05, R1/R2/DESIGN/PLAN/R3 current proposal states.
-- **Root boundary:** P3/P4 cancel/proposal algebra plus daemon Cancel admission.
-- **Severity:** release blocker.
-- **Classification:** missing/contradictory P3/P4/P6 state transition closure.
-- **Phase 2 decision:** define one coherent proposal-vs-cancel behavior; do not solve locally in UI.
-
-### STATE-F02 — execution owner/control-scope mismatch
-
-- **Affected:** ACT-EXEC-005, FLOW-007, Implementation.
-- **Root boundary:** UI command semantics vs global coordinator scheduler command.
-- **Severity:** release blocker.
-- **Classification:** functional/control-plane ambiguity plus technical boundary mismatch.
-- **Phase 2 decision:** Phase 2A defines what manual operator action means; Phase 2B defines matching command ownership.
-
-### STATE-F03 — STAGE producer/consumer batch-contract mismatch
-
-- **Affected:** every R1/R2/DESIGN/PLAN/R3 provider turn; observed provider failure.
-- **Root boundary:** `stagePrompt` / `providerOutputContract` producer contract vs `validateStageProviderTurn` consumer.
-- **Severity:** release blocker.
-- **Classification:** missing P4/P6 producer contract/certification; current consumer invariant should remain.
-- **Phase 2 decision:** technical design must close the productive producer→carrier→consumer grammar and proof.
-
-## 12. Producer→consumer contract closure verdicts
+## 14. Producer→consumer closure matrix
 
 | Contract | Producer | Consumer | Verdict |
 |---|---|---|---|
-| human input OPEN/REQUIRED_INPUT | Activity composer/current-attention derivation | `submitRunInput` + `stageInputIsAdmitted` | CLOSED |
-| direct source Save | Markdown Workbench expected SHA | source daemon revalidation/write | CLOSED |
-| lifecycle doc Save | artifact editability + expected SHA | coordinator artifact save | CLOSED |
-| proposal disposition | ProposalReview current local event history | daemon `requireCurrentProposalDecision` | **NOT CLOSED because Cancel can preserve unresolved proposal after Run closes** |
-| sign-off | current displayed package hash | recomputed package/material/baseline | CLOSED |
-| execution Resume | current BLOCKED_TASK | daemon exact blocked task + fresh Approval | CLOSED |
-| manual execution advance | WorkItem-local CURRENT_TASK | global scheduler tick | **NOT CLOSED** |
-| STAGE provider turn | prompt + individual payload schema/tag contract | closed batch validator | **NOT CLOSED** |
+| human input | composer + current attention | `submitRunInput` + `stageInputIsAdmitted` | CLOSED |
+| source Save | browser expected SHA/eligibility | daemon source mutation guard | **consumer closed; producer availability incomplete F05** |
+| lifecycle doc Save | browser expected SHA/eligibility | daemon artifact mutation guard | **consumer closed; producer availability incomplete F05** |
+| proposal disposition | ProposalReview/current history | daemon exact proposal/open-run guard | **not closed under Cancel F01** |
+| signoff | displayed package hash | recomputed package/currentness | CLOSED |
+| execution Resume | current BLOCKED_TASK | daemon exact blocked task/current Approval | CLOSED |
+| manual execution advance | visible CURRENT_TASK | global coordinator tick | **not closed F02** |
+| STAGE provider turn | prompt + individual payload schema/tag contract | whole-batch validator | **not closed F03** |
+| canonical browser observation | independent query producers | current-attention/action projection | **not fully closed F04** |
+| grammar-invalid provider failure outcome | P3 requirement/certification wording | daemon provider failure reaction | **authority ambiguous F06** |
 
-## 13. P1-T06 completion verdict
+## 15. Consolidated state findings
+
+### STATE-F01 — unresolved proposal cancellation dead state
+- **Severity:** release blocker.
+- **Affected:** R1/R2/DESIGN/PLAN/R3 proposal flows.
+- **Root:** P3/P4/P6 cancel/proposal transition closure.
+- **Phase 2 owner:** 2A behavior + 2B exact admission/recovery contract.
+
+### STATE-F02 — WorkItem-local execution owner vs global manual tick
+- **Severity:** release blocker.
+- **Affected:** Implementation current action.
+- **Root:** functional command meaning/control-plane scope mismatch.
+- **Phase 2 owner:** 2A manual-execution semantics, then 2B command boundary.
+
+### STATE-F03 — STAGE producer/consumer grammar mismatch
+- **Severity:** release blocker.
+- **Affected:** all pre-signoff STAGE provider turns.
+- **Root:** productive prompt/output contract and certification.
+- **Phase 2 owner:** 2B after 2A confirms failure/interaction behavior.
+
+### STATE-F04 — incomplete browser convergence barrier
+- **Severity:** high.
+- **Affected:** transition-sensitive action availability after asynchronous Run/WorkItem reaction.
+- **Root:** browser canonical-observation reconciliation.
+- **Phase 2 owner:** 2B Workbench projection/reconciliation design.
+
+### STATE-F05 — active-Run browser authoring exclusion incomplete
+- **Severity:** high.
+- **Affected:** Work request/title and editable R1/R2/DESIGN/PLAN Markdown.
+- **Root:** browser action admission differs from canonical/daemon exclusion.
+- **Phase 2 owner:** 2A retains/changes functional exclusion; 2B aligns projection.
+
+### STATE-F06 — invalid provider-batch failure outcome ambiguity
+- **Severity:** medium but blocks exact Phase-2 contract closure.
+- **Affected:** grammar-invalid STAGE provider response.
+- **Root:** P3 §21.2 vs certification scenario wording.
+- **Phase 2 owner:** 2A exact observable failure semantics.
+
+## 16. Certification obligations carried to P1-T09
+
+P1-T09 must distinguish existing positive tests from missing integrated proof:
+
+1. consumer tests of `validateStageProviderTurn` do not prove the productive provider producer receives the same grammar;
+2. browser tests must exercise Run/WorkItem refetch ordering, not only final converged states;
+3. daemon active-Run write rejection does not prove the browser suppresses the same Save/title actions;
+4. proposal/cancel certification must include the currently reachable canonical command state, not only normal UI visibility;
+5. manual Implementation action must prove that visible current-owner semantics and actual command scope are identical;
+6. invalid provider-batch test wording must be corrected before one permanent expected outcome can be authoritative.
+
+## 17. P1-T06 completion verdict
 
 **P1-T06: COMPLETE.**
 
-The audit establishes:
+The Phase-1 state fact set is now sufficient for downstream investigation:
 
-- the current derived state vocabulary is structurally appropriate and should not be replaced by a new persisted aggregate state machine;
-- the normal WorkItem lifecycle relation is closed and largely correctly implemented;
-- required-input, currentness, recovery, reached-history, current-attention and validation-boundary derivations are sound;
-- three release-blocking end-to-end closure defects remain: STATE-F01, STATE-F02 and STATE-F03;
-- STATE-F01 requires authority correction because current P4 itself admits the contradictory Cancel condition;
-- STATE-F02 requires a Phase 2 functional decision before technical resolution;
-- STATE-F03 requires producer-contract/certification closure, not a weakened consumer invariant.
+- canonical state owners and transitions are mapped;
+- the normal lifecycle relation is closed;
+- STAGE interaction/input/proposal state is mapped;
+- currentness/recovery/current-attention precedence is confirmed;
+- execution owner/validation state is mapped independently from historical selection;
+- impossible/contradictory combinations are enumerated;
+- browser/daemon/core ownership is explicit;
+- five concrete end-to-end closure defects and one P3 semantic ambiguity are isolated without inventing replacement behavior.
 
-P1-T07 may now consume this state audit to evaluate the OpenCode execution/session/transparency boundary. P1-T08 must consume STATE-004/005 and STATE-F01 when auditing document/material maturity.
+P1-T07 must now determine the exact pinned OpenCode/session/observability facts behind agent interaction and failure recovery. P1-T08 must consume STATE-004/005 plus STATE-F01/F05 when auditing document/material maturity.
