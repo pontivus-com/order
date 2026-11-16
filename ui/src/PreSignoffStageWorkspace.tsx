@@ -31,9 +31,11 @@ import {
 import {
   PrimaryMaterialFrame,
   WorkflowStepFrame,
-  WorkflowStepIndex,
-  type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
+import {
+  WorkflowMaterialSelector,
+  type WorkflowMaterialSelectorGroup,
+} from "./WorkflowMaterialSelector.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
@@ -170,7 +172,7 @@ export const PreSignoffStageWorkspace = ({
     />
   );
 
-  const currentMaterialItems: WorkflowStepIndexGroup["items"] = [
+  const currentMaterialItems: WorkflowMaterialSelectorGroup["items"] = [
     ...stageRuns.map((run) => ({
       id: "run-" + run.id,
       label: "Attempt " + run.attempt,
@@ -189,7 +191,7 @@ export const PreSignoffStageWorkspace = ({
     }] : []),
   ];
   const materialSelector = currentMaterialItems.length > 1
-    ? <WorkflowStepIndex groups={[{ id: "current", label: "Current work", items: currentMaterialItems }]} label="Current workflow material" />
+    ? <WorkflowMaterialSelector groups={[{ id: "current", label: "Current work", items: currentMaterialItems }]} label="Current workflow material" />
     : undefined;
 
   const primary = (() => {
