@@ -827,350 +827,291 @@ Completion basis:
 
 P1-T05 must now assign exact `ACT-`/`FLOW-` ids to the interactions consuming these `INFO-` facts and prove visibility, enablement, command path, commit-time recheck, canonical effect and destination.
 
-## 13. Per-surface interaction inventory
+## 13. Per-surface interaction inventory — P1-T05
 
-All browser mutations below also pass the daemon's authenticated same-origin mutation admission in `src/daemon/server.ts`. The rows record the more specific business/current-state checks beyond that common transport guard.
+P1-T05 traces each materially distinct operator interaction from visibility/enabled predicates through the browser handler/API boundary to the effect owner and resulting surface/state. Equivalent local controls are grouped only when they share the same predicate/effect semantics.
 
-### 13.1 Application / Queue / Create
+### 13.1 Application shell, Queue and Create
 
-| ACT id | Origin | Interaction | Visible / enabled when | INFO prerequisites | Handler → boundary | Commit-time/current-state guard | Effect / destination | Verdict |
-|---|---|---|---|---|---|---|---|---|
-| `ACT-APP-001` | APP | New work item | outside Settings; always enabled | C-001..004 | local `setCreateOpen(true)` | none; non-mutating | opens `SURF-CREATE-001` | CORRECT |
-| `ACT-APP-002` | APP/Queue | Refresh sources | Queue only; pending shows loading | APP-006 | `reconcileWorkItemSources` → POST source reconcile | daemon re-reads configured repository sources | source projection/diagnostics refresh; remain Queue | CORRECT |
-| `ACT-APP-003` | Queue | search/filter | Queue only | Q-001..006 | local `search` / memoized filter | none | same surface filtered | CORRECT |
-| `ACT-APP-004` | APP | OpenCode account utility | always | APP-002/003 | local navigation | dirty destination confirmation may intercept | Settings/OpenCode | CORRECT |
-| `ACT-APP-005` | APP | Settings | always | APP-004 | local navigation | dirty destination confirmation may intercept | Settings current/default section | CORRECT |
-| `ACT-APP-006` | APP | System/Light/Dark | always | APP-004 | local `selectTheme` | values closed to 3 choices | presentation only; no workflow mutation | CORRECT |
-| `ACT-APP-007` | APP | Back to work queue | Settings / selected WorkItem contexts | identity/navigation | destination request | dirty confirmation if WorkItem editor dirty | Queue; originating row focus restored where applicable | CORRECT |
-| `ACT-Q-001` | Queue | select WorkItem | active row | Q-001..006 | row selection → App destination | dirty guard not relevant from Queue | selected WorkItem shell; heading focus | CORRECT |
-| `ACT-Q-002` | Queue | Show/Hide archived | queue | Q-008 | local `showArchived` + archived query | none | same queue representation | CORRECT |
-| `ACT-Q-003` | Queue | Restore archived WorkItem | archived row | archived WorkItem facts | `setWorkItemArchived(expectedArchived:true,archived:false)` | server checks expected archived state/current WorkItem | canonical archived flag changes; queue refresh | CORRECT |
-| `ACT-Q-004` | Queue | Copy WorkItem id | every row | Q-007 | clipboard write | none | non-mutating/no navigation | NOISY but functionally correct |
-| `ACT-C-001` | Create | choose project | panel open | C-001 | local project state | catalog choice | affects concern/root context only | CORRECT |
-| `ACT-C-002` | Create | choose kind/schema | panel open; linked remediation only CHANGE/DEFECT shown | C-002 | local schema state | `WorkItemSchemaIdSchema` parsing | authoring choice | CORRECT |
-| `ACT-C-003` | Create | enter title/concerns | panel open | C-003/004 | local state | typed catalog for concerns; title required | authoring choice | CORRECT |
-| `ACT-C-004` | Create | Create work item/remediation | project + schema + non-empty title | C-001..005 | `createWorkItem` → POST `/api/work-items` | daemon validates selected project/schema/source creation and linked-remediation eligibility | creates canonical Markdown source/projection; closes panel and selects new item | CORRECT |
-| `ACT-C-005` | Create | close/cancel panel | panel open | local draft | TaskPanel close | none | resets local authoring state | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-APP-001 | SURF-APP-001 | New work item; visible whenever not in Settings | local `createOpen` state | no canonical mutation until submit | opens SURF-CREATE-001; CORRECT |
+| ACT-APP-002 | SURF-APP-001 | Refresh sources; queue only | `POST /api/work-item-sources/reconcile` | daemon source reconciliation re-reads deterministic roots and updates source projections/diagnostics | remains Queue and refreshes data; CORRECT |
+| ACT-APP-003 | SURF-APP-001 | Queue search typing | local `search` | non-mutating | filters Queue; CORRECT |
+| ACT-APP-004 | SURF-APP-001 | Settings navigation / Back to queue | local URL/destination state; dirty guard if workspace dirty | non-mutating | Settings or Queue; CORRECT |
+| ACT-APP-005 | SURF-APP-001 | System/Light/Dark | browser-local theme state/storage | non-mutating | same surface/theme changes only; CORRECT |
+| ACT-APP-006 | SURF-CONF-DIRTY-DEST-001 | Continue editing / discard unsaved changes | local pending destination | no server mutation | retain current editor or navigate; CORRECT |
+| ACT-QUEUE-001 | SURF-QUEUE-001 | select non-archived row | local selected WorkItem destination | non-mutating | SURF-WI-001; CORRECT |
+| ACT-QUEUE-002 | SURF-QUEUE-001 | Show/Hide archived | local `showArchived`; archived query enabled | GET-only | Queue recomposes; CORRECT |
+| ACT-QUEUE-003 | SURF-QUEUE-001 | Restore archived WorkItem | `PATCH /api/work-items/:id/archive` with expectedArchived=true | `setWorkItemArchived`: source revalidation, expected state, no EXECUTION, no active Run; updates archive marker/projection | remains Queue; CORRECT |
+| ACT-QUEUE-004 | SURF-QUEUE-001 | Copy WorkItem id | clipboard write of `WorkItem.id` | non-mutating | same row; **technical utility is persistently available in Queue; Phase 2A should decide whether this belongs in ordinary scan chrome** |
+| ACT-CREATE-001 | SURF-CREATE-001 | project/type/title/concern selection | local controlled form | non-mutating | same task panel; CORRECT |
+| ACT-CREATE-002 | SURF-CREATE-001 | Create WorkItem / linked remediation; enabled iff project, schema and non-empty title | `POST /api/work-items` | `createWorkItemFromSource`: validates project, concerns, schema; for lineage proves completed same-project AUDIT/INVESTIGATION parent + CHANGE/DEFECT child; creates deterministic source and IDEA WorkItem | selects newly created WorkItem; CORRECT |
 
-### 13.2 Settings
+### 13.2 Settings interactions
 
-| ACT id | Origin | Interaction | Visible/enabled rule | Inputs | Boundary / recheck | Effect | Verdict |
-|---|---|---|---|---|---|---|---|
-| `ACT-SET-001` | Settings | switch Repositories/OpenCode/Model | always | SET-001 | local destination | URL/section changes only | CORRECT |
-| `ACT-SET-002` | Repositories | Add repository | section loaded | SET-002..006 | local nested form open | no mutation | CORRECT |
-| `ACT-SET-003` | Repo Add | Connect repository | exact root non-empty, not pending | local root + config SHA | POST connect; server rechecks expected config SHA, proves validated project manifest, prevents duplicate/overlap | config/repository projection/readiness changes | CORRECT |
-| `ACT-SET-004` | Repo Add | Cancel | form open | local draft | local | form closes/reset | CORRECT |
-| `ACT-SET-005` | Repository row | Move WorkItem documents | `workItemsRoot !== null` | SET-002..005 | local nested form | no mutation | CORRECT |
-| `ACT-SET-006` | Repo Move | Move documents | target non-empty, not pending | repository state + target | PUT document-root; server revalidates current project manifest/snapshot and expected manifest SHA/current layout | canonical project WorkItem document root migration + Settings refresh | CORRECT |
-| `ACT-SET-007` | Repository row | Disconnect | row exists, not pending | repository/config state | opens confirmation; confirm POST disconnect with expected config SHA; server requires repository currently connected | removes configured target root; readiness changes | CORRECT |
-| `ACT-SET-008` | Repositories | change queue/creation project | options available | project id | browser-local App context | no canonical mutation | queue/create filtering context | CORRECT |
-| `ACT-SET-009` | Repositories | Save reference roots | config loaded, not pending | referenceRoots text + config SHA | PUT reference-roots; server expected-config SHA + no-overlap proof | config/readiness changes | CORRECT |
-| `ACT-SET-010` | Model | choose model | models loaded | model refs | local selection | none | local until save | CORRECT |
-| `ACT-SET-011` | Model | Save model | selection non-empty, differs from configured, not pending | selected model + config SHA | PUT model; server expected-config SHA + selected model currently available | config/readiness changes | CORRECT |
-| `ACT-OC-001` | OpenCode Settings | Switch active account | saved non-active account; no mutation blocker; not pending | account id + current active id | POST activate; server checks expected active account id and account-mutation stability | saved provider active account changes | CORRECT |
-| `ACT-OC-002` | OpenCode Settings | Rename | no mutation blocker | account label/id | local form → PATCH account; label schema + current account inventory/uniqueness | label changes | CORRECT |
-| `ACT-OC-003` | OpenCode Settings | Remove | no blocker | account id + expected active id | confirmation → DELETE; server checks expected active account and mutation stability | credential removed / account state refresh | CORRECT |
-| `ACT-OC-004` | OpenCode Settings | Add account | no blocker | local label | opens form | no mutation | CORRECT |
-| `ACT-OC-005` | Add account | Continue to sign-in | valid account label, no blocker, not pending | label | POST login; server pauses scheduler, requires unique label, starts provider login | opens `SURF-SET-OC-LOGIN-001` | CORRECT |
-| `ACT-OC-006` | Login | Cancel sign-in | nonterminal attempt | attempt id | DELETE login attempt; daemon cancels provider login/resumes scheduler | closes login flow | CORRECT |
-| `ACT-OC-007` | Login | Done | terminal attempt | attempt status | local reset | returns saved-account surface | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-SET-001 | SURF-SET-001 | Repositories/OpenCode/Model navigation | local Settings route | non-mutating | selected Settings section; CORRECT |
+| ACT-SET-REPO-001 | SURF-SET-REPO-001 | open/cancel Add repository | local form state | non-mutating | nested SURF-SET-REPO-ADD-001 / parent; CORRECT |
+| ACT-SET-REPO-002 | SURF-SET-REPO-ADD-001 | Connect repository; non-empty root + not pending | `POST /api/settings/repositories/connect` with expected config SHA | `connectRepository`: rechecks config SHA, exact canonical Git root, valid manifest, duplicate/overlap; activates config | returns refreshed repository Settings; CORRECT |
+| ACT-SET-REPO-003 | SURF-SET-REPO-001 | open/cancel Move WorkItem documents; action only READY repository | local form state | non-mutating | nested SURF-SET-REPO-MOVE-001 / parent; CORRECT |
+| ACT-SET-REPO-004 | SURF-SET-REPO-MOVE-001 | Move documents; target non-empty + not pending | `PUT /api/settings/repositories/document-root` | `migrateWorkItemDocumentRoot`: rechecks repository configured/READY, manifest SHA/root, no active settings/coordinator/execution/Run/login/account mutation; stages migration, updates source paths, reconciles, verifies/rolls back atomically on failure | refreshed repository Settings; CORRECT, strongly revalidated |
+| ACT-SET-REPO-005 | SURF-SET-REPO-001 / CONF | Disconnect repository + confirm | `POST /api/settings/repositories/disconnect` with expected config SHA | `disconnectRepository` + configuration activation: rechecks config SHA and repository existence | refreshed Settings; CORRECT |
+| ACT-SET-REPO-006 | SURF-SET-REPO-001 | queue/creation context selector if >1 ready projects | local `queueProjectId` | non-mutating | affects Queue/Create context; CORRECT |
+| ACT-SET-REPO-007 | SURF-SET-REPO-001 | edit/save STAGE reference roots | `PUT /api/settings/reference-roots` with expected config SHA | rechecks config SHA, proves directory roots, rejects target/reference overlap, activates config | refreshed Settings; CORRECT |
+| ACT-SET-MODEL-001 | SURF-SET-MODEL-001 | choose model / Save model; enabled only changed non-empty selection | `PUT /api/settings/model` with expected config SHA | rechecks config SHA and that selected provider/model is currently available before activation | refreshed Settings; CORRECT |
+| ACT-SET-OC-001 | SURF-SET-OC-001 | Switch account; only non-active account, disabled by mutation blockers/pending | `POST /api/opencode/accounts/:id/activate` with expected active account id | `activateSavedOpenCodeAccount`: requires no active Run/login/mutation, rechecks active account and target existence before/after provider mutation | refreshed account/readiness/model state; CORRECT |
+| ACT-SET-OC-002 | SURF-SET-OC-001 / RENAME | open rename, edit, cancel, save valid label | `PATCH /api/opencode/accounts/:id` | rechecks mutation admission, account existence, unique label, persistence | refreshed account state; CORRECT |
+| ACT-SET-OC-003 | SURF-SET-OC-001 / CONF | remove + confirm; disabled by blockers/pending | `DELETE /api/opencode/accounts/:id` with expected active account id | rechecks mutation admission, active identity, account existence and removal persistence | refreshed account/readiness state; CORRECT |
+| ACT-SET-OC-004 | SURF-SET-OC-001 / ADD | open/cancel Add account; disabled when mutation blocked | local until login starts | non-mutating | SURF-SET-OC-ADD-001; CORRECT |
+| ACT-SET-OC-005 | SURF-SET-OC-ADD-001 | Continue to sign-in; valid label, no blocker/pending | `POST /api/opencode/accounts/login` | requires mutation admission, unique label, starts bounded account-control process/OAuth and rechecks admission | SURF-SET-OC-LOGIN-001; CORRECT |
+| ACT-SET-OC-006 | SURF-SET-OC-LOGIN-001 | external OpenCode sign-in link | external navigation to `authorizationUrl` | no Order mutation | external provider; CORRECT |
+| ACT-SET-OC-007 | SURF-SET-OC-LOGIN-001 | cancel pending login | `DELETE /api/opencode/accounts/login/:id` | rechecks attempt; if still pending cancels provider OAuth and releases process; terminal states reconciled | back to account add/list state; CORRECT |
+| ACT-SET-OC-008 | SURF-SET-OC-LOGIN-001 | Done after terminal login | local reset | non-mutating; queries already refreshed on terminal status | account list; CORRECT |
 
-### 13.3 WorkItem shell / navigation / lifecycle action
+### 13.3 WorkItem shell, navigation and document authoring
 
-| ACT id | Origin | Interaction | Visible/enabled rule | Inputs / rule | Boundary | Effect/destination | Verdict |
-|---|---|---|---|---|---|---|---|
-| `ACT-WI-001` | identity | Back to queue | always | navigation | App destination; dirty guard | Queue | CORRECT |
-| `ACT-WI-002` | identity | Context toggle | always | context local state | local | opens/closes secondary Context; no workflow effect | CORRECT |
-| `ACT-WI-003` | identity | Edit title | hidden in EXECUTION/COMPLETE; disabled while CONVERGING | WorkItem stage + currentAttention | local edit state | title form only | CORRECT |
-| `ACT-WI-004` | title edit | Save title | non-empty; not converging/pending | title + expected source SHA | PATCH title; server expected source SHA/current source revalidation | canonical Work request H1 changes; query refresh | CORRECT |
-| `ACT-WI-005` | title edit | Cancel | not pending | local draft | local | returns current canonical title | CORRECT |
-| `ACT-WI-006` | identity | Archive/Restore | disabled in EXECUTION, while active Run, CONVERGING, pending | archived/stage/runs/attention | confirmation → PATCH archive with `expectedArchived` | archived state changes; archive returns Queue | CORRECT |
-| `ACT-WI-007` | workflow rail | inspect step | any rail step | reached/current/unreached rail projection | local selection through dirty guard | non-mutating selected step/material resolution | CORRECT |
-| `ACT-WI-008` | material selector | inspect attempt/document/package/task | listed item exists | material availability projection | local selection through dirty guard | non-mutating selected material | CORRECT |
-| `ACT-WI-009` | step summary | Start current pre-signoff stage | current selected step + `currentAttention === ACTIONABLE` | lifecycle/current-attention derivation | POST start Run; server requires stable OpenCode account + installation/stage readiness; coordinator revalidates source/lifecycle admission | creates STAGE Run; selects its activity; provider work begins | CORRECT |
-| `ACT-WI-010` | step summary | Retry current stage | current step + recovery RETRY_CURRENT_STAGE + no mutation conflict | recovery derivation | same start-Run boundary/readiness as start | new Run same stage | CORRECT |
-| `ACT-WI-011` | step summary | Resume resolved blocker | current step + recovery RESUME_CURRENT_OWNER | recovery + WorkItem status | POST resume; daemon/core reject active competing Run and apply RESUME_CURRENT_OWNER transition | same lifecycle stage ACTIVE | CORRECT |
-| `ACT-WI-012` | step summary | Reconcile source/authority | recovery RECONCILE_AUTHORITY, no active Run | source diagnostic/hash or stale package owner | source reconcile POST or reconcile-authority POST with expected owner | re-resolves canonical owner/currentness; resulting stage determined canonically | CORRECT |
-| `ACT-WI-013` | Complete step | Create linked remediation | COMPLETE + AUDIT_COMPLETE/INVESTIGATION_COMPLETE | terminal outcome | local Create panel with parent id; child create later server-validates lineage | opens linked remediation authoring | CORRECT |
-| `ACT-WI-014` | dirty navigation confirmation | discard/continue editing | pending selection/destination exists | local dirty buffer | local | discard commits requested navigation; cancel preserves editor | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-WI-001 | SURF-WI-001 | Back to queue | local destination; dirty destination guard applies | non-mutating | Queue; CORRECT |
+| ACT-WI-002 | SURF-WI-001 | open/close Context | local `contextOpen` | non-mutating | SURF-WI-CONTEXT-001 / owning work; CORRECT |
+| ACT-WI-003 | SURF-WI-001 | Edit title; hidden in EXECUTION/COMPLETE, disabled while observation converging | local edit mode | no mutation | same identity row; CORRECT |
+| ACT-WI-004 | SURF-WI-001 | Save title; non-empty + not pending/converging | `PATCH /api/work-items/:id/title` with expected source SHA | `updateWorkItemTitle`: source revalidation, read-only in EXECUTION/COMPLETE, expected source SHA, then governed source write/freshness semantics | same WorkItem; stale returns explicit title error; CORRECT |
+| ACT-WI-005 | SURF-WI-001 | Archive/restore; disabled during EXECUTION, active Runs, convergence or pending | local confirm -> `PATCH /api/work-items/:id/archive` | daemon rechecks source, expected archive state, no EXECUTION and no active Run | successful archive returns Queue; CORRECT |
+| ACT-WI-006 | SURF-WI-001 | workflow rail selection | local `selectedStep`/material resolution; dirty material confirmation if necessary | non-mutating | selected reached/unreached workflow step; CORRECT |
+| ACT-WI-007 | SURF-CONF-DIRTY-MATERIAL-001 | continue editing/discard unsaved document before changing step/material | local pending selection | non-mutating | retain document or commit requested selection; CORRECT |
+| ACT-DOC-001 | source/lifecycle doc | Edit/Preview/Split and formatting toolbar | local editor buffer/presentation operations | non-mutating until Save | same document; CORRECT |
+| ACT-DOC-002 | SURF-MAT-SOURCE-001 | Save Work request; dirty editable buffer | `PUT /api/work-items/:id/source/body` with expected SHA | `saveWorkItemSourceBody`: revalidates source, expected SHA, no active Run, not EXECUTION/COMPLETE, validates source classification; changed authority transitions through SOURCE_AUTHORITY_CHANGED and blocks stale approved execution | refreshed source/workflow; CORRECT |
+| ACT-DOC-003 | SURF-MAT-DOC-001 | Save lifecycle Markdown when direct edit allowed | `PUT /api/artifacts/:id/content` with expected artifact SHA | `saveArtifactContent`: source revalidation, no active Run, not EXECUTION/COMPLETE, `artifactDirectEditIsAllowed`, expected SHA; writes new ArtifactRef and transitions to artifact owner | refreshed owning stage/document; CORRECT |
+| ACT-DOC-004 | editable doc | Cancel local edits | local buffer reset | non-mutating | same document; CORRECT |
+| ACT-DOC-005 | conflicted doc | Reload current canonical document | query refresh/editor reset | non-mutating | same document current bytes; CORRECT |
+| ACT-DOC-006 | source/lifecycle doc | Save documentation to Git -> confirmation | local confirmation | no commit until confirm | SURF-CONF-DOC-GIT-001; CORRECT |
+| ACT-DOC-007 | SURF-CONF-DOC-GIT-001 | confirm Git documentation commit | `POST /api/work-items/:id/documentation-commit` with expected HEAD + exact reviewed path/hash set | `commitWorkItemDocumentation`: recomputes blockers/status, rechecks HEAD and exact path/hash set, commits only governed paths | returns document and refreshed Git state; CORRECT |
+| ACT-DOC-008 | document/Context/timeline | technical disclosure toggles | local disclosure state | non-mutating | same work; CORRECT |
+| ACT-DOC-009 | invalid lifecycle Markdown | Inspect exact bytes | local material selection -> artifact content GET | read-only evidence | SURF-MAT-EVIDENCE-001; CORRECT |
 
-### 13.4 Markdown/document interactions
+### 13.4 Pre-signoff activity, proposal and evidence interactions
 
-| ACT id | Origin | Interaction | Visible/enabled rule | Boundary / recheck | Effect | Verdict |
-|---|---|---|---|---|---|---|
-| `ACT-DOC-001` | Markdown | Edit/Preview/Split | editable document; read-only forces preview | local presentation mode | presentation only | CORRECT |
-| `ACT-DOC-002` | Markdown | type/format/undo/redo | editable, not conflicted/saving | local CodeMirror buffer | local dirty buffer only | CORRECT |
-| `ACT-DOC-003` | Work request | Save | dirty, not conflicted/saving, document mutation admitted | PUT source/body with expected source SHA; daemon revalidates source/current WorkItem and expected hash | canonical Work request mutation; lifecycle freshness transition if progressed | CORRECT |
-| `ACT-DOC-004` | lifecycle document | Save | direct edit allowed + dirty + not conflict/pending | PUT artifact content with expected ArtifactRef SHA; daemon revalidates source, direct-edit eligibility and hash | canonical artifact mutation; owning-stage/downstream conformance invalidation | CORRECT |
-| `ACT-DOC-005` | Markdown | Cancel local edits | dirty, not saving | local | restores loaded canonical bytes | CORRECT |
-| `ACT-DOC-006` | Markdown conflict | Reload current | conflict detected | local from latest props/query | discards stale buffer and adopts current bytes | CORRECT |
-| `ACT-DOC-007` | document Git controls | Save documentation to Git | changed paths, clean editor, no blocker, not disabled/pending | confirmation → POST documentation-commit with expected HEAD + exact expected path/hash set | commits only governed documentation set; refreshes Git state | CORRECT |
-| `ACT-DOC-008` | lifecycle document | Inspect exact bytes | selected artifact available | local evidence selection → GET artifact content | evidence surface; no mutation | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-STAGE-001 | current R1/R2/DESIGN/PLAN/R3 summary | Start/Retry stage; current selected pre-signoff step + `CurrentAttention === ACTIONABLE` or retry disposition; disabled dirty/converging/pending | `POST /api/work-items/:id/runs` mode INTERACTIVE | `startStageRun`: rechecks pre-signoff ACTIVE state, no active Run, source/context/conformance freshness; transaction rechecks lifecycle/active Run; IDEA atomically transitions to R1 and creates RUNNING STAGE Run + STAGE_STARTED | selected current Run activity; CORRECT |
+| ACT-STAGE-002 | current blocked stage summary | Resume resolved blocker; recovery disposition RESUME_CURRENT_OWNER | `POST /api/work-items/:id/resume` | `resumeWorkItem`: rechecks BLOCKED and no active Run; non-execution transition RESUME_CURRENT_OWNER | same stage ACTIVE; CORRECT |
+| ACT-STAGE-003 | stale/source-authority summary | Reconcile source/approval authority; only matching recovery disposition and no active Run | source reconciliation or `POST /api/work-items/:id/reconcile-authority` | source path revalidates source; authority path re-computes stale owner twice and applies RECONCILE_AUTHORITY transition | returned owning upstream stage; CORRECT |
+| ACT-STAGE-004 | step-local selector | choose attempt, current document, Work request or supporting document | local material selection | non-mutating | requested material within same step; CORRECT |
+| ACT-ACTIVITY-001 | current activity | Cancel current activity; selected Run must equal current Run, interaction not CLOSED, and proposal/adoption/conflict/convergence does not own attention | `POST /api/runs/:id/cancel` | daemon rechecks RUNNING/WAITING, interrupts active provider, transaction rechecks cancellability; execution Run additionally blocks task/WorkItem | refreshed owning step; CORRECT |
+| ACT-ACTIVITY-002 | current activity composer | submit free-form continuation only ORDINARY+OPEN or exact required-input response only REQUIRED_INPUT+REQUIRED_INPUT; disabled pending/converging/empty input | `POST /api/runs/:id/input` with text + requestEventId | `submitRunInput`: rechecks STAGE/pre-signoff/active, no proposal decision, exact `stageInputIsAdmitted`, current context/conformance; transaction repeats Run/proposal/interaction/lifecycle checks, records HUMAN_INPUT_RECEIVED, resets provider session on context change, schedules next turn | same activity, next provider turn | **CORRECT closed producer/consumer admission at input boundary** |
+| ACT-ACTIVITY-003 | timeline proposal event | Review proposed document change | local proposal material selection | non-mutating | SURF-MAT-PROPOSAL-001; CORRECT for both historical inspection and current disposition |
+| ACT-ACTIVITY-004 | timeline evidence resource | Open evidence | read-only evidence GET | daemon verifies referenced evidence path | SURF-MAT-EVIDENCE-001; CORRECT |
+| ACT-ACTIVITY-005 | timeline | technical-details disclosure | local | non-mutating | same activity; CORRECT |
+| ACT-PROP-001 | SURF-MAT-PROPOSAL-001 | Back to workflow attempt | local return selection/focus restoration | non-mutating | owning activity; CORRECT |
+| ACT-PROP-002 | SURF-MAT-PROPOSAL-001 | Adopt; UI shows when no disposition and no adoption request; disabled only by mutation-convergence/pending | `POST /api/run-events/:proposal/adopt` | daemon requires current pre-signoff owning Run/stage ACTIVE, OPEN interaction, single current proposal, deterministic target, base/diff applicability; records adoption intent, applies bytes, creates ArtifactRef, records disposition, transitions lifecycle to artifact owner | back to attempt after success | **UI predicate is weaker than daemon current-ownership predicate; probably safe under valid state algebra but P1-T06 must prove historical undispositioned proposals are impossible. UNPROVEN UI/server closure** |
+| ACT-PROP-003 | SURF-MAT-PROPOSAL-001 | Reject; same UI predicate as Adopt | `POST /api/run-events/:proposal/reject` | daemon additionally requires no adoption in progress, current OPEN owner and PENDING single proposal; records disposition | back to attempt | **same P1-T06 closure obligation as ACT-PROP-002** |
+| ACT-EVID-001 | SURF-MAT-EVIDENCE-001 | Back | local recorded return selection + focus name | non-mutating | exact originating surface/control | CORRECT |
 
-### 13.5 Dialogue / proposal / evidence
+### 13.5 Approval interactions
 
-| ACT id | Origin | Interaction | Visible/enabled rule | Boundary / recheck | Effect/destination | Verdict |
-|---|---|---|---|---|---|---|
-| `ACT-ACT-001` | Activity | Cancel current activity | selected attempt is current, interaction not CLOSED, run controls own attention | POST run cancel; daemon rechecks run active; execution cancellation may block owning task | Run CANCELLED / execution ownership consequence; same workflow surface refresh | CORRECT |
-| `ACT-ACT-002` | Composer | submit free-form continuation | current selected STAGE, attention ORDINARY, interaction OPEN, non-empty, not disabled | POST input with `requestEventId:null`; daemon/core validates run/input admission | HUMAN_INPUT_RECEIVED/next provider turn; stays dialogue | CORRECT |
-| `ACT-ACT-003` | Composer | answer required input | attention REQUIRED_INPUT + matching unresolved request | POST input with exact pending requestEventId; daemon/core validates ownership/unresolved request | resolves input and continues provider turn | CORRECT |
-| `ACT-ACT-004` | timeline | Review proposed document change | proposal event + handler supplied | local proposal selection | opens `SURF-MAT-PROPOSAL-001`; return origin retained | CORRECT |
-| `ACT-ACT-005` | timeline | Open evidence | event has EvidenceRef | local evidence selection → GET run evidence | `SURF-MAT-EVIDENCE-001`; focus return retained | CORRECT |
-| `ACT-PROP-001` | proposal | Adopt | disposition null, no adoption request, mutation allowed | POST proposal adopt; daemon rechecks unresolved proposal/current context and applies/reconciles canonical artifact | proposal becomes adopted; artifact/currentness refresh; return to attempt | CORRECT |
-| `ACT-PROP-002` | proposal | Reject | same as adopt | POST proposal reject; daemon rechecks unresolved proposal | disposition REJECTED; return to attempt | CORRECT |
-| `ACT-PROP-003` | proposal | Back to workflow attempt | proposal selected | local return selection | restores owning attempt/focus | CORRECT |
-| `ACT-EVID-001` | evidence | Back | transient origin recorded | local return selection | returns exact originating material + focus | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-APR-001 | Approval step index | choose Overview/document/signed task | local selection | read-only | corresponding Approval material; CORRECT |
+| ACT-APR-002 | Approval document | inspect exact bytes | artifact content read | read-only | evidence viewer / return | CORRECT |
+| ACT-APR-003 | current Approval | enter approver identity | local `approvedBy` | non-mutating | same Approval | CORRECT |
+| ACT-APR-004 | current Approval | Sign off exact package; visible iff current stage + package exists + no package error/fetch; enabled iff non-empty approver, no convergence/pending | `POST /api/work-items/:id/signoff` with expected package hash + approvedBy | `signOffWorkItem`: recomputes exact package, rechecks package hash, baseline, source projection/bytes and every material hash; atomically persists approval closure, ExecutionTasks and SIGN_OFF transition | WorkItem becomes EXECUTION after refresh | **CORRECT, strong commit-time currentness closure** |
 
-### 13.6 R3 / Approval
+### 13.6 Implementation interactions
 
-| ACT id | Origin | Interaction | Visible/enabled rule | Boundary / recheck | Effect | Verdict |
-|---|---|---|---|---|---|---|
-| `ACT-R3-001` | R3 index | inspect review/attempt/package document | item exists | local material selection | non-mutating | CORRECT |
-| `ACT-APPROVAL-001` | Approval index | inspect overview/document/task | item exists/current or historical | local selection | non-mutating review | CORRECT |
-| `ACT-APPROVAL-002` | Approval | enter approver identity | current Approval + current package | local `approvedBy` | local until signoff | CORRECT |
-| `ACT-APPROVAL-003` | Approval | Sign off exact package | currentApproval + packageValue + no package error/fetch + non-empty approver + not disabled/pending | POST signoff with expected package hash; daemon recomputes/currentness-checks exact package and source before approval | creates Approval/signed tasks; transitions to EXECUTION | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-EXEC-001 | Implementation master | choose approved task | local material selection; latest Run selected | non-mutating | selected task detail; CORRECT |
+| ACT-EXEC-002 | Implementation master | choose task attempt | local material selection | non-mutating | selected attempt detail; CORRECT |
+| ACT-EXEC-003 | current active implementation | Cancel current implementation attempt | `POST /api/runs/:id/cancel` | daemon rechecks active status; cancellation blocks execution task + WorkItem | refreshed blocked task | CORRECT |
+| ACT-EXEC-004 | blocked implementation | Resume resolved blocker; UI iff WorkItem EXECUTION/BLOCKED + executionOwner BLOCKED_TASK | `POST /api/work-items/:id/resume` | daemon requires exactly one blocked canonical task, fresh Approval material and `executionResumeIsAllowed`; transaction rechecks no active Run, sets task TODO and WorkItem ACTIVE | same Implementation workspace | CORRECT |
+| ACT-EXEC-005 | current TODO implementation task | “Run next implementation step”; UI iff WorkItem EXECUTION/ACTIVE + executionOwner CURRENT_TASK + current task TODO + no active owner Run | **unscoped `POST /api/tick`** | `runCoordinatorTick` selects globally current/runnable task across configured repositories; command carries no WorkItem/task identity | refreshes current workspace after tick | **CONTRADICTORY COMMAND OWNERSHIP: task-local UI action invokes global scheduler admission and does not prove that the selected task is the task started** |
+| ACT-EXEC-006 | Validation | Complete validation matrix disclosure | local | non-mutating | same task | CORRECT |
+| ACT-EXEC-007 | implementation material/effect timeline | Open artifact/evidence | artifact/evidence read | read-only | SURF-MAT-EVIDENCE-001; CORRECT |
+| ACT-EXEC-008 | Implementation technical/timeline disclosures | local disclosure | non-mutating | same task | CORRECT |
 
-### 13.7 Implementation / Complete / Context
+### 13.7 Complete/result interactions
 
-| ACT id | Origin | Interaction | Visible/enabled rule | Boundary / recheck | Effect | Verdict |
-|---|---|---|---|---|---|---|
-| `ACT-EXEC-001` | task master | select task | task exists | local material selection | non-mutating detail selection | CORRECT |
-| `ACT-EXEC-002` | attempt list | select attempt | run exists for selected task | local material selection | non-mutating history | CORRECT |
-| `ACT-EXEC-003` | summary | Run next implementation step | EXECUTION/ACTIVE + owner CURRENT_TASK + task TODO + no active owner run | POST `/api/tick`; server requires stable OpenCode account + execution readiness; coordinator re-resolves current task/authority | starts productive builder/reviewer/remediator as dictated by execution state | CORRECT |
-| `ACT-EXEC-004` | summary | Cancel current implementation attempt | active current owner Run | POST cancel; daemon rechecks active; execution cancellation marks task/WorkItem blocked | canonical blocked recovery state | CORRECT |
-| `ACT-EXEC-005` | summary | Resume resolved blocker | EXECUTION/BLOCKED + owner BLOCKED_TASK | POST resume; core RESUME_CURRENT_OWNER | EXECUTION/ACTIVE same task owner | CORRECT |
-| `ACT-EXEC-006` | resources/timeline | open artifact/evidence | resource exists | GET artifact/evidence bytes | Evidence surface + return | CORRECT |
-| `ACT-COMPLETE-001` | Complete | choose result artifact tab | multiple result artifacts | local artifact id | changes result content only | CORRECT |
-| `ACT-COMPLETE-002` | Complete | open candidate evidence | evidence exists | GET run evidence | evidence surface + return | CORRECT |
-| `ACT-COMPLETE-003` | Complete | Create linked remediation | evidence-backed audit/investigation terminal and handler supplied | opens Create with `derivedFromWorkItemId` | separate governed child authoring | CORRECT |
-| `ACT-CTX-001` | Context | Close | Context open | local | restores primary width/focus semantics | CORRECT |
-| `ACT-CTX-002` | Context | expand technical disclosure | Context open | local disclosure | no domain mutation | CORRECT |
+| ACT | Origin | Interaction / UI admission | Browser path | Commit-time owner / effect | Destination / verdict |
+|---|---|---|---|---|---|
+| ACT-TERM-001 | evidence-backed COMPLETE | Create linked remediation; only AUDIT_COMPLETE/INVESTIGATION_COMPLETE | opens Create with `derivedFromWorkItemId` | no mutation until ACT-CREATE-002; daemon lineage rechecked on create | SURF-CREATE-001 | CORRECT |
+| ACT-TERM-002 | candidate/result resources | Open evidence/result artifact | read-only content/evidence GET | read only | SURF-MAT-EVIDENCE-001 / result material | CORRECT |
 
-### 13.8 Interaction completeness observation
+### 13.8 Local presentation/control families
 
-No productive browser mutation in the current renderer bypasses `ui/src/http.ts`. Local interactions are limited to presentation/navigation/edit-buffer selection and do not persist a second lifecycle owner. The material business-rule defects found so far are therefore **availability/presentation/contract-alignment questions**, not evidence of an alternate browser state machine.
+These controls do not alter canonical state but are still part of the user interaction map:
+
+| ACT family | Controls | Effect |
+|---|---|---|
+| ACT-LOCAL-001 | Context open/close, technical disclosures, validation disclosure, timeline raw-detail disclosure | local reveal/hide only |
+| ACT-LOCAL-002 | Markdown Edit/Preview/Split, formatting commands | local document-buffer/presentation mutation only until canonical Save |
+| ACT-LOCAL-003 | selector/index/rail/history selection | local inspection state only; no lifecycle mutation |
+| ACT-LOCAL-004 | confirmation Cancel actions | closes overlay and preserves owning state |
+| ACT-LOCAL-005 | evidence/proposal Back actions | restores recorded origin selection/focus |
+| ACT-LOCAL-006 | theme selection | browser-local appearance only |
+
+### 13.9 P1-T05 interaction findings
+
+| Finding | Mechanism | Verdict |
+|---|---|---|
+| ACT-F01 | Task-local “Run next implementation step” calls global unscoped `/api/tick`; daemon may admit globally selected runnable work rather than the visible selected task | **CONTRADICTORY / release-blocking control-plane mismatch**; P1-T06 must determine state impact and P1-T07/P1-T09 downstream coverage |
+| ACT-F02 | Proposal Adopt/Reject UI predicate checks disposition/adoption/convergence but does not itself prove selected proposal Run is the current owning OPEN Run; daemon rejects non-current proposal | **UNPROVEN** until P1-T06 proves invalid browser-visible state is impossible through canonical lifecycle |
+| ACT-F03 | Pre-signoff input composer and daemon admission are independently closed around current STAGE ownership, proposal absence and exact OPEN/REQUIRED_INPUT semantics, including commit-time recheck | **CORRECT** |
+| ACT-F04 | direct source/lifecycle writes use expected hashes and server-side active-Run/stage/editability rechecks; stale conflicts do not silently overwrite authority | **CORRECT** |
+| ACT-F05 | sign-off recomputes package/baseline/source/artifact bytes at commit instead of trusting browser package currentness | **CORRECT** |
+| ACT-F06 | Settings mutations use expected config/account state and daemon-level mutation admission rather than browser-only eligibility | **CORRECT** |
+| ACT-F07 | WorkItem rail/material/history selection is non-mutating; dirty edits are protected by explicit discard confirmation | **CORRECT** |
+
+### 13.10 P1-T05 interaction inventory verdict
+
+**P1-T05 interaction inventory: COMPLETE.**
+
+Every registered productive control family now has:
+
+- originating surface;
+- visibility/enablement predicate;
+- relevant `INFO-` prerequisites;
+- browser handler/API path;
+- daemon/core commit-time recheck where mutating;
+- canonical effect or explicit non-mutating classification;
+- resulting surface/state;
+- current-state verdict.
+
+The application-level flow matrices below close normal and exceptional journeys.
 
 ## 14. Global/business-rule interaction matrix
 
-| Business rule family | Browser source facts | Browser presentation/admission | Canonical commit-time owner | Result |
-|---|---|---|---|---|
-| dirty Markdown cannot be silently discarded | local Markdown dirty flag | destination/material navigation opens confirmation | browser-local only because unsaved buffer is browser-local | explicit discard or remain editing |
-| canonical Markdown write must be optimistic/concurrent-safe | current source/artifact SHA | Save disabled on conflict/pending | daemon revalidates current source/direct-edit eligibility + expected SHA | UPDATED or STALE; lifecycle freshness rules applied |
-| documentation Git save must commit exact governed set | current Git status/head/path hashes | control only when changed, clean, unblocked | repository effect validates expected HEAD/paths | one governed documentation commit or failure |
-| current pre-signoff work may start only when action is canonically available | currentAttention/recovery/selected current step | Start/Retry/Resume/Reconcile ownership | server readiness + core lifecycle transition/admission | Run/start/resume/reconcile in exact owning stage |
-| STAGE input only belongs to current admitted interaction | stage interaction + currentAttention + selected current Run | composer only OPEN/REQUIRED_INPUT | daemon/core validates active STAGE and request ownership | accepted human event / next provider turn |
-| proposal disposition owns mutation while pending | proposal decision/adoption state | Adopt/Reject only unresolved; composer suppressed by attention/material projection | daemon proposal lifecycle + artifact reconciliation | adopted/rejected exact proposal |
-| Approval requires exact current package | stage + signoff package/currentness | signoff only current package + approver | daemon recomputes/revalidates expected package hash/source/material freshness | Approval + execution tasks or stale failure |
-| execution action belongs to canonical current task | ExecutionOwner + task state + active Run | Run/Cancel/Resume mutually selected | execution readiness + coordinator/core current owner | productive attempt, blocked state or resume |
-| settings changes use compare-and-set configuration | current config SHA / active account id | controls disabled while relevant mutation blocker active | settings/account daemon expected-state checks | atomic config/account change or conflict |
-| archived state is not lifecycle state | `WorkItem.archived` + lifecycle/active-run facts | archive disabled in EXECUTION/active Run | expected archived-state check | queue visibility changes without rewriting lifecycle |
-| Context/evidence/history inspection is non-mutating | selected material/return origin | selectors, Context, Evidence | none | inspection only; canonical state unchanged |
-
-This matrix will be cross-checked against the full state algebra in P1-T06.
+| Rule domain | Browser projection | Commit owner | Closure |
+|---|---|---|---|
+| WorkItem creation/lineage | controlled project/schema/concern inputs | `createWorkItemFromSource` | server proves project, concerns and remediation lineage |
+| source/title mutation | editable state + expected current SHA | work-item source daemon | expected hash, source revalidation, active-Run/stage constraints |
+| lifecycle-document mutation | `artifactDirectEditIsAllowed` + dirty editor | coordinator artifact save | rechecks source, active Runs, stage, editability and artifact hash |
+| stage Start/Retry | `CurrentAttention` + recovery + selected current step | `startStageRun` | rechecks lifecycle, active Run, source/context/conformance |
+| stage human input | `StageRunInteraction` + `CurrentAttention` | `submitRunInput` | repeats interaction/proposal/lifecycle/context admission at commit |
+| proposal disposition | RunEvent-derived proposal state | stage proposal owner | strong current-owner/OPEN/single-proposal recheck; browser closure pending STATE audit |
+| resume/reconcile | recovery/currentness derivation | coordinator/authority | rechecks blocker or stale owner/currentness |
+| sign-off | current package + approver input | authority/signoff owner | recomputes exact package and bytes; creates Approval/tasks/lifecycle transition |
+| execution next action | selected ExecutionOwner/task | **global coordinator tick** | **not scoped to selected task; mismatch ACT-F01** |
+| execution resume/cancel | owner task/active Run derivation | coordinator | strong current-state/current-material rechecks |
+| Settings config | query state + local form | settings owner | expected config SHA + filesystem/provider/current-run admission |
+| OpenCode accounts | account state/mutation blockers | OpenCode account daemon | repeated mutation admission + expected active-account identity |
+| navigation/inspection | local browser state | none | intentionally non-mutating |
 
 ## 15. Cross-surface normal flows
 
-### FLOW-001 — Queue → WorkItem → step/material inspection
+### FLOW-001 — Queue → WorkItem → workflow inspection
 
-~~~text
-SURF-QUEUE-001
-  ACT-Q-001 select row
-    -> SURF-WI-001
-       -> ACT-WI-007 inspect workflow step
-          -> resolveWorkflowMaterial(...)
-             -> document | dialogue | review | approval | execution | complete
-       -> ACT-WI-008 inspect attempt/material
-~~~
+`SURF-QUEUE-001 --ACT-QUEUE-001--> SURF-WI-001 --ACT-WI-006--> selected workflow step --ACT-LOCAL-003--> material/history`.
 
-All inspection after row selection is non-mutating until a specific command is invoked.
+No canonical lifecycle mutation occurs. Dirty documents interpose `SURF-CONF-DIRTY-MATERIAL-001`.
 
-### FLOW-002 — Queue → Create → Work request
+### FLOW-002 — Queue → Create → new IDEA WorkItem
 
-~~~text
-Queue -> ACT-APP-001 -> SURF-CREATE-001
-      -> choose Project / schema / title / concerns
-      -> ACT-C-004
-      -> POST /api/work-items
-      -> repository-native work-request.md + WorkItem projection
-      -> selected new WorkItem / Work request
-~~~
+`Queue --ACT-APP-001--> Create --ACT-CREATE-002--> deterministic work-request.md + WorkItem IDEA/ACTIVE --> selected WorkItem / Work request`.
+
+Server creates the repository Markdown source first and persists the runtime projection for the same stable id.
 
 ### FLOW-003 — Work request → Research
 
-~~~text
-Work request document
-  -> ACT-DOC-003 Save if needed
-  -> current source + no blocking condition
-  -> ACT-WI-009 Start Research
-  -> readiness/source/lifecycle admission
-  -> R1 STAGE Run
-  -> SURF-MAT-ACTIVITY-001
-~~~
+`Work request edit/save if needed --ACT-STAGE-001(Start Research)--> R1/ACTIVE + STAGE Run RUNNING + STAGE_STARTED --> Research activity`.
 
-Saving the Work request alone never crosses IDEA → R1.
+The daemon resolves current source/context and rechecks active/lifecycle state before Run creation.
 
-### FLOW-004 — interactive pre-signoff continuation
+### FLOW-004 — R1/R2/DESIGN/PLAN interactive loop
 
-~~~text
-current R1/R2/DESIGN/PLAN STAGE Run
-  -> stageRunInteraction OPEN
-  -> ACT-ACT-002 continuation
-  -> HUMAN_INPUT_RECEIVED
-  -> provider turn
-  -> persisted RunEvents
-  -> refreshed dialogue/material projection
-~~~
+`current material --> ACT-STAGE-001 --> STAGE Run --> RunEvent timeline --> ACT-ACTIVITY-002 continuation/input --> provider turn --> messages/question/proposal/completion`.
 
-### FLOW-005 — required input
+If proposal: `ACT-ACTIVITY-003 --> Proposal review --> ACT-PROP-002/003 --> adopt/reject --> owning stage/current document`.
 
-~~~text
-HUMAN_INPUT_REQUESTED
-  -> currentAttention REQUIRED_INPUT
-  -> same Run selected
-  -> ACT-ACT-003 exact answer bound to requestEventId
-  -> provider continuation
-~~~
+If artifact/document changes, normal conformance/currentness and lifecycle transitions determine continuation/promotion; P1-T06/P1-T08 own those state derivations.
 
-### FLOW-006 — proposal review/adoption
+### FLOW-005 — direct document authoring
 
-~~~text
-ARTIFACT_PROPOSAL_CREATED
-  -> current proposal ownership
-  -> SURF-MAT-PROPOSAL-001
-  -> ACT-PROP-001 Adopt | ACT-PROP-002 Reject
-  -> disposition/adoption persistence
-  -> if adopted: canonical document write + reconciliation
-  -> refresh + return to owning workflow attempt
-~~~
+`document --> ACT-DOC-001 local edit --> ACT-DOC-002 or ACT-DOC-003 Save --> expected-hash canonical write --> refreshed material/lifecycle owner`.
 
-Conversation does not become authority merely because a proposal was discussed.
+Optional repository persistence: `ACT-DOC-006 --> Git confirmation --> ACT-DOC-007 --> governed documentation commit`.
 
-### FLOW-007 — direct document edit
+### FLOW-006 — R3 → Approval → Implementation
 
-~~~text
-current governed Work request / R1 / R2 / DESIGN / PLAN document
-  -> local Markdown edits
-  -> ACT-DOC-003/004 Save with expected SHA
-  -> canonical repository mutation
-  -> daemon lifecycle freshness/invalidation
-  -> refreshed WorkItem/material
-  -> owning stage/currentness re-resolved
-~~~
+`R3 current review/conformance --> AWAITING_SIGNOFF --> Approval inspection --> ACT-APR-004 --> Approval + canonical ExecutionTasks + EXECUTION --> Implementation`.
 
-### FLOW-008 — R3 → Approval → Implementation → Complete
+### FLOW-007 — Implementation task loop
 
-~~~text
-R3 governed review
-  -> READY_FOR_SIGNOFF + conformance (canonical stage event, not browser button)
-  -> Approval
-  -> ACT-APPROVAL-003 explicit sign-off of expected package hash
-  -> Approval + signed execution tasks
-  -> EXECUTION
-  -> ACT-EXEC-003 tick current task
-  -> Builder / Reviewer / Remediator + V0..V7 events
-  -> all approved tasks successful / candidate recorded
-  -> COMPLETE
-~~~
+`selected task --> ACT-EXEC-005 (global tick today) --> execution Run(s) --> timeline/validation/review/remediation evidence --> task state --> next task or COMPLETE`.
 
-### FLOW-009 — linked remediation after terminal Audit/Investigation
+**Current defect:** the visible selected-task action is not the scope carrier for the tick command (ACT-F01).
 
-~~~text
-AUDIT_COMPLETE / INVESTIGATION_COMPLETE
-  -> ACT-WI-013 or ACT-COMPLETE-003
-  -> SURF-CREATE-001 in linked-remediation mode
-  -> CHANGE/DEFECT child only
-  -> create with derivedFromWorkItemId
-  -> independent IDEA lifecycle
-~~~
+### FLOW-008 — Complete audit/investigation → linked remediation
 
-### FLOW-010 — Settings block → correction → productive work
-
-~~~text
-global/Settings readiness blocker
-  -> Settings section selected
-  -> repository / account / model command
-  -> expected-state daemon mutation
-  -> readiness recomputed
-  -> return Queue/WorkItem
-  -> productive Start/Tick admitted only after readiness passes
-~~~
+`COMPLETE/AUDIT_COMPLETE or INVESTIGATION_COMPLETE --> ACT-TERM-001 --> Create linked remediation --> ACT-CREATE-002 --> separately governed CHANGE/DEFECT IDEA`.
 
 ## 16. Cross-surface exceptional/recovery flows
 
-### FLOW-X01 — dirty navigation
+### FLOW-X01 — dirty navigation/material
 
-Local dirty Markdown + step/material/app destination request → `SURF-CONF-DIRTY-MATERIAL-001` or `SURF-CONF-DIRTY-DEST-001` → continue editing or explicit discard → requested navigation. No canonical bytes change until Save.
+Dirty application destination: `attempt navigation --> SURF-CONF-DIRTY-DEST-001 --> continue editing | discard+destination`.
 
-### FLOW-X02 — optimistic Markdown conflict
+Dirty step/material selection: `attempt selection --> SURF-CONF-DIRTY-MATERIAL-001 --> continue editing | discard+selection`.
 
-Save with stale source/artifact SHA → typed `STALE` result → Markdown editor conflict state → Save disabled → explicit Reload current → new canonical bytes/sha loaded.
+### FLOW-X02 — expected-hash document conflict
 
-### FLOW-X03 — mutation current-state conflict
+`Save --> daemon detects stale source/artifact/hash --> STALE/current SHA --> editor conflict notice --> Reload current --> re-edit`.
 
-Server rejects a command because observed state changed → typed Order HTTP conflict → `WorkItemWorkspace.reportMutationError` marks mutation conflict → query invalidation/convergence → currentAttention MUTATION_CONFLICT until a new coherent observation arrives. Operator must review refreshed state before another mutation.
+No silent overwrite occurs.
 
-### FLOW-X04 — source authority changed
+### FLOW-X03 — stage failure/block
 
-Current source snapshot hash differs from persisted WorkItem source hash or source diagnostic exists → source-authority reconciliation owner → ACT-WI-012 reconciles source projection → affected workflow authority returns through canonical freshness rules, normally R1 for progressed source mutation.
+Failed current stage + retry disposition: `summary --> ACT-STAGE-001 Retry --> new Run same stage`.
 
-### FLOW-X05 — stale Approval authority
+Blocked stage + resolved owner: `summary --> ACT-STAGE-002 Resume --> same stage ACTIVE`.
 
-Signoff package returns typed `STALE_AUTHORITY(owner)` → material currentness STALE(owner) → Approval action suppressed/current blocker presented → ACT-WI-012 reconcile-authority with expected owner → lifecycle returns to that owning upstream stage.
+### FLOW-X04 — stale source/approval authority
 
-### FLOW-X06 — failed pre-signoff Run
+Source authority change routes through source reconciliation/freshness semantics. Stale sign-off authority: `currentness STALE --> ACT-STAGE-003 --> daemon recomputes stale owner --> RECONCILE_AUTHORITY transition to exact owner`.
 
-Run FAILED with WorkItem remaining current ACTIVE → recovery RETRY_CURRENT_STAGE → ACT-WI-010 creates a new Run at same stage after readiness; failed attempt remains history.
+### FLOW-X05 — proposal adoption interruption
 
-### FLOW-X07 — blocked pre-signoff stage
+`Pending proposal --> ACT-PROP-002 --> ARTIFACT_PROPOSAL_ADOPTION_REQUESTED --> bytes/adoption reconciliation --> disposition ADOPTED`.
 
-WorkItem current stage BLOCKED → recovery RESUME_CURRENT_OWNER → operator resolves external blocker → ACT-WI-011 → same stage ACTIVE; resume never promotes.
+Daemon restart path scans adoption-requested/undispositioned proposals and resumes adoption; UI renders “Adoption in progress”.
 
-### FLOW-X08 — provider/session execution failure
+### FLOW-X06 — provider/session failure
 
-Provider failure becomes persisted provider/run events and FAILED/BLOCKED state according to owning role → Activity/Implementation shows failure/current owner → retry/resume/reconcile path determined by canonical recovery. P1-T07 audits whether the operator receives enough bounded provider information to understand this path.
+Provider/setup failure is persisted as product-facing RunEvent/Run terminal state; WorkItem remains at owning stage. Recovery becomes Retry/Resume/Reconcile according to canonical derivation. Exact provider/session diagnostics remain technical evidence. P1-T07 owns the deeper OpenCode/session path.
 
-### FLOW-X09 — execution cancellation/failure
+### FLOW-X07 — Approval becomes stale before sign-off
 
-Cancel active execution Run or execution failure → task/WorkItem blocked as dictated by coordinator/execution rules → ACT-EXEC-005 only after blocker resolved → same current task returns ACTIVE. Selection/history remains inspectable.
+Package read may fail/stale; primary summary exposes stale owner. `ACT-STAGE-003` recomputes owner before commit and returns lifecycle ownership upstream. `ACT-APR-004` independently refuses stale bytes because sign-off recomputes package/baseline/source/artifacts.
 
-### FLOW-X10 — sign-off race/staleness
+### FLOW-X08 — execution cancel/block/resume
 
-Approval screen rendered from package A → operator signs with `expectedPackageHash=A` → server recomputes current package; if changed, mutation fails rather than authorizing a different package → refreshed Approval/currentness.
+Active execution cancel: `ACT-EXEC-003 --> Run CANCELLED + task BLOCKED + WorkItem BLOCKED`.
 
-### FLOW-X11 — configuration race
+After blocker resolution: `ACT-EXEC-004 --> exact one blocked task + fresh Approval proof --> task TODO + WorkItem ACTIVE`.
 
-Settings form rendered from config SHA/active-account id A → submit with expected A → daemon compares current state; stale expected state rejected → Settings refetch preserves current configuration as authority.
+### FLOW-X09 — Settings conflict/admission failure
 
-### FLOW-X12 — terminal evidence inspection
-
-Complete result → open exact candidate/artifact evidence → Evidence surface → Back returns to final result/focus; no lifecycle mutation.
+Config/account mutations carry expected config/active-account identity and may fail if state changed or active work makes mutation unsafe. UI refreshes state and leaves Settings ownership intact.
 
 ## 17. Overlay interaction graph
 
-The P1-T02 graph is now bound to ACT ids:
-
-| Origin | Trigger | Overlay / nested task | Result / return |
+| Origin | Trigger / ACT | Overlay / nested task | Close/result |
 |---|---|---|---|
-| APP/Queue/Complete | `ACT-APP-001` / `ACT-WI-013` / `ACT-COMPLETE-003` | `SURF-CREATE-001` | cancel resets; create selects new WorkItem |
-| dirty app destination | `ACT-APP-004/005/007` while dirty | `SURF-CONF-DIRTY-DEST-001` | explicit discard or remain editing |
-| dirty step/material | `ACT-WI-007/008` while dirty | `SURF-CONF-DIRTY-MATERIAL-001` | explicit discard or remain |
-| WorkItem archive/restore | `ACT-WI-006` | `SURF-CONF-ARCHIVE-001` | confirm mutation / cancel |
-| document Git save | `ACT-DOC-007` | `SURF-CONF-DOC-GIT-001` | exact expected-head/path commit / cancel |
-| repository add | `ACT-SET-002` | `SURF-SET-REPO-ADD-001` | connect / cancel |
-| repository move | `ACT-SET-005` | `SURF-SET-REPO-MOVE-001` | migrate / cancel |
-| repository disconnect | `ACT-SET-007` | `SURF-CONF-REPO-DISCONNECT-001` | disconnect / cancel |
-| OpenCode rename | `ACT-OC-002` | `SURF-SET-OC-RENAME-001` | rename / cancel |
-| OpenCode add | `ACT-OC-004` → `ACT-OC-005` | `SURF-SET-OC-ADD-001` → LOGIN | cancel / terminal done |
-| OpenCode remove | `ACT-OC-003` | `SURF-CONF-OC-REMOVE-001` | remove / cancel |
-| Run proposal event | `ACT-ACT-004` | `SURF-MAT-PROPOSAL-001` | adopt/reject/back to attempt |
-| event/resource | `ACT-ACT-005`, `ACT-EXEC-006`, `ACT-COMPLETE-002` | `SURF-MAT-EVIDENCE-001` | back to exact origin |
-| WorkItem Context | `ACT-WI-002` | `SURF-WI-CONTEXT-001` | explicit close; responsive representation only |
-
-### 17.1 P1-T05 completion verdict
-
-**P1-T05: COMPLETE.**
-
-Every productive UI command is classified as local inspection/presentation or traced through the typed browser API to a daemon/current-state boundary. Visibility and enablement rules are distinct, commit-time compare-and-set/readiness/state rechecks are identified, and the resulting surface/state effect is recorded. Normal and exceptional flows now provide the input required by P1-T06 and P1-T07.
+| SURF-APP-001 / Queue / WorkItem toolbar | ACT-APP-001 | SURF-CREATE-001 | success selects new WorkItem; close/reset is local |
+| dirty WorkItem destination | ACT-APP-004 | SURF-CONF-DIRTY-DEST-001 | continue editing or discard+navigate |
+| SURF-WI-001 | ACT-WI-006 while dirty | SURF-CONF-DIRTY-MATERIAL-001 | continue editing or discard+selection |
+| SURF-WI-001 | ACT-WI-005 | SURF-CONF-ARCHIVE-001 | cancel or archive/restore |
+| source/lifecycle doc | ACT-DOC-006 | SURF-CONF-DOC-GIT-001 | cancel or exact-path Git commit |
+| SURF-SET-REPO-001 | ACT-SET-REPO-001 | SURF-SET-REPO-ADD-001 | cancel/connect |
+| SURF-SET-REPO-001 | ACT-SET-REPO-003 | SURF-SET-REPO-MOVE-001 | cancel/migrate |
+| SURF-SET-REPO-001 | ACT-SET-REPO-005 | SURF-CONF-REPO-DISCONNECT-001 | cancel/disconnect |
+| SURF-SET-OC-001 | ACT-SET-OC-002 | SURF-SET-OC-RENAME-001 | cancel/save |
+| SURF-SET-OC-001 | ACT-SET-OC-004/005 | SURF-SET-OC-ADD-001 → SURF-SET-OC-LOGIN-001 | cancel or terminal Done |
+| SURF-SET-OC-001 | ACT-SET-OC-003 | SURF-CONF-OC-REMOVE-001 | cancel/remove |
+| activity timeline | ACT-ACTIVITY-003 | SURF-MAT-PROPOSAL-001 | ACT-PROP-001/002/003 |
+| workflow resource | ACT-ACTIVITY-004 / ACT-EXEC-007 / ACT-DOC-009 | SURF-MAT-EVIDENCE-001 | ACT-EVID-001 |
+| SURF-WI-001 | ACT-WI-002 | SURF-WI-CONTEXT-001 | explicit close; panel/drawer by responsive class |
 
 ## 18. Duplication/leakage inventory
 
@@ -1201,17 +1142,17 @@ At P1-T02 completion every surface has a source owner and scenario contract. Lat
 
 | SURF family | Source | Scenario contract | Rendered evidence | INFO | ACT/FLOW | STATE/OC/MAT/CERT | Status |
 |---|---|---|---|---|---|---|---|
-| application shell/queue/create | §§8.1 | §10 | P1-T03 | **COMPLETE §12.1** | P1-T05 | later | OPEN |
-| Settings + nested account/repository tasks | §§8.1 | §10 | P1-T03 | **COMPLETE §12.2** | P1-T05 | OC/MAT/CERT later | OPEN |
-| WorkItem shell/Context | §8.2 | §10 | P1-T03 | **COMPLETE §12.3** | P1-T05 | STATE/MAT/CERT later | OPEN |
-| Work request | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.4** | P1-T05 | STATE/MAT/CERT later | OPEN |
-| R1/R2/DESIGN/PLAN | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.5** | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
-| R3 | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.6** | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
-| Approval | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.7** | P1-T05 | STATE/MAT/CERT later | OPEN |
-| Implementation | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.8** | P1-T05 | STATE/OC/MAT/CERT later | OPEN |
-| Complete | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.9** | P1-T05 | STATE/MAT/CERT later | OPEN |
-| shared activity/proposal/evidence/doc materials | §8.3 | §10 | P1-T03 | **COMPLETE §§12.4–12.9** | P1-T05 | all applicable later | OPEN |
-| confirmations/safety overlays | §8.4 | §10 | P1-T03 | **COMPLETE §12.10** | P1-T05 | STATE/MAT/CERT as applicable | OPEN |
+| application shell/queue/create | §§8.1 | §10 | P1-T03 | **COMPLETE §12.1** | **COMPLETE §§13–17** | later | OPEN |
+| Settings + nested account/repository tasks | §§8.1 | §10 | P1-T03 | **COMPLETE §12.2** | **COMPLETE §§13–17** | OC/MAT/CERT later | OPEN |
+| WorkItem shell/Context | §8.2 | §10 | P1-T03 | **COMPLETE §12.3** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
+| Work request | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.4** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
+| R1/R2/DESIGN/PLAN | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.5** | **COMPLETE §§13–17** | STATE/OC/MAT/CERT later | OPEN |
+| R3 | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.6** | **COMPLETE §§13–17** | STATE/OC/MAT/CERT later | OPEN |
+| Approval | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.7** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
+| Implementation | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.8** | **COMPLETE §§13–17** | STATE/OC/MAT/CERT later | OPEN |
+| Complete | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.9** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
+| shared activity/proposal/evidence/doc materials | §8.3 | §10 | P1-T03 | **COMPLETE §§12.4–12.9** | **COMPLETE §§13–17** | all applicable later | OPEN |
+| confirmations/safety overlays | §8.4 | §10 | P1-T03 | **COMPLETE §12.10** | **COMPLETE §§13–17** | STATE/MAT/CERT as applicable | OPEN |
 
 ### 19.1 P1-T02 completion verdict
 
@@ -1230,4 +1171,9 @@ P1-T04 establishes the first evidence-backed gaps:
 3. **INFO-F04 — historical Approval exposes exact Approval id in ordinary task metadata.**
 4. **INFO-F07 — current OpenCode visibility conforms to current authority but may be insufficient for the 0.5.0 product goal; this is explicitly deferred to P1-T07 rather than inferred here.**
 
-P1-T05 must determine whether the interaction availability and destinations surrounding these information regions are also incorrect. P1-T06/P1-T08 must determine whether any presentation mismatch originates in deeper state/material semantics rather than UI composition alone.
+P1-T05 adds one release-blocking control-plane defect and one state-closure question:
+
+5. **ACT-F01 — Implementation’s task-local “Run next implementation step” calls global unscoped `/api/tick`.** The visible selected task is not carried in the command, so UI intent and daemon admission are not the same semantic action.
+6. **ACT-F02 — Proposal Adopt/Reject browser admission is weaker than daemon current-owner admission.** P1-T06 must prove the browser-visible discrepant state is impossible or classify it as a defect.
+
+P1-T06/P1-T08 must determine whether these and the earlier presentation mismatches originate in deeper state/material semantics rather than UI composition alone.
