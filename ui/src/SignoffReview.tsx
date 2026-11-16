@@ -26,6 +26,7 @@ import {
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
   WorkbenchEmptyState,
@@ -439,15 +440,13 @@ export const SignoffReview = ({
           <h3>Signed task meaning / scope / gates</h3>
           <div className="order-resource-list">
             {packageValue.taskBlock.tasks.map((task) => (
-              <button
+              <WorkbenchResourceRow
                 key={task.id}
-                type="button"
-                className="order-resource-row"
-                onClick={() => setSelection({ kind: "TASK", taskId: task.id })}
-              >
-                <strong>{task.objective}</strong>
-                <span>{task.scope.length} scope item{task.scope.length === 1 ? "" : "s"} · {task.gateIds.length} gate{task.gateIds.length === 1 ? "" : "s"}</span>
-              </button>
+                label={task.objective}
+                detail={task.scope.length + " scope item" + (task.scope.length === 1 ? "" : "s") + " · " + task.gateIds.length + " gate" + (task.gateIds.length === 1 ? "" : "s")}
+                actionLabel={"Inspect signed task: " + task.objective}
+                onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
+              />
             ))}
           </div>
         </section>
