@@ -257,6 +257,10 @@ export const SignoffReview = ({
     },
   });
 
+  const currentTasks = packageValue?.taskBlock.tasks ?? [];
+  const historicalTasks = tasks;
+  const approvalCompleted = !currentApproval && historicalTasks.length > 0;
+
   const packageMaterial = (
     <WorkbenchDisclosure
       label="Package material"
@@ -277,7 +281,7 @@ export const SignoffReview = ({
               onOpen={() => setSelection({ kind: "DOCUMENT", artifactId: artifact.id })}
             />
           ))}
-          {(currentApproval ? packageValue?.taskBlock.tasks ?? [] : tasks).map((task) => (
+          {(currentApproval ? currentTasks : historicalTasks).map((task) => (
             <WorkbenchResourceRow
               key={task.id}
               label={task.objective}
