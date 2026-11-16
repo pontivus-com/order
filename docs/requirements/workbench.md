@@ -539,6 +539,8 @@ optional on-demand context
 
 No other persistent outer navigation layer is permitted.
 
+The reviewed wide-layout visual references derived from this owner and the 0.5.0 Phase 2A WorkItem are stored at `docs/references/workbench-ui/README.md`. They are implementation/reference material only: they illustrate this document's required hierarchy and look/feel but do not create a second semantic owner.
+
 ### 11.1 Stable geometry invariant
 
 Canonical state changes may change content and enabled actions. They must not cause arbitrary structural movement.
