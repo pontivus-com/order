@@ -1,6 +1,6 @@
 # Phase 1 certification and evidence map
 
-**Status:** P1-T01 evidence registry complete; P1-T03/P1-T09 proof mapping pending  
+**Status:** P1-T01 and P1-T03 evidence registries complete; P1-T09 invariant proof mapping pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
 **Owner inside Phase 1:** proof/evidence status only  
@@ -96,11 +96,44 @@ Permitted evidence path:
 
 ## 6. Browser/integration coverage
 
-**Pending P1-T03 and P1-T09.**
+P1-T03 established direct rendered evidence for the current application composition at audit SHA `54e0a204bf35be1ee7d6118e798531015475baa0`.
+
+Retained artifact set:
+
+| Run | Artifact | Digest | Result relevant to evidence |
+|---|---:|---|---|
+| `43785880126` | `14190501955` | `sha256:78831b19f5d716ebee5d8b88c0b6362e7590b6570c0844621ef01405e6968917` | 29 valid production-runtime captures; late harness timeout does not invalidate flushed evidence |
+| `43786952469` | `14190488690` | `sha256:9bd00bfcba627c7d104015cf7cb329240e9d887185f89660e5dcc92f93b0b3e8` | 3 production-runtime settings captures + 1 deterministic OpenCode UI contract capture |
+| `43787594359` | `14190659108` | `sha256:1e0e4558f14d452a15dc99c80962893bb529902632688679e79de686ed01ce70` | 2 production-runtime confirmations + 4 deterministic OpenCode UI contract captures |
+| `43787807267` | `14190539793` | `sha256:3246ad293387df3dc866f6f01c9423dcf72700799c95bea47019197ffcb406e3` | 5 production-runtime captures; workflow passed |
+
+The exact file→`SURF-` mapping is owned by `application-interaction-map.md` §11.
+
+The screenshot corpus proves rendered composition only. It does not by itself prove canonical state ownership, provider capability, mutation admission or semantic correctness. Those require the corresponding source/test evidence in P1-T04–P1-T09.
 
 ## 7. Runtime-evidence coverage
 
-**Pending P1-T03 and P1-T09.**
+### CERT-BASE-004 — temporary screenshot scaffolding is absent from the current branch tree
+
+**Fact:** the temporary `.github/workflows/phase1-rendered-evidence.yml` used only to collect evidence has been deleted. Current `.github/workflows` contains only the permanent `ci.yml` and `release.yml`.
+
+**Verdict:** PROVEN.
+
+### CERT-BASE-005 — captured evidence targets one stable implementation SHA
+
+**Fact:** every retained Phase-1 screenshot manifest records audit SHA `54e0a204bf35be1ee7d6118e798531015475baa0`, whose production implementation remains the released 0.4.0 code baseline.
+
+**Verdict:** PROVEN.
+
+### CERT-BASE-006 — deterministic OpenCode screenshots are UI-contract evidence only
+
+**Fact:** populated-account, rename/remove/add/login screenshots use the repository's existing deterministic fake provider through the real Order daemon/API/UI path.
+
+**Verdict:** PROVEN as current Order UI-contract evidence; **not evidence** of external/pinned OpenCode capability.
+
+**P1-T07 obligation:** independently prove real pinned-integration observability/account/session capabilities before Phase 2 uses them as provider facts.
+
+Detailed invariant-to-runtime proof mapping remains P1-T09.
 
 ## 8. Misleading or insufficient current sensors
 
