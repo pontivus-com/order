@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 and P1-T02 complete; P1-T03+ pending  
+**Status:** P1-T01, P1-T02 and P1-T03 complete; P1-T04+ pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -419,14 +419,99 @@ P1-T02 does not define new state. The scenario axes are sourced from current cor
 - `ValidationBoundary`: `NONE | PASSED_THROUGH | FAILED_AT | COMPLETE`;
 - `RecoveryDisposition`: `NONE | RETRY_CURRENT_STAGE | RESUME_CURRENT_OWNER | RECONCILE_AUTHORITY`;
 - `ObservationCoherence`: `COHERENT | CONVERGING`;
-- `CurrentAttentionTag`: the ten tags enumerated in the WorkItem-shell row above;
+- `CurrentAttentionTag`: the eleven tags enumerated in the WorkItem-shell row above;
 - workflow reach: current / reached-historical / unreached.
 
 Impossible combinations are resolved by the canonical core rules in P1-T06; P1-T03 should not fabricate fixtures for states the core rejects.
 
 ## 11. Rendered evidence manifest
 
-**Pending P1-T03.** The scenario matrix in §10 is the capture contract.
+P1-T03 captured the current application through the repository's existing Playwright/e2e application path at exact audit SHA `54e0a204bf35be1ee7d6118e798531015475baa0`. Temporary GitHub Actions scaffolding was removed after capture; the branch tree contains no Phase-1 workflow.
+
+Three retained evidence artifacts cover the application:
+
+| Run | Artifact ID | Digest | Evidence class | Coverage |
+|---|---:|---|---|---|
+| `43785880126` | `14190501955` | `sha256:78831b19f5d716ebee5d8b88c0b6362e7590b6570c0844621ef01405e6968917` | production runtime | broad application/workflow capture, 29 screenshots |
+| `43786952469` | `14190488690` | `sha256:9bd00bfcba627c7d104015cf7cb329240e9d887185f89660e5dcc92f93b0b3e8` | production runtime + deterministic OpenCode UI contract fixture | repository nested settings + populated OpenCode account surface, 4 screenshots |
+| `43787594359` | `14190659108` | `sha256:1e0e4558f14d452a15dc99c80962893bb529902632688679e79de686ed01ce70` | production runtime + deterministic OpenCode UI contract fixture | OpenCode account interactions + confirmations, 6 screenshots |
+| `43787807267` | `14190539793` | `sha256:3246ad293387df3dc866f6f01c9423dcf72700799c95bea47019197ffcb406e3` | production runtime | Git confirmation, long-source density, light/dark theme, 5 screenshots |
+
+All manifests pin the same audit SHA. Failed workflow conclusions on the first three runs were **capture-scaffolding failures after valid evidence had already been flushed and uploaded**; they are not product verdicts. The final capture run `43787807267` passed.
+
+### 11.1 Direct capture index
+
+| File(s) | SURF | Captured condition |
+|---|---|---|
+| `01-queue-wide.png`, `02-queue-narrow.png` | `SURF-QUEUE-001` | active queue wide/narrow, including source-diagnostic environment |
+| `03-create-work-item.png` | `SURF-CREATE-001` | ordinary creation task panel |
+| `04-settings-repositories.png` | `SURF-SET-REPO-001` | repository Settings |
+| `05-settings-opencode-empty.png`, `34-settings-opencode-populated.png` | `SURF-SET-OC-001` | empty and populated OpenCode-account states |
+| `06-settings-model.png` | `SURF-SET-MODEL-001` | model/runtime Settings |
+| `07-work-request.png` | `SURF-STEP-WR-001`, `SURF-MAT-SOURCE-001` | Work request document/editor |
+| `08-research-document.png` | `SURF-STEP-R1-001`, `SURF-MAT-DOC-001` | Research governed document |
+| `09-requirements-document.png` | `SURF-STEP-R2-001`, `SURF-MAT-DOC-001` | Requirements governed document |
+| `10-design-document.png` | `SURF-STEP-DESIGN-001`, `SURF-MAT-DOC-001` | Solution-design governed document |
+| `11-plan-document.png` | `SURF-STEP-PLAN-001`, `SURF-MAT-DOC-001` | Implementation-plan governed document |
+| `12-readiness-review.png` | `SURF-STEP-R3-001`, `SURF-MAT-DOC-RO-001` | Readiness review/package material |
+| `13-approval.png`, `21-approval-current.png` | `SURF-STEP-APPROVAL-001` | Approval inspection/current sign-off package |
+| `14-required-input.png` | `SURF-MAT-ACTIVITY-001` | STAGE required-input dialogue |
+| `15-proposal-review.png`, `16-proposal-adoption.png` | `SURF-MAT-PROPOSAL-001` | pending proposal and adoption-in-progress |
+| `17-retry-recovery.png`, `18-blocked-resume.png` | `SURF-WI-001` | failed-stage retry and blocked-stage resume ownership |
+| `19-context-wide.png`, `20-context-narrow.png` | `SURF-WI-CONTEXT-001` | wide Context panel and narrow Drawer |
+| `22-approval-task.png` | `SURF-MAT-APPROVAL-TASK-001` | signed task detail |
+| `23-implementation-ready.png` | `SURF-STEP-EXEC-001` | Implementation with current TODO owner |
+| `24-implementation-failed.png`, `25-implementation-verified.png` | `SURF-MAT-EXEC-TASK-001` | failed review/validation feedback and verified reviewer attempt |
+| `26-evidence.png` | `SURF-MAT-EVIDENCE-001` | raw evidence inspection |
+| `27-complete-audit.png`, `28-complete-candidate.png` | `SURF-STEP-COMPLETE-001` | AUDIT_COMPLETE and CANDIDATE_DONE results |
+| `29-dirty-selection-confirmation.png` | `SURF-CONF-DIRTY-MATERIAL-001` | dirty workflow/material selection |
+| `31-settings-repository-add.png` | `SURF-SET-REPO-ADD-001` | add repository form |
+| `32-settings-repository-move.png` | `SURF-SET-REPO-MOVE-001` | move WorkItem documents form |
+| `33-settings-repository-disconnect.png` | `SURF-CONF-REPO-DISCONNECT-001` | disconnect confirmation |
+| `35-settings-opencode-rename.png` | `SURF-SET-OC-RENAME-001` | rename account form |
+| `36-settings-opencode-remove.png` | `SURF-CONF-OC-REMOVE-001` | remove account confirmation |
+| `37-settings-opencode-add.png`, `38-settings-opencode-login.png` | `SURF-SET-OC-ADD-001`, `SURF-SET-OC-LOGIN-001` | add-account and pending device-login states |
+| `39-archive-confirmation.png` | `SURF-CONF-ARCHIVE-001` | WorkItem archive confirmation |
+| `40-dirty-destination-confirmation.png` | `SURF-CONF-DIRTY-DEST-001` | dirty document blocks application destination change |
+| `41-document-git-confirmation.png` | `SURF-CONF-DOC-GIT-001` | governed documentation Git commit confirmation |
+| `42-long-source-wide.png`, `43-long-source-narrow.png` | `SURF-MAT-SOURCE-001` | long-content density wide/narrow |
+| `44-theme-light.png`, `45-theme-dark.png` | `SURF-APP-001` | explicit Light/Dark application rendering |
+
+The Settings shell `SURF-SET-001` and selected WorkItem shell `SURF-WI-001` are parent compositions visible in their child captures rather than separate screenshots. The read-only lifecycle document surface is exercised inside R3/Approval captures. These are not separate geometry owners.
+
+### 11.2 OpenCode fixture boundary
+
+Screenshots `34`–`38` use the repository's existing deterministic fake OpenCode provider **behind the real daemon/API/UI path** to make saved-account and device-login UI states reproducible.
+
+They prove:
+
+- the current typed Order account state can render those UI compositions;
+- the normal account mutation visibility/enablement rules are exercised;
+- the real same-origin HTTP mutation boundary is used.
+
+They do **not** prove that the pinned external OpenCode binary exposes the represented capabilities or state. That capability question belongs exclusively to P1-T07 and must use pinned-integration evidence.
+
+During capture, account mutations were initially disabled because the shared E2E fixture contained active Runs. The harness closed those Runs through the real `POST /api/runs/:id/cancel` path. A missing `Origin` header was rejected with `403`, confirming the daemon's same-origin mutation guard; the harness then used the admitted same-origin request.
+
+### 11.3 Scenario coverage rule
+
+The screenshots are visual evidence for the materially different **composition, hierarchy, density, responsive and overlay geometries** in §10. They are not a second state-machine certification suite.
+
+Conditional states that reuse an already captured composition but change text/status/action values remain proven through:
+
+1. exact source/render predicates in P1-T04/P1-T05;
+2. permanent browser/core/daemon tests recorded by P1-T09; and
+3. the direct rendered representative for that composition family.
+
+If P1-T04/P1-T05 discovers a conditional branch that changes geometry or interaction composition and is not represented above, P1-T03 reopens and captures that state before Phase 1 can close.
+
+### 11.4 P1-T03 completion verdict
+
+**P1-T03: COMPLETE, subject to reopen-on-new-surface rule.**
+
+The registered primary compositions, overlays, responsive Context modes, long-content density and theme variants have direct rendered evidence at the exact audited implementation SHA. Temporary GitHub Actions scaffolding has been removed from the branch tree.
+
+P1-T04 may now attach typed data lineage and render predicates to these captured surfaces.
 
 ## 12. Per-surface information inventory
 
