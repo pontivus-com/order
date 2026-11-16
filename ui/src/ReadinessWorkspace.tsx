@@ -26,9 +26,9 @@ import {
 } from "./workbench-presentation.ts";
 import {
   WorkflowStepFrame,
-  WorkflowStepIndex,
-  type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
+import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
+import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -99,57 +99,34 @@ export const ReadinessWorkspace = ({
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
 
-  const groups: WorkflowStepIndexGroup[] = [
-    {
-      id: "review",
-      label: "Review",
-      items: [{
-        id: "readiness-review",
-        label: "Readiness review",
-        description: readinessArtifact && materialState
-          ? materialPresentationStateLabel(materialState)
-          : "Review state and findings",
-        selected: material.kind === "READINESS_REVIEW",
-        onSelect: () => onSelectMaterial({ kind: "READINESS_REVIEW" }),
-      }],
-    },
-  ];
-
-  if (stageRuns.length > 0) {
-    groups.push({
-      id: "attempts",
-      label: "Attempts",
-      items: stageRuns.map((run) => ({
-        id: run.id,
-        label: "Attempt " + run.attempt,
-        description: new Date(run.startedAt).toLocaleString(),
-        statusLabel: runStatusLabel(run.status),
-        statusVariant: statusVariant(run.status),
-        selected: material.kind === "STAGE_RUN" && material.runId === run.id,
-        onSelect: () => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id }),
-      })),
-    });
-  }
-
-  if (packageArtifacts.length > 0) {
-    groups.push({
-      id: "package",
-      label: "Package material",
-      items: packageArtifacts.map((artifact) => ({
-        id: artifact.id,
-        label: lifecycleArtifactLabel(artifact.role),
-        description: "Read-only package authority",
-        selected:
-          material.kind === "SUPPORTING_DOCUMENT" &&
-          material.artifactId === artifact.id,
-        onSelect: () =>
-          onSelectMaterial({
-            kind: "SUPPORTING_DOCUMENT",
-            artifactId: artifact.id,
-          }),
-      })),
-    });
-  }
+  const supportingMaterial =
+    stageRuns.length > 0 || packageArtifacts.length > 0 ? (
+      <WorkbenchDisclosure
+        label="Package material and attempt history"
+        content={
+          <div className="order-resource-list">
+            {stageRuns.map((run) => (
+              <WorkbenchResourceRow
+                key={run.id}
+                label={"Readiness attempt " + run.attempt}
+                detail={runStatusLabel(run.status) + " · " + new Date(run.startedAt).toLocaleString()}
+                actionLabel={"Open readiness attempt " + run.attempt}
+                onOpen={() => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id })}
+              />
+            ))}
+            {packageArtifacts.map((artifact) => (
+              <WorkbenchResourceRow
+                key={artifact.id}
+                label={lifecycleArtifactLabel(artifact.role)}
+                detail="Read-only governed package material"
+                actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
+                onOpen={() => onSelectMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id })}
+              />
+            ))}
+          </div>
+        }
+      />
+    ) : null;
 
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
@@ -238,8 +215,6 @@ export const ReadinessWorkspace = ({
   return (
     <WorkflowStepFrame
       summary={summary}
-      index={<WorkflowStepIndex groups={groups} />}
-      indexLabel="Readiness material"
       primary={
         <div data-testid="review-workspace">
         <WorkbenchReview
@@ -258,7 +233,12 @@ export const ReadinessWorkspace = ({
             }
           />}
           summary={<div><h2>Readiness review</h2><p>Independent verification of the exact governed package.</p></div>}
-          body={primary}
+          body={
+            <div className="order-review-material-stack">
+              {primary}
+              {supportingMaterial ? <div className="order-review-supporting-disclosure">{supportingMaterial}</div> : null}
+            </div>
+          }
           decisions={<></>}
         />
         </div>
