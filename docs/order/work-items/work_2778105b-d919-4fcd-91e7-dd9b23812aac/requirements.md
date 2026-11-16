@@ -2,7 +2,7 @@
 
 # 0.5.0 integrated workflow task experience — functional requirements
 
-**Status:** Functional design complete draft — pending review/acceptance  
+**Status:** Functional design reviewed — ready for Solution design  
 **WorkItem:** `work_2778105b-d919-4fcd-91e7-dd9b23812aac`  
 **Derived factual authority:** parent Audit `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Functional design model:** workflow step → primary task → subtasks → information/input/interaction requirements → observable outcome
@@ -33,7 +33,7 @@ Every lifecycle step therefore owns:
 
 The browser remains a client of canonical Order state. It does not infer eligibility, lifecycle ownership or material authority merely from what is selected or visible.
 
-Phase 1 established that the existing separation between WorkItem lifecycle, Run interaction state, proposal state, material currentness, recovery ownership, execution ownership, validation boundary, observation coherence and current attention is materially sound. This functional design preserves that separation and does not introduce another workflow or document-status state model.
+The investigative baseline established that the existing separation between WorkItem lifecycle, agent-interaction state, proposal state, material currentness, recovery ownership, execution ownership, validation boundary, observation coherence and current attention is materially sound. This functional design preserves that separation and does not introduce another workflow or document-status state model.
 
 ### 2. Cross-workflow task sequence
 
@@ -394,6 +394,10 @@ Two transient change states are presented separately from material maturity:
 
 A proposal does not itself make the target document current authority. Git recording is also not a maturity state and must remain orthogonal to conformance/readiness.
 
+A deterministic lifecycle document discovered in the repository is presented as **Draft** even when no historical agent attempt exists for it.
+
+Discovery alone does not fabricate a reached workflow step, successful completion, conformance result, readiness verdict or approval. If the document's owning workflow step has not yet been reached, the draft is inspectable rather than treated as current authority; once the owning step is reached and normal authoring rules permit mutation, the same draft may participate in the ordinary edit/save flow.
+
 A terminal result is presented as the result of the WorkItem, not as another editable material maturity state.
 
 ### 8. Agent operational activity and conversation
@@ -438,7 +442,7 @@ The operator does not need raw OpenCode event names, protocol identifiers, provi
 
 Operational activity is required **live while processing** when the reliable integration surface can provide it under the accepted technical design.
 
-After the turn completes, a bounded activity summary remains inspectable with that Run when it materially helps explain the work performed or a failure. The functional design does not require every transient progress pulse to become durable workflow authority.
+After the turn completes, a bounded activity summary remains inspectable with that agent attempt when it materially helps explain the work performed or a failure. The functional design does not require every transient progress pulse to become durable workflow authority.
 
 Canonical Order messages, required questions, proposals, blockers, completions and validation outcomes remain the authoritative workflow-semantic history.
 
@@ -450,7 +454,7 @@ While a provider turn is actively processing:
 - the operator may cancel when cancellation is canonically allowed;
 - the free-form composer does **not** queue a concurrent message into the active turn.
 
-When the Run is OPEN and no higher-priority proposal/input/blocker owns attention, the operator may continue free-form collaboration.
+When the current agent attempt is open for continuation and no higher-priority proposal/input/blocker owns attention, the operator may continue free-form collaboration.
 
 When exact required input owns attention, the composer is bound to that question and submits only the response to that request.
 
@@ -469,6 +473,22 @@ A provider/agent failure must present:
 The product must distinguish provider execution failure from a later Order contract/admission failure even if both occur after the same visible agent turn. Exact diagnostic transport is a Solution design decision.
 
 Hidden chain-of-thought/reasoning, credentials, secrets, raw unbounded tool output and raw provider-native metadata remain closed.
+
+#### 8.6 Agent result rejected by Order
+
+An agent turn may execute successfully but return a combination of requested workflow effects that Order cannot accept together.
+
+The observable behavior is closed as follows:
+
+- none of the rejected result's proposed workflow effects are applied;
+- no proposal, required-input request, blocker or completion from that rejected result becomes current authority;
+- the agent attempt ends **Failed**;
+- the WorkItem remains at the same user-facing workflow step;
+- the previously current governed material remains current subject to its pre-existing maturity/currentness;
+- the failure surface explains that the agent result could not be accepted and exposes **Retry** when retry is canonically allowed;
+- technical contract/admission detail remains available on demand for diagnosis.
+
+This failure is distinct from transport/provider execution failure even when both are shown through the same general failure interaction grammar.
 
 ### 9. Shared pre-signoff task grammar
 
@@ -521,10 +541,10 @@ While a proposal is pending:
 
 - Adopt and Reject are the only proposal mutation decisions;
 - free-form continuation is unavailable;
-- Run Cancel is unavailable;
+- Cancel attempt is unavailable;
 - unrelated current-stage mutations that would orphan the proposal are unavailable.
 
-To abandon the proposed change and then abandon the Run, the operator first Rejects the proposal; once the Run is again in an ordinary cancellable interaction state, Cancel may be used.
+To abandon the proposed change and then abandon the agent attempt, the operator first Rejects the proposal; once the attempt is again in an ordinary cancellable interaction state, Cancel may be used.
 
 Once adoption has begun:
 
@@ -541,7 +561,7 @@ Successful adoption:
 - requires context re-resolution before another productive agent turn;
 - never promotes the lifecycle by itself.
 
-This closes the Phase 1 dead state in which a Run could terminalize while leaving an unresolved proposal without a valid disposition owner.
+This closes the investigated dead state in which an agent attempt could close while leaving an unresolved proposal without a valid disposition owner.
 
 #### 9.2 Direct human authoring
 
@@ -556,6 +576,20 @@ Save:
 - makes affected material Updated — validation required;
 - invalidates affected downstream conformance/readiness;
 - never implies that validation/conformance has already passed.
+
+#### 9.3 Authoring while agent work is active
+
+While any agent attempt for the WorkItem is active — including processing or waiting for required human input — the product must not offer a canonical Work request title/body Save or Research/Requirements/Solution design/Implementation plan Save.
+
+During that period:
+
+- the governed document remains inspectable;
+- required human input is supplied through the owning dialogue/question interaction, not by concurrently mutating canonical Markdown;
+- Cancel attempt is available only when the current interaction permits cancellation;
+- proposal disposition follows the proposal rules above;
+- document/title mutation controls are unavailable or disabled with an understandable reason.
+
+The browser availability rule and daemon admission rule must express the same user-facing exclusion. A command that the daemon is guaranteed to reject must not be presented as an ordinary available action.
 
 ### 10. Work request — define and validate originating intent
 
@@ -580,7 +614,7 @@ Default information hierarchy:
 4. concise source/Git state;
 5. technical path/hash/schema/Git identity on demand.
 
-There is no Run-history rail on Work request.
+There is no agent-attempt-history rail on Work request.
 
 ### 11. Research — establish what is true
 
@@ -592,10 +626,10 @@ There is no Run-history rail on Work request.
 
 | Subtask | Trigger/current condition | Operator goal | Required information | Human input/decision | Interaction/result | Post-action orientation |
 |---|---|---|---|---|---|---|
-| Start/retry Research | Research is current and start/retry owns attention | begin/restart investigation | originating request, Research purpose, blocker/retry reason where applicable | Start/Retry | new/current Research Run begins | Dialogue/activity |
+| Start/retry Research | Research is current and start/retry owns attention | begin/restart investigation | originating request, Research purpose, blocker/retry reason where applicable | Start/Retry | new/current Research agent attempt begins | Dialogue/activity |
 | Observe investigation | provider turn processing | understand useful progress and detect stuck/failure conditions | Processing + bounded operational activity | none | live progress | remain Dialogue/activity |
 | Answer required question | exact required input owns attention | provide missing fact/decision | exact question plus relevant current context | answer | accepted input starts next turn | processing/activity |
-| Continue collaboration | Run OPEN and no proposal/input/blocker | refine investigation inside authorized intent | current dialogue, current Research material/context | free-form continuation | next provider turn | processing/activity |
+| Continue collaboration | agent attempt open for continuation and no proposal/input/blocker | refine investigation inside authorized intent | current dialogue, current Research material/context | free-form continuation | next agent turn | processing/activity |
 | Review proposed Research change | proposal owns attention | decide whether proposed canonical Research change is acceptable | rationale, substantive diff, target/current material state | Adopt/Reject | proposal disposition | adopted material or open dialogue |
 | Inspect/edit Research | no higher-priority interaction and current document selected | understand/refine governed Research | Research Markdown + maturity state | direct edit where allowed | Save updates canonical material | document with Updated — validation required |
 | Inspect evidence | explicit evidence selection | verify basis for a fact/finding | evidence identity and exact content | none | read-only evidence | return to originating Research material |
@@ -616,7 +650,7 @@ Research must not present raw repository paths, hashes or provider session ident
 | Start/retry Requirements work | Requirements is current and action owner | begin/continue functional definition | accepted Research facts, supplied product intent, current Requirements | Start/Retry | active Requirements dialogue |
 | Observe agent work | processing | understand functional-analysis progress | bounded operational activity | none | live progress |
 | Answer product question | required input | close a missing product decision that Requirements is allowed to decide/clarify | exact question, affected requirement/context | answer | next provider turn |
-| Continue functional collaboration | OPEN | refine observable behavior | current Requirements/dialogue and supporting Research | free-form continuation | next provider turn |
+| Continue functional collaboration | agent attempt open for continuation | refine observable behavior | current Requirements/dialogue and supporting Research | free-form continuation | next agent turn |
 | Review proposed Requirements change | proposal pending | accept/reject canonical requirement changes | rationale/diff/affected requirements | Adopt/Reject | canonical material update or continued dialogue |
 | Directly edit Requirements | document owns ordinary attention | refine exact functional authority | current Requirements + maturity | edit/save | Updated — validation required |
 | Inspect Research/source/evidence | explicit supporting selection | verify basis without displacing Requirements | selected supporting material | none | read-only inspection |
@@ -634,7 +668,7 @@ Default hierarchy: current question/proposal/blocker first when present; otherwi
 
 | Subtask | Operator goal | Required information | Input/decision | Result |
 |---|---|---|---|---|
-| Start/retry design | begin or recover technical design | accepted Requirements, applicable architecture/contracts, current repository evidence | Start/Retry | design Run |
+| Start/retry design | begin or recover technical design | accepted Requirements, applicable architecture/contracts, current repository evidence | Start/Retry | design agent attempt |
 | Observe agent work | understand useful design activity | bounded reading/search/check activity | none | live activity |
 | Answer required clarification | close exact technical/product clarification within accepted Requirements authority | question plus relevant requirement/authority | answer | next turn |
 | Continue design dialogue | refine design within constraints | current design/dialogue | continuation | next turn |
@@ -655,7 +689,7 @@ The Solution design document receives broad primary width suitable for architect
 
 | Subtask | Operator goal | Required information | Input/decision | Result |
 |---|---|---|---|---|
-| Start/retry planning | begin/recover plan authoring | accepted design, repository structure, verification authority | Start/Retry | Plan Run |
+| Start/retry planning | begin/recover plan authoring | accepted design, repository structure, verification authority | Start/Retry | planning agent attempt |
 | Observe planning work | understand progress | bounded operational activity | none | live progress |
 | Answer required planning question | close exact missing decomposition/scope issue | exact question and affected design authority | answer | next turn |
 | Continue plan dialogue | refine execution contract | current Plan/dialogue | continuation | next turn |
@@ -680,11 +714,11 @@ Primary hierarchy:
 2. findings and exact defective/owning upstream stage;
 3. package material required to understand the verdict;
 4. evidence;
-5. Run/attempt history.
+5. agent-attempt history.
 
 | Subtask | Trigger | Operator goal | Required information | Interaction/result |
 |---|---|---|---|---|
-| Observe review in progress | Readiness review Run processing | know review is actively progressing | Review in progress + bounded agent activity | inspect; Cancel only if canonically allowed |
+| Observe review in progress | Readiness review agent attempt processing | know review is actively progressing | Review in progress + bounded agent activity | inspect; Cancel only if canonically allowed |
 | Answer readiness question | exact required input | resolve missing evidence/decision permitted during Readiness review | question + relevant package context | answer; review continues |
 | Inspect findings/verdict | review result exists | understand whether/why package is ready | verdict, findings, defective owner, evidence refs | non-mutating Review |
 | Inspect package material | selected document/task/evidence | understand finding/verdict | selected governed material | non-mutating |
@@ -759,11 +793,11 @@ Automatic/background scheduler behavior may still exist as a separate system mec
 |---|---|---|---|---|
 | Scan approved tasks | Implementation workspace | understand task set/state | task objective + state + concise current marker | select task |
 | Start current task | canonical current task TODO and startable | explicitly begin that exact approved task | objective/scope/currentness and clear current-owner state | Start current task |
-| Observe active role | builder/reviewer/remediator Run processing | understand useful progress | role + bounded operational activity | inspect; Cancel where allowed |
+| Observe active role | builder/reviewer/remediator agent attempt processing | understand useful progress | role + bounded operational activity | inspect; Cancel where allowed |
 | Inspect blocker/current action | blocker/review/validation condition | know why task cannot continue and what to do | exact classification, owning task/role, next action | Retry/Resume/return as governed |
 | Inspect validation boundary | validation active/recorded | understand what has been proved and what is next | current validation boundary + recorded results | inspect |
 | Inspect timeline/evidence | explicit selection | understand work/review/failure basis | chronological events + evidence/resources | read-only evidence/history |
-| Cancel active attempt | cancellable active Run | stop current attempt | consequence and owning task | Cancel; task/WorkItem follow canonical blocked behavior |
+| Cancel active attempt | cancellable active agent attempt | stop current attempt | consequence and owning task | Cancel; task/WorkItem follow canonical blocked behavior |
 | Resume blocked task | exact blocker resolved | restart same approved task | blocker resolution + fresh approval authority | Resume |
 | Inspect historical task/attempt | historical selection | learn from prior work without changing authority | prior role/status/events/evidence | read-only |
 
@@ -821,7 +855,7 @@ A configuration problem that blocks workflow progress may be linked/oriented fro
 
 **Task:** inspect compact secondary metadata/diagnostics.
 
-Context is explicit and closed by default. It contains supporting/technical information such as exact ids, paths, hashes, selected Run identity and diagnostics.
+Context is explicit and closed by default. It contains supporting/technical information such as exact ids, paths, hashes, selected agent-attempt identity and diagnostics.
 
 Context never owns the sole current blocker or action.
 
@@ -840,7 +874,7 @@ Required examples:
 - **Start Research** → Research Dialogue/activity.
 - **Submit required input** → same stage, Processing/activity.
 - **Free-form continuation** → same stage, Processing/activity.
-- **Reject proposal** → owning Run returns to ordinary OPEN/current dialogue state unless another higher-priority condition exists.
+- **Reject proposal** → owning agent attempt returns to ordinary open-for-continuation dialogue unless another higher-priority condition exists.
 - **Adopt proposal** → owning stage document/current material with Applying change until completion, then Updated — validation required; next productive agent action requires fresh context.
 - **Direct Save** → same/returned owning stage document with Updated — validation required and downstream stale/currentness effects visible.
 - **Retry** → new/current attempt activity.
@@ -877,7 +911,7 @@ Long titles, long Markdown, multiple attempts/tasks, dense evidence, diagnostics
 
 ### 22. Functional decision closure
 
-The six Phase 1 functional decisions are closed as follows:
+The six functional decisions identified by the investigative baseline are closed as follows:
 
 | Decision | Functional resolution |
 |---|---|
@@ -899,7 +933,7 @@ The following stable requirement identities are owned by this functional design 
 - **WF-FR-003 INFORMATION-HIERARCHY** — primary/current/supporting/activity/history/technical information classes are enforced across every workflow surface.
 - **WF-FR-004 MATERIAL-MATURITY-LANGUAGE** — the operator-facing maturity vocabulary and behavior in §7 is consistent and independent from lifecycle stage.
 - **WF-FR-005 BOUNDED-AGENT-ACTIVITY** — live/product-relevant operational activity is visible without exposing hidden reasoning or raw provider plumbing.
-- **WF-FR-006 SERIAL-HUMAN-AGENT-DIALOGUE** — active provider processing does not accept concurrent free-form input; OPEN/REQUIRED_INPUT interaction is explicit.
+- **WF-FR-006 SERIAL-HUMAN-AGENT-DIALOGUE** — active agent processing does not accept concurrent free-form input; open-for-continuation and waiting-for-you interaction are explicit.
 - **WF-FR-007 PROPOSAL-ATTENTION-CLOSURE** — unresolved proposal/adoption owns attention and cannot be orphaned by Cancel/terminalization.
 - **WF-FR-008 DIRECT-AUTHORING** — authorized human Markdown Save remains explicit canonical mutation with conflict safety and downstream invalidation.
 - **WF-FR-009 PRESIGNOFF-GRAMMAR** — Research, Requirements, Solution design and Implementation plan use one coherent Dialogue/Review/Document/Evidence task loop.
@@ -925,6 +959,22 @@ The following stable requirement identities are owned by this functional design 
 - **WF-FR-029 PROGRESSIVE-DOCUMENTATION** — a WorkItem may begin with incomplete kind-specific intake information and progressively accumulate authoritative facts, Requirements, Solution design, Implementation plan, review and evidence without fabricating unreached documents.
 - **WF-FR-030 USER-FACING-WORKFLOW-LANGUAGE** — operator-facing workflow documentation and UI use Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete rather than internal lifecycle codes.
 - **WF-FR-031 TASK-AREA-CONTEXT-CLOSURE** — each workflow task area exposes the current step-owned output together with the minimum kind-specific upstream information needed to perform the task without reconstructing context from unrelated files.
+- **WF-FR-032 ACTIVE-AGENT-AUTHORING-EXCLUSION** — while an agent attempt is active, canonical Work request/title and editable lifecycle-document mutations are unavailable; required human response uses the owning interaction.
+- **WF-FR-033 REJECTED-AGENT-RESULT-SEMANTICS** — an agent result rejected by Order applies none of its requested workflow effects, fails the attempt, preserves the current workflow step and offers governed recovery.
+- **WF-FR-034 REPOSITORY-DRAFT-VISIBILITY** — deterministic repository lifecycle drafts remain visible without historical agent-attempt state and without fabricating workflow/conformance history.
+
+### 24. Functional-design closure review
+
+The functional design is reviewed against the four Phase-2A closure gates.
+
+| Closure gate | Verdict | Basis |
+|---|---|---|
+| **Workflow-step completeness** | **PASS** | §§10–20 define the task, completion outcome, subtasks, information/input requirements, interaction class, current-attention behavior and post-action orientation for every user-facing workflow step and supporting service. |
+| **Work-type progression** | **PASS** | §§2.1–2.8 preserve Change, Defect, Investigation and Audit intake/Research semantics, their distinct continuation/termination paths, and the Change/Defect obligations carried into Requirements, Solution design and Implementation plan. |
+| **Investigative finding closure** | **PASS** | information leakage, proposal ownership, manual execution scope, agent transparency, material maturity, convergence, active-agent authoring, rejected-agent-result semantics and repository-draft visibility all have explicit functional outcomes; producer/consumer contract mechanics, diagnostics and permanent proof remain Solution design obligations. |
+| **Functional/technical boundary and product language** | **PASS** | product behavior uses user-facing workflow/task language and defines observable outcomes; exact transports, persistence, contract shapes, provider source selection, React composition and implementation tasks remain excluded from functional design. |
+
+No remaining material product decision identified by the investigative baseline is deferred to Solution design. The remaining work is technical realization and certification of these accepted observable behaviors.
 
 ## Acceptance criteria
 
@@ -945,8 +995,8 @@ The functional design is satisfied only when all of the following observable cri
 
 9. Research, Requirements, Solution design and Implementation plan share one recognizable interaction grammar.
 10. Processing shows bounded useful operational activity.
-11. OPEN allows free continuation only when no higher-priority input/proposal/blocker owns attention.
-12. REQUIRED_INPUT shows the exact question and binds the response to it.
+11. An agent attempt that is open for continuation allows free continuation only when no higher-priority input/proposal/blocker owns attention.
+12. Waiting for you / required-input state shows the exact question and binds the response to it.
 13. Pending proposal removes free continuation and Cancel until explicit disposition.
 14. Adoption in progress removes competing Reject/Cancel/edit mutation actions.
 15. Successful adoption keeps lifecycle ownership at the same stage, updates material, invalidates affected conformance and requires fresh context before productive continuation.
@@ -979,7 +1029,7 @@ The functional design is satisfied only when all of the following observable cri
 33. Git save/recording does not imply conformance/currentness.
 34. Signed material is not directly edited in place.
 35. Complete presents terminal outcome/substantive result before generic history/artifacts.
-36. Linked remediation appears only for canonically eligible completed AUDIT/INVESTIGATION results and creates a distinct governed WorkItem.
+36. Linked remediation appears only for canonically eligible completed Audit/Investigation results and creates a distinct governed WorkItem.
 
 ### F. Accessibility/responsive
 
@@ -989,9 +1039,9 @@ The functional design is satisfied only when all of the following observable cri
 40. Workflow-semantic state is never communicated by color alone.
 41. Actionable failures remain visible until resolved and asynchronous state is announced without duplicate competing notifications.
 
-### G. Phase 1 traceability
+### G. Investigative-baseline traceability
 
-42. Every productive Phase 1 `SURF-` family maps to one task/subtask contract in this document.
+42. Every productive investigative-baseline `SURF-` family maps to one task/subtask contract in this document.
 43. Every material investigative-baseline `ACT-` interaction is either preserved with explicit semantics, superseded by an explicit functional requirement, or prohibited by a negative requirement.
 44. F-01 is closed functionally by the information hierarchy.
 45. F-02 is closed functionally by proposal-attention/cancellation semantics.
@@ -1002,11 +1052,11 @@ The functional design is satisfied only when all of the following observable cri
 
 ### H. Lifecycle information maturity
 
-50. Work request presents the originating source as the primary productive document and does not imply that Research/Requirements/Design/Plan authority already exists.
+50. Work request presents the originating source as the primary productive document and does not imply that Research, Requirements, Solution design or Implementation plan authority already exists.
 51. Research consumes the Work request plus applicable authority/evidence and produces factual closure without inventing Requirements, architecture or implementation.
 52. Requirements consumes accepted Research/product intent and produces observable functional requirements plus applicable binding constraints without choosing technical architecture or lower-level contracts.
 53. Solution design consumes accepted Requirements plus technical authority/evidence and explicitly resolves the requirement-to-solution relationship before Implementation plan begins.
-54. Implementation plan consumes accepted Design/Requirements and is the sole current executable delivery authority; it does not require implementation to reconstruct design from earlier documents.
+54. Implementation plan consumes accepted Solution design/Requirements and is the sole current executable delivery authority; it does not require implementation to reconstruct design from earlier documents.
 55. Readiness, Approval, Implementation and Complete present the accumulated package according to their own task purpose rather than rendering every lifecycle document with equal default prominence.
 56. Unreached downstream lifecycle documents are not represented as current productive authority merely to fill the workspace.
 57. Every later stage can trace its owned output to the minimum sufficient upstream authority without copying that authority into a second normative source.
@@ -1019,6 +1069,14 @@ The functional design is satisfied only when all of the following observable cri
 64. Change Requirements, Solution design and Implementation plan remain traceable to the requested outcome and proven current-state/absence.
 65. Operator-facing workflow documentation and UI use user-facing workflow names; internal lifecycle codes appear only in technical traceability contexts.
 66. The task area for every workflow step shows the current step-owned output plus the kind-specific upstream information needed to perform that task without mental reconstruction from unrelated documents.
+
+### I. State/portability closure
+
+67. While an agent attempt is active, Work request/title and editable lifecycle-document Save actions are unavailable; required input remains available through its owning interaction.
+68. When Order rejects an otherwise completed agent result because its requested workflow effects are mutually invalid, none of those effects apply, the agent attempt is Failed, the WorkItem remains at the same workflow step and governed Retry/recovery is shown.
+69. A deterministic repository lifecycle draft with no historical agent attempt remains visible as Draft without fabricating workflow-step reach, completion, conformance, readiness or approval.
+70. Canonical observation convergence suppresses mutation until one coherent current workflow observation is available.
+71. The functional design preserves the existing single lifecycle owner, monotonic reached history, currentness/recovery ownership, exact sign-off freshness and signed-material locking rather than introducing a replacement state model.
 
 ## Scope/exclusions
 
@@ -1035,6 +1093,7 @@ The functional design is satisfied only when all of the following observable cri
 - lifecycle information maturity, stage-entry documentation expectations and stage-owned output boundaries;
 - work-type-specific intake/Research semantics and their downstream information obligations;
 - user-facing workflow terminology for operator-facing functional documentation and UI;
+- active-agent authoring exclusion, rejected-agent-result failure behavior and repository-draft visibility;
 - Queue/Create/Settings/Context/Evidence where they support the workflow task model;
 - responsive/accessibility continuity;
 - functional acceptance and downstream traceability.
@@ -1065,14 +1124,14 @@ The accepted product must not:
 - hide a current blocker/input/proposal/recovery owner behind Context, history or another secondary surface;
 - allow historical selection to become current mutation authority;
 - accept concurrent free-form human input into an active provider turn;
-- terminalize/cancel a Run while leaving an unresolved proposal without a valid disposition owner;
+- close/cancel an agent attempt while leaving an unresolved proposal without a valid disposition owner;
 - allow competing Reject/Cancel/edit actions while proposal adoption is in progress;
 - present a task-local Implementation action whose actual scope is a global scheduler action;
 - silently promote conversation into canonical authority;
 - silently overwrite changed governed Markdown;
 - treat Git recording as conformance/readiness;
-- fabricate Run or conformance history to surface repository drafts;
-- weaken STAGE consumer validation to accommodate an incomplete producer contract;
+- fabricate agent-attempt or conformance history to surface repository drafts;
+- weaken canonical agent-result validation to accommodate an incomplete producer contract;
 - expose hidden model reasoning, credentials, raw unbounded tool I/O or provider-native protocol metadata as ordinary transparency;
 - create a second persistent navigation system for pre-signoff attempts/documents;
 - convert Approval into master/detail based on collection size;
@@ -1083,6 +1142,9 @@ The accepted product must not:
 - require a new WorkItem to contain information that legitimately belongs to a later workflow step;
 - render unreached downstream documents as if they were current productive authority;
 - use internal lifecycle codes as ordinary operator-facing screen labels, task descriptions or workflow explanations.
+- offer canonical Work request/title or lifecycle-document Save while an agent attempt is active;
+- apply any proposal/input/block/completion effect from an agent result that Order rejects as an invalid combined workflow result;
+- hide a deterministic repository lifecycle draft merely because no historical agent attempt exists.
 
 ## Material compatibility/security/performance constraints
 
