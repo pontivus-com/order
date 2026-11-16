@@ -111,7 +111,7 @@ jobs:
             await page.getByRole("button", { name: "New work item" }).click();
             await expect(page.getByRole("dialog", { name: "Create work item" })).toBeVisible();
             await capture(page, ["create-work-item.svg"]);
-            await page.getByRole("dialog", { name: "Create work item" }).getByRole("button", { name: /Cancel/ }).click();
+            await page.goto("/");
 
             await openWorkItem(page, "Lifecycle editing workbench");
             await capture(page, ["workitem-shell-controls.svg", "current-attention-states.svg"]);
@@ -174,8 +174,7 @@ jobs:
             if (await remediation.count()) {
               await remediation.click();
               await capture(page, ["create-linked-remediation.svg"]);
-              const cancel = page.getByRole("dialog", { name: "Create work item" }).getByRole("button", { name: /Cancel/ });
-              if (await cancel.count()) await cancel.click();
+              await page.goto("/");
             } else {
               await capture(page, ["create-linked-remediation.svg"]);
             }
