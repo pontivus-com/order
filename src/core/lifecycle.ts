@@ -7,6 +7,7 @@ import {
   type RunEventId,
   type RunEventPayload,
   type StageCompletion,
+  type StageProviderBatchRejectionCode,
   type UpstreamReturnStage,
   type ValidationClassification,
   type ValidationStage,
@@ -193,6 +194,14 @@ export type ProposalDecision =
 export type MaterialCurrentness =
   | Readonly<{ tag: "CURRENT" }>
   | Readonly<{ tag: "STALE"; owner: UpstreamReturnStage }>;
+
+export type MaterialPresentationState =
+  | Readonly<{ tag: "DRAFT" }>
+  | Readonly<{ tag: "UPDATED_VALIDATION_REQUIRED" }>
+  | Readonly<{ tag: "CURRENT" }>
+  | Readonly<{ tag: "STALE"; owner: UpstreamReturnStage }>
+  | Readonly<{ tag: "HISTORICAL" }>
+  | Readonly<{ tag: "SIGNED_LOCKED" }>;
 
 export type ExecutionOwner =
   | Readonly<{ tag: "NONE" }>
@@ -447,7 +456,11 @@ export const stageRunInteraction = (
   }
   const result = history
     .slice(triggerIndex + 1)
-    .filter((event) => event.event.tag !== "PROVIDER_DIAGNOSTICS_RECORDED");
+    .filter(
+      (event) =>
+        event.event.tag !== "PROVIDER_DIAGNOSTICS_RECORDED" &&
+        event.event.tag !== "AGENT_ACTIVITY_RECORDED",
+    );
   if (result.length === 0) return { tag: "PROCESSING" };
   if (
     result.some(
@@ -590,6 +603,103 @@ export const deriveProposalDecision = (
     : { tag: "PENDING", proposalEventId: proposal.id };
 };
 
+export const stageRunCancellationIsAdmitted = (
+  run: Run,
+  events: readonly RunEvent[],
+): boolean => {
+  if (
+    run.role !== "STAGE" ||
+    (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT")
+  ) {
+    return false;
+  }
+  const interaction = stageRunInteraction(run, events);
+  if (interaction.tag === "CLOSED") return false;
+  return deriveProposalDecision(orderedEvents(run, events)).tag === "NONE";
+};
+
+export const stageProviderBatchRejectionCode = (
+  run: Run,
+  priorEvents: readonly RunEvent[],
+  payloads: readonly RunEventPayload[],
+): StageProviderBatchRejectionCode | null => {
+  if (payloads.length === 0) return "EMPTY_BATCH";
+
+  const messages = payloads.filter((payload) => payload.tag === "AGENT_MESSAGE_FINAL");
+  const input = payloads.filter((payload) => payload.tag === "HUMAN_INPUT_REQUESTED");
+  const blocked = payloads.filter((payload) => payload.tag === "STAGE_BLOCKED");
+  const completed = payloads.filter((payload) => payload.tag === "STAGE_COMPLETED");
+  const proposals = payloads.filter((payload) => lifecycleProposalPayload(run, payload));
+
+  if (messages.length > 1) return "MULTIPLE_AGENT_MESSAGES";
+  if (input.length > 1) return "MULTIPLE_REQUIRED_INPUT";
+  if (blocked.length > 1) return "MULTIPLE_STAGE_BLOCK";
+  if (completed.length > 1) return "MULTIPLE_STAGE_COMPLETION";
+
+  const controlling =
+    Number(input.length > 0) +
+    Number(blocked.length > 0) +
+    Number(completed.length > 0);
+  if (controlling > 1) return "MULTIPLE_CONTROLS";
+  if (proposals.length > 1) return "MULTIPLE_LIFECYCLE_PROPOSALS";
+  if (proposals.length === 1 && controlling !== 0) return "PROPOSAL_WITH_CONTROL";
+  if (proposals.length === 1 && deriveProposalDecision(priorEvents).tag !== "NONE") {
+    return "UNRESOLVED_LIFECYCLE_PROPOSAL";
+  }
+
+  const proposal = proposals[0];
+  if (proposal?.tag === "ARTIFACT_PROPOSAL_CREATED" && proposal.role !== run.stage) {
+    return "PROPOSAL_ROLE_MISMATCH";
+  }
+
+  const completion = completed[0];
+  if (
+    completion?.tag === "STAGE_COMPLETED" &&
+    completion.completion.stage !== run.stage
+  ) {
+    return "COMPLETION_STAGE_MISMATCH";
+  }
+
+  const block = blocked[0];
+  if (block?.tag === "STAGE_BLOCKED" && block.owningStage !== run.stage) {
+    return "BLOCK_STAGE_MISMATCH";
+  }
+
+  if (
+    controlling === 0 &&
+    (
+      messages.length !== 1 ||
+      messages[0]?.tag !== "AGENT_MESSAGE_FINAL" ||
+      messages[0].text.trim().length === 0
+    )
+  ) {
+    return "OPEN_REQUIRES_AGENT_MESSAGE";
+  }
+
+  return null;
+};
+
+const stageProviderBatchRejectionMessage = (
+  code: StageProviderBatchRejectionCode,
+): string => {
+  switch (code) {
+    case "EMPTY_BATCH": return "STAGE provider result must be non-empty";
+    case "MULTIPLE_AGENT_MESSAGES": return "STAGE provider turn contains multiple agent messages";
+    case "MULTIPLE_REQUIRED_INPUT":
+    case "MULTIPLE_STAGE_BLOCK":
+    case "MULTIPLE_STAGE_COMPLETION":
+      return "STAGE provider turn contains duplicate controlling events";
+    case "MULTIPLE_CONTROLS": return "STAGE provider turn contains contradictory controlling events";
+    case "MULTIPLE_LIFECYCLE_PROPOSALS": return "STAGE provider turn contains multiple lifecycle proposals";
+    case "PROPOSAL_WITH_CONTROL": return "lifecycle proposal cannot coexist with a controlling event";
+    case "UNRESOLVED_LIFECYCLE_PROPOSAL": return "Run already has an unresolved lifecycle proposal";
+    case "PROPOSAL_ROLE_MISMATCH": return "lifecycle proposal role must equal owning Run stage";
+    case "COMPLETION_STAGE_MISMATCH": return "STAGE_COMPLETED stage must equal owning Run stage";
+    case "BLOCK_STAGE_MISMATCH": return "STAGE_BLOCKED owner must equal owning Run stage";
+    case "OPEN_REQUIRES_AGENT_MESSAGE": return "OPEN STAGE provider turn requires exactly one non-blank agent message";
+  }
+};
+
 export const validateStageProviderTurn = (
   run: Run,
   priorEvents: readonly RunEvent[],
@@ -598,57 +708,13 @@ export const validateStageProviderTurn = (
   if (run.role !== "STAGE" || run.status !== "RUNNING") {
     throw new TypeError("provider turn requires RUNNING STAGE Run");
   }
-  if (payloads.length === 0) {
-    throw new TypeError("STAGE provider result must be non-empty");
-  }
   if (stageRunInteraction(run, priorEvents).tag !== "PROCESSING") {
     throw new TypeError("STAGE provider result requires PROCESSING interaction");
   }
 
-  const input = payloads.filter((payload) => payload.tag === "HUMAN_INPUT_REQUESTED");
-  const blocked = payloads.filter((payload) => payload.tag === "STAGE_BLOCKED");
-  const completed = payloads.filter((payload) => payload.tag === "STAGE_COMPLETED");
-  const proposals = payloads.filter((payload) => lifecycleProposalPayload(run, payload));
-  if (input.length > 1 || blocked.length > 1 || completed.length > 1) {
-    throw new TypeError("STAGE provider turn contains duplicate controlling events");
-  }
-  const controlling = Number(input.length > 0) + Number(blocked.length > 0) +
-    Number(completed.length > 0);
-  if (controlling > 1) {
-    throw new TypeError("STAGE provider turn contains contradictory controlling events");
-  }
-  if (proposals.length > 1) {
-    throw new TypeError("STAGE provider turn contains multiple lifecycle proposals");
-  }
-  if (proposals.length === 1 && controlling !== 0) {
-    throw new TypeError("lifecycle proposal cannot coexist with a controlling event");
-  }
-  if (
-    proposals.length === 1 &&
-    deriveProposalDecision(priorEvents).tag !== "NONE"
-  ) {
-    throw new TypeError("Run already has an unresolved lifecycle proposal");
-  }
-  const proposal = proposals[0];
-  if (
-    proposal?.tag === "ARTIFACT_PROPOSAL_CREATED" &&
-    proposal.role !== run.stage
-  ) {
-    throw new TypeError("lifecycle proposal role must equal owning Run stage");
-  }
-  const completion = completed[0];
-  if (
-    completion?.tag === "STAGE_COMPLETED" &&
-    completion.completion.stage !== run.stage
-  ) {
-    throw new TypeError("STAGE_COMPLETED stage must equal owning Run stage");
-  }
-  const block = blocked[0];
-  if (
-    block?.tag === "STAGE_BLOCKED" &&
-    block.owningStage !== run.stage
-  ) {
-    throw new TypeError("STAGE_BLOCKED owner must equal owning Run stage");
+  const rejection = stageProviderBatchRejectionCode(run, priorEvents, payloads);
+  if (rejection !== null) {
+    throw new TypeError(stageProviderBatchRejectionMessage(rejection));
   }
 };
 
@@ -686,7 +752,7 @@ export const deriveReachedStages = (
   workItem: WorkItem,
   runs: readonly Run[],
   events: readonly RunEvent[],
-  artifacts: readonly ArtifactRef[],
+  _artifacts: readonly ArtifactRef[],
   tasks: readonly ExecutionTask[],
 ): ReadonlySet<WorkStage> => {
   const reached = new Set<WorkStage>(["IDEA", workItem.stage]);
@@ -696,10 +762,6 @@ export const deriveReachedStages = (
       reached.add("AWAITING_SIGNOFF");
       reached.add("EXECUTION");
     }
-  }
-  for (const artifact of artifacts) {
-    const owner = artifactOwnerStage(artifact);
-    if (owner !== null) reached.add(owner);
   }
   for (const event of events) {
     if (event.event.tag === "STAGE_COMPLETED") {
@@ -742,6 +804,34 @@ export const normalizeMaterialCurrentness = (
     throw new TypeError("stale material requires an owning lifecycle stage");
   }
   return { tag: "STALE", owner };
+};
+
+export const deriveMaterialPresentationState = (
+  isCurrentSemanticSnapshot: boolean,
+  reach: ReachState,
+  currentness: MaterialCurrentness,
+  hasCurrentConformance: boolean,
+  signedLocked: boolean,
+): MaterialPresentationState => {
+  if (signedLocked) {
+    if (!isCurrentSemanticSnapshot || reach === "UNREACHED") {
+      throw new TypeError("signed material must be the current reached semantic snapshot");
+    }
+    return { tag: "SIGNED_LOCKED" };
+  }
+  if (!isCurrentSemanticSnapshot) return { tag: "HISTORICAL" };
+  if (currentness.tag === "STALE") {
+    return { tag: "STALE", owner: currentness.owner };
+  }
+  if (hasCurrentConformance) {
+    if (reach === "UNREACHED") {
+      throw new TypeError("unreached material cannot have current conformance");
+    }
+    return { tag: "CURRENT" };
+  }
+  return reach === "UNREACHED"
+    ? { tag: "DRAFT" }
+    : { tag: "UPDATED_VALIDATION_REQUIRED" };
 };
 
 export const deriveExecutionOwner = (

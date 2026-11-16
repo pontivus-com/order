@@ -846,6 +846,49 @@ export const HumanInputCategorySchema = z.enum([
 export const ProposalDispositionSchema = z.enum(["ADOPTED", "REJECTED"]);
 export const ValidationStageSchema = z.enum(["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]);
 
+export const AgentActivityCategorySchema = z.enum([
+  "PREPARING_CONTEXT",
+  "READING",
+  "SEARCHING",
+  "EDITING",
+  "RUNNING_CHECKS",
+  "REVIEWING_RESULTS",
+  "RETRYING",
+  "WAITING_EXTERNAL",
+]);
+
+const AgentActivitySummarySchema = z.string()
+  .min(1)
+  .max(160)
+  .refine((value) => !value.includes("\0"), "activity summary must not contain NUL");
+
+const AgentActivityResourceSchema = RepositoryPathSchema
+  .refine((value) => value.length <= 240, "activity resource must be at most 240 characters")
+  .nullable();
+
+export const StageProviderBatchRejectionCodeSchema = z.enum([
+  "EMPTY_BATCH",
+  "MULTIPLE_AGENT_MESSAGES",
+  "MULTIPLE_REQUIRED_INPUT",
+  "MULTIPLE_STAGE_BLOCK",
+  "MULTIPLE_STAGE_COMPLETION",
+  "MULTIPLE_CONTROLS",
+  "MULTIPLE_LIFECYCLE_PROPOSALS",
+  "PROPOSAL_WITH_CONTROL",
+  "UNRESOLVED_LIFECYCLE_PROPOSAL",
+  "PROPOSAL_ROLE_MISMATCH",
+  "COMPLETION_STAGE_MISMATCH",
+  "BLOCK_STAGE_MISMATCH",
+  "OPEN_REQUIRES_AGENT_MESSAGE",
+]);
+
+export const StageProviderBatchAdmissionDiagnosticSchema = z.strictObject({
+  phase: z.literal("ORDER_STAGE_BATCH_ADMISSION"),
+  code: StageProviderBatchRejectionCodeSchema,
+  eventTags: z.array(z.string().min(1)).max(32).readonly(),
+  truncated: z.boolean(),
+});
+
 export const StageCompletionSchema = z.discriminatedUnion("stage", [
   z.strictObject({
     stage: z.literal("R1"),
@@ -880,6 +923,12 @@ const RunEventPayloadBaseSchema = z.union([
   z.strictObject({ tag: z.literal("AGENT_MESSAGE_FINAL"), text: z.string(), evidence: evidenceArray }),
   z.strictObject({ tag: z.literal("HUMAN_INPUT_REQUESTED"), category: HumanInputCategorySchema, question: z.string() }),
   z.strictObject({ tag: z.literal("HUMAN_INPUT_RECEIVED"), requestEventId: RunEventIdSchema.nullable(), text: z.string() }),
+  z.strictObject({
+    tag: z.literal("AGENT_ACTIVITY_RECORDED"),
+    category: AgentActivityCategorySchema,
+    summary: AgentActivitySummarySchema,
+    resource: AgentActivityResourceSchema,
+  }),
   z.strictObject({
     tag: z.literal("ARTIFACT_PROPOSAL_CREATED"),
     targetPath: RepositoryPathSchema,
@@ -1015,6 +1064,9 @@ export const RunEventSchema = z.strictObject({
 export type HumanInputCategory = z.infer<typeof HumanInputCategorySchema>;
 export type ProposalDisposition = z.infer<typeof ProposalDispositionSchema>;
 export type ValidationStage = z.infer<typeof ValidationStageSchema>;
+export type AgentActivityCategory = z.infer<typeof AgentActivityCategorySchema>;
+export type StageProviderBatchRejectionCode = z.infer<typeof StageProviderBatchRejectionCodeSchema>;
+export type StageProviderBatchAdmissionDiagnostic = Readonly<z.infer<typeof StageProviderBatchAdmissionDiagnosticSchema>>;
 export type StageCompletion = z.infer<typeof StageCompletionSchema>;
 export type RunEventPayload = z.infer<typeof RunEventPayloadSchema>;
 export type RunEvent = Readonly<z.infer<typeof RunEventSchema>>;
