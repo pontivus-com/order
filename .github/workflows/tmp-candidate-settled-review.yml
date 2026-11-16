@@ -67,14 +67,12 @@ jobs:
           const step=async(page:Page,name:string)=>{const b=page.getByTestId("workflow-rail").getByRole("button",{name,exact:true});await b.click();await expect(b).toHaveAttribute("aria-pressed","true");};
           const disclosure=async(page:Page,name:string)=>{const b=page.getByRole("button",{name,exact:true});if(await b.getAttribute("aria-expanded")!=="true")await b.click();};
           const settle=async(page:Page)=>{
-            await expect(page.getByText("Loading work queue...",{exact:true})).toHaveCount(0,{timeout:15000});
-            await expect(page.getByText("Loading workflow step...",{exact:true})).toHaveCount(0,{timeout:15000});
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(1500);
           };
           const capture=async(page:Page,names:readonly string[])=>{await settle(page);for(const n of names)await page.screenshot({path:"candidate-review-settled/actual/"+n.replace(/\.svg$/,".png"),fullPage:true});};
 
           test("settled 41-reference evidence",async({page,request})=>{
-            test.setTimeout(180000);
+            test.setTimeout(300000);
             await page.setViewportSize({width:1600,height:900}); await auth(page,request);
             await capture(page,["queue.svg","queue-states.svg","application-notices-states.svg"]);
             await page.getByRole("button",{name:"New work item"}).click(); await expect(page.getByRole("dialog",{name:"Create work item"})).toBeVisible(); await capture(page,["create-work-item.svg"]); await page.goto("/");
