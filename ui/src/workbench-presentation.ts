@@ -555,6 +555,12 @@ export const runEventPresentation = (
       return { label: "Your input is needed", detail: payload.question, tone: "warning" };
     case "HUMAN_INPUT_RECEIVED":
       return { label: "Your response", detail: payload.text, tone: "neutral" };
+    case "AGENT_ACTIVITY_RECORDED":
+      return {
+        label: "Agent activity",
+        detail: payload.summary,
+        tone: "neutral",
+      };
     case "ARTIFACT_PROPOSAL_CREATED":
       return { label: "Document change proposed", detail: `${payload.targetPath} — ${payload.rationale}`, tone: "warning" };
     case "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED":
