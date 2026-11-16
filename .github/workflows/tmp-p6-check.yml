@@ -1,0 +1,52 @@
+name: Temporary P6 checkpoint
+
+on:
+  push:
+    branches: [version/0.5.0]
+
+permissions:
+  contents: read
+
+jobs:
+  p6:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+      - name: Install exact OpenCode
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/pontivus-order-opencode
+          BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
+          test "$(/tmp/pontivus-order-opencode/bin/opencode --version)" = "opencode v2.2.6"
+      - run: bun ci
+      - name: Install Playwright Chromium
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: typecheck
+        run: bun run tsc --noEmit
+      - name: certification
+        run: node node_modules/vitest/vitest.mjs run tests/certification.test.ts
+      - name: build
+        run: node node_modules/vite/bin/vite.js build
+      - name: browser
+        run: node node_modules/@playwright/test/cli.js test
