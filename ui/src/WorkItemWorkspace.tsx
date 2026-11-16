@@ -1264,10 +1264,9 @@ export const WorkItemWorkspace = ({
   const identity = (
     <WorkItemIdentityRow
       navigation={
-        <div className="order-inline-actions">
-          <Link href="/" isStandalone color="secondary" onClick={(event) => { event.preventDefault(); onBack(); }}>Back to work queue</Link>
-          <WorkbenchAction label="Context" tone="ghost" icon={<WorkbenchIcon name="context" />} ariaExpanded={contextOpen} onClick={() => onContextOpenChange(!contextOpen)} />
-        </div>
+        <Link href="/" isStandalone color="secondary" onClick={(event) => { event.preventDefault(); onBack(); }}>
+          Back to queue
+        </Link>
       }
       title={
         titleEditing ? (
@@ -1286,19 +1285,29 @@ export const WorkItemWorkspace = ({
         )
       }
       detail={
-        <span>
-          {workflow.label} · {workItem.status === "ACTIVE" ? "Active" : workItem.status.toLowerCase()}
-          {titleError ? <> · <span role="alert">{titleError}</span></> : null}
-          {titleMutation.error ? <> · <span role="alert">{titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error)}</span></> : null}
-        </span>
+        titleError || titleMutation.error ? (
+          <span role="alert">
+            {titleError ?? (titleMutation.error instanceof Error ? titleMutation.error.message : String(titleMutation.error))}
+          </span>
+        ) : undefined
       }
       utilities={
-        <WorkbenchAction
-          label={workItem.archived ? "Restore work item" : "Archive work item"}
-          tone="ghost"
-          disabled={mutationsDisabled || workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
-          onClick={() => setConfirmArchive(true)}
-        />
+        <>
+          <span className="order-workitem-kind">{workItem.schemaId.replace("-v1", "").replace(/^./, (value) => value.toUpperCase())}</span>
+          <WorkbenchAction
+            label="Context"
+            tone="secondary"
+            icon={<WorkbenchIcon name="context" />}
+            ariaExpanded={contextOpen}
+            onClick={() => onContextOpenChange(!contextOpen)}
+          />
+          <WorkbenchAction
+            label={workItem.archived ? "Restore" : "Archive"}
+            tone="secondary"
+            disabled={mutationsDisabled || workItem.stage === "EXECUTION" || runs.some(runIsActive) || archiveMutation.isPending}
+            onClick={() => setConfirmArchive(true)}
+          />
+        </>
       }
     />
   );
