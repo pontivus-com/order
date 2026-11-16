@@ -1027,6 +1027,27 @@ describe("Order cross-boundary certification", () => {
     expect(sqlite).not.toContain("credentialSecret");
   });
 
+  it("keeps active-agent authoring exclusion separate from current-run interaction admission", () => {
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
+
+    expect(workspace).toContain(
+      "documentMutationsDisabled =\n    interactionMutationsDisabled || activeRunOwnsAuthoring",
+    );
+    expect(workspace).toContain(
+      "workflowMutationsDisabled =\n    interactionMutationsDisabled",
+    );
+    expect(workspace).toContain(
+      "authoringMutationsDisabled={documentMutationsDisabled}",
+    );
+    expect(preSignoff).toContain(
+      "mutationsDisabled={authoringMutationsDisabled}",
+    );
+    expect(preSignoff).toContain(
+      "mutationsDisabled={mutationsDisabled}",
+    );
+  });
+
   it("keeps pre-signoff, Readiness and Approval free of a persistent generic material-selector axis", () => {
     const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
     const readiness = read("ui/src/ReadinessWorkspace.tsx");
