@@ -1061,7 +1061,7 @@ describe("Order cross-boundary certification", () => {
     expect(preSignoff).not.toContain("WorkflowStepIndex");
     expect(preSignoff).toContain("WorkflowMaterialSelector");
     expect(preSignoff).toContain('"Supporting material and history"');
-    expect(readiness).toContain('"Evidence / attempt history"');
+    expect(readiness).toContain("Evidence / attempt history");
     expect(approval).toContain('"Package material"');
 
     // Implementation is the sole workflow step allowed to retain persistent
