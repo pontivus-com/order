@@ -20,8 +20,6 @@ import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import {
   WorkflowStepFrame,
-  WorkflowStepIndex,
-  type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
@@ -259,64 +257,39 @@ export const SignoffReview = ({
     },
   });
 
-  const groups: WorkflowStepIndexGroup[] = [
-    {
-      id: "overview",
-      label: "Package",
-      items: [{
-        id: "overview",
-        label: "Overview",
-        description: "Exact package and approval decision",
-        selected: selection.kind === "OVERVIEW",
-        onSelect: () => setSelection({ kind: "OVERVIEW" }),
-      }],
-    },
-  ];
-
-  if (packageArtifacts.length > 0) {
-    groups.push({
-      id: "documents",
-      label: "Governed documents",
-      items: packageArtifacts.map((artifact) => ({
-        id: artifact.id,
-        label: lifecycleArtifactLabel(artifact.role),
-        description: "Current governed package material",
-        selected:
-          selection.kind === "DOCUMENT" &&
-          selection.artifactId === artifact.id,
-        onSelect: () =>
-          setSelection({ kind: "DOCUMENT", artifactId: artifact.id }),
-      })),
-    });
-  }
-
-  const currentTasks = packageValue?.taskBlock.tasks ?? [];
-  const historicalTasks = tasks;
-  const approvalCompleted = !currentApproval && historicalTasks.length > 0;
-  if (
-    (currentApproval && currentTasks.length > 0) ||
-    (!currentApproval && historicalTasks.length > 0)
-  ) {
-    groups.push({
-      id: "tasks",
-      label: "Signed tasks",
-      items: currentApproval
-        ? currentTasks.map((task) => ({
-            id: task.id,
-            label: task.objective,
-            description: "Signed task · " + task.id,
-            selected: selection.kind === "TASK" && selection.taskId === task.id,
-            onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
-          }))
-        : historicalTasks.map((task) => ({
-            id: task.id,
-            label: task.objective,
-            description: "Approved task · " + task.planTaskId,
-            selected: selection.kind === "TASK" && selection.taskId === task.id,
-            onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
-          })),
-    });
-  }
+  const packageMaterial = (
+    <WorkbenchDisclosure
+      label="Package material"
+      content={
+        <div className="order-resource-list">
+          <WorkbenchResourceRow
+            label="Approval overview"
+            detail={currentApproval ? "Exact current package and authorization" : "Reached Approval history"}
+            actionLabel="Open approval overview"
+            onOpen={() => setSelection({ kind: "OVERVIEW" })}
+          />
+          {packageArtifacts.map((artifact) => (
+            <WorkbenchResourceRow
+              key={artifact.id}
+              label={lifecycleArtifactLabel(artifact.role)}
+              detail="Read-only governed package material"
+              actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
+              onOpen={() => setSelection({ kind: "DOCUMENT", artifactId: artifact.id })}
+            />
+          ))}
+          {(currentApproval ? packageValue?.taskBlock.tasks ?? [] : tasks).map((task) => (
+            <WorkbenchResourceRow
+              key={task.id}
+              label={task.objective}
+              detail={currentApproval ? "Signed implementation task" : "Approved historical task"}
+              actionLabel={"Inspect task: " + task.objective}
+              onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
+            />
+          ))}
+        </div>
+      }
+    />
+  );
 
   const primary = (() => {
     if (
@@ -516,8 +489,6 @@ export const SignoffReview = ({
   return (
     <WorkflowStepFrame
       summary={summary}
-      index={<WorkflowStepIndex groups={groups} label="Approval package" />}
-      indexLabel="Approval package"
       primary={
         <WorkbenchReview
           currentness={
@@ -550,7 +521,12 @@ export const SignoffReview = ({
               </p>
             </div>
           }
-          body={primary}
+          body={
+            <div className="order-review-material-stack">
+              {primary}
+              <div className="order-review-supporting-disclosure">{packageMaterial}</div>
+            </div>
+          }
           decisions={approvalAction ?? <></>}
         />
       }
