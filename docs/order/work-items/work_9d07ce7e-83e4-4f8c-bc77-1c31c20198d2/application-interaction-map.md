@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 through P1-T08 complete; P1-T09+ pending  
+**Status:** P1-T01 through P1-T09 complete; P1-T10 synthesis pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -1136,31 +1136,37 @@ Every persistent information class in the registered surfaces has a typed lineag
 
 P1-T05 may now trace every control from these information prerequisites through visibility/enabled predicates and downstream effects.
 
-## 19. Cross-artifact closure ledger
+## 19. Cross-artifact closure ledger — P1-T09
 
-At P1-T02 completion every surface has a source owner and scenario contract. Later columns are intentionally open.
+Every productive surface family now resolves through all applicable evidence planes. “N/A” means the semantic plane does not govern that surface, not that analysis was skipped.
 
-| SURF family | Source | Scenario contract | Rendered evidence | INFO | ACT/FLOW | STATE/OC/MAT/CERT | Status |
-|---|---|---|---|---|---|---|---|
-| application shell/queue/create | §§8.1 | §10 | P1-T03 | **COMPLETE §12.1** | **COMPLETE §§13–17** | later | OPEN |
-| Settings + nested account/repository tasks | §§8.1 | §10 | P1-T03 | **COMPLETE §12.2** | **COMPLETE §§13–17** | OC/MAT/CERT later | OPEN |
-| WorkItem shell/Context | §8.2 | §10 | P1-T03 | **COMPLETE §12.3** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
-| Work request | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.4** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
-| R1/R2/DESIGN/PLAN | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.5** | **COMPLETE §§13–17** | STATE/OC/MAT/CERT later | OPEN |
-| R3 | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.6** | **COMPLETE §§13–17** | STATE/OC/MAT/CERT later | OPEN |
-| Approval | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.7** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
-| Implementation | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.8** | **COMPLETE §§13–17** | STATE/OC/MAT/CERT later | OPEN |
-| Complete | §§8.2–8.3 | §10 | P1-T03 | **COMPLETE §12.9** | **COMPLETE §§13–17** | STATE/MAT/CERT later | OPEN |
-| shared activity/proposal/evidence/doc materials | §8.3 | §10 | P1-T03 | **COMPLETE §§12.4–12.9** | **COMPLETE §§13–17** | all applicable later | OPEN |
-| confirmations/safety overlays | §8.4 | §10 | P1-T03 | **COMPLETE §12.10** | **COMPLETE §§13–17** | STATE/MAT/CERT as applicable | OPEN |
+| SURF family | Source/scenario | Rendered evidence | INFO | ACT/FLOW | STATE | OC | MAT | CERT | Status |
+|---|---|---|---|---|---|---|---|---|---|
+| application shell/queue/create | §§8.1,10 | P1-T03 | §12.1 | §§13–17 | lifecycle/lineage where applicable | N/A except global account utility | Work request/linked remediation | CERT-001,029,030 | **CLOSED** |
+| Settings + nested repository/account/model tasks | §§8.1,10 | P1-T03 | §12.2 | §§13–17 | config mutation admission separate from workflow | P1-T07 account/provider boundary | N/A | CERT-001 + settings negative coverage | **CLOSED** |
+| WorkItem shell/Context | §§8.2,10 | P1-T03 | §12.3 | §§13–17 | STATE-001/002/005/006/009/010/011 | technical provider identity boundary | source/lifecycle currentness | CERT-027,029 | **CLOSED** |
+| Work request | §§8.2–8.3,10 | P1-T03 | §12.4 | §§13–17 | STATE-001/005/006/010 | STAGE context root input | §3 of material audit | CERT-008,026 | **CLOSED** |
+| R1/R2/DESIGN/PLAN | §§8.2–8.3,10 | P1-T03 | §12.5 | §§13–17 | STATE-003/004/005/006/010 + F01/F03 | OC-001..034 + OC-F01/F03/F04/F07 | §§4–6 + MAT-F01/F02/F05 | CERT-003..007,017..021,023 | **CLOSED** |
+| R3 | §§8.2–8.3,10 | P1-T03 | §12.6 | §§13–17 | same STAGE state algebra + readiness transitions | same STAGE provider boundary | §7 + MAT-F01 | CERT-003..007,021,023,024 | **CLOSED** |
+| Approval | §§8.2–8.3,10 | P1-T03 | §12.7 | §§13–17 | sign-off currentness/lifecycle | N/A except historical provider evidence | §§8–10 | CERT-011,026,027 | **CLOSED** |
+| Implementation | §§8.2–8.3,10 | P1-T03 | §12.8 | §§13–17 | STATE-007/008/009/010 + STATE-F02 | BUILDER/REVIEWER/REMEDIATOR + OC-F01/F04 | signed/locked execution material | CERT-012..017,019 | **CLOSED** |
+| Complete | §§8.2–8.3,10 | P1-T03 | §12.9 | §§13–17 | terminal lifecycle/outcome | provider evidence only as history | §11 | CERT-030 | **CLOSED** |
+| shared activity/proposal/evidence/document materials | §8.3,10 | P1-T03 | §§12.4–12.9 | §§13–17 | proposal/input/currentness algebra + STATE-F01/F03 | full P1-T07 applicability | current/conformed/proposal/history semantics | CERT-003..010,018..020,023 | **CLOSED** |
+| confirmations/safety overlays | §8.4,10 | P1-T03 | §12.10 | §§13–17 | mutation preconditions where applicable | account confirmation where applicable | document/Git mutation where applicable | corresponding mutation CERT rows | **CLOSED** |
 
-### 19.1 P1-T02 completion verdict
+### 19.1 Closure verdict
 
-**P1-T02: COMPLETE.**
+**P1-T09 cross-artifact closure: PASS.**
 
-The current renderer graph has been classified into application, workflow-step, reusable-material, nested-task and safety/confirmation surfaces. Every registered surface has an owning renderer and a minimum scenario contract. The registry explicitly includes responsive Context representations and all confirmation/task overlays discovered from the production composition.
+- no productive renderer family remains outside the `SURF-` census;
+- no persistent information class remains without a typed/local source and presentation classification;
+- no material operator control remains without a business-rule/effect path;
+- every workflow-dependent interaction maps to the state audit;
+- every provider-dependent interaction maps to the OpenCode audit;
+- every governed document/package maps to the material-maturity audit;
+- every material proposition has an explicit proof status in `certification-evidence-map.md`.
 
-P1-T03 may now capture rendered evidence against §10. P1-T04 must not start final INFO closure until the relevant rendered evidence exists.
+The remaining items are confirmed findings or Phase 2 decisions, not missing Phase 1 analysis.
 
 ## 20. Current-state gaps requiring derived audit
 
