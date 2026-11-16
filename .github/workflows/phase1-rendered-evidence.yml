@@ -158,6 +158,27 @@ jobs:
             await expect(page.getByTestId("work-item-queue")).toBeVisible();
           };
 
+          const closeAllFixtureRuns = async (page: Page): Promise<void> => {
+            const itemsResponse = await page.context().request.get("/api/work-items?includeArchived=true");
+            expect(itemsResponse.ok()).toBe(true);
+            const items = await itemsResponse.json() as Array<{ id: string }>;
+            for (const item of items) {
+              const runsResponse = await page.context().request.get(
+                "/api/work-items/" + encodeURIComponent(item.id) + "/runs",
+              );
+              if (!runsResponse.ok()) continue;
+              const runs = await runsResponse.json() as Array<{ id: string; status: string }>;
+              for (const run of runs) {
+                if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") continue;
+                const cancelled = await page.context().request.post(
+                  "/api/runs/" + encodeURIComponent(run.id) + "/cancel",
+                  { data: {} },
+                );
+                expect([200, 409]).toContain(cancelled.status());
+              }
+            }
+          };
+
           const rowFor = (page: Page, title: string) =>
             page.locator('[data-testid^="work-item-row-"]').filter({
               has: page.getByText(title, { exact: true }),
@@ -207,36 +228,16 @@ jobs:
             );
           };
 
-          test("capture Phase 1 residual rendered states", async ({ page, request }) => {
+          test("capture remaining Phase 1 rendered states", async ({ page, request }) => {
             test.setTimeout(120000);
             await page.setViewportSize({ width: 1600, height: 900 });
             await authenticate(page, request);
-
-            await page.goto("/settings/repositories");
-            await expect(page.getByTestId("settings-repositories")).toBeVisible();
-
-            await page.getByRole("button", { name: "Add repository", exact: true }).click();
-            await expect(page.getByTestId("add-repository-form")).toBeVisible();
-            await capture(page, "SURF-SET-REPO-ADD-001", "add repository bounded form", "31-settings-repository-add.png");
-            await page.getByRole("button", { name: "Cancel add repository", exact: true }).click();
-
-            const moveButton = page.getByRole("button", { name: /^Move WorkItem documents for / }).first();
-            await expect(moveButton).toBeVisible();
-            await moveButton.click();
-            await expect(page.getByTestId("move-workitem-documents")).toBeVisible();
-            await capture(page, "SURF-SET-REPO-MOVE-001", "move WorkItem document root form", "32-settings-repository-move.png");
-            await page.getByRole("button", { name: "Cancel move", exact: true }).click();
-
-            const disconnect = page.getByRole("button", { name: /^Disconnect / }).first();
-            await disconnect.click();
-            await expect(page.getByRole("alertdialog", { name: "Disconnect repository?" })).toBeVisible();
-            await capture(page, "SURF-CONF-REPO-DISCONNECT-001", "disconnect repository confirmation", "33-settings-repository-disconnect.png");
-            await page.keyboard.press("Escape");
+            await closeAllFixtureRuns(page);
 
             await page.goto("/settings/opencode");
             await expect(page.getByTestId("settings-opencode")).toBeVisible();
-            await expect(page.getByText("beta@example.com", { exact: true })).toBeVisible();
-            await capture(page, "SURF-SET-OC-001", "saved OpenCode account table via deterministic provider fixture", "34-settings-opencode-populated.png", "deterministic-contract-fixture");
+            const addAccount = page.getByRole("button", { name: "Add account", exact: true });
+            await expect(addAccount).toBeEnabled();
 
             await page.getByRole("button", { name: "Rename beta@example.com", exact: true }).click();
             await expect(page.getByTestId("rename-opencode-account")).toBeVisible();
@@ -248,7 +249,7 @@ jobs:
             await capture(page, "SURF-CONF-OC-REMOVE-001", "remove saved OpenCode account confirmation", "36-settings-opencode-remove.png", "deterministic-contract-fixture");
             await page.keyboard.press("Escape");
 
-            await page.getByRole("button", { name: "Add account", exact: true }).click();
+            await addAccount.click();
             await capture(page, "SURF-SET-OC-ADD-001", "add OpenCode account form", "37-settings-opencode-add.png", "deterministic-contract-fixture");
             await page.getByLabel("Account label").fill("phase1@example.com");
             await page.getByRole("button", { name: "Continue to OpenCode sign-in", exact: true }).click();
@@ -300,6 +301,7 @@ jobs:
             await page.getByRole("radio", { name: "Dark", exact: true }).click();
             await capture(page, "SURF-APP-001", "explicit dark theme application shell", "45-theme-dark.png");
           });
+          SPEC
           SPEC
 
       - name: Capture rendered states
