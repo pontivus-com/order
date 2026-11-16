@@ -627,6 +627,40 @@ await seedProgressionReadyItem(
   "R3",
 );
 
+const readinessInputItem = await seedProgressionReadyItem(
+  "Readiness input required",
+  "R3",
+);
+const readinessInputRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: readinessInputItem.id,
+  executionTaskId: null,
+  stage: "R3",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("readiness-input-required-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, readinessInputRun);
+persistEvent(readinessInputRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "R3",
+  mode: "INTERACTIVE",
+  contextHash: readinessInputRun.contextHash,
+});
+persistEvent(readinessInputRun.id, 2, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Which readiness finding should be resolved before approval?",
+});
+
 const feedbackItem = workItem(
   "Workflow failure feedback",
   "PLAN",
