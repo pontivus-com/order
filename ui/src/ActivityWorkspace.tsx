@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import {
   stageRunCancellationIsAdmitted,
-  stageRunInteraction,
   type CurrentAttentionTag,
   type StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
@@ -66,20 +65,13 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
   onMutationRefresh: (acceptedEvent?: RunEvent) => Promise<void>;
   onMutationError?: (error: unknown) => void;
 }>) => {
-  const queryClient = useQueryClient();
   const [inputError, setInputError] = useState<unknown>(null);
   const stageRuns = runs.filter((run) => run.role === "STAGE" && run.stage === stage);
   const selectedRun = stageRuns.find((run) => run.id === selectedRunId) ?? latestStageRun(stageRuns, stage);
   const eventKey = workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
   const eventsQuery = useQuery({
     queryKey: eventKey,
-    queryFn: async () => {
-      if (!selectedRun) return [];
-      const current = queryClient.getQueryData<readonly import("../../src/core/contracts.ts").RunEvent[]>(eventKey) ?? [];
-      const after = current.at(-1)?.sequence ?? 0;
-      const next = await api.listRunEvents(selectedRun.id, after);
-      return after === 0 ? next : [...current, ...next];
-    },
+    queryFn: () => selectedRun === null ? Promise.resolve([]) : api.listRunEvents(selectedRun.id, 0),
     enabled: selectedRun !== null,
     refetchInterval: selectedRun && runIsActive(selectedRun) ? 1000 : false,
   });
@@ -88,12 +80,7 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
   const activityEvents = agentActivityRunEvents(events);
   const workflowEvents = workflowRunEvents(events);
   const selectedIsCurrent = selectedRun?.id === currentRunId;
-  const interaction =
-    selectedIsCurrent && selectedRun !== null
-      ? eventsQuery.data === undefined
-        ? currentInteraction
-        : stageRunInteraction(selectedRun, events)
-      : null;
+  const interaction = selectedIsCurrent ? currentInteraction : null;
   const pending: RunEvent | null =
     interaction?.tag === "REQUIRED_INPUT"
       ? events.find((event) => event.id === interaction.requestEventId) ?? null
