@@ -122,16 +122,13 @@ These are product decisions owned by the functional design. They are now closed 
 
 The change is required and factually grounded. The parent Audit provides sufficient current-state evidence to proceed through functional design without re-investigating the released implementation.
 
-The reviewed `requirements.md` has now converted those closed facts into the complete workflow-task functional model. The remaining work is Solution design: technical realization and certification of the accepted observable behavior.
+The reviewed `requirements.md` converted those closed facts into the complete workflow-task functional model. The reviewed `solution-design.md` has now closed the corresponding technical realization and certification design.
 
+## Design-package handoff
 
-## Functional-design handoff
+The documentation package has completed both Phase 2 design layers:
 
-The functional design in `requirements.md` has completed its four closure gates:
+- Phase 2A — functional-design closure;
+- Phase 2B — Solution-design closure, including canonical P4/P6 amendments and permanent verification obligations.
 
-- workflow-step completeness;
-- work-type progression;
-- investigative-finding closure;
-- functional/technical boundary and user-facing language.
-
-It is reviewed as ready input to **Solution design**. This note records package consistency only; it does not fabricate runtime lifecycle events or conformance state.
+The next document-level activity is **Implementation plan**. This note records package consistency only; it does not fabricate runtime lifecycle events, conformance, approval, sign-off or execution state.
