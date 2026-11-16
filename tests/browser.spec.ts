@@ -1761,6 +1761,60 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await expect(page.getByTestId("result-workspace")).toContainText("Verified candidate");
 });
 
+test("OPEN continuation keeps the agent anchor visible and admits exactly one current reply composer", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Workflow open continuation");
+  const detail = page.getByTestId("activity-detail");
+  await expect(detail).toBeVisible();
+  await expect(detail).toContainText("The current plan is ready for your continuation.");
+  await expect(detail.getByPlaceholder("Continue current work")).toBeVisible();
+  await expect(detail.getByPlaceholder("Answer and continue")).toHaveCount(0);
+  await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
+});
+
+test("work-type variants preserve their canonical Work request information contracts in one shared shell", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  const variants = [
+    {
+      title: "Change work type",
+      kind: "Change",
+      headings: ["Requested outcome", "Current context", "Constraints/non-goals", "Evidence/references"],
+    },
+    {
+      title: "Defect work type",
+      kind: "Defect",
+      headings: ["Observed behavior", "Expected behavior", "Reproduction/evidence", "Behavior that must remain unchanged", "Impact/context"],
+    },
+    {
+      title: "Investigation work type",
+      kind: "Investigation",
+      headings: ["Question", "Why it matters", "Known evidence/context", "Investigation boundary"],
+    },
+    {
+      title: "Audit work type",
+      kind: "Audit",
+      headings: ["Target under audit", "Governing authority/criteria", "Scope/exclusions", "Requested evidence/verdict"],
+    },
+  ] as const;
+
+  for (const variant of variants) {
+    await page.goto("/");
+    await openWorkItem(page, variant.title);
+    await expect(page.locator(".order-workitem-kind")).toHaveText(variant.kind);
+    const source = page.getByTestId("source-document-material");
+    await expect(source).toBeVisible();
+    for (const heading of variant.headings) await expect(source).toContainText(heading);
+    await expect(page.getByRole("button", { name: "Start Research", exact: true })).toBeVisible();
+    await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+  }
+});
+
 test("Readiness required input owns the action without replacing Review", async ({
   page,
   request,
