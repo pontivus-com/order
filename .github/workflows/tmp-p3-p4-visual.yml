@@ -323,12 +323,9 @@ jobs:
             await page.reload();
             await expect(page.getByTestId("selected-run-header")).toContainText("Running");
             await selectCurrentDocument(page, "Implementation plan document");
-            const activeEditor = await edit(page, "Implementation plan document Markdown source");
-            await activeEditor.click();
-            await activeEditor.press("Control+End");
-            await page.keyboard.insertText("\nblocked save while agent active");
-            await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
-            await shot(page, "document-states.svg", "active-agent-save-disabled");
+            await expect(page.getByTestId("markdown-document-readonly")).toBeVisible({ timeout: 30000 });
+            await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
+            await shot(page, "document-states.svg", "active-agent-read-only");
 
             await open(page, "Completed investigation");
             await step(page, "Research");
@@ -465,26 +462,11 @@ jobs:
             await shot(page, "safety-confirmations.svg", "disconnect-repository");
             await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
 
-            await page.route("**/api/opencode/accounts**", async (route) => {
-              if (route.request().method() !== "GET") return route.fallback();
-              await route.fulfill({
-                status: 200,
-                contentType: "application/json",
-                body: JSON.stringify({
-                  accounts: [{
-                    id: "cred_visual",
-                    label: "visual@example.com",
-                    active: true,
-                    status: { status: "READY" },
-                  }],
-                  activeAccountId: "cred_visual",
-                  mutationBlockers: [],
-                }),
-              });
-            });
             await page.getByRole("link", { name: "OpenCode", exact: true }).click();
             await expect(page.getByTestId("settings-opencode")).toBeVisible();
-            await page.getByRole("button", { name: "Remove visual@example.com", exact: true }).click();
+            const removeAccount = page.getByRole("button", { name: /^Remove /u }).first();
+            await expect(removeAccount).toBeVisible();
+            await removeAccount.click();
             dialog = page.getByRole("alertdialog", { name: "Remove saved OpenCode account?" });
             await expect(dialog).toContainText("Remove the selected saved OpenCode credential from this installation.");
             await shot(page, "safety-confirmations.svg", "remove-opencode-account");
