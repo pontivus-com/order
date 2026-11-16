@@ -35,15 +35,6 @@ import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
-const statusVariant = (
-  status: Run["status"],
-): "error" | "warning" | "success" | "neutral" => {
-  if (status === "FAILED" || status === "BLOCKED") return "error";
-  if (status === "WAITING_FOR_INPUT") return "warning";
-  if (status === "COMPLETED") return "success";
-  return "neutral";
-};
-
 const packageRoles = new Set<ArtifactRef["role"]>([
   "R1",
   "R2",
@@ -154,6 +145,12 @@ export const ReadinessWorkspace = ({
     />
   );
 
+  const requiredInputOwnsAttention =
+    workItem.stage === "R3" &&
+    material.kind === "STAGE_RUN" &&
+    material.runId === currentRunId &&
+    currentInteraction?.tag === "REQUIRED_INPUT";
+
   const selectedSecondaryMaterial = (() => {
     switch (material.kind) {
       case "STAGE_RUN":
@@ -219,6 +216,12 @@ export const ReadinessWorkspace = ({
                 <strong>Readiness verdict</strong>
                 <span>{materialState === null ? "Derived from governed readiness-review material when present" : materialPresentationStateLabel(materialState)}</span>
               </section>
+              {requiredInputOwnsAttention && selectedSecondaryMaterial ? (
+                <section className="order-readiness-current-interaction">
+                  <h3>Waiting for you</h3>
+                  {selectedSecondaryMaterial}
+                </section>
+              ) : null}
               <section className="order-readiness-findings">
                 <h3>Findings / defective owner</h3>
                 {readinessMaterial}
@@ -237,7 +240,7 @@ export const ReadinessWorkspace = ({
                     : "Readiness attempts are available through the same subordinate selector. Required input may temporarily own attention. Sign-off is not available here."}</p>
                 </section>
               </div>
-              {selectedSecondaryMaterial ? (
+              {!requiredInputOwnsAttention && selectedSecondaryMaterial ? (
                 <section className="order-readiness-secondary-material">
                   <h3>Selected supporting material</h3>
                   {selectedSecondaryMaterial}
