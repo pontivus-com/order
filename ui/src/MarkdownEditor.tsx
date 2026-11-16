@@ -307,7 +307,7 @@ export const MarkdownEditor = ({
                 />
                 <WorkbenchAction
                   label="Cancel"
-                  disabled={!dirty || saving}
+                  disabled={saving}
                   onClick={cancel}
                 />
               </>
