@@ -56,6 +56,11 @@
     --color-accent-muted: #203554 !important;
     color-scheme: dark;
   }
+  :root:not([data-theme]) .order-toolbar,
+  [data-astryx-theme="neutral"]:not([data-theme]) .order-toolbar {
+    background: var(--color-background-muted);
+    color: var(--color-text-primary);
+  }
 }
 
 /* 2. Order-only structural/readability roles. */
@@ -135,14 +140,6 @@
   background: var(--color-background-muted);
   color: var(--color-text-primary);
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme]) .order-toolbar,
-  [data-astryx-theme="neutral"]:not([data-theme]) .order-toolbar {
-    background: var(--color-background-muted);
-    color: var(--color-text-primary);
-  }
-}
-
 .order-workitem-layout {
   height: calc(100dvh - var(--order-toolbar-height));
   min-height: 0;
