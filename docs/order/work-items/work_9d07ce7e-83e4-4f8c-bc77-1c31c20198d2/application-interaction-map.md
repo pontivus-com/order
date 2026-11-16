@@ -1,6 +1,6 @@
 # Phase 1 application interaction map
 
-**Status:** P1-T01 through P1-T06 complete; P1-T07+ pending  
+**Status:** P1-T01 through P1-T07 complete; P1-T08+ pending  
 **WorkItem:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`  
 **Audit branch:** `version/0.5.0`  
 **Production implementation baseline under audit:** `a4fca0d5771ecbf3af6f932649d3811bed750cd5`  
@@ -1163,6 +1163,17 @@ The current renderer graph has been classified into application, workflow-step, 
 P1-T03 may now capture rendered evidence against §10. P1-T04 must not start final INFO closure until the relevant rendered evidence exists.
 
 ## 20. Current-state gaps requiring derived audit
+
+P1-T07 adds OpenCode/integration findings:
+
+- **OC-F01:** current ordinary provider execution is operationally opaque beyond Order Run state and canonical final events.
+- **OC-F03:** current provider diagnostics cannot reconstruct the exact rejected STAGE batch after a successful provider turn.
+- **OC-F04:** there is no currently authorized correctness-grade live provider activity feed; richer live history would require deliberate P4/P6 design/certification.
+- **OC-F07:** the STAGE producer contract omits the consumer batch grammar (same root defect as STATE-F03).
+
+See [opencode-interaction-audit.md](opencode-interaction-audit.md) for exact pin capabilities and transparency boundaries.
+
+### Prior state/information/interaction gaps
 
 P1-T06 adds three state/control-plane blockers:
 
