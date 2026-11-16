@@ -1722,7 +1722,13 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
     await selectWorkflowStep(page, step);
     const attention = page.getByTestId("workflow-step-summary");
     await expect(attention).toContainText("Approval");
-    await expect(attention).toContainText("Package current · ready to sign");
+    if (step === "Approval") {
+      await expect(attention).toContainText("Package current · ready to sign");
+      await expect(page.getByRole("button", { name: "Return to Approval" })).toHaveCount(0);
+    } else {
+      await expect(attention).toContainText("Action required");
+      await expect(page.getByRole("button", { name: "Return to Approval" })).toBeVisible();
+    }
     if (step === "Readiness review" || step === "Approval") {
       await expect(page.getByTestId("review-workspace")).toBeVisible();
     } else {
