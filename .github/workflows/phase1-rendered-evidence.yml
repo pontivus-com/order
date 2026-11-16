@@ -59,6 +59,51 @@ jobs:
           bun ci
           node node_modules/@playwright/test/cli.js install --with-deps chromium
 
+      - name: Prepare deterministic OpenCode UI fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture_dir="${RUNNER_TEMP}/phase1-fake-opencode"
+          mkdir -p "${fixture_dir}"
+          bun - <<'BUN'
+          import { chmodSync, readFileSync, writeFileSync } from "node:fs";
+          import { join } from "node:path";
+          const source = readFileSync("tests/opencode.test.ts", "utf8");
+          const marker = "const fakeOpenCodeSource = ";
+          const start = source.indexOf(marker);
+          if (start < 0) throw new Error("fakeOpenCodeSource marker missing");
+          const literalStart = start + marker.length;
+          const endMarker = "\n;\n\nconst createFakeOpenCode";
+          const end = source.indexOf(endMarker, literalStart);
+          if (end < 0) throw new Error("fakeOpenCodeSource end marker missing");
+          const literal = source.slice(literalStart, end);
+          const fakeSource = (0, eval)(literal);
+          const dir = process.env.RUNNER_TEMP + "/phase1-fake-opencode";
+          const binary = join(dir, "fake-opencode.ts");
+          writeFileSync(binary, fakeSource, { mode: 0o755 });
+          chmodSync(binary, 0o755);
+          writeFileSync(join(dir, ".fake-opencode.json"), JSON.stringify({
+            accountConnections: [
+              { type: "credential", id: "cred_beta", label: "beta@example.com", method: "oauth" },
+              {
+                type: "credential",
+                id: "cred_alpha",
+                label: "alpha@example.com",
+                method: "oauth",
+                status: {
+                  status: "needs_auth",
+                  message: "Reconnect account",
+                  url: "https://opencode.ai/console/reconnect"
+                }
+              },
+              { type: "credential", id: "cred_gamma", label: "gamma@example.com", method: "oauth" }
+            ],
+            authorizationUrl: "https://opencode.ai/console/device",
+            oauthStatus: "pending"
+          }));
+          BUN
+          echo "PONTIVUS_ORDER_OPENCODE_BIN=${fixture_dir}/fake-opencode.ts" >> "${GITHUB_ENV}"
+
       - name: Generate temporary capture spec
         shell: bash
         run: |
@@ -84,7 +129,7 @@ jobs:
           cat > tests/phase1-capture.spec.ts <<'SPEC'
           import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
           import { join } from "node:path";
-          import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+          import { expect, test, type APIRequestContext, type Locator, type Page } from "@playwright/test";
 
           const baseURL = "http://127.0.0.1:17347";
           const stateRoot = process.env.PONTIVUS_ORDER_TEST_STATE_ROOT;
@@ -133,10 +178,16 @@ jobs:
             await expect(button).toHaveAttribute("aria-pressed", "true");
           };
 
-          const selectMaterial = async (page: Page, name: string): Promise<void> => {
-            const selector = page.getByTestId("workflow-step-index").getByRole("combobox");
-            await selector.click();
-            await page.getByRole("option", { name, exact: true }).click({ force: true });
+          const replaceMarkdownSource = async (
+            page: Page,
+            editor: Locator,
+            markdown: string,
+          ): Promise<void> => {
+            await editor.click();
+            await editor.press("Control+A");
+            await page.keyboard.insertText(markdown);
+            const finalLine = markdown.split("\n").at(-1) ?? "";
+            await expect(editor.locator(".cm-line").last()).toHaveText(finalLine);
           };
 
           const capture = async (
@@ -144,159 +195,112 @@ jobs:
             surf: string,
             scenario: string,
             filename: string,
+            evidenceClass: "production-runtime" | "deterministic-contract-fixture" = "production-runtime",
           ): Promise<void> => {
-            await page.waitForTimeout(150);
+            await page.waitForTimeout(120);
             const viewport = page.viewportSize();
             await page.screenshot({ path: join(output, filename), fullPage: false });
-            manifest.push({
-              surf,
-              scenario,
-              filename,
-              auditSha,
-              viewport,
-              url: page.url(),
-            });
+            manifest.push({ surf, scenario, filename, auditSha, viewport, url: page.url(), evidenceClass });
             writeFileSync(
               join(output, "manifest.json"),
               JSON.stringify({ auditSha, capturedAt: new Date().toISOString(), entries: manifest }, null, 2) + "\n",
             );
           };
 
-          test("capture Phase 1 representative rendered states", async ({ page, request }) => {
-            test.setTimeout(180000);
+          test("capture Phase 1 residual rendered states", async ({ page, request }) => {
+            test.setTimeout(120000);
             await page.setViewportSize({ width: 1600, height: 900 });
             await authenticate(page, request);
 
-            await capture(page, "SURF-QUEUE-001", "active queue wide with source diagnostic", "01-queue-wide.png");
+            await page.goto("/settings/repositories");
+            await expect(page.getByTestId("settings-repositories")).toBeVisible();
 
-            await page.setViewportSize({ width: 700, height: 800 });
-            await capture(page, "SURF-QUEUE-001", "active queue narrow", "02-queue-narrow.png");
-            await page.setViewportSize({ width: 1600, height: 900 });
+            await page.getByRole("button", { name: "Add repository", exact: true }).click();
+            await expect(page.getByTestId("add-repository-form")).toBeVisible();
+            await capture(page, "SURF-SET-REPO-ADD-001", "add repository bounded form", "31-settings-repository-add.png");
+            await page.getByRole("button", { name: "Cancel add repository", exact: true }).click();
 
-            await page.getByRole("button", { name: "New work item" }).click();
-            await expect(page.getByRole("dialog", { name: "Create work item" })).toBeVisible();
-            await capture(page, "SURF-CREATE-001", "ordinary create task panel", "03-create-work-item.png");
+            const moveButton = page.getByRole("button", { name: /^Move WorkItem documents for / }).first();
+            await expect(moveButton).toBeVisible();
+            await moveButton.click();
+            await expect(page.getByTestId("move-workitem-documents")).toBeVisible();
+            await capture(page, "SURF-SET-REPO-MOVE-001", "move WorkItem document root form", "32-settings-repository-move.png");
+            await page.getByRole("button", { name: "Cancel move", exact: true }).click();
+
+            const disconnect = page.getByRole("button", { name: /^Disconnect / }).first();
+            await disconnect.click();
+            await expect(page.getByRole("alertdialog", { name: "Disconnect repository?" })).toBeVisible();
+            await capture(page, "SURF-CONF-REPO-DISCONNECT-001", "disconnect repository confirmation", "33-settings-repository-disconnect.png");
             await page.keyboard.press("Escape");
 
-            for (const [section, surf, file] of [
-              ["repositories", "SURF-SET-REPO-001", "04-settings-repositories.png"],
-              ["opencode", "SURF-SET-OC-001", "05-settings-opencode-empty.png"],
-              ["model", "SURF-SET-MODEL-001", "06-settings-model.png"],
-            ] as const) {
-              await page.goto("/settings/" + section);
-              await expect(page.getByTestId("settings-workspace")).toBeVisible();
-              await capture(page, surf, "settings section", file);
-            }
+            await page.goto("/settings/opencode");
+            await expect(page.getByTestId("settings-opencode")).toBeVisible();
+            await expect(page.getByText("beta@example.com", { exact: true })).toBeVisible();
+            await capture(page, "SURF-SET-OC-001", "saved OpenCode account table via deterministic provider fixture", "34-settings-opencode-populated.png", "deterministic-contract-fixture");
 
-            await openWorkItem(page, "Lifecycle editing workbench");
-            await selectStep(page, "Work request");
-            await expect(page.getByTestId("source-document-material")).toBeVisible();
-            await capture(page, "SURF-STEP-WR-001", "reached Work request editor", "07-work-request.png");
+            await page.getByRole("button", { name: "Rename beta@example.com", exact: true }).click();
+            await expect(page.getByTestId("rename-opencode-account")).toBeVisible();
+            await capture(page, "SURF-SET-OC-RENAME-001", "rename saved OpenCode account", "35-settings-opencode-rename.png", "deterministic-contract-fixture");
+            await page.getByRole("button", { name: "Cancel rename", exact: true }).click();
 
-            for (const [step, surf, file] of [
-              ["Research", "SURF-STEP-R1-001", "08-research-document.png"],
-              ["Requirements", "SURF-STEP-R2-001", "09-requirements-document.png"],
-              ["Solution design", "SURF-STEP-DESIGN-001", "10-design-document.png"],
-              ["Implementation plan", "SURF-STEP-PLAN-001", "11-plan-document.png"],
-              ["Readiness review", "SURF-STEP-R3-001", "12-readiness-review.png"],
-              ["Approval", "SURF-STEP-APPROVAL-001", "13-approval.png"],
-            ] as const) {
-              await selectStep(page, step);
-              await capture(page, surf, "governed lifecycle material", file);
-            }
-
-            await openWorkItem(page, "Workflow input required");
-            await expect(page.getByTestId("stage-run-material")).toBeVisible();
-            await capture(page, "SURF-MAT-ACTIVITY-001", "required input owns current activity", "14-required-input.png");
-
-            await openWorkItem(page, "Proposal review");
-            await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-            await capture(page, "SURF-MAT-PROPOSAL-001", "pending proposal decision", "15-proposal-review.png");
-
-            await openWorkItem(page, "Proposal adoption in progress");
-            await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-            await capture(page, "SURF-MAT-PROPOSAL-001", "proposal adoption in progress", "16-proposal-adoption.png");
-
-            await openWorkItem(page, "Workflow retry action");
-            await capture(page, "SURF-WI-001", "failed current stage with retry recovery", "17-retry-recovery.png");
-
-            await openWorkItem(page, "Workflow resume action");
-            await capture(page, "SURF-WI-001", "blocked current stage with resume recovery", "18-blocked-resume.png");
-
-            await openWorkItem(page, "Proposal review");
-            await page.getByRole("button", { name: "Context" }).click();
-            await expect(page.getByTestId("work-item-context")).toBeVisible();
-            await capture(page, "SURF-WI-CONTEXT-001", "wide technical Context panel", "19-context-wide.png");
-            await page.getByRole("button", { name: "Close" }).click().catch(() => undefined);
-
-            await page.setViewportSize({ width: 700, height: 800 });
-            await page.getByRole("button", { name: "Context" }).click();
-            await expect(page.getByTestId("work-item-context-drawer")).toBeVisible();
-            await capture(page, "SURF-WI-CONTEXT-001", "narrow technical Context drawer", "20-context-narrow.png");
+            await page.getByRole("button", { name: "Remove beta@example.com", exact: true }).click();
+            await expect(page.getByRole("alertdialog", { name: "Remove saved OpenCode account?" })).toBeVisible();
+            await capture(page, "SURF-CONF-OC-REMOVE-001", "remove saved OpenCode account confirmation", "36-settings-opencode-remove.png", "deterministic-contract-fixture");
             await page.keyboard.press("Escape");
-            await page.setViewportSize({ width: 1600, height: 900 });
 
-            await openWorkItem(page, "Awaiting sign-off");
-            await expect(page.getByTestId("review-workspace")).toBeVisible();
-            await capture(page, "SURF-STEP-APPROVAL-001", "current package ready to sign", "21-approval-current.png");
-            await selectMaterial(page, "T1");
-            await expect(page.getByTestId("approval-task-detail")).toBeVisible();
-            await capture(page, "SURF-MAT-APPROVAL-TASK-001", "signed task detail in approval", "22-approval-task.png");
+            await page.getByRole("button", { name: "Add account", exact: true }).click();
+            await capture(page, "SURF-SET-OC-ADD-001", "add OpenCode account form", "37-settings-opencode-add.png", "deterministic-contract-fixture");
+            await page.getByLabel("Account label").fill("phase1@example.com");
+            await page.getByRole("button", { name: "Continue to OpenCode sign-in", exact: true }).click();
+            await expect(page.getByTestId("opencode-login-attempt")).toBeVisible();
+            await expect(page.getByText("Waiting for OpenCode sign-in…", { exact: true })).toBeVisible();
+            await capture(page, "SURF-SET-OC-LOGIN-001", "pending OpenCode device sign-in", "38-settings-opencode-login.png", "deterministic-contract-fixture");
+            await page.getByRole("button", { name: "Cancel OpenCode sign-in", exact: true }).click();
 
-            await openWorkItem(page, "Implementation action ready");
-            await expect(page.getByTestId("execution-workspace")).toBeVisible();
-            await capture(page, "SURF-STEP-EXEC-001", "implementation TODO current owner", "23-implementation-ready.png");
-
-            await openWorkItem(page, "Failed implementation feedback");
-            await expect(page.getByTestId("execution-workspace")).toBeVisible();
-            await capture(page, "SURF-MAT-EXEC-TASK-001", "blocked implementation with failed validation/review", "24-implementation-failed.png");
-
-            await openWorkItem(page, "Verified candidate");
-            await selectStep(page, "Implementation");
-            await expect(page.getByTestId("execution-workspace")).toBeVisible();
-            await selectMaterial(page, "Independent review · Attempt 1");
-            await capture(page, "SURF-MAT-EXEC-TASK-001", "completed reviewer attempt and validation matrix", "25-implementation-verified.png");
-
-            const reviewEvidence = page
-              .locator('[data-evidence-path="review.txt"]')
-              .first()
-              .getByRole("button", { name: "Evidence: review.txt" });
-            await reviewEvidence.scrollIntoViewIfNeeded();
-            await reviewEvidence.click();
-            await expect(page.getByTestId("evidence-workspace")).toBeVisible();
-            await capture(page, "SURF-MAT-EVIDENCE-001", "exact raw evidence inspection", "26-evidence.png");
-
-            await openWorkItem(page, "Completed audit");
-            await expect(page.getByTestId("result-workspace")).toBeVisible();
-            await capture(page, "SURF-STEP-COMPLETE-001", "AUDIT_COMPLETE terminal result", "27-complete-audit.png");
-
-            await openWorkItem(page, "Verified candidate");
-            await expect(page.getByTestId("result-workspace")).toBeVisible();
-            await capture(page, "SURF-STEP-COMPLETE-001", "CANDIDATE_DONE terminal result", "28-complete-candidate.png");
+            await openWorkItem(page, "Proposal review");
+            await page.getByRole("button", { name: "Archive work item", exact: true }).click();
+            await expect(page.getByRole("alertdialog", { name: "Archive work item?" })).toBeVisible();
+            await capture(page, "SURF-CONF-ARCHIVE-001", "archive WorkItem confirmation", "39-archive-confirmation.png");
+            await page.keyboard.press("Escape");
 
             await openWorkItem(page, "Lifecycle editing workbench");
             await selectStep(page, "Implementation plan");
-            const editor = page.getByLabel("Implementation plan document Markdown source");
-            await editor.click();
-            await editor.press("Control+A");
-            await page.keyboard.insertText("# Browser certification plan\n\nUnsaved Phase 1 evidence buffer");
-            await page.getByTestId("workflow-rail").getByRole("button", { name: "Approval", exact: true }).click();
+            let editor = page.getByLabel("Implementation plan document Markdown source");
+            await replaceMarkdownSource(page, editor, "# Phase 1 residual evidence\n\nUnsaved destination-change buffer");
+            await page.getByRole("link", { name: "Settings", exact: true }).click();
             await expect(page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })).toBeVisible();
-            await capture(page, "SURF-CONF-DIRTY-MATERIAL-001", "dirty workflow/material selection confirmation", "29-dirty-selection-confirmation.png");
+            await capture(page, "SURF-CONF-DIRTY-DEST-001", "dirty document blocks application destination change", "40-dirty-destination-confirmation.png");
             await page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })
               .getByRole("button", { name: "Continue editing" }).click();
 
-            await openWorkItem(page, "Proposal review");
-            await page.getByRole("button", { name: "Archive work item" }).click();
-            await expect(page.getByRole("alertdialog", { name: "Archive work item?" })).toBeVisible();
-            await capture(page, "SURF-CONF-ARCHIVE-001", "archive confirmation", "30-archive-confirmation.png");
+            await selectStep(page, "Work request");
+            editor = page.getByLabel("WorkItem source Markdown source");
+            const current = await editor.evaluate((node) =>
+              Array.from(node.querySelectorAll(".cm-line")).map((line) => line.textContent ?? "").join("\n")
+            );
+            await replaceMarkdownSource(page, editor, current + "\n\nPhase 1 Git evidence.");
+            await page.getByRole("button", { name: "Save", exact: true }).click();
+            await expect(page.getByRole("button", { name: "Save documentation to Git", exact: true })).toBeVisible();
+            await page.getByRole("button", { name: "Save documentation to Git", exact: true }).click();
+            await expect(page.getByRole("alertdialog", { name: "Save WorkItem documentation to Git?" })).toBeVisible();
+            await capture(page, "SURF-CONF-DOC-GIT-001", "governed documentation Git commit confirmation", "41-document-git-confirmation.png");
             await page.keyboard.press("Escape");
 
-            writeFileSync(
-              join(output, "manifest.json"),
-              JSON.stringify({ auditSha, capturedAt: new Date().toISOString(), entries: manifest }, null, 2) + "\n",
-            );
+            await openWorkItem(page, "Long source editing workbench wide");
+            await selectStep(page, "Work request");
+            await page.setViewportSize({ width: 1600, height: 900 });
+            await capture(page, "SURF-MAT-SOURCE-001", "long Work request density wide", "42-long-source-wide.png");
+            await page.setViewportSize({ width: 700, height: 800 });
+            await capture(page, "SURF-MAT-SOURCE-001", "long Work request density narrow", "43-long-source-narrow.png");
+
+            await page.setViewportSize({ width: 1600, height: 900 });
+            await page.goto("/");
+            await page.getByRole("radio", { name: "Light", exact: true }).click();
+            await capture(page, "SURF-APP-001", "explicit light theme application shell", "44-theme-light.png");
+            await page.getByRole("radio", { name: "Dark", exact: true }).click();
+            await capture(page, "SURF-APP-001", "explicit dark theme application shell", "45-theme-dark.png");
           });
+          SPEC
           SPEC
 
       - name: Capture rendered states
