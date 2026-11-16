@@ -438,7 +438,7 @@ The operator does not need raw OpenCode event names, protocol identifiers, provi
 
 Operational activity is required **live while processing** when the reliable integration surface can provide it under the accepted technical design.
 
-After the turn completes, a bounded activity summary remains inspectable with that Run when it materially helps explain the work performed or a failure. R2 does not require every transient progress pulse to become durable workflow authority.
+After the turn completes, a bounded activity summary remains inspectable with that Run when it materially helps explain the work performed or a failure. The functional design does not require every transient progress pulse to become durable workflow authority.
 
 Canonical Order messages, required questions, proposals, blockers, completions and validation outcomes remain the authoritative workflow-semantic history.
 
@@ -466,7 +466,7 @@ A provider/agent failure must present:
 4. the valid next action: Retry, Resume, Reconcile/Return, or no action where the failure is terminal;
 5. technical diagnostic detail on demand.
 
-The product must distinguish provider execution failure from a later Order contract/admission failure even if both occur after the same visible agent turn. Exact diagnostic transport is a DESIGN decision.
+The product must distinguish provider execution failure from a later Order contract/admission failure even if both occur after the same visible agent turn. Exact diagnostic transport is a Solution design decision.
 
 Hidden chain-of-thought/reasoning, credentials, secrets, raw unbounded tool output and raw provider-native metadata remain closed.
 
@@ -545,7 +545,7 @@ This closes the Phase 1 dead state in which a Run could terminalize while leavin
 
 #### 9.2 Direct human authoring
 
-Direct Save of an authorized Work request or R1/R2/DESIGN/PLAN Markdown document is an explicit canonical human mutation.
+Direct Save of an authorized Work request, Research, Requirements, Solution design or Implementation plan Markdown document is an explicit canonical human mutation.
 
 It is not converted into a synthetic proposal.
 
@@ -570,7 +570,7 @@ Save:
 | Author/refine request | editable current source, no higher-priority conflict | express originating intent accurately | current Markdown; work kind/project/concerns as supporting identity | Markdown edits | Save current source or Cancel edits | remain on Work request; saved source status visible |
 | Resolve invalid source/conflict | source diagnostic or expected-content conflict owns attention | restore valid current source | concise cause, affected source, safe recovery | reload/edit/reconcile where permitted | conflict is resolved or remains explicitly blocked | Work request remains owning task |
 | Inspect source/Git state | operator requests supporting detail | understand repository recording/currentness | concise save/Git state; exact path/hash/branch/HEAD on demand | none | non-mutating inspection | return to same document |
-| Start Research | source valid/current and lifecycle allows Start | hand durable intent to R1 | clear ready-to-start state and no unresolved blocker | explicit Start Research | R1 becomes current and first Research activity begins | Research current-attention surface |
+| Start Research | source valid/current and lifecycle allows Start | hand durable intent to Research | clear ready-to-start state and no unresolved blocker | explicit Start Research | Research becomes current and the first Research activity begins | Research current-attention surface |
 
 Default information hierarchy:
 
@@ -586,13 +586,13 @@ There is no Run-history rail on Work request.
 
 **Primary task:** establish evidence-backed facts, root cause/producing boundary, affected path and governing authority sufficient to decide what downstream behavior is required.
 
-**Completion outcome:** validated R1 factual closure, or a governed non-delivery terminal R1 outcome where schema permits.
+**Completion outcome:** validated Research factual closure, or a governed non-delivery terminal Research outcome where the selected work type permits it.
 
 **Primary interaction classes:** Dialogue, Review, Document and Evidence according to current attention.
 
 | Subtask | Trigger/current condition | Operator goal | Required information | Human input/decision | Interaction/result | Post-action orientation |
 |---|---|---|---|---|---|---|
-| Start/retry Research | R1 current and start/retry owns attention | begin/restart investigation | originating request, Research purpose, blocker/retry reason where applicable | Start/Retry | new/current Research Run begins | Dialogue/activity |
+| Start/retry Research | Research is current and start/retry owns attention | begin/restart investigation | originating request, Research purpose, blocker/retry reason where applicable | Start/Retry | new/current Research Run begins | Dialogue/activity |
 | Observe investigation | provider turn processing | understand useful progress and detect stuck/failure conditions | Processing + bounded operational activity | none | live progress | remain Dialogue/activity |
 | Answer required question | exact required input owns attention | provide missing fact/decision | exact question plus relevant current context | answer | accepted input starts next turn | processing/activity |
 | Continue collaboration | Run OPEN and no proposal/input/blocker | refine investigation inside authorized intent | current dialogue, current Research material/context | free-form continuation | next provider turn | processing/activity |
@@ -605,7 +605,7 @@ Research must not present raw repository paths, hashes or provider session ident
 
 ### 12. Requirements — define the observable behavioral contract
 
-**Primary task:** convert validated facts and supplied product intent into complete observable behavior that DESIGN can implement without inventing product decisions.
+**Primary task:** convert validated facts and supplied product intent into complete observable behavior that Solution design can implement without inventing product decisions.
 
 **Completion outcome:** accepted, current/conformed Requirements that close observable outcome, scope, exclusions, acceptance, failure behavior and material product constraints.
 
@@ -613,14 +613,14 @@ Research must not present raw repository paths, hashes or provider session ident
 
 | Subtask | Trigger/current condition | Operator goal | Required information | Human input/decision | Interaction/result |
 |---|---|---|---|---|---|
-| Start/retry Requirements work | R2 current and action owner | begin/continue functional definition | accepted Research facts, supplied product intent, current Requirements | Start/Retry | active Requirements dialogue |
+| Start/retry Requirements work | Requirements is current and action owner | begin/continue functional definition | accepted Research facts, supplied product intent, current Requirements | Start/Retry | active Requirements dialogue |
 | Observe agent work | processing | understand functional-analysis progress | bounded operational activity | none | live progress |
-| Answer product question | required input | close a missing product decision that R2 is allowed to decide/clarify | exact question, affected requirement/context | answer | next provider turn |
+| Answer product question | required input | close a missing product decision that Requirements is allowed to decide/clarify | exact question, affected requirement/context | answer | next provider turn |
 | Continue functional collaboration | OPEN | refine observable behavior | current Requirements/dialogue and supporting Research | free-form continuation | next provider turn |
 | Review proposed Requirements change | proposal pending | accept/reject canonical requirement changes | rationale/diff/affected requirements | Adopt/Reject | canonical material update or continued dialogue |
 | Directly edit Requirements | document owns ordinary attention | refine exact functional authority | current Requirements + maturity | edit/save | Updated — validation required |
 | Inspect Research/source/evidence | explicit supporting selection | verify basis without displacing Requirements | selected supporting material | none | read-only inspection |
-| Determine readiness for DESIGN | current Requirements validated/conformed | ensure no material product decision remains delegated downstream | completeness of outcome/scope/acceptance/failure semantics | continue work or accept progression | DESIGN becomes eligible only when R2 is complete |
+| Determine readiness for Solution design | current Requirements validated/conformed | ensure no material product decision remains delegated downstream | completeness of outcome/scope/acceptance/failure semantics | continue work or accept progression | Solution design becomes eligible only when Requirements is complete |
 
 Default hierarchy: current question/proposal/blocker first when present; otherwise Requirements document; Research/source/evidence supporting; technical identities on demand.
 
@@ -636,12 +636,12 @@ Default hierarchy: current question/proposal/blocker first when present; otherwi
 |---|---|---|---|---|
 | Start/retry design | begin or recover technical design | accepted Requirements, applicable architecture/contracts, current repository evidence | Start/Retry | design Run |
 | Observe agent work | understand useful design activity | bounded reading/search/check activity | none | live activity |
-| Answer required clarification | close exact technical/product clarification within accepted R2 authority | question plus relevant requirement/authority | answer | next turn |
+| Answer required clarification | close exact technical/product clarification within accepted Requirements authority | question plus relevant requirement/authority | answer | next turn |
 | Continue design dialogue | refine design within constraints | current design/dialogue | continuation | next turn |
 | Review proposed design change | accept/reject canonical design change | rationale/diff/authority implications | Adopt/Reject | updated design or continued dialogue |
 | Inspect/edit Solution design | work directly on canonical technical design | design document + maturity | edit/save | Updated — validation required |
 | Inspect authority/evidence | verify constraints/facts | selected authority/evidence | none | non-mutating |
-| Determine readiness for PLAN | ensure no technical architecture/contract decision is delegated to PLAN | complete design/validation obligations | continue or progress | PLAN eligible only when design closure is complete |
+| Determine readiness for Implementation plan | ensure no technical architecture/contract decision is delegated to Implementation plan | complete design/validation obligations | continue or progress | Implementation plan becomes eligible only when Solution design closure is complete |
 
 The Solution design document receives broad primary width suitable for architecture, contracts, diagrams and technical material. Supporting authority is secondary until selected.
 
@@ -662,7 +662,7 @@ The Solution design document receives broad primary width suitable for architect
 | Review proposed Plan change | accept/reject canonical Plan change | diff/rationale/task implications | Adopt/Reject | updated Plan or continued dialogue |
 | Inspect/edit Plan | directly refine execution authority | Plan + maturity | edit/save | Updated — validation required |
 | Inspect Design/Requirements/evidence | verify traceability and feasibility | selected supporting authority/evidence | none | non-mutating |
-| Confirm implementation readiness of Plan | ensure tasks/dependencies/change surface/validation are exact | complete Plan | continue or progress | R3 eligible only when Plan is executable without material inference |
+| Confirm implementation readiness of Plan | ensure tasks/dependencies/change surface/validation are exact | complete Plan | continue or progress | Readiness review becomes eligible only when the Plan is executable without material inference |
 
 Derived task/change-surface summaries may be shown for inspection but never become a second Plan authority.
 
@@ -684,14 +684,14 @@ Primary hierarchy:
 
 | Subtask | Trigger | Operator goal | Required information | Interaction/result |
 |---|---|---|---|---|
-| Observe review in progress | R3 Run processing | know review is actively progressing | Review in progress + bounded agent activity | inspect; Cancel only if canonically allowed |
-| Answer readiness question | exact required input | resolve missing evidence/decision permitted at R3 | question + relevant package context | answer; review continues |
+| Observe review in progress | Readiness review Run processing | know review is actively progressing | Review in progress + bounded agent activity | inspect; Cancel only if canonically allowed |
+| Answer readiness question | exact required input | resolve missing evidence/decision permitted during Readiness review | question + relevant package context | answer; review continues |
 | Inspect findings/verdict | review result exists | understand whether/why package is ready | verdict, findings, defective owner, evidence refs | non-mutating Review |
 | Inspect package material | selected document/task/evidence | understand finding/verdict | selected governed material | non-mutating |
 | Follow return/recovery | not-ready/stale/blocker owns attention | return to exact owning stage or recover | reason + exact destination/owner | explicit return/recovery |
-| Inspect completed R3 | R3 historical/current result | understand immutable readiness result | R3 material | read-only |
+| Inspect completed Readiness review | historical/current readiness result | understand immutable readiness result | Readiness review material | read-only |
 
-R3 material is read-only. Attempts/package/evidence use compact subordinate selection. Repository paths/hashes are technical unless needed to identify exact selected evidence.
+Readiness review material is read-only. Attempts/package/evidence use compact subordinate selection. Repository paths/hashes are technical unless needed to identify exact selected evidence.
 
 ### 16. Approval — understand and explicitly authorize the exact package
 
@@ -714,7 +714,7 @@ Primary hierarchy:
 | Establish package currentness | know whether sign-off is valid now | Current / Stale / Returned and concise reason | inspect or invoke exact reconciliation/return action |
 | Scan signed tasks | understand what implementation is being authorized | task objective/state-independent meaning, scope/exclusions/dependencies/gates/acceptance | table/list selection |
 | Inspect task detail | judge one signed task | complete task definition and relevant authority | read-only detail |
-| Inspect governed documents | inspect source/R1/R2/DESIGN/PLAN/R3 material needed for judgment | selected document + maturity/currentness | read-only |
+| Inspect governed documents | inspect Work request/Research/Requirements/Solution design/Implementation plan/Readiness review material needed for judgment | selected document + maturity/currentness | read-only |
 | Sign off | explicitly authorize the exact package | package currentness, task/package meaning, approver identity | Sign off exact package |
 | Inspect technical identity | diagnose/verify exact package identity | package hash, source hash, baseline commit, ids | on-demand disclosure/Context |
 
@@ -888,43 +888,47 @@ The six Phase 1 functional decisions are closed as follows:
 | FD-05 — material maturity | **CLOSED:** Draft / Updated — validation required / Current / Stale / Historical / Signed & locked, with proposal/adoption transient states (§7) |
 | FD-06 — integrated pre-signoff loop | **CLOSED:** one Dialogue/Review/Document/Evidence task grammar with exact post-action orientation (§9 and §§11–14) |
 
-No material product decision identified by Phase 1 is delegated to DESIGN.
+No material product decision identified by the investigative baseline is delegated to Solution design.
 
 ### 23. Functional requirement identities
 
-The following stable requirement identities are owned by this R2 artifact for downstream traceability:
+The following stable requirement identities are owned by this functional design for downstream traceability:
 
-- **R2-FR-001 TASK-FIRST-WORKFLOW** — each workflow step is organized around its primary task and subtasks, not its available domain objects.
-- **R2-FR-002 CURRENT-ATTENTION-OWNERSHIP** — the highest-priority current subtask owns the current action and cannot be hidden by history/context.
-- **R2-FR-003 INFORMATION-HIERARCHY** — primary/current/supporting/activity/history/technical information classes are enforced across every workflow surface.
-- **R2-FR-004 MATERIAL-MATURITY-LANGUAGE** — the operator-facing maturity vocabulary and behavior in §7 is consistent and independent from lifecycle stage.
-- **R2-FR-005 BOUNDED-AGENT-ACTIVITY** — live/product-relevant operational activity is visible without exposing hidden reasoning or raw provider plumbing.
-- **R2-FR-006 SERIAL-HUMAN-AGENT-DIALOGUE** — active provider processing does not accept concurrent free-form input; OPEN/REQUIRED_INPUT interaction is explicit.
-- **R2-FR-007 PROPOSAL-ATTENTION-CLOSURE** — unresolved proposal/adoption owns attention and cannot be orphaned by Cancel/terminalization.
-- **R2-FR-008 DIRECT-AUTHORING** — authorized human Markdown Save remains explicit canonical mutation with conflict safety and downstream invalidation.
-- **R2-FR-009 PRESIGNOFF-GRAMMAR** — R1/R2/DESIGN/PLAN use one coherent Dialogue/Review/Document/Evidence task loop.
-- **R2-FR-010 WORK-REQUEST-TASK** — Work request supports author/validate/start-Research behavior in §10.
-- **R2-FR-011 RESEARCH-TASK** — Research supports evidence-backed investigation behavior in §11.
-- **R2-FR-012 REQUIREMENTS-TASK** — Requirements supports closure of observable product behavior in §12.
-- **R2-FR-013 DESIGN-TASK** — Solution design supports technical closure without changing accepted product intent in §13.
-- **R2-FR-014 PLAN-TASK** — Plan supports exact executable delivery authority in §14.
-- **R2-FR-015 READINESS-TASK** — R3 supports adversarial verdict/defective-owner/evidence behavior in §15.
-- **R2-FR-016 APPROVAL-TASK** — Approval supports current-package understanding and explicit sign-off in §16.
-- **R2-FR-017 TASK-SCOPED-MANUAL-EXECUTION** — manual Implementation start is scoped to the canonical current approved task.
-- **R2-FR-018 IMPLEMENTATION-TASK** — Implementation supports task scanning, active role, blockers, validation, evidence and recovery in §17.
-- **R2-FR-019 TERMINAL-RESULT-TASK** — Complete presents the governed outcome/result first and permitted follow-up second.
-- **R2-FR-020 POST-ACTION-ORIENTATION** — every material interaction reorients the operator to the resulting current task.
-- **R2-FR-021 RESPONSIVE-SEMANTIC-CONTINUITY** — responsive layout changes representation only, not task/state/action meaning.
-- **R2-FR-022 ACCESSIBLE-INTERACTION-CONTINUITY** — material interactions, focus, state and failure feedback remain keyboard/assistive-technology usable.
-- **R2-FR-023 SUPPORTING-SERVICE-BOUNDARIES** — Queue/Create/Settings/Context/Evidence support workflow tasks without becoming workflow authority.
-- **R2-FR-024 NO-DUPLICATE-PRODUCT-STATE** — required presentation/maturity behavior is derived from canonical facts unless DESIGN proves a genuinely missing fact.
-- **R2-FR-025 LIFECYCLE-INFORMATION-MATURITY** — each stage consumes only the authoritative information legitimately available at that point and adds only the semantic layer it owns.
-- **R2-FR-026 CURRENT-STAGE-DOCUMENT-PRIMACY** — the current stage-owned task/output is primary; upstream documents remain supporting authority/evidence and unreached downstream documents are not presented as empty productive artifacts.
-- **R2-FR-027 REQUIREMENT-TO-SOLUTION-BOUNDARY** — R2 closes observable functional requirements plus applicable binding constraints; DESIGN resolves the technical requirements/architecture/contracts that realize them without inventing product behavior.
+- **WF-FR-001 TASK-FIRST-WORKFLOW** — each workflow step is organized around its primary task and subtasks, not its available domain objects.
+- **WF-FR-002 CURRENT-ATTENTION-OWNERSHIP** — the highest-priority current subtask owns the current action and cannot be hidden by history/context.
+- **WF-FR-003 INFORMATION-HIERARCHY** — primary/current/supporting/activity/history/technical information classes are enforced across every workflow surface.
+- **WF-FR-004 MATERIAL-MATURITY-LANGUAGE** — the operator-facing maturity vocabulary and behavior in §7 is consistent and independent from lifecycle stage.
+- **WF-FR-005 BOUNDED-AGENT-ACTIVITY** — live/product-relevant operational activity is visible without exposing hidden reasoning or raw provider plumbing.
+- **WF-FR-006 SERIAL-HUMAN-AGENT-DIALOGUE** — active provider processing does not accept concurrent free-form input; OPEN/REQUIRED_INPUT interaction is explicit.
+- **WF-FR-007 PROPOSAL-ATTENTION-CLOSURE** — unresolved proposal/adoption owns attention and cannot be orphaned by Cancel/terminalization.
+- **WF-FR-008 DIRECT-AUTHORING** — authorized human Markdown Save remains explicit canonical mutation with conflict safety and downstream invalidation.
+- **WF-FR-009 PRESIGNOFF-GRAMMAR** — Research, Requirements, Solution design and Implementation plan use one coherent Dialogue/Review/Document/Evidence task loop.
+- **WF-FR-010 WORK-REQUEST-TASK** — Work request supports author/validate/start-Research behavior in §10.
+- **WF-FR-011 RESEARCH-TASK** — Research supports evidence-backed investigation behavior in §11.
+- **WF-FR-012 REQUIREMENTS-TASK** — Requirements supports closure of observable product behavior in §12.
+- **WF-FR-013 DESIGN-TASK** — Solution design supports technical closure without changing accepted product intent in §13.
+- **WF-FR-014 PLAN-TASK** — Plan supports exact executable delivery authority in §14.
+- **WF-FR-015 READINESS-TASK** — Readiness review supports adversarial verdict/defective-owner/evidence behavior in §15.
+- **WF-FR-016 APPROVAL-TASK** — Approval supports current-package understanding and explicit sign-off in §16.
+- **WF-FR-017 TASK-SCOPED-MANUAL-EXECUTION** — manual Implementation start is scoped to the canonical current approved task.
+- **WF-FR-018 IMPLEMENTATION-TASK** — Implementation supports task scanning, active role, blockers, validation, evidence and recovery in §17.
+- **WF-FR-019 TERMINAL-RESULT-TASK** — Complete presents the governed outcome/result first and permitted follow-up second.
+- **WF-FR-020 POST-ACTION-ORIENTATION** — every material interaction reorients the operator to the resulting current task.
+- **WF-FR-021 RESPONSIVE-SEMANTIC-CONTINUITY** — responsive layout changes representation only, not task/state/action meaning.
+- **WF-FR-022 ACCESSIBLE-INTERACTION-CONTINUITY** — material interactions, focus, state and failure feedback remain keyboard/assistive-technology usable.
+- **WF-FR-023 SUPPORTING-SERVICE-BOUNDARIES** — Queue/Create/Settings/Context/Evidence support workflow tasks without becoming workflow authority.
+- **WF-FR-024 NO-DUPLICATE-PRODUCT-STATE** — required presentation/maturity behavior is derived from canonical facts unless Solution design proves a genuinely missing fact.
+- **WF-FR-025 LIFECYCLE-INFORMATION-MATURITY** — each stage consumes only the authoritative information legitimately available at that point and adds only the semantic layer it owns.
+- **WF-FR-026 CURRENT-STAGE-DOCUMENT-PRIMACY** — the current stage-owned task/output is primary; upstream documents remain supporting authority/evidence and unreached downstream documents are not presented as empty productive artifacts.
+- **WF-FR-027 REQUIREMENT-TO-SOLUTION-BOUNDARY** — Requirements closes observable functional requirements plus applicable binding constraints; Solution design resolves the technical requirements/architecture/contracts that realize them without inventing product behavior.
+- **WF-FR-028 WORK-TYPE-AWARE-DOCUMENTATION** — Change, Defect, Investigation and Audit retain their governed intake and Research semantics, and shared later delivery steps preserve the kind-specific facts and invariants required to perform their task.
+- **WF-FR-029 PROGRESSIVE-DOCUMENTATION** — a WorkItem may begin with incomplete kind-specific intake information and progressively accumulate authoritative facts, Requirements, Solution design, Implementation plan, review and evidence without fabricating unreached documents.
+- **WF-FR-030 USER-FACING-WORKFLOW-LANGUAGE** — operator-facing workflow documentation and UI use Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete rather than internal lifecycle codes.
+- **WF-FR-031 TASK-AREA-CONTEXT-CLOSURE** — each workflow task area exposes the current step-owned output together with the minimum kind-specific upstream information needed to perform the task without reconstructing context from unrelated files.
 
 ## Acceptance criteria
 
-The R2 functional design is satisfied only when all of the following observable criteria are met.
+The functional design is satisfied only when all of the following observable criteria are met.
 
 ### A. Cross-workflow
 
@@ -939,7 +943,7 @@ The R2 functional design is satisfied only when all of the following observable 
 
 ### B. Pre-signoff
 
-9. Research/Requirements/Solution design/Plan share one recognizable interaction grammar.
+9. Research, Requirements, Solution design and Implementation plan share one recognizable interaction grammar.
 10. Processing shows bounded useful operational activity.
 11. OPEN allows free continuation only when no higher-priority input/proposal/blocker owns attention.
 12. REQUIRED_INPUT shows the exact question and binds the response to it.
@@ -988,24 +992,33 @@ The R2 functional design is satisfied only when all of the following observable 
 ### G. Phase 1 traceability
 
 42. Every productive Phase 1 `SURF-` family maps to one task/subtask contract in this document.
-43. Every material Phase 1 `ACT-` interaction is either preserved with explicit semantics, superseded by an explicit R2 requirement, or prohibited by a negative requirement.
+43. Every material investigative-baseline `ACT-` interaction is either preserved with explicit semantics, superseded by an explicit functional requirement, or prohibited by a negative requirement.
 44. F-01 is closed functionally by the information hierarchy.
 45. F-02 is closed functionally by proposal-attention/cancellation semantics.
 46. F-03 is closed functionally by task-scoped manual execution.
 47. F-05 is closed functionally by bounded agent activity.
 48. F-07 is closed functionally by the material-maturity language.
-49. F-04/F-06 and the certification gaps remain technical realization obligations for DESIGN; R2 does not weaken or reinterpret the functional behavior to fit current implementation.
+49. F-04/F-06 and the certification gaps remain technical realization obligations for Solution design; this functional design does not weaken or reinterpret the required behavior to fit current implementation.
 
 ### H. Lifecycle information maturity
 
 50. Work request presents the originating source as the primary productive document and does not imply that Research/Requirements/Design/Plan authority already exists.
 51. Research consumes the Work request plus applicable authority/evidence and produces factual closure without inventing Requirements, architecture or implementation.
 52. Requirements consumes accepted Research/product intent and produces observable functional requirements plus applicable binding constraints without choosing technical architecture or lower-level contracts.
-53. Solution design consumes accepted Requirements plus technical authority/evidence and explicitly resolves the requirement-to-technical-solution relationship before PLAN begins.
+53. Solution design consumes accepted Requirements plus technical authority/evidence and explicitly resolves the requirement-to-solution relationship before Implementation plan begins.
 54. Implementation plan consumes accepted Design/Requirements and is the sole current executable delivery authority; it does not require implementation to reconstruct design from earlier documents.
 55. Readiness, Approval, Implementation and Complete present the accumulated package according to their own task purpose rather than rendering every lifecycle document with equal default prominence.
 56. Unreached downstream lifecycle documents are not represented as current productive authority merely to fill the workspace.
 57. Every later stage can trace its owned output to the minimum sufficient upstream authority without copying that authority into a second normative source.
+58. Change, Defect, Investigation and Audit each open with their governed kind-specific Work request structure rather than a generic intake document.
+59. Research presents and produces the kind-specific factual result required by the selected work type.
+60. Investigation and Audit can terminate successfully after Research without empty Requirements, Solution design or Implementation plan artifacts.
+61. Confirmed Change and Defect work continue into shared delivery steps while preserving their distinct upstream semantics.
+62. Defect Requirements explicitly preserve expected corrected behavior and unchanged-behavior/regression obligations derived from Work request and Research.
+63. Defect Solution design and Implementation plan remain traceable to the proven root cause and original reproduction rather than degrading into generic change work.
+64. Change Requirements, Solution design and Implementation plan remain traceable to the requested outcome and proven current-state/absence.
+65. Operator-facing workflow documentation and UI use user-facing workflow names; internal lifecycle codes appear only in technical traceability contexts.
+66. The task area for every workflow step shows the current step-owned output plus the kind-specific upstream information needed to perform that task without mental reconstruction from unrelated documents.
 
 ## Scope/exclusions
 
@@ -1020,13 +1033,15 @@ The R2 functional design is satisfied only when all of the following observable 
 - manual Implementation execution meaning;
 - per-step information hierarchy and post-action orientation;
 - lifecycle information maturity, stage-entry documentation expectations and stage-owned output boundaries;
+- work-type-specific intake/Research semantics and their downstream information obligations;
+- user-facing workflow terminology for operator-facing functional documentation and UI;
 - Queue/Create/Settings/Context/Evidence where they support the workflow task model;
 - responsive/accessibility continuity;
 - functional acceptance and downstream traceability.
 
-### Excluded from R2
+### Excluded from functional design
 
-R2 does not choose:
+Functional design does not choose:
 
 - provider event/log APIs or exact observability transport;
 - HTTP request/response shapes;
@@ -1037,7 +1052,7 @@ R2 does not choose:
 - database transaction/locking mechanics;
 - prompt serialization/parsing mechanics;
 - implementation task decomposition/change surface;
-- dependency upgrades unless DESIGN proves the accepted functional requirements cannot be met with the pinned provider;
+- dependency upgrades unless Solution design proves the accepted functional requirements cannot be met with the pinned provider;
 - another persisted material/workflow state merely to simplify rendering.
 
 ## Failure/negative behavior
@@ -1063,14 +1078,18 @@ The accepted product must not:
 - convert Approval into master/detail based on collection size;
 - fill Implementation primary space with unreached/empty validation rows;
 - let responsive recomposition change task meaning/action priority;
-- delegate any material product behavior in this document back to DESIGN or implementation.
+- delegate any material product behavior in this document back to Solution design or implementation.
+- flatten Change, Defect, Investigation and Audit into one generic document progression that loses their distinct intake/Research semantics;
+- require a new WorkItem to contain information that legitimately belongs to a later workflow step;
+- render unreached downstream documents as if they were current productive authority;
+- use internal lifecycle codes as ordinary operator-facing screen labels, task descriptions or workflow explanations.
 
 ## Material compatibility/security/performance constraints
 
-- Existing canonical WorkItem, Run, RunEvent, ArtifactRef, Approval and ExecutionTask ownership remains authoritative unless downstream DESIGN proves a contract change required to realize these accepted behaviors.
+- Existing canonical WorkItem, Run, RunEvent, ArtifactRef, Approval and ExecutionTask ownership remains authoritative unless downstream Solution design proves a contract change required to realize these accepted behaviors.
 - Conversation remains non-canonical until an authorized explicit source/artifact mutation adopts the material change.
 - Source freshness, expected-content conflict safety, exact sign-off binding and signed-material locking are preserved.
-- Material maturity is derived from canonical facts; no duplicate persisted maturity owner is authorized by this R2.
+- Material maturity is derived from canonical facts; no duplicate persisted maturity owner is authorized by this functional design.
 - Provider transparency is bounded/redacted and must not expose secrets or hidden reasoning.
 - Order remains a local browser client over daemon-owned state; no browser-local workflow authority or second transport/state machine is authorized.
 - Long Markdown, long titles, multiple attempts/tasks, dense evidence/history and lengthy activity must preserve the same hierarchy and usable task orientation.
