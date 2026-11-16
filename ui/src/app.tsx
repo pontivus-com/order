@@ -409,7 +409,7 @@ export const App = () => {
             />
           ) : null}
           <WorkbenchToolbarUtilities>
-            <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
+            {selectedWorkItem ? null : <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />}
             <WorkbenchUtilityLink
               label="Settings"
               href={"/settings/" + (settingsSection ?? "repositories")}
