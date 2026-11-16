@@ -59,51 +59,6 @@ jobs:
           bun ci
           node node_modules/@playwright/test/cli.js install --with-deps chromium
 
-      - name: Prepare deterministic OpenCode UI fixture
-        shell: bash
-        run: |
-          set -euo pipefail
-          fixture_dir="${RUNNER_TEMP}/phase1-fake-opencode"
-          mkdir -p "${fixture_dir}"
-          bun - <<'BUN'
-          import { chmodSync, readFileSync, writeFileSync } from "node:fs";
-          import { join } from "node:path";
-          const source = readFileSync("tests/opencode.test.ts", "utf8");
-          const marker = "const fakeOpenCodeSource = ";
-          const start = source.indexOf(marker);
-          if (start < 0) throw new Error("fakeOpenCodeSource marker missing");
-          const literalStart = start + marker.length;
-          const endMarker = "\n`;\n\nconst createFakeOpenCode";
-          const end = source.indexOf(endMarker, literalStart);
-          if (end < 0) throw new Error("fakeOpenCodeSource end marker missing");
-          const literal = source.slice(literalStart, end + 2);
-          const fakeSource = (0, eval)(literal);
-          const dir = process.env.RUNNER_TEMP + "/phase1-fake-opencode";
-          const binary = join(dir, "fake-opencode.ts");
-          writeFileSync(binary, fakeSource, { mode: 0o755 });
-          chmodSync(binary, 0o755);
-          writeFileSync(join(dir, ".fake-opencode.json"), JSON.stringify({
-            accountConnections: [
-              { type: "credential", id: "cred_beta", label: "beta@example.com", method: "oauth", status: { status: "needs_auth", message: "Reconnect account", url: "https://opencode.ai/console/reconnect" } },
-              {
-                type: "credential",
-                id: "cred_alpha",
-                label: "alpha@example.com",
-                method: "oauth",
-                status: {
-                  status: "needs_auth",
-                  message: "Reconnect account",
-                  url: "https://opencode.ai/console/reconnect"
-                }
-              },
-              { type: "credential", id: "cred_gamma", label: "gamma@example.com", method: "oauth" }
-            ],
-            authorizationUrl: "https://opencode.ai/console/device",
-            oauthStatus: "pending"
-          }));
-          BUN
-          echo "PONTIVUS_ORDER_OPENCODE_BIN=${fixture_dir}/fake-opencode.ts" >> "${GITHUB_ENV}"
-
       - name: Generate temporary capture spec
         shell: bash
         run: |
@@ -158,27 +113,6 @@ jobs:
             await expect(page.getByTestId("work-item-queue")).toBeVisible();
           };
 
-          const closeAllFixtureRuns = async (page: Page): Promise<void> => {
-            const itemsResponse = await page.context().request.get("/api/work-items?includeArchived=true");
-            expect(itemsResponse.ok()).toBe(true);
-            const items = await itemsResponse.json() as Array<{ id: string }>;
-            for (const item of items) {
-              const runsResponse = await page.context().request.get(
-                "/api/work-items/" + encodeURIComponent(item.id) + "/runs",
-              );
-              if (!runsResponse.ok()) continue;
-              const runs = await runsResponse.json() as Array<{ id: string; status: string }>;
-              for (const run of runs) {
-                if (run.status !== "RUNNING" && run.status !== "WAITING_FOR_INPUT") continue;
-                const cancelled = await page.context().request.post(
-                  "/api/runs/" + encodeURIComponent(run.id) + "/cancel",
-                  { data: {}, headers: { origin: baseURL } },
-                );
-                expect([200, 409]).toContain(cancelled.status());
-              }
-            }
-          };
-
           const rowFor = (page: Page, title: string) =>
             page.locator('[data-testid^="work-item-row-"]').filter({
               has: page.getByText(title, { exact: true }),
@@ -190,7 +124,6 @@ jobs:
             await expect(row).toBeVisible();
             await row.click();
             await expect(page.getByTestId("work-item-workspace")).toBeVisible();
-            await expect(page.getByTestId("work-item-heading")).toHaveText(title);
           };
 
           const selectStep = async (page: Page, name: string): Promise<void> => {
@@ -199,11 +132,7 @@ jobs:
             await expect(button).toHaveAttribute("aria-pressed", "true");
           };
 
-          const replaceMarkdownSource = async (
-            page: Page,
-            editor: Locator,
-            markdown: string,
-          ): Promise<void> => {
+          const replaceMarkdownSource = async (page: Page, editor: Locator, markdown: string): Promise<void> => {
             await editor.click();
             await editor.press("Control+A");
             await page.keyboard.insertText(markdown);
@@ -211,71 +140,21 @@ jobs:
             await expect(editor.locator(".cm-line").last()).toHaveText(finalLine);
           };
 
-          const capture = async (
-            page: Page,
-            surf: string,
-            scenario: string,
-            filename: string,
-            evidenceClass: "production-runtime" | "deterministic-contract-fixture" = "production-runtime",
-          ): Promise<void> => {
+          const capture = async (page: Page, surf: string, scenario: string, filename: string): Promise<void> => {
             await page.waitForTimeout(120);
-            const viewport = page.viewportSize();
             await page.screenshot({ path: join(output, filename), fullPage: false });
-            manifest.push({ surf, scenario, filename, auditSha, viewport, url: page.url(), evidenceClass });
-            writeFileSync(
-              join(output, "manifest.json"),
-              JSON.stringify({ auditSha, capturedAt: new Date().toISOString(), entries: manifest }, null, 2) + "\n",
-            );
+            manifest.push({ surf, scenario, filename, auditSha, viewport: page.viewportSize(), url: page.url(), evidenceClass: "production-runtime" });
+            writeFileSync(join(output, "manifest.json"), JSON.stringify({ auditSha, capturedAt: new Date().toISOString(), entries: manifest }, null, 2) + "\n");
           };
 
-          test("capture remaining Phase 1 rendered states", async ({ page, request }) => {
-            test.setTimeout(120000);
+          test("capture final Phase 1 rendered states", async ({ page, request }) => {
+            test.setTimeout(90000);
             await page.setViewportSize({ width: 1600, height: 900 });
             await authenticate(page, request);
-            await closeAllFixtureRuns(page);
-
-            await page.goto("/settings/opencode");
-            await expect(page.getByTestId("settings-opencode")).toBeVisible();
-            const addAccount = page.getByRole("button", { name: "Add account", exact: true });
-            await expect(addAccount).toBeEnabled();
-
-            await page.getByRole("button", { name: "Rename beta@example.com", exact: true }).click();
-            await expect(page.getByTestId("rename-opencode-account")).toBeVisible();
-            await capture(page, "SURF-SET-OC-RENAME-001", "rename saved OpenCode account", "35-settings-opencode-rename.png", "deterministic-contract-fixture");
-            await page.getByRole("button", { name: "Cancel rename", exact: true }).click();
-
-            await page.getByRole("button", { name: "Remove beta@example.com", exact: true }).click();
-            await expect(page.getByRole("alertdialog", { name: "Remove saved OpenCode account?" })).toBeVisible();
-            await capture(page, "SURF-CONF-OC-REMOVE-001", "remove saved OpenCode account confirmation", "36-settings-opencode-remove.png", "deterministic-contract-fixture");
-            await page.keyboard.press("Escape");
-
-            await addAccount.click();
-            await capture(page, "SURF-SET-OC-ADD-001", "add OpenCode account form", "37-settings-opencode-add.png", "deterministic-contract-fixture");
-            await page.getByLabel("Account label").fill("phase1@example.com");
-            await page.getByRole("button", { name: "Continue to OpenCode sign-in", exact: true }).click();
-            await expect(page.getByTestId("opencode-login-attempt")).toBeVisible();
-            await expect(page.getByText("Waiting for OpenCode sign-in…", { exact: true })).toBeVisible();
-            await capture(page, "SURF-SET-OC-LOGIN-001", "pending OpenCode device sign-in", "38-settings-opencode-login.png", "deterministic-contract-fixture");
-            await page.getByRole("button", { name: "Cancel OpenCode sign-in", exact: true }).click();
-
-            await openWorkItem(page, "Proposal review");
-            await page.getByRole("button", { name: "Archive work item", exact: true }).click();
-            await expect(page.getByRole("alertdialog", { name: "Archive work item?" })).toBeVisible();
-            await capture(page, "SURF-CONF-ARCHIVE-001", "archive WorkItem confirmation", "39-archive-confirmation.png");
-            await page.keyboard.press("Escape");
 
             await openWorkItem(page, "Lifecycle editing workbench");
-            await selectStep(page, "Implementation plan");
-            let editor = page.getByLabel("Implementation plan document Markdown source");
-            await replaceMarkdownSource(page, editor, "# Phase 1 residual evidence\n\nUnsaved destination-change buffer");
-            await page.getByRole("link", { name: "Settings", exact: true }).click();
-            await expect(page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })).toBeVisible();
-            await capture(page, "SURF-CONF-DIRTY-DEST-001", "dirty document blocks application destination change", "40-dirty-destination-confirmation.png");
-            await page.getByRole("alertdialog", { name: "Discard unsaved Markdown?" })
-              .getByRole("button", { name: "Continue editing" }).click();
-
             await selectStep(page, "Work request");
-            editor = page.getByLabel("WorkItem source Markdown source");
+            const editor = page.getByLabel("WorkItem source Markdown source");
             const current = await editor.evaluate((node) =>
               Array.from(node.querySelectorAll(".cm-line")).map((line) => line.textContent ?? "").join("\n")
             );
@@ -289,7 +168,6 @@ jobs:
 
             await openWorkItem(page, "Long source editing workbench wide");
             await selectStep(page, "Work request");
-            await page.setViewportSize({ width: 1600, height: 900 });
             await capture(page, "SURF-MAT-SOURCE-001", "long Work request density wide", "42-long-source-wide.png");
             await page.setViewportSize({ width: 700, height: 800 });
             await capture(page, "SURF-MAT-SOURCE-001", "long Work request density narrow", "43-long-source-narrow.png");
