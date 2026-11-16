@@ -12,6 +12,129 @@ const root = process.cwd();
 const read = (path: string): string => readFileSync(join(root, path), "utf8");
 
 describe("Order cross-boundary certification", () => {
+  it("permanently certifies the 0.5.0 workflow closure boundaries", () => {
+    const contracts = read("src/core/contracts.ts");
+    expect(contracts).toContain("AgentActivityCategorySchema");
+    expect(contracts).toContain('"AGENT_ACTIVITY_RECORDED"');
+    expect(contracts).toContain("StageProviderBatchAdmissionDiagnosticSchema");
+    expect(contracts).toContain('"ORDER_STAGE_BATCH_ADMISSION"');
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).toContain("stageProviderBatchRejectionCode");
+    expect(lifecycle).toContain("stageRunCancellationIsAdmitted");
+    expect(lifecycle).toContain("deriveMaterialPresentationState");
+    expect(lifecycle).toContain("artifactHasCurrentStageConformance");
+    expect(lifecycle).toContain("materialCurrentnessForStage");
+    const reached = lifecycle.slice(
+      lifecycle.indexOf("export const deriveReachedStages"),
+      lifecycle.indexOf("export const reachStateForStage"),
+    );
+    expect(reached).not.toContain("artifactOwnerStage(");
+    expect(reached).not.toMatch(/for \(const artifact of/);
+
+    const authority = read("src/daemon/authority.ts");
+    const artifactRead = authority.slice(
+      authority.indexOf("export const currentLifecycleArtifacts"),
+      authority.indexOf("export const resolveStageContextState"),
+    );
+    expect(artifactRead).toContain("listArtifacts(runtime, workItemId)");
+    expect(artifactRead).not.toContain("latestRunCandidateArtifacts");
+    expect(artifactRead).not.toContain("storeArtifact(");
+
+    const execution = read("src/daemon/execution.ts");
+    expect(execution).toContain("export const startExactExecutionTask");
+    expect(execution).toContain("deriveExecutionOwner(tasks, listRuns(runtime, workItem.id))");
+    expect(execution).toContain('"execution task is not the canonical current task"');
+
+    const coordinator = read("src/daemon/coordinator.ts");
+    expect(coordinator).toContain("export const startCurrentExecutionTask");
+    expect(coordinator).toContain("stageRunCancellationIsAdmitted");
+    expect(coordinator).toContain("driveExecutionTask");
+
+    const server = read("src/daemon/server.ts");
+    expect(server).toContain('parts[5] === "start"');
+    const tickRoute = server.slice(
+      server.indexOf('pathname === "/api/tick"'),
+      server.indexOf('pathname === "/api/work-items"', server.indexOf('pathname === "/api/tick"')),
+    );
+    expect(tickRoute).toContain("requireCliBearer");
+    expect(tickRoute).not.toContain("requireBrowserMutation");
+
+    const http = read("ui/src/http.ts");
+    expect(http).toContain("export const startExecutionTask");
+    expect(http).not.toContain('"/api/tick"');
+    expect(http).not.toContain("export const tick");
+
+    const executionUi = read("ui/src/ExecutionWorkspace.tsx");
+    expect(executionUi).toContain("api.startExecutionTask(workItem.id,currentOwnerTask.id)");
+    expect(executionUi).toContain('label="Start current task"');
+    expect(executionUi).not.toContain("Run next implementation step");
+    expect(executionUi).not.toContain("api.tick");
+
+    const stage = read("src/daemon/stage.ts");
+    const stagePrompt = stage.slice(
+      stage.indexOf("const stagePrompt"),
+      stage.indexOf("const persistAndReactStageBatch"),
+    );
+    expect(stagePrompt).not.toContain("Return only a JSON array of canonical provider-emittable RunEventPayload values for STAGE role.");
+    expect(stage).toContain("recordStageProviderBatchAdmissionDiagnostic");
+    expect(stage).toContain("Agent result could not be accepted");
+
+    const opencode = read("src/shell/opencode.ts");
+    expect(opencode).toContain('"STAGE turn grammar:');
+    expect(opencode).toContain("consumeLiveActivity");
+    expect(opencode).toContain("recordTerminalContextActivity");
+    expect(opencode).not.toContain("ChatToolCalls");
+
+    const presentation = read("ui/src/workbench-presentation.ts");
+    expect(presentation).toContain('export type RunEventPlane = "CONVERSATION" | "ACTIVITY" | "WORKFLOW"');
+    expect(presentation).toContain("conversationRunEvents");
+    expect(presentation).toContain("agentActivityRunEvents");
+    expect(presentation).toContain("workflowRunEvents");
+
+    const dialogue = read("ui/src/primitives/WorkbenchDialogue.tsx");
+    for (const leaf of [
+      "ChatLayout",
+      "ChatMessage",
+      "ChatMessageBubble",
+      "ChatMessageList",
+      "ChatMessageMetadata",
+    ]) {
+      expect(dialogue).toContain(leaf);
+    }
+    const activity = read("ui/src/ActivityWorkspace.tsx");
+    expect(activity).toContain("conversationRunEvents(events)");
+    expect(activity).toContain("agentActivityRunEvents(events)");
+    expect(activity).toContain("workflowRunEvents(events)");
+    expect(activity).toContain("stageRunCancellationIsAdmitted(selectedRun, events)");
+
+    const composer = read("ui/src/ActivityComposer.tsx");
+    expect(composer).toContain("Answer the question above");
+    expect(composer).not.toContain("pending.event.question");
+
+    const timeline = read("ui/src/RunEventTimeline.tsx");
+    expect(timeline).toContain("workflowRunEvents(events)");
+
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workspace).toContain("activeRunOwnsAuthoring = runs.some(runIsActive)");
+    expect(workspace).toContain("deriveMaterialPresentationState(");
+    expect(workspace).toContain("artifactHasCurrentStageConformance(");
+
+    const proposal = read("ui/src/ProposalReview.tsx");
+    expect(proposal).toContain("selection.runId === currentRunId");
+    expect(proposal).toContain('currentInteraction?.tag === "OPEN"');
+
+    const queue = read("ui/src/WorkItemQueue.tsx");
+    expect(queue).not.toContain("Copy work item id");
+    expect(queue).not.toContain("navigator.clipboard");
+    const context = read("ui/src/WorkItemContext.tsx");
+    expect(context).toContain('label="WorkItem id"');
+    expect(context).toContain("{workItem.id}");
+
+    const terminal = read("ui/src/TerminalResult.tsx");
+    expect(terminal).toContain('data-testid="final-governed-outcome"');
+  });
+
   it("keeps the exact locked package and runtime pins with no convenience dependency expansion", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       dependencies: Record<string, string>;
