@@ -40,6 +40,24 @@ The lifecycle is not strictly monotonic. Readiness, approval freshness and imple
 
 The browser is a client of canonical Order state. It may select and inspect workflow history, but it does not own lifecycle truth and does not infer mutation eligibility independently.
 
+### 2.1 User-facing workflow and work-type language
+
+Ordinary operator-facing copy and product documentation use these workflow names:
+
+- Work request;
+- Research;
+- Requirements;
+- Solution design;
+- Implementation plan;
+- Readiness review;
+- Approval;
+- Implementation;
+- Complete.
+
+Internal lifecycle codes remain valid in contracts, state models, schema/template identifiers, diagnostics and technical traceability, but they are not the ordinary labels used to explain workflow tasks or expected outputs to operators.
+
+The governed user-facing work types are **Change**, **Defect**, **Investigation** and **Audit**. The Workbench must preserve the selected work type's information semantics throughout every workflow step that applies to that type.
+
 ## 3. Functional state model
 
 Order exposes several distinct kinds of state. They must remain distinct in behavior and presentation even if a downstream implementation derives them from fewer persisted fields.
@@ -114,6 +132,25 @@ Lifecycle documents, source material, approval material and execution authority 
 Currentness is not inferred from whether the bytes exist.
 
 A stale artifact remains inspectable history. It is not presented as current authority and it does not silently disappear.
+
+#### 3.6.1 Operator-facing material maturity
+
+The Workbench uses one derived material-maturity vocabulary where the distinction affects what the operator can validly do:
+
+| Product label | Meaning |
+|---|---|
+| **Draft** | governed material exists but is not yet current conformed authority for its owning workflow step |
+| **Updated — validation required** | the current material was saved/adopted and required currentness/conformance must be re-established |
+| **Current** | the material is current conformed authority for its owning workflow step |
+| **Stale** | upstream authority changed and this material can no longer authorize progression |
+| **Historical** | prior reached/superseded material retained for inspection |
+| **Signed & locked** | material belongs to the exact signed execution package and is inspection-only in Implementation/Complete |
+
+**Proposed change** and **Applying change** are interaction states around a material mutation, not document-maturity values.
+
+This vocabulary is a product projection over existing canonical facts. It does not create another persisted document-state machine and Git recording remains orthogonal to conformance/currentness.
+
+A deterministic lifecycle document rediscovered from the repository remains visible as **Draft** even when no historical Run exists for it. Discovery does not fabricate a reached stage, completion event, conformance result, readiness verdict or approval. If its owning workflow step has not yet been reached, the draft is inspectable rather than current authority.
 
 ### 3.7 Closed workflow-state language
 
@@ -300,6 +337,25 @@ The UI must clearly distinguish:
 - conversational clarification;
 - canonical authority mutation.
 
+### 5.5 Bounded agent operational activity
+
+While an agent is processing, the operator must be able to distinguish useful productive activity from a black-box wait without exposing hidden reasoning or raw provider plumbing.
+
+The product-visible activity vocabulary may include bounded ordinary-language categories such as:
+
+- Preparing context;
+- Reading/inspecting;
+- Searching;
+- Editing/preparing a proposed change;
+- Running checks;
+- Reviewing results;
+- Retrying/recovering;
+- Waiting on an external/provider operation.
+
+Where safe and useful, an activity entry may include a bounded repository-relative resource name or named check. Raw unbounded tool input/output, credentials, hidden reasoning, provider protocol identifiers and provider-session internals remain technical/closed.
+
+Useful activity is shown live while processing when the selected technical integration can provide it reliably. After the turn settles, a bounded activity summary may remain inspectable with the attempt when it materially helps explain the work performed or a failure. Canonical Order messages, questions, proposals, blockers, completions, reviews and validation outcomes remain workflow authority.
+
 ## 6. Proposal contract
 
 ### 6.1 Proposal ownership
@@ -334,6 +390,12 @@ The operator can inspect the full proposal while preserving the Run context. If 
 Adopt/Reject is serialized with other canonical mutations.
 
 While a lifecycle proposal is pending, proposal disposition owns the current mutation action. The free-form continuation composer is unavailable until that proposal is adopted or rejected; the Run may remain canonically OPEN, but the Workbench does not present proposal disposition and free-form continuation as competing current actions.
+
+Cancel is also unavailable while a lifecycle proposal is pending. To abandon both the proposal and the owning attempt, the operator first Rejects the proposal; only after proposal disposition may ordinary cancellation become available again.
+
+While proposal adoption/reconciliation is in progress, Reject, Cancel, free continuation and competing authority edits are unavailable. The exact accepted proposal remains the mutation owner until application/reconciliation completes or an explicit governed failure/recovery owns attention.
+
+A Run must not close/cancel while leaving a pending proposal with no valid Adopt/Reject owner.
 
 ## 7. Direct document editing contract
 
