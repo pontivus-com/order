@@ -787,7 +787,7 @@ Order uses a small closed set of interaction classes.
 |---|---|---|
 | Operational scan | queue, task master | dense table/list |
 | Form / configuration | Create WorkItem, Settings and bounded configuration tasks | explicit field hierarchy + action region; no card dashboard |
-| Document | Work request, R1/R2/DESIGN/PLAN | wide primary authoring/reading surface |
+| Document | Work request, Research, Requirements, Solution design and Implementation plan | wide primary authoring/reading surface |
 | Dialogue | active pre-signoff Run | remaining-height conversation with anchored composer |
 | Review | proposal, readiness, approval | wide comparison/judgment surface |
 | Operational master/detail | implementation | stable master + flexible detail |
@@ -894,7 +894,7 @@ Primary hierarchy:
 
 If a legitimate required-input request exists, the current Run interaction temporarily becomes the required current task without turning all Readiness into a chat screen.
 
-R3 material is read-only.
+Readiness review material is read-only.
 
 Readiness does not default to a persistent master/navigation column. Package material, attempts and evidence use a compact subordinate selector unless the interaction is explicitly reclassified as genuine master/detail.
 
