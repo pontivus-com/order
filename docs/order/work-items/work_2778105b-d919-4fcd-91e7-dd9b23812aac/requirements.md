@@ -994,6 +994,8 @@ The functional design is reviewed against the four Phase-2A closure gates.
 
 No remaining material product decision identified by the investigative baseline is deferred to Solution design. The remaining work is technical realization and certification of these accepted observable behaviors.
 
+**Derived visual reference:** `docs/references/workbench-ui/README.md` contains the reviewed, non-authoritative SVG screen references used to make this accepted information hierarchy and stage presentation concrete.
+
 ## Acceptance criteria
 
 The functional design is satisfied only when all of the following observable criteria are met.
