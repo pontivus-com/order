@@ -27,8 +27,10 @@ import {
 import {
   WorkflowStepFrame,
 } from "./WorkflowStepFrame.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
-import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import {
+  WorkflowMaterialSelector,
+  type WorkflowMaterialSelectorGroup,
+} from "./WorkflowMaterialSelector.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
@@ -99,48 +101,61 @@ export const ReadinessWorkspace = ({
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
 
-  const supportingMaterial =
-    stageRuns.length > 0 ? (
-      <WorkbenchDisclosure
-        label="Evidence / attempt history"
-        content={
-          <div className="order-resource-list">
-            {stageRuns.map((run) => (
-              <WorkbenchResourceRow
-                key={run.id}
-                label={"Readiness attempt " + run.attempt}
-                detail={runStatusLabel(run.status) + " · " + new Date(run.startedAt).toLocaleString()}
-                actionLabel={"Open readiness attempt " + run.attempt}
-                onOpen={() => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id })}
-              />
-            ))}
-          </div>
-        }
-      />
-    ) : null;
-
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
       ? artifacts.find((artifact) => artifact.id === material.artifactId) ?? null
       : null;
 
-  const primary = (() => {
+  const selectorItems: WorkflowMaterialSelectorGroup["items"] = [
+    ...(readinessArtifact ? [{
+      id: "readiness-" + readinessArtifact.id,
+      label: "Readiness review",
+      description: "Governed R3 review material",
+      statusLabel: materialState === null ? "Review in progress" : materialPresentationStateLabel(materialState),
+      selected: material.kind === "READINESS_REVIEW",
+      onSelect: () => onSelectMaterial({ kind: "READINESS_REVIEW" }),
+    }] : []),
+    ...stageRuns.map((run) => ({
+      id: "run-" + run.id,
+      label: "Readiness attempt " + run.attempt,
+      description: new Date(run.startedAt).toLocaleString(),
+      statusLabel: runStatusLabel(run.status),
+      selected: material.kind === "STAGE_RUN" && material.runId === run.id,
+      onSelect: () => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id }),
+    })),
+    ...packageArtifacts.map((artifact) => ({
+      id: "package-" + artifact.id,
+      label: lifecycleArtifactLabel(artifact.role),
+      description: "Read-only governed package material",
+      selected: material.kind === "SUPPORTING_DOCUMENT" && material.artifactId === artifact.id,
+      onSelect: () => onSelectMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id }),
+    })),
+  ];
+
+  const selector = selectorItems.length > 0
+    ? <WorkflowMaterialSelector
+        groups={[{ id: "readiness", label: "Readiness material", items: selectorItems }]}
+        label="Readiness material"
+      />
+    : undefined;
+
+  const readinessMaterial = readinessArtifact ? (
+    <ReadOnlyLifecycleDocumentMaterial
+      workItem={workItem}
+      artifactId={readinessArtifact.id}
+      onOpenArtifactEvidence={onOpenArtifactEvidence}
+      onContextDocumentChange={onContextDocumentChange}
+    />
+  ) : (
+    <WorkbenchEmptyState
+      compact
+      title="Readiness review is in progress"
+      description="The governed review findings will appear here when available."
+    />
+  );
+
+  const selectedSecondaryMaterial = (() => {
     switch (material.kind) {
-      case "READINESS_REVIEW":
-        return readinessArtifact ? (
-          <ReadOnlyLifecycleDocumentMaterial
-            workItem={workItem}
-            artifactId={readinessArtifact.id}
-            onOpenArtifactEvidence={onOpenArtifactEvidence}
-            onContextDocumentChange={onContextDocumentChange}
-          />
-        ) : (
-          <WorkbenchEmptyState
-            compact
-            title="Readiness review is in progress"
-            description="The governed review findings will appear here when available."
-          />
-        );
       case "STAGE_RUN":
         return (
           <StageRunMaterial
@@ -167,39 +182,12 @@ export const ReadinessWorkspace = ({
             onContextDocumentChange={onContextDocumentChange}
           />
         ) : (
-          <WorkbenchEmptyState
-            compact
-            title="Supporting document is no longer current"
-          />
+          <WorkbenchEmptyState compact title="Supporting document is no longer current" />
         );
       case "EVIDENCE":
-        return (
-          <EvidenceViewer
-            selection={material.selection}
-            onBack={onReturnFromTransient}
-          />
-        );
-      case "STEP_STATE":
-        return (
-          <WorkbenchEmptyState
-            compact
-            title="Readiness review is ready to start"
-          />
-        );
-      case "UNREACHED":
-        return (
-          <WorkbenchEmptyState
-            compact
-            title="Readiness review has not been reached"
-          />
-        );
+        return <EvidenceViewer selection={material.selection} onBack={onReturnFromTransient} />;
       default:
-        return (
-          <WorkbenchEmptyState
-            compact
-            title="Selected material does not belong to Readiness review"
-          />
-        );
+        return null;
     }
   })();
 
@@ -224,6 +212,7 @@ export const ReadinessWorkspace = ({
             }
           />}
           summary={<div><h2>Readiness review</h2></div>}
+          selector={selector}
           body={
             <div className="order-readiness-review-body">
               <section className="order-readiness-verdict">
@@ -232,30 +221,28 @@ export const ReadinessWorkspace = ({
               </section>
               <section className="order-readiness-findings">
                 <h3>Findings / defective owner</h3>
-                {primary}
+                {readinessMaterial}
               </section>
               <div className="order-readiness-support-grid">
                 <section>
                   <h3>Package material needed to understand the verdict</h3>
-                  <p>Only reached/current package material is inspectable; unreached documents are not authority.</p>
-                  {packageArtifacts.length === 0 ? <p className="order-secondary-copy">No governed package material is currently available.</p> : (
-                    <div className="order-resource-list">{packageArtifacts.map((artifact) => (
-                      <WorkbenchResourceRow
-                        key={artifact.id}
-                        label={lifecycleArtifactLabel(artifact.role)}
-                        detail="Read-only governed package material"
-                        actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
-                        onOpen={() => onSelectMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id })}
-                      />
-                    ))}</div>
-                  )}
+                  <p>{packageArtifacts.length === 0
+                    ? "No governed package material is currently available."
+                    : "Reached/current package material is available through the Readiness material selector. Unreached documents are not authority."}</p>
                 </section>
                 <section>
                   <h3>Evidence / attempt history</h3>
-                  <p>Read-only supporting material. Required input may temporarily own attention. Sign-off is not available here.</p>
-                  {supportingMaterial}
+                  <p>{stageRuns.length === 0
+                    ? "No Readiness attempt history is currently available."
+                    : "Readiness attempts are available through the same subordinate selector. Required input may temporarily own attention. Sign-off is not available here."}</p>
                 </section>
               </div>
+              {selectedSecondaryMaterial ? (
+                <section className="order-readiness-secondary-material">
+                  <h3>Selected supporting material</h3>
+                  {selectedSecondaryMaterial}
+                </section>
+              ) : null}
             </div>
           }
           decisions={<></>}
