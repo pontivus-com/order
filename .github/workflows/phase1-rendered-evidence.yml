@@ -84,7 +84,7 @@ jobs:
           chmodSync(binary, 0o755);
           writeFileSync(join(dir, ".fake-opencode.json"), JSON.stringify({
             accountConnections: [
-              { type: "credential", id: "cred_beta", label: "beta@example.com", method: "oauth" },
+              { type: "credential", id: "cred_beta", label: "beta@example.com", method: "oauth", status: { status: "needs_auth", message: "Reconnect account", url: "https://opencode.ai/console/reconnect" } },
               {
                 type: "credential",
                 id: "cred_alpha",
@@ -310,6 +310,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p phase1-rendered-evidence
           printf '%s\n' "${PHASE1_AUDIT_SHA}" > phase1-rendered-evidence/audit-sha.txt
           git status --short > phase1-rendered-evidence/runner-working-tree.txt
 
