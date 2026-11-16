@@ -188,8 +188,10 @@ The application-wide reference baseline is complete only while all of the follow
 | references use repository-backed values or canonical field/template/state labels only | PASS |
 | no reference claims unobserved lifecycle/runtime facts | PASS |
 
-## Solution-design handoff
+## Technical realization
 
-Phase 2B chooses the exact Astryx primitive composition and technical projection required to realize these references.
+Phase 2B is closed in `work_2778105b-d919-4fcd-91e7-dd9b23812aac/solution-design.md` and the amended canonical P4/P6 owners.
 
-It must not use the SVGs to invent a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme. The SVGs constrain **presentation, hierarchy and interaction composition**; canonical P3/P4/P6 owners constrain semantics and technical ownership.
+The technical design binds these references to the existing Workbench primitives, pinned Astryx Chat leaves, canonical Run/RunEvent/material projections and exact command boundaries without introducing a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme.
+
+The SVGs continue to constrain **presentation, hierarchy and interaction composition**; canonical P3/P4/P6 owners remain semantic and technical authority.
