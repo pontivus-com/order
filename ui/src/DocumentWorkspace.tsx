@@ -461,7 +461,7 @@ export const LifecycleDocumentMaterial = ({
           description={
             artifactReadOnly
               ? "Read-only in the current lifecycle state."
-              : selectedArtifact.repositoryPath
+              : "Canonical governed lifecycle document."
           }
           sha256={selectedArtifact.sha256}
           markdown={markdown}
