@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Open the 0.5.0 corrective release train with a governed end-to-end audit of the released 0.4.0 lifecycle/state-machine semantics, STAGE/OpenCode execution contract, and complete Workbench screen structure. The audit treats the confirmed lifecycle-proposal/provider-control contract mismatch as one release-blocking defect and requires state-transition, execution-context, screen-by-screen UX/UI, and certification evidence before corrective design or implementation is accepted.
+
 ## [0.4.0] - 2026-11-16
 
 ### Changed
