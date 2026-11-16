@@ -23,7 +23,7 @@ export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSu
         <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer the question above" : "Continue current work"}</strong>
         <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your reply is bound to the exact question shown in the conversation." : "Send the next instruction or answer for this interactive activity."}</span>
       </div>
-      <ChatComposer onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }} placeholder="Answer and continue" isDisabled={mutationsDisabled || input.isPending} elevation="none" />
+      <ChatComposer onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }} placeholder={pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer and continue" : "Continue current work"} isDisabled={mutationsDisabled || input.isPending} elevation="none" />
     </div>
   );
 };
