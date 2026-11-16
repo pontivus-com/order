@@ -42,6 +42,8 @@ export type MarkdownEditorProps = Readonly<{
   onDirtyChange?: (dirty: boolean) => void;
   toolbarAccessory?: ReactNode;
   technicalDetails?: ReactNode;
+  editingTitle?: string;
+  viewAside?: ReactNode;
 }>;
 
 type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
@@ -86,6 +88,8 @@ export const MarkdownEditor = ({
   onDirtyChange,
   toolbarAccessory,
   technicalDetails,
+  editingTitle,
+  viewAside,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
   const onDirtyChangeRef = useRef(onDirtyChange);
@@ -96,12 +100,13 @@ export const MarkdownEditor = ({
   const [conflicted, setConflicted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const editablePresentationMode = useRef<MarkdownPresentationMode>("EDIT");
+  const [editing, setEditing] = useState(false);
+  const editablePresentationMode = useRef<MarkdownPresentationMode>("SPLIT");
   const [presentationMode, setPresentationMode] =
-    useState<MarkdownPresentationMode>(readOnly ? "PREVIEW" : "EDIT");
+    useState<MarkdownPresentationMode>("SPLIT");
 
   const dirty = buffer !== loadedMarkdown;
-  const sourceVisible = !readOnly && presentationMode !== "PREVIEW";
+  const sourceVisible = editing && presentationMode !== "PREVIEW";
   const formattingDisabled = conflicted || saving || !sourceVisible;
 
   useEffect(() => {
@@ -110,7 +115,8 @@ export const MarkdownEditor = ({
   useEffect(() => () => onDirtyChangeRef.current?.(false), []);
 
   useEffect(() => {
-    setPresentationMode(readOnly ? "PREVIEW" : editablePresentationMode.current);
+    if (readOnly) setEditing(false);
+    setPresentationMode(editablePresentationMode.current);
   }, [readOnly]);
 
   useEffect(() => {
@@ -136,6 +142,7 @@ export const MarkdownEditor = ({
   const cancel = (): void => {
     setBuffer(loadedMarkdown);
     setSaveError(null);
+    setEditing(false);
     onDirtyChangeRef.current?.(false);
   };
 
@@ -175,7 +182,7 @@ export const MarkdownEditor = ({
     </div>
   );
 
-  const presentation = readOnly ? undefined : (
+  const presentation = !editing ? undefined : (
     <SegmentedControl
       label="Document presentation"
       value={presentationMode}
@@ -193,7 +200,7 @@ export const MarkdownEditor = ({
     </SegmentedControl>
   );
 
-  const formatting = readOnly ? undefined : (
+  const formatting = !editing ? undefined : (
     <div data-testid="markdown-format-toolbar" className="order-markdown-format-toolbar">
       <WorkbenchToolbarGroup>
         <WorkbenchAction
@@ -238,10 +245,35 @@ export const MarkdownEditor = ({
     </div>
   );
 
+  if (!editing) {
+    return (
+      <section className="order-markdown-document-view" data-testid={readOnly ? "markdown-document-readonly" : "markdown-document-view"}>
+        <header className="order-markdown-document-view-header">
+          <div>
+            <h2>{title}</h2>
+            {description ? <p>{description}</p> : null}
+          </div>
+          <div className="order-markdown-document-view-actions">
+            {readOnly ? <WorkbenchStatus tone="neutral" label="Read-only supporting material" /> : toolbarAccessory}
+            {!readOnly ? <WorkbenchAction label="Edit" tone="secondary" onClick={() => { editablePresentationMode.current = "SPLIT"; setPresentationMode("SPLIT"); setEditing(true); }} /> : null}
+          </div>
+        </header>
+        <div className={"order-markdown-document-view-body" + (viewAside ? " order-markdown-document-view-with-aside" : "")}>
+          {preview}
+          {viewAside ? <aside className="order-markdown-document-view-aside">{viewAside}</aside> : null}
+        </div>
+        <WorkbenchDisclosure
+          label="Technical details"
+          content={<div className="order-editor-technical-content"><div><span>SHA-256</span><code>{loadedSha256}</code></div>{technicalDetails}</div>}
+        />
+      </section>
+    );
+  }
+
   return (
     <form className="order-markdown-editor" onSubmit={(event) => void submit(event)}>
       <WorkbenchSectionHeader
-        title={title}
+        title={editingTitle ?? title}
         description={description}
         action={presentation}
       />
