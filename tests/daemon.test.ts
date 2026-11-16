@@ -4741,10 +4741,10 @@ describe("daemon control plane", () => {
         wrongMessage,
         before: before.map((task) => ({ id: task.id, state: task.state })),
         started: {
-          workItemId: started.workItemId,
-          executionTaskId: started.executionTaskId,
-          role: started.role,
-          status: started.status,
+          workItemId: started.run.workItemId,
+          executionTaskId: started.run.executionTaskId,
+          role: started.run.role,
+          status: started.run.status,
         },
         after: after.map((task) => ({ id: task.id, state: task.state })),
       }));
