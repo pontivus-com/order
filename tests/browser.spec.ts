@@ -1151,7 +1151,11 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
   await expect(workflowRail.getByRole("button", { name: "Implementation plan" }))
     .toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
-  await selectWorkflowMaterial(page, "Attempt 2");
+  await openDisclosureResource(
+    page,
+    "Supporting material and history",
+    "Open attempt 2",
+  );
   await expect(page.getByTestId("stage-run-material")).toBeVisible();
   await expect(page.getByRole("radio", { name: "Activity" })).toHaveCount(0);
   await expect(page.getByTestId("selected-run-header")).toHaveCount(1);
@@ -1282,13 +1286,13 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow failure feedback");
-  await selectWorkflowMaterial(page, "Attempt 4");
+  await openDisclosureResource(page, "Supporting material and history", "Open attempt 4");
   await expect(page.getByText("Work is blocked", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Conformance check failed", { exact: true }),
   ).toBeVisible();
 
-  await selectWorkflowMaterial(page, "Attempt 2");
+  await openDisclosureResource(page, "Supporting material and history", "Open attempt 2");
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
@@ -1299,7 +1303,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
     .getByRole("button", { name: "Evidence: provider-diagnostics.json" });
   await expect(setupEvidence).toBeVisible();
 
-  await selectWorkflowMaterial(page, "Attempt 3");
+  await openDisclosureResource(page, "Supporting material and history", "Open attempt 3");
   await expect(
     page.getByText("Agent execution failed", { exact: true }),
   ).toBeVisible();
@@ -1308,7 +1312,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   ).toBeVisible();
   await expect(page.getByText("Repository changed", { exact: true })).toBeVisible();
 
-  await selectWorkflowMaterial(page, "Attempt 1");
+  await openDisclosureResource(page, "Supporting material and history", "Open attempt 1");
   await expect(page.getByText("Cancelled", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Attempt cancelled", { exact: true })).toBeVisible();
   await backToQueue(page);
@@ -1695,7 +1699,7 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   }
 
   await selectWorkflowStep(page, "Research");
-  await selectWorkflowMaterial(page, "Work request");
+  await openDisclosureResource(page, "Supporting material and history", "Open Work request");
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
   await expect(
@@ -1705,7 +1709,7 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
 
   await selectWorkflowStep(page, "Requirements");
-  await selectWorkflowMaterial(page, "Research document");
+  await openDisclosureResource(page, "Supporting material and history", "Open Research");
   await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
   await expect(page.getByTestId("document-git-controls")).toHaveCount(0);
   await page.getByRole("button", { name: "Back to workflow context" }).click();
@@ -1772,7 +1776,7 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
     page.getByText("Document change adopted", { exact: true }).last(),
   ).toBeVisible();
   await page.unroute("**/api/run-events/*/adopt");
-  await selectWorkflowMaterial(page, "Attempt 1");
+  await openDisclosureResource(page, "Supporting material and history", "Open attempt 1");
   await expect(
     page.getByText("Document adoption in progress", { exact: true }),
   ).toBeVisible();
