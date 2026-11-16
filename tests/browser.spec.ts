@@ -1761,6 +1761,26 @@ test("all nine workflow steps keep their canonical summary/material grammar and 
   await expect(page.getByTestId("result-workspace")).toContainText("Verified candidate");
 });
 
+test("Readiness required input owns the action without replacing Review", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Readiness input required");
+  const review = page.getByTestId("review-workspace");
+  await expect(review).toBeVisible();
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Waiting for you");
+  const interaction = page.locator(".order-readiness-current-interaction");
+  await expect(interaction).toBeVisible();
+  await expect(interaction).toContainText(
+    "Which readiness finding should be resolved before approval?",
+  );
+  await expect(interaction.getByPlaceholder("Answer and continue")).toBeVisible();
+  await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
+  await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
+});
+
 test("Readiness keeps verdict and findings primary while subordinate material changes", async ({
   page,
   request,
