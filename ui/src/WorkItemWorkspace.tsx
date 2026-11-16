@@ -1179,7 +1179,7 @@ export const WorkItemWorkspace = ({
                       workflowPresentation(currentness.owner).label +
                       " before continuing.",
                   }
-                : selectedStep === "AWAITING_SIGNOFF" &&
+                : workItem.stage === "AWAITING_SIGNOFF" &&
                     signoffPackageQuery.isError
                   ? {
                     status: "error" as const,
@@ -1207,15 +1207,34 @@ export const WorkItemWorkspace = ({
       case "ORDINARY": return "Current material";
     }
   })();
+  const currentAttentionVariant = (() => {
+    if (!inspectedHistorical) return summaryStatusVariant;
+    switch (currentAttention) {
+      case "BLOCKER": return "error" as const;
+      case "MUTATION_CONFLICT":
+      case "REQUIRED_INPUT":
+      case "PROPOSAL_DECISION":
+      case "RECOVERY":
+      case "STALE_AUTHORITY":
+        return "warning" as const;
+      case "CONVERGING":
+      case "PROPOSAL_ADOPTION":
+      case "PROCESSING":
+      case "ACTIONABLE":
+        return "info" as const;
+      case "ORDINARY":
+        return "neutral" as const;
+    }
+  })();
 
   const stepSummary = (
     <WorkflowStepSummary
       label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
       purpose={inspectedHistorical ? workflow.purpose : selectedWorkflow.purpose}
       stateLabel={inspectedHistorical ? "Current" : selectedStateLabel}
-      stateVariant={inspectedHistorical ? "info" : selectedStateVariant}
+      stateVariant={inspectedHistorical ? currentAttentionVariant : selectedStateVariant}
       statusLabel={currentAttentionStatusLabel}
-      statusVariant={summaryStatusVariant}
+      statusVariant={currentAttentionVariant}
       blocker={summaryBlocker}
       action={
         canRetry ? (
