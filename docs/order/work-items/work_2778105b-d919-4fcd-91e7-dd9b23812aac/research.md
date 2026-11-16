@@ -2,7 +2,7 @@
 
 # 0.5.0 integrated workflow task experience — factual closure
 
-**Status:** R1 factual closure — CONFIRMED from completed parent AUDIT  
+**Status:** Research factual closure — CONFIRMED from completed parent Audit  
 **WorkItem:** `work_2778105b-d919-4fcd-91e7-dd9b23812aac`  
 **Derived from:** `work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2`
 
@@ -50,7 +50,7 @@ The functional change is constrained by:
 - `GW-DOC-OPENCODE-INTEGRATION-V1` — provider authority boundary;
 - `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1` — downstream technical constraints.
 
-Phase 1 found the existing P3 information-hierarchy direction to be substantially correct. R2 should preserve it and close the missing/contradictory product behavior rather than replace it wholesale.
+The investigative baseline found the existing product information-hierarchy direction to be substantially correct. Functional design should preserve it and close the missing/contradictory product behavior rather than replace it wholesale.
 
 ## Affected producer→consumer path
 
@@ -85,7 +85,7 @@ The primary affected workflow steps are Work request, Research, Requirements, So
 
 ## Downstream invariants
 
-R2/DESIGN/PLAN must preserve at minimum:
+Requirements, Solution design and Implementation plan must preserve at minimum:
 
 1. one canonical WorkItem lifecycle owner;
 2. browser presentation does not become workflow authority;
@@ -103,7 +103,7 @@ R2/DESIGN/PLAN must preserve at minimum:
 
 ## Unresolved facts
 
-None material to starting R2.
+None material to starting functional design.
 
 The remaining unresolved items are **product decisions**, not missing current-state facts:
 
@@ -114,12 +114,24 @@ The remaining unresolved items are **product decisions**, not missing current-st
 - detailed per-step information/action hierarchy where current P3 is incomplete;
 - the complete integrated pre-signoff task flow.
 
-These are intentionally owned by R2.
+These are product decisions owned by the functional design. They are now closed in `requirements.md`.
 
 ## Verdict
 
 **CONFIRMED.**
 
-The change is required and factually grounded. The parent AUDIT provides sufficient current-state evidence to proceed to R2 without re-investigating the released implementation.
+The change is required and factually grounded. The parent Audit provides sufficient current-state evidence to proceed through functional design without re-investigating the released implementation.
 
-R2 must now convert the closed Phase 1 facts into one complete workflow-task functional model and resolve the remaining product decisions before DESIGN begins.
+The reviewed `requirements.md` has now converted those closed facts into the complete workflow-task functional model. The remaining work is Solution design: technical realization and certification of the accepted observable behavior.
+
+
+## Functional-design handoff
+
+The functional design in `requirements.md` has completed its four closure gates:
+
+- workflow-step completeness;
+- work-type progression;
+- investigative-finding closure;
+- functional/technical boundary and user-facing language.
+
+It is reviewed as ready input to **Solution design**. This note records package consistency only; it does not fabricate runtime lifecycle events or conformance state.
