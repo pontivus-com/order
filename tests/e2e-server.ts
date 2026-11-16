@@ -939,19 +939,6 @@ const openContinuationRun = RunSchema.parse({
   startedAt: stamp,
   endedAt: null,
 });
-storeRun(database, openContinuationRun);
-persistEvent(openContinuationRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "R1",
-  mode: "INTERACTIVE",
-  contextHash: openContinuationRun.contextHash,
-});
-persistEvent(openContinuationRun.id, 2, {
-  tag: "AGENT_MESSAGE_FINAL",
-  text: "The current Research findings are ready for your continuation.",
-  evidence: [],
-});
-
 const waitingInputItem = workItem(
   "Workflow input required",
   "PLAN",
@@ -1475,6 +1462,19 @@ const environment: NodeJS.ProcessEnv = {
   PONTIVUS_ORDER_BIND: "127.0.0.1:17347",
 };
 const daemon = await startOrderDaemon(environment);
+
+insertRun(daemon.coordinator, openContinuationRun);
+appendRunEvent(daemon.coordinator, openContinuationRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "R1",
+  mode: "INTERACTIVE",
+  contextHash: openContinuationRun.contextHash,
+});
+appendRunEvent(daemon.coordinator, openContinuationRun.id, {
+  tag: "AGENT_MESSAGE_FINAL",
+  text: "The current Research findings are ready for your continuation.",
+  evidence: [],
+});
 
 insertRun(daemon.coordinator, proposalRun);
 appendRunEvent(daemon.coordinator, proposalRun.id, {
