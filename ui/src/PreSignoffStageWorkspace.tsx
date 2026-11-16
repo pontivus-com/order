@@ -61,6 +61,7 @@ export const PreSignoffStageWorkspace = ({
   currentInteraction,
   currentAttention,
   mutationsDisabled = false,
+  authoringMutationsDisabled = false,
   onSelectMaterial,
   onDirtyChange,
   onOpenArtifactEvidence,
@@ -83,6 +84,7 @@ export const PreSignoffStageWorkspace = ({
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
   mutationsDisabled?: boolean;
+  authoringMutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
@@ -202,7 +204,7 @@ export const PreSignoffStageWorkspace = ({
             <LifecycleDocumentMaterial
               workItem={workItem}
               artifactId={material.artifactId}
-              mutationsDisabled={mutationsDisabled}
+              mutationsDisabled={authoringMutationsDisabled}
               onDirtyChange={onDirtyChange}
               onOpenArtifactEvidence={onOpenArtifactEvidence}
               onContextDocumentChange={onContextDocumentChange}
