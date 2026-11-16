@@ -2127,6 +2127,12 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(page.getByLabel("Readiness review document Markdown source")).toHaveCount(0);
 
   await selectWorkflowStep(page, "Implementation plan");
+  await openMarkdownEditor(page, "Implementation plan document Markdown source");
+  const unchangedCancel = page.getByRole("button", { name: "Cancel", exact: true });
+  await expect(unchangedCancel).toBeEnabled();
+  await unchangedCancel.click();
+  await expect(page.getByTestId("markdown-document-view")).toBeVisible();
+
   const editablePlan = await openMarkdownEditor(page, "Implementation plan document Markdown source");
   const fresh = await markdownSourceValue(editablePlan);
   await replaceMarkdownSource(page, editablePlan, fresh + "\ncancelled plan edit\n");
