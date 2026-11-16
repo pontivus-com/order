@@ -446,7 +446,24 @@ After the turn completes, a bounded activity summary remains inspectable with th
 
 Canonical Order messages, required questions, proposals, blockers, completions and validation outcomes remain the authoritative workflow-semantic history.
 
-#### 8.4 Conversation admission
+#### 8.4 Dialogue transcript and reply context
+
+The canonical Workbench behavior is owned by `GW-DOC-WORKBENCH-UX-V2 §5.6`.
+
+For this change, the functional consequence is explicit: **wherever the operator can reply to an agent, the primary surface is a visible conversation, not an isolated composer or generic event timeline.**
+
+A reply-capable pre-signoff surface must show:
+
+- the substantive agent message or exact required question that the operator is responding to;
+- the relevant prior human/agent turns from the selected attempt;
+- the current composer immediately associated with that conversation;
+- operational activity as supporting progress information rather than a replacement for the discussion.
+
+Free-form continuation is not presented when no substantive preceding agent message is visible. Required input remains reply-capable because the exact question is itself the conversational anchor.
+
+System workflow events, proposal state, evidence and technical diagnostics may coexist with the Dialogue surface, but they must remain visually distinct from the human/agent transcript.
+
+#### 8.5 Conversation admission
 
 While a provider turn is actively processing:
 
@@ -460,7 +477,7 @@ When exact required input owns attention, the composer is bound to that question
 
 When a proposal decision owns attention, the free-form composer is unavailable until the proposal is dispositioned.
 
-#### 8.5 Failure
+#### 8.6 Failure
 
 A provider/agent failure must present:
 
@@ -474,7 +491,7 @@ The product must distinguish provider execution failure from a later Order contr
 
 Hidden chain-of-thought/reasoning, credentials, secrets, raw unbounded tool output and raw provider-native metadata remain closed.
 
-#### 8.6 Agent result rejected by Order
+#### 8.7 Agent result rejected by Order
 
 An agent turn may execute successfully but return a combination of requested workflow effects that Order cannot accept together.
 
@@ -962,6 +979,7 @@ The following stable requirement identities are owned by this functional design 
 - **WF-FR-032 ACTIVE-AGENT-AUTHORING-EXCLUSION** — while an agent attempt is active, canonical Work request/title and editable lifecycle-document mutations are unavailable; required human response uses the owning interaction.
 - **WF-FR-033 REJECTED-AGENT-RESULT-SEMANTICS** — an agent result rejected by Order applies none of its requested workflow effects, fails the attempt, preserves the current workflow step and offers governed recovery.
 - **WF-FR-034 REPOSITORY-DRAFT-VISIBILITY** — deterministic repository lifecycle drafts remain visible without historical agent-attempt state and without fabricating workflow/conformance history.
+- **WF-FR-035 DIALOGUE-REPLY-CONTEXT** — every reply-capable pre-signoff interaction visibly presents the selected attempt's human/agent transcript and the substantive agent message or exact required question that gives the reply meaning, as governed by `GW-DOC-WORKBENCH-UX-V2 §5.6`.
 
 ### 24. Functional-design closure review
 
@@ -971,7 +989,7 @@ The functional design is reviewed against the four Phase-2A closure gates.
 |---|---|---|
 | **Workflow-step completeness** | **PASS** | §§10–20 define the task, completion outcome, subtasks, information/input requirements, interaction class, current-attention behavior and post-action orientation for every user-facing workflow step and supporting service. |
 | **Work-type progression** | **PASS** | §§2.1–2.8 preserve Change, Defect, Investigation and Audit intake/Research semantics, their distinct continuation/termination paths, and the Change/Defect obligations carried into Requirements, Solution design and Implementation plan. |
-| **Investigative finding closure** | **PASS** | information leakage, proposal ownership, manual execution scope, agent transparency, material maturity, convergence, active-agent authoring, rejected-agent-result semantics and repository-draft visibility all have explicit functional outcomes; producer/consumer contract mechanics, diagnostics and permanent proof remain Solution design obligations. |
+| **Investigative finding closure** | **PASS** | information leakage, proposal ownership, manual execution scope, agent transparency, dialogue/reply context, material maturity, convergence, active-agent authoring, rejected-agent-result semantics and repository-draft visibility all have explicit functional outcomes; producer/consumer contract mechanics, diagnostics and permanent proof remain Solution design obligations. |
 | **Functional/technical boundary and product language** | **PASS** | product behavior uses user-facing workflow/task language and defines observable outcomes; exact transports, persistence, contract shapes, provider source selection, React composition and implementation tasks remain excluded from functional design. |
 
 No remaining material product decision identified by the investigative baseline is deferred to Solution design. The remaining work is technical realization and certification of these accepted observable behaviors.
@@ -1078,6 +1096,12 @@ The functional design is satisfied only when all of the following observable cri
 70. Canonical observation convergence suppresses mutation until one coherent current workflow observation is available.
 71. The functional design preserves the existing single lifecycle owner, monotonic reached history, currentness/recovery ownership, exact sign-off freshness and signed-material locking rather than introducing a replacement state model.
 
+### J. Dialogue/reply context
+
+72. Every free-form continuation surface visibly presents the preceding substantive agent message and relevant prior human/agent turns from the selected attempt.
+73. Every required-input surface presents the exact agent question inline with the conversation and binds the response to that question.
+74. Operational activity, workflow events, proposals, evidence and technical diagnostics remain distinguishable from the human/agent conversation and cannot substitute for the transcript when a reply is available.
+
 ## Scope/exclusions
 
 ### In scope
@@ -1094,6 +1118,7 @@ The functional design is satisfied only when all of the following observable cri
 - work-type-specific intake/Research semantics and their downstream information obligations;
 - user-facing workflow terminology for operator-facing functional documentation and UI;
 - active-agent authoring exclusion, rejected-agent-result failure behavior and repository-draft visibility;
+- visible agent conversation/reply context for every reply-capable pre-signoff interaction;
 - Queue/Create/Settings/Context/Evidence where they support the workflow task model;
 - responsive/accessibility continuity;
 - functional acceptance and downstream traceability.
@@ -1145,6 +1170,9 @@ The accepted product must not:
 - offer canonical Work request/title or lifecycle-document Save while an agent attempt is active;
 - apply any proposal/input/block/completion effect from an agent result that Order rejects as an invalid combined workflow result;
 - hide a deterministic repository lifecycle draft merely because no historical agent attempt exists.
+- present a free-form reply composer without the visible substantive agent message being replied to;
+- hide a required agent question or its relevant conversational context in a generic event feed, technical disclosure or secondary surface while the response control is primary;
+- treat operational activity as a substitute for the human/agent conversation.
 
 ## Material compatibility/security/performance constraints
 
