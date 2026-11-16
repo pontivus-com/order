@@ -845,8 +845,8 @@ persistEvent(resumeRun.id, 1, {
 });
 
 const openContinuationItem = workItem(
-  "Workflow open continuation",
-  "PLAN",
+  "Research open continuation",
+  "R1",
   "ACTIVE",
   null,
 );
@@ -855,7 +855,7 @@ const openContinuationRun = RunSchema.parse({
   id: newRunId(),
   workItemId: openContinuationItem.id,
   executionTaskId: null,
-  stage: "PLAN",
+  stage: "R1",
   mode: "INTERACTIVE",
   role: "STAGE",
   triggerEventId: null,
@@ -871,13 +871,13 @@ const openContinuationRun = RunSchema.parse({
 storeRun(database, openContinuationRun);
 persistEvent(openContinuationRun.id, 1, {
   tag: "STAGE_STARTED",
-  stage: "PLAN",
+  stage: "R1",
   mode: "INTERACTIVE",
   contextHash: openContinuationRun.contextHash,
 });
 persistEvent(openContinuationRun.id, 2, {
   tag: "AGENT_MESSAGE_FINAL",
-  text: "The current plan is ready for your continuation.",
+  text: "The current Research findings are ready for your continuation.",
   evidence: [],
 });
 
