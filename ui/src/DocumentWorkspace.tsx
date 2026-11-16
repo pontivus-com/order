@@ -234,12 +234,7 @@ const DocumentationGitConfirmation = ({
     open={state.confirmGitSave}
     onOpenChange={state.setConfirmGitSave}
     title="Save WorkItem documentation to Git?"
-    description={
-      state.changedGitPaths.length === 0
-        ? "No governed WorkItem paths differ from HEAD."
-        : "Only these governed paths will be committed: " +
-          state.changedGitPaths.map((path) => path.repositoryPath).join(", ")
-    }
+    description="Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed."
     confirmLabel="Save documentation to Git"
     actionTone="primary"
     pending={state.commitDocumentation.isPending}
