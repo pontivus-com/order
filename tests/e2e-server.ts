@@ -844,6 +844,38 @@ persistEvent(resumeRun.id, 1, {
   owningStage: "PLAN",
 });
 
+const processingVisualItem = workItem(
+  "Research processing visual",
+  "R1",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, processingVisualItem);
+const processingVisualRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: processingVisualItem.id,
+  executionTaskId: null,
+  stage: "R1",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "RUNNING",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("research-processing-visual-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, processingVisualRun);
+persistEvent(processingVisualRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "R1",
+  mode: "INTERACTIVE",
+  contextHash: processingVisualRun.contextHash,
+});
+
 const openContinuationItem = workItem(
   "Research open continuation",
   "R1",
