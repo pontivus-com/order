@@ -14,9 +14,13 @@ import {
   type WorkItem,
 } from "../src/core/contracts.ts";
 import {
+  agentActivityRunEvents,
+  conversationRunEvents,
   pendingProposalForEvents,
   resolveWorkflowMaterial,
+  runEventPlane,
   runEventPresentation,
+  workflowRunEvents,
   runStatusLabel,
   workflowStepState,
   type ProposalSelection,
@@ -633,6 +637,38 @@ describe("workflow presentation policy", () => {
       runs: [],
       artifacts: [],
     })).toEqual({ kind: "UNREACHED" });
+  });
+});
+
+describe("RunEvent presentation planes", () => {
+  const event = (sequence: number, payload: RunEventPayload) =>
+    RunEventSchema.parse({
+      id: `event_00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`,
+      runId: `run_${uuidB}`,
+      sequence,
+      occurredAt: stamp,
+      event: payload,
+    });
+
+  it("projects one chronology into conversation, activity and workflow without duplication", () => {
+    const events = [
+      event(1, { tag: "AGENT_MESSAGE_FINAL", text: "Ready for your reply", evidence: [] }),
+      event(2, { tag: "HUMAN_INPUT_RECEIVED", requestEventId: null, text: "Continue" }),
+      event(3, { tag: "AGENT_ACTIVITY_RECORDED", category: "READING", summary: "Reading repository material", resource: null }),
+      event(4, { tag: "OBSERVATION_RECORDED", title: "Observed", detail: "System evidence", evidence: [] }),
+      event(5, { tag: "HUMAN_INPUT_REQUESTED", category: "INFORMATION", question: "Which constraint applies?" }),
+    ];
+
+    expect(events.map(runEventPlane)).toEqual([
+      "CONVERSATION",
+      "CONVERSATION",
+      "ACTIVITY",
+      "WORKFLOW",
+      "CONVERSATION",
+    ]);
+    expect(conversationRunEvents(events).map((item) => item.sequence)).toEqual([1, 2, 5]);
+    expect(agentActivityRunEvents(events).map((item) => item.sequence)).toEqual([3]);
+    expect(workflowRunEvents(events).map((item) => item.sequence)).toEqual([4]);
   });
 });
 
