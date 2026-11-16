@@ -137,7 +137,7 @@ jobs:
             }
 
             await openWorkItem(page, "Proposal review");
-            await page.getByRole("button", { name: "Review proposed document change" }).click();
+            await expect(page.getByTestId("proposal-review-workspace")).toBeVisible();
             await capture(page, ["proposal-review.svg", "proposal-states.svg"]);
 
             await openWorkItem(page, "Invalid lifecycle Markdown");
