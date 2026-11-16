@@ -111,8 +111,19 @@ jobs:
             if (await button.getAttribute("aria-expanded") !== "true") await button.click();
           };
 
+          const settle = async (page: Page): Promise<void> => {
+            for (const text of [
+              "Loading work queue...",
+              "Loading workflow step...",
+              "Resolving exact package...",
+            ]) {
+              await expect(page.getByText(text, { exact: true })).toHaveCount(0, { timeout: 15_000 });
+            }
+            await page.waitForTimeout(350);
+          };
+
           const capture = async (page: Page, names: readonly string[]): Promise<void> => {
-            await page.waitForTimeout(150);
+            await settle(page);
             for (const name of names) {
               await page.screenshot({
                 path: "candidate-review-evidence/actual/" + name.replace(/\.svg$/, ".png"),
