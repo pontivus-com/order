@@ -326,7 +326,6 @@ const proposalRun = RunSchema.parse({
   startedAt: stamp,
   endedAt: null,
 });
-storeRun(database, proposalRun);
 
 const persistEvent = (
   runId: RunId,
@@ -371,38 +370,8 @@ persistEvent(historicalProposalRun.id, 4, {
   adoptedArtifactRefId: proposalArtifacts.plan.id,
 });
 
-persistEvent(proposalRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: proposalRun.contextHash,
-});
-persistEvent(proposalRun.id, 2, {
-  tag: "AGENT_MESSAGE_FINAL",
-  text: "The plan is ready for operator review.",
-  evidence: [],
-});
-const proposalInputRequest = persistEvent(proposalRun.id, 3, {
-  tag: "HUMAN_INPUT_REQUESTED",
-  category: "INFORMATION",
-  question: "Confirm the proposal should be reviewed.",
-});
-persistEvent(proposalRun.id, 4, {
-  tag: "HUMAN_INPUT_RECEIVED",
-  requestEventId: proposalInputRequest.id,
-  text: "Review the proposal.",
-});
 const proposalPath = `${workItemsRoot}/${proposalItem.id}/implementation-plan.md`;
-const proposal = persistEvent(proposalRun.id, 5, {
-  tag: "ARTIFACT_PROPOSAL_CREATED",
-  targetPath: proposalPath,
-  baseSha256: null,
-  role: "PLAN",
-  authorityLayer: "P7",
-  unifiedDiff:
-    "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
-  rationale: "Exercise the canonical proposal disposition surface.",
-});
+let proposalEventId: string | null = null;
 const rejectionItem = workItem("Proposal rejection review", "PLAN", "ACTIVE", null);
 storeWorkItem(database, rejectionItem);
 const rejectionRun = RunSchema.parse({
@@ -1356,7 +1325,40 @@ const environment: NodeJS.ProcessEnv = {
   PONTIVUS_ORDER_BIND: "127.0.0.1:17347",
 };
 const daemon = await startOrderDaemon(environment);
-updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
+
+insertRun(daemon.coordinator, proposalRun);
+appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: proposalRun.contextHash,
+});
+appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "AGENT_MESSAGE_FINAL",
+  text: "The plan is ready for operator review.",
+  evidence: [],
+});
+const liveProposalInputRequest = appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Confirm the proposal should be reviewed.",
+});
+appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "HUMAN_INPUT_RECEIVED",
+  requestEventId: liveProposalInputRequest.id,
+  text: "Review the proposal.",
+});
+const liveProposal = appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: proposalPath,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
+  rationale: "Exercise the canonical proposal disposition surface.",
+});
+proposalEventId = liveProposal.id;
 
 insertRun(daemon.coordinator, rejectionRun);
 appendRunEvent(daemon.coordinator, rejectionRun.id, {
@@ -1536,6 +1538,6 @@ process.once("SIGTERM", () => void stop());
 console.log(JSON.stringify({
   status: "ready",
   repositoryRoot,
-  proposalEventId: proposal.id,
+  proposalEventId,
 }));
 await new Promise<never>(() => undefined);
