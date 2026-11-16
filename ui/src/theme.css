@@ -930,9 +930,15 @@
   border-radius: var(--radius-container);
   background: var(--color-background-muted);
 }
+.order-readiness-current-interaction,
 .order-readiness-findings {
   display: grid;
   gap: var(--spacing-2);
+}
+.order-readiness-current-interaction {
+  padding: var(--spacing-3);
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
 }
 .order-readiness-findings h3,
 .order-readiness-support-grid h3,
