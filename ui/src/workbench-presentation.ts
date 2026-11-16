@@ -222,7 +222,20 @@ const selectedMaterialIsAvailable = (
   selection: WorkflowMaterial,
 ): boolean => {
   const stepState = workflowStepState(input.workItem, input.reachedStages, input.selectedStep);
-  if (stepState === "UNREACHED") return selection.kind === "UNREACHED";
+  if (stepState === "UNREACHED") {
+    if (selection.kind === "UNREACHED") return true;
+    if (selection.kind === "STAGE_DOCUMENT") {
+      const artifact = input.artifacts.find(
+        (candidate) => candidate.id === selection.artifactId,
+      );
+      return artifact !== undefined && artifact.role === input.selectedStep;
+    }
+    if (selection.kind === "READINESS_REVIEW") {
+      return input.selectedStep === "R3" &&
+        input.artifacts.some((artifact) => artifact.role === "R3");
+    }
+    return false;
+  }
 
   switch (selection.kind) {
     case "SOURCE_DOCUMENT":
@@ -346,7 +359,6 @@ export const resolveWorkflowMaterial = (
   input: WorkflowMaterialResolutionInput,
 ): WorkflowMaterial => {
   const stepState = workflowStepState(input.workItem, input.reachedStages, input.selectedStep);
-  if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   const explicit = input.explicitSelection ?? null;
   const explicitIsAvailable =
@@ -373,6 +385,11 @@ export const resolveWorkflowMaterial = (
     input.selectedStep === "PLAN"
   ) {
     const artifact = stageArtifact(input.artifacts, input.selectedStep);
+    if (stepState === "UNREACHED") {
+      return artifact
+        ? { kind: "STAGE_DOCUMENT", artifactId: artifact.id }
+        : { kind: "UNREACHED" };
+    }
     if (stepState === "HISTORICAL") {
       if (explicitIsAvailable && explicit) return explicit;
       if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
@@ -429,6 +446,11 @@ export const resolveWorkflowMaterial = (
   }
 
   if (input.selectedStep === "R3") {
+    if (stepState === "UNREACHED") {
+      return stageArtifact(input.artifacts, "R3") !== null
+        ? { kind: "READINESS_REVIEW" }
+        : { kind: "UNREACHED" };
+    }
     if (explicitIsAvailable && explicit) return explicit;
 
     const ownerRun = currentStageRun(input);
@@ -451,6 +473,8 @@ export const resolveWorkflowMaterial = (
     }
     return { kind: "READINESS_REVIEW" };
   }
+
+  if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   if (input.selectedStep === "AWAITING_SIGNOFF") {
     return input.approvalPackageAvailable === true
