@@ -792,7 +792,7 @@ Automatic/background scheduler behavior may still exist as a separate system mec
 | Subtask | Trigger/current condition | Operator goal | Required information | Interaction/result |
 |---|---|---|---|---|
 | Scan approved tasks | Implementation workspace | understand task set/state | task objective + state + concise current marker | select task |
-| Start current task | canonical current task TODO and startable | explicitly begin that exact approved task | objective/scope/currentness and clear current-owner state | Start current task |
+| Start current task | canonical current approved task is ready to start | explicitly begin that exact approved task | objective/scope/currentness and clear current-owner state | Start current task |
 | Observe active role | builder/reviewer/remediator agent attempt processing | understand useful progress | role + bounded operational activity | inspect; Cancel where allowed |
 | Inspect blocker/current action | blocker/review/validation condition | know why task cannot continue and what to do | exact classification, owning task/role, next action | Retry/Resume/return as governed |
 | Inspect validation boundary | validation active/recorded | understand what has been proved and what is next | current validation boundary + recorded results | inspect |
