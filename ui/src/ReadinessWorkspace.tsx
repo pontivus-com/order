@@ -45,6 +45,7 @@ const packageRoles = new Set<ArtifactRef["role"]>([
 export const ReadinessWorkspace = ({
   workItem,
   runs,
+  runEvents,
   artifacts,
   material,
   materialState,
@@ -63,6 +64,7 @@ export const ReadinessWorkspace = ({
 }: Readonly<{
   workItem: WorkItem;
   runs: readonly Run[];
+  runEvents: readonly RunEvent[];
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
@@ -158,6 +160,7 @@ export const ReadinessWorkspace = ({
           <StageRunMaterial
             stage="R3"
             runs={runs}
+            runEvents={runEvents}
             selectedRunId={material.runId}
             currentRunId={workItem.stage === "R3" ? currentRunId : null}
             currentInteraction={workItem.stage === "R3" ? currentInteraction : null}
