@@ -2066,6 +2066,11 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   page,
   request,
 }) => {
+  // This scenario intentionally spans external filesystem mutation, stale-write
+  // reconciliation, dirty-buffer preservation, reload/cancel/save, lifecycle
+  // convergence, and historical inspection. Keep every assertion, but give the
+  // full end-to-end sequence the Playwright budget intended for slow scenarios.
+  test.slow();
   await authenticate(page, request);
   await openWorkItem(page, "Source editing workbench");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
