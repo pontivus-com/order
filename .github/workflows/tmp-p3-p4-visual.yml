@@ -265,7 +265,10 @@ jobs:
             await shot(page, "research.svg", "open-dialogue");
 
             await open(page, "Workflow input required");
-            await expect(page.getByPlaceholder("Answer and continue")).toBeVisible();
+            const inputComposer = page.getByTestId("activity-composer");
+            await expect(inputComposer).toBeVisible();
+            await expect(inputComposer.getByLabel("Message input")).toBeVisible();
+            await expect(inputComposer).toContainText("Answer the question above");
             await shot(page, "dialogue-states.svg", "waiting-for-you");
 
             await open(page, "Requirements document visual");
