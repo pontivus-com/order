@@ -487,6 +487,11 @@ describe("Order cross-boundary certification", () => {
 
     const workspace = read("ui/src/WorkItemWorkspace.tsx");
     expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
+    expect(workspace).toContain(
+      "artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}",
+    );
+    expect(workspace).toContain('selectedStep === "AWAITING_SIGNOFF"');
+    expect(workspace).toContain("api.listArtifacts(workItem.id)");
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
     expect(execution).toContain("WorkbenchMasterDetail");
