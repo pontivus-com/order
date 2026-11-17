@@ -1219,6 +1219,15 @@ describe("architecture fitness", () => {
           `${path}: versioned concern id ${versioned} must extend stable id ${stable} with -V...`,
         );
       }
+      const retainedVersion = path.match(/\.v([0-9]+)\.md$/)?.[1];
+      if (
+        retainedVersion !== undefined &&
+        !versioned.endsWith(`-V${retainedVersion}`)
+      ) {
+        violations.push(
+          `${path}: retained semantic-version filename must match ${versioned}`,
+        );
+      }
 
       if (!retainedSemanticVersionPath(path)) {
         const priorCurrentOwner = currentOwnerByStable.get(stable);
@@ -1305,7 +1314,11 @@ describe("architecture fitness", () => {
         ) {
           continue;
         }
-        if (!concernByPath.has(authorityPath)) {
+        if (retainedSemanticVersionPath(authorityPath)) {
+          violations.push(
+            `${authorityPath}: retained semantic-version source must not appear in the current authority set`,
+          );
+        } else if (!concernByPath.has(authorityPath)) {
           violations.push(
             `${authorityPath}: literal authority document must declare canonical concern metadata`,
           );
