@@ -58,9 +58,10 @@ export const EvidenceViewer = ({
         <div data-testid="raw-content-view">
           <CodeBlock
             code={decodeBytes(query.data)}
+            language="plaintext"
             isWrapped
             hasCopyButton
-            container="section"
+            container="card"
             width="100%"
           />
         </div>
