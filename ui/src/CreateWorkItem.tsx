@@ -23,7 +23,11 @@ export const CreateWorkItem = ({
   onConcernIdsChange: (value: readonly string[]) => void; onSubmit: () => void;
   onCancel: () => void;
 }>) => {
-  const eligibleSchemas = schemas.filter((schema) => derivedFromWorkItem === null || schema.kind === "CHANGE" || schema.kind === "DEFECT");
+  const eligibleSchemas = schemas.filter(
+    (schema) =>
+      schema.authoringDefault &&
+      (derivedFromWorkItem === null || schema.kind === "CHANGE" || schema.kind === "DEFECT"),
+  );
   const selectedProject = projects.find((project) => project.projectId === projectId) ?? null;
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
