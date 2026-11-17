@@ -351,7 +351,7 @@ At this audit state:
 
 - **P1: DONE**
 - **P2: DONE / preserve**
-- **P3: PARTIAL; C3 invalid**
+- **P3: BLOCKED on §6.5 structural UI/styling recovery; C3 invalid**
 - **P4: PARTIAL; C4 invalid**
 - **P5: PARTIAL; C5 invalid**
 - **P6: LARGELY NOT DONE; C6 invalid**
@@ -592,13 +592,17 @@ Canonical V0/V1 already own package, approval, repository and governance preflig
 
 Reference fixtures are added **just in time** in P3-P6 only when the real SPA cannot already render an approved SVG state deterministically. The plan's §16 reference ownership matrix already maps all 41 references to their owning checkpoint, so implementation must not create a second reference manifest merely to restate that mapping.
 
-The current UI is not captured or compared. The visual quality loop is only:
+No current-UI/before screenshot baseline is required. The only visual authority comparison is the approved SVG against the implemented runtime state, and every mismatch remains subject to the §6.5 ownership-classification prerequisite:
 
 ```text
-approved SVG -> implemented runtime state -> fix any mismatch
+approved SVG
+    -> implemented runtime state
+    -> classify mismatch to canonical owner
+    -> correct that owner
+    -> rerender and adjudicate
 ```
 
-No separate baseline screenshot exercise, pre-implementation visual gate, mock prototype, or reference-harness phase is authorized.
+No separate before/after baseline exercise, pre-implementation visual gate, mock prototype, or second reference-harness architecture is authorized.
 
 ## 8. Phase P1 — core contracts and pure workflow semantics
 
