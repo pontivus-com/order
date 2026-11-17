@@ -75,6 +75,12 @@ jobs:
           };
 
           test("loading, local-session, error and empty shared states", async ({ page, request }) => {
+            await page.route("**/api/settings/readiness", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
+            });
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+            });
             await page.setViewportSize({ width: 1440, height: 900 });
             await auth(page, request);
 

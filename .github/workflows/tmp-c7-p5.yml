@@ -1,4 +1,4 @@
-name: Temporary C7 P5 integrated evidence capture
+name: Temporary Final C7 P5 evidence capture
 # Evidence generation only: a green run is not a C5 conformance verdict.
 
 on:
@@ -133,7 +133,7 @@ jobs:
             await expect(readyDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
             await expect(readyDetail.getByText("Change surface", { exact: true })).toBeHidden();
             await expect(readyDetail.getByText("Task id", { exact: true })).toBeHidden();
-            await expect(page.getByRole("combobox", { name: "Approved tasks" })).toBeVisible();
+            await expect(page.getByRole("table", { name: "Approved tasks" })).toBeVisible();
             await shot(page, "implementation.svg", "ready");
             await shot(page, "implementation-states.svg", "ready-to-start");
 

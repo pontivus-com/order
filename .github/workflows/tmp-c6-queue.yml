@@ -64,6 +64,12 @@ jobs:
             await page.screenshot({ path: join(dir, state + ".png"), fullPage: false });
           };
           const auth = async (page: Page, request: APIRequestContext) => {
+            await page.route("**/api/settings/readiness", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
+            });
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+            });
             const minted = await request.post("/api/auth/connect-token", {
               headers: { authorization: "Bearer " + daemonToken },
               data: {},

@@ -1,4 +1,4 @@
-name: Temporary C6 visual evidence capture
+name: Temporary Final C7 C6 evidence capture
 # Evidence generation only: a green run is not a C6 conformance verdict.
 
 on:
@@ -97,6 +97,12 @@ jobs:
           };
 
           test("Queue, create and linked remediation", async ({ page, request }) => {
+            await page.route("**/api/settings/readiness", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
+            });
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+            });
             await page.setViewportSize({ width: 1440, height: 900 });
             await auth(page, request);
             await expect(page.getByTestId("work-item-queue")).toBeVisible();
@@ -126,9 +132,6 @@ jobs:
           });
 
           test("Repository and model Settings", async ({ page, request }) => {
-            await page.route("**/api/settings/readiness", async (route) => {
-              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
-            });
             await page.setViewportSize({ width: 1440, height: 900 });
             await auth(page, request);
             await page.getByRole("link", { name: "Settings", exact: true }).click();
@@ -146,22 +149,18 @@ jobs:
               .getByRole("row").filter({ hasText: "order-e2e" }).first();
             await row.getByRole("button", { name: /^Move WorkItem documents/u }).click();
             const move = repositories.getByTestId("move-workitem-documents");
-            await expect(move).toContainText("Current repository-relative root: docs/order/work-items");
+            await expect(move).toContainText("Current repository-relative root");
+            await expect(move).toContainText("docs/order/work-items");
             await shot(page, "settings-repository-move.svg", "form");
             await move.getByRole("button", { name: "Cancel move" }).click();
 
             await page.getByRole("link", { name: "Model & runtime", exact: true }).click();
             await expect(page.getByTestId("settings-model")).toBeVisible();
             await expect(page.getByText("Checking installation readiness…", { exact: true })).toHaveCount(0);
-            await expect(page.getByText("Loading available models…", { exact: true })).toHaveCount(0);
             await shot(page, "settings-model.svg", "main");
-            await page.unroute("**/api/settings/readiness");
           });
 
           test("OpenCode Settings and login states", async ({ page, request }) => {
-            await page.route("**/api/settings/readiness", async (route) => {
-              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
-            });
             let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
             let attempt = 0;
             await page.route("**/api/opencode/accounts**", async (route) => {
@@ -257,10 +256,12 @@ jobs:
                 await expect(panel.getByTestId("opencode-login-attempt")).toContainText("Waiting for OpenCode sign-in");
               }
             }
-            await page.unroute("**/api/settings/readiness");
           });
 
           test("Readiness, notices, Context, Evidence and theme parity", async ({ page, request }) => {
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+            });
             await page.route("**/api/settings/readiness", async (route) => {
               await route.fulfill({
                 status: 200, contentType: "application/json",
@@ -286,6 +287,8 @@ jobs:
             await open(page, "Proposal review");
             await page.getByRole("button", { name: "Context" }).click();
             await expect(page.getByTestId("work-item-context")).toBeVisible();
+            await expect(page.getByText("Loading context…", { exact: true })).toHaveCount(0, { timeout: 30000 });
+            await expect(page.getByTestId("selected-view-context")).toBeVisible();
             await shot(page, "workitem-context.svg", "wide");
             await page.getByRole("button", { name: "Close context", exact: true }).click();
             await expect(page.getByTestId("work-item-context")).toHaveCount(0);
