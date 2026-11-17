@@ -2,7 +2,7 @@
 
 **Status:** Binding P6 contract standard
 **Canonical concern ID:** `GW-DOC-CANONICAL-CONTRACTS`  
-**Versioned concern ID:** `GW-DOC-CANONICAL-CONTRACTS-V1`  
+**Versioned concern ID:** `GW-DOC-CANONICAL-CONTRACTS-V2`  
 
 ## 1. Purpose
 
