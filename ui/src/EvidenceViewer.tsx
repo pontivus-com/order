@@ -70,7 +70,6 @@ export const EvidenceViewer = ({
 
   return (
     <WorkbenchSurface
-      testId="evidence-workspace"
       attention={
         <WorkbenchSectionHeader
           title="Evidence"
