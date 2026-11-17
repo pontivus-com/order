@@ -2,6 +2,7 @@ import type {
   ArtifactRef,
   EvidencePath,
   ExecutionTask,
+  InstallationReadinessBlocker,
   Run,
   RunEvent,
   RunEventId,
@@ -14,6 +15,34 @@ import {
   type ExecutionOwner,
   type StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
+
+export type SettingsDestination = "repositories" | "opencode" | "model";
+
+export const settingsDestinationForReadinessBlocker = (
+  blocker: InstallationReadinessBlocker,
+): SettingsDestination =>
+  blocker === "OPENCODE_ACCOUNT_REQUIRED"
+    ? "opencode"
+    : blocker === "MODEL_INVALID"
+      ? "model"
+      : "repositories";
+
+export const installationReadinessBlockerText = (
+  blocker: InstallationReadinessBlocker,
+): string => {
+  switch (blocker) {
+    case "REPOSITORY_REQUIRED":
+      return "Target repository required";
+    case "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION":
+      return "Repository configuration needs attention";
+    case "MODEL_INVALID":
+      return "Model unavailable / invalid";
+    case "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION":
+      return "Reference-root configuration needs attention";
+    case "OPENCODE_ACCOUNT_REQUIRED":
+      return "OpenCode account required";
+  }
+};
 
 export type ProposalSelection = Readonly<{
   runId: Run["id"];
