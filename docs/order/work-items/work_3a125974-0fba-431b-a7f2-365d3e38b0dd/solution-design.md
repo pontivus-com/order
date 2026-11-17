@@ -17,7 +17,7 @@ Repoint every ordinary live permanent-document dependency on the six advanced co
 
 ## Correction at the canonical owner
 
-Extend the existing schema catalog instead of creating a second catalog. Keep v1 pins immutable and make v2 current authoring defaults. For each canonical concern materially amended by this remediation, retain the released 0.5.0 V1 document as an exact semantic source, advance the live owner to V2, map the stable/V2 identifiers to the live owner and the V1 identifier to the retained source. Restore the already-prescribed functional-core conformance seam in src/core/governance.ts. Keep ArtifactRef identity coordinator-owned: current draft ids are projected into the stage prompt only as completion bindings and are revalidated by the coordinator.
+Extend the existing schema catalog instead of creating a second catalog. Keep v1 pins immutable and make v2 current authoring defaults. R1 evidence structure is reused semantically, but current v2 delivery schemas resolve dedicated v2 R1 template pins so their productive prompt never inherits the historical lifecycle-context V1 authority reference. For each canonical concern materially amended by this remediation, retain the released 0.5.0 V1 document as an exact semantic source, advance the live owner to V2, map the stable/V2 identifiers to the live owner and the V1 identifier to the retained source. Restore the already-prescribed functional-core conformance seam in src/core/governance.ts. Keep ArtifactRef identity coordinator-owned: current draft ids are projected into the stage prompt only as completion bindings and are revalidated by the coordinator.
 
 ## Preserved invariants/downstream consumers
 
