@@ -143,8 +143,8 @@ jobs:
           test("shell theme responsive", async ({ page, request }) => {
             await page.setViewportSize({ width: 1600, height: 900 });
             await auth(page, request);
-            await open(page, "Lifecycle editing workbench");
-            await expect(page.getByTestId("workflow-step-summary")).toBeVisible();
+            await open(page, "Implementation plan document visual");
+            await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation plan");
             await shot(page, "workitem-shell-controls.svg", "wide");
 
             await page.getByRole("radio", { name: "Light" }).click();
@@ -211,9 +211,9 @@ jobs:
             await expect(page.getByTestId("result-workspace")).toBeVisible();
             await shot(page, "current-attention-states.svg", "10-ordinary-current-material");
 
-            await open(page, "Lifecycle editing workbench");
+            await open(page, "Requirements ready after Research");
             await step(page, "Research");
-            await expect(page.getByRole("button", { name: "Return to Approval", exact: true })).toBeVisible();
+            await expect(page.getByRole("button", { name: "Return to Requirements", exact: true })).toBeVisible();
             await shot(page, "current-attention-states.svg", "11-historical-inspection");
 
             await open(page, "Requirements document visual");
@@ -442,8 +442,7 @@ jobs:
             });
             await auth(page, request);
 
-            await open(page, "Lifecycle editing workbench");
-            await step(page, "Implementation plan");
+            await open(page, "Implementation plan document visual");
             const editor = await edit(page, "Implementation plan document Markdown source");
             await editor.click();
             await editor.press("Control+End");
@@ -460,7 +459,7 @@ jobs:
             await shot(page, "safety-confirmations.svg", "dirty-destination");
             await dialog.getByRole("button", { name: "Discard unsaved changes", exact: true }).click();
 
-            await open(page, "Lifecycle editing workbench");
+            await open(page, "Implementation plan document visual");
             await page.getByRole("button", { name: "Archive", exact: true }).click();
             dialog = page.getByRole("alertdialog", { name: "Archive work item?" });
             await expect(dialog).toContainText("Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact.");
