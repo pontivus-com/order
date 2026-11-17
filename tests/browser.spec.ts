@@ -1772,8 +1772,11 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   const detail = page.getByTestId("activity-detail");
   await expect(detail).toBeVisible();
   await expect(detail).toContainText("The current Research findings are ready for your continuation.");
-  await expect(detail.getByPlaceholder("Continue current work")).toBeVisible();
-  await expect(detail.getByPlaceholder("Answer and continue")).toHaveCount(0);
+  const composer = detail.getByTestId("activity-composer");
+  await expect(composer).toBeVisible();
+  await expect(composer.getByLabel("Message input")).toBeVisible();
+  await expect(composer.getByText("Continue current work", { exact: true })).toBeVisible();
+  await expect(composer.getByText("Answer the question above", { exact: true })).toHaveCount(0);
   await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
 });
 
