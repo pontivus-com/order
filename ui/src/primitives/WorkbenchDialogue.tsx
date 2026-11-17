@@ -54,7 +54,7 @@ export const WorkbenchDialogue = ({
       {header ? <div className="order-workbench-dialogue-header">{header}</div> : null}
       <ChatLayout
         density="compact"
-        composer={composer ?? null}
+        composer={composer ? <div className="order-workbench-dialogue-composer">{composer}</div> : null}
         scrollButton={null}
         emptyState={null}
       >

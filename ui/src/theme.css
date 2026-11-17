@@ -406,7 +406,7 @@
   grid-column: 1 / -1;
   border-top: 1px solid var(--color-border-emphasized);
 }
-.order-workbench-dialogue [data-testid="activity-composer"] {
+.order-workbench-dialogue-composer {
   padding: var(--spacing-3);
   border-top: 1px solid var(--color-border-emphasized);
 }
