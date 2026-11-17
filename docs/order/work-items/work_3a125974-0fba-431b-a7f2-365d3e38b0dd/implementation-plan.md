@@ -9,8 +9,9 @@
 5. Wire coordinator stage promotion through that admission plus current-byte/template verification.
 6. Make Create select only current authoring defaults while historical schemas remain display/discovery compatible.
 7. Replace false-positive tests and add permanent architecture/core regression sensors.
-8. Run complete configured verification and obtain independent R3/PR review before merge.
-9. Treat only verification from the current PR candidate and current PR metadata as admissible release evidence; stale workflow attempts do not satisfy closure.
+8. Extend the canonical PR verification workflow with an independent current-head review gate and review submit/dismiss triggers.
+9. Run complete configured verification and obtain independent R3/PR review before merge.
+10. Treat only verification from the current PR candidate and current PR metadata as admissible release evidence; stale workflow attempts do not satisfy closure.
 
 ## Requirement/design traceability
 
@@ -22,7 +23,7 @@ Delete the assumption that a WorkItem-local requirement family may silently subs
 
 ## Expected change surface
 
-Canonical requirements/governance/contracts/architecture docs, pontivus-order.toml, core contracts/schema/conformance policy, stage orchestration, Create default selection, focused permanent tests, changelog and this new Defect WorkItem.
+Canonical requirements/governance/contracts/architecture docs, pontivus-order.toml, core contracts/schema/conformance policy, stage orchestration, Create default selection, focused permanent tests, the existing PR workflow plus review-verification script, changelog and this new Defect WorkItem.
 
 ## Reproduction/regression/preservation verification
 
