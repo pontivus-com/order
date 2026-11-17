@@ -1,4 +1,5 @@
 name: Temporary P3 P4 visual evidence capture
+# Evidence generation only: a green run is not a C3/C4 conformance verdict.
 
 on:
   push:
