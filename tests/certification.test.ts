@@ -181,10 +181,11 @@ describe("Order cross-boundary certification", () => {
       expect(extraction).not.toContain(forbidden);
     }
 
-    const prompt = openCode.slice(
-      openCode.indexOf("const runPromptToText"),
-      openCode.indexOf("const formatRepairPrompt"),
-    );
+    const promptStart = openCode.indexOf("const runPromptToText = async");
+    const promptEnd = openCode.indexOf("const formatRepairPrompt", promptStart);
+    expect(promptStart).toBeGreaterThanOrEqual(0);
+    expect(promptEnd).toBeGreaterThan(promptStart);
+    const prompt = openCode.slice(promptStart, promptEnd);
     expect(prompt).toContain("consumeLiveActivity(");
     expect(prompt).toContain(".catch(() => undefined)");
     expect(prompt).toContain("context = await client.session.context({ sessionID })");
