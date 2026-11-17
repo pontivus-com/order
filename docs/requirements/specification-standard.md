@@ -20,7 +20,7 @@ The specification package is the authoritative pre-execution description of the 
 - how success will be proven;
 - which project governance constrains the work.
 
-The standard applies to the complete approved package. Stage-specific agent context is resolved under [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md); documents do not duplicate the full pyramid merely to make context available downstream. It does **not** require every project to duplicate this information into one Order-owned file. Existing repository investigations, ADRs, requirements, design reports, plans, and contracts may satisfy the package when they are explicitly referenced and frozen by approval.
+The standard applies to the complete approved package. Stage-specific agent context is resolved under [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md); documents do not duplicate the full pyramid merely to make context available downstream. It does **not** require every project to duplicate this information into one Order-owned file. Existing repository investigations, ADRs, requirements, design reports, plans, and contracts may satisfy the package when they are explicitly referenced and frozen by approval.
 
 ## 2. Mandatory package sections
 
@@ -37,7 +37,7 @@ Required:
 - package revision;
 - artifact references;
 - authoring/review provenance;
-- for source-backed work, the exact current originating WorkItem source identity/snapshot required by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`.
+- for source-backed work, the exact current originating WorkItem source identity/snapshot required by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 ### S2 — Proven problem or requested outcome
 
