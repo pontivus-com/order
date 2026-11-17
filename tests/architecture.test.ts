@@ -574,6 +574,7 @@ describe("architecture fitness", () => {
       for (const requiredConformanceOwner of [
         "evaluateStageConformance",
         "validateStageDocumentStructure",
+        "authorityDispositionOwnerRefs",
         "parseSignedTaskBlockFromPlan",
       ]) {
         if (!stage.includes(requiredConformanceOwner)) {
@@ -1376,6 +1377,14 @@ describe("architecture fitness", () => {
 
   it("enforces v2 WorkItem documentation hygiene without reinterpreting historical v1 packages", () => {
     const violations: string[] = [];
+    const manifest = sourceText("pontivus-order.toml");
+    const refsBody = manifest.match(/\[refs\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? "";
+    const resolvedRefs = new Set(
+      refsBody.split(/\r?\n/).flatMap((line) => {
+        const match = line.match(/^([A-Za-z0-9_.-]+)\s*=\s*"[^"]+"\s*$/);
+        return match?.[1] === undefined ? [] : [match[1]];
+      }),
+    );
     const workItemsRoot = join(repositoryRoot, "docs", "order", "work-items");
     for (const entry of readdirSync(workItemsRoot, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -1452,6 +1461,15 @@ describe("architecture fitness", () => {
           ) {
             violations.push(
               `docs/order/work-items/${entry.name}/requirements.md: ${disposition} row requires a GW-* canonical owner`,
+            );
+          }
+          if (
+            (disposition === "REFERENCE" || disposition === "DELTA") &&
+            /^GW-/.test(owner) &&
+            !resolvedRefs.has(owner)
+          ) {
+            violations.push(
+              `docs/order/work-items/${entry.name}/requirements.md: unresolved canonical owner ${owner}`,
             );
           }
         }
