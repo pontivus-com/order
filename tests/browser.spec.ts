@@ -142,7 +142,10 @@ const replaceMarkdownSource = async (
   editor: Locator,
   markdown: string,
 ): Promise<void> => {
-  await editor.click();
+  // CodeMirror's contenteditable spans the full document height. Target a rendered
+  // line so pointer interaction is exercised inside the visible editor viewport,
+  // rather than asking Playwright to click the offscreen center of the full document.
+  await editor.locator(".cm-line").first().click();
   await editor.press("Control+A");
   await page.keyboard.insertText(markdown);
   const finalLine = markdown.split("\n").at(-1) ?? "";
