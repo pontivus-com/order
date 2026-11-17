@@ -11,6 +11,7 @@ import { isAbsolute, join } from "node:path";
 import {
   ApprovalSchema,
   ArtifactRefSchema,
+  ExecutionTaskIdSchema,
   ExecutionTaskSchema,
   RunEventIdSchema,
   RunEventSchema,
@@ -1805,7 +1806,12 @@ const fixtureControl = Bun.serve({
     if (url.pathname === "/tick") {
       const workItemId = WorkItemIdSchema.parse(body.workItemId);
       const tasks = await listExecutionTasks(daemon.coordinator, workItemId);
-      const task = tasks[0];
+      const requestedTaskId = body.taskId === undefined
+        ? null
+        : ExecutionTaskIdSchema.parse(body.taskId);
+      const task = requestedTaskId === null
+        ? tasks[0]
+        : tasks.find((candidate) => candidate.id === requestedTaskId);
       if (task === undefined) {
         return new Response("fixture execution task missing", { status: 409 });
       }
