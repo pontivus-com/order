@@ -367,12 +367,14 @@ export const LifecycleDocumentMaterial = ({
   onContextDocumentChange,
   onMutationError,
   embeddedReadOnly = false,
+  historicalArtifact,
 }: Readonly<{
   workItem: WorkItem;
   artifactId: ArtifactRef["id"];
   readOnly?: boolean;
   mutationsDisabled?: boolean;
   embeddedReadOnly?: boolean;
+  historicalArtifact?: ArtifactRef;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
@@ -383,9 +385,12 @@ export const LifecycleDocumentMaterial = ({
   const artifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
+    enabled: historicalArtifact === undefined,
   });
   const selectedArtifact =
-    (artifactsQuery.data ?? []).find((artifact) => artifact.id === artifactId) ?? null;
+    historicalArtifact ??
+    (artifactsQuery.data ?? []).find((artifact) => artifact.id === artifactId) ??
+    null;
   const contentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
@@ -412,11 +417,19 @@ export const LifecycleDocumentMaterial = ({
     selectedArtifact?.sha256,
   ]);
 
-  if (artifactsQuery.isPending || contentQuery.isPending) {
+  if (
+    (historicalArtifact === undefined && artifactsQuery.isPending) ||
+    contentQuery.isPending
+  ) {
     return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="loading" title="Loading lifecycle document…" /></section>;
   }
-  if (artifactsQuery.isError || contentQuery.isError) {
-    const error = artifactsQuery.error ?? contentQuery.error;
+  if (
+    (historicalArtifact === undefined && artifactsQuery.isError) ||
+    contentQuery.isError
+  ) {
+    const error = historicalArtifact === undefined
+      ? artifactsQuery.error ?? contentQuery.error
+      : contentQuery.error;
     return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="error" title="Lifecycle document unavailable" description={errorText(error)} /></section>;
   }
   if (!selectedArtifact || !contentQuery.data) {
@@ -528,6 +541,7 @@ export const ReadOnlyLifecycleDocumentMaterial = (
     onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
     onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
     embeddedReadOnly?: boolean;
+    historicalArtifact?: ArtifactRef;
   }>,
 ) => (
   <LifecycleDocumentMaterial
