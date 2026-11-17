@@ -2028,6 +2028,21 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   ).toHaveAttribute("aria-current", "step", { timeout: 5_000 });
 });
 
+test("historical pre-signoff inspection returns to the current owner before offering current mutations", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Requirements ready after Research");
+  await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toBeVisible();
+
+  await selectWorkflowStep(page, "Research");
+  const summary = page.getByTestId("workflow-step-summary");
+  await expect(summary).toContainText("Requirements");
+  await expect(page.getByRole("button", { name: "Return to Requirements", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toHaveCount(0);
+});
+
 test("source editor preserves stale buffers, never overwrites newer source, and returns work visibly to R1", async ({
   page,
   request,
