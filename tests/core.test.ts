@@ -980,8 +980,10 @@ describe("source-backed WorkItem core", () => {
       ["defect-v1", "DEFECT", false],
       ["change-v2", "CHANGE", true],
       ["defect-v2", "DEFECT", true],
-      ["investigation-v1", "INVESTIGATION", true],
-      ["audit-v1", "AUDIT", true],
+      ["investigation-v1", "INVESTIGATION", false],
+      ["audit-v1", "AUDIT", false],
+      ["investigation-v2", "INVESTIGATION", true],
+      ["audit-v2", "AUDIT", true],
     ] as const;
     expect(
       workItemSchemaCatalog.map((entry) => [
@@ -1017,12 +1019,23 @@ describe("source-backed WorkItem core", () => {
     const currentChange = stageTemplateForSchema("change-v2", "R1");
     const currentDefect = stageTemplateForSchema("defect-v2", "R1");
 
+    const historicalInvestigation = stageTemplateForSchema("investigation-v1", "R1");
+    const historicalAudit = stageTemplateForSchema("audit-v1", "R1");
+    const currentInvestigation = stageTemplateForSchema("investigation-v2", "R1");
+    const currentAudit = stageTemplateForSchema("audit-v2", "R1");
+
     expect(historicalChange).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
     expect(historicalDefect).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(historicalInvestigation).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(historicalAudit).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
     expect(currentChange).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
     expect(currentDefect).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentInvestigation).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentAudit).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
     expect(currentChange).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
     expect(currentDefect).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentInvestigation).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentAudit).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
   });
 
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
@@ -1194,8 +1207,8 @@ describe("source-backed WorkItem core", () => {
   it("owns kind defaults and R1 completion admissibility in the source catalog", () => {
     expect(defaultSchemaForKind("CHANGE")).toBe("change-v2");
     expect(defaultSchemaForKind("DEFECT")).toBe("defect-v2");
-    expect(defaultSchemaForKind("INVESTIGATION")).toBe("investigation-v1");
-    expect(defaultSchemaForKind("AUDIT")).toBe("audit-v1");
+    expect(defaultSchemaForKind("INVESTIGATION")).toBe("investigation-v2");
+    expect(defaultSchemaForKind("AUDIT")).toBe("audit-v2");
     expect(allowedR1CompletionsForSchema("investigation-v1")).toEqual([
       "INVESTIGATION_COMPLETE",
       "DUPLICATE",
