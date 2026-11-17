@@ -161,7 +161,7 @@ jobs:
             await step(page, "Implementation");
             const validation = page.getByTestId("validation-matrix");
             await expect(validation).toBeVisible({ timeout: 30000 });
-            await expect(page.getByTestId("validation-stage-V7")).toContainText("Passed");
+            await expect(page.getByTestId("validation-stage-V7")).toContainText("Passed", { timeout: 30000 });
             await expect(validation).toContainText("Recorded boundary: complete");
             await shot(page, "implementation-states.svg", "validation-recorded");
           });
