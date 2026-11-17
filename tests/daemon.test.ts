@@ -519,8 +519,14 @@ const server = Bun.serve({
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
-        const match = /Coordinator-owned completion bindings: (\\[[^\\n]+\\])/.exec(text);
-        const bindings = match === null ? [] : JSON.parse(match[1]);
+        const bindingMarker = "Coordinator-owned completion bindings: ";
+        const bindingOffset = text.indexOf(bindingMarker);
+        const bindingJson = bindingOffset < 0
+          ? "[]"
+          : text
+              .slice(bindingOffset + bindingMarker.length)
+              .split("\\n", 1)[0];
+        const bindings = JSON.parse(bindingJson);
         const artifactRefIds =
           typeof bindings[0]?.id === "string" ? [bindings[0].id] : [];
         output = JSON.stringify([{
