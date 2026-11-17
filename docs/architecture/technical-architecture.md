@@ -2,7 +2,7 @@
 
 **Status:** Binding technical design standard
 **Canonical concern ID:** `GW-DOC-TECHNICAL-ARCHITECTURE`  
-**Versioned concern ID:** `GW-DOC-TECHNICAL-ARCHITECTURE-V1`  
+**Versioned concern ID:** `GW-DOC-TECHNICAL-ARCHITECTURE-V2`  
 
 ## 1. Purpose
 
