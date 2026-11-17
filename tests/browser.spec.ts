@@ -694,6 +694,24 @@ test("Approval consumes the real typed stale authority owner and returns to the 
   await expect(
     page.getByRole("button", { name: "Sign off exact package" }),
   ).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Package material", exact: true }))
+    .toBeVisible();
+  await openDisclosureResource(
+    page,
+    "Package material",
+    "Open Implementation plan",
+  );
+  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Sign off exact package" }))
+    .toHaveCount(0);
+  await openDisclosureResource(
+    page,
+    "Package material",
+    "Open approval overview",
+  );
+  await expect(page.getByTestId("review-workspace")).toContainText(
+    "Package no longer current",
+  );
 
   const responseObserved = page.waitForResponse((candidate) =>
     candidate.request().method() === "POST" &&
@@ -1481,6 +1499,119 @@ test("workflow mutations lock their owning controls while pending and keep failu
     .toBeVisible();
 });
 
+test("P5 keeps current execution ownership independent from historical selection across responsive classes", async ({
+  page,
+  request,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await authenticate(page, request);
+  await openWorkItem(page, "Implementation historical selection");
+
+  const workItem = await workItemForTitle(page, "Implementation historical selection");
+  const tasksResponse = await page.context().request.get(
+    "/api/work-items/" + workItem.id + "/tasks",
+  );
+  expect(tasksResponse.status()).toBe(200);
+  const tasks = ExecutionTaskSchema.array().parse(await tasksResponse.json());
+  const historicalTask = tasks.find((task) => task.objective === "Completed prerequisite");
+  const currentTask = tasks.find((task) => task.objective === "Current implementation task");
+  expect(historicalTask).toBeDefined();
+  expect(currentTask).toBeDefined();
+
+  await selectWorkflowMaterial(page, "Completed prerequisite");
+  const detail = page.getByTestId("execution-task-detail");
+  await expect(detail).toContainText("Completed prerequisite");
+  await expect(detail).toContainText("already satisfied");
+  await expect(page.getByRole("button", { name: "Start current task", exact: true }))
+    .toBeVisible();
+
+  for (const width of [1000, 700]) {
+    await page.setViewportSize({ width, height: 800 });
+    await expect(detail).toContainText("Completed prerequisite");
+    await expect(page.getByRole("button", { name: "Approved tasks", exact: true }))
+      .toBeVisible();
+    await expect(page.getByRole("button", { name: "Start current task", exact: true }))
+      .toBeVisible();
+  }
+
+  let historicalStartCalled = false;
+  const historicalStartPath =
+    "/api/work-items/" + workItem.id + "/tasks/" + historicalTask!.id + "/start";
+  const currentStartPath =
+    "/api/work-items/" + workItem.id + "/tasks/" + currentTask!.id + "/start";
+  await page.route("**" + historicalStartPath, async (route) => {
+    historicalStartCalled = true;
+    await route.abort("failed");
+  });
+  await page.route("**" + currentStartPath, async (route) => {
+    const run = RunSchema.parse(await fixtureMutation(
+      page.context().request,
+      "/tick",
+      { workItemId: workItem.id },
+    ));
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify(run),
+    });
+  });
+  const startResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" &&
+    response.url().endsWith(currentStartPath));
+  await page.getByRole("button", { name: "Start current task", exact: true }).click();
+  expect((await startResponse).status()).toBe(201);
+  expect(historicalStartCalled).toBe(false);
+  await page.unroute("**" + currentStartPath);
+  await page.unroute("**" + historicalStartPath);
+
+  await expect(detail).toContainText("Completed prerequisite");
+  await expect(
+    page.getByRole("button", {
+      name: "Cancel current implementation attempt",
+      exact: true,
+    }),
+  ).toBeVisible();
+
+  await backToQueue(page);
+  await page.setViewportSize({ width: 1000, height: 800 });
+  await openWorkItem(page, "Verified candidate");
+  const finalOutcome = page.getByTestId("final-governed-outcome");
+  const candidateResources = page.getByTestId("candidate-result-material");
+  await expect(finalOutcome).toBeVisible();
+  await expect(candidateResources).toBeVisible();
+  let outcomeBox = await finalOutcome.boundingBox();
+  let resourcesBox = await candidateResources.boundingBox();
+  expect(outcomeBox).not.toBeNull();
+  expect(resourcesBox).not.toBeNull();
+  expect(outcomeBox!.y).toBeLessThan(resourcesBox!.y);
+  await expect(finalOutcome).not.toContainText(/deployed|production/i);
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(finalOutcome).toBeVisible();
+  await expect(candidateResources).toBeVisible();
+  outcomeBox = await finalOutcome.boundingBox();
+  resourcesBox = await candidateResources.boundingBox();
+  expect(outcomeBox).not.toBeNull();
+  expect(resourcesBox).not.toBeNull();
+  expect(outcomeBox!.y).toBeLessThan(resourcesBox!.y);
+  await expect(page.getByRole("button", { name: "Create linked remediation" }))
+    .toHaveCount(0);
+
+  await backToQueue(page);
+  await openWorkItem(page, "Completed audit");
+  const auditOutcome = page.getByTestId("final-governed-outcome");
+  const auditResult = page.getByTestId("result-material");
+  await expect(auditOutcome).toBeVisible();
+  await expect(auditResult).toBeVisible();
+  const auditOutcomeBox = await auditOutcome.boundingBox();
+  const auditResultBox = await auditResult.boundingBox();
+  expect(auditOutcomeBox).not.toBeNull();
+  expect(auditResultBox).not.toBeNull();
+  expect(auditOutcomeBox!.y).toBeLessThan(auditResultBox!.y);
+  await expect(page.getByRole("button", { name: "Create linked remediation", exact: true }))
+    .toBeVisible();
+});
+
 test("mutation conflict remains primary until the selected WorkItem refresh succeeds", async ({
   page,
   request,
@@ -2030,6 +2161,11 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   const approvalTaskDetail = page.getByTestId("approval-task-detail");
   await expect(approvalTaskDetail)
     .toContainText("Prove the browser candidate surface");
+  await expect(approvalTaskDetail).toContainText("Gates");
+  await expect(approvalTaskDetail).toContainText("Scope");
+  await expect(approvalTaskDetail).toContainText("Exclusions");
+  await expect(approvalTaskDetail).toContainText("Change surface");
+  await expect(approvalTaskDetail).toContainText("Authority");
   await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeHidden();
   await page.getByRole("button", { name: "Task technical details", exact: true }).click();
   await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeVisible();
