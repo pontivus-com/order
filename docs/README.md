@@ -19,7 +19,7 @@ It does **not** retain completed release implementation plans, superseded functi
 
 New canonical documentation files use semantic names. Ordinal prefixes such as `00-`, `37-` or `50-` are prohibited.
 
-Change-specific Research / Requirements / Solution design / Implementation plan / Readiness material belongs to the repository-native WorkItem document system owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`, ordinarily:
+Change-specific Research / Requirements / Solution design / Implementation plan / Readiness material belongs to the repository-native WorkItem document system owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`, ordinarily:
 
 ```text
 docs/order/work-items/<WorkItemId>/
@@ -35,7 +35,7 @@ docs/order/work-items/<WorkItemId>/
 
 - [Systems governance](governance/systems-governance.md) — `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`
 - [Minimum change](governance/minimum-change.md) — `GW-DOC-MINIMUM-CHANGE-V1`
-- [Repository delivery and release](governance/repository-delivery.md) — `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`
+- [Repository delivery and release](governance/repository-delivery.md) — `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`
 
 ## Product
 
@@ -45,18 +45,18 @@ docs/order/work-items/<WorkItemId>/
 ## Functional requirements
 
 - [Work lifecycle](requirements/work-lifecycle.md) — `GW-DOC-WORK-LIFECYCLE-V1`
-- [Specification standard](requirements/specification-standard.md) — `GW-DOC-SPECIFICATION-STANDARD-V2`
+- [Specification standard](requirements/specification-standard.md) — `GW-DOC-SPECIFICATION-STANDARD`
 - [Validation standard](requirements/validation-standard.md) — `GW-DOC-VALIDATION-STANDARD-V1`
 - [Project governance integration](requirements/project-governance-integration.md) — `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1`
-- [Lifecycle context](requirements/lifecycle-context.md) — `GW-DOC-LIFECYCLE-CONTEXT-V2`
-- [WorkItem documents](requirements/work-item-documents.md) — `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`
+- [Lifecycle context](requirements/lifecycle-context.md) — `GW-DOC-LIFECYCLE-CONTEXT`
+- [WorkItem documents](requirements/work-item-documents.md) — `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`
 - [Markdown workbench](requirements/markdown-workbench.md) — `GW-DOC-MARKDOWN-WORKBENCH-V1`
 - [Workbench](requirements/workbench.md) — `GW-DOC-WORKBENCH-UX-V2`
 - [Installation readiness](requirements/installation-readiness.md) — `GW-DOC-INSTALLATION-READINESS-V1`
 
 ## Technical architecture
 
-- [Technical architecture](architecture/technical-architecture.md) — `GW-DOC-TECHNICAL-ARCHITECTURE-V2`
+- [Technical architecture](architecture/technical-architecture.md) — `GW-DOC-TECHNICAL-ARCHITECTURE`
 - [Execution control plane](architecture/execution-control-plane.md) — `GW-DOC-EXECUTION-CONTROL-PLANE-V1`
 - [OpenCode integration](architecture/opencode-integration.md) — `GW-DOC-OPENCODE-INTEGRATION-V1`
 - [Workbench technical architecture](architecture/workbench.md) — `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`
@@ -70,7 +70,7 @@ The Workbench P4 design is split by concern: the component owner defines state/t
 
 ## Canonical contracts
 
-- [Canonical contracts](contracts/canonical-contracts.md) — `GW-DOC-CANONICAL-CONTRACTS-V2`
+- [Canonical contracts](contracts/canonical-contracts.md) — `GW-DOC-CANONICAL-CONTRACTS`
 
 ## Derived visual references
 
