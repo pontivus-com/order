@@ -105,7 +105,11 @@ jobs:
             const items = await page.context().request.get("/api/work-items");
             expect(items.status()).toBe(200);
             const first = (await items.json() as Array<{id:string; title:string}>)[0]!;
-            await page.goto("/?workItemId=" + first.id);
+            await page.goto("/");
+            const row = page.locator('[data-testid^="work-item-row-"]')
+              .filter({ has: page.getByText(first.title, { exact: true }) }).first();
+            await expect(row).toBeVisible();
+            await row.click();
             await expect(page.getByTestId("work-item-heading")).toHaveText(first.title);
             await page.route("**/api/work-items/" + first.id, async (route) => {
               if (route.request().method() === "GET") {
