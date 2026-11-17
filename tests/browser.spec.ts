@@ -2059,6 +2059,35 @@ test("PROCESSING dialogue state is visibly distinct and has no reply composer", 
   await expect(page.getByTestId("activity-composer")).toHaveCount(0);
 });
 
+test("active agent ownership keeps title and lifecycle authoring read-only while workflow interaction remains available", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  const item = await workItemForTitle(page, "Implementation plan document visual");
+  await fixtureMutation(request, "/start-stage", { workItemId: item.id });
+  await openWorkItem(page, "Implementation plan document visual");
+
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
+  await expect(page.getByRole("button", { name: "Edit title", exact: true })).toBeDisabled();
+
+  const selector = page.getByRole("combobox", { name: "Current workflow material" });
+  await expect(selector).toBeVisible();
+  await selector.click();
+  await page.getByRole("option", { name: "Implementation plan document", exact: true }).click();
+  await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
+  await expect(page.getByLabel("Implementation plan document Markdown source")).toHaveCount(0);
+
+  await selectWorkflowStep(page, "Work request");
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  await expect(page.getByLabel("WorkItem source Markdown source")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+
+  await selectWorkflowStep(page, "Implementation plan");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
+});
+
 test("work-type variants preserve their canonical Work request information contracts in one shared shell", async ({
   page,
   request,
