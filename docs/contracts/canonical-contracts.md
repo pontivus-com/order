@@ -642,7 +642,7 @@ Conformance is persisted without another domain model.
 For a promotable stage output:
 
 1. Order resolves the exact material ArtifactRefs used by the stage context, including applicable authority plus project-manifest and verification-material refs when they materially constrain that stage;
-2. deterministic/mechanical checks and any stage-required semantic review run;
+2. deterministic/mechanical checks and any stage-required semantic review run; for PLAN this includes parsing exactly one canonical `order-tasks` block from the exact current PLAN bytes with `parseSignedTaskBlockFromPlan(...)` before conformance can pass;
 3. on pass, for each output ArtifactRef Order inserts `artifactDependencies(output, dependency)` for every such material ArtifactRef from the resolved context;
 4. the coordinator emits `CONFORMANCE_PASSED` with the output ids, context hash and evidence, or `CONFORMANCE_FAILED`;
 5. promotion may occur only after the conformance event and dependency inserts commit in the same SQLite transaction as the WorkItem transition.
