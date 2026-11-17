@@ -126,6 +126,9 @@ jobs:
           });
 
           test("Repository and model Settings", async ({ page, request }) => {
+            await page.route("**/api/settings/readiness", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
+            });
             await page.setViewportSize({ width: 1440, height: 900 });
             await auth(page, request);
             await page.getByRole("link", { name: "Settings", exact: true }).click();
@@ -150,10 +153,15 @@ jobs:
             await page.getByRole("link", { name: "Model & runtime", exact: true }).click();
             await expect(page.getByTestId("settings-model")).toBeVisible();
             await expect(page.getByText("Checking installation readiness…", { exact: true })).toHaveCount(0);
+            await expect(page.getByText("Loading available models…", { exact: true })).toHaveCount(0);
             await shot(page, "settings-model.svg", "main");
+            await page.unroute("**/api/settings/readiness");
           });
 
           test("OpenCode Settings and login states", async ({ page, request }) => {
+            await page.route("**/api/settings/readiness", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
+            });
             let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
             let attempt = 0;
             await page.route("**/api/opencode/accounts**", async (route) => {
@@ -249,6 +257,7 @@ jobs:
                 await expect(panel.getByTestId("opencode-login-attempt")).toContainText("Waiting for OpenCode sign-in");
               }
             }
+            await page.unroute("**/api/settings/readiness");
           });
 
           test("Readiness, notices, Context, Evidence and theme parity", async ({ page, request }) => {
