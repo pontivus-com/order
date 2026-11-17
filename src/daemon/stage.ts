@@ -19,6 +19,7 @@ import {
 } from "../core/canonical.ts";
 import {
   artifactRoleForStage,
+  evaluateStageConformance,
   isPreSignoffStage,
   type PreSignoffStage,
 } from "../core/governance.ts";
@@ -34,6 +35,7 @@ import {
 import {
   allowedR1CompletionsForSchema,
   stageTemplateForSchema,
+  validateStageDocumentStructure,
   workItemDocumentPath,
 } from "../core/work-item-source.ts";
 import { loadValidatedProjectManifest } from "../shell/project.ts";
@@ -140,10 +142,39 @@ const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
 
 export const stageDecisionText: Record<PreSignoffStage, string> = {
   R1: "Establish facts/root cause only. Do not invent product behavior, architecture, or implementation.",
-  R2: "Resolve product intent/functional requirements only. Do not decide architecture or implementation.",
-  DESIGN: "Resolve technical architecture/decisions/contracts within higher authority. Do not change product intent.",
-  PLAN: "Define the exact minimum repository transition. Do not invent requirements or architecture.",
-  R3: "Independently evaluate readiness. Do not rewrite requirements, design, or plan.",
+  R2: "Resolve product intent/functional requirements only. Reconcile every material requirement to canonical P3 authority; do not create a shadow specification or decide architecture/implementation.",
+  DESIGN: "Resolve technical architecture/decisions/contracts within higher authority. Prove every design decision traces to accepted functional authority; do not change product intent.",
+  PLAN: "Define the exact minimum repository transition. Prove every task traces to resolved requirement/design authority; do not invent requirements or architecture.",
+  R3: "Independently evaluate readiness, including canonical authority ownership, shadow-specification risk and complete P1-P7 traceability. Do not rewrite requirements, design, or plan.",
+};
+
+const stageConformanceQuestions: Record<PreSignoffStage, readonly string[]> = {
+  R1: [
+    "Are factual claims evidence-backed and are unresolved facts explicit?",
+    "Does the output avoid product, architecture and implementation decisions?",
+  ],
+  R2: [
+    "Is supplied P2 intent sufficient, with missing product intent blocked rather than inferred?",
+    "Does every material functional requirement identify its relationship to existing canonical P3 authority as REFERENCE, DELTA or LOCAL?",
+    "Does any LOCAL requirement duplicate an existing canonical concern or any DELTA silently weaken an existing owner?",
+    "Are acceptance, failure/negative behavior, scope/exclusions and open product/authority questions closed?",
+  ],
+  DESIGN: [
+    "Does every material design decision trace to accepted P3 authority?",
+    "Are canonical owners/boundaries explicit without weakening product requirements?",
+    "Are preservation, downstream and validation obligations closed?",
+  ],
+  PLAN: [
+    "Does every task trace upward to resolved requirement/design authority?",
+    "Does every required outcome trace downward to a task or explicit no-code disposition?",
+    "Does no task delegate a material P1-P6 decision to implementation?",
+  ],
+  R3: [
+    "Is there exactly one canonical owner for every material governed concern and no shadow specification?",
+    "Is P1-P7 traceability complete in both directions?",
+    "Is the lifecycle document package complete/current and are blocking questions/conflicts zero?",
+    "Is READY_FOR_SIGNOFF supported by current evidence rather than earlier completion claims?",
+  ],
 };
 
 export const stagePrompt = async (
@@ -160,6 +191,12 @@ export const stagePrompt = async (
     workItem.id,
     stage,
   );
+  const completionBindings = currentStageDrafts.map((artifact) => ({
+    id: artifact.id,
+    repositoryPath: artifact.repositoryPath,
+    role: artifact.role,
+    sha256: artifact.sha256,
+  }));
   return [
     `Order lifecycle stage: ${stage}`,
     stageDecisionText[stage],
@@ -173,11 +210,20 @@ export const stagePrompt = async (
       ? `Allowed successful R1 completion outcomes for schema ${workItem.schemaId}: ${allowedR1CompletionsForSchema(workItem.schemaId).join(", ")}`
       : "",
     signedTaskBlockPromptContract(stage),
+    [
+      "Stage conformance questions:",
+      ...stageConformanceQuestions[stage].map((question) => "- " + question),
+    ].join("\n"),
     currentStageDrafts.length === 0
-      ? ""
+      ? [
+          "Completion is not yet admissible: no current stage output ArtifactRef exists.",
+          "Create/propose and have the canonical stage artifact adopted before emitting STAGE_COMPLETED.",
+        ].join("\n")
       : [
           "Current stage draft for review (own-stage output, not higher authority):",
           await renderArtifacts(workItem, currentStageDrafts),
+          "Coordinator-owned completion bindings: " + canonicalJson(completionBindings),
+          "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
         ].join("\n"),
     userInput === undefined ? "" : `Human input: ${userInput}`,
     referenceRoots.length === 0
@@ -211,23 +257,41 @@ const persistStageCompletionBatch = async (
       ? current.staleStage ?? run.stage
       : null;
 
+  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  const expectedOutputPath = workItemDocumentPath(
+    manifest.workItems.root,
+    workItem.id,
+    run.stage,
+  );
   const outputArtifacts = completionPayload.artifactRefIds.map((id) =>
     getArtifact(runtime, id)
   );
-  for (const artifact of outputArtifacts) {
-    if (
-      artifact.workItemId !== run.workItemId ||
-      artifact.role !== artifactRoleForStage(run.stage) ||
-      sha256(
-        readWorkingTreeFile(
-          workItem.repositoryRoot,
-          artifact.repositoryPath,
-        ),
-      ) !== artifact.sha256
-    ) {
-      throw new TypeError(
-        "stage completion references an invalid or stale output ArtifactRef",
-      );
+  const outputEvaluation = evaluateStageConformance(
+    run.stage,
+    workItem.id,
+    expectedOutputPath,
+    outputArtifacts,
+  );
+  let outputConformanceFailure =
+    outputEvaluation.tag === "FAIL" ? outputEvaluation.summary : null;
+  if (outputEvaluation.tag === "PASS") {
+    const bytes = readWorkingTreeFile(
+      workItem.repositoryRoot,
+      outputEvaluation.output.repositoryPath,
+    );
+    if (sha256(bytes) !== outputEvaluation.output.sha256) {
+      outputConformanceFailure = "stage completion references stale output bytes";
+    } else {
+      try {
+        validateStageDocumentStructure(
+          workItem.schemaId,
+          run.stage,
+          new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+        );
+      } catch (error) {
+        outputConformanceFailure =
+          error instanceof Error ? error.message : String(error);
+      }
     }
   }
 
@@ -272,6 +336,28 @@ const persistStageCompletionBatch = async (
         evidence: [],
       });
       updateWorkItemLifecycle(runtime.database, run.workItemId, transition);
+      return {
+        persisted,
+        run: updateRun(runtime, run.id, {
+          status: "BLOCKED",
+          endedAt: nowIsoDateTime(),
+        }),
+      };
+    }
+
+    if (outputConformanceFailure !== null) {
+      const transition = transitionWorkItem(currentWorkItem, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: run.stage,
+      });
+      appendRunEvent(runtime, run.id, {
+        tag: "CONFORMANCE_FAILED",
+        stage: run.stage,
+        defectiveLayer: null,
+        summary: outputConformanceFailure,
+        evidence: [],
+      });
+      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
       return {
         persisted,
         run: updateRun(runtime, run.id, {
