@@ -8,7 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
-- Establish the governed 0.6.0 design campaign as one change-v2 lifecycle package: exhaustive concern/requirement inventory, explicit concern START/END investigation boundaries, cross-concern finding tracking, integrated functional-design and technical-design gates, complete P1→P7 traceability, and final independent readiness before implementation authority.
+- Establish WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21` as the sole governed 0.6.0 design-campaign work point: exhaustive concern/requirement inventory, explicit concern START/END investigation boundaries, cross-concern finding tracking, integrated functional-design and technical-design gates, complete P1→P7 traceability, and final independent readiness before implementation authority.
 
 - Close the documentation-governance failure that allowed 0.5.0 authority drift before any 0.6.0 product redesign: add authority-aware Change/Defect v2 authoring schemas while preserving v1 history, require explicit P3 requirement dispositions, restore functional-core stage conformance output closure so empty/wrong/stale lifecycle artifacts cannot promote, strengthen R3 authority-topology review, and require independent repository review for authority/release changes.
 
