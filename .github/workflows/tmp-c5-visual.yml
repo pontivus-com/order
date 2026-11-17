@@ -133,19 +133,11 @@ jobs:
             const items = await itemResponse.json() as Array<{ id: string; title: string }>;
             const item = items.find((value) => value.title === "Implementation action ready");
             expect(item).toBeDefined();
-            const tasksResponse = await page.request.get("/api/work-items/" + item!.id + "/tasks");
-            expect(tasksResponse.status()).toBe(200);
-            const tasks = await tasksResponse.json() as Array<{ id: string }>;
-            expect(tasks.length).toBeGreaterThan(0);
-            const startPath = "/api/work-items/" + item!.id + "/tasks/" + tasks[0]!.id + "/start";
-            await page.route("**" + startPath, async (route) => {
-              // Fixture control creates the same canonical Run used by the permanent browser suite.
-              // The production UI still issues only the exact task-scoped start command.
-              const run = await fixture(page.context().request, "/tick", { workItemId: item!.id });
-              await route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify(run) });
-            });
-            await page.getByRole("button", { name: "Start current task", exact: true }).click();
-            await page.unroute("**" + startPath);
+            // The permanent browser suite proves that the visible command issues only the exact
+            // task-scoped start endpoint. This capture fixture materializes the same canonical
+            // Processing state without intercepting the production command a second time.
+            await fixture(page.context().request, "/tick", { workItemId: item!.id });
+            await open(page, "Implementation action ready");
             await expect(page.getByTestId("selected-run-header")).toContainText("Running", { timeout: 30000 });
             await expect(page.getByRole("button", { name: "Cancel current implementation attempt", exact: true })).toBeVisible();
             await shot(page, "implementation-states.svg", "processing");
