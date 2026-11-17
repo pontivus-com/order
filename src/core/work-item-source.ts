@@ -181,7 +181,7 @@ const stageTemplates = Object.freeze({
   ),
   "delivery-design-v1": renderTemplate(
     "delivery-design-v1",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-TECHNICAL-ARCHITECTURE-V2"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-TECHNICAL-ARCHITECTURE-V1"],
     [
       "Context/governing constraints",
       "Goals/non-goals",
@@ -195,7 +195,7 @@ const stageTemplates = Object.freeze({
   ),
   "delivery-plan-v1": renderTemplate(
     "delivery-plan-v1",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-CANONICAL-CONTRACTS-V2"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-CANONICAL-CONTRACTS-V1"],
     [
       "Exact task units/dependencies",
       "Requirement/design traceability",
