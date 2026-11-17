@@ -508,7 +508,7 @@ For R2/DESIGN/PLAN, the productive prompt makes the applicable stage conformance
 
 **Required behavior:** promotion from every promotable pre-signoff stage requires exactly one current ArtifactRef for that stage's deterministic WorkItem lifecycle-document path, bound to the exact current repository bytes and admitted by that stage's schema/template policy.
 
-**Acceptance criterion:** `STAGE_COMPLETED` cannot promote with zero outputs, multiple outputs, another WorkItem's artifact, the wrong role/path, stale bytes or a v2 stage document missing required template structure. The coordinator, not the model, owns final conformance admission and records `CONFORMANCE_PASSED` only after these checks and the stage-owned semantic conformance result are current.
+**Acceptance criterion:** `STAGE_COMPLETED` cannot promote with zero outputs, multiple outputs, another WorkItem's artifact, the wrong role/path, stale bytes or a v2 stage document missing required template structure. PLAN additionally cannot promote unless its exact current bytes contain exactly one canonical `order-tasks` block that parses under the signed-task contract. The coordinator, not the model, owns final conformance admission and records `CONFORMANCE_PASSED` only after these checks and the stage-owned semantic conformance result are current.
 
 **Failure/negative behavior:** provider completion text, a structurally valid event, an earlier artifact hash, or an empty `artifactRefIds` array must not create lifecycle promotion or a successful conformance event.
 
