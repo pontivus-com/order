@@ -116,7 +116,7 @@ jobs:
             await taskAction.click();
             const taskDetail = page.getByTestId("approval-task-detail");
             await expect(taskDetail).toBeVisible();
-            await expect(taskDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+            await expect(taskDetail.getByText("Task id", { exact: true })).toBeHidden();
             await expect(page.getByRole("button", { name: "Task technical details", exact: true })).toBeVisible();
             await shot(page, "approval-task-detail.svg", "signed-task");
           });
@@ -131,8 +131,8 @@ jobs:
             const readyDetail = page.getByTestId("execution-task-detail");
             await expect(readyDetail.getByText("No persisted attempt events", { exact: true })).toBeVisible();
             await expect(readyDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
-            await expect(readyDetail.getByText("Change surface", { exact: true })).toHaveCount(0);
-            await expect(readyDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+            await expect(readyDetail.getByText("Change surface", { exact: true })).toBeHidden();
+            await expect(readyDetail.getByText("Task id", { exact: true })).toBeHidden();
             await expect(page.getByRole("combobox", { name: "Approved tasks" })).toBeVisible();
             await shot(page, "implementation.svg", "ready");
             await shot(page, "implementation-states.svg", "ready-to-start");
