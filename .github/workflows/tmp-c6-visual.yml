@@ -129,6 +129,7 @@ jobs:
             const create = page.getByRole("dialog", { name: "Create work item" });
             await expect(create).toBeVisible();
             await expect(create.getByTestId("create-work-item-location")).toContainText("docs/order/work-items");
+            await page.waitForTimeout(500);
             await shot(page, "create-work-item.svg", "default");
             await page.keyboard.press("Escape");
 
@@ -137,6 +138,7 @@ jobs:
             const linked = page.getByRole("dialog", { name: "Create linked remediation" });
             await expect(linked).toContainText("Parent INVESTIGATION");
             await expect(linked).toContainText("Completed investigation");
+            await page.waitForTimeout(500);
             await shot(page, "create-linked-remediation.svg", "investigation-parent");
           });
 
@@ -274,17 +276,7 @@ jobs:
 
           test("Readiness, notices, Context, Evidence and theme parity", async ({ page, request }) => {
             await page.route("**/api/work-item-sources/diagnostics", async (route) => {
-              await route.fulfill({
-                status: 200,
-                contentType: "application/json",
-                body: JSON.stringify([{
-                  projectId: "order-e2e",
-                  path: "docs/order/work-items/invalid-source/work-request.md",
-                  workItemId: null,
-                  code: "INVALID_SOURCE",
-                  detail: "One or more repository WorkItem sources require explicit recovery."
-                }])
-              });
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
             });
             await page.route("**/api/settings/readiness", async (route) => {
               await route.fulfill({
@@ -305,9 +297,33 @@ jobs:
             await auth(page, request);
             await expect(page.getByTestId("work-item-queue")).toBeVisible({ timeout: 30000 });
             await expect(page.getByText("Setup requires attention", { exact: true }).first()).toBeVisible();
-            await expect(page.getByText("Source diagnostics require attention", { exact: true })).toBeVisible();
+            await expect(page.getByText("Source diagnostics require attention", { exact: true })).toHaveCount(0);
             await shot(page, "installation-readiness.svg", "all-blockers");
+
+            await page.unroute("**/api/work-item-sources/diagnostics");
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({
+                status: 200,
+                contentType: "application/json",
+                body: JSON.stringify([{
+                  projectId: "order-e2e",
+                  path: "docs/order/work-items/invalid-source/work-request.md",
+                  workItemId: null,
+                  code: "INVALID_SOURCE",
+                  detail: "One or more repository WorkItem sources require explicit recovery."
+                }])
+              });
+            });
+            await page.reload();
+            await expect(page.getByTestId("work-item-queue")).toBeVisible({ timeout: 30000 });
+            await expect(page.getByText("Setup requires attention", { exact: true }).first()).toBeVisible();
+            await expect(page.getByText("Source diagnostics require attention", { exact: true })).toBeVisible();
             await shot(page, "application-notices-states.svg", "setup-and-source-diagnostics");
+
+            await page.unroute("**/api/work-item-sources/diagnostics");
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+            });
             await page.unroute("**/api/settings/readiness");
 
             await open(page, "Proposal review");

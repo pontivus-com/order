@@ -56,11 +56,20 @@ export const CreateWorkItem = ({
         </RadioList>
         <TextInput label="Title" value={title} onChange={onTitleChange} isRequired width="100%" />
         <MultiSelector label="Concern IDs" options={[...availableConcernIds]} value={[...concernIds]} onChange={(value) => onConcernIdsChange(value)} hasSearch size="sm" placeholder="Select concerns" width="100%" />
-        {derivedFromWorkItem !== null ? <div className="order-create-derived">
-          <span>Parent {schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)?.kind ?? derivedFromWorkItem.schemaId}</span>
-          <strong>{derivedFromWorkItem.title}</strong>
-          <code>{derivedFromWorkItem.id}</code>
-        </div> : null}
+        {derivedFromWorkItem !== null ? (
+          <div className="order-create-derived">
+            <strong>Canonical lineage</strong>
+            <span>Parent {schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)?.kind ?? derivedFromWorkItem.schemaId}</span>
+            <span>{derivedFromWorkItem.title}</span>
+            <code>{derivedFromWorkItem.id}</code>
+            <small>Parent linkage is system-owned and cannot be edited here.</small>
+          </div>
+        ) : (
+          <div className="order-create-derived">
+            <strong>Derived fields are not editable</strong>
+            <span>WorkItem identity, lifecycle stage/status and governed artifact roles are assigned from canonical contracts after creation.</span>
+          </div>
+        )}
       </>}
       actions={<WorkbenchAction type="submit" label={derivedFromWorkItem === null ? "Create work item" : "Create linked remediation"} tone="primary" loading={pending} disabled={projectId.length === 0 || schemaId === "" || title.trim().length === 0} />}
       feedback={error ? <WorkbenchNotice tone="danger" title="Work item could not be created" description={error} /> : undefined}
