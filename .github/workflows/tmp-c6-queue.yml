@@ -1,0 +1,166 @@
+name: Temporary C6 queue evidence capture
+# Evidence generation only: a green run is not a C6 conformance verdict.
+
+on:
+  push:
+    branches:
+      - fix/0.5.0-structural-ui-recovery
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tmp-c6-queue-${{ github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: "1"
+      PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-c6-queue-state
+      PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+      - name: Install exact OpenCode and dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/pontivus-order-opencode
+          BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
+          bun ci
+          node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Generate queue capture spec
+        shell: bash
+        run: |
+          cat > tests/c6-queue.temp.spec.ts <<'SPEC'
+          import { mkdirSync, readFileSync } from "node:fs";
+          import { join } from "node:path";
+          import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+
+          const stateRoot = process.env.PONTIVUS_ORDER_TEST_STATE_ROOT!;
+          const daemonToken = readFileSync(join(stateRoot, "daemon-token"), "utf8").trim();
+          const outRoot = "c6-queue-evidence/actual";
+
+          const shot = async (page: Page, state: string) => {
+            const dir = join(outRoot, "queue-states");
+            mkdirSync(dir, { recursive: true });
+            await page.screenshot({ path: join(dir, state + ".png"), fullPage: false });
+          };
+          const auth = async (page: Page, request: APIRequestContext) => {
+            const minted = await request.post("/api/auth/connect-token", {
+              headers: { authorization: "Bearer " + daemonToken },
+              data: {},
+            });
+            expect(minted.status()).toBe(200);
+            const token = String((await minted.json() as { token: string }).token);
+            await page.goto("/connect?token=" + token);
+            await expect(page.getByTestId("work-item-queue")).toBeVisible();
+          };
+          const rowFor = (page: Page, title: string) =>
+            page.locator('[data-testid^="work-item-row-"]')
+              .filter({ has: page.getByText(title, { exact: true }) }).first();
+
+          test("archived queue state", async ({ page, request }) => {
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await auth(page, request);
+            const row = rowFor(page, "Repository-native management");
+            await expect(row).toBeVisible();
+            await row.click();
+            await expect(page.getByTestId("work-item-heading")).toHaveText("Repository-native management");
+            await page.getByRole("button", { name: "Archive", exact: true }).click();
+            await page.getByRole("alertdialog", { name: "Archive work item?" })
+              .getByRole("button", { name: "Archive work item" }).click();
+            await expect(page.getByTestId("work-item-queue")).toBeVisible();
+            await page.getByRole("button", { name: "Show archived" }).click();
+            await expect(page.getByRole("button", { name: "Restore Repository-native management", exact: true })).toBeVisible();
+            await shot(page, "archived");
+          });
+
+          test("queue no-match state", async ({ page, request }) => {
+            await page.setViewportSize({ width: 1440, height: 900 });
+            await auth(page, request);
+            const search = page.getByTestId("workbench-search").getByRole("searchbox");
+            await search.fill("NO_C6_MATCH");
+            await expect(page.getByText("No matching work items", { exact: true })).toBeVisible();
+            await shot(page, "no-matches");
+          });
+          SPEC
+
+          cat > playwright.c6-queue.temp.config.ts <<'CONFIG'
+          import { defineConfig } from "@playwright/test";
+          export default defineConfig({
+            testDir: "./tests",
+            testMatch: "c6-queue.temp.spec.ts",
+            workers: 1,
+            retries: 0,
+            timeout: 60000,
+            use: { baseURL: "http://127.0.0.1:17347" },
+            projects: [{ name: "chromium", use: { browserName: "chromium" } }],
+            webServer: {
+              command: "bun tests/e2e-server.ts",
+              url: "http://127.0.0.1:17347/api/health",
+              reuseExistingServer: false,
+              timeout: 120000
+            }
+          });
+          CONFIG
+      - name: Capture missing settled Queue states
+        run: node node_modules/@playwright/test/cli.js test --config=playwright.c6-queue.temp.config.ts
+      - name: Rasterize complete C6 reference set
+        shell: bash
+        run: |
+          cat > c6-refs.temp.mjs <<'SCRIPT'
+          import { chromium } from "@playwright/test";
+          import { mkdirSync, readFileSync } from "node:fs";
+          import { resolve } from "node:path";
+          const refs = [
+            "queue.svg","queue-states.svg","create-work-item.svg","create-linked-remediation.svg",
+            "settings-repositories.svg","settings-repository-add.svg","settings-repository-move.svg",
+            "settings-opencode.svg","settings-opencode-add.svg","settings-opencode-rename.svg",
+            "settings-opencode-login.svg","settings-opencode-login-states.svg","settings-model.svg",
+            "installation-readiness.svg","application-notices-states.svg","workitem-context.svg",
+            "evidence-viewer.svg","theme-parity.svg"
+          ];
+          const out = resolve("c6-queue-evidence/reference");
+          mkdirSync(out, { recursive: true });
+          const browser = await chromium.launch();
+          const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+          for (const ref of refs) {
+            await page.setContent(readFileSync(resolve("docs/references/workbench-ui", ref), "utf8"));
+            await page.screenshot({ path: resolve(out, ref.replace(/\.svg$/u, ".png")), fullPage: false });
+          }
+          await browser.close();
+          SCRIPT
+          node c6-refs.temp.mjs
+      - name: Verify evidence inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s c6-queue-evidence/actual/queue-states/archived.png
+          test -s c6-queue-evidence/actual/queue-states/no-matches.png
+          test "$(find c6-queue-evidence/reference -type f -name '*.png' | wc -l)" -eq 18
+      - name: Upload C6 queue/reference evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c6-queue-reference-evidence-${{ github.sha }}
+          path: c6-queue-evidence
+          if-no-files-found: warn
+          retention-days: 7
