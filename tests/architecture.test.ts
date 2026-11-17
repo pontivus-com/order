@@ -1342,6 +1342,31 @@ describe("architecture fitness", () => {
       }
     }
 
+    // Current authority consumers must not pin an immutable historical version
+    // after the stable concern has advanced to another current owner.
+    // Retained .v1.md sources are excluded: their historical text is immutable.
+    const supersededVersionIds = [...refs.entries()]
+      .filter(([refId, path]) =>
+        retainedSemanticVersionPath(path) &&
+        /-V[0-9]+$/.test(refId) &&
+        currentOwnerByStable.has(refId.replace(/-V[0-9]+$/, "")) &&
+        currentOwnerByStable.get(refId.replace(/-V[0-9]+$/, "")) !== path
+      )
+      .map(([refId]) => refId);
+    for (const sourcePath of activeDocumentationFiles.filter(
+      (path) => !retainedSemanticVersionPath(path)
+    )) {
+      for (const [index, line] of sourceText(sourcePath).split(/\\r?\\n/).entries()) {
+        for (const historicalId of supersededVersionIds) {
+          if (line.includes(historicalId)) {
+            violations.push(
+              `${sourcePath}:${index + 1}: current authority consumer pins superseded ${historicalId}`,
+            );
+          }
+        }
+      }
+    }
+
     for (const sourcePath of activeDocumentationFiles) {
       const lines = sourceText(sourcePath).split(/\r?\n/);
       for (const metadata of concernByPath.values()) {
