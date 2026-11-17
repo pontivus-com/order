@@ -1339,4 +1339,88 @@ describe("architecture fitness", () => {
     expect(violations).toEqual([]);
   });
 
+  it("enforces v2 WorkItem documentation hygiene without reinterpreting historical v1 packages", () => {
+    const violations: string[] = [];
+    const workItemsRoot = join(repositoryRoot, "docs", "order", "work-items");
+    for (const entry of readdirSync(workItemsRoot, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const workItemDirectory = join(workItemsRoot, entry.name);
+      const requestPath = join(workItemDirectory, "work-request.md");
+      if (!existsSync(requestPath)) continue;
+      const request = readFileSync(requestPath, "utf8");
+      const schemaId = request.match(/"schemaId"\s*:\s*"([^"]+)"/)?.[1];
+      if (schemaId !== "change-v2" && schemaId !== "defect-v2") continue;
+
+      const markdownFiles = readdirSync(workItemDirectory, { withFileTypes: true })
+        .filter((candidate) => candidate.isFile() && candidate.name.endsWith(".md"))
+        .map((candidate) => candidate.name)
+        .sort();
+
+      for (const filename of markdownFiles) {
+        const path = join(workItemDirectory, filename);
+        const source = readFileSync(path, "utf8");
+        if (/^\*\*Canonical concern ID:\*\*/m.test(source) ||
+          /^\*\*Versioned concern ID:\*\*/m.test(source)) {
+          violations.push(
+            `docs/order/work-items/${entry.name}/${filename}: WorkItem documents must not declare canonical concern ownership`,
+          );
+        }
+        if (/\bWF-FR-[A-Z0-9-]+\b/.test(source)) {
+          violations.push(
+            `docs/order/work-items/${entry.name}/${filename}: v2 WorkItem documents must not create the retired WF-FR shadow namespace`,
+          );
+        }
+      }
+
+      const requirementsPath = join(workItemDirectory, "requirements.md");
+      if (existsSync(requirementsPath)) {
+        const requirements = readFileSync(requirementsPath, "utf8");
+        if (!requirements.includes("## Functional authority disposition ledger")) {
+          violations.push(
+            `docs/order/work-items/${entry.name}/requirements.md: v2 R2 requires the functional authority disposition ledger`,
+          );
+        }
+        const ledger = requirements.match(
+          /## Functional authority disposition ledger\r?\n([\s\S]*?)(?=\r?\n## |$)/,
+        )?.[1] ?? "";
+        const dataRows = ledger
+          .split(/\r?\n/)
+          .filter((line) => /^\|/.test(line.trim()))
+          .filter((line) =>
+            !/^\|\s*Requirement\s*\|/.test(line.trim()) &&
+            !/^\|\s*[-:]+\s*\|/.test(line.trim())
+          );
+        if (dataRows.length === 0) {
+          violations.push(
+            `docs/order/work-items/${entry.name}/requirements.md: v2 authority disposition ledger must contain at least one material requirement row`,
+          );
+        }
+        for (const row of dataRows) {
+          const cells = row.trim().slice(1, -1).split("|").map((cell) => cell.trim());
+          const [requirement = "", disposition = "", owner = ""] = cells;
+          if (requirement.length === 0) {
+            violations.push(
+              `docs/order/work-items/${entry.name}/requirements.md: authority disposition row has empty requirement`,
+            );
+          }
+          if (!["REFERENCE", "DELTA", "LOCAL"].includes(disposition)) {
+            violations.push(
+              `docs/order/work-items/${entry.name}/requirements.md: invalid authority disposition ${disposition}`,
+            );
+          }
+          if (
+            (disposition === "REFERENCE" || disposition === "DELTA") &&
+            !/^GW-/.test(owner)
+          ) {
+            violations.push(
+              `docs/order/work-items/${entry.name}/requirements.md: ${disposition} row requires a GW-* canonical owner`,
+            );
+          }
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
 });
