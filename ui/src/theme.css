@@ -673,9 +673,7 @@
 }
 .order-settings-layout-content-surface { padding: var(--spacing-5); }
 .order-settings-supporting-info,
-.order-settings-task-surface,
-.order-settings-section > .order-workbench-form,
-.order-settings-section [data-testid] > .order-workbench-form {
+.order-settings-task-surface {
   padding: var(--spacing-4);
   border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);

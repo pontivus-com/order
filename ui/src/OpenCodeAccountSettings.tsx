@@ -177,14 +177,16 @@ export const OpenCodeAccountSettings = () => {
       <section className="order-settings-section" data-testid="settings-opencode">
         <section data-testid="rename-opencode-account">
           <WorkbenchSectionHeader title="Rename saved OpenCode account" description="Bounded account-label mutation." />
-          <WorkbenchForm
-            content={<TextInput label="Account label" value={renameLabel} onChange={setRenameLabel} hasAutoFocus width="100%" />}
-            actions={<>
-              <WorkbenchAction label="Save account label" tone="primary" loading={rename.isPending} disabled={rename.isPending || OpenCodeAccountLabelSchema.safeParse(renameLabel).success === false} onClick={() => rename.mutate({ accountId: renaming.id, label: renameLabel })} />
-              <WorkbenchAction label="Cancel rename" onClick={() => { setRenameAccountId(null); setRenameLabel(""); }} />
-            </>}
-            feedback={rename.error ? <WorkbenchNotice tone="danger" title="Account rename failed" description={errorText(rename.error)} /> : undefined}
-          />
+          <div className="order-settings-task-surface">
+            <WorkbenchForm
+              content={<TextInput label="Account label" value={renameLabel} onChange={setRenameLabel} hasAutoFocus width="100%" />}
+              actions={<>
+                <WorkbenchAction label="Save account label" tone="primary" loading={rename.isPending} disabled={rename.isPending || OpenCodeAccountLabelSchema.safeParse(renameLabel).success === false} onClick={() => rename.mutate({ accountId: renaming.id, label: renameLabel })} />
+                <WorkbenchAction label="Cancel rename" onClick={() => { setRenameAccountId(null); setRenameLabel(""); }} />
+              </>}
+              feedback={rename.error ? <WorkbenchNotice tone="danger" title="Account rename failed" description={errorText(rename.error)} /> : undefined}
+            />
+          </div>
           <div className="order-settings-supporting-info"><h3>Admission</h3><p>Disabled when account mutation is blocked or another account operation is pending.</p></div>
         </section>
       </section>
@@ -195,14 +197,16 @@ export const OpenCodeAccountSettings = () => {
       <section className="order-settings-section" data-testid="settings-opencode">
         <section data-testid="add-opencode-account">
           <WorkbenchSectionHeader title="Add OpenCode account" description="Begin one bounded saved-account sign-in flow." />
-          <WorkbenchForm
-            content={<TextInput label="Account label" value={addLabel} onChange={setAddLabel} placeholder="you@example.com" hasAutoFocus width="100%" />}
-            actions={<>
-              <WorkbenchAction label="Continue to OpenCode sign-in" tone="primary" loading={startLogin.isPending} disabled={mutationBlocked || startLogin.isPending || OpenCodeAccountLabelSchema.safeParse(addLabel).success === false} onClick={() => startLogin.mutate(addLabel)} />
-              <WorkbenchAction label="Cancel add account" onClick={resetAdd} />
-            </>}
-            feedback={startLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not start" description={errorText(startLogin.error)} /> : undefined}
-          />
+          <div className="order-settings-task-surface">
+            <WorkbenchForm
+              content={<TextInput label="Account label" value={addLabel} onChange={setAddLabel} placeholder="you@example.com" hasAutoFocus width="100%" />}
+              actions={<>
+                <WorkbenchAction label="Continue to OpenCode sign-in" tone="primary" loading={startLogin.isPending} disabled={mutationBlocked || startLogin.isPending || OpenCodeAccountLabelSchema.safeParse(addLabel).success === false} onClick={() => startLogin.mutate(addLabel)} />
+                <WorkbenchAction label="Cancel add account" onClick={resetAdd} />
+              </>}
+              feedback={startLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not start" description={errorText(startLogin.error)} /> : undefined}
+            />
+          </div>
           <div className="order-settings-supporting-info"><h3>Effect</h3><p>Starts OpenCode account login only after label validation and account-mutation admission checks.</p></div>
         </section>
       </section>

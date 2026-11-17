@@ -197,14 +197,16 @@ const RepositorySettings = ({
         <section data-testid="move-workitem-documents">
           <WorkbenchSectionHeader title="Move WorkItem documents" description="Bounded migration of the repository-owned WorkItem document root." />
           <div className="order-settings-supporting-info"><h3>Current repository-relative root</h3><p><code>{migrationTarget.workItemsRoot ?? "Unavailable"}</code></p></div>
-          <WorkbenchForm
-            content={<TextInput label="New repository-relative WorkItem document root" value={targetWorkItemsRoot} onChange={setTargetWorkItemsRoot} placeholder="docs/order/work-items" width="100%" />}
-            actions={<>
-              <WorkbenchAction label="Move documents" tone="primary" loading={migrate.isPending} disabled={migrate.isPending || targetWorkItemsRoot.trim().length === 0} onClick={() => migrate.mutate(migrationTarget)} />
-              <WorkbenchAction label="Cancel move" onClick={() => { setMigrationRepository(null); setTargetWorkItemsRoot(""); }} />
-            </>}
-            feedback={migrate.error ? <WorkbenchNotice tone="danger" title="Settings update failed" description={errorText(migrate.error)} /> : undefined}
-          />
+          <div className="order-settings-task-surface">
+            <WorkbenchForm
+              content={<TextInput label="New repository-relative WorkItem document root" value={targetWorkItemsRoot} onChange={setTargetWorkItemsRoot} placeholder="docs/order/work-items" width="100%" />}
+              actions={<>
+                <WorkbenchAction label="Move documents" tone="primary" loading={migrate.isPending} disabled={migrate.isPending || targetWorkItemsRoot.trim().length === 0} onClick={() => migrate.mutate(migrationTarget)} />
+                <WorkbenchAction label="Cancel move" onClick={() => { setMigrationRepository(null); setTargetWorkItemsRoot(""); }} />
+              </>}
+              feedback={migrate.error ? <WorkbenchNotice tone="danger" title="Settings update failed" description={errorText(migrate.error)} /> : undefined}
+            />
+          </div>
           <div className="order-settings-supporting-info"><p>Migration preserves WorkItem identities and bytes, updates project configuration atomically, and must not leave two productive document roots.</p></div>
         </section>
       </section>
@@ -216,14 +218,16 @@ const RepositorySettings = ({
       <section className="order-settings-section" data-testid="settings-repositories">
         <div data-testid="add-repository-form">
           <WorkbenchSectionHeader title="Add repository" description="Connect an existing exact Git root. Order does not create or initialize repositories here." />
-          <WorkbenchForm
-            content={<TextInput label="Exact Git root" value={repositoryRoot} onChange={setRepositoryRoot} placeholder="/absolute/path/to/repository" width="100%" />}
-            actions={<>
-              <WorkbenchAction label="Connect repository" tone="primary" loading={connect.isPending} disabled={connect.isPending || repositoryRoot.trim().length === 0} onClick={() => connect.mutate()} />
-              <WorkbenchAction label="Cancel add repository" disabled={connect.isPending} onClick={() => { setRepositoryRoot(""); setAddRepositoryOpen(false); }} />
-            </>}
-            feedback={connect.error ? <WorkbenchNotice tone="danger" title="Settings update failed" description={errorText(connect.error)} /> : undefined}
-          />
+          <div className="order-settings-task-surface">
+            <WorkbenchForm
+              content={<TextInput label="Exact Git root" value={repositoryRoot} onChange={setRepositoryRoot} placeholder="/absolute/path/to/repository" width="100%" />}
+              actions={<>
+                <WorkbenchAction label="Connect repository" tone="primary" loading={connect.isPending} disabled={connect.isPending || repositoryRoot.trim().length === 0} onClick={() => connect.mutate()} />
+                <WorkbenchAction label="Cancel add repository" disabled={connect.isPending} onClick={() => { setRepositoryRoot(""); setAddRepositoryOpen(false); }} />
+              </>}
+              feedback={connect.error ? <WorkbenchNotice tone="danger" title="Settings update failed" description={errorText(connect.error)} /> : undefined}
+            />
+          </div>
           <div className="order-settings-supporting-info"><h3>Admission checks</h3><p>Exact canonical Git root · valid Order manifest · no duplicate/overlap · expected configuration SHA.</p></div>
         </div>
       </section>
@@ -265,10 +269,12 @@ const RepositorySettings = ({
       ) : null}
       <div className="order-settings-add-repository"><WorkbenchAction label="Add repository" tone="primary" onClick={() => setAddRepositoryOpen(true)} /></div>
       {readyProjects.length > 1 ? <Selector label="Queue and creation context" options={[{ value: "", label: "All ready repositories" }, ...readyProjects.map((projectId) => ({ value: projectId, label: projectId }))]} value={queueProjectId} onChange={onQueueProjectChange} width="100%" /> : null}
-      <WorkbenchForm
-        content={<TextArea label="STAGE reference roots" description="One absolute read-only reference root per line. These never become target repositories." rows={4} value={referenceRootsText} onChange={setReferenceRootsText} width="100%" />}
-        actions={<WorkbenchAction label="Save reference roots" loading={updateReferences.isPending} disabled={updateReferences.isPending || configQuery.data === undefined} onClick={() => updateReferences.mutate()} />}
-      />
+      <div className="order-settings-task-surface">
+        <WorkbenchForm
+          content={<TextArea label="STAGE reference roots" description="One absolute read-only reference root per line. These never become target repositories." rows={4} value={referenceRootsText} onChange={setReferenceRootsText} width="100%" />}
+          actions={<WorkbenchAction label="Save reference roots" loading={updateReferences.isPending} disabled={updateReferences.isPending || configQuery.data === undefined} onClick={() => updateReferences.mutate()} />}
+        />
+      </div>
       <WorkbenchConfirmation open={disconnectRepositoryRoot !== null} onOpenChange={(open) => { if (!open) setDisconnectRepositoryRoot(null); }} title="Disconnect repository?" description="Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted." confirmLabel="Disconnect repository" pending={disconnect.isPending} onConfirm={() => { if (disconnectRepositoryRoot !== null) disconnect.mutate(disconnectRepositoryRoot); }} />
       {[disconnect.error, updateReferences.error].filter((error) => error !== null).map((error, index) => <WorkbenchNotice key={index} tone="danger" title="Settings update failed" description={errorText(error)} />)}
     </section>
@@ -317,30 +323,32 @@ const ModelRuntimeSettings = () => {
       {modelsQuery.error ? (
         <WorkbenchNotice tone="danger" title="Available models could not be loaded" description={errorText(modelsQuery.error)} />
       ) : null}
-      <WorkbenchForm
-        content={
-          <Selector
-            label="Configured model"
-            options={[{ value: "", label: "No model configured" }, ...(modelsQuery.data ?? []).map((model) => ({ value: modelKey(model), label: model.providerID + "/" + model.id }))]}
-            value={selection}
-            onChange={setSelection}
-            width="100%"
-          />
-        }
-        actions={
-          <WorkbenchAction
-            label="Save model"
-            tone="primary"
-            loading={updateModel.isPending}
-            disabled={
-              updateModel.isPending ||
-              selection.length === 0 ||
-              selection === (configured === null ? "" : modelKey(configured))
-            }
-            onClick={() => updateModel.mutate()}
-          />
-        }
-      />
+      <div className="order-settings-task-surface">
+        <WorkbenchForm
+          content={
+            <Selector
+              label="Configured model"
+              options={[{ value: "", label: "No model configured" }, ...(modelsQuery.data ?? []).map((model) => ({ value: modelKey(model), label: model.providerID + "/" + model.id }))]}
+              value={selection}
+              onChange={setSelection}
+              width="100%"
+            />
+          }
+          actions={
+            <WorkbenchAction
+              label="Save model"
+              tone="primary"
+              loading={updateModel.isPending}
+              disabled={
+                updateModel.isPending ||
+                selection.length === 0 ||
+                selection === (configured === null ? "" : modelKey(configured))
+              }
+              onClick={() => updateModel.mutate()}
+            />
+          }
+        />
+      </div>
       <section className="order-settings-supporting-info">
         <h3>Model list source</h3>
         <p><code>GET /api/settings/models</code> → <code>OpenCodeModelRef[]</code>; unavailable or invalid configured values surface with explicit readiness attention.</p>
