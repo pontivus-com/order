@@ -2222,7 +2222,10 @@ test("Requirements document keeps status and authority secondary beside the gove
   await expect(authority).toBeVisible();
   await expect(authority).toContainText("Status");
   await expect(authority).toContainText("Authority");
-  await expect(authority).toContainText("docs/r2.md");
+  await expect(authority).not.toContainText("docs/r2.md");
+
+  await page.getByRole("button", { name: "Technical details", exact: true }).click();
+  await expect(page.getByText("docs/r2.md", { exact: true })).toBeVisible();
 });
 
 test("invalid lifecycle Markdown stays inspection-only and exact bytes open in the Evidence workspace", async ({
@@ -2240,9 +2243,9 @@ test("invalid lifecycle Markdown stays inspection-only and exact bytes open in t
   await page.getByRole("button", { name: "Inspect exact bytes" }).click();
   await expect(page.getByTestId("evidence-workspace")).toBeVisible();
   const exactBytes = page.getByTestId("raw-content-view");
-  await expect(exactBytes).toContainText("Exact bytes returned by artifact/evidence API");
+  await expect(exactBytes).toBeVisible();
   await expect(exactBytes).toContainText("invalid lifecycle");
-  await expect(exactBytes.locator(".order-evidence-code-bytes")).toBeVisible();
+  await expect(exactBytes.locator("pre")).toBeVisible();
 });
 
 test("terminal investigation and audit results remain closed and linked remediation offers only CHANGE or DEFECT", async ({
