@@ -73,6 +73,7 @@ import {
 } from "../src/core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
+  authorityDispositionOwnerRefs,
   classifyExistingWorkItemSource,
   defaultSchemaForKind,
   duplicateWorkItemSourceIds,
@@ -1157,6 +1158,19 @@ describe("source-backed WorkItem core", () => {
         ),
       )
     ).not.toThrow();
+    expect(
+      authorityDispositionOwnerRefs("defect-v2", "R2", valid),
+    ).toEqual(["GW-P1-DOC-CANONICALITY"]);
+    expect(
+      authorityDispositionOwnerRefs(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+          "| Package-local defect acceptance | LOCAL | — |",
+        ),
+      ),
+    ).toEqual([]);
     expect(() =>
       validateStageDocumentStructure("defect-v1", "R2", "# legacy\n")
     ).not.toThrow();
