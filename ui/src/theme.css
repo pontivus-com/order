@@ -322,6 +322,12 @@
 .order-workbench-section-header h3,
 .order-workbench-section-header p,
 .order-workbench-task-title { margin: 0; }
+.order-workbench-task-panel {
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-container);
+  overflow: hidden;
+}
 .order-workbench-attention h2 {
   font-size: var(--font-size-sm);
   font-weight: 700;
@@ -666,9 +672,19 @@
   background: var(--color-background-muted);
 }
 .order-settings-layout-content-surface { padding: var(--spacing-5); }
-.order-settings-supporting-info {
-  padding-top: var(--spacing-3);
-  border-top: 1px solid var(--color-border-emphasized);
+.order-settings-supporting-info,
+.order-settings-task-surface,
+.order-settings-section > .order-workbench-form,
+.order-settings-section [data-testid] > .order-workbench-form {
+  padding: var(--spacing-4);
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+  background: var(--color-background-muted);
+}
+.order-settings-supporting-info,
+.order-settings-task-surface {
+  display: grid;
+  gap: var(--spacing-2);
 }
 .order-settings-supporting-info h3,
 .order-settings-supporting-info p { margin: 0; }

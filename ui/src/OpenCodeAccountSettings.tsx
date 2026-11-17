@@ -212,7 +212,7 @@ export const OpenCodeAccountSettings = () => {
     return (
       <section className="order-settings-section" data-testid="settings-opencode">
         <section data-testid="add-opencode-account">
-          <section data-testid="opencode-login-attempt">
+          <section className="order-settings-task-surface" data-testid="opencode-login-attempt">
             <WorkbenchSectionHeader title="OpenCode sign-in" description="Track the exact OpenCodeAccountLoginAttempt returned by the account-control boundary." />
             {loginAttempt ? <>
               <p>{loginAttempt.instructions}</p>
