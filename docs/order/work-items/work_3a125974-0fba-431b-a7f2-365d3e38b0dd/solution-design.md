@@ -1,0 +1,32 @@
+# Solution design — lifecycle documentation authority drift
+
+## Root cause/producer boundary
+
+The producer boundary is the pre-signoff authoring/conformance path: schema/template policy in src/core/work-item-source.ts, pure conformance admission in src/core/governance.ts, and coordinator orchestration in src/daemon/stage.ts.
+
+## Requirement-to-solution map
+
+- GW-FR-096 → Change/Defect v2 templates plus one canonical schema catalog with explicit current-authoring defaults.
+- GW-FR-097 → pure evaluateStageConformance plus exact path/hash/structure revalidation before coordinator-owned CONFORMANCE_PASSED.
+- GW-FR-098 → strengthened v2 R3 template and explicit R3 conformance questions.
+- Repository-delivery review rule → P1 governance plus protected-branch administrative follow-up.
+
+## Correction at the canonical owner
+
+Extend the existing schema catalog instead of creating a second catalog. Keep v1 pins immutable and make v2 current authoring defaults. Restore the already-prescribed functional-core conformance seam in src/core/governance.ts. Keep ArtifactRef identity coordinator-owned: current draft ids are projected into the stage prompt only as completion bindings and are revalidated by the coordinator.
+
+## Preserved invariants/downstream consumers
+
+RunEvent remains the conformance persistence carrier; ArtifactRef/dependency edges remain evidence/currentness owners; WorkItem lifecycle remains the sole stage owner; the provider cannot emit coordinator-owned conformance events; UI reads the same catalog API.
+
+## Minimum root-cause remediation
+
+No new service, class, DTO, state store, lifecycle role or persistence table. Add only the missing policy/data/functions and focused tests.
+
+## Failure behavior
+
+Invalid output binding or v2 structural stage document records CONFORMANCE_FAILED, blocks the stage Run and keeps/returns ownership to that stage. Missing P2/product authority is blocked rather than inferred.
+
+## Regression validation obligations
+
+Typecheck, architecture, core, daemon and browser tests must remain green. Add explicit regression coverage for empty output binding and v2 catalog/default behavior.
