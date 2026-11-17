@@ -41,6 +41,7 @@ import {
   approvalMaterialIsFresh,
   canonicalAbsolutePathIsWithinRoot,
   conformanceEventMatchesRun,
+  evaluateStageConformance,
   invalidatedArtifactIds,
   resolveApplicableArtifactIds,
   resolveConcernIds,
@@ -902,15 +903,65 @@ describe("functional lifecycle and execution policy", () => {
 });
 
 
+describe("stage conformance output closure", () => {
+  it("requires exactly one canonical output artifact for promotion", () => {
+    const output = ArtifactRefSchema.parse({
+      id: `artifact_${uuidA}`,
+      workItemId: `work_${uuidB}`,
+      repositoryPath: `docs/order/work-items/work_${uuidB}/requirements.md`,
+      role: "R2",
+      authorityLayer: "P3",
+      sha256: hashA,
+      gitCommit: null,
+    });
+
+    expect(
+      evaluateStageConformance("R2", output.workItemId, output.repositoryPath, []),
+    ).toMatchObject({ tag: "FAIL" });
+    expect(
+      evaluateStageConformance(
+        "R2",
+        output.workItemId,
+        output.repositoryPath,
+        [output, output],
+      ),
+    ).toMatchObject({ tag: "FAIL" });
+    expect(
+      evaluateStageConformance(
+        "R2",
+        output.workItemId,
+        output.repositoryPath,
+        [output],
+      ),
+    ).toEqual({ tag: "PASS", output });
+    expect(
+      evaluateStageConformance(
+        "R2",
+        output.workItemId,
+        "docs/order/work-items/other/requirements.md",
+        [output],
+      ),
+    ).toMatchObject({ tag: "FAIL" });
+  });
+});
+
 describe("source-backed WorkItem core", () => {
   it("round-trips the exact schema catalog and derives kind from schemaId only", () => {
     const expected = [
-      ["change-v1", "CHANGE"],
-      ["defect-v1", "DEFECT"],
-      ["investigation-v1", "INVESTIGATION"],
-      ["audit-v1", "AUDIT"],
+      ["change-v1", "CHANGE", false],
+      ["defect-v1", "DEFECT", false],
+      ["change-v2", "CHANGE", true],
+      ["defect-v2", "DEFECT", true],
+      ["investigation-v1", "INVESTIGATION", true],
+      ["audit-v1", "AUDIT", true],
     ] as const;
-    expect(workItemSchemaCatalog.map((entry) => [entry.schemaId, entry.kind])).toEqual(expected);
+    expect(
+      workItemSchemaCatalog.map((entry) => [
+        entry.schemaId,
+        entry.kind,
+        entry.authoringDefault,
+      ]),
+    ).toEqual(expected);
 
     for (const [schemaId, kind] of expected) {
       const metadata = {
@@ -1009,8 +1060,8 @@ describe("source-backed WorkItem core", () => {
   });
 
   it("owns kind defaults and R1 completion admissibility in the source catalog", () => {
-    expect(defaultSchemaForKind("CHANGE")).toBe("change-v1");
-    expect(defaultSchemaForKind("DEFECT")).toBe("defect-v1");
+    expect(defaultSchemaForKind("CHANGE")).toBe("change-v2");
+    expect(defaultSchemaForKind("DEFECT")).toBe("defect-v2");
     expect(defaultSchemaForKind("INVESTIGATION")).toBe("investigation-v1");
     expect(defaultSchemaForKind("AUDIT")).toBe("audit-v1");
     expect(allowedR1CompletionsForSchema("investigation-v1")).toEqual([
