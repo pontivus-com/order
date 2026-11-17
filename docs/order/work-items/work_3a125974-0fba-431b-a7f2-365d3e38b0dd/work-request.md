@@ -20,6 +20,8 @@ Release 0.5.0 was declared complete even though its change-local Requirements be
 
 ## Expected behavior
 
+All live permanent authority consumers—including AGENTS.md, governance, lifecycle, Workbench and integration documentation—must resolve the advanced current V2 semantic owners, while immutable V1 sources remain available only for explicitly historical/pinned use.
+
 Order must make its documented authority hierarchy executable: lifecycle authoring must preserve one canonical owner per concern, stage promotion must require one current deterministic lifecycle artifact conforming to the pinned schema, R3 must independently challenge authority topology and traceability, and public delivery must require independent review.
 
 ## Reproduction/evidence
