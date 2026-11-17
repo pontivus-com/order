@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 import type { EvidenceSelection } from "./workbench-presentation.ts";
@@ -62,9 +61,11 @@ export const EvidenceViewer = ({
         <div data-testid="raw-content-view" className="order-code-view">
           <div className="order-evidence-code-label">
             <strong>Exact bytes returned by artifact/evidence API</strong>
-            <span>UTF-8 content is shown verbatim; non-UTF-8 content uses a bounded binary preview. This surface is inspection-only.</span>
+            <span>UTF-8 content is shown verbatim.</span>
+            <span>Non-UTF-8 content uses the bounded binary preview defined by EvidenceViewer.</span>
+            <span>This surface is inspection-only.</span>
           </div>
-          <CodeBlock code={decodeBytes(query.data)} language="plaintext" hasCopyButton width="100%" />
+          <pre className="order-evidence-code-bytes"><code>{decodeBytes(query.data)}</code></pre>
         </div>
       )}
     </section>
