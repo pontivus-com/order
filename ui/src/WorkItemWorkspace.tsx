@@ -1398,6 +1398,7 @@ export const WorkItemWorkspace = ({
           <ReadinessWorkspace
             workItem={workItem}
             runs={runs}
+            runEvents={allRunEvents}
             artifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
