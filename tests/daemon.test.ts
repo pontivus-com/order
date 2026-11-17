@@ -4605,6 +4605,11 @@ describe("daemon control plane", () => {
       const currentLifecycle = await coord.listCurrentLifecycleArtifacts(runtime, workItem.id);
       const currentPlan = currentLifecycle.find((artifact) => artifact.role === "PLAN") ?? null;
       const drafts = await authority.currentStageDraftArtifacts(runtime, after, "PLAN");
+      const completionArtifacts = authority.currentStageCompletionArtifacts(
+        runtime,
+        after,
+        "PLAN",
+      );
       const contextState = await authority.resolveStageContextState(runtime, after, "PLAN");
       const prompt = await stageOwner.stagePrompt(
         after,
@@ -4612,6 +4617,8 @@ describe("daemon control plane", () => {
         contextState.context,
         drafts,
         [],
+        undefined,
+        completionArtifacts,
       );
       let r3Rejected = false;
       try {
@@ -4633,6 +4640,10 @@ describe("daemon control plane", () => {
         promptHasDraft:
           prompt.includes("Current stage draft for review") &&
           prompt.includes("plan after"),
+        completionArtifactId: completionArtifacts[0]?.id ?? null,
+        promptHasCompletionBinding:
+          completionArtifacts.length === 1 &&
+          prompt.includes(completionArtifacts[0].id),
         conformanceCount: runStore.listRunEvents(runtime, priorPlanRun.id)
           .filter((event) => event.event.tag === "CONFORMANCE_PASSED").length,
         r3Rejected,
@@ -4647,6 +4658,8 @@ describe("daemon control plane", () => {
       draftCount: number;
       draftSha256: string | null;
       promptHasDraft: boolean;
+      completionArtifactId: string | null;
+      promptHasCompletionBinding: boolean;
       conformanceCount: number;
       r3Rejected: boolean;
     };
@@ -4660,6 +4673,8 @@ describe("daemon control plane", () => {
     expect(output.draftCount).toBe(1);
     expect(output.draftSha256).toBe(output.saved.sha256);
     expect(output.promptHasDraft).toBe(true);
+    expect(output.completionArtifactId).toBe(output.currentPlanId);
+    expect(output.promptHasCompletionBinding).toBe(true);
     expect(output.conformanceCount).toBe(1);
     expect(output.r3Rejected).toBe(true);
     expect(readFileSync(join(repository, "docs", "plan.md"), "utf8")).toBe("plan after\n");
