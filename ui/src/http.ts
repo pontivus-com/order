@@ -355,9 +355,14 @@ export const rejectProposal = async (
     mutation("POST", {}),
   ));
 
-export const tick = async (): Promise<void> => {
-  await request("/api/tick", mutation("POST", {}));
-};
+export const startExecutionTask = async (
+  workItemId: WorkItemId,
+  executionTaskId: ExecutionTask["id"],
+): Promise<Run> =>
+  RunSchema.parse(await json(
+    `/api/work-items/${encodeURIComponent(workItemId)}/tasks/${encodeURIComponent(executionTaskId)}/start`,
+    mutation("POST", {}),
+  ));
 
 export const readArtifactContent = async (
   artifactId: ArtifactRef["id"],

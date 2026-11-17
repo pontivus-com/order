@@ -12,6 +12,186 @@ const root = process.cwd();
 const read = (path: string): string => readFileSync(join(root, path), "utf8");
 
 describe("Order cross-boundary certification", () => {
+  it("permanently certifies the 0.5.0 workflow closure boundaries", () => {
+    const contracts = read("src/core/contracts.ts");
+    expect(contracts).toContain("AgentActivityCategorySchema");
+    expect(contracts).toContain('"AGENT_ACTIVITY_RECORDED"');
+    expect(contracts).toContain("StageProviderBatchAdmissionDiagnosticSchema");
+    expect(contracts).toContain('"ORDER_STAGE_BATCH_ADMISSION"');
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).toContain("stageProviderBatchRejectionCode");
+    expect(lifecycle).toContain("stageRunCancellationIsAdmitted");
+    expect(lifecycle).toContain("deriveMaterialPresentationState");
+    expect(lifecycle).toContain("artifactHasCurrentStageConformance");
+    expect(lifecycle).toContain("materialCurrentnessForStage");
+    const reached = lifecycle.slice(
+      lifecycle.indexOf("export const deriveReachedStages"),
+      lifecycle.indexOf("export const reachStateForStage"),
+    );
+    expect(reached).not.toContain("artifactOwnerStage(");
+    expect(reached).not.toMatch(/for \(const artifact of/);
+
+    const authority = read("src/daemon/authority.ts");
+    const artifactRead = authority.slice(
+      authority.indexOf("export const currentLifecycleArtifacts"),
+      authority.indexOf("export const resolveStageContextState"),
+    );
+    expect(artifactRead).toContain("listArtifacts(runtime, workItemId)");
+    expect(artifactRead).not.toContain("latestRunCandidateArtifacts");
+    expect(artifactRead).not.toContain("storeArtifact(");
+
+    const execution = read("src/daemon/execution.ts");
+    expect(execution).toContain("export const startExactExecutionTask");
+    expect(execution).toContain("deriveExecutionOwner(tasks, listRuns(runtime, workItem.id))");
+    expect(execution).toContain('"execution task is not the canonical current task"');
+
+    const coordinator = read("src/daemon/coordinator.ts");
+    expect(coordinator).toContain("export const startCurrentExecutionTask");
+    expect(coordinator).toContain("stageRunCancellationIsAdmitted");
+    expect(coordinator).toContain("driveExecutionTask");
+
+    const server = read("src/daemon/server.ts");
+    expect(server).toContain('parts[5] === "start"');
+    const tickRouteStart = server.indexOf('pathname === "/api/tick"');
+    const browserMutationAuth = server.indexOf("requireBrowserMutation", tickRouteStart);
+    expect(tickRouteStart).toBeGreaterThanOrEqual(0);
+    expect(browserMutationAuth).toBeGreaterThan(tickRouteStart);
+    const tickRoute = server.slice(tickRouteStart, browserMutationAuth);
+    expect(tickRoute).toContain("requireCliBearer");
+    expect(tickRoute).not.toContain("requireBrowserMutation");
+
+    const http = read("ui/src/http.ts");
+    expect(http).toContain("export const startExecutionTask");
+    expect(http).not.toContain('"/api/tick"');
+    expect(http).not.toContain("export const tick");
+
+    const executionUi = read("ui/src/ExecutionWorkspace.tsx");
+    expect(executionUi).toContain("api.startExecutionTask(workItem.id,currentOwnerTask.id)");
+    expect(executionUi).toContain('label="Start current task"');
+    expect(executionUi).not.toContain("Run next implementation step");
+    expect(executionUi).not.toContain("api.tick");
+
+    const stage = read("src/daemon/stage.ts");
+    const stagePrompt = stage.slice(
+      stage.indexOf("const stagePrompt"),
+      stage.indexOf("const persistAndReactStageBatch"),
+    );
+    expect(stagePrompt).not.toContain("Return only a JSON array of canonical provider-emittable RunEventPayload values for STAGE role.");
+    expect(stage).toContain("recordStageProviderBatchAdmissionDiagnostic");
+    expect(stage).toContain("Agent result could not be accepted");
+
+    const opencode = read("src/shell/opencode.ts");
+    expect(opencode).toContain('"STAGE turn grammar:');
+    expect(opencode).toContain("consumeLiveActivity");
+    expect(opencode).toContain("recordTerminalContextActivity");
+    expect(opencode).not.toContain("ChatToolCalls");
+
+    const presentation = read("ui/src/workbench-presentation.ts");
+    expect(presentation).toContain('export type RunEventPlane = "CONVERSATION" | "ACTIVITY" | "WORKFLOW"');
+    expect(presentation).toContain("conversationRunEvents");
+    expect(presentation).toContain("agentActivityRunEvents");
+    expect(presentation).toContain("workflowRunEvents");
+
+    const dialogue = read("ui/src/primitives/WorkbenchDialogue.tsx");
+    for (const leaf of [
+      "ChatLayout",
+      "ChatMessage",
+      "ChatMessageBubble",
+      "ChatMessageList",
+      "ChatMessageMetadata",
+    ]) {
+      expect(dialogue).toContain(leaf);
+    }
+    const activity = read("ui/src/ActivityWorkspace.tsx");
+    expect(activity).toContain("conversationRunEvents(events)");
+    expect(activity).toContain("agentActivityRunEvents(events)");
+    expect(activity).toContain("workflowRunEvents(events)");
+    expect(activity).toContain("stageRunCancellationIsAdmitted(selectedRun, events)");
+
+    const composer = read("ui/src/ActivityComposer.tsx");
+    expect(composer).toContain("Answer the question above");
+    expect(composer).not.toContain("pending.event.question");
+
+    const timeline = read("ui/src/RunEventTimeline.tsx");
+    expect(timeline).toContain("workflowRunEvents(events)");
+
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workspace).toContain("activeRunOwnsAuthoring = runs.some(runIsActive)");
+    expect(workspace).toContain("deriveMaterialPresentationState(");
+    expect(workspace).toContain("artifactHasCurrentStageConformance(");
+
+    const proposal = read("ui/src/ProposalReview.tsx");
+    expect(proposal).toContain("selection.runId === currentRunId");
+    expect(proposal).toContain('currentInteraction?.tag === "OPEN"');
+
+    const queue = read("ui/src/WorkItemQueue.tsx");
+    expect(queue).not.toContain("Copy work item id");
+    expect(queue).not.toContain("navigator.clipboard");
+    const context = read("ui/src/WorkItemContext.tsx");
+    expect(context).toContain('label="WorkItem id"');
+    expect(context).toContain("{workItem.id}");
+
+    const terminal = read("ui/src/TerminalResult.tsx");
+    expect(terminal).toContain('data-testid="final-governed-outcome"');
+  });
+
+  it("proves V-07 activity extraction remains bounded, secret-blind, and observational", () => {
+    const contracts = read("src/core/contracts.ts");
+    expect(contracts).toContain("AgentActivitySummarySchema");
+    expect(contracts).toContain(".max(160)");
+    expect(contracts).toContain("const AgentActivityResourceSchema = RepositoryPathSchema");
+
+    const run = read("src/daemon/run.ts");
+    const recorder = run.slice(
+      run.indexOf("export const createAgentActivityRecorder"),
+      run.indexOf("export const recordStageProviderBatchAdmissionDiagnostic"),
+    );
+    expect(recorder).toContain("if (count >= 32) return");
+    expect(recorder).toContain("if (key === lastKey) return");
+    expect(recorder).toContain("appendRunEvent(runtime, runId, payload)");
+    expect(recorder).toContain("category: payload.category");
+    expect(recorder).toContain("resource: payload.resource");
+    expect(recorder).toContain("summary: payload.summary");
+
+    const openCode = read("src/shell/opencode.ts");
+    const extraction = openCode.slice(
+      openCode.indexOf("const activityForToolName"),
+      openCode.indexOf("const runPromptToText"),
+    );
+    for (const required of [
+      'normalized.includes("read")',
+      'normalized.includes("search")',
+      'normalized.includes("edit")',
+      'normalized.includes("test")',
+      'category: "REVIEWING_RESULTS"',
+      'category: "RETRYING"',
+    ]) {
+      expect(extraction).toContain(required);
+    }
+    for (const forbidden of [
+      "event.data.input",
+      "event.data.output",
+      "event.data.metadata",
+      "event.data.reasoning",
+      "part.state.input",
+      "part.state.output",
+      "part.state.metadata",
+    ]) {
+      expect(extraction).not.toContain(forbidden);
+    }
+
+    const promptStart = openCode.indexOf("const runPromptToText = async");
+    const promptEnd = openCode.indexOf("const formatRepairPrompt", promptStart);
+    expect(promptStart).toBeGreaterThanOrEqual(0);
+    expect(promptEnd).toBeGreaterThan(promptStart);
+    const prompt = openCode.slice(promptStart, promptEnd);
+    expect(prompt).toContain("consumeLiveActivity(");
+    expect(prompt).toContain(".catch(() => undefined)");
+    expect(prompt).toContain("context = await client.session.context({ sessionID })");
+    expect(prompt).toContain("await recordTerminalContextActivity(context, promptId, onActivity)");
+  });
+
   it("keeps the exact locked package and runtime pins with no convenience dependency expansion", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       dependencies: Record<string, string>;
@@ -252,6 +432,13 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain("--order-editor-");
     expect(theme).not.toContain("--_");
     expect(theme).not.toContain("color-mix(");
+    expect(theme).not.toContain("!important");
+    expect(theme).not.toContain("[data-testid=");
+
+    const taskPanel = read("ui/src/primitives/WorkbenchTaskPanel.tsx");
+    expect(taskPanel).toContain('width="42rem"');
+    expect(taskPanel).not.toContain("100vw");
+    expect(taskPanel).not.toContain("calc(");
     expect(theme).not.toContain("--pontivus-plugin-panel-inspector-width-standard: 26.25rem");
     expect(theme.split("/* 2. Order-only structural/readability roles. */")[1]).not.toMatch(/#[0-9A-Fa-f]{3,8}\b/);
 
@@ -329,6 +516,177 @@ describe("Order cross-boundary certification", () => {
     ]) {
       expect(existsSync(join(root, "ui", "src", adapter))).toBe(true);
     }
+  });
+
+  it("keeps reference-driven presentation subordinate to Workbench and Astryx ownership", () => {
+    const evidence = read("ui/src/EvidenceViewer.tsx");
+    for (const required of [
+      'from "@astryxdesign/core/CodeBlock"',
+      "WorkbenchSurface",
+      "WorkbenchSectionHeader",
+      "WorkbenchState",
+      "<CodeBlock",
+      'language="plaintext"',
+      'container="card"',
+    ]) {
+      expect(evidence).toContain(required);
+    }
+    for (const forbidden of [
+      "order-evidence-viewer",
+      "order-code-view",
+      "order-evidence-code-bytes",
+      "<pre",
+    ]) {
+      expect(evidence).not.toContain(forbidden);
+    }
+
+    const approval = read("ui/src/SignoffReview.tsx");
+    expect(approval).toContain("WorkbenchReview");
+    expect(approval).toContain("packageStale?: boolean");
+    expect(approval).toContain("Prior governed package material remains inspection-only");
+    expect(approval).toContain(
+      "historicalArtifact={packageStale ? selectedArtifact : undefined}",
+    );
+    expect(approval).toContain("embeddedReadOnly={packageStale}");
+    expect(approval).toContain('label="Task technical details"');
+    expect(approval).not.toContain('<MetadataListItem label="Task id">');
+    expect(approval).not.toContain('<MetadataListItem label="Approval">');
+
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
+    expect(workspace).toContain(
+      "artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}",
+    );
+    expect(workspace).toContain('selectedStep === "AWAITING_SIGNOFF"');
+    expect(workspace).toContain("api.listArtifacts(workItem.id)");
+
+    const documentWorkspace = read("ui/src/DocumentWorkspace.tsx");
+    expect(documentWorkspace).toContain("historicalArtifact?: ArtifactRef");
+    expect(documentWorkspace).toContain("historicalArtifact ??");
+    expect(documentWorkspace).toContain("enabled: historicalArtifact === undefined");
+
+    const execution = read("ui/src/ExecutionWorkspace.tsx");
+    expect(execution).toContain("WorkbenchMasterDetail");
+    expect(execution).toContain("api.startExecutionTask(workItem.id,currentOwnerTask.id)");
+    expect(execution).not.toContain("api.tick");
+    expect(execution).toContain('masterLabel="Approved tasks"');
+    expect(execution).toContain('label="Approved tasks"');
+    expect(execution).toContain('selection="single"');
+    expect(execution).toContain('description="Approved task"');
+    expect(execution).not.toContain('description:"Approved task · "');
+    expect(execution).toContain(
+      'selectedRun===null?<WorkbenchState kind="empty" title="No persisted attempt events"/>',
+    );
+    expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
+    expect(execution).toContain('label="Agent activity"');
+    expect(execution).toContain("<RunEventTimeline");
+    expect(execution).toContain('label="Technical details"');
+    expect(execution).not.toContain("MarkdownEditor");
+    expect(execution).not.toContain("updateArtifactContent");
+
+    const masterDetail = read("ui/src/primitives/WorkbenchMasterDetail.tsx");
+    expect(masterDetail).toContain('width="var(--order-master-width)"');
+    expect(masterDetail).not.toContain("masterWidth");
+
+    const markdownEditor = read("ui/src/MarkdownEditor.tsx");
+    expect(markdownEditor).toContain("WorkbenchSectionHeader");
+    expect(markdownEditor).not.toContain("order-markdown-document-view-header");
+    expect(markdownEditor).not.toContain("order-markdown-document-view-actions");
+    expect(markdownEditor).not.toContain("{toolbarAccessory}\n            <WorkbenchDisclosure");
+    expect(markdownEditor).toContain("      />\n\n      <WorkbenchDisclosure");
+
+    const theme = read("ui/src/theme.css");
+    const sectionMarkers = [
+      "/* 1. Root public Astryx token bridge. Exact Order color literals live only here. */",
+      "/* 2. Order-only structural/readability roles. */",
+      "/* 3. Closed Workbench primitive presentation. */",
+      "/* 4. Specialist content and feature-semantic layout. */",
+      "/* 5. Canonical Workbench breakpoint overrides only. */",
+    ];
+    const sectionOffsets = sectionMarkers.map((value) => theme.indexOf(value));
+    expect(sectionOffsets.every((offset) => offset >= 0)).toBe(true);
+    expect(sectionOffsets).toEqual([...sectionOffsets].sort((left, right) => left - right));
+
+    const primitiveSection = theme.slice(sectionOffsets[2], sectionOffsets[3]);
+    const specialistSection = theme.slice(sectionOffsets[3], sectionOffsets[4]);
+    for (const selector of [
+      ".order-settings-layout-constrained",
+      ".order-settings-layout-constrained-navigation",
+      ".order-settings-layout-constrained-content",
+      ".order-settings-layout-navigation-surface",
+      ".order-settings-layout-content-surface",
+    ]) {
+      expect(primitiveSection).toContain(selector);
+      expect(specialistSection).not.toContain(selector);
+    }
+
+    expect(specialistSection).not.toContain(".order-workbench-");
+
+    for (const forbidden of [
+      ".order-evidence-viewer",
+      ".order-evidence-code-label",
+      ".order-code-view",
+      ".order-evidence-code-bytes",
+      ".order-markdown-document-view-header",
+      ".order-markdown-document-view-actions",
+      "border-radius: 999px",
+      "border-radius: 50%",
+      "font-size: 0.75rem",
+      "min-height: 22rem",
+      "min-height: 28rem",
+      "min-height: 32rem",
+      "min-height: 36rem",
+    ]) {
+      expect(theme).not.toContain(forbidden);
+    }
+
+    const presentationCss = theme.slice(sectionOffsets[2]);
+    const rawLengths = [...presentationCss.matchAll(/\b\d+(?:\.\d+)?(?:px|rem)\b/g)]
+      .map((match) => match[0])
+      .filter((value) => !["1px", "799px", "1279px"].includes(value));
+    expect(rawLengths).toEqual([]);
+    expect(presentationCss).not.toMatch(/font-size:\s*\d/);
+    expect(presentationCss).not.toMatch(/border-radius:\s*(?:\d|50%|999)/);
+    expect(presentationCss).not.toContain("box-shadow:");
+    expect(theme.slice(sectionOffsets[1])).not.toContain("!important");
+
+    const documentViewRule = theme.match(/\.order-markdown-document-view\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
+
+    const editorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(editorRule).toContain("grid-template-rows: auto auto auto auto minmax(0, 1fr);");
+
+    const editorPaneRule = theme.match(/\.order-editor-source-pane,\s*\n\.order-editor-preview-pane\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(editorPaneRule).toContain("min-width: 0;");
+    expect(editorPaneRule).toContain("min-height: 0;");
+    expect(editorPaneRule).toContain("overflow: hidden;");
+
+    const baseCss = theme.slice(0, theme.indexOf("@media"));
+    const baseSelectors = [...baseCss.matchAll(/(?:^|\n)([^@\n][^{}]*)\{/g)]
+      .map((match) => match[1]?.trim().replace(/\s+/g, " ") ?? "")
+      .filter((selector) => selector.length > 0 && !selector.startsWith("/*"));
+    const selectorCounts = new Map<string, number>();
+    for (const selector of baseSelectors) {
+      selectorCounts.set(selector, (selectorCounts.get(selector) ?? 0) + 1);
+    }
+    expect(
+      [...selectorCounts.entries()].filter(([, count]) => count > 1),
+    ).toEqual([]);
+
+    const cssFiles = (
+      directory: string,
+      prefix = "",
+    ): readonly string[] =>
+      readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+        const relative = prefix.length === 0 ? entry.name : prefix + "/" + entry.name;
+        const absolute = join(directory, entry.name);
+        if (entry.isDirectory()) return cssFiles(absolute, relative);
+        return entry.isFile() && entry.name.endsWith(".css") ? [relative] : [];
+      });
+    expect([...cssFiles(join(root, "ui", "src"))].sort()).toEqual([
+      "styles.css",
+      "theme.css",
+    ]);
   });
 
   it("keeps browser state and transport on the canonical HTTP boundary", () => {
@@ -480,6 +838,7 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).not.toContain("mutationConflict: false");
     expect(workspace).toContain("api.isCurrentStateConflict(error)");
     expect(workspace).toContain('currentAttention === "MUTATION_CONFLICT"');
+    expect(workspace).toContain('case "MUTATION_CONFLICT": return "error" as const;');
     expect(workspace).toContain("mutationConflictWorkItemUpdatedAt");
     expect(workspace).toContain("selectedWorkItemUpdatedAt !== mutationConflictWorkItemUpdatedAt.current");
     expect(workspace).toContain("currentObservationError === null");
@@ -497,7 +856,7 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).toContain("api.getWorkItemSource(workItem.id)");
     expect(workspace).toContain("sourceQuery.data.sha256 !== workItem.sourceSha256");
     expect(workspace).toContain("sourceAuthorityRequiresReconciliation");
-    expect(workspace).toContain('currentness.tag === "STALE" && !runs.some(runIsActive)');
+    expect(workspace).toContain('currentness.tag === "STALE" && !activeRunOwnsAuthoring');
     expect(workspace).toMatch(/recovery\.tag === "RECONCILE_AUTHORITY"[\s\S]*!runs\.some\(runIsActive\)/);
     expect(workspace).toContain('orderError.code === "STALE_AUTHORITY"');
     expect(workspace).toContain("orderError.staleAuthorityOwner");
@@ -559,9 +918,11 @@ describe("Order cross-boundary certification", () => {
     expect(execution).not.toContain("workbenchQueryKeys.tasks(");
     expect(execution).not.toContain("workbenchQueryKeys.runs(");
     expect(execution).not.toContain("workbenchQueryKeys.artifacts(");
-    expect(execution).toContain('"Current boundary: updating"');
-    expect(execution).toContain("boundary={validationBoundary}");
-    expect(execution).toContain("validationBoundaryStatus(boundary)");
+    expect(execution).toContain('scope: "Current" | "Recorded"');
+    expect(execution).toContain('scope + " boundary: updating"');
+    expect(execution).toContain('boundaryScope={currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded"}');
+    expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE" || selectedTask.state === "ALREADY_SATISFIED"');
+    expect(execution).toContain("validationBoundaryStatus(boundary, boundaryScope)");
     expect(execution).not.toContain("deriveValidationBoundary");
     expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");
@@ -903,6 +1264,49 @@ describe("Order cross-boundary certification", () => {
     expect(sqlite).not.toContain("credentialSecret");
   });
 
+  it("keeps active-agent authoring exclusion separate from current-run interaction admission", () => {
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
+
+    expect(workspace).toContain(
+      "documentMutationsDisabled =\n    interactionMutationsDisabled || activeRunOwnsAuthoring",
+    );
+    expect(workspace).toContain(
+      "workflowMutationsDisabled =\n    interactionMutationsDisabled",
+    );
+    expect(workspace).toContain(
+      "authoringMutationsDisabled={documentMutationsDisabled}",
+    );
+    expect(preSignoff).toContain(
+      "mutationsDisabled={authoringMutationsDisabled}",
+    );
+    expect(preSignoff).toContain(
+      "mutationsDisabled={mutationsDisabled}",
+    );
+  });
+
+  it("keeps pre-signoff, Readiness and Approval free of a persistent generic material-selector axis", () => {
+    const preSignoff = read("ui/src/PreSignoffStageWorkspace.tsx");
+    const readiness = read("ui/src/ReadinessWorkspace.tsx");
+    const approval = read("ui/src/SignoffReview.tsx");
+    const implementation = read("ui/src/ExecutionWorkspace.tsx");
+
+    for (const source of [readiness, approval]) {
+      expect(source).not.toContain("WorkflowStepIndex");
+      expect(source).not.toContain('data-testid="workflow-step-index"');
+    }
+    expect(preSignoff).not.toContain("WorkflowStepIndex");
+    expect(preSignoff).toContain("WorkflowMaterialSelector");
+    expect(preSignoff).toContain('"Supporting material and history"');
+    expect(readiness).toContain("Evidence / attempt history");
+    expect(approval).toContain('"Package material"');
+
+    // Implementation is the sole workflow step allowed to retain persistent
+    // operational master/detail material selection.
+    expect(implementation).toContain("WorkflowStepIndex");
+    expect(implementation).toContain("WorkbenchMasterDetail");
+  });
+
   it("keeps the one-command productive installer purpose-built and bootstrap-only", () => {
     const bootstrap = read("install.sh");
     const installer = read("src/installer.ts");
@@ -1015,6 +1419,86 @@ describe("Order cross-boundary certification", () => {
     expect(readme).not.toContain("export PONTIVUS_ORDER_OPENCODE_MODEL");
     expect(readme).not.toContain("Host-native daemon autostart/process supervision is outside v1");
   });
+  it("locks the P7 integrated visual inventory and removes superseded UI paths", () => {
+    const expectedReferences = [
+      "application-notices-states.svg",
+      "approval-task-detail.svg",
+      "approval.svg",
+      "complete-linked-remediation.svg",
+      "complete.svg",
+      "create-linked-remediation.svg",
+      "create-work-item.svg",
+      "current-attention-states.svg",
+      "dialogue-states.svg",
+      "document-authoring.svg",
+      "document-readonly.svg",
+      "document-states.svg",
+      "evidence-viewer.svg",
+      "implementation-plan.svg",
+      "implementation-states.svg",
+      "implementation.svg",
+      "installation-readiness.svg",
+      "proposal-review.svg",
+      "proposal-states.svg",
+      "queue-states.svg",
+      "queue.svg",
+      "readiness-review.svg",
+      "requirements.svg",
+      "research.svg",
+      "responsive-composition.svg",
+      "safety-confirmations.svg",
+      "settings-model.svg",
+      "settings-opencode-add.svg",
+      "settings-opencode-login-states.svg",
+      "settings-opencode-login.svg",
+      "settings-opencode-rename.svg",
+      "settings-opencode.svg",
+      "settings-repositories.svg",
+      "settings-repository-add.svg",
+      "settings-repository-move.svg",
+      "solution-design.svg",
+      "theme-parity.svg",
+      "work-request.svg",
+      "work-type-variants.svg",
+      "workitem-context.svg",
+      "workitem-shell-controls.svg",
+    ].sort();
+
+    const references = readdirSync(join(root, "docs/references/workbench-ui"))
+      .filter((name) => name.endsWith(".svg"))
+      .sort();
+    expect(references).toEqual(expectedReferences);
+
+    const referenceReadme = read("docs/references/workbench-ui/README.md");
+    for (const reference of expectedReferences) {
+      expect(referenceReadme).toContain("(" + reference + ")");
+    }
+
+    const workflows = readdirSync(join(root, ".github/workflows"))
+      .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
+      .sort();
+    expect(workflows).toEqual(["ci.yml", "release.yml"]);
+
+    const walkUi = (directory: string): string[] =>
+      readdirSync(join(root, directory), { withFileTypes: true }).flatMap((entry) => {
+        const relative = directory + "/" + entry.name;
+        return entry.isDirectory() ? walkUi(relative) : [relative];
+      });
+    const uiSource = walkUi("ui/src")
+      .filter((path) => path.endsWith(".ts") || path.endsWith(".tsx") || path.endsWith(".css"))
+      .map(read)
+      .join("\n");
+
+    expect(uiSource).not.toContain("api.tick(");
+    expect(uiSource).not.toContain("@opencode-ai/sdk");
+    expect(uiSource).not.toContain("order-workflow-side-index");
+    expect(uiSource).not.toContain("order-generic-side-index");
+    const activityWorkspace = read("ui/src/ActivityWorkspace.tsx");
+    expect(activityWorkspace).not.toContain('title="OpenCode session"');
+    expect(activityWorkspace).not.toContain('label="OpenCode session"');
+    expect(activityWorkspace).not.toContain('data-testid="opencode-session"');
+  });
+
   it("keeps the publishable current tree free of private-source provenance and temporary verification scaffolding", () => {
     const textExtensions = new Set([".css", ".html", ".json", ".md", ".sh", ".toml", ".ts", ".tsx", ".yaml", ".yml"]);
     const extension = (path: string): string => {

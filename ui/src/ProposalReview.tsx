@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CodeBlock } from "@astryxdesign/core/CodeBlock";
-import type { WorkItem } from "../../src/core/contracts.ts";
+import type { Run, WorkItem } from "../../src/core/contracts.ts";
+import type { StageRunInteraction } from "../../src/core/lifecycle.ts";
 import * as api from "./http.ts";
 import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -8,9 +9,25 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
-import { proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
+import { lifecycleArtifactLabel, proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
 
-export const ProposalReview = ({ workItem, selection, mutationsDisabled = false, onBack, onMutationError }: Readonly<{ workItem: WorkItem; selection: ProposalSelection; mutationsDisabled?: boolean; onBack: () => void; onMutationError?: (error: unknown) => void }>) => {
+export const ProposalReview = ({
+  workItem,
+  selection,
+  currentRunId,
+  currentInteraction,
+  mutationsDisabled = false,
+  onBack,
+  onMutationError,
+}: Readonly<{
+  workItem: WorkItem;
+  selection: ProposalSelection;
+  currentRunId: Run["id"] | null;
+  currentInteraction: StageRunInteraction | null;
+  mutationsDisabled?: boolean;
+  onBack: () => void;
+  onMutationError?: (error: unknown) => void;
+}>) => {
   const queryClient = useQueryClient();
   const eventsQuery = useQuery({ queryKey: workbenchQueryKeys.runEvents(selection.runId), queryFn: () => api.listRunEvents(selection.runId, 0), refetchInterval: 1000 });
   const events = eventsQuery.data ?? [];
@@ -38,17 +55,29 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
     tone={disposition === "ADOPTED" ? "success" : disposition === "REJECTED" ? "neutral" : adoptionRequested ? "warning" : "info"}
     label={disposition === "ADOPTED" ? "Adopted" : disposition === "REJECTED" ? "Rejected" : adoptionRequested ? "Adoption in progress" : "Pending review"}
   />;
-  const decisions = disposition === null && !adoptionRequested ? <>
-    <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
-    <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
-  </> : null;
+  const ownsCurrentDecision =
+    selection.runId === currentRunId &&
+    currentInteraction?.tag === "OPEN";
+  const decisions =
+    disposition === null &&
+    !adoptionRequested &&
+    ownsCurrentDecision
+      ? <>
+          <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
+          <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
+        </>
+      : null;
 
   return (
     <section data-testid="proposal-review-workspace">
       <WorkbenchReview
         currentness={currentness}
-        summary={<div><h2>Artifact proposal review</h2><p>{proposalPayload.targetPath}</p><p>{proposalPayload.rationale}</p></div>}
+        summary={<div><h2>Artifact proposal review</h2></div>}
         body={<>
+          <dl className="order-proposal-summary">
+            <div><dt>Target document</dt><dd>{lifecycleArtifactLabel(proposalPayload.role)} document</dd></div>
+            <div><dt>Rationale</dt><dd>{proposalPayload.rationale}</dd></div>
+          </dl>
           <section data-testid="proposal-review-diff">
             <h3>Proposed document diff</h3>
           <CodeBlock code={proposalPayload.unifiedDiff} language="diff" isDiff isWrapped hasCopyButton container="section" width="100%" />
@@ -56,7 +85,11 @@ export const ProposalReview = ({ workItem, selection, mutationsDisabled = false,
           {adoptionRequested && disposition === null ? <WorkbenchNotice tone="warning" title="Adoption in progress" description="The canonical document is being reconciled. Proposal controls remain disabled until disposition is recorded." /> : null}
           {decision.error ? <WorkbenchNotice tone="danger" title="Proposal decision failed" description={decision.error instanceof Error ? decision.error.message : String(decision.error)} /> : null}
         </>}
-        decisions={<><WorkbenchAction label="Back to workflow attempt" tone="ghost" onClick={onBack} />{decisions}</>}
+        decisions={<>
+          <div className="order-review-back"><WorkbenchAction label="Back to workflow attempt" tone="secondary" onClick={onBack} /></div>
+          <div className="order-review-primary-decisions">{decisions}</div>
+        </>}
+        technicalDetails={<dl><div><dt>Target repository path</dt><dd><code>{proposalPayload.targetPath}</code></dd></div></dl>}
       />
     </section>
   );

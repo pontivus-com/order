@@ -20,11 +20,12 @@ import { invalidateWorkbenchMutation } from "./query-keys.ts";
 import { lifecycleArtifactLabel } from "./workbench-presentation.ts";
 import {
   WorkflowStepFrame,
-  WorkflowStepIndex,
-  type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
   WorkbenchEmptyState,
@@ -52,8 +53,8 @@ const TaskDetail = ({
   <section className="order-approval-task-detail" data-testid="approval-task-detail">
     <div className="order-section-heading">
       <div>
-        <h2>{task.id}</h2>
-        <span>{task.objective}</span>
+        <h2>{task.objective}</h2>
+        <span>Signed implementation task</span>
       </div>
     </div>
     <MetadataList columns="multi">
@@ -98,6 +99,10 @@ const TaskDetail = ({
         </ul>
       </section>
     </div>
+    <WorkbenchDisclosure
+      label="Task technical details"
+      content={<dl><div><dt>Task id</dt><dd><code>{task.id}</code></dd></div></dl>}
+    />
   </section>
 );
 
@@ -109,14 +114,11 @@ const HistoricalTaskDetail = ({
   <section className="order-approval-task-detail" data-testid="approval-task-detail">
     <div className="order-section-heading">
       <div>
-        <h2>{task.planTaskId}</h2>
-        <span>{task.objective}</span>
+        <h2>{task.objective}</h2>
+        <span>Approved historical task</span>
       </div>
     </div>
     <MetadataList columns="multi">
-      <MetadataListItem label="Approval">
-        <code>{task.approvalId}</code>
-      </MetadataListItem>
       <MetadataListItem label="Execution state">
         {task.state.replaceAll("_", " ").toLowerCase()}
       </MetadataListItem>
@@ -161,6 +163,14 @@ const HistoricalTaskDetail = ({
         </ul>
       </section>
     </div>
+    <WorkbenchDisclosure
+      label="Task technical details"
+      content={<dl>
+        <div><dt>Execution task id</dt><dd><code>{task.id}</code></dd></div>
+        <div><dt>Plan task id</dt><dd><code>{task.planTaskId}</code></dd></div>
+        <div><dt>Approval id</dt><dd><code>{task.approvalId}</code></dd></div>
+      </dl>}
+    />
   </section>
 );
 
@@ -170,6 +180,7 @@ export const SignoffReview = ({
   packageValue,
   packageFetching,
   packageError,
+  packageStale = false,
   artifacts,
   artifactsPending,
   artifactsError,
@@ -186,6 +197,7 @@ export const SignoffReview = ({
   packageValue: SignoffPackage | null;
   packageFetching: boolean;
   packageError: unknown;
+  packageStale?: boolean;
   artifacts: readonly ArtifactRef[];
   artifactsPending: boolean;
   artifactsError: unknown;
@@ -255,64 +267,49 @@ export const SignoffReview = ({
     },
   });
 
-  const groups: WorkflowStepIndexGroup[] = [
-    {
-      id: "overview",
-      label: "Package",
-      items: [{
-        id: "overview",
-        label: "Overview",
-        description: "Exact package and approval decision",
-        selected: selection.kind === "OVERVIEW",
-        onSelect: () => setSelection({ kind: "OVERVIEW" }),
-      }],
-    },
-  ];
-
-  if (packageArtifacts.length > 0) {
-    groups.push({
-      id: "documents",
-      label: "Governed documents",
-      items: packageArtifacts.map((artifact) => ({
-        id: artifact.id,
-        label: lifecycleArtifactLabel(artifact.role),
-        description: artifact.repositoryPath,
-        selected:
-          selection.kind === "DOCUMENT" &&
-          selection.artifactId === artifact.id,
-        onSelect: () =>
-          setSelection({ kind: "DOCUMENT", artifactId: artifact.id }),
-      })),
-    });
-  }
-
   const currentTasks = packageValue?.taskBlock.tasks ?? [];
   const historicalTasks = tasks;
   const approvalCompleted = !currentApproval && historicalTasks.length > 0;
-  if (
-    (currentApproval && currentTasks.length > 0) ||
-    (!currentApproval && historicalTasks.length > 0)
-  ) {
-    groups.push({
-      id: "tasks",
-      label: "Signed tasks",
-      items: currentApproval
-        ? currentTasks.map((task) => ({
-            id: task.id,
-            label: task.id,
-            description: task.objective,
-            selected: selection.kind === "TASK" && selection.taskId === task.id,
-            onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
-          }))
-        : historicalTasks.map((task) => ({
-            id: task.id,
-            label: task.planTaskId,
-            description: task.objective,
-            selected: selection.kind === "TASK" && selection.taskId === task.id,
-            onSelect: () => setSelection({ kind: "TASK", taskId: task.id }),
-          })),
-    });
-  }
+
+  const packageMaterial = (
+    <WorkbenchDisclosure
+      label="Package material"
+      content={
+        <div className="order-resource-list">
+          <WorkbenchResourceRow
+            label="Approval overview"
+            detail={
+              packageStale
+                ? "Stale package history and recovery context"
+                : currentApproval
+                  ? "Exact current package and authorization"
+                  : "Reached Approval history"
+            }
+            actionLabel="Open approval overview"
+            onOpen={() => setSelection({ kind: "OVERVIEW" })}
+          />
+          {packageArtifacts.map((artifact) => (
+            <WorkbenchResourceRow
+              key={artifact.id}
+              label={lifecycleArtifactLabel(artifact.role)}
+              detail="Read-only governed package material"
+              actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
+              onOpen={() => setSelection({ kind: "DOCUMENT", artifactId: artifact.id })}
+            />
+          ))}
+          {(currentApproval ? currentTasks : historicalTasks).map((task) => (
+            <WorkbenchResourceRow
+              key={task.id}
+              label={task.objective}
+              detail={currentApproval ? "Signed implementation task" : "Approved historical task"}
+              actionLabel={"Inspect task: " + task.objective}
+              onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
+            />
+          ))}
+        </div>
+      }
+    />
+  );
 
   const primary = (() => {
     if (
@@ -322,15 +319,19 @@ export const SignoffReview = ({
       return (
         <WorkbenchEmptyState
           compact
-          title={currentApproval
-            ? "Resolving exact package…"
-            : "Loading approved package history…"}
+          title={packageStale
+            ? "Loading historical package material…"
+            : currentApproval
+              ? "Resolving exact package…"
+              : "Loading approved package history…"}
         />
       );
     }
     if (
       artifactsError !== null ||
-      (currentApproval ? packageError !== null : tasksError !== null)
+      (currentApproval
+        ? packageError !== null && !packageStale
+        : tasksError !== null)
     ) {
       const error = artifactsError ??
         (currentApproval ? packageError : tasksError);
@@ -343,7 +344,32 @@ export const SignoffReview = ({
         />
       );
     }
-    if (currentApproval && !packageValue) {
+    if (
+      currentApproval &&
+      packageStale &&
+      selection.kind === "OVERVIEW"
+    ) {
+      return (
+        <section
+          className="order-workspace-section order-approval-overview"
+          data-testid="review-workspace"
+        >
+          <div className="order-section-heading">
+            <div>
+              <h2>Package no longer current</h2>
+              <span>Prior governed package material remains inspection-only</span>
+            </div>
+            <WorkbenchStatus tone="warning" label="Stale" />
+          </div>
+          <p>
+            Review the prior governed documents below while workflow ownership
+            returns to the canonical upstream owner. This package cannot be signed.
+          </p>
+        </section>
+      );
+    }
+
+    if (currentApproval && !packageValue && selection.kind === "OVERVIEW") {
       return (
         <WorkbenchEmptyState
           title="No current sign-off package"
@@ -357,6 +383,8 @@ export const SignoffReview = ({
         <ReadOnlyLifecycleDocumentMaterial
           workItem={workItem}
           artifactId={selectedArtifact.id}
+          historicalArtifact={packageStale ? selectedArtifact : undefined}
+          embeddedReadOnly={packageStale}
           onOpenArtifactEvidence={onOpenArtifactEvidence}
           onContextDocumentChange={onContextDocumentChange}
         />
@@ -423,31 +451,55 @@ export const SignoffReview = ({
       <section className="order-workspace-section order-approval-overview" data-testid="review-workspace">
         <div className="order-section-heading">
           <div>
-            <h2>Exact approval package</h2>
+            <h2>Package currentness</h2>
             <span>
               {packageValue.taskBlock.tasks.length} signed task
-              {packageValue.taskBlock.tasks.length === 1 ? "" : "s"} · package current
+              {packageValue.taskBlock.tasks.length === 1 ? "" : "s"} · exact package current
             </span>
           </div>
+          <WorkbenchStatus tone="success" label="Current" />
         </div>
 
-        <MetadataList
-          columns="multi"
-          title="Technical identity"
-          data-testid="approval-package-metadata"
-        >
-          <MetadataListItem label="Package">
-            <code data-testid="signoff-package-hash">{packageValue.packageHash}</code>
-          </MetadataListItem>
-          <MetadataListItem label="Source">
-            <code>{packageValue.sourceSha256}</code>
-          </MetadataListItem>
-          <MetadataListItem label="Baseline">
-            <code>{packageValue.baselineCommit}</code>
-          </MetadataListItem>
-        </MetadataList>
+        <section>
+          <h3>Signed task meaning / scope / gates</h3>
+          <div className="order-resource-list">
+            {packageValue.taskBlock.tasks.map((task) => (
+              <WorkbenchResourceRow
+                key={task.id}
+                label={task.objective}
+                detail={task.scope.length + " scope item" + (task.scope.length === 1 ? "" : "s") + " · " + task.gateIds.length + " gate" + (task.gateIds.length === 1 ? "" : "s")}
+                actionLabel={"Inspect signed task: " + task.objective}
+                onOpen={() => setSelection({ kind: "TASK", taskId: task.id })}
+              />
+            ))}
+          </div>
+        </section>
 
+        <section>
+          <h3>Governed documents</h3>
+          <p>{packageArtifacts.length} current package document{packageArtifacts.length === 1 ? "" : "s"} available for inspection.</p>
+        </section>
 
+        <WorkbenchDisclosure
+          label="Technical details"
+          content={
+            <MetadataList
+              columns="multi"
+              title="Technical identity"
+              data-testid="approval-package-metadata"
+            >
+              <MetadataListItem label="Package">
+                <code data-testid="signoff-package-hash">{packageValue.packageHash}</code>
+              </MetadataListItem>
+              <MetadataListItem label="Source">
+                <code>{packageValue.sourceSha256}</code>
+              </MetadataListItem>
+              <MetadataListItem label="Baseline">
+                <code>{packageValue.baselineCommit}</code>
+              </MetadataListItem>
+            </MetadataList>
+          }
+        />
       </section>
     );
   })();
@@ -457,23 +509,29 @@ export const SignoffReview = ({
     packageValue &&
     packageError === null &&
     !packageFetching ? (
-      <div className="order-approval-action-region">
-        <TextInput
-          label="Approved by"
-          description="Identify the operator authorizing this exact package."
-          value={approvedBy}
-          onChange={(value) => setApprovedBy(value)}
-          placeholder="Local operator identity"
-          isDisabled={mutationsDisabled || signoff.isPending}
-          width="100%"
+      <section className="order-approval-action-region">
+        <WorkbenchSectionHeader
+          title="Authorization"
+          description="Approver identity and exact-package decision remain in the Review decision region."
         />
-        <WorkbenchAction
-          label="Sign off exact package"
-          tone="primary"
-          loading={signoff.isPending}
-          disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
-          onClick={() => signoff.mutate()}
-        />
+        <div className="order-approval-authorization-controls">
+          <TextInput
+            label="Approved by"
+            description="Identify the operator authorizing this exact package."
+            value={approvedBy}
+            onChange={(value) => setApprovedBy(value)}
+            placeholder="Local operator identity"
+            isDisabled={mutationsDisabled || signoff.isPending}
+            width="100%"
+          />
+          <WorkbenchAction
+            label="Sign off exact package"
+            tone="primary"
+            loading={signoff.isPending}
+            disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
+            onClick={() => signoff.mutate()}
+          />
+        </div>
         {signoff.error ? (
           <WorkbenchErrorState
             title="Sign-off failed"
@@ -482,22 +540,22 @@ export const SignoffReview = ({
               : String(signoff.error)}
           />
         ) : null}
-      </div>
+      </section>
     ) : null;
 
   return (
     <WorkflowStepFrame
       summary={summary}
-      index={<WorkflowStepIndex groups={groups} label="Approval package" />}
-      indexLabel="Approval package"
       primary={
         <WorkbenchReview
           currentness={
             <WorkbenchStatus
               tone={currentApproval ? "warning" : approvalCompleted ? "success" : "neutral"}
               label={
-                currentApproval
-                  ? "Awaiting authorization"
+                packageStale
+                  ? "Package stale"
+                  : currentApproval
+                    ? "Awaiting authorization"
                   : approvalCompleted
                     ? "Approved package history"
                     : "Returned before sign-off"
@@ -507,22 +565,31 @@ export const SignoffReview = ({
           summary={
             <div>
               <h2>
-                {currentApproval
-                  ? "Exact approval package"
+                {packageStale
+                  ? "Stale approval package"
+                  : currentApproval
+                    ? "Exact approval package"
                   : approvalCompleted
                     ? "Approved package"
                     : "Approval history"}
               </h2>
               <p>
-                {currentApproval
-                  ? "Review and authorize the exact signed package."
+                {packageStale
+                  ? "Inspect the prior governed package material while the canonical upstream owner is restored."
+                  : currentApproval
+                    ? "Review and authorize the exact signed package."
                   : approvalCompleted
                     ? "Inspect the governed package retained after approval."
                     : "Inspect the reached Approval stage retained after the workflow returned upstream without sign-off."}
               </p>
             </div>
           }
-          body={primary}
+          body={
+            <div className="order-review-material-stack">
+              {primary}
+              <div className="order-review-supporting-disclosure">{packageMaterial}</div>
+            </div>
+          }
           decisions={approvalAction ?? <></>}
         />
       }

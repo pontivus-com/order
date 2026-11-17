@@ -26,6 +26,7 @@ import {
   semanticRepairIsAllowed,
 } from "../core/execution.ts";
 import {
+  deriveExecutionOwner,
   routeApprovalStale,
   routeValidationFailure,
   transitionWorkItem,
@@ -69,12 +70,14 @@ import {
 import { type ActiveProvider, type CoordinatorRuntime } from "./runtime.ts";
 import {
   appendRunEvent,
+  createAgentActivityRecorder,
   failRunForProductiveInvocation,
   failRunForProvider,
   getRun,
   getRunEvent,
   insertRun,
   listRunEvents,
+  listRuns,
   nextAttempt,
   persistProviderEvents,
   readEvidenceRef,
@@ -88,6 +91,7 @@ import {
   approvalChangedOwners,
   approvalClosure,
   currentMaterialFresh,
+  currentApprovalForWorkItem,
   approvalContext,
   canonicalTasksForApproval,
   getApproval,
@@ -458,6 +462,7 @@ export const executeMutatingRun = async (
           stderr,
         );
       },
+      createAgentActivityRecorder(runtime, run.id),
     );
     const accepted = persistExecutionProviderEvents(runtime, run, payloads);
     if (accepted === null) return;
@@ -783,6 +788,7 @@ export const executeReviewerRun = async (
           stderr,
         );
       },
+      createAgentActivityRecorder(runtime, run.id),
     );
     const accepted = persistExecutionProviderEvents(runtime, run, payloads);
     if (accepted === null) return;
@@ -1132,6 +1138,78 @@ export const currentRunningTask = async (
       taskId,
       planBytes,
     ),
+  };
+};
+
+export const startExactExecutionTask = async (
+  runtime: CoordinatorRuntime,
+  workItemId: WorkItemId,
+  executionTaskId: ExecutionTaskId,
+): Promise<Readonly<{
+  workItem: WorkItem;
+  approval: Approval;
+  task: ExecutionTask;
+  run: Run;
+}>> => {
+  const workItem = getWorkItem(runtime, workItemId);
+  if (workItem.stage !== "EXECUTION" || workItem.status !== "ACTIVE") {
+    throw new TypeError("manual execution start requires EXECUTION / ACTIVE WorkItem");
+  }
+
+  const approval = currentApprovalForWorkItem(runtime, workItem.id);
+  if (approval === null) {
+    throw new TypeError("manual execution start requires current Approval");
+  }
+  const tasks = await canonicalTasksForApproval(runtime, approval);
+  const task = tasks.find((candidate) => candidate.id === executionTaskId);
+  if (task === undefined) {
+    throw new TypeError("execution task does not belong to current Approval");
+  }
+
+  const owner = deriveExecutionOwner(tasks, listRuns(runtime, workItem.id));
+  if (owner.tag !== "CURRENT_TASK" || owner.taskId !== task.id) {
+    throw new TypeError("execution task is not the canonical current task");
+  }
+  if (!executionTaskIsEligible(task, tasks)) {
+    throw new TypeError("execution task is not currently eligible");
+  }
+  if (!(await currentMaterialFresh(runtime, approval))) {
+    throw new TypeError("current Approval material is stale");
+  }
+
+  const context = await approvalContext(runtime, approval, task, "BUILDER");
+  const run = withTransaction(runtime.database, () => {
+    const currentWorkItem = getWorkItem(runtime, workItem.id);
+    if (
+      currentWorkItem.stage !== "EXECUTION" ||
+      currentWorkItem.status !== "ACTIVE"
+    ) {
+      throw new TypeError("WorkItem changed before manual execution start");
+    }
+    const currentApproval = currentApprovalForWorkItem(runtime, workItem.id);
+    if (currentApproval?.id !== approval.id) {
+      throw new TypeError("Approval changed before manual execution start");
+    }
+    if (countRunningExecutionTasks(runtime.database) !== 0) {
+      throw new TypeError("another ExecutionTask became RUNNING");
+    }
+    markTaskState(runtime, task.id, "RUNNING");
+    return createExecutionRun(
+      runtime,
+      currentWorkItem,
+      { ...task, state: "RUNNING" },
+      approval,
+      "BUILDER",
+      null,
+      context.contextHash,
+    );
+  });
+
+  return {
+    workItem,
+    approval,
+    task: { ...task, state: "RUNNING" },
+    run,
   };
 };
 

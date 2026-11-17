@@ -129,7 +129,7 @@ Order does not use OpenCode steering/queue features to create concurrent Order d
 
 ## 8. Completion and reconciliation
 
-v1 does not subscribe to OpenCode's live event stream and does not use experimental `session.wait` for correctness.
+v1 does not use OpenCode's live event stream or experimental `session.wait` as correctness/completion authority. It may subscribe to the released authenticated event stream only for the bounded best-effort operator activity defined in §8.1; missing activity never changes the completion algorithm below.
 
 For each serialized productive turn Order:
 
@@ -149,13 +149,52 @@ Provider-process loss never authorizes hidden provider resumption. Pre-signoff r
 
 The browser never consumes OpenCode events directly.
 
+### 8.1 Bounded operator-visible activity
+
+OpenCode's live event stream is authorized only as a **best-effort observational input** for operator-visible activity. It is not completion authority, workflow authority or history completeness authority.
+
+For each productive turn the shell may consume the pinned authenticated event stream and may inspect released `session.context` tool parts, but provider-native values remain inside the shell.
+
+The shell projects only allowlisted, bounded facts into the coordinator-owned activity contract in `GW-DOC-CANONICAL-CONTRACTS-V1`.
+
+The effect boundary is explicit: the daemon's existing Run owner creates one per-provider-turn activity-recorder callback and passes that callback into the provider invocation. The callback accepts only the canonical `AGENT_ACTIVITY_RECORDED` payload shape. `opencode.ts` does not import daemon persistence or append RunEvents. Provider-native event/tool types are normalized/redacted before the callback is invoked, so they never cross the shell boundary. The Run owner, not the shell, enforces the persisted per-turn cap/deduplication law.
+
+Within that boundary:
+
+- Order-owned phases such as preparing context, waiting on provider, running checks, reviewing results and retry/recovery are recorded directly where objectively known;
+- recognized public provider tool activity may map to reading, searching or editing;
+- unknown provider events/tools are omitted rather than guessed;
+- raw tool input/output/result/metadata/native payloads, hidden reasoning, token content, credentials and protocol identifiers never enter the activity projection;
+- a resource label is retained only when it can be proved as a safe normalized repository-relative resource; otherwise it is null;
+- activity is coalesced/bounded per turn by the canonical contract.
+
+A live-event disconnect or missed event does not fail, retry, block or otherwise change a Run. The canonical Processing state remains truthful without detailed activity.
+
+After a successful terminal turn, the released `session.context` projection is the reliable reconciliation source for a bounded post-turn activity summary. Order may add normalized activity observations that were missed by the live stream, subject to the same cap/redaction/deduplication law.
+
+This does not change §8 completion semantics: `session.get` idle/outcome and successful `session.context` remain the only productive completion path.
+
 ## 9. Semantic output
 
 Order does not depend on a legacy OpenCode SDK structured-output feature.
 
 The productive prompt requires the final assistant message to contain only a JSON array of provider-emittable canonical `RunEventPayload` values in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
 
+For STAGE turns, `providerOutputContract("STAGE")` is the **single producer rendering** of the complete-array grammar. Stage-specific prompt context does not maintain another partial copy of that grammar. The producer contract explicitly states the same rules enforced by the core consumer validator, including:
+
+- one non-empty batch;
+- closed controlling-event cardinality/exclusion;
+- lifecycle-proposal cardinality/current-owner rules;
+- proposal/control exclusion;
+- stage/role matching;
+- at most one final agent message;
+- exactly one non-blank final agent message when the turn has no controlling event.
+
+The last rule guarantees a substantive conversational anchor whenever the resulting STAGE interaction is OPEN. A `HUMAN_INPUT_REQUESTED` question is itself the anchor for required input; block/completion turns do not create a reply surface.
+
 Order retrieves the completed assistant message through the released V2 session contract, parses JSON and validates it with the canonical Zod schema. If formatting alone is invalid, Order may perform exactly one tool-disabled format-repair turn whose only job is to re-encode the immediately preceding answer. A second invalid result is `PROVIDER_FAILED`.
+
+A provider-successful response can still fail later Order STAGE-batch admission. In that case the raw assistant output is not persisted; the daemon records only the bounded Order-admission diagnostic defined by the canonical contracts and fails the Run without persisting any rejected workflow effect.
 
 A later native schema-output contract may replace this rendering only after a pinned V2 capability audit; Zod validation remains mandatory.
 
@@ -244,6 +283,8 @@ Order does not add a second account store merely to support the browser.
 An OpenCode upgrade is never transparent.
 
 Before changing the pinned server/client version, Order re-verifies V2 authenticated server-info readiness/version, session create/get/prompt/context, deterministic prompt-id admission/idempotency, monotonic `Session.Info.time.idle`/outcome completion semantics, final context retrieval, foreground-`serve` restart behavior, exact model switch/read-back, session permission enforcement, interrupt, auth namespace, OpenCode Console integration/account projection, OAuth attempt lifecycle, saved-credential activation/label update behavior and final message retrieval.
+
+The 0.5.0 certification also proves that the pinned public event stream can be consumed as best-effort activity without becoming a correctness dependency, and that successful `session.context` exposes the tool-part fields needed for the bounded terminal activity reconciliation. Loss of the event stream must not change provider completion/recovery semantics.
 
 OpenCode-specific shapes stay in the imperative shell and never enter Order's domain model.
 

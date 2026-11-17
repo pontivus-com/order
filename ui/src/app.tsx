@@ -4,6 +4,7 @@ import {
   SegmentedControl,
   SegmentedControlItem,
 } from "@astryxdesign/core/SegmentedControl";
+import { Link } from "@astryxdesign/core/Link";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 
@@ -18,7 +19,11 @@ import {
 import * as api from "./http.ts";
 import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
-import type { WorkflowMaterial } from "./workbench-presentation.ts";
+import {
+  installationReadinessBlockerText,
+  settingsDestinationForReadinessBlocker,
+  type WorkflowMaterial,
+} from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -69,13 +74,6 @@ const firstProjectId = (
 
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
-
-const settingsSectionForBlocker = (blocker: string | undefined): SettingsSection =>
-  blocker === "OPENCODE_ACCOUNT_REQUIRED"
-    ? "opencode"
-    : blocker === "MODEL_INVALID"
-      ? "model"
-      : "repositories";
 
 const settingsSectionFromUrl = (): SettingsSection | null => {
   const path = new URL(window.location.href).pathname;
@@ -186,6 +184,11 @@ export const App = () => {
 
   const workItems = workItemsQuery.data ?? [];
   const selectedWorkItem = selectedWorkItemQuery.data ?? null;
+  const derivedFromWorkItem = derivedFromWorkItemId === null
+    ? null
+    : selectedWorkItem?.id === derivedFromWorkItemId
+      ? selectedWorkItem
+      : workItems.find((item) => item.id === derivedFromWorkItemId) ?? null;
 
   useEffect(() => {
     if (projectId.length === 0 && projectsQuery.data?.length) {
@@ -372,25 +375,6 @@ export const App = () => {
                   : "Governed work queue"}
             </span>
           </div>
-          {settingsSection === null ? (
-            <WorkbenchAction
-              label="New work item"
-              icon={<WorkbenchIcon name="add" />}
-              iconOnly={selectedWorkItem !== null}
-              onClick={() => {
-                resetCreate();
-                setCreateOpen(true);
-              }}
-            />
-          ) : null}
-          {selectedWorkItem === null && settingsSection === null ? (
-            <WorkbenchAction
-              label={refresh.isPending ? "Refreshing…" : "Refresh sources"}
-              icon={<WorkbenchIcon name="refresh" />}
-              loading={refresh.isPending}
-              onClick={() => refresh.mutate()}
-            />
-          ) : null}
           {settingsSection !== null ? (
             <WorkbenchUtilityLink
               label="Back to work queue"
@@ -402,14 +386,8 @@ export const App = () => {
       }
       end={
         <>
-          {selectedWorkItem === null && settingsSection === null ? (
-            <WorkbenchToolbarSearch
-              value={search}
-              onChange={setSearch}
-            />
-          ) : null}
           <WorkbenchToolbarUtilities>
-            <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
+            {selectedWorkItem ? null : <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />}
             <WorkbenchUtilityLink
               label="Settings"
               href={"/settings/" + (settingsSection ?? "repositories")}
@@ -435,6 +413,16 @@ export const App = () => {
         </>
       }
     />
+  );
+
+  const queueControls = (
+    <div className="order-queue-controls">
+      <WorkbenchToolbarGroup>
+        <WorkbenchAction label="New work item" tone="primary" icon={<WorkbenchIcon name="add" />} onClick={() => { resetCreate(); setCreateOpen(true); }} />
+        <WorkbenchAction label={refresh.isPending ? "Refreshing…" : "Refresh sources"} icon={<WorkbenchIcon name="refresh" />} loading={refresh.isPending} onClick={() => refresh.mutate()} />
+      </WorkbenchToolbarGroup>
+      <WorkbenchToolbarSearch value={search} onChange={setSearch} />
+    </div>
   );
 
   const queue = workItemsQuery.isPending ? (
@@ -512,21 +500,21 @@ export const App = () => {
     />
   ) : (
     <div className="order-queue-page">
+      {queueControls}
       {readinessQuery.data && !readinessQuery.data.ready ? (
-        <WorkbenchNotice
-          tone="warning"
-          title="Setup requires attention"
-          description="Complete installation Settings before productive work."
-          action={
-            <WorkbenchAction
-              label="Open Settings"
-              tone="primary"
-              onClick={() => navigateSettings(
-                settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
-              )}
-            />
-          }
-        />
+        <section className="order-installation-readiness" data-testid="installation-readiness">
+          <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue never appears mysteriously empty." />
+          <div className="order-installation-readiness-blockers">
+            {readinessQuery.data.blockers.map((blocker) => {
+              const section = settingsDestinationForReadinessBlocker(blocker);
+              const destination = section === "repositories" ? "Repositories" : section === "opencode" ? "OpenCode accounts" : "Model & runtime";
+              return <div className="order-installation-readiness-row" key={blocker}>
+                <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>InstallationReadiness blocker</span></div>
+                <Link href={"/settings/" + section} isStandalone onClick={(event) => { event.preventDefault(); navigateSettings(section); }}>{"Open " + destination}</Link>
+              </div>;
+            })}
+          </div>
+        </section>
       ) : null}
       {(diagnosticsQuery.data ?? []).length > 0 ? (
         <div data-testid="source-diagnostics">
@@ -596,7 +584,7 @@ export const App = () => {
               title={title}
               concernIds={concernIds}
               availableConcernIds={availableConcernIds}
-              derivedFromWorkItemId={derivedFromWorkItemId}
+              derivedFromWorkItem={derivedFromWorkItem}
               pending={create.isPending}
               error={create.error ? errorText(create.error) : null}
               onProjectChange={setProjectId}
@@ -604,6 +592,10 @@ export const App = () => {
               onTitleChange={setTitle}
               onConcernIdsChange={setConcernIds}
               onSubmit={() => create.mutate()}
+              onCancel={() => {
+                setCreateOpen(false);
+                resetCreate();
+              }}
             />
           </Suspense>
         }
@@ -615,7 +607,7 @@ export const App = () => {
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
-        cancelLabel="Continue editing"
+        cancelLabel="Cancel"
         pending={false}
         onConfirm={() => {
           const next = pendingDestination;

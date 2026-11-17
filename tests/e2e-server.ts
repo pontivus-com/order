@@ -11,6 +11,7 @@ import { isAbsolute, join } from "node:path";
 import {
   ApprovalSchema,
   ArtifactRefSchema,
+  ExecutionTaskIdSchema,
   ExecutionTaskSchema,
   RunEventIdSchema,
   RunEventSchema,
@@ -116,13 +117,127 @@ const orderConfig = writeOrderConfig(stateRoot, {
   referenceRoots: [],
 });
 
-const planText = `# Browser certification plan
+const researchText = `# Research
+
+## Current state
+
+The current repository behavior and constraints have been inspected.
+
+## Findings
+
+The change is confirmed and the governing evidence is recorded.
+
+## Evidence
+
+- repository state inspected
+- workflow ownership confirmed
+`;
+const requirementsText = `# Requirements
+
+## Purpose / product model
+
+The operator can see where the work is, what requires attention and what action is valid next.
+
+## Work type × workflow step × current interaction
+
+Task purpose, available information, expected output and valid actions are derived from the canonical work type and lifecycle state.
+
+## Information hierarchy
+
+Primary work and current attention outrank supporting context, agent activity, history/evidence and technical detail.
+
+## Pre-signoff interaction
+
+Dialogue, proposal Review, governed Document and Evidence share one current-attention owner.
+
+## Supporting services
+
+Queue, Create, Settings, Context and Evidence remain coherent with the same task model.
+`;
+const designText = `# Solution design
+
+## 1. Context / governing constraints
+
+The governed Workbench requirements and reviewed reference set define the presentation contract.
+
+## 2. Goals / non-goals
+
+Preserve canonical workflow semantics while implementing the accepted information hierarchy and interaction composition.
+
+## 3. Canonical owner / affected boundaries
+
+Shared Workbench primitives own shell, attention, Dialogue, Document, Review and Evidence composition.
+
+## 4. Data / control flow
+
+Canonical WorkItem, Run, RunEvent and artifact facts are projected directly into the browser without duplicate workflow state.
+
+## 5. Decisions / rationale / alternatives
+
+Current task material remains primary; supporting authority and technical identity stay subordinate.
+
+## 6. Failure behavior
+
+Mutation conflicts, blockers, stale authority and provider failures remain visible in the same stable task geometry.
+
+## 7. Preservation / downstream invariants
+
+Responsive changes preserve the same semantic hierarchy and action ownership.
+
+## 8. Validation obligations
+
+Mechanical gates and direct SVG comparison must both pass before the phase closes.
+`;
+const planText = `# Implementation plan
+
+## Exact task units and dependencies
+
+Implement the shared Workbench foundation before the pre-signoff workflow surfaces.
+
+## Requirement and authority traceability
+
+Each task maps to the accepted Workbench requirements, solution design and reviewed SVG references.
+
+## Change surface
+
+Modify only canonical presentation owners proven to diverge from the accepted references.
+
+## Deletions, additions and modifications
+
+Remove superseded presentation paths, refine shared primitives and preserve existing semantic contracts.
+
+## Validation sequence
+
+Run typecheck, architecture, unit tests, build, browser behavior and direct SVG comparison.
+
+## Canonical order-tasks block
 
 \`\`\`order-tasks
 {"version":1,"tasks":[{"id":"T1","objective":"Prove the browser candidate surface","dependsOn":[],"scope":["src/a.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/a.ts"],"gateIds":[],"authorityRefs":[],"concernIds":[]}]}
 \`\`\`
 `;
-const r3Text = "# R3\n\nREADY_FOR_SIGNOFF\n";
+const historicalSelectionPlanText = `# Implementation plan
+
+## Canonical order-tasks block
+
+\`\`\`order-tasks
+{"version":1,"tasks":[{"id":"T1","objective":"Completed prerequisite","dependsOn":[],"scope":["src/a.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/a.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":[]},{"id":"T2","objective":"Current implementation task","dependsOn":["T1"],"scope":["src/b.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/b.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":[]}]}
+\`\`\`
+`;
+const r3Text = `# Readiness review
+
+## Verdict
+
+READY_FOR_SIGNOFF
+
+## Findings
+
+No unresolved defect blocks the exact governed package.
+
+## Package judgment
+
+The current package is coherent and ready for Approval.
+`;
 const manifestText = `version = 1
 projectId = "order-e2e"
 
@@ -141,10 +256,14 @@ gates = []
 `;
 
 writeFileSync(join(repositoryRoot, "pontivus-order.toml"), manifestText);
-writeFileSync(join(repositoryRoot, "docs", "r1.md"), "# R1 confirmed\n");
-writeFileSync(join(repositoryRoot, "docs", "r2.md"), "# R2 accepted\n");
-writeFileSync(join(repositoryRoot, "docs", "design.md"), "# DESIGN accepted\n");
+writeFileSync(join(repositoryRoot, "docs", "r1.md"), researchText);
+writeFileSync(join(repositoryRoot, "docs", "r2.md"), requirementsText);
+writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+writeFileSync(
+  join(repositoryRoot, "docs", "historical-selection-plan.md"),
+  historicalSelectionPlanText,
+);
 writeFileSync(join(repositoryRoot, "docs", "stale-approval-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-wide-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-narrow-plan.md"), planText);
@@ -198,7 +317,18 @@ if (build.exitCode !== 0) {
 const database = openOrderDatabase(stateRoot);
 const stamp = nowIsoDateTime();
 const encoder = new TextEncoder();
+const requirementsSha = sha256(
+  new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r2.md"))),
+);
+const designSha = sha256(
+  new Uint8Array(readFileSync(join(repositoryRoot, "docs", "design.md"))),
+);
 const planSha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "plan.md"))));
+const historicalSelectionPlanSha = sha256(
+  new Uint8Array(
+    readFileSync(join(repositoryRoot, "docs", "historical-selection-plan.md")),
+  ),
+);
 const r3Sha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r3.md"))));
 
 const workItem = (
@@ -222,7 +352,7 @@ const workItem = (
     | "DUPLICATE"
     | "ALREADY_SATISFIED"
     | null,
-  schemaId: "change-v1" | "investigation-v1" | "audit-v1" = "change-v1",
+  schemaId: "change-v1" | "defect-v1" | "investigation-v1" | "audit-v1" = "change-v1",
 ) => {
   const id = newWorkItemId();
   const markdown = renderWorkItemSourceMarkdown(
@@ -260,14 +390,18 @@ const workItem = (
   });
 };
 
-const storePlanArtifacts = (workItemId: WorkItemId) => {
+const storePlanArtifacts = (
+  workItemId: WorkItemId,
+  planRepositoryPath = "docs/plan.md",
+  planDigest = planSha,
+) => {
   const plan = ArtifactRefSchema.parse({
     id: newArtifactRefId(),
     workItemId,
-    repositoryPath: "docs/plan.md",
+    repositoryPath: planRepositoryPath,
     role: "PLAN",
     authorityLayer: "P7",
-    sha256: planSha,
+    sha256: planDigest,
     gitCommit: baselineCommit,
   });
   const r3 = ArtifactRefSchema.parse({
@@ -283,6 +417,14 @@ const storePlanArtifacts = (workItemId: WorkItemId) => {
   storeArtifact(database, r3);
   return { plan, r3 };
 };
+
+const workTypeItems = [
+  workItem("Change work type", "IDEA", "ACTIVE", null, "change-v1"),
+  workItem("Defect work type", "IDEA", "ACTIVE", null, "defect-v1"),
+  workItem("Investigation work type", "IDEA", "ACTIVE", null, "investigation-v1"),
+  workItem("Audit work type", "IDEA", "ACTIVE", null, "audit-v1"),
+] as const;
+for (const item of workTypeItems) storeWorkItem(database, item);
 
 const startResearchItem = workItem("Work request start success", "IDEA", "ACTIVE", null);
 storeWorkItem(database, startResearchItem);
@@ -317,7 +459,7 @@ const proposalRun = RunSchema.parse({
   mode: "INTERACTIVE",
   role: "STAGE",
   triggerEventId: null,
-  status: "WAITING_FOR_INPUT",
+  status: "RUNNING",
   attempt: 2,
   baselineCommit,
   contextHash: sha256Text("proposal-context"),
@@ -326,7 +468,6 @@ const proposalRun = RunSchema.parse({
   startedAt: stamp,
   endedAt: null,
 });
-storeRun(database, proposalRun);
 
 const persistEvent = (
   runId: RunId,
@@ -371,38 +512,8 @@ persistEvent(historicalProposalRun.id, 4, {
   adoptedArtifactRefId: proposalArtifacts.plan.id,
 });
 
-persistEvent(proposalRun.id, 1, {
-  tag: "STAGE_STARTED",
-  stage: "PLAN",
-  mode: "INTERACTIVE",
-  contextHash: proposalRun.contextHash,
-});
-persistEvent(proposalRun.id, 2, {
-  tag: "AGENT_MESSAGE_FINAL",
-  text: "The plan is ready for operator review.",
-  evidence: [],
-});
-const proposalInputRequest = persistEvent(proposalRun.id, 3, {
-  tag: "HUMAN_INPUT_REQUESTED",
-  category: "INFORMATION",
-  question: "Confirm the proposal should be reviewed.",
-});
-persistEvent(proposalRun.id, 4, {
-  tag: "HUMAN_INPUT_RECEIVED",
-  requestEventId: proposalInputRequest.id,
-  text: "Review the proposal.",
-});
 const proposalPath = `${workItemsRoot}/${proposalItem.id}/implementation-plan.md`;
-const proposal = persistEvent(proposalRun.id, 5, {
-  tag: "ARTIFACT_PROPOSAL_CREATED",
-  targetPath: proposalPath,
-  baseSha256: null,
-  role: "PLAN",
-  authorityLayer: "P7",
-  unifiedDiff:
-    "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
-  rationale: "Exercise the canonical proposal disposition surface.",
-});
+let proposalEventId: string | null = null;
 const rejectionItem = workItem("Proposal rejection review", "PLAN", "ACTIVE", null);
 storeWorkItem(database, rejectionItem);
 const rejectionRun = RunSchema.parse({
@@ -641,6 +752,51 @@ const seedProgressionReadyItem = async (
   return item;
 };
 
+const seedCurrentStageDocumentItem = async (
+  title: string,
+  currentStage: "R1" | "R2" | "DESIGN" | "PLAN" | "R3",
+) => {
+  const item = workItem(title, currentStage, "ACTIVE", null);
+  storeWorkItem(database, item);
+  const definitions = [
+    { stage: "R1", path: "docs/r1.md", role: "R1", layer: "P1" },
+    { stage: "R2", path: "docs/r2.md", role: "R2", layer: "P3" },
+    { stage: "DESIGN", path: "docs/design.md", role: "DESIGN", layer: "P6" },
+    { stage: "PLAN", path: "docs/plan.md", role: "PLAN", layer: "P7" },
+    { stage: "R3", path: "docs/r3.md", role: "R3", layer: "P7" },
+  ] as const;
+  const currentIndex = definitions.findIndex((definition) => definition.stage === currentStage);
+  for (let index = 0; index < currentIndex; index += 1) {
+    const definition = definitions[index]!;
+    const upstream = await currentFileArtifact(
+      seedRuntime,
+      item,
+      definition.path,
+      definition.role,
+      definition.layer,
+    );
+    const completion =
+      definition.stage === "R1"
+        ? { stage: "R1", outcome: "CONFIRMED" } as const
+        : definition.stage === "R2"
+          ? { stage: "R2", outcome: "ACCEPTED" } as const
+          : definition.stage === "DESIGN"
+            ? { stage: "DESIGN", outcome: "ACCEPTED" } as const
+            : { stage: "PLAN", outcome: "ACCEPTED" } as const;
+    await seedConformance(item, definition.stage, upstream, completion);
+  }
+  const current = definitions[currentIndex]!;
+  const output = await currentFileArtifact(
+    seedRuntime,
+    item,
+    current.path,
+    current.role,
+    current.layer,
+  );
+  await seedConformance(item, current.stage, output);
+  return item;
+};
+
 await seedProgressionReadyItem(
   "Requirements ready after Research",
   "R2",
@@ -657,6 +813,45 @@ await seedProgressionReadyItem(
   "Readiness ready after Plan",
   "R3",
 );
+await seedCurrentStageDocumentItem("Requirements document visual", "R2");
+await seedCurrentStageDocumentItem("Solution design document visual", "DESIGN");
+await seedCurrentStageDocumentItem("Implementation plan document visual", "PLAN");
+await seedCurrentStageDocumentItem("Implementation plan safety visual", "PLAN");
+await seedCurrentStageDocumentItem("Readiness review document visual", "R3");
+
+const readinessInputItem = await seedProgressionReadyItem(
+  "Readiness input required",
+  "R3",
+);
+const readinessInputRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: readinessInputItem.id,
+  executionTaskId: null,
+  stage: "R3",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "WAITING_FOR_INPUT",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("readiness-input-required-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
+storeRun(database, readinessInputRun);
+persistEvent(readinessInputRun.id, 1, {
+  tag: "STAGE_STARTED",
+  stage: "R3",
+  mode: "INTERACTIVE",
+  contextHash: readinessInputRun.contextHash,
+});
+persistEvent(readinessInputRun.id, 2, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Which readiness finding should be resolved before approval?",
+});
 
 const feedbackItem = workItem(
   "Workflow failure feedback",
@@ -833,6 +1028,52 @@ persistEvent(resumeRun.id, 1, {
   owningStage: "PLAN",
 });
 
+const processingAttentionItem = workItem(
+  "Research processing attention visual",
+  "IDEA",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, processingAttentionItem);
+const processingDialogueItem = workItem(
+  "Research processing dialogue visual",
+  "IDEA",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, processingDialogueItem);
+
+const openContinuationItem = workItem(
+  "Research open continuation",
+  "R1",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, openContinuationItem);
+await currentFileArtifact(
+  seedRuntime,
+  openContinuationItem,
+  "docs/r1.md",
+  "R1",
+  "P1",
+);
+const openContinuationRun = RunSchema.parse({
+  id: newRunId(),
+  workItemId: openContinuationItem.id,
+  executionTaskId: null,
+  stage: "R1",
+  mode: "INTERACTIVE",
+  role: "STAGE",
+  triggerEventId: null,
+  status: "RUNNING",
+  attempt: 1,
+  baselineCommit,
+  contextHash: sha256Text("open-continuation-context"),
+  providerSessionId: null,
+  terminalClassification: null,
+  startedAt: stamp,
+  endedAt: null,
+});
 const waitingInputItem = workItem(
   "Workflow input required",
   "PLAN",
@@ -1115,6 +1356,63 @@ const implementationReady = seedExecutionFeedback(
   "TODO",
 );
 
+const historicalSelectionItem = workItem(
+  "Implementation historical selection",
+  "EXECUTION",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, historicalSelectionItem);
+const historicalSelectionArtifacts = storePlanArtifacts(
+  historicalSelectionItem.id,
+  "docs/historical-selection-plan.md",
+  historicalSelectionPlanSha,
+);
+const historicalSelectionApproval = ApprovalSchema.parse({
+  id: newApprovalId(),
+  workItemId: historicalSelectionItem.id,
+  baselineCommit,
+  packageHash: sha256Text("implementation-historical-selection-package"),
+  planArtifactRefId: historicalSelectionArtifacts.plan.id,
+  r3ArtifactRefId: historicalSelectionArtifacts.r3.id,
+  sourceSha256: historicalSelectionItem.sourceSha256,
+  approvedBy: "browser-certification",
+  approvedAt: stamp,
+});
+storeApproval(database, historicalSelectionApproval);
+const historicalSelectionCompletedTask = ExecutionTaskSchema.parse({
+  id: newExecutionTaskId(),
+  approvalId: historicalSelectionApproval.id,
+  planTaskId: "T1",
+  objective: "Completed prerequisite",
+  dependsOn: [],
+  scope: ["src/a.ts"],
+  exclusions: [],
+  acceptanceRefs: [],
+  changeSurface: ["src/a.ts"],
+  gateIds: ["test"],
+  authorityRefs: [],
+  concernIds: [],
+  state: "ALREADY_SATISFIED",
+});
+storeExecutionTask(database, historicalSelectionCompletedTask);
+const historicalSelectionCurrentTask = ExecutionTaskSchema.parse({
+  id: newExecutionTaskId(),
+  approvalId: historicalSelectionApproval.id,
+  planTaskId: "T2",
+  objective: "Current implementation task",
+  dependsOn: [historicalSelectionCompletedTask.id],
+  scope: ["src/b.ts"],
+  exclusions: [],
+  acceptanceRefs: [],
+  changeSurface: ["src/b.ts"],
+  gateIds: ["test"],
+  authorityRefs: [],
+  concernIds: [],
+  state: "TODO",
+});
+storeExecutionTask(database, historicalSelectionCurrentTask);
+
 const alreadySatisfied = seedExecutionFeedback(
   "Already satisfied implementation",
   {
@@ -1221,6 +1519,26 @@ persistEvent(failedReviewerRun.id, 2, {
 const candidateItem = workItem("Verified candidate", "COMPLETE", "COMPLETE", "CANDIDATE_DONE");
 storeWorkItem(database, candidateItem);
 const candidateArtifacts = storePlanArtifacts(candidateItem.id);
+const candidateRequirements = ArtifactRefSchema.parse({
+  id: newArtifactRefId(),
+  workItemId: candidateItem.id,
+  repositoryPath: "docs/r2.md",
+  role: "R2",
+  authorityLayer: "P7",
+  sha256: requirementsSha,
+  gitCommit: baselineCommit,
+});
+const candidateDesign = ArtifactRefSchema.parse({
+  id: newArtifactRefId(),
+  workItemId: candidateItem.id,
+  repositoryPath: "docs/design.md",
+  role: "DESIGN",
+  authorityLayer: "P7",
+  sha256: designSha,
+  gitCommit: baselineCommit,
+});
+storeArtifact(database, candidateRequirements);
+storeArtifact(database, candidateDesign);
 const approval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: candidateItem.id,
@@ -1324,6 +1642,12 @@ persistEvent(reviewerRun.id, 10, {
   candidateStateEventId: candidateState.id,
   validationEventIds,
 });
+persistEvent(reviewerRun.id, 11, {
+  tag: "AGENT_ACTIVITY_RECORDED",
+  category: "REVIEWING_RESULTS",
+  summary: "Reviewing candidate evidence",
+  resource: "src/a.ts",
+});
 
 const discoveredId = newWorkItemId();
 createWorkItemSourceFile(
@@ -1356,7 +1680,53 @@ const environment: NodeJS.ProcessEnv = {
   PONTIVUS_ORDER_BIND: "127.0.0.1:17347",
 };
 const daemon = await startOrderDaemon(environment);
-updateRun(daemon.coordinator, proposalRun.id, { status: "RUNNING" });
+
+insertRun(daemon.coordinator, openContinuationRun);
+appendRunEvent(daemon.coordinator, openContinuationRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "R1",
+  mode: "INTERACTIVE",
+  contextHash: openContinuationRun.contextHash,
+});
+appendRunEvent(daemon.coordinator, openContinuationRun.id, {
+  tag: "AGENT_MESSAGE_FINAL",
+  text: "The current Research findings are ready for your continuation.",
+  evidence: [],
+});
+
+insertRun(daemon.coordinator, proposalRun);
+appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "STAGE_STARTED",
+  stage: "PLAN",
+  mode: "INTERACTIVE",
+  contextHash: proposalRun.contextHash,
+});
+appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "AGENT_MESSAGE_FINAL",
+  text: "The plan is ready for operator review.",
+  evidence: [],
+});
+const liveProposalInputRequest = appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "HUMAN_INPUT_REQUESTED",
+  category: "INFORMATION",
+  question: "Confirm the proposal should be reviewed.",
+});
+appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "HUMAN_INPUT_RECEIVED",
+  requestEventId: liveProposalInputRequest.id,
+  text: "Review the proposal.",
+});
+const liveProposal = appendRunEvent(daemon.coordinator, proposalRun.id, {
+  tag: "ARTIFACT_PROPOSAL_CREATED",
+  targetPath: proposalPath,
+  baseSha256: null,
+  role: "PLAN",
+  authorityLayer: "P7",
+  unifiedDiff:
+    "--- /dev/null\n+++ b/" + proposalPath + "\n@@ -0,0 +1 @@\n+proposal\n",
+  rationale: "Exercise the canonical proposal disposition surface.",
+});
+proposalEventId = liveProposal.id;
 
 insertRun(daemon.coordinator, rejectionRun);
 appendRunEvent(daemon.coordinator, rejectionRun.id, {
@@ -1493,7 +1863,12 @@ const fixtureControl = Bun.serve({
     if (url.pathname === "/tick") {
       const workItemId = WorkItemIdSchema.parse(body.workItemId);
       const tasks = await listExecutionTasks(daemon.coordinator, workItemId);
-      const task = tasks[0];
+      const requestedTaskId = body.taskId === undefined
+        ? null
+        : ExecutionTaskIdSchema.parse(body.taskId);
+      const task = requestedTaskId === null
+        ? tasks[0]
+        : tasks.find((candidate) => candidate.id === requestedTaskId);
       if (task === undefined) {
         return new Response("fixture execution task missing", { status: 409 });
       }
@@ -1536,6 +1911,6 @@ process.once("SIGTERM", () => void stop());
 console.log(JSON.stringify({
   status: "ready",
   repositoryRoot,
-  proposalEventId: proposal.id,
+  proposalEventId,
 }));
 await new Promise<never>(() => undefined);

@@ -1282,10 +1282,158 @@ const providerOutputContract = (role: RunRole): string =>
     `For role ${role}, only these event tags are admitted: ${providerTagsForRole(role).join(", ")}.`,
     "Do not rename fields, add wrapper keys, or substitute synonyms.",
     role === "STAGE"
-      ? "For ARTIFACT_PROPOSAL_CREATED, unifiedDiff must be a complete Git unified diff whose decoded string ends with LF (U+000A); in JSON encode that final LF as \\n immediately before the closing quote. Do not omit it and do not rely on Order to append or normalize patch bytes."
+      ? [
+          "STAGE turn grammar: return a non-empty batch with at most one AGENT_MESSAGE_FINAL, HUMAN_INPUT_REQUESTED, STAGE_BLOCKED, STAGE_COMPLETED, and lifecycle ARTIFACT_PROPOSAL_CREATED.",
+          "HUMAN_INPUT_REQUESTED, STAGE_BLOCKED, and STAGE_COMPLETED are mutually exclusive controlling events.",
+          "A lifecycle proposal may coexist with exactly one non-blank AGENT_MESSAGE_FINAL, but may not coexist with a controlling event.",
+          "A non-controlling turn must include exactly one non-blank AGENT_MESSAGE_FINAL. HUMAN_INPUT_REQUESTED is itself the conversational anchor. STAGE_BLOCKED and STAGE_COMPLETED do not require an agent message.",
+          "OBSERVATION_RECORDED is observational and never satisfies the conversational-anchor rule.",
+          "For ARTIFACT_PROPOSAL_CREATED, unifiedDiff must be a complete Git unified diff whose decoded string ends with LF (U+000A); in JSON encode that final LF as \\n immediately before the closing quote. Do not omit it and do not rely on Order to append or normalize patch bytes.",
+        ].join(" ")
       : "",
     `Canonical RunEventPayload JSON Schema: ${RunEventPayloadJsonSchemaText}`,
   ].filter((value) => value.length > 0).join("\n");
+
+type AgentActivityEvent = Extract<
+  RunEventPayload,
+  { tag: "AGENT_ACTIVITY_RECORDED" }
+>;
+
+type AgentActivitySink = (
+  activity: AgentActivityEvent,
+) => void | Promise<void>;
+
+const activityForToolName = (
+  name: string,
+): AgentActivityEvent | null => {
+  const normalized = name.toLowerCase();
+  const category =
+    normalized === "read" || normalized.includes("read")
+      ? "READING"
+      : normalized === "grep" ||
+          normalized === "glob" ||
+          normalized.includes("search") ||
+          normalized.includes("find")
+        ? "SEARCHING"
+        : normalized.includes("edit") ||
+            normalized.includes("write") ||
+            normalized.includes("patch")
+          ? "EDITING"
+          : normalized.includes("bash") ||
+              normalized.includes("shell") ||
+              normalized.includes("execute") ||
+              normalized.includes("test")
+            ? "RUNNING_CHECKS"
+            : null;
+  if (category === null) return null;
+  const summary =
+    category === "READING" ? "Reading repository material"
+    : category === "SEARCHING" ? "Searching repository material"
+    : category === "EDITING" ? "Editing candidate files"
+    : "Running repository checks";
+  return {
+    tag: "AGENT_ACTIVITY_RECORDED",
+    category,
+    summary,
+    resource: null,
+  };
+};
+
+const recordTerminalContextActivity = async (
+  context: readonly SessionMessageInfo[],
+  promptId: string,
+  onActivity: AgentActivitySink,
+): Promise<void> => {
+  const promptIndex = context.findIndex(
+    (message) => message.type === "user" && message.id === promptId,
+  );
+  if (promptIndex === -1) return;
+  for (const message of context.slice(promptIndex + 1)) {
+    if (message.type !== "assistant") continue;
+    for (const part of message.content) {
+      if (part.type !== "tool") continue;
+      const activity = activityForToolName(part.name);
+      if (activity !== null) await onActivity(activity);
+      if (
+        activity !== null &&
+        (part.state.status === "completed" || part.state.status === "error")
+      ) {
+        await onActivity({
+          tag: "AGENT_ACTIVITY_RECORDED",
+          category: "REVIEWING_RESULTS",
+          summary: "Reviewing tool result",
+          resource: null,
+        });
+      }
+    }
+  }
+};
+
+const consumeLiveActivity = async (
+  client: OpenCodeClient,
+  sessionID: string,
+  signal: AbortSignal,
+  onActivity: AgentActivitySink,
+): Promise<void> => {
+  const toolNames = new Map<string, string>();
+  for await (const event of client.event.subscribe({ signal })) {
+    if (signal.aborted) return;
+    if (
+      "data" in event &&
+      event.data !== null &&
+      typeof event.data === "object" &&
+      "sessionID" in event.data &&
+      event.data.sessionID !== sessionID
+    ) {
+      continue;
+    }
+    switch (event.type) {
+      case "session.step.started":
+        if (event.data.sessionID === sessionID) {
+          await onActivity({
+            tag: "AGENT_ACTIVITY_RECORDED",
+            category: "PREPARING_CONTEXT",
+            summary: "Preparing agent step",
+            resource: null,
+          });
+        }
+        break;
+      case "session.tool.input.started":
+        if (event.data.sessionID === sessionID) {
+          toolNames.set(event.data.id, event.data.name);
+          const activity = activityForToolName(event.data.name);
+          if (activity !== null) await onActivity(activity);
+        }
+        break;
+      case "session.tool.success":
+      case "session.tool.failed":
+        if (event.data.sessionID === sessionID) {
+          const name = toolNames.get(event.data.id);
+          if (name !== undefined && activityForToolName(name) !== null) {
+            await onActivity({
+              tag: "AGENT_ACTIVITY_RECORDED",
+              category: "REVIEWING_RESULTS",
+              summary: "Reviewing tool result",
+              resource: null,
+            });
+          }
+        }
+        break;
+      case "session.retry.scheduled":
+        if (event.data.sessionID === sessionID) {
+          await onActivity({
+            tag: "AGENT_ACTIVITY_RECORDED",
+            category: "RETRYING",
+            summary: "Retrying provider request",
+            resource: null,
+          });
+        }
+        break;
+      default:
+        break;
+    }
+  }
+};
 
 const runPromptToText = async (
   client: OpenCodeClient,
@@ -1293,6 +1441,7 @@ const runPromptToText = async (
   promptId: string,
   prompt: string,
   timeoutMillis: number,
+  onActivity?: AgentActivitySink,
 ): Promise<string> => {
   let before: SessionInfo;
   try {
@@ -1302,6 +1451,17 @@ const runPromptToText = async (
   }
 
   const deadline = Date.now() + timeoutMillis;
+  const activityController = onActivity === undefined
+    ? null
+    : new AbortController();
+  if (activityController !== null && onActivity !== undefined) {
+    void consumeLiveActivity(
+      client,
+      sessionID,
+      activityController.signal,
+      onActivity,
+    ).catch(() => undefined);
+  }
   await promptWithReconciliation(client, sessionID, promptId, prompt);
 
   let terminal: SessionInfo;
@@ -1347,9 +1507,14 @@ const runPromptToText = async (
     throw providerTurnFailure("TRANSPORT_ERROR", "TRANSPORT", error);
   }
   try {
+    if (onActivity !== undefined) {
+      await recordTerminalContextActivity(context, promptId, onActivity);
+    }
     return completedAssistantText(context, promptId);
   } catch (error) {
     throw providerTurnFailure("FAILED", "COMPLETION", error);
+  } finally {
+    activityController?.abort();
   }
 };
 
@@ -1373,6 +1538,7 @@ export const runOpenCodeTurn = async (
     record: ProviderDiagnosticRecord,
     stderr: Uint8Array | null,
   ) => void | Promise<void>,
+  onActivity: AgentActivitySink = () => undefined,
 ): Promise<readonly RunEventPayload[]> => {
   const productivePermissions = openCodePermissionRules(role, task, referenceRoots);
   const promptId = openCodePromptId(run, triggeringRunEventId);
@@ -1391,6 +1557,7 @@ export const runOpenCodeTurn = async (
       promptId,
       [prompt, providerOutputContract(role)].join("\n\n"),
       productiveTurnTimeoutMillis,
+      onActivity,
     );
 
     try {

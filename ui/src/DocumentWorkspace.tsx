@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
+import { Markdown } from "@astryxdesign/core/Markdown";
 
 import {
   MarkdownTextSchema,
@@ -234,12 +235,7 @@ const DocumentationGitConfirmation = ({
     open={state.confirmGitSave}
     onOpenChange={state.setConfirmGitSave}
     title="Save WorkItem documentation to Git?"
-    description={
-      state.changedGitPaths.length === 0
-        ? "No governed WorkItem paths differ from HEAD."
-        : "Only these governed paths will be committed: " +
-          state.changedGitPaths.map((path) => path.repositoryPath).join(", ")
-    }
+    description="Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed."
     confirmLabel="Save documentation to Git"
     actionTone="primary"
     pending={state.commitDocumentation.isPending}
@@ -304,7 +300,8 @@ export const SourceDocumentMaterial = ({
     <section className="order-document-material" data-testid="source-document-material">
       <MarkdownEditor
         key={"source-" + workItem.id}
-        title="WorkItem source"
+        title="Work request"
+        editingTitle="WorkItem source"
         description={
           readOnly
             ? "Read-only supporting Work request context."
@@ -322,23 +319,26 @@ export const SourceDocumentMaterial = ({
         }}
         onSave={async (expectedSha256, value) => {
           try {
-            const result = await api.saveWorkItemSourceBody(workItem.id, {
+            return await api.saveWorkItemSourceBody(workItem.id, {
               expectedSha256,
               bodyMarkdown: value,
             });
-            if (result.tag === "UPDATED") {
-              await invalidateWorkbenchMutation(queryClient, workItem.id);
-            }
-            return result;
           } catch (error) {
             onMutationError?.(error);
             throw error;
           } finally {
-            await git.invalidateDocumentation();
+            await invalidateWorkbenchMutation(queryClient, workItem.id);
           }
         }}
         toolbarAccessory={
           sourceReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
+        }
+        viewAside={
+          <dl className="order-work-request-meta">
+            <div><dt>Work type</dt><dd>{git.sourceQuery.data.metadata.schemaId.replace("-v1", "").replace(/^./, (value) => value.toUpperCase())}</dd></div>
+            <div><dt>Project</dt><dd>{git.sourceQuery.data.metadata.projectId}</dd></div>
+            <div><dt>Concerns</dt><dd>{git.sourceQuery.data.metadata.concernIds.length === 0 ? "—" : git.sourceQuery.data.metadata.concernIds.join(", ")}</dd></div>
+          </dl>
         }
         technicalDetails={
           <DocumentationTechnicalDetails
@@ -366,11 +366,15 @@ export const LifecycleDocumentMaterial = ({
   onOpenArtifactEvidence,
   onContextDocumentChange,
   onMutationError,
+  embeddedReadOnly = false,
+  historicalArtifact,
 }: Readonly<{
   workItem: WorkItem;
   artifactId: ArtifactRef["id"];
   readOnly?: boolean;
   mutationsDisabled?: boolean;
+  embeddedReadOnly?: boolean;
+  historicalArtifact?: ArtifactRef;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
@@ -381,9 +385,12 @@ export const LifecycleDocumentMaterial = ({
   const artifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
+    enabled: historicalArtifact === undefined,
   });
   const selectedArtifact =
-    (artifactsQuery.data ?? []).find((artifact) => artifact.id === artifactId) ?? null;
+    historicalArtifact ??
+    (artifactsQuery.data ?? []).find((artifact) => artifact.id === artifactId) ??
+    null;
   const contentQuery = useQuery({
     queryKey: workbenchQueryKeys.artifactContent(selectedArtifact?.id ?? null),
     queryFn: () => {
@@ -410,11 +417,19 @@ export const LifecycleDocumentMaterial = ({
     selectedArtifact?.sha256,
   ]);
 
-  if (artifactsQuery.isPending || contentQuery.isPending) {
+  if (
+    (historicalArtifact === undefined && artifactsQuery.isPending) ||
+    contentQuery.isPending
+  ) {
     return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="loading" title="Loading lifecycle document…" /></section>;
   }
-  if (artifactsQuery.isError || contentQuery.isError) {
-    const error = artifactsQuery.error ?? contentQuery.error;
+  if (
+    (historicalArtifact === undefined && artifactsQuery.isError) ||
+    contentQuery.isError
+  ) {
+    const error = historicalArtifact === undefined
+      ? artifactsQuery.error ?? contentQuery.error
+      : contentQuery.error;
     return <section className="order-document-material" data-testid="lifecycle-document-material"><WorkbenchState kind="error" title="Lifecycle document unavailable" description={errorText(error)} /></section>;
   }
   if (!selectedArtifact || !contentQuery.data) {
@@ -446,6 +461,15 @@ export const LifecycleDocumentMaterial = ({
             </span>
           }
         />
+      ) : embeddedReadOnly && artifactReadOnly ? (
+        <div
+          className="order-readiness-governed-material"
+          data-testid="markdown-readonly"
+        >
+          <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
+            {markdown}
+          </Markdown>
+        </div>
       ) : (
         <MarkdownEditor
           key={selectedArtifact.id}
@@ -453,7 +477,7 @@ export const LifecycleDocumentMaterial = ({
           description={
             artifactReadOnly
               ? "Read-only in the current lifecycle state."
-              : selectedArtifact.repositoryPath
+              : "Canonical governed lifecycle document."
           }
           sha256={selectedArtifact.sha256}
           markdown={markdown}
@@ -464,23 +488,38 @@ export const LifecycleDocumentMaterial = ({
           }}
           onSave={async (expectedSha256, value) => {
             try {
-              const result = await api.saveArtifactContent(selectedArtifact.id, {
+              return await api.saveArtifactContent(selectedArtifact.id, {
                 expectedSha256,
                 markdown: value,
               });
-              if (result.tag === "UPDATED") {
-                await invalidateWorkbenchMutation(queryClient, workItem.id);
-              }
-              return result;
             } catch (error) {
               onMutationError?.(error);
               throw error;
             } finally {
-              await git.invalidateDocumentation();
+              await invalidateWorkbenchMutation(queryClient, workItem.id);
             }
           }}
           toolbarAccessory={
             artifactReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
+          }
+          viewAside={
+            selectedArtifact.role === "R2" ? (
+              <dl className="order-lifecycle-authority-summary">
+                <div>
+                  <dt>Status</dt>
+                  <dd><WorkbenchStatus tone="success" label={artifactReadOnly ? "Reviewed governed material" : "Current governed material"} /></dd>
+                </div>
+                <div>
+                  <dt>Authority</dt>
+                  <dd>
+                    <span>Requirements document</span>
+                    <code>{selectedArtifact.authorityLayer === null
+                      ? "Lifecycle authority"
+                      : selectedArtifact.authorityLayer + " lifecycle authority"}</code>
+                  </dd>
+                </div>
+              </dl>
+            ) : undefined
           }
           technicalDetails={
             <DocumentationTechnicalDetails
@@ -501,6 +540,8 @@ export const ReadOnlyLifecycleDocumentMaterial = (
     artifactId: ArtifactRef["id"];
     onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
     onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+    embeddedReadOnly?: boolean;
+    historicalArtifact?: ArtifactRef;
   }>,
 ) => (
   <LifecycleDocumentMaterial

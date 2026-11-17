@@ -4,7 +4,7 @@ import { Selector } from "@astryxdesign/core/Selector";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import type { FormEvent } from "react";
 
-import { WorkItemSchemaIdSchema, type ProjectManifest, type WorkItemId, type WorkItemSchemaCatalogEntry, type WorkItemSchemaId } from "../../src/core/contracts.ts";
+import { WorkItemSchemaIdSchema, type ProjectManifest, type WorkItem, type WorkItemSchemaCatalogEntry, type WorkItemSchemaId } from "../../src/core/contracts.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
@@ -12,17 +12,18 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 
 export const CreateWorkItem = ({
   projects, schemas, projectId, schemaId, title, concernIds, availableConcernIds,
-  derivedFromWorkItemId, pending, error, onProjectChange, onSchemaChange,
-  onTitleChange, onConcernIdsChange, onSubmit,
+  derivedFromWorkItem, pending, error, onProjectChange, onSchemaChange,
+  onTitleChange, onConcernIdsChange, onSubmit, onCancel,
 }: Readonly<{
   projects: readonly ProjectManifest[]; schemas: readonly WorkItemSchemaCatalogEntry[];
   projectId: string; schemaId: WorkItemSchemaId | ""; title: string; concernIds: readonly string[];
-  availableConcernIds: readonly string[]; derivedFromWorkItemId: WorkItemId | null;
+  availableConcernIds: readonly string[]; derivedFromWorkItem: WorkItem | null;
   pending: boolean; error: string | null; onProjectChange: (value: string) => void;
   onSchemaChange: (value: WorkItemSchemaId) => void; onTitleChange: (value: string) => void;
   onConcernIdsChange: (value: readonly string[]) => void; onSubmit: () => void;
+  onCancel: () => void;
 }>) => {
-  const eligibleSchemas = schemas.filter((schema) => derivedFromWorkItemId === null || schema.kind === "CHANGE" || schema.kind === "DEFECT");
+  const eligibleSchemas = schemas.filter((schema) => derivedFromWorkItem === null || schema.kind === "CHANGE" || schema.kind === "DEFECT");
   const selectedProject = projects.find((project) => project.projectId === projectId) ?? null;
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -56,9 +57,25 @@ export const CreateWorkItem = ({
         </RadioList>
         <TextInput label="Title" value={title} onChange={onTitleChange} isRequired width="100%" />
         <MultiSelector label="Concern IDs" options={[...availableConcernIds]} value={[...concernIds]} onChange={(value) => onConcernIdsChange(value)} hasSearch size="sm" placeholder="Select concerns" width="100%" />
-        {derivedFromWorkItemId !== null ? <div className="order-create-derived">Derived from completed investigation/audit: <code>{derivedFromWorkItemId}</code></div> : null}
+        {derivedFromWorkItem !== null ? (
+          <div className="order-create-derived">
+            <strong>Canonical lineage</strong>
+            <span>Parent {schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)?.kind ?? derivedFromWorkItem.schemaId}</span>
+            <span>{derivedFromWorkItem.title}</span>
+            <code>{derivedFromWorkItem.id}</code>
+            <small>Parent linkage is system-owned and cannot be edited here.</small>
+          </div>
+        ) : (
+          <div className="order-create-derived">
+            <strong>Derived fields are not editable</strong>
+            <span>WorkItem identity, lifecycle stage/status and governed artifact roles are assigned from canonical contracts after creation.</span>
+          </div>
+        )}
       </>}
-      actions={<WorkbenchAction type="submit" label={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"} tone="primary" loading={pending} disabled={projectId.length === 0 || schemaId === "" || title.trim().length === 0} />}
+      actions={<>
+        <WorkbenchAction label="Cancel" disabled={pending} onClick={onCancel} />
+        <WorkbenchAction type="submit" label={derivedFromWorkItem === null ? "Create work item" : "Create linked remediation"} tone="primary" loading={pending} disabled={projectId.length === 0 || schemaId === "" || title.trim().length === 0} />
+      </>}
       feedback={error ? <WorkbenchNotice tone="danger" title="Work item could not be created" description={error} /> : undefined}
     />
   );

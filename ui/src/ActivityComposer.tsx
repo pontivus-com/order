@@ -20,10 +20,10 @@ export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSu
     <div data-testid="activity-composer">
       {input.error && onError === undefined ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={input.error instanceof Error ? input.error.message : String(input.error)} /> : null}
       <div className="order-dialogue-composer-copy">
-        <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your input is needed" : "Continue current work"}</strong>
-        <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.event.question : "Send the next instruction or answer for this interactive activity."}</span>
+        <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer the question above" : "Continue current work"}</strong>
+        <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your reply is bound to the exact question shown in the conversation." : "Send the next instruction or answer for this interactive activity."}</span>
       </div>
-      <ChatComposer onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }} placeholder="Answer and continue" isDisabled={mutationsDisabled || input.isPending} elevation="none" />
+      <ChatComposer onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }} placeholder={pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer and continue" : "Continue current work"} isDisabled={mutationsDisabled || input.isPending} elevation="none" />
     </div>
   );
 };

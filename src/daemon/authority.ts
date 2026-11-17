@@ -461,26 +461,29 @@ export const currentLifecycleArtifacts = async (
   const workItem = getWorkItem(runtime, workItemId);
   const current: ArtifactRef[] = [];
 
+  const persisted = listArtifacts(runtime, workItemId);
   for (const role of lifecycleRoleOrder) {
-    const candidates = latestRunCandidateArtifacts(runtime, workItemId, role);
     const semantic = new Map<string, ArtifactRef>();
-    for (const candidate of candidates) {
-      if (!candidate.repositoryPath.endsWith(".md")) continue;
+    for (const candidate of persisted) {
+      if (
+        candidate.role !== role ||
+        !candidate.repositoryPath.endsWith(".md")
+      ) {
+        continue;
+      }
       const key = canonicalJson([
         candidate.repositoryPath,
         candidate.role,
         candidate.authorityLayer,
       ]);
-      semantic.set(key, candidate);
-    }
-    for (const candidate of semantic.values()) {
       const snapshot = persistedCurrentArtifactSnapshot(
         runtime,
         workItem,
         candidate,
       );
-      if (snapshot !== null) current.push(snapshot);
+      if (snapshot !== null) semantic.set(key, snapshot);
     }
+    current.push(...semantic.values());
   }
 
   const roleRank = new Map(

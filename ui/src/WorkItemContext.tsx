@@ -40,6 +40,7 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
       {diagnostics.length>0?<WorkbenchNotice tone="warning" title="Source requires attention" description={diagnostics.length+" source issue"+(diagnostics.length===1?"":"s")+" require attention"}/>:null}
     </div>
     <WorkbenchDisclosure label="WorkItem technical details" content={<MetadataList columns="single">
+      <MetadataListItem label="WorkItem id"><code>{workItem.id}</code></MetadataListItem>
       <MetadataListItem label="Canonical stage"><code>{workItem.stage}</code></MetadataListItem>
       <MetadataListItem label="Status"><code>{workItem.status}</code></MetadataListItem>
       <MetadataListItem label="Outcome"><code>{workItem.outcome??"—"}</code></MetadataListItem>

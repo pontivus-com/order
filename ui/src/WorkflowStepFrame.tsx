@@ -4,7 +4,7 @@ import {
   WorkflowMaterialSelector,
   type WorkflowMaterialSelectorGroup,
 } from "./WorkflowMaterialSelector.tsx";
-import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
+import { WorkbenchAttention, type WorkbenchAttentionTone } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
@@ -39,6 +39,18 @@ export type WorkflowStepSummaryBlocker = Readonly<{
 const statusTone = (variant: WorkflowStatusVariant): WorkbenchStatusTone =>
   variant === "error" ? "danger" : variant;
 
+const attentionTone = (
+  stateVariant: WorkflowStatusVariant,
+  blocker: WorkflowStepSummaryBlocker | null | undefined,
+): WorkbenchAttentionTone => {
+  if (blocker?.status === "error") return "danger";
+  if (blocker?.status === "warning") return "warning";
+  if (stateVariant === "success") return "success";
+  if (stateVariant === "warning") return "warning";
+  if (stateVariant === "error") return "danger";
+  return "info";
+};
+
 export const WorkflowStepSummary = ({
   label, purpose, stateLabel, stateVariant = "neutral", statusLabel,
   statusVariant = "neutral", blocker, action,
@@ -49,6 +61,7 @@ export const WorkflowStepSummary = ({
   <div data-testid="workflow-step-summary">
   <WorkbenchAttention
     title={label}
+    tone={attentionTone(stateVariant, blocker)}
     purpose={purpose}
     status={<span className="order-workflow-summary-status"><WorkbenchStatus tone={statusTone(stateVariant)} label={stateLabel} />{statusLabel ? <WorkbenchStatus tone={statusTone(statusVariant)} label={statusLabel} /> : null}</span>}
     blocker={blocker ? <WorkbenchNotice tone={blocker.status === "error" ? "danger" : blocker.status} title={blocker.title} description={blocker.description} /> : undefined}

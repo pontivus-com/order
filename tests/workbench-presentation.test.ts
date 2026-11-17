@@ -14,9 +14,13 @@ import {
   type WorkItem,
 } from "../src/core/contracts.ts";
 import {
+  agentActivityRunEvents,
+  conversationRunEvents,
   pendingProposalForEvents,
   resolveWorkflowMaterial,
+  runEventPlane,
   runEventPresentation,
+  workflowRunEvents,
   runStatusLabel,
   workflowStepState,
   type ProposalSelection,
@@ -239,6 +243,34 @@ describe("workflow presentation policy", () => {
     expect(workflowStepState(current, reached, "PLAN")).toBe("CURRENT");
     expect(workflowStepState(current, reached, "R1")).toBe("HISTORICAL");
     expect(workflowStepState(current, reached, "R3")).toBe("UNREACHED");
+  });
+
+  it("shows an unreached persisted lifecycle draft without fabricating reach", () => {
+    const plan = artifact("PLAN", uuidB);
+    const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "R2", "DESIGN"]);
+    expect(resolveFixtureMaterial({
+      reachedStages: reached,
+      workItem: workItem("DESIGN"),
+      selectedStep: "PLAN",
+      runs: [],
+      artifacts: [plan],
+    })).toEqual({
+      kind: "STAGE_DOCUMENT",
+      artifactId: plan.id,
+    });
+    expect(workflowStepState(workItem("DESIGN"), reached, "PLAN"))
+      .toBe("UNREACHED");
+  });
+
+  it("keeps an unreached lifecycle step empty when no repository draft exists", () => {
+    const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "R2", "DESIGN"]);
+    expect(resolveFixtureMaterial({
+      reachedStages: reached,
+      workItem: workItem("DESIGN"),
+      selectedStep: "PLAN",
+      runs: [],
+      artifacts: [],
+    })).toEqual({ kind: "UNREACHED" });
   });
 
   it("resolves current pre-signoff material by the canonical priority", () => {
@@ -633,6 +665,38 @@ describe("workflow presentation policy", () => {
       runs: [],
       artifacts: [],
     })).toEqual({ kind: "UNREACHED" });
+  });
+});
+
+describe("RunEvent presentation planes", () => {
+  const event = (sequence: number, payload: RunEventPayload) =>
+    RunEventSchema.parse({
+      id: `event_00000000-0000-4000-8000-${String(sequence).padStart(12, "0")}`,
+      runId: `run_${uuidB}`,
+      sequence,
+      occurredAt: stamp,
+      event: payload,
+    });
+
+  it("projects one chronology into conversation, activity and workflow without duplication", () => {
+    const events = [
+      event(1, { tag: "AGENT_MESSAGE_FINAL", text: "Ready for your reply", evidence: [] }),
+      event(2, { tag: "HUMAN_INPUT_RECEIVED", requestEventId: null, text: "Continue" }),
+      event(3, { tag: "AGENT_ACTIVITY_RECORDED", category: "READING", summary: "Reading repository material", resource: null }),
+      event(4, { tag: "OBSERVATION_RECORDED", title: "Observed", detail: "System evidence", evidence: [] }),
+      event(5, { tag: "HUMAN_INPUT_REQUESTED", category: "INFORMATION", question: "Which constraint applies?" }),
+    ];
+
+    expect(events.map(runEventPlane)).toEqual([
+      "CONVERSATION",
+      "CONVERSATION",
+      "ACTIVITY",
+      "WORKFLOW",
+      "CONVERSATION",
+    ]);
+    expect(conversationRunEvents(events).map((item) => item.sequence)).toEqual([1, 2, 5]);
+    expect(agentActivityRunEvents(events).map((item) => item.sequence)).toEqual([3]);
+    expect(workflowRunEvents(events).map((item) => item.sequence)).toEqual([4]);
   });
 });
 

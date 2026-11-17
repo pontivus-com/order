@@ -104,6 +104,117 @@ describe("productive invocation failure origin", () => {
   });
 });
 
+describe("bounded agent activity persistence", () => {
+  it("caps, coalesces, and schema-validates persisted activity", () => {
+    const state = tempDir("order-daemon-agent-activity-");
+    const repository = createRepository();
+
+    const output = JSON.parse(execFileSync("bun", ["-e", `
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const workItem = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "bounded activity",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, workItem.id);
+      const run = runStore.insertRun(runtime, {
+        id: shellRuntime.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: "sha256:" + "b".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-17T00:00:00.000Z",
+        endedAt: null,
+      });
+
+      const record = runStore.createAgentActivityRecorder(runtime, run.id);
+      let unsafeResourceRejected = false;
+      try {
+        record({
+          tag: "AGENT_ACTIVITY_RECORDED",
+          category: "READING",
+          summary: "Unsafe resource",
+          resource: "../secret.txt",
+        });
+      } catch {
+        unsafeResourceRejected = true;
+      }
+      record({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "Reading repository material",
+        resource: "docs/r1.md",
+      });
+      record({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "Reading repository material",
+        resource: "docs/r1.md",
+      });
+      for (let index = 0; index < 40; index += 1) {
+        record({
+          tag: "AGENT_ACTIVITY_RECORDED",
+          category: index % 2 === 0 ? "SEARCHING" : "RUNNING_CHECKS",
+          summary: "Bounded activity " + index,
+          resource: index % 2 === 0 ? "src/core/lifecycle.ts" : null,
+        });
+      }
+      const activities = runStore.listRunEvents(runtime, run.id)
+        .filter((event) => event.event.tag === "AGENT_ACTIVITY_RECORDED")
+        .map((event) => event.event);
+      console.log(JSON.stringify({
+        count: activities.length,
+        duplicateCount: activities.filter((event) =>
+          event.tag === "AGENT_ACTIVITY_RECORDED" &&
+          event.summary === "Reading repository material"
+        ).length,
+        unsafeResourceRejected,
+      }));
+      database.close();
+    `], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: "pipe",
+    })) as {
+      count: number;
+      duplicateCount: number;
+      unsafeResourceRejected: boolean;
+    };
+
+    expect(output.count).toBe(32);
+    expect(output.duplicateCount).toBe(1);
+    expect(output.unsafeResourceRejected).toBe(true);
+  });
+});
+
 describe("candidate changed-path instruction immutability", () => {
   it("rejects AGENTS.md through the production validator under the Bun runtime", () => {
     const script = `
@@ -405,6 +516,8 @@ const server = Bun.serve({
         output = target === "fixed\\n" && hasV4Inputs
           ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
           : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+      } else if (mode === "stage-invalid-batch") {
+        output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
       } else {
@@ -1859,7 +1972,12 @@ describe("daemon control plane", () => {
     expect(output.beforeManifestBytes).toContain('projectId = "document-root"');
     expect(output.afterManifestBytes).toContain('projectId = "document-root"');
     expect(output.allArtifacts).toContainEqual(expect.objectContaining(output.historical));
-    expect(output.currentLifecycle).toEqual([]);
+    expect(output.currentLifecycle).toEqual([
+      expect.objectContaining({
+        path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
+        role: "PLAN",
+      }),
+    ]);
     expect(output.allArtifacts).toContainEqual(expect.objectContaining({
       path: `${targetRoot}/${output.createdId}/implementation-plan.md`,
       role: "PLAN",
@@ -2194,6 +2312,14 @@ describe("daemon control plane", () => {
           headers: { cookie, origin, "content-type": "application/json" },
           body: "{}",
         });
+        const cliTick = await fetch(origin + "/api/tick", {
+          method: "POST",
+          headers: {
+            "authorization": "Bearer " + daemonToken,
+            "content-type": "application/json",
+          },
+          body: "{}",
+        });
 
         const expiring = await fetch(origin + "/api/auth/connect-token", {
           method: "POST",
@@ -2229,6 +2355,8 @@ describe("daemon control plane", () => {
           wrongOrigin: wrongOrigin.status,
           tickStatus: tick.status,
           tickBody: await tick.json(),
+          cliTickStatus: cliTick.status,
+          cliTickBody: await cliTick.json(),
           expired: expired.status,
           cors: tick.headers.get("access-control-allow-origin"),
         }));
@@ -2277,10 +2405,14 @@ describe("daemon control plane", () => {
       sourceDiagnostic: null,
       staleAuthorityOwner: null,
     });
-    expect(output.missingOrigin).toBe(403);
-    expect(output.wrongOrigin).toBe(403);
-    expect(output.tickStatus).toBe(409);
+    expect(output.missingOrigin).toBe(401);
+    expect(output.wrongOrigin).toBe(401);
+    expect(output.tickStatus).toBe(401);
     expect(output.tickBody).toMatchObject({
+      code: "UNAUTHORIZED",
+    });
+    expect(output.cliTickStatus).toBe(409);
+    expect(output.cliTickBody).toMatchObject({
       code: "CURRENT_STATE_CONFLICT",
     });
     expect(output.expired).toBe(401);
@@ -2660,6 +2792,88 @@ describe("daemon control plane", () => {
     expect(output.invalidChildRejected).toBe(true);
     expect(output.selfCodes).toContain("INVALID_SOURCE");
   });
+
+  it("records causal admission evidence and applies no effects for a provider-success invalid STAGE batch", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-invalid-stage-batch-");
+    const binary = createFakeOpenCode("stage-invalid-batch");
+
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "invalid batch",
+        concernIds: ["shell"],
+      });
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)));
+      const settled = coord.getRun(runtime, run.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      const diagnosticRefs = events
+        .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+        .flatMap((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED" ? event.event.evidence : []);
+      const admissionRef = diagnosticRefs.find((ref) =>
+        ref.relativePath.endsWith("/order-stage-batch-admission.json")
+      );
+      const admission = admissionRef === undefined
+        ? null
+        : JSON.parse(new TextDecoder().decode(
+            rt.readRunEvidenceBytes(runtime.stateRoot, run.id, admissionRef.relativePath),
+          ));
+      const failure = events.findLast((event) => event.event.tag === "PROVIDER_FAILED");
+      console.log(JSON.stringify({
+        status: settled.status,
+        classification: settled.terminalClassification,
+        messages: events.filter((event) => event.event.tag === "AGENT_MESSAGE_FINAL").length,
+        admission,
+        failure: failure?.event ?? null,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      status: string;
+      classification: string | null;
+      messages: number;
+      admission: {
+        phase: string;
+        code: string;
+        eventTags: string[];
+        truncated: boolean;
+      } | null;
+      failure: { tag: string; detail: string; evidence: Array<{ relativePath: string }> } | null;
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.classification).toBe("PROVIDER_FAILURE");
+    expect(output.messages).toBe(0);
+    expect(output.admission).toEqual({
+      phase: "ORDER_STAGE_BATCH_ADMISSION",
+      code: "MULTIPLE_AGENT_MESSAGES",
+      eventTags: ["AGENT_MESSAGE_FINAL", "AGENT_MESSAGE_FINAL"],
+      truncated: false,
+    });
+    expect(output.failure).toMatchObject({
+      tag: "PROVIDER_FAILED",
+      detail: "Agent result could not be accepted",
+    });
+    expect(output.failure?.evidence.some((ref) =>
+      ref.relativePath.endsWith("/order-stage-batch-admission.json")
+    )).toBe(true);
+  }, 30_000);
 
   it("blocks a schema-invalid R1 provider completion atomically", () => {
     const repository = createRepository();
@@ -4608,6 +4822,70 @@ describe("daemon control plane", () => {
     )).toBe(true);
   }, 30_000);
 
+  it("manual execution start rejects another eligible task instead of globally retargeting", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-exact-manual-start-");
+    const twoTaskPlan = fixturePlan.replace(
+      '{"id":"T1","objective":"make the target correct","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]}',
+      '{"id":"T1","objective":"first task","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]},{"id":"T2","objective":"second task","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]}',
+    );
+    writeFileSync(join(repository, "docs", "plan.md"), twoTaskPlan);
+    runGit(repository, "add", "docs/plan.md");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const output = bunEval(seedSignoffScript(repository, state) + `
+      const execOwner = await import("./src/daemon/execution.ts");
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      let wrongRejected = false;
+      let wrongMessage = "";
+      try {
+        await execOwner.startExactExecutionTask(runtime, work, tasks[1].id);
+      } catch (error) {
+        wrongRejected = true;
+        wrongMessage = error instanceof Error ? error.message : String(error);
+      }
+      const before = await coord.listExecutionTasks(runtime, work);
+      const started = await execOwner.startExactExecutionTask(runtime, work, tasks[0].id);
+      const after = await coord.listExecutionTasks(runtime, work);
+      console.log(JSON.stringify({
+        wrongRejected,
+        wrongMessage,
+        before: before.map((task) => ({ id: task.id, state: task.state })),
+        started: {
+          workItemId: started.run.workItemId,
+          executionTaskId: started.run.executionTaskId,
+          role: started.run.role,
+          status: started.run.status,
+        },
+        after: after.map((task) => ({ id: task.id, state: task.state })),
+      }));
+      database.close();
+    `) as {
+      wrongRejected: boolean;
+      wrongMessage: string;
+      before: Array<{ id: string; state: string }>;
+      started: {
+        workItemId: string;
+        executionTaskId: string | null;
+        role: string;
+        status: string;
+      };
+      after: Array<{ id: string; state: string }>;
+    };
+
+    expect(output.wrongRejected).toBe(true);
+    expect(output.wrongMessage).toContain("canonical current task");
+    expect(output.before.map((task) => task.state)).toEqual(["TODO", "TODO"]);
+    expect(output.started).toMatchObject({
+      workItemId: "work_11111111-1111-4111-8111-111111111111",
+      executionTaskId: output.before[0]?.id,
+      role: "BUILDER",
+      status: "RUNNING",
+    });
+    expect(output.after[0]?.state).toBe("RUNNING");
+    expect(output.after[1]?.state).toBe("TODO");
+  }, 30_000);
+
   it("executes sign-off through BUILDER, one REMEDIATOR, final REVIEWER V0-V7, and aggregate completion", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-execution-");
@@ -5416,6 +5694,92 @@ describe("daemon control plane", () => {
     expect(output.receivedCount).toBe(1);
     expect(output.beforeCleanupStatus).toBe("RUNNING");
   }, 30_000);
+
+  it("rejects Cancel while a current lifecycle proposal owns STAGE attention", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-proposal-cancel-");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "proposal cancel",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: created.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(${JSON.stringify(repository)}),
+        contextHash: rt.sha256Text("proposal-cancel"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R1",
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "Review this proposal",
+        evidence: [],
+      });
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/r1.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: "--- a/docs/r1.md\\n+++ b/docs/r1.md\\n@@ -1 +1 @@\\n-old\\n+new\\n",
+        rationale: "Update research",
+      });
+      let pendingError = "";
+      try {
+        await coord.cancelRun(runtime, run.id);
+      } catch (error) {
+        pendingError = error instanceof Error ? error.message : String(error);
+      }
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "REJECTED",
+        adoptedArtifactRefId: null,
+      });
+      const cancelled = await coord.cancelRun(runtime, run.id);
+      console.log(JSON.stringify({ pendingError, finalStatus: cancelled.status }));
+      database.close();
+    `) as { pendingError: string; finalStatus: string };
+
+    expect(output.pendingError).toContain("proposal owns attention");
+    expect(output.finalStatus).toBe("CANCELLED");
+  });
 
   it("rejects Cancel when the Run is already terminal", () => {
     const repository = createRepository();

@@ -49,6 +49,9 @@ import {
   artifactReturnOwner,
   deriveCurrentAttention,
   deriveExecutionOwner,
+  artifactHasCurrentStageConformance,
+  deriveMaterialPresentationState,
+  materialCurrentnessForStage,
   deriveObservationCoherence,
   deriveProposalDecision,
   deriveReachedStages,
@@ -61,6 +64,8 @@ import {
   routeApprovalStale,
   routeValidationFailure,
   stageInputIsAdmitted,
+  stageProviderBatchRejectionCode,
+  stageRunCancellationIsAdmitted,
   stageRunInteraction,
   transitionWorkItem,
   validateStageProviderTurn,
@@ -434,6 +439,31 @@ describe("canonical scalar and strict ingress contracts", () => {
         classification: "PRECONDITION_FAILED",
         detail: "",
         evidence: [],
+      }).success,
+    ).toBe(false);
+
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "Reading lifecycle state",
+        resource: "src/core/lifecycle.ts",
+      }).success,
+    ).toBe(true);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "",
+        resource: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "x".repeat(161),
+        resource: null,
       }).success,
     ).toBe(false);
 
@@ -1464,22 +1494,44 @@ describe("closed Workbench workflow-state kernel", () => {
       rationale: "Update research",
     } as const;
 
+    const message = {
+      tag: "AGENT_MESSAGE_FINAL",
+      text: "I updated the proposed lifecycle material.",
+      evidence: [],
+    } as const;
+
+    expect(stageProviderBatchRejectionCode(run, prior, [])).toBe("EMPTY_BATCH");
     expect(() => validateStageProviderTurn(run, prior, [])).toThrow(/non-empty/);
+    expect(stageProviderBatchRejectionCode(run, prior, [request, completion]))
+      .toBe("MULTIPLE_CONTROLS");
     expect(() =>
       validateStageProviderTurn(run, prior, [request, completion]),
     ).toThrow(/contradictory/);
+    expect(stageProviderBatchRejectionCode(run, prior, [request, proposal]))
+      .toBe("PROPOSAL_WITH_CONTROL");
     expect(() =>
       validateStageProviderTurn(run, prior, [request, proposal]),
     ).toThrow(/cannot coexist/);
+    expect(stageProviderBatchRejectionCode(run, prior, [proposal]))
+      .toBe("OPEN_REQUIRES_AGENT_MESSAGE");
     expect(() =>
       validateStageProviderTurn(run, prior, [proposal]),
+    ).toThrow(/requires exactly one non-blank agent message/);
+    expect(() =>
+      validateStageProviderTurn(run, prior, [message, proposal]),
     ).not.toThrow();
     expect(() =>
       validateStageProviderTurn(run, prior, [{
         ...proposal,
         role: "PLAN",
-      }]),
+      }, message]),
     ).toThrow(/role must equal/);
+    expect(stageProviderBatchRejectionCode(run, prior, [{
+      ...message,
+      text: "   ",
+    }])).toBe("OPEN_REQUIRES_AGENT_MESSAGE");
+    expect(stageProviderBatchRejectionCode(run, prior, [message, message]))
+      .toBe("MULTIPLE_AGENT_MESSAGES");
   });
 
   it("derives durable proposal decision and adoption-in-progress from canonical events", () => {
@@ -1620,6 +1672,137 @@ describe("closed Workbench workflow-state kernel", () => {
     ).toThrow(/unknown proposal/);
   });
 
+  it("keeps coordinator activity observational for STAGE interaction settlement", () => {
+    const run = stageRun();
+    const started = stageStarted(run);
+    const activity = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "Reading current lifecycle material",
+        resource: "docs/r1.md",
+      },
+    });
+    expect(stageRunInteraction(run, [started, activity])).toEqual({ tag: "PROCESSING" });
+  });
+
+  it("admits STAGE cancellation only while no lifecycle proposal owns attention", () => {
+    const run = stageRun();
+    const started = stageStarted(run);
+    expect(stageRunCancellationIsAdmitted(run, [started])).toBe(true);
+
+    const proposal = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/r1.md",
+        baseSha256: null,
+        role: "R1",
+        authorityLayer: "P1",
+        unifiedDiff: "--- a/docs/r1.md\n+++ b/docs/r1.md\n@@ -1 +1 @@\n-old\n+new\n",
+        rationale: "Update research",
+      },
+    });
+    expect(stageRunCancellationIsAdmitted(run, [started, proposal])).toBe(false);
+
+    const disposition = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "REJECTED",
+        adoptedArtifactRefId: null,
+      },
+    });
+    expect(stageRunCancellationIsAdmitted(run, [started, proposal, disposition])).toBe(true);
+  });
+
+  it("derives lifecycle material maturity only from canonical facts", () => {
+    expect(deriveMaterialPresentationState(
+      true,
+      "UNREACHED",
+      { tag: "CURRENT" },
+      false,
+      false,
+    )).toEqual({ tag: "DRAFT" });
+    expect(deriveMaterialPresentationState(
+      true,
+      "CURRENT",
+      { tag: "CURRENT" },
+      false,
+      false,
+    )).toEqual({ tag: "UPDATED_VALIDATION_REQUIRED" });
+    expect(deriveMaterialPresentationState(
+      true,
+      "CURRENT",
+      { tag: "CURRENT" },
+      true,
+      false,
+    )).toEqual({ tag: "CURRENT" });
+    expect(deriveMaterialPresentationState(
+      true,
+      "REACHED_HISTORICAL",
+      { tag: "STALE", owner: "R2" },
+      false,
+      false,
+    )).toEqual({ tag: "STALE", owner: "R2" });
+    expect(deriveMaterialPresentationState(
+      false,
+      "REACHED_HISTORICAL",
+      { tag: "CURRENT" },
+      true,
+      false,
+    )).toEqual({ tag: "HISTORICAL" });
+    expect(deriveMaterialPresentationState(
+      true,
+      "REACHED_HISTORICAL",
+      { tag: "CURRENT" },
+      true,
+      true,
+    )).toEqual({ tag: "SIGNED_LOCKED" });
+  });
+
+  it("scopes stale currentness to the changed owner and downstream stages", () => {
+    const stale = { tag: "STALE", owner: "DESIGN" } as const;
+    expect(materialCurrentnessForStage(stale, "R1")).toEqual({ tag: "CURRENT" });
+    expect(materialCurrentnessForStage(stale, "R2")).toEqual({ tag: "CURRENT" });
+    expect(materialCurrentnessForStage(stale, "DESIGN")).toEqual(stale);
+    expect(materialCurrentnessForStage(stale, "PLAN")).toEqual(stale);
+    expect(materialCurrentnessForStage({ tag: "CURRENT" }, "PLAN"))
+      .toEqual({ tag: "CURRENT" });
+  });
+
+  it("matches conformance only when the exact current ArtifactRef was covered", () => {
+    const current = artifact(uuidA, "docs/r2.md", "R2", "P3", hashA);
+    const other = artifact(uuidB, "docs/r2.md", "R2", "P3", hashA);
+    const run = stageRun("COMPLETED", "R2");
+    const event = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "CONFORMANCE_PASSED",
+        stage: "R2",
+        outputArtifactRefIds: [current.id],
+        contextHash: run.contextHash,
+        evidence: [],
+      },
+    });
+    expect(artifactHasCurrentStageConformance(current, [event])).toBe(true);
+    expect(artifactHasCurrentStageConformance(other, [event])).toBe(false);
+  });
+
   it("derives reached history only from actual canonical evidence", () => {
     const plan = WorkItemSchema.parse({
       ...baseWorkItem(),
@@ -1631,6 +1814,10 @@ describe("closed Workbench workflow-state kernel", () => {
     expect([...withoutHistory]).toEqual(["IDEA", "PLAN"]);
     expect(withoutHistory.has("R1")).toBe(false);
     expect(withoutHistory.has("R3")).toBe(false);
+
+    const repositoryDraft = artifact(uuidA, "docs/r2.md", "R2", "P3", hashA);
+    const withDraftOnly = deriveReachedStages(plan, [], [], [repositoryDraft], []);
+    expect(withDraftOnly.has("R2")).toBe(false);
 
     const readinessRun = stageRun("COMPLETED", "R3");
     const reached = deriveReachedStages(plan, [readinessRun], [], [], []);

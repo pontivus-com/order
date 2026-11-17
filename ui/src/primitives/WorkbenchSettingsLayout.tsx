@@ -27,9 +27,11 @@ export const WorkbenchSettingsLayout = ({
     return (
       <section className="order-settings-layout-constrained" data-testid="workbench-settings-layout">
         <div className="order-settings-layout-constrained-navigation">
-          {navigation}
+          <div className="order-settings-layout-navigation-surface">{navigation}</div>
         </div>
-        <div className="order-settings-layout-constrained-content">{content}</div>
+        <div className="order-settings-layout-constrained-content">
+          <div className="order-settings-layout-content-surface">{content}</div>
+        </div>
       </section>
     );
   }
@@ -38,8 +40,8 @@ export const WorkbenchSettingsLayout = ({
     <Layout
       height="fill"
       padding={0}
-      start={<LayoutPanel width="var(--order-master-width)" hasDivider>{navigation}</LayoutPanel>}
-      content={<LayoutContent>{content}</LayoutContent>}
+      start={<LayoutPanel width="var(--order-master-width)" hasDivider><div className="order-settings-layout-navigation-surface">{navigation}</div></LayoutPanel>}
+      content={<LayoutContent><div className="order-settings-layout-content-surface">{content}</div></LayoutContent>}
       data-testid="workbench-settings-layout"
     />
   );

@@ -2,6 +2,7 @@ import type {
   ArtifactRef,
   EvidencePath,
   ExecutionTask,
+  InstallationReadinessBlocker,
   Run,
   RunEvent,
   RunEventId,
@@ -14,6 +15,34 @@ import {
   type ExecutionOwner,
   type StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
+
+export type SettingsDestination = "repositories" | "opencode" | "model";
+
+export const settingsDestinationForReadinessBlocker = (
+  blocker: InstallationReadinessBlocker,
+): SettingsDestination =>
+  blocker === "OPENCODE_ACCOUNT_REQUIRED"
+    ? "opencode"
+    : blocker === "MODEL_INVALID"
+      ? "model"
+      : "repositories";
+
+export const installationReadinessBlockerText = (
+  blocker: InstallationReadinessBlocker,
+): string => {
+  switch (blocker) {
+    case "REPOSITORY_REQUIRED":
+      return "Target repository required";
+    case "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION":
+      return "Repository configuration needs attention";
+    case "MODEL_INVALID":
+      return "Model unavailable / invalid";
+    case "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION":
+      return "Reference-root configuration needs attention";
+    case "OPENCODE_ACCOUNT_REQUIRED":
+      return "OpenCode account required";
+  }
+};
 
 export type ProposalSelection = Readonly<{
   runId: Run["id"];
@@ -78,6 +107,19 @@ export type WorkflowMaterial =
   | Readonly<{ kind: "TERMINAL_RESULT" }>
   | Readonly<{ kind: "STEP_STATE" }>
   | Readonly<{ kind: "UNREACHED" }>;
+
+export const materialPresentationStateLabel = (
+  state: import("../../src/core/lifecycle.ts").MaterialPresentationState,
+): string => {
+  switch (state.tag) {
+    case "DRAFT": return "Draft";
+    case "UPDATED_VALIDATION_REQUIRED": return "Updated — validation required";
+    case "CURRENT": return "Current";
+    case "STALE": return "Stale";
+    case "HISTORICAL": return "Historical";
+    case "SIGNED_LOCKED": return "Signed & locked";
+  }
+};
 
 export const workflowMaterialLabel = (
   material: WorkflowMaterial,
@@ -209,7 +251,20 @@ const selectedMaterialIsAvailable = (
   selection: WorkflowMaterial,
 ): boolean => {
   const stepState = workflowStepState(input.workItem, input.reachedStages, input.selectedStep);
-  if (stepState === "UNREACHED") return selection.kind === "UNREACHED";
+  if (stepState === "UNREACHED") {
+    if (selection.kind === "UNREACHED") return true;
+    if (selection.kind === "STAGE_DOCUMENT") {
+      const artifact = input.artifacts.find(
+        (candidate) => candidate.id === selection.artifactId,
+      );
+      return artifact !== undefined && artifact.role === input.selectedStep;
+    }
+    if (selection.kind === "READINESS_REVIEW") {
+      return input.selectedStep === "R3" &&
+        input.artifacts.some((artifact) => artifact.role === "R3");
+    }
+    return false;
+  }
 
   switch (selection.kind) {
     case "SOURCE_DOCUMENT":
@@ -333,7 +388,6 @@ export const resolveWorkflowMaterial = (
   input: WorkflowMaterialResolutionInput,
 ): WorkflowMaterial => {
   const stepState = workflowStepState(input.workItem, input.reachedStages, input.selectedStep);
-  if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   const explicit = input.explicitSelection ?? null;
   const explicitIsAvailable =
@@ -360,6 +414,11 @@ export const resolveWorkflowMaterial = (
     input.selectedStep === "PLAN"
   ) {
     const artifact = stageArtifact(input.artifacts, input.selectedStep);
+    if (stepState === "UNREACHED") {
+      return artifact
+        ? { kind: "STAGE_DOCUMENT", artifactId: artifact.id }
+        : { kind: "UNREACHED" };
+    }
     if (stepState === "HISTORICAL") {
       if (explicitIsAvailable && explicit) return explicit;
       if (artifact) return { kind: "STAGE_DOCUMENT", artifactId: artifact.id };
@@ -416,6 +475,11 @@ export const resolveWorkflowMaterial = (
   }
 
   if (input.selectedStep === "R3") {
+    if (stepState === "UNREACHED") {
+      return stageArtifact(input.artifacts, "R3") !== null
+        ? { kind: "READINESS_REVIEW" }
+        : { kind: "UNREACHED" };
+    }
     if (explicitIsAvailable && explicit) return explicit;
 
     const ownerRun = currentStageRun(input);
@@ -438,6 +502,8 @@ export const resolveWorkflowMaterial = (
     }
     return { kind: "READINESS_REVIEW" };
   }
+
+  if (stepState === "UNREACHED") return { kind: "UNREACHED" };
 
   if (input.selectedStep === "AWAITING_SIGNOFF") {
     return input.approvalPackageAvailable === true
@@ -532,6 +598,36 @@ export const pendingProposalForEvents = (
     : null;
 };
 
+export type RunEventPlane = "CONVERSATION" | "ACTIVITY" | "WORKFLOW";
+
+export const runEventPlane = (event: RunEvent): RunEventPlane => {
+  switch (event.event.tag) {
+    case "AGENT_MESSAGE_FINAL":
+    case "HUMAN_INPUT_REQUESTED":
+    case "HUMAN_INPUT_RECEIVED":
+      return "CONVERSATION";
+    case "AGENT_ACTIVITY_RECORDED":
+      return "ACTIVITY";
+    default:
+      return "WORKFLOW";
+  }
+};
+
+export const conversationRunEvents = (
+  events: readonly RunEvent[],
+): readonly RunEvent[] =>
+  events.filter((event) => runEventPlane(event) === "CONVERSATION");
+
+export const agentActivityRunEvents = (
+  events: readonly RunEvent[],
+): readonly RunEvent[] =>
+  events.filter((event) => runEventPlane(event) === "ACTIVITY");
+
+export const workflowRunEvents = (
+  events: readonly RunEvent[],
+): readonly RunEvent[] =>
+  events.filter((event) => runEventPlane(event) === "WORKFLOW");
+
 export type RunEventPresentation = Readonly<{
   label: string;
   detail: string;
@@ -555,6 +651,12 @@ export const runEventPresentation = (
       return { label: "Your input is needed", detail: payload.question, tone: "warning" };
     case "HUMAN_INPUT_RECEIVED":
       return { label: "Your response", detail: payload.text, tone: "neutral" };
+    case "AGENT_ACTIVITY_RECORDED":
+      return {
+        label: "Agent activity",
+        detail: payload.summary,
+        tone: "neutral",
+      };
     case "ARTIFACT_PROPOSAL_CREATED":
       return { label: "Document change proposed", detail: `${payload.targetPath} — ${payload.rationale}`, tone: "warning" };
     case "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED":

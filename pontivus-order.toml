@@ -262,6 +262,13 @@ GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE = "docs/requirements/workbench.md"
 GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION = "docs/requirements/workbench.md"
 GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION = "docs/requirements/workbench.md"
 GW-FR-235-GLOBAL-THEME-PARITY = "docs/requirements/workbench.md"
+GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION = "docs/requirements/workbench.md"
+GW-FR-237-BOUNDED-AGENT-ACTIVITY = "docs/requirements/workbench.md"
+GW-FR-238-PROPOSAL-CANCEL-CLOSURE = "docs/requirements/workbench.md"
+GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION = "docs/requirements/workbench.md"
+GW-FR-240-REJECTED-PROVIDER-RESULT-FAILURE = "docs/requirements/workbench.md"
+GW-FR-241-DERIVED-MATERIAL-MATURITY = "docs/requirements/workbench.md"
+GW-FR-242-DIALOGUE-REPLY-CONTEXT = "docs/requirements/workbench.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]

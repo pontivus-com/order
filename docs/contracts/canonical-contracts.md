@@ -479,11 +479,27 @@ type StageCompletion =
         | "RETURN_TO_PLAN";
     };
 
+type AgentActivityCategory =
+  | "PREPARING_CONTEXT"
+  | "READING"
+  | "SEARCHING"
+  | "EDITING"
+  | "RUNNING_CHECKS"
+  | "REVIEWING_RESULTS"
+  | "RETRYING"
+  | "WAITING_EXTERNAL";
+
 type RunEventPayload =
   | { tag: "STAGE_STARTED"; stage: WorkStage; mode: RunMode; contextHash: Sha256 }
   | { tag: "AGENT_MESSAGE_FINAL"; text: string; evidence: readonly EvidenceRef[] }
   | { tag: "HUMAN_INPUT_REQUESTED"; category: HumanInputCategory; question: string }
   | { tag: "HUMAN_INPUT_RECEIVED"; requestEventId: RunEventId | null; text: string }
+  | {
+      tag: "AGENT_ACTIVITY_RECORDED";
+      category: AgentActivityCategory;
+      summary: string;
+      resource: RepositoryPath | null;
+    }
   | {
       tag: "ARTIFACT_PROPOSAL_CREATED";
       targetPath: RepositoryPath;
@@ -571,6 +587,10 @@ RunEvent invariants:
 - `HUMAN_INPUT_RECEIVED.requestEventId = null` is valid only when the same Run is canonically OPEN for free-form continuation; while the Run is waiting for required input it must equal the exact single unresolved `HUMAN_INPUT_REQUESTED` event id, and that request may be answered at most once;
 - one successful STAGE provider turn returns one non-empty provider-result array. The complete array is validated before any member is persisted;
 - within one STAGE provider-result array, `HUMAN_INPUT_REQUESTED`, `STAGE_BLOCKED` and `STAGE_COMPLETED` are mutually exclusive controlling outcomes and each may occur at most once; `STAGE_COMPLETED.completion.stage` must equal the owning Run stage;
+- a STAGE provider-result array contains at most one `AGENT_MESSAGE_FINAL`;
+- a STAGE provider-result array with no controlling event contains exactly one `AGENT_MESSAGE_FINAL` whose `text.trim()` is non-empty; this applies to both ordinary OPEN turns and proposal-producing OPEN turns;
+- a `HUMAN_INPUT_REQUESTED` question is itself the conversational anchor for REQUIRED_INPUT, so that controlling turn does not require `AGENT_MESSAGE_FINAL`; `STAGE_BLOCKED` and `STAGE_COMPLETED` likewise do not require a final message because they do not create a reply surface;
+- `OBSERVATION_RECORDED`, `AGENT_ACTIVITY_RECORDED` and diagnostic/coordinator events never satisfy the conversational-anchor rule;
 - a STAGE turn may create at most one lifecycle `ARTIFACT_PROPOSAL_CREATED`, only when that turn otherwise ends OPEN for continuation. Lifecycle proposal creation cannot coexist in that turn with required input, stage block or stage completion, and a Run may have at most one unresolved lifecycle proposal;
 - for lifecycle proposal roles `R1|R2|DESIGN|PLAN|R3`, proposal role must equal the owning STAGE Run stage; role/path admission is rechecked again at disposition time;
 - `ARTIFACT_PROPOSAL_CREATED.unifiedDiff` is complete Git unified-diff text and its decoded string must end with LF (`\\n`). A proposal missing that terminal LF is invalid provider output and may use only the existing single formatting-repair turn. Order never appends, trims, normalizes, or otherwise changes proposal patch bytes after provider validation;
@@ -583,9 +603,13 @@ RunEvent invariants:
 - `CANDIDATE_RECORDED` is coordinator-only and may be emitted only in the final `REVIEWER` Run; `candidateStateEventId` must equal that Run's `triggerEventId`; `validationEventIds` must reference exactly one `VALIDATION_PASSED` event for each V0-V7 stage in V0→V7 order, and all eight pass events must have been emitted in that same final REVIEWER Run after its candidate replay was verified. No validation pass from an earlier candidate or Run is reusable;
 - `VALIDATION_PASSED / V4` additionally requires a preceding `REVIEW_PASSED` event in that same REVIEWER Run; `VALIDATION_FAILED / V4` is derived from that Run's `REVIEW_FAILED` result rather than invented independently;
 - `TASK_ALREADY_SATISFIED` is provider-emittable only by a BUILDER. The coordinator accepts it as the V1 semantic no-op result only when the BUILDER workspace has zero changed paths. A zero-diff BUILDER Run without this explicit event is invalid provider output and must not become `ALREADY_SATISFIED`;
-- provider output authorization is additionally constrained by Run role in §25; a valid-shaped but role-forbidden event is invalid provider output.
+- provider output authorization is additionally constrained by Run role in §25; a valid-shaped but role-forbidden event is invalid provider output;
+- `AGENT_ACTIVITY_RECORDED` is coordinator-owned observational state only and is never provider-emittable;
+- `AGENT_ACTIVITY_RECORDED.summary` is non-empty, NUL-free and at most 160 characters; `resource` is either null or a validated repository-relative `RepositoryPath` of at most 240 characters;
+- one productive provider turn persists at most 32 `AGENT_ACTIVITY_RECORDED` events; after that bound further detailed activity is dropped rather than persisted as raw/truncated provider payload;
+- activity emission is coalesced to category/resource transitions or materially distinct bounded summaries; activity records never alter Run interaction, proposal state, lifecycle transition, recovery admission or provider completion semantics.
 
-Raw provider token deltas/JSON are not RunEvents.
+Raw provider token deltas/JSON, raw tool input/output/result/metadata and hidden reasoning are not RunEvents.
 
 ## 11. Artifact-proposal lifecycle
 
@@ -608,6 +632,8 @@ Adoption loads the exact persisted proposal event, proves the persisted base has
 If the repository effect succeeded but the final SQLite persistence failed, the next coordinator pass reconciles only because the durable adoption-request event proves human intent for that exact proposal. Reconciliation does not apply the patch again: Order proves the current target is the already-applied exact patch by an exact reverse-apply check and then persists the missing ArtifactRef/disposition. If interruption occurred after intent persistence but before the effect, the same coordinator reconciliation may apply the still-applicable exact patch. Without that durable adoption request, base-hash mismatch remains a hard failure.
 
 A different patch is a new proposal event after the old proposal is rejected. Rejection never mutates the repository and is invalid once adoption has been requested.
+
+STAGE cancellation is also proposal-aware. `POST /api/runs/:runId/cancel` is admitted only when the current STAGE Run interaction is PROCESSING, OPEN or REQUIRED_INPUT **and** the derived proposal decision is `NONE`. `PENDING` and `ADOPTION_IN_PROGRESS` both reject cancellation without terminalizing the Run or changing proposal state. To abandon a pending proposal and then abandon the Run, the operator must first Reject that proposal. Once adoption intent is durable, only exact adoption/reconciliation may finish that proposal.
 
 ## 12. Conformance evidence and dependency persistence
 
@@ -1011,6 +1037,10 @@ GET /api/artifacts/:artifactRefId/content       -> raw file bytes
 
 All GET/query operations are observational: they may read/validate repository/runtime facts and report currentness/diagnostics, but they do not update WorkItem lifecycle/status/outcome, store a new ArtifactRef, apply source reconciliation, create Approval/tasks, or mutate repository bytes. Canonicalization/reconciliation of changed repository material occurs only through explicit mutation paths.
 
+`GET /api/work-items/:workItemId/lifecycle-artifacts` returns the current already-persisted lifecycle-role `ArtifactRef` snapshots whose repository bytes still match their persisted hashes. It may return a repository lifecycle draft materialized previously by explicit source reconciliation/direct Save/adoption even when no STAGE Run exists for that role. The query does not create that ArtifactRef on demand. If repository bytes have changed and no matching persisted snapshot exists, the changed bytes become current projection only through an explicit mutation/reconciliation path.
+
+Lifecycle `ArtifactRef` existence is material evidence, not lifecycle-entry evidence. Reached-history derivation must not mark a lifecycle stage reached merely because its deterministic repository draft exists.
+
 Commands:
 
 ```text
@@ -1022,9 +1052,39 @@ body {}
      "runId": "run_<uuid>" | null
    }
 
+`POST /api/tick` is the global scheduler/operational command. It is admitted only through daemon/CLI Bearer authentication; the Workbench browser does not use it as a task-local action.
+
 `NO_WORK` requires both ids null. `STARTED` requires both ids non-null. One tick starts at most one eligible task; subsequent eligible tasks are started by later ticks.
 
 If any coordinator tick is already active, the command returns HTTP 409 with error code `TICK_ALREADY_ACTIVE`. It does not queue another tick.
+
+POST /api/work-items/:workItemId/tasks/:executionTaskId/start
+body {}
+-> Run
+
+This is the browser/manual **Start current task** command. At the final command boundary the daemon proves:
+
+- the WorkItem is `EXECUTION / ACTIVE`;
+- the submitted task belongs to the WorkItem's current Approval;
+- the submitted task is exactly the task identified by the current derived `ExecutionOwner.CURRENT_TASK`;
+- the task is `TODO` and all dependencies are already successful;
+- Approval/material currentness remains valid;
+- no ExecutionTask is already globally `RUNNING`;
+- no coordinator tick is active;
+- no competing per-WorkItem operator mutation owns the WorkItem.
+
+After any asynchronous approval/context inspection the daemon reloads/rechecks all DB-decidable conditions before persistence. It transactionally marks exactly that task `RUNNING` and creates exactly its first `BUILDER` Run using the existing execution contract. Before returning the Run, it starts the existing coordinator loop against that already-running task asynchronously; the coordinator's process-local tick exclusion remains held for that execution pass. A race or stale task id must not cause another eligible WorkItem/task to start.
+
+Failure classification is exact:
+
+- missing WorkItem/task -> HTTP 404 / `NOT_FOUND`;
+- stale Approval/material authority -> HTTP 409 / `STALE_AUTHORITY` with the canonical upstream owner;
+- active coordinator tick -> HTTP 409 / `TICK_ALREADY_ACTIVE`;
+- submitted task not the exact current execution owner, task/dependency state changed, another ExecutionTask became RUNNING, WorkItem is no longer EXECUTION/ACTIVE, or another same-WorkItem mutation owns admission -> HTTP 409 / `CURRENT_STATE_CONFLICT`.
+
+The browser uses the stable code/message response and does not parse exception text for task ownership.
+
+The command introduces no second scheduler or queue. Automatic/background execution continues through the existing global eligible-task scan.
 
 POST /api/work-items
 body { projectId, schemaId, title, concernIds, derivedFromWorkItemId? }
@@ -1076,7 +1136,7 @@ POST /api/work-items/:workItemId/resume
 body {}
 -> WorkItem
 
-Resume is valid only for a currently blocked WorkItem whose blocker has been resolved. For pre-signoff work it changes only `status: BLOCKED -> ACTIVE` and leaves the owning lifecycle stage unchanged. For `EXECUTION / BLOCKED`, it additionally changes the unique blocked task under the still-current Approval from `BLOCKED -> TODO`; it does not create a Run, reuse a workspace or reset prior operational-loss history. The next coordinator tick starts a fresh baseline BUILDER Run. No optimistic-concurrency version token is persisted.
+Resume is valid only for a currently blocked WorkItem whose blocker has been resolved. For pre-signoff work it changes only `status: BLOCKED -> ACTIVE` and leaves the owning lifecycle stage unchanged. For `EXECUTION / BLOCKED`, it additionally changes the unique blocked task under the still-current Approval from `BLOCKED -> TODO`; it does not create a Run, reuse a workspace or reset prior operational-loss history. A later exact manual Start current task command or an automatic coordinator tick creates the fresh baseline BUILDER Run. No optimistic-concurrency version token is persisted.
 
 POST /api/work-items/:workItemId/signoff
 body { expectedPackageHash, approvedBy }
@@ -1096,7 +1156,7 @@ POST /api/runs/:runId/cancel
 body {}
 -> Run
 
-Cancelling a pre-signoff STAGE Run terminalizes that Run without changing the owning lifecycle stage. Cancelling a post-signoff Run interrupts the provider/active process group, marks the Run `CANCELLED`, abandons/retains its workspace as evidence, and atomically sets its ExecutionTask and WorkItem to `BLOCKED`. Human cancellation never triggers automatic retry; explicit resume is required.
+Cancelling a pre-signoff STAGE Run terminalizes that Run without changing the owning lifecycle stage **only when its current proposal decision is NONE**. A pending lifecycle proposal or adoption already in progress returns current-state conflict and leaves both Run and proposal unchanged. Cancelling a post-signoff Run interrupts the provider/active process group, marks the Run `CANCELLED`, abandons/retains its workspace as evidence, and atomically sets its ExecutionTask and WorkItem to `BLOCKED`. Human cancellation never triggers automatic retry; explicit resume is required.
 ```
 
 All operator mutations enforce current state/preconditions under the per-WorkItem mutation guard. Any command that performs asynchronous inspection before its commit boundary reloads canonical DB state inside the final transaction and re-runs every DB-decidable admission check before persistence. A stale concurrent command is rejected rather than overwriting the winning transition. The guard is released in `finally` on success or failure and is never used as crash-recovery authority. The thin CLI uses only the health/tick/auth commands explicitly exposed by its v1 command surface; lifecycle mutations remain UI calls to these same HTTP endpoints.
@@ -1278,7 +1338,8 @@ v1 has one fixed schedule:
 - at most one coordinator tick and one future timer are active at a time;
 - each coordinator pass reconciles an existing `RUNNING` ExecutionTask first: if its durable state requires a continuation Run and no Run is active, create that continuation under §17 before selecting any `TODO` task;
 - a timer callback never queues a second timer-originated tick while a coordinator tick is active; the next timer is armed only after the active tick settles;
-- manual `POST /api/tick`/CLI tick is rejected with a stable conflict response while a tick is already active;
+- manual daemon/CLI `POST /api/tick` is rejected with a stable conflict response while a tick is already active; the Workbench browser never uses this global command as its task-local Start action;
+- the browser task-scoped Start current task command creates only the exact canonical current task/BUILDER Run, then enters the same coordinator execution loop asynchronously; it does not alter global eligible-task ordering for automatic ticks;
 - timer firing itself never creates an OpenCode Run; only an eligible task atomically moved from `TODO` to `RUNNING` may do so.
 
 Scheduler state is not another durable domain concept. Durable execution/task/Run state remains sufficient to recover after daemon restart.
@@ -1329,7 +1390,9 @@ Provider-emittable tags by Run role are:
 | `REMEDIATOR` | `AGENT_MESSAGE_FINAL`, `STAGE_BLOCKED` with `owningStage = EXECUTION`, `OBSERVATION_RECORDED` |
 | `REVIEWER` | `REVIEW_PASSED`, `REVIEW_FAILED`, `OBSERVATION_RECORDED` |
 
-All other RunEvent tags are coordinator/human-owned, including `STAGE_STARTED`, `HUMAN_INPUT_RECEIVED`, proposal disposition, conformance, `PRODUCTIVE_INVOCATION_FAILED`, provider failure, gates, authority/repository drift, `VALIDATION_*` and `CANDIDATE_*`. A valid-shaped but role-forbidden provider event is invalid provider output.
+All other RunEvent tags are coordinator/human-owned, including `STAGE_STARTED`, `HUMAN_INPUT_RECEIVED`, `AGENT_ACTIVITY_RECORDED`, proposal disposition, conformance, `PRODUCTIVE_INVOCATION_FAILED`, provider failure, gates, authority/repository drift, `VALIDATION_*` and `CANDIDATE_*`. A valid-shaped but role-forbidden provider event is invalid provider output.
+
+For STAGE specifically, the productive producer contract and the consumer validator bind the same complete-array grammar in §10. In particular, a non-controlling turn that would leave the Run OPEN is invalid unless it contains exactly one non-blank `AGENT_MESSAGE_FINAL`.
 
 One deny-all/tool-disabled format-repair turn may re-encode only an event that would have been allowed for the original Run role. A second invalid result is `PROVIDER_FAILED / OUTPUT`.
 
@@ -2906,6 +2969,36 @@ Every provider turn persists the diagnostic record before final turn reaction wh
 
 Known Order secrets are never persisted. Hidden chain-of-thought is never requested or recorded.
 
+A provider turn may finish successfully at the OpenCode boundary and still fail Order's STAGE complete-batch admission. That failure has separate bounded diagnostic evidence:
+
+```ts
+type StageProviderBatchRejectionCode =
+  | "EMPTY_BATCH"
+  | "MULTIPLE_AGENT_MESSAGES"
+  | "MULTIPLE_REQUIRED_INPUT"
+  | "MULTIPLE_STAGE_BLOCK"
+  | "MULTIPLE_STAGE_COMPLETION"
+  | "MULTIPLE_CONTROLS"
+  | "MULTIPLE_LIFECYCLE_PROPOSALS"
+  | "PROPOSAL_WITH_CONTROL"
+  | "UNRESOLVED_LIFECYCLE_PROPOSAL"
+  | "PROPOSAL_ROLE_MISMATCH"
+  | "COMPLETION_STAGE_MISMATCH"
+  | "BLOCK_STAGE_MISMATCH"
+  | "OPEN_REQUIRES_AGENT_MESSAGE";
+
+type StageProviderBatchAdmissionDiagnostic = Readonly<{
+  phase: "ORDER_STAGE_BATCH_ADMISSION";
+  code: StageProviderBatchRejectionCode;
+  eventTags: readonly string[]; // ordered, maximum 32
+  truncated: boolean;
+}>;
+```
+
+This JSON is Order-owned diagnostic evidence, not a provider event and not workflow state. It stores only the stable rejection code and ordered event-tag names. It never stores event bodies or the raw assistant response. `truncated` is true when the rejected batch contained more than 32 tags.
+
+For a provider-successful but admission-rejected turn, the ordinary provider diagnostic may truthfully record `outcome = "SUCCEEDED"`; the Order-admission evidence records why the returned semantic batch was rejected. The daemon persists neither the rejected workflow effects nor a partial batch, then fails the Run through the existing provider-failure path. `PROVIDER_FAILED.evidence` includes both diagnostic evidence sets when available.
+
 ### 34.7 Required certification
 
 Permanent tests prove:
@@ -2918,6 +3011,13 @@ Permanent tests prove:
 - source conflict returns the exact canonical diagnostic;
 - stale approval/package conflict returns `STALE_AUTHORITY` with the exact canonical `staleAuthorityOwner`, and the explicit reconcile-authority command returns lifecycle ownership to that same owner without changing repository bytes;
 - provider diagnostic event/evidence is inspectable from Run history;
+- a provider-successful but STAGE-batch-invalid turn records bounded `ORDER_STAGE_BATCH_ADMISSION` evidence with stable rejection code/tag sequence, persists no rejected effect and fails the Run;
+- `AGENT_ACTIVITY_RECORDED` accepts only the closed category/summary/resource shape, is capped at 32 per productive turn, survives normal Run-event history/restart, and cannot change STAGE interaction/lifecycle semantics;
+- unknown/raw provider activity, tool input/output/result/metadata, hidden reasoning and known secrets do not enter the activity event;
+- live activity loss leaves provider completion/recovery unchanged and successful terminal context reconciliation may add only missing normalized activity records;
+- repository lifecycle drafts can be returned with zero Run history without causing a reached stage or GET-side persistence;
+- exact browser manual task start targets only the submitted canonical current task and never starts another globally eligible WorkItem; browser task start does not call `/api/tick`;
+- pending/adopting lifecycle proposals reject STAGE Cancel without terminalizing the Run;
 - stderr is bounded and known secrets are absent;
 - no hidden reasoning or second diagnostic/log database is introduced.
 

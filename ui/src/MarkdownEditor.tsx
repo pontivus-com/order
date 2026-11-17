@@ -42,6 +42,8 @@ export type MarkdownEditorProps = Readonly<{
   onDirtyChange?: (dirty: boolean) => void;
   toolbarAccessory?: ReactNode;
   technicalDetails?: ReactNode;
+  editingTitle?: string;
+  viewAside?: ReactNode;
 }>;
 
 type MarkdownPresentationMode = "EDIT" | "PREVIEW" | "SPLIT";
@@ -63,6 +65,12 @@ const inlineActions: readonly FormatAction[] = [
   { command: "INLINE_CODE", label: "Inline code", icon: "inlineCode" },
   { command: "LINK", label: "Link", icon: "link" },
 ];
+
+const presentationMarkdown = (value: string): string =>
+  value
+    .split("\n")
+    .filter((line) => !(line.startsWith("<!-- Order template: ") && line.endsWith(" -->")))
+    .join("\n");
 
 const structureActions: readonly FormatAction[] = [
   { command: "HEADING_1", label: "Heading 1", icon: "heading1" },
@@ -86,6 +94,8 @@ export const MarkdownEditor = ({
   onDirtyChange,
   toolbarAccessory,
   technicalDetails,
+  editingTitle,
+  viewAside,
 }: MarkdownEditorProps) => {
   const sourceEditorRef = useRef<MarkdownSourceEditorHandle | null>(null);
   const onDirtyChangeRef = useRef(onDirtyChange);
@@ -96,12 +106,13 @@ export const MarkdownEditor = ({
   const [conflicted, setConflicted] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const editablePresentationMode = useRef<MarkdownPresentationMode>("EDIT");
+  const [editing, setEditing] = useState(false);
+  const editablePresentationMode = useRef<MarkdownPresentationMode>("SPLIT");
   const [presentationMode, setPresentationMode] =
-    useState<MarkdownPresentationMode>(readOnly ? "PREVIEW" : "EDIT");
+    useState<MarkdownPresentationMode>("SPLIT");
 
   const dirty = buffer !== loadedMarkdown;
-  const sourceVisible = !readOnly && presentationMode !== "PREVIEW";
+  const sourceVisible = editing && presentationMode !== "PREVIEW";
   const formattingDisabled = conflicted || saving || !sourceVisible;
 
   useEffect(() => {
@@ -110,7 +121,8 @@ export const MarkdownEditor = ({
   useEffect(() => () => onDirtyChangeRef.current?.(false), []);
 
   useEffect(() => {
-    setPresentationMode(readOnly ? "PREVIEW" : editablePresentationMode.current);
+    if (readOnly) setEditing(false);
+    setPresentationMode(editablePresentationMode.current);
   }, [readOnly]);
 
   useEffect(() => {
@@ -136,6 +148,7 @@ export const MarkdownEditor = ({
   const cancel = (): void => {
     setBuffer(loadedMarkdown);
     setSaveError(null);
+    setEditing(false);
     onDirtyChangeRef.current?.(false);
   };
 
@@ -170,12 +183,12 @@ export const MarkdownEditor = ({
       className="order-markdown-preview"
     >
       <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
-        {buffer}
+        {presentationMarkdown(buffer)}
       </Markdown>
     </div>
   );
 
-  const presentation = readOnly ? undefined : (
+  const presentation = !editing ? undefined : (
     <SegmentedControl
       label="Document presentation"
       value={presentationMode}
@@ -193,7 +206,7 @@ export const MarkdownEditor = ({
     </SegmentedControl>
   );
 
-  const formatting = readOnly ? undefined : (
+  const formatting = !editing ? undefined : (
     <div data-testid="markdown-format-toolbar" className="order-markdown-format-toolbar">
       <WorkbenchToolbarGroup>
         <WorkbenchAction
@@ -238,10 +251,35 @@ export const MarkdownEditor = ({
     </div>
   );
 
+  if (!editing) {
+    return (
+      <section className="order-markdown-document-view" data-testid={readOnly ? "markdown-document-readonly" : "markdown-document-view"}>
+        <WorkbenchSectionHeader
+          title={title}
+          description={description}
+          action={
+            <span className="order-inline-actions">
+              {readOnly ? <WorkbenchStatus tone="neutral" label="Read-only supporting material" /> : toolbarAccessory}
+              {!readOnly ? <WorkbenchAction label="Edit" tone="secondary" onClick={() => { editablePresentationMode.current = "SPLIT"; setPresentationMode("SPLIT"); setEditing(true); }} /> : null}
+            </span>
+          }
+        />
+        <div className={"order-markdown-document-view-body" + (viewAside ? " order-markdown-document-view-with-aside" : "")}>
+          {preview}
+          {viewAside ? <aside className="order-markdown-document-view-aside">{viewAside}</aside> : null}
+        </div>
+        <WorkbenchDisclosure
+          label="Technical details"
+          content={<div className="order-editor-technical-content"><div><span>SHA-256</span><code>{loadedSha256}</code></div>{technicalDetails}</div>}
+        />
+      </section>
+    );
+  }
+
   return (
     <form className="order-markdown-editor" onSubmit={(event) => void submit(event)}>
       <WorkbenchSectionHeader
-        title={title}
+        title={editingTitle ?? title}
         description={description}
         action={presentation}
       />
@@ -251,15 +289,6 @@ export const MarkdownEditor = ({
         end={
           <WorkbenchToolbarGroup>
             {toolbarAccessory}
-            <WorkbenchDisclosure
-              label="Technical details"
-              content={
-                <div className="order-editor-technical-content">
-                  <div><span>SHA-256</span><code>{loadedSha256}</code></div>
-                  {technicalDetails}
-                </div>
-              }
-            />
             {!readOnly ? (
               <>
                 <WorkbenchStatus
@@ -275,7 +304,7 @@ export const MarkdownEditor = ({
                 />
                 <WorkbenchAction
                   label="Cancel"
-                  disabled={!dirty || saving}
+                  disabled={saving}
                   onClick={cancel}
                 />
               </>
@@ -284,10 +313,20 @@ export const MarkdownEditor = ({
         }
       />
 
+      <WorkbenchDisclosure
+        label="Technical details"
+        content={
+          <div className="order-editor-technical-content">
+            <div><span>SHA-256</span><code>{loadedSha256}</code></div>
+            {technicalDetails}
+          </div>
+        }
+      />
+
       <div className="order-editor-notices">
         {conflicted ? (
           <WorkbenchNotice
-            tone="warning"
+            tone="danger"
             title="Canonical document changed"
             description="The canonical file changed while this buffer was open. The local buffer was not rebased or overwritten."
             action={<WorkbenchAction label="Reload current" onClick={reloadCurrent} />}
@@ -308,17 +347,18 @@ export const MarkdownEditor = ({
       >
         {readOnly ? preview : (
           <>
-            {sourceVisible ? (
-              <div className="order-editor-source-pane">
-                <MarkdownSourceEditor
-                  ref={sourceEditorRef}
-                  value={buffer}
-                  disabled={conflicted || saving}
-                  ariaLabel={title + " Markdown source"}
-                  onChange={setBuffer}
-                />
-              </div>
-            ) : null}
+            <div
+              className={"order-editor-source-pane" + (sourceVisible ? "" : " order-editor-source-pane-hidden")}
+              aria-hidden={sourceVisible ? undefined : true}
+            >
+              <MarkdownSourceEditor
+                ref={sourceEditorRef}
+                value={buffer}
+                disabled={conflicted || saving}
+                ariaLabel={(editingTitle ?? title) + " Markdown source"}
+                onChange={setBuffer}
+              />
+            </div>
             {presentationMode !== "EDIT" ? (
               <div className="order-editor-preview-pane">
                 {preview}

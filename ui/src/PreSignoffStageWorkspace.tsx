@@ -9,6 +9,7 @@ import type {
 } from "../../src/core/contracts.ts";
 import type {
   CurrentAttentionTag,
+  MaterialPresentationState,
   StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
@@ -21,6 +22,7 @@ import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import { ProposalReview } from "./ProposalReview.tsx";
 import {
   lifecycleArtifactLabel,
+  materialPresentationStateLabel,
   runStatusLabel,
   type EvidenceSelection,
   type ProposalSelection,
@@ -29,10 +31,14 @@ import {
 import {
   PrimaryMaterialFrame,
   WorkflowStepFrame,
-  WorkflowStepIndex,
-  type WorkflowStepIndexGroup,
 } from "./WorkflowStepFrame.tsx";
+import {
+  WorkflowMaterialSelector,
+  type WorkflowMaterialSelectorGroup,
+} from "./WorkflowMaterialSelector.tsx";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
+import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
+import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 
@@ -51,13 +57,16 @@ export const PreSignoffStageWorkspace = ({
   workItem,
   stage,
   runs,
+  runEvents,
   artifacts,
   material,
+  materialState,
   summary,
   currentRunId,
   currentInteraction,
   currentAttention,
   mutationsDisabled = false,
+  authoringMutationsDisabled = false,
   onSelectMaterial,
   onDirtyChange,
   onOpenArtifactEvidence,
@@ -72,13 +81,16 @@ export const PreSignoffStageWorkspace = ({
   workItem: WorkItem;
   stage: SharedPreSignoffStage;
   runs: readonly Run[];
+  runEvents: readonly RunEvent[];
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
+  materialState: MaterialPresentationState | null;
   summary: ReactNode;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
   mutationsDisabled?: boolean;
+  authoringMutationsDisabled?: boolean;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
@@ -112,78 +124,93 @@ export const PreSignoffStageWorkspace = ({
     return artifact ? [artifact] : [];
   });
 
-  const groups: WorkflowStepIndexGroup[] = [];
-  if (stageRuns.length > 0) {
-    groups.push({
-      id: "attempts",
-      label: "Activity",
-      items: stageRuns.map((run) => ({
-        id: run.id,
-        label: "Attempt " + run.attempt,
-        description: new Date(run.startedAt).toLocaleString(),
-        statusLabel: runStatusLabel(run.status),
-        statusVariant: statusVariant(run.status),
-        selected: material.kind === "STAGE_RUN" && material.runId === run.id,
-        onSelect: () => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id }),
-      })),
-    });
-  }
-  if (stageArtifact) {
-    groups.push({
-      id: "document",
-      label: "Governed document",
-      items: [{
-        id: stageArtifact.id,
-        label:
-          stage === "R1"
-            ? "Research document"
-            : stage === "R2"
-              ? "Requirements document"
-              : stage === "DESIGN"
-                ? "Solution design document"
-                : "Implementation plan document",
-        selected:
-          material.kind === "STAGE_DOCUMENT" &&
-          material.artifactId === stageArtifact.id,
-        onSelect: () =>
-          onSelectMaterial({
-            kind: "STAGE_DOCUMENT",
-            artifactId: stageArtifact.id,
-          }),
-      }],
-    });
-  }
+  const supportingMaterial = (
+    <WorkbenchDisclosure
+      label="Supporting material and history"
+      content={
+        <div className="order-resource-list">
+          {stageRuns.map((run) => (
+            <WorkbenchResourceRow
+              key={run.id}
+              label={"Attempt " + run.attempt}
+              detail={runStatusLabel(run.status) + " · " + new Date(run.startedAt).toLocaleString()}
+              actionLabel={"Open attempt " + run.attempt}
+              onOpen={() => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id })}
+            />
+          ))}
+          {stageArtifact ? (
+            <WorkbenchResourceRow
+              label={
+                stage === "R1"
+                  ? "Research document"
+                  : stage === "R2"
+                    ? "Requirements document"
+                    : stage === "DESIGN"
+                      ? "Solution design document"
+                      : "Implementation plan document"
+              }
+              detail={materialState === null ? "Governed stage document" : materialPresentationStateLabel(materialState)}
+              actionLabel="Open current stage document"
+              onOpen={() => onSelectMaterial({ kind: "STAGE_DOCUMENT", artifactId: stageArtifact.id })}
+            />
+          ) : null}
+          <WorkbenchResourceRow
+            label="Work request"
+            detail="Read-only source context"
+            actionLabel="Open Work request"
+            onOpen={() => onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" })}
+          />
+          {supportingArtifacts.map((artifact) => (
+            <WorkbenchResourceRow
+              key={artifact.id}
+              label={lifecycleArtifactLabel(artifact.role) + " document"}
+              detail="Read-only upstream authority"
+              actionLabel={"Open " + lifecycleArtifactLabel(artifact.role)}
+              onOpen={() => onOpenSupportingMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id })}
+            />
+          ))}
+        </div>
+      }
+    />
+  );
 
-  groups.push({
-    id: "supporting",
-    label: "Supporting authority",
-    items: [
-      {
-        id: "supporting-work-request",
-        label: "Work request",
-        description: "Canonical source context",
-        selected: material.kind === "SOURCE_DOCUMENT",
-        onSelect: () => onOpenSupportingMaterial({ kind: "SOURCE_DOCUMENT" }),
-      },
-      ...supportingArtifacts.map((artifact) => ({
-        id: "supporting-" + artifact.id,
-        label: lifecycleArtifactLabel(artifact.role) + " document",
-        description: artifact.repositoryPath,
-        selected:
-          material.kind === "SUPPORTING_DOCUMENT" &&
-          material.artifactId === artifact.id,
-        onSelect: () =>
-          onOpenSupportingMaterial({
-            kind: "SUPPORTING_DOCUMENT",
-            artifactId: artifact.id,
-          }),
-      })),
-    ],
-  });
+  const currentMaterialItems: WorkflowMaterialSelectorGroup["items"] = [
+    ...stageRuns.map((run) => ({
+      id: "run-" + run.id,
+      label: "Attempt " + run.attempt,
+      description: new Date(run.startedAt).toLocaleString(),
+      statusLabel: runStatusLabel(run.status),
+      selected: material.kind === "STAGE_RUN" && material.runId === run.id,
+      onSelect: () => onSelectMaterial({ kind: "STAGE_RUN", runId: run.id }),
+    })),
+    ...(stageArtifact ? [{
+      id: "document-" + stageArtifact.id,
+      label: lifecycleArtifactLabel(stageArtifact.role) + " document",
+      description: "Governed current-stage material",
+      statusLabel: materialState === null ? undefined : materialPresentationStateLabel(materialState),
+      selected: material.kind === "STAGE_DOCUMENT" && material.artifactId === stageArtifact.id,
+      onSelect: () => onSelectMaterial({ kind: "STAGE_DOCUMENT", artifactId: stageArtifact.id }),
+    }] : []),
+  ];
+  const materialSelector = currentMaterialItems.length > 0
+    ? <WorkflowMaterialSelector groups={[{ id: "current", label: "Current work", items: currentMaterialItems }]} label="Current workflow material" />
+    : undefined;
 
-  const index = groups.length > 0
-    ? <WorkflowStepIndex groups={groups} label={stage === "PLAN" ? "Plan work" : "Step work"} />
-    : null;
+  const dialogueCompanion =
+    stage === "R1" && stageArtifact !== null
+      ? (
+        <section className="order-dialogue-research-material">
+          <h3>Repository-backed Research material</h3>
+          <p>{materialState === null ? "Current governed Research material" : materialPresentationStateLabel(materialState)}</p>
+          <code>{stageArtifact.repositoryPath}</code>
+          <WorkbenchAction
+            label="Open Research document"
+            tone="secondary"
+            onClick={() => onSelectMaterial({ kind: "STAGE_DOCUMENT", artifactId: stageArtifact.id })}
+          />
+        </section>
+      )
+      : undefined;
 
   const primary = (() => {
     switch (material.kind) {
@@ -192,6 +219,8 @@ export const PreSignoffStageWorkspace = ({
           <StageRunMaterial
             stage={stage}
             runs={runs}
+            runEvents={runEvents}
+            companion={dialogueCompanion}
             selectedRunId={material.runId}
             currentRunId={workItem.stage === stage ? currentRunId : null}
             currentInteraction={workItem.stage === stage ? currentInteraction : null}
@@ -206,17 +235,28 @@ export const PreSignoffStageWorkspace = ({
           />
         );
       case "STAGE_DOCUMENT":
-        return (
-          <LifecycleDocumentMaterial
-            workItem={workItem}
-            artifactId={material.artifactId}
-            mutationsDisabled={mutationsDisabled}
-            onDirtyChange={onDirtyChange}
-            onOpenArtifactEvidence={onOpenArtifactEvidence}
-            onContextDocumentChange={onContextDocumentChange}
-            onMutationError={onMutationError}
-          />
-        );
+        return materialState?.tag === "DRAFT" ||
+          materialState?.tag === "HISTORICAL" ||
+          materialState?.tag === "SIGNED_LOCKED"
+          ? (
+            <ReadOnlyLifecycleDocumentMaterial
+              workItem={workItem}
+              artifactId={material.artifactId}
+              onOpenArtifactEvidence={onOpenArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          )
+          : (
+            <LifecycleDocumentMaterial
+              workItem={workItem}
+              artifactId={material.artifactId}
+              mutationsDisabled={authoringMutationsDisabled}
+              onDirtyChange={onDirtyChange}
+              onOpenArtifactEvidence={onOpenArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+              onMutationError={onMutationError}
+            />
+          );
       case "SOURCE_DOCUMENT":
         return (
           <section className="order-supporting-material">
@@ -254,6 +294,8 @@ export const PreSignoffStageWorkspace = ({
           <ProposalReview
             workItem={workItem}
             selection={{ runId: material.runId, eventId: material.eventId }}
+            currentRunId={workItem.stage === stage ? currentRunId : null}
+            currentInteraction={workItem.stage === stage ? currentInteraction : null}
             mutationsDisabled={mutationsDisabled}
             onBack={onReturnFromTransient}
             onMutationError={onMutationError}
@@ -295,11 +337,14 @@ export const PreSignoffStageWorkspace = ({
   return (
     <WorkflowStepFrame
       summary={summary}
-      index={index}
-      indexLabel={stage === "PLAN" ? "Plan work" : "Step work"}
+      index={materialSelector}
+      indexLabel="Current workflow material"
       primary={
         <PrimaryMaterialFrame>
-          {primary}
+          <div className="order-step-material-stack">
+            <div className="order-step-material-primary">{primary}</div>
+            <div className="order-step-supporting-disclosure">{supportingMaterial}</div>
+          </div>
         </PrimaryMaterialFrame>
       }
     />
