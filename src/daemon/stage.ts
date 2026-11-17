@@ -348,7 +348,7 @@ const persistStageCompletionBatch = async (
     if (outputConformanceFailure !== null) {
       const transition = transitionWorkItem(currentWorkItem, {
         tag: "LIFECYCLE_ARTIFACT_CHANGED",
-        owner: run.stage,
+        owner: completion.stage,
       });
       appendRunEvent(runtime, run.id, {
         tag: "CONFORMANCE_FAILED",
