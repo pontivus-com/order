@@ -59,7 +59,7 @@ The runtime context is an ephemeral projection over canonical sources. It is not
 
 Selected source content may be materialized into an agent prompt for execution, but its authority remains the referenced canonical source.
 
-For a source-backed WorkItem governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`, the current validated WorkItem Markdown is also a canonical **originating input**. It is not automatically project authority merely because it is canonical input. Its source-backed P2 intent has only the authority supplied by the operator/project under this lifecycle. The durable WorkItem projection may carry identity/classification, but it must not replace the source narrative in a stage that is entitled to receive that narrative.
+For a source-backed WorkItem governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`, the current validated WorkItem Markdown is also a canonical **originating input**. It is not automatically project authority merely because it is canonical input. Its source-backed P2 intent has only the authority supplied by the operator/project under this lifecycle. The durable WorkItem projection may carry identity/classification, but it must not replace the source narrative in a stage that is entitled to receive that narrative.
 
 ## 3. Minimum sufficient context rule
 
@@ -80,7 +80,7 @@ Order must never use "include everything" as the default context policy.
 Before invoking an agent, Order resolves:
 
 - current lifecycle stage;
-- the current validated WorkItem source snapshot and pinned authoring schema where `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2` applies;
+- the current validated WorkItem source snapshot and pinned authoring schema where `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` applies;
 - applicable project-defined engineering concern ids;
 - pyramid layer(s) the stage may create or modify;
 - applicable P0 rules;
@@ -96,9 +96,9 @@ Before invoking an agent, Order resolves:
 - expected artifact/output;
 - promotion gate.
 
-Concern applicability is resolved before authority projection according to [GW-DOC-TECHNICAL-ARCHITECTURE-V2](../architecture/technical-architecture.md). Concerns are project-defined applicability metadata and do not create separate workflows.
+Concern applicability is resolved before authority projection according to [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md). Concerns are project-defined applicability metadata and do not create separate workflows.
 
-Authority applicability is deterministic. Every explicit `AuthorityRef` is first resolved by exact lookup through the validated project `pontivus-order.toml [refs]` map owned by [GW-DOC-CANONICAL-CONTRACTS-V2 §14](../contracts/canonical-contracts.md). A missing mapping is incomplete context; agents never search prose or infer the source of an identifier.
+Authority applicability is deterministic. Every explicit `AuthorityRef` is first resolved by exact lookup through the validated project `pontivus-order.toml [refs]` map owned by [GW-DOC-CANONICAL-CONTRACTS §14](../contracts/canonical-contracts.md). A missing mapping is incomplete context; agents never search prose or infer the source of an identifier.
 
 The applicable source set is the union of:
 
@@ -153,7 +153,7 @@ The governed Markdown workbench adds one distinct **direct human-authoring ingre
 
 Interactive chat text remains non-canonical. If a conversation materially changes originating intent or project authority, the operator must explicitly adopt/write that change into the WorkItem source or other canonical authority before later stages may rely on it.
 
-A resumed provider session may be used only inside the same Order Run and lifecycle stage. For source-backed work, productive continuation additionally requires the current WorkItem source snapshot to match the Run's resolved context identity; a source change requires reconciliation and context re-resolution before the provider may continue productively. A material human clarification of originating request/P2 intent is not promoted merely because it was received as Run input: it must first be adopted into the WorkItem source or another canonical project authority under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`. If the session is lost, the stage must be reconstructable from the current WorkItem source, canonical authority, persisted evidence and unresolved questions.
+A resumed provider session may be used only inside the same Order Run and lifecycle stage. For source-backed work, productive continuation additionally requires the current WorkItem source snapshot to match the Run's resolved context identity; a source change requires reconciliation and context re-resolution before the provider may continue productively. A material human clarification of originating request/P2 intent is not promoted merely because it was received as Run input: it must first be adopted into the WorkItem source or another canonical project authority under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`. If the session is lost, the stage must be reconstructable from the current WorkItem source, canonical authority, persisted evidence and unresolved questions.
 
 `WAITING_FOR_INPUT` is a Run condition, not a lifecycle stage.
 
@@ -188,7 +188,7 @@ A resumed provider session may be used only inside the same Order Run and lifecy
 **Receives:**
 
 - P0 applicable controls;
-- current source-backed originating observation/request and its validated WorkItem classification when `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2` applies;
+- current source-backed originating observation/request and its validated WorkItem classification when `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` applies;
 - resolved P1 principles relevant to investigation;
 - original P2 intent/problem statement where available;
 - project authority map;
@@ -553,7 +553,7 @@ If the artifact changes materially, its prior conformance result is stale.
 
 If material higher authority changes, dependent conformance results are stale.
 
-The exact persisted representation is owned by [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md): coordinator-owned conformance RunEvents plus explicit ArtifactRef dependency edges. Order does not create a duplicate conformance domain model.
+The exact persisted representation is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md): coordinator-owned conformance RunEvents plus explicit ArtifactRef dependency edges. Order does not create a duplicate conformance domain model.
 
 ## 10. Downstream handoff rule
 
