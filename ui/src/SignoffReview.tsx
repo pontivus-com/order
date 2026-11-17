@@ -508,23 +508,29 @@ export const SignoffReview = ({
     packageValue &&
     packageError === null &&
     !packageFetching ? (
-      <div className="order-approval-action-region">
-        <TextInput
-          label="Approved by"
-          description="Identify the operator authorizing this exact package."
-          value={approvedBy}
-          onChange={(value) => setApprovedBy(value)}
-          placeholder="Local operator identity"
-          isDisabled={mutationsDisabled || signoff.isPending}
-          width="100%"
+      <section className="order-approval-action-region">
+        <WorkbenchSectionHeader
+          title="Authorization"
+          description="Approver identity and exact-package decision remain in the Review decision region."
         />
-        <WorkbenchAction
-          label="Sign off exact package"
-          tone="primary"
-          loading={signoff.isPending}
-          disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
-          onClick={() => signoff.mutate()}
-        />
+        <div className="order-approval-authorization-controls">
+          <TextInput
+            label="Approved by"
+            description="Identify the operator authorizing this exact package."
+            value={approvedBy}
+            onChange={(value) => setApprovedBy(value)}
+            placeholder="Local operator identity"
+            isDisabled={mutationsDisabled || signoff.isPending}
+            width="100%"
+          />
+          <WorkbenchAction
+            label="Sign off exact package"
+            tone="primary"
+            loading={signoff.isPending}
+            disabled={mutationsDisabled || approvedBy.trim().length === 0 || signoff.isPending}
+            onClick={() => signoff.mutate()}
+          />
+        </div>
         {signoff.error ? (
           <WorkbenchErrorState
             title="Sign-off failed"
@@ -533,7 +539,7 @@ export const SignoffReview = ({
               : String(signoff.error)}
           />
         ) : null}
-      </div>
+      </section>
     ) : null;
 
   return (

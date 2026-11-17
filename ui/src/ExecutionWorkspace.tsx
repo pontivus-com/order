@@ -273,15 +273,19 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
     {status:"error" as const,title:"Implementation task is blocked",description:"Resolve the recorded blocker before resuming this approved task."}:
     mutationError?{status:"error" as const,title:"Implementation action failed",description:mutationError instanceof Error?mutationError.message:String(mutationError)}:null;
 
-  const groups:WorkflowStepIndexGroup[]=[];
-  if(tasks.length>0)groups.push({id:"tasks",label:"Approved tasks",items:tasks.map((task)=>({
-    id:task.id,label:task.objective,description:"Approved task",statusLabel:taskStateLabel(task),statusVariant:taskVariant(task),selected:task.id===selectedTask?.id,
-    onSelect:()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:task.id,runId:runs.findLast((run)=>run.executionTaskId===task.id)?.id??null}),
-  }))});
-  if(selectedTask&&taskRuns.length>0)groups.push({id:"attempts",label:"Attempts",items:taskRuns.map((run)=>({
-    id:run.id,label:runRoleLabel(run.role)+" · Attempt "+run.attempt,description:new Date(run.startedAt).toLocaleString(),statusLabel:runStatusLabel(run.status),statusVariant:runVariant(run),selected:run.id===selectedRun?.id,
-    onSelect:()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:selectedTask.id,runId:run.id}),
-  }))});
+  const attemptGroups:WorkflowStepIndexGroup[]=selectedTask&&taskRuns.length>0?[{
+    id:"attempts",
+    label:"Attempts",
+    items:taskRuns.map((run)=>({
+      id:run.id,
+      label:runRoleLabel(run.role)+" · Attempt "+run.attempt,
+      description:new Date(run.startedAt).toLocaleString(),
+      statusLabel:runStatusLabel(run.status),
+      statusVariant:runVariant(run),
+      selected:run.id===selectedRun?.id,
+      onSelect:()=>onSelectMaterial({kind:"EXECUTION_TASK",taskId:selectedTask.id,runId:run.id}),
+    })),
+  }]:[];
 
   const summary=<WorkflowStepSummary
     label="Implementation" purpose="Execute and verify the approved change"
@@ -291,7 +295,27 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
     blocker={summaryBlocker} action={currentAction}
   />;
 
-  const master=groups.length>0?<WorkflowStepIndex groups={groups} label="Approved tasks"/>:<WorkbenchState kind="empty" title="No approved tasks"/>;
+  const master=tasks.length>0?<WorkbenchTable
+    label="Approved tasks"
+    selection="single"
+    columns={[
+      {key:"task",label:"Approved task"},
+      {key:"state",label:"State"},
+    ]}
+    rows={tasks.map((task)=>({
+      id:task.id,
+      selected:task.id===selectedTask?.id,
+      onSelect:()=>onSelectMaterial({
+        kind:"EXECUTION_TASK",
+        taskId:task.id,
+        runId:runs.findLast((run)=>run.executionTaskId===task.id)?.id??null,
+      }),
+      cells:{
+        task:<strong>{task.objective}</strong>,
+        state:<WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)}/>,
+      },
+    }))}
+  />:<WorkbenchState kind="empty" title="No approved tasks"/>;
   const detail=stateError?<WorkbenchState kind="error" title="Implementation state unavailable" description={stateError instanceof Error?stateError.message:String(stateError)}/>:
     statePending?<WorkbenchState kind="loading" title="Loading implementation state…"/>:
     selectedTask?<section className="order-execution-task-material" data-testid="execution-task-detail">
@@ -299,6 +323,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
       <MetadataList columns="multi">
         <MetadataListItem label="Scope">{selectedTask.scope.join(", ")||"None"}</MetadataListItem>
       </MetadataList>
+      {attemptGroups.length>0?<WorkflowStepIndex groups={attemptGroups} label="Attempts"/>:null}
       {selectedRun ? (
         <div data-testid="selected-run-header">
           <WorkbenchSectionHeader

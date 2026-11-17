@@ -1138,7 +1138,7 @@ export const WorkItemWorkspace = ({
           }
         : currentAttention === "MUTATION_CONFLICT"
           ? {
-              status: "warning" as const,
+              status: "error" as const,
               title: "Workflow state changed during the action",
               description:
                 "Review the refreshed current workflow state before attempting another mutation.",
@@ -1221,8 +1221,8 @@ export const WorkItemWorkspace = ({
   const currentAttentionVariant = (() => {
     if (!inspectedHistorical) return summaryStatusVariant;
     switch (currentAttention) {
-      case "BLOCKER": return "error" as const;
-      case "MUTATION_CONFLICT":
+      case "BLOCKER":
+      case "MUTATION_CONFLICT": return "error" as const;
       case "REQUIRED_INPUT":
       case "PROPOSAL_DECISION":
       case "RECOVERY":

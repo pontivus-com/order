@@ -375,24 +375,6 @@ export const App = () => {
                   : "Governed work queue"}
             </span>
           </div>
-          {settingsSection === null && selectedWorkItem === null ? (
-            <WorkbenchAction
-              label="New work item"
-              icon={<WorkbenchIcon name="add" />}
-              onClick={() => {
-                resetCreate();
-                setCreateOpen(true);
-              }}
-            />
-          ) : null}
-          {selectedWorkItem === null && settingsSection === null ? (
-            <WorkbenchAction
-              label={refresh.isPending ? "Refreshing…" : "Refresh sources"}
-              icon={<WorkbenchIcon name="refresh" />}
-              loading={refresh.isPending}
-              onClick={() => refresh.mutate()}
-            />
-          ) : null}
           {settingsSection !== null ? (
             <WorkbenchUtilityLink
               label="Back to work queue"
@@ -404,12 +386,6 @@ export const App = () => {
       }
       end={
         <>
-          {selectedWorkItem === null && settingsSection === null ? (
-            <WorkbenchToolbarSearch
-              value={search}
-              onChange={setSearch}
-            />
-          ) : null}
           <WorkbenchToolbarUtilities>
             {selectedWorkItem ? null : <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />}
             <WorkbenchUtilityLink
@@ -437,6 +413,16 @@ export const App = () => {
         </>
       }
     />
+  );
+
+  const queueControls = (
+    <div className="order-queue-controls">
+      <WorkbenchToolbarGroup>
+        <WorkbenchAction label="New work item" tone="primary" icon={<WorkbenchIcon name="add" />} onClick={() => { resetCreate(); setCreateOpen(true); }} />
+        <WorkbenchAction label={refresh.isPending ? "Refreshing…" : "Refresh sources"} icon={<WorkbenchIcon name="refresh" />} loading={refresh.isPending} onClick={() => refresh.mutate()} />
+      </WorkbenchToolbarGroup>
+      <WorkbenchToolbarSearch value={search} onChange={setSearch} />
+    </div>
   );
 
   const queue = workItemsQuery.isPending ? (
@@ -514,33 +500,21 @@ export const App = () => {
     />
   ) : (
     <div className="order-queue-page">
+      {queueControls}
       {readinessQuery.data && !readinessQuery.data.ready ? (
-        <WorkbenchNotice
-          tone="warning"
-          title="Setup requires attention"
-          description={
-            <span>
-              {readinessQuery.data.blockers.map((blocker, index) => {
-                const section = settingsDestinationForReadinessBlocker(blocker);
-                return (
-                  <span key={blocker}>
-                    {index > 0 ? " · " : ""}
-                    <Link
-                      href={"/settings/" + section}
-                      isStandalone
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigateSettings(section);
-                      }}
-                    >
-                      {installationReadinessBlockerText(blocker)}
-                    </Link>
-                  </span>
-                );
-              })}
-            </span>
-          }
-        />
+        <section className="order-installation-readiness" data-testid="installation-readiness">
+          <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue is not presented as mysteriously empty." />
+          <div className="order-installation-readiness-blockers">
+            {readinessQuery.data.blockers.map((blocker) => {
+              const section = settingsDestinationForReadinessBlocker(blocker);
+              const destination = section === "repositories" ? "Repositories" : section === "opencode" ? "OpenCode accounts" : "Model & runtime";
+              return <div className="order-installation-readiness-row" key={blocker}>
+                <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>InstallationReadiness blocker</span></div>
+                <Link href={"/settings/" + section} isStandalone onClick={(event) => { event.preventDefault(); navigateSettings(section); }}>{"Open " + destination}</Link>
+              </div>;
+            })}
+          </div>
+        </section>
       ) : null}
       {(diagnosticsQuery.data ?? []).length > 0 ? (
         <div data-testid="source-diagnostics">

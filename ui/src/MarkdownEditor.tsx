@@ -326,7 +326,7 @@ export const MarkdownEditor = ({
       <div className="order-editor-notices">
         {conflicted ? (
           <WorkbenchNotice
-            tone="warning"
+            tone="danger"
             title="Canonical document changed"
             description="The canonical file changed while this buffer was open. The local buffer was not rebased or overwritten."
             action={<WorkbenchAction label="Reload current" onClick={reloadCurrent} />}

@@ -47,7 +47,7 @@ export const WorkbenchLayout = ({
     />
   );
   return (
-    <AppShell topNav={toolbar} mobileNav={false} contentPadding={0} height="fill" variant="section" data-testid="workbench-layout">
+    <AppShell topNav={<div className="order-application-toolbar">{toolbar}</div>} mobileNav={false} contentPadding={0} height="fill" variant="section" data-testid="workbench-layout">
       {content}
       {!wide && context ? (
         <Drawer isOpen={context.open} onOpenChange={context.onOpenChange} label="Work item context"

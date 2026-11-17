@@ -2,13 +2,37 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** IMPLEMENTATION COMPLETE — P1-P7 done; C1-C7 PASS; candidate ready for canonical V2-V7 validation  
+**Status:** VISUAL CLOSURE REMEDIATION IN PROGRESS — P1/C1 and P2/C2 preserved PASS; C3-C7 reopened; not yet eligible for V2-V7  
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
 **Accepted technical authority:** solution-design.md plus the amended canonical P3/P4/P6 owners  
 **Reviewed visual baseline:** docs/references/workbench-ui/README.md and its 41 SVG reference compositions/state sheets  
-**Active delivery branch:** version/0.5.0
+**Active delivery branch:** fix/0.5.0-structural-ui-recovery
+
+## 0. Strict visual-evidence correction — 2026-11-17
+
+A fresh independent inspection of the retained real-SPA visual artifacts invalidated the prior C3-C7 visual PASS claims. The evidence files are genuine runtime/reference captures, but the capture workflows mechanically proved inventory only; the later MATCH ledger accepted material topology/hierarchy differences that §§4.1-4.5 explicitly prohibit.
+
+P1/C1 and P2/C2 remain closed because this correction changes no lifecycle, contract, daemon, OpenCode or control-plane semantics. Visual implementation resumes only at the existing presentation owners.
+
+| Reference | Failure class | Owning correction |
+|---|---|---|
+| current-attention-states.svg | product presentation | mutation conflict warning must become canonical conflict/error semantics |
+| document-states.svg | product presentation | canonical-document conflict warning must become danger/error semantics |
+| document-authoring.svg | product presentation | separate primitive-owned application-toolbar chrome from the document-local toolbar role |
+| approval.svg | product composition | restore explicit Authorization hierarchy inside the Review decision region |
+| implementation.svg | product composition | restore the required persistent fixed-width task scan; attempts remain subordinate selection |
+| settings-model.svg | product composition | restore Settings containment and model-list-source hierarchy |
+| settings-repository-add.svg / settings-repository-move.svg | product composition | bounded repository tasks become the focused configuration task |
+| settings-opencode-add.svg / settings-opencode-rename.svg / settings-opencode-login.svg | product composition | bounded account tasks become the focused configuration task |
+| queue.svg | product composition | Queue task-local actions/search return from application toolbar to Queue surface |
+| installation-readiness.svg | product composition | render the complete owner-linked blocker set rather than one aggregate notice |
+| queue-states.svg / application-notices-states.svg | evidence isolation | final captures must exclude unrelated diagnostics/readiness state |
+| workitem-context.svg | evidence settlement | final capture must wait for resolved Context rather than a loading placeholder |
+
+Every prior reference verdict not explicitly listed above is **RECHECK_REQUIRED**, not inherited MATCH. Final C7 must regenerate and freshly adjudicate all 41 references on one exact final candidate SHA. No old verdict may be carried forward.
+
 
 ## 1. Purpose
 
@@ -240,11 +264,11 @@ No new dependency, package pin, database migration, persistent state table, tran
 |---|---|---|---|
 | P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure | **DONE — preserve** |
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure | **DONE — preserve; rerun regression gates after later UI work** |
-| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **DONE — §6.5 structural recovery PASS; C3 PASS on adjudicated real-SPA evidence** |
-| P4 | Work request through Readiness | C4 pre-signoff visual conformance | **DONE — C4 PASS on corrected accepted Evidence reference and adjudicated real-SPA evidence** |
-| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **DONE — C5 PASS on corrected accepted references and adjudicated real-SPA evidence** |
-| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **DONE — C6 PASS on settled real-SPA evidence and permanent behavior verification** |
-| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **DONE — C7 PASS; 41/41 references MATCH; V-01..V-11 permanent proof green** |
+| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **REOPENED — retained evidence invalidated; strict C3 regeneration required** |
+| P4 | Work request through Readiness | C4 pre-signoff visual conformance | **REOPENED — retained evidence invalidated; strict C4 regeneration required** |
+| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **REOPENED — retained evidence invalidated; strict C5 regeneration required** |
+| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **REOPENED — retained evidence invalidated; strict C6 regeneration required** |
+| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **REOPENED — prior 41/41 ledger invalidated; final-head C7 regeneration required** |
 
 No phase may be marked complete while its checkpoint is FAIL, invalid, unproven or superseded by later evidence.
 
@@ -597,9 +621,9 @@ dependency-lock
 
 Only after SR passes may implementation resume reference-by-reference P3/C3 correction. Every subsequent reference fix remains subject to SR-1 owner classification; SR is not a one-time permission to resume local patching.
 
-### 6.6 P3/C3 adjudicated closure — 2026-11-17
+### 6.6 P3/C3 historical adjudication — reopened 2026-11-17
 
-**Status:** PASS.
+**Status:** REOPENED — prior adjudication invalidated by §0 strict visual-evidence correction.
 
 This closure uses real-SPA evidence generated on commit `dcbdf5fee736c8668a95ae7cb381fa380eda294c` by temporary evidence-capture run `44013345676`, artifact `p3-p4-visual-evidence-dcbdf5fee736c8668a95ae7cb381fa380eda294c`. The workflow's success is evidence generation only; the PASS below is the explicit state-by-state adjudication required by §§4.1 and 6.3.
 
@@ -628,9 +652,9 @@ C3 additional acceptance is also closed:
 
 No `ALLOWED_RENDERING_VARIANCE` exception is needed for C3. P3 is complete and P4 is permitted to execute.
 
-### 6.7 P4/C4 adjudicated closure — 2026-11-17
+### 6.7 P4/C4 historical adjudication — reopened 2026-11-17
 
-**Status:** PASS.
+**Status:** REOPENED — prior adjudication invalidated by §0 strict visual-evidence correction.
 
 The sole prior C4 blocker was resolved upstream at the derived-reference owner before implementation resumed. The reference-pack rule already states that canonical authority wins when a derived SVG conflicts with it. Accordingly:
 
@@ -669,9 +693,9 @@ C4 acceptance is therefore closed: zero primary technical identity leaks were in
 
 No `ALLOWED_RENDERING_VARIANCE` exception is needed for C4. P4 is complete and P5 is permitted to execute.
 
-### 6.8 P5/C5 adjudicated closure — 2026-11-17
+### 6.8 P5/C5 historical adjudication — reopened 2026-11-17
 
-**Status:** PASS.
+**Status:** REOPENED — prior adjudication invalidated by §0 strict visual-evidence correction.
 
 P5 was closed only after separating derived-reference conflicts from implementation defects and rerunning the complete post-signoff state set through the real SPA.
 
@@ -754,9 +778,9 @@ Permanent PR Verification run `44022983094` passed on renewed-audit implementati
 
 **Renewed verdict:** P5 is complete only with these corrections included. C5 remains **PASS**, with no allowed-variance exception. P6 is the next permitted implementation phase.
 
-### 6.9 P6/C6 adjudicated closure — 2026-11-17
+### 6.9 P6/C6 historical adjudication — reopened 2026-11-17
 
-**Status:** PASS.
+**Status:** REOPENED — prior adjudication invalidated by §0 strict visual-evidence correction.
 
 P6 was executed as conformance work over the accepted supporting-service design, not as a new application architecture. Production changes remained inside existing UI/presentation owners:
 
@@ -808,9 +832,9 @@ C6 acceptance is therefore closed:
 
 No `ALLOWED_RENDERING_VARIANCE` exception is required for C6. Temporary C6 workflows were removed immediately after evidence capture. P6 is complete and P7 may execute.
 
-### 6.10 P7/C7 integrated closure — 2026-11-17
+### 6.10 P7/C7 historical integrated adjudication — reopened 2026-11-17
 
-**Status:** PASS.
+**Status:** REOPENED — prior C7 ledger invalidated by §0; implementation remains below candidate-validation boundary until fresh 41-reference proof exists.
 
 P7 validates the integrated P1-P6 candidate; it does not introduce another product architecture. The final work closed three obligations: current-tree visual regeneration, permanent V-01..V-11/candidate-boundary proof, and deletion/publishable-tree certification.
 
@@ -915,7 +939,7 @@ Permanent PR Verification run `44033327532`, attempt 2, passed on code/test head
 
 Attempt 1 exposed one pre-existing long-Markdown browser polling timeout after all code/unit/build gates had passed; the exact same head was rerun without code/test changes and the complete suite passed. No timeout was increased and no product/test assertion was weakened.
 
-P7 is therefore complete. C7 is PASS. Implementation stops here and the integrated 0.5.0 candidate proceeds to the canonical validation control plane in §15; this PLAN does not itself claim V2-V7 or release acceptance.
+The former P7/C7 completion claim is superseded by §0. P7 may close again only after the corrected presentation bytes pass the permanent gate union and a fresh exact-final-head 41-reference C7 adjudication. Until then the candidate does not proceed to V2-V7.
 
 #### Post-closure V-07 completeness hardening — 2026-11-17
 
@@ -932,7 +956,7 @@ Permanent PR Verification run `44035317769` passed on strengthened code/test hea
 
 `dependency-lock → typecheck → architecture → test → build → release packaging → browser` = **PASS**.
 
-This strengthens V-07 proof only; the 41/41 visual ledger, P6/C6 verdicts, P7 deletion closure and all other V-01..V-11 obligations remain unchanged.
+This strengthens V-07 proof only. The later §0 strict visual-evidence correction independently invalidates the former 41/41 visual ledger and reopens C3-C7 without changing the V-07 result.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
@@ -1265,7 +1289,7 @@ The following references must pass before P4:
 
 ### C3 — foundation visual checkpoint
 
-**Status:** PASS — current adjudicated closure is recorded in §6.6.
+**Status:** REOPENED — §0 invalidates the former C3 adjudication; rerun after remediation.
 
 For every C3 reference:
 
@@ -1360,7 +1384,7 @@ Change, Defect, Investigation and Audit retain their accepted kind-specific info
 
 ### C4 — pre-signoff visual checkpoint
 
-**Status:** PASS — closure is recorded in §6.7. P5 is permitted to execute.
+**Status:** REOPENED — §0 invalidates the former C4 adjudication; rerun after remediation.
 
 PASS requires:
 
@@ -1426,7 +1450,7 @@ Complete must be result-first:
 
 ### C5 — post-signoff visual checkpoint
 
-**Status:** PASS — closure is recorded in §6.8. P6 is the next permitted implementation phase.
+**Status:** REOPENED — §0 invalidates the former C5 adjudication; rerun after remediation.
 
 PASS requires:
 
@@ -1488,7 +1512,7 @@ A production edit on one of these surfaces is justified only by a failed listed 
 
 ### C6 — application-surface visual checkpoint
 
-**Status:** PASS — adjudicated closure is recorded in §6.9. P7 is the next permitted implementation phase.
+**Status:** REOPENED — §0 invalidates the former C6 adjudication; rerun after remediation.
 
 PASS requires:
 
@@ -1571,7 +1595,7 @@ No “close enough” category exists for structural, hierarchy, interaction or 
 
 ### C7 — complete visual/certification checkpoint
 
-**Status:** PASS — adjudicated integrated closure is recorded in §6.10. Implementation stops here and the candidate proceeds to canonical V2-V7 validation.
+**Status:** REOPENED — §0 invalidates the former C7 adjudication; final 41-reference regeneration is required before V2-V7.
 
 PASS requires:
 

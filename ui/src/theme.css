@@ -56,8 +56,8 @@
     --color-accent-muted: #203554 !important;
     color-scheme: dark;
   }
-  :root:not([data-theme]) .order-toolbar,
-  [data-astryx-theme="neutral"]:not([data-theme]) .order-toolbar {
+  :root:not([data-theme]) .order-application-toolbar .order-toolbar,
+  [data-astryx-theme="neutral"]:not([data-theme]) .order-application-toolbar .order-toolbar {
     background: var(--color-background-muted);
     color: var(--color-text-primary);
   }
@@ -84,6 +84,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border-emphasized);
+  background: var(--color-background-surface);
+  color: var(--color-text-primary);
+}
+.order-application-toolbar .order-toolbar {
   border-bottom: 0;
   background: var(--color-text-primary);
   color: var(--color-background-surface);
@@ -135,8 +140,8 @@
 .order-utility-link small { color: currentColor; }
 .order-theme-control { color: currentColor; }
 
-:root[data-theme="dark"] .order-toolbar,
-[data-astryx-theme="neutral"][data-theme="dark"] .order-toolbar {
+:root[data-theme="dark"] .order-application-toolbar .order-toolbar,
+[data-astryx-theme="neutral"][data-theme="dark"] .order-application-toolbar .order-toolbar {
   background: var(--color-background-muted);
   color: var(--color-text-primary);
 }
@@ -623,6 +628,54 @@
   display: grid;
   gap: var(--spacing-2);
 }
+.order-settings-layout-navigation-surface,
+.order-settings-layout-content-surface {
+  min-width: 0;
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+  background: var(--color-background-surface);
+}
+.order-settings-layout-navigation-surface { padding: var(--spacing-4); }
+.order-settings-layout-content-surface { padding: var(--spacing-5); }
+.order-settings-supporting-info {
+  padding-top: var(--spacing-3);
+  border-top: 1px solid var(--color-border-emphasized);
+}
+.order-settings-supporting-info h3,
+.order-settings-supporting-info p { margin: 0; }
+.order-settings-supporting-info p {
+  margin-top: var(--spacing-1);
+  color: var(--color-text-secondary);
+}
+.order-queue-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-6) 0;
+}
+.order-installation-readiness {
+  display: grid;
+  gap: var(--spacing-2);
+  padding-inline: var(--spacing-6);
+}
+.order-installation-readiness-blockers {
+  display: grid;
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+  background: var(--color-background-surface);
+}
+.order-installation-readiness-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-emphasized);
+}
+.order-installation-readiness-row:last-child { border-bottom: 0; }
+.order-installation-readiness-row > div { display: grid; gap: var(--spacing-1); }
+.order-installation-readiness-row span { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
 .order-settings-add-repository { padding-top: var(--spacing-2); }
 .order-visually-hidden {
   position: absolute;
@@ -754,9 +807,15 @@
   border-top: 1px solid var(--color-border-emphasized);
 }
 .order-approval-action-region {
+  width: 100%;
   display: grid;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-3);
+  gap: var(--spacing-3);
+}
+.order-approval-authorization-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--spacing-3);
 }
 .order-section-heading {
   display: flex;
@@ -1091,6 +1150,11 @@
   }
   .order-workbench-attention-action { align-self: flex-start; }
   .order-workbench-review { padding: var(--spacing-3); }
+  .order-approval-authorization-controls { grid-template-columns: minmax(0, 1fr); }
+  .order-queue-controls,
+  .order-installation-readiness-row { align-items: stretch; flex-direction: column; }
+  .order-queue-controls { padding-inline: var(--spacing-3); }
+  .order-installation-readiness { padding-inline: var(--spacing-3); }
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
   .order-workbench-review-currentness { justify-self: start; }
   .order-workitem-title-edit {

@@ -1590,7 +1590,7 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await expect(implementationDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
   await expect(implementationDetail.getByText("Change surface", { exact: true })).toBeHidden();
   await expect(implementationDetail.getByText("Task id", { exact: true })).toBeHidden();
-  await expect(page.getByRole("combobox", { name: "Approved tasks" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Approved tasks" })).toBeVisible();
   await page.getByRole("button", { name: "Technical details", exact: true }).click();
   await expect(implementationDetail.getByText("Task id", { exact: true })).toBeVisible();
   await expect(implementationDetail.getByText("Change surface", { exact: true })).toBeVisible();

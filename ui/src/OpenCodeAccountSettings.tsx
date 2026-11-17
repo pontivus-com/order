@@ -172,185 +172,83 @@ export const OpenCodeAccountSettings = () => {
     setLoginAttemptId(null);
   };
 
-  return (
-    <section className="order-settings-section" data-testid="settings-opencode">
-      <WorkbenchSectionHeader
-        title="OpenCode accounts"
-        description="Manage the saved OpenCode login identities available to this Order installation."
-      />
-
-      {accountStateQuery.isPending ? <WorkbenchState kind="loading" title="Checking saved accounts…" /> : null}
-      {accountStateQuery.error ? (
-        <WorkbenchNotice tone="danger" title="OpenCode accounts unavailable" description={errorText(accountStateQuery.error)} />
-      ) : null}
-
-      {blockers.map((blocker) => (
-        <WorkbenchNotice
-          key={blocker}
-          tone={blocker === "ACTIVE_RUN" ? "warning" : "info"}
-          title="Account change unavailable"
-          description={blockerText(blocker)}
-        />
-      ))}
-
-      {state ? (
-        state.accounts.length === 0 ? (
-          <WorkbenchState kind="empty" title="No saved OpenCode accounts" />
-        ) : (
-          <WorkbenchTable
-            label="Saved OpenCode accounts"
-            columns={[
-              { key: "account", label: "Account" },
-              { key: "status", label: "Status" },
-              { key: "actions", label: "" },
-            ]}
-            rows={state.accounts.map((account) => ({
-              id: account.id,
-              cells: {
-                account: <strong>{account.label}</strong>,
-                status: (
-                  <div>
-                    <WorkbenchStatus
-                      tone={account.status.status === "READY" ? (account.active ? "success" : "neutral") : "warning"}
-                      label={accountStatusText(account)}
-                    />
-                    {account.status.status === "NEEDS_AUTH" ? (
-                      <div>
-                        <span>{account.status.message}</span>
-                        {account.status.url ? <> <Link href={account.status.url} isExternalLink>Open OpenCode sign-in</Link></> : null}
-                      </div>
-                    ) : null}
-                  </div>
-                ),
-                actions: (
-                  <div className="order-inline-actions">
-                    {!account.active ? (
-                      <WorkbenchAction
-                        label={`Switch to ${account.label}`}
-                        disabled={mutationBlocked || activate.isPending}
-                        loading={activate.isPending && activate.variables === account.id}
-                        onClick={() => activate.mutate(account.id)}
-                      />
-                    ) : null}
-                    <WorkbenchAction
-                      label={`Rename ${account.label}`}
-                      tone="ghost"
-                      disabled={mutationBlocked || rename.isPending}
-                      onClick={() => {
-                        setRenameAccountId(account.id);
-                        setRenameLabel(account.label);
-                      }}
-                    />
-                    <WorkbenchAction
-                      label={`Remove ${account.label}`}
-                      tone="ghost"
-                      disabled={mutationBlocked || remove.isPending}
-                      onClick={() => setRemoveAccountId(account.id)}
-                    />
-                  </div>
-                ),
-              },
-            }))}
-          />
-        )
-      ) : null}
-
-      {renaming ? (
+  if (renaming !== null) {
+    return (
+      <section className="order-settings-section" data-testid="settings-opencode">
         <section data-testid="rename-opencode-account">
-          <WorkbenchSectionHeader title={"Rename " + renaming.label} />
+          <WorkbenchSectionHeader title="Rename saved OpenCode account" description="Bounded account-label mutation." />
           <WorkbenchForm
             content={<TextInput label="Account label" value={renameLabel} onChange={setRenameLabel} hasAutoFocus width="100%" />}
             actions={<>
-              <WorkbenchAction
-                label="Save account label"
-                tone="primary"
-                loading={rename.isPending}
-                disabled={rename.isPending || OpenCodeAccountLabelSchema.safeParse(renameLabel).success === false}
-                onClick={() => rename.mutate({ accountId: renaming.id, label: renameLabel })}
-              />
+              <WorkbenchAction label="Save account label" tone="primary" loading={rename.isPending} disabled={rename.isPending || OpenCodeAccountLabelSchema.safeParse(renameLabel).success === false} onClick={() => rename.mutate({ accountId: renaming.id, label: renameLabel })} />
               <WorkbenchAction label="Cancel rename" onClick={() => { setRenameAccountId(null); setRenameLabel(""); }} />
             </>}
+            feedback={rename.error ? <WorkbenchNotice tone="danger" title="Account rename failed" description={errorText(rename.error)} /> : undefined}
           />
+          <div className="order-settings-supporting-info"><h3>Admission</h3><p>Disabled when account mutation is blocked or another account operation is pending.</p></div>
         </section>
-      ) : null}
-
-      {activate.error ? <WorkbenchNotice tone="danger" title="Account switch failed" description={errorText(activate.error)} /> : null}
-      {rename.error ? <WorkbenchNotice tone="danger" title="Account rename failed" description={errorText(rename.error)} /> : null}
-      {remove.error ? <WorkbenchNotice tone="danger" title="Account removal failed" description={errorText(remove.error)} /> : null}
-
-      <section data-testid="add-opencode-account">
-        {!adding ? (
-          <WorkbenchAction
-            label="Add account"
-            tone="primary"
-            disabled={mutationBlocked}
-            onClick={() => setAdding(true)}
-          />
-        ) : loginAttemptId === null ? (
-          <>
-            <WorkbenchSectionHeader title="Add OpenCode account" />
-            <WorkbenchForm
-              content={<TextInput label="Account label" value={addLabel} onChange={setAddLabel} placeholder="you@example.com" hasAutoFocus width="100%" />}
-              actions={<>
-                <WorkbenchAction
-                  label="Continue to OpenCode sign-in"
-                  tone="primary"
-                  loading={startLogin.isPending}
-                  disabled={mutationBlocked || startLogin.isPending || OpenCodeAccountLabelSchema.safeParse(addLabel).success === false}
-                  onClick={() => startLogin.mutate(addLabel)}
-                />
-                <WorkbenchAction label="Cancel add account" onClick={resetAdd} />
-              </>}
-              feedback={startLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not start" description={errorText(startLogin.error)} /> : undefined}
-            />
-          </>
-        ) : (
-          <section data-testid="opencode-login-attempt">
-            <h3>Sign in with OpenCode</h3>
-            {loginAttempt ? (
-              <>
-                <p>{loginAttempt.instructions}</p>
-                <Link href={loginAttempt.authorizationUrl} isExternalLink>Open OpenCode sign-in</Link>
-                <p>
-                  {loginAttempt.status === "PENDING" ? "Waiting for OpenCode sign-in…" : null}
-                  {loginAttempt.status === "COMPLETED" ? "OpenCode sign-in complete." : null}
-                  {loginAttempt.status === "FAILED" ? loginAttempt.message ?? "OpenCode sign-in failed." : null}
-                  {loginAttempt.status === "EXPIRED" ? "OpenCode sign-in expired." : null}
-                  {loginAttempt.status === "CANCELLED" ? "OpenCode sign-in cancelled." : null}
-                </p>
-                {loginAttempt.status === "PENDING" ? (
-                  <WorkbenchAction
-                    label="Cancel OpenCode sign-in"
-                    loading={cancelLogin.isPending}
-                    onClick={() => cancelLogin.mutate(loginAttempt.id)}
-                  />
-                ) : (
-                  <WorkbenchAction label="Done" tone="primary" onClick={resetAdd} />
-                )}
-              </>
-            ) : loginQuery.isPending ? (
-              <p>Starting OpenCode sign-in…</p>
-            ) : null}
-            {loginQuery.error ? (
-              <WorkbenchNotice tone="danger" title="OpenCode sign-in state unavailable" description={errorText(loginQuery.error)} />
-            ) : null}
-          </section>
-        )}
       </section>
-
-      <p className="order-opencode-account-footnote">
-        Account changes affect login identity only; the configured provider and model stay unchanged.
-      </p>
-
-      <WorkbenchConfirmation
-        open={removeAccountId !== null}
-        onOpenChange={(open) => { if (!open) setRemoveAccountId(null); }}
-        title="Remove saved OpenCode account?"
-        description="Remove the selected saved OpenCode credential from this installation."
-        confirmLabel="Remove account"
-        pending={remove.isPending}
-        onConfirm={() => { if (removeAccountId !== null) remove.mutate(removeAccountId); }}
-      />
+    );
+  }
+  if (adding && loginAttemptId === null) {
+    return (
+      <section className="order-settings-section" data-testid="settings-opencode">
+        <section data-testid="add-opencode-account">
+          <WorkbenchSectionHeader title="Add OpenCode account" description="Begin one bounded saved-account sign-in flow." />
+          <WorkbenchForm
+            content={<TextInput label="Account label" value={addLabel} onChange={setAddLabel} placeholder="you@example.com" hasAutoFocus width="100%" />}
+            actions={<>
+              <WorkbenchAction label="Continue to OpenCode sign-in" tone="primary" loading={startLogin.isPending} disabled={mutationBlocked || startLogin.isPending || OpenCodeAccountLabelSchema.safeParse(addLabel).success === false} onClick={() => startLogin.mutate(addLabel)} />
+              <WorkbenchAction label="Cancel add account" onClick={resetAdd} />
+            </>}
+            feedback={startLogin.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in could not start" description={errorText(startLogin.error)} /> : undefined}
+          />
+          <div className="order-settings-supporting-info"><h3>Effect</h3><p>Starts OpenCode account login only after label validation and account-mutation admission checks.</p></div>
+        </section>
+      </section>
+    );
+  }
+  if (adding && loginAttemptId !== null) {
+    return (
+      <section className="order-settings-section" data-testid="settings-opencode">
+        <section data-testid="add-opencode-account">
+          <section data-testid="opencode-login-attempt">
+            <WorkbenchSectionHeader title="OpenCode sign-in" description="Track the exact OpenCodeAccountLoginAttempt returned by the account-control boundary." />
+            {loginAttempt ? <>
+              <p>{loginAttempt.instructions}</p>
+              <Link href={loginAttempt.authorizationUrl} isExternalLink>Open OpenCode sign-in</Link>
+              <WorkbenchStatus tone={loginAttempt.status === "PENDING" ? "info" : loginAttempt.status === "COMPLETED" ? "success" : "warning"} label={loginAttempt.status} />
+              <p>{loginAttempt.status === "PENDING" ? "Waiting for OpenCode sign-in…" : loginAttempt.status === "COMPLETED" ? "OpenCode sign-in complete." : loginAttempt.status === "FAILED" ? loginAttempt.message ?? "OpenCode sign-in failed." : loginAttempt.status === "EXPIRED" ? "OpenCode sign-in expired." : "OpenCode sign-in cancelled."}</p>
+              {loginAttempt.status === "PENDING" ? <WorkbenchAction label="Cancel OpenCode sign-in" loading={cancelLogin.isPending} onClick={() => cancelLogin.mutate(loginAttempt.id)} /> : <WorkbenchAction label="Done" tone="primary" onClick={resetAdd} />}
+            </> : loginQuery.isPending ? <WorkbenchState kind="loading" title="Starting OpenCode sign-in…" /> : null}
+            {loginQuery.error ? <WorkbenchNotice tone="danger" title="OpenCode sign-in state unavailable" description={errorText(loginQuery.error)} /> : null}
+          </section>
+        </section>
+      </section>
+    );
+  }
+  return (
+    <section className="order-settings-section" data-testid="settings-opencode">
+      <WorkbenchSectionHeader title="OpenCode accounts" description="Manage the saved OpenCode login identities available to this Order installation." />
+      {accountStateQuery.isPending ? <WorkbenchState kind="loading" title="Checking saved accounts…" /> : null}
+      {accountStateQuery.error ? <WorkbenchNotice tone="danger" title="OpenCode accounts unavailable" description={errorText(accountStateQuery.error)} /> : null}
+      {blockers.map((blocker) => <WorkbenchNotice key={blocker} tone={blocker === "ACTIVE_RUN" ? "warning" : "info"} title="Account change unavailable" description={blockerText(blocker)} />)}
+      {state ? state.accounts.length === 0 ? <WorkbenchState kind="empty" title="No saved OpenCode accounts" /> : (
+        <WorkbenchTable label="Saved OpenCode accounts" columns={[{ key: "account", label: "Account" },{ key: "status", label: "Status" },{ key: "actions", label: "" }]} rows={state.accounts.map((account) => ({
+          id: account.id,
+          cells: {
+            account: <strong>{account.label}</strong>,
+            status: <div><WorkbenchStatus tone={account.status.status === "READY" ? (account.active ? "success" : "neutral") : "warning"} label={accountStatusText(account)} />{account.status.status === "NEEDS_AUTH" ? <div><span>{account.status.message}</span>{account.status.url ? <> <Link href={account.status.url} isExternalLink>Open OpenCode sign-in</Link></> : null}</div> : null}</div>,
+            actions: <div className="order-inline-actions">{!account.active ? <WorkbenchAction label={`Switch to ${account.label}`} disabled={mutationBlocked || activate.isPending} loading={activate.isPending && activate.variables === account.id} onClick={() => activate.mutate(account.id)} /> : null}<WorkbenchAction label={`Rename ${account.label}`} tone="ghost" disabled={mutationBlocked || rename.isPending} onClick={() => { setRenameAccountId(account.id); setRenameLabel(account.label); }} /><WorkbenchAction label={`Remove ${account.label}`} tone="ghost" disabled={mutationBlocked || remove.isPending} onClick={() => setRemoveAccountId(account.id)} /></div>,
+          },
+        }))} />
+      ) : null}
+      <div className="order-settings-add-repository"><WorkbenchAction label="Add account" tone="primary" disabled={mutationBlocked} onClick={() => setAdding(true)} /></div>
+      <div className="order-settings-supporting-info"><h3>Mutation blockers</h3><p>ACTIVE_RUN → finish/cancel active agent work · LOGIN_ATTEMPT_ACTIVE → finish/cancel current sign-in · ACCOUNT_MUTATION_ACTIVE → wait for current account change.</p></div>
+      {activate.error ? <WorkbenchNotice tone="danger" title="Account switch failed" description={errorText(activate.error)} /> : null}
+      {remove.error ? <WorkbenchNotice tone="danger" title="Account removal failed" description={errorText(remove.error)} /> : null}
+      <p className="order-opencode-account-footnote">Account changes affect login identity only; the configured provider and model stay unchanged.</p>
+      <WorkbenchConfirmation open={removeAccountId !== null} onOpenChange={(open) => { if (!open) setRemoveAccountId(null); }} title="Remove saved OpenCode account?" description="Remove the selected saved OpenCode credential from this installation." confirmLabel="Remove account" pending={remove.isPending} onConfirm={() => { if (removeAccountId !== null) remove.mutate(removeAccountId); }} />
     </section>
   );
 };

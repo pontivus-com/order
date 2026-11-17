@@ -564,7 +564,8 @@ describe("Order cross-boundary certification", () => {
     expect(execution).not.toContain("api.tick");
     expect(execution).toContain('masterLabel="Approved tasks"');
     expect(execution).toContain('label="Approved tasks"');
-    expect(execution).toContain('description:"Approved task"');
+    expect(execution).toContain('selection="single"');
+    expect(execution).toContain('description="Approved task"');
     expect(execution).not.toContain('description:"Approved task · "');
     expect(execution).toContain(
       'selectedRun===null?<WorkbenchState kind="empty" title="No persisted attempt events"/>',
@@ -822,6 +823,7 @@ describe("Order cross-boundary certification", () => {
     expect(workspace).not.toContain("mutationConflict: false");
     expect(workspace).toContain("api.isCurrentStateConflict(error)");
     expect(workspace).toContain('currentAttention === "MUTATION_CONFLICT"');
+    expect(workspace).toContain('case "MUTATION_CONFLICT": return "error" as const;');
     expect(workspace).toContain("mutationConflictWorkItemUpdatedAt");
     expect(workspace).toContain("selectedWorkItemUpdatedAt !== mutationConflictWorkItemUpdatedAt.current");
     expect(workspace).toContain("currentObservationError === null");
