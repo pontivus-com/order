@@ -2248,7 +2248,19 @@ test("invalid lifecycle Markdown stays inspection-only and exact bytes open in t
   const exactBytes = page.getByTestId("raw-content-view");
   await expect(exactBytes).toBeVisible();
   await expect(exactBytes).toContainText("invalid lifecycle");
-  await expect(exactBytes.locator("pre")).toBeVisible();
+  const codeBlock = exactBytes.locator("pre");
+  await expect(codeBlock).toBeVisible();
+  const material = page.locator(".order-workbench-surface-material").last();
+  const [exactBytesBox, codeBlockBox, materialBox] = await Promise.all([
+    exactBytes.boundingBox(),
+    codeBlock.boundingBox(),
+    material.boundingBox(),
+  ]);
+  expect(exactBytesBox).not.toBeNull();
+  expect(codeBlockBox).not.toBeNull();
+  expect(materialBox).not.toBeNull();
+  expect(exactBytesBox!.height).toBeGreaterThan(materialBox!.height * 0.6);
+  expect(codeBlockBox!.height).toBeGreaterThan(exactBytesBox!.height * 0.9);
 });
 
 test("terminal investigation and audit results remain closed and linked remediation offers only CHANGE or DEFECT", async ({
