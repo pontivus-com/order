@@ -138,6 +138,7 @@ export const ReadinessWorkspace = ({
       artifactId={readinessArtifact.id}
       onOpenArtifactEvidence={onOpenArtifactEvidence}
       onContextDocumentChange={onContextDocumentChange}
+      embeddedReadOnly
     />
   ) : (
     <WorkbenchEmptyState
@@ -252,6 +253,13 @@ export const ReadinessWorkspace = ({
             </div>
           }
           decisions={<></>}
+          technicalDetails={readinessArtifact ? (
+            <dl className="order-readiness-technical">
+              <div><dt>Artifact role</dt><dd>{readinessArtifact.role}</dd></div>
+              <div><dt>Repository path</dt><dd><code>{readinessArtifact.repositoryPath}</code></dd></div>
+              <div><dt>SHA-256</dt><dd><code>{readinessArtifact.sha256}</code></dd></div>
+            </dl>
+          ) : undefined}
         />
         </div>
       }
