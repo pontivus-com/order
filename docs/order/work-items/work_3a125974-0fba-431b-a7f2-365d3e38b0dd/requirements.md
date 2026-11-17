@@ -17,7 +17,7 @@ The productive lifecycle permits a change-local R2 document to become a shadow P
 
 ## Expected corrected behavior
 
-New Change/Defect authoring uses v2 schema pins with explicit canonical-authority disposition semantics. Historical v1 pins remain supported unchanged. Every promotable pre-signoff completion binds exactly one current ArtifactRef at the deterministic stage path, and the coordinator rejects empty/multiple/wrong/stale bindings. R3 independently challenges authority topology and traceability. Authority/release PRs require independent approval.
+New Change/Defect authoring uses v2 schema pins with explicit canonical-authority disposition semantics. Historical v1 pins remain supported unchanged. Every promotable pre-signoff completion binds exactly one current ArtifactRef at the deterministic stage path, and the coordinator rejects empty/multiple/wrong/stale bindings. R3 independently challenges authority topology and traceability. Authority/release PRs require independent approval, and canonical PR verification requires that approval to be bound to the exact current head SHA.
 
 ## Behavior that must remain unchanged
 
@@ -31,6 +31,7 @@ No new lifecycle stage, Run role, persisted conformance model, DTO family, dupli
 4. R3 v2 requires authority topology, traceability, lifecycle completeness and open-decision review.
 5. The permanent architecture sensor requires the functional-core conformance owner.
 6. Repository governance requires independent approval for merge.
+7. Canonical PR verification fails unless a non-author APPROVED review is bound to the exact current PR head SHA; a later commit makes the earlier approval insufficient.
 
 ## Regression/preservation acceptance
 
