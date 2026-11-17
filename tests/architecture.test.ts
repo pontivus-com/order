@@ -569,6 +569,21 @@ describe("architecture fitness", () => {
       }
     }
 
+    if (files.has("src/daemon/stage.ts")) {
+      const stage = sourceText("src/daemon/stage.ts");
+      for (const requiredConformanceOwner of [
+        "evaluateStageConformance",
+        "validateStageDocumentStructure",
+        "parseSignedTaskBlockFromPlan",
+      ]) {
+        if (!stage.includes(requiredConformanceOwner)) {
+          violations.push(
+            `src/daemon/stage.ts must enforce ${requiredConformanceOwner} before lifecycle promotion`,
+          );
+        }
+      }
+    }
+
     if (files.has("src/core/work-item-source.ts")) {
       const workItemSourceCore = sourceText("src/core/work-item-source.ts");
       for (const requiredOwner of [
