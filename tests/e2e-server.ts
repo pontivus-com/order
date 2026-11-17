@@ -762,6 +762,7 @@ await seedProgressionReadyItem(
 await seedCurrentStageDocumentItem("Requirements document visual", "R2");
 await seedCurrentStageDocumentItem("Solution design document visual", "DESIGN");
 await seedCurrentStageDocumentItem("Implementation plan document visual", "PLAN");
+await seedCurrentStageDocumentItem("Implementation plan safety visual", "PLAN");
 await seedCurrentStageDocumentItem("Readiness review document visual", "R3");
 
 const readinessInputItem = await seedProgressionReadyItem(
