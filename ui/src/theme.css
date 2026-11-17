@@ -878,6 +878,7 @@
 .order-editor-source-pane,
 .order-editor-preview-pane {
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);
