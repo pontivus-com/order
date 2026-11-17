@@ -3,8 +3,10 @@ import {
   type ArtifactRefId,
   type ConcernId,
   type ProjectManifest,
+  type RepositoryPath,
   type Run,
   type RunEventPayload,
+  type WorkItemId,
   type WorkStage,
 } from "./contracts.ts";
 import {
@@ -83,6 +85,45 @@ export const authorityLayerForManifestLayer = (
 export const artifactRoleForStage = (
   stage: PreSignoffStage,
 ): ArtifactRef["role"] => artifactRoleByStage[stage];
+
+export type StageConformanceEvaluation =
+  | Readonly<{ tag: "PASS"; output: ArtifactRef }>
+  | Readonly<{ tag: "FAIL"; summary: string }>;
+
+export const evaluateStageConformance = (
+  stage: PreSignoffStage,
+  workItemId: WorkItemId,
+  expectedRepositoryPath: RepositoryPath,
+  outputs: readonly ArtifactRef[],
+): StageConformanceEvaluation => {
+  if (outputs.length !== 1) {
+    return {
+      tag: "FAIL",
+      summary:
+        "stage completion requires exactly one current output ArtifactRef; received " +
+        outputs.length,
+    };
+  }
+  const output = outputs[0];
+  if (output.workItemId !== workItemId) {
+    return { tag: "FAIL", summary: "stage output belongs to another WorkItem" };
+  }
+  if (output.role !== artifactRoleForStage(stage)) {
+    return {
+      tag: "FAIL",
+      summary: "stage output role " + output.role + " does not match " + stage,
+    };
+  }
+  if (output.repositoryPath !== expectedRepositoryPath) {
+    return {
+      tag: "FAIL",
+      summary:
+        "stage output path " + output.repositoryPath +
+        " is not the canonical path " + expectedRepositoryPath,
+    };
+  }
+  return { tag: "PASS", output };
+};
 
 const preSignoffStageSequence: readonly PreSignoffStage[] = [
   "R1",
