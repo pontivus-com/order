@@ -846,7 +846,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
   await expect(context.locator(
-    '[data-testid="workflow-step-frame"], [data-testid="stage-run-material"], [data-testid="lifecycle-document-material"], [data-testid="review-workspace"], [data-testid="execution-workspace"], [data-testid="evidence-workspace"]',
+    '[data-testid="workflow-step-frame"], [data-testid="stage-run-material"], [data-testid="lifecycle-document-material"], [data-testid="review-workspace"], [data-testid="execution-workspace"]',
   )).toHaveCount(0);
 
   await page.goBack();
@@ -2241,7 +2241,7 @@ test("invalid lifecycle Markdown stays inspection-only and exact bytes open in t
   await expect(page.getByLabel("Research document Markdown source")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Inspect exact bytes" }).click();
-  await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
   const exactBytes = page.getByTestId("raw-content-view");
   await expect(exactBytes).toBeVisible();
   await expect(exactBytes).toContainText("invalid lifecycle");
@@ -2396,7 +2396,7 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(reviewEvidence).toBeVisible();
   await reviewEvidence.scrollIntoViewIfNeeded();
   await reviewEvidence.click();
-  await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
   const raw = page.getByTestId("raw-content-view");
   await expect(raw).toContainText(
     "<script>window.__orderXss=true</script>",
