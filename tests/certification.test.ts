@@ -463,6 +463,8 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchSectionHeader",
       "WorkbenchState",
       "<CodeBlock",
+      'language="plaintext"',
+      'container="card"',
     ]) {
       expect(evidence).toContain(required);
     }
