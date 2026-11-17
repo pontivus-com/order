@@ -475,6 +475,11 @@ describe("Order cross-boundary certification", () => {
       expect(evidence).not.toContain(forbidden);
     }
 
+    const markdownEditor = read("ui/src/MarkdownEditor.tsx");
+    expect(markdownEditor).toContain("WorkbenchSectionHeader");
+    expect(markdownEditor).not.toContain("order-markdown-document-view-header");
+    expect(markdownEditor).not.toContain("order-markdown-document-view-actions");
+
     const theme = read("ui/src/theme.css");
     const sectionMarkers = [
       "/* 1. Root public Astryx token bridge. Exact Order color literals live only here. */",
@@ -511,6 +516,8 @@ describe("Order cross-boundary certification", () => {
       ".order-evidence-code-label",
       ".order-code-view",
       ".order-evidence-code-bytes",
+      ".order-markdown-document-view-header",
+      ".order-markdown-document-view-actions",
       "border-radius: 999px",
       "border-radius: 50%",
       "font-size: 0.75rem",
@@ -531,6 +538,9 @@ describe("Order cross-boundary certification", () => {
     expect(presentationCss).not.toMatch(/border-radius:\s*(?:\d|50%|999)/);
     expect(presentationCss).not.toContain("box-shadow:");
     expect(theme.slice(sectionOffsets[1])).not.toContain("!important");
+
+    const documentViewRule = theme.match(/\.order-markdown-document-view\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
 
     const baseCss = theme.slice(0, theme.indexOf("@media"));
     const baseSelectors = [...baseCss.matchAll(/(?:^|\n)([^@\n][^{}]*)\{/g)]
