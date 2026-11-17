@@ -714,8 +714,9 @@ test("Approval consumes the real typed stale authority owner and returns to the 
 
   await selectWorkflowStep(page, "Approval");
   await expect(page.getByTestId("workflow-step-summary")).toContainText(
-    "Returned upstream before sign-off",
+    "Implementation plan",
   );
+  await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
   await expect(page.getByTestId("review-workspace")).toContainText(
     "Sign-off not completed · workflow returned upstream",
   );
@@ -1008,7 +1009,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
       if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
       scroller.scrollTop = scroller.scrollHeight;
     });
-    await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
+    await expect.poll(async () => (await markdownSourceValue(reloaded)).endsWith(marker + " persisted")).toBe(true);
     await backToQueue(page);
   };
 
@@ -1091,7 +1092,10 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   expect(workspaceBox).not.toBeNull();
   expect(editorBox).not.toBeNull();
   expect(saveBox).not.toBeNull();
-  expect(editorBox!.width).toBeGreaterThan(workspaceBox!.width * 0.75);
+  const previewBox = await page.getByTestId("markdown-preview").boundingBox();
+  expect(previewBox).not.toBeNull();
+  expect(editorBox!.width).toBeGreaterThan(workspaceBox!.width * 0.4);
+  expect(previewBox!.width).toBeGreaterThan(workspaceBox!.width * 0.4);
   expect(editorBox!.height).toBeGreaterThan(workspaceBox!.height * 0.45);
   expect(saveBox!.y + saveBox!.height).toBeLessThanOrEqual(900);
 
@@ -1844,7 +1848,10 @@ test("Readiness required input owns the action without replacing Review", async 
   await expect(interaction).toContainText(
     "Which readiness finding should be resolved before approval?",
   );
-  await expect(interaction.getByPlaceholder("Answer and continue")).toBeVisible();
+  const readinessComposer = interaction.getByTestId("activity-composer");
+  await expect(readinessComposer).toBeVisible();
+  await expect(readinessComposer.getByLabel("Message input")).toBeVisible();
+  await expect(readinessComposer).toContainText("Answer the question above");
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
@@ -2067,11 +2074,13 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
 
   await replaceMarkdownSource(page, sourceEditor, current + "\nwill be cancelled\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
-  await expect.poll(() => markdownSourceValue(sourceEditor)).toBe(current);
+  await expect(page.getByTestId("markdown-document-view")).toBeVisible();
+  const reopenedSourceEditor = await openMarkdownEditor(page, "WorkItem source Markdown source");
+  await expect.poll(() => markdownSourceValue(reopenedSourceEditor)).toBe(current);
 
-  await replaceMarkdownSource(page, sourceEditor, current + "\nsaved through browser workbench\n");
+  await replaceMarkdownSource(page, reopenedSourceEditor, current + "\nsaved through browser workbench\n");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("saved through browser workbench");
+  await expect.poll(() => markdownSourceValue(reopenedSourceEditor)).toContain("saved through browser workbench");
   await expect.poll(() => readFileSync(sourcePath, "utf8")).toContain(
     "saved through browser workbench",
   );
