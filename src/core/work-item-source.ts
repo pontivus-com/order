@@ -70,6 +70,22 @@ const renderTemplate = (
   ...sections.flatMap((heading) => [`## ${heading}`, ""]),
 ].join("\n");
 
+const renderR2AuthorityTemplate = (
+  templateId: string,
+  authorityRefs: readonly string[],
+  sections: readonly string[],
+): string => renderTemplate(templateId, authorityRefs, sections).replace(
+  "## Functional authority disposition ledger\n",
+  [
+    "## Functional authority disposition ledger",
+    "",
+    "| Requirement | Disposition | Canonical owner |",
+    "|---|---|---|",
+    "|  |  |  |",
+    "",
+  ].join("\n"),
+);
+
 const authoringTemplates: Readonly<Record<WorkItemSchemaId, string>> = Object.freeze({
   "change-v1": renderTemplate(
     "change-intake-v1",
@@ -199,7 +215,7 @@ const stageTemplates = Object.freeze({
       "Exact defective layer/return stage when not ready",
     ],
   ),
-  "change-r2-v2": renderTemplate(
+  "change-r2-v2": renderR2AuthorityTemplate(
     "change-r2-v2",
     ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V1", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
     [
@@ -213,7 +229,7 @@ const stageTemplates = Object.freeze({
       "Open product/authority questions",
     ],
   ),
-  "defect-r2-v2": renderTemplate(
+  "defect-r2-v2": renderR2AuthorityTemplate(
     "defect-r2-v2",
     ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V1", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
     [
@@ -478,6 +494,57 @@ const requiredTemplateSections = (template: string): readonly string[] =>
     .filter((line) => line.startsWith("## "))
     .map((line) => line.slice(3));
 
+const validateAuthorityDispositionLedger = (markdown: string): void => {
+  const lines = markdown.split("\n");
+  const headingIndex = lines.indexOf("## Functional authority disposition ledger");
+  if (headingIndex < 0) {
+    throw new TypeError("stage document is missing functional authority disposition ledger");
+  }
+  const sectionEnd = lines.findIndex(
+    (line, index) => index > headingIndex && line.startsWith("## "),
+  );
+  const section = lines.slice(
+    headingIndex + 1,
+    sectionEnd < 0 ? lines.length : sectionEnd,
+  );
+  const rows = section
+    .filter((line) => line.trim().startsWith("|"))
+    .map((line) =>
+      line.trim().slice(1, -1).split("|").map((cell) => cell.trim())
+    )
+    .filter((cells) =>
+      cells.length >= 3 &&
+      cells[0] !== "Requirement" &&
+      !/^[-:]+$/.test(cells[0] ?? "")
+    );
+  if (rows.length === 0) {
+    throw new TypeError("functional authority disposition ledger requires at least one requirement row");
+  }
+  for (const cells of rows) {
+    const [requirement = "", disposition = "", owner = ""] = cells;
+    if (requirement.length === 0) {
+      throw new TypeError("functional authority disposition ledger contains an empty requirement");
+    }
+    if (
+      disposition !== "REFERENCE" &&
+      disposition !== "DELTA" &&
+      disposition !== "LOCAL"
+    ) {
+      throw new TypeError(
+        "functional authority disposition must be REFERENCE, DELTA or LOCAL",
+      );
+    }
+    if (
+      (disposition === "REFERENCE" || disposition === "DELTA") &&
+      !owner.startsWith("GW-")
+    ) {
+      throw new TypeError(
+        disposition + " functional authority disposition requires a GW-* canonical owner",
+      );
+    }
+  }
+};
+
 export const validateStageDocumentStructure = (
   schemaId: WorkItemSchemaId,
   stage: Extract<WorkStage, "R1" | "R2" | "DESIGN" | "PLAN" | "R3">,
@@ -502,6 +569,9 @@ export const validateStageDocumentStructure = (
       throw new TypeError("stage document contains duplicate section: " + section);
     }
     prior = indices[0];
+  }
+  if (stage === "R2") {
+    validateAuthorityDispositionLedger(canonicalMarkdown);
   }
 };
 
