@@ -566,7 +566,7 @@ const validateAuthorityDispositionLedger = (markdown: string): void => {
 
 export const authorityDispositionOwnerRefs = (
   schemaId: WorkItemSchemaId,
-  stage: PreSignoffStage,
+  stage: Extract<WorkStage, "R1" | "R2" | "DESIGN" | "PLAN" | "R3">,
   markdown: string,
 ): readonly string[] => {
   if (
