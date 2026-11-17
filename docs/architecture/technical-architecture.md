@@ -1325,7 +1325,8 @@ Permanent tests must prove at least:
 - downstream historical lifecycle artifact edit rejected while an earlier stage owns the WorkItem;
 - human-edited current stage draft is supplied for reconformance.
 - every promotable R1/R2/DESIGN/PLAN/R3 completion passes the functional-core `evaluateStageConformance` decision for exactly one current deterministic output before coordinator-owned `CONFORMANCE_PASSED` and lifecycle transition;
-- delivery-schema v2 stage Markdown satisfies its pinned ordered structural template before promotion, while historical v1 schema pins retain their original structural semantics.
+- delivery-schema v2 stage Markdown satisfies its pinned ordered structural template before promotion; v2 R2 additionally has a non-empty `REFERENCE | DELTA | LOCAL` authority-disposition ledger with canonical `GW-*` owners where required; historical v1 schema pins retain their original structural semantics.
+- the permanent architecture fitness sensor scans repository v2 WorkItem documents for shadow-authority hygiene: they cannot declare canonical concern ownership, cannot introduce the retired `WF-FR-*` namespace, and their R2 authority ledger cannot be absent or structurally empty.
 
 ##### Browser
 
