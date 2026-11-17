@@ -2885,10 +2885,10 @@ describe("daemon control plane", () => {
     )).toBe(true);
   }, 30_000);
 
-  it("blocks a schema-invalid R1 provider completion atomically", () => {
+  it("blocks a stage completion that has no lifecycle output artifact", () => {
     const repository = createRepository();
-    const state = tempDir("order-daemon-kind-invalid-r1-");
-    const binary = createFakeOpenCode("stage-invalid-r1");
+    const state = tempDir("order-daemon-empty-stage-output-");
+    const binary = createFakeOpenCode("stage-empty-output");
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
@@ -2908,8 +2908,8 @@ describe("daemon control plane", () => {
       );
       const created = await coord.createWorkItem(runtime, {
         projectId: "fixture",
-        schemaId: "audit-v1",
-        title: "audit completion mismatch",
+        schemaId: "change-v1",
+        title: "empty R1 output",
         concernIds: ["shell"],
       });
       const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
@@ -2922,9 +2922,9 @@ describe("daemon control plane", () => {
       console.log(JSON.stringify({
         runStatus: settled.status,
         stage: after.stage,
-        status: after.status,
-        outcome: after.outcome,
-        completionCount: events.filter((event) => event.event.tag === "STAGE_COMPLETED").length,
+        completionCount: events.filter((event) =>
+          event.event.tag === "STAGE_COMPLETED"
+        ).length,
         failures: events
           .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
           .map((event) => event.event.tag === "CONFORMANCE_FAILED"
@@ -2935,8 +2935,6 @@ describe("daemon control plane", () => {
     `, providerEnvironment(binary, state)) as {
       runStatus: string;
       stage: string;
-      status: string;
-      outcome: string | null;
       completionCount: number;
       failures: string[];
     };
@@ -2944,11 +2942,219 @@ describe("daemon control plane", () => {
     expect(output).toEqual({
       runStatus: "BLOCKED",
       stage: "R1",
-      status: "ACTIVE",
-      outcome: null,
       completionCount: 1,
       failures: ["stage completion requires exactly one current output ArtifactRef; received 0"],
     });
+  }, 30_000);
+
+  it("preserves schema-outcome conformance after exact output binding passes", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-kind-invalid-r1-");
+    const binary = createFakeOpenCode("stage-invalid-r1");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "audit-v1",
+        title: "audit completion mismatch",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const outputPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      fs.mkdirSync(path.dirname(path.join(repositoryRoot, outputPath)), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(repositoryRoot, outputPath), "# Audit research\\n");
+      const artifact = await authority.currentFileArtifact(
+        runtime,
+        workItem,
+        outputPath,
+        "R1",
+        "P1",
+      );
+      const priorRun = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: rt.sha256Text("prior-audit-r1-draft"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: rt.nowIsoDateTime(),
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "CONFORMANCE_PASSED",
+        stage: "R1",
+        outputArtifactRefIds: [artifact.id],
+        contextHash: priorRun.contextHash,
+        evidence: [],
+      });
+
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, created.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      runStatus: string;
+      stage: string;
+      failures: string[];
+    };
+
+    expect(output).toEqual({
+      runStatus: "BLOCKED",
+      stage: "R1",
+      failures: ["R1 outcome CONFIRMED is invalid for schema audit-v1"],
+    });
+  }, 30_000);
+
+  it("promotes only when completion binds the exact current lifecycle artifact", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-bound-r1-");
+    const binary = createFakeOpenCode("stage-bound-r1");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "bound R1 output",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const outputPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      fs.mkdirSync(path.dirname(path.join(repositoryRoot, outputPath)), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(repositoryRoot, outputPath), "# Change research\\n");
+      const artifact = await authority.currentFileArtifact(
+        runtime,
+        workItem,
+        outputPath,
+        "R1",
+        "P1",
+      );
+      const priorRun = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: rt.sha256Text("prior-change-r1-draft"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: rt.nowIsoDateTime(),
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "CONFORMANCE_PASSED",
+        stage: "R1",
+        outputArtifactRefIds: [artifact.id],
+        contextHash: priorRun.contextHash,
+        evidence: [],
+      });
+
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, created.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      const conformance = events.findLast((event) =>
+        event.event.tag === "CONFORMANCE_PASSED"
+      );
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        conformanceOutput:
+          conformance?.event.tag === "CONFORMANCE_PASSED"
+            ? conformance.event.outputArtifactRefIds
+            : [],
+        expectedArtifact: artifact.id,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      runStatus: string;
+      stage: string;
+      conformanceOutput: string[];
+      expectedArtifact: string;
+    };
+
+    expect(output.runStatus).toBe("COMPLETED");
+    expect(output.stage).toBe("R2");
+    expect(output.conformanceOutput).toEqual([output.expectedArtifact]);
   }, 30_000);
 
   it("keeps sign-off package inspection read-only when current Markdown diverges", () => {
