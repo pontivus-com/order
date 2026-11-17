@@ -518,7 +518,17 @@ const server = Bun.serve({
           : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
-      } else if (mode === "stage-invalid-r1" || mode === "stage-complete-delay") {
+      } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
+        const match = /Coordinator-owned completion bindings: (\\[[^\\n]+\\])/.exec(text);
+        const bindings = match === null ? [] : JSON.parse(match[1]);
+        const artifactRefIds =
+          typeof bindings[0]?.id === "string" ? [bindings[0].id] : [];
+        output = JSON.stringify([{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R1", outcome: "CONFIRMED" },
+          artifactRefIds,
+        }]);
+      } else if (mode === "stage-empty-output" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
       } else {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
