@@ -1036,6 +1036,39 @@ The closure commit containing this record removes all temporary evidence workflo
 
 **Candidate-boundary rule:** C3-C7 visual conformance is closed here, but P7 is not allowed to claim final permanent certification until the publishable closure SHA—without temporary workflows—passes the repository's permanent PR Verification union. Canonical V2-V7 starts only after that external gate is green. Any later production/reference edit invalidates the affected visual proof and must be re-adjudicated.
 
+### 6.12 Architecture-owner correction and post-fix visual reproof — 2026-11-17
+
+**Status:** PASS. The first publishable-tree permanent PR Verification after §6.11 correctly rejected one architecture-certification violation before build/package/browser: specialist Settings CSS was styling the shared `.order-workbench-form` primitive directly. This was a real ownership defect introduced by the visual remediation, not a false-positive sensor.
+
+Permanent run `44050214377` on publishable head `7b366e6dd15c591985f63500cafc509f417c461f` established:
+
+- dependency-lock: PASS;
+- typecheck: PASS;
+- architecture: PASS;
+- full test: FAIL only at `tests/certification.test.ts` / “keeps reference-driven presentation subordinate to Workbench and Astryx ownership”;
+- build, release packaging and browser: correctly skipped after the failed mandatory test.
+
+The corrective implementation did not weaken or remove that sensor. Instead:
+
+- Settings-specific surface chrome moved to the existing Settings-owned `order-settings-task-surface` wrapper;
+- repository migration/add/reference-root forms and Model configuration wrap `WorkbenchForm` in that Settings-owned surface;
+- OpenCode add/rename forms do the same;
+- specialist CSS no longer reaches into `.order-workbench-form`;
+- the shared Workbench primitive remains feature-agnostic;
+- no lifecycle, daemon, OpenCode, control-plane, persistence or contract behavior changed.
+
+Because the correction changed production markup/CSS, visual proof was invalidated and regenerated rather than inherited. The integrated post-fix visual head is `c3a567e1a7b0f96f9e1f7e0763a952e1fa0e6ed4`, and all five real-SPA evidence jobs passed:
+
+- C3/C4: run `44050809257`, artifact `p3-p4-visual-evidence-c3a567e1a7b0f96f9e1f7e0763a952e1fa0e6ed4`, digest `sha256:c6dbbb8e548a719677baf9a1366e05372fe5b18ca3f7229942bc9d1cf424dae1`;
+- C5: run `44050809368`, artifact `c7-p5-evidence-c3a567e1a7b0f96f9e1f7e0763a952e1fa0e6ed4`, digest `sha256:ba79f92b7df800c5a983c1336369c9b4d303fe4990c7b9420090eb231da78dbb`;
+- C6 main: run `44050809331`, artifact `c6-visual-evidence-c3a567e1a7b0f96f9e1f7e0763a952e1fa0e6ed4`, digest `sha256:f4ae360eda769307a9736270a2776f125ddb2fa52ef2ac179200d6469b6a67b0`;
+- C6 Queue supplement: run `44050809430`, artifact `c6-queue-reference-evidence-c3a567e1a7b0f96f9e1f7e0763a952e1fa0e6ed4`, digest `sha256:200423589dd6e6cdc5b3cfab99590bb985d5a6c663459cceeadd8ef45d313d53`;
+- C6 notice-state supplement: run `44050809494`, artifact `c6-notice-state-evidence-c3a567e1a7b0f96f9e1f7e0763a952e1fa0e6ed4`, digest `sha256:e25e3a8927444863ab5e95864cb4c864240ed313ef3170ffd21c15465851fc36`.
+
+The §6.11 41-reference verdict remains **41/41 MATCH** after this ownership correction. No visual exception was introduced.
+
+The closure commit containing this addendum removes the temporary workflows again. The remaining P7 obligation is a successful permanent PR Verification on that publishable tree; canonical V2-V7 remains downstream of that gate.
+
 ## 7. Reference-fixture rule — no separate implementation phase
 
 There is no P0 implementation phase.
