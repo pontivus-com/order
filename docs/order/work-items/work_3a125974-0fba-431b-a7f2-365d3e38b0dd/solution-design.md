@@ -11,6 +11,10 @@ The producer boundary is the pre-signoff authoring/conformance path: schema/temp
 - GW-FR-098 → strengthened v2 R3 template and explicit R3 conformance questions.
 - Repository-delivery review rule → P1 governance plus an exact-current-head CI review gate; protected-branch configuration remains an administrative defense-in-depth follow-up.
 
+## Authority consumer closure
+
+Repoint every live permanent-document dependency on the six advanced concerns to their V2 identifiers. Keep retained .v1.md files untouched, keep stable and versioned manifest resolution unchanged, and extend the existing permanent documentation architecture sensor to reject future live current-document references to retained superseded versions. This is a reference/topology correction, not new functional or technical semantics.
+
 ## Correction at the canonical owner
 
 Extend the existing schema catalog instead of creating a second catalog. Keep v1 pins immutable and make v2 current authoring defaults. For each canonical concern materially amended by this remediation, retain the released 0.5.0 V1 document as an exact semantic source, advance the live owner to V2, map the stable/V2 identifiers to the live owner and the V1 identifier to the retained source. Restore the already-prescribed functional-core conformance seam in src/core/governance.ts. Keep ArtifactRef identity coordinator-owned: current draft ids are projected into the stage prompt only as completion bindings and are revalidated by the coordinator.
