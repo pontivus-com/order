@@ -14,6 +14,7 @@ The productive lifecycle permits a change-local R2 document to become a shadow P
 | Readiness package authority/traceability review | DELTA | GW-DOC-SPECIFICATION-STANDARD-V2 |
 | Independent public-repository review before merge | DELTA | GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2 |
 | Coordinator-owned conformance output binding | DELTA | GW-DOC-CANONICAL-CONTRACTS-V2 |
+| Live document consumers resolve the active canonical semantic owner, not the retained historical V1 snapshot | REFERENCE | GW-P1-DOC-CANONICALITY |
 
 ## Expected corrected behavior
 
@@ -36,13 +37,15 @@ No new lifecycle stage, Run role, persisted conformance model, DTO family, dupli
 9. A v2 R2 `REFERENCE` or `DELTA` row whose canonical owner does not resolve through the current project `[refs]` map cannot promote.
 10. PLAN cannot promote unless its exact current bytes contain exactly one valid canonical `order-tasks` block.
 
+11. All live current governing documents that consume an amended V2 owner reference its current semantic identifier; retained V1 sources remain byte-identical and are not rewritten. A permanent architecture gate rejects renewed current-document pins to retained superseded owner IDs.
+
 ## Regression/preservation acceptance
 
 Existing source reconciliation, direct human Markdown authoring, proposal adoption, source freshness, exact-package sign-off, no-code Investigation/Audit closure and V0-V7 post-signoff validation remain unchanged.
 
 ## Scope/exclusions
 
-In scope: governance documents, schema catalog/templates, stage prompt/conformance admission, focused UI default-schema selection, permanent tests and repository-review policy.
+In scope: governance documents and their current authority consumers, schema catalog/templates, stage prompt/conformance admission, focused UI default-schema selection, permanent tests and repository-review policy.
 
 Out of scope: 0.6.0 Workbench functional redesign, UI fidelity remediation, new lifecycle state, new persistence model and branch-protection administration through unsupported credentials.
 
