@@ -23,6 +23,7 @@ import {
   isPreSignoffStage,
   type PreSignoffStage,
 } from "../core/governance.ts";
+import { parseSignedTaskBlockFromPlan } from "../core/execution.ts";
 import {
   artifactReturnOwner,
   deriveProposalDecision,
@@ -290,6 +291,9 @@ const persistStageCompletionBatch = async (
           run.stage,
           new TextDecoder("utf-8", { fatal: true }).decode(bytes),
         );
+        if (run.stage === "PLAN") {
+          parseSignedTaskBlockFromPlan(bytes);
+        }
       } catch (error) {
         outputConformanceFailure =
           error instanceof Error ? error.message : String(error);
