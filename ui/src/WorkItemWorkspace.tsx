@@ -1246,7 +1246,13 @@ export const WorkItemWorkspace = ({
       statusVariant={currentAttentionVariant}
       blocker={summaryBlocker}
       action={
-        canRetry ? (
+        inspectedHistorical ? (
+          <WorkbenchAction
+            label={"Return to " + workflow.label}
+            tone="primary"
+            onClick={() => inspectWorkflowStep(workItem.stage)}
+          />
+        ) : canRetry ? (
           <WorkbenchAction
             label={"Retry " + workflow.label}
             tone="primary"
@@ -1283,12 +1289,6 @@ export const WorkItemWorkspace = ({
             loading={start.isPending}
             disabled={mutationsDisabled || dirty || start.isPending}
             onClick={() => start.mutate()}
-          />
-        ) : inspectedHistorical ? (
-          <WorkbenchAction
-            label={"Return to " + workflow.label}
-            tone="primary"
-            onClick={() => inspectWorkflowStep(workItem.stage)}
           />
         ) : workItem.stage === "COMPLETE" &&
           (
