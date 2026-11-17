@@ -216,6 +216,14 @@ Run typecheck, architecture, unit tests, build, browser behavior and direct SVG 
 {"version":1,"tasks":[{"id":"T1","objective":"Prove the browser candidate surface","dependsOn":[],"scope":["src/a.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/a.ts"],"gateIds":[],"authorityRefs":[],"concernIds":[]}]}
 \`\`\`
 `;
+const historicalSelectionPlanText = `# Implementation plan
+
+## Canonical order-tasks block
+
+\`\`\`order-tasks
+{"version":1,"tasks":[{"id":"T1","objective":"Completed prerequisite","dependsOn":[],"scope":["src/a.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/a.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":[]},{"id":"T2","objective":"Current implementation task","dependsOn":["T1"],"scope":["src/b.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/b.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":[]}]}
+\`\`\`
+`;
 const r3Text = `# Readiness review
 
 ## Verdict
@@ -252,6 +260,10 @@ writeFileSync(join(repositoryRoot, "docs", "r1.md"), researchText);
 writeFileSync(join(repositoryRoot, "docs", "r2.md"), requirementsText);
 writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
+writeFileSync(
+  join(repositoryRoot, "docs", "historical-selection-plan.md"),
+  historicalSelectionPlanText,
+);
 writeFileSync(join(repositoryRoot, "docs", "stale-approval-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-wide-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-narrow-plan.md"), planText);
@@ -306,6 +318,11 @@ const database = openOrderDatabase(stateRoot);
 const stamp = nowIsoDateTime();
 const encoder = new TextEncoder();
 const planSha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "plan.md"))));
+const historicalSelectionPlanSha = sha256(
+  new Uint8Array(
+    readFileSync(join(repositoryRoot, "docs", "historical-selection-plan.md")),
+  ),
+);
 const r3Sha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r3.md"))));
 
 const workItem = (
@@ -367,14 +384,18 @@ const workItem = (
   });
 };
 
-const storePlanArtifacts = (workItemId: WorkItemId) => {
+const storePlanArtifacts = (
+  workItemId: WorkItemId,
+  planRepositoryPath = "docs/plan.md",
+  planDigest = planSha,
+) => {
   const plan = ArtifactRefSchema.parse({
     id: newArtifactRefId(),
     workItemId,
-    repositoryPath: "docs/plan.md",
+    repositoryPath: planRepositoryPath,
     role: "PLAN",
     authorityLayer: "P7",
-    sha256: planSha,
+    sha256: planDigest,
     gitCommit: baselineCommit,
   });
   const r3 = ArtifactRefSchema.parse({
@@ -1336,7 +1357,11 @@ const historicalSelectionItem = workItem(
   null,
 );
 storeWorkItem(database, historicalSelectionItem);
-const historicalSelectionArtifacts = storePlanArtifacts(historicalSelectionItem.id);
+const historicalSelectionArtifacts = storePlanArtifacts(
+  historicalSelectionItem.id,
+  "docs/historical-selection-plan.md",
+  historicalSelectionPlanSha,
+);
 const historicalSelectionApproval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: historicalSelectionItem.id,
