@@ -2937,7 +2937,7 @@ describe("daemon control plane", () => {
       status: "ACTIVE",
       outcome: null,
       completionCount: 1,
-      failures: ["R1 outcome CONFIRMED is invalid for schema audit-v1"],
+      failures: ["stage completion requires exactly one current output ArtifactRef; received 0"],
     });
   }, 30_000);
 
