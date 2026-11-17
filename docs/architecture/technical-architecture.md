@@ -35,10 +35,10 @@ These ids classify the existing material P4 constraints; the detailed contracts 
 - **GW-TR-003-REPRODUCIBLE-AUTHORITY-STATE** — project authority, approval, task and durable state are reproducible from the canonical manifest/artifact/persistence model. **Acceptance:** §§4, 8–12 and 23 plus P6 persistence/freshness contracts pass; no parallel authority/state store exists.
 - **GW-TR-004-ISOLATED-BOUNDED-EXECUTION** — unattended execution uses exact-baseline isolated workspaces, the single OpenCode boundary and bounded verification/process cancellation. **Acceptance:** §§15–16 and 20–24 pass; human working trees, hidden provider recovery and task-to-task candidate promotion are not used.
 - **GW-TR-005-LOCAL-SECURE-WORKBENCH** — browser and CLI remain clients of the loopback daemon with the fixed local authentication/HTTP/polling/UI-state model, while governed Markdown authoring remains a bounded pre-signoff surface. **Acceptance:** §§17–19, 29 and P6 transport/security contracts pass; no remote hosting, alternate transport, browser-owned workflow state or production-code editor exists.
-- **GW-TR-006-CLOSED-INTEGRATION-CERTIFICATION** — the exact direct dependency/runtime set and every relied-upon external behavior are closed by the dated facts/certification contract. **Acceptance:** §§2, 21, 27–28 and [GW-DOC-CANONICAL-CONTRACTS-V2 §29](../contracts/canonical-contracts.md) pass with no extra direct dependency or ungrounded external behavior.
+- **GW-TR-006-CLOSED-INTEGRATION-CERTIFICATION** — the exact direct dependency/runtime set and every relied-upon external behavior are closed by the dated facts/certification contract. **Acceptance:** §§2, 21, 27–28 and [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) pass with no extra direct dependency or ungrounded external behavior.
 - **GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP** — the one-command installer establishes the complete usable local system, including private-provider authentication, exact model binding, persistent access configuration, user-level daemon supervision and health verification. **Acceptance:** §2 productive installation, §19 and P6 §§22–26 pass with no mandatory post-install setup command or model environment variable.
 - **GW-TR-008-GOVERNED-FILESYSTEM-ACCESS** — exact target repositories, the portable WorkItem root, Order state and STAGE-only reference roots are distinct least-authority boundaries. **Acceptance:** §§9, 16, 20, 29 and P6 §§22,31 reject alternate source/repository mutation paths, prove root disjointness, and certify that only STAGE receives exact configured external-directory read access.
-- **GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION** — public repository delivery is PR-only and releases are version/changelog/tag/asset-bound to one exact master commit. **Acceptance:** §33 and `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2` pass; no direct-master release path, mutable release tag or master-clone public distribution remains.
+- **GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION** — public repository delivery is PR-only and releases are version/changelog/tag/asset-bound to one exact master commit. **Acceptance:** §33 and `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` pass; no direct-master release path, mutable release tag or master-clone public distribution remains.
 
 This document does not create a second lifecycle or governance system. Functional ownership remains:
 
@@ -47,8 +47,8 @@ This document does not create a second lifecycle or governance system. Functiona
 - OpenCode semantics -> [GW-DOC-OPENCODE-INTEGRATION-V1](opencode-integration.md);
 - project authority -> [GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1](../requirements/project-governance-integration.md);
 - systems pyramid -> [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](../governance/systems-governance.md);
-- context resolution/conformance -> [GW-DOC-LIFECYCLE-CONTEXT-V2](../requirements/lifecycle-context.md);
-- exact Order P6 data, transport and persistence contracts -> [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+- context resolution/conformance -> [GW-DOC-LIFECYCLE-CONTEXT](../requirements/lifecycle-context.md);
+- exact Order P6 data, transport and persistence contracts -> [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 2. Locked v1 technology choices
 
@@ -91,7 +91,7 @@ The Vite, Vitest and Playwright Test builds bound by `GW-DOC-EXTERNAL-FACTS-V1-2
 - Playwright tests: `node node_modules/@playwright/test/cli.js test`;
 - Bun remains package manager and production Order runtime.
 
-These entry points come from the exact pinned package manifests recorded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). Order does not invoke those CLIs through Bun or an ambient/global binary. Node compatibility is accepted because the pinned tools' documented requirements are satisfied and the build/test certification in [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md) passes.
+These entry points come from the exact pinned package manifests recorded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). Order does not invoke those CLIs through Bun or an ambient/global binary. Node compatibility is accepted because the pinned tools' documented requirements are satisfied and the build/test certification in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) passes.
 
 ### Productive installation, guided setup and launcher
 
@@ -336,7 +336,7 @@ Transport and persistence either:
 1. encode/decode the canonical P6 type directly; or
 2. carry minimal command arguments or ephemeral provider-stream frames that are not alternate representations of a domain concept.
 
-The exact canonical types are owned by [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+The exact canonical types are owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 7. Minimum physical implementation shape
 
@@ -395,7 +395,7 @@ A minimal same-layer physical split required to preserve an already-binding resp
 
 If a split requires a new semantic owner, public contract, state model, effect boundary, dependency direction, external dependency, or behavior outside the approved task, that is an architecture change and returns to DESIGN/PLAN. It is not compliant to keep adding functions to a catch-all module merely to avoid a physical split.
 
-When an architecture-preserving split introduces a new production module, the same implementation change must register the module's explicit same-layer dependency allowance and any mechanically checkable owner constraint in permanent architecture fitness. Ordinarily this extends `tests/architecture.test.ts`. When that file is part of the signed Approval's `VERIFICATION_MATERIAL` closure and is therefore immutable under `GW-DOC-CANONICAL-CONTRACTS-V2`, the Workbench V2 change instead adds its new module/owner/primitive/renderer/forbidden-mechanic assertions to the existing `tests/certification.test.ts`, executed by the signed `test` gate. This is a physical sensor-placement rule, not permission to alter `tests/architecture.test.ts`, bypass the `architecture` gate, reduce the baseline dependency DAG, omit required assertions or weaken the architecture fitness standard. The candidate must pass both gates, and any future change requiring alteration of immutable verification material returns to the owning authority before sign-off.
+When an architecture-preserving split introduces a new production module, the same implementation change must register the module's explicit same-layer dependency allowance and any mechanically checkable owner constraint in permanent architecture fitness. Ordinarily this extends `tests/architecture.test.ts`. When that file is part of the signed Approval's `VERIFICATION_MATERIAL` closure and is therefore immutable under `GW-DOC-CANONICAL-CONTRACTS`, the Workbench V2 change instead adds its new module/owner/primitive/renderer/forbidden-mechanic assertions to the existing `tests/certification.test.ts`, executed by the signed `test` gate. This is a physical sensor-placement rule, not permission to alter `tests/architecture.test.ts`, bypass the `architecture` gate, reduce the baseline dependency DAG, omit required assertions or weaken the architecture fitness standard. The candidate must pass both gates, and any future change requiring alteration of immutable verification material returns to the owning authority before sign-off.
 
 Raw file length, LOC and function count are diagnostic review signals only. They may trigger investigation, but architecture compliance is decided by responsibility ownership and boundary preservation rather than a numeric size limit.
 
@@ -497,7 +497,7 @@ Forbidden dependency directions:
 
 ## 8. Canonical P6 model ownership
 
-The canonical P6 data model is defined in [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+The canonical P6 data model is defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 The initial top-level semantic concepts are:
 
@@ -534,7 +534,7 @@ It owns:
 - concern-required logical gates;
 - logical verification gate -> exact argv/cwd/timeout/environment/material-reference binding.
 
-The exact manifest grammar is owned by [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+The exact manifest grammar is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Verification commands are argv arrays, never interpolated shell strings.
 
@@ -583,7 +583,7 @@ v1 requires exactly one machine-readable fenced block in the signed plan:
 ```
 ````
 
-The exact task-block schema is defined in [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+The exact task-block schema is defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Rules:
 
@@ -602,7 +602,7 @@ v1 uses SHA-256 over exact bytes.
 
 Each material `ArtifactRef` identifies an exact repository file at an exact baseline.
 
-Approval package hashing uses Order canonical JSON defined in [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+Approval package hashing uses Order canonical JSON defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Before sign-off:
 
@@ -673,7 +673,7 @@ Sessions never cross Runs, lifecycle stages or work items.
 
 Order owns one foreground OpenCode provider process and its matching V2 client at the exact pins bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`. OpenCode remains an execution provider, never lifecycle/retry/context/completion authority.
 
-The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INTEGRATION-V1 §§2-8](opencode-integration.md) and mechanically closed by [GW-DOC-CANONICAL-CONTRACTS-V2 §§25-26,29](../contracts/canonical-contracts.md):
+The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INTEGRATION-V1 §§2-8](opencode-integration.md) and mechanically closed by [GW-DOC-CANONICAL-CONTRACTS §§25-26,29](../contracts/canonical-contracts.md):
 
 - launch `opencode serve --hostname 127.0.0.1 --port 0`;
 - derive the actual private loopback endpoint only from the pinned bounded startup report, then authenticate and prove exact server-info readiness/version within 60 seconds;
@@ -705,7 +705,7 @@ It serves:
 
 v1 binds to loopback only. Remote/multi-user hosting is out of scope.
 
-The exact HTTP contracts are owned by [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+The exact HTTP contracts are owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Important rules:
 
@@ -764,7 +764,7 @@ order provider login <provider>
 - `daemon` runs `orderd` in the foreground for the installed user service and explicit diagnostics; ordinary installed operation is supervised by the user-level `pontivus-order.service`;
 - `setup` is the explicit post-install reconfiguration/recovery surface for the same canonical P6 configuration. Bare `order setup` reuses an already-valid configuration/credential binding without prompting; `order setup --reconfigure` explicitly reopens model/root choices. The productive installer does not invoke either CLI form; both the installer and CLI reuse one canonical guided-configuration functional boundary;
 - `provider login <provider>` remains a narrow maintenance/recovery command for the same private OpenCode credential namespace; normal first-run authentication is driven directly by the custom installer through the same canonical provider shell functions;
-- `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
+- `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
 - `status` and `tick` call daemon HTTP contracts through CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
 
 `orderd` owns periodic scheduling directly:
@@ -818,7 +818,7 @@ Order resolves each gate through `pontivus-order.toml` and executes the exact ar
 
 Every unattended/correctness-bearing external process uses argv, explicit cwd, an explicit allowlisted environment, bounded output and `Bun.spawn({ detached: true, ... })` so the child owns a separate Linux process group. The sole v1 exception is operator-invoked `order provider login <provider>`: the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` requires an interactive stdin/stdout TTY for authentication for legitimate key/form/code flows, so the process shell passes through the current terminal while still owning the explicit argv/cwd/private provider environment and detached process-group lifecycle. Order does not parse that interactive output as semantic evidence.
 
-Order does not pass Bun's child-only `timeout`/AbortSignal as the cancellation authority. One shell helper owns timeout and explicit cancellation: it sends `SIGTERM` to the whole group with `process.kill(-pgid, "SIGTERM")`, waits at most 5 seconds for group disappearance, then sends `SIGKILL` to the same group if it still exists. Group existence is checked with signal `0`. The operation is not considered cancelled until the child has settled and the group no longer exists. The exact Linux semantics and descendant fixture are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md) and [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+Order does not pass Bun's child-only `timeout`/AbortSignal as the cancellation authority. One shell helper owns timeout and explicit cancellation: it sends `SIGTERM` to the whole group with `process.kill(-pgid, "SIGTERM")`, waits at most 5 seconds for group disappearance, then sends `SIGKILL` to the same group if it still exists. Group existence is checked with signal `0`. The operation is not considered cancelled until the child has settled and the group no longer exists. The exact Linux semantics and descendant fixture are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md) and [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 The builder cannot invent, weaken, replace or omit a required gate.
 
@@ -832,7 +832,7 @@ Order does not use an event bus.
 
 Pure reaction policy maps current state + admitted RunEvent/turn batch + governing policy to promotion, return, invalidation, bounded remediation, operational retry, linked IDEA creation or block. For STAGE Runs, the complete provider-result batch is validated before persistence and the provider batch plus coordinator reaction is committed atomically when no filesystem effect intervenes.
 
-The exact event union is defined in [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md).
+The exact event union is defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 23. Dependency invalidation
 
@@ -971,7 +971,7 @@ A later requirement may change an exclusion only through the normal Order govern
 
 ## 29. Source-backed WorkItem and Markdown-workbench architecture
 
-This section is the P4 owner for the source-backed WorkItem/Markdown-workbench extension governed functionally by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. Exact schemas, persistence and HTTP shapes remain solely P6-owned by `GW-DOC-CANONICAL-CONTRACTS-V2`.
+This section is the P4 owner for the source-backed WorkItem/Markdown-workbench extension governed functionally by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. Exact schemas, persistence and HTTP shapes remain solely P6-owned by `GW-DOC-CANONICAL-CONTRACTS`.
 
 #### Dependency decision
 
@@ -1141,7 +1141,7 @@ Presentation-local selection/editor/dirty state remains React component state. T
 
 #### Portable source location and discovery
 
-Productive `OrderConfig` v3 contains exact target `repositoryRoots` and STAGE `referenceRoots` only. WorkItem source location is project-owned inside the selected target repository under the resolved `pontivus-order.toml [workItems].root`, defaulting to `docs/order/work-items`. The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS-V2 §32](../contracts/canonical-contracts.md).
+Productive `OrderConfig` v3 contains exact target `repositoryRoots` and STAGE `referenceRoots` only. WorkItem source location is project-owned inside the selected target repository under the resolved `pontivus-order.toml [workItems].root`, defaulting to `docs/order/work-items`. The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS §32](../contracts/canonical-contracts.md).
 
 The daemon reconciles only deterministic `<workItems.root>/<WorkItemId>/work-request.md` candidates for each exact configured repository. It does not recursively inspect unrelated Markdown and does not adopt a moved source path. Symlinks are not followed as source files or traversal boundaries.
 
@@ -1164,7 +1164,7 @@ revalidate current WorkItem source
 Prompt projection:
 
 - R1: exact current WorkItem Markdown is included;
-- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT-V2`;
+- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT`;
 - DESIGN/PLAN/R3: validated upstream artifacts remain the normal semantic carriers; raw source text is omitted unless the lifecycle context resolver says it is materially required;
 - every pre-signoff source-backed stage context hash includes the exact source SHA-256 even when the source body is not rendered.
 
@@ -1361,7 +1361,7 @@ The architecture above does not authorize implementation by itself. It is the bi
 
 ## 30. Repository-native WorkItem documentation architecture
 
-This section is the current P4 architecture for the repository-native WorkItem/documentation requirements owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
+This section is the current P4 architecture for the repository-native WorkItem/documentation requirements owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
 
 ### 30.1 Boundary model
 
@@ -1965,7 +1965,7 @@ Evidence size is bounded by the existing Run-evidence policy; stderr capture use
 
 ## 33. Public repository delivery and release architecture
 
-This section is the P4 realization of `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`.
+This section is the P4 realization of `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`.
 
 ### 33.1 Version owner
 
@@ -2128,7 +2128,7 @@ Floating `@main`, `@master` and mutable major-only action tags are not accepted 
 
 ## 34. Settings/configuration architecture
 
-This section is the P4 realization of the installation/configuration requirements owned by `GW-DOC-INSTALLATION-READINESS-V1` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V2 §35`.
+This section is the P4 realization of the installation/configuration requirements owned by `GW-DOC-INSTALLATION-READINESS-V1` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS §35`.
 
 The design preserves one canonical configuration/runtime ownership path rather than layering Settings behavior over independent state or file writes.
 
