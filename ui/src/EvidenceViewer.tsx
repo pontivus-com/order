@@ -1,3 +1,4 @@
+import { CodeBlock } from "@astryxdesign/core/CodeBlock";
 import { useQuery } from "@tanstack/react-query";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
@@ -5,6 +6,7 @@ import type { EvidenceSelection } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
+import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 
 const decodeBytes = (bytes: Uint8Array): string => {
   try {
@@ -42,13 +44,8 @@ export const EvidenceViewer = ({
     ? selection.label
     : selection.relativePath;
 
-  return (
-    <section className="order-evidence-viewer" data-testid="evidence-workspace">
-      <WorkbenchSectionHeader
-        title="Evidence"
-        description="Read-only exact material"
-        action={<WorkbenchAction label="Back to workflow context" tone="secondary" onClick={onBack} />}
-      />
+  const material = (
+    <div className="order-evidence-content">
       <dl className="order-evidence-identity">
         <dt>Evidence identity</dt>
         <dd>{identity}</dd>
@@ -58,16 +55,31 @@ export const EvidenceViewer = ({
       ) : query.isError ? (
         <WorkbenchState kind="error" title="Evidence could not be read" description={query.error instanceof Error ? query.error.message : String(query.error)} />
       ) : (
-        <div data-testid="raw-content-view" className="order-code-view">
-          <div className="order-evidence-code-label">
-            <strong>Exact bytes returned by artifact/evidence API</strong>
-            <span>UTF-8 content is shown verbatim.</span>
-            <span>Non-UTF-8 content uses the bounded binary preview defined by EvidenceViewer.</span>
-            <span>This surface is inspection-only.</span>
-          </div>
-          <pre className="order-evidence-code-bytes"><code>{decodeBytes(query.data)}</code></pre>
+        <div data-testid="raw-content-view">
+          <CodeBlock
+            code={decodeBytes(query.data)}
+            isWrapped
+            hasCopyButton
+            container="section"
+            width="100%"
+          />
         </div>
       )}
-    </section>
+    </div>
+  );
+
+  return (
+    <div data-testid="evidence-workspace">
+      <WorkbenchSurface
+        attention={
+          <WorkbenchSectionHeader
+            title="Evidence"
+            description="Read-only exact material. UTF-8 is shown verbatim; non-UTF-8 uses the bounded binary preview."
+            action={<WorkbenchAction label="Back to workflow context" tone="secondary" onClick={onBack} />}
+          />
+        }
+        material={material}
+      />
+    </div>
   );
 };
