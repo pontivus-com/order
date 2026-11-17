@@ -2532,22 +2532,34 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
 
   await selectWorkflowStep(page, "Implementation");
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
-  const signedPlan = page.getByRole("button", {
-    name: "Open Implementation plan",
-    exact: true,
-  });
-  await signedPlan.scrollIntoViewIfNeeded();
-  await signedPlan.click();
-  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
-  await expect(page.locator("textarea")).toHaveCount(0);
-  await page.getByRole("button", { name: "Back to workflow context" }).click();
-  await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  for (const authorityLabel of [
+    "Requirements",
+    "Solution design",
+    "Implementation plan",
+  ] as const) {
+    const authority = page.getByRole("button", {
+      name: "Open " + authorityLabel,
+      exact: true,
+    });
+    await authority.scrollIntoViewIfNeeded();
+    await authority.click();
+    await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
+    await expect(page.locator("textarea")).toHaveCount(0);
+    await page.getByRole("button", { name: "Back to workflow context" }).click();
+    await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  }
   await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
   await expect(
     page.getByText("Candidate state recorded", { exact: true }),
   ).toBeVisible();
 
   await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+  await expect(page.getByRole("region", { name: "Agent activity" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Agent activity" }))
+    .toContainText("Reviewing candidate evidence");
+  await expect(page.getByRole("region", { name: "Workflow activity" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Timeline technical details", exact: true }))
+    .toBeVisible();
   await expect(
     page.getByText("Independent review passed", { exact: true }),
   ).toBeVisible();
