@@ -218,30 +218,42 @@ jobs:
 
             await open(page, "Requirements document visual");
             const item = await itemFor(page, "Requirements document visual");
-            const selectedPath = "**/api/work-items/" + encodeURIComponent(item.id);
-            const startPath = selectedPath + "/runs";
-            await page.route(selectedPath, async (route) => {
-              if (route.request().method() === "GET") await route.abort("failed");
-              else await route.fallback();
-            });
-            await page.route(startPath, async (route) => {
-              if (route.request().method() !== "POST") return route.fallback();
-              await route.fulfill({
-                status: 409,
-                contentType: "application/json",
-                body: JSON.stringify({
-                  code: "CURRENT_STATE_CONFLICT",
-                  message: "The workflow changed before this command could commit.",
-                  sourceDiagnostic: null,
-                  staleAuthorityOwner: null,
-                }),
-              });
+            const selectedPathname = "/api/work-items/" + encodeURIComponent(item.id);
+            await page.route("**/api/work-items/**", async (route) => {
+              const browserRequest = route.request();
+              const url = new URL(browserRequest.url());
+              if (url.pathname === selectedPathname && browserRequest.method() === "GET") {
+                await route.fulfill({
+                  status: 503,
+                  contentType: "application/json",
+                  body: JSON.stringify({
+                    code: "VISUAL_FIXTURE_REFRESH_BLOCKED",
+                    message: "Keep the conflict observation visible for the reference capture.",
+                    sourceDiagnostic: null,
+                    staleAuthorityOwner: null,
+                  }),
+                });
+                return;
+              }
+              if (url.pathname === selectedPathname + "/runs" && browserRequest.method() === "POST") {
+                await route.fulfill({
+                  status: 409,
+                  contentType: "application/json",
+                  body: JSON.stringify({
+                    code: "CURRENT_STATE_CONFLICT",
+                    message: "The workflow changed before this command could commit.",
+                    sourceDiagnostic: null,
+                    staleAuthorityOwner: null,
+                  }),
+                });
+                return;
+              }
+              await route.fallback();
             });
             await page.getByRole("button", { name: "Start Requirements", exact: true }).click();
             await expect(page.getByTestId("workflow-step-summary")).toContainText("Workflow state changed during the action");
             await shot(page, "current-attention-states.svg", "01-mutation-conflict");
-            await page.unroute(selectedPath);
-            await page.unroute(startPath);
+            await page.unroute("**/api/work-items/**");
           });
 
           test("dialogue states", async ({ page, request }) => {
