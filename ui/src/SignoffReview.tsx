@@ -179,6 +179,7 @@ export const SignoffReview = ({
   packageValue,
   packageFetching,
   packageError,
+  packageStale = false,
   artifacts,
   artifactsPending,
   artifactsError,
@@ -195,6 +196,7 @@ export const SignoffReview = ({
   packageValue: SignoffPackage | null;
   packageFetching: boolean;
   packageError: unknown;
+  packageStale?: boolean;
   artifacts: readonly ArtifactRef[];
   artifactsPending: boolean;
   artifactsError: unknown;
@@ -318,7 +320,9 @@ export const SignoffReview = ({
     }
     if (
       artifactsError !== null ||
-      (currentApproval ? packageError !== null : tasksError !== null)
+      (currentApproval
+        ? packageError !== null && !packageStale
+        : tasksError !== null)
     ) {
       const error = artifactsError ??
         (currentApproval ? packageError : tasksError);
@@ -331,7 +335,32 @@ export const SignoffReview = ({
         />
       );
     }
-    if (currentApproval && !packageValue) {
+    if (
+      currentApproval &&
+      packageStale &&
+      selection.kind === "OVERVIEW"
+    ) {
+      return (
+        <section
+          className="order-workspace-section order-approval-overview"
+          data-testid="review-workspace"
+        >
+          <div className="order-section-heading">
+            <div>
+              <h2>Package no longer current</h2>
+              <span>Prior governed package material remains inspection-only</span>
+            </div>
+            <WorkbenchStatus tone="warning" label="Stale" />
+          </div>
+          <p>
+            Review the prior governed documents below while workflow ownership
+            returns to the canonical upstream owner. This package cannot be signed.
+          </p>
+        </section>
+      );
+    }
+
+    if (currentApproval && !packageValue && selection.kind === "OVERVIEW") {
       return (
         <WorkbenchEmptyState
           title="No current sign-off package"
@@ -506,8 +535,10 @@ export const SignoffReview = ({
             <WorkbenchStatus
               tone={currentApproval ? "warning" : approvalCompleted ? "success" : "neutral"}
               label={
-                currentApproval
-                  ? "Awaiting authorization"
+                packageStale
+                  ? "Package stale"
+                  : currentApproval
+                    ? "Awaiting authorization"
                   : approvalCompleted
                     ? "Approved package history"
                     : "Returned before sign-off"
@@ -517,15 +548,19 @@ export const SignoffReview = ({
           summary={
             <div>
               <h2>
-                {currentApproval
-                  ? "Exact approval package"
+                {packageStale
+                  ? "Stale approval package"
+                  : currentApproval
+                    ? "Exact approval package"
                   : approvalCompleted
                     ? "Approved package"
                     : "Approval history"}
               </h2>
               <p>
-                {currentApproval
-                  ? "Review and authorize the exact signed package."
+                {packageStale
+                  ? "Inspect the prior governed package material while the canonical upstream owner is restored."
+                  : currentApproval
+                    ? "Review and authorize the exact signed package."
                   : approvalCompleted
                     ? "Inspect the governed package retained after approval."
                     : "Inspect the reached Approval stage retained after the workflow returned upstream without sign-off."}
