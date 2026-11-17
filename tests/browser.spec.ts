@@ -560,7 +560,6 @@ test("CodeMirror editor preserves exact source, formats Markdown, previews one b
   await page.setViewportSize({ width: 1440, height: 900 });
   await authenticate(page, request);
   await openWorkItem(page, "Lifecycle editing workbench");
-  console.log("[stale-source] 11 R1 current confirmed");
   await selectWorkflowStep(page, "Implementation plan");
 
   const editor = await openMarkdownEditor(page, "Implementation plan document Markdown source");
@@ -2063,47 +2062,33 @@ test("historical pre-signoff inspection returns to the current owner before offe
   await expect(page.getByRole("button", { name: "Start Requirements", exact: true })).toHaveCount(0);
 });
 
-test.only("source editor preserves stale buffers, never overwrites newer source, and returns work visibly to R1", async ({
+test("source editor preserves stale buffers, never overwrites newer source, and returns work visibly to R1", async ({
   page,
   request,
 }) => {
-  // This scenario intentionally spans external filesystem mutation, stale-write
-  // reconciliation, dirty-buffer preservation, reload/cancel/save, lifecycle
-  // convergence, and historical inspection. Keep every assertion, but give the
-  // full end-to-end sequence the Playwright budget intended for slow scenarios.
-  test.slow();
-  console.log("[stale-source] 1 bootstrap");
   await authenticate(page, request);
   await openWorkItem(page, "Source editing workbench");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toBeVisible();
   await selectWorkflowStep(page, "Work request");
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
-
-  console.log("[stale-source] 2 work-request selected");
   const sourceEditor = await openMarkdownEditor(page, "WorkItem source Markdown source");
-  console.log("[stale-source] 2a editor opened");
   const original = await markdownSourceValue(sourceEditor);
-  console.log("[stale-source] 2b source read");
   expect(original).toContain("# Source editing workbench");
   expect(original).not.toContain('"formatVersion"');
-  const technicalSource = page.getByText("Technical details", { exact: true }).first();
+  const technicalSource = page
+    .getByTestId("source-document-material")
+    .getByRole("button", { name: "Technical details", exact: true });
   await expect(technicalSource).toBeVisible();
   await technicalSource.click();
-  console.log("[stale-source] 2c technical opened");
   await expect(page.getByTestId("source-document-material").locator(".order-source-technical pre"))
     .toContainText('"formatVersion": 1');
-  console.log("[stale-source] 2d technical content verified");
   await technicalSource.click();
-  console.log("[stale-source] 2e technical closed");
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
-  console.log("[stale-source] 2f local edit complete");
   const item = await workItemForTitle(page, "Source editing workbench");
-  console.log("[stale-source] 2g work item resolved");
   const sourceResponse = await page.context().request.get(
     "/api/work-items/" + item.id + "/source",
   );
-  console.log("[stale-source] 2h source response returned");
   expect(sourceResponse.status()).toBe(200);
   const source = WorkItemSourceSnapshotSchema.parse(await sourceResponse.json());
   const sourcePath = join(repositoryRoot, source.path);
@@ -2112,37 +2097,28 @@ test.only("source editor preserves stale buffers, never overwrites newer source,
     "# Source editing externally changed",
   );
   writeFileSync(sourcePath, external);
-
-  console.log("[stale-source] 3 external mutation written");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText(/canonical file changed while this buffer was open/i)).toBeVisible();
-  console.log("[stale-source] 4 stale conflict visible");
   expect(await markdownSourceValue(sourceEditor)).toContain("local unsaved buffer");
   expect(readFileSync(sourcePath, "utf8")).toBe(external);
 
   await page.getByRole("button", { name: "Reload current" }).click();
   await expect.poll(() => markdownSourceValue(sourceEditor)).toContain("# Source editing externally changed");
   const current = await markdownSourceValue(sourceEditor);
-  console.log("[stale-source] 5 reload current complete");
 
   await replaceMarkdownSource(page, sourceEditor, current + "\nwill be cancelled\n");
   await page.getByRole("button", { name: "Cancel", exact: true }).click();
   await expect(page.getByTestId("markdown-document-view")).toBeVisible();
-  console.log("[stale-source] 6 cancel complete");
   const reopenedSourceEditor = await openMarkdownEditor(page, "WorkItem source Markdown source");
   await expect.poll(() => markdownSourceValue(reopenedSourceEditor)).toBe(current);
 
   await replaceMarkdownSource(page, reopenedSourceEditor, current + "\nsaved through browser workbench\n");
-  console.log("[stale-source] 7 final edit ready");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  console.log("[stale-source] 8 final save clicked");
   await expect.poll(() => markdownSourceValue(reopenedSourceEditor)).toContain("saved through browser workbench");
-  console.log("[stale-source] 9 saved buffer observed");
   await expect.poll(() => readFileSync(sourcePath, "utf8")).toContain(
     "saved through browser workbench",
   );
   await expect(page.getByText("Unsaved", { exact: true })).toHaveCount(0);
-  console.log("[stale-source] 10 persisted and clean");
 
   const workflowRail = page.getByTestId("workflow-rail");
   await expect(
@@ -2156,7 +2132,6 @@ test.only("source editor preserves stale buffers, never overwrites newer source,
   ).toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("markdown-readonly")).toBeVisible();
   await expect(page.getByLabel("Implementation plan document Markdown source")).toHaveCount(0);
-  console.log("[stale-source] 12 historical inspection confirmed");
 });
 
 test("dirty Markdown navigation is explicit, preserves the buffer when cancelled, restores queue focus when discarded, and PLAN/R3 editing remains correct", async ({
