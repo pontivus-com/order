@@ -567,10 +567,6 @@
   border-bottom: 1px solid var(--color-border-emphasized);
   background: var(--color-background-muted);
 }
-.order-settings-layout-constrained-navigation .order-settings-navigation-shell {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-}
 .order-settings-layout-constrained-navigation .order-settings-navigation {
   grid-auto-flow: column;
   grid-auto-columns: max-content;
@@ -588,6 +584,24 @@
 .order-settings-workspace {
   height: 100%;
   min-height: 0;
+}
+.order-settings-workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  overflow: hidden;
+}
+.order-settings-page-heading {
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-settings-page-heading h1,
+.order-settings-page-heading p {
+  margin: 0;
+}
+.order-settings-page-heading p {
+  color: var(--color-text-secondary);
 }
 .order-workitem-workspace {
   height: 100%;
@@ -620,22 +634,16 @@
   color: var(--color-text-primary);
 }
 
-.order-settings-navigation-shell,
 .order-settings-content,
 .order-settings-section {
   display: grid;
   gap: var(--spacing-3);
   min-width: 0;
 }
-.order-settings-navigation-shell h1,
-.order-settings-navigation-shell p,
 .order-settings-section h2,
 .order-settings-section h3,
 .order-settings-section p {
   margin: 0;
-}
-.order-settings-navigation-shell p {
-  color: var(--color-text-secondary);
 }
 .order-settings-navigation {
   display: grid;
@@ -648,7 +656,15 @@
   border-radius: var(--radius-container);
   background: var(--color-background-surface);
 }
-.order-settings-layout-navigation-surface { padding: var(--spacing-4); }
+.order-settings-layout-navigation-surface,
+.order-settings-layout-content-surface {
+  height: 100%;
+  box-sizing: border-box;
+}
+.order-settings-layout-navigation-surface {
+  padding: var(--spacing-4);
+  background: var(--color-background-muted);
+}
 .order-settings-layout-content-surface { padding: var(--spacing-5); }
 .order-settings-supporting-info {
   padding-top: var(--spacing-3);

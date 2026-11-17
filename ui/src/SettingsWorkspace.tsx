@@ -410,9 +410,14 @@ export const SettingsWorkspace = ({
 
   return (
     <div data-testid="settings-workspace" className="order-settings-workspace">
+      <header className="order-settings-page-heading">
+        <h1>Settings</h1>
+        <p>Installation configuration and readiness.</p>
+      </header>
       <WorkbenchSettingsLayout
-        navigation={<div className="order-settings-navigation-shell"><div><h1>Settings</h1><p>Installation configuration and readiness.</p></div><SettingsNavigation section={section} onNavigate={onNavigate} /></div>}
+        navigation={<SettingsNavigation section={section} onNavigate={onNavigate} />}
         content={<div className="order-settings-content">{readiness}{content}</div>}
       />
     </div>
-  );};
+  );
+};

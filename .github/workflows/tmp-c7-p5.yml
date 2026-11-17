@@ -199,6 +199,7 @@ jobs:
             testMatch: "c5-visual.temp.spec.ts",
             workers: 1,
             retries: 0,
+            timeout: 90000,
             use: { baseURL: "http://127.0.0.1:17347" },
             projects: [{ name: "chromium", use: { browserName: "chromium" } }],
             webServer: {

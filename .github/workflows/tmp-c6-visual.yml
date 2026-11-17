@@ -148,6 +148,7 @@ jobs:
             const repositories = page.getByTestId("settings-repositories");
             await expect(repositories).toBeVisible();
             await expect(page.getByText("Checking installation readiness…", { exact: true })).toHaveCount(0);
+            await expect(page.getByText("Checking repositories…", { exact: true })).toHaveCount(0);
             await shot(page, "settings-repositories.svg", "main");
 
             await repositories.getByRole("button", { name: "Add repository" }).click();
@@ -167,10 +168,12 @@ jobs:
             await page.getByRole("link", { name: "Model & runtime", exact: true }).click();
             await expect(page.getByTestId("settings-model")).toBeVisible();
             await expect(page.getByText("Checking installation readiness…", { exact: true })).toHaveCount(0);
+            await expect(page.getByText("Loading available models…", { exact: true })).toHaveCount(0, { timeout: 30000 });
             await shot(page, "settings-model.svg", "main");
           });
 
           test("OpenCode Settings and login states", async ({ page, request }) => {
+            await isolateSupportingState(page);
             let loginStatus: "PENDING" | "COMPLETED" | "FAILED" | "EXPIRED" | "CANCELLED" = "PENDING";
             let attempt = 0;
             await page.route("**/api/opencode/accounts**", async (route) => {
