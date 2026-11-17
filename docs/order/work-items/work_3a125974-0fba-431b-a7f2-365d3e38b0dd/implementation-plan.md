@@ -27,7 +27,7 @@ Canonical requirements/governance/contracts/architecture docs plus immutable V1 
 
 ## Reproduction/regression/preservation verification
 
-Prove empty output completion blocks; wrong/multiple/stale output fails; v2 defaults and v1 compatibility coexist; v2 stage document structure is enforced; architecture requires evaluateStageConformance; complete repository verification passes; independent R3/PR review remains outstanding until performed by a reviewer other than the change author.
+Prove empty output completion blocks; wrong/multiple/stale output fails; v2 defaults and v1 compatibility coexist; v2 stage document structure is enforced; unresolved v2 R2 `REFERENCE`/`DELTA` owners fail promotion; PLAN without exactly one valid canonical `order-tasks` block fails promotion; architecture requires the conformance/ledger/task-block enforcement seams; complete repository verification passes; independent R3/PR review remains outstanding until performed by a reviewer other than the change author.
 
 ## Canonical order-tasks block
 
