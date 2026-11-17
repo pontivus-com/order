@@ -19,10 +19,10 @@ The realization conforms to:
 
 - `GW-DOC-WORKBENCH-UX-V2`, including its functional state-transition model and §22 binding functional requirements;
 - `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` for the canonical cross-step lifecycle relation;
-- `GW-DOC-LIFECYCLE-CONTEXT-V2` for stage decision/context/conformance boundaries;
+- `GW-DOC-LIFECYCLE-CONTEXT` for stage decision/context/conformance boundaries;
 - `GW-DOC-VALIDATION-STANDARD-V1` for post-signoff failure classification;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V2` for FCIS/SoC topology and module/dependency ownership;
-- `GW-DOC-CANONICAL-CONTRACTS-V2` for canonical P6 data, persistence and transport;
+- `GW-DOC-TECHNICAL-ARCHITECTURE` for FCIS/SoC topology and module/dependency ownership;
+- `GW-DOC-CANONICAL-CONTRACTS` for canonical P6 data, persistence and transport;
 - `GW-DOC-WORKBENCH-THEME-V1` for exact theme tokens, visual-role mapping, root theme activation and stylesheet governance;
 - `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW` and `GW-P1-MINIMUM-CHANGE`.
 
@@ -42,7 +42,7 @@ WorkItemSourceSnapshot / diagnostics
 
 No new persisted `WorkflowState`, `WorkbenchState`, `TurnState`, `ReachedStage`, workflow-state table, transport aggregate, DTO/view-model family or browser-owned mirror is introduced.
 
-`src/core/lifecycle.ts` remains the **single browser-safe pure workflow-semantics owner** already authorized by `GW-DOC-TECHNICAL-ARCHITECTURE-V2`. Within that owner, mutation and observation are separate pure function families:
+`src/core/lifecycle.ts` remains the **single browser-safe pure workflow-semantics owner** already authorized by `GW-DOC-TECHNICAL-ARCHITECTURE`. Within that owner, mutation and observation are separate pure function families:
 
 - **mutation semantics:** admitted lifecycle causes, stage/status/outcome transitions, block/resume and upstream-return routing;
 - **read-only workflow semantics:** reach, STAGE interaction, proposal-decision/adoption state, material currentness, execution owner/validation boundary, recovery route, observation coherence, current attention and workflow-rail projection.
@@ -1279,7 +1279,7 @@ This directly removes the current duplicated `Workflow action failed` rendering 
 
 ## 11. Required P6 amendments
 
-`GW-DOC-CANONICAL-CONTRACTS-V2` must be amended in the same design package to bind:
+`GW-DOC-CANONICAL-CONTRACTS` must be amended in the same design package to bind:
 
 1. IDEA source Save remains IDEA; progressed source changes return to R1.
 2. GET/query operations in §18/§19 are non-mutating.
@@ -1751,7 +1751,7 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 
 ### 14.6 Architecture fitness
 
-For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE-V2` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
+For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
 
 Permanent sensors prove:
 
