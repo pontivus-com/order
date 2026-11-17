@@ -121,7 +121,7 @@ Published schema identifiers are immutable semantic pins. A material change to a
 
 The published `change-v1` and `defect-v1` schema pins remain supported with their original template/validation semantics. They are historical compatibility pins and are no longer the ordinary authoring defaults after the authority-hygiene correction.
 
-New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template.
+New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template. Their R1 templates preserve the v1 evidence-section structure but are separate v2 template pins that cite the current `GW-DOC-LIFECYCLE-CONTEXT-V2`; new v2 WorkItems must not inherit the historical lifecycle-context V1 authority pin merely because the R1 evidence shape is unchanged.
 
 The v2 R2 template contains a **functional authority disposition ledger**. Each material requirement is classified as exactly one of:
 
