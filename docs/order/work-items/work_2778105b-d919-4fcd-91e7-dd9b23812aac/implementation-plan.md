@@ -240,7 +240,7 @@ No new dependency, package pin, database migration, persistent state table, tran
 |---|---|---|---|
 | P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure | **DONE — preserve** |
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure | **DONE — preserve; rerun regression gates after later UI work** |
-| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **PARTIAL — C3 prior PASS invalid; phase reopened** |
+| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **BLOCKED — §6.5 structural UI/styling recovery prerequisite required before further reference-driven correction; C3 prior PASS invalid** |
 | P4 | Work request through Readiness | C4 pre-signoff visual conformance | **PARTIAL — major UI/reference work outstanding; C4 prior PASS invalid; phase reopened** |
 | P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **PARTIAL — major UI/reference work outstanding; C5 prior PASS invalid; phase reopened** |
 | P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **LARGELY NOT DONE — C6 prior PASS invalid; phase reopened** |
@@ -309,28 +309,35 @@ The current candidate is therefore **not implementation-complete, not C7-complet
 
 Remediation proceeds from the existing semantic foundation; P1/P2 are not rewritten merely because the UI failed.
 
-1. **Repair visual verification first.**
+1. **Complete the mandatory structural UI/styling recovery prerequisite in §6.5.**
+   - No further reference-driven P3-P6 CSS/JSX correction is allowed until the current implementation is restored to the existing Workbench primitive, Astryx-foundation and canonical theme ownership model.
+   - A reference mismatch identifies a defect; it does not identify the implementation layer in which that defect may be fixed.
+   - Every visual correction must first resolve to its canonical owner under `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1` and `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE`.
+
+2. **Repair visual-evidence truthfulness.**
    - Render deterministic real-SPA fixtures for every required reference state.
    - Wait for the intended settled state; loading placeholders are never accepted as the compared result.
    - For state-sheet references, exercise every represented state rather than assigning the sheet filename to one screenshot.
-   - Record one explicit verdict per reference/state: `MATCH`, `ALLOWED_RENDERING_VARIANCE(reason)` or `FAIL`.
+   - Treat screenshot/reference capture as evidence generation only. A green capture workflow is not C3/C4/C5/C6 evidence.
+   - Record one explicit adjudicated verdict per reference/state: `MATCH`, `ALLOWED_RENDERING_VARIANCE(reason)` or `FAIL`.
 
-2. **Reopen P3 and implement the actual shared Workbench visual foundation.**
-   - Bring shell/identity/rail/current-attention/Dialogue/Document/Review/Evidence/Context/confirmation/responsive/theme composition into near-exact reference conformance using the existing canonical primitive owners.
+3. **Reopen P3 and implement the actual shared Workbench visual foundation.**
+   - After §6.5 is green, bring shell/identity/rail/current-attention/Dialogue/Document/Review/Evidence/Context/confirmation/responsive/theme composition into near-exact reference conformance through the already-declared owners.
    - Existing UI code survives only where direct comparison proves it already conforms.
+   - Reference corrections continue to obey the §6.5 ownership-classification rule; no screen-local CSS escape hatch is permitted.
 
-3. **Reopen P4 and implement the complete pre-signoff task experience.**
+4. **Reopen P4 and implement the complete pre-signoff task experience.**
    - Work request, Research, Requirements, Solution design, Implementation plan, Readiness, authoring/read-only material, proposal review, Evidence and work-type variants must reproduce the accepted information hierarchy and topology rather than preserve the old editor-centric composition.
 
-4. **Reopen P5 and implement the accepted post-signoff compositions.**
+5. **Reopen P5 and implement the accepted post-signoff compositions.**
    - Approval must be the accepted exact-package Review.
    - Implementation must be the accepted persistent Approved Tasks/current-task MasterDetail.
    - Complete must be result-first with the correct eligible remediation branch.
 
-5. **Reopen P6 and implement application/supporting services.**
+6. **Reopen P6 and implement application/supporting services.**
    - Queue, Create, Settings, installation readiness, Context, Evidence, notices and confirmations must each be proven against their assigned references and corrected where they fail.
 
-6. **Run P7 only after C3-C6 are validly green.**
+7. **Run P7 only after §6.5 and C3-C6 are validly green.**
    - Produce the complete 41-reference verdict set.
    - Run all V-01..V-11 permanent proof and the complete final gate union including browser.
    - Remove temporary verification scaffolding.
@@ -352,6 +359,230 @@ At this audit state:
 - **0.5.0 candidate readiness: REJECTED**
 
 This status remains in force until later repository evidence closes the corresponding implementation work and reruns the exact owning checkpoint. A later green test run may update only the phase/checkpoint it actually proves; mechanical green alone cannot silently promote visual-conformance status.
+
+### 6.5 Mandatory structural UI/styling recovery prerequisite — blocking
+
+**Status:** REQUIRED BEFORE ANY FURTHER REFERENCE-DRIVEN P3-P6 VISUAL CORRECTION.
+
+This is not a new lifecycle phase, a new visual system or a new design exercise. It is a blocking implementation prerequisite inside the already-reopened P3 work. Its purpose is to restore the candidate to the P4 architecture that is already binding before additional reference matching continues.
+
+The governing rule is:
+
+```text
+reference mismatch
+        ↓
+classify the canonical owner
+        ↓
+correct that owner once
+        ↓
+all consumers inherit the correction
+        ↓
+reference validation confirms the result
+```
+
+The following implementation pattern is prohibited:
+
+```text
+reference mismatch
+        ↓
+find the nearest selector/component
+        ↓
+add local JSX/CSS until the screenshot looks right
+```
+
+A reference is derived visual acceptance authority. It is not CSS architecture and does not authorize a local implementation mechanism that contradicts `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` or `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE`.
+
+#### 6.5.1 Current evidence requiring recovery
+
+The current `version/0.5.0` implementation contains evidence that reference correction has begun to cross canonical ownership boundaries:
+
+1. `ui/src/EvidenceViewer.tsx` no longer uses the §8.17-required `WorkbenchSurface + WorkbenchSectionHeader + WorkbenchState + approved CodeBlock leaf` composition. It now establishes a bespoke `.order-evidence-viewer` bordered/radiused/padded surface and a raw `<pre>` exact-byte renderer. That is a concrete primitive/foundation bypass and must be structurally corrected rather than visually preserved.
+2. `ui/src/theme.css` is materially cleaner than the audited legacy stylesheet, but recent reference work has added feature-level visual geometry/chrome such as `.order-readiness-*`, `.order-evidence-*`, `.order-markdown-document-view-*`, `.order-dialogue-research-material` and `.order-lifecycle-authority-summary`. Each such selector must be reclassified against the canonical owner; feature-semantic content layout may remain, but primitive-owned surface/review/dialogue/status/heading/editor mechanics may not.
+3. The stylesheet still contains raw mechanics such as `border-radius: 999px`, `border-radius: 50%`, `font-size: 0.75rem` and recent raw content heights such as `32rem`, `36rem`, `28rem` and `22rem`. These values are not accepted merely because they improve one reference capture. They must resolve to an existing public Astryx token/prop, an already-authorized Order structural token, a genuinely specialist mechanic, or be removed. A new semantic/structural token or reusable visual role requires DESIGN authority; P7 may not invent it.
+4. The temporary P3/P4 visual workflow currently proves that runtime/reference images were produced, but it does not itself compare/adjudicate those images into the plan-required verdicts. Therefore workflow success is evidence-capture success only and must not be reported as C3/C4 success.
+5. `tests/certification.test.ts` already enforces important boundaries, but it does not yet mechanically close the full stylesheet/foundation ownership contract required by `GW-DOC-WORKBENCH-THEME-V1 §15` and `GW-TR-103`. The missing fitness coverage must be added before more visual work can safely accumulate.
+
+These are implementation-state findings. They do not amend P3/P4/P6 authority.
+
+#### SR-1 — freeze unclassified reference-driven styling changes
+
+Until SR-1 through SR-9 pass, do not add another screen-local CSS/JSX visual correction merely because a reference differs.
+
+Before changing implementation for a visual mismatch, classify it into exactly one owner:
+
+| Mismatch class | Canonical implementation owner |
+|---|---|
+| information hierarchy / interaction composition | existing feature/service renderer composed through the exact §8.15 Workbench primitive grammar |
+| recurring Workbench structure or interaction mechanic | the single owning `ui/src/primitives/*` primitive |
+| low-level interaction/accessibility/state/theme mechanic already supported by Astryx | pinned Astryx component prop/variant/density/public token |
+| shared semantic visual role | `GW-DOC-WORKBENCH-THEME-V1` realization in the owning primitive selector / root public-token bridge |
+| Markdown/CodeMirror/code/evidence content mechanic | the already-approved specialist renderer, consuming canonical roles |
+| genuinely feature-specific semantic content arrangement | a narrowly scoped §13.5 feature selector in `theme.css`, with no reusable component chrome or alternate responsive topology |
+| missing reusable component responsibility, missing semantic visual role, or required geometry not authorized by current P4 | stop implementation and return to DESIGN |
+
+Every later C3-C6 defect record must name both the failed reference/state and this owner classification before code is changed.
+
+#### SR-2 — restore canonical renderer-to-primitive composition
+
+Audit every production renderer touched by the reopened visual work against `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §8.17`.
+
+Required corrections include, at minimum:
+
+- restore `EvidenceViewer` to the canonical `WorkbenchSurface + WorkbenchSectionHeader + WorkbenchState + approved CodeBlock leaf` composition;
+- remove its bespoke root surface chrome and raw `<pre>` replacement where the approved Astryx `CodeBlock` leaf owns the mechanic;
+- preserve exact-byte semantics and the accepted evidence information hierarchy while moving structure/theme mechanics back to their canonical owners;
+- inspect `ReadinessWorkspace`, `MarkdownEditor`, `DocumentWorkspace`, `ActivityWorkspace`, `ProposalReview`, `ExecutionWorkspace`, Queue/Create/Settings and every other renderer changed during reference remediation for the same failure class;
+- preserve valid feature-semantic content and reference corrections, but remove any local shell/surface/review/dialogue/status/notice/table/timeline/overlay/editor chrome that duplicates a primitive or suitable Astryx mechanic;
+- do not solve a primitive bypass by adding a new wrapper primitive. Use the closed §8.12 vocabulary unless DESIGN explicitly changes it.
+
+**Acceptance:** every production renderer again matches its canonical §8.17 composition, and no reference-driven renderer has a bespoke substitute for a required Workbench primitive or approved Astryx leaf.
+
+#### SR-3 — re-establish canonical stylesheet ownership
+
+Normalize `ui/src/styles.css` and `ui/src/theme.css` against `GW-DOC-WORKBENCH-THEME-V1 §13`.
+
+Required end state:
+
+- `styles.css` remains import/layer order plus irreducible document/root reset only;
+- `theme.css` remains the only Order presentation stylesheet;
+- section 1 contains only the verified public Astryx root token bridge/theme mapping;
+- section 2 contains only the exact Order-only structural/readability roles authorized by §§7-8;
+- section 3 contains the closed Workbench primitive presentation selectors;
+- section 4 contains specialist content mechanics and genuinely feature-specific semantic content layout only;
+- section 5 contains only canonical responsive overrides;
+- feature-by-feature chronological append ordering is removed;
+- no CSS module, feature stylesheet, second theme provider or second token namespace is introduced.
+
+Feature selectors may arrange their own semantic content. They may not become alternate Surface/Review/Dialogue/Status/Notice/Table/Timeline/Toolbar/field/component owners.
+
+#### SR-4 — exhaust Astryx/public-token mechanics before residual CSS
+
+Perform a declaration-level audit of `theme.css`, especially all values added during current reference remediation.
+
+For every non-token raw declaration outside the exact root public-token bridge:
+
+1. determine whether Astryx already owns the mechanic through a component prop, variant, size/density or public token;
+2. if yes, move ownership to that Astryx mechanism and delete the local raw mechanic;
+3. otherwise determine whether the value is one of the exact Order structural/readability roles already authorized in §§7-8;
+4. if yes, consume that canonical Order token rather than repeating the literal;
+5. otherwise determine whether it is an irreducible specialist/accessibility/content mechanic;
+6. if none applies, delete it; if the UI genuinely cannot satisfy P3/P4 without it, return to DESIGN rather than inventing a new P7 visual role/token.
+
+The audit must explicitly resolve current raw-radius/type/geometry examples, including:
+
+- pill/circular radii such as `999px` / `50%` against `--radius-full` or the appropriate public radius token;
+- raw type sizes such as `0.75rem` against the canonical Astryx typography roles;
+- ordinary control dimensions against Astryx size/density props and `--size-element-*`;
+- reference-tuned content heights such as `32rem`, `36rem`, `28rem` and `22rem`;
+- repeated raw column widths where an existing Order structural token already owns the dimension.
+
+Do not add new `--order-*` tokens to legalize a local value. The allowed Order-specific token set is owned by the P4 theme design.
+
+#### SR-5 — consolidate recurring visual chrome into the existing primitive owner
+
+Search the current feature/specialist section for repeated combinations of:
+
+- border;
+- background;
+- radius;
+- padding;
+- heading/action alignment;
+- status/notice chrome;
+- toolbar/control chrome;
+- review/surface/dialogue framing;
+- table/list/timeline row mechanics.
+
+Where the same semantic mechanic already belongs to a Workbench primitive, move/correct it once in that primitive's section-3 selector and remove the feature copy.
+
+Feature CSS may retain content-specific grid/flex arrangement only where §13.5 permits it. It must not target primitive internals to make one occurrence visually special.
+
+If two or more services require the same visual correction, presume the shared primitive/theme owner is wrong until proven otherwise; do not patch both services independently.
+
+#### SR-6 — delete superseded and reference-only CSS mechanisms
+
+After SR-2 through SR-5:
+
+- remove dead selectors with no production consumer;
+- remove duplicate base selector owners outside intentionally scoped canonical media overrides;
+- remove feature selectors made obsolete by restored primitive composition;
+- remove compatibility aliases and screenshot-tuning declarations that no longer have an architectural owner;
+- remove any reintroduced card/dashboard/side-index/component chrome that the current P4 design supersedes;
+- do not leave old and new presentation paths available in parallel.
+
+The final candidate must have one visual system and one selector owner per recurring mechanic.
+
+#### SR-7 — close permanent architecture fitness for CSS/foundation ownership
+
+Extend the existing `tests/certification.test.ts` owner; do not edit signed `tests/architecture.test.ts` and do not add a new test framework/dependency.
+
+Permanent fitness must mechanically prove at least:
+
+1. the complete §8.17 renderer → primitive/approved-leaf mapping, including `EvidenceViewer -> WorkbenchSurface + WorkbenchSectionHeader + WorkbenchState + CodeBlock`;
+2. primitive-owned selectors remain in the primitive presentation section and are not redefined by feature selectors;
+3. feature/service renderers cannot bypass a required structural/semantic primitive with raw HTML/CSS or direct foundation mechanics;
+4. no raw semantic colors outside the root bridge, no private `--_` Astryx tokens/internal selectors and no redundant Order palette namespace;
+5. no feature-local raw font-size/radius/shadow/control-height/recurring spacing mechanic where a public Astryx token/prop owns the role;
+6. no unauthorized structural geometry literal/token outside the existing P4-authorized Order geometry set, apart from narrowly allowlisted irreducible CSS/accessibility mechanics such as canonical 1px boundaries/visually-hidden treatment;
+7. only the canonical Workbench breakpoints exist for structural responsive composition;
+8. `styles.css` contains no Order primitive/feature selector and no additional Order-authored stylesheet exists;
+9. no feature selector styles a Workbench primitive descendant to create a local variant;
+10. no suitable Astryx mechanic is reimplemented raw merely to match a reference.
+
+Tests must enforce semantic ownership, not one brittle snapshot of today's selector count.
+
+#### SR-8 — make visual-checkpoint evidence truthful
+
+The temporary P3/P4 visual workflow is execution scaffolding only.
+
+Correct it so that:
+
+- its successful image-generation job is described and treated as **capture/evidence generation**, not a visual checkpoint pass;
+- every represented state of every assigned multi-state SVG is captured explicitly;
+- reference rasterization and actual screenshots remain paired by reference/state/viewport/theme;
+- C3-C6 cannot be claimed from file existence, filename equality, screenshot counts or a green capture job;
+- the implementation worker performs actual side-by-side inspection and produces a verdict ledger with, for each state: reference, runtime fixture, viewport/theme where applicable, actual evidence path, `MATCH | ALLOWED_RENDERING_VARIANCE(reason) | FAIL`, and owning implementation surface for every failure;
+- checkpoint closure requires a complete ledger with no `FAIL` and no unexplained/missing state;
+- temporary workflows/evidence-generation scaffolding remain absent from the final publishable candidate as already required by repository governance.
+
+No automated pixel-diff dependency is introduced merely to manufacture a green signal. The references are schematic/semantic visual authority and permitted rendering variance remains governed by §4.4.
+
+#### SR-9 — close regressions and run the structural recovery gate
+
+After the ownership cleanup, classify and close all invalidated permanent tests against canonical authority rather than blindly making the old assertion pass.
+
+At the current head this includes the browser failures for:
+
+- long Work request/lifecycle Markdown final-line persistence after save/reload;
+- Requirements authority presentation.
+
+For the first, preserve the accepted long-document edit/save/persistence behavior.
+
+For the second, do not re-promote a repository path into primary UI merely because an older test expected it there. If current P3/reference authority makes the path technical/secondary, update the test to prove the correct Technical detail/Context location; change production UI only if authority actually requires the primary presentation.
+
+Then run the complete structural-recovery gate:
+
+```text
+dependency-lock
+→ typecheck
+→ architecture
+→ test
+→ build
+→ browser
+```
+
+**SR prerequisite PASS requires all of the following:**
+
+- all six commands are green;
+- every production renderer conforms to the §8.17 primitive/approved-leaf mapping;
+- `EvidenceViewer` and any other identified bypass are structurally restored;
+- `styles.css` / `theme.css` satisfy §13 ownership;
+- the §15 theme/CSS/foundation fitness gaps are permanently enforced;
+- no unauthorized raw/reference-tuned visual mechanics remain;
+- no obsolete parallel visual path remains;
+- the visual capture workflow can no longer be mistaken for a conformance verdict;
+- no new P3/P4 semantic role, token, component responsibility or responsive topology was invented during recovery.
+
+Only after SR passes may implementation resume reference-by-reference P3/C3 correction. Every subsequent reference fix remains subject to SR-1 owner classification; SR is not a one-time permission to resume local patching.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
