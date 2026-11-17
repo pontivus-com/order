@@ -2,7 +2,7 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** IMPLEMENTATION REOPENED — P1-P6 done; P7 not complete; candidate readiness rejected  
+**Status:** IMPLEMENTATION COMPLETE — P1-P7 done; C1-C7 PASS; candidate ready for canonical V2-V7 validation  
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
@@ -244,7 +244,7 @@ No new dependency, package pin, database migration, persistent state table, tran
 | P4 | Work request through Readiness | C4 pre-signoff visual conformance | **DONE — C4 PASS on corrected accepted Evidence reference and adjudicated real-SPA evidence** |
 | P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **DONE — C5 PASS on corrected accepted references and adjudicated real-SPA evidence** |
 | P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **DONE — C6 PASS on settled real-SPA evidence and permanent behavior verification** |
-| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **NOT DONE — C7 not established; candidate readiness rejected** |
+| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **DONE — C7 PASS; 41/41 references MATCH; V-01..V-11 permanent proof green** |
 
 No phase may be marked complete while its checkpoint is FAIL, invalid, unproven or superseded by later evidence.
 
@@ -345,7 +345,7 @@ Remediation proceeds from the existing semantic foundation; P1/P2 are not rewrit
 
 ### 6.4 Candidate-readiness verdict
 
-**REJECTED.**
+**READY FOR CANONICAL CANDIDATE VALIDATION.**
 
 At this audit state:
 
@@ -355,10 +355,10 @@ At this audit state:
 - **P4: DONE; C4 PASS**
 - **P5: DONE; C5 PASS**
 - **P6: DONE; C6 PASS**
-- **P7: NOT DONE; C7 not established**
-- **0.5.0 candidate readiness: REJECTED**
+- **P7: DONE; C7 PASS**
+- **0.5.0 implementation candidate: READY for canonical V2-V7 validation**
 
-This status remains in force until later repository evidence closes the corresponding implementation work and reruns the exact owning checkpoint. A later green test run may update only the phase/checkpoint it actually proves; mechanical green alone cannot silently promote visual-conformance status.
+The earlier rejection remained in force until the later repository evidence in §§6.5-6.10 closed each owning checkpoint. P7 now ends implementation. This PLAN does not pre-approve canonical V2-V7 candidate validation or release publication; those stages remain independently authoritative.
 
 ### 6.5 Mandatory structural UI/styling recovery prerequisite — blocking
 
@@ -807,6 +807,115 @@ C6 acceptance is therefore closed:
 - all represented C6 multi-state cases have explicit runtime evidence or permanent browser proof, with loading placeholders excluded from settled comparisons.
 
 No `ALLOWED_RENDERING_VARIANCE` exception is required for C6. Temporary C6 workflows were removed immediately after evidence capture. P6 is complete and P7 may execute.
+
+### 6.10 P7/C7 integrated closure — 2026-11-17
+
+**Status:** PASS.
+
+P7 validates the integrated P1-P6 candidate; it does not introduce another product architecture. The final work closed three obligations: current-tree visual regeneration, permanent V-01..V-11/candidate-boundary proof, and deletion/publishable-tree certification.
+
+#### Integrated C7 evidence set
+
+The final visual comparison was regenerated after P6 on the same production/reference bytes that enter P7. Later P7 commits modify only permanent tests and this governed evidence record; they do not change runtime or SVG bytes.
+
+- integrated C3/C4 regeneration: run `44032530130`, artifact `p3-p4-visual-evidence-9c0d1bb06e3d6e3ca441ddea7c92029668be144a`, digest `sha256:089484fca69bba90bd9b74d459e2613666298ea2fa3df1c38b8961c2274513c6`;
+- integrated C5 regeneration: run `44032673838`, artifact `c7-p5-evidence-ced73895788e78609960d0017fdbf50ede4229c6`, digest `sha256:101a51f0b5afe1c800b1b3255789bccfbd3a89638355d9601c1c2d43866235ad`;
+- C6 main settled evidence: run `44031444240`, artifact `c6-visual-evidence-74f414395da31243e5cf249d6f00c7c272f5d191`, digest `sha256:ac73db13421ab86e8c010c9d3bbc397b5ca0018fa4be8edd368546f5de2581c6`;
+- C6 Queue state supplement: run `44028086121`, artifact `c6-queue-reference-evidence-54f30585d7171e50aaae8a0d9c12ec5498edad83`, digest `sha256:d085ed3b7868b9aa0f401bcee9a71cbc66f2d4fa2f55b5cc0270e68ec1d97009`;
+- C6 shared-notice supplement: run `44031377524`, artifact `c6-notice-state-evidence-62311fa24fdbb50f1ebf0c22e591370a6499b4a1`, digest `sha256:2c137ede27bd1b1f900af1ecada99a6500d6d697640eb9dc5b75ce463121dc8f`.
+
+The regenerated artifact union contains 19 C3/C4 references + 6 C5 references + 18 C6 references, with `evidence-viewer.svg` and `theme-parity.svg` intentionally overlapping between owning checkpoints. Deduplication therefore yields exactly **41/41 unique reviewed SVG references**.
+
+#### Final 41-reference verdict ledger
+
+| Reference | Final C7 verdict |
+|---|---|
+| `application-notices-states.svg` | **MATCH** |
+| `approval-task-detail.svg` | **MATCH** |
+| `approval.svg` | **MATCH** |
+| `complete-linked-remediation.svg` | **MATCH** |
+| `complete.svg` | **MATCH** |
+| `create-linked-remediation.svg` | **MATCH** |
+| `create-work-item.svg` | **MATCH** |
+| `current-attention-states.svg` | **MATCH** |
+| `dialogue-states.svg` | **MATCH** |
+| `document-authoring.svg` | **MATCH** |
+| `document-readonly.svg` | **MATCH** |
+| `document-states.svg` | **MATCH** |
+| `evidence-viewer.svg` | **MATCH** |
+| `implementation-plan.svg` | **MATCH** |
+| `implementation-states.svg` | **MATCH** |
+| `implementation.svg` | **MATCH** |
+| `installation-readiness.svg` | **MATCH** |
+| `proposal-review.svg` | **MATCH** |
+| `proposal-states.svg` | **MATCH** |
+| `queue-states.svg` | **MATCH** |
+| `queue.svg` | **MATCH** |
+| `readiness-review.svg` | **MATCH** |
+| `requirements.svg` | **MATCH** |
+| `research.svg` | **MATCH** |
+| `responsive-composition.svg` | **MATCH** |
+| `safety-confirmations.svg` | **MATCH** |
+| `settings-model.svg` | **MATCH** |
+| `settings-opencode-add.svg` | **MATCH** |
+| `settings-opencode-login-states.svg` | **MATCH** |
+| `settings-opencode-login.svg` | **MATCH** |
+| `settings-opencode-rename.svg` | **MATCH** |
+| `settings-opencode.svg` | **MATCH** |
+| `settings-repositories.svg` | **MATCH** |
+| `settings-repository-add.svg` | **MATCH** |
+| `settings-repository-move.svg` | **MATCH** |
+| `solution-design.svg` | **MATCH** |
+| `theme-parity.svg` | **MATCH** |
+| `work-request.svg` | **MATCH** |
+| `work-type-variants.svg` | **MATCH** |
+| `workitem-context.svg` | **MATCH** |
+| `workitem-shell-controls.svg` | **MATCH** |
+
+No `ALLOWED_RENDERING_VARIANCE` entry is required and no reference remains unexplained.
+
+#### V-01..V-11 permanent proof map
+
+| Obligation | Permanent proof |
+|---|---|
+| **V-01 STAGE producer/consumer agreement** | core exhaustive provider-batch grammar tests; daemon atomic invalid-batch/no-member-effects proof; permanent producer/consumer certification |
+| **V-02 Dialogue/reply context** | browser OPEN/PROCESSING/REQUIRED_INPUT cases; conversation/activity/workflow partition tests; current-action ownership remains independent from historical inspection |
+| **V-03 Proposal/cancel closure** | core proposal-decision/cancellation admission tests; daemon Cancel/adoption/input races; browser pending/adoption-in-progress proposal review |
+| **V-04 Manual execution scope** | daemon non-current-task rejection and exact current-task start; browser historical-selection non-interference; permanent rejection of browser `/api/tick` task start |
+| **V-05 Repository-draft portability** | daemon current lifecycle-draft materialization/observational-read tests; presentation proof for unreached persisted Draft with no fabricated reach; certification bans read-side persistence/reach inference |
+| **V-06 Material maturity** | core exhaustive material-presentation projection; browser document-state coverage; no persisted maturity owner |
+| **V-07 Agent activity** | bounded activity contract/core tests; OpenCode normalization/capping certification; browser/presentation separation of Agent activity from Workflow activity and technical details |
+| **V-08 Provider admission diagnostics** | daemon causal provider-success/invalid-batch diagnostic evidence test; permanent bounded diagnostic certification and product-facing rejection copy |
+| **V-09 Information hierarchy/reference coverage** | all nine workflow-step browser grammar; P3-P6 reference adjudication; exact final 41/41 C7 ledger; renderer/primitive ownership certification |
+| **V-10 responsive/accessibility/theme continuity** | wide/medium/narrow browser recomposition, focus-return and dirty-buffer preservation; Implementation drawer continuity; System/Light/Dark parity; non-color semantic status primitives |
+| **V-11 direct-authoring/active-agent exclusion** | permanent authoring-exclusion certification; daemon Save-vs-Start/mutation serialization; browser test proves active agent ownership disables title editing and makes Work request/lifecycle document authoring unavailable while workflow interaction remains visible |
+
+#### Architecture/deletion closure
+
+Permanent certification now additionally locks the exact 41-SVG inventory and the publishable candidate tree. Existing sensors continue to prove:
+
+- no DTO/view-model/workflow-store family and no second workflow/proposal/material/current-attention classifier;
+- observational GET/read paths do not mutate lifecycle or materialize hidden state;
+- reached history is not inferred from arbitrary ArtifactRefs;
+- task-local browser execution never calls `/api/tick`;
+- production renderers remain classified under the canonical Workbench/Astryx grammar and primitives remain domain/query/policy blind;
+- no feature-owned structural primitive bypass, private Astryx internal, second stylesheet/theme system or obsolete pre-signoff side-index exists;
+- conversation, bounded agent activity and workflow events remain separate instead of restoring an event-feed-as-conversation model;
+- the old primary OpenCode-session block is absent while legitimate bounded Run status text remains allowed;
+- the duplicate STAGE output grammar is absent from the daemon prompt owner;
+- temporary evidence workflows are absent from the publishable tree.
+
+`tests/architecture.test.ts` remains unchanged.
+
+#### P7 permanent gate
+
+Permanent PR Verification run `44033327532`, attempt 2, passed on code/test head `feb09e68e09b59dd0dfeb5ca9514d0725b2c7b7c`:
+
+`dependency-lock → typecheck → architecture → test → build → release packaging → browser` = **PASS**.
+
+Attempt 1 exposed one pre-existing long-Markdown browser polling timeout after all code/unit/build gates had passed; the exact same head was rerun without code/test changes and the complete suite passed. No timeout was increased and no product/test assertion was weakened.
+
+P7 is therefore complete. C7 is PASS. Implementation stops here and the integrated 0.5.0 candidate proceeds to the canonical validation control plane in §15; this PLAN does not itself claim V2-V7 or release acceptance.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
@@ -1444,6 +1553,8 @@ Any other status is FAIL.
 No “close enough” category exists for structural, hierarchy, interaction or semantic deviations.
 
 ### C7 — complete visual/certification checkpoint
+
+**Status:** PASS — adjudicated integrated closure is recorded in §6.10. Implementation stops here and the candidate proceeds to canonical V2-V7 validation.
 
 PASS requires:
 
