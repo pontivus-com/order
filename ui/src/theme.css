@@ -992,6 +992,28 @@
 .order-readiness-findings .order-markdown-document-view {
   min-height: 0;
 }
+.order-readiness-governed-material {
+  min-height: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  border: 1px solid var(--color-border-emphasized);
+  border-radius: var(--radius-container);
+  background: var(--color-background-surface);
+}
+.order-readiness-governed-material :first-child { margin-top: 0; }
+.order-readiness-governed-material :last-child { margin-bottom: 0; }
+.order-readiness-technical {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: var(--order-font-size-technical-xs);
+}
+.order-readiness-technical > div {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  gap: var(--spacing-2);
+}
+.order-readiness-technical dt { color: var(--color-text-secondary); }
+.order-readiness-technical dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .order-readiness-current-interaction {
   padding: var(--spacing-3);
   border: 1px solid var(--color-border-emphasized);
