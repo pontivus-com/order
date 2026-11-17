@@ -2,7 +2,7 @@
 
 **Status:** Binding functional design  
 **Canonical concern ID:** `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`  
-**Versioned concern ID:** `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`  
+**Versioned concern ID:** `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`  
 **Pyramid layer:** P3 functional requirements
 
 ## 1. Purpose
