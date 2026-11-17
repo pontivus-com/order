@@ -1195,9 +1195,10 @@ describe("architecture fitness", () => {
     }>;
 
     const concernByPath = new Map<string, ConcernMetadata>();
-    const seenStable = new Map<string, string>();
+    const currentOwnerByStable = new Map<string, string>();
     const seenVersioned = new Map<string, string>();
-    const seenAllIds = new Map<string, string>();
+    const retainedSemanticVersionPath = (path: string): boolean =>
+      /\.v[0-9]+\.md$/.test(path);
 
     for (const path of activeDocumentationFiles) {
       const source = sourceText(path);
@@ -1219,11 +1220,15 @@ describe("architecture fitness", () => {
         );
       }
 
-      const priorStable = seenStable.get(stable);
-      if (priorStable !== undefined) {
-        violations.push(`${stable}: duplicate canonical concern owner ${priorStable}, ${path}`);
-      } else {
-        seenStable.set(stable, path);
+      if (!retainedSemanticVersionPath(path)) {
+        const priorCurrentOwner = currentOwnerByStable.get(stable);
+        if (priorCurrentOwner !== undefined) {
+          violations.push(
+            `${stable}: duplicate current canonical concern owner ${priorCurrentOwner}, ${path}`,
+          );
+        } else {
+          currentOwnerByStable.set(stable, path);
+        }
       }
 
       const priorVersioned = seenVersioned.get(versioned);
@@ -1231,15 +1236,6 @@ describe("architecture fitness", () => {
         violations.push(`${versioned}: duplicate versioned concern owner ${priorVersioned}, ${path}`);
       } else {
         seenVersioned.set(versioned, path);
-      }
-
-      for (const id of [stable, versioned]) {
-        const priorIdOwner = seenAllIds.get(id);
-        if (priorIdOwner !== undefined) {
-          violations.push(`${id}: identifier is not globally unique; owners ${priorIdOwner}, ${path}`);
-        } else {
-          seenAllIds.set(id, path);
-        }
       }
 
       concernByPath.set(path, { path, stableId: stable, versionedId: versioned });
@@ -1260,14 +1256,25 @@ describe("architecture fitness", () => {
     }
 
     for (const metadata of concernByPath.values()) {
-      if (refs.get(metadata.stableId) !== metadata.path) {
+      if (
+        !retainedSemanticVersionPath(metadata.path) &&
+        refs.get(metadata.stableId) !== metadata.path
+      ) {
         violations.push(
-          `${metadata.stableId}: manifest ref must resolve to canonical owner ${metadata.path}`,
+          `${metadata.stableId}: stable manifest ref must resolve to current canonical owner ${metadata.path}`,
         );
       }
       if (refs.get(metadata.versionedId) !== metadata.path) {
         violations.push(
-          `${metadata.versionedId}: manifest ref must resolve to canonical owner ${metadata.path}`,
+          `${metadata.versionedId}: versioned manifest ref must resolve to exact semantic source ${metadata.path}`,
+        );
+      }
+    }
+
+    for (const [stableId, currentPath] of currentOwnerByStable) {
+      if (refs.get(stableId) !== currentPath) {
+        violations.push(
+          `${stableId}: stable manifest ref must select exactly one current semantic owner`,
         );
       }
     }
