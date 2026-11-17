@@ -44,6 +44,16 @@ const latestStageRun = (runs: readonly Run[], stage: PreSignoffStage): Run | nul
   runs.filter((run) => run.role === "STAGE" && run.stage === stage)
     .sort((left, right) => left.attempt - right.attempt || left.startedAt.localeCompare(right.startedAt) || left.id.localeCompare(right.id)).at(-1) ?? null;
 
+const interactionStatusLabel = (
+  run: Run,
+  interaction: StageRunInteraction | null,
+): string => {
+  if (interaction?.tag === "PROCESSING") return "Processing";
+  if (interaction?.tag === "OPEN") return "Open for continuation";
+  if (interaction?.tag === "REQUIRED_INPUT") return "Waiting for you";
+  return runStatusLabel(run.status);
+};
+
 const openCodeSessionStatus = (run: Run): string => {
   if (runIsActive(run)) return run.providerSessionId === null ? "Starting OpenCode session…" : "OpenCode session is processing this turn…";
   if (run.providerSessionId === null) return "OpenCode session was not admitted";
@@ -158,7 +168,7 @@ export const StageRunMaterial = ({ stage, runs, runEvents, companion, selectedRu
         </span>}
       />
       <div className="order-run-status-strip">
-        <WorkbenchStatus tone={statusTone(selectedRun.status)} label={runStatusLabel(selectedRun.status)} />
+        <WorkbenchStatus tone={statusTone(selectedRun.status)} label={interactionStatusLabel(selectedRun, interaction)} />
       </div>
     </div>
   );
