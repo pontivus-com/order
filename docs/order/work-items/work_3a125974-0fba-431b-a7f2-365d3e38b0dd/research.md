@@ -16,7 +16,7 @@ The reduced local requirements became the carrier consumed by downstream stages,
 
 ## Additional confirmed current-state drift
 
-The six current semantic owners were advanced to V2, but their V1 identifiers remained pinned in current AGENTS.md and multiple live governing documents. Because each V1 identifier resolves to an intentionally retained immutable 0.5.0 source, those pins select superseded governance rather than current rules. The missing permanent documentation topology check allowed this. Classify these live references as stale and repoint them to V2; preserve historical .v1.md sources byte-identically.
+The six current semantic owners were advanced to V2, but their V1 identifiers remained pinned in current AGENTS.md and multiple live governing documents. Because each V1 identifier resolves to an intentionally retained immutable 0.5.0 source, those pins select superseded governance rather than current rules. The missing permanent documentation topology check allowed this. Classify these live references as stale and repoint them to V2; preserve historical .v1.md sources byte-identically. The 0.5.0 visual-reference pack at docs/references/workbench-ui/README.md is historical evidence and intentionally retains its original V1 source-basis pins; it is not a current operating-authority consumer.
 
 ## Downstream effects/invariants
 
