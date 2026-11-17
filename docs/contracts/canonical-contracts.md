@@ -1702,7 +1702,7 @@ The authoring templates are owned in the same module as immutable Markdown strin
 
 A published schema id pins its template and structural validation semantics. A later release must not change what an existing `*-v1` source means or make a previously valid source invalid by changing that schema's required structure. A materially changed template/validation contract requires a new schema id; the existing id remains resolvable for previously authored WorkItems.
 
-The same core owner resolves the complete v1 authoring/stage-template policy; call sites do not maintain kind-specific switches. The minimum template set is:
+The same core owner resolves the complete authoring/stage-template policy across historical and current schema pins; call sites do not maintain kind-specific switches. The minimum template set is:
 
 | Schema | Authoring default | Intake template | R1 template | Later stage templates | Allowed successful R1 completion |
 |---|---|---|---|---|---|
@@ -1727,6 +1727,15 @@ The v1 template structures are intentionally small and reference the existing li
 - `delivery-design-v1`: Context/governing constraints; Goals/non-goals; Canonical owner/affected boundaries; Data/control flow; Decisions/rationale/alternatives; Failure behavior; Preservation/downstream invariants; Validation obligations.
 - `delivery-plan-v1`: Exact task units/dependencies; requirement/design traceability; expected change surface; deletions/additions/modifications; validation sequence; canonical `order-tasks` block.
 - `delivery-r3-v1`: Readiness verdict; evidence; adversarial findings; exact defective layer/return stage when not ready.
+
+The v2 delivery templates add only the authority-hygiene semantics owned by the corrected schema pins:
+
+- `change-r2-v2`: P2 intent and R1 factual basis; functional authority disposition ledger; required observable outcome/delta; acceptance criteria; scope/exclusions; failure/negative behavior; material compatibility/security/performance constraints; open product/authority questions.
+- `defect-r2-v2`: proven defect/root cause; functional authority disposition ledger; expected corrected behavior; behavior that must remain unchanged; acceptance proving the original defect; regression/preservation acceptance; scope/exclusions; open product/authority questions.
+- `change-design-v2` / `defect-design-v2`: kind-specific requirement-to-solution ownership, preservation and validation obligations without changing lifecycle semantics.
+- `change-plan-v2` / `defect-plan-v2`: kind-specific exact implementation/remediation traceability and verification while retaining the canonical `order-tasks` block.
+- `delivery-r3-v2`: readiness verdict; authority topology review; P1-P7 traceability review; lifecycle package completeness; open decision/conflict ledger; evidence; adversarial findings; exact defective layer/return stage when not ready.
+
 
 Artifact prerequisites are **not** copied into a second schema DAG. The schema selects the permitted stage/template set; prerequisite order and stage ownership remain resolved from `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-LIFECYCLE-CONTEXT-V1`. This is the local DRY consequence that must also be reflected when amending `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`.
 
