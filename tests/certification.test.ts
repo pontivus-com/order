@@ -479,6 +479,8 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).toContain("WorkbenchSectionHeader");
     expect(markdownEditor).not.toContain("order-markdown-document-view-header");
     expect(markdownEditor).not.toContain("order-markdown-document-view-actions");
+    expect(markdownEditor).not.toContain("{toolbarAccessory}\n            <WorkbenchDisclosure");
+    expect(markdownEditor).toContain("      />\n\n      <WorkbenchDisclosure");
 
     const theme = read("ui/src/theme.css");
     const sectionMarkers = [
@@ -529,6 +531,9 @@ describe("Order cross-boundary certification", () => {
 
     const documentViewRule = theme.match(/\.order-markdown-document-view\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
+
+    const editorRule = theme.match(/\.order-markdown-editor\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(editorRule).toContain("grid-template-rows: auto auto auto auto minmax(0, 1fr);");
 
     const editorPaneRule = theme.match(/\.order-editor-source-pane,\s*\n\.order-editor-preview-pane\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(editorPaneRule).toContain("min-width: 0;");
