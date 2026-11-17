@@ -434,6 +434,11 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain("color-mix(");
     expect(theme).not.toContain("!important");
     expect(theme).not.toContain("[data-testid=");
+
+    const taskPanel = read("ui/src/primitives/WorkbenchTaskPanel.tsx");
+    expect(taskPanel).toContain('width="42rem"');
+    expect(taskPanel).not.toContain("100vw");
+    expect(taskPanel).not.toContain("calc(");
     expect(theme).not.toContain("--pontivus-plugin-panel-inspector-width-standard: 26.25rem");
     expect(theme.split("/* 2. Order-only structural/readability roles. */")[1]).not.toMatch(/#[0-9A-Fa-f]{3,8}\b/);
 
