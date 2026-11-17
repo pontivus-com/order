@@ -1328,6 +1328,59 @@ const implementationReady = seedExecutionFeedback(
   "TODO",
 );
 
+const historicalSelectionItem = workItem(
+  "Implementation historical selection",
+  "EXECUTION",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, historicalSelectionItem);
+const historicalSelectionArtifacts = storePlanArtifacts(historicalSelectionItem.id);
+const historicalSelectionApproval = ApprovalSchema.parse({
+  id: newApprovalId(),
+  workItemId: historicalSelectionItem.id,
+  baselineCommit,
+  packageHash: sha256Text("implementation-historical-selection-package"),
+  planArtifactRefId: historicalSelectionArtifacts.plan.id,
+  r3ArtifactRefId: historicalSelectionArtifacts.r3.id,
+  sourceSha256: historicalSelectionItem.sourceSha256,
+  approvedBy: "browser-certification",
+  approvedAt: stamp,
+});
+storeApproval(database, historicalSelectionApproval);
+const historicalSelectionCompletedTask = ExecutionTaskSchema.parse({
+  id: newExecutionTaskId(),
+  approvalId: historicalSelectionApproval.id,
+  planTaskId: "T1",
+  objective: "Completed prerequisite",
+  dependsOn: [],
+  scope: ["src/a.ts"],
+  exclusions: [],
+  acceptanceRefs: [],
+  changeSurface: ["src/a.ts"],
+  gateIds: ["test"],
+  authorityRefs: [],
+  concernIds: [],
+  state: "ALREADY_SATISFIED",
+});
+storeExecutionTask(database, historicalSelectionCompletedTask);
+const historicalSelectionCurrentTask = ExecutionTaskSchema.parse({
+  id: newExecutionTaskId(),
+  approvalId: historicalSelectionApproval.id,
+  planTaskId: "T2",
+  objective: "Current implementation task",
+  dependsOn: [historicalSelectionCompletedTask.id],
+  scope: ["src/b.ts"],
+  exclusions: [],
+  acceptanceRefs: [],
+  changeSurface: ["src/b.ts"],
+  gateIds: ["test"],
+  authorityRefs: [],
+  concernIds: [],
+  state: "TODO",
+});
+storeExecutionTask(database, historicalSelectionCurrentTask);
+
 const alreadySatisfied = seedExecutionFeedback(
   "Already satisfied implementation",
   {
