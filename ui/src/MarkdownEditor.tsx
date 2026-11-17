@@ -289,15 +289,6 @@ export const MarkdownEditor = ({
         end={
           <WorkbenchToolbarGroup>
             {toolbarAccessory}
-            <WorkbenchDisclosure
-              label="Technical details"
-              content={
-                <div className="order-editor-technical-content">
-                  <div><span>SHA-256</span><code>{loadedSha256}</code></div>
-                  {technicalDetails}
-                </div>
-              }
-            />
             {!readOnly ? (
               <>
                 <WorkbenchStatus
@@ -319,6 +310,16 @@ export const MarkdownEditor = ({
               </>
             ) : null}
           </WorkbenchToolbarGroup>
+        }
+      />
+
+      <WorkbenchDisclosure
+        label="Technical details"
+        content={
+          <div className="order-editor-technical-content">
+            <div><span>SHA-256</span><code>{loadedSha256}</code></div>
+            {technicalDetails}
+          </div>
         }
       />
 
