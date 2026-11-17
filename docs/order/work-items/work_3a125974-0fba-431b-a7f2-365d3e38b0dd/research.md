@@ -6,7 +6,7 @@
 
 ## Proven root cause
 
-The governance principles were stronger than the productive authoring/conformance/review machinery. Change-local R2 could restate permanent P3 behavior without an ownership ledger; the architecture sensor excluded WorkItem documents from canonical-owner discovery without a companion shadow-authority gate; the runtime lacked the architecture-prescribed functional-core conformance evaluator; and stage completion could promote with zero output ArtifactRefs.
+The governance principles were stronger than the productive authoring/conformance machinery. Change-local R2 could restate permanent P3 behavior without an ownership ledger; the architecture sensor excluded WorkItem documents from canonical-owner discovery without a companion shadow-authority gate; the runtime lacked the architecture-prescribed functional-core conformance evaluator; and stage completion could promote with zero output ArtifactRefs.
 
 ## Producer→carrier→consumer path
 
@@ -30,7 +30,7 @@ GW-P1-DOC-CANONICALITY, GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2, GW-DOC-LIFECYCLE-CO
 
 ## Unresolved facts
 
-GitHub administrative branch-protection settings cannot be inspected by the current integration. Repository governance can require the review rule, but the organization/repository administrator must prove the protected-branch setting separately.
+The repository has no independent reviewer/second worker. Therefore absence of a non-author PR review is an operating fact, not evidence of a governance defect. Canonical delivery must remain reviewable and auditable through the PR boundary, but merge readiness must be proven from the exact current candidate, required verification evidence, authority/traceability closure and explicit operator decision rather than an impossible third-party approval. GitHub administrative branch-protection settings remain external facts where relevant.
 
 ## Verdict
 

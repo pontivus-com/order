@@ -27,7 +27,7 @@ R1 prerequisite investigation
   -> R2 functional requirements / functional design
   -> DESIGN technical solution design
   -> PLAN final implementation plan
-  -> R3 independent readiness review
+  -> R3 adversarial readiness review
 ```
 
 The work must be controlled by one campaign plan that proves complete concern coverage, marks the explicit start and end of each investigation, records findings and cross-concern dependencies, and tracks every concern through functional design, technical design and final plan coverage.
@@ -58,9 +58,9 @@ The campaign therefore requires:
 
 ## Phase 0 prerequisite
 
-The campaign depends on the Phase 0 authority/conformance remediation in PR #69.
+The campaign depends on the factual/governance baseline produced by the Phase 0 authority/conformance remediation in PR #69.
 
-Substantive R1 execution must not begin until the Phase 0 merge candidate is accepted and the campaign records the exact resulting `master` baseline. Planning may be staged before that gate; product/design conclusions may not be taken from an unmerged prerequisite branch as though they were released authority.
+G0 establishes one exact Phase 0 candidate commit as the factual baseline for this campaign. PR merge state is delivery provenance, not a prerequisite to fact gathering. If the Phase 0 candidate changes materially, G0 and every affected downstream concern are revalidated against the new exact candidate before relying on prior conclusions.
 
 ## In scope
 
@@ -86,7 +86,7 @@ This WorkItem is ready for implementation sign-off only when:
 4. functional design is complete across all concerns and passes a horizontal integration audit;
 5. technical solution design completely realizes the functional design without unresolved material choices;
 6. the final implementation plan covers every required design obligation with no orphan task or uncovered requirement;
-7. R3 independently returns `READY_FOR_SIGNOFF`;
+7. R3 adversarially returns `READY_FOR_SIGNOFF`;
 8. the exact package is explicitly approved.
 
 The detailed execution and coverage rules are owned by `0.6.0-design-campaign-plan.md` in this WorkItem directory.

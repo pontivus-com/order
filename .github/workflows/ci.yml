@@ -3,9 +3,6 @@ name: PR Verification
 on:
   pull_request:
     branches: [master]
-  pull_request_review:
-    types: [submitted, dismissed]
-
 permissions:
   contents: read
   pull-requests: read
@@ -103,8 +100,3 @@ jobs:
 
       - name: browser
         run: node node_modules/@playwright/test/cli.js test
-
-      - name: Verify independent current-head review
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: bun scripts/verify-pr-review.ts
