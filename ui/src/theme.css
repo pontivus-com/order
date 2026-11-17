@@ -175,9 +175,8 @@
 .order-workitem-kind {
   display: inline-flex;
   align-items: center;
-  min-height: 1.75rem;
-  padding-inline: var(--spacing-3);
-  border-radius: 999px;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
   background: var(--color-accent-muted);
   color: var(--color-text-accent);
   font-size: var(--font-size-sm);
@@ -204,10 +203,10 @@
 .order-workbench-rail li::after {
   content: "";
   position: absolute;
-  top: 0.625rem;
-  inset-inline-start: calc(50% + 0.75rem);
-  width: calc(100% - 1.5rem);
-  height: 2px;
+  top: var(--spacing-3);
+  inset-inline-start: calc(50% + var(--spacing-3));
+  width: calc(100% - var(--spacing-6));
+  height: 1px;
   background: var(--color-border-emphasized);
 }
 .order-workbench-rail li:last-child::after { display: none; }
@@ -217,7 +216,6 @@
 }
 .order-workbench-rail button {
   width: 100%;
-  min-height: 3.25rem;
   border: 0;
   background: transparent;
   color: var(--color-text-primary);
@@ -225,7 +223,7 @@
   font: inherit;
   padding: 0 var(--spacing-1);
   display: grid;
-  grid-template-rows: 1.25rem auto auto;
+  grid-template-rows: var(--spacing-6) auto auto;
   justify-items: center;
   align-content: start;
   gap: var(--spacing-1);
@@ -233,26 +231,24 @@
 .order-workbench-rail-marker {
   position: relative;
   z-index: 1;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--spacing-6);
+  height: var(--spacing-6);
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  border: 2px solid var(--color-border-emphasized);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-emphasized);
   background: var(--color-background-surface);
   color: var(--color-background-surface);
-  font-size: 0.75rem;
+  font-size: var(--font-size-sm);
   font-weight: 800;
   line-height: 1;
 }
 .order-workbench-rail-label {
-  max-width: 8.5rem;
   text-align: center;
   font-size: var(--font-size-sm);
   line-height: 1.1;
 }
 .order-workbench-rail small {
-  max-width: 8.5rem;
   color: var(--color-text-secondary);
   font-size: var(--order-font-size-technical-xs);
   text-align: center;
@@ -366,9 +362,8 @@
 }
 
 .order-workbench-dialogue {
-  min-height: 32rem;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(18rem, 0.9fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 0.9fr);
   grid-template-rows: minmax(0, 1fr) auto;
   border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);
@@ -414,10 +409,6 @@
 .order-dialogue-research-material {
   display: grid;
   gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-surface);
 }
 .order-dialogue-research-material h3,
 .order-dialogue-research-material p {
@@ -546,6 +537,35 @@
 .order-state-action { margin-top: var(--spacing-2); }
 .order-state-compact { padding: var(--spacing-2); }
 
+.order-settings-layout-constrained {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.order-settings-layout-constrained-navigation {
+  min-width: 0;
+  overflow-x: auto;
+  padding: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border-emphasized);
+  background: var(--color-background-muted);
+}
+.order-settings-layout-constrained-navigation .order-settings-navigation-shell {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+}
+.order-settings-layout-constrained-navigation .order-settings-navigation {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  justify-content: end;
+  overflow-x: auto;
+}
+.order-settings-layout-constrained-content {
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-3);
+}
+
 /* 4. Specialist content and feature-semantic layout. */
 .order-queue-page,
 .order-settings-workspace {
@@ -603,34 +623,6 @@
 .order-settings-navigation {
   display: grid;
   gap: var(--spacing-2);
-}
-.order-settings-layout-constrained {
-  height: 100%;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-}
-.order-settings-layout-constrained-navigation {
-  min-width: 0;
-  overflow-x: auto;
-  padding: var(--spacing-3);
-  border-bottom: 1px solid var(--color-border-emphasized);
-  background: var(--color-background-muted);
-}
-.order-settings-layout-constrained-navigation .order-settings-navigation-shell {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-}
-.order-settings-layout-constrained-navigation .order-settings-navigation {
-  grid-auto-flow: column;
-  grid-auto-columns: max-content;
-  justify-content: end;
-  overflow-x: auto;
-}
-.order-settings-layout-constrained-content {
-  min-height: 0;
-  overflow: auto;
-  padding: var(--spacing-3);
 }
 .order-settings-add-repository { padding-top: var(--spacing-2); }
 .order-visually-hidden {
@@ -796,7 +788,6 @@
 }
 
 .order-markdown-document-view {
-  min-height: 32rem;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid var(--color-border-emphasized);
@@ -833,15 +824,12 @@
 }
 .order-markdown-document-view-with-aside {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: var(--spacing-6);
   align-items: start;
 }
 .order-markdown-document-view-aside {
-  padding: var(--spacing-4);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-muted);
+  padding-block: var(--spacing-2);
 }
 .order-work-request-meta {
   display: grid;
@@ -850,7 +838,7 @@
 }
 .order-work-request-meta > div {
   display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-2);
 }
 .order-work-request-meta dt { font-weight: 700; }
@@ -863,7 +851,7 @@
 }
 .order-lifecycle-authority-summary > div {
   display: grid;
-  grid-template-columns: 5rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-3);
   align-items: start;
 }
@@ -882,7 +870,6 @@
 }
 
 .order-markdown-editor {
-  min-height: 36rem;
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
   border: 1px solid var(--color-border-emphasized);
@@ -922,7 +909,6 @@
 .order-editor-source-pane,
 .order-editor-preview-pane {
   min-width: 0;
-  min-height: 28rem;
   overflow: hidden;
   border: 1px solid var(--color-border-emphasized);
   border-radius: var(--radius-container);
@@ -964,7 +950,7 @@
 }
 .order-proposal-summary > div {
   display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-3);
 }
 .order-proposal-summary dt { font-weight: 700; }
@@ -976,13 +962,9 @@
 }
 .order-readiness-verdict {
   display: grid;
-  grid-template-columns: 10rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-4);
   align-items: center;
-  padding: var(--spacing-4);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-muted);
 }
 .order-readiness-current-interaction,
 .order-readiness-findings {
@@ -994,10 +976,6 @@
 }
 .order-readiness-governed-material {
   min-height: 0;
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-surface);
 }
 .order-readiness-governed-material :first-child { margin-top: 0; }
 .order-readiness-governed-material :last-child { margin-bottom: 0; }
@@ -1009,82 +987,49 @@
 }
 .order-readiness-technical > div {
   display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-2);
 }
 .order-readiness-technical dt { color: var(--color-text-secondary); }
 .order-readiness-technical dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .order-readiness-current-interaction {
-  padding: var(--spacing-3);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
+  padding-block: var(--spacing-2);
 }
 .order-readiness-findings h3,
 .order-readiness-support-grid h3,
 .order-readiness-support-grid p { margin: 0; }
 .order-readiness-support-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   gap: var(--spacing-4);
 }
 .order-readiness-support-grid > section {
   display: grid;
   align-content: start;
   gap: var(--spacing-2);
-  padding: var(--spacing-4);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-surface);
 }
 .order-secondary-copy { color: var(--color-text-secondary); }
 
-.order-evidence-viewer {
-  min-height: 32rem;
+.order-evidence-content {
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: start;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-surface);
 }
 .order-evidence-identity {
   display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-3);
   margin: 0;
 }
 .order-evidence-identity dt { font-weight: 700; }
-.order-evidence-identity dd { margin: 0; color: var(--color-text-secondary); overflow-wrap: anywhere; }
-.order-evidence-code-label {
-  display: grid;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-}
-.order-evidence-code-label span { color: var(--color-on-accent); }
-
-.order-code-view {
-  min-height: 0;
-  overflow: auto;
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-}
-.order-evidence-code-bytes {
-  min-height: 22rem;
+.order-evidence-identity dd {
+  min-width: 0;
   margin: 0;
-  padding: var(--spacing-4);
-  overflow: auto;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-family: var(--font-family-code);
-  white-space: pre-wrap;
+  color: var(--color-text-secondary);
   overflow-wrap: anywhere;
 }
+
 .order-result-material-root > section {
   display: grid;
   gap: var(--spacing-3);
