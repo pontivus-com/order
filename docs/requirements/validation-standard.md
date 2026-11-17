@@ -8,7 +8,7 @@
 
 Validation is not one final test command and does not begin only after implementation.
 
-Pre-execution lifecycle artifacts are continuously validated under [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md). This document defines the execution/candidate validation branches after sign-off.
+Pre-execution lifecycle artifacts are continuously validated under [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md). This document defines the execution/candidate validation branches after sign-off.
 
 Order validates the work package and the resulting change at multiple independent boundaries so that a coding agent cannot compensate for a weak specification, a scope breach, or an architecture violation by merely making tests green.
 
@@ -65,7 +65,7 @@ Prove:
 - task dependencies are complete;
 - no blocking question has reopened;
 - exact execution task is still the signed-off task;
-- for source-backed work, the current WorkItem source snapshot still matches the source identity bound into the approved package by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`.
+- for source-backed work, the current WorkItem source snapshot still matches the source identity bound into the approved package by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 Failure is not repairable by the implementation worker.
 
@@ -208,13 +208,13 @@ Order classifies failures before deciding what may happen next.
 | `GOVERNANCE_BREACH` | Candidate violates binding architecture/project rule | No blind repair; return to design unless correction is unambiguous within scope |
 | `CHANGE_BLOAT` | Candidate contains unnecessary structure/change | One targeted reduction may be allowed if no design decision is required |
 | `ENVIRONMENT_BLOCKED` | Required execution environment is unavailable/broken | No semantic retry charge |
-| `PROVIDER_FAILURE` | OpenCode/provider session failed operationally | One automatic replacement at most for the exact operational action key; then block, per [GW-DOC-CANONICAL-CONTRACTS-V2 §21](../contracts/canonical-contracts.md) |
+| `PROVIDER_FAILURE` | OpenCode/provider session failed operationally | One automatic replacement at most for the exact operational action key; then block, per [GW-DOC-CANONICAL-CONTRACTS §21](../contracts/canonical-contracts.md) |
 | `ALREADY_SATISFIED` | Required outcome already exists | No implementation needed |
 
 The model does not choose the failure class where deterministic evidence can decide it.
 
 ## 12. Evidence law
 
-`CANDIDATE_DONE` requires one current coordinator-owned `VALIDATION_PASSED` result for every V0-V7 stage and one `CANDIDATE_RECORDED` event linking those results to the exact final candidate state as defined by [GW-DOC-CANONICAL-CONTRACTS-V2 §§10,17](../contracts/canonical-contracts.md).
+`CANDIDATE_DONE` requires one current coordinator-owned `VALIDATION_PASSED` result for every V0-V7 stage and one `CANDIDATE_RECORDED` event linking those results to the exact final candidate state as defined by [GW-DOC-CANONICAL-CONTRACTS §§10,17](../contracts/canonical-contracts.md).
 
 A model statement such as "all requirements are met" is never sufficient evidence by itself.
