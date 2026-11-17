@@ -592,6 +592,10 @@ export const App = () => {
               onTitleChange={setTitle}
               onConcernIdsChange={setConcernIds}
               onSubmit={() => create.mutate()}
+              onCancel={() => {
+                setCreateOpen(false);
+                resetCreate();
+              }}
             />
           </Suspense>
         }

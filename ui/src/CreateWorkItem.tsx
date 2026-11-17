@@ -13,7 +13,7 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 export const CreateWorkItem = ({
   projects, schemas, projectId, schemaId, title, concernIds, availableConcernIds,
   derivedFromWorkItem, pending, error, onProjectChange, onSchemaChange,
-  onTitleChange, onConcernIdsChange, onSubmit,
+  onTitleChange, onConcernIdsChange, onSubmit, onCancel,
 }: Readonly<{
   projects: readonly ProjectManifest[]; schemas: readonly WorkItemSchemaCatalogEntry[];
   projectId: string; schemaId: WorkItemSchemaId | ""; title: string; concernIds: readonly string[];
@@ -21,6 +21,7 @@ export const CreateWorkItem = ({
   pending: boolean; error: string | null; onProjectChange: (value: string) => void;
   onSchemaChange: (value: WorkItemSchemaId) => void; onTitleChange: (value: string) => void;
   onConcernIdsChange: (value: readonly string[]) => void; onSubmit: () => void;
+  onCancel: () => void;
 }>) => {
   const eligibleSchemas = schemas.filter((schema) => derivedFromWorkItem === null || schema.kind === "CHANGE" || schema.kind === "DEFECT");
   const selectedProject = projects.find((project) => project.projectId === projectId) ?? null;
@@ -71,7 +72,10 @@ export const CreateWorkItem = ({
           </div>
         )}
       </>}
-      actions={<WorkbenchAction type="submit" label={derivedFromWorkItem === null ? "Create work item" : "Create linked remediation"} tone="primary" loading={pending} disabled={projectId.length === 0 || schemaId === "" || title.trim().length === 0} />}
+      actions={<>
+        <WorkbenchAction label="Cancel" disabled={pending} onClick={onCancel} />
+        <WorkbenchAction type="submit" label={derivedFromWorkItem === null ? "Create work item" : "Create linked remediation"} tone="primary" loading={pending} disabled={projectId.length === 0 || schemaId === "" || title.trim().length === 0} />
+      </>}
       feedback={error ? <WorkbenchNotice tone="danger" title="Work item could not be created" description={error} /> : undefined}
     />
   );

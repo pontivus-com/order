@@ -1018,6 +1018,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
+  await expect(createDialog.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
   await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await createDialog.getByRole("radio", { name: "CHANGE" }).click();
@@ -2607,6 +2608,7 @@ test("terminal investigation and audit results remain closed and linked remediat
   await expect(dialog.getByRole("radio", { name: "DEFECT" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "INVESTIGATION" })).toHaveCount(0);
   await expect(dialog.getByRole("radio", { name: "AUDIT" })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
 
   await dialog.getByRole("radio", { name: "DEFECT" }).click();
   await dialog.getByLabel("Title").fill("Remediate investigation finding");
