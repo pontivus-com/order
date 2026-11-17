@@ -293,12 +293,22 @@ test("Settings uses stable native-history destinations and daemon-owned readines
     .getByRole("row")
     .filter({ hasText: repositoryRoot });
   await expect(repositoryRow).toBeVisible();
-  await repositoryRow.getByRole("button", { name: /^Disconnect / }).click();
+  const moveDocuments = repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / });
+  await moveDocuments.click();
+  const movePanel = repositories.getByTestId("move-workitem-documents");
+  await expect(movePanel).toContainText("Current repository-relative root: docs/order/work-items");
+  await expect(movePanel.getByLabel("New repository-relative WorkItem document root")).toBeVisible();
+  await movePanel.getByRole("button", { name: "Cancel move" }).click();
+  await expect(movePanel).toHaveCount(0);
+
+  const disconnectRepository = repositoryRow.getByRole("button", { name: /^Disconnect / });
+  await disconnectRepository.click();
   const disconnectDialog = page.getByRole("alertdialog", { name: "Disconnect repository?" });
   await expect(disconnectDialog).toContainText("Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted.");
   await expect(disconnectDialog).not.toContainText(repositoryRoot);
   await disconnectDialog.getByRole("button", { name: "Cancel" }).click();
   await expect(repositoryRow).toBeVisible();
+  await expect(disconnectRepository).toBeFocused();
 
   await settings.getByRole("link", { name: "Model & runtime", exact: true }).click();
   await expect(page).toHaveURL(baseURL + "/settings/model");
@@ -552,6 +562,108 @@ test("global OpenCode account utility switches, renames, signs in, blocks during
   await expect(page.getByTestId("settings-workspace")).toBeVisible();
 });
 
+
+test("P6 installation readiness exposes every blocker owner and OpenCode login terminal states stay bounded", async ({
+  page,
+  request,
+}) => {
+  await page.route("**/api/settings/readiness", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ready: false,
+        blockers: [
+          "REPOSITORY_REQUIRED",
+          "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION",
+          "MODEL_INVALID",
+          "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION",
+          "OPENCODE_ACCOUNT_REQUIRED",
+        ],
+      }),
+    });
+  });
+  await authenticate(page, request);
+
+  const readiness = page.getByText("Setup requires attention", { exact: true }).first();
+  await expect(readiness).toBeVisible();
+  for (const label of [
+    "Target repository required",
+    "Repository configuration needs attention",
+    "Reference-root configuration needs attention",
+  ]) {
+    await expect(page.getByRole("link", { name: label, exact: true })).toHaveAttribute("href", "/settings/repositories");
+  }
+  await expect(page.getByRole("link", { name: "Model unavailable / invalid", exact: true }))
+    .toHaveAttribute("href", "/settings/model");
+  await expect(page.getByRole("link", { name: "OpenCode account required", exact: true }))
+    .toHaveAttribute("href", "/settings/opencode");
+  await page.unroute("**/api/settings/readiness");
+
+  let terminalStatus: "FAILED" | "EXPIRED" | "CANCELLED" = "FAILED";
+  let attempt = 0;
+  await page.route("**/api/opencode/accounts**", async (route) => {
+    const req = route.request();
+    const url = new URL(req.url());
+    if (url.pathname === "/api/opencode/accounts" && req.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ accounts: [], activeAccountId: null, mutationBlockers: [] }),
+      });
+      return;
+    }
+    if (url.pathname === "/api/opencode/accounts/login" && req.method() === "POST") {
+      attempt += 1;
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "00000000-0000-4000-8000-" + String(attempt).padStart(12, "0"),
+          authorizationUrl: "https://opencode.ai/console/device",
+          instructions: "Open the verification page and continue.",
+          expiresAt: "2026-11-18T04:00:00.000Z",
+          status: "PENDING",
+          message: null,
+        }),
+      });
+      return;
+    }
+    if (/\/api\/opencode\/accounts\/login\/.+/.test(url.pathname) && req.method() === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: url.pathname.split("/").at(-1),
+          authorizationUrl: "https://opencode.ai/console/device",
+          instructions: "Open the verification page and continue.",
+          expiresAt: "2026-11-18T04:00:00.000Z",
+          status: terminalStatus,
+          message: terminalStatus === "FAILED" ? "Provider rejected sign-in." : null,
+        }),
+      });
+      return;
+    }
+    await route.fallback();
+  });
+
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  await page.getByRole("link", { name: "OpenCode", exact: true }).click();
+  const panel = page.getByTestId("settings-opencode");
+  for (const [status, text] of [
+    ["FAILED", "Provider rejected sign-in."],
+    ["EXPIRED", "OpenCode sign-in expired."],
+    ["CANCELLED", "OpenCode sign-in cancelled."],
+  ] as const) {
+    terminalStatus = status;
+    await panel.getByRole("button", { name: "Add account" }).click();
+    await panel.getByLabel("Account label").fill(status.toLowerCase() + "@example.com");
+    await panel.getByRole("button", { name: "Continue to OpenCode sign-in" }).click();
+    await expect(panel.getByTestId("opencode-login-attempt")).toContainText(text, { timeout: 5_000 });
+    await panel.getByRole("button", { name: "Done" }).click();
+  }
+  await page.unroute("**/api/opencode/accounts**");
+});
 
 test("CodeMirror editor preserves exact source, formats Markdown, previews one buffer, and follows the Order theme", async ({
   page,
@@ -2446,6 +2558,9 @@ test("terminal investigation and audit results remain closed and linked remediat
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const dialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText("Parent INVESTIGATION");
+  await expect(dialog).toContainText("Completed investigation");
+  await expect(dialog).toContainText(parent.id);
   await expect(dialog.getByRole("radio", { name: "CHANGE" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "DEFECT" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "INVESTIGATION" })).toHaveCount(0);
