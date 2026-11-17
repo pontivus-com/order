@@ -186,7 +186,9 @@ export const WorkItemWorkspace = ({
     queryKey: workbenchQueryKeys.lifecycleArtifacts(workItem.id),
     queryFn: () => api.listLifecycleArtifacts(workItem.id),
   });
-  const implementationArtifactsRequired =
+  const historicalArtifactsRequired =
+    selectedStep === "AWAITING_SIGNOFF" ||
+    workItem.stage === "AWAITING_SIGNOFF" ||
     selectedStep === "EXECUTION" ||
     selectedStep === "COMPLETE" ||
     workItem.stage === "EXECUTION" ||
@@ -194,7 +196,7 @@ export const WorkItemWorkspace = ({
   const allArtifactsQuery = useQuery({
     queryKey: workbenchQueryKeys.artifacts(workItem.id),
     queryFn: () => api.listArtifacts(workItem.id),
-    enabled: implementationArtifactsRequired,
+    enabled: historicalArtifactsRequired,
   });
   const tasksRequired =
     selectedStep === "AWAITING_SIGNOFF" ||
@@ -1438,9 +1440,17 @@ export const WorkItemWorkspace = ({
             packageFetching={signoffPackageQuery.isFetching}
             packageError={signoffPackageQuery.error}
             packageStale={packageStaleOwner !== null}
-            artifacts={artifacts}
-            artifactsPending={artifactsQuery.isPending}
-            artifactsError={artifactsQuery.error}
+            artifacts={packageStaleOwner !== null ? allArtifacts : artifacts}
+            artifactsPending={
+              packageStaleOwner !== null
+                ? allArtifactsQuery.isPending
+                : artifactsQuery.isPending
+            }
+            artifactsError={
+              packageStaleOwner !== null
+                ? allArtifactsQuery.error
+                : artifactsQuery.error
+            }
             tasks={tasks}
             tasksPending={tasksQuery.isPending}
             tasksError={tasksQuery.error}
