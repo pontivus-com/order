@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import {
@@ -10,7 +10,6 @@ import {
 import * as api from "./http.ts";
 import { ActivityComposer } from "./ActivityComposer.tsx";
 import { RunEventTimeline } from "./RunEventTimeline.tsx";
-import { workbenchQueryKeys } from "./query-keys.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import {
   WorkbenchDialogue,
@@ -53,8 +52,8 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
-  stage: PreSignoffStage; runs: readonly Run[]; selectedRunId: Run["id"] | null;
+export const StageRunMaterial = ({ stage, runs, runEvents, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
+  stage: PreSignoffStage; runs: readonly Run[]; runEvents: readonly RunEvent[]; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
@@ -68,14 +67,9 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
   const [inputError, setInputError] = useState<unknown>(null);
   const stageRuns = runs.filter((run) => run.role === "STAGE" && run.stage === stage);
   const selectedRun = stageRuns.find((run) => run.id === selectedRunId) ?? latestStageRun(stageRuns, stage);
-  const eventKey = workbenchQueryKeys.runEvents(selectedRun?.id ?? null);
-  const eventsQuery = useQuery({
-    queryKey: eventKey,
-    queryFn: () => selectedRun === null ? Promise.resolve([]) : api.listRunEvents(selectedRun.id, 0),
-    enabled: selectedRun !== null,
-    refetchInterval: selectedRun && runIsActive(selectedRun) ? 1000 : false,
-  });
-  const events = eventsQuery.data ?? [];
+  const events = selectedRun === null
+    ? []
+    : runEvents.filter((event) => event.runId === selectedRun.id);
   const conversationEvents = conversationRunEvents(events);
   const activityEvents = agentActivityRunEvents(events);
   const workflowEvents = workflowRunEvents(events);
@@ -169,13 +163,9 @@ export const StageRunMaterial = ({ stage, runs, selectedRunId, currentRunId, cur
     </div>
   );
 
-  const transcript = eventsQuery.isPending
-    ? <WorkbenchState kind="loading" title="Loading conversation…" />
-    : eventsQuery.isError
-      ? <WorkbenchState kind="error" title="Conversation unavailable" description={eventsQuery.error instanceof Error ? eventsQuery.error.message : String(eventsQuery.error)} />
-      : conversationEvents.length === 0
-        ? <WorkbenchState kind="empty" title={runStatusLabel(selectedRun.status)} description={runIsActive(selectedRun) ? "This workflow attempt is processing. Conversation will appear when the agent has something substantive to say." : "No human/agent conversation was recorded for this attempt."} />
-        : (
+  const transcript = conversationEvents.length === 0
+    ? <WorkbenchState kind="empty" title={runStatusLabel(selectedRun.status)} description={runIsActive(selectedRun) ? "This workflow attempt is processing. Conversation will appear when the agent has something substantive to say." : "No human/agent conversation was recorded for this attempt."} />
+    : (
           <WorkbenchDialogueMessages>
             {conversationEvents.map((event) => {
               const payload = event.event;
