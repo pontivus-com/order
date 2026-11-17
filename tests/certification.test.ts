@@ -477,6 +477,28 @@ describe("Order cross-boundary certification", () => {
       expect(evidence).not.toContain(forbidden);
     }
 
+    const approval = read("ui/src/SignoffReview.tsx");
+    expect(approval).toContain("WorkbenchReview");
+    expect(approval).toContain('label="Task technical details"');
+    expect(approval).not.toContain('<MetadataListItem label="Task id">');
+    expect(approval).not.toContain('<MetadataListItem label="Approval">');
+
+    const execution = read("ui/src/ExecutionWorkspace.tsx");
+    expect(execution).toContain("WorkbenchMasterDetail");
+    expect(execution).toContain('masterLabel="Approved tasks"');
+    expect(execution).toContain('label="Approved tasks"');
+    expect(execution).toContain('description:"Approved task"');
+    expect(execution).not.toContain('description:"Approved task · "');
+    expect(execution).toContain(
+      'selectedRun===null?<WorkbenchState kind="empty" title="No persisted attempt events"/>',
+    );
+    expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
+    expect(execution).toContain('label="Technical details"');
+
+    const masterDetail = read("ui/src/primitives/WorkbenchMasterDetail.tsx");
+    expect(masterDetail).toContain('width="var(--order-master-width)"');
+    expect(masterDetail).not.toContain("masterWidth");
+
     const markdownEditor = read("ui/src/MarkdownEditor.tsx");
     expect(markdownEditor).toContain("WorkbenchSectionHeader");
     expect(markdownEditor).not.toContain("order-markdown-document-view-header");
