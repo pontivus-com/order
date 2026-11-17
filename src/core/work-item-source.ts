@@ -494,7 +494,16 @@ const requiredTemplateSections = (template: string): readonly string[] =>
     .filter((line) => line.startsWith("## "))
     .map((line) => line.slice(3));
 
-const validateAuthorityDispositionLedger = (markdown: string): void => {
+type AuthorityDisposition = "REFERENCE" | "DELTA" | "LOCAL";
+type AuthorityDispositionRow = readonly [
+  requirement: string,
+  disposition: AuthorityDisposition,
+  canonicalOwner: string,
+];
+
+const authorityDispositionRows = (
+  markdown: string,
+): readonly AuthorityDispositionRow[] => {
   const lines = markdown.split("\n");
   const headingIndex = lines.indexOf("## Functional authority disposition ledger");
   if (headingIndex < 0) {
@@ -544,6 +553,33 @@ const validateAuthorityDispositionLedger = (markdown: string): void => {
       );
     }
   }
+  return rows.map((cells) => [
+    cells[0]!,
+    cells[1]! as AuthorityDisposition,
+    cells[2] ?? "",
+  ] as const);
+};
+
+const validateAuthorityDispositionLedger = (markdown: string): void => {
+  authorityDispositionRows(markdown);
+};
+
+export const authorityDispositionOwnerRefs = (
+  schemaId: WorkItemSchemaId,
+  stage: PreSignoffStage,
+  markdown: string,
+): readonly string[] => {
+  if (
+    stage !== "R2" ||
+    (schemaId !== "change-v2" && schemaId !== "defect-v2")
+  ) {
+    return [];
+  }
+  return authorityDispositionRows(markdown)
+    .filter(([, disposition]) =>
+      disposition === "REFERENCE" || disposition === "DELTA"
+    )
+    .map(([, , owner]) => owner);
 };
 
 export const validateStageDocumentStructure = (
