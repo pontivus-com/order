@@ -1788,6 +1788,20 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
 });
 
+test("PROCESSING dialogue state is visibly distinct and has no reply composer", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  const item = await workItemForTitle(page, "Research processing attention visual");
+  await fixtureMutation(request, "/start-stage", { workItemId: item.id });
+  await openWorkItem(page, "Research processing attention visual");
+
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Processing");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
+  await expect(page.getByTestId("activity-composer")).toHaveCount(0);
+});
+
 test("work-type variants preserve their canonical Work request information contracts in one shared shell", async ({
   page,
   request,
