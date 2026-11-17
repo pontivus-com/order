@@ -298,10 +298,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
   const master=tasks.length>0?<WorkbenchTable
     label="Approved tasks"
     selection="single"
-    columns={[
-      {key:"task",label:"Approved task"},
-      {key:"state",label:"State"},
-    ]}
+    columns={[{key:"task",label:"Approved task"}]}
     rows={tasks.map((task)=>({
       id:task.id,
       selected:task.id===selectedTask?.id,
@@ -311,8 +308,7 @@ export const ExecutionWorkspace = ({ workItem, material, tasks, runs, artifacts,
         runId:runs.findLast((run)=>run.executionTaskId===task.id)?.id??null,
       }),
       cells:{
-        task:<strong>{task.objective}</strong>,
-        state:<WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)}/>,
+        task:<div className="order-execution-master-task"><strong>{task.objective}</strong><WorkbenchStatus tone={taskTone(task)} label={taskStateLabel(task)}/></div>,
       },
     }))}
   />:<WorkbenchState kind="empty" title="No approved tasks"/>;

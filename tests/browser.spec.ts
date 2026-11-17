@@ -296,7 +296,8 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const moveDocuments = repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / });
   await moveDocuments.click();
   const movePanel = repositories.getByTestId("move-workitem-documents");
-  await expect(movePanel).toContainText("Current repository-relative root: docs/order/work-items");
+  await expect(movePanel).toContainText("Current repository-relative root");
+  await expect(movePanel).toContainText("docs/order/work-items");
   await expect(movePanel.getByLabel("New repository-relative WorkItem document root")).toBeVisible();
   await movePanel.getByRole("button", { name: "Cancel move" }).click();
   await expect(movePanel).toHaveCount(0);
@@ -592,11 +593,12 @@ test("P6 installation readiness exposes every blocker owner and OpenCode login t
     "Repository configuration needs attention",
     "Reference-root configuration needs attention",
   ]) {
-    await expect(page.getByRole("link", { name: label, exact: true })).toHaveAttribute("href", "/settings/repositories");
+    await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
-  await expect(page.getByRole("link", { name: "Model unavailable / invalid", exact: true }))
+  await expect(page.getByRole("link", { name: "Open Repositories", exact: true })).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "Open Model & runtime", exact: true }))
     .toHaveAttribute("href", "/settings/model");
-  await expect(page.getByRole("link", { name: "OpenCode account required", exact: true }))
+  await expect(page.getByRole("link", { name: "Open OpenCode accounts", exact: true }))
     .toHaveAttribute("href", "/settings/opencode");
   await page.unroute("**/api/settings/readiness");
 
@@ -1243,11 +1245,11 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   await page.setViewportSize({ width: 1280, height: 800 });
   await openWorkItem(page, "Verified candidate");
   await selectWorkflowStep(page, "Implementation");
-  const taskIndex = page.getByTestId("workflow-step-index");
+  const taskMaster = page.getByTestId("workbench-master-detail-master");
   const taskDetail = page.getByTestId("execution-task-detail");
-  await expect(taskIndex).toBeVisible();
+  await expect(taskMaster).toBeVisible();
   await expect(taskDetail).toBeVisible();
-  const masterBox = await taskIndex.boundingBox();
+  const masterBox = await taskMaster.boundingBox();
   const detailBox = await taskDetail.boundingBox();
   expect(masterBox).not.toBeNull();
   expect(detailBox).not.toBeNull();
@@ -1630,7 +1632,11 @@ test("P5 keeps current execution ownership independent from historical selection
   expect(historicalTask).toBeDefined();
   expect(currentTask).toBeDefined();
 
-  await selectWorkflowMaterial(page, "Completed prerequisite");
+  const historicalTaskRow = page.getByRole("table", { name: "Approved tasks" })
+    .getByRole("row")
+    .filter({ hasText: "Completed prerequisite" });
+  await expect(historicalTaskRow).toBeVisible();
+  await historicalTaskRow.click();
   const detail = page.getByTestId("execution-task-detail");
   await expect(detail).toContainText("Completed prerequisite");
   await expect(detail).toContainText("already satisfied");
