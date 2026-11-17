@@ -917,6 +917,23 @@ Attempt 1 exposed one pre-existing long-Markdown browser polling timeout after a
 
 P7 is therefore complete. C7 is PASS. Implementation stops here and the integrated 0.5.0 candidate proceeds to the canonical validation control plane in §15; this PLAN does not itself claim V2-V7 or release acceptance.
 
+#### Post-closure V-07 completeness hardening — 2026-11-17
+
+The P7 closure was subsequently rechecked specifically against the complete V-07 Agent activity obligation rather than relying only on the original integrated gate. That audit added permanent proof without changing product architecture:
+
+- daemon-level activity persistence is proven bounded to 32 records, consecutive duplicates are coalesced, and unsafe/non-canonical resource paths are rejected through the existing typed contract before persistence;
+- OpenCode activity extraction is mechanically constrained to the approved bounded activity fields and explicitly excludes provider input/output/metadata/reasoning payloads;
+- the live prompt/activity integration slice is permanently bound so activity remains observational and failure-tolerant rather than becoming provider-control or workflow state;
+- no new activity store, DTO, browser state owner, provider-native record renderer, or persistence schema was introduced.
+
+One intermediate certification assertion failed because its source-slice boundary did not exactly match the production prompt function; the sensor was corrected to bind the exact existing owner rather than weakening the requirement. The production behavior was not relaxed.
+
+Permanent PR Verification run `44035317769` passed on strengthened code/test head `abdfbc296e1523b2222e3265fcb1f984fcd8d338`:
+
+`dependency-lock → typecheck → architecture → test → build → release packaging → browser` = **PASS**.
+
+This strengthens V-07 proof only; the 41/41 visual ledger, P6/C6 verdicts, P7 deletion closure and all other V-01..V-11 obligations remain unchanged.
+
 ## 7. Reference-fixture rule — no separate implementation phase
 
 There is no P0 implementation phase.
