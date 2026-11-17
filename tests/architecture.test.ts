@@ -1342,30 +1342,45 @@ describe("architecture fitness", () => {
       }
     }
 
-    // Current authority consumers must not pin an immutable historical version
-    // after the stable concern has advanced to another current owner.
-    // Retained .v1.md sources are excluded: their historical text is immutable.
-    const supersededVersionIds = [...refs.entries()]
-      .filter(([refId, path]) =>
-        retainedSemanticVersionPath(path) &&
-        /-V[0-9]+$/.test(refId) &&
-        currentOwnerByStable.has(refId.replace(/-V[0-9]+$/, "")) &&
-        currentOwnerByStable.get(refId.replace(/-V[0-9]+$/, "")) !== path
-      )
-      .map(([refId]) => refId);
+    // A permanent current document depends on the current owner through the
+    // stable concern id. Versioned ids are reserved for exact semantic
+    // snapshots (for example the governed WorkItem package) and retained
+    // historical evidence.
+    const advancedConcerns = [...currentOwnerByStable.entries()].flatMap(
+      ([stableId, currentPath]) => {
+        const versionedIds = [...refs.entries()]
+          .filter(([refId, ownerPath]) =>
+            refId !== stableId &&
+            refId.startsWith(stableId + "-V") &&
+            concernByPath.get(ownerPath)?.stableId === stableId
+          )
+          .map(([refId]) => refId);
+        const hasRetainedVersion = [...concernByPath.values()].some(
+          (metadata) =>
+            metadata.stableId === stableId &&
+            retainedSemanticVersionPath(metadata.path),
+        );
+        return hasRetainedVersion
+          ? [{ stableId, currentPath, versionedIds }]
+          : [];
+      },
+    );
     for (const sourcePath of activeDocumentationFiles.filter(
       (path) =>
         !retainedSemanticVersionPath(path) &&
         // The 0.5.0 visual reference pack is historical evidence, not a
-        // present canonical authority consumer; its V1 pins are intentional.
+        // present canonical authority consumer; its exact V1 pins are intentional.
         path !== "docs/references/workbench-ui/README.md"
     )) {
-      for (const [index, line] of sourceText(sourcePath).split(/\r?\n/).entries()) {
-        for (const historicalId of supersededVersionIds) {
-          if (line.includes(historicalId)) {
-            violations.push(
-              `${sourcePath}:${index + 1}: current authority consumer pins superseded ${historicalId}`,
-            );
+      for (const { stableId, currentPath, versionedIds } of advancedConcerns) {
+        if (sourcePath === currentPath) continue;
+        for (const [index, line] of sourceText(sourcePath).split(/\r?\n/).entries()) {
+          for (const versionedId of versionedIds) {
+            if (line.includes(versionedId)) {
+              violations.push(
+                `${sourcePath}:${index + 1}: current authority consumer must reference stable ${stableId}, not exact ${versionedId}`,
+              );
+            }
           }
         }
       }
