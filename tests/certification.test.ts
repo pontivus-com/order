@@ -481,6 +481,10 @@ describe("Order cross-boundary certification", () => {
     expect(approval).toContain("WorkbenchReview");
     expect(approval).toContain("packageStale?: boolean");
     expect(approval).toContain("Prior governed package material remains inspection-only");
+    expect(approval).toContain(
+      "historicalArtifact={packageStale ? selectedArtifact : undefined}",
+    );
+    expect(approval).toContain("embeddedReadOnly={packageStale}");
     expect(approval).toContain('label="Task technical details"');
     expect(approval).not.toContain('<MetadataListItem label="Task id">');
     expect(approval).not.toContain('<MetadataListItem label="Approval">');
@@ -492,6 +496,11 @@ describe("Order cross-boundary certification", () => {
     );
     expect(workspace).toContain('selectedStep === "AWAITING_SIGNOFF"');
     expect(workspace).toContain("api.listArtifacts(workItem.id)");
+
+    const documentWorkspace = read("ui/src/DocumentWorkspace.tsx");
+    expect(documentWorkspace).toContain("historicalArtifact?: ArtifactRef");
+    expect(documentWorkspace).toContain("historicalArtifact ??");
+    expect(documentWorkspace).toContain("enabled: historicalArtifact === undefined");
 
     const execution = read("ui/src/ExecutionWorkspace.tsx");
     expect(execution).toContain("WorkbenchMasterDetail");
