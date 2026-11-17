@@ -2,7 +2,7 @@
 
 **Status:** Binding repository-delivery governance  
 **Canonical concern ID:** `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`  
-**Versioned concern ID:** `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`  
+**Versioned concern ID:** `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`  
 **Pyramid layer:** P1 repository governance
 
 ## 1. Purpose
