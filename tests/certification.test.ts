@@ -542,6 +542,11 @@ describe("Order cross-boundary certification", () => {
     const documentViewRule = theme.match(/\.order-markdown-document-view\s*\{([^}]*)\}/)?.[1] ?? "";
     expect(documentViewRule).not.toMatch(/(?:^|\s)(?:background|border|border-radius)\s*:/);
 
+    const editorPaneRule = theme.match(/\.order-editor-source-pane,\s*\n\.order-editor-preview-pane\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(editorPaneRule).toContain("min-width: 0;");
+    expect(editorPaneRule).toContain("min-height: 0;");
+    expect(editorPaneRule).toContain("overflow: hidden;");
+
     const baseCss = theme.slice(0, theme.indexOf("@media"));
     const baseSelectors = [...baseCss.matchAll(/(?:^|\n)([^@\n][^{}]*)\{/g)]
       .map((match) => match[1]?.trim().replace(/\s+/g, " ") ?? "")
