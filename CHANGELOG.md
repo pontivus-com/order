@@ -8,7 +8,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
-- Establish the 0.6.0 implementation-fidelity recovery baseline: preserve the accepted 0.5.0 analysis/functional/technical design and 41-SVG reference authority, invalidate the overstated 0.5.0 implementation-complete/41-of-41 acceptance, document the shipped surface-by-surface and verification false-positive gaps, and require the replacement 0.6.0 implementation plan to close each audited discrepancy against the actual runtime.
+- Close the documentation-governance failure that allowed 0.5.0 authority drift before any 0.6.0 product redesign: add authority-aware Change/Defect v2 authoring schemas while preserving v1 history, require explicit P3 requirement dispositions, restore functional-core stage conformance output closure so empty/wrong/stale lifecycle artifacts cannot promote, strengthen R3 authority-topology review, and require independent repository review for authority/release changes.
 
 ## [0.5.0] - 2026-11-17
 
