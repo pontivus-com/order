@@ -82,6 +82,7 @@ import {
   recomposeWorkItemSourceBody,
   renderWorkItemSourceMarkdown,
   rewriteWorkItemSourceTitle,
+  stageTemplateForSchema,
   unresolvedConcernIdsForProject,
   validateStageDocumentStructure,
   workItemArchiveMarkerPath,
@@ -1008,6 +1009,20 @@ describe("source-backed WorkItem core", () => {
       expect(parsed.title).toBe("Canonical source");
       expect(workItemKindForSchema(parsed.metadata.schemaId)).toBe(kind);
     }
+  });
+
+  it("keeps historical R1 authority pins isolated from current v2 delivery authoring", () => {
+    const historicalChange = stageTemplateForSchema("change-v1", "R1");
+    const historicalDefect = stageTemplateForSchema("defect-v1", "R1");
+    const currentChange = stageTemplateForSchema("change-v2", "R1");
+    const currentDefect = stageTemplateForSchema("defect-v2", "R1");
+
+    expect(historicalChange).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(historicalDefect).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentChange).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentDefect).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentChange).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentDefect).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
   });
 
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
