@@ -13,7 +13,7 @@ The producer boundary is the pre-signoff authoring/conformance path: schema/temp
 
 ## Authority consumer closure
 
-Repoint every live permanent-document dependency on the six advanced concerns to their V2 identifiers. Keep retained .v1.md files untouched, keep stable and versioned manifest resolution unchanged, and extend the existing permanent documentation architecture sensor to reject future live current-document references to retained superseded versions. This is a reference/topology correction, not new functional or technical semantics.
+Repoint every ordinary live permanent-document dependency on the six advanced concerns to the stable concern identifiers, because those consumers mean the current owner rather than an exact semantic snapshot. Keep exact V2 identifiers only in artifacts that intentionally bind the Phase 0 semantic snapshot, keep retained .v1.md files untouched, keep stable and versioned manifest resolution unchanged, and extend the existing permanent documentation architecture sensor to reject ordinary current-document version pins for concerns with retained historical versions. This is a reference/topology correction, not new functional or technical semantics.
 
 ## Correction at the canonical owner
 
