@@ -156,6 +156,17 @@ describe("bounded agent activity persistence", () => {
       });
 
       const record = runStore.createAgentActivityRecorder(runtime, run.id);
+      let unsafeResourceRejected = false;
+      try {
+        record({
+          tag: "AGENT_ACTIVITY_RECORDED",
+          category: "READING",
+          summary: "Unsafe resource",
+          resource: "../secret.txt",
+        });
+      } catch {
+        unsafeResourceRejected = true;
+      }
       record({
         tag: "AGENT_ACTIVITY_RECORDED",
         category: "READING",
@@ -175,17 +186,6 @@ describe("bounded agent activity persistence", () => {
           summary: "Bounded activity " + index,
           resource: index % 2 === 0 ? "src/core/lifecycle.ts" : null,
         });
-      }
-      let unsafeResourceRejected = false;
-      try {
-        record({
-          tag: "AGENT_ACTIVITY_RECORDED",
-          category: "READING",
-          summary: "Unsafe resource",
-          resource: "../secret.txt",
-        });
-      } catch {
-        unsafeResourceRejected = true;
       }
       const activities = runStore.listRunEvents(runtime, run.id)
         .filter((event) => event.event.tag === "AGENT_ACTIVITY_RECORDED")
