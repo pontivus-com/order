@@ -10,6 +10,7 @@
 6. Make Create select only current authoring defaults while historical schemas remain display/discovery compatible.
 7. Replace false-positive tests and add permanent architecture/core regression sensors.
 8. Run complete configured verification and obtain independent R3/PR review before merge.
+9. Treat only verification from the current PR candidate and current PR metadata as admissible release evidence; stale workflow attempts do not satisfy closure.
 
 ## Requirement/design traceability
 
