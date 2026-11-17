@@ -95,6 +95,7 @@ import {
   updateRun,
 } from "./run.ts";
 import {
+  currentStageCompletionArtifacts,
   currentStageDraftArtifacts,
   getArtifact,
   getWorkItem,
@@ -184,6 +185,7 @@ export const stagePrompt = async (
   currentStageDrafts: readonly ArtifactRef[],
   referenceRoots: readonly string[],
   userInput?: string,
+  completionArtifacts: readonly ArtifactRef[] = currentStageDrafts,
 ): Promise<string> => {
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
   const expectedOutputPath = workItemDocumentPath(
@@ -191,7 +193,7 @@ export const stagePrompt = async (
     workItem.id,
     stage,
   );
-  const completionBindings = currentStageDrafts.map((artifact) => ({
+  const completionBindings = completionArtifacts.map((artifact) => ({
     id: artifact.id,
     repositoryPath: artifact.repositoryPath,
     role: artifact.role,
@@ -610,6 +612,7 @@ export const runStageTurn = async (
         await currentStageDraftArtifacts(runtime, workItem, run.stage),
         runtime.config.referenceRoots,
         userInput,
+        currentStageCompletionArtifacts(runtime, workItem, run.stage),
       ),
       (record, stderr) => {
         diagnosticEvidence = recordProviderDiagnostics(
