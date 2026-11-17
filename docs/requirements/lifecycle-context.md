@@ -502,6 +502,16 @@ A lower stage may become more specific. It may not silently weaken an obligation
 
 Continuous conformance does **not** require a fresh independent agent at every boundary. By default, independent semantic review is mandatory at R3 and post-implementation V4. Earlier stages use deterministic/mechanical checks plus their stage-owned conformance result unless explicit project governance requires an additional independent review.
 
+For R2/DESIGN/PLAN, the productive prompt makes the applicable stage conformance questions explicit before the stage may declare completion. For delivery-schema v2 R2 this includes canonical P3 ownership/disposition, absence of shadow specifications, closure of acceptance/failure/scope semantics and zero unresolved material product/authority decisions. DESIGN proves every material solution decision traces to accepted functional authority. PLAN proves every task traces upward and leaves no material P1-P6 decision to implementation. R3 independently re-evaluates the whole authority topology rather than trusting those earlier stage-owned conclusions.
+
+### GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE
+
+**Required behavior:** promotion from every promotable pre-signoff stage requires exactly one current ArtifactRef for that stage's deterministic WorkItem lifecycle-document path, bound to the exact current repository bytes and admitted by that stage's schema/template policy.
+
+**Acceptance criterion:** `STAGE_COMPLETED` cannot promote with zero outputs, multiple outputs, another WorkItem's artifact, the wrong role/path, stale bytes or a v2 stage document missing required template structure. The coordinator, not the model, owns final conformance admission and records `CONFORMANCE_PASSED` only after these checks and the stage-owned semantic conformance result are current.
+
+**Failure/negative behavior:** provider completion text, a structurally valid event, an earlier artifact hash, or an empty `artifactRefIds` array must not create lifecycle promotion or a successful conformance event.
+
 ## 8. Monotonic obligation propagation
 
 Once an obligation becomes applicable, it persists into every lower layer until it is explicitly superseded by valid higher-layer authority.
