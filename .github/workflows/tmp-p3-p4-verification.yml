@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - version/0.5.0
+      - fix/0.5.0-structural-ui-recovery
 
 permissions:
   contents: read
