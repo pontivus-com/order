@@ -2,7 +2,7 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** IMPLEMENTATION REOPENED — P1-P5 done; P6 incomplete; P7 not complete; candidate readiness rejected  
+**Status:** IMPLEMENTATION REOPENED — P1-P6 done; P7 not complete; candidate readiness rejected  
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
@@ -243,7 +243,7 @@ No new dependency, package pin, database migration, persistent state table, tran
 | P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **DONE — §6.5 structural recovery PASS; C3 PASS on adjudicated real-SPA evidence** |
 | P4 | Work request through Readiness | C4 pre-signoff visual conformance | **DONE — C4 PASS on corrected accepted Evidence reference and adjudicated real-SPA evidence** |
 | P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **DONE — C5 PASS on corrected accepted references and adjudicated real-SPA evidence** |
-| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **LARGELY NOT DONE — C6 prior PASS invalid; phase reopened** |
+| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **DONE — C6 PASS on settled real-SPA evidence and permanent behavior verification** |
 | P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **NOT DONE — C7 not established; candidate readiness rejected** |
 
 No phase may be marked complete while its checkpoint is FAIL, invalid, unproven or superseded by later evidence.
@@ -354,7 +354,7 @@ At this audit state:
 - **P3: DONE; §6.5 structural UI/styling recovery PASS; C3 PASS**
 - **P4: DONE; C4 PASS**
 - **P5: DONE; C5 PASS**
-- **P6: LARGELY NOT DONE; C6 invalid**
+- **P6: DONE; C6 PASS**
 - **P7: NOT DONE; C7 not established**
 - **0.5.0 candidate readiness: REJECTED**
 
@@ -753,6 +753,60 @@ The C5 visual artifact from run `44018403705` remains the adjudicated reference-
 Permanent PR Verification run `44022983094` passed on renewed-audit implementation/test head `775e0869907b24ff4046411aea58320c1091eaa8`: dependency-lock, typecheck, architecture, the full unit/certification suite, build, release packaging and the complete Playwright browser suite all passed. `tests/architecture.test.ts` was not changed or weakened.
 
 **Renewed verdict:** P5 is complete only with these corrections included. C5 remains **PASS**, with no allowed-variance exception. P6 is the next permitted implementation phase.
+
+### 6.9 P6/C6 adjudicated closure — 2026-11-17
+
+**Status:** PASS.
+
+P6 was executed as conformance work over the accepted supporting-service design, not as a new application architecture. Production changes remained inside existing UI/presentation owners:
+
+- installation-readiness blocker labels and Settings destinations are centralized in the existing pure presentation owner rather than duplicated across application/Settings surfaces;
+- Queue/application readiness now exposes every canonical blocker owner and direct Settings destination without creating a setup workflow stage;
+- repository Settings preserves the canonical Settings/Form/Confirmation hierarchy, including document-root migration ownership;
+- linked remediation now exposes the canonical parent WorkItem context while preserving daemon-owned lineage validation;
+- Create/Settings/OpenCode/model/readiness behavior remains on existing canonical daemon/API contracts;
+- Context remains secondary/technical and Evidence remains read-only exact-resource inspection;
+- no new primitive, stylesheet, token family, browser state owner, DTO/view-model family, dependency or settings authority was introduced.
+
+Permanent browser coverage closes the supporting-service behavior contract, including readiness-owner routing, OpenCode terminal login states, Settings navigation/currentness, repository/account mutation safety, Queue/Create behavior, linked-remediation lineage, responsive application utilities, Context/Evidence boundaries and confirmation behavior. The signed architecture sensor remains unchanged.
+
+C6 visual evidence was generated from settled real-SPA states in three bounded capture packages. Capture success is not the verdict; the table below is the explicit adjudication:
+
+- main C6 run `44031444240`, artifact `c6-visual-evidence-74f414395da31243e5cf249d6f00c7c272f5d191`, digest `sha256:ac73db13421ab86e8c010c9d3bbc397b5ca0018fa4be8edd368546f5de2581c6`;
+- Queue supplement run `44028086121`, artifact `c6-queue-reference-evidence-54f30585d7171e50aaae8a0d9c12ec5498edad83`, digest `sha256:d085ed3b7868b9aa0f401bcee9a71cbc66f2d4fa2f55b5cc0270e68ec1d97009`;
+- shared-notice supplement run `44031377524`, artifact `c6-notice-state-evidence-62311fa24fdbb50f1ebf0c22e591370a6499b4a1`, digest `sha256:2c137ede27bd1b1f900af1ecada99a6500d6d697640eb9dc5b75ce463121dc8f`.
+
+| Reference | Runtime state(s) and adjudicated verdict |
+|---|---|
+| `queue.svg` | active operational scan/select surface → **MATCH** |
+| `queue-states.svg` | active populated → **MATCH**; archived/Restore → **MATCH**; search/no-match → **MATCH**; project/search context semantics preserved by permanent browser proof → **MATCH** |
+| `create-work-item.svg` | bounded New WorkItem form with canonical repository document location → **MATCH** |
+| `create-linked-remediation.svg` | Investigation parent context and CHANGE/DEFECT remediation form → **MATCH** |
+| `settings-repositories.svg` | settled repository inventory/current context/actions → **MATCH** |
+| `settings-repository-add.svg` | bounded Add repository form → **MATCH** |
+| `settings-repository-move.svg` | explicit current/proposed document-root migration composition → **MATCH** |
+| `settings-opencode.svg` | settled saved-account inventory and active account → **MATCH** |
+| `settings-opencode-add.svg` | bounded Add account flow → **MATCH** |
+| `settings-opencode-rename.svg` | bounded Rename account flow → **MATCH** |
+| `settings-opencode-login.svg` | pending external sign-in state → **MATCH** |
+| `settings-opencode-login-states.svg` | pending → **MATCH**; completed → **MATCH**; failed → **MATCH**; expired → **MATCH**; cancelled → **MATCH** |
+| `settings-model.svg` | settled model/runtime selection and save hierarchy → **MATCH** |
+| `installation-readiness.svg` | complete blocker set with owning Settings links → **MATCH** |
+| `application-notices-states.svg` | setup-required → **MATCH**; source-diagnostics → **MATCH**; local-browser-session-required → **MATCH**; loading → **MATCH**; error/retry → **MATCH**; empty → **MATCH** |
+| `workitem-context.svg` | closed-by-default Context opened as secondary technical material → **MATCH** |
+| `evidence-viewer.svg` | exact-byte read-only Evidence with canonical return orientation → **MATCH** |
+| `theme-parity.svg` | System → **MATCH**; Light → **MATCH**; Dark → **MATCH** |
+
+C6 acceptance is therefore closed:
+
+- application and workflow surfaces consume one Workbench/Astryx visual language;
+- no feature-local button/form/status/table grammar was introduced;
+- compact/narrow utilities remain in the canonical application utility region and do not replace current workflow identity/action;
+- repository/account/model Settings share the canonical field/notice/confirmation language;
+- System/Light/Dark preserve semantic state and hierarchy;
+- all represented C6 multi-state cases have explicit runtime evidence or permanent browser proof, with loading placeholders excluded from settled comparisons.
+
+No `ALLOWED_RENDERING_VARIANCE` exception is required for C6. Temporary C6 workflows were removed immediately after evidence capture. P6 is complete and P7 may execute.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
@@ -1307,6 +1361,8 @@ A production edit on one of these surfaces is justified only by a failed listed 
 - theme-parity.svg
 
 ### C6 — application-surface visual checkpoint
+
+**Status:** PASS — adjudicated closure is recorded in §6.9. P7 is the next permitted implementation phase.
 
 PASS requires:
 
