@@ -1730,11 +1730,13 @@ The v1 template structures are intentionally small and reference the existing li
 
 The v2 delivery templates add only the authority-hygiene semantics owned by the corrected schema pins:
 
-- `change-r2-v2`: P2 intent and R1 factual basis; functional authority disposition ledger; required observable outcome/delta; acceptance criteria; scope/exclusions; failure/negative behavior; material compatibility/security/performance constraints; open product/authority questions.
-- `defect-r2-v2`: proven defect/root cause; functional authority disposition ledger; expected corrected behavior; behavior that must remain unchanged; acceptance proving the original defect; regression/preservation acceptance; scope/exclusions; open product/authority questions.
+- `change-r2-v2`: P2 intent and R1 factual basis; a non-empty functional authority disposition table with columns `Requirement | Disposition | Canonical owner`; required observable outcome/delta; acceptance criteria; scope/exclusions; failure/negative behavior; material compatibility/security/performance constraints; open product/authority questions. Each disposition is exactly `REFERENCE | DELTA | LOCAL`; `REFERENCE`/`DELTA` require a `GW-*` canonical owner.
+- `defect-r2-v2`: proven defect/root cause; the same non-empty functional authority disposition table/row grammar; expected corrected behavior; behavior that must remain unchanged; acceptance proving the original defect; regression/preservation acceptance; scope/exclusions; open product/authority questions.
 - `change-design-v2` / `defect-design-v2`: kind-specific requirement-to-solution ownership, preservation and validation obligations without changing lifecycle semantics.
 - `change-plan-v2` / `defect-plan-v2`: kind-specific exact implementation/remediation traceability and verification while retaining the canonical `order-tasks` block.
 - `delivery-r3-v2`: readiness verdict; authority topology review; P1-P7 traceability review; lifecycle package completeness; open decision/conflict ledger; evidence; adversarial findings; exact defective layer/return stage when not ready.
+
+For `change-v2` and `defect-v2`, `validateStageDocumentStructure(...)` is the single P6 structural owner for lifecycle-stage Markdown admission. In R2 it validates both the ordered v2 template sections and the disposition-table row grammar above. The repository architecture sensor separately verifies v2 WorkItem hygiene (no canonical-owner metadata and no retired `WF-FR-*` shadow namespace). These checks are structural/admission rules only; R3 remains the independent semantic judge of whether a claimed `REFERENCE`, `DELTA` or `LOCAL` classification is substantively correct.
 
 
 Artifact prerequisites are **not** copied into a second schema DAG. The schema selects the permitted stage/template set; prerequisite order and stage ownership remain resolved from `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-LIFECYCLE-CONTEXT-V1`. This is the local DRY consequence that must also be reflected when amending `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`.
