@@ -2138,9 +2138,11 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(page.getByTestId("workflow-step-summary")).toContainText(
     "Package current · ready to sign",
   );
-  await expect(page.getByTestId("signoff-package-hash")).toHaveText(
-    /^sha256:[0-9a-f]{64}$/,
-  );
+  const packageHash = page.getByTestId("signoff-package-hash");
+  await expect(packageHash).toHaveText(/^sha256:[0-9a-f]{64}$/);
+  await expect(packageHash).toBeHidden();
+  await page.getByRole("button", { name: "Technical details", exact: true }).click();
+  await expect(packageHash).toBeVisible();
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
 
   await openDisclosureResource(
@@ -2529,6 +2531,16 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     .toContainText("Prove the browser candidate surface");
 
   await selectWorkflowStep(page, "Implementation");
+  await expect(page.getByTestId("execution-workspace")).toBeVisible();
+  const signedPlan = page.getByRole("button", {
+    name: "Open Implementation plan",
+    exact: true,
+  });
+  await signedPlan.scrollIntoViewIfNeeded();
+  await signedPlan.click();
+  await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
+  await expect(page.locator("textarea")).toHaveCount(0);
+  await page.getByRole("button", { name: "Back to workflow context" }).click();
   await expect(page.getByTestId("execution-workspace")).toBeVisible();
   await selectWorkflowMaterial(page, "Implementation agent · Attempt 1");
   await expect(
