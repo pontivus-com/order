@@ -340,6 +340,8 @@ export const WorkItemSchemaIdSchema = z.enum([
   "defect-v2",
   "investigation-v1",
   "audit-v1",
+  "investigation-v2",
+  "audit-v2",
 ]);
 
 export const isWorkItemSourcePath = (value: string): boolean => {
