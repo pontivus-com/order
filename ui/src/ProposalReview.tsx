@@ -63,8 +63,8 @@ export const ProposalReview = ({
     !adoptionRequested &&
     ownsCurrentDecision
       ? <>
-          <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
           <WorkbenchAction label="Reject" tone="destructive" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("REJECT")} />
+          <WorkbenchAction label="Adopt" tone="primary" loading={decision.isPending} disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
         </>
       : null;
 
