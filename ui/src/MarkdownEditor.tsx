@@ -254,16 +254,16 @@ export const MarkdownEditor = ({
   if (!editing) {
     return (
       <section className="order-markdown-document-view" data-testid={readOnly ? "markdown-document-readonly" : "markdown-document-view"}>
-        <header className="order-markdown-document-view-header">
-          <div>
-            <h2>{title}</h2>
-            {description ? <p>{description}</p> : null}
-          </div>
-          <div className="order-markdown-document-view-actions">
-            {readOnly ? <WorkbenchStatus tone="neutral" label="Read-only supporting material" /> : toolbarAccessory}
-            {!readOnly ? <WorkbenchAction label="Edit" tone="secondary" onClick={() => { editablePresentationMode.current = "SPLIT"; setPresentationMode("SPLIT"); setEditing(true); }} /> : null}
-          </div>
-        </header>
+        <WorkbenchSectionHeader
+          title={title}
+          description={description}
+          action={
+            <span className="order-inline-actions">
+              {readOnly ? <WorkbenchStatus tone="neutral" label="Read-only supporting material" /> : toolbarAccessory}
+              {!readOnly ? <WorkbenchAction label="Edit" tone="secondary" onClick={() => { editablePresentationMode.current = "SPLIT"; setPresentationMode("SPLIT"); setEditing(true); }} /> : null}
+            </span>
+          }
+        />
         <div className={"order-markdown-document-view-body" + (viewAside ? " order-markdown-document-view-with-aside" : "")}>
           {preview}
           {viewAside ? <aside className="order-markdown-document-view-aside">{viewAside}</aside> : null}
