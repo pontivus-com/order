@@ -530,12 +530,34 @@ describe("Order cross-boundary certification", () => {
     expect(presentationCss).not.toMatch(/font-size:\s*\d/);
     expect(presentationCss).not.toMatch(/border-radius:\s*(?:\d|50%|999)/);
     expect(presentationCss).not.toContain("box-shadow:");
+    expect(theme.slice(sectionOffsets[1])).not.toContain("!important");
 
-    const cssFiles = readdirSync(join(root, "ui", "src"), { withFileTypes: true })
-      .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
-      .map((entry) => entry.name)
-      .sort();
-    expect(cssFiles).toEqual(["styles.css", "theme.css"]);
+    const baseCss = theme.slice(0, theme.indexOf("@media"));
+    const baseSelectors = [...baseCss.matchAll(/(?:^|\n)([^@\n][^{}]*)\{/g)]
+      .map((match) => match[1]?.trim().replace(/\s+/g, " ") ?? "")
+      .filter((selector) => selector.length > 0 && !selector.startsWith("/*"));
+    const selectorCounts = new Map<string, number>();
+    for (const selector of baseSelectors) {
+      selectorCounts.set(selector, (selectorCounts.get(selector) ?? 0) + 1);
+    }
+    expect(
+      [...selectorCounts.entries()].filter(([, count]) => count > 1),
+    ).toEqual([]);
+
+    const cssFiles = (
+      directory: string,
+      prefix = "",
+    ): readonly string[] =>
+      readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+        const relative = prefix.length === 0 ? entry.name : prefix + "/" + entry.name;
+        const absolute = join(directory, entry.name);
+        if (entry.isDirectory()) return cssFiles(absolute, relative);
+        return entry.isFile() && entry.name.endsWith(".css") ? [relative] : [];
+      });
+    expect([...cssFiles(join(root, "ui", "src"))].sort()).toEqual([
+      "styles.css",
+      "theme.css",
+    ]);
   });
 
   it("keeps browser state and transport on the canonical HTTP boundary", () => {
