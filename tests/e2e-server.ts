@@ -133,33 +133,59 @@ The change is confirmed and the governing evidence is recorded.
 `;
 const requirementsText = `# Requirements
 
-## Functional requirements
+## Purpose / product model
 
-The Workbench must preserve the accepted workflow semantics and information hierarchy.
+The operator can see where the work is, what requires attention and what action is valid next.
 
-## Acceptance criteria
+## Work type × workflow step × current interaction
 
-- current attention remains visible
-- governed documents remain canonical
-- responsive composition preserves action priority
+Task purpose, available information, expected output and valid actions are derived from the canonical work type and lifecycle state.
 
-## Scope and exclusions
+## Information hierarchy
 
-The task changes presentation without creating another workflow authority.
+Primary work and current attention outrank supporting context, agent activity, history/evidence and technical detail.
+
+## Pre-signoff interaction
+
+Dialogue, proposal Review, governed Document and Evidence share one current-attention owner.
+
+## Supporting services
+
+Queue, Create, Settings, Context and Evidence remain coherent with the same task model.
 `;
 const designText = `# Solution design
 
-## Architecture
+## 1. Context / governing constraints
 
-The existing canonical Workbench primitives own shell, attention, document, dialogue and review composition.
+The governed Workbench requirements and reviewed reference set define the presentation contract.
 
-## Interaction model
+## 2. Goals / non-goals
 
-Current workflow material remains primary while supporting authority is subordinate and inspectable.
+Preserve canonical workflow semantics while implementing the accepted information hierarchy and interaction composition.
 
-## Responsive behavior
+## 3. Canonical owner / affected boundaries
 
-Wide, medium and narrow layouts preserve the same semantic hierarchy.
+Shared Workbench primitives own shell, attention, Dialogue, Document, Review and Evidence composition.
+
+## 4. Data / control flow
+
+Canonical WorkItem, Run, RunEvent and artifact facts are projected directly into the browser without duplicate workflow state.
+
+## 5. Decisions / rationale / alternatives
+
+Current task material remains primary; supporting authority and technical identity stay subordinate.
+
+## 6. Failure behavior
+
+Mutation conflicts, blockers, stale authority and provider failures remain visible in the same stable task geometry.
+
+## 7. Preservation / downstream invariants
+
+Responsive changes preserve the same semantic hierarchy and action ownership.
+
+## 8. Validation obligations
+
+Mechanical gates and direct SVG comparison must both pass before the phase closes.
 `;
 const planText = `# Implementation plan
 
