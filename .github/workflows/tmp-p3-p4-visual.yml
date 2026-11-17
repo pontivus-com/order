@@ -444,6 +444,9 @@ jobs:
             await step(page, "Research");
             await page.getByRole("button", { name: "Inspect exact bytes", exact: true }).click();
             await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
+            const exactBytes = page.getByTestId("raw-content-view");
+            await expect(exactBytes).toBeVisible();
+            await expect(exactBytes).toContainText("invalid lifecycle");
             await shot(page, "evidence-viewer.svg", "exact-bytes");
           });
 
