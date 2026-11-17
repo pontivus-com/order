@@ -2,7 +2,7 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** IMPLEMENTATION REOPENED — P1-P4 done; P5 active; P6 incomplete; P7 not complete; candidate readiness rejected  
+**Status:** IMPLEMENTATION REOPENED — P1-P5 done; P6 incomplete; P7 not complete; candidate readiness rejected  
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
@@ -242,7 +242,7 @@ No new dependency, package pin, database migration, persistent state table, tran
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure | **DONE — preserve; rerun regression gates after later UI work** |
 | P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **DONE — §6.5 structural recovery PASS; C3 PASS on adjudicated real-SPA evidence** |
 | P4 | Work request through Readiness | C4 pre-signoff visual conformance | **DONE — C4 PASS on corrected accepted Evidence reference and adjudicated real-SPA evidence** |
-| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **ACTIVE — reference-by-reference implementation/adjudication in progress** |
+| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **DONE — C5 PASS on corrected accepted references and adjudicated real-SPA evidence** |
 | P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **LARGELY NOT DONE — C6 prior PASS invalid; phase reopened** |
 | P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **NOT DONE — C7 not established; candidate readiness rejected** |
 
@@ -353,7 +353,7 @@ At this audit state:
 - **P2: DONE / preserve**
 - **P3: DONE; §6.5 structural UI/styling recovery PASS; C3 PASS**
 - **P4: DONE; C4 PASS**
-- **P5: ACTIVE; C5 not yet established**
+- **P5: DONE; C5 PASS**
 - **P6: LARGELY NOT DONE; C6 invalid**
 - **P7: NOT DONE; C7 not established**
 - **0.5.0 candidate readiness: REJECTED**
@@ -668,6 +668,57 @@ Final real-SPA evidence was generated on commit `31e5b594b5a1b32abbdd8238da76da2
 C4 acceptance is therefore closed: zero primary technical identity leaks were introduced, Readiness owns no sign-off, Dialogue/Document/Review hierarchy is preserved, no content-count-driven persistent sidebar exists, document maturity states remain canonical, dirty/conflict/confirmation states retain task geometry, and wide/medium/narrow meaning/action priority remain unchanged.
 
 No `ALLOWED_RENDERING_VARIANCE` exception is needed for C4. P4 is complete and P5 is permitted to execute.
+
+### 6.8 P5/C5 adjudicated closure — 2026-11-17
+
+**Status:** PASS.
+
+P5 was closed only after separating derived-reference conflicts from implementation defects and rerunning the complete post-signoff state set through the real SPA.
+
+The accepted P5 design package was first reconciled with already-canonical Workbench authority where the old derived SVGs demanded structures that the closed architecture forbids:
+
+- Approval references now use the closed `WorkbenchReview` hierarchy and decision region rather than an Approval-only authorization side pane;
+- Implementation reference composition now uses the canonical fixed `--order-master-width` / `WorkbenchMasterDetail` topology, with the current Start/Cancel/Resume action owned by current attention rather than task-detail chrome;
+- Complete references now use the flat sequential Terminal-result grammar rather than a card-dashboard composition;
+- the blocked Implementation reference now uses the specific canonical recovery label `Resume resolved blocker` rather than generic Resume wording that conflicts with `GW-DOC-WORKBENCH-UX-V2 §4.6`;
+- `docs/references/workbench-ui/README.md` records these P5 composition invariants so later implementation cannot reintroduce the rejected topology.
+
+Real-SPA comparison then exposed and closed the remaining implementation defects at their existing owners:
+
+- idle Implementation no longer renders a false `Loading attempt timeline…` state when no Run exists; it settles to `No persisted attempt events`;
+- Implementation premium space uses semantic `Approved tasks` / `Approved task` labels and scope, while task ids, approval/plan ids, gates/dependencies/change-surface identity and Run technical identity remain under `Technical details`;
+- Implementation material rows use canonical lifecycle-artifact labels rather than promoting repository paths into the primary resource label;
+- reached/historical candidate validation is explicitly presented as a **Recorded** boundary, while the exact canonical `ValidationBoundary` remains the semantic owner for the current execution owner;
+- Approval keeps signed task meaning/scope/gates/acceptance/change-surface/authority available for judgment, while raw task/approval identifiers are subordinate under `Task technical details`;
+- no primitive API, theme system, transport/domain model, execution owner, validation owner or responsive topology was introduced or duplicated.
+
+Permanent proof was extended only in the existing owners:
+
+- `tests/browser.spec.ts` proves idle Implementation settlement, Approved Tasks naming, technical-detail visibility boundaries, exact task-scoped current action behavior, and recorded historical validation;
+- `tests/certification.test.ts` proves Approval remains `WorkbenchReview`, Implementation remains canonical fixed-width `WorkbenchMasterDetail`, task labels do not regress to ID-decorated primary labels, technical identity remains disclosed, and current-versus-recorded validation remains presentation over the canonical `ValidationBoundary`;
+- signed `tests/architecture.test.ts` was not changed.
+
+Final C5 evidence was generated from the current P5 product/reference bytes on commit `d00165d13fdba8e9258e62e70de383a49d92ebe8` by temporary run `44018403705`, artifact `c5-visual-evidence-d00165d13fdba8e9258e62e70de383a49d92ebe8` (digest `sha256:92315c5764bed7090ffa28fc3803ce864c0b481dcc9c9a349424c0397254d18a`). The capture workflow required settled semantic states in addition to screenshot existence. Temporary C5 execution scaffolding was removed immediately after the evidence was obtained.
+
+| Reference | Runtime state(s) and adjudicated verdict |
+|---|---|
+| `approval.svg` | exact current package Review, package currentness, governed material, one exact-package sign-off owner → **MATCH** |
+| `approval-task-detail.svg` | signed task judgment detail with technical ids subordinate → **MATCH** |
+| `implementation.svg` | canonical fixed-width Approved Tasks master/detail, current task detail, action in current attention, technical identity subordinate → **MATCH** |
+| `implementation-states.svg` | ready-to-start → **MATCH**; processing/current attempt → **MATCH**; blocked with specific `Resume resolved blocker` recovery → **MATCH**; historical validation recorded complete → **MATCH** |
+| `complete.svg` | verified candidate, result-first terminal surface, candidate resources subordinate, no invented remediation → **MATCH** |
+| `complete-linked-remediation.svg` | Audit terminal result remains primary; eligible linked-remediation action is separate governed follow-up → **MATCH** |
+
+C5 acceptance is therefore closed:
+
+- Approval has one explicit exact-package sign-off owner;
+- Implementation is the only persistent workflow MasterDetail and uses the canonical fixed master width/topology across ready, processing, blocked and historical states;
+- historical task/attempt selection remains inspection-only and cannot retarget the exact current-task Start action;
+- blocker/recovery and current-versus-recorded validation are explicit and semantically unambiguous;
+- Complete remains result-first and remediation appears only on the canonically eligible Investigation/Audit branch;
+- raw technical task/Run identity does not occupy primary premium space.
+
+No `ALLOWED_RENDERING_VARIANCE` exception is needed for C5. P5 is complete. P6 is the next permitted implementation phase.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
@@ -1160,6 +1211,8 @@ Complete must be result-first:
 - complete-linked-remediation.svg
 
 ### C5 — post-signoff visual checkpoint
+
+**Status:** PASS — closure is recorded in §6.8. P6 is the next permitted implementation phase.
 
 PASS requires:
 
