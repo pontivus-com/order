@@ -65,6 +65,7 @@ The references preserve:
 - one primary command per current task;
 - no persistent second pre-signoff navigation rail;
 - supporting material subordinate to current work;
+- Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; it does not introduce a dedicated dark palette or theme island in Light mode;
 - human/agent dialogue distinct from workflow events and operational activity;
 - Implementation as the only persistent workflow master/detail geometry.
 
