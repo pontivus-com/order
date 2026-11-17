@@ -116,13 +116,93 @@ const orderConfig = writeOrderConfig(stateRoot, {
   referenceRoots: [],
 });
 
-const planText = `# Browser certification plan
+const researchText = `# Research
+
+## Current state
+
+The current repository behavior and constraints have been inspected.
+
+## Findings
+
+The change is confirmed and the governing evidence is recorded.
+
+## Evidence
+
+- repository state inspected
+- workflow ownership confirmed
+`;
+const requirementsText = `# Requirements
+
+## Functional requirements
+
+The Workbench must preserve the accepted workflow semantics and information hierarchy.
+
+## Acceptance criteria
+
+- current attention remains visible
+- governed documents remain canonical
+- responsive composition preserves action priority
+
+## Scope and exclusions
+
+The task changes presentation without creating another workflow authority.
+`;
+const designText = `# Solution design
+
+## Architecture
+
+The existing canonical Workbench primitives own shell, attention, document, dialogue and review composition.
+
+## Interaction model
+
+Current workflow material remains primary while supporting authority is subordinate and inspectable.
+
+## Responsive behavior
+
+Wide, medium and narrow layouts preserve the same semantic hierarchy.
+`;
+const planText = `# Implementation plan
+
+## Exact task units and dependencies
+
+Implement the shared Workbench foundation before the pre-signoff workflow surfaces.
+
+## Requirement and authority traceability
+
+Each task maps to the accepted Workbench requirements, solution design and reviewed SVG references.
+
+## Change surface
+
+Modify only canonical presentation owners proven to diverge from the accepted references.
+
+## Deletions, additions and modifications
+
+Remove superseded presentation paths, refine shared primitives and preserve existing semantic contracts.
+
+## Validation sequence
+
+Run typecheck, architecture, unit tests, build, browser behavior and direct SVG comparison.
+
+## Canonical order-tasks block
 
 \`\`\`order-tasks
 {"version":1,"tasks":[{"id":"T1","objective":"Prove the browser candidate surface","dependsOn":[],"scope":["src/a.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/a.ts"],"gateIds":[],"authorityRefs":[],"concernIds":[]}]}
 \`\`\`
 `;
-const r3Text = "# R3\n\nREADY_FOR_SIGNOFF\n";
+const r3Text = `# Readiness review
+
+## Verdict
+
+READY_FOR_SIGNOFF
+
+## Findings
+
+No unresolved defect blocks the exact governed package.
+
+## Package judgment
+
+The current package is coherent and ready for Approval.
+`;
 const manifestText = `version = 1
 projectId = "order-e2e"
 
@@ -141,9 +221,9 @@ gates = []
 `;
 
 writeFileSync(join(repositoryRoot, "pontivus-order.toml"), manifestText);
-writeFileSync(join(repositoryRoot, "docs", "r1.md"), "# R1 confirmed\n");
-writeFileSync(join(repositoryRoot, "docs", "r2.md"), "# R2 accepted\n");
-writeFileSync(join(repositoryRoot, "docs", "design.md"), "# DESIGN accepted\n");
+writeFileSync(join(repositoryRoot, "docs", "r1.md"), researchText);
+writeFileSync(join(repositoryRoot, "docs", "r2.md"), requirementsText);
+writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "stale-approval-plan.md"), planText);
 writeFileSync(join(repositoryRoot, "docs", "long-wide-plan.md"), planText);
