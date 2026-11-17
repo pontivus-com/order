@@ -1396,6 +1396,9 @@ describe("architecture fitness", () => {
           .filter((line) =>
             !/^\|\s*Requirement\s*\|/.test(line.trim()) &&
             !/^\|\s*[-:]+\s*\|/.test(line.trim())
+          )
+          .filter((line) =>
+            line.trim().slice(1, -1).split("|").some((cell) => cell.trim().length > 0)
           );
         if (dataRows.length === 0) {
           violations.push(
