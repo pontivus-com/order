@@ -1346,6 +1346,83 @@ describe("Order cross-boundary certification", () => {
     expect(readme).not.toContain("export PONTIVUS_ORDER_OPENCODE_MODEL");
     expect(readme).not.toContain("Host-native daemon autostart/process supervision is outside v1");
   });
+  it("locks the P7 integrated visual inventory and removes superseded UI paths", () => {
+    const expectedReferences = [
+      "application-notices-states.svg",
+      "approval-task-detail.svg",
+      "approval.svg",
+      "complete-linked-remediation.svg",
+      "complete.svg",
+      "create-linked-remediation.svg",
+      "create-work-item.svg",
+      "current-attention-states.svg",
+      "dialogue-states.svg",
+      "document-authoring.svg",
+      "document-readonly.svg",
+      "document-states.svg",
+      "evidence-viewer.svg",
+      "implementation-plan.svg",
+      "implementation-states.svg",
+      "implementation.svg",
+      "installation-readiness.svg",
+      "proposal-review.svg",
+      "proposal-states.svg",
+      "queue-states.svg",
+      "queue.svg",
+      "readiness-review.svg",
+      "requirements.svg",
+      "research.svg",
+      "responsive-composition.svg",
+      "safety-confirmations.svg",
+      "settings-model.svg",
+      "settings-opencode-add.svg",
+      "settings-opencode-login-states.svg",
+      "settings-opencode-login.svg",
+      "settings-opencode-rename.svg",
+      "settings-opencode.svg",
+      "settings-repositories.svg",
+      "settings-repository-add.svg",
+      "settings-repository-move.svg",
+      "solution-design.svg",
+      "theme-parity.svg",
+      "work-request.svg",
+      "work-type-variants.svg",
+      "workitem-context.svg",
+      "workitem-shell-controls.svg",
+    ].sort();
+
+    const references = readdirSync(join(root, "docs/references/workbench-ui"))
+      .filter((name) => name.endsWith(".svg"))
+      .sort();
+    expect(references).toEqual(expectedReferences);
+
+    const referenceReadme = read("docs/references/workbench-ui/README.md");
+    for (const reference of expectedReferences) {
+      expect(referenceReadme).toContain("(" + reference + ")");
+    }
+
+    const workflows = readdirSync(join(root, ".github/workflows"))
+      .filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
+      .sort();
+    expect(workflows).toEqual(["ci.yml", "release.yml"]);
+
+    const walkUi = (directory: string): string[] =>
+      readdirSync(join(root, directory), { withFileTypes: true }).flatMap((entry) => {
+        const relative = directory + "/" + entry.name;
+        return entry.isDirectory() ? walkUi(relative) : [relative];
+      });
+    const uiSource = walkUi("ui/src")
+      .filter((path) => path.endsWith(".ts") || path.endsWith(".tsx") || path.endsWith(".css"))
+      .map(read)
+      .join("\n");
+
+    expect(uiSource).not.toContain("api.tick(");
+    expect(uiSource).not.toContain("@opencode-ai/sdk");
+    expect(uiSource).not.toContain("order-workflow-side-index");
+    expect(uiSource).not.toContain("order-generic-side-index");
+    expect(uiSource).not.toContain("OpenCode session");
+  });
+
   it("keeps the publishable current tree free of private-source provenance and temporary verification scaffolding", () => {
     const textExtensions = new Set([".css", ".html", ".json", ".md", ".sh", ".toml", ".ts", ".tsx", ".yaml", ".yml"]);
     const extension = (path: string): string => {
