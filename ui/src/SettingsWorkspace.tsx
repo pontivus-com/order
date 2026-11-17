@@ -7,12 +7,15 @@ import { TextInput } from "@astryxdesign/core/TextInput";
 
 import {
   type ConnectedRepositoryState,
-  type InstallationReadinessBlocker,
   type OpenCodeModelRef,
 } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { OpenCodeAccountSettings } from "./OpenCodeAccountSettings.tsx";
 import { workbenchQueryKeys } from "./query-keys.ts";
+import {
+  installationReadinessBlockerText,
+  settingsDestinationForReadinessBlocker,
+} from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
 import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
@@ -31,28 +34,6 @@ export type SettingsSection = "repositories" | "opencode" | "model";
 
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
-
-const blockerText = (blocker: InstallationReadinessBlocker): string => {
-  switch (blocker) {
-    case "REPOSITORY_REQUIRED":
-      return "Connect at least one target repository.";
-    case "REPOSITORY_CONFIGURATION_REQUIRES_ATTENTION":
-      return "One or more target repositories need attention.";
-    case "MODEL_INVALID":
-      return "Select an available OpenCode model.";
-    case "REFERENCE_ROOT_CONFIGURATION_REQUIRES_ATTENTION":
-      return "One or more STAGE reference roots need attention.";
-    case "OPENCODE_ACCOUNT_REQUIRED":
-      return "Add or reconnect an OpenCode account.";
-  }
-};
-
-const blockerSection = (blocker: InstallationReadinessBlocker): SettingsSection =>
-  blocker === "OPENCODE_ACCOUNT_REQUIRED"
-    ? "opencode"
-    : blocker === "MODEL_INVALID"
-      ? "model"
-      : "repositories";
 
 const repositoryAttentionText = (
   repository: ConnectedRepositoryState,
@@ -273,7 +254,7 @@ const RepositorySettings = ({
         <section data-testid="move-workitem-documents">
           <WorkbenchSectionHeader
             title="Move WorkItem documents"
-            description={"Change the governed document root for " + (migrationTarget.projectId ?? migrationTarget.repositoryRoot) + "."}
+            description={"Current repository-relative root: " + (migrationTarget.workItemsRoot ?? "Unavailable") + ". Choose a new repository-contained root for " + (migrationTarget.projectId ?? migrationTarget.repositoryRoot) + "."}
           />
           <WorkbenchForm
             content={
@@ -481,18 +462,18 @@ export const SettingsWorkspace = ({
             <span key={blocker}>
               {index > 0 ? " · " : ""}
               <Link
-                href={"/settings/" + blockerSection(blocker)}
+                href={"/settings/" + settingsDestinationForReadinessBlocker(blocker)}
                 isStandalone
                 onClick={(event) => {
                   event.preventDefault();
-                  onNavigate(blockerSection(blocker));
+                  onNavigate(settingsDestinationForReadinessBlocker(blocker));
                 }}
               >
-                {blockerText(blocker)}
+                {installationReadinessBlockerText(blocker)}
               </Link>
             </span>
           ))}
-          {primaryBlocker === null ? null : <span className="order-visually-hidden"> Primary blocker: {blockerText(primaryBlocker)}</span>}
+          {primaryBlocker === null ? null : <span className="order-visually-hidden"> Primary blocker: {installationReadinessBlockerText(primaryBlocker)}</span>}
         </span>
       }
     />
