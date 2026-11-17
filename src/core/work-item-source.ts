@@ -105,12 +105,12 @@ const authoringTemplates: Readonly<Record<WorkItemSchemaId, string>> = Object.fr
   ),
   "change-v2": renderTemplate(
     "change-intake-v2",
-    ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1", "GW-DOC-WORK-LIFECYCLE-V1"],
+    ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2", "GW-DOC-WORK-LIFECYCLE-V1"],
     ["Requested outcome", "Current context", "Constraints/non-goals", "Evidence/references"],
   ),
   "defect-v2": renderTemplate(
     "defect-intake-v2",
-    ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1", "GW-DOC-WORK-LIFECYCLE-V1"],
+    ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2", "GW-DOC-WORK-LIFECYCLE-V1"],
     [
       "Observed behavior",
       "Expected behavior",
@@ -181,7 +181,7 @@ const stageTemplates = Object.freeze({
   ),
   "delivery-design-v1": renderTemplate(
     "delivery-design-v1",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-TECHNICAL-ARCHITECTURE-V1"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-TECHNICAL-ARCHITECTURE-V2"],
     [
       "Context/governing constraints",
       "Goals/non-goals",
@@ -195,7 +195,7 @@ const stageTemplates = Object.freeze({
   ),
   "delivery-plan-v1": renderTemplate(
     "delivery-plan-v1",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-CANONICAL-CONTRACTS-V1"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-CANONICAL-CONTRACTS-V2"],
     [
       "Exact task units/dependencies",
       "Requirement/design traceability",
@@ -217,7 +217,7 @@ const stageTemplates = Object.freeze({
   ),
   "change-r2-v2": renderR2AuthorityTemplate(
     "change-r2-v2",
-    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V1", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V2", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
     [
       "P2 intent and R1 factual basis",
       "Functional authority disposition ledger",
@@ -231,7 +231,7 @@ const stageTemplates = Object.freeze({
   ),
   "defect-r2-v2": renderR2AuthorityTemplate(
     "defect-r2-v2",
-    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V1", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V2", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
     [
       "Proven defect/root cause",
       "Functional authority disposition ledger",
@@ -245,7 +245,7 @@ const stageTemplates = Object.freeze({
   ),
   "change-design-v2": renderTemplate(
     "change-design-v2",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-TECHNICAL-ARCHITECTURE-V1"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-TECHNICAL-ARCHITECTURE-V2"],
     [
       "Requirement-to-solution map",
       "Canonical owner/affected boundaries",
@@ -258,7 +258,7 @@ const stageTemplates = Object.freeze({
   ),
   "defect-design-v2": renderTemplate(
     "defect-design-v2",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-TECHNICAL-ARCHITECTURE-V1"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-TECHNICAL-ARCHITECTURE-V2"],
     [
       "Root cause/producer boundary",
       "Requirement-to-solution map",
@@ -271,7 +271,7 @@ const stageTemplates = Object.freeze({
   ),
   "change-plan-v2": renderTemplate(
     "change-plan-v2",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-CANONICAL-CONTRACTS-V1"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-CANONICAL-CONTRACTS-V2"],
     [
       "Exact task units/dependencies",
       "Requirement/design traceability",
@@ -283,7 +283,7 @@ const stageTemplates = Object.freeze({
   ),
   "defect-plan-v2": renderTemplate(
     "defect-plan-v2",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-CANONICAL-CONTRACTS-V1"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-CANONICAL-CONTRACTS-V2"],
     [
       "Root-cause remediation tasks/dependencies",
       "Requirement/design traceability",
@@ -295,7 +295,7 @@ const stageTemplates = Object.freeze({
   ),
   "delivery-r3-v2": renderTemplate(
     "delivery-r3-v2",
-    ["GW-DOC-LIFECYCLE-CONTEXT-V1", "GW-DOC-SPECIFICATION-STANDARD-V1", "GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"],
+    ["GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-SPECIFICATION-STANDARD-V2", "GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW"],
     [
       "Readiness verdict",
       "Authority topology review",
