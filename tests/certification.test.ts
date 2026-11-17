@@ -479,12 +479,19 @@ describe("Order cross-boundary certification", () => {
 
     const approval = read("ui/src/SignoffReview.tsx");
     expect(approval).toContain("WorkbenchReview");
+    expect(approval).toContain("packageStale?: boolean");
+    expect(approval).toContain("Prior governed package material remains inspection-only");
     expect(approval).toContain('label="Task technical details"');
     expect(approval).not.toContain('<MetadataListItem label="Task id">');
     expect(approval).not.toContain('<MetadataListItem label="Approval">');
 
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    expect(workspace).toContain("packageStale={packageStaleOwner !== null}");
+
     const execution = read("ui/src/ExecutionWorkspace.tsx");
     expect(execution).toContain("WorkbenchMasterDetail");
+    expect(execution).toContain("api.startExecutionTask(workItem.id,currentOwnerTask.id)");
+    expect(execution).not.toContain("api.tick");
     expect(execution).toContain('masterLabel="Approved tasks"');
     expect(execution).toContain('label="Approved tasks"');
     expect(execution).toContain('description:"Approved task"');
