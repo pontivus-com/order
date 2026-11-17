@@ -48,7 +48,7 @@ candidate done
 
 The LLM does engineering work inside the task. It does not own queue state, validation branching, retry policy, task selection, approval validity, or final completion state.
 
-Concrete workspace, provider, event/reaction, project-manifest, and candidate-handoff hooks are defined by [GW-DOC-TECHNICAL-ARCHITECTURE-V2](technical-architecture.md).
+Concrete workspace, provider, event/reaction, project-manifest, and candidate-handoff hooks are defined by [GW-DOC-TECHNICAL-ARCHITECTURE](technical-architecture.md).
 
 ## 2. v1 execution topology
 
@@ -134,9 +134,9 @@ In both modes one SQLite transaction:
 
 The manual command cannot cause another globally eligible task to be selected. It does not create a second queue, scheduler or claim state.
 
-If the daemon stops while a post-signoff Run is `RUNNING`, startup recovery marks that Run `FAILED / COORDINATOR_INTERRUPTED`, abandons its workspace, and applies the bounded operational-action retry policy in [GW-DOC-CANONICAL-CONTRACTS-V2 §§8,21](../contracts/canonical-contracts.md). When the single automatic replacement is permitted the ExecutionTask remains `RUNNING` and the coordinator creates the same-role/same-trigger continuation Run; otherwise task and WorkItem block. Automatic recovery never routes through `TODO`.
+If the daemon stops while a post-signoff Run is `RUNNING`, startup recovery marks that Run `FAILED / COORDINATOR_INTERRUPTED`, abandons its workspace, and applies the bounded operational-action retry policy in [GW-DOC-CANONICAL-CONTRACTS §§8,21](../contracts/canonical-contracts.md). When the single automatic replacement is permitted the ExecutionTask remains `RUNNING` and the coordinator creates the same-role/same-trigger continuation Run; otherwise task and WorkItem block. Automatic recovery never routes through `TODO`.
 
-A task remains `RUNNING` across builder/reviewer/remediator Run boundaries. When no Run is active for that task, the coordinator first reconciles the last durable RunEvent and starts the uniquely required continuation Run, if any, before considering another `TODO` task. Exact continuation eligibility/atomicity is owned by [GW-DOC-CANONICAL-CONTRACTS-V2 §§17,23](../contracts/canonical-contracts.md).
+A task remains `RUNNING` across builder/reviewer/remediator Run boundaries. When no Run is active for that task, the coordinator first reconciles the last durable RunEvent and starts the uniquely required continuation Run, if any, before considering another `TODO` task. Exact continuation eligibility/atomicity is owned by [GW-DOC-CANONICAL-CONTRACTS §§17,23](../contracts/canonical-contracts.md).
 
 ## 5. Preflight
 
@@ -182,7 +182,7 @@ Purpose: independently prove or disprove semantic completion, architecture/gover
 
 Purpose: apply only one already-classified repairable failure to the exact triggering candidate under the existing signed task. A remediator is mutating but owns no new scope, requirement, architecture, contract or failure classification.
 
-A provider failure during a mutating builder/remediator Run abandons that execution workspace. Post-signoff replacement is governed only by the bounded operational-action policy in [GW-DOC-CANONICAL-CONTRACTS-V2 §21](../contracts/canonical-contracts.md), and every permitted replacement starts from a fresh isolated checkout. Pre-signoff read-only stage Runs may replace a lost provider session from canonical Order/repository state; post-signoff reviewer replacement is likewise bounded by [GW-DOC-CANONICAL-CONTRACTS-V2 §21](../contracts/canonical-contracts.md).
+A provider failure during a mutating builder/remediator Run abandons that execution workspace. Post-signoff replacement is governed only by the bounded operational-action policy in [GW-DOC-CANONICAL-CONTRACTS §21](../contracts/canonical-contracts.md), and every permitted replacement starts from a fresh isolated checkout. Pre-signoff read-only stage Runs may replace a lost provider session from canonical Order/repository state; post-signoff reviewer replacement is likewise bounded by [GW-DOC-CANONICAL-CONTRACTS §21](../contracts/canonical-contracts.md).
 
 ## 7. Mechanical verification
 
@@ -225,7 +225,7 @@ Large raw transcripts/logs are not canonical task state. v1 defines no automated
 
 ## 10. Semantic event/reaction path
 
-Execution effects are normalized into the semantic `RunEvent` contract owned by [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md), under the technical architecture in [GW-DOC-TECHNICAL-ARCHITECTURE-V2](technical-architecture.md).
+Execution effects are normalized into the semantic `RunEvent` contract owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md), under the technical architecture in [GW-DOC-TECHNICAL-ARCHITECTURE](technical-architecture.md).
 
 The functional core classifies each semantic event into the next allowed reaction: promotion, bounded remediation, operational retry, invalidation, upstream return, linked IDEA creation, or block.
 
