@@ -1,9 +1,10 @@
-name: Temporary P3 P4 visual checkpoint
+name: Temporary P3 P4 visual evidence capture
 
 on:
   push:
     branches:
       - version/0.5.0
+      - fix/0.5.0-structural-ui-recovery
 
 permissions:
   contents: read
@@ -13,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  visual:
+  capture:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
