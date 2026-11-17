@@ -240,7 +240,7 @@ No new dependency, package pin, database migration, persistent state table, tran
 |---|---|---|---|
 | P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure | **DONE — preserve** |
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure | **DONE — preserve; rerun regression gates after later UI work** |
-| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **BLOCKED — §6.5 structural UI/styling recovery prerequisite required before further reference-driven correction; C3 prior PASS invalid** |
+| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **REOPENED — §6.5 structural recovery PASS; C3 prior PASS remains invalid; reference-by-reference adjudication still required** |
 | P4 | Work request through Readiness | C4 pre-signoff visual conformance | **PARTIAL — major UI/reference work outstanding; C4 prior PASS invalid; phase reopened** |
 | P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **PARTIAL — major UI/reference work outstanding; C5 prior PASS invalid; phase reopened** |
 | P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **LARGELY NOT DONE — C6 prior PASS invalid; phase reopened** |
@@ -351,7 +351,7 @@ At this audit state:
 
 - **P1: DONE**
 - **P2: DONE / preserve**
-- **P3: BLOCKED on §6.5 structural UI/styling recovery; C3 invalid**
+- **P3: REOPENED; §6.5 structural UI/styling recovery PASS; C3 remains invalid/unestablished**
 - **P4: PARTIAL; C4 invalid**
 - **P5: PARTIAL; C5 invalid**
 - **P6: LARGELY NOT DONE; C6 invalid**
@@ -362,7 +362,20 @@ This status remains in force until later repository evidence closes the correspo
 
 ### 6.5 Mandatory structural UI/styling recovery prerequisite — blocking
 
-**Status:** REQUIRED BEFORE ANY FURTHER REFERENCE-DRIVEN P3-P6 VISUAL CORRECTION.
+**Status:** PASS — structural recovery completed on the 0.5.0 remediation branch; this unblocks reference-by-reference P3/C3 work but does **not** establish C3, C4 or later visual conformance.
+
+**Recovery evidence (2026-11-17):**
+
+- canonical renderer/primitive ownership was restored, including Evidence on `WorkbenchSurface` with the pinned Astryx `CodeBlock` leaf and Markdown document headers on `WorkbenchSectionHeader`;
+- feature-owned primitive chrome and screenshot-tuned raw geometry were removed rather than retained through aliases;
+- the editor Technical-details `Collapsible` was removed from the command-toolbar `HStack` after browser certification proved the expanded inline disclosure made its own trigger non-actionable; the disclosure now owns a separate secondary document-detail row, preserving Astryx/Workbench component semantics without a CSS click workaround or timeout increase;
+- permanent `tests/certification.test.ts` fitness now enforces the five-section theme owner, stylesheet exclusivity, primitive/specialist selector separation, public-token/raw-value containment, required renderer→primitive composition, editor grid containment and the Technical-details/toolbar composition boundary;
+- exact dependency pins were preserved; no framework, stylesheet, UI package or visual-diff dependency was introduced;
+- permanent PR Verification run `44007844131` passed dependency-lock, typecheck, architecture, test, build, release packaging and the complete Playwright browser suite on implementation commit `ff4231ebda774556076d24fda807e1f5eb6ddcb0`;
+- visual evidence-capture run `44007836348` passed on the same implementation state, and remains explicitly capture-only rather than a C3/C4 verdict;
+- temporary structural-recovery verification/evidence workflows were removed immediately after the required evidence was obtained.
+
+The SR-1 owner-classification rule remains binding for every later reference correction. Structural recovery is not permission to resume screen-local patching.
 
 This is not a new lifecycle phase, a new visual system or a new design exercise. It is a blocking implementation prerequisite inside the already-reopened P3 work. Its purpose is to restore the candidate to the P4 architecture that is already binding before additional reference matching continues.
 
