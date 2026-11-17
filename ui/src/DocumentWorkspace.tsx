@@ -485,6 +485,23 @@ export const LifecycleDocumentMaterial = ({
           toolbarAccessory={
             artifactReadOnly ? undefined : <DocumentationControls dirty={dirty} state={git} mutationsDisabled={mutationsDisabled} />
           }
+          viewAside={
+            selectedArtifact.role === "R2" ? (
+              <dl className="order-lifecycle-authority-summary">
+                <div>
+                  <dt>Status</dt>
+                  <dd><WorkbenchStatus tone="success" label={artifactReadOnly ? "Reviewed governed material" : "Current governed material"} /></dd>
+                </div>
+                <div>
+                  <dt>Authority</dt>
+                  <dd>
+                    <span>{selectedArtifact.repositoryPath}</span>
+                    <code>{selectedArtifact.authorityLayer ?? "Lifecycle authority"}</code>
+                  </dd>
+                </div>
+              </dl>
+            ) : undefined
+          }
           technicalDetails={
             <DocumentationTechnicalDetails
               selectedRepositoryPath={selectedArtifact.repositoryPath}
