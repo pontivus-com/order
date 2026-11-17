@@ -57,6 +57,7 @@ export const PreSignoffStageWorkspace = ({
   workItem,
   stage,
   runs,
+  runEvents,
   artifacts,
   material,
   materialState,
@@ -80,6 +81,7 @@ export const PreSignoffStageWorkspace = ({
   workItem: WorkItem;
   stage: SharedPreSignoffStage;
   runs: readonly Run[];
+  runEvents: readonly RunEvent[];
   artifacts: readonly ArtifactRef[];
   material: WorkflowMaterial;
   materialState: MaterialPresentationState | null;
@@ -201,6 +203,7 @@ export const PreSignoffStageWorkspace = ({
           <StageRunMaterial
             stage={stage}
             runs={runs}
+            runEvents={runEvents}
             selectedRunId={material.runId}
             currentRunId={workItem.stage === stage ? currentRunId : null}
             currentInteraction={workItem.stage === stage ? currentInteraction : null}
