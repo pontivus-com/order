@@ -55,8 +55,9 @@ export const EvidenceViewer = ({
       ) : query.isError ? (
         <WorkbenchState kind="error" title="Evidence could not be read" description={query.error instanceof Error ? query.error.message : String(query.error)} />
       ) : (
-        <div data-testid="raw-content-view">
+        <div className="order-evidence-raw-content" data-testid="raw-content-view">
           <CodeBlock
+            className="order-evidence-code-block"
             code={decodeBytes(query.data)}
             language="plaintext"
             isWrapped
