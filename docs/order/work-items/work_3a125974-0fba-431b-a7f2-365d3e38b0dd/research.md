@@ -35,3 +35,12 @@ The repository has no independent reviewer/second worker. Therefore absence of a
 ## Verdict
 
 CONFIRMED. The defect is upstream governance enforcement, not merely a Workbench implementation mismatch.
+
+
+## Downstream validation finding — v2 R1 template authority pin
+
+The 0.6.0 concern investigation found one remaining productive authority-lineage defect after the original Phase 0 closure. New `change-v2` and `defect-v2` WorkItems were still routed to the historical `change-r1-v1` / `defect-r1-v1` stage templates. Those templates are injected verbatim into productive STAGE prompts as the “Canonical stage template” and cite `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+
+This is not merely documentation prose: it causes current v2 delivery Research to receive a historical lifecycle-context authority pin alongside the current resolved authority set. The R1 evidence section shape itself remains valid and unchanged.
+
+Remediation: retain the historical v1 R1 templates unchanged for v1-pinned WorkItems; introduce v2 R1 template pins with the same evidence structure but `GW-DOC-LIFECYCLE-CONTEXT-V2`; route only `change-v2` / `defect-v2` to those current templates and permanently test the separation.
