@@ -14,6 +14,10 @@ R2 template/prompt → WorkItem Requirements → Solution design → PLAN → te
 
 The reduced local requirements became the carrier consumed by downstream stages, while omitted permanent obligations ceased to be visible in the downstream proof chain.
 
+## Additional confirmed current-state drift
+
+The six current semantic owners were advanced to V2, but their V1 identifiers remained pinned in current AGENTS.md and multiple live governing documents. Because each V1 identifier resolves to an intentionally retained immutable 0.5.0 source, those pins select superseded governance rather than current rules. The missing permanent documentation topology check allowed this. Classify these live references as stale and repoint them to V2; preserve historical .v1.md sources byte-identically.
+
 ## Downstream effects/invariants
 
 Downstream implementation and tests could be internally consistent with an incomplete local specification. Green tests therefore did not prove fidelity to the complete canonical P3 authority set.
