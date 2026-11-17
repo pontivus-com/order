@@ -382,6 +382,8 @@ export const SignoffReview = ({
         <ReadOnlyLifecycleDocumentMaterial
           workItem={workItem}
           artifactId={selectedArtifact.id}
+          historicalArtifact={packageStale ? selectedArtifact : undefined}
+          embeddedReadOnly={packageStale}
           onOpenArtifactEvidence={onOpenArtifactEvidence}
           onContextDocumentChange={onContextDocumentChange}
         />
