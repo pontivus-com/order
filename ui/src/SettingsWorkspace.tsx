@@ -89,9 +89,11 @@ const SettingsNavigation = ({
 const RepositorySettings = ({
   queueProjectId,
   onQueueProjectChange,
+  installationReady,
 }: Readonly<{
   queueProjectId: string;
   onQueueProjectChange: (projectId: string) => void;
+  installationReady: boolean;
 }>) => {
   const queryClient = useQueryClient();
   const [repositoryRoot, setRepositoryRoot] = useState("");
@@ -231,6 +233,7 @@ const RepositorySettings = ({
   return (
     <section className="order-settings-section" data-testid="settings-repositories">
       <WorkbenchSectionHeader title="Repositories" description="Target repositories own WorkItems and their governed Markdown. STAGE reference roots are read-only context." />
+      {installationReady ? <WorkbenchNotice tone="success" title="Ready for productive work" /> : null}
       {repositoriesQuery.isPending ? <WorkbenchState kind="loading" title="Checking repositories…" /> : null}
       {repositoriesQuery.error ? <WorkbenchNotice tone="danger" title="Repositories unavailable" description={errorText(repositoriesQuery.error)} /> : null}
       {repositories.length === 0 && !repositoriesQuery.isPending ? (
@@ -396,12 +399,14 @@ export const SettingsWorkspace = ({
         </span>
       }
     />
-  ) : (
-    <WorkbenchNotice tone="success" title="Ready for productive work" />
-  );
+  ) : null;
 
   const content = section === "repositories" ? (
-    <RepositorySettings queueProjectId={queueProjectId} onQueueProjectChange={onQueueProjectChange} />
+    <RepositorySettings
+      queueProjectId={queueProjectId}
+      onQueueProjectChange={onQueueProjectChange}
+      installationReady={readinessQuery.data?.ready === true}
+    />
   ) : section === "opencode" ? (
     <OpenCodeAccountSettings />
   ) : (
