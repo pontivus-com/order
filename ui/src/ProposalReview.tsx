@@ -9,7 +9,7 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
-import { proposalDispositionFor, workflowPresentation, type ProposalSelection } from "./workbench-presentation.ts";
+import { lifecycleArtifactLabel, proposalDispositionFor, type ProposalSelection } from "./workbench-presentation.ts";
 
 export const ProposalReview = ({
   workItem,
@@ -75,7 +75,7 @@ export const ProposalReview = ({
         summary={<div><h2>Artifact proposal review</h2></div>}
         body={<>
           <dl className="order-proposal-summary">
-            <div><dt>Target document</dt><dd>{workflowPresentation(proposalPayload.role).label} document</dd></div>
+            <div><dt>Target document</dt><dd>{lifecycleArtifactLabel(proposalPayload.role)} document</dd></div>
             <div><dt>Rationale</dt><dd>{proposalPayload.rationale}</dd></div>
           </dl>
           <section data-testid="proposal-review-diff">
