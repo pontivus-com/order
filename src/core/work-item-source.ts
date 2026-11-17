@@ -514,6 +514,7 @@ const validateAuthorityDispositionLedger = (markdown: string): void => {
     )
     .filter((cells) =>
       cells.length >= 3 &&
+      cells.some((cell) => cell.length > 0) &&
       cells[0] !== "Requirement" &&
       !/^[-:]+$/.test(cells[0] ?? "")
     );
