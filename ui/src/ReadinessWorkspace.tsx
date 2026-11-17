@@ -125,7 +125,7 @@ export const ReadinessWorkspace = ({
     })),
   ];
 
-  const selector = selectorItems.length > 0
+  const selector = selectorItems.length > 1
     ? <WorkflowMaterialSelector
         groups={[{ id: "readiness", label: "Readiness material", items: selectorItems }]}
         label="Readiness material"
