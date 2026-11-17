@@ -27,7 +27,7 @@ No new lifecycle stage, Run role, persisted conformance model, DTO family, dupli
 ## Acceptance proving the original defect
 
 1. A provider completion with artifactRefIds: [] records CONFORMANCE_FAILED and cannot advance lifecycle state.
-2. Change/Defect ordinary creation and linked remediation select the current v2 authoring defaults while existing v1 WorkItems still resolve their pinned kind/template semantics.
+2. Change/Defect ordinary creation and linked remediation select the current v2 authoring defaults while existing v1 WorkItems still resolve their pinned kind/template semantics. Current v2 R1 templates preserve the established R1 evidence structure but must bind the current lifecycle-context V2 authority; historical v1 R1 templates remain independently resolvable only for v1-pinned WorkItems.
 3. v2 R2 stage documents must include the functional authority disposition ledger and the rest of their kind-specific required structure before promotion.
 4. R3 v2 requires authority topology, traceability, lifecycle completeness and open-decision review.
 5. The permanent architecture sensor requires the functional-core conformance owner.
