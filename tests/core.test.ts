@@ -95,6 +95,7 @@ import {
   executionResumeIsAllowed,
   executionTaskIsEligible,
   materializeExecutionTasks,
+  parseSignedTaskBlockFromPlan,
   providerEventIsAdmitted,
   semanticRepairIsAllowed,
 } from "../src/core/execution.ts";
@@ -515,6 +516,30 @@ describe("signed task and manifest contracts", () => {
         tasks: [{ ...task, changeSurface: ["nested/AGENTS.md.bak"] }],
       }).success,
     ).toBe(true);
+  });
+
+  it("parses exactly one canonical order-tasks block from PLAN bytes", () => {
+    const encoder = new TextEncoder();
+    const valid = [
+      "# Plan",
+      "",
+      "```order-tasks",
+      JSON.stringify({ version: 1, tasks: [task] }),
+      "```",
+      "",
+    ].join("\n");
+    expect(parseSignedTaskBlockFromPlan(encoder.encode(valid))).toEqual({
+      version: 1,
+      tasks: [task],
+    });
+    expect(() =>
+      parseSignedTaskBlockFromPlan(encoder.encode("# Plan\n"))
+    ).toThrow(/exactly one order-tasks block/);
+    expect(() =>
+      parseSignedTaskBlockFromPlan(
+        encoder.encode(valid + "\n" + valid),
+      )
+    ).toThrow(/exactly one order-tasks block/);
   });
 
   it("rejects duplicate, non-local and cyclic task dependencies", () => {
