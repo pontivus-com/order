@@ -1356,7 +1356,7 @@ describe("architecture fitness", () => {
     for (const sourcePath of activeDocumentationFiles.filter(
       (path) => !retainedSemanticVersionPath(path)
     )) {
-      for (const [index, line] of sourceText(sourcePath).split(/\\r?\\n/).entries()) {
+      for (const [index, line] of sourceText(sourcePath).split(/\r?\n/).entries()) {
         for (const historicalId of supersededVersionIds) {
           if (line.includes(historicalId)) {
             violations.push(
