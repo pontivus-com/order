@@ -319,19 +319,15 @@ export const SourceDocumentMaterial = ({
         }}
         onSave={async (expectedSha256, value) => {
           try {
-            const result = await api.saveWorkItemSourceBody(workItem.id, {
+            return await api.saveWorkItemSourceBody(workItem.id, {
               expectedSha256,
               bodyMarkdown: value,
             });
-            if (result.tag === "UPDATED") {
-              await invalidateWorkbenchMutation(queryClient, workItem.id);
-            }
-            return result;
           } catch (error) {
             onMutationError?.(error);
             throw error;
           } finally {
-            await git.invalidateDocumentation();
+            await invalidateWorkbenchMutation(queryClient, workItem.id);
           }
         }}
         toolbarAccessory={
@@ -479,19 +475,15 @@ export const LifecycleDocumentMaterial = ({
           }}
           onSave={async (expectedSha256, value) => {
             try {
-              const result = await api.saveArtifactContent(selectedArtifact.id, {
+              return await api.saveArtifactContent(selectedArtifact.id, {
                 expectedSha256,
                 markdown: value,
               });
-              if (result.tag === "UPDATED") {
-                await invalidateWorkbenchMutation(queryClient, workItem.id);
-              }
-              return result;
             } catch (error) {
               onMutationError?.(error);
               throw error;
             } finally {
-              await git.invalidateDocumentation();
+              await invalidateWorkbenchMutation(queryClient, workItem.id);
             }
           }}
           toolbarAccessory={
