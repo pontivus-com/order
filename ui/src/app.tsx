@@ -503,7 +503,7 @@ export const App = () => {
       {queueControls}
       {readinessQuery.data && !readinessQuery.data.ready ? (
         <section className="order-installation-readiness" data-testid="installation-readiness">
-          <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue is not presented as mysteriously empty." />
+          <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue never appears mysteriously empty." />
           <div className="order-installation-readiness-blockers">
             {readinessQuery.data.blockers.map((blocker) => {
               const section = settingsDestinationForReadinessBlocker(blocker);
