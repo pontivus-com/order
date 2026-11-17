@@ -77,7 +77,7 @@ Every non-release PR must:
 6. declare the intended release train/version when one is already established;
 7. list verification performed;
 8. pass the repository's required PR status checks before merge.
-9. receive at least one approving review from a reviewer other than the change author before merge; for changes that modify P1-P6 authority, lifecycle package semantics, release certification or implementation governed by those changes, the review must explicitly cover authority ownership/traceability and lifecycle-evidence completeness rather than code correctness alone.
+9. preserve the PR as the durable review/audit boundary and resolve any material review discussion before merge. Order does not require a second human reviewer when no independent reviewer exists; merge readiness is established by the exact current candidate, required verification evidence, traceable governing authority and explicit operator decision.
 
 For Order while `MAJOR = 0`:
 
@@ -246,10 +246,9 @@ It validates at minimum:
 - changelog updated;
 - release-impact metadata present/valid;
 - no forbidden version/tag mutation in ordinary work PRs;
-- all required Order verification gates;
-- after the technical/browser gates pass, at least one independent `APPROVED` review whose review commit equals the exact current PR head SHA.
+- all required Order verification gates against the exact current PR merge candidate.
 
-The same verification workflow is triggered again when a review is submitted or dismissed. An approval for an earlier head cannot satisfy the current-head review gate after a material push.
+A submitted review may provide additional evidence, but review presence or reviewer identity is not a required status gate. A material push invalidates earlier verification evidence because the workflow reruns against the new exact candidate.
 
 ### Release verification/publication
 
@@ -282,7 +281,7 @@ They are distinct from the permanent `.github/workflows/ci.yml` and `.github/wor
 - their historical branch commits/evidence may remain as PR provenance;
 - the final merge candidate must contain only permanent workflows explicitly authorized by canonical architecture/P7.
 
-Using temporary Actions does not permit direct commits to `master`, bypass required PR review/status checks, or publish a release outside the governed release workflow.
+Using temporary Actions does not permit direct commits to `master`, bypass the required PR/status-check boundary, or publish a release outside the governed release workflow.
 
 ## 11. Repository protection
 
@@ -291,11 +290,9 @@ The public repository should maintain active GitHub rulesets for:
 ### `master`
 
 - require a pull request before merge;
-- require at least one approving review from a reviewer other than the change author;
-- dismiss or stale approvals after material new commits so approval applies to the current candidate;
-- require the canonical PR verification status;
+- require the canonical PR verification status for the exact current candidate;
+- require conversation resolution where review/discussion exists;
 - require branch to be current with the target before merge where practical;
-- require conversation resolution;
 - disallow force pushes;
 - disallow deletion;
 - preserve linear/squash-merge delivery.
