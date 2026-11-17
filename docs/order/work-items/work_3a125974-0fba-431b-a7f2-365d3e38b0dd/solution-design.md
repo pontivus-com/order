@@ -9,7 +9,7 @@ The producer boundary is the pre-signoff authoring/conformance path: schema/temp
 - GW-FR-096 → Change/Defect v2 templates plus one canonical schema catalog with explicit current-authoring defaults.
 - GW-FR-097 → pure evaluateStageConformance plus exact path/hash/structure revalidation before coordinator-owned CONFORMANCE_PASSED.
 - GW-FR-098 → strengthened v2 R3 template and explicit R3 conformance questions.
-- Repository-delivery review rule → P1 governance plus protected-branch administrative follow-up.
+- Repository-delivery review rule → P1 governance plus an exact-current-head CI review gate; protected-branch configuration remains an administrative defense-in-depth follow-up.
 
 ## Correction at the canonical owner
 
@@ -21,7 +21,7 @@ RunEvent remains the conformance persistence carrier; ArtifactRef/dependency edg
 
 ## Minimum root-cause remediation
 
-No new service, class, DTO, state store, lifecycle role or persistence table. Add only the missing policy/data/functions and focused tests.
+No new service, class, DTO, state store, lifecycle role or persistence table. Add only the missing policy/data/functions and focused tests. Reuse the existing PR verification workflow and add one repository script that reads GitHub's canonical review records; do not create a second release path.
 
 ## Failure behavior
 
