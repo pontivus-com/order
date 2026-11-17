@@ -10,9 +10,9 @@ These rules apply to all work in this repository. This file owns agent operating
 Before changing Order design or implementation:
 
 1. resolve and read `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`;
-2. resolve and read `GW-DOC-LIFECYCLE-CONTEXT-V1`;
-3. for implementation/integration work, resolve and read `GW-DOC-TECHNICAL-ARCHITECTURE-V1`;
-4. for data, persistence, transport, manifest or task-contract work, resolve and read `GW-DOC-CANONICAL-CONTRACTS-V1`;
+2. resolve and read `GW-DOC-LIFECYCLE-CONTEXT-V2`;
+3. for implementation/integration work, resolve and read `GW-DOC-TECHNICAL-ARCHITECTURE-V2`;
+4. for data, persistence, transport, manifest or task-contract work, resolve and read `GW-DOC-CANONICAL-CONTRACTS-V2`;
 5. before any external dependency/integration/version claim or change, resolve and read `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` plus `GW-DOC-OPENCODE-INTEGRATION-V1` when OpenCode semantics apply;
 6. when work is executed under a current signed P7 task, resolve that task's authority references and do not exceed its semantic scope;
 7. treat implementation and tests as evidence below those authorities.
@@ -32,13 +32,13 @@ For every governed concern:
 - local documents may state only their own consequence, dependency, evidence, or integration obligation and cite the owner identifier;
 - never create a shadow specification for convenience;
 - give Order-owned permanent documentation semantic directory/file names and preserve canonical identifiers across path moves; do not introduce ordinal-prefix filenames as an authority-order mechanism;
-- keep change-specific Research / Requirements / Solution design / Implementation plan / Readiness artifacts in the repository-native WorkItem document set governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` rather than adding release-specific numbered plans to the permanent design set;
+- keep change-specific Research / Requirements / Solution design / Implementation plan / Readiness artifacts in the repository-native WorkItem document set governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2` rather than adding release-specific numbered plans to the permanent design set;
 - use Git history, merged pull requests, releases and `CHANGELOG.md` as completed implementation provenance; do not retain superseded/completed copies in the live canonical documentation tree unless an older semantic version must remain independently selectable under `GW-P1-DOC-CANONICALITY`.
 
 
 ## Public repository pull-request delivery
 
-Public repository delivery is governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+Public repository delivery is governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`.
 
 Operational consequences for agents:
 
@@ -57,7 +57,7 @@ Short-lived branch prefixes are limited to the canonical public-delivery set (`f
 
 ## Continuous conformance and decision boundaries
 
-All lifecycle context selection, conformance and promotion behavior is owned by `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+All lifecycle context selection, conformance and promotion behavior is owned by `GW-DOC-LIFECYCLE-CONTEXT-V2`.
 
 An agent may decide only what its current lifecycle stage owns. Do not invent missing product intent, let a lower layer redesign a higher one, broaden implementation scope, alter canonical contracts during implementation, or let a reviewer silently repair the work it judges.
 
@@ -65,7 +65,7 @@ Runtime prompts, summaries, prior model output, generated context projections an
 
 ## Implementation architecture
 
-Implementation must conform to the resolved `GW-P1-*` rules owned by `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, the concrete v1 architecture owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, and minimum-change policy owned by `GW-DOC-MINIMUM-CHANGE-V1`.
+Implementation must conform to the resolved `GW-P1-*` rules owned by `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, the current technical architecture owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V2`, and minimum-change policy owned by `GW-DOC-MINIMUM-CHANGE-V1`.
 
 Operational consequences for agents:
 
@@ -99,6 +99,6 @@ Under public PR delivery, this exception remains valid **inside the current shor
 
 ## Current repository phase
 
-The materialized v1 module ownership/dependency graph is owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V1` §7 and enforced by `tests/architecture.test.ts`.
+The materialized v1 module ownership/dependency graph remains governed by the current `GW-DOC-TECHNICAL-ARCHITECTURE-V2` §7 and enforced by `tests/architecture.test.ts`.
 
 Continuous implementation preserves that canonical architecture. The historical P7-14 initial implementation plan is provenance, not a standing gate on later maintenance.
