@@ -2659,7 +2659,7 @@ test("terminal investigation and audit results remain closed and linked remediat
 
   await expect(page.getByTestId("work-item-heading")).toHaveText("Remediate investigation finding");
   const child = await workItemForTitle(page, "Remediate investigation finding");
-  expect(child.schemaId).toBe("defect-v1");
+  expect(child.schemaId).toBe("defect-v2");
   expect(child.projectId).toBe(parent.projectId);
   expect(child.derivedFromWorkItemId).toBe(parent.id);
 
