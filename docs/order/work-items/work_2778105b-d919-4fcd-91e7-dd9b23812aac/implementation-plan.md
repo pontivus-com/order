@@ -2,7 +2,7 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** STRICT VISUAL CLOSURE PASS — P1/C1 and P2/C2 preserved PASS; C3-C7 freshly re-adjudicated PASS; publishable-tree permanent PR Verification must pass before canonical V2-V7
+**Status:** IMPLEMENTATION COMPLETE — P1-P7 / C1-C7 PASS; strict styling and 41-reference visual closure PASS; canonical V2-V7 may start after the documentation-only closure head passes permanent PR Verification
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
@@ -1101,6 +1101,20 @@ Because the checkpoint changed production presentation bytes, the prior C7 visua
 Fresh side-by-side adjudication of the complete 41-reference inventory remains **41/41 MATCH**. The changed surfaces were explicitly rechecked: System/Light/Dark semantics remain correct without `!important`; Dialogue composer geometry is unchanged under primitive-owned styling; Settings navigation/content/task containment remains reference-conformant after ownership relocation; and Create/linked-remediation task-panel geometry remains reference-conformant while Astryx owns viewport clamping. No `ALLOWED_RENDERING_VARIANCE` exception and no visual debt were introduced.
 
 The evidence commit contains temporary workflows by design, so its permanent PR Verification is not a publishable-candidate verdict. The closure commit removes all five temporary workflows while preserving these exact production/reference bytes. A successful permanent PR Verification on that publishable closure SHA remains the final P7 boundary before canonical V2-V7.
+
+### 6.14 Final publishable P7 certification — 2026-11-17
+
+**Status:** PASS for the publishable implementation/evidence closure. After §6.13 reproof, commit `8ba8bd58ddb9a7ca60849933a2842150f4601094` contained the final production/test/reference bytes, the governed evidence record and only the permanent repository workflows (`ci.yml`, `release.yml`).
+
+Permanent PR Verification run `44057029426` passed the complete mandatory union on that publishable closure:
+
+`dependency-lock → typecheck → architecture → 254/254 tests → build → release packaging → 37/37 browser` = **PASS**.
+
+This closes P7 and the implementation phase. P1-P7 / C1-C7 are complete; the strict 41-reference ledger remains 41/41 MATCH; no temporary workflow, private styling override, unresolved visual debt or known architecture fitness failure remains in the publishable implementation tree.
+
+The present status-record update changes only this implementation-plan document. It does not alter production, test, SVG reference or visual-evidence bytes. Repository delivery still requires the ordinary permanent PR Verification to be green on this documentation-only head before merge, but that final repository check does not reopen P7 visual adjudication unless it exposes a substantive failure.
+
+Canonical V2-V7 validation is now the next lifecycle activity and remains independent authority; this implementation record does not pre-approve those validation verdicts.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
