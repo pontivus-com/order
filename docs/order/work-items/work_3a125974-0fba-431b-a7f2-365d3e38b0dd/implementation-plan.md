@@ -3,7 +3,7 @@
 ## Root-cause remediation tasks/dependencies
 
 1. Amend P3/P1/P6 canonical owners with stable GW-FR-096/097/098 and exact-current-candidate repository verification semantics; retain the released V1 semantic sources byte-identically and advance the amended live owners to V2.
-2. Extend the single WorkItem schema catalog with immutable historical v1 pins and current Change/Defect v2 pins.
+2. Extend the single WorkItem schema catalog with immutable historical v1 pins and current Change/Defect v2 pins, including dedicated v2 R1 template pins that preserve the R1 evidence shape while binding current lifecycle-context V2 authority.
 3. Add authority-aware v2 R2/DESIGN/PLAN/R3 templates and structural validation at the schema owner.
 4. Restore pure functional-core stage conformance output admission.
 5. Wire coordinator stage promotion through that admission plus current-byte/template verification.

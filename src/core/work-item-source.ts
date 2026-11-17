@@ -158,6 +158,32 @@ const stageTemplates = Object.freeze({
       "Verdict",
     ],
   ),
+  "change-r1-v2": renderTemplate(
+    "change-r1-v2",
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V2"],
+    [
+      "Current state/absence",
+      "Evidence",
+      "Governing authority",
+      "Affected producer→consumer path",
+      "Downstream invariants",
+      "Unresolved facts",
+      "Verdict",
+    ],
+  ),
+  "defect-r1-v2": renderTemplate(
+    "defect-r1-v2",
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V2"],
+    [
+      "Observed symptom/reproduction",
+      "Proven root cause",
+      "Producer→carrier→consumer path",
+      "Downstream effects/invariants",
+      "Governing authority",
+      "Unresolved facts",
+      "Verdict",
+    ],
+  ),
   "investigation-r1-v1": renderTemplate(
     "investigation-r1-v1",
     ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V1"],
@@ -318,11 +344,13 @@ const stageTemplateIdFor = (
   if (stage === "R1") {
     switch (schemaId) {
       case "change-v1":
-      case "change-v2":
         return "change-r1-v1";
+      case "change-v2":
+        return "change-r1-v2";
       case "defect-v1":
-      case "defect-v2":
         return "defect-r1-v1";
+      case "defect-v2":
+        return "defect-r1-v2";
       case "investigation-v1": return "investigation-r1-v1";
       case "audit-v1": return "audit-r1-v1";
     }
