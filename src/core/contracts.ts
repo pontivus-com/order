@@ -336,6 +336,8 @@ export const WorkItemKindSchema = z.enum([
 export const WorkItemSchemaIdSchema = z.enum([
   "change-v1",
   "defect-v1",
+  "change-v2",
+  "defect-v2",
   "investigation-v1",
   "audit-v1",
 ]);
@@ -484,6 +486,7 @@ export const CreateWorkItemSourceSchema = z.strictObject({
 export const WorkItemSchemaCatalogEntrySchema = z.strictObject({
   schemaId: WorkItemSchemaIdSchema,
   kind: WorkItemKindSchema,
+  authoringDefault: z.boolean(),
 });
 
 export const WorkItemSourceDiagnosticCodeSchema = z.enum([
