@@ -9,11 +9,11 @@ The productive lifecycle permits a change-local R2 document to become a shadow P
 | Requirement | Disposition | Canonical owner |
 |---|---|---|
 | One canonical document owner per concern | REFERENCE | GW-P1-DOC-CANONICALITY |
-| Versioned immutable WorkItem authoring semantics | DELTA | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1 |
-| Continuous pre-signoff conformance | DELTA | GW-DOC-LIFECYCLE-CONTEXT-V1 |
-| Readiness package authority/traceability review | DELTA | GW-DOC-SPECIFICATION-STANDARD-V1 |
-| Independent public-repository review before merge | DELTA | GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1 |
-| Coordinator-owned conformance output binding | DELTA | GW-DOC-CANONICAL-CONTRACTS-V1 |
+| Versioned immutable WorkItem authoring semantics | DELTA | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2 |
+| Continuous pre-signoff conformance | DELTA | GW-DOC-LIFECYCLE-CONTEXT-V2 |
+| Readiness package authority/traceability review | DELTA | GW-DOC-SPECIFICATION-STANDARD-V2 |
+| Independent public-repository review before merge | DELTA | GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2 |
+| Coordinator-owned conformance output binding | DELTA | GW-DOC-CANONICAL-CONTRACTS-V2 |
 
 ## Expected corrected behavior
 
