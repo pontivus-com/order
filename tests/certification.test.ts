@@ -455,6 +455,90 @@ describe("Order cross-boundary certification", () => {
     }
   });
 
+  it("keeps reference-driven presentation subordinate to Workbench and Astryx ownership", () => {
+    const evidence = read("ui/src/EvidenceViewer.tsx");
+    for (const required of [
+      'from "@astryxdesign/core/CodeBlock"',
+      "WorkbenchSurface",
+      "WorkbenchSectionHeader",
+      "WorkbenchState",
+      'testId="evidence-workspace"',
+      "<CodeBlock",
+    ]) {
+      expect(evidence).toContain(required);
+    }
+    for (const forbidden of [
+      "order-evidence-viewer",
+      "order-code-view",
+      "order-evidence-code-bytes",
+      "<pre",
+    ]) {
+      expect(evidence).not.toContain(forbidden);
+    }
+
+    const theme = read("ui/src/theme.css");
+    const sectionMarkers = [
+      "/* 1. Root public Astryx token bridge. Exact Order color literals live only here. */",
+      "/* 2. Order-only structural/readability roles. */",
+      "/* 3. Closed Workbench primitive presentation. */",
+      "/* 4. Specialist content and feature-semantic layout. */",
+      "/* 5. Canonical Workbench breakpoint overrides only. */",
+    ];
+    const sectionOffsets = sectionMarkers.map((value) => theme.indexOf(value));
+    expect(sectionOffsets.every((offset) => offset >= 0)).toBe(true);
+    expect(sectionOffsets).toEqual([...sectionOffsets].sort((left, right) => left - right));
+
+    const primitiveSection = theme.slice(sectionOffsets[2], sectionOffsets[3]);
+    const specialistSection = theme.slice(sectionOffsets[3], sectionOffsets[4]);
+    expect(primitiveSection).toContain(".order-settings-layout-constrained");
+    expect(specialistSection).not.toContain(".order-settings-layout-constrained");
+
+    for (const primitiveSelector of [
+      ".order-toolbar",
+      ".order-workbench-section-header",
+      ".order-workbench-surface",
+      ".order-workbench-review",
+      ".order-workbench-dialogue",
+      ".order-workbench-status",
+      ".order-workbench-notice",
+      ".order-workbench-timeline",
+      ".order-workbench-selector",
+    ]) {
+      expect(specialistSection).not.toContain(primitiveSelector);
+    }
+
+    for (const forbidden of [
+      ".order-evidence-viewer",
+      ".order-evidence-code-label",
+      ".order-code-view",
+      ".order-evidence-code-bytes",
+      "border-radius: 999px",
+      "border-radius: 50%",
+      "font-size: 0.75rem",
+      "min-height: 22rem",
+      "min-height: 28rem",
+      "min-height: 32rem",
+      "min-height: 36rem",
+    ]) {
+      expect(theme).not.toContain(forbidden);
+    }
+
+    const presentationCss = theme.slice(sectionOffsets[2]);
+    const rawLengths = [...presentationCss.matchAll(/\b\d+(?:\.\d+)?(?:px|rem)\b/g)]
+      .map((match) => match[0])
+      .filter((value) => !["1px", "799px", "1279px"].includes(value));
+    expect(rawLengths).toEqual([]);
+    expect(presentationCss).not.toMatch(/font-size:\s*\d/);
+    expect(presentationCss).not.toMatch(/border-radius:\s*(?:\d|50%|999)/);
+    expect(presentationCss).not.toContain("box-shadow:");
+
+    const cssFiles = readdirSync(join(root, "ui", "src"), { withFileTypes: true })
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".css"))
+      .map((entry) => entry.name)
+      .sort();
+    expect(cssFiles).toEqual(["styles.css", "theme.css"]);
+  });
+
   it("keeps browser state and transport on the canonical HTTP boundary", () => {
     const main = read("ui/src/main.tsx");
     expect(main).toContain("retry: false");
