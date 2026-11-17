@@ -33,6 +33,8 @@ No new lifecycle stage, Run role, persisted conformance model, DTO family, dupli
 6. Repository governance requires independent approval for merge.
 7. Canonical PR verification fails unless a non-author APPROVED review is bound to the exact current PR head SHA; a later commit makes the earlier approval insufficient.
 8. Each amended canonical concern has one stable ID resolving to its V2 current owner, a V2 identifier resolving to that same current source, and a V1 identifier resolving to a byte-identical retained 0.5.0 source.
+9. A v2 R2 `REFERENCE` or `DELTA` row whose canonical owner does not resolve through the current project `[refs]` map cannot promote.
+10. PLAN cannot promote unless its exact current bytes contain exactly one valid canonical `order-tasks` block.
 
 ## Regression/preservation acceptance
 
