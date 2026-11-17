@@ -104,6 +104,117 @@ describe("productive invocation failure origin", () => {
   });
 });
 
+describe("bounded agent activity persistence", () => {
+  it("caps, coalesces, and schema-validates persisted activity", () => {
+    const state = tempDir("order-daemon-agent-activity-");
+    const repository = createRepository();
+
+    const output = JSON.parse(execFileSync("bun", ["-e", `
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/daemon/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const shellRuntime = await import("./src/shell/runtime.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = rt.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const workItem = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "bounded activity",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, workItem.id);
+      const run = runStore.insertRun(runtime, {
+        id: shellRuntime.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: "sha256:" + "b".repeat(64),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: "2026-11-17T00:00:00.000Z",
+        endedAt: null,
+      });
+
+      const record = runStore.createAgentActivityRecorder(runtime, run.id);
+      record({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "Reading repository material",
+        resource: "docs/r1.md",
+      });
+      record({
+        tag: "AGENT_ACTIVITY_RECORDED",
+        category: "READING",
+        summary: "Reading repository material",
+        resource: "docs/r1.md",
+      });
+      for (let index = 0; index < 40; index += 1) {
+        record({
+          tag: "AGENT_ACTIVITY_RECORDED",
+          category: index % 2 === 0 ? "SEARCHING" : "RUNNING_CHECKS",
+          summary: "Bounded activity " + index,
+          resource: index % 2 === 0 ? "src/core/lifecycle.ts" : null,
+        });
+      }
+      let unsafeResourceRejected = false;
+      try {
+        record({
+          tag: "AGENT_ACTIVITY_RECORDED",
+          category: "READING",
+          summary: "Unsafe resource",
+          resource: "../secret.txt",
+        });
+      } catch {
+        unsafeResourceRejected = true;
+      }
+      const activities = runStore.listRunEvents(runtime, run.id)
+        .filter((event) => event.event.tag === "AGENT_ACTIVITY_RECORDED")
+        .map((event) => event.event);
+      console.log(JSON.stringify({
+        count: activities.length,
+        duplicateCount: activities.filter((event) =>
+          event.tag === "AGENT_ACTIVITY_RECORDED" &&
+          event.summary === "Reading repository material"
+        ).length,
+        unsafeResourceRejected,
+      }));
+      database.close();
+    `], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: "pipe",
+    })) as {
+      count: number;
+      duplicateCount: number;
+      unsafeResourceRejected: boolean;
+    };
+
+    expect(output.count).toBe(32);
+    expect(output.duplicateCount).toBe(1);
+    expect(output.unsafeResourceRejected).toBe(true);
+  });
+});
+
 describe("candidate changed-path instruction immutability", () => {
   it("rejects AGENTS.md through the production validator under the Bun runtime", () => {
     const script = `
