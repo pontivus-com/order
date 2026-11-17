@@ -1562,7 +1562,7 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
     page.getByTestId("workflow-rail")
       .getByRole("button", { name: "Research", exact: true }),
   ).toHaveAttribute("aria-current", "step");
-  await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
   await expect(page.getByTestId("activity-composer")).toHaveCount(0);
   await backToQueue(page);
 
@@ -1645,7 +1645,7 @@ test("successful workflow mutations reconcile to refreshed canonical state witho
   await retryResponse;
   await page.unroute(retryPattern);
   await expect(page.getByTestId("selected-run-header")).toContainText("Attempt 2");
-  await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
   await expect(page.getByTestId("activity-composer")).toHaveCount(0);
   await backToQueue(page);
 
