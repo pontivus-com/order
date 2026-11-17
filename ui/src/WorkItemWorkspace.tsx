@@ -1437,6 +1437,7 @@ export const WorkItemWorkspace = ({
             packageValue={signoffPackageQuery.data ?? null}
             packageFetching={signoffPackageQuery.isFetching}
             packageError={signoffPackageQuery.error}
+            packageStale={packageStaleOwner !== null}
             artifacts={artifacts}
             artifactsPending={artifactsQuery.isPending}
             artifactsError={artifactsQuery.error}
