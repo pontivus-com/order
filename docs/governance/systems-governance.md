@@ -153,7 +153,7 @@ The `GW-P1-*` identifiers are stable Order default-rule ids used by the project 
 - changing the semantic owner or meaning of a canonical concern is an upstream authority change. Renaming/moving a file without changing the concern keeps the stable identifier and updates its resolver;
 - the project authority/ref registry must reject duplicate concern/version identifiers and unresolved owner references.
 
-The Order canonical concern identifiers resolve through project-root `pontivus-order.toml [refs]`. The exact manifest mechanics remain owned by `GW-DOC-CANONICAL-CONTRACTS-V2`.
+The Order canonical concern identifiers resolve through project-root `pontivus-order.toml [refs]`. The exact manifest mechanics remain owned by `GW-DOC-CANONICAL-CONTRACTS`.
 
 ### Default object-model posture
 
@@ -447,15 +447,15 @@ Every adopted project needs a resolvable authority map that answers, for each la
 - which rules are mechanically enforceable;
 - which rules require semantic review.
 
-The v1 physical representation of this map is project-root `pontivus-order.toml`, whose exact P6 grammar is owned by [GW-DOC-CANONICAL-CONTRACTS-V2](../contracts/canonical-contracts.md). Mechanically checkable propositions of inherited/resolved P1 rules bind to project verification sensors through `governance.fitness`; override/extension gates are additive.
+The v1 physical representation of this map is project-root `pontivus-order.toml`, whose exact P6 grammar is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md). Mechanically checkable propositions of inherited/resolved P1 rules bind to project verification sensors through `governance.fitness`; override/extension gates are additive.
 
 The manifest references project authority; it does not duplicate the rule text. Order must not require projects to copy existing authoritative content merely to populate the map.
 
 ## 17. Continuous conformance and lifecycle context
 
-The pyramid is enforced continuously through [GW-DOC-LIFECYCLE-CONTEXT-V2](../requirements/lifecycle-context.md).
+The pyramid is enforced continuously through [GW-DOC-LIFECYCLE-CONTEXT](../requirements/lifecycle-context.md).
 
-Every agent stage receives the minimum sufficient projection of applicable higher authority, operates inside an explicit decision boundary, and must pass the conformance rule owned by [GW-DOC-LIFECYCLE-CONTEXT-V2](../requirements/lifecycle-context.md) before promotion.
+Every agent stage receives the minimum sufficient projection of applicable higher authority, operates inside an explicit decision boundary, and must pass the conformance rule owned by [GW-DOC-LIFECYCLE-CONTEXT](../requirements/lifecycle-context.md) before promotion.
 
 Validation therefore proceeds both top-down and bottom-up.
 
