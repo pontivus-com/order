@@ -670,9 +670,18 @@ export const WorkItemWorkspace = ({
         const documentState = selectedStageMaterialState === null
           ? ""
           : " · " + materialPresentationStateLabel(selectedStageMaterialState);
-        return runStatusLabel(selectedLatestStageRun.status) +
-          classification +
-          documentState;
+        const interactionState =
+          selectedStep === workItem.stage &&
+          selectedLatestStageRun.id === currentStageRun?.id
+            ? currentStageInteraction?.tag === "PROCESSING"
+              ? "Processing"
+              : currentStageInteraction?.tag === "OPEN"
+                ? "Open for continuation"
+                : currentStageInteraction?.tag === "REQUIRED_INPUT"
+                  ? "Waiting for you"
+                  : runStatusLabel(selectedLatestStageRun.status)
+            : runStatusLabel(selectedLatestStageRun.status);
+        return interactionState + classification + documentState;
       }
       if (selectedStageMaterialState !== null) {
         return materialPresentationStateLabel(selectedStageMaterialState);
