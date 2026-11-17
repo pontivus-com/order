@@ -114,7 +114,10 @@ jobs:
             const taskAction = page.getByRole("button", { name: /^Inspect signed task:/u }).first();
             await expect(taskAction).toBeVisible();
             await taskAction.click();
-            await expect(page.getByTestId("approval-task-detail")).toBeVisible();
+            const taskDetail = page.getByTestId("approval-task-detail");
+            await expect(taskDetail).toBeVisible();
+            await expect(taskDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+            await expect(page.getByRole("button", { name: "Task technical details", exact: true })).toBeVisible();
             await shot(page, "approval-task-detail.svg", "signed-task");
           });
 
@@ -125,6 +128,12 @@ jobs:
             await open(page, "Implementation action ready");
             await expect(page.getByTestId("execution-workspace")).toBeVisible({ timeout: 30000 });
             await expect(page.getByRole("button", { name: "Start current task", exact: true })).toBeVisible();
+            const readyDetail = page.getByTestId("execution-task-detail");
+            await expect(readyDetail.getByText("No persisted attempt events", { exact: true })).toBeVisible();
+            await expect(readyDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
+            await expect(readyDetail.getByText("Change surface", { exact: true })).toHaveCount(0);
+            await expect(readyDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+            await expect(page.getByRole("combobox", { name: "Approved tasks" })).toBeVisible();
             await shot(page, "implementation.svg", "ready");
             await shot(page, "implementation-states.svg", "ready-to-start");
 
@@ -150,8 +159,10 @@ jobs:
 
             await open(page, "Verified candidate");
             await step(page, "Implementation");
-            await expect(page.getByTestId("validation-matrix")).toBeVisible({ timeout: 30000 });
+            const validation = page.getByTestId("validation-matrix");
+            await expect(validation).toBeVisible({ timeout: 30000 });
             await expect(page.getByTestId("validation-stage-V7")).toContainText("Passed");
+            await expect(validation).toContainText("Recorded boundary: complete");
             await shot(page, "implementation-states.svg", "validation-recorded");
           });
 
