@@ -200,7 +200,7 @@ jobs:
             const processingItem = await itemFor(page, "Research processing attention visual");
             await fixture(page.context().request, "/start-stage", { workItemId: processingItem.id });
             await open(page, "Research processing attention visual");
-            await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+            await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
             await shot(page, "current-attention-states.svg", "08-processing");
 
             await open(page, "Requirements document visual");
@@ -251,7 +251,7 @@ jobs:
             const processingItem = await itemFor(page, "Research processing dialogue visual");
             await fixture(page.context().request, "/start-stage", { workItemId: processingItem.id });
             await open(page, "Research processing dialogue visual");
-            await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+            await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
             await expect(page.getByTestId("activity-composer")).toHaveCount(0);
             await shot(page, "dialogue-states.svg", "processing");
 
@@ -327,7 +327,7 @@ jobs:
             const activeItem = await itemFor(page, "Implementation plan document visual");
             await fixture(page.context().request, "/start-stage", { workItemId: activeItem.id });
             await page.reload();
-            await expect(page.getByTestId("selected-run-header")).toContainText("Running");
+            await expect(page.getByTestId("selected-run-header")).toContainText("Processing");
             await selectCurrentDocument(page, "Implementation plan document");
             await expect(page.getByTestId("markdown-document-readonly")).toBeVisible({ timeout: 30000 });
             await expect(page.getByRole("button", { name: "Edit", exact: true })).toHaveCount(0);
@@ -442,7 +442,7 @@ jobs:
             });
             await auth(page, request);
 
-            await open(page, "Implementation plan document visual");
+            await open(page, "Implementation plan safety visual");
             const editor = await edit(page, "Implementation plan document Markdown source");
             await editor.click();
             await editor.press("Control+End");
@@ -459,7 +459,7 @@ jobs:
             await shot(page, "safety-confirmations.svg", "dirty-destination");
             await dialog.getByRole("button", { name: "Discard unsaved changes", exact: true }).click();
 
-            await open(page, "Implementation plan document visual");
+            await open(page, "Implementation plan safety visual");
             await page.getByRole("button", { name: "Archive", exact: true }).click();
             dialog = page.getByRole("alertdialog", { name: "Archive work item?" });
             await expect(dialog).toContainText("Archive this WorkItem from the active queue. Its source, lifecycle documents, Runs, evidence, approvals and history remain intact.");
