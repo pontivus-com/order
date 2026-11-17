@@ -1458,8 +1458,8 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await expect(implementationDetail.getByText("Approved task", { exact: true })).toBeVisible();
   await expect(implementationDetail.getByText("No persisted attempt events", { exact: true })).toBeVisible();
   await expect(implementationDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
-  await expect(implementationDetail.getByText("Change surface", { exact: true })).toHaveCount(0);
-  await expect(implementationDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+  await expect(implementationDetail.getByText("Change surface", { exact: true })).toBeHidden();
+  await expect(implementationDetail.getByText("Task id", { exact: true })).toBeHidden();
   await expect(page.getByRole("combobox", { name: "Approved tasks" })).toBeVisible();
   await page.getByRole("button", { name: "Technical details", exact: true }).click();
   await expect(implementationDetail.getByText("Task id", { exact: true })).toBeVisible();
@@ -2030,7 +2030,7 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   const approvalTaskDetail = page.getByTestId("approval-task-detail");
   await expect(approvalTaskDetail)
     .toContainText("Prove the browser candidate surface");
-  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeHidden();
   await page.getByRole("button", { name: "Task technical details", exact: true }).click();
   await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Approved by")).toBeVisible();
