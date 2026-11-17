@@ -1453,6 +1453,17 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await backToQueue(page);
 
   await openWorkItem(page, "Implementation action ready");
+  const implementationDetail = page.getByTestId("execution-task-detail");
+  await expect(implementationDetail).toBeVisible();
+  await expect(implementationDetail.getByText("Approved task", { exact: true })).toBeVisible();
+  await expect(implementationDetail.getByText("No persisted attempt events", { exact: true })).toBeVisible();
+  await expect(implementationDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
+  await expect(implementationDetail.getByText("Change surface", { exact: true })).toHaveCount(0);
+  await expect(implementationDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("combobox", { name: "Approved tasks" })).toBeVisible();
+  await page.getByRole("button", { name: "Technical details", exact: true }).click();
+  await expect(implementationDetail.getByText("Task id", { exact: true })).toBeVisible();
+  await expect(implementationDetail.getByText("Change surface", { exact: true })).toBeVisible();
   const implementationItem = await workItemForTitle(page, "Implementation action ready");
   const taskResponse = await page.context().request.get(
     "/api/work-items/" + implementationItem.id + "/tasks",
@@ -2016,8 +2027,12 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
     "Package material",
     "Inspect task: Prove the browser candidate surface",
   );
-  await expect(page.getByTestId("approval-task-detail"))
+  const approvalTaskDetail = page.getByTestId("approval-task-detail");
+  await expect(approvalTaskDetail)
     .toContainText("Prove the browser candidate surface");
+  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Task technical details", exact: true }).click();
+  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Approved by")).toBeVisible();
   await page.getByLabel("Approved by").fill("browser-approver");
 
@@ -2398,6 +2413,8 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
   await expect(page.locator("textarea")).toHaveCount(0);
 
   const validation = page.getByTestId("validation-matrix");
+  await expect(validation).toContainText("Recorded boundary: complete");
+  await expect(validation).not.toContainText("Current boundary: none");
   for (const stage of ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"]) {
     await expect(
       validation.getByTestId("validation-stage-" + stage),
