@@ -340,7 +340,7 @@ const ModelRuntimeSettings = () => {
       />
       <section className="order-settings-supporting-info">
         <h3>Model list source</h3>
-        <p><code>GET /api/settings/models</code> → <code>OpenCodeModelRef[]</code>; unavailable or invalid configured values surface as explicit readiness attention.</p>
+        <p><code>GET /api/settings/models</code> → <code>OpenCodeModelRef[]</code>; unavailable or invalid configured values surface with explicit readiness attention.</p>
       </section>
       {updateModel.error ? (
         <WorkbenchNotice tone="danger" title="Model update failed" description={errorText(updateModel.error)} />
