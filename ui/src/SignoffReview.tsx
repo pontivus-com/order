@@ -277,7 +277,13 @@ export const SignoffReview = ({
         <div className="order-resource-list">
           <WorkbenchResourceRow
             label="Approval overview"
-            detail={currentApproval ? "Exact current package and authorization" : "Reached Approval history"}
+            detail={
+              packageStale
+                ? "Stale package history and recovery context"
+                : currentApproval
+                  ? "Exact current package and authorization"
+                  : "Reached Approval history"
+            }
             actionLabel="Open approval overview"
             onOpen={() => setSelection({ kind: "OVERVIEW" })}
           />
@@ -312,9 +318,11 @@ export const SignoffReview = ({
       return (
         <WorkbenchEmptyState
           compact
-          title={currentApproval
-            ? "Resolving exact package…"
-            : "Loading approved package history…"}
+          title={packageStale
+            ? "Loading historical package material…"
+            : currentApproval
+              ? "Resolving exact package…"
+              : "Loading approved package history…"}
         />
       );
     }
