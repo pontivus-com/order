@@ -30,8 +30,10 @@ export const workItemSchemaCatalog: readonly WorkItemSchemaCatalogEntry[] = Obje
   WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "defect-v1", kind: "DEFECT", authoringDefault: false }),
   WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "change-v2", kind: "CHANGE", authoringDefault: true }),
   WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "defect-v2", kind: "DEFECT", authoringDefault: true }),
-  WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "investigation-v1", kind: "INVESTIGATION", authoringDefault: true }),
-  WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "audit-v1", kind: "AUDIT", authoringDefault: true }),
+  WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "investigation-v1", kind: "INVESTIGATION", authoringDefault: false }),
+  WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "audit-v1", kind: "AUDIT", authoringDefault: false }),
+  WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "investigation-v2", kind: "INVESTIGATION", authoringDefault: true }),
+  WorkItemSchemaCatalogEntrySchema.parse({ schemaId: "audit-v2", kind: "AUDIT", authoringDefault: true }),
 ]);
 
 const catalogBySchema = new Map<WorkItemSchemaId, WorkItemSchemaCatalogEntry>(
@@ -129,6 +131,16 @@ const authoringTemplates: Readonly<Record<WorkItemSchemaId, string>> = Object.fr
     ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1", "GW-DOC-WORK-LIFECYCLE-V1"],
     ["Target under audit", "Governing authority/criteria", "Scope/exclusions", "Requested evidence/verdict"],
   ),
+  "investigation-v2": renderTemplate(
+    "investigation-intake-v2",
+    ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2", "GW-DOC-WORK-LIFECYCLE-V1"],
+    ["Question", "Why it matters", "Known evidence/context", "Investigation boundary"],
+  ),
+  "audit-v2": renderTemplate(
+    "audit-intake-v2",
+    ["GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2", "GW-DOC-WORK-LIFECYCLE-V1"],
+    ["Target under audit", "Governing authority/criteria", "Scope/exclusions", "Requested evidence/verdict"],
+  ),
 });
 
 const stageTemplates = Object.freeze({
@@ -192,6 +204,16 @@ const stageTemplates = Object.freeze({
   "audit-r1-v1": renderTemplate(
     "audit-r1-v1",
     ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V1"],
+    ["Target/criteria", "Evidence by criterion", "Findings", "Verdict"],
+  ),
+  "investigation-r1-v2": renderTemplate(
+    "investigation-r1-v2",
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V2"],
+    ["Question", "Evidence for/against", "Findings", "Unresolved questions", "Conclusion"],
+  ),
+  "audit-r1-v2": renderTemplate(
+    "audit-r1-v2",
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V2"],
     ["Target/criteria", "Evidence by criterion", "Findings", "Verdict"],
   ),
   "delivery-r2-v1": renderTemplate(
@@ -353,9 +375,16 @@ const stageTemplateIdFor = (
         return "defect-r1-v2";
       case "investigation-v1": return "investigation-r1-v1";
       case "audit-v1": return "audit-r1-v1";
+      case "investigation-v2": return "investigation-r1-v2";
+      case "audit-v2": return "audit-r1-v2";
     }
   }
-  if (schemaId === "investigation-v1" || schemaId === "audit-v1") return null;
+  if (
+    schemaId === "investigation-v1" ||
+    schemaId === "audit-v1" ||
+    schemaId === "investigation-v2" ||
+    schemaId === "audit-v2"
+  ) return null;
   if (schemaId === "change-v1" || schemaId === "defect-v1") {
     switch (stage) {
       case "R2": return "delivery-r2-v1";
@@ -387,6 +416,8 @@ const allowedR1: Readonly<Record<WorkItemSchemaId, readonly StageCompletion["out
   "defect-v2": ["CONFIRMED", "DISPROVEN", "DUPLICATE", "ALREADY_SATISFIED"],
   "investigation-v1": ["INVESTIGATION_COMPLETE", "DUPLICATE", "ALREADY_SATISFIED"],
   "audit-v1": ["AUDIT_COMPLETE", "DUPLICATE", "ALREADY_SATISFIED"],
+  "investigation-v2": ["INVESTIGATION_COMPLETE", "DUPLICATE", "ALREADY_SATISFIED"],
+  "audit-v2": ["AUDIT_COMPLETE", "DUPLICATE", "ALREADY_SATISFIED"],
 };
 
 export const workItemKindForSchema = (schemaId: WorkItemSchemaId): WorkItemKind => {
