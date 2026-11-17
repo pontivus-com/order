@@ -89,12 +89,16 @@ The exact front-matter grammar, identifier formats and persisted source projecti
 
 Order provides one canonical resolved authoring catalog. The UI, Markdown creator, source validator and agent-intake path consume that same catalog; none owns a parallel list.
 
-The v1 catalog contains one pinned schema family for each WorkItem kind:
+The built-in catalog resolves every published schema pin and identifies one ordinary-authoring default per WorkItem kind.
+
+The historical v1 pins remain:
 
 - `change-v1`;
 - `defect-v1`;
 - `investigation-v1`;
 - `audit-v1`.
+
+The current delivery defaults are `change-v2` and `defect-v2`; Investigation and Audit remain on their v1 schemas because this correction does not change their authored lifecycle semantics.
 
 A WorkItem pins its schema when created or first adopted. A later Order release may offer a newer default schema, but it must not silently reinterpret an existing WorkItem under the newer schema.
 
