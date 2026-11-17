@@ -1,8 +1,10 @@
-name: Temporary P3 P4 visual checkpoint
+name: Temporary P3 P4 visual evidence capture
+# Evidence generation only: a green run is not a C3/C4 conformance verdict.
 
 on:
   push:
     branches:
+      - fix/0.5.0-structural-ui-recovery
       - fix/0.5.0-structural-ui-recovery
 
 permissions:
@@ -13,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  visual:
+  capture:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -147,6 +149,9 @@ jobs:
             await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation plan");
             await shot(page, "workitem-shell-controls.svg", "wide");
 
+            await page.getByRole("radio", { name: "System" }).click();
+            await expect(page.locator(":root")).not.toHaveAttribute("data-theme");
+            await shot(page, "theme-parity.svg", "system");
             await page.getByRole("radio", { name: "Light" }).click();
             await expect(page.locator(":root")).toHaveAttribute("data-theme", "light");
             await shot(page, "theme-parity.svg", "light");
@@ -167,6 +172,19 @@ jobs:
             await expect(page.getByTestId("workflow-rail")).toBeVisible();
             await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
             await shot(page, "responsive-composition.svg", "narrow");
+
+            await open(page, "Implementation action ready");
+            await page.setViewportSize({ width: 1000, height: 800 });
+            await expect(page.getByTestId("execution-workspace")).toBeVisible();
+            await page.getByRole("button", { name: "Implementation work", exact: true }).click();
+            await expect(page.getByRole("button", { name: "Close Implementation work", exact: true })).toBeVisible();
+            await shot(page, "responsive-composition.svg", "implementation-medium-master-drawer");
+            await page.getByRole("button", { name: "Close Implementation work", exact: true }).click();
+
+            await page.setViewportSize({ width: 700, height: 800 });
+            await page.getByRole("button", { name: "Implementation work", exact: true }).click();
+            await expect(page.getByRole("button", { name: "Close Implementation work", exact: true })).toBeVisible();
+            await shot(page, "responsive-composition.svg", "implementation-narrow-master-drawer");
           });
 
           test("current attention states", async ({ page, request }) => {
@@ -424,7 +442,7 @@ jobs:
             await open(page, "Invalid lifecycle Markdown");
             await step(page, "Research");
             await page.getByRole("button", { name: "Inspect exact bytes", exact: true }).click();
-            await expect(page.getByTestId("evidence-workspace")).toBeVisible();
+            await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
             await shot(page, "evidence-viewer.svg", "exact-bytes");
           });
 
@@ -569,6 +587,9 @@ jobs:
           test -s c3-c4-evidence/actual/current-attention-states/01-mutation-conflict.png
           test -s c3-c4-evidence/actual/current-attention-states/11-historical-inspection.png
           test -s c3-c4-evidence/actual/work-type-variants/audit.png
+          test -s c3-c4-evidence/actual/theme-parity/system.png
+          test -s c3-c4-evidence/actual/responsive-composition/implementation-medium-master-drawer.png
+          test -s c3-c4-evidence/actual/responsive-composition/implementation-narrow-master-drawer.png
           test -s c3-c4-evidence/actual/safety-confirmations/remove-opencode-account.png
 
       - name: Upload visual evidence
