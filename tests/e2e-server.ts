@@ -317,6 +317,12 @@ if (build.exitCode !== 0) {
 const database = openOrderDatabase(stateRoot);
 const stamp = nowIsoDateTime();
 const encoder = new TextEncoder();
+const requirementsSha = sha256(
+  new Uint8Array(readFileSync(join(repositoryRoot, "docs", "r2.md"))),
+);
+const designSha = sha256(
+  new Uint8Array(readFileSync(join(repositoryRoot, "docs", "design.md"))),
+);
 const planSha = sha256(new Uint8Array(readFileSync(join(repositoryRoot, "docs", "plan.md"))));
 const historicalSelectionPlanSha = sha256(
   new Uint8Array(
@@ -1513,6 +1519,26 @@ persistEvent(failedReviewerRun.id, 2, {
 const candidateItem = workItem("Verified candidate", "COMPLETE", "COMPLETE", "CANDIDATE_DONE");
 storeWorkItem(database, candidateItem);
 const candidateArtifacts = storePlanArtifacts(candidateItem.id);
+const candidateRequirements = ArtifactRefSchema.parse({
+  id: newArtifactRefId(),
+  workItemId: candidateItem.id,
+  repositoryPath: "docs/r2.md",
+  role: "R2",
+  authorityLayer: "P7",
+  sha256: requirementsSha,
+  gitCommit: baselineCommit,
+});
+const candidateDesign = ArtifactRefSchema.parse({
+  id: newArtifactRefId(),
+  workItemId: candidateItem.id,
+  repositoryPath: "docs/design.md",
+  role: "DESIGN",
+  authorityLayer: "P7",
+  sha256: designSha,
+  gitCommit: baselineCommit,
+});
+storeArtifact(database, candidateRequirements);
+storeArtifact(database, candidateDesign);
 const approval = ApprovalSchema.parse({
   id: newApprovalId(),
   workItemId: candidateItem.id,
@@ -1615,6 +1641,12 @@ persistEvent(reviewerRun.id, 10, {
   tag: "CANDIDATE_RECORDED",
   candidateStateEventId: candidateState.id,
   validationEventIds,
+});
+persistEvent(reviewerRun.id, 11, {
+  tag: "AGENT_ACTIVITY_RECORDED",
+  category: "REVIEWING_RESULTS",
+  summary: "Reviewing candidate evidence",
+  resource: "src/a.ts",
 });
 
 const discoveredId = newWorkItemId();
