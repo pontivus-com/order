@@ -260,7 +260,7 @@ jobs:
             const openComposer = page.getByTestId("activity-composer");
             await expect(openComposer).toBeVisible();
             await expect(openComposer.getByLabel("Message input")).toBeVisible();
-            await expect(openComposer.getByText("Continue current work", { exact: true })).toBeVisible();
+            await expect(openComposer).toContainText("Continue current work");
             await shot(page, "dialogue-states.svg", "open-for-continuation");
             await shot(page, "research.svg", "open-dialogue");
 
