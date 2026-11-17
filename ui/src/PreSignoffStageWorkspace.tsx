@@ -196,6 +196,22 @@ export const PreSignoffStageWorkspace = ({
     ? <WorkflowMaterialSelector groups={[{ id: "current", label: "Current work", items: currentMaterialItems }]} label="Current workflow material" />
     : undefined;
 
+  const dialogueCompanion =
+    stage === "R1" && stageArtifact !== null
+      ? (
+        <section className="order-dialogue-research-material">
+          <h3>Repository-backed Research material</h3>
+          <p>{materialState === null ? "Current governed Research material" : materialPresentationStateLabel(materialState)}</p>
+          <code>{stageArtifact.repositoryPath}</code>
+          <WorkbenchAction
+            label="Open Research document"
+            tone="secondary"
+            onClick={() => onSelectMaterial({ kind: "STAGE_DOCUMENT", artifactId: stageArtifact.id })}
+          />
+        </section>
+      )
+      : undefined;
+
   const primary = (() => {
     switch (material.kind) {
       case "STAGE_RUN":
@@ -204,6 +220,7 @@ export const PreSignoffStageWorkspace = ({
             stage={stage}
             runs={runs}
             runEvents={runEvents}
+            companion={dialogueCompanion}
             selectedRunId={material.runId}
             currentRunId={workItem.stage === stage ? currentRunId : null}
             currentInteraction={workItem.stage === stage ? currentInteraction : null}
