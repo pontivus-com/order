@@ -300,7 +300,6 @@
 .order-workbench-surface-material:nth-child(2) { grid-row: 2 / -1; }
 
 .order-workbench-attention {
-  min-height: 3rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -326,7 +325,7 @@
   min-width: 0;
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: minmax(13rem, auto) minmax(0, 1fr);
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: center;
   gap: var(--spacing-4);
 }
@@ -670,7 +669,7 @@
 }
 .order-workitem-title-edit {
   display: grid;
-  grid-template-columns: minmax(12rem, 1fr) auto auto;
+  grid-template-columns: minmax(min-content, 1fr) auto auto;
   align-items: center;
   gap: var(--spacing-2);
 }
@@ -788,6 +787,8 @@
 }
 
 .order-markdown-document-view {
+  height: 100%;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   border: 1px solid var(--color-border-emphasized);
@@ -870,6 +871,8 @@
 }
 
 .order-markdown-editor {
+  height: 100%;
+  min-height: 0;
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr);
   border: 1px solid var(--color-border-emphasized);
@@ -1047,7 +1050,6 @@
     grid-template-rows: minmax(0, 1fr) auto auto;
   }
   .order-workbench-dialogue-activity {
-    max-height: 12rem;
     border-inline-start: 0;
     border-top: 1px solid var(--color-border-emphasized);
   }
@@ -1055,12 +1057,12 @@
   .order-workbench-rail ol {
     grid-template-columns: none;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(7rem, 1fr);
+    grid-auto-columns: minmax(max-content, 1fr);
     min-width: max-content;
   }
   .order-workbench-identity-primary { justify-content: flex-start; }
   .order-workitem-identity-copy { text-align: start; }
-  .order-toolbar-search-wrap { min-width: 12rem; }
+  .order-toolbar-search-wrap { min-width: min-content; }
   .order-markdown-document-view-with-aside,
   .order-readiness-support-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -1085,7 +1087,7 @@
   }
   .order-toolbar-search-wrap {
     width: auto;
-    min-width: 12rem;
+    min-width: min-content;
   }
   .order-utility-link small { display: none; }
   .order-brand { min-width: 0; }
@@ -1123,7 +1125,7 @@
   }
   .order-editor-mode-split {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(16rem, 1fr) minmax(16rem, 1fr);
+    grid-template-rows: repeat(2, minmax(0, 1fr));
   }
   .order-editor-mode-split .order-editor-source-pane {
     border-inline-end: 0;
