@@ -2081,21 +2081,29 @@ test.only("source editor preserves stale buffers, never overwrites newer source,
 
   console.log("[stale-source] 2 work-request selected");
   const sourceEditor = await openMarkdownEditor(page, "WorkItem source Markdown source");
+  console.log("[stale-source] 2a editor opened");
   const original = await markdownSourceValue(sourceEditor);
+  console.log("[stale-source] 2b source read");
   expect(original).toContain("# Source editing workbench");
   expect(original).not.toContain('"formatVersion"');
   const technicalSource = page.getByText("Technical details", { exact: true }).first();
   await expect(technicalSource).toBeVisible();
   await technicalSource.click();
+  console.log("[stale-source] 2c technical opened");
   await expect(page.getByTestId("source-document-material").locator(".order-source-technical pre"))
     .toContainText('"formatVersion": 1');
+  console.log("[stale-source] 2d technical content verified");
   await technicalSource.click();
+  console.log("[stale-source] 2e technical closed");
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
+  console.log("[stale-source] 2f local edit complete");
   const item = await workItemForTitle(page, "Source editing workbench");
+  console.log("[stale-source] 2g work item resolved");
   const sourceResponse = await page.context().request.get(
     "/api/work-items/" + item.id + "/source",
   );
+  console.log("[stale-source] 2h source response returned");
   expect(sourceResponse.status()).toBe(200);
   const source = WorkItemSourceSnapshotSchema.parse(await sourceResponse.json());
   const sourcePath = join(repositoryRoot, source.path);
