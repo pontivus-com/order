@@ -497,19 +497,7 @@ describe("Order cross-boundary certification", () => {
     expect(primitiveSection).toContain(".order-settings-layout-constrained");
     expect(specialistSection).not.toContain(".order-settings-layout-constrained");
 
-    for (const primitiveSelector of [
-      ".order-toolbar",
-      ".order-workbench-section-header",
-      ".order-workbench-surface",
-      ".order-workbench-review",
-      ".order-workbench-dialogue",
-      ".order-workbench-status",
-      ".order-workbench-notice",
-      ".order-workbench-timeline",
-      ".order-workbench-selector",
-    ]) {
-      expect(specialistSection).not.toContain(primitiveSelector);
-    }
+    expect(specialistSection).not.toContain(".order-workbench-");
 
     for (const forbidden of [
       ".order-evidence-viewer",
