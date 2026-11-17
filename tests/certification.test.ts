@@ -136,6 +136,61 @@ describe("Order cross-boundary certification", () => {
     expect(terminal).toContain('data-testid="final-governed-outcome"');
   });
 
+  it("proves V-07 activity extraction remains bounded, secret-blind, and observational", () => {
+    const contracts = read("src/core/contracts.ts");
+    expect(contracts).toContain("AgentActivitySummarySchema");
+    expect(contracts).toContain(".max(160)");
+    expect(contracts).toContain("const AgentActivityResourceSchema = RepositoryPathSchema");
+
+    const run = read("src/daemon/run.ts");
+    const recorder = run.slice(
+      run.indexOf("export const createAgentActivityRecorder"),
+      run.indexOf("export const recordStageProviderBatchAdmissionDiagnostic"),
+    );
+    expect(recorder).toContain("if (count >= 32) return");
+    expect(recorder).toContain("if (key === lastKey) return");
+    expect(recorder).toContain("appendRunEvent(runtime, runId, payload)");
+    expect(recorder).toContain("category: payload.category");
+    expect(recorder).toContain("resource: payload.resource");
+    expect(recorder).toContain("summary: payload.summary");
+
+    const openCode = read("src/shell/opencode.ts");
+    const extraction = openCode.slice(
+      openCode.indexOf("const activityForToolName"),
+      openCode.indexOf("const runPromptToText"),
+    );
+    for (const required of [
+      'normalized.includes("read")',
+      'normalized.includes("search")',
+      'normalized.includes("edit")',
+      'normalized.includes("test")',
+      'category: "REVIEWING_RESULTS"',
+      'category: "RETRYING"',
+    ]) {
+      expect(extraction).toContain(required);
+    }
+    for (const forbidden of [
+      "event.data.input",
+      "event.data.output",
+      "event.data.metadata",
+      "event.data.reasoning",
+      "part.state.input",
+      "part.state.output",
+      "part.state.metadata",
+    ]) {
+      expect(extraction).not.toContain(forbidden);
+    }
+
+    const prompt = openCode.slice(
+      openCode.indexOf("const runPromptToText"),
+      openCode.indexOf("const formatRepairPrompt"),
+    );
+    expect(prompt).toContain("consumeLiveActivity(");
+    expect(prompt).toContain(".catch(() => undefined)");
+    expect(prompt).toContain("context = await client.session.context({ sessionID })");
+    expect(prompt).toContain("await recordTerminalContextActivity(context, promptId, onActivity)");
+  });
+
   it("keeps the exact locked package and runtime pins with no convenience dependency expansion", () => {
     const packageJson = JSON.parse(read("package.json")) as {
       dependencies: Record<string, string>;
