@@ -1324,6 +1324,8 @@ Permanent tests must prove at least:
 - arbitrary repository artifact direct write rejected;
 - downstream historical lifecycle artifact edit rejected while an earlier stage owns the WorkItem;
 - human-edited current stage draft is supplied for reconformance.
+- every promotable R1/R2/DESIGN/PLAN/R3 completion passes the functional-core `evaluateStageConformance` decision for exactly one current deterministic output before coordinator-owned `CONFORMANCE_PASSED` and lifecycle transition;
+- delivery-schema v2 stage Markdown satisfies its pinned ordered structural template before promotion, while historical v1 schema pins retain their original structural semantics.
 
 ##### Browser
 
