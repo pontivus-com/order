@@ -1777,6 +1777,8 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   await expect(composer.getByLabel("Message input")).toBeVisible();
   await expect(composer).toContainText("Continue current work");
   await expect(composer.getByText("Answer the question above", { exact: true })).toHaveCount(0);
+  await expect(detail.getByText("Repository-backed Research material", { exact: true })).toBeVisible();
+  await expect(detail.getByRole("button", { name: "Open Research document", exact: true })).toBeVisible();
   await expect(page.getByTestId("proposal-review-workspace")).toHaveCount(0);
 });
 
