@@ -4,6 +4,7 @@ import {
   SegmentedControl,
   SegmentedControlItem,
 } from "@astryxdesign/core/SegmentedControl";
+import { Link } from "@astryxdesign/core/Link";
 import { Theme } from "@astryxdesign/core/theme";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
 
@@ -18,7 +19,11 @@ import {
 import * as api from "./http.ts";
 import { OpenCodeAccountControl } from "./OpenCodeAccountControl.tsx";
 import type { SettingsSection } from "./SettingsWorkspace.tsx";
-import type { WorkflowMaterial } from "./workbench-presentation.ts";
+import {
+  installationReadinessBlockerText,
+  settingsDestinationForReadinessBlocker,
+  type WorkflowMaterial,
+} from "./workbench-presentation.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
@@ -69,13 +74,6 @@ const firstProjectId = (
 
 const errorText = (value: unknown): string =>
   value instanceof Error ? value.message : String(value);
-
-const settingsSectionForBlocker = (blocker: string | undefined): SettingsSection =>
-  blocker === "OPENCODE_ACCOUNT_REQUIRED"
-    ? "opencode"
-    : blocker === "MODEL_INVALID"
-      ? "model"
-      : "repositories";
 
 const settingsSectionFromUrl = (): SettingsSection | null => {
   const path = new URL(window.location.href).pathname;
@@ -186,6 +184,11 @@ export const App = () => {
 
   const workItems = workItemsQuery.data ?? [];
   const selectedWorkItem = selectedWorkItemQuery.data ?? null;
+  const derivedFromWorkItem = derivedFromWorkItemId === null
+    ? null
+    : selectedWorkItem?.id === derivedFromWorkItemId
+      ? selectedWorkItem
+      : workItems.find((item) => item.id === derivedFromWorkItemId) ?? null;
 
   useEffect(() => {
     if (projectId.length === 0 && projectsQuery.data?.length) {
@@ -515,15 +518,27 @@ export const App = () => {
         <WorkbenchNotice
           tone="warning"
           title="Setup requires attention"
-          description="Complete installation Settings before productive work."
-          action={
-            <WorkbenchAction
-              label="Open Settings"
-              tone="primary"
-              onClick={() => navigateSettings(
-                settingsSectionForBlocker(readinessQuery.data?.blockers[0]),
-              )}
-            />
+          description={
+            <span>
+              {readinessQuery.data.blockers.map((blocker, index) => {
+                const section = settingsDestinationForReadinessBlocker(blocker);
+                return (
+                  <span key={blocker}>
+                    {index > 0 ? " · " : ""}
+                    <Link
+                      href={"/settings/" + section}
+                      isStandalone
+                      onClick={(event) => {
+                        event.preventDefault();
+                        navigateSettings(section);
+                      }}
+                    >
+                      {installationReadinessBlockerText(blocker)}
+                    </Link>
+                  </span>
+                );
+              })}
+            </span>
           }
         />
       ) : null}
@@ -595,7 +610,7 @@ export const App = () => {
               title={title}
               concernIds={concernIds}
               availableConcernIds={availableConcernIds}
-              derivedFromWorkItemId={derivedFromWorkItemId}
+              derivedFromWorkItem={derivedFromWorkItem}
               pending={create.isPending}
               error={create.error ? errorText(create.error) : null}
               onProjectChange={setProjectId}
