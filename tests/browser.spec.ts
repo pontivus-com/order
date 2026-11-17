@@ -2180,6 +2180,20 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
+test("Requirements document keeps status and authority secondary beside the governed material", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  await openWorkItem(page, "Requirements document visual");
+  await expect(page.getByText("Requirements document", { exact: true }).first()).toBeVisible();
+  const authority = page.locator(".order-lifecycle-authority-summary");
+  await expect(authority).toBeVisible();
+  await expect(authority).toContainText("Status");
+  await expect(authority).toContainText("Authority");
+  await expect(authority).toContainText("docs/r2.md");
+});
+
 test("invalid lifecycle Markdown stays inspection-only and exact bytes open in the Evidence workspace", async ({
   page,
   request,
@@ -2194,7 +2208,10 @@ test("invalid lifecycle Markdown stays inspection-only and exact bytes open in t
 
   await page.getByRole("button", { name: "Inspect exact bytes" }).click();
   await expect(page.getByTestId("evidence-workspace")).toBeVisible();
-  await expect(page.getByTestId("raw-content-view")).toContainText("invalid lifecycle");
+  const exactBytes = page.getByTestId("raw-content-view");
+  await expect(exactBytes).toContainText("Exact bytes returned by artifact/evidence API");
+  await expect(exactBytes).toContainText("invalid lifecycle");
+  await expect(exactBytes.locator(".order-evidence-code-bytes")).toBeVisible();
 });
 
 test("terminal investigation and audit results remain closed and linked remediation offers only CHANGE or DEFECT", async ({
