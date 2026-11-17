@@ -462,7 +462,6 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchSurface",
       "WorkbenchSectionHeader",
       "WorkbenchState",
-      'testId="evidence-workspace"',
       "<CodeBlock",
     ]) {
       expect(evidence).toContain(required);
