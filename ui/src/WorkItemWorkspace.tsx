@@ -1275,6 +1275,12 @@ export const WorkItemWorkspace = ({
             disabled={mutationsDisabled || dirty || start.isPending}
             onClick={() => start.mutate()}
           />
+        ) : inspectedHistorical ? (
+          <WorkbenchAction
+            label={"Return to " + workflow.label}
+            tone="primary"
+            onClick={() => inspectWorkflowStep(workItem.stage)}
+          />
         ) : workItem.stage === "COMPLETE" &&
           (
             workItem.outcome === "INVESTIGATION_COMPLETE" ||
@@ -1285,12 +1291,6 @@ export const WorkItemWorkspace = ({
             tone="primary"
             disabled={mutationsDisabled}
             onClick={() => onCreateRemediation(workItem)}
-          />
-        ) : inspectedHistorical ? (
-          <WorkbenchAction
-            label={"Return to " + workflow.label}
-            tone="primary"
-            onClick={() => inspectWorkflowStep(workItem.stage)}
           />
         ) : undefined
       }
