@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
+import { Markdown } from "@astryxdesign/core/Markdown";
 
 import {
   MarkdownTextSchema,
@@ -369,11 +370,13 @@ export const LifecycleDocumentMaterial = ({
   onOpenArtifactEvidence,
   onContextDocumentChange,
   onMutationError,
+  embeddedReadOnly = false,
 }: Readonly<{
   workItem: WorkItem;
   artifactId: ArtifactRef["id"];
   readOnly?: boolean;
   mutationsDisabled?: boolean;
+  embeddedReadOnly?: boolean;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
@@ -449,6 +452,15 @@ export const LifecycleDocumentMaterial = ({
             </span>
           }
         />
+      ) : embeddedReadOnly && artifactReadOnly ? (
+        <div
+          className="order-readiness-governed-material"
+          data-testid="markdown-readonly"
+        >
+          <Markdown contentWidth="var(--order-prose-max-width)" contentAlign="start">
+            {markdown}
+          </Markdown>
+        </div>
       ) : (
         <MarkdownEditor
           key={selectedArtifact.id}
@@ -495,8 +507,10 @@ export const LifecycleDocumentMaterial = ({
                 <div>
                   <dt>Authority</dt>
                   <dd>
-                    <span>{selectedArtifact.repositoryPath}</span>
-                    <code>{selectedArtifact.authorityLayer ?? "Lifecycle authority"}</code>
+                    <span>Requirements document</span>
+                    <code>{selectedArtifact.authorityLayer === null
+                      ? "Lifecycle authority"
+                      : selectedArtifact.authorityLayer + " lifecycle authority"}</code>
                   </dd>
                 </div>
               </dl>
@@ -521,6 +535,7 @@ export const ReadOnlyLifecycleDocumentMaterial = (
     artifactId: ArtifactRef["id"];
     onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
     onContextDocumentChange: (path: string | null, sha256: Sha256 | null) => void;
+    embeddedReadOnly?: boolean;
   }>,
 ) => (
   <LifecycleDocumentMaterial
