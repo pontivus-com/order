@@ -197,8 +197,9 @@ export const App = () => {
   }, [projectId, projectsQuery.data]);
 
   useEffect(() => {
-    if (derivedFromWorkItemId === null && schemaId === "" && schemasQuery.data?.[0]) {
-      setSchemaId(schemasQuery.data[0].schemaId);
+    if (derivedFromWorkItemId === null && schemaId === "" && schemasQuery.data) {
+      const defaultSchema = schemasQuery.data.find((schema) => schema.authoringDefault);
+      if (defaultSchema) setSchemaId(defaultSchema.schemaId);
     }
   }, [derivedFromWorkItemId, schemaId, schemasQuery.data]);
 
