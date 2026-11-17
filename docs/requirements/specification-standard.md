@@ -2,7 +2,7 @@
 
 **Status:** Binding design standard
 **Canonical concern ID:** `GW-DOC-SPECIFICATION-STANDARD`  
-**Versioned concern ID:** `GW-DOC-SPECIFICATION-STANDARD-V1`  
+**Versioned concern ID:** `GW-DOC-SPECIFICATION-STANDARD-V2`  
 
 ## 1. Purpose
 
