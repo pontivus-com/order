@@ -824,7 +824,7 @@ describe("Order cross-boundary certification", () => {
     expect(execution).toContain('scope + " boundary: updating"');
     expect(execution).toContain('boundaryScope={currentOwnerTask?.id === selectedTask.id ? "Current" : "Recorded"}');
     expect(execution).toContain('selectedTask.state === "CANDIDATE_DONE" || selectedTask.state === "ALREADY_SATISFIED"');
-    expect(execution).toContain("validationBoundaryStatus(boundary, scope)");
+    expect(execution).toContain("validationBoundaryStatus(boundary, boundaryScope)");
     expect(execution).not.toContain("deriveValidationBoundary");
     expect(execution).not.toContain("deriveExecutionOwner");
     expect(execution).toContain("currentOwnerTask");
