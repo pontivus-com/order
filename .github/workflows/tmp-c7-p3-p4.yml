@@ -180,14 +180,14 @@ jobs:
             await open(page, "Implementation action ready");
             await page.setViewportSize({ width: 1000, height: 800 });
             await expect(page.getByTestId("execution-workspace")).toBeVisible();
-            await page.getByRole("button", { name: "Implementation work", exact: true }).click();
-            await expect(page.getByRole("button", { name: "Close Implementation work", exact: true })).toBeVisible();
+            await page.getByRole("button", { name: "Approved tasks", exact: true }).click();
+            await expect(page.getByRole("button", { name: "Close Approved tasks", exact: true })).toBeVisible();
             await shot(page, "responsive-composition.svg", "implementation-medium-master-drawer");
-            await page.getByRole("button", { name: "Close Implementation work", exact: true }).click();
+            await page.getByRole("button", { name: "Close Approved tasks", exact: true }).click();
 
             await page.setViewportSize({ width: 700, height: 800 });
-            await page.getByRole("button", { name: "Implementation work", exact: true }).click();
-            await expect(page.getByRole("button", { name: "Close Implementation work", exact: true })).toBeVisible();
+            await page.getByRole("button", { name: "Approved tasks", exact: true }).click();
+            await expect(page.getByRole("button", { name: "Close Approved tasks", exact: true })).toBeVisible();
             await shot(page, "responsive-composition.svg", "implementation-narrow-master-drawer");
           });
 
