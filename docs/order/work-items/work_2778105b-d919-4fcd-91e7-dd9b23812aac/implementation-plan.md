@@ -1073,6 +1073,35 @@ The first permanent PR Verification on that publishable closure, run `4405131104
 
 The reproduced Settings failure was a stale test assumption, not a product/readiness defect: the test unconditionally expected `Ready for productive work` even though the permanent e2e environment does not guarantee that daemon-owned `/api/settings/readiness` is `ready: true`. The browser test is therefore corrected to read and schema-validate the actual daemon readiness response and assert the corresponding canonical Settings presentation (ready success only when `ready === true`; otherwise the canonical setup-attention state). No production renderer, reference SVG, lifecycle, daemon or control-plane byte changes in that correction, so the exact-head visual reproof above remains current. A fresh permanent PR Verification on the resulting publishable test/documentation-only head remains the final P7 gate.
 
+### 6.13 Styling architecture checkpoint and exact-head visual reproof — 2026-11-17
+
+**Status:** PASS. A dedicated styling/code-quality checkpoint was executed after the strict visual closure to ensure the remediation remained compliant with the Workbench component architecture, CSS ownership law and the pinned Astryx 0.7.13 integration contract.
+
+The checkpoint found and closed four bounded presentation-implementation discrepancies without changing product semantics:
+
+- the root public-Astryx-token bridge no longer uses blanket `!important`; normal cascade order now owns the exact Order public-token overrides, and permanent certification forbids `!important` in `theme.css`;
+- `WorkbenchDialogue` no longer styles its composer through a `data-testid` selector; the primitive owns an explicit `order-workbench-dialogue-composer` presentation wrapper, and presentation CSS is permanently forbidden from depending on test selectors;
+- all `order-settings-layout-*` structural surface rules now live in the closed Workbench primitive presentation section rather than the specialist/feature section; certification binds those selectors to primitive ownership;
+- `WorkbenchTaskPanel` no longer duplicates Astryx Dialog viewport clamping with `calc(100vw - 2rem)`; it supplies only the preferred `42rem` width and delegates narrow-viewport clamping/gutters to the pinned Astryx Dialog contract.
+
+Static closure on the resulting production head proves: zero private Astryx `--_` tokens, zero generated/internal Astryx selectors, zero raw semantic colors outside the root bridge, zero box shadows, zero `!important`, zero CSS `data-testid` styling, no specialist `.order-workbench-*` selectors, no specialist `.order-settings-layout-*` selectors, and only the canonical system/light/dark plus 1279/799 responsive media boundaries.
+
+Permanent PR Verification run `44054721894` passed on production/test head `c5a792809fbfae29d59f249d6131c3d57602a35c`:
+
+`dependency-lock → typecheck → architecture → 254/254 tests → build → release packaging → 37/37 browser` = **PASS**.
+
+Because the checkpoint changed production presentation bytes, the prior C7 visual proof was invalidated and regenerated rather than inherited. Temporary evidence scaffolding was added without changing production/reference bytes; exact evidence head `99e720151e273840d8dda513e401c8335698a788` produced all five real-SPA capture sets successfully:
+
+- C3/C4: run `44055634549`, artifact `p3-p4-visual-evidence-99e720151e273840d8dda513e401c8335698a788`, digest `sha256:7dbc0dbb790d4d7f108211acb049af37c3b00ec2ade0296bc0ccd13c6fa080ea`;
+- C5: run `44055634098`, artifact `c7-p5-evidence-99e720151e273840d8dda513e401c8335698a788`, digest `sha256:6e5e4a56bf2a91f48ce6e801481a6d6540699d6666fed4adc2142fc784070b73`;
+- C6 main: run `44055634454`, artifact `c6-visual-evidence-99e720151e273840d8dda513e401c8335698a788`, digest `sha256:6e901b1f871cc23e3d8c4993a50b51ba81c405fbeea03e6e3b2ee38f22096f07`;
+- C6 Queue supplement: run `44055634208`, artifact `c6-queue-reference-evidence-99e720151e273840d8dda513e401c8335698a788`, digest `sha256:a46f11e8a65347e182d91f257a5b3aa376cdecf745120cac48163dd7ad5a0a5a`;
+- C6 notice-state supplement: run `44055634084`, artifact `c6-notice-state-evidence-99e720151e273840d8dda513e401c8335698a788`, digest `sha256:14fb64a39dd8907e911eb442527cab0d847cf7ae9fdb306cd16b8ff71c80c236`.
+
+Fresh side-by-side adjudication of the complete 41-reference inventory remains **41/41 MATCH**. The changed surfaces were explicitly rechecked: System/Light/Dark semantics remain correct without `!important`; Dialogue composer geometry is unchanged under primitive-owned styling; Settings navigation/content/task containment remains reference-conformant after ownership relocation; and Create/linked-remediation task-panel geometry remains reference-conformant while Astryx owns viewport clamping. No `ALLOWED_RENDERING_VARIANCE` exception and no visual debt were introduced.
+
+The evidence commit contains temporary workflows by design, so its permanent PR Verification is not a publishable-candidate verdict. The closure commit removes all five temporary workflows while preserving these exact production/reference bytes. A successful permanent PR Verification on that publishable closure SHA remains the final P7 boundary before canonical V2-V7.
+
 ## 7. Reference-fixture rule — no separate implementation phase
 
 There is no P0 implementation phase.
