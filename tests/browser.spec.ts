@@ -1775,6 +1775,8 @@ test("OPEN continuation keeps the agent anchor visible and admits exactly one cu
   await openWorkItem(page, "Research open continuation");
   const detail = page.getByTestId("activity-detail");
   await expect(detail).toBeVisible();
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Open for continuation");
+  await expect(page.getByTestId("selected-run-header")).toContainText("Open for continuation");
   await expect(detail).toContainText("The current Research findings are ready for your continuation.");
   const composer = detail.getByTestId("activity-composer");
   await expect(composer).toBeVisible();
