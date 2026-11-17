@@ -246,7 +246,10 @@ It validates at minimum:
 - changelog updated;
 - release-impact metadata present/valid;
 - no forbidden version/tag mutation in ordinary work PRs;
-- all required Order verification gates.
+- all required Order verification gates;
+- after the technical/browser gates pass, at least one independent `APPROVED` review whose review commit equals the exact current PR head SHA.
+
+The same verification workflow is triggered again when a review is submitted or dismissed. An approval for an earlier head cannot satisfy the current-head review gate after a material push.
 
 ### Release verification/publication
 
