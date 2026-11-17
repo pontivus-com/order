@@ -227,6 +227,7 @@ jobs:
 
             await open(page, "Completed investigation");
             await expect(page.getByTestId("result-workspace")).toBeVisible();
+            await expect(page.getByTestId("result-material")).toContainText("Evidence-backed conclusion.");
             await shot(page, "current-attention-states.svg", "10-ordinary-current-material");
 
             await open(page, "Requirements ready after Research");
