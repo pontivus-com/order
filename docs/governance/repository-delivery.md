@@ -77,6 +77,7 @@ Every non-release PR must:
 6. declare the intended release train/version when one is already established;
 7. list verification performed;
 8. pass the repository's required PR status checks before merge.
+9. receive at least one approving review from a reviewer other than the change author before merge; for changes that modify P1-P6 authority, lifecycle package semantics, release certification or implementation governed by those changes, the review must explicitly cover authority ownership/traceability and lifecycle-evidence completeness rather than code correctness alone.
 
 For Order while `MAJOR = 0`:
 
@@ -287,6 +288,8 @@ The public repository should maintain active GitHub rulesets for:
 ### `master`
 
 - require a pull request before merge;
+- require at least one approving review from a reviewer other than the change author;
+- dismiss or stale approvals after material new commits so approval applies to the current candidate;
 - require the canonical PR verification status;
 - require branch to be current with the target before merge where practical;
 - require conversation resolution;
