@@ -19,7 +19,7 @@ This document owns the functional behavior for:
 - repository-local source and lifecycle-document discovery/reconciliation on a new installation;
 - source-change freshness behavior.
 
-It does not own the existing lifecycle stage semantics, stage decision boundaries, specification quality rules, post-sign-off execution policy, validation branches, persistence schema, HTTP contracts or exact filesystem/configuration grammar. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V1`, `GW-DOC-SPECIFICATION-STANDARD-V1`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`.
+It does not own the existing lifecycle stage semantics, stage decision boundaries, specification quality rules, post-sign-off execution policy, validation branches, persistence schema, HTTP contracts or exact filesystem/configuration grammar. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V2`, `GW-DOC-SPECIFICATION-STANDARD-V2`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V2` and `GW-DOC-CANONICAL-CONTRACTS-V2`.
 
 ## 2. Reference basis
 
@@ -111,7 +111,7 @@ The schema determines:
 - required source-document sections;
 - the canonical Order authority each generated stage artifact must satisfy.
 
-Lifecycle prerequisite ordering and stage ownership remain governed solely by `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT-V1`; the schema catalog does not create a second artifact/stage DAG.
+Lifecycle prerequisite ordering and stage ownership remain governed solely by `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT-V2`; the schema catalog does not create a second artifact/stage DAG.
 
 Templates guide content; they do not create a second definition of R1/R2/DESIGN/PLAN/R3 semantics. Stage templates must cite and conform to the canonical stage owner rather than restating those rules as an independent specification.
 
@@ -274,9 +274,9 @@ Before a productive pre-signoff OpenCode turn, Order must resolve one current va
 - the exact originating source content where the current stage is entitled to receive the originating observation/request or P2 intent;
 - the source-derived WorkItem metadata needed by that stage;
 - the resolved stage template/instruction selected by the pinned WorkItem schema where an authored stage artifact is required;
-- the existing project authority/evidence selected by `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+- the existing project authority/evidence selected by `GW-DOC-LIFECYCLE-CONTEXT-V2`.
 
-R1 must receive the current source narrative. R2 must receive the source-backed P2 intent when it remains materially necessary to define the required outcome. Later stages receive raw source bytes only when `GW-DOC-LIFECYCLE-CONTEXT-V1` requires them; validated upstream artifacts remain the normal minimum-context carrier otherwise.
+R1 must receive the current source narrative. R2 must receive the source-backed P2 intent when it remains materially necessary to define the required outcome. Later stages receive raw source bytes only when `GW-DOC-LIFECYCLE-CONTEXT-V2` requires them; validated upstream artifacts remain the normal minimum-context carrier otherwise.
 
 An OpenCode stage must not reconstruct the originating request from a database title/origin/concern projection, guess the selected template from prose, or independently discover a different WorkItem source file.
 
