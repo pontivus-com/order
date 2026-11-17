@@ -31,6 +31,15 @@ docs/order/work-items/<WorkItemId>/
   readiness-review.md
 ```
 
+## Active 0.6.0 design campaign
+
+The sole active campaign/work point for Order 0.6.0 design is WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`:
+
+- [Work request](order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/work-request.md)
+- [Design campaign plan](order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md)
+
+The WorkItem is the campaign tracking and lifecycle package, not a replacement for P1-P6 canonical semantic owners. Normative design changes remain owned by the canonical documents identified through `pontivus-order.toml [refs]`.
+
 ## Governance
 
 - [Systems governance](governance/systems-governance.md) — `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`
