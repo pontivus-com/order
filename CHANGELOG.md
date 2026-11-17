@@ -2,7 +2,7 @@
 
 All notable public changes to Order are recorded here.
 
-Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`.
 
 ## [Unreleased]
 
