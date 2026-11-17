@@ -1,13 +1,6 @@
 import type { ReactNode } from "react";
-
-export const WorkbenchSurface = ({
-  attention,
-  selector,
-  material,
-}: Readonly<{
-  attention: ReactNode;
-  selector?: ReactNode;
-  material: ReactNode;
+export const WorkbenchSurface = ({ attention, selector, material }: Readonly<{
+  attention: ReactNode; selector?: ReactNode; material: ReactNode;
 }>) => (
   <section className="order-workbench-surface">
     <div className="order-workbench-surface-attention">{attention}</div>
