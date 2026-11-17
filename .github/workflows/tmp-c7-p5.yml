@@ -101,6 +101,12 @@ jobs:
             expect(response.ok()).toBe(true);
             return response.json();
           };
+          const selectWorkflowMaterial = async (page: Page, optionName: string) => {
+            const selector = page.getByTestId("workflow-step-index").getByRole("combobox");
+            await expect(selector).toBeVisible();
+            await selector.click();
+            await page.getByRole("option", { name: optionName, exact: true }).click();
+          };
 
           test("Approval and signed task detail", async ({ page, request }) => {
             await page.setViewportSize({ width: 1600, height: 900 });
@@ -159,6 +165,7 @@ jobs:
 
             await open(page, "Verified candidate");
             await step(page, "Implementation");
+            await selectWorkflowMaterial(page, "Independent review · Attempt 1");
             const validation = page.getByTestId("validation-matrix");
             await expect(validation).toBeVisible({ timeout: 30000 });
             await expect(page.getByTestId("validation-stage-V7")).toContainText("Passed", { timeout: 30000 });

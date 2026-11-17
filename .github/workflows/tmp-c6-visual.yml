@@ -95,6 +95,14 @@ jobs:
             await button.click();
             await expect(button).toHaveAttribute("aria-pressed", "true");
           };
+          const isolateSupportingState = async (page: Page) => {
+            await page.route("**/api/settings/readiness", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ready: true, blockers: [] }) });
+            });
+            await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+              await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+            });
+          };
 
           test("Queue, create and linked remediation", async ({ page, request }) => {
             await page.route("**/api/settings/readiness", async (route) => {
@@ -113,6 +121,7 @@ jobs:
 
           test("Create and linked remediation", async ({ page, request }) => {
             await page.setViewportSize({ width: 1440, height: 900 });
+            await isolateSupportingState(page);
             await auth(page, request);
             await expect(page.getByTestId("work-item-queue")).toBeVisible();
 
@@ -133,6 +142,7 @@ jobs:
 
           test("Repository and model Settings", async ({ page, request }) => {
             await page.setViewportSize({ width: 1440, height: 900 });
+            await isolateSupportingState(page);
             await auth(page, request);
             await page.getByRole("link", { name: "Settings", exact: true }).click();
             const repositories = page.getByTestId("settings-repositories");
@@ -214,6 +224,7 @@ jobs:
             });
 
             await page.setViewportSize({ width: 1440, height: 900 });
+            await isolateSupportingState(page);
             await auth(page, request);
             await page.getByRole("link", { name: "Settings", exact: true }).click();
             await page.getByRole("link", { name: "OpenCode", exact: true }).click();
@@ -279,6 +290,7 @@ jobs:
             });
             await page.setViewportSize({ width: 1440, height: 900 });
             await auth(page, request);
+            await expect(page.getByTestId("work-item-queue")).toBeVisible({ timeout: 30000 });
             await expect(page.getByText("Setup requires attention", { exact: true }).first()).toBeVisible();
             await shot(page, "installation-readiness.svg", "all-blockers");
             await shot(page, "application-notices-states.svg", "setup-and-source-diagnostics");
@@ -300,6 +312,7 @@ jobs:
             await shot(page, "evidence-viewer.svg", "exact-bytes");
 
             await page.goto("/");
+            await expect(page.getByTestId("work-item-queue")).toBeVisible({ timeout: 30000 });
             await page.getByRole("radio", { name: "Light" }).click();
             await shot(page, "theme-parity.svg", "light");
             await page.getByRole("radio", { name: "Dark" }).click();
