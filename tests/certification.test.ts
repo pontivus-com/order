@@ -500,7 +500,11 @@ describe("Order cross-boundary certification", () => {
       'selectedRun===null?<WorkbenchState kind="empty" title="No persisted attempt events"/>',
     );
     expect(execution).toContain("lifecycleArtifactLabel(artifact.role)");
+    expect(execution).toContain('label="Agent activity"');
+    expect(execution).toContain("<RunEventTimeline");
     expect(execution).toContain('label="Technical details"');
+    expect(execution).not.toContain("MarkdownEditor");
+    expect(execution).not.toContain("updateArtifactContent");
 
     const masterDetail = read("ui/src/primitives/WorkbenchMasterDetail.tsx");
     expect(masterDetail).toContain('width="var(--order-master-width)"');
