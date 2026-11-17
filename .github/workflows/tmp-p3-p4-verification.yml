@@ -1,4 +1,5 @@
 name: Temporary P3 P4 implementation verification
+# Structural-recovery branch gate only; remove before candidate readiness.
 
 on:
   push:
