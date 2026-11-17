@@ -1009,7 +1009,7 @@ test("long Source and lifecycle Markdown keep the final line editable, savable, 
       if (!(scroller instanceof HTMLElement)) throw new Error("CodeMirror scroller missing");
       scroller.scrollTop = scroller.scrollHeight;
     });
-    await expect.poll(async () => (await markdownSourceValue(reloaded)).endsWith(marker + " persisted")).toBe(true);
+    await expect(reloaded.locator(".cm-line").last()).toHaveText(marker + " persisted");
     await backToQueue(page);
   };
 
