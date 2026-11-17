@@ -1354,7 +1354,11 @@ describe("architecture fitness", () => {
       )
       .map(([refId]) => refId);
     for (const sourcePath of activeDocumentationFiles.filter(
-      (path) => !retainedSemanticVersionPath(path)
+      (path) =>
+        !retainedSemanticVersionPath(path) &&
+        // The 0.5.0 visual reference pack is historical evidence, not a
+        // present canonical authority consumer; its V1 pins are intentional.
+        path !== "docs/references/workbench-ui/README.md"
     )) {
       for (const [index, line] of sourceText(sourcePath).split(/\r?\n/).entries()) {
         for (const historicalId of supersededVersionIds) {
