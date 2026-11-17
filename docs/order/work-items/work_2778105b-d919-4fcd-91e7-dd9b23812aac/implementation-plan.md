@@ -718,7 +718,41 @@ C5 acceptance is therefore closed:
 - Complete remains result-first and remediation appears only on the canonically eligible Investigation/Audit branch;
 - raw technical task/Run identity does not occupy primary premium space.
 
-No `ALLOWED_RENDERING_VARIANCE` exception is needed for C5. P5 is complete. P6 is the next permitted implementation phase.
+No `ALLOWED_RENDERING_VARIANCE` exception is needed for C5.
+
+#### 6.8.1 Renewed P5 completeness audit — 2026-11-17
+
+The first C5 PASS above was subsequently challenged against the complete P5 contract rather than accepted from its status line. That renewed audit found that the original closure was **incomplete** in one production behavior and several permanent-proof obligations. P5 was therefore reopened for correction before proceeding to P6.
+
+The production defect was stale Approval history:
+
+- typed `STALE_AUTHORITY(owner)` correctly removed sign-off and exposed the canonical reconciliation action, but `SignoffReview` still consumed only the **current lifecycle-artifact projection**;
+- after authority drift, prior package material could therefore disappear from Approval even though `GW-DOC-WORKBENCH-UX-V2 §3.6 / §9.2` requires stale material to remain inspectable history;
+- the canonical architecture already owns the required source: `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §6.3` states that historical `ArtifactRef`s remain available through the ordinary artifact-history query.
+
+The correction stays entirely inside existing owners:
+
+- `WorkItemWorkspace` uses the existing `GET /api/work-items/:id/artifacts` history query when current Approval has typed stale authority and otherwise retains the current lifecycle-artifact projection;
+- `SignoffReview` receives that typed stale condition and the historical ArtifactRefs, keeps sign-off unavailable, labels the package as stale/history rather than exact-current authority, and keeps the canonical reconciliation action outside the historical selection;
+- `DocumentWorkspace` accepts an explicit historical `ArtifactRef` only for read-only historical rendering, reads the exact existing artifact id/bytes, and deliberately does not ask the current lifecycle-artifact projection to reclassify that historical object as current;
+- no transport schema, persisted state, DTO/view-model family, new renderer, new primitive, new query endpoint or second authority model was introduced.
+
+The renewed audit also closed proof gaps that the first C5 evidence package did not establish by itself:
+
+1. **Historical selection cannot retarget execution.** A canonical two-task signed PLAN fixture now selects a completed prerequisite while the current TODO task remains the execution owner. Browser certification proves `Start current task` posts only to the exact current task endpoint, never the selected historical task, and the historical detail remains selected when the canonical current task starts.
+2. **Task-local execution never uses global scheduling.** Permanent certification requires `ExecutionWorkspace` to call `api.startExecutionTask(workItem.id, currentOwnerTask.id)` and rejects `api.tick`; existing daemon tests independently reject a submitted non-current task id and prove the exact current task is the one transitioned to RUNNING.
+3. **Responsive P5 semantics are permanent proof, not inferred from the 1600×900 C5 capture.** Browser certification exercises Implementation at wide/medium/narrow classes while historical selection remains inspection-only and current action ownership is unchanged. Complete is exercised at medium/narrow classes and proves the final governed outcome remains physically before secondary candidate/result material.
+4. **Approval technical identity is genuinely on-demand.** The exact package hash is hidden until the canonical Technical details disclosure is opened.
+5. **Approval judgment content remains complete.** Signed task detail permanently exposes gates, scope, exclusions, change surface, authority and acceptance context while raw task/approval ids remain technical.
+6. **Signed post-signoff authority is read-only.** Browser certification opens signed Implementation-plan material from the Implementation surface and proves no editable textarea/editor exists.
+7. **Agent activity, workflow history and technical diagnostics remain distinct channels.** Production rendering uses the existing `agentActivityRunEvents` activity plane, `RunEventTimeline` consumes only `workflowRunEvents`, and technical identity remains under disclosure; permanent presentation tests prove the conversation/activity/workflow plane partition.
+8. **Complete does not invent delivery claims or remediation.** Medium/narrow candidate certification keeps result-first composition, contains no invented deployment/production statement, and exposes linked remediation only on the canonically eligible Investigation/Audit terminal branch.
+
+The C5 visual artifact from run `44018403705` remains the adjudicated reference-comparison evidence for the six assigned C5 reference sheets. The renewed audit did not relax or replace any reference verdict; it added the runtime behaviors and responsive/authority boundaries that the wide reference capture alone could not prove.
+
+Permanent PR Verification run `44022983094` passed on renewed-audit implementation/test head `775e0869907b24ff4046411aea58320c1091eaa8`: dependency-lock, typecheck, architecture, the full unit/certification suite, build, release packaging and the complete Playwright browser suite all passed. `tests/architecture.test.ts` was not changed or weakened.
+
+**Renewed verdict:** P5 is complete only with these corrections included. C5 remains **PASS**, with no allowed-variance exception. P6 is the next permitted implementation phase.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
