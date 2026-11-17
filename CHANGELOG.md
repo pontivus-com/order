@@ -6,6 +6,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+### Changed
+
+- Establish the 0.6.0 implementation-fidelity recovery baseline: preserve the accepted 0.5.0 analysis/functional/technical design and 41-SVG reference authority, invalidate the overstated 0.5.0 implementation-complete/41-of-41 acceptance, document the shipped surface-by-surface and verification false-positive gaps, and require the replacement 0.6.0 implementation plan to close each audited discrepancy against the actual runtime.
+
 ## [0.5.0] - 2026-11-17
 
 ### Changed
