@@ -82,6 +82,7 @@ import {
   renderWorkItemSourceMarkdown,
   rewriteWorkItemSourceTitle,
   unresolvedConcernIdsForProject,
+  validateStageDocumentStructure,
   workItemArchiveMarkerPath,
   workItemDocumentPath,
   workItemKindForSchema,
@@ -1057,6 +1058,42 @@ describe("source-backed WorkItem core", () => {
     const first = parseWorkItemSourceMarkdown(`work_${uuidA}.md`, hashA, markdown);
     const second = parseWorkItemSourceMarkdown("nested/duplicate.md", hashB, markdown);
     expect(duplicateWorkItemSourceIds([first, second])).toEqual([`work_${uuidA}`]);
+  });
+
+  it("enforces v2 stage structure without reinterpreting v1 pins", () => {
+    const valid = [
+      "# Requirements",
+      "",
+      "## Proven defect/root cause",
+      "",
+      "## Functional authority disposition ledger",
+      "",
+      "## Expected corrected behavior",
+      "",
+      "## Behavior that must remain unchanged",
+      "",
+      "## Acceptance proving the original defect",
+      "",
+      "## Regression/preservation acceptance",
+      "",
+      "## Scope/exclusions",
+      "",
+      "## Open product/authority questions",
+      "",
+    ].join("\n");
+    expect(() =>
+      validateStageDocumentStructure("defect-v2", "R2", valid)
+    ).not.toThrow();
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace("## Functional authority disposition ledger\n", ""),
+      )
+    ).toThrow(/missing ordered section/);
+    expect(() =>
+      validateStageDocumentStructure("defect-v1", "R2", "# legacy\n")
+    ).not.toThrow();
   });
 
   it("owns kind defaults and R1 completion admissibility in the source catalog", () => {
