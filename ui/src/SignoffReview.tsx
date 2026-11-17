@@ -25,6 +25,7 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
+import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
   WorkbenchEmptyState,
