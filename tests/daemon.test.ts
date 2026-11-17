@@ -519,20 +519,14 @@ const server = Bun.serve({
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
-        const bindingMarker = "Coordinator-owned completion bindings: ";
-        const bindingOffset = text.indexOf(bindingMarker);
-        const bindingJson = bindingOffset < 0
-          ? "[]"
-          : text
-              .slice(bindingOffset + bindingMarker.length)
-              .split("\\n", 1)[0];
-        const bindings = JSON.parse(bindingJson);
-        const artifactRefIds =
-          typeof bindings[0]?.id === "string" ? [bindings[0].id] : [];
+        const bindingPath = join(own, "binding-id");
+        const bindingId = existsSync(bindingPath)
+          ? readFileSync(bindingPath, "utf8").trim()
+          : "";
         output = JSON.stringify([{
           tag: "STAGE_COMPLETED",
           completion: { stage: "R1", outcome: "CONFIRMED" },
-          artifactRefIds,
+          artifactRefIds: bindingId.length === 0 ? [] : [bindingId],
         }]);
       } else if (mode === "stage-empty-output" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
@@ -3002,6 +2996,10 @@ describe("daemon control plane", () => {
         "R1",
         "P1",
       );
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        artifact.id,
+      );
       const priorRun = runStore.insertRun(runtime, {
         id: rt.newRunId(),
         workItemId: workItem.id,
@@ -3105,6 +3103,10 @@ describe("daemon control plane", () => {
         outputPath,
         "R1",
         "P1",
+      );
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        artifact.id,
       );
       const priorRun = runStore.insertRun(runtime, {
         id: rt.newRunId(),
