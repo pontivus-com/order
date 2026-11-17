@@ -79,6 +79,8 @@ Each requirement includes, where applicable:
 
 Requirements must not encode an implementation choice unless that choice itself is binding authority.
 
+For a delivery WorkItem using an authority-hygiene schema, each material P3 requirement also records its relationship to existing canonical P3 authority as `REFERENCE`, `DELTA` or `LOCAL` under `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION`. This relationship is part of specification completeness. A local requirement may own a genuine package-specific behavior, but it must not silently restate or weaken an already-owned canonical concern.
+
 ### S5 — Scope and exclusions
 
 The package explicitly defines:
@@ -184,6 +186,14 @@ R3 records:
 - the exact stage to which the package must return.
 
 The readiness record must identify the evidence used to reach the verdict.
+
+### GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW
+
+**Required behavior:** R3 independently reviews the complete P1-P7 authority topology, including canonical-owner uniqueness, WorkItem requirement dispositions, lifecycle-document completeness/currentness and bidirectional traceability, before returning `READY_FOR_SIGNOFF`.
+
+**Acceptance criterion:** READY_FOR_SIGNOFF requires zero unresolved material authority conflicts, zero unsupported shadow specifications, exactly one current lifecycle artifact for every applicable completed stage, complete upward/downward traceability and evidence supporting the readiness verdict.
+
+**Failure/negative behavior:** R3 must not accept earlier stage completion claims, document volume, green implementation tests or a self-declared package-complete statement as substitutes for current authority-topology proof; on failure it returns the package to the exact defective owning stage without repairing that layer itself.
 
 ## 3. Traceability law
 
