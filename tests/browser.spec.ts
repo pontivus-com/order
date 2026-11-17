@@ -1547,7 +1547,7 @@ test("P5 keeps current execution ownership independent from historical selection
     const run = RunSchema.parse(await fixtureMutation(
       page.context().request,
       "/tick",
-      { workItemId: workItem.id },
+      { workItemId: workItem.id, taskId: currentTask!.id },
     ));
     await route.fulfill({
       status: 201,
