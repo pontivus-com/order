@@ -13,7 +13,7 @@ This document owns the repository's exact v1 P6 contracts for canonical semantic
 
 ### 1.1 Product-identity contract
 
-Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`; live installation/process namespace and bounded predecessor migration are realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V2`, while this document owns the exact P6 names and contracts declared below.
+Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`; live installation/process namespace and bounded predecessor migration are realized by `GW-DOC-TECHNICAL-ARCHITECTURE`, while this document owns the exact P6 names and contracts declared below.
 
 The Order cutover is complete for the productive runtime. Current productive contracts use only:
 
@@ -21,13 +21,13 @@ The Order cutover is complete for the productive runtime. Current productive con
 - executable task fence for newly authored productive plans: `order-tasks`;
 - state override: `PONTIVUS_ORDER_STATE_ROOT`;
 - database filename: `order.sqlite3`;
-- exact Order config/runtime identities declared by this P6 contract and realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V2`.
+- exact Order config/runtime identities declared by this P6 contract and realized by `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 The productive runtime does not retain Gateweft aliases or fallback readers. Gateweft naming is permitted only in historical provenance and the installer-owned, one-way migration boundary for the immediately preceding supported beta.
 
 Stable `GW-*` authority identifiers, semantic schema meaning, WorkItem/lifecycle state, task semantics, authority-map meaning and database semantic schema are unchanged by the namespace transition.
 
-This document does not redefine lifecycle meaning, validation semantics or authority precedence. Those remain owned by [GW-DOC-WORK-LIFECYCLE-V1](../requirements/work-lifecycle.md), [GW-DOC-VALIDATION-STANDARD-V1](../requirements/validation-standard.md), [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](../governance/systems-governance.md) and [GW-DOC-LIFECYCLE-CONTEXT-V2](../requirements/lifecycle-context.md).
+This document does not redefine lifecycle meaning, validation semantics or authority precedence. Those remain owned by [GW-DOC-WORK-LIFECYCLE-V1](../requirements/work-lifecycle.md), [GW-DOC-VALIDATION-STANDARD-V1](../requirements/validation-standard.md), [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](../governance/systems-governance.md) and [GW-DOC-LIFECYCLE-CONTEXT](../requirements/lifecycle-context.md).
 
 There are no DTO/domain/persistence copies. One canonical schema owns each semantic type.
 
@@ -1458,7 +1458,7 @@ Client state must not own WorkItem lifecycle, Approval, ExecutionTask state, Run
 
 ## 28. UI composition boundary
 
-P6 does not prescribe a feature-directory hierarchy. Order-specific UI composition may remain directly under `ui/src/` and is split only when the present semantic responsibility or independently testable boundary requires it under [GW-DOC-TECHNICAL-ARCHITECTURE-V2 §7](../architecture/technical-architecture.md).
+P6 does not prescribe a feature-directory hierarchy. Order-specific UI composition may remain directly under `ui/src/` and is split only when the present semantic responsibility or independently testable boundary requires it under [GW-DOC-TECHNICAL-ARCHITECTURE §7](../architecture/technical-architecture.md).
 
 Reusable Order-local primitives live in `ui/src/primitives/` only when they own a present reusable UI responsibility. They must remain project-neutral, vendor-clean, and free of deprecated Radix/Tremor imports or higher-level Order domain semantics.
 
@@ -1475,7 +1475,7 @@ CI/integration tests additionally prove:
 - **Git:** registered root equals `git rev-parse --show-toplevel`; every execution Run uses `git clone --no-local --no-checkout -- <source> <workspace>`, exact baseline verification/detached checkout/clean start, with Git system/global config and prompting disabled; candidate capture proves NUL-delimited no-rename changed paths including untracked files, temporary-index `--intent-to-add` inclusion of new files, binary/full-index/no-renames patch hashing, replay into a separate fresh checkout, and exact regenerated patch-hash/changed-path equality; gitlinks/submodules are not traversed automatically.
 - **Artifact/evidence safety:** committed material hashes come from Git blob bytes at the approved commit; proposal/adoption accepts regular files only and rejects canonical targets outside repository root; evidence writes/readback reject escape/symlink/non-regular targets and evidence HTTP retrieval requires an exact persisted `(runId, EvidencePath)` reference plus current SHA-256 equality.
 - **Package/lockfile boundary:** `package.json` contains exactly the direct runtime and dev dependency groups in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §2](../references/external-facts.md), every version string is exact with no range/tag, `.bun-version` and `.node-version` exactly match `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, committed `bun.lock` is present, and `bun ci` succeeds without changing either manifest or lockfile. The direct-dependency set contains none of the excluded convenience packages in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §8](../references/external-facts.md), including router, jsdom/happy-dom, React Testing Library and Vitest-browser packages; transitive declaration/runtime helpers such as `@types/node`, `undici-types`, `playwright` and `playwright-core` are accepted only as lockfile-owned transitives of the declared direct dependencies.
-- **TypeScript/build behavior:** the `tsc` build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` is the type-check authority and no compiler API is imported; the effective compiler options exactly match [GW-DOC-TECHNICAL-ARCHITECTURE-V2 §2](../architecture/technical-architecture.md): `target: "ESNext"`, `lib: ["ESNext","DOM","DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, `types: ["bun"]`; `node node_modules/vite/bin/vite.js build` succeeds without `@vitejs/plugin-react`; the production bundle mounts with `react-dom/client.createRoot`; Vite config contains the required `tailwindcss()` plugin and application CSS contains exactly one `@import "tailwindcss";`; `node node_modules/vitest/vitest.mjs run` succeeds with Vitest `environment: "node"` and no per-file jsdom/happy-dom/browser-environment override.
+- **TypeScript/build behavior:** the `tsc` build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` is the type-check authority and no compiler API is imported; the effective compiler options exactly match [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md): `target: "ESNext"`, `lib: ["ESNext","DOM","DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, `types: ["bun"]`; `node node_modules/vite/bin/vite.js build` succeeds without `@vitejs/plugin-react`; the production bundle mounts with `react-dom/client.createRoot`; Vite config contains the required `tailwindcss()` plugin and application CSS contains exactly one `@import "tailwindcss";`; `node node_modules/vitest/vitest.mjs run` succeeds with Vitest `environment: "node"` and no per-file jsdom/happy-dom/browser-environment override.
 - **Playwright/browser protocol behavior:** CI runs `node node_modules/@playwright/test/cli.js install chromium` and then `node node_modules/@playwright/test/cli.js test` under the Node pin in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, using the Playwright-owned Chromium build bound by that same snapshot rather than assuming package installation supplied a browser; the suite proves fresh 64-lowercase-hex one-time connect tokens, single consumption, expiry rejection after 60 seconds, `303 Location: /`, `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, exact `pontivus_order_session=<64hex>; Path=/; HttpOnly; SameSite=Strict` attributes with no Domain/Expires/Max-Age/Secure, explicit browser `credentials: "same-origin"` with default cors mode, same-origin mutations carrying the exact real `Origin`, rejection of missing/null/wrong Origin, unauthenticated work-state rejection while the liveness-only `/api/health` remains public, Run/RunEvent polling/catch-up and absence of any required browser WebSocket/SSE transport. Firefox/WebKit are not certified v1 targets.
 - **Serialization/time behavior:** table-driven tests prove the exact §3 24-character `IsoDateTime` parser/generator rejects offsets, extended years, variable fractions and invalid dates; canonical-JSON tests prove recursive key sorting, array-order preservation, exact primitive escaping, and rejection of unsupported/non-finite/cyclic values; UTF-8 fixtures prove `TextEncoder` bytes are passed to the byte-only SHA-256 helper for non-ASCII text; fixed fixtures make package/task/context hashes byte-for-byte deterministic.
 - **Browser state/schema behavior:** one QueryClient has exactly the §19 defaults; active Run/RunEvent polling is exactly 1000 ms and stops when inactive; successful mutations invalidate/refetch only affected keys; component-local presentation state remains React-local; URL/search state uses only native URL/URLSearchParams/History APIs and no router/global-state package is present. All HTTP/persistence/provider/config ingress that maps to canonical semantics rejects unknown object keys and proceeds only with the owning strict Zod schema's parsed value.
@@ -1493,7 +1493,7 @@ An external upgrade invalidating any certification item is P4/P6 material.
 
 ## 30. Implementation contract
 
-A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v3 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE-V2](../architecture/technical-architecture.md).
+A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v3 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md).
 
 Any required change to those items returns to DESIGN/P6.
 
@@ -1563,7 +1563,7 @@ const WorkItemSourceMetadataSchema = z.strictObject({
 });
 ```
 
-`derivedFromWorkItemId` is omitted for ordinary intake. It is used only when a completed investigation/audit creates a separately governed remediation WorkItem as required by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`.
+`derivedFromWorkItemId` is omitted for ordinary intake. It is used only when a completed investigation/audit creates a separately governed remediation WorkItem as required by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 `formatVersion` versions only the portable front-matter grammar; `schemaId` pins the WorkItem workflow/template semantics. The two version concepts are deliberately named separately.
 
@@ -1739,7 +1739,7 @@ The v2 delivery templates add only the authority-hygiene semantics owned by the 
 For `change-v2` and `defect-v2`, `validateStageDocumentStructure(...)` is the single P6 structural owner for lifecycle-stage Markdown admission. In R2 it validates both the ordered v2 template sections and the disposition-table row grammar above; `stage.ts` then resolves every `REFERENCE`/`DELTA` canonical-owner ID from that same parsed ledger against the already-loaded current project `[refs]` map before conformance may pass. The repository architecture sensor separately verifies v2 WorkItem hygiene (no canonical-owner metadata and no retired `WF-FR-*` shadow namespace). These checks are structural/admission rules only; R3 remains the independent semantic judge of whether a claimed `REFERENCE`, `DELTA` or `LOCAL` classification is substantively correct.
 
 
-Artifact prerequisites are **not** copied into a second schema DAG. The schema selects the permitted stage/template set; prerequisite order and stage ownership remain resolved from `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-LIFECYCLE-CONTEXT-V2`. This is the local DRY consequence that must also be reflected when amending `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`.
+Artifact prerequisites are **not** copied into a second schema DAG. The schema selects the permitted stage/template set; prerequisite order and stage ownership remain resolved from `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-LIFECYCLE-CONTEXT`. This is the local DRY consequence that must also be reflected when amending `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 #### Source diagnostics/reconciliation contracts (P6)
 
@@ -1790,9 +1790,9 @@ scan exact source files
 
 The `registered`, `updated`, `moved` and `unchanged` sets are pairwise disjoint. `moved` means source path changed while the exact source SHA-256 stayed unchanged; a path change accompanied by changed bytes is `updated` and therefore follows source-change freshness.
 
-A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary inspection is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE-V2`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing, unresolved or valid-but-changed state of that recorded source is a source-boundary precondition/reconciliation-required condition for the attempted productive command: Order preserves the WorkItem's existing stage/status/outcome and rejects that command. A missing/moved/changed source becomes a lifecycle transition only through explicit reconciliation/save. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced.
+A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary inspection is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing, unresolved or valid-but-changed state of that recorded source is a source-boundary precondition/reconciliation-required condition for the attempted productive command: Order preserves the WorkItem's existing stage/status/outcome and rejects that command. A missing/moved/changed source becomes a lifecycle transition only through explicit reconciliation/save. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced.
 
-For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE-V2 §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
+For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
 
 #### Source create/update mutation
 
@@ -1908,7 +1908,7 @@ Productive inspection is non-mutating. Only the explicit reconcile/save paths ap
 Prompt projection:
 
 - R1: exact current WorkItem Markdown is included;
-- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT-V2`;
+- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT`;
 - DESIGN/PLAN/R3: validated upstream artifacts remain the normal semantic carriers; raw source text is omitted unless the lifecycle context resolver says it is materially required;
 - every pre-signoff source-backed stage context hash includes the exact source SHA-256 even when the source body is not rendered.
 
@@ -2505,7 +2505,7 @@ Permanent integration tests must prove:
 
 ## 33. OpenCode saved-account management canonical contracts
 
-This section is the binding P6 contract for OpenCode account management as governed by `GW-DOC-INSTALLATION-READINESS-V1` and technically realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V2`.
+This section is the binding P6 contract for OpenCode account management as governed by `GW-DOC-INSTALLATION-READINESS-V1` and technically realized by `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 It manages saved **OpenCode Console login accounts** used by subsequent OpenCode work. It does not define provider/model selection and does not persist credential secrets in Order.
 
@@ -2789,7 +2789,7 @@ Permanent integration/browser tests must prove:
 
 ## 34. WorkItem management, API failure and provider diagnostic contracts
 
-This section is the binding P6 closure for WorkItem management governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2` and its technical realization in `GW-DOC-TECHNICAL-ARCHITECTURE-V2`.
+This section is the binding P6 closure for WorkItem management governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and its technical realization in `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 ### 34.1 Deterministic archive marker
 
