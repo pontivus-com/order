@@ -57,7 +57,6 @@ const TaskDetail = ({
       </div>
     </div>
     <MetadataList columns="multi">
-      <MetadataListItem label="Task id"><code>{task.id}</code></MetadataListItem>
       <MetadataListItem label="Depends on">
         {task.dependsOn.length > 0 ? task.dependsOn.join(", ") : "None"}
       </MetadataListItem>
@@ -99,6 +98,10 @@ const TaskDetail = ({
         </ul>
       </section>
     </div>
+    <WorkbenchDisclosure
+      label="Task technical details"
+      content={<dl><div><dt>Task id</dt><dd><code>{task.id}</code></dd></div></dl>}
+    />
   </section>
 );
 
@@ -115,10 +118,6 @@ const HistoricalTaskDetail = ({
       </div>
     </div>
     <MetadataList columns="multi">
-      <MetadataListItem label="Task id"><code>{task.planTaskId}</code></MetadataListItem>
-      <MetadataListItem label="Approval">
-        <code>{task.approvalId}</code>
-      </MetadataListItem>
       <MetadataListItem label="Execution state">
         {task.state.replaceAll("_", " ").toLowerCase()}
       </MetadataListItem>
@@ -163,6 +162,14 @@ const HistoricalTaskDetail = ({
         </ul>
       </section>
     </div>
+    <WorkbenchDisclosure
+      label="Task technical details"
+      content={<dl>
+        <div><dt>Execution task id</dt><dd><code>{task.id}</code></dd></div>
+        <div><dt>Plan task id</dt><dd><code>{task.planTaskId}</code></dd></div>
+        <div><dt>Approval id</dt><dd><code>{task.approvalId}</code></dd></div>
+      </dl>}
+    />
   </section>
 );
 
