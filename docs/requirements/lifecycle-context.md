@@ -2,7 +2,7 @@
 
 **Status:** Binding design standard
 **Canonical concern ID:** `GW-DOC-LIFECYCLE-CONTEXT`  
-**Versioned concern ID:** `GW-DOC-LIFECYCLE-CONTEXT-V1`  
+**Versioned concern ID:** `GW-DOC-LIFECYCLE-CONTEXT-V2`  
 
 ## 1. Purpose
 
