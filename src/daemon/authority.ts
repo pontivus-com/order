@@ -414,6 +414,25 @@ const latestRunCandidateArtifacts = (
   return [];
 };
 
+export const currentStageCompletionArtifacts = (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+): readonly ArtifactRef[] => {
+  const candidates = latestRunCandidateArtifacts(runtime, workItem.id, stage);
+  return deduplicateArtifacts(
+    candidates.flatMap((candidate) => {
+      if (!candidate.repositoryPath.endsWith(".md")) return [];
+      const current = persistedCurrentArtifactSnapshot(
+        runtime,
+        workItem,
+        candidate,
+      );
+      return current === null ? [] : [current];
+    }),
+  );
+};
+
 export const currentStageDraftArtifacts = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
