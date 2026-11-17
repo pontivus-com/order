@@ -1683,6 +1683,8 @@ const WorkItemKindSchema = z.enum([
 const WorkItemSchemaIdSchema = z.enum([
   "change-v1",
   "defect-v1",
+  "change-v2",
+  "defect-v2",
   "investigation-v1",
   "audit-v1",
 ]);
@@ -1690,10 +1692,11 @@ const WorkItemSchemaIdSchema = z.enum([
 const WorkItemSchemaCatalogEntrySchema = z.strictObject({
   schemaId: WorkItemSchemaIdSchema,
   kind: WorkItemKindSchema,
+  authoringDefault: z.boolean(),
 });
 ```
 
-The built-in catalog is immutable v1 product data in `src/core/work-item-source.ts` and is the only schemaId -> kind mapping.
+The built-in catalog in `src/core/work-item-source.ts` is the only schemaId -> kind mapping. Published schema ids are immutable semantic pins; the catalog also identifies the one current ordinary-authoring default for each kind without changing historical schema meaning.
 
 The authoring templates are owned in the same module as immutable Markdown strings keyed by schema id. They reference the owning lifecycle/functional document identifiers and do not copy the complete normative lifecycle rules.
 
@@ -1701,12 +1704,14 @@ A published schema id pins its template and structural validation semantics. A l
 
 The same core owner resolves the complete v1 authoring/stage-template policy; call sites do not maintain kind-specific switches. The minimum template set is:
 
-| Schema | Intake template | R1 template | Later stage templates | Allowed successful R1 completion |
-|---|---|---|---|---|
-| `change-v1` | `change-intake-v1` | `change-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `defect-v1` | `defect-intake-v1` | `defect-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `investigation-v1` | `investigation-intake-v1` | `investigation-r1-v1` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `audit-v1` | `audit-intake-v1` | `audit-r1-v1` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| Schema | Authoring default | Intake template | R1 template | Later stage templates | Allowed successful R1 completion |
+|---|---|---|---|---|---|
+| `change-v1` | no | `change-intake-v1` | `change-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `defect-v1` | no | `defect-intake-v1` | `defect-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `change-v2` | yes | `change-intake-v2` | `change-r1-v1` | `change-r2-v2`, `change-design-v2`, `change-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `defect-v2` | yes | `defect-intake-v2` | `defect-r1-v1` | `defect-r2-v2`, `defect-design-v2`, `defect-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `investigation-v1` | yes | `investigation-intake-v1` | `investigation-r1-v1` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `audit-v1` | yes | `audit-intake-v1` | `audit-r1-v1` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
 
 The v1 template structures are intentionally small and reference the existing lifecycle/specification owners rather than copying their rules:
 
@@ -1871,6 +1876,8 @@ When starting R1/R2/DESIGN/PLAN and the latest conformance output set for that s
 This uses the last conformant output paths as the deterministic draft-path set; it does not search arbitrary repository Markdown. The draft snapshots are not added as higher authority and do not change the meaning of the existing `ResolvedContext.artifacts` dependency set. They are supplied so the stage can validate/revise the human-authored current output rather than being forced to rediscover/recreate it. If no prior stage output path exists, direct UI creation of a new lifecycle artifact is not provided; the normal stage proposal/adoption path creates the first artifact.
 
 Promotion still requires `STAGE_COMPLETED` referencing an exact current role ArtifactRef and the existing conformance checks. A file change during the Run fails promotion through exact-hash validation.
+
+For every promotable R1/R2/DESIGN/PLAN/R3 completion, `artifactRefIds` contains exactly one coordinator-known ArtifactRef for the current WorkItem, current stage role and deterministic lifecycle-document path. Order projects eligible current-stage draft ArtifactRef ids into the productive stage prompt only as completion bindings; the model does not invent persistence identity. The coordinator re-resolves that id, validates current bytes and the pinned schema's structural stage contract, and only then may emit `CONFORMANCE_PASSED`. Zero/multiple/wrong-role/wrong-path/stale output bindings produce `CONFORMANCE_FAILED` and no lifecycle promotion.
 
 #### Source-backed stage/context flow
 
