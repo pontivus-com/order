@@ -346,17 +346,18 @@ export const MarkdownEditor = ({
       >
         {readOnly ? preview : (
           <>
-            {sourceVisible ? (
-              <div className="order-editor-source-pane">
-                <MarkdownSourceEditor
-                  ref={sourceEditorRef}
-                  value={buffer}
-                  disabled={conflicted || saving}
-                  ariaLabel={(editingTitle ?? title) + " Markdown source"}
-                  onChange={setBuffer}
-                />
-              </div>
-            ) : null}
+            <div
+              className={"order-editor-source-pane" + (sourceVisible ? "" : " order-editor-source-pane-hidden")}
+              aria-hidden={sourceVisible ? undefined : true}
+            >
+              <MarkdownSourceEditor
+                ref={sourceEditorRef}
+                value={buffer}
+                disabled={conflicted || saving}
+                ariaLabel={(editingTitle ?? title) + " Markdown source"}
+                onChange={setBuffer}
+              />
+            </div>
             {presentationMode !== "EDIT" ? (
               <div className="order-editor-preview-pane">
                 {preview}
