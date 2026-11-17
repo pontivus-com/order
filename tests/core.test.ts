@@ -1068,6 +1068,10 @@ describe("source-backed WorkItem core", () => {
       "",
       "## Functional authority disposition ledger",
       "",
+      "| Requirement | Disposition | Canonical owner |",
+      "|---|---|---|",
+      "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+      "",
       "## Expected corrected behavior",
       "",
       "## Behavior that must remain unchanged",
@@ -1091,6 +1095,43 @@ describe("source-backed WorkItem core", () => {
         valid.replace("## Functional authority disposition ledger\n", ""),
       )
     ).toThrow(/missing ordered section/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+          "|  |  |  |",
+        ),
+      )
+    ).toThrow(/requires at least one requirement row/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace("| REFERENCE |", "| COPY |"),
+      )
+    ).toThrow(/must be REFERENCE, DELTA or LOCAL/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "GW-P1-DOC-CANONICALITY",
+          "not-a-canonical-owner",
+        ),
+      )
+    ).toThrow(/requires a GW-\* canonical owner/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+          "| Package-local defect acceptance | LOCAL | — |",
+        ),
+      )
+    ).not.toThrow();
     expect(() =>
       validateStageDocumentStructure("defect-v1", "R2", "# legacy\n")
     ).not.toThrow();
