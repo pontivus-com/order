@@ -986,6 +986,9 @@
   display: grid;
   gap: var(--spacing-2);
 }
+.order-readiness-findings .order-markdown-document-view {
+  min-height: 0;
+}
 .order-readiness-current-interaction {
   padding: var(--spacing-3);
   border: 1px solid var(--color-border-emphasized);
