@@ -78,12 +78,9 @@ const approval = [...latestByReviewer.values()].find(
   (review) =>
     review.state === "APPROVED" &&
     review.commit_id === headSha,
+) ?? fail(
+  `PR #${number} requires an independent APPROVED review bound to current head ${headSha}`,
 );
-if (approval === undefined) {
-  fail(
-    `PR #${number} requires an independent APPROVED review bound to current head ${headSha}`,
-  );
-}
 
 process.stdout.write(
   `independent current-head review verified for PR #${number}: ${approval.user?.login}\n`,
