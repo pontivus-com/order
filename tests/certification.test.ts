@@ -1420,7 +1420,10 @@ describe("Order cross-boundary certification", () => {
     expect(uiSource).not.toContain("@opencode-ai/sdk");
     expect(uiSource).not.toContain("order-workflow-side-index");
     expect(uiSource).not.toContain("order-generic-side-index");
-    expect(uiSource).not.toContain("OpenCode session");
+    const activityWorkspace = read("ui/src/ActivityWorkspace.tsx");
+    expect(activityWorkspace).not.toContain('title="OpenCode session"');
+    expect(activityWorkspace).not.toContain('label="OpenCode session"');
+    expect(activityWorkspace).not.toContain('data-testid="opencode-session"');
   });
 
   it("keeps the publishable current tree free of private-source provenance and temporary verification scaffolding", () => {
