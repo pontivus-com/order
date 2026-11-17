@@ -12,7 +12,7 @@ A Order `TODO` item is an execution contract that exists only after a factually 
 
 The pre-execution pipeline is therefore intentionally more rigorous than the execution loop.
 
-All packages must satisfy the [GW-DOC-SPECIFICATION-STANDARD-V2](specification-standard.md), every agent stage is governed by [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md), and execution cannot reach `CANDIDATE_DONE` except through the [GW-DOC-VALIDATION-STANDARD-V1](validation-standard.md).
+All packages must satisfy the [GW-DOC-SPECIFICATION-STANDARD](specification-standard.md), every agent stage is governed by [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md), and execution cannot reach `CANDIDATE_DONE` except through the [GW-DOC-VALIDATION-STANDARD-V1](validation-standard.md).
 
 No lifecycle transition is valid merely because the producing agent finished. Every promotable stage output must pass its stage-specific conformance gate against all applicable resolved higher pyramid authority.
 
@@ -44,7 +44,7 @@ It should close, as applicable:
 - whether the work is duplicate, obsolete, or already satisfied;
 - unresolved factual questions.
 
-R1 completion values are kind-gated by the pinned WorkItem schema under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`.
+R1 completion values are kind-gated by the pinned WorkItem schema under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 For `CHANGE` and `DEFECT`:
 
@@ -65,7 +65,7 @@ For `AUDIT`:
 
 `INVESTIGATION_COMPLETE` and `AUDIT_COMPLETE` transition directly to `COMPLETE / COMPLETE` with the corresponding terminal WorkOutcome. They do not manufacture R2/DESIGN/PLAN/R3/EXECUTION work. If remediation is needed, it is represented by a separately governed linked `CHANGE` or `DEFECT` WorkItem.
 
-Promotion and terminalization remain governed by [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md); schema-specific eligibility must be validated before applying the lifecycle transition.
+Promotion and terminalization remain governed by [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md); schema-specific eligibility must be validated before applying the lifecycle transition.
 
 ### R2 — Requirements
 
@@ -88,7 +88,7 @@ It closes:
 
 The acceptance criteria established here are later consumed by readiness and verification. Implementation may not rewrite them to fit the resulting code.
 
-R2 promotion is governed by [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md). Missing required product intent is not resolved by agent invention.
+R2 promotion is governed by [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md). Missing required product intent is not resolved by agent invention.
 
 ### DESIGN
 
@@ -113,7 +113,7 @@ It establishes, as applicable:
 
 An implementation worker must not be required to choose among material architectural alternatives.
 
-The design must satisfy the target project's applicable governance and the [GW-DOC-MINIMUM-CHANGE-V1](../governance/minimum-change.md). Design promotion is governed by [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md).
+The design must satisfy the target project's applicable governance and the [GW-DOC-MINIMUM-CHANGE-V1](../governance/minimum-change.md). Design promotion is governed by [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md).
 
 ### PLAN
 
@@ -141,7 +141,7 @@ A plan task without an upstream justification is presumed scope creep.
 
 A requirement without plan coverage means the implementation is incomplete.
 
-The plan also records the expected semantic change surface and required validation gates. Plan promotion is governed by [GW-DOC-LIFECYCLE-CONTEXT-V2](lifecycle-context.md).
+The plan also records the expected semantic change surface and required validation gates. Plan promotion is governed by [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md).
 
 ### R3 — Readiness Review
 
@@ -153,7 +153,7 @@ R3 is an independent adversarial review. It treats R1, R2, Design, and Plan as u
 
 R3 verifies at least:
 
-- the package satisfies [GW-DOC-SPECIFICATION-STANDARD-V2](specification-standard.md);
+- the package satisfies [GW-DOC-SPECIFICATION-STANDARD](specification-standard.md);
 - R1 still matches current repository state;
 - requirements match governing authority;
 - design satisfies every requirement;
@@ -311,7 +311,7 @@ An approval identifies an exact package:
 - approval timestamp;
 - package hash.
 
-For source-backed work governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`, sign-off also binds the exact originating WorkItem source snapshot on which the package depends. A material change to that source invalidates the approval through the same upstream-freshness mechanism before further productive execution.
+For source-backed work governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`, sign-off also binds the exact originating WorkItem source snapshot on which the package depends. A material change to that source invalidates the approval through the same upstream-freshness mechanism before further productive execution.
 
 A material upstream, governance, project-manifest or verification-binding change invalidates the approval automatically. P6 represents the exact package through the signed PLAN/R3 ArtifactRef roots plus their persisted transitive material dependency closure; it does not duplicate every upstream artifact into Approval fields.
 
@@ -422,7 +422,7 @@ The following are the stable R2/P3 functional requirement identities for the alr
 
 **Required behavior:** one local browser workbench exposes the governed lifecycle, authority/evidence inspection, explicit artifact-proposal disposition, readiness inspection, explicit sign-off and candidate inspection over daemon-owned state. The same workbench supports light and dark appearance with an operator-selectable `System | Light | Dark` preference; `System` is the default and follows the operating-system/browser color-scheme preference.
 
-**Acceptance criterion:** the local UI can perform the v1 human interaction surface defined by [GW-DOC-TECHNICAL-ARCHITECTURE-V2 §18](../architecture/technical-architecture.md) through the canonical loopback HTTP contract, while the daemon remains the sole workflow-state-mutating process. Light and dark modes are visually distinct across the workbench chrome, controls and governed content/status surfaces; an explicit Light or Dark choice survives reload for that browser profile, while System restores live system-following behavior.
+**Acceptance criterion:** the local UI can perform the v1 human interaction surface defined by [GW-DOC-TECHNICAL-ARCHITECTURE §18](../architecture/technical-architecture.md) through the canonical loopback HTTP contract, while the daemon remains the sole workflow-state-mutating process. Light and dark modes are visually distinct across the workbench chrome, controls and governed content/status surfaces; an explicit Light or Dark choice survives reload for that browser profile, while System restores live system-following behavior.
 
 **Failure/negative behavior:** browser-local workflow state, direct browser Git/SQLite/OpenCode access, remote/multi-user hosting, hidden sign-off, or a second transport/state machine is not permitted in v1. Appearance preference is presentation-local state only: it must not alter lifecycle semantics, daemon state, persisted Order domain state, HTTP contracts or canonical work artifacts.
 
