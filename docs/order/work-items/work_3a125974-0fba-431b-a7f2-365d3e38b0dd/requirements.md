@@ -37,7 +37,7 @@ No new lifecycle stage, Run role, persisted conformance model, DTO family, dupli
 9. A v2 R2 `REFERENCE` or `DELTA` row whose canonical owner does not resolve through the current project `[refs]` map cannot promote.
 10. PLAN cannot promote unless its exact current bytes contain exactly one valid canonical `order-tasks` block.
 
-11. All live current governing documents that consume an amended V2 owner reference its current semantic identifier; retained V1 sources remain byte-identical and are not rewritten. A permanent architecture gate rejects renewed current-document pins to retained superseded owner IDs.
+11. All live current governing documents that consume an amended concern as its current owner use the stable canonical concern identifier. Exact V1/V2 identifiers are permitted only for an intentionally exact semantic snapshot. Retained V1 sources remain byte-identical and are not rewritten. A permanent architecture gate rejects ordinary current-document version pins for concerns that have advanced semantic owners.
 
 ## Regression/preservation acceptance
 
