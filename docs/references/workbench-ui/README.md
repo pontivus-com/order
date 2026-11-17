@@ -68,6 +68,9 @@ The references preserve:
 - Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; it does not introduce a dedicated dark palette or theme island in Light mode;
 - human/agent dialogue distinct from workflow events and operational activity;
 - Implementation as the only persistent workflow master/detail geometry.
+- Approval uses the closed `WorkbenchReview` hierarchy and decision region; it does not introduce an Approval-only authorization side pane.
+- Implementation uses the canonical fixed `--order-master-width` / `WorkbenchMasterDetail` geometry, and its current Start/Retry/Resume action remains owned by `WorkbenchAttention` rather than task-detail chrome.
+- Complete uses the flat sequential Terminal-result grammar (`WorkbenchSurface + WorkbenchStatus + result content/resources`); it does not introduce a terminal card-dashboard grid.
 
 ## Complete audited surface coverage
 
