@@ -32,6 +32,12 @@ R1 prerequisite investigation
 
 The work must be controlled by one campaign plan that proves complete concern coverage, marks the explicit start and end of each investigation, records findings and cross-concern dependencies, and tracks every concern through functional design, technical design and final plan coverage.
 
+## Canonical 0.6.0 campaign work point
+
+This WorkItem is the sole active coordination/work point for the Order 0.6.0 design campaign. All campaign status, concern coverage, design-stage progress and readiness disposition must resolve back to `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21` and its lifecycle artifacts.
+
+This does not make the WorkItem a permanent semantic authority. P1-P6 meaning remains with the canonical concern owners; this WorkItem owns only the governed change package and its campaign progression. Parallel 0.6.0 plans or design streams must not become competing status/decision owners.
+
 ## Why this change is required
 
 The 0.6.0 redesign must not repeat the failure mode where a large integrated design is treated as complete while individual product concerns, state interactions, authority dependencies or downstream implementation consequences remain unexamined.
