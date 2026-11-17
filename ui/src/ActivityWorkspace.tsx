@@ -123,7 +123,7 @@ export const StageRunMaterial = ({ stage, runs, runEvents, selectedRunId, curren
     selectedIsCurrent &&
     (
       (
-        currentAttention === "ORDINARY" &&
+        currentRunControlsOwnAttention &&
         interaction?.tag === "OPEN" &&
         hasVisibleAgentAnchor
       ) ||
