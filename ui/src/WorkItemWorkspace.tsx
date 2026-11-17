@@ -1367,6 +1367,7 @@ export const WorkItemWorkspace = ({
             workItem={workItem}
             stage={sharedPreSignoffStage}
             runs={runs}
+            runEvents={allRunEvents}
             artifacts={artifacts}
             material={material}
             materialState={selectedStageMaterialState}
