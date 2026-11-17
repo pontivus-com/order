@@ -560,6 +560,15 @@ describe("architecture fitness", () => {
       }
     }
 
+    if (files.has("src/core/governance.ts")) {
+      const governanceCore = sourceText("src/core/governance.ts");
+      if (!governanceCore.includes("export const evaluateStageConformance")) {
+        violations.push(
+          "src/core/governance.ts must own evaluateStageConformance",
+        );
+      }
+    }
+
     if (files.has("src/core/work-item-source.ts")) {
       const workItemSourceCore = sourceText("src/core/work-item-source.ts");
       for (const requiredOwner of [
@@ -569,6 +578,7 @@ describe("architecture fitness", () => {
         "linkedRemediationIsAllowed",
         "r1CompletionIsAllowedForSchema",
         "unresolvedConcernIdsForProject",
+        "validateStageDocumentStructure",
       ]) {
         if (!workItemSourceCore.includes(`export const ${requiredOwner}`)) {
           violations.push(
