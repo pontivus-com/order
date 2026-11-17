@@ -21,6 +21,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Restore 0.5.0 Workbench presentation ownership before resumed visual-reference correction: return Evidence to `WorkbenchSurface` plus the pinned Astryx `CodeBlock` leaf, remove feature-owned card/component chrome and screenshot-tuned geometry, keep primitive mechanics on public Astryx tokens/canonical Workbench selectors, and add permanent certification preventing feature-to-primitive styling bypasses, raw radius/type regressions and convenience stylesheet/dependency expansion.
+
 - Preserve dirty/conflicted Work request Markdown across canonical source reconciliation and post-save browser convergence, while keeping workflow mutations blocked until the refreshed canonical observation is coherent.
 
 - Carry exact stale Approval/material authority ownership through the canonical typed HTTP failure contract and route recovery to the exact upstream lifecycle owner, keeping source reconciliation separate and eliminating browser inference from error text; preserve `STALE_AUTHORITY` as distinct current attention with a STALE rail marker, and keep reached-but-unsigned Approval history visibly distinct from an actually signed Approval.
