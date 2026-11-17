@@ -35,6 +35,7 @@ import {
 } from "../core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
+  authorityDispositionOwnerRefs,
   stageTemplateForSchema,
   validateStageDocumentStructure,
   workItemDocumentPath,
@@ -286,11 +287,23 @@ const persistStageCompletionBatch = async (
       outputConformanceFailure = "stage completion references stale output bytes";
     } else {
       try {
+        const markdown = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
         validateStageDocumentStructure(
           workItem.schemaId,
           run.stage,
-          new TextDecoder("utf-8", { fatal: true }).decode(bytes),
+          markdown,
         );
+        for (const authorityRef of authorityDispositionOwnerRefs(
+          workItem.schemaId,
+          run.stage,
+          markdown,
+        )) {
+          if (!(authorityRef in manifest.refs)) {
+            throw new TypeError(
+              `functional authority disposition references unresolved owner: ${authorityRef}`,
+            );
+          }
+        }
         if (run.stage === "PLAN") {
           parseSignedTaskBlockFromPlan(bytes);
         }
