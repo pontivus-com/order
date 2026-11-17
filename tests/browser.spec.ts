@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import {
   ExecutionTaskSchema,
+  InstallationReadinessSchema,
   OpenCodeAccountLoginAttemptSchema,
   OpenCodeAccountStateSchema,
   RunEventSchema,
@@ -279,9 +280,28 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const repositories = page.getByTestId("settings-repositories");
   await expect(repositories).toBeVisible();
   await expect(settings).toContainText("WorkItem documents");
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toBeVisible();
+  const readinessResponse = await page.request.get("/api/settings/readiness");
+  expect(readinessResponse.status()).toBe(200);
+  const installationReadiness = InstallationReadinessSchema.parse(
+    await readinessResponse.json(),
+  );
+  const readyForProductiveWork = settings.getByText(
+    "Ready for productive work",
+    { exact: true },
+  );
+  const expectDaemonReadiness = async (): Promise<void> => {
+    if (installationReadiness.ready) {
+      await expect(readyForProductiveWork).toBeVisible();
+      return;
+    }
+    await expect(readyForProductiveWork).toHaveCount(0);
+    await expect(
+      settings.getByText("Setup requires attention", { exact: true }),
+    ).toBeVisible();
+  };
+  await expectDaemonReadiness();
   await expect(repositories.getByTestId("add-repository-form")).toHaveCount(0);
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toBeVisible();
+  await expectDaemonReadiness();
   await repositories.getByRole("button", { name: "Add repository" }).click();
   await expect(repositories.getByTestId("add-repository-form")).toBeVisible();
   await expect(settings.getByText("Ready for productive work", { exact: true })).toHaveCount(0);
@@ -305,7 +325,7 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   await expect(movePanel.getByLabel("New repository-relative WorkItem document root")).toBeVisible();
   await movePanel.getByRole("button", { name: "Cancel move" }).click();
   await expect(movePanel).toHaveCount(0);
-  await expect(settings.getByText("Ready for productive work", { exact: true })).toBeVisible();
+  await expectDaemonReadiness();
 
   const disconnectRepository = repositoryRow.getByRole("button", { name: /^Disconnect / });
   await disconnectRepository.click();

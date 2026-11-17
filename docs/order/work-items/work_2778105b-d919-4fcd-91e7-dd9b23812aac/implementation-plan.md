@@ -1069,6 +1069,10 @@ The §6.11 41-reference verdict remains **41/41 MATCH** after this ownership cor
 
 The closure commit containing this addendum removes the temporary workflows again. The remaining P7 obligation is a successful permanent PR Verification on that publishable tree; canonical V2-V7 remains downstream of that gate.
 
+The first permanent PR Verification on that publishable closure, run `44051311043`, reached the browser gate with dependency-lock, typecheck, architecture, all 254 Vitest tests, build and release packaging green. Browser attempt 1 exposed two 5-second observation failures: one Settings readiness assertion and one Markdown-save polling assertion. An exact-head rerun removed the Markdown failure and reproduced only the Settings assertion.
+
+The reproduced Settings failure was a stale test assumption, not a product/readiness defect: the test unconditionally expected `Ready for productive work` even though the permanent e2e environment does not guarantee that daemon-owned `/api/settings/readiness` is `ready: true`. The browser test is therefore corrected to read and schema-validate the actual daemon readiness response and assert the corresponding canonical Settings presentation (ready success only when `ready === true`; otherwise the canonical setup-attention state). No production renderer, reference SVG, lifecycle, daemon or control-plane byte changes in that correction, so the exact-head visual reproof above remains current. A fresh permanent PR Verification on the resulting publishable test/documentation-only head remains the final P7 gate.
+
 ## 7. Reference-fixture rule — no separate implementation phase
 
 There is no P0 implementation phase.
