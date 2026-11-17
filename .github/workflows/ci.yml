@@ -31,7 +31,7 @@ jobs:
           git init .
           git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
           git fetch --no-tags --depth=50 origin \
-            "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}" \
+            "+refs/heads/${{ github.event.pull_request.base.ref }}:refs/remotes/origin/${{ github.event.pull_request.base.ref }}" \
             "+refs/pull/${{ github.event.pull_request.number }}/merge:refs/remotes/origin/pr-merge"
           git checkout --detach refs/remotes/origin/pr-merge
 
@@ -70,7 +70,7 @@ jobs:
           test "$(/tmp/pontivus-order-opencode/bin/opencode --version)" = "opencode v2.2.6"
 
       - name: Verify PR release metadata
-        run: bun scripts/verify-release.ts --mode pr --base "refs/remotes/origin/${GITHUB_BASE_REF}"
+        run: bun scripts/verify-release.ts --mode pr --base "refs/remotes/origin/${{ github.event.pull_request.base.ref }}"
 
       - name: dependency-lock
         run: bun ci
