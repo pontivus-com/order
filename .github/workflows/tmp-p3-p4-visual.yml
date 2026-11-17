@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: tmp-p3-p4-visual-${{ github.ref }}
+  group: tmp-p3-p4-visual-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
