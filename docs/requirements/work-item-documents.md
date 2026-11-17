@@ -113,6 +113,22 @@ Templates guide content; they do not create a second definition of R1/R2/DESIGN/
 
 Published schema identifiers are immutable semantic pins. A material change to a schema's template or structural validation semantics requires a new schema identifier; an existing published identifier must remain resolvable with its original meaning for previously authored WorkItems.
 
+### 6.1 Delivery schema v2 authority-hygiene correction
+
+The published `change-v1` and `defect-v1` schema pins remain supported with their original template/validation semantics. They are historical compatibility pins and are no longer the ordinary authoring defaults after the authority-hygiene correction.
+
+New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template.
+
+The v2 R2 template contains a **functional authority disposition ledger**. Each material requirement is classified as exactly one of:
+
+- `REFERENCE` — existing canonical P3 authority applies unchanged; the WorkItem records only its local consequence/acceptance and does not become a second normative owner;
+- `DELTA` — the WorkItem changes an existing canonical P3 concern and identifies that owner explicitly;
+- `LOCAL` — no existing canonical P3 concern owns the exact requirement, so the WorkItem owns it for this package without duplicating another concern.
+
+These dispositions are requirement-authoring semantics, not new runtime state, persistence fields or WorkItem kinds. R3 independently challenges their correctness.
+
+The catalog exposes which schema is the current authoring default for each kind while continuing to resolve every published historical schema id. Ordinary Create presents only the current authoring default per kind; discovery and existing WorkItems continue to accept their pinned historical schemas.
+
 ## 7. Built-in intake template variants
 
 The built-in templates must reduce authoring work while giving the first agent turn enough correctly classified intent.
@@ -382,6 +398,14 @@ This preserves restartability: after provider/session loss, Order must be able t
 **Acceptance criterion:** after session/provider loss, every material intent fact required to reconstruct the WorkItem is available from durable canonical inputs; transient Run conversation is not the sole owner of changed intent.
 
 **Failure/negative behavior:** Order must not let a human chat answer silently redefine WorkItem intent for later stages or sign-off while the portable source remains unchanged.
+
+### GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION
+
+**Required behavior:** delivery-schema R2 artifacts must classify every material functional requirement against the existing canonical P3 authority set before downstream design may consume it. The admissible dispositions are `REFERENCE` when an existing canonical requirement applies unchanged, `DELTA` when the WorkItem changes an existing canonical concern, and `LOCAL` when the WorkItem legitimately owns a package-local functional requirement for which no canonical owner already exists.
+
+**Acceptance criterion:** every material R2 requirement has one explicit disposition and canonical-owner reference where applicable; `REFERENCE` does not restate the referenced concern as a second normative copy, `DELTA` identifies the existing owner being changed, and `LOCAL` is independently reviewable as non-overlapping with existing canonical P3 authority.
+
+**Failure/negative behavior:** a WorkItem must not silently create a parallel permanent requirement namespace for behavior already owned by canonical P3, weaken a referenced higher obligation through a local restatement, or proceed to DESIGN with unresolved product/authority ownership.
 
 ### GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION
 
