@@ -2,7 +2,7 @@
 
 # Order 0.5.0 integrated workflow task experience — implementation plan
 
-**Status:** VISUAL CLOSURE REMEDIATION IN PROGRESS — P1/C1 and P2/C2 preserved PASS; C3-C7 reopened; not yet eligible for V2-V7  
+**Status:** STRICT VISUAL CLOSURE PASS — P1/C1 and P2/C2 preserved PASS; C3-C7 freshly re-adjudicated PASS; publishable-tree permanent PR Verification must pass before canonical V2-V7
 **WorkItem:** work_2778105b-d919-4fcd-91e7-dd9b23812aac  
 **Derived factual authority:** parent Audit work_9d07ce7e-83e4-4f8c-bc77-1c31c20198d2  
 **Accepted functional authority:** requirements.md  
@@ -264,11 +264,11 @@ No new dependency, package pin, database migration, persistent state table, tran
 |---|---|---|---|
 | P1 | core contracts and pure workflow semantics | C1 semantic-kernel closure | **DONE — preserve** |
 | P2 | daemon/OpenCode/control-plane realization | C2 producer→carrier→consumer closure | **DONE — preserve; rerun regression gates after later UI work** |
-| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **REOPENED — retained evidence invalidated; strict C3 regeneration required** |
-| P4 | Work request through Readiness | C4 pre-signoff visual conformance | **REOPENED — retained evidence invalidated; strict C4 regeneration required** |
-| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **REOPENED — retained evidence invalidated; strict C5 regeneration required** |
-| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **REOPENED — retained evidence invalidated; strict C6 regeneration required** |
-| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **REOPENED — prior 41/41 ledger invalidated; final-head C7 regeneration required** |
+| P3 | shared Workbench interaction foundation | C3 foundation visual conformance | **DONE — strict C3 re-adjudication PASS** |
+| P4 | Work request through Readiness | C4 pre-signoff visual conformance | **DONE — strict C4 re-adjudication PASS** |
+| P5 | Approval, Implementation and Complete | C5 post-signoff visual conformance | **DONE — strict C5 re-adjudication PASS** |
+| P6 | Queue/Create/Settings/Context/Evidence/application services | C6 application-surface visual conformance | **DONE — strict C6 re-adjudication PASS** |
+| P7 | application-wide integration, deletion and permanent certification | C7 complete 41-reference conformance | **VISUAL C7 PASS; publishable-tree permanent gate pending** |
 
 No phase may be marked complete while its checkpoint is FAIL, invalid, unproven or superseded by later evidence.
 
@@ -957,6 +957,84 @@ Permanent PR Verification run `44035317769` passed on strengthened code/test hea
 `dependency-lock → typecheck → architecture → test → build → release packaging → browser` = **PASS**.
 
 This strengthens V-07 proof only. The later §0 strict visual-evidence correction independently invalidates the former 41/41 visual ledger and reopens C3-C7 without changing the V-07 result.
+
+### 6.11 Strict visual closure re-adjudication — 2026-11-17
+
+**Status:** PASS for C3-C7 visual conformance. The invalid historical visual ledger is superseded by a fresh real-SPA re-adjudication after correcting every independently identified presentation/composition defect at its canonical owner.
+
+The final remediated production/reference head used for this integrated visual adjudication is `fbb2bbc72e2007bc2286716fd6cb28c53a7f9856`. All five evidence jobs captured that exact head:
+
+- C3/C4: run `44049672534`, artifact `p3-p4-visual-evidence-fbb2bbc72e2007bc2286716fd6cb28c53a7f9856`, digest `sha256:6be98f8b50766a78b580c7d06cc46c0ed6bb38f9702906ed8f29e01cabadfbbb`;
+- C5: run `44049672571`, artifact `c7-p5-evidence-fbb2bbc72e2007bc2286716fd6cb28c53a7f9856`, digest `sha256:4b436205528a671db234feebadaca8b99e7666cab8f89b9af478dac243728aa7`;
+- C6 main: run `44049672634`, artifact `c6-visual-evidence-fbb2bbc72e2007bc2286716fd6cb28c53a7f9856`, digest `sha256:a8d0da5975a722e8a9d4235d8b10d311947ec1075d2595958a7a8b8f0fef6b82`;
+- C6 Queue supplement: run `44049672611`, artifact `c6-queue-reference-evidence-fbb2bbc72e2007bc2286716fd6cb28c53a7f9856`, digest `sha256:eebe5d8dfaa65c3be0cfdaa370e8c4071d9e649c360389586f8f5dbef003a807`;
+- C6 notice-state supplement: run `44049672512`, artifact `c6-notice-state-evidence-fbb2bbc72e2007bc2286716fd6cb28c53a7f9856`, digest `sha256:c158602a02fc506243abfaa4d15857ab298f721fea8c2d5f0c46c307a524987c`.
+
+The adjudication applied §§4.3-4.4 strictly. Persistent topology, current-attention/status semantics, primary-action placement, interaction class, information hierarchy, responsive recomposition, theme meaning and technical-detail subordination were treated as zero-deviation dimensions. Only browser/font rasterization, legitimate repository/runtime values and content wrapping were accepted as rendering variance.
+
+| Reference | Strict C7 verdict |
+|---|---|
+| `application-notices-states.svg` | **MATCH** |
+| `approval-task-detail.svg` | **MATCH** |
+| `approval.svg` | **MATCH** |
+| `complete-linked-remediation.svg` | **MATCH** |
+| `complete.svg` | **MATCH** |
+| `create-linked-remediation.svg` | **MATCH** |
+| `create-work-item.svg` | **MATCH** |
+| `current-attention-states.svg` | **MATCH** |
+| `dialogue-states.svg` | **MATCH** |
+| `document-authoring.svg` | **MATCH** |
+| `document-readonly.svg` | **MATCH** |
+| `document-states.svg` | **MATCH** |
+| `evidence-viewer.svg` | **MATCH** |
+| `implementation-plan.svg` | **MATCH** |
+| `implementation-states.svg` | **MATCH** |
+| `implementation.svg` | **MATCH** |
+| `installation-readiness.svg` | **MATCH** |
+| `proposal-review.svg` | **MATCH** |
+| `proposal-states.svg` | **MATCH** |
+| `queue-states.svg` | **MATCH** |
+| `queue.svg` | **MATCH** |
+| `readiness-review.svg` | **MATCH** |
+| `requirements.svg` | **MATCH** |
+| `research.svg` | **MATCH** |
+| `responsive-composition.svg` | **MATCH** |
+| `safety-confirmations.svg` | **MATCH** |
+| `settings-model.svg` | **MATCH** |
+| `settings-opencode-add.svg` | **MATCH** |
+| `settings-opencode-login-states.svg` | **MATCH** |
+| `settings-opencode-login.svg` | **MATCH** |
+| `settings-opencode-rename.svg` | **MATCH** |
+| `settings-opencode.svg` | **MATCH** |
+| `settings-repositories.svg` | **MATCH** |
+| `settings-repository-add.svg` | **MATCH** |
+| `settings-repository-move.svg` | **MATCH** |
+| `solution-design.svg` | **MATCH** |
+| `theme-parity.svg` | **MATCH** |
+| `work-request.svg` | **MATCH** |
+| `work-type-variants.svg` | **MATCH** |
+| `workitem-context.svg` | **MATCH** |
+| `workitem-shell-controls.svg` | **MATCH** |
+
+No reference requires an `ALLOWED_RENDERING_VARIANCE` exception and no unresolved visual debt remains.
+
+The strict closure specifically proves the corrected failure classes:
+
+- mutation conflict and canonical-document conflict now use the required error/conflict semantics;
+- application toolbar chrome and document-local toolbar presentation have distinct canonical roles;
+- Approval restores the explicit Authorization hierarchy inside the exact-package Review;
+- Implementation restores the persistent fixed-width Approved Tasks master/detail topology;
+- Queue actions/search are Queue-local rather than application-toolbar actions;
+- Settings uses the reviewed navigation/content containment and bounded focused Add/Move/OpenCode task compositions;
+- successful installation readiness is not duplicated across unrelated Settings tasks;
+- Model evidence waits for settled model data;
+- installation-readiness and source-diagnostic notices are captured as distinct canonical states;
+- Create and linked-remediation surfaces carry the reviewed form/lineage information and explicit Cancel + primary Create action;
+- Context evidence waits for the resolved Context state.
+
+The closure commit containing this record removes all temporary evidence workflows from the publishable delivery tree. That commit changes only this governed evidence record plus deletion of branch-scoped verification scaffolding; it does not alter production renderers or SVG reference bytes.
+
+**Candidate-boundary rule:** C3-C7 visual conformance is closed here, but P7 is not allowed to claim final permanent certification until the publishable closure SHA—without temporary workflows—passes the repository's permanent PR Verification union. Canonical V2-V7 starts only after that external gate is green. Any later production/reference edit invalidates the affected visual proof and must be re-adjudicated.
 
 ## 7. Reference-fixture rule — no separate implementation phase
 
