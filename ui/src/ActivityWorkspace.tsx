@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useMutation } from "@tanstack/react-query";
 
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
@@ -52,8 +52,8 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ stage, runs, runEvents, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
-  stage: PreSignoffStage; runs: readonly Run[]; runEvents: readonly RunEvent[]; selectedRunId: Run["id"] | null;
+export const StageRunMaterial = ({ stage, runs, runEvents, companion, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
+  stage: PreSignoffStage; runs: readonly Run[]; runEvents: readonly RunEvent[]; companion?: ReactNode; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
@@ -213,7 +213,14 @@ export const StageRunMaterial = ({ stage, runs, runEvents, selectedRunId, curren
       <WorkbenchDialogue
         header={header}
         transcript={transcript}
-        activity={activityRegion}
+        activity={
+          activityRegion || companion ? (
+            <div className="order-dialogue-support-stack">
+              {activityRegion}
+              {companion}
+            </div>
+          ) : undefined
+        }
         state={<>
           {actionError ? <WorkbenchNotice tone="danger" title="Workflow action failed" description={actionError instanceof Error ? actionError.message : String(actionError)} /> : null}
           {workflow}
