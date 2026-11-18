@@ -4,104 +4,225 @@
 
 ## Readiness verdict
 
-`RETURN_TO_RESEARCH`.
+`READY_FOR_SIGNOFF`.
 
-The prior `READY_FOR_SIGNOFF` conclusion is invalidated by the post-G6 governance audit at repository baseline `75e1de8a0fe5c1e63806a535257f3ba2bd5fe0a1`. Campaign §18 is the sole current G0-G6 state owner and currently blocks progression at G0. The canonical R3 outcome cannot encode a campaign G0 return, so this artifact returns to the earliest lifecycle layer requiring freshness revalidation, R1/Research, **after** the separate Phase-0 foundation correction is implemented and G0 is restored.
+This is a fresh adversarial R3 over the post-governance package. It does not reuse the former pre-G-F06/G-F07/G-F08 readiness conclusion and it does not constitute Approval.
 
-This review does not repair R1/R2/DESIGN/PLAN and does not authorize implementation.
+The governing campaign rule remains controlling: current implementation, UI, tests, prior releases and historical design are evidence only. They do not define the 0.6.0 desired baseline, preservation target, compatibility target, fallback or regression contract.
 
-## Exact reviewed package
+## Exact reviewed upstream package
 
-- audit repository baseline: `75e1de8a0fe5c1e63806a535257f3ba2bd5fe0a1`;
-- campaign owner: `0.6.0-design-campaign-plan.md`;
-- originating WorkItem source: `work-request.md` at this baseline; exact source SHA remains an Approval-time binding and must be re-resolved after the foundation correction;
-- R1: `research.md`;
-- R2: `requirements.md`;
-- DESIGN: `solution-design.md`;
-- PLAN: `implementation-plan.md`;
-- permanent campaign fitness owner: `tests/architecture.test.ts`.
+R3 reviewed the exact G5 baseline `6e7314fe89b0227891d6f3f41d03287118bbe8ea`.
+
+- WorkItem source: `work-request.md`, blob `94240788a976a2595f678f7684d3775b67540c07`;
+- R1: `research.md`, blob `8afcb735dc9124f4ce01f3ea3c1716007d7ce9d2`;
+- R2: `requirements.md`, blob `92cad7491a89e3c498826ae697b37d00e7568532`;
+- DESIGN: `solution-design.md`, blob `cb16001f29aeb7a4e47bec40a55bb3f62d7263e3`;
+- PLAN: `implementation-plan.md`, blob `b7ba8b28f4585216959d7b0e37a3708130d0e897`;
+- campaign evidence/state owner: `0.6.0-design-campaign-plan.md`, blob `59511d3d1a1b1098136fc07aad801b6827d274f8`;
+- project manifest: `pontivus-order.toml`, blob `686b3a89da7d0fe9af91a09112847a25d8c37b4c`;
+- permanent architecture/campaign fitness material: `tests/architecture.test.ts`, blob `7c7a79c27689aedc5634930a38d9b4e6a9de8560`.
+
+The WorkItem source blob is byte-identical to the restored G0 foundation baseline; no source/intent drift exists underneath G1-G5.
 
 ## Authority topology review
 
-**Verdict: FAIL — foundation correction required.**
+**PASS.**
 
-Three foundation defects invalidate the prior readiness result:
+The corrected foundation is current:
 
-1. **G-F06 — duplicate campaign-state projections are not comprehensively rejected.** The campaign declares §18 the sole G0-G6 state owner, but subordinate evidence documents were able to state current gate PASS/closure and the permanent sensor inspected only the campaign plan for duplicates.
-2. **G-F07 — mandatory pair-audit records are not mechanically bound to pair/gate PASS.** R2-A01-A11 and DESIGN-A01-A11 were recorded as PASS in the pair table even though zero required `PAIR AUDIT START/END` records existed.
-3. **G-F08 — R2 disposition conformance proves owner layer, not obligation completeness.** The v2 hygiene sensor accepts declared REFERENCE/DELTA rows when their owners resolve to P3 but does not prove coverage of the current stable P3 requirement-ID set.
+- G-F06: current G0-G6 state is singly owned by campaign §18 and subordinate active WorkItem documents are mechanically rejected when they create competing current gate-state projections;
+- G-F07: pair-table PASS is mechanically coupled to exactly one current mandatory audit record below the post-audit freshness boundary, predecessor ordering and gate-to-pair closure;
+- G-F08: G3 PASS is mechanically coupled to exact manifest-canonical stable-P3 disposition-set completeness and canonical owner-path identity.
 
-The defects are owned by the separately governed Phase-0 WorkItem `work_4f68d6c9-9e37-4f54-8c8d-6c9c4d15a8b2`. R3 does not repair them locally.
+G0, G1, G2, G3, G4 and G5 are current PASS states in their sole owner. R1/R2/DESIGN/PLAN A01-A11 are current PASS records below the post-governance freshness boundary.
+
+No WorkItem artifact creates a second permanent P1-P6 semantic owner.
 
 ## R1 completeness challenge
 
-**Verdict: RETURN / REVALIDATE.**
+**PASS.**
 
-The existing R1 content is substantial and remains reusable evidence: C01-C22 have START/END records, atomic obligation analysis, findings and R1-A01-A11 records. However the campaign's mandatory audit record requires exact reviewed repository/document identity. R1-A01-A10 record an evidence baseline but not the required artifact identities; R1-A11 lacks an exact baseline, and the A01 revalidation triggered by A11 is not bound to an exact current evidence package. Those gaps prevent current G2 closure.
+R1 was freshly revalidated pair-by-pair after the foundation correction.
+
+- all C01-C22 factual models are closed;
+- R1-A01-A11 contain current exact-baseline/artifact evidence and PASS in dependency order;
+- the comparison from the earliest exhaustive R1 baseline through the corrected foundation contains no production `src/**` or `ui/**` change;
+- changed P2/P3 authority and verification material were explicitly reopened;
+- every current realization is evidence only and every still-current finding remains routed to its downstream owner;
+- zero material `UNPROVEN` factual obligations remain.
 
 ## R2 functional-authority challenge
 
-**Verdict: FAIL / RETURN_TO_REQUIREMENTS after G0 and G2 recovery.**
+**PASS.**
 
-The current requirements artifact contains functional consequences and a P3-owner disposition table, but the campaign's mandatory R2-A01-A11 audit records do not exist. A summary table asserting PASS cannot substitute for those records. In addition, the disposition ledger is concern-aggregated and does not mechanically prove complete stable P3 obligation coverage. R2 must be re-run pair-by-pair and bind every material stable P3 obligation to exactly one REFERENCE/DELTA/LOCAL disposition while separately proving normative clauses without stable IDs through semantic audit evidence.
+The current R2 artifact is obligation-complete rather than concern-summary-complete.
+
+- 112 unique manifest-canonical stable P3 `GW-FR-*` obligations are represented exactly once;
+- missing = 0, duplicate = 0, extra = 0, canonical-owner-path mismatch = 0;
+- all stable rows preserve their existing canonical owner through `REFERENCE`;
+- each A01-A11 section states the explicit required 0.6.0 functional consequence, so `REFERENCE` is not used as an implicit no-change conclusion;
+- the non-stable Work Lifecycle cross-reference correction is separately represented as a clause-level `DELTA`;
+- P2 corrections remain P2-owned and are not misclassified as P3;
+- normative P3 clauses without stable IDs were challenged semantically in the applicable pair audits;
+- all C01-C22 R2 cells are `FUNCTIONAL_CLOSED`;
+- R2-A01-A11 are current PASS in dependency order;
+- zero unresolved product decisions, authority conflicts or material functional `UNPROVEN` items remain.
 
 ## DESIGN technical challenge
 
-**Verdict: FAIL / RETURN_TO_DESIGN after R2 recovery.**
+**PASS.**
 
-The current design contains concrete technical realizations, but the mandatory DESIGN-A01-A11 audit records do not exist. Therefore positive proof for each no-technical-delta conclusion and complete R2 -> technical realization coverage is absent under the campaign's own rules. DESIGN must be re-run pair-by-pair from the corrected R2 package.
+The technical design maps every R2 obligation to an explicit realization or positive evidence-backed no-technical-delta disposition.
+
+The selected architecture preserves:
+
+- pure/core semantic derivation versus daemon/shell/UI effect ownership;
+- one canonical proposal/adoption owner;
+- one canonical source-admission/reconciliation owner;
+- one canonical task/Approval/Run/validation model;
+- one Workbench component/theme language;
+- existing persistence and public transport shapes;
+- denied ambient provider shell capability.
+
+The only new runtime concepts are:
+
+1. one transient pure resolved-authority projection;
+2. one typed BUILDER `GATE_CHECKPOINT_REQUESTED` event.
+
+C13/C14/C15/C17 no-technical-delta conclusions are supported by current producer→carrier→consumer evidence and unchanged production/UI realization, not inherited historical status.
+
+No DTO/service/repository/controller/shadow-model family, persistence table, HTTP family, dependency upgrade or feature-local UI system is authorized.
+
+All C01-C22 DESIGN cells are `TECHNICAL_CLOSED`; DESIGN-A01-A11 and H3 are current PASS; zero material architecture choices are delegated to implementation.
 
 ## PLAN legality and executability challenge
 
-**Verdict: DOWNSTREAM INVALID; retain only as evidence.**
+**PASS.**
 
-The current P7 is mechanically stronger than the invalidated upstream phases and its PLAN-A01-A11 records exist. However P7 cannot establish its own upstream completeness. It must be freshly revalidated or regenerated from the corrected G4 package. Its current 28-path task is not implementation authority.
+The current P7 contains exactly one canonical `order-tasks` task and matches DESIGN exactly.
+
+Independent task-block validation found:
+
+- exact changeSurface = 28 paths;
+- DESIGN-declared surface = 28 paths;
+- missing = 0;
+- extra = 0;
+- duplicate scope/changeSurface/gate values = 0;
+- unresolved acceptance/authority refs = 0;
+- unresolved concern IDs = 0;
+- unresolved gate IDs = 0;
+- omitted concern-required gates = 0;
+- forbidden/material-authority paths in changeSurface = 0.
+
+The signed gate set is exactly the complete concern-required union:
+`dependency-lock`, `typecheck`, `architecture`, `test`, `build`, `browser`.
+
+The project manifest's only non-empty verification `materialRefs` entry is `tests/architecture.test.ts` for the architecture gate. T1 explicitly excludes that file. No signed task mutates verification material that authorizes itself.
+
+One cumulative task is required by the canonical Approval-baseline execution model; dependent tasks would not inherit candidate bytes and would therefore manufacture a false dependency topology.
+
+All C01-C22 PLAN cells are `PLAN_COVERED`; PLAN-A01-A11 and H4 are current PASS; no implementation worker must choose a material P1-P6 decision.
 
 ## P1 -> P7 traceability review
 
-**Verdict: FAIL.**
+**PASS.**
 
-Bidirectional traceability cannot be declared complete while R2 and DESIGN mandatory pair evidence is absent. Existing mappings may be reused as evidence only after the missing obligation-level chain is re-proven.
+Traceability is closed in both directions.
+
+Upward:
+
+```text
+T1 action / no-code disposition
+  -> exact DESIGN obligation
+  -> exact R2 functional consequence
+  -> manifest-canonical P3 owner / applicable P2 intent
+  -> P1 governance and architecture constraints
+```
+
+Downward:
+
+```text
+accepted R2 obligation
+  -> DESIGN realization / positive no-change proof
+  -> PLAN step or explicit no-production-delta coverage
+  -> exact signed change surface / verification obligation
+```
+
+No task action is justified only by existing implementation shape or historical release behavior.
 
 ## Minimum-change and anti-bloat review
 
-**Verdict: NOT REACHED AS A READINESS PASS.**
+**PASS.**
 
-No new bloat finding is asserted here. The existing minimum-change analysis remains evidence, but readiness cannot rely on it until the upstream package is valid.
+The design and plan reuse existing semantic owners and carriers.
+
+New persistent state: none.  
+New persistence schema/migration: none.  
+New public HTTP family: none.  
+New dependency/configuration format: none.  
+New lifecycle/WorkItem/task state: none.  
+New proposal/decision model family: none.
+
+The exact 28-path surface is the minimum forecast that realizes the closed technical design plus permanent certification and delivery metadata. Any materially required new semantic owner, public contract, state model, effect boundary, dependency direction, external dependency or behavior is an upstream DESIGN/PLAN stop.
 
 ## Failure, recovery and negative-case review
 
-**Verdict: NOT SUFFICIENT FOR READINESS.**
+**PASS.**
 
-The package's negative cases remain useful evidence. The governance failure itself demonstrates a missing negative case: false pair/gate PASS must be mechanically rejected even when adjacent CI is green.
+The package explicitly fails closed on:
+
+- unresolved authority source/ref/precedence/override binding;
+- semantic authority contradiction without valid precedence;
+- invalid governance proposal target/layer/base hash;
+- durable authority-changing input without later adopted authority;
+- vacuous/materially under-specified signed task package;
+- blank normalized approval identity;
+- unsigned or unresolved checkpoint gate;
+- checkpoint failure that cannot be corrected inside signed scope;
+- source/queue reconciliation failure;
+- stale/different sign-off material;
+- provider/action failure that would otherwise fabricate success;
+- hidden current attention;
+- repeated focus theft;
+- unclassified renderer or incomplete work-kind/theme certification.
+
+Failure owners and return paths remain explicit; implementation cannot repair an upstream product/design/specification defect by invention.
 
 ## Verification ownership review
 
-**Verdict: FAIL.**
+**PASS for readiness semantics; final delivery evidence remains exact-candidate evidence.**
 
-The permanent architecture/campaign sensor currently proves state-table shape, G0 ancestry and declared R2 owner-layer legality, but not the three propositions in G-F06-G-F08. Green PR verification therefore cannot substitute for the missing semantic/governance checks.
+The permanent architecture/campaign sensor is now materially stronger and passed on the reviewed G5 package.
+
+PR Verification #1286 on the exact reviewed G5 head passed release metadata, dependency-lock, typecheck, architecture, full unit/integration tests, build and release-packager. Its browser step had one existing five-second polling timeout in the dirty Markdown PLAN/R3 editing test while 36/37 browser tests passed. No production/UI file changed between the restored G0 baseline and the reviewed G5 head; the failed assertion is therefore treated as delivery-test evidence requiring exact-candidate rerun, not as proof of a product/design defect.
+
+A same-head verification rerun was requested. This R3 verdict does not claim that failed attempt was green. Exact final-head PR verification must be green before the delivery handoff is represented as green provenance.
 
 ## Open decision/conflict ledger
 
 | Item | State |
 |---|---|
-| unresolved product decision | NONE identified by this governance audit |
-| unresolved authority conflict | G-F06-G-F08 foundation conformance defects OPEN |
-| unresolved architecture decision | NONE for the foundation correction; exact sensor behavior is specified by existing campaign law |
-| unresolved implementation-blocking question | foundation correction and downstream revalidation required before implementation |
-| unowned finding | NONE — G-F06-G-F08 owned by separate Phase-0 WorkItem |
-| material UNPROVEN obligation | R1 audit freshness; R2 disposition completeness; R2/DESIGN pair evidence |
-| unsigned required implementation surface | current 0.6.0 T1 is downstream-invalid and cannot authorize execution |
-| verification-material self-mutation | prohibited for the 0.6.0 T1; permitted only through the separately governed foundation task that explicitly owns the sensor correction |
+| unresolved product decision | NONE |
+| unresolved authority conflict | NONE |
+| unresolved architecture decision | NONE |
+| unresolved implementation-blocking question | NONE |
+| unowned finding | NONE |
+| material UNPROVEN R1/R2/DESIGN/PLAN obligation | NONE |
+| unsigned required implementation surface | NONE |
+| verification-material self-mutation | NONE |
+| hidden compatibility/fallback target | NONE |
 
 ## Adversarial findings
 
-- G-F06: campaign single-state ownership enforcement incomplete.
-- G-F07: pair-audit/gate PASS enforcement incomplete.
-- G-F08: R2 disposition completeness enforcement incomplete.
+No finding requires return to R1, R2, DESIGN or PLAN.
+
+The isolated browser timeout remains a delivery-evidence item, not an upstream semantic defect. A later exact-candidate browser failure that proves a reproducible repository defect must be classified under the normal owning layer rather than waived.
 
 ## Final R3 disposition
 
-`RETURN_TO_RESEARCH`.
+`READY_FOR_SIGNOFF`.
 
-Required order is: separate G0 foundation remediation -> G1 freshness proof -> R1/G2 revalidation -> fresh R2/G3 -> fresh DESIGN/G4 -> PLAN/G5 revalidation/regeneration -> new adversarial R3/G6. No implementation sign-off is valid before that chain completes.
+This verdict means the exact P1-P7 package is coherent, current, traceable, technically executable and leaves no material implementation decision unresolved.
+
+It does **not** authorize T1. Explicit human sign-off of the exact current package remains a separate canonical action.
