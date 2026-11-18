@@ -2940,7 +2940,7 @@ describe("daemon control plane", () => {
         R2: root + "/requirements.md",
         DESIGN: root + "/solution-design.md",
         PLAN: root + "/implementation-plan.md",
-        R3: root + "/readiness.md",
+        R3: root + "/readiness-review.md",
       };
       fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
       fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
