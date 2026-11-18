@@ -14,7 +14,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
-- Require every v2 R2 `REFERENCE`/`DELTA` authority-disposition owner to resolve specifically through canonical P3 authority, reject P2/P4 layer leakage at stage conformance and permanent WorkItem hygiene, and correct the 0.6.0 campaign ledger without changing its functional or technical design.
+- Require every v2 R2 `REFERENCE`/`DELTA` authority-disposition owner to resolve specifically through canonical P3 authority, reject P2/P4 layer leakage before stage promotion and in permanent WorkItem hygiene, and correct the 0.6.0 campaign ledger without changing its functional or technical design.
 
 ## [0.5.0] - 2026-11-17
 
