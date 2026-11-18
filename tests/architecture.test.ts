@@ -1436,6 +1436,36 @@ describe("architecture fitness", () => {
     const p3Patterns = [
       ...(authorityBody.match(/^p3\s*=\s*\[(.*)\]\s*$/m)?.[1].matchAll(/"([^"]+)"/g) ?? []),
     ].map((match) => match[1]).filter((value): value is string => value !== undefined);
+    const stableP3Ids = new Set<string>();
+    for (const path of p3Patterns) {
+      if (!existsSync(join(repositoryRoot, path))) continue;
+      for (const match of sourceText(path).matchAll(/\b(GW-FR-[A-Z0-9-]+)\b/g)) {
+        const id = match[1];
+        if (id !== undefined) stableP3Ids.add(id);
+      }
+    }
+    const stableCoverageDelta = (
+      expected: ReadonlySet<string>,
+      declared: readonly string[],
+    ): Readonly<{ missing: readonly string[]; duplicate: readonly string[]; extra: readonly string[] }> => {
+      const counts = new Map<string, number>();
+      for (const id of declared) counts.set(id, (counts.get(id) ?? 0) + 1);
+      return {
+        missing: [...expected].filter((id) => !counts.has(id)).sort(),
+        duplicate: [...counts.entries()].filter(([, count]) => count > 1).map(([id]) => id).sort(),
+        extra: [...counts.keys()].filter((id) => !expected.has(id)).sort(),
+      };
+    };
+    expect(
+      stableCoverageDelta(
+        new Set(["GW-FR-A", "GW-FR-B"]),
+        ["GW-FR-A", "GW-FR-A", "GW-FR-C"],
+      ),
+    ).toEqual({
+      missing: ["GW-FR-B"],
+      duplicate: ["GW-FR-A"],
+      extra: ["GW-FR-C"],
+    });
     const workItemsRoot = join(repositoryRoot, "docs", "order", "work-items");
     for (const entry of readdirSync(workItemsRoot, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -1493,6 +1523,34 @@ describe("architecture fitness", () => {
             `docs/order/work-items/${entry.name}/requirements.md: v2 authority disposition ledger must contain at least one material requirement row`,
           );
         }
+        if (entry.name === "work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21") {
+          const campaignPlan = sourceText(
+            "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md",
+          );
+          const g3Status = campaignPlan.match(/^\| G3 \|[^|]*\|\s*([^|]+?)\s*\|/m)?.[1] ?? "";
+          if (g3Status === "PASS") {
+            const declaredStableIds = dataRows
+              .map((row) => row.trim().slice(1, -1).split("|")[0]?.trim() ?? "")
+              .filter((id) => /^GW-FR-[A-Z0-9-]+$/.test(id));
+            const delta = stableCoverageDelta(stableP3Ids, declaredStableIds);
+            if (delta.missing.length > 0) {
+              violations.push(
+                `docs/order/work-items/${entry.name}/requirements.md: G3 PASS missing stable P3 dispositions: ${delta.missing.join(", ")}`,
+              );
+            }
+            if (delta.duplicate.length > 0) {
+              violations.push(
+                `docs/order/work-items/${entry.name}/requirements.md: G3 PASS duplicate stable P3 dispositions: ${delta.duplicate.join(", ")}`,
+              );
+            }
+            if (delta.extra.length > 0) {
+              violations.push(
+                `docs/order/work-items/${entry.name}/requirements.md: G3 PASS contains non-authoritative GW-FR disposition ids: ${delta.extra.join(", ")}`,
+              );
+            }
+          }
+        }
+
         for (const row of dataRows) {
           const cells = row.trim().slice(1, -1).split("|").map((cell) => cell.trim());
           const [requirement = "", disposition = "", owner = ""] = cells;
@@ -1534,6 +1592,14 @@ describe("architecture fitness", () => {
                 `docs/order/work-items/${entry.name}/requirements.md: ${disposition} owner ${owner} is not selected by authority.p3`,
               );
             }
+            if (
+              /^GW-FR-[A-Z0-9-]+$/.test(requirement) &&
+              !sourceText(ownerPath).includes(requirement)
+            ) {
+              violations.push(
+                `docs/order/work-items/${entry.name}/requirements.md: ${owner} does not contain stable requirement ${requirement}`,
+              );
+            }
           }
         }
       }
@@ -1552,6 +1618,22 @@ describe("architecture fitness", () => {
 
     const source = sourceText(campaignPlanPath);
     const violations: string[] = [];
+    const campaignDirectory = dirname(campaignPlanPath);
+    const currentGateProjection =
+      /^(?:\*\*Status:\*\*[^\n]*\bG[0-6]\b[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED)\b|\s*(?:[-*]\s*)?(?:\*\*)?G[0-6](?:\*\*)?\s*(?::|=|is\b)[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED|complete|closed|ready)\b)/i;
+    for (const entry of readdirSync(join(repositoryRoot, campaignDirectory), { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith(".md") || entry.name === "0.6.0-design-campaign-plan.md") {
+        continue;
+      }
+      const siblingPath = join(campaignDirectory, entry.name).replaceAll("\\", "/");
+      for (const [index, line] of sourceText(siblingPath).split(/\r?\n/).entries()) {
+        if (currentGateProjection.test(line)) {
+          violations.push(
+            `${siblingPath}:${index + 1}: current G0-G6 state must be owned only by campaign §18`,
+          );
+        }
+      }
+    }
 
     if (/^\*\*Status:\*\*/m.test(source)) {
       violations.push("campaign header must not duplicate current gate/concern state");
@@ -1571,6 +1653,8 @@ describe("architecture fitness", () => {
 
     const concernSection =
       source.match(/## 7\. Master concern register\r?\n([\s\S]*?)(?=\r?\n## 8\.)/)?.[1] ?? "";
+    const pairSection =
+      source.match(/#### Current pair-audit status\r?\n([\s\S]*?)(?=\r?\n## 9\.)/)?.[1] ?? "";
     const gateSection =
       source.match(/## 18\. Phase\/gate status register\r?\n([\s\S]*?)(?=\r?\n## 19\.)/)?.[1] ?? "";
 
@@ -1620,6 +1704,109 @@ describe("architecture fitness", () => {
     );
     if (gates.size !== 7) {
       violations.push(`§18 must contain exactly G0-G6, found ${gates.size} gate rows`);
+    }
+
+    const pairRows = pairSection
+      .split(/\r?\n/)
+      .filter((line) => /^\| A\d{2} \|/.test(line))
+      .map((line) => {
+        const cells = tableCells(line);
+        return {
+          id: cells[0] ?? "",
+          concerns: cells[1] ?? "",
+          R1: cells[2] ?? "",
+          R2: cells[3] ?? "",
+          DESIGN: cells[4] ?? "",
+          PLAN: cells[5] ?? "",
+        };
+      });
+    const expectedPairIds = Array.from({ length: 11 }, (_, index) =>
+      `A${String(index + 1).padStart(2, "0")}`
+    );
+    if (pairRows.length !== expectedPairIds.length) {
+      violations.push(`§8.4 must contain exactly 11 pair rows, found ${pairRows.length}`);
+    }
+    if (new Set(pairRows.map((pair) => pair.id)).size !== pairRows.length) {
+      violations.push("§8.4 pair ids must be unique");
+    }
+    for (const pairId of expectedPairIds) {
+      if (!pairRows.some((pair) => pair.id === pairId)) {
+        violations.push(`§8.4 missing pair row ${pairId}`);
+      }
+    }
+
+    const revalidationBoundary = source.lastIndexOf(
+      "POST-G6 GOVERNANCE AUDIT REOPENING — G-F06/G-F07/G-F08",
+    );
+    const currentAuditSource =
+      revalidationBoundary >= 0 ? source.slice(revalidationBoundary) : source;
+    const phaseNames = ["R1", "R2", "DESIGN", "PLAN"] as const;
+    for (const phase of phaseNames) {
+      for (const [index, pair] of pairRows.entries()) {
+        const status = pair[phase];
+        if (status === "PASS" && index > 0 && pairRows[index - 1]?.[phase] !== "PASS") {
+          violations.push(
+            `${phase}-${pair.id} PASS requires prior pair ${phase}-${pairRows[index - 1]?.id} PASS`,
+          );
+        }
+        if (status !== "PASS") continue;
+        const auditId = `${phase}-${pair.id}`;
+        const startToken = `PAIR AUDIT START: ${auditId}`;
+        const endToken = `PAIR AUDIT END: ${auditId}`;
+        const start = currentAuditSource.indexOf(startToken);
+        const end = currentAuditSource.indexOf(endToken, start + startToken.length);
+        if (start < 0 || end < 0) {
+          violations.push(`${auditId} PASS requires one current mandatory pair-audit record`);
+          continue;
+        }
+        const record = currentAuditSource.slice(start, end + endToken.length + 400);
+        const checks = [
+          ["exact baseline", /Exact baseline:/i],
+          ["repository commit", /repository commit:\s*`?[0-9a-f]{40}`?/i],
+          ["artifact hashes/SHAs", /artifact hashes\/SHAs:\s*[^\n]*[0-9a-f]{40}/i],
+          ["detailed checks", /Detailed checks:/i],
+          ["general checklist PASS", /general checklist:[^\n]*PASS/i],
+          ["phase-specific checklist PASS", /phase-specific checklist:[^\n]*PASS/i],
+          ["cross-concern interface PASS", /cross-concern interface:[^\n]*PASS/i],
+          ["reused-material revalidation PASS", /reused-material revalidation:[^\n]*PASS/i],
+          ["findings", /Findings:/i],
+          ["reopened concerns", /Reopened concerns:/i],
+          ["unproven items", /Unproven items:/i],
+          ["verdict PASS", /Verdict:\s*`?PASS`?/i],
+        ] as const;
+        for (const [label, pattern] of checks) {
+          if (!pattern.test(record)) {
+            violations.push(`${auditId} PASS record missing ${label}`);
+          }
+        }
+      }
+    }
+
+    const gatePairPhase = [
+      ["G2", "R1"],
+      ["G3", "R2"],
+      ["G4", "DESIGN"],
+      ["G5", "PLAN"],
+    ] as const;
+    for (const [gateId, phase] of gatePairPhase) {
+      if (gates.get(gateId)?.status === "PASS") {
+        const unresolved = pairRows.filter((pair) => pair[phase] !== "PASS");
+        if (unresolved.length > 0) {
+          violations.push(
+            `${gateId} PASS requires all ${phase} pair audits PASS; unresolved: ${unresolved.map((pair) => pair.id).join(", ")}`,
+          );
+        }
+      }
+    }
+    for (let rank = 1; rank <= 6; rank += 1) {
+      const gateId = `G${rank}`;
+      if (gates.get(gateId)?.status !== "PASS") continue;
+      for (let prior = 0; prior < rank; prior += 1) {
+        if (gates.get(`G${prior}`)?.status !== "PASS") {
+          violations.push(`${gateId} PASS requires G0-G${rank - 1} PASS`);
+          break;
+        }
+      }
     }
 
     const inProgressGates = [...gates.entries()]
@@ -1724,7 +1911,7 @@ describe("architecture fitness", () => {
           violations.push("G1 coverage ledger must record the exact current G0 baseline SHA");
         }
       }
-      if (/^\| G-F\d+ .*\| OPEN_FOUNDATION \|/m.test(source)) {
+      if (/^\| G-F\d+ .*OPEN_FOUNDATION/m.test(source)) {
         violations.push("G0 PASS is illegal while an OPEN_FOUNDATION finding remains");
       }
     }
