@@ -90,6 +90,33 @@ T1's authority set, exclusions, unchanged architecture gate and final semantic r
 
 **Task -> design:** every T1 production/test/delivery action is justified by C02/C03/C04/C10/C11/C16/C18/C19/C20 or by the repository-delivery requirement to update `CHANGELOG.md`. T1 contains no unrelated cleanup, dependency upgrade, authority rewrite, API/schema change or speculative refactor.
 
+### Per-concern PLAN disposition
+
+| Concern | PLAN coverage |
+|---|---|
+| C01 | PLAN_COVERED — no runtime delta; already-realized lifecycle/result taxonomy is protected by T1 authority/exclusions/gates. |
+| C02 | PLAN_COVERED — T1 step 2. |
+| C03 | PLAN_COVERED — T1 step 2. |
+| C04 | PLAN_COVERED — T1 step 1. |
+| C05 | PLAN_COVERED — no technical delta; Workbench shell/navigation owner remains unchanged and outside scope. |
+| C06 | PLAN_COVERED — no technical delta; R1 interaction/orchestration remains unchanged and outside scope. |
+| C07 | PLAN_COVERED — no technical delta; R2 authority-disposition interaction remains unchanged and outside scope. |
+| C08 | PLAN_COVERED — no technical delta; DESIGN interaction/material behavior remains unchanged and outside scope. |
+| C09 | PLAN_COVERED — no technical delta; PLAN/task-authoring runtime contracts remain unchanged and outside scope. |
+| C10 | PLAN_COVERED — T1 step 3. |
+| C11 | PLAN_COVERED — T1 step 3. |
+| C12 | PLAN_COVERED — no technical delta; execution/validation ownership remains unchanged and outside scope. |
+| C13 | PLAN_COVERED — no technical delta; COMPLETE/result/follow-up behavior remains unchanged and outside scope. |
+| C14 | PLAN_COVERED — no technical delta; material/proposal/evidence/dialogue ownership remains unchanged and outside scope. |
+| C15 | PLAN_COVERED — no technical delta; provider/session/activity ownership remains unchanged and outside scope. |
+| C16 | PLAN_COVERED — T1 step 4. |
+| C17 | PLAN_COVERED — no technical delta; current-attention/recovery algebra remains unchanged and outside scope. |
+| C18 | PLAN_COVERED — T1 changed UI must preserve responsive/accessibility semantics and is certified by existing architecture/browser gates. |
+| C19 | PLAN_COVERED — T1 uses only existing Workbench/Astryx composition; no theme/primitive change is authorized. |
+| C20 | PLAN_COVERED — T1 step 5 plus full gate union and independent semantic review. |
+| C21 | PLAN_COVERED — no runtime delta; verified-result/product-intent authority clarification is already in the approved baseline. |
+| C22 | PLAN_COVERED — no governance/authority integration change; manifest/authority files are explicitly excluded. |
+
 ## Module ownership/decomposition constraints and architecture-feedback checkpoints
 
 ### Ownership constraints
