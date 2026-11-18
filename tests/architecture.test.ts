@@ -1621,13 +1621,15 @@ describe("architecture fitness", () => {
     const campaignDirectory = dirname(campaignPlanPath);
     const currentGateProjection =
       /^(?:\*\*Status:\*\*[^\n]*\bG[0-6]\b[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED)\b|\s*(?:[-*]\s*)?(?:\*\*)?G[0-6](?:\*\*)?\s*(?::|=|is\b)[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED|complete|closed|ready)\b)/i;
+    const currentGateVerdictHeading =
+      /^#{1,6}\s+.*\bG[0-6]\b.*\b(?:verdict|status|closure|state)\b/i;
     for (const entry of readdirSync(join(repositoryRoot, campaignDirectory), { withFileTypes: true })) {
       if (!entry.isFile() || !entry.name.endsWith(".md") || entry.name === "0.6.0-design-campaign-plan.md") {
         continue;
       }
       const siblingPath = join(campaignDirectory, entry.name).replaceAll("\\", "/");
       for (const [index, line] of sourceText(siblingPath).split(/\r?\n/).entries()) {
-        if (currentGateProjection.test(line)) {
+        if (currentGateProjection.test(line) || currentGateVerdictHeading.test(line)) {
           violations.push(
             `${siblingPath}:${index + 1}: current G0-G6 state must be owned only by campaign §18`,
           );
