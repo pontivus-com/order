@@ -18,7 +18,7 @@
 | Supporting line | **From idea to verified result.** |
 | One-line description | **Order turns ideas for software work into verified results by carrying them through governed definition and, where implementation is required and authorized, the execution, testing, review, bounded remediation, and independent verification needed for that work.** |
 | Short description | **An open-source software factory that carries software work from idea to verified result.** |
-| Technical description | **A local workbench and execution control plane that turns governed software work into verified candidates.** |
+| Technical description | **A local workbench and execution control plane that carries governed software work to verified terminal results, including verified candidates when execution is required.** |
 | Terminal product outcome | **Verified result** |
 | Executed delivery outcome | **Verified candidate** |
 | Family relationship | **Span preserves engineering understanding. Order carries engineering work through to verified results.** |
