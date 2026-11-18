@@ -8,7 +8,7 @@ This R1 did not treat concern coverage, stable requirement IDs, prior closure, c
 
 The final A11 contradiction audit also proved that earlier pair closure is not immutable: it discovered two additional C21 defects, reopened/revalidated A01, and only then allowed A11/H1/G2 to close.
 
-G2 is therefore factually closed. This does **not** mean the current application conforms or that the former R2/DESIGN/PLAN package is reusable unchanged. The factual result contains explicit R2 and DESIGN findings that must be resolved downstream.
+This evidence set previously supported factual closure, but current G2 state is owned only by campaign §18. The post-G6 governance audit has placed R1 under freshness revalidation because exact pair-audit evidence identity is incomplete. This does **not** mean the current application conforms or that the former R2/DESIGN/PLAN package is reusable unchanged.
 
 ## Evidence
 
@@ -160,6 +160,4 @@ Every material realization examined in R1 is classified `CONFORMS` or `VIOLATES`
 
 `CONFIRMED`.
 
-G2 is complete under the exhaustive post-C20-F01 standard.
-
-The next governed phase is R2/G3. R2 has not yet been restarted, and no stale R2/DESIGN/PLAN conclusion or former implementation task is current authority.
+The R1 content remains evidence for revalidation; it does not currently assert campaign-gate closure. Current progression is owned by campaign §18. No stale R2/DESIGN/PLAN conclusion or former implementation task is current authority.
