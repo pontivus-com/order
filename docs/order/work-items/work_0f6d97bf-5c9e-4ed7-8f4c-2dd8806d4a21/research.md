@@ -2,7 +2,7 @@
 
 ## Current state/absence
 
-The 0.6.0 campaign R1 investigation is complete across the authority-derived C01-C22 concern register subject only to the final C20 horizontal factual audit recorded in the campaign-control plan.
+The 0.6.0 campaign R1 investigation is complete across the authority-derived C01-C22 concern register. The C20 H1 horizontal factual integration audit passed and G2 is closed.
 
 The coverage ledger proves 113 unique current P2/P3 stable requirement IDs are mapped to the concern register with zero missing and zero extra IDs. The concern investigations establish that the canonical product/lifecycle/control-plane authority is broadly coherent, while identifying a bounded set of factual mismatches between current authority and current documentation/presentation/ownership implementation.
 
@@ -27,7 +27,7 @@ Factual findings carried forward:
 | C21-F02 | product-language wording can imply Order invents missing product intent or that every WorkItem executes | R2 / `GW-DOC-PRODUCT-IDENTITY` |
 | C02-F01 | Create promotes technical concern IDs into ordinary operator authoring | R2 reference to existing intake/Workbench authority |
 | C02-F02 | linked-remediation UI exposes Project as editable although canonical lineage is same-project | R2 reference to existing linked-remediation authority |
-| C02-F03 | UI-created and repository-authored WorkItems do not yet converge on one productive source-ingestion/reconciliation owner | DESIGN |
+| C02-F03 | UI-created and repository-authored WorkItems do not yet converge on one productive source-ingestion/reconciliation owner | DISPOSED_R1 into C04-F01 as the single DESIGN ownership finding |
 | C03-F01 | queue project/search semantics are inconsistent when archived work is included | R2 |
 | C04-F01 | productive source admission/reconciliation ownership is not singular | DESIGN |
 | C10-F01 | Readiness primary verdict slot projects material maturity rather than the canonical R3 readiness verdict | R2 reference to `GW-FR-221-READINESS-REVIEW-HIERARCHY` |
