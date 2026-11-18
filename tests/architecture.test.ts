@@ -1738,7 +1738,7 @@ describe("architecture fitness", () => {
     }
 
     const revalidationBoundary = source.lastIndexOf(
-      "POST-G6 GOVERNANCE AUDIT REOPENING — G-F06/G-F07/G-F08",
+      "CURRENT REVALIDATION EVIDENCE START — G-F06/G-F07/G-F08",
     );
     const currentAuditSource =
       revalidationBoundary >= 0 ? source.slice(revalidationBoundary) : source;
