@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, relative, resolve } from "node:path";
 
@@ -1517,6 +1518,159 @@ describe("architecture fitness", () => {
             );
           }
         }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+
+  it("enforces single-owned campaign state and exact foundation ancestry", () => {
+    const campaignPlanPath =
+      "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md";
+    const campaignLedgerPath =
+      "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-concern-coverage-ledger.md";
+    if (!existsSync(join(repositoryRoot, campaignPlanPath))) return;
+
+    const source = sourceText(campaignPlanPath);
+    const violations: string[] = [];
+
+    if (/^\*\*Status:\*\*/m.test(source)) {
+      violations.push("campaign header must not duplicate current gate/concern state");
+    }
+    if (/^\*\*Prerequisite:\*\*/m.test(source)) {
+      violations.push("campaign header must not duplicate the current G0 baseline");
+    }
+    if (/^\*\*C\d{2} status:\*\*/m.test(source)) {
+      violations.push("concern START/END prose must not duplicate current concern state");
+    }
+    if (source.includes("## 20. Current execution state")) {
+      violations.push("campaign must not maintain a second current execution-state projection");
+    }
+    if (!source.includes("## 20. Derived execution-state view")) {
+      violations.push("campaign must retain the explicitly derived-only execution-state view");
+    }
+
+    const concernSection =
+      source.match(/## 7\. Master concern register\r?\n([\s\S]*?)(?=\r?\n## 8\.)/)?.[1] ?? "";
+    const gateSection =
+      source.match(/## 18\. Phase\/gate status register\r?\n([\s\S]*?)(?=\r?\n## 19\.)/)?.[1] ?? "";
+
+    if (!concernSection.includes("sole current-state owner for C01-C22")) {
+      violations.push("§7 must explicitly own all current concern state");
+    }
+    if (!gateSection.includes("sole current-state owner for G0-G6")) {
+      violations.push("§18 must explicitly own all current gate state");
+    }
+
+    const tableCells = (line: string): readonly string[] =>
+      line.trim().slice(1, -1).split("|").map((cell) => cell.trim());
+
+    const concerns = concernSection
+      .split(/\r?\n/)
+      .filter((line) => /^\| C\d{2} \|/.test(line))
+      .map((line) => {
+        const cells = tableCells(line);
+        return {
+          id: cells[0] ?? "",
+          r1: cells[3] ?? "",
+          r2: cells[4] ?? "",
+          design: cells[5] ?? "",
+          plan: cells[6] ?? "",
+          overall: cells[7] ?? "",
+        };
+      });
+
+    if (concerns.length !== 22) {
+      violations.push(`§7 must contain exactly 22 concern rows, found ${concerns.length}`);
+    }
+    if (new Set(concerns.map((concern) => concern.id)).size !== concerns.length) {
+      violations.push("§7 concern ids must be unique");
+    }
+
+    const gates = new Map(
+      gateSection
+        .split(/\r?\n/)
+        .filter((line) => /^\| G[0-6] \|/.test(line))
+        .map((line) => {
+          const cells = tableCells(line);
+          return [cells[0] ?? "", {
+            status: cells[2] ?? "",
+            evidence: cells[3] ?? "",
+          }] as const;
+        }),
+    );
+    if (gates.size !== 7) {
+      violations.push(`§18 must contain exactly G0-G6, found ${gates.size} gate rows`);
+    }
+
+    const inProgressGates = [...gates.entries()]
+      .filter(([, gate]) => gate.status === "IN_PROGRESS")
+      .map(([id]) => id);
+    if (inProgressGates.length > 1) {
+      violations.push("at most one campaign gate may be IN_PROGRESS");
+    }
+    for (const gateId of inProgressGates) {
+      const rank = Number(gateId.slice(1));
+      for (let prior = 0; prior < rank; prior += 1) {
+        if (gates.get(`G${prior}`)?.status !== "PASS") {
+          violations.push(`${gateId} may be IN_PROGRESS only after G0-G${rank - 1} are PASS`);
+          break;
+        }
+      }
+    }
+
+    const g2 = gates.get("G2");
+    const activeR1 = concerns.filter((concern) => concern.r1 === "IN_REVIEW");
+    const blockedR1 = concerns.filter((concern) =>
+      concern.r1 === "BLOCKED" || concern.r1 === "REVALIDATION"
+    );
+    if (g2?.status === "IN_PROGRESS") {
+      if (activeR1.length > 1) {
+        violations.push("G2 IN_PROGRESS permits at most one active R1 concern");
+      }
+      if (activeR1.length === 0 && blockedR1.length === 0) {
+        violations.push("G2 IN_PROGRESS requires one active R1 concern or an explicit blocked/revalidation owner");
+      }
+    }
+    if (g2?.status === "PASS") {
+      const unresolved = concerns.filter(
+        (concern) => !["FACTS_CLOSED", "GAP_FOUND"].includes(concern.r1),
+      );
+      if (unresolved.length > 0) {
+        violations.push(
+          "G2 PASS requires every R1 concern factually closed; unresolved: " +
+            unresolved.map((concern) => concern.id).join(", "),
+        );
+      }
+    }
+
+    const g0 = gates.get("G0");
+    const baseline = g0?.evidence.match(/baseline `([0-9a-f]{40})`/)?.[1] ?? null;
+    if (g0?.status === "PASS") {
+      if (baseline === null) {
+        violations.push("G0 PASS requires one exact full 40-character baseline SHA in §18");
+      } else {
+        try {
+          execFileSync(
+            "git",
+            ["merge-base", "--is-ancestor", baseline, "HEAD"],
+            { cwd: repositoryRoot, stdio: "pipe" },
+          );
+        } catch {
+          violations.push(
+            `G0 PASS baseline ${baseline} must be an ancestor of campaign HEAD`,
+          );
+        }
+        if (
+          existsSync(join(repositoryRoot, campaignLedgerPath)) &&
+          !sourceText(campaignLedgerPath).includes(baseline)
+        ) {
+          violations.push("G1 coverage ledger must record the exact current G0 baseline SHA");
+        }
+      }
+      if (/^\| G-F\d+ .*\| OPEN_FOUNDATION \|/m.test(source)) {
+        violations.push("G0 PASS is illegal while an OPEN_FOUNDATION finding remains");
       }
     }
 
