@@ -66,9 +66,27 @@ G0 establishes one exact Phase 0 candidate commit as evidence that the campaign'
 
 The entire user-visible and workflow-relevant Order product surface needed to establish the 0.6.0 design, including lifecycle semantics, WorkItem/source behavior, queue/create/workspace interaction, every pre-signoff stage, approval, execution, completion, governed materials, OpenCode interaction, Settings/readiness, recovery/current-attention behavior, responsive/accessibility mechanics, visual/component/theme consistency and end-to-end certification obligations.
 
-Current implementation, prior releases, tests, rendered UI and historical design material may be inspected only as evidence of a gap, ownership issue, reusable capability or completed correction. They are not campaign deliverables and must not be documented as the desired 0.6.0 application/design baseline, fallback behavior, preservation target or regression contract. Absence of a finding means canonical authority is sufficient; it never means "keep the current application by default."
+Current implementation, prior releases, tests, rendered UI and historical design material may be inspected only as evidence of a gap, ownership issue, reusable capability or completed correction. They are not campaign deliverables and must not be documented as the desired 0.6.0 application/design baseline, fallback behavior, preservation target or regression contract. Absence of a finding is not proof of conformance and never means "keep the current application by default." Existing canonical authority may remain the semantic owner, but the campaign must still prove the complete consequence of that authority and the complete producer -> carrier -> consumer realization before declaring a concern satisfied.
 
 **Campaign precedence rule:** if a campaign status note, PR/CI result, test, implementation observation, historical concern record, handover or lower-level document can be read as requiring preservation of current 0.5.0 behavior or as blocking design reconstruction for reasons unrelated to authority/authoring/conformance trustworthiness, this WorkItem rule controls. Such evidence must be reclassified to its proper delivery or defect role and must not redefine the 0.6.0 design objective.
+
+## Mandatory exhaustive prerequisite review
+
+Before R1 may close again, the campaign must perform an exhaustive authority-to-realization audit of the complete system definition. This is not limited to UI, workflow, schemas, data, prompts, provider behavior or any other single layer.
+
+The review must cover every applicable variable and every interface between variables, including product intent, functional requirements, information design, information ownership, authoring schemas/templates, prompt/context input, generated output, canonical carriers, lifecycle/Run/attention/material/proposal/approval/execution state, transitions, daemon/core/shell ownership, persistence, transport, browser query/state ownership, rendered information hierarchy, interaction/action behavior, failures, recovery, responsive/accessibility behavior, verification and the lifecycle-document authoring/conformance machinery itself.
+
+For every material canonical obligation, the campaign must prove all three independently:
+
+1. **Authority coverage** — the exact canonical owner and normative clause were examined.
+2. **Semantic/information coverage** — the exact required behavior, information, hierarchy, work-kind/stage variation, state/action/failure/recovery and prohibited behavior were derived.
+3. **Realization coverage** — the complete producer -> carrier -> consumer path was inspected and classified against current implementation evidence as `CONFORMS`, `VIOLATES` or `UNPROVEN`.
+
+`UNPROVEN` is an open R1 state and prevents closure.
+
+A stable requirement ID, concern ID, document, schema, passing test or prior review is never sufficient proof by itself. `REFERENCE`, `no functional delta`, `no technical change`, `already satisfied` and `no implementation change` are conclusions that require evidence; they are never defaults.
+
+The existing 0.6.0 work is an evidence set to recover and revalidate, not a discard-by-default set and not a trusted baseline. Valid authority facts, foundational corrections, implementation evidence and candidate solutions should be reused where independently re-proven. Unsupported closure conclusions must be replaced in the existing canonical lifecycle documents rather than copied into a parallel documentation set.
 
 ## Explicit exclusions
 
@@ -83,12 +101,14 @@ Unrelated defects or features discovered during the campaign are recorded and ro
 This WorkItem is ready for implementation sign-off only when:
 
 1. the complete concern register has been proven against current canonical authority;
-2. every concern investigation has a closed factual verdict;
-3. every material finding has a disposition;
-4. functional design is complete across all concerns and passes a horizontal integration audit;
-5. technical solution design completely realizes the functional design without unresolved material choices;
-6. the final implementation plan covers every required design obligation with no orphan task or uncovered requirement;
-7. R3 adversarially returns `READY_FOR_SIGNOFF`;
-8. the exact package is explicitly approved.
+2. every applicable canonical normative obligation has been atomized and has explicit authority, semantic/information and realization coverage;
+3. every realization path is classified `CONFORMS` or `VIOLATES`, with zero material `UNPROVEN` obligations;
+4. every concern investigation has a closed factual verdict supported by obligation-level proof rather than concern/ID coverage alone;
+5. every material finding has a disposition;
+6. functional design is complete across all concerns and every applicable workflow-step/work-kind information contract, and passes a horizontal integration audit;
+7. technical solution design completely realizes the functional design without unresolved material choices or unsupported `no technical change` assertions;
+8. the final implementation plan covers every required design obligation with no orphan task or uncovered requirement;
+9. R3 adversarially returns `READY_FOR_SIGNOFF`;
+10. the exact package is explicitly approved.
 
 The detailed execution and coverage rules are owned by `0.6.0-design-campaign-plan.md` in this WorkItem directory.
