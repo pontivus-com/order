@@ -8,14 +8,13 @@ The productive lifecycle permits a change-local R2 document to become a shadow P
 
 | Requirement | Disposition | Canonical owner |
 |---|---|---|
-| One canonical document owner per concern | REFERENCE | GW-P1-DOC-CANONICALITY |
 | Versioned immutable WorkItem authoring semantics | DELTA | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2 |
 | Continuous pre-signoff conformance | DELTA | GW-DOC-LIFECYCLE-CONTEXT-V2 |
 | Readiness package authority/traceability review | DELTA | GW-DOC-SPECIFICATION-STANDARD-V2 |
 | Current-v2 PLAN authoring completeness against the binding S8-S10 package contract | REFERENCE | GW-DOC-SPECIFICATION-STANDARD-V2 |
-| Exact-current-candidate public-repository verification without a fabricated reviewer dependency | DELTA | GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2 |
-| Coordinator-owned conformance output binding | DELTA | GW-DOC-CANONICAL-CONTRACTS-V2 |
-| Live document consumers resolve the active canonical semantic owner, not the retained historical V1 snapshot | REFERENCE | GW-P1-DOC-CANONICALITY |
+| Stage completion requires one current conformant lifecycle output before promotion | DELTA | GW-DOC-LIFECYCLE-CONTEXT-V2 |
+
+This ledger classifies P3 functional authority only. `GW-P1-DOC-CANONICALITY` and `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2` remain governing P1 constraints, while `GW-DOC-CANONICAL-CONTRACTS-V2` remains the P6 realization owner for coordinator conformance binding; none is recast as a P3 `REFERENCE`/`DELTA` owner.
 
 ## Expected corrected behavior
 
