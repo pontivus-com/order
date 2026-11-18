@@ -43,4 +43,4 @@ The 0.6.0 concern investigation found one remaining productive authority-lineage
 
 This is not merely documentation prose: it causes current v2 delivery Research to receive a historical lifecycle-context authority pin alongside the current resolved authority set. The R1 evidence section shape itself remains valid and unchanged.
 
-Remediation: retain the historical v1 R1 templates unchanged for v1-pinned WorkItems; introduce v2 R1 template pins with the same evidence structure but `GW-DOC-LIFECYCLE-CONTEXT-V2`; route only `change-v2` / `defect-v2` to those current templates and permanently test the separation.
+Remediation: retain all historical v1 intake/R1 templates unchanged for v1-pinned WorkItems; introduce current v2 R1 template pins with the same evidence structures but current lifecycle-context V2 authority. Change/Defect v2 route to dedicated v2 R1 templates. Because Investigation/Audit are also ordinary current authoring kinds, add `investigation-v2` / `audit-v2` defaults with unchanged terminal R1 structure/outcomes and current WorkItem/lifecycle authority; keep their v1 pins non-default and immutable. Permanently test historical/current separation.
