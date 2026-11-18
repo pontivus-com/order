@@ -1687,6 +1687,8 @@ const WorkItemSchemaIdSchema = z.enum([
   "defect-v2",
   "investigation-v1",
   "audit-v1",
+  "investigation-v2",
+  "audit-v2",
 ]);
 
 const WorkItemSchemaCatalogEntrySchema = z.strictObject({
@@ -1708,10 +1710,12 @@ The same core owner resolves the complete authoring/stage-template policy across
 |---|---|---|---|---|---|
 | `change-v1` | no | `change-intake-v1` | `change-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
 | `defect-v1` | no | `defect-intake-v1` | `defect-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `change-v2` | yes | `change-intake-v2` | `change-r1-v1` | `change-r2-v2`, `change-design-v2`, `change-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `defect-v2` | yes | `defect-intake-v2` | `defect-r1-v1` | `defect-r2-v2`, `defect-design-v2`, `defect-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `investigation-v1` | yes | `investigation-intake-v1` | `investigation-r1-v1` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `audit-v1` | yes | `audit-intake-v1` | `audit-r1-v1` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `change-v2` | yes | `change-intake-v2` | `change-r1-v2` | `change-r2-v2`, `change-design-v2`, `change-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `defect-v2` | yes | `defect-intake-v2` | `defect-r1-v2` | `defect-r2-v2`, `defect-design-v2`, `defect-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `investigation-v1` | no | `investigation-intake-v1` | `investigation-r1-v1` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `audit-v1` | no | `audit-intake-v1` | `audit-r1-v1` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `investigation-v2` | yes | `investigation-intake-v2` | `investigation-r1-v2` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `audit-v2` | yes | `audit-intake-v2` | `audit-r1-v2` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
 
 The v1 template structures are intentionally small and reference the existing lifecycle/specification owners rather than copying their rules:
 
@@ -1727,6 +1731,8 @@ The v1 template structures are intentionally small and reference the existing li
 - `delivery-design-v1`: Context/governing constraints; Goals/non-goals; Canonical owner/affected boundaries; Data/control flow; Decisions/rationale/alternatives; Failure behavior; Preservation/downstream invariants; Validation obligations.
 - `delivery-plan-v1`: Exact task units/dependencies; requirement/design traceability; expected change surface; deletions/additions/modifications; validation sequence; canonical `order-tasks` block.
 - `delivery-r3-v1`: Readiness verdict; evidence; adversarial findings; exact defective layer/return stage when not ready.
+
+The v2 R1 authority-hygiene templates preserve their corresponding v1 R1 section structure and allowed outcome set but bind the current lifecycle-context V2 semantic snapshot. Historical v1 templates retain their original lifecycle-context V1 pins. `investigation-v2` and `audit-v2` remain R1-terminal and authorize no later lifecycle template.
 
 The v2 delivery templates add only the authority-hygiene semantics owned by the corrected schema pins:
 
