@@ -2,285 +2,298 @@
 
 # Order 0.6.0 implementation plan
 
-> **CURRENT STATUS — STALE / PLAN NOT STARTED.** This file remains the **sole canonical P7 implementation-plan artifact for this WorkItem**, but its former task content is non-current and authorizes nothing until fresh R1/R2/DESIGN closure and PLAN regeneration. C20-F01 invalidated the upstream completeness proof on which the prior task set was based. The planning mechanics, validation discipline and prior task analysis remain reusable evidence, but T1, its one-task topology, exact ten-path scope/changeSurface, exclusions and no-production-delta dispositions are not currently authorized. No alternate implementation/prerequisite/remediation plan may supersede this file; PLAN corrections are made here after the campaign-control gates permit PLAN.
+## Plan authority and basis
 
-## Exact task units/dependencies/objectives
+This is the sole current P7 implementation plan for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`.
 
-### Task T1 — implement the complete 0.6.0 corrective candidate
+It consumes only the fresh G4-closed `solution-design.md`, the fresh G3-closed `requirements.md`, the current resolved P1-P6 authority graph, and the current WorkItem source. Current implementation, tests, UI, the 0.5.0 release, the superseded ten-path T1 plan and historical R3 conclusions remain evidence only and do not define the authorized 0.6.0 implementation surface.
 
-**Objective:** implement the complete technical delta defined by the accepted `solution-design.md` as one coherent candidate: consolidate WorkItem source admission at the existing daemon owner and correct Create/remediation, queue/archive filtering, Readiness, Approval and Settings projections without changing canonical contracts, verification material, architecture ownership, dependencies or public APIs.
+The implementation worker may realize only the already-closed technical design. It may not choose a new product behavior, canonical owner, state meaning, persistence/transport shape, dependency, architecture direction, provider capability, compatibility fallback, or verification authority.
+
+## Task topology
+
+### Task T1 — implement the complete fresh 0.6.0 corrective candidate
+
+**Objective:** implement the complete authority-driven 0.6.0 technical delta as one coherent candidate: resolve canonical project authority deterministically; extend the existing proposal/adoption path for permanent R2/DESIGN authority mutation; make durable decision input require later adopted authority; make signed PLAN/Approval/checkpoint contracts mechanically complete; converge UI-created and discovered WorkItems through one source-admission owner; correct queue/workbench/readiness/approval/settings/result/focus presentation; and close the permanent certification gaps.
 
 **Dependencies:** none.
 
-This is deliberately one signed task. Order execution starts every ExecutionTask from the same Approval baseline and does not promote one task candidate into another task's workspace. The production corrections and their shared browser regression file therefore belong to one cumulative implementation task rather than multiple nominally dependent tasks.
+One signed task is required because Order starts every ExecutionTask from the same Approval baseline and does not promote a dependency task's candidate bytes into a later task workspace. The designed changes share canonical contracts, daemon orchestration, Workbench behavior and regression surfaces and must therefore be produced as one cumulative candidate rather than as fake dependent tasks.
 
-### Ordered internal implementation steps
+## Ordered internal implementation steps and architecture-feedback checkpoints
 
-1. **Source-admission canonicalization**
-   - In `src/daemon/work-item-source.ts`, factor one daemon-local new-source admission planner that maps an exact validated source snapshot + resolved project + canonical origin/provenance into the existing `QueuePlan { disposition: "REGISTERED", ... }`.
-   - Route repository discovery and `createWorkItemFromSource` through that same mapping and the existing `applyPlan` persistence boundary.
-   - Delete the create-path direct WorkItem construction/persistence branch.
-   - Preserve source-file create/read-back before projection, `CREATED | DISCOVERED` provenance, same-project remediation validation, source diagnostics and explicit reconcile semantics.
-   - Add daemon/integration regression proof in `tests/daemon.test.ts`.
+### Step 1 — canonical authority resolution and governed authority mutation
 
-   **Architecture-feedback checkpoint:** run the manifest `typecheck`, `architecture` and `test` gates before proceeding. The architecture gate material is read-only; a need to modify it is a DESIGN/PLAN stop condition.
+1. Extend the existing pure `src/core/governance.ts` owner so validated manifest inputs resolve same-layer precedence, inherited/default/override/extension bindings and fitness-gate bindings deterministically.
+2. Keep pattern expansion/effects at the existing shell boundary; do not move filesystem/provider effects into the core.
+3. Update `src/daemon/authority.ts` / `src/daemon/stage.ts` to consume the resolved projection before productive provider context is admitted.
+4. Extend the existing artifact proposal/adoption path for permanent GOVERNANCE proposals:
+   - R2 may target only current P2/P3 owners;
+   - DESIGN may target only current P4-P6 owners;
+   - target path/layer/ref/base hash must re-resolve through current authority;
+   - reuse the existing proposal event/adoption state machine; introduce no P2/P3/P4/P6 proposal DTO/model family.
+5. For authority-changing `STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` input, keep the existing HumanInput carrier but reject stage completion until a later adopted authority proposal proves durable resolution.
 
-2. **Create/remediation and queue ownership correction**
-   - In `ui/src/CreateWorkItem.tsx`, present **Concerns** rather than **Concern IDs**.
-   - For linked remediation, render Project as fixed parent-project context and do not expose an editable Project selector.
-   - In `ui/src/app.tsx`, own active and include-archived WorkItem queries, `showArchived`, project filtering and search filtering as one queue/global presentation boundary.
-   - In `ui/src/WorkItemQueue.tsx`, remove ownership of the include-archived server query; receive the already-filtered canonical rows plus archive-toggle state/callback while retaining row-local restore mutation presentation.
-   - Add browser regression proof in `tests/browser.spec.ts`.
+**Checkpoint A:** run `typecheck`, `architecture` and the relevant core/daemon `test` coverage. `tests/architecture.test.ts` is read-only verification material; a need to modify it is a DESIGN/PLAN stop.
 
-   **Architecture-feedback checkpoint:** run `typecheck` and `architecture`; execute the relevant browser coverage before moving to later UI corrections.
+### Step 2 — signed task, approval and in-task checkpoint contracts
 
-3. **Readiness and Approval truth projection**
-   - In `ui/src/ReadinessWorkspace.tsx`, derive the dominant Readiness verdict from canonical R3 `STAGE_COMPLETED.completion.outcome` already present in loaded RunEvents. Material maturity/currentness remains a separate presentation fact and never substitutes for the verdict.
-   - In `ui/src/SignoffReview.tsx`, present the current exact package as **Ready for sign-off** plus **Current** before technical package identity when `AWAITING_SIGNOFF` has a current package; retain stale/returned/historical behavior from existing canonical facts.
-   - Do not parse lifecycle Markdown to infer either judgment and do not add readiness state to WorkItem, ArtifactRef, Approval or SignoffPackage.
-   - Add browser regression proof in `tests/browser.spec.ts`.
+1. Strengthen the existing SignedTaskBlock validation in the current canonical contract/core owners so executable plans cannot be vacuous:
+   - at least one materially specified task when implementation is required;
+   - nonblank task id/objective;
+   - nonempty justified acceptance/authority/concern/gate bindings;
+   - bounded scope/changeSurface and exact existing P6 legality.
+2. Normalize canonical Approval `approvedBy` by trimming and reject blank identity before persistence.
+3. Add exactly one typed `GATE_CHECKPOINT_REQUESTED { gateId }` RunEvent variant for BUILDER use.
+4. The coordinator validates that the checkpoint gate is signed/resolved for the task, executes it through the existing validation effect owner, and records ordinary gate result/evidence. Do not grant provider shell/execute capability and do not create another verification subsystem.
+5. Preserve V0-V7, task state, WorkItem state and persistence/HTTP ownership.
 
-   **Architecture-feedback checkpoint:** run `typecheck` and `architecture`; execute the relevant Readiness/Approval browser coverage.
+**Checkpoint B:** run `typecheck`, `architecture` and relevant core/daemon `test` coverage including negative task, approval and checkpoint cases.
 
-4. **Settings information-hierarchy correction**
-   - In `ui/src/SettingsWorkspace.tsx`, keep project/readiness/operator actions primary in connected-repository inventory.
-   - Move exact Git root and resolved WorkItem document root into existing secondary technical-detail/disclosure presentation for ordinary inventory.
-   - Keep exact paths directly visible where Add repository or Move WorkItem documents makes the path the current operator task.
-   - Remove the ordinary raw Model list source API diagnostic block.
-   - Reuse existing Settings projections and Workbench primitives; add no browser readiness policy or new configuration state.
-   - Add browser regression proof in `tests/browser.spec.ts`.
+### Step 3 — singular WorkItem source admission and queue/intake ownership
 
-   **Architecture-feedback checkpoint:** run `typecheck` and `architecture`; execute the relevant Settings browser coverage.
+1. In `src/daemon/work-item-source.ts`, factor one daemon-local new-source planner returning the existing REGISTERED QueuePlan.
+2. Route browser-created and repository-discovered source snapshots through that same planner and existing `applyPlan` persistence boundary.
+3. Delete the direct create-path WorkItem construction/store branch.
+4. Preserve source create/read-back, provenance, source diagnostics, reconciliation and source-authority freshness semantics.
+5. In Create, present **Concerns** as ordinary language and make linked-remediation Project fixed to the parent.
+6. In `app.tsx`, own active/include-archived dataset selection plus project/search filtering once; `WorkItemQueue` receives the filtered rows and archive-toggle callback.
 
-5. **Integrated candidate validation closure**
-   - Complete the change-specific daemon/browser regression cases without editing signed verification material.
-   - Update `CHANGELOG.md` under `[Unreleased]` with the observable 0.6.0 corrective behavior.
-   - Run the complete signed gate union: `dependency-lock`, `typecheck`, `architecture`, `test`, `build`, `browser`.
-   - Perform the independent semantic review required by the validation architecture: confirm one source-registration owner/path, App-owned queue/global query/filter semantics, no duplicate state/DTO/model/mapper/service/repository/controller, no architecture-material mutation and no change outside signed scope.
-   - T1 ends at the verified `CANDIDATE_DONE` (or valid `ALREADY_SATISFIED`) outcome produced by the canonical V0-V7 execution/validation chain. Commit/push/PR/merge/release-packager delivery is not an ExecutionTask step.
+**Checkpoint C:** run `typecheck`, `architecture`, relevant daemon `test` coverage and queue/create browser coverage.
+
+### Step 4 — Workbench truth hierarchy, durable-input UX and product language
+
+1. Documentation Git confirmation must expose the exact governed changed paths/states before commit confirmation.
+2. Keep explicit historical/material inspection, but never let it hide the exact current-attention owner/action; render compact current attention when selected material differs.
+3. Required-input focus occurs once per new required-input event id at the Workbench-owned composer region; do not inspect private Astryx DOM or steal focus by polling.
+4. Readiness presents the typed R3 completion verdict as the dominant judgment; material maturity/currentness remains separate.
+5. Approval presents **Ready for sign-off** and **Current** before technical package identity when the package is current; stale/history states must not fabricate readiness.
+6. Settings keeps operator meaning/readiness/actions primary; exact roots/endpoint/model-list source move to existing Technical details except when exact paths are the active configuration task.
+7. Product surfaces use current P2 terminology: public Order identity and **Verified candidate** for `CANDIDATE_DONE`; do not prettify lifecycle enums into product copy.
+
+**Checkpoint D:** run `typecheck`, `architecture` and the relevant Workbench/browser tests for Git review, attention, input focus, Readiness, Approval, Settings and terminal copy.
+
+### Step 5 — permanent certification closure
+
+1. Extend `tests/certification.test.ts` with exhaustive production-renderer classification against the current canonical renderer matrix. Do not edit `tests/architecture.test.ts`.
+2. Extend existing core/daemon/browser/workbench-presentation suites for:
+   - authority precedence/default/override/extension;
+   - proposal target/layer/base-hash admission;
+   - durable-decision completion rejection until adopted authority;
+   - SignedTaskBlock non-vacuity;
+   - Approval identity normalization;
+   - signed checkpoint request/result/failure;
+   - singular source admission;
+   - archive/project/search filtering;
+   - exact documentation-Git path review;
+   - current-attention visibility;
+   - Readiness/Approval/Settings/result language;
+   - focus-once behavior;
+   - scenario 41 work-kind/Research/downstream matrix;
+   - representative System/Light/Dark semantic-role/component parity.
+3. Tests prove authority-derived behavior. They must not freeze incidental 0.5.0 implementation/UI structure.
+
+**Checkpoint E:** run `typecheck`, `architecture`, full `test`, `build` and `browser`.
+
+### Step 6 — candidate closeout
+
+1. Update `CHANGELOG.md [Unreleased]` with the user-visible/correctness consequences of the authorized 0.6.0 implementation.
+2. Run the complete signed gate union on the exact final candidate: `dependency-lock`, `typecheck`, `architecture`, `test`, `build`, `browser`.
+3. Complete V4 independent semantic review against the exact diff, including FCIS/SoC/DRY/strict typing/no-DTO/no-OOP, canonical ownership, no hidden fallback, cohesive module responsibility and negative-case completeness.
+4. Complete V5/V6/V7 with no reuse of gate evidence invalidated by later edits.
+5. T1 ends only at canonical `CANDIDATE_DONE` or valid `ALREADY_SATISFIED`. PR merge/release delivery remains outside ExecutionTask completion.
 
 ## Requirement/design traceability
 
-### Implementation-required design obligations
+| Fresh design obligation | P7 realization |
+|---|---|
+| C01/C21 correct product terminal semantics/language | Step 4: README + TerminalResult projection; no lifecycle-state change |
+| C22-F01 deterministic same-layer authority/default/override/extension resolution | Step 1: core governance + daemon authority context |
+| C02-F01/F02 intake/remediation presentation | Step 3 |
+| C02-F03/C04-F01 one productive source-admission owner | Step 3 |
+| C03-F01 archive/project/search coherence | Step 3 |
+| C04-F02 exact documentation-Git review | Step 4 |
+| C05-F01 current-attention visibility | Step 4 |
+| C06-F01 durable authority-changing input | Step 1 + Step 4 |
+| C07-F01/C08-F01 permanent authority proposal/adoption | Step 1 |
+| C09-F01 non-vacuous executable plan contract | Step 2 |
+| C10-F01 typed R3 verdict projection | Step 4 |
+| C11-F01/F02 Approval hierarchy + nonblank operator identity | Step 2 + Step 4 |
+| C12-F01 signed in-task architecture checkpoint | Step 2 |
+| C16-F01 operator-first Settings hierarchy | Step 4 |
+| C18-F01 one-time required-input focus | Step 4 |
+| C19-F01 renderer-matrix permanent certification | Step 5 |
+| C20-F02/F03 work-kind and cross-theme/component certification | Step 5 |
+| C13/C14/C15/C17 | PLAN_COVERED by explicit no-production-delta disposition: their fresh functional/technical semantics remain owned by existing canonical owners; T1 may not alter them except where a listed cross-cutting correction consumes their existing contracts |
 
-| Design obligation | Functional authority / acceptance | P7 realization |
-|---|---|---|
-| C02 ordinary concerns + fixed same-project remediation | `GW-FR-012-CATALOG-DRIVEN-AUTHORING`, `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` | T1 step 2 |
-| C03 identical project/search semantics with archived inclusion | `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE`, `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | T1 step 2 |
-| C04 one productive source-admission/reconciliation owner | `GW-FR-018-SOURCE-CONSUMER-CLOSURE`, `GW-TR-001-FCIS-CANONICAL-OWNERSHIP` | T1 step 1 |
-| C10 canonical R3 verdict dominates Readiness | `GW-FR-221-READINESS-REVIEW-HIERARCHY`, `GW-FR-241-DERIVED-MATERIAL-MATURITY` | T1 step 3 |
-| C11 exact-package readiness + currentness dominate Approval | `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS`, `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | T1 step 3 |
-| C16 operator meaning/actions primary; technical identity secondary | `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION`, `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS`, `GW-TR-059-CANONICAL-SETTINGS-READINESS-PROJECTION` | T1 step 4 |
-| C18/C19 responsive/accessibility/component-language constraints on changed UI | `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`, `GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION` | T1 steps 2-4 + existing architecture/browser gates |
-| C20 integrated certification and negative-case proof | `GW-DOC-SPECIFICATION-STANDARD-V2`, `GW-DOC-VALIDATION-STANDARD-V1` | T1 steps 1-5 + full gate union + independent semantic review |
-
-### No-production-delta concerns
-
-The following concerns are plan-covered without an implementation edit because G4 established that their required semantics are already present in the approved baseline and no technical delta is authorized:
-
-- **C01, C21:** the P2/P3 clarification is already in the signed baseline; runtime lifecycle/result contracts remain unchanged.
-- **C05-C09:** current lifecycle/document/conformance owners already realize the closed functional behavior.
-- **C12-C15:** execution/validation/material/provider owners already realize the closed functional behavior.
-- **C17:** existing pure current-attention/recovery ownership remains unchanged.
-- **C22:** project-governance/authority integration remains unchanged.
-
-T1's authority set, exclusions, unchanged architecture gate and final semantic review explicitly protect these no-change obligations from incidental implementation drift.
-
-### Bidirectional coverage proof
-
-**Design -> task:** every G4 obligation that requires repository transition is mapped above to T1 and to an ordered internal implementation step. G4 obligations that require no repository transition have an explicit no-production-delta disposition and are protected by T1's exclusions/gates/review rather than manufacturing unnecessary edits.
-
-**Task -> design:** every T1 production/test/delivery action is justified by C02/C03/C04/C10/C11/C16/C18/C19/C20 or by the repository-delivery requirement to update `CHANGELOG.md`. T1 contains no unrelated cleanup, dependency upgrade, authority rewrite, API/schema change or speculative refactor.
-
-### Per-concern PLAN disposition
+### C01-C22 PLAN coverage
 
 | Concern | PLAN coverage |
 |---|---|
-| C01 | PLAN_COVERED — no runtime delta; already-realized lifecycle/result taxonomy is protected by T1 authority/exclusions/gates. |
-| C02 | PLAN_COVERED — T1 step 2. |
-| C03 | PLAN_COVERED — T1 step 2. |
-| C04 | PLAN_COVERED — T1 step 1. |
-| C05 | PLAN_COVERED — no technical delta; Workbench shell/navigation owner remains unchanged and outside scope. |
-| C06 | PLAN_COVERED — no technical delta; R1 interaction/orchestration remains unchanged and outside scope. |
-| C07 | PLAN_COVERED — no technical delta; R2 authority-disposition interaction remains unchanged and outside scope. |
-| C08 | PLAN_COVERED — no technical delta; DESIGN interaction/material behavior remains unchanged and outside scope. |
-| C09 | PLAN_COVERED — no technical delta; PLAN/task-authoring runtime contracts remain unchanged and outside scope. |
-| C10 | PLAN_COVERED — T1 step 3. |
-| C11 | PLAN_COVERED — T1 step 3. |
-| C12 | PLAN_COVERED — no technical delta; execution/validation ownership remains unchanged and outside scope. |
-| C13 | PLAN_COVERED — no technical delta; COMPLETE/result/follow-up behavior remains unchanged and outside scope. |
-| C14 | PLAN_COVERED — no technical delta; material/proposal/evidence/dialogue ownership remains unchanged and outside scope. |
-| C15 | PLAN_COVERED — no technical delta; provider/session/activity ownership remains unchanged and outside scope. |
-| C16 | PLAN_COVERED — T1 step 4. |
-| C17 | PLAN_COVERED — no technical delta; current-attention/recovery algebra remains unchanged and outside scope. |
-| C18 | PLAN_COVERED — T1 changed UI must preserve responsive/accessibility semantics and is certified by existing architecture/browser gates. |
-| C19 | PLAN_COVERED — T1 uses only existing Workbench/Astryx composition; no theme/primitive change is authorized. |
-| C20 | PLAN_COVERED — T1 step 5 plus full gate union and independent semantic review. |
-| C21 | PLAN_COVERED — no runtime delta; verified-result/product-intent authority clarification is already in the approved baseline. |
-| C22 | PLAN_COVERED — no governance/authority integration change; manifest/authority files are explicitly excluded. |
+| C01 | Step 4, product-language projection only |
+| C02 | Step 3 |
+| C03 | Step 3 |
+| C04 | Steps 3-4 |
+| C05 | Step 4 |
+| C06 | Steps 1/4 |
+| C07 | Step 1 |
+| C08 | Step 1 |
+| C09 | Step 2 |
+| C10 | Step 4 |
+| C11 | Steps 2/4 |
+| C12 | Step 2 |
+| C13 | no production delta; terminal contract protected by Step 4 regression + full gates |
+| C14 | no new material/proposal model; existing proposal model reused in Step 1 |
+| C15 | no provider capability expansion; Step 2 explicitly preserves denied ambient shell |
+| C16 | Step 4 |
+| C17 | no new attention/recovery state; existing pure owner consumed by Step 4 |
+| C18 | Step 4 |
+| C19 | Step 5 |
+| C20 | Steps 5-6 |
+| C21 | Step 4 |
+| C22 | Step 1 |
 
-## Module ownership/decomposition constraints and architecture-feedback checkpoints
+Every implementation action above traces to a fresh R2/DESIGN obligation or required delivery metadata. There is no cleanup/refactor task without upstream justification.
 
-### Ownership constraints
+## Module ownership and decomposition constraints
 
-- `src/core/*` remains canonical typed meaning/pure policy; T1 changes no core file.
-- `src/shell/*` remains filesystem/Git/provider effect ownership; T1 changes no shell file.
-- `src/daemon/work-item-source.ts` remains the single source-orchestration owner; the new planner is daemon-local same-owner factoring, not a new semantic layer.
-- `ui/src/app.tsx` remains application destination + queue/global query/filter owner.
-- `WorkItemQueue.tsx`, `CreateWorkItem.tsx`, `ReadinessWorkspace.tsx`, `SignoffReview.tsx` and `SettingsWorkspace.tsx` remain functional presentation adapters over canonical typed inputs and existing Workbench primitives.
-- no behavior-bearing class, DTO/model family, mapper, service/repository/controller graph, second browser store, second readiness/source/queue state owner or new production module is authorized.
+- `src/core/*` owns canonical typed meaning and pure policy only.
+- `src/daemon/*` owns orchestration over canonical contracts; it must not absorb filesystem/provider effect mechanics that belong to shell.
+- `src/daemon/work-item-source.ts` remains the sole daemon source-orchestration owner; source admission is consolidated there rather than duplicated.
+- Existing proposal/adoption, validation and RunEvent owners are extended; no parallel decision/proposal/checkpoint subsystem is permitted.
+- Workbench feature renderers remain presentation adapters over canonical data and existing primitives; no view-model/DTO family, feature-local state machine, palette, layout system or theme owner is permitted.
+- `tests/architecture.test.ts` and `pontivus-order.toml` are immutable to T1 because they are verification/authority material.
+- A minimum same-layer physical split is permitted only when required to preserve an already-approved responsibility/effect boundary and it preserves semantic ownership, public contracts, state meaning, effect boundaries and dependency direction. Any other new production path or architecture change returns to DESIGN/PLAN before editing.
 
-### Verification-material constraint
-
-`tests/architecture.test.ts` and `pontivus-order.toml` are immutable to T1. The former is the current `architecture` gate's signed `VERIFICATION_MATERIAL`; the latter is the project manifest. A worker may not mutate the material that defines/resolves its own execution/verification authority.
-
-If implementation requires a change to either file, another verification material source, a P1-P6 authority, dependency direction, public contract, state meaning, persistence schema, transport shape or external dependency, execution stops and returns to DESIGN/PLAN.
-
-### Architecture-feedback checkpoints
-
-The ordered internal steps above use the existing manifest gates as feedback. They are not new lifecycle stages:
-
-- after source-admission canonicalization: `typecheck` + `architecture` + `test`;
-- after queue/Create ownership changes: `typecheck` + `architecture` + relevant `browser` coverage;
-- after Readiness/Approval: `typecheck` + `architecture` + relevant `browser` coverage;
-- after Settings: `typecheck` + `architecture` + relevant `browser` coverage;
-- before candidate completion: all six signed gates.
-
-A failed checkpoint is repaired only within the existing approved design. A failure showing architecture/contract/authority insufficiency returns upstream.
-
-## Expected production and test/validation surface
+## Expected production and validation surface
 
 ### Production
-
-Expected changed production files are exactly:
-
+- `README.md`
+- `src/core/contracts.ts`
+- `src/core/execution.ts`
+- `src/core/governance.ts`
+- `src/core/lifecycle.ts`
+- `src/daemon/authority.ts`
+- `src/daemon/execution.ts`
+- `src/daemon/stage.ts`
+- `src/daemon/validation.ts`
 - `src/daemon/work-item-source.ts`
-- `ui/src/app.tsx`
+- `ui/src/ActivityComposer.tsx`
+- `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
-- `ui/src/WorkItemQueue.tsx`
+- `ui/src/DocumentWorkspace.tsx`
 - `ui/src/ReadinessWorkspace.tsx`
-- `ui/src/SignoffReview.tsx`
 - `ui/src/SettingsWorkspace.tsx`
+- `ui/src/SignoffReview.tsx`
+- `ui/src/TerminalResult.tsx`
+- `ui/src/WorkItemQueue.tsx`
+- `ui/src/WorkItemWorkspace.tsx`
+- `ui/src/app.tsx`
+- `ui/src/workbench-presentation.ts`
 
-No new production file is expected.
-
-### Test / validation
-
-Expected changed ordinary regression files are exactly:
-
+### Verification
+- `tests/certification.test.ts`
+- `tests/core.test.ts`
 - `tests/daemon.test.ts`
 - `tests/browser.spec.ts`
-
-The existing `tests/architecture.test.ts` must run unchanged.
+- `tests/workbench-presentation.test.ts`
 
 ### Delivery metadata
-
-Expected changed delivery metadata:
-
 - `CHANGELOG.md`
 
-No version bump occurs in the implementation PR; version ownership remains with the later dedicated release PR.
+### Explicitly excluded
+- `AGENTS.md`
+- `docs/**` during T1 implementation
+- `pontivus-order.toml`
+- `tests/architecture.test.ts`
+- `src/shell/**`
+- `src/daemon/server.ts`
+- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/theme.css`
+- `package.json`, `bun.lock`, `.github/**`
+- persistence schema/migrations, new HTTP endpoints/shapes, dependency changes and version bump
+
+Discovery that an excluded/new surface is materially required is a stop/return to DESIGN/PLAN, not implementation discretion.
 
 ## Required deletions/replacements
 
-T1 must delete/replace the following incorrect paths rather than layer compatibility behavior over them:
+T1 must remove or replace the incorrect path rather than layer compatibility behavior over it:
 
-1. direct create-path WorkItem projection construction + `storeWorkItem(...)` registration in `createWorkItemFromSource`;
-2. ordinary **Concern IDs** authoring label;
-3. editable Project choice in linked remediation;
-4. `WorkItemQueue.tsx` ownership of the include-archived server query;
-5. Readiness verdict text derived from material maturity/currentness;
-6. Approval primary judgment that communicates currentness without explicit canonical readiness;
-7. primary repository-inventory Git-root/document-root identity columns;
-8. ordinary Settings Model list source raw API diagnostic presentation.
+- direct create-path WorkItem construction/persistence beside QueuePlan/applyPlan;
+- queue-local include-archived dataset ownership that bypasses the App-owned project/search derivation;
+- raw ordinary **Concern IDs** label and editable linked-remediation Project choice;
+- generic documentation-Git confirmation that omits the exact changed path set;
+- material selection behavior that hides the exact current-attention owner;
+- durable authority-changing chat reply being treated as sufficient completion without adopted authority;
+- lifecycle-only proposal admission where R2/DESIGN must mutate current permanent owners;
+- vacuous SignedTaskBlock acceptance;
+- whitespace-only Approval identity;
+- builder instruction to execute signed gates through ambient provider shell;
+- Readiness maturity used as verdict;
+- Approval presentation without canonical readiness/currentness;
+- Settings technical identity dominating operator meaning/actions;
+- generic enum-prettification of `CANDIDATE_DONE`;
+- incomplete renderer/work-kind/theme certification.
 
-Do not keep hidden fallbacks, dual paths or compatibility aliases for these superseded behaviors.
+No compatibility shim, duplicate model or fallback path may preserve these defects.
 
 ## Completion evidence
 
-T1 is complete only when all of the following are evidenced on the exact candidate:
+T1 is complete only when the exact candidate proves all of the following:
 
-1. `src/daemon/work-item-source.ts` has one new-source registration mapping/persistence path; `createWorkItemFromSource` writes/read-backs the canonical source then uses that shared admission path.
-2. Daemon tests prove CREATED and DISCOVERED registration share source-derived mapping while preserving provenance and prove Create does not reconcile unrelated external source drift.
-3. Create browser coverage proves **Concerns** and fixed same-project linked remediation.
-4. Queue browser coverage proves project/search filters behave identically before/after archived inclusion.
-5. Readiness browser coverage proves the exact R3 outcome owns the verdict and material selection/currentness cannot replace it.
-6. Approval browser coverage proves **Ready for sign-off** + **Current** precede technical package identity for a current package and stale/history states do not fabricate readiness.
-7. Settings browser coverage proves ordinary inventory prioritizes operator state/actions, technical paths remain available secondarily/when task-relevant, and the raw model API source is absent.
-8. Existing architecture fitness passes unchanged.
-9. Independent semantic review confirms FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO/minimum-change compliance and no unauthorized changed path.
-10. All six signed gates pass.
-11. `CHANGELOG.md [Unreleased]` records the observable correction inside the verified candidate.
-
-Public PR metadata, permanent PR verification, release-packager verification and the explicit merge decision occur only after T1 has produced the verified candidate; they are repository-delivery evidence, not T1 completion evidence.
+1. one deterministic project-authority resolution path exists and same-layer unresolved contradiction blocks before provider choice;
+2. R2/DESIGN permanent authority proposals are target/layer/base-hash validated and reuse one proposal/adoption state machine;
+3. authority-changing input cannot complete the stage until later adopted authority exists;
+4. signed task blocks reject materially vacuous execution packages;
+5. Approval identity is canonicalized and blank identity is rejected;
+6. BUILDER checkpoint requests are signed/resolved, executed by coordinator-owned validation, and cannot grant ambient shell capability;
+7. browser-created and repository-discovered sources persist through one source-admission/applyPlan owner;
+8. archive inclusion preserves project/search filtering;
+9. exact documentation-Git paths are visible before confirmation;
+10. current attention remains visible/reachable during historical/material inspection;
+11. Readiness, Approval, Settings, terminal language and required-input focus match the fresh functional authority;
+12. renderer, scenario-41 and System/Light/Dark certification gaps are permanently closed;
+13. no unauthorized file, authority/verification material, dependency, persistence/API shape or semantic owner changed;
+14. all six signed gates pass on the final candidate;
+15. independent V4 semantic review passes and V5/V6 find no governance breach or bloat.
 
 ## Minimum-change forecast
 
-### Expected semantic change surface
+Expected semantic change is limited to the exact `changeSurface` in the canonical task block below.
 
-- **Production:** 7 existing files.
-- **Ordinary regression tests:** 2 existing files.
-- **Delivery metadata:** 1 existing file.
-- **New production modules:** none.
-- **New test modules:** none.
-- **New state:** none.
-- **New schema:** none.
-- **New persistence/table/index/migration:** none.
-- **New dependency or lockfile change:** none.
-- **New configuration/manifest field:** none.
-- **New abstraction family/service/repository/controller/DTO/mapper:** none.
-- **New public API/HTTP endpoint/JSON shape:** none.
-- **New provider/OpenCode behavior:** none.
-- **P1-P6 authority changes:** none.
-- **Verification-material changes:** none.
+New persistent state: **none**.  
+New persistence schema/migration: **none**.  
+New public HTTP API/transport family: **none**.  
+New dependency/configuration format: **none**.  
+New lifecycle/WorkItem/task state: **none**.  
+New proposal/decision DTO/model family: **none**.  
+New runtime concept: exactly one typed `GATE_CHECKPOINT_REQUESTED` event plus one transient pure resolved-authority projection, both already authorized by DESIGN.
 
-### Signed-surface variance rule
-
-The current T1 `changeSurface` is exact and immutable after sign-off. It authorizes only the ten literal paths in the canonical `order-tasks` block.
-
-If implementation proves that a same-layer architecture-preserving physical split is necessary to avoid adding a second present responsibility to an existing module, the worker/reviewer must stop rather than edit an unsigned path or force the responsibility into the current file. The WorkItem returns to PLAN so T1 can be re-planned and re-signed with the exact revised `changeSurface`; this does not require inventing a second semantic task when the cumulative candidate still belongs to one task.
-
-Any split that changes semantic ownership, public contracts, state meaning, effect boundaries, dependency direction, dependencies or authorized behavior requires the appropriate DESIGN/PLAN return, not merely a surface refresh.
-
-No incidental cleanup or refactor outside the signed surface is authorized.
+The file list is an exact signed authorization boundary, not a reason to violate SoC. If a required architecture-preserving same-layer split becomes necessary, execution stops and PLAN is refreshed/re-signed with the exact additional path before any edit.
 
 ## Verification contract
 
-### Signed logical gates
+The signed logical gate union is:
 
-The task concern set is:
+- `dependency-lock`
+- `typecheck`
+- `architecture`
+- `test`
+- `build`
+- `browser`
 
-`daemon`, `foundation`, `ui`, `verification`.
+The `architecture` gate is mandatory and its material `tests/architecture.test.ts` is read-only to T1.
 
-Their manifest-required union is exactly:
+The candidate must additionally pass V0-V7 under `GW-DOC-VALIDATION-STANDARD-V1`, including V4 independent semantic review, V5 architecture/governance review and V6 minimum-change review. Existing tests are evidence only; a green regression that encodes superseded 0.5.0 behavior must be corrected only when the fresh authority/design explicitly requires that behavior to change and the correction lies inside the signed surface.
 
-1. `dependency-lock` — exact package/lock installation remains valid; no dependency drift.
-2. `typecheck` — strict TypeScript boundary/type correctness.
-3. `architecture` — unchanged permanent architecture material proves repository-wide FCIS/dependency/no-OOP/no-DTO/UI ownership constraints.
-4. `test` — complete Vitest suite, including new daemon integration proof.
-5. `build` — production Vite build.
-6. `browser` — complete Playwright suite, including the changed user-visible behavior.
+Public repository delivery occurs after candidate completion under `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`; it is not an ExecutionTask step and no version bump is authorized here.
 
-All six are required; none is conditional.
+## Open questions
 
-### Semantic review obligations
+Implementation-blocking questions: **NONE**.  
+Architecture questions: **NONE**.  
+Authority conflicts: **NONE**.
 
-The independent review must explicitly challenge:
-
-- whether source creation and discovery truly share one registration mapping/persistence owner rather than merely sharing a helper name;
-- whether Create or Queue retains a hidden second project/filter/query authority;
-- whether Readiness/Approval derives judgment only from canonical typed facts and not Markdown/currentness heuristics;
-- whether Settings changes information hierarchy without moving config/readiness policy into the browser;
-- whether any DTO/model/mapper/service/repository/controller/global-store/API/schema/dependency/verification-material change slipped into the candidate;
-- whether every changed file is necessary and every required design obligation is present.
-
-### Post-candidate repository delivery
-
-This section is **outside T1 ExecutionTask completion**.
-
-After T1 reaches the verified candidate outcome, applying/delivering that candidate to the public Order repository follows `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`: use a governed short-lived implementation branch based on the then-current delivery baseline, preserve the candidate's authorized semantic content, include `CHANGELOG.md [Unreleased]`, declare minor / 0.6.0 metadata, pass permanent PR verification including the release-packager check, and require the explicit merge decision.
-
-If applying the candidate to the delivery baseline requires a material semantic/design/scope change, the candidate is not silently rebased into a different implementation; it returns to the owning lifecycle stage. The release-packager check remains delivery evidence, not a seventh signed ExecutionTask gate.
+Any newly discovered material question returns to its owning lifecycle stage.
 
 ## Canonical order-tasks block
 
@@ -290,19 +303,37 @@ If applying the candidate to the delivery baseline requires a material semantic/
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete Order 0.6.0 corrective candidate by consolidating source admission and correcting Create/remediation, queue/archive filtering, Readiness, Approval and Settings projections without changing canonical contracts, verification material, architecture ownership, dependencies or public APIs.",
+      "objective": "Implement the complete fresh Order 0.6.0 authority-driven corrective design as one cumulative candidate: close the resolved authority/proposal/input/task/checkpoint/source/workbench/certification defects without introducing parallel semantic owners, DTOs, new lifecycle state, persistence/API families, dependencies, or implementation-derived product semantics.",
       "dependsOn": [],
       "scope": [
-        "CHANGELOG.md",
+        "README.md",
+        "src/core/contracts.ts",
+        "src/core/execution.ts",
+        "src/core/governance.ts",
+        "src/core/lifecycle.ts",
+        "src/daemon/authority.ts",
+        "src/daemon/execution.ts",
+        "src/daemon/stage.ts",
+        "src/daemon/validation.ts",
         "src/daemon/work-item-source.ts",
-        "tests/browser.spec.ts",
-        "tests/daemon.test.ts",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/ActivityWorkspace.tsx",
         "ui/src/CreateWorkItem.tsx",
+        "ui/src/DocumentWorkspace.tsx",
         "ui/src/ReadinessWorkspace.tsx",
         "ui/src/SettingsWorkspace.tsx",
         "ui/src/SignoffReview.tsx",
+        "ui/src/TerminalResult.tsx",
         "ui/src/WorkItemQueue.tsx",
-        "ui/src/app.tsx"
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/app.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/certification.test.ts",
+        "tests/core.test.ts",
+        "tests/daemon.test.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts",
+        "CHANGELOG.md"
       ],
       "exclusions": [
         ".github/**",
@@ -311,42 +342,54 @@ If applying the candidate to the delivery baseline requires a material semantic/
         "docs/**",
         "package.json",
         "pontivus-order.toml",
-        "src/core/**",
-        "src/daemon/server.ts",
         "src/shell/**",
+        "src/daemon/server.ts",
         "tests/architecture.test.ts",
         "ui/src/http.ts",
         "ui/src/query-keys.ts",
         "ui/src/theme.css"
       ],
       "acceptanceRefs": [
-        "GW-FR-012-CATALOG-DRIVEN-AUTHORING",
-        "GW-FR-018-SOURCE-CONSUMER-CLOSURE",
-        "GW-FR-078-PORTABLE-WORKITEM-ARCHIVE",
-        "GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP",
-        "GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION",
-        "GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS",
-        "GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION",
-        "GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS",
-        "GW-FR-221-READINESS-REVIEW-HIERARCHY",
-        "GW-FR-222-APPROVAL-REVIEW-HIERARCHY",
-        "GW-FR-241-DERIVED-MATERIAL-MATURITY",
-        "GW-TR-001-FCIS-CANONICAL-OWNERSHIP",
-        "GW-TR-059-CANONICAL-SETTINGS-READINESS-PROJECTION",
-        "GW-TR-089-CURRENT-ATTENTION-OWNERSHIP",
-        "GW-TR-094-CLOSED-WORKBENCH-SCREEN-COMPOSITION"
+        "GW-DOC-WORK-LIFECYCLE-V1",
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2",
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-SPECIFICATION-STANDARD-V2",
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION",
+        "GW-DOC-INSTALLATION-READINESS-V1",
+        "GW-DOC-PRODUCT-IDENTITY-V1",
+        "GW-DOC-SYSTEM-BRIEF-V1"
       ],
       "changeSurface": [
-        "CHANGELOG.md",
+        "README.md",
+        "src/core/contracts.ts",
+        "src/core/execution.ts",
+        "src/core/governance.ts",
+        "src/core/lifecycle.ts",
+        "src/daemon/authority.ts",
+        "src/daemon/execution.ts",
+        "src/daemon/stage.ts",
+        "src/daemon/validation.ts",
         "src/daemon/work-item-source.ts",
-        "tests/browser.spec.ts",
-        "tests/daemon.test.ts",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/ActivityWorkspace.tsx",
         "ui/src/CreateWorkItem.tsx",
+        "ui/src/DocumentWorkspace.tsx",
         "ui/src/ReadinessWorkspace.tsx",
         "ui/src/SettingsWorkspace.tsx",
         "ui/src/SignoffReview.tsx",
+        "ui/src/TerminalResult.tsx",
         "ui/src/WorkItemQueue.tsx",
-        "ui/src/app.tsx"
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/app.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/certification.test.ts",
+        "tests/core.test.ts",
+        "tests/daemon.test.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts",
+        "CHANGELOG.md"
       ],
       "gateIds": [
         "architecture",
@@ -363,17 +406,14 @@ If applying the candidate to the delivery baseline requires a material semantic/
         "GW-P1-STRICT-TYPING",
         "GW-P1-CANONICAL-OWNERSHIP",
         "GW-P1-MINIMUM-CHANGE",
-        "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2",
-        "GW-DOC-WORKBENCH-UX-V2",
-        "GW-DOC-INSTALLATION-READINESS-V1",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
         "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
-        "GW-DOC-CANONICAL-CONTRACTS-V2",
-        "GW-DOC-SPECIFICATION-STANDARD-V2",
-        "GW-DOC-VALIDATION-STANDARD-V1",
-        "GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2"
+        "GW-DOC-EXECUTION-CONTROL-PLANE-V1",
+        "GW-DOC-CANONICAL-CONTRACTS-V2"
       ],
       "concernIds": [
+        "core",
         "daemon",
         "foundation",
         "ui",
