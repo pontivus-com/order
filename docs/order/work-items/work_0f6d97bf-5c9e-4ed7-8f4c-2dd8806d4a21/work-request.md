@@ -88,6 +88,23 @@ A stable requirement ID, concern ID, document, schema, passing test or prior rev
 
 The existing 0.6.0 work is an evidence set to recover and revalidate, not a discard-by-default set and not a trusted baseline. Valid authority facts, foundational corrections, implementation evidence and candidate solutions should be reused where independently re-proven. Unsupported closure conclusions must be replaced in the existing canonical lifecycle documents rather than copied into a parallel documentation set.
 
+## Mandatory two-part audit cadence
+
+The exhaustive restart must be executed in bounded two-concern batches. After any two concerns have been reported complete at a lifecycle phase, those two completed parts must be audited against the full detailed phase requirements before a third concern may begin at that phase.
+
+This cadence applies independently to:
+
+- R1 factual/realization revalidation;
+- R2 functional closure;
+- DESIGN technical closure;
+- PLAN coverage.
+
+The audit is not a summary review. It must reopen the exact two completed parts, challenge every applicable detailed obligation, verify their evidence and cross-layer paths, and return `PASS` or `FAIL`.
+
+A `FAIL` reopens the defective concern(s) at the exact owning phase. A missing audit is equivalent to `FAIL` for progression purposes.
+
+The campaign-control document owns the pair definitions, detailed audit checklist, audit record format and current audit status. No lifecycle artifact or model output may claim later-pair progress when the preceding pair audit has not passed.
+
 ## Explicit exclusions
 
 This WorkItem does not itself authorize implementation while R1/R2/DESIGN/PLAN are incomplete.
