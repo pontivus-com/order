@@ -66,7 +66,7 @@ G0 establishes one exact Phase 0 candidate commit as the factual baseline for th
 
 The entire user-visible and workflow-relevant Order product surface needed to establish the 0.6.0 design, including lifecycle semantics, WorkItem/source behavior, queue/create/workspace interaction, every pre-signoff stage, approval, execution, completion, governed materials, OpenCode interaction, Settings/readiness, recovery/current-attention behavior, responsive/accessibility mechanics, visual/component/theme consistency and end-to-end certification obligations.
 
-Current implementation, 0.5.0 references, tests and runtime evidence are evidence of present state. They do not override canonical product/design authority.
+Current implementation, prior releases, tests, rendered UI and historical design material may be inspected only as evidence of a gap, ownership issue, reusable capability or completed correction. They are not campaign deliverables and must not be documented as the desired 0.6.0 application/design baseline, fallback behavior, preservation target or regression contract. Absence of a finding means canonical authority is sufficient; it never means "keep the current application by default."
 
 ## Explicit exclusions
 
