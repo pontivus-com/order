@@ -2,6 +2,8 @@
 
 # Order 0.6.0 integrated technical solution design
 
+> **CURRENT STATUS — STALE / DESIGN NOT STARTED.** This design depended on the former R2 closure invalidated by C20-F01. Specific analyses and candidate solutions may be reused after fresh R1/R2, but every `No technical change` conclusion and the stated changed-production boundary are non-current until complete technical realization proof is re-established.
+
 ## Requirement-to-solution map
 
 This design consumes the functionally closed `requirements.md`. It does not reconstruct 0.5.0 implementation as a desired baseline. Existing production code is used only to locate current ownership and the concrete non-conformance that must be corrected.
