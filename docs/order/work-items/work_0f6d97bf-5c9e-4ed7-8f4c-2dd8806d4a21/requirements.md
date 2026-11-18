@@ -12,7 +12,7 @@ R1 closed all C01-C22 factual questions and classified every material realizatio
 
 The v2 disposition ledger classifies P3 functional authority only. `REFERENCE` means the named P3 owner remains normative and this package states its exact local consequence; it is not shorthand for "no change". `DELTA` means the existing P3 owner is amended. No `LOCAL` requirement is needed because every 0.6.0 functional obligation is already owned by canonical P2/P3 authority.
 
-| Concern | Disposition | Canonical P3 owner |
+| Requirement | Disposition | Canonical P3 owner |
 |---|---|---|
 | C01 product/lifecycle semantics | DELTA | GW-DOC-WORK-LIFECYCLE |
 | C02 intake/kinds/creation/metadata | REFERENCE | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM |
