@@ -55,6 +55,22 @@ Operational consequences for agents:
 
 Short-lived branch prefixes are limited to the canonical public-delivery set (`feat/`, `fix/`, `docs/`, `chore/`, `release/`, `revert/`).
 
+## Governed campaign/control-state discipline
+
+When a governed campaign/control document declares canonical current-state registers, agents must treat those registers as the only current-state owners.
+
+Operational consequences:
+
+- read the designated concern-state and gate-state registers before reporting or mutating campaign status;
+- do not infer current campaign state from document headers, narrative summaries, START/END history, handovers, prior model output, PR descriptions or another branch;
+- do not copy files or cite a verified commit on another branch as proof that a campaign branch contains that foundation state;
+- where the campaign owner requires a baseline commit to be contained, prove Git ancestry against the actual campaign branch `HEAD` before advancing the gate;
+- a downstream foundational defect reopens the affected gate/register state before remediation; the gate returns to PASS only after the correction is governed, integrated into campaign history, and the required fitness/coverage checks are rerun;
+- after any campaign-state mutation, run the repository's campaign-state fitness sensor and derive the reported state again from the canonical registers;
+- never maintain a second prose status projection for convenience.
+
+These are operating consequences of `GW-P1-DRY`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-DOC-CANONICALITY` and the current campaign owner. They do not create a separate product/lifecycle/state contract.
+
 ## Continuous conformance and decision boundaries
 
 All lifecycle context selection, conformance and promotion behavior is owned by `GW-DOC-LIFECYCLE-CONTEXT`.
