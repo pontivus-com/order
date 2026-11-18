@@ -530,6 +530,16 @@ const server = Bun.serve({
         }]);
       } else if (mode === "stage-empty-output" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
+      } else if (mode === "stage-r3-ready") {
+        const bindingPath = join(own, "binding-id");
+        const bindingId = existsSync(bindingPath)
+          ? readFileSync(bindingPath, "utf8").trim()
+          : "";
+        output = JSON.stringify([{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+          artifactRefIds: bindingId.length === 0 ? [] : [bindingId],
+        }]);
       } else {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
       }
@@ -2885,6 +2895,142 @@ describe("daemon control plane", () => {
     )).toBe(true);
   }, 30_000);
 
+  it("blocks R3 READY_FOR_SIGNOFF when signed task definitions are mechanically invalid", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-r3-task-validation-");
+    const binary = createFakeOpenCode("stage-r3-ready");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "R3 task validation",
+        concernIds: ["shell"],
+      });
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "R3",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const root = "docs/order/work-items/" + workItem.id;
+      const files = {
+        R1: root + "/research.md",
+        R2: root + "/requirements.md",
+        DESIGN: root + "/solution-design.md",
+        PLAN: root + "/implementation-plan.md",
+        R3: root + "/readiness.md",
+      };
+      fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(
+        path.join(repositoryRoot, files.PLAN),
+        ${JSON.stringify(fixturePlan.replace('"gateIds":["test"]','"gateIds":["missing"]'))},
+      );
+      fs.writeFileSync(path.join(repositoryRoot, files.R3), "# READY_FOR_SIGNOFF\\n");
+
+      const outputs = {
+        R1: await authority.currentFileArtifact(runtime, workItem, files.R1, "R1", "P1"),
+        R2: await authority.currentFileArtifact(runtime, workItem, files.R2, "R2", "P3"),
+        DESIGN: await authority.currentFileArtifact(runtime, workItem, files.DESIGN, "DESIGN", "P6"),
+        PLAN: await authority.currentFileArtifact(runtime, workItem, files.PLAN, "PLAN", "P7"),
+        R3: await authority.currentFileArtifact(runtime, workItem, files.R3, "R3", "P7"),
+      };
+      const repo = await import("./src/shell/repository.ts");
+      const baseline = await repo.resolveHeadCommit(repositoryRoot);
+      const conform = async (stage, artifact) => {
+        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const row = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: workItem.id,
+          executionTaskId: null,
+          stage,
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "COMPLETED",
+          attempt: runStore.nextAttempt(runtime, workItem.id, stage, null),
+          baselineCommit: baseline,
+          contextHash: context.contextHash,
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: rt.nowIsoDateTime(),
+          endedAt: rt.nowIsoDateTime(),
+        });
+        sql.withTransaction(database, () => {
+          for (const dependency of context.artifacts) {
+            if (dependency.id !== artifact.id) {
+              sql.storeArtifactDependency(database, artifact.id, dependency.id);
+            }
+          }
+          runStore.appendRunEvent(runtime, row.id, {
+            tag: "CONFORMANCE_PASSED",
+            stage,
+            outputArtifactRefIds: [artifact.id],
+            contextHash: context.contextHash,
+            evidence: [],
+          });
+        });
+      };
+      await conform("R1", outputs.R1);
+      await conform("R2", outputs.R2);
+      await conform("DESIGN", outputs.DESIGN);
+      await conform("PLAN", outputs.PLAN);
+
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        outputs.R3.id,
+      );
+      const run = await coord.startStageRun(runtime, workItem.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, workItem.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      runStatus: string;
+      stage: string;
+      failures: string[];
+    };
+
+    expect(output.runStatus).toBe("BLOCKED");
+    expect(output.stage).toBe("R3");
+    expect(output.failures).toContain("signed task references unresolved gate: missing");
+  }, 30_000);
   it("blocks a stage completion that has no lifecycle output artifact", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-empty-stage-output-");

@@ -1326,6 +1326,7 @@ Permanent tests must prove at least:
 - human-edited current stage draft is supplied for reconformance.
 - every promotable R1/R2/DESIGN/PLAN/R3 completion passes the functional-core `evaluateStageConformance` decision for exactly one current deterministic output before coordinator-owned `CONFORMANCE_PASSED` and lifecycle transition;
 - PLAN completion additionally parses exactly one canonical `order-tasks` block from those exact current PLAN bytes before promotion; prompt wording or a section heading alone is not task-contract conformance;
+- R3 `READY_FOR_SIGNOFF` additionally validates that the current PLAN task definitions resolve every signed gate, concern and authority/acceptance ref, include concern-required gates, keep each change-surface path inside signed scope/outside exclusions, and do not mutate the current material authority closure; a return-to-* R3 outcome remains available when PLAN is defective;
 - delivery-schema v2 stage Markdown satisfies its pinned ordered structural template before promotion; v2 R2 additionally has a non-empty `REFERENCE | DELTA | LOCAL` authority-disposition ledger with canonical `GW-*` owners where required; historical v1 schema pins retain their original structural semantics.
 - the permanent architecture fitness sensor scans repository v2 WorkItem documents for shadow-authority hygiene: they cannot declare canonical concern ownership, cannot introduce the retired `WF-FR-*` namespace, and their R2 authority ledger cannot be absent or structurally empty.
 
