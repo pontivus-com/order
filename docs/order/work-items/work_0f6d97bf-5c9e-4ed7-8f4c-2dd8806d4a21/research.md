@@ -39,17 +39,20 @@ The audit covered the complete application concern set, including:
 
 ### Foundation corrections retained
 
-G-F01 through G-F05 remain valid reusable foundation corrections and were independently revalidated rather than used as proof of product completeness:
+G-F01 through G-F08 are current reusable foundation corrections and are independently revalidated rather than used as proof of product completeness:
 
 - current-v2 R1 authority/template lineage;
 - complete current-v2 DESIGN authoring contract;
 - signed-task mechanical readiness validation before `READY_FOR_SIGNOFF`;
 - complete current-v2 PLAN S8-S10 authoring contract;
-- R2 `REFERENCE`/`DELTA` owner enforcement against canonical P3 authority.
+- R2 `REFERENCE`/`DELTA` owner enforcement against canonical P3 authority;
+- G-F06 single-owned campaign-state fitness across active WorkItem evidence;
+- G-F07 mandatory pair-audit/gate progression evidence coupling;
+- G-F08 exact manifest-canonical stable-P3 disposition-set completeness for G3.
 
 ### Current factual findings
 
-The following findings remain material after fresh R1. Their status indicates the exact downstream owner; none is an unresolved R1 fact.
+The following table is the R1 factual finding set. Later R2/DESIGN corrections do not erase the factual discovery record; where authority has since been corrected, the finding is retained as disposed historical evidence rather than misrepresented as a current violation. None is an unresolved R1 fact.
 
 | Finding | Factual result | Downstream owner |
 |---|---|---|
@@ -122,6 +125,26 @@ valid operator/system decision and action
 For the Workbench, the audit also covered the applicable cross-product of workflow step, work kind, interaction condition, current-attention condition, material/currentness condition, current/historical selection and responsive class.
 
 The final C19/C20 audit additionally checked application-wide renderer/component/theme ownership and the 45 required certification scenarios rather than inferring completeness from a green test suite.
+
+## Post-governance-audit R1 freshness revalidation
+
+**Exact revalidation entry baseline:** `83ce67004acc4b15dfae4259e61c226dec470eb8`.  
+**Earliest exhaustive R1 comparison baseline:** `733176bda45cd1edb1bd1faca55ed6a38dd3af0c`.  
+**Corrected foundation baseline:** `b4bc05010f73eccf04b549042a4f22b122d7233f`.
+
+The repository comparison from the earliest exhaustive R1 baseline through the corrected foundation baseline contains **no production `src/**` or `ui/**` change**. The changed surface is canonical/product/design/contract documentation, campaign lifecycle artifacts, delivery metadata and `tests/architecture.test.ts`. Therefore the prior producer→carrier→consumer implementation observations remain current evidence except where the changed authority or verification material itself is the subject being revalidated.
+
+Freshness consequences are explicit:
+
+- **A01 / C01+C21:** current `system-brief.md`, `product-identity.md` and `work-lifecycle.md` contain the downstream authority corrections for C01-F03/C01-F04/C21-F04. Those findings remain the factual reason for the corrections but are no longer current authority violations. C21-F03 and C21-F05 remain current realization violations because README/terminal production code has not changed.
+- **A02 / C22+C02:** G-F06-G-F08 strengthen campaign verification only. They do not implement C22-F01 project-authority semantic resolution or C02-F01/F02/F03 product/source behavior; those realization findings remain current.
+- **A03-A10:** no owning production source/UI path changed. C03-F01, C04-F01/F02, C05-F01, C06-F01, C07-F01, C08-F01, C09-F01, C10-F01, C11-F01/F02, C12-F01, C16-F01 and C18-F01 therefore remain current realization findings; C13/C14/C15 fact closure remains unchanged; C17's imported attention/recovery consequence remains unchanged.
+- **A11 / C19+C20:** the foundation correction changes campaign/audit fitness in `tests/architecture.test.ts` only. It does **not** close C19-F01 renderer-matrix completeness and does not add the missing C20-F02/F03 browser certification matrices. Those findings remain current. The new campaign sensor itself is now a conforming part of C20/C22 documentation/conformance machinery.
+- no stable P2/P3 requirement ID was added or removed: current inventory remains 113 total, comprising 112 manifest-canonical stable P3 `GW-FR-*` IDs plus `GW-P2-CONTROLLED-WORK`;
+- no new product fact, implementation defect or authority contradiction was discovered by the freshness pass;
+- material `UNPROVEN` count remains zero.
+
+The post-audit R1 pair records in the campaign plan must bind this refreshed synthesis, the exact repository baseline, the current campaign evidence snapshot and current authority identities before G2 may return to PASS.
 
 ## Downstream invariants
 
