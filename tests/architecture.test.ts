@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { dirname, extname, join, relative, resolve } from "node:path";
+import { dirname, extname, join, matchesGlob, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
@@ -1529,7 +1529,7 @@ describe("architecture fitness", () => {
             resolvedRefs.has(owner)
           ) {
             const ownerPath = resolvedRefs.get(owner)!;
-            if (!p3Patterns.some((pattern) => new Bun.Glob(pattern).match(ownerPath))) {
+            if (!p3Patterns.some((pattern) => matchesGlob(ownerPath, pattern))) {
               violations.push(
                 `docs/order/work-items/${entry.name}/requirements.md: ${disposition} owner ${owner} is not selected by authority.p3`,
               );
