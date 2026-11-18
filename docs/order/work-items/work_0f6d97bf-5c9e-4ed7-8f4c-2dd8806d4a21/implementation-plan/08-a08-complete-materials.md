@@ -1,55 +1,40 @@
 # A08 — Complete and governed materials
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+## Stable requirement execution dispositions
 
-## Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `C13-O01`, `C13-O05` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C13-O01`, `C13-O05` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | `C14-O09`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O09`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C13-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `C14-O03`, `C14-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O03`, `C14-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `C14-O08`, `DIRECT-FR242` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O08`, `DIRECT-FR242` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **7** manifest-canonical stable P3 requirements.
+Stable rows in phase: **7**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | C13 | `GW-DOC-MARKDOWN-WORKBENCH` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | C13 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
+## Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| — | — | — | — | — | No package-local atom beyond stable-requirement coverage. |
 
-## Package-local R2 consequences
+Package atoms in phase: **0**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+## Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C13 package-local R2 consequence | SD14 | NO_CODE — SD14 positive no-production-delta; IA24 preserves terminal semantics. |
-| C14 package-local R2 consequence | SD14 | NO_CODE — SD14 positive no-production-delta; IA24 preserves material semantics. |
+- No IA action is owned by this phase; all stable requirements are positive no-change.
 
-## Technical solutions consumed
+## Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD14 | Positive no-production-delta: existing COMPLETE/material/proposal/evidence owners already satisfy the reconstructed functional obligations. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-## Implementation actions
-
-- No dedicated production action. This phase is a positive no-production-delta disposition and is verified under IA24.
-
-## Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.

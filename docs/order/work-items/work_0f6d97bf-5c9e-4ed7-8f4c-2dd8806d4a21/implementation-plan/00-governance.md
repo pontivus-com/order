@@ -1,47 +1,29 @@
-# 0.6.0 modular implementation-plan governance
+# 0.6.0 modular PLAN governance
 
-This directory is the detailed phase decomposition of the **single** P7 plan package. The deterministic lifecycle artifact remains `../implementation-plan.md`; that root file carries the one canonical `order-tasks` block and an exact blob manifest for every phase file in this directory.
+This directory is the maintainable authoring decomposition of the **single** canonical P7 artifact at `../implementation-plan.md`. The root PLAN compiles these files in full and lists their exact Git blob SHAs. Directory files own no independent lifecycle state, Approval material or executable task block.
 
-The directory does not create parallel plans. A phase file owns only the detailed traceability and implementation obligations delegated to it by the root PLAN. Campaign status remains owned only by `0.6.0-design-campaign-plan.md`.
+## Traceability law
 
-## Closure law
-
-The package is exhaustive only when:
+Every stable P3 requirement and every package-local atomic obligation follows:
 
 ```text
-every R2 stable requirement
-+ every package-local/non-stable R2 consequence
-        -> exactly one or more DESIGN solution dispositions
-        -> exact IA implementation action(s) OR positive NO_CODE disposition
-        -> exact verification proof
+canonical P3 / package consequence
+ -> exact G-F10 R1 evidence
+ -> exact DESIGN disposition
+ -> execution owner IAxx OR dependency-only IAxx OR POSITIVE_NO_CHANGE
+ -> exact verification owner
 ```
 
-The reverse direction must also hold: every IA action must trace to at least one accepted DESIGN solution and R2 obligation.
+A positive no-change disposition is an implementation instruction: **do not edit for this requirement** and revalidate the named evidence/proof. If execution disproves it, return upstream.
 
-## Phase order
+## Execution ownership
 
-1. A01 lifecycle/product
-2. A02 governance/intake
-3. A03 queue/source
-4. A04 Workbench/Research
-5. A05 Requirements/DESIGN authority mutation
-6. A06 PLAN/R3
-7. A07 Approval/Execution
-8. A08 Complete/materials
-9. A09 Provider/Settings
-10. A10 Recovery/accessibility
-11. A11 component/certification
-12. shared implementation-action catalog
-13. shared verification/closeout contract
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA action is defined exactly once in `12-action-catalog.md` and assigned to one execution wave.
 
-The ordering is an implementation feedback order inside cumulative task T1, not eleven independent ExecutionTasks.
+## Architecture constraints
 
-## Architectural constraints
-
-FCIS, SoC, DRY/canonical ownership, strict typing, no-OOP/no-DTO, minimum change and authority-before-inference remain binding. No phase may invent another lifecycle/source/readiness/task/proposal/provider/theme/verification model.
-
-Current implementation, tests, rendered UI, 0.5.0 and historical design remain evidence only. Reuse is permitted only where the current DESIGN has positively selected the existing canonical owner/capability.
+FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
 
 ## Stop conditions
 
-Return to DESIGN/PLAN before implementation if execution requires a new semantic owner, public contract, state meaning, persistence/transport shape, dependency direction, external dependency, provider capability, verification authority, or behavior outside the signed package.
+Return to DESIGN/PLAN before editing when execution requires a new semantic owner, state meaning, public contract, persistence/transport shape, external dependency, provider capability, verification authority, or path outside the signed changeSurface.

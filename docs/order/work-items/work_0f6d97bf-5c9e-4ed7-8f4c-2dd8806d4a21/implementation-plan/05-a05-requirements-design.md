@@ -1,49 +1,35 @@
 # A05 — Requirements and DESIGN authority mutation
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+## Stable requirement execution dispositions
 
-## Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION` | `C07-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C07-O04` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **1** manifest-canonical stable P3 requirements.
+Stable rows in phase: **1**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION` | C07 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD09 | IA03 |
+## Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C07-01` | C07-F01 | `SD09` | `IA03` | — | R2 can propose/adopt validated current P2/P3 canonical-owner amendments through the one proposal mechanism. |
+| `PL-C08-01` | C08-F01 | `SD09` | `IA03` | — | DESIGN can propose/adopt validated current P4/P5/P6 canonical-owner amendments through the same mechanism. |
 
-## Package-local R2 consequences
+Package atoms in phase: **2**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+## Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C07 package-local R2 consequence | SD09 | IA03 |
-| C08 package-local R2 consequence | SD09 | IA03 |
+- **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-## Technical solutions consumed
+## Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD09 | Reuse one proposal/adoption mechanism for permanent GOVERNANCE mutations with stage-specific P2/P3 vs P4-P6 target/layer/base-hash admission. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-## Implementation actions
-
-- **IA03** — execute the exact action defined in `12-action-catalog.md`.
-
-## Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.

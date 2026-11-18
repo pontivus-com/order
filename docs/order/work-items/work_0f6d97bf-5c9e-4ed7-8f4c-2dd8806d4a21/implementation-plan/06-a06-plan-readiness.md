@@ -1,53 +1,38 @@
 # A06 — PLAN contract and R3 readiness
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+## Stable requirement execution dispositions
 
-## Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11` | `IA16` | — | Recheck `C10-O06`, `C10-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **3** manifest-canonical stable P3 requirements.
+Stable rows in phase: **3**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | C10 | `GW-DOC-SPECIFICATION-STANDARD` | SD11 | NO_CODE / IA24 verification |
-| `GW-FR-211-READINESS-RETURN-CONTINUITY` | C10 | `GW-DOC-WORKBENCH-UX` | SD11 | NO_CODE / IA24 verification |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | C10 | `GW-DOC-WORKBENCH-UX` | SD11 | IA16 |
+## Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Implementation-required signed task package is materially non-vacuous. |
+| `PL-C10-01` | C10-F01 | `SD11` | `IA16` | — | Readiness dominant verdict is typed R3 outcome. |
 
-## Package-local R2 consequences
+Package atoms in phase: **2**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+## Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C09 package-local R2 consequence | SD10 | IA05 |
-| C10 package-local R2 consequence | SD11 | IA16 |
+- **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-## Technical solutions consumed
+## Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD11 | Project the typed R3 outcome as the primary Readiness verdict; material maturity/currentness remains separate. |
-| SD10 | Strengthen the existing SignedTaskBlock/parser/validator so an implementation-required package cannot be vacuous. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-## Implementation actions
-
-- **IA05** — execute the exact action defined in `12-action-catalog.md`.
-- **IA16** — execute the exact action defined in `12-action-catalog.md`.
-
-## Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
