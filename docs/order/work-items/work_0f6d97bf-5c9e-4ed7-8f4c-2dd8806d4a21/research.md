@@ -2,162 +2,164 @@
 
 ## Current state/absence
 
-The prior 0.6.0 R1 closure is no longer current.
+The fresh 0.6.0 R1 investigation is complete under the post-C20-F01 exhaustive proof standard.
 
-A campaign-completeness audit established C20-F01: the previous pass proved broad canonical-owner/stable-ID/concern coverage but did not prove the complete semantic content and end-to-end realization of every applicable obligation. That allowed concern-level authority summaries to be promoted into `FACTS_CLOSED`, broad `no functional delta` conclusions in R2 and broad `no technical change` conclusions in DESIGN without complete producer -> carrier -> consumer conformance evidence.
+This R1 did not treat concern coverage, stable requirement IDs, prior closure, current UI, tests, historical releases or implementation shape as sufficient evidence of correctness. The complete C01-C22 register was revalidated through eleven mandatory two-concern audits (A01-A11). Every applicable concern was decomposed into authority, semantic/information and realization obligations; every material realization is classified as `CONFORMS` or `VIOLATES`; zero material `UNPROVEN` obligations remain.
 
-The 0.6.0 campaign is therefore back in R1 revalidation. G0 foundation work and G1 inventory remain reusable evidence; G2 is in progress; R2/DESIGN/PLAN/R3 conclusions are stale until this R1 audit closes.
+The final A11 contradiction audit also proved that earlier pair closure is not immutable: it discovered two additional C21 defects, reopened/revalidated A01, and only then allowed A11/H1/G2 to close.
 
-This is an asset-recovery audit, not a blank-sheet restart. Existing work is retained where independently supportable and rejected only where its conclusion exceeds its evidence.
+G2 is therefore factually closed. This does **not** mean the current application conforms or that the former R2/DESIGN/PLAN package is reusable unchanged. The factual result contains explicit R2 and DESIGN findings that must be resolved downstream.
 
 ## Evidence
 
-### Reusable campaign assets already established
+Primary evidence is owned by:
 
-The following remain useful and are not discarded by C20-F01:
+- `0.6.0-design-campaign-plan.md` — atomic concern records, finding ledger, pair-audit records A01-A11, fresh H1 integration audit and sole current gate state;
+- `0.6.0-concern-coverage-ledger.md` — 113/113 current P2/P3 stable-ID inventory coverage;
+- current canonical P1-P6 owners resolved through `pontivus-order.toml`;
+- current source, schemas, templates, prompts/context assembly, state/transition policy, daemon/shell effects, persistence/transport, browser projection, UI renderers and permanent tests, used only as realization evidence.
 
-- `work-request.md` correctly establishes the authority-driven 0.6.0 objective and prohibition on treating released/current implementation as desired-state authority; it now also requires exhaustive authority/semantic/realization proof.
-- `0.6.0-concern-coverage-ledger.md` remains useful as a G1 inventory: 113 current stable P2/P3 requirement IDs are mapped with zero missing/extra IDs. The ledger itself correctly states that inventory coverage does not prove concern correctness.
-- the C01-C22 concern taxonomy remains a useful indexing/control structure, subject to semantic-obligation expansion where a concern contains multiple distinct obligations.
-- historical concern START/END records remain evidence indexes and authority summaries. Their former closure verdicts are not current premises.
-- existing implementation observations remain evidence of defects, reusable capability or prior correction and are not desired-state authority.
+The audit covered the complete application concern set, including:
 
-### Reusable foundational corrections
+- product identity, scope, success criteria and lifecycle semantics;
+- project governance, authority resolution, defaults/overrides/extensions and verification authority;
+- WorkItem intake, work kinds, source, title, metadata, queue, archive, reconciliation and documentation Git;
+- workspace shell/navigation/material selection;
+- Research, Requirements, Solution design, Implementation plan and Readiness authoring/interaction/conformance;
+- Approval/sign-off;
+- execution tasks, builder/reviewer/remediator flow and validation;
+- Complete/terminal outcomes and linked remediation;
+- document/proposal/evidence/dialogue/activity/material-currentness semantics;
+- provider/OpenCode session/input/failure/activity behavior;
+- Settings, installation readiness, repositories/document roots/accounts/models/reference roots;
+- current attention, blockers, stale authority, retry/resume/reconcile and asynchronous convergence;
+- responsive, keyboard/focus and accessibility mechanics;
+- application-wide component language, hierarchy, theme and renderer ownership;
+- end-to-end certification, contradiction coverage and the documentation/conformance machinery itself.
 
-The current branch independently contains the mechanisms established by the previous foundational findings:
+### Foundation corrections retained
 
-| Finding | Reusable correction confirmed |
-|---|---|
-| G-F01 | current Change/Defect R1 v2 templates reference current lifecycle-context V2; Investigation/Audit v2 R1 templates also exist rather than silently inheriting historical v1 authority |
-| G-F02 | current Change/Defect DESIGN v2 templates carry the S7 content needed for ownership/boundaries, reuse, replacement/deletion, necessary-new-concept justification, alternatives, failure and validation |
-| G-F03 | R3 `READY_FOR_SIGNOFF` admission invokes canonical task-definition validation before readiness promotion |
-| G-F04 | current Change/Defect PLAN v2 templates carry the S8-S10 planning content, including ownership/decomposition, surfaces, deletions/replacements, evidence, minimum-change forecast, verification and one canonical task block |
-| G-F05 | R2 `REFERENCE`/`DELTA` owners must resolve through canonical manifest `authority.p3`, with runtime and architecture-fitness enforcement |
+G-F01 through G-F05 remain valid reusable foundation corrections and were independently revalidated rather than used as proof of product completeness:
 
-These corrections solve real authoring/conformance defects and remain reusable subject to ordinary freshness verification. C20-F01 does not establish a reason to undo them.
+- current-v2 R1 authority/template lineage;
+- complete current-v2 DESIGN authoring contract;
+- signed-task mechanical readiness validation before `READY_FOR_SIGNOFF`;
+- complete current-v2 PLAN S8-S10 authoring contract;
+- R2 `REFERENCE`/`DELTA` owner enforcement against canonical P3 authority.
 
-### Previously discovered product/implementation findings retained for revalidation
+### Current factual findings
 
-The following prior findings remain useful evidence but are not treated as the complete defect set:
+The following findings remain material after fresh R1. Their status indicates the exact downstream owner; none is an unresolved R1 fact.
 
-| Finding | Existing evidence/result retained |
-|---|---|
-| C01-F01 / C01-F02 | lifecycle/product documentation required clarification between canonical WorkItem stages and internal execution/validation/work-kind boundaries |
-| C21-F01 / C21-F02 | product-language corrections distinguish verified result from verified candidate and prohibit invention of missing product intent |
-| C02-F01 | ordinary Create promoted raw concern identifiers into operator authoring |
-| C02-F02 | linked-remediation UI exposed an editable Project despite same-project lineage |
-| C02-F03 / C04-F01 | UI-created and repository-authored WorkItems used non-singular source-registration/admission realization |
-| C03-F01 | archive inclusion changed effective queue project/search behavior |
-| C10-F01 | Readiness primary verdict used material maturity/currentness instead of the canonical R3 readiness judgment |
-| C11-F01 | Approval primary review did not directly expose canonical readiness alongside package currentness |
-| C16-F01 | Settings promoted technical filesystem/transport identity above ordinary operator decision/readiness information |
-
-These findings must be revalidated against current authority and current implementation evidence. Their existence does not imply that no additional defects exist.
-
-### Existing downstream artifacts audited
-
-The current lifecycle artifacts are classified as follows:
-
-| Artifact | Current audit status | Reuse rule |
+| Finding | Factual result | Downstream owner |
 |---|---|---|
-| `requirements.md` | STALE | specific requirement fragments may be reused after R1 proof; grouped no-delta closure is not current |
-| `solution-design.md` | STALE | specific C02/C03/C04/C10/C11/C16 candidate solutions may be reused after fresh R2; broad no-change conclusions are not current |
-| `implementation-plan.md` | STALE | planning mechanics/checkpoints/gate discipline may be reused; exact T1 topology and signed surface are not current |
-| `readiness-review.md` | RETURN_TO_RESEARCH | former `READY_FOR_SIGNOFF` is invalid because it traced an incomplete semantic obligation set |
+| C01-F03 | System Brief success wording is execution/candidate-specific although successful no-code terminal WorkItems exist | R2 / System Brief |
+| C01-F04 | Work Lifecycle cross-reference for `GW-P2-CONTROLLED-WORK` points to the wrong System Brief section | R2 / Work Lifecycle |
+| C02-F01 | Create still promotes raw concern identifiers as ordinary authoring language | R2 reference + downstream presentation correction |
+| C02-F02 | linked remediation still exposes an editable Project although lineage is same-project | R2 reference + downstream presentation correction |
+| C02-F03 / C04-F01 | UI-created and repository-discovered WorkItems still use non-singular source-admission realization paths | DESIGN / source owner |
+| C03-F01 | include-archived queue path bypasses the normal project/search filtering semantics | R2 reference + downstream correction |
+| C04-F02 | documentation-Git confirmation does not show the exact governed path set being committed | R2 reference + DESIGN/PLAN |
+| C05-F01 | explicit historical/document selection can hide the exact current attention interaction instead of keeping it visible/directly actionable | DESIGN |
+| C06-F01 | authority-changing human input categories are accepted as chat without a deterministic durable-authority update/block path | DESIGN |
+| C07-F01 / C08-F01 | R2/DESIGN cannot productively propose/adopt validated non-lifecycle P2-P6 canonical-owner amendments through the current proposal path | DESIGN / one canonical proposal-authority mechanism |
+| C09-F01 | signed-task schema/validation permits vacuous or materially under-specified executable task packages | DESIGN / P6 signed-task owner |
+| C10-F01 | Readiness dominant verdict still presents material maturity instead of canonical R3 verdict | R2 reference + downstream projection |
+| C11-F01 | Approval does not directly present canonical readiness with package currentness | R2 reference + downstream projection |
+| C11-F02 | whitespace-only approval identity can pass canonical ingress despite browser-only validation | DESIGN / P6 + daemon admission |
+| C12-F01 | required in-task architecture feedback checkpoints are not productively executable under the denied-execute provider boundary | DESIGN / execution checkpoint mechanism |
+| C16-F01 | Settings still promotes filesystem/transport identity into ordinary primary content | R2 reference + downstream presentation |
+| C18-F01 | newly required human input does not move focus once to the relevant composer and lacks certification | DESIGN / Workbench dialogue-composer owner |
+| C19-F01 | permanent architecture fitness does not exhaustively enforce the canonical production renderer-to-primitive matrix | DESIGN / architecture fitness |
+| C20-F02 | certification scenario 41 is incomplete: current browser proof covers Work request variants but not the full four-kind Research matrix or Change/Defect downstream distinction | DESIGN/PLAN verification ownership |
+| C20-F03 | certification scenarios 26 and 33-36 lack the required representative cross-application component/theme parity matrix | DESIGN/PLAN verification ownership |
+| C21-F03 | root README still uses implementation/verified-candidate language too universally before later caveats | R2 product-language realization |
+| C21-F04 | Product Identity says Order “does not commit” although the product deliberately supports bounded operator-triggered WorkItem documentation Git commits | R2 / Product Identity claim boundary |
+| C21-F05 | Complete renders internal `CANDIDATE_DONE` as “Candidate done” instead of the canonical operator-facing “Verified candidate” label | DESIGN / presentation realization |
+| C22-F01 | manifest precedence/default/override/extension semantics are not resolved by one productive pure authority-resolution owner before agent interpretation | DESIGN / canonical authority resolution |
+
+Previously discovered C01-F01/F02 and C21-F01/F02 are already corrected in current canonical authority. Cross-concern findings are consolidated at their primary owners rather than duplicated.
 
 ## Governing authority
 
-The revalidation is governed by:
+R1 remained within its canonical decision boundary:
 
-- `GW-P1-AUTHORITY-BEFORE-INFERENCE`, `GW-P1-DOC-CANONICALITY`, FCIS, SoC, DRY/canonical ownership, strict typing and minimum change;
-- `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`;
-- current P2 product authority;
-- every applicable P3 canonical owner and every normative section within those owners;
-- `GW-DOC-LIFECYCLE-CONTEXT-V2` for R1/R2/DESIGN/PLAN decision boundaries and evidence/authority separation;
-- `GW-DOC-SPECIFICATION-STANDARD-V2` for package completeness and traceability;
-- applicable P4/P5/P6 authority when proving present realization;
-- the campaign's amended exhaustive semantic/realization review rule.
+- facts, contradictions, ownership gaps, producer/carrier/consumer paths and implementation conformance were established;
+- no new product behavior was selected;
+- no technical solution was authorized;
+- no implementation task or change surface was authorized.
 
-Permanent semantic authority remains with the existing canonical P1-P6 owners. This R1 artifact records facts, evidence and gaps; it does not become a second permanent specification.
+Permanent semantics remain at their canonical P1-P6 owners. This artifact is the canonical R1 synthesis for this WorkItem, not a replacement product specification.
+
+The campaign's authority-driven rule remains controlling: current implementation/tests/UI/history are evidence only and cannot become desired 0.6.0 behavior, compatibility fallback or regression baseline.
 
 ## Affected producer→consumer path
 
-The fresh R1 audit must establish each material obligation at the level actually required to prove conformance:
+The exhaustive audit used the applicable complete path for each material obligation:
 
 ```text
 canonical intent / normative obligation
-        |
-        v
+        ↓
 required semantic information / behavior
-        |
-        v
-authoring input + schema/template + prompt/context
-        |
-        v
-generated governed output
-        |
-        v
-canonical contract / artifact / event / state carrier
-        |
-        v
-pure derivation + daemon/shell/persistence/transport as applicable
-        |
-        v
-browser/query/presentation projection as applicable
-        |
-        v
-rendered information hierarchy / downstream system consumer
-        |
-        v
+        ↓
+input + schema/template + prompt/resolved context
+        ↓
+governed generated output
+        ↓
+canonical document / contract / event / state carrier
+        ↓
+pure policy/derivation
+        ↓
+daemon / shell / persistence / transport as applicable
+        ↓
+browser query / presentation projection as applicable
+        ↓
+rendered information hierarchy or downstream system consumer
+        ↓
 valid operator/system decision and action
 ```
 
-Every material realization is classified `CONFORMS`, `VIOLATES` or `UNPROVEN`.
+For the Workbench, the audit also covered the applicable cross-product of workflow step, work kind, interaction condition, current-attention condition, material/currentness condition, current/historical selection and responsive class.
 
-For the Workbench, the audit must explicitly cover the applicable cross-product of workflow step, work kind, interaction condition, current-attention condition, material/currentness condition, current/historical selection and responsive class. It must determine the exact primary, secondary and technical/on-demand information and the canonical source of every material displayed value.
-
-The review is not limited to UI. The same obligation-level method applies to workflow state, schemas, data, inputs, outputs, prompts, provider behavior, persistence, transport, source reconciliation, approval/execution/validation, Settings and the documentation/conformance machinery itself.
+The final C19/C20 audit additionally checked application-wide renderer/component/theme ownership and the 45 required certification scenarios rather than inferring completeness from a green test suite.
 
 ## Downstream invariants
 
-R1 may close only when:
+R2 must now be rebuilt from this fresh factual set.
 
-- every applicable canonical normative obligation has an explicit audit record;
-- stable-ID/concern mapping has been expanded to the underlying semantic obligations where needed;
-- every material producer -> carrier -> consumer path is proven;
-- every applicable work-kind/stage/information-design/state/action/failure/recovery consequence is explicit;
-- current realization evidence is classified with zero material `UNPROVEN` obligations;
-- all newly discovered defects have exact finding ownership;
-- existing reusable findings/corrections have been revalidated rather than assumed;
-- no implementation observation has become desired-state authority.
+It must:
 
-Only after this closure may the existing `requirements.md` be regenerated in place.
+- preserve every canonical P2/P3 requirement not found defective;
+- explicitly dispose every R2-owned finding;
+- state the exact functional consequence of referenced authority rather than using `REFERENCE` as a generic no-change shortcut;
+- keep information hierarchy, work-kind/stage distinctions, state/action/transition, failure/recovery, negative behavior, scope and acceptance explicit;
+- amend only the existing permanent P2/P3 owner where a genuine semantic/documentation delta is required;
+- preserve no-product-intent invention, valid no-code terminal outcomes and the verified-result/verified-candidate distinction;
+- avoid converting implementation observations into requirements.
 
-R2 must then derive the complete 0.6.0 functional consequence of every applicable canonical obligation. A `REFERENCE` disposition preserves its canonical owner but does not permit a generic "no functional delta" shortcut.
+DESIGN must subsequently:
 
-DESIGN must then prove every functional obligation has an explicit technical realization. `No technical change` requires evidence that the existing P4-P6 owner and present producer/carrier/consumer path fully realize the requirement.
+- dispose every DESIGN-owned finding above;
+- prove every R2 obligation has an explicit canonical technical realization;
+- retain FCIS, SoC, DRY/canonical ownership, strict typing and no-OOP/no-DTO architecture;
+- use existing owners rather than introduce parallel state/models/services/repositories/controllers;
+- positively prove every `no technical change` conclusion;
+- define permanent verification sufficient to prevent recurrence, including renderer-matrix and certification-matrix closure.
 
-PLAN and R3 remain downstream and cannot reuse their former closure verdicts.
+The former `requirements.md`, `solution-design.md`, `implementation-plan.md` and former readiness conclusions remain stale evidence until their respective fresh phases execute under the mandatory pair-audit process.
 
 ## Unresolved facts
 
-The following are deliberately open and must be resolved before R1 completion:
+NONE.
 
-1. the complete atomic semantic-obligation inventory beneath the existing canonical P2/P3 owner/ID inventory;
-2. complete realization classification for C01-C22 rather than concern-level authority summaries;
-3. complete work-kind x workflow-step information-design proof, including Work request, Research, Requirements, Solution design, Plan, Readiness, Approval, Implementation and Complete;
-4. whether present schemas/templates/prompts/outputs preserve the exact information required at every applicable stage;
-5. whether every required canonical value survives its producer -> carrier -> consumer path without loss, substitution or imprecise presentation;
-6. whether workflow/current-attention/material/proposal/approval/execution/provider state and transition behavior conform across all applicable conditions;
-7. whether any additional P1-P6 canonical authority itself is contradictory, incomplete or incorrectly owned;
-8. the full current implementation defect set and therefore the actual minimum DESIGN/PLAN change surface.
+All material facts needed to enter R2 are closed. Open findings above are product/authority or technical/verification decisions with explicit downstream owners, not unresolved factual questions.
 
-No prior assertion that these questions were closed is current evidence.
+Every material realization examined in R1 is classified `CONFORMS` or `VIOLATES`; zero material `UNPROVEN` obligations remain.
 
 ## Verdict
 
-**R1 REVALIDATION IN PROGRESS.**
+`CONFIRMED`.
 
-No promotable R1 completion verdict is asserted.
+G2 is complete under the exhaustive post-C20-F01 standard.
 
-C20-F01 remains open until the exhaustive authority/semantic/realization audit is complete. The former R1 `CONFIRMED` conclusion and downstream G3-G6 closure are stale and cannot be used as premises.
+The next governed phase is R2/G3. R2 has not yet been restarted, and no stale R2/DESIGN/PLAN conclusion or former implementation task is current authority.
