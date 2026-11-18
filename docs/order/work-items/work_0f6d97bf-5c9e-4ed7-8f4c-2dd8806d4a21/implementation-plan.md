@@ -2,6 +2,8 @@
 
 # Order 0.6.0 implementation plan
 
+> **CURRENT STATUS — STALE / PLAN NOT STARTED.** C20-F01 invalidated the upstream completeness proof on which this plan was based. The planning mechanics, validation discipline and prior task analysis remain reusable evidence, but T1, its one-task topology, exact ten-path scope/changeSurface, exclusions and no-production-delta dispositions are not currently authorized and must be regenerated from fresh DESIGN.
+
 ## Exact task units/dependencies/objectives
 
 ### Task T1 — implement the complete 0.6.0 corrective candidate
