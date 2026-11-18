@@ -43,16 +43,16 @@ This does not make the WorkItem a permanent semantic authority. P1-P6 meaning re
 This WorkItem has exactly one campaign-control plan and exactly one canonical P7 implementation-plan artifact:
 
 - `0.6.0-design-campaign-plan.md` is the sole authority for campaign sequencing, concern batching, mandatory pair audits, campaign findings/dependencies, concern/gate status and progression rules;
-- `implementation-plan.md` is the sole canonical P7 executable implementation-plan artifact for this WorkItem. It owns executable tasks only after fresh DESIGN closure and PLAN regeneration; while G5 is not passed it is non-current and cannot authorize implementation.
+- `implementation-plan.md` is the deterministic canonical P7 entrypoint and sole `order-tasks` carrier. The exhaustive P7 package may be modularized under `implementation-plan/` when this root file lists every subordinate phase component by exact Git blob SHA. Those components are not parallel plans and own no lifecycle status or independent task authority. The package owns executable tasks only after fresh DESIGN closure, PLAN regeneration, component-hash verification and G5 closure; while G5 is not passed it is non-current and cannot authorize implementation.
 
-No second prerequisite plan, remediation plan, completion plan, handover plan, audit plan or alternative implementation plan may be created for this WorkItem. A needed process/audit-rule change is made in `0.6.0-design-campaign-plan.md`. A needed executable-task change is made in `implementation-plan.md` at PLAN after the required upstream gates.
+No second prerequisite plan, remediation plan, completion plan, handover plan, audit plan or alternative implementation plan may be created for this WorkItem. The `implementation-plan/` phase files are components of the single P7 package only when bound by the root `implementation-plan.md` exact-blob manifest; they may not carry a second `order-tasks` block or competing plan status. A needed process/audit-rule change is made in `0.6.0-design-campaign-plan.md`. A needed executable-task/package change is made through the root PLAN and its bound phase components after the required upstream gates.
 
 The remaining WorkItem artifacts have bounded roles and cannot override either plan:
 
 - `0.6.0-concern-coverage-ledger.md` — inventory/coverage evidence only;
 - `research.md` — canonical R1 factual synthesis;
 - `requirements.md` — canonical R2 functional requirements;
-- `solution-design.md` — canonical DESIGN technical solution;
+- `solution-design.md` — canonical DESIGN technical solution, including the exhaustive requirement-level technical-disposition ledger;
 - `readiness-review.md` — canonical R3 adversarial verdict.
 
 PR bodies, CI/test output, implementation observations, historical START/END records, prior lifecycle versions, handovers, prompts, model/chat output and external summaries are evidence/provenance only. They cannot change campaign status, bypass a pair audit, authorize the next pair, restore a stale downstream artifact, alter P7 scope or override current canonical P1-P6 authority.
