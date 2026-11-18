@@ -4,7 +4,7 @@
 
 ## Design basis and authority boundary
 
-This DESIGN consumes the fresh, green R2 functional package at commit `253c77863f5c8a8a6b704f18b8e8929fbb1e5543`: current `requirements.md`, current canonical P1-P6 owners and the fresh R1 findings only.
+This DESIGN consumes the post-governance, exhaustive R2 functional package at commit `981944c902b52911fbf86c6b9ca439cd0e9dc406`: `requirements.md` blob `92cad7491a89e3c498826ae697b37d00e7568532`, current canonical P1-P6 owners and the current R1 findings only. G3 is mechanically closed over 112/112 manifest-canonical stable P3 dispositions plus the separately owned non-ID clause delta.
 
 Current implementation, UI, tests, 0.5.0 release behavior, prior DESIGN and the former T1 plan are evidence only. Reuse below is authorized only when an existing canonical owner/capability independently fits the fresh requirements.
 
