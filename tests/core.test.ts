@@ -1038,6 +1038,23 @@ describe("source-backed WorkItem core", () => {
     expect(currentAudit).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
   });
 
+  it("binds every current v2 stage template to current lifecycle context", () => {
+    for (const schemaId of ["change-v2", "defect-v2"] as const) {
+      for (const stage of ["R1", "R2", "DESIGN", "PLAN", "R3"] as const) {
+        const template = stageTemplateForSchema(schemaId, stage);
+        expect(template).not.toBeNull();
+        expect(template).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+        expect(template).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+      }
+    }
+    for (const schemaId of ["investigation-v2", "audit-v2"] as const) {
+      const template = stageTemplateForSchema(schemaId, "R1");
+      expect(template).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+      expect(template).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+      expect(stageTemplateForSchema(schemaId, "R2")).toBeNull();
+    }
+  });
+
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
     const metadata = {
       formatVersion: 1 as const,
@@ -1209,12 +1226,21 @@ describe("source-backed WorkItem core", () => {
     expect(defaultSchemaForKind("DEFECT")).toBe("defect-v2");
     expect(defaultSchemaForKind("INVESTIGATION")).toBe("investigation-v2");
     expect(defaultSchemaForKind("AUDIT")).toBe("audit-v2");
-    expect(allowedR1CompletionsForSchema("investigation-v1")).toEqual([
+    const investigationOutcomes = [
       "INVESTIGATION_COMPLETE",
       "DUPLICATE",
       "ALREADY_SATISFIED",
-    ]);
+    ] as const;
+    expect(allowedR1CompletionsForSchema("investigation-v1")).toEqual(investigationOutcomes);
+    expect(allowedR1CompletionsForSchema("investigation-v2")).toEqual(investigationOutcomes);
     expect(allowedR1CompletionsForSchema("audit-v1")).not.toContain("CONFIRMED");
+    expect(allowedR1CompletionsForSchema("audit-v2")).toEqual([
+      "AUDIT_COMPLETE",
+      "DUPLICATE",
+      "ALREADY_SATISFIED",
+    ]);
+    expect(stageTemplateForSchema("investigation-v2", "R2")).toBeNull();
+    expect(stageTemplateForSchema("audit-v2", "R2")).toBeNull();
   });
 
   it("classifies current source changes without daemon-owned policy", () => {
