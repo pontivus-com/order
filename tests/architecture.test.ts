@@ -1436,14 +1436,14 @@ describe("architecture fitness", () => {
     const p3Patterns = [
       ...(authorityBody.match(/^p3\s*=\s*\[(.*)\]\s*$/m)?.[1].matchAll(/"([^"]+)"/g) ?? []),
     ].map((match) => match[1]).filter((value): value is string => value !== undefined);
-    const stableP3Ids = new Set<string>();
-    for (const path of p3Patterns) {
-      if (!existsSync(join(repositoryRoot, path))) continue;
-      for (const match of sourceText(path).matchAll(/\b(GW-FR-[A-Z0-9-]+)\b/g)) {
-        const id = match[1];
-        if (id !== undefined) stableP3Ids.add(id);
-      }
-    }
+    const stableP3Ids = new Set(
+      [...resolvedRefs.entries()]
+        .filter(([id, path]) =>
+          /^GW-FR-[A-Z0-9-]+$/.test(id) &&
+          p3Patterns.some((pattern) => matchesGlob(path, pattern))
+        )
+        .map(([id]) => id),
+    );
     const stableCoverageDelta = (
       expected: ReadonlySet<string>,
       declared: readonly string[],
@@ -1600,6 +1600,18 @@ describe("architecture fitness", () => {
                 `docs/order/work-items/${entry.name}/requirements.md: ${owner} does not contain stable requirement ${requirement}`,
               );
             }
+            if (/^GW-FR-[A-Z0-9-]+$/.test(requirement)) {
+              const canonicalRequirementPath = resolvedRefs.get(requirement);
+              if (canonicalRequirementPath === undefined) {
+                violations.push(
+                  `docs/order/work-items/${entry.name}/requirements.md: unresolved stable requirement ${requirement}`,
+                );
+              } else if (canonicalRequirementPath !== ownerPath) {
+                violations.push(
+                  `docs/order/work-items/${entry.name}/requirements.md: ${requirement} owner ${owner} resolves to ${ownerPath}, expected canonical P3 owner path ${canonicalRequirementPath}`,
+                );
+              }
+            }
           }
         }
       }
@@ -1755,10 +1767,14 @@ describe("architecture fitness", () => {
         const auditId = `${phase}-${pair.id}`;
         const startToken = `PAIR AUDIT START: ${auditId}`;
         const endToken = `PAIR AUDIT END: ${auditId}`;
+        const startCount = currentAuditSource.split(startToken).length - 1;
+        const endCount = currentAuditSource.split(endToken).length - 1;
         const start = currentAuditSource.indexOf(startToken);
         const end = currentAuditSource.indexOf(endToken, start + startToken.length);
-        if (start < 0 || end < 0) {
-          violations.push(`${auditId} PASS requires one current mandatory pair-audit record`);
+        if (startCount !== 1 || endCount !== 1 || start < 0 || end < 0) {
+          violations.push(
+            `${auditId} PASS requires exactly one current mandatory pair-audit record; starts=${startCount}, ends=${endCount}`,
+          );
           continue;
         }
         const record = currentAuditSource.slice(start, end + endToken.length + 400);
