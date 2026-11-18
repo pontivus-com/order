@@ -1424,12 +1424,18 @@ describe("architecture fitness", () => {
     const violations: string[] = [];
     const manifest = sourceText("pontivus-order.toml");
     const refsBody = manifest.match(/\[refs\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? "";
-    const resolvedRefs = new Set(
-      refsBody.split(/\r?\n/).flatMap((line) => {
-        const match = line.match(/^([A-Za-z0-9_.-]+)\s*=\s*"[^"]+"\s*$/);
-        return match?.[1] === undefined ? [] : [match[1]];
-      }),
-    );
+    const resolvedRefs = new Map<string, string>();
+    for (const line of refsBody.split(/\r?\n/)) {
+      const match = line.match(/^([A-Za-z0-9_.-]+)\s*=\s*"([^"]+)"\s*$/);
+      if (match?.[1] !== undefined && match[2] !== undefined) {
+        resolvedRefs.set(match[1], match[2]);
+      }
+    }
+    const authorityBody =
+      manifest.match(/\[authority\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? "";
+    const p3Patterns = [
+      ...(authorityBody.match(/^p3\s*=\s*\[(.*)\]\s*$/m)?.[1].matchAll(/"([^"]+)"/g) ?? []),
+    ].map((match) => match[1]).filter((value): value is string => value !== undefined);
     const workItemsRoot = join(repositoryRoot, "docs", "order", "work-items");
     for (const entry of readdirSync(workItemsRoot, { withFileTypes: true })) {
       if (!entry.isDirectory()) continue;
@@ -1516,6 +1522,18 @@ describe("architecture fitness", () => {
             violations.push(
               `docs/order/work-items/${entry.name}/requirements.md: unresolved canonical owner ${owner}`,
             );
+          }
+          if (
+            (disposition === "REFERENCE" || disposition === "DELTA") &&
+            /^GW-/.test(owner) &&
+            resolvedRefs.has(owner)
+          ) {
+            const ownerPath = resolvedRefs.get(owner)!;
+            if (!p3Patterns.some((pattern) => new Bun.Glob(pattern).match(ownerPath))) {
+              violations.push(
+                `docs/order/work-items/${entry.name}/requirements.md: ${disposition} owner ${owner} is not selected by authority.p3`,
+              );
+            }
           }
         }
       }
