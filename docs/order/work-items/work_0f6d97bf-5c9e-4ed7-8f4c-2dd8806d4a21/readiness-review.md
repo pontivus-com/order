@@ -4,184 +4,174 @@
 
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`.
+`RETURN_TO_RESEARCH`.
 
-The complete current P1-P7 package is coherent, traceable, minimum-sufficient and executable without delegating a material product, architecture, contract, scope or verification decision to the implementation worker.
+The package is not ready for sign-off.
 
-This verdict does **not** authorize implementation. Productive execution still requires explicit human sign-off of the exact current package.
+C20-F01 establishes a material R1 completeness defect: the previous campaign proved broad canonical-owner/stable-ID/concern coverage but did not prove the complete semantic content and end-to-end realization of every applicable obligation. That defect propagated into grouped R2 `no functional delta` conclusions, broad DESIGN `no technical change` conclusions, the exact PLAN change surface and the former R3 readiness verdict.
+
+The exact defective owning stage is R1 Research. The package must not be repaired inside R3.
+
+This review supersedes the former `READY_FOR_SIGNOFF` conclusion for the current package.
 
 ## Authority topology review
 
-**Verdict:** PASS.
+**Verdict:** RETURN TO R1.
 
-- Current P2/P3 authority contains exactly **113** stable requirement IDs; the concern-coverage ledger contains exactly the same 113 IDs with zero missing and zero extra.
-- C01-C22 each have exactly one R1 START and one R1 END record.
-- The campaign-wide finding ledger has no `OPEN_*`, `BLOCKED` or `REVALIDATION` finding.
-- R2 has zero open product/authority questions and every `REFERENCE | DELTA` owner resolves through the current manifest **and is selected by canonical `authority.p3`**; the permanent v2 WorkItem-hygiene sensor proves the same rule across current v2 packages.
-- DESIGN preserves one semantic owner per changed concern and introduces no DTO/model/mapper/service/repository/controller family, alternate state owner, persistence schema, transport/API shape, dependency or provider boundary.
-- P5 requires no new decision; P6 requires no contract/schema change.
-- P7 contains exactly one signed task and one canonical `order-tasks` block.
-- The current task's acceptance/authority refs, concern IDs and gate IDs all resolve through `pontivus-order.toml`.
-- The exact P7 change surface is disjoint from P1-P6 authority, `pontivus-order.toml`, `AGENTS.md` and signed verification material.
+The following remain useful and are not themselves disproved:
 
-No unresolved same-layer or cross-layer authority conflict remains.
+- the canonical P1-P6 authority topology remains the normative source unless the fresh audit proves a specific defect in an owner;
+- the G1 coverage ledger remains useful as an authority/concern inventory;
+- G-F01 through G-F05 represent real foundation corrections that remain reusable subject to freshness revalidation;
+- the WorkItem retains one canonical lifecycle-document set rather than creating a parallel specification stream.
+
+The blocking deficiency is completeness of the semantic proof beneath that topology.
+
+The previous topology review relied materially on:
+
+- 113/113 stable requirement-ID coverage;
+- C01-C22 status closure;
+- zero recorded open questions;
+- downstream traceability from those closed concern results.
+
+Those facts do not prove that every normative obligation beneath the identifiers was atomized and evaluated. Consequently, they cannot establish current R1 completeness or support downstream readiness.
 
 ## P1-P7 traceability review
 
-**Verdict:** PASS.
+**Verdict:** STALE / NOT CURRENT.
 
-### Upward traceability
+The former traceability graph was internally coherent over the obligation set then recorded, but that obligation set is now proven incomplete as a basis for closure.
 
-T1 is justified entirely by accepted requirements/design:
+The following prior traceability material may be reused after upstream revalidation:
 
-- C02 -> catalog-driven authoring / same-project linked remediation -> T1 step 2;
-- C03 -> one project/search semantic across active + archived queue datasets -> T1 step 2;
-- C04 -> one productive source-admission/reconciliation owner -> T1 step 1;
-- C10 -> canonical R3 readiness verdict projection -> T1 step 3;
-- C11 -> Approval readiness/currentness hierarchy -> T1 step 3;
-- C16 -> Settings operator-information hierarchy -> T1 step 4;
-- C18/C19 -> responsive/accessibility/component-language invariants -> T1 changed-UI constraints;
-- C20 -> daemon/browser regression proof + full signed gate union + V4 semantic review.
+- exact canonical authority references;
+- concern IDs and owner mappings;
+- valid specific findings already supported by evidence;
+- candidate C02/C03/C04/C10/C11/C16 requirement/design mappings;
+- PLAN task-format and gate-resolution mechanics;
+- FCIS/SoC/DRY/strict-typing/no-DTO/no-OOP ownership constraints.
 
-`CHANGELOG.md` is justified by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`.
+The following may not be reused as current conclusions:
 
-No task action is justified by current 0.5.0 behavior alone.
+- grouped R2 `no functional delta` disposition for C05-C09, C12-C15, C17-C20 and C22;
+- DESIGN `No technical change` conclusions where complete realization proof was not recorded;
+- the assertion that every implementation-required obligation maps to the former T1;
+- the exact ten-path T1 change surface;
+- the assertion that all other concerns require no production delta.
 
-### Downward traceability
-
-Every G4 implementation-required obligation maps to T1. Concerns C01, C05-C09, C12-C15, C17, C21 and C22 have explicit no-production-delta PLAN dispositions and are protected by task authority/exclusions/gates rather than by manufacturing unnecessary edits.
-
-The single-task topology is correct: cumulative candidate bytes must be validated as one repository state because separate ExecutionTasks start from the same Approval baseline and do not inherit upstream candidate bytes.
-
-### Exact signed surface
-
-T1 authorizes exactly ten paths:
-
-- `src/daemon/work-item-source.ts`;
-- `ui/src/app.tsx`;
-- `ui/src/CreateWorkItem.tsx`;
-- `ui/src/WorkItemQueue.tsx`;
-- `ui/src/ReadinessWorkspace.tsx`;
-- `ui/src/SignoffReview.tsx`;
-- `ui/src/SettingsWorkspace.tsx`;
-- `tests/daemon.test.ts`;
-- `tests/browser.spec.ts`;
-- `CHANGELOG.md`.
-
-The task's manifest concern set `daemon | foundation | ui | verification` resolves to the exact signed gate union:
-
-`dependency-lock | typecheck | architecture | test | build | browser`.
-
-No required concern gate is omitted and no unresolvable/extra task gate is present.
+Fresh downward traceability begins only after R1 and R2 are complete under the amended proof standard.
 
 ## Lifecycle package completeness
 
-**Verdict:** PASS.
+**Verdict:** STRUCTURALLY PRESENT, SEMANTICALLY STALE.
 
-The current WorkItem has exactly one current lifecycle document for every completed pre-sign-off stage:
+The WorkItem still has one existing lifecycle document for each previously reached stage:
 
 - Work request: `work-request.md`;
 - R1: `research.md`;
 - R2: `requirements.md`;
 - DESIGN: `solution-design.md`;
 - PLAN: `implementation-plan.md`;
-- R3: `readiness-review.md` (this current review).
+- R3: `readiness-review.md`.
 
-The prior R3 `RETURN_TO_PLAN` result is historical review evidence. Its two findings were corrected at PLAN before this fresh review; its verdict is not inherited.
+This structural presence does not make the downstream documents current.
 
-### Staleness review
+Current document status is:
 
-R1 evidence remains usable after the bounded G-F05 foundation correction:
+| Artifact | Current state |
+|---|---|
+| `work-request.md` | current campaign intent/control input, amended with exhaustive proof requirement |
+| `research.md` | R1 revalidation in progress |
+| `requirements.md` | stale; retained only for selective reuse after R1 |
+| `solution-design.md` | stale; retained only for selective reuse after fresh R2 |
+| `implementation-plan.md` | stale; retained only for selective reuse after fresh DESIGN |
+| `readiness-review.md` | current return-to-R1 review |
 
-- G-F05 changes only pre-signoff R2 owner-layer admission in `src/daemon/stage.ts`, the permanent WorkItem-hygiene sensor in `tests/architecture.test.ts`, the two affected v2 R2 ledgers, campaign evidence and changelog provenance;
-- no 0.6.0 T1 product implementation target in `src/daemon/work-item-source.ts` or `ui/` changed, so no current implementation observation was promoted into a new product baseline;
-- no P2/P3 canonical authority source or stable requirement ID changed; the authority inventory remains exactly 113/113;
-- the campaign R2 edit corrects authority classification only: required observable outcomes, acceptance, exclusions and failure/negative semantics are unchanged;
-- `solution-design.md` and `implementation-plan.md` are semantically unchanged and were re-evaluated against the corrected R2 ownership;
-- `tests/architecture.test.ts` is signed verification material, so its G-F05 correction intentionally invalidated the former readiness verdict; this fresh review re-resolves the exact current material closure before sign-off.
-
-G4 was previously revalidated when PLAN discovered the signed-verification-material self-mutation issue, G5 was revalidated after the first R3 return, and both are revalidated again here for freshness after G-F05 without changing their semantic content.
+No second R1/R2/DESIGN/PLAN/R3 document set is authorized.
 
 ## Open decision/conflict ledger
 
-| Category | Open count | Result |
-|---|---:|---|
-| implementation-blocking questions | 0 | PASS |
-| architecture questions | 0 | PASS |
-| authority conflicts | 0 | PASS |
-| unresolved campaign findings | 0 | PASS |
-| unresolved task refs/concerns/gates | 0 | PASS |
+| Category | Current result |
+|---|---|
+| complete atomic semantic-obligation inventory | OPEN — R1 |
+| complete producer -> carrier -> consumer realization classification | OPEN — R1 |
+| work-kind x workflow-step information-design proof | OPEN — R1 |
+| complete schema/template/prompt/input/output precision proof | OPEN — R1 |
+| complete workflow/state/interaction/recovery conformance proof | OPEN — R1 |
+| fresh R2 functional closure | NOT STARTED |
+| fresh DESIGN technical closure | NOT STARTED |
+| fresh PLAN executable scope | NOT STARTED |
+| fresh R3 readiness | NOT STARTED |
 
-Historical R3 findings:
-
-| ID | Prior owner | Resolution |
-|---|---|---|
-| R3-P01 | PLAN | RESOLVED — T1 `changeSurface` is explicitly exact/immutable; any newly necessary path requires return to PLAN and refreshed sign-off rather than informal in-task variance |
-| R3-P02 | PLAN | RESOLVED — T1 ends at verified candidate after V0-V7; public PR/release delivery is explicitly post-candidate and outside ExecutionTask completion |
-
-Foundational revalidation:
-
-| ID | Defective layer | Resolution |
-|---|---|---|
-| G-F05 | Phase-0 R2 authoring/conformance | RESOLVED — runtime conformance and permanent v2 WorkItem hygiene now require every `REFERENCE`/`DELTA` owner to resolve through canonical P3; campaign and Phase-0 v2 ledgers are corrected with no product/design/T1 semantic change; exact correction baseline `6f3880e0f02b1cc1413a79ffb738b4eea171dea7` passed complete PR Verification #1177 |
-
-No non-blocking observation is delegated to the implementation worker.
+The existing specific findings C01-F01/C01-F02, C21-F01/C21-F02, C02-F01/C02-F02/C02-F03, C03-F01, C04-F01, C10-F01, C11-F01 and C16-F01 remain reusable evidence candidates and must be revalidated rather than discarded.
 
 ## Evidence
 
-R3 independently inspected and cross-checked:
+This return verdict is based on direct review of:
 
-- `AGENTS.md` and current campaign-control rules;
-- `pontivus-order.toml` current authority/ref/concern/verification maps;
-- current P2/P3 owner set and 113/113 coverage ledger revalidated on G0 baseline `6f3880e0f02b1cc1413a79ffb738b4eea171dea7`;
-- C01-C22 START/END records and campaign finding ledger including resolved G-F05;
-- `research.md`;
-- corrected campaign `requirements.md` and the Phase-0 v2 R2 ledger that exposed the same owner-layer failure class;
-- `solution-design.md`;
-- corrected `implementation-plan.md`;
-- PR #75 Verification #1177 on exact G-F05 correction baseline `6f3880e0f02b1cc1413a79ffb738b4eea171dea7`: release metadata, dependency-lock, typecheck, architecture, full test, build, release-packager and browser all PASS;
-- `GW-DOC-WORK-LIFECYCLE-V1`;
-- `GW-DOC-LIFECYCLE-CONTEXT-V2`;
+- the current WorkItem and campaign-control documents;
+- the existing 113/113 concern-coverage ledger;
+- historical C01-C22 START/END records;
+- current `research.md`, `requirements.md`, `solution-design.md`, `implementation-plan.md` and former R3 reasoning;
 - `GW-DOC-SPECIFICATION-STANDARD-V2`;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V2`;
-- `GW-DOC-CANONICAL-CONTRACTS-V2`;
-- `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`;
-- current implementation modules only as evidence that the planned change surface is sufficient and owned at the designed boundaries;
-- current runtime signed-task validation/scope enforcement as evidence of the P6 contract realization.
+- `GW-DOC-LIFECYCLE-CONTEXT-V2`;
+- `GW-DOC-WORKBENCH-UX-V2`, including its information hierarchy, work-type x workflow-step contract and per-step screen contracts;
+- current P4 Workbench/technical architecture;
+- current P6 canonical contracts;
+- current implementation evidence used to verify that G-F01 through G-F05 mechanisms still exist.
 
-Mechanical review of the current P7 block confirms:
+The audit established the following failure chain:
 
-- exactly one `order-tasks` block;
-- exactly one task with unique/local/acyclic dependency graph;
-- all acceptance/authority refs resolve;
-- all concern/gate IDs resolve;
-- complete concern-required gate union;
-- every `changeSurface` path is inside signed scope and outside exclusions;
-- zero signed authority/manifest/verification-material mutation;
-- no `AGENTS.md` mutation;
-- exact 10-path change surface.
+```text
+authority/stable-ID coverage
+        |
+        | incorrectly treated as sufficient semantic closure
+        v
+concern-level R1 VERIFIED/FACTS_CLOSED
+        |
+        v
+broad R2 no-functional-delta conclusions
+        |
+        v
+broad DESIGN no-technical-change conclusions
+        |
+        v
+narrow exact PLAN scope
+        |
+        v
+R3 traceability over an incomplete obligation set
+        |
+        v
+incorrect READY_FOR_SIGNOFF
+```
+
+The governing correction is now recorded in `work-request.md` and `0.6.0-design-campaign-plan.md`: authority coverage, semantic/information coverage and realization coverage are independent proofs, and `UNPROVEN` prevents closure.
 
 ## Adversarial findings
 
-**Current blocking findings: NONE.**
+### C20-F01 — semantic/realization completeness was not proven
 
-Specific challenges passed:
+**Defective layer:** R1.
 
-1. **Concern completeness:** all 22 concerns have factual, functional, technical and PLAN closure.
-2. **Shadow specification:** none found; permanent meaning remains at P1-P6 owners and WorkItem artifacts state only change-package consequences.
-3. **Implementation ambiguity:** the worker has exact ordered steps, exact owners, exact paths, exact deletions/replacements, exact gate union and explicit upstream stop conditions.
-4. **Minimum change:** seven existing production files, two existing ordinary regression files and one changelog file; no new production/test module or abstraction family is expected.
-5. **FCIS/SoC/DRY/strict typing:** source policy stays core-owned, effects stay shell/daemon-owned, UI remains presentation over canonical facts, and no DTO/OOP/service/repository/controller layer is authorized.
-6. **Verification self-mutation:** `tests/architecture.test.ts`, `pontivus-order.toml` and P1-P6 authority are outside the task change surface.
-7. **Failure/negative paths:** source-create/read-back/admission failure, external source drift, archived-query failure, stale/current Readiness distinction, stale Approval, Settings query/mutation failure, scope breach and architecture-change return paths all have defined owners.
-8. **Candidate versus delivery:** T1 completion is the verified candidate; commit/push/PR/merge/release-packager activity is subsequent repository delivery and cannot become a hidden seventh task gate.
-9. **Physical decomposition:** a newly necessary path cannot be added informally; it triggers PLAN return/re-signing, preventing both scope breach and responsibility accumulation.
-10. **R1 freshness:** G-F05 changes conformance enforcement, not the product implementation evidence used to identify the 0.6.0 defects; authority-driven R1 conclusions remain valid and no current-state behavior becomes a preservation target.
-11. **R2 authority-layer ownership:** every current v2 `REFERENCE`/`DELTA` owner must resolve through canonical P3. Runtime stage conformance and permanent repository hygiene enforce the rule; the current campaign and Phase-0 ledgers pass it.
-12. **G-F05 downstream freshness:** changed verification material and R2 classification invalidate the former readiness verdict, but fresh review finds DESIGN/PLAN semantics and the exact T1 task unchanged and still fully traceable.
+**Finding:** prior campaign closure substituted concern/stable-ID coverage and authority summaries for obligation-level semantic and realization proof.
+
+**Material consequences:**
+
+- R1 must revalidate C01-C22 at obligation level;
+- existing evidence and valid foundation corrections should be reused, not discarded;
+- R2 must be regenerated in place after R1 and may not use `REFERENCE` as a shortcut around explicit functional consequences;
+- DESIGN must be regenerated in place and may use `No technical change` only when existing realization is positively proven;
+- PLAN must be regenerated from fresh DESIGN;
+- this R3 must be rerun after fresh R1/R2/DESIGN/PLAN closure.
+
+No R3-local repair can cure this defect.
 
 ## Exact defective layer/return stage when not ready
 
-Not applicable.
+**Return stage:** `R1 / Research`.
 
-The package is `READY_FOR_SIGNOFF`. Any material change to R1/R2/DESIGN/PLAN, P1-P6 authority, task definitions, acceptance criteria, verification requirements or the signed material set after this review invalidates this verdict and requires normal freshness routing plus a fresh R3 review.
+The required correction is the exhaustive authority-to-realization audit now defined by the WorkItem and campaign plan.
+
+R1 must not discard valid prior work by default. It must classify and reuse prior authority facts, evidence, foundational corrections and candidate solutions where independently proven, while reopening every unsupported conclusion.
+
+Only after that audit reaches zero material `UNPROVEN` obligations may the package progress again to R2.
