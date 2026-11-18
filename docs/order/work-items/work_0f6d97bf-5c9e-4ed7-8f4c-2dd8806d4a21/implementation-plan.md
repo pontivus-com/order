@@ -6,24 +6,24 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
+This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
 | `implementation-plan/00-governance.md` | `2f001b6aa56197382cc59666c2acae5b44ddf73a` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `af36fbfafe4cf1fac8a537127267965291247a46` |
-| `implementation-plan/02-a02-governance-intake.md` | `b7856833dcb2c56094de54d1d4c8c85fa4e9b195` |
-| `implementation-plan/03-a03-queue-source.md` | `103a91abf514e82d73cec4aa25b13bfaa5609c91` |
-| `implementation-plan/04-a04-workbench-research.md` | `d405780c0ac2235b82480ca2e511d4b54c6b8baa` |
-| `implementation-plan/05-a05-requirements-design.md` | `e1f4269f1d9c93a8c464d4f4e2f477783e9e0ac1` |
-| `implementation-plan/06-a06-plan-readiness.md` | `055d4ef1da31123287c29d8fcfead8f879da7397` |
-| `implementation-plan/07-a07-approval-execution.md` | `7d46bb3e887ac48a44fd5ed54a0716fb6d3b738c` |
-| `implementation-plan/08-a08-complete-materials.md` | `4a20cca25600afca281bbe171e2638727417ae90` |
-| `implementation-plan/09-a09-provider-settings.md` | `e5f539b0add2c6215721b2798d2b0039a3a0390a` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `ac01788a641ce1c0953d4cf9e1a1233446431966` |
-| `implementation-plan/11-a11-component-certification.md` | `181eea3928f6c997d199a0a16a408dcec7addc47` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `ca0166138c3f2432c6b4369941610c3c9f12468a` |
+| `implementation-plan/02-a02-governance-intake.md` | `29ca51904400a16e30cde513bdb3ce214b7cc115` |
+| `implementation-plan/03-a03-queue-source.md` | `eb77fecd571c1b0245056896fdcbc77f10d25076` |
+| `implementation-plan/04-a04-workbench-research.md` | `cc8ee1cc7bb210b607326c604b41106d0fe3dad9` |
+| `implementation-plan/05-a05-requirements-design.md` | `74c9f9cac82e0b7f65e30d85ced30d9a4d90386b` |
+| `implementation-plan/06-a06-plan-readiness.md` | `399d3f2f74db3775ce759a31f890e9dcef1155b6` |
+| `implementation-plan/07-a07-approval-execution.md` | `f8471141fda09b584fef1e8c9ae3032847c29b2e` |
+| `implementation-plan/08-a08-complete-materials.md` | `34f9120c0b13366ca2adae62b9db0f09f4efc786` |
+| `implementation-plan/09-a09-provider-settings.md` | `06e95fc83b4c48d2c67d8f9d9f4c0c59941248cc` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `1ae5771a50fcdbf829383e6f9db081ccaeae0609` |
+| `implementation-plan/11-a11-component-certification.md` | `5d5447d19ea15982f07b488243dcfc64265b2145` |
 | `implementation-plan/12-action-catalog.md` | `136d08c677ddb17c694fff175975597f6e3f05ec` |
 | `implementation-plan/13-verification-closeout.md` | `d4adae944be9469b946b6f55f26ea5a025ecad65` |
 
@@ -146,7 +146,7 @@ Return to DESIGN/PLAN before editing when execution requires a new semantic owne
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -190,7 +190,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -244,7 +244,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -313,7 +313,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -379,7 +379,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -420,7 +420,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -464,7 +464,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -474,7 +474,7 @@ Package atoms in phase: **2**.
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `C12-O12`, `C12-O13`, `C12-O19` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O12`, `C12-O13`, `C12-O19` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-017-SOURCE-SIGNOFF-BINDING` | `C11-O01`, `C11-O03`, `C12-O20` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C11-O01`, `C11-O03`, `C12-O20` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `C11-O01`, `C11-O02`, `C11-O07` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C11-O01`, `C11-O02`, `C11-O07` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C12-O03`, `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+|  `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C04-O15`, `C12-O03`, `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O15`, `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `C12-O17`, `C17-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O17`, `C17-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_DELTA` | `SD12` | `IA17` | — | Recheck `C11-O06`, `C11-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -518,7 +518,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -564,7 +564,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -582,8 +582,8 @@ Package atoms in phase: **0**.
 | `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` | `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION` | `C16-O02`, `C16-O03` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O02`, `C16-O03` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY` | `C16-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O04` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | `C16-O01` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O01` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | `C15-O02`, `C15-O08`, `C15-O15` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O02`, `C15-O08`, `C15-O15` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+|  `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | `C16-O01`, `C16-O02`, `C16-O06`, `C16-O08`, `DIRECT-FR095` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O01`, `C16-O02`, `C16-O06`, `C16-O08`, `DIRECT-FR095` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+|  `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | `C15-O02`, `C15-O08`, `C15-O15`, `DIRECT-FR099` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O02`, `C15-O08`, `C15-O15`, `DIRECT-FR099` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `C15-O03`, `C15-O04`, `C15-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O03`, `C15-O04`, `C15-O08` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `C15-O12`, `C15-O13` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O12`, `C15-O13` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | `C15-O03`, `C15-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O03`, `C15-O04` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -627,7 +627,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
@@ -674,7 +674,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ##### Stable requirement execution dispositions
 
