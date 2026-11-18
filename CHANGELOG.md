@@ -12,6 +12,10 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 - Close the documentation-governance failure that allowed 0.5.0 authority drift before any 0.6.0 product redesign: add authority-aware Change/Defect v2 authoring schemas while preserving v1 history, require explicit P3 requirement dispositions, require current-v2 DESIGN and PLAN authoring to carry the complete binding S7 and S8-S10 content contracts, restore functional-core stage conformance output closure so empty/wrong/stale/incomplete lifecycle artifacts cannot promote, strengthen R3 authority-topology review, and bind repository delivery to exact-current-candidate verification without assuming a nonexistent independent reviewer.
 
+### Fixed
+
+- Require every v2 R2 `REFERENCE`/`DELTA` authority-disposition owner to resolve specifically through canonical P3 authority, reject P2/P4 layer leakage at stage conformance and permanent WorkItem hygiene, and correct the 0.6.0 campaign ledger without changing its functional or technical design.
+
 ## [0.5.0] - 2026-11-17
 
 ### Changed
