@@ -65,3 +65,11 @@ The 0.6.0 readiness pre-audit found that complete signed-task validation was per
 This creates an avoidable invalid intermediate state: a package with unresolved gates/concerns/authority refs or an invalid signed change surface can be admitted to Approval and only then rejected.
 
 Remediation: on R3 `READY_FOR_SIGNOFF` only, validate the exact current PLAN task definitions against the current manifest and full current material closure before admitting R3 conformance/lifecycle transition. R3 return-to-* outcomes remain available without this validation so a reviewer can route a defective PLAN back to its owner. Reuse the existing `validateTaskDefinitions` owner; do not create a second readiness validator.
+
+## Downstream validation finding — v2 PLAN template completeness
+
+The 0.6.0 C09 investigation found that the current Change/Defect v2 PLAN templates are structurally narrower than the binding `GW-DOC-SPECIFICATION-STANDARD` S8-S10 planning contract. The productive templates require task/dependency summaries, traceability, change surface, modifications, validation sequence and the canonical `order-tasks` block, but do not explicitly require module ownership/decomposition constraints, architecture-feedback checkpoints where applicable, expected test/validation surface, completion evidence, the S9 minimum-change forecast or the complete S10 logical verification contract.
+
+Because the schema template is injected verbatim into the productive PLAN prompt and `validateStageDocumentStructure(...)` admits only the template-owned heading set before promotion, a current-v2 PLAN can be structurally complete under the template while still omitting binding S8-S10 content later required by readiness. The canonical `order-tasks` block remains the single executable-task representation and does not replace those surrounding PLAN obligations.
+
+Remediation: extend only current Change/Defect v2 PLAN templates and PLAN conformance questions to carry/challenge the complete S8-S10 contract, preserve historical v1 PLAN templates unchanged, keep exactly one canonical `order-tasks` representation, align current P3/P6 documentation, and add permanent regression coverage proving current-v2 completeness plus historical/current separation.

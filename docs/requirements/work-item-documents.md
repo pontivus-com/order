@@ -125,6 +125,8 @@ New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schem
 
 Current Change/Defect v2 DESIGN templates are not reduced package-local design summaries. They carry the complete `GW-DOC-SPECIFICATION-STANDARD` S7 content obligations, including existing capability/reuse, behavior to replace/delete, necessary new concepts, decision rationale and rejected alternatives, so the productive design agent is told the same design-completeness contract later challenged by R3.
 
+Current Change/Defect v2 PLAN templates are likewise not reduced wrappers around the signed task block. They carry the complete `GW-DOC-SPECIFICATION-STANDARD` S8-S10 planning obligations: explicit task objectives/dependencies/traceability, module ownership/decomposition constraints and any required architecture-feedback checkpoints, expected production and test/validation surface, required deletions/replacements, completion evidence, the minimum-change forecast, the logical verification contract, and exactly one canonical `order-tasks` block. The block remains the single executable-task representation; the surrounding PLAN Markdown supplies the binding planning context required by S8-S10 and must not create a second task model.
+
 The v2 R2 template contains a **functional authority disposition ledger**. Each material requirement is classified as exactly one of:
 
 - `REFERENCE` — existing canonical P3 authority applies unchanged; the WorkItem records only its local consequence/acceptance and does not become a second normative owner;
