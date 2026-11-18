@@ -4,7 +4,7 @@
 
 1. Amend P3/P1/P6 canonical owners with stable GW-FR-096/097/098 and exact-current-candidate repository verification semantics; retain the released V1 semantic sources byte-identically and advance the amended live owners to V2.
 2. Extend the single WorkItem schema catalog with immutable historical v1 pins and current v2 defaults for Change/Defect/Investigation/Audit, including dedicated v2 R1 template pins that preserve each kind's R1 evidence shape/outcomes; audit every current v2 stage template and bind lifecycle-context V2 throughout, with one regression proving no current v2 template contains lifecycle-context V1; Investigation/Audit remain R1-terminal.
-3. Add authority-aware v2 R2/DESIGN/PLAN/R3 templates and structural validation at the schema owner.
+3. Add authority-aware v2 R2/DESIGN/PLAN/R3 templates and structural validation at the schema owner; current v2 DESIGN templates must carry the complete S7 design-content obligations, including reuse/replacement/new-concept analysis and rejected alternatives/rationale.
 4. Restore pure functional-core stage conformance output admission.
 5. Wire coordinator stage promotion through that admission plus current-byte/template verification.
 6. Make Create select only current authoring defaults while historical schemas remain display/discovery compatible.
