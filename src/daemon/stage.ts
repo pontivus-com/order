@@ -40,7 +40,10 @@ import {
   validateStageDocumentStructure,
   workItemDocumentPath,
 } from "../core/work-item-source.ts";
-import { loadValidatedProjectManifest } from "../shell/project.ts";
+import {
+  loadValidatedProjectManifest,
+  repositoryPatternMatches,
+} from "../shell/project.ts";
 import {
   adoptProposalPatch,
   captureCandidate,
@@ -301,9 +304,19 @@ const persistStageCompletionBatch = async (
           run.stage,
           markdown,
         )) {
-          if (!(authorityRef in manifest.refs)) {
+          const ownerPath = manifest.refs[authorityRef];
+          if (ownerPath === undefined) {
             throw new TypeError(
               `functional authority disposition references unresolved owner: ${authorityRef}`,
+            );
+          }
+          if (
+            !manifest.authority.p3.some((pattern) =>
+              repositoryPatternMatches(pattern, ownerPath)
+            )
+          ) {
+            throw new TypeError(
+              `functional authority disposition owner is not canonical P3 authority: ${authorityRef}`,
             );
           }
         }
