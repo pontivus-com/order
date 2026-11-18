@@ -141,6 +141,129 @@ Two P2 corrections are part of this R2 package but are not misrepresented as P3 
 
 The C01 clause-level P3 `DELTA` corrects the `GW-P2-CONTROLLED-WORK` cross-reference in `GW-DOC-WORK-LIFECYCLE` from System Brief §8 to its actual declaration in §9. It does not change lifecycle behavior.
 
+## G-F10 R1-to-R2 semantic revalidation ledger
+
+This ledger records the exact factual basis consumed by R2 after G-F10. It does not copy permanent P3 semantics: the canonical owner in the primary disposition ledger remains authoritative. Every stable requirement stays `REFERENCE` because the functional requirement itself is unchanged; R1 realization violations determine downstream correction ownership, not a new R2 requirement.
+
+| Stable requirement | R1 realization verdict | Exact R1 evidence | R2 disposition | Primary concern |
+|---|---|---|---|---|
+| `GW-FR-001-GOVERNED-LIFECYCLE` | `CONFORMS` | `C01-O03`, `C01-O05`, `C01-O08` | `REFERENCE` | C01 |
+| `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `CONFORMS` | `C01-O01`, `C01-O07` | `REFERENCE` | C01 |
+| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `CONFORMS` | `C12-O01`, `C12-O02`, `C12-O07` | `REFERENCE` | C12 |
+| `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
+| `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
+| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
+| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `VIOLATES` | `DIRECT-FR007` | `REFERENCE` | C16 |
+| `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `CONFORMS` | `C16-O02`, `C16-O05`, `C22-O10` | `REFERENCE` | C22 |
+| `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | `CONFORMS` | `C04-O01`, `C04-O04` | `REFERENCE` | C04 |
+| `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | `CONFORMS` | `C02-O01` | `REFERENCE` | C02 |
+| `GW-FR-011-VERSIONED-AUTHORING-SCHEMAS` | `CONFORMS` | `C02-O02`, `C02-O06` | `REFERENCE` | C02 |
+| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | `MIXED` | `C02-O04`, `C02-O05`, `C02-O07` | `REFERENCE` | C02 |
+| `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` | `CONFORMS` | `C03-O01`, `C03-O02`, `C03-O03`, `C03-O05`, `C03-O09` | `REFERENCE` | C03 |
+| `GW-FR-014-SOURCE-FRESHNESS` | `CONFORMS` | `C04-O14`, `C02-O12` | `REFERENCE` | C04 |
+| `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `CONFORMS_WITH_DEPENDENCY` | `C06-O02`, `C22-O06` | `REFERENCE` | C06 |
+| `GW-FR-016-SOURCE-CONFORMANCE-IDENTITY` | `CONFORMS` | `C06-O15`, `C22-O06` | `REFERENCE` | C17 |
+| `GW-FR-017-SOURCE-SIGNOFF-BINDING` | `CONFORMS` | `C11-O01`, `C11-O03`, `C12-O20` | `REFERENCE` | C11 |
+| `GW-FR-018-SOURCE-CONSUMER-CLOSURE` | `MIXED` | `C04-O07`, `C04-O14` | `REFERENCE` | C04 |
+| `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `VIOLATES` | `C06-O13` | `REFERENCE` | C06 |
+| `GW-FR-020-WORKBENCH-SOURCE-OPERATIONS` | `CONFORMS` | `C03-O04`, `C03-O09` | `REFERENCE` | C04 |
+| `GW-FR-021-MARKDOWN-WORKSPACE` | `CONFORMS` | `C04-O15`, `C05-O02`, `C05-O10` | `REFERENCE` | C05 |
+| `GW-FR-022-GOVERNED-MARKDOWN-EDITING` | `CONFORMS` | `C04-O03`, `C04-O08`, `C04-O14` | `REFERENCE` | C04 |
+| `GW-FR-023-MARKDOWN-SOURCE-FIDELITY` | `CONFORMS` | `C04-O01`, `C04-O02` | `REFERENCE` | C04 |
+| `GW-FR-024-LIFECYCLE-FRESHNESS-VISIBILITY` | `MIXED` | `C17-O02`, `C17-O05`, `C17-O09` | `REFERENCE` | C17 |
+| `GW-FR-025-DURABLE-INTENT-INTERACTION` | `VIOLATES` | `C06-O13` | `REFERENCE` | C06 |
+| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `CONFORMS` | `C11-O01`, `C11-O02`, `C11-O07` | `REFERENCE` | C11 |
+| `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `CONFORMS` | `C12-O03`, `C12-O17` | `REFERENCE` | C12 |
+| `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `CONFORMS` | `C13-O01`, `C13-O05` | `REFERENCE` | C13 |
+| `GW-FR-029-NO-IDE-SCOPE` | `CONFORMS` | `C04-O15` | `REFERENCE` | C02 |
+| `GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION` | `CONFORMS` | `C04-O04` | `REFERENCE` | C04 |
+| `GW-FR-061-DETERMINISTIC-WORKITEM-DOCUMENT-LAYOUT` | `CONFORMS` | `C04-O04`, `C04-O05` | `REFERENCE` | C04 |
+| `GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE` | `CONFORMS` | `C04-O08`, `C04-O10`, `C04-O13` | `REFERENCE` | C04 |
+| `GW-FR-063-DOCUMENTATION-GIT-STATUS` | `CONFORMS` | `C04-O09` | `REFERENCE` | C04 |
+| `GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR` | `CONFORMS` | `C04-O02`, `C04-O15` | `REFERENCE` | C04 |
+| `GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES` | `CONFORMS` | `DIRECT-FR066` | `REFERENCE` | C04 |
+| `GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS` | `CONFORMS` | `C18-O11`, `DIRECT-FR067` | `REFERENCE` | C04 |
+| `GW-FR-068-LIVE-SAFE-MARKDOWN-PREVIEW` | `CONFORMS` | `DIRECT-FR068` | `REFERENCE` | C04 |
+| `GW-FR-069-EDITOR-STATE-CONTINUITY` | `CONFORMS` | `C05-O07`, `C18-O04`, `C18-O11` | `REFERENCE` | C04 |
+| `GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY` | `CONFORMS` | `C04-O05` | `REFERENCE` | C03 |
+| `GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY` | `CONFORMS` | `C04-O12`, `C04-O13` | `REFERENCE` | C04 |
+| `GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY` | `CONFORMS` | `C04-O12` | `REFERENCE` | C03 |
+| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `CONFORMS` | `C16-O06` | `REFERENCE` | C16 |
+| `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | `CONFORMS` | `C16-O06` | `REFERENCE` | C16 |
+| `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `CONFORMS` | `C16-O06` | `REFERENCE` | C16 |
+| `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `CONFORMS` | `C16-O07` | `REFERENCE` | C16 |
+| `GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT` | `CONFORMS` | `C04-O03` | `REFERENCE` | C04 |
+| `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE` | `CONFORMS` | `C03-O06`, `C03-O08` | `REFERENCE` | C03 |
+| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `CONFORMS` | `C16-O09`, `C16-O10` | `REFERENCE` | C16 |
+| `GW-FR-080-CONFIGURATION-CONTINUITY` | `CONFORMS` | `DIRECT-FR080` | `REFERENCE` | C16 |
+| `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `CONFORMS` | `C16-O06`, `DIRECT-FR081` | `REFERENCE` | C16 |
+| `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `CONFORMS` | `C16-O04`, `DIRECT-FR082` | `REFERENCE` | C16 |
+| `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` | `CONFORMS` | `C02-O07`, `C02-O08` | `REFERENCE` | C02 |
+| `GW-FR-088-WORKITEM-METADATA-PRESERVATION` | `CONFORMS` | `C04-O02`, `C04-O03` | `REFERENCE` | C04 |
+| `GW-FR-089-HUMAN-FIRST-WORKITEM-SOURCE-EDITOR` | `CONFORMS` | `C04-O02`, `C04-O15` | `REFERENCE` | C04 |
+| `GW-FR-090-WORKITEM-BODY-CONFLICT-SAFETY` | `CONFORMS` | `C04-O03` | `REFERENCE` | C04 |
+| `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` | `CONFORMS` | `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` | `REFERENCE` | C16 |
+| `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION` | `CONFORMS` | `C16-O02`, `C16-O03` | `REFERENCE` | C16 |
+| `GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY` | `CONFORMS` | `C16-O04` | `REFERENCE` | C16 |
+| `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | `CONFORMS` | `C16-O01` | `REFERENCE` | C16 |
+| `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION` | `CONFORMS` | `C07-O04` | `REFERENCE` | C07 |
+| `GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE` | `CONFORMS` | `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` | `REFERENCE` | C20 |
+| `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `CONFORMS` | `C10-O01`, `C10-O09`, `C10-O10` | `REFERENCE` | C10 |
+| `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | `CONFORMS` | `C15-O02`, `C15-O08`, `C15-O15` | `REFERENCE` | C15 |
+| `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `CONFORMS` | `C22-O09` | `REFERENCE` | C22 |
+| `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `CONFORMS` | `C15-O03`, `C15-O04`, `C15-O08` | `REFERENCE` | C15 |
+| `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `CONFORMS` | `C15-O12`, `C15-O13` | `REFERENCE` | C15 |
+| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `CONFORMS` | `DIRECT-FR103` | `REFERENCE` | C20 |
+| `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | `CONFORMS` | `C15-O03`, `C15-O04` | `REFERENCE` | C15 |
+| `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `CONFORMS_WITH_DEPENDENCY` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `REFERENCE` | C22 |
+| `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `MIXED` | `C05-O05`, `C05-O06`, `C05-O11` | `REFERENCE` | C05 |
+| `GW-FR-201-OBSERVATIONAL-READS` | `CONFORMS` | `C05-O03`, `C05-O09` | `REFERENCE` | C05 |
+| `GW-FR-202-ATOMIC-COMMAND-OUTCOME` | `CONFORMS` | `C17-O04`, `C17-O08` | `REFERENCE` | C17 |
+| `GW-FR-203-SERIALIZED-RUN-TURNS` | `CONFORMS` | `C15-O05` | `REFERENCE` | C15 |
+| `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP` | `CONFORMS` | `C06-O09` | `REFERENCE` | C06 |
+| `GW-FR-205-MONOTONIC-REACH-HISTORY` | `CONFORMS` | `C01-O10` | `REFERENCE` | C01 |
+| `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE` | `VIOLATES` | `C17-O05` | `REFERENCE` | C17 |
+| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `CONFORMS` | `C14-O05`, `C14-O06` | `REFERENCE` | C14 |
+| `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | `CONFORMS` | `C14-O09`, `C05-O09` | `REFERENCE` | C14 |
+| `GW-FR-209-SOURCE-BLOCKER-ADMISSION` | `CONFORMS` | `C03-O04`, `C04-O14` | `REFERENCE` | C04 |
+| `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | `CONFORMS` | `C17-O07` | `REFERENCE` | C17 |
+| `GW-FR-211-READINESS-RETURN-CONTINUITY` | `CONFORMS` | `C10-O04`, `C01-O10` | `REFERENCE` | C10 |
+| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `CONFORMS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `REFERENCE` | C11 |
+| `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `CONFORMS` | `C12-O17`, `C17-O10` | `REFERENCE` | C12 |
+| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `CONFORMS` | `C05-O08` | `REFERENCE` | C05 |
+| `GW-FR-215-STABLE-WORKFLOW-RAIL` | `CONFORMS` | `C05-O01`, `C05-O08` | `REFERENCE` | C05 |
+| `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL` | `CONFORMS` | `C05-O08` | `REFERENCE` | C05 |
+| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `MIXED` | `C05-O10`, `C05-O12`, `C19-O03` | `REFERENCE` | C05 |
+| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `CONFORMS` | `C05-O12`, `C19-O04` | `REFERENCE` | C05 |
+| `GW-FR-219-EXPLICIT-CONTEXT` | `CONFORMS` | `C05-O04` | `REFERENCE` | C05 |
+| `GW-FR-220-PRESIGNOFF-CONTINUITY` | `MIXED` | `C05-O05`, `C05-O06`, `C05-O12` | `REFERENCE` | C05 |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `VIOLATES` | `C10-O06`, `C10-O07` | `REFERENCE` | C10 |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `MIXED` | `C11-O06`, `C11-O07` | `REFERENCE` | C11 |
+| `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `CONFORMS` | `C12-O17` | `REFERENCE` | C12 |
+| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `CONFORMS` | `C13-O04` | `REFERENCE` | C13 |
+| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `CONFORMS` | `C18-O01`, `C18-O04` | `REFERENCE` | C18 |
+| `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `CONFORMS` | `C17-O08` | `REFERENCE` | C17 |
+| `GW-FR-227-CERTIFICATION-MATRIX` | `VERIFICATION_GAP` | `C20-O12` | `REFERENCE` | C20 |
+| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `CONFORMS` | `C01-O05` | `REFERENCE` | C01 |
+| `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY` | `CONFORMS` | `C15-O05`, `C15-O07`, `C15-O11` | `REFERENCE` | C15 |
+| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `CONFORMS` | `C05-O08`, `C05-O12`, `C19-O01` | `REFERENCE` | C05 |
+| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `MIXED` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `REFERENCE` | C19 |
+| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `CONFORMS` | `C01-O03`, `C01-O11` | `REFERENCE` | C01 |
+| `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `CONFORMS` | `C05-O01`, `C05-O02` | `REFERENCE` | C05 |
+| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `CONFORMS_WITH_VERIFICATION_GAP` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `REFERENCE` | C19 |
+| `GW-FR-235-GLOBAL-THEME-PARITY` | `CONFORMS_WITH_VERIFICATION_GAP` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `REFERENCE` | C19 |
+| `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | `CONFORMS_WITH_VERIFICATION_GAP` | `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` | `REFERENCE` | C05 |
+| `GW-FR-237-BOUNDED-AGENT-ACTIVITY` | `CONFORMS` | `C15-O09`, `C15-O10` | `REFERENCE` | C15 |
+| `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `CONFORMS` | `C14-O05`, `C14-O06` | `REFERENCE` | C14 |
+| `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | `CONFORMS` | `C12-O16` | `REFERENCE` | C12 |
+| `GW-FR-240-REJECTED-PROVIDER-RESULT-FAILURE` | `CONFORMS` | `C15-O01`, `C15-O07`, `C15-O12` | `REFERENCE` | C15 |
+| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `CONFORMS` | `C14-O03`, `C14-O04` | `REFERENCE` | C14 |
+| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `CONFORMS` | `C14-O08`, `DIRECT-FR242` | `REFERENCE` | C14 |
+
+Cardinality: **112 / 112**, missing **0**, duplicate **0**. Every row resolves to the current `research.md` G-F10 evidence ledger.
+
+R2 consequence rule: a `REFERENCE` row with R1 `VIOLATES`, `MIXED`, `VERIFICATION_GAP` or dependency/certification qualification retains the canonical functional behavior unchanged and requires downstream DESIGN to dispose only the exact evidenced realization/verification gap. It does not authorize a concern-wide implementation delta.
+
 ## Required observable outcome/delta
 
 ### A01 — C01 product model + C21 product identity
@@ -195,7 +318,7 @@ The C01 clause-level P3 `DELTA` corrects the `GW-P2-CONTROLLED-WORK` cross-refer
 
 **C15.** OpenCode/provider interaction remains a trusted execution/information channel inside Order's resolved authority and permission boundary. Session continuity, observable activity, exact required input and provider failure are visible without turning provider state into lifecycle authority. Rejected/failed provider actions preserve canonical state and expose the owning recovery path.
 
-**C16.** Settings is operator-first: readiness/attention, meaning and available actions are primary. Exact Git/document paths, endpoint/API identity, credential identifiers and similar diagnostic identity are secondary/on-demand except when the active Add/Move/configuration task requires them to choose or enter a value.
+**C16.** Productive installation and Settings have distinct responsibilities. Fresh installation is a guided productive bootstrap: before reporting successful installation it must collect the required operator-owned repository, OpenCode-account and model choices inside the installer-owned flow, using existing canonical configuration/provider owners; it must not defer mandatory first-run setup to a separate browser Settings step. Supported update/migration retains valid existing configuration under the canonical continuity rules. After installation, Settings remains operator-first: readiness/attention, meaning and available actions are primary. Exact Git/document paths, endpoint/API identity, credential identifiers and similar diagnostic identity are secondary/on-demand except when the active Add/Move/configuration task requires them to choose or enter a value.
 
 ### A10 — C17 recovery/current attention + C18 responsive/accessibility
 
@@ -228,7 +351,7 @@ The C01 clause-level P3 `DELTA` corrects the `GW-P2-CONTROLLED-WORK` cross-refer
 | C13 | COMPLETE is terminal and uses canonical verified-result/verified-candidate product language. |
 | C14 | Document/proposal/evidence/dialogue/currentness ownership remains explicit with no chat/activity authority shadow. |
 | C15 | Provider/session/input/failure behavior remains observable and bounded by Order authority; rejection preserves canonical state. |
-| C16 | Settings keeps operator readiness/meaning/actions primary and technical identity secondary unless task-required. |
+| C16 | Fresh installation completes required guided repository/OpenCode-account/model setup before reporting success; supported configuration continuity remains intact; Settings keeps operator readiness/meaning/actions primary and technical identity secondary unless task-required. |
 | C17 | Canonical current attention/recovery remains visible/reachable through selection, failure and asynchronous convergence. |
 | C18 | Responsive/focus/keyboard semantics hold; each new required-input request receives one non-repeating focus transition. |
 | C19 | Every production renderer is covered by the canonical primitive ownership rule and one theme/component system. |
@@ -265,6 +388,7 @@ The 0.6.0 functional package is non-conformant if a downstream layer:
 - permits a materially empty executable PLAN package;
 - signs stale/different material or whitespace-only approval identity;
 - requires a BUILDER to satisfy a signed checkpoint it has no governed capability to execute;
+- reports productive installation success while mandatory repository/OpenCode-account/model setup is still deferred to a separate Settings/setup step;
 - exposes raw IDs/paths/endpoints/internal enums as primary ordinary operator meaning where authority defines a semantic label/hierarchy;
 - weakens required scenario/theme/accessibility certification because adjacent historical tests are green.
 
