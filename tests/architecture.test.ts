@@ -1645,6 +1645,43 @@ describe("architecture fitness", () => {
       }
     }
 
+    const phasedConcernChecks = [
+      { gate: "G3", field: "r2", closed: "FUNCTIONAL_CLOSED", label: "R2" },
+      { gate: "G4", field: "design", closed: "TECHNICAL_CLOSED", label: "DESIGN" },
+      { gate: "G5", field: "plan", closed: "PLAN_COVERED", label: "PLAN" },
+    ] as const;
+
+    for (const check of phasedConcernChecks) {
+      const gate = gates.get(check.gate);
+      const active = concerns.filter((concern) => concern[check.field] === "IN_REVIEW");
+      const blocked = concerns.filter((concern) =>
+        concern[check.field] === "BLOCKED" || concern[check.field] === "REVALIDATION"
+      );
+      if (gate?.status === "IN_PROGRESS") {
+        if (active.length > 1) {
+          violations.push(
+            `${check.gate} IN_PROGRESS permits at most one active ${check.label} concern`,
+          );
+        }
+        if (active.length === 0 && blocked.length === 0) {
+          violations.push(
+            `${check.gate} IN_PROGRESS requires one active ${check.label} concern or an explicit blocked/revalidation owner`,
+          );
+        }
+      }
+      if (gate?.status === "PASS") {
+        const unresolved = concerns.filter(
+          (concern) => concern[check.field] !== check.closed,
+        );
+        if (unresolved.length > 0) {
+          violations.push(
+            `${check.gate} PASS requires every concern ${check.closed}; unresolved: ` +
+              unresolved.map((concern) => concern.id).join(", "),
+          );
+        }
+      }
+    }
+
     const g0 = gates.get("G0");
     const baseline = g0?.evidence.match(/baseline `([0-9a-f]{40})`/)?.[1] ?? null;
     if (g0?.status === "PASS") {
