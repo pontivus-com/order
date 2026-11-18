@@ -171,6 +171,8 @@ const stageConformanceQuestions: Record<PreSignoffStage, readonly string[]> = {
   PLAN: [
     "Does every task trace upward to resolved requirement/design authority?",
     "Does every required outcome trace downward to a task or explicit no-code disposition?",
+    "Does every task close its objective/dependencies, module ownership/decomposition constraints, required architecture-feedback checkpoints, expected production and test/validation surface, required deletions/replacements, and completion evidence?",
+    "Does the PLAN contain the complete minimum-change forecast and logical verification contract required by S9-S10?",
     "Does no task delegate a material P1-P6 decision to implementation?",
   ],
   R3: [
