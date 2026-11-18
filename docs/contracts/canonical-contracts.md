@@ -1312,7 +1312,7 @@ Config v4 invariants:
 - every configured target repository and reference root is pairwise path-disjoint after canonical resolution, so STAGE external-reference permission cannot re-enter a target repository outside its admitted provider workspace;
 - WorkItem source/document location is resolved inside each selected repository through §32, never through OrderConfig.
 
-Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. Fresh setup may write a valid but non-productive v4 configuration with `model = null` and/or no target repositories so the authenticated browser can open Settings and complete configuration. Broad parent roots are never recursively crawled or guessed into a project catalog.
+Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. A valid but non-productive v4 configuration with `model = null` and/or no target repositories may exist for configuration-capable daemon startup, authenticated Settings repair/recovery, explicit post-install reconfiguration, or as a transient rollback-safe installer state. **The productive fresh installer may not report success or hand ordinary use to Settings while required first-run repository/OpenCode-account/model choices remain incomplete; it must continue the installer-owned guided setup required by `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` and `GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` before successful completion.** Broad parent roots are never recursively crawled or guessed into a project catalog.
 
 For each STAGE OpenCode session, reference-root permissions retain the existing deny-first exact `external_directory` semantics. Target repositories and the WorkItem root do not become generic external-reference permissions.
 
@@ -3321,7 +3321,7 @@ version 3 -> 4
 
 No semantic choices are introduced and no existing repository/model selection is reset.
 
-A fresh installation may create:
+A configuration-capable daemon/recovery flow may persist:
 
 ```json
 {
@@ -3332,7 +3332,7 @@ A fresh installation may create:
 }
 ```
 
-when the operator elects to complete configuration in the browser.
+as a valid non-productive configuration so authenticated Settings can expose and repair readiness blockers. The productive fresh installer may use the same canonical shape only as an intermediate rollback-safe state while guided setup is still in progress; **it must not treat that state as successful installation or defer mandatory first-run repository/OpenCode-account/model choices to the browser.** Successful productive installation exits only after the installer-owned guided setup has established the required choices and the normal installer health proof passes.
 
 Daemon startup under incomplete v4 configuration:
 
