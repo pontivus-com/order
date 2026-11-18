@@ -2,6 +2,8 @@
 
 ## P2 intent and R1 factual basis
 
+> **CURRENT STATUS — STALE / R2 NOT STARTED.** C20-F01 reopened R1 because the prior concern/stable-ID pass did not prove complete semantic/information and realization coverage. The material below is retained only as candidate/historical R2 work for selective reuse after fresh R1 closure. In particular, grouped `no functional delta` conclusions are not current authority and `REFERENCE` may not be used as a shortcut around explicit 0.6.0 functional consequences.
+
 P2 intent is the current Order product authority resolved through `GW-DOC-SYSTEM-BRIEF` and `GW-DOC-PRODUCT-IDENTITY`. The factual basis is the closed campaign R1 artifact `research.md` and its 113/113 P2/P3 coverage proof.
 
 The 0.6.0 functional design reconstructs the required product from canonical authority. It does not preserve released 0.5.0 behavior by default and does not promote implementation observations into requirements.
