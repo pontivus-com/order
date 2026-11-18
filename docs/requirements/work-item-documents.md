@@ -98,7 +98,7 @@ The historical v1 pins remain:
 - `investigation-v1`;
 - `audit-v1`.
 
-The current delivery defaults are `change-v2` and `defect-v2`; Investigation and Audit remain on their v1 schemas because this correction does not change their authored lifecycle semantics.
+The current ordinary-authoring defaults are `change-v2`, `defect-v2`, `investigation-v2` and `audit-v2`. Investigation/Audit v2 preserve the v1 intake/R1 structure and terminal outcome semantics; their new schema pins exist only so newly authored work binds the current WorkItem-document and lifecycle-context authority rather than historical V1 template authority.
 
 A WorkItem pins its schema when created or first adopted. A later Order release may offer a newer default schema, but it must not silently reinterpret an existing WorkItem under the newer schema.
 
@@ -121,7 +121,7 @@ Published schema identifiers are immutable semantic pins. A material change to a
 
 The published `change-v1` and `defect-v1` schema pins remain supported with their original template/validation semantics. They are historical compatibility pins and are no longer the ordinary authoring defaults after the authority-hygiene correction.
 
-New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template. Their R1 templates preserve the v1 evidence-section structure but are separate v2 template pins that cite the current `GW-DOC-LIFECYCLE-CONTEXT-V2`; new v2 WorkItems must not inherit the historical lifecycle-context V1 authority pin merely because the R1 evidence shape is unchanged.
+New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template. Their R1 templates preserve the v1 evidence-section structure but are separate v2 template pins that bind the current `GW-DOC-LIFECYCLE-CONTEXT` concern; the exact v2 schema template resolves that current semantic snapshot as lifecycle-context V2, while new v2 WorkItems must not inherit the historical lifecycle-context V1 authority pin merely because the R1 evidence shape is unchanged.
 
 The v2 R2 template contains a **functional authority disposition ledger**. Each material requirement is classified as exactly one of:
 
@@ -132,6 +132,12 @@ The v2 R2 template contains a **functional authority disposition ledger**. Each 
 These dispositions are requirement-authoring semantics, not new runtime state, persistence fields or WorkItem kinds. R3 independently challenges their correctness.
 
 The catalog exposes which schema is the current authoring default for each kind while continuing to resolve every published historical schema id. Ordinary Create presents only the current authoring default per kind; discovery and existing WorkItems continue to accept their pinned historical schemas.
+
+### 6.2 Investigation/Audit v2 authority-hygiene correction
+
+The published `investigation-v1` and `audit-v1` schema pins remain resolvable with their original intake/R1 templates and lifecycle-context V1 authority references for existing pinned WorkItems.
+
+New Investigation and Audit authoring uses `investigation-v2` and `audit-v2`. These schemas do **not** add downstream delivery stages or change their allowed successful R1 outcomes. They preserve the existing intake/R1 content structure while binding the current `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and `GW-DOC-LIFECYCLE-CONTEXT` semantic owners. This prevents newly authored terminal-analysis work from inheriting historical lifecycle authority solely because its R1 document shape is unchanged.
 
 ## 7. Built-in intake template variants
 
