@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `ad6373785dd31447db9e46ee85f5bb3c7d45050c`.
 
 ## Stable requirement execution dispositions
 
