@@ -50,12 +50,12 @@ This is deliberately one signed task. Order execution starts every ExecutionTask
 
    **Architecture-feedback checkpoint:** run `typecheck` and `architecture`; execute the relevant Settings browser coverage.
 
-5. **Integrated regression and delivery closure**
+5. **Integrated candidate validation closure**
    - Complete the change-specific daemon/browser regression cases without editing signed verification material.
    - Update `CHANGELOG.md` under `[Unreleased]` with the observable 0.6.0 corrective behavior.
    - Run the complete signed gate union: `dependency-lock`, `typecheck`, `architecture`, `test`, `build`, `browser`.
    - Perform the independent semantic review required by the validation architecture: confirm one source-registration owner/path, App-owned queue/global query/filter semantics, no duplicate state/DTO/model/mapper/service/repository/controller, no architecture-material mutation and no change outside signed scope.
-   - Deliver through the governed PR boundary with release impact **minor**, target train **0.6.0**, and the permanent PR verification/release-packager checks.
+   - T1 ends at the verified `CANDIDATE_DONE` (or valid `ALREADY_SATISFIED`) outcome produced by the canonical V0-V7 execution/validation chain. Commit/push/PR/merge/release-packager delivery is not an ExecutionTask step.
 
 ## Requirement/design traceability
 
@@ -208,8 +208,9 @@ T1 is complete only when all of the following are evidenced on the exact candida
 8. Existing architecture fitness passes unchanged.
 9. Independent semantic review confirms FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO/minimum-change compliance and no unauthorized changed path.
 10. All six signed gates pass.
-11. `CHANGELOG.md [Unreleased]` records the observable correction and the implementation PR declares minor / 0.6.0 release impact.
-12. Permanent PR verification, including release-packager verification, is green before merge.
+11. `CHANGELOG.md [Unreleased]` records the observable correction inside the verified candidate.
+
+Public PR metadata, permanent PR verification, release-packager verification and the explicit merge decision occur only after T1 has produced the verified candidate; they are repository-delivery evidence, not T1 completion evidence.
 
 ## Minimum-change forecast
 
@@ -231,9 +232,13 @@ T1 is complete only when all of the following are evidenced on the exact candida
 - **P1-P6 authority changes:** none.
 - **Verification-material changes:** none.
 
-### Allowed implementation variance
+### Signed-surface variance rule
 
-A small architecture-preserving same-layer physical split is permitted only under the canonical P1 rule if implementation proves an affected existing module would otherwise gain a second present responsibility. No such split is expected by this design. Any split that introduces a new semantic owner, public contract, state meaning, effect boundary, dependency direction, dependency or authorized behavior is not variance; it is a DESIGN/PLAN stop condition.
+The current T1 `changeSurface` is exact and immutable after sign-off. It authorizes only the ten literal paths in the canonical `order-tasks` block.
+
+If implementation proves that a same-layer architecture-preserving physical split is necessary to avoid adding a second present responsibility to an existing module, the worker/reviewer must stop rather than edit an unsigned path or force the responsibility into the current file. The WorkItem returns to PLAN so T1 can be re-planned and re-signed with the exact revised `changeSurface`; this does not require inventing a second semantic task when the cumulative candidate still belongs to one task.
+
+Any split that changes semantic ownership, public contracts, state meaning, effect boundaries, dependency direction, dependencies or authorized behavior requires the appropriate DESIGN/PLAN return, not merely a surface refresh.
 
 No incidental cleanup or refactor outside the signed surface is authorized.
 
@@ -267,9 +272,13 @@ The independent review must explicitly challenge:
 - whether any DTO/model/mapper/service/repository/controller/global-store/API/schema/dependency/verification-material change slipped into the candidate;
 - whether every changed file is necessary and every required design obligation is present.
 
-### Delivery verification
+### Post-candidate repository delivery
 
-After the signed candidate passes its manifest gates, public delivery still follows `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`: short-lived implementation branch, `CHANGELOG.md [Unreleased]`, minor / 0.6.0 metadata, permanent PR verification and its release-packager check, then explicit merge decision. The release-packager check is delivery evidence, not a seventh signed ExecutionTask gate.
+This section is **outside T1 ExecutionTask completion**.
+
+After T1 reaches the verified candidate outcome, applying/delivering that candidate to the public Order repository follows `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`: use a governed short-lived implementation branch based on the then-current delivery baseline, preserve the candidate's authorized semantic content, include `CHANGELOG.md [Unreleased]`, declare minor / 0.6.0 metadata, pass permanent PR verification including the release-packager check, and require the explicit merge decision.
+
+If applying the candidate to the delivery baseline requires a material semantic/design/scope change, the candidate is not silently rebased into a different implementation; it returns to the owning lifecycle stage. The release-packager check remains delivery evidence, not a seventh signed ExecutionTask gate.
 
 ## Canonical order-tasks block
 
