@@ -94,12 +94,13 @@ project authority + semantic context
               v
           Order
    lifecycle / authorization
-              |
-              v
-        coding agent
-              |
-              v
-      verified candidate
+          /       \
+         /         \ when execution is authorized
+        v           v
+verified no-code   coding agent
+    result             |
+                       v
+              verified candidate
 ```
 
 ## 6. Desired lifecycle
