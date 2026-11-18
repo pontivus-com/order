@@ -279,7 +279,7 @@ const stageTemplates = Object.freeze({
   ),
   "defect-r2-v2": renderR2AuthorityTemplate(
     "defect-r2-v2",
-    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-SPECIFICATION-STANDARD-V2", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
+    ["GW-DOC-WORK-LIFECYCLE-V1", "GW-DOC-LIFECYCLE-CONTEXT-V2", "GW-DOC-SPECIFICATION-STANDARD-V2", "GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION"],
     [
       "Proven defect/root cause",
       "Functional authority disposition ledger",
