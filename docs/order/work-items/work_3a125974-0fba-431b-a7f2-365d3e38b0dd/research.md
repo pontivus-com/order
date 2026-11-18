@@ -56,3 +56,12 @@ The 0.6.0 C08 investigation found that the current Change/Defect v2 DESIGN templ
 Because the schema template is injected verbatim into the productive DESIGN prompt and structurally defines admitted document sections, this is a Phase-0 authoring-contract defect rather than a future product-design choice.
 
 Remediation: extend the current v2 DESIGN templates to carry the complete S7 content contract, preserve historical v1 templates unchanged, align P3/P6 documentation, and add a permanent template regression.
+
+
+## Downstream validation finding — mechanical readiness timing
+
+The 0.6.0 readiness pre-audit found that complete signed-task validation was performed only by `computeSignoffPackage()` after R3 had already transitioned the WorkItem to `AWAITING_SIGNOFF`. The binding specification requires mechanically checkable readiness conditions to be proven before R3 may return `READY_FOR_SIGNOFF`.
+
+This creates an avoidable invalid intermediate state: a package with unresolved gates/concerns/authority refs or an invalid signed change surface can be admitted to Approval and only then rejected.
+
+Remediation: on R3 `READY_FOR_SIGNOFF` only, validate the exact current PLAN task definitions against the current manifest and full current material closure before admitting R3 conformance/lifecycle transition. R3 return-to-* outcomes remain available without this validation so a reviewer can route a defective PLAN back to its owner. Reuse the existing `validateTaskDefinitions` owner; do not create a second readiness validator.
