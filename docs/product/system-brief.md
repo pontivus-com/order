@@ -104,14 +104,19 @@ project authority + semantic context
 
 ## 6. Desired lifecycle
 
+The canonical WorkItem lifecycle and the internal post-sign-off execution/validation sequence are distinct levels.
+
 ```text
+CANONICAL WORKITEM LIFECYCLE
+
 IDEA
   |
   v
-R1 RESEARCH
-  |
-  v
-R2 REQUIREMENTS
+R1 RESEARCH ------------------------------+
+  |                                       |
+  | confirmed                             | schema-valid terminal outcome
+  v                                       v
+R2 REQUIREMENTS                         COMPLETE
   |
   v
 DESIGN
@@ -132,23 +137,20 @@ AWAITING SIGN-OFF
 =============================
   |
   v
-TODO
+EXECUTION
   |
+  | internal signed-task / validation sequence
   v
-IMPLEMENT
+IMPLEMENT -> MECHANICAL VERIFY -> INDEPENDENT REVIEW
+                 ^                       |
+                 +--- bounded repair <---+
   |
+  | all approved tasks successfully validated
   v
-MECHANICAL VERIFY
-  |
-  v
-INDEPENDENT REVIEW
-  |
-  v
-MECHANICAL VERIFY
-  |
-  v
-CANDIDATE DONE
+COMPLETE
 ```
+
+`IMPLEMENT`, mechanical validation and independent review describe decision/validation boundaries inside the canonical `EXECUTION` stage; they are not additional WorkItem lifecycle stages.
 
 ## 7. Non-goals for v1
 
