@@ -2,7 +2,7 @@
 
 # Order 0.6.0 implementation plan
 
-> **CURRENT STATUS — STALE / PLAN NOT STARTED.** C20-F01 invalidated the upstream completeness proof on which this plan was based. The planning mechanics, validation discipline and prior task analysis remain reusable evidence, but T1, its one-task topology, exact ten-path scope/changeSurface, exclusions and no-production-delta dispositions are not currently authorized and must be regenerated from fresh DESIGN.
+> **CURRENT STATUS — STALE / PLAN NOT STARTED.** This file remains the **sole canonical P7 implementation-plan artifact for this WorkItem**, but its former task content is non-current and authorizes nothing until fresh R1/R2/DESIGN closure and PLAN regeneration. C20-F01 invalidated the upstream completeness proof on which the prior task set was based. The planning mechanics, validation discipline and prior task analysis remain reusable evidence, but T1, its one-task topology, exact ten-path scope/changeSurface, exclusions and no-production-delta dispositions are not currently authorized. No alternate implementation/prerequisite/remediation plan may supersede this file; PLAN corrections are made here after the campaign-control gates permit PLAN.
 
 ## Exact task units/dependencies/objectives
 
