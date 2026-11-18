@@ -2,73 +2,40 @@
 
 # Order 0.6.0 implementation plan
 
-## Plan authority and modular package
+## Canonical PLAN authority
 
-This file is the deterministic canonical P7 lifecycle artifact for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. It remains the sole carrier of the canonical `order-tasks` block required by the lifecycle contract.
+This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-The exhaustive implementation specification is authored modularly under `implementation-plan/` and compiled in full into this root artifact. The directory files are maintainable phase sources, not independent P7 authorities. Their exact blob manifest proves which source components produced the compiled snapshot. A source component whose blob differs from the manifest requires root regeneration before PLAN can be current.
+This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
 
-This PLAN consumes the exhaustive R2 functional package `requirements.md`, the regenerated requirement-level DESIGN `solution-design.md`, the resolved P1-P6 authority graph and the current WorkItem source. Current implementation/UI/tests/0.5.0/history remain evidence only.
+## Exact modular source manifest
 
-## Exact phase-component manifest
-
-| Component | Exact Git blob |
+| Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `501912214a2e58f433cb7e1e4bb25be92bc3e26a` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `4aac2e36f01d03631cec2654647a0b6d0f5a9f53` |
-| `implementation-plan/02-a02-governance-intake.md` | `9c4b1b1abf14c7cfd5495c65d9849d27bb714804` |
-| `implementation-plan/03-a03-queue-source.md` | `655ecefda7ba57e040ceb8982de118e0fd6cc77c` |
-| `implementation-plan/04-a04-workbench-research.md` | `d68868090575b8dbed4099de93cbed58ac60cffa` |
-| `implementation-plan/05-a05-requirements-design.md` | `331667dde4ecaf965bf46dcebb9653e9e63422a1` |
-| `implementation-plan/06-a06-plan-readiness.md` | `88e0228ada9fd1acd4627203e84ddd90cb2a3edd` |
-| `implementation-plan/07-a07-approval-execution.md` | `269d5c51d6bec3f8a9636b705441c33a91e2880f` |
-| `implementation-plan/08-a08-complete-materials.md` | `597296ca51904323fd181f5d6c6e80e6b5f96c77` |
-| `implementation-plan/09-a09-provider-settings.md` | `d5c15589f939b883fa2cf02a3c28a210c0b5a9f1` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `c0bdc7fdd261c4dd0850919b845636cd83415418` |
-| `implementation-plan/11-a11-component-certification.md` | `89b8d728101d36b65a3467a6afae1aee89e3c652` |
-| `implementation-plan/12-action-catalog.md` | `124cf4deb441888532e1083e4aad556e0ca37053` |
-| `implementation-plan/13-verification-closeout.md` | `0374716b657e3a3b87687721c3e84fdfd3848886` |
+| `implementation-plan/00-governance.md` | `2f001b6aa56197382cc59666c2acae5b44ddf73a` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `af36fbfafe4cf1fac8a537127267965291247a46` |
+| `implementation-plan/02-a02-governance-intake.md` | `b7856833dcb2c56094de54d1d4c8c85fa4e9b195` |
+| `implementation-plan/03-a03-queue-source.md` | `103a91abf514e82d73cec4aa25b13bfaa5609c91` |
+| `implementation-plan/04-a04-workbench-research.md` | `d405780c0ac2235b82480ca2e511d4b54c6b8baa` |
+| `implementation-plan/05-a05-requirements-design.md` | `e1f4269f1d9c93a8c464d4f4e2f477783e9e0ac1` |
+| `implementation-plan/06-a06-plan-readiness.md` | `055d4ef1da31123287c29d8fcfead8f879da7397` |
+| `implementation-plan/07-a07-approval-execution.md` | `7d46bb3e887ac48a44fd5ed54a0716fb6d3b738c` |
+| `implementation-plan/08-a08-complete-materials.md` | `4a20cca25600afca281bbe171e2638727417ae90` |
+| `implementation-plan/09-a09-provider-settings.md` | `e5f539b0add2c6215721b2798d2b0039a3a0390a` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `ac01788a641ce1c0953d4cf9e1a1233446431966` |
+| `implementation-plan/11-a11-component-certification.md` | `181eea3928f6c997d199a0a16a408dcec7addc47` |
+| `implementation-plan/12-action-catalog.md` | `136d08c677ddb17c694fff175975597f6e3f05ec` |
+| `implementation-plan/13-verification-closeout.md` | `d4adae944be9469b946b6f55f26ea5a025ecad65` |
 
-R3 must verify every listed current path resolves to the exact blob above and that the root contains the compiled phase specification. The directory components contain no independent lifecycle status, normative execution authority or second `order-tasks` block; Approval binds the complete compiled root bytes.
+A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
-## T1 topology
+## Semantic coverage versus execution ownership
 
-There is exactly one cumulative execution task, **T1**. The eleven A01-A11 phase files are ordered implementation phases inside T1, not independently signed ExecutionTasks. This preserves the canonical single-Approval-baseline execution model.
-
-Detailed action definitions are owned by `implementation-plan/12-action-catalog.md`; verification/checkpoint allocation is owned by `implementation-plan/13-verification-closeout.md`.
-
-Implementation order:
-
-1. A01 lifecycle/product
-2. A02 governance/intake
-3. A03 queue/source
-4. A04 Workbench/Research
-5. A05 Requirements/DESIGN authority mutation
-6. A06 PLAN/R3
-7. A07 Approval/Execution
-8. A08 Complete/materials
-9. A09 Provider/Settings
-10. A10 Recovery/accessibility
-11. A11 component/certification
-12. shared regression closure and candidate closeout
-
-A phase may reuse an action defined earlier/later only as explicitly referenced in its requirement rows. Architecture-feedback checkpoints A-E remain mandatory at the boundaries defined in the verification component.
-
-## Exhaustive traceability invariant
-
-The package is incomplete unless all of the following are true:
-
-- all **112** stable P3 requirements in R2 occur exactly once across phase files 01-11;
-- every package-local/non-stable R2 consequence has a phase row;
-- every requirement/consequence maps to one or more `SDxx` DESIGN solutions;
-- every technical/verification delta maps to one or more `IAxx` actions;
-- every positive no-code disposition has explicit final verification and an upstream return rule if disproved;
-- every IA action maps upward to accepted DESIGN/R2 authority;
-- no material P1-P6 choice is left to implementation.
+A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA25 in the compiled action catalog are the single implementation-action definitions, assigned to ordered execution waves. A phase may consume an IA owned elsewhere without duplicating it.
 
 ## Exact signed implementation surface
 
-### Production
+### Production (23)
 - `README.md`
 - `src/core/contracts.ts`
 - `src/core/execution.ts`
@@ -79,6 +46,7 @@ The package is incomplete unless all of the following are true:
 - `src/daemon/stage.ts`
 - `src/daemon/validation.ts`
 - `src/daemon/work-item-source.ts`
+- `src/shell/setup.ts`
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
@@ -92,15 +60,18 @@ The package is incomplete unless all of the following are true:
 - `ui/src/app.tsx`
 - `ui/src/workbench-presentation.ts`
 
-### Verification
+### Verification (6)
 - `tests/certification.test.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
 - `tests/browser.spec.ts`
 - `tests/workbench-presentation.test.ts`
+- `tests/installer.test.ts`
 
-### Delivery metadata
+### Delivery metadata (1)
 - `CHANGELOG.md`
+
+Total signed T1 changeSurface: **30 paths**.
 
 ### Explicit exclusions
 - `.github/**`
@@ -109,91 +80,62 @@ The package is incomplete unless all of the following are true:
 - `docs/**`
 - `package.json`
 - `pontivus-order.toml`
-- `src/shell/**`
+- `src/installer.ts`
 - `src/daemon/server.ts`
 - `tests/architecture.test.ts`
 - `ui/src/http.ts`
 - `ui/src/query-keys.ts`
 - `ui/src/theme.css`
 
-Discovery of a materially required excluded/new surface is a stop and return to DESIGN/PLAN. The signed file list must never force duplicate responsibility.
+`docs/**` including corrected P6 are pre-signoff DESIGN authority, not T1 implementation. `tests/architecture.test.ts` is signed architecture-gate material and cannot be mutated inside T1. `src/installer.ts` is explicitly excluded because current DESIGN proves it already calls the canonical guided-setup owner; a newly required change there returns to DESIGN/PLAN.
 
-## Minimum-change and architecture constraints
+## Exhaustive traceability invariants
 
-FCIS, SoC, DRY/canonical ownership, strict typing, no-OOP/no-DTO, authority-before-inference and minimum change remain binding. Existing owners/capabilities are reused only where DESIGN positively selected them. No compatibility shim, shadow model, service/repository/controller family, new persistence/API family, dependency, lifecycle state, provider capability or feature-local UI/theme system is authorized.
-
-New runtime concepts remain limited to the two already-designed concepts:
-
-1. one transient pure resolved-authority projection;
-2. one typed `GATE_CHECKPOINT_REQUESTED { gateId }` BUILDER event.
-
-## Completion evidence
-
-T1 is complete only when every phase row and every IA action has its required positive/negative proof, the exact final changed surface is authorized, Checkpoints A-E are satisfied, the six signed logical gates pass on the final candidate, and V0-V7 complete with fresh V4/V5/V6 evidence.
-
-Public PR merge/release/version bump remains outside T1.
-
-## Open questions
-
-Implementation-blocking questions: **NONE in the signed design; PLAN is currently under fresh revalidation after requirement-level traceability regeneration.**
-Architecture questions: **NONE in the signed design.**
-Authority conflicts: **NONE in R2/DESIGN; any newly discovered conflict returns upstream.**
+- exactly 112 stable requirements occur once across A01-A11;
+- exactly 24 package-local atomic obligations occur once across A01-A11;
+- every stable row names its exact R1 evidence and DESIGN disposition;
+- every POSITIVE_NO_CHANGE row has no execution action and names exact verification ownership;
+- every dependency-only row names the IA it consumes without duplicate edit ownership;
+- every technical/verification delta maps to one or more exact IA actions;
+- every IA01-IA25 is defined exactly once; IA23/IA24 are explicit cross-solution/final actions rather than orphan work;
+- all execution work remains inside the exact 30-path surface;
+- a disproved positive no-change or newly required path causes an upstream return.
 
 ## Compiled modular phase specification
-
-The directory files are the maintainable authoring decomposition for this PLAN. The text below is the canonical compiled P7 snapshot consumed by sign-off/execution. The root artifact remains the sole normative P7 authority; directory files carry no independent execution authority. Any directory change requires regeneration of this compiled section and the exact blob manifest before PLAN can be current.
 
 ---
 
 ### Compiled component: `implementation-plan/00-governance.md`
 
-#### 0.6.0 modular implementation-plan governance
+#### 0.6.0 modular PLAN governance
 
-This directory is the detailed phase decomposition of the **single** P7 plan package. The deterministic lifecycle artifact remains `../implementation-plan.md`; that root file carries the one canonical `order-tasks` block and an exact blob manifest for every phase file in this directory.
+This directory is the maintainable authoring decomposition of the **single** canonical P7 artifact at `../implementation-plan.md`. The root PLAN compiles these files in full and lists their exact Git blob SHAs. Directory files own no independent lifecycle state, Approval material or executable task block.
 
-The directory does not create parallel plans. A phase file owns only the detailed traceability and implementation obligations delegated to it by the root PLAN. Campaign status remains owned only by `0.6.0-design-campaign-plan.md`.
+##### Traceability law
 
-##### Closure law
-
-The package is exhaustive only when:
+Every stable P3 requirement and every package-local atomic obligation follows:
 
 ```text
-every R2 stable requirement
-+ every package-local/non-stable R2 consequence
-        -> exactly one or more DESIGN solution dispositions
-        -> exact IA implementation action(s) OR positive NO_CODE disposition
-        -> exact verification proof
+canonical P3 / package consequence
+ -> exact G-F10 R1 evidence
+ -> exact DESIGN disposition
+ -> execution owner IAxx OR dependency-only IAxx OR POSITIVE_NO_CHANGE
+ -> exact verification owner
 ```
 
-The reverse direction must also hold: every IA action must trace to at least one accepted DESIGN solution and R2 obligation.
+A positive no-change disposition is an implementation instruction: **do not edit for this requirement** and revalidate the named evidence/proof. If execution disproves it, return upstream.
 
-##### Phase order
+##### Execution ownership
 
-1. A01 lifecycle/product
-2. A02 governance/intake
-3. A03 queue/source
-4. A04 Workbench/Research
-5. A05 Requirements/DESIGN authority mutation
-6. A06 PLAN/R3
-7. A07 Approval/Execution
-8. A08 Complete/materials
-9. A09 Provider/Settings
-10. A10 Recovery/accessibility
-11. A11 component/certification
-12. shared implementation-action catalog
-13. shared verification/closeout contract
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA action is defined exactly once in `12-action-catalog.md` and assigned to one execution wave.
 
-The ordering is an implementation feedback order inside cumulative task T1, not eleven independent ExecutionTasks.
+##### Architecture constraints
 
-##### Architectural constraints
-
-FCIS, SoC, DRY/canonical ownership, strict typing, no-OOP/no-DTO, minimum change and authority-before-inference remain binding. No phase may invent another lifecycle/source/readiness/task/proposal/provider/theme/verification model.
-
-Current implementation, tests, rendered UI, 0.5.0 and historical design remain evidence only. Reuse is permitted only where the current DESIGN has positively selected the existing canonical owner/capability.
+FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
 
 ##### Stop conditions
 
-Return to DESIGN/PLAN before implementation if execution requires a new semantic owner, public contract, state meaning, persistence/transport shape, dependency direction, external dependency, provider capability, verification authority, or behavior outside the signed package.
+Return to DESIGN/PLAN before editing when execution requires a new semantic owner, state meaning, public contract, persistence/transport shape, external dependency, provider capability, verification authority, or path outside the signed changeSurface.
 
 
 ---
@@ -202,57 +144,42 @@ Return to DESIGN/PLAN before implementation if execution requires a new semantic
 
 #### A01 — Lifecycle and product identity
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-001-GOVERNED-LIFECYCLE` | `C01-O03`, `C01-O05`, `C01-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C01-O03`, `C01-O05`, `C01-O08` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `C01-O01`, `C01-O07` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C01-O01`, `C01-O07` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-205-MONOTONIC-REACH-HISTORY` | `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `C01-O05` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C01-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `C01-O03`, `C01-O11` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C01-O03`, `C01-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **5** manifest-canonical stable P3 requirements.
+Stable rows in phase: **5**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-001-GOVERNED-LIFECYCLE` | C01 | `GW-DOC-WORK-LIFECYCLE` | SD01 | NO_CODE / IA24 verification |
-| `GW-FR-002-REPRODUCIBLE-AUTHORITY` | C01 | `GW-DOC-WORK-LIFECYCLE` | SD01 | NO_CODE / IA24 verification |
-| `GW-FR-205-MONOTONIC-REACH-HISTORY` | C01 | `GW-DOC-WORKBENCH-UX` | SD01 | NO_CODE / IA24 verification |
-| `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | C01 | `GW-DOC-WORKBENCH-UX` | SD01 | NO_CODE / IA24 verification |
-| `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | C01 | `GW-DOC-WORKBENCH-UX` | SD01 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C21-01` | C21-F03/C21-F05 | `SD01` | `IA19` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **1**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C01 package-local R2 consequence | SD01 | NO_CODE — SD01 preserves canonical lifecycle/runtime semantics; IA24 revalidates them. |
-| C21 package-local R2 consequence | SD01 | IA19 |
+- **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD01 | Preserve canonical lifecycle/result semantics; change only public/terminal product-language projection where required. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA19** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -261,66 +188,52 @@ This phase is complete only when:
 
 #### A02 — Project governance and WorkItem intake
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `C16-O02`, `C16-O05`, `C22-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O02`, `C16-O05`, `C22-O10` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | `C02-O01` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C02-O01` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-011-VERSIONED-AUTHORING-SCHEMAS` | `C02-O02`, `C02-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C02-O02`, `C02-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | `C02-O04`, `C02-O05`, `C02-O07` | `MIXED_TECHNICAL_DELTA` | `SD03` | `IA11` | — | Recheck `C02-O04`, `C02-O05`, `C02-O07` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-029-NO-IDE-SCOPE` | `C04-O15` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O15` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` | `C02-O07`, `C02-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C02-O07`, `C02-O08` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `C22-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C22-O09` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Recheck `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **8** manifest-canonical stable P3 requirements.
+Stable rows in phase: **8**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | C22 | `GW-DOC-WORK-LIFECYCLE` | SD02 | IA01, IA02 |
-| `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | C02 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD03 | NO_CODE / IA24 verification |
-| `GW-FR-011-VERSIONED-AUTHORING-SCHEMAS` | C02 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD03 | NO_CODE / IA24 verification |
-| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | C02 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD03 | NO_CODE / IA24 verification |
-| `GW-FR-029-NO-IDE-SCOPE` | C02 | `GW-DOC-MARKDOWN-WORKBENCH` | SD03 | NO_CODE / IA24 verification |
-| `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` | C02 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD03 | IA11 |
-| `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | C22 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD02 | IA01, IA02 |
-| `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | C22 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD02 | IA01, IA02 |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C22-01` | C22-F01 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings before productive interpretation. |
+| `PL-C02-01` | C02-F01 | `SD03` | `IA11` | — | Ordinary Create language is Concerns, not raw Concern IDs. |
+| `PL-C02-02` | C02-F02 | `SD03` | `IA11` | — | Linked remediation project is fixed to parent project and not offered as invalid editable choice. |
+| `PL-C02-03` | C02-F03/C04-F01 | `SD04` | `IA09`, `IA10` | — | Created and discovered sources share one productive admission/persistence owner. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **4**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C22 package-local R2 consequence | SD02 | IA01, IA02 |
-| C02 package-local R2 consequence | SD03 | IA09, IA10, IA11 |
+- **IA11** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA01** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA02** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA09** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD02 | Resolve same-layer precedence plus P1 default/override/extension/fitness bindings in the pure governance core before productive provider context. |
-| SD03 | Correct Create presentation to canonical Concerns language and fixed same-project remediation context; no new command/schema. |
-| SD04 | Converge UI-created and repository-discovered WorkItems through one daemon new-source QueuePlan/applyPlan admission owner. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA01** — execute the exact action defined in `12-action-catalog.md`.
-- **IA02** — execute the exact action defined in `12-action-catalog.md`.
-- **IA09** — execute the exact action defined in `12-action-catalog.md`.
-- **IA10** — execute the exact action defined in `12-action-catalog.md`.
-- **IA11** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -329,82 +242,67 @@ This phase is complete only when:
 
 #### A03 — Queue, source admission and documentation Git
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | `C04-O01`, `C04-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O01`, `C04-O04` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` | `C03-O01`, `C03-O02`, `C03-O03`, `C03-O05`, `C03-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C03-O01`, `C03-O02`, `C03-O03`, `C03-O05`, `C03-O09` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-014-SOURCE-FRESHNESS` | `C04-O14`, `C02-O12` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O14`, `C02-O12` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-018-SOURCE-CONSUMER-CLOSURE` | `C04-O07`, `C04-O14` | `MIXED_TECHNICAL_DELTA` | `SD04` | `IA09`, `IA10` | — | Recheck `C04-O07`, `C04-O14` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-020-WORKBENCH-SOURCE-OPERATIONS` | `C03-O04`, `C03-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C03-O04`, `C03-O09` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-022-GOVERNED-MARKDOWN-EDITING` | `C04-O03`, `C04-O08`, `C04-O14` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O03`, `C04-O08`, `C04-O14` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-023-MARKDOWN-SOURCE-FIDELITY` | `C04-O01`, `C04-O02` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O01`, `C04-O02` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION` | `C04-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O04` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-061-DETERMINISTIC-WORKITEM-DOCUMENT-LAYOUT` | `C04-O04`, `C04-O05` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O04`, `C04-O05` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE` | `C04-O08`, `C04-O10`, `C04-O13` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O08`, `C04-O10`, `C04-O13` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-063-DOCUMENTATION-GIT-STATUS` | `C04-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O09` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR` | `C04-O02`, `C04-O15` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O02`, `C04-O15` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES` | `DIRECT-FR066` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `DIRECT-FR066` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS` | `C18-O11`, `DIRECT-FR067` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C18-O11`, `DIRECT-FR067` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-068-LIVE-SAFE-MARKDOWN-PREVIEW` | `DIRECT-FR068` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `DIRECT-FR068` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-069-EDITOR-STATE-CONTINUITY` | `C05-O07`, `C18-O04`, `C18-O11` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O07`, `C18-O04`, `C18-O11` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY` | `C04-O05` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O05` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY` | `C04-O12`, `C04-O13` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O12`, `C04-O13` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY` | `C04-O12` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O12` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT` | `C04-O03` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O03` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE` | `C03-O06`, `C03-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C03-O06`, `C03-O08` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-088-WORKITEM-METADATA-PRESERVATION` | `C04-O02`, `C04-O03` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O02`, `C04-O03` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-089-HUMAN-FIRST-WORKITEM-SOURCE-EDITOR` | `C04-O02`, `C04-O15` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O02`, `C04-O15` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-090-WORKITEM-BODY-CONFLICT-SAFETY` | `C04-O03` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O03` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-209-SOURCE-BLOCKER-ADMISSION` | `C03-O04`, `C04-O14` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C03-O04`, `C04-O14` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **25** manifest-canonical stable P3 requirements.
+Stable rows in phase: **25**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` | C03 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | IA09, IA10 |
-| `GW-FR-014-SOURCE-FRESHNESS` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-018-SOURCE-CONSUMER-CLOSURE` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | IA09, IA10 |
-| `GW-FR-020-WORKBENCH-SOURCE-OPERATIONS` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-022-GOVERNED-MARKDOWN-EDITING` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-023-MARKDOWN-SOURCE-FIDELITY` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-061-DETERMINISTIC-WORKITEM-DOCUMENT-LAYOUT` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-062-EXPLICIT-DOCUMENTATION-GIT-SAVE` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD06 | IA13 |
-| `GW-FR-063-DOCUMENTATION-GIT-STATUS` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD06 | IA13 |
-| `GW-FR-065-EXACT-SOURCE-MARKDOWN-EDITOR` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-066-DOCUMENT-EDIT-PREVIEW-MODES` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-067-MARKDOWN-AUTHORING-ERGONOMICS` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-068-LIVE-SAFE-MARKDOWN-PREVIEW` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-069-EDITOR-STATE-CONTINUITY` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY` | C03 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD05 | NO_CODE / IA24 verification |
-| `GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD06 | IA13 |
-| `GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY` | C03 | `GW-DOC-MARKDOWN-WORKBENCH` | SD05 | NO_CODE / IA24 verification |
-| `GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE` | C03 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD05 | IA12 |
-| `GW-FR-088-WORKITEM-METADATA-PRESERVATION` | C04 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-089-HUMAN-FIRST-WORKITEM-SOURCE-EDITOR` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-090-WORKITEM-BODY-CONFLICT-SAFETY` | C04 | `GW-DOC-MARKDOWN-WORKBENCH` | SD04 | NO_CODE / IA24 verification |
-| `GW-FR-209-SOURCE-BLOCKER-ADMISSION` | C04 | `GW-DOC-WORKBENCH-UX` | SD04 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C03-01` | C03-F01 | `SD05` | `IA12` | — | Including archived work expands the candidate set without bypassing project/search filters. |
+| `PL-C04-01` | C04-F01 | `SD04` | `IA09`, `IA10` | — | Source-admission owner is singular across creation/discovery. |
+| `PL-C04-02` | C04-F02 | `SD06` | `IA13` | — | Documentation-Git confirmation shows the exact governed paths/states before commit. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **3**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C03 package-local R2 consequence | SD05 | IA12 |
-| C04 package-local R2 consequence | SD04 | IA09, IA10, IA13 |
+- **IA09** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA12** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA13** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD04 | Converge UI-created and repository-discovered WorkItems through one daemon new-source QueuePlan/applyPlan admission owner. |
-| SD06 | Reuse canonical documentation-Git status/path facts and show exact governed paths/states before commit confirmation. |
-| SD05 | Own active/include-archived dataset selection and project/search derivation once at App level. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA09** — execute the exact action defined in `12-action-catalog.md`.
-- **IA10** — execute the exact action defined in `12-action-catalog.md`.
-- **IA12** — execute the exact action defined in `12-action-catalog.md`.
-- **IA13** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -413,73 +311,64 @@ This phase is complete only when:
 
 #### A04 — Workbench current attention and Research input
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `C06-O02`, `C22-O06` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Recheck `C06-O02`, `C22-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `C06-O13` | `TECHNICAL_DELTA` | `SD08` | `IA04` | `IA03` | Recheck `C06-O13` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-021-MARKDOWN-WORKSPACE` | `C04-O15`, `C05-O02`, `C05-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C04-O15`, `C05-O02`, `C05-O10` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-025-DURABLE-INTENT-INTERACTION` | `C06-O13` | `TECHNICAL_DELTA` | `SD08` | `IA04` | `IA03` | Recheck `C06-O13` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `C05-O05`, `C05-O06`, `C05-O11` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-201-OBSERVATIONAL-READS` | `C05-O03`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O03`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP` | `C06-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C06-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-215-STABLE-WORKFLOW-RAIL` | `C05-O01`, `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O01`, `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL` | `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `MIXED_TECHNICAL_DELTA` | `SD11`, `SD12`, `SD14` | `IA16`, `IA17`, `IA18` | — | Recheck `C05-O10`, `C05-O12`, `C19-O03` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O12`, `C19-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-219-EXPLICIT-CONTEXT` | `C05-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-220-PRESIGNOFF-CONTINUITY` | `C05-O05`, `C05-O06`, `C05-O12` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O08`, `C05-O12`, `C19-O01` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `C05-O01`, `C05-O02` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C05-O01`, `C05-O02` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` | `VERIFICATION_DELTA` | `SD17` | `IA21` | — | Recheck `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **18** manifest-canonical stable P3 requirements.
+Stable rows in phase: **18**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-005-LOCAL-WORKBENCH` | C05 | `GW-DOC-WORK-LIFECYCLE` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | C06 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD08 | NO_CODE / IA24 verification |
-| `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | C06 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD08 | IA03, IA04 |
-| `GW-FR-021-MARKDOWN-WORKSPACE` | C05 | `GW-DOC-MARKDOWN-WORKBENCH` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-025-DURABLE-INTENT-INTERACTION` | C06 | `GW-DOC-MARKDOWN-WORKBENCH` | SD08 | IA03, IA04 |
-| `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-201-OBSERVATIONAL-READS` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP` | C06 | `GW-DOC-WORKBENCH-UX` | SD08 | IA03, IA04 |
-| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-215-STABLE-WORKFLOW-RAIL` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-219-EXPLICIT-CONTEXT` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-220-PRESIGNOFF-CONTINUITY` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
-| `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | C05 | `GW-DOC-WORKBENCH-UX` | SD07 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C05-01` | C05-F01 | `SD07` | `IA14` | — | Exact current attention owner/reason/action remains visible/reachable while other material is inspected. |
+| `PL-C06-01` | C06-F01 | `SD08` | `IA04` | `IA03` | Authority-changing input is not sufficient durable authority until a later adopted canonical proposal exists. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **2**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C05 package-local R2 consequence | SD07 | IA14 |
-| C06 package-local R2 consequence | SD08 | IA03, IA04, IA14 |
+- **IA01** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA02** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA04** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA14** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA21** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD07 | Keep current-attention derivation independent of explicit inspected material and keep the exact owner/action visible and reachable. |
-| SD08 | Treat durable-decision human replies as input only; require later adopted canonical authority before stage completion. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA03** — execute the exact action defined in `12-action-catalog.md`.
-- **IA04** — execute the exact action defined in `12-action-catalog.md`.
-- **IA14** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -488,53 +377,39 @@ This phase is complete only when:
 
 #### A05 — Requirements and DESIGN authority mutation
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION` | `C07-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C07-O04` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **1** manifest-canonical stable P3 requirements.
+Stable rows in phase: **1**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION` | C07 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD09 | IA03 |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C07-01` | C07-F01 | `SD09` | `IA03` | — | R2 can propose/adopt validated current P2/P3 canonical-owner amendments through the one proposal mechanism. |
+| `PL-C08-01` | C08-F01 | `SD09` | `IA03` | — | DESIGN can propose/adopt validated current P4/P5/P6 canonical-owner amendments through the same mechanism. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **2**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C07 package-local R2 consequence | SD09 | IA03 |
-| C08 package-local R2 consequence | SD09 | IA03 |
+- **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD09 | Reuse one proposal/adoption mechanism for permanent GOVERNANCE mutations with stage-specific P2/P3 vs P4-P6 target/layer/base-hash admission. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA03** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -543,57 +418,42 @@ This phase is complete only when:
 
 #### A06 — PLAN contract and R3 readiness
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11` | `IA16` | — | Recheck `C10-O06`, `C10-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **3** manifest-canonical stable P3 requirements.
+Stable rows in phase: **3**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | C10 | `GW-DOC-SPECIFICATION-STANDARD` | SD11 | NO_CODE / IA24 verification |
-| `GW-FR-211-READINESS-RETURN-CONTINUITY` | C10 | `GW-DOC-WORKBENCH-UX` | SD11 | NO_CODE / IA24 verification |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | C10 | `GW-DOC-WORKBENCH-UX` | SD11 | IA16 |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Implementation-required signed task package is materially non-vacuous. |
+| `PL-C10-01` | C10-F01 | `SD11` | `IA16` | — | Readiness dominant verdict is typed R3 outcome. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **2**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C09 package-local R2 consequence | SD10 | IA05 |
-| C10 package-local R2 consequence | SD11 | IA16 |
+- **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD11 | Project the typed R3 outcome as the primary Readiness verdict; material maturity/currentness remains separate. |
-| SD10 | Strengthen the existing SignedTaskBlock/parser/validator so an implementation-required package cannot be vacuous. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA05** — execute the exact action defined in `12-action-catalog.md`.
-- **IA16** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -602,66 +462,52 @@ This phase is complete only when:
 
 #### A07 — Approval and execution checkpoints
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `C12-O01`, `C12-O02`, `C12-O07` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O01`, `C12-O02`, `C12-O07` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `C12-O12`, `C12-O13`, `C12-O19` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O12`, `C12-O13`, `C12-O19` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-017-SOURCE-SIGNOFF-BINDING` | `C11-O01`, `C11-O03`, `C12-O20` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C11-O01`, `C11-O03`, `C12-O20` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `C11-O01`, `C11-O02`, `C11-O07` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C11-O01`, `C11-O02`, `C11-O07` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C12-O03`, `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `C12-O17`, `C17-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O17`, `C17-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_DELTA` | `SD12` | `IA17` | — | Recheck `C11-O06`, `C11-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O17` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | `C12-O16` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O16` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **10** manifest-canonical stable P3 requirements.
+Stable rows in phase: **10**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | C12 | `GW-DOC-WORK-LIFECYCLE` | SD13 | NO_CODE / IA24 verification |
-| `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | C12 | `GW-DOC-WORK-LIFECYCLE` | SD13 | NO_CODE / IA24 verification |
-| `GW-FR-017-SOURCE-SIGNOFF-BINDING` | C11 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD12 | NO_CODE / IA24 verification |
-| `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | C11 | `GW-DOC-MARKDOWN-WORKBENCH` | SD12 | NO_CODE / IA24 verification |
-| `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | C12 | `GW-DOC-MARKDOWN-WORKBENCH` | SD13 | NO_CODE / IA24 verification |
-| `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | C11 | `GW-DOC-WORKBENCH-UX` | SD12 | IA06, IA17 |
-| `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | C12 | `GW-DOC-WORKBENCH-UX` | SD13 | NO_CODE / IA24 verification |
-| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | C11 | `GW-DOC-WORKBENCH-UX` | SD12 | IA17 |
-| `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | C12 | `GW-DOC-WORKBENCH-UX` | SD13 | NO_CODE / IA24 verification |
-| `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | C12 | `GW-DOC-WORKBENCH-UX` | SD13 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C11-01` | C11-F01 | `SD12` | `IA17` | — | Approval presents readiness and package currentness before technical identity. |
+| `PL-C11-02` | C11-F02 | `SD12` | `IA06` | — | Canonical approval identity is trimmed/nonblank at ingress. |
+| `PL-C12-01` | C12-F01 | `SD13` | `IA07`, `IA08` | — | Signed in-task architecture checkpoint is coordinator-executable without provider shell permission. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **3**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C11 package-local R2 consequence | SD12 | IA06, IA17 |
-| C12 package-local R2 consequence | SD13 | IA07, IA08 |
+- **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA06** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA07** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA08** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD13 | Add one BUILDER checkpoint-request event; coordinator executes only signed/resolved gates through the existing validation owner. |
-| SD12 | Normalize Approval identity canonically and present readiness/currentness before technical package identity. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA06** — execute the exact action defined in `12-action-catalog.md`.
-- **IA07** — execute the exact action defined in `12-action-catalog.md`.
-- **IA08** — execute the exact action defined in `12-action-catalog.md`.
-- **IA17** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -670,135 +516,107 @@ This phase is complete only when:
 
 #### A08 — Complete and governed materials
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `C13-O01`, `C13-O05` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C13-O01`, `C13-O05` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | `C14-O09`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O09`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C13-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `C14-O05`, `C14-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O05`, `C14-O06` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | `C14-O03`, `C14-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O03`, `C14-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | `C14-O08`, `DIRECT-FR242` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C14-O08`, `DIRECT-FR242` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **7** manifest-canonical stable P3 requirements.
+Stable rows in phase: **7**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | C13 | `GW-DOC-MARKDOWN-WORKBENCH` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-207-PROPOSAL-AUTHORITY-BOUNDARY` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-208-ACTIVE-RUN-AUTHORITY-EXCLUSION` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-224-TERMINAL-RESULT-PRIMACY` | C13 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-241-DERIVED-MATERIAL-MATURITY` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
-| `GW-FR-242-DIALOGUE-REPLY-CONTEXT` | C14 | `GW-DOC-WORKBENCH-UX` | SD14 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| — | — | — | — | — | No package-local atom beyond stable-requirement coverage. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **0**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C13 package-local R2 consequence | SD14 | NO_CODE — SD14 positive no-production-delta; IA24 preserves terminal semantics. |
-| C14 package-local R2 consequence | SD14 | NO_CODE — SD14 positive no-production-delta; IA24 preserves material semantics. |
+- No IA action is owned by this phase; all stable requirements are positive no-change.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD14 | Positive no-production-delta: existing COMPLETE/material/proposal/evidence owners already satisfy the reconstructed functional obligations. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- No dedicated production action. This phase is a positive no-production-delta disposition and is verified under IA24.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
 
 ### Compiled component: `implementation-plan/09-a09-provider-settings.md`
 
-#### A09 — Provider/OpenCode and Settings
+#### A09 — Provider, installation and Settings
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `DIRECT-FR007` | `TECHNICAL_DELTA` | `SD19` | `IA25` | — | Recheck `DIRECT-FR007` via new `tests/installer.test.ts`; existing `tests/order-migration.test.ts` + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `C16-O07` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O07` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `C16-O09`, `C16-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O09`, `C16-O10` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-080-CONFIGURATION-CONTINUITY` | `DIRECT-FR080` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `DIRECT-FR080` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `C16-O06`, `DIRECT-FR081` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O06`, `DIRECT-FR081` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `C16-O04`, `DIRECT-FR082` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O04`, `DIRECT-FR082` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` | `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION` | `C16-O02`, `C16-O03` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O02`, `C16-O03` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY` | `C16-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O04` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | `C16-O01` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C16-O01` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | `C15-O02`, `C15-O08`, `C15-O15` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O02`, `C15-O08`, `C15-O15` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `C15-O03`, `C15-O04`, `C15-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O03`, `C15-O04`, `C15-O08` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `C15-O12`, `C15-O13` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O12`, `C15-O13` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | `C15-O03`, `C15-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O03`, `C15-O04` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-203-SERIALIZED-RUN-TURNS` | `C15-O05` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY` | `C15-O05`, `C15-O07`, `C15-O11` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O05`, `C15-O07`, `C15-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-237-BOUNDED-AGENT-ACTIVITY` | `C15-O09`, `C15-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O09`, `C15-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-240-REJECTED-PROVIDER-RESULT-FAILURE` | `C15-O01`, `C15-O07`, `C15-O12` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C15-O01`, `C15-O07`, `C15-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **21** manifest-canonical stable P3 requirements.
+Stable rows in phase: **21**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | C16 | `GW-DOC-WORK-LIFECYCLE` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-080-CONFIGURATION-CONTINUITY` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | NO_CODE / IA24 verification |
-| `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | C16 | `GW-DOC-INSTALLATION-READINESS` | SD16 | IA18 |
-| `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | C15 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | C15 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | C15 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | C15 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-203-SERIALIZED-RUN-TURNS` | C15 | `GW-DOC-WORKBENCH-UX` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY` | C15 | `GW-DOC-WORKBENCH-UX` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-237-BOUNDED-AGENT-ACTIVITY` | C15 | `GW-DOC-WORKBENCH-UX` | SD15 | NO_CODE / IA24 verification |
-| `GW-FR-240-REJECTED-PROVIDER-RESULT-FAILURE` | C15 | `GW-DOC-WORKBENCH-UX` | SD15 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C16-01` | C16-F01 | `SD14` | `IA18` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required. |
+| `PL-C16-02` | C16-F02 | `SD19` | `IA25` | — | Fresh productive install cannot succeed with mandatory repository/account/model setup deferred to Settings. |
+| `PL-C16-03` | C16-F03 | `SD19` | `IA25` | `PRE_T1_P6_CORRECTION_DONE` | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **3**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C15 package-local R2 consequence | SD15 | NO_CODE — SD15 positive no-production-delta; IA24 preserves provider boundary. |
-| C16 package-local R2 consequence | SD16 | IA18 |
+- **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD16 | Recompose Settings around operator readiness/meaning/actions while retaining exact technical identity under Technical details except active path-entry tasks. |
-| SD15 | Positive no-production-delta: existing OpenCode/provider/session/permission/failure architecture already satisfies the reconstructed functional obligations. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA18** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -807,62 +625,45 @@ This phase is complete only when:
 
 #### A10 — Recovery, current attention and accessibility
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-016-SOURCE-CONFORMANCE-IDENTITY` | `C06-O15`, `C22-O06` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C06-O15`, `C22-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-024-LIFECYCLE-FRESHNESS-VISIBILITY` | `C17-O02`, `C17-O05`, `C17-O09` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C17-O02`, `C17-O05`, `C17-O09` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-202-ATOMIC-COMMAND-OUTCOME` | `C17-O04`, `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C17-O04`, `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE` | `C17-O05` | `TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C17-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | `C17-O07` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C17-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C18-O01`, `C18-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **7** manifest-canonical stable P3 requirements.
+Stable rows in phase: **7**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-016-SOURCE-CONFORMANCE-IDENTITY` | C17 | `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` | SD17 | NO_CODE / IA24 verification |
-| `GW-FR-024-LIFECYCLE-FRESHNESS-VISIBILITY` | C17 | `GW-DOC-MARKDOWN-WORKBENCH` | SD17 | NO_CODE / IA24 verification |
-| `GW-FR-202-ATOMIC-COMMAND-OUTCOME` | C17 | `GW-DOC-WORKBENCH-UX` | SD17 | NO_CODE / IA24 verification |
-| `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE` | C17 | `GW-DOC-WORKBENCH-UX` | SD07 | IA14 |
-| `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | C17 | `GW-DOC-WORKBENCH-UX` | SD17 | NO_CODE / IA24 verification |
-| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | C18 | `GW-DOC-WORKBENCH-UX` | SD18 | IA15 |
-| `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | C17 | `GW-DOC-WORKBENCH-UX` | SD17 | NO_CODE / IA24 verification |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C18-01` | C18-F01 | `SD15` | `IA15` | — | New required input moves focus once to its Workbench composer and polling does not steal it repeatedly. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **1**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C17 package-local R2 consequence | SD17 | NO_NEW_STATE — SD17 retained; IA14 consumes the existing current-attention owner. |
-| C18 package-local R2 consequence | SD18 | IA15 |
+- **IA14** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA15** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD17 | Positive no-new-state disposition: existing recovery/current-attention/coherence owners remain canonical; presentation corrections consume them. |
-| SD07 | Keep current-attention derivation independent of explicit inspected material and keep the exact owner/action visible and reachable. |
-| SD18 | Move focus once to the relevant required-input composer keyed by exact request identity; never poll-steal focus or inspect private Astryx DOM. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA14** — execute the exact action defined in `12-action-catalog.md`.
-- **IA15** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -871,63 +672,52 @@ This phase is complete only when:
 
 #### A11 — Component/theme consistency and certification
 
-**Role:** subordinate phase specification of the single 0.6.0 P7 plan package rooted at `../implementation-plan.md`.  
-**Upstream authority:** `requirements.md`, `solution-design.md`, resolved P1-P6 authority.  
+**Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `e77408f9dad996a0d6c18c2887daede6bbdbed3c`.
 
-This phase is not a second implementation plan and owns no lifecycle status. It expands the root PLAN's traceability for this concern pair. Current implementation/tests/UI are evidence only and never define desired behavior.
+##### Stable requirement execution dispositions
 
-##### Stable functional requirements
+| Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
+|---|---|---|---|---|---|---|
+| `GW-FR-004-INDEPENDENT-VALIDATION` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE` | `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `DIRECT-FR103` | `POSITIVE_NO_CHANGE` | — | NONE — preserve proven realization | — | Recheck `DIRECT-FR103` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-227-CERTIFICATION-MATRIX` | `C20-O12` | `VERIFICATION_DELTA` | `SD15`, `SD16`, `SD17`, `SD18` | `IA15`, `IA20`, `IA21`, `IA22` | — | Recheck `C20-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11`, `SD12`, `SD14`, `SD16` | `IA16`, `IA17`, `IA18`, `IA20` | — | Recheck `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `VERIFICATION_DELTA` | `SD16` | `IA20` | — | Recheck `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-235-GLOBAL-THEME-PARITY` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `VERIFICATION_DELTA` | `SD18` | `IA22` | — | Recheck `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
-This phase accounts for **7** manifest-canonical stable P3 requirements.
+Stable rows in phase: **7**.
 
-| Functional requirement | Primary concern | Canonical P3 owner | DESIGN solution | P7 implementation disposition |
-|---|---|---|---|---|
-| `GW-FR-004-INDEPENDENT-VALIDATION` | C20 | `GW-DOC-WORK-LIFECYCLE` | SD19 | IA23, IA24 |
-| `GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE` | C20 | `GW-DOC-LIFECYCLE-CONTEXT` | SD19 | IA23, IA24 |
-| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | C20 | `GW-DOC-PROJECT-GOVERNANCE-INTEGRATION` | SD19 | IA23 |
-| `GW-FR-227-CERTIFICATION-MATRIX` | C20 | `GW-DOC-WORKBENCH-UX` | SD19 | IA21, IA22, IA23 |
-| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | C19 | `GW-DOC-WORKBENCH-UX` | SD19 | IA20, IA22 |
-| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | C19 | `GW-DOC-WORKBENCH-UX` | SD19 | IA20, IA22 |
-| `GW-FR-235-GLOBAL-THEME-PARITY` | C19 | `GW-DOC-WORKBENCH-UX` | SD19 | IA22 |
+##### Package-local atomic obligations
 
-Every `NO_CODE / IA24 verification` disposition is positive preservation of already-proven canonical realization, not a current-state fallback. A later implementation discovery that disproves that positive disposition returns to DESIGN/PLAN.
+| Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
+|---|---|---|---|---|---|
+| `PL-C19-01` | C19-F01 | `SD16` | `IA20` | — | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. |
+| `PL-C20-01` | C20-F02 | `SD17` | `IA21` | — | Permanent browser certification proves complete four-kind Research/downstream scenario 41. |
+| `PL-C20-02` | C20-F03 | `SD18` | `IA22` | — | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. |
 
-##### Package-local R2 consequences
+Package atoms in phase: **3**.
 
-The stable-ID inventory is not the complete functional package. The concern-level R2 consequences in `requirements.md` remain binding and are mapped here separately.
+##### Referenced actions
 
-| Functional consequence | DESIGN solution | P7 implementation disposition |
-|---|---|---|
-| C19 package-local R2 consequence | SD19 | IA20, IA22 |
-| C20 package-local R2 consequence | SD19 | IA20, IA21, IA22, IA23, IA24 |
+- **IA15** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA20** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA21** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA22** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 
-##### Technical solutions consumed
+##### Completion proof
 
-| Solution | Technical disposition |
-|---|---|
-| SD19 | Close permanent renderer, work-kind Research/downstream and System/Light/Dark component/theme certification gaps using existing verification owners. |
-
-These solution IDs are local traceability keys for this WorkItem. Permanent technical semantics remain owned by the referenced P4-P6 canonical documents.
-
-##### Implementation actions
-
-- **IA20** — execute the exact action defined in `12-action-catalog.md`.
-- **IA21** — execute the exact action defined in `12-action-catalog.md`.
-- **IA22** — execute the exact action defined in `12-action-catalog.md`.
-- **IA23** — execute the exact action defined in `12-action-catalog.md`.
-- **IA24** — execute the exact action defined in `12-action-catalog.md`.
-
-##### Phase completion proof
-
-This phase is complete only when:
-
-1. every stable requirement row above resolves to one technical solution and one implementation/no-code disposition;
-2. every package-local R2 consequence resolves to a technical solution and implementation/no-code disposition;
-3. every referenced IA action is fully satisfied against its exact file/symbol surface;
-4. all phase-relevant positive and negative assertions in `13-verification-closeout.md` pass;
-5. no material P1-P6 decision is made by the implementation worker;
-6. any disproved no-code disposition returns upstream rather than being silently implemented.
+1. every stable row above retains its exact R1 evidence and DESIGN disposition;
+2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
+3. dependency-only rows consume the named IA action without duplicating its implementation;
+4. every package atom is satisfied by its one execution owner;
+5. action-specific tests plus `13-verification-closeout.md` pass;
+6. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -936,169 +726,199 @@ This phase is complete only when:
 
 #### 0.6.0 implementation action catalog
 
-**Role:** shared detailed action definitions for the single cumulative T1.  
-**Authority:** each IA action is downstream of `requirements.md` and `solution-design.md`; this file cannot create product or architecture decisions.
+Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility.
+
+##### Execution waves
+
+1. **Wave 1 — authority/contracts/execution:** IA01-IA08.
+2. **Wave 2 — source/queue/Git:** IA09-IA13.
+3. **Wave 3 — Workbench/product presentation:** IA14-IA19.
+4. **Wave 4 — productive installer:** IA25.
+5. **Wave 5 — permanent certification:** IA20-IA23.
+6. **Wave 6 — candidate closeout:** IA24.
+
+Architecture-feedback checkpoints in `13-verification-closeout.md` apply after each wave.
 
 ##### IA01 — pure project-authority resolution
 
-**Owners/anchors:** `src/core/governance.ts` — existing authority-layer, concern, material and freshness pure functions.  
-**Required change:** add the minimum pure resolution operation over validated manifest inputs and shell-expanded paths that determines same-layer precedence plus inherited P1 default/override/extension and fitness-gate bindings.  
-**Must not:** perform filesystem/provider I/O, infer semantic contradiction, introduce a DTO/service/repository/class hierarchy or parallel authority graph.  
-**Proof:** core tests cover ordering, defaults, override/extension, unresolved invalid inputs and deterministic equality.
+**Solution:** SD02.  
+**Owner/anchors:** `src/core/governance.ts`, existing authority-layer/concern/material/freshness pure functions.  
+**Required mutation:** add the minimum pure resolved-authority projection over validated manifest inputs and shell-expanded selected paths, including same-layer precedence plus inherited P1 default/override/extension and fitness bindings.  
+**Forbidden:** filesystem/provider I/O; semantic contradiction inference; DTO/service/repository/class family; parallel authority graph.  
+**Proof:** `tests/core.test.ts` ordering/default/override/extension/invalid-input cases.
 
 ##### IA02 — consume resolved authority before productive context
 
-**Owners/anchors:** `src/daemon/authority.ts` — `resolveStageContextState`, `resolveStageContext`, approval/material closure; `src/daemon/stage.ts` — `stagePrompt` / stage admission.  
-**Required change:** consume IA01's resolved projection before provider context/conformance/sign-off dependency construction.  
-**Must not:** move semantic resolution into provider prompts or browser state.  
-**Proof:** daemon tests prove provider context sees only resolved authority and blocks invalid/unresolved bindings.
+**Solution:** SD02. Depends on IA01.  
+**Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
+**Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction; invalid/unresolved bindings block before provider use.  
+**Proof:** `tests/daemon.test.ts` productive-context admission and negative unresolved-binding cases.
 
 ##### IA03 — one GOVERNANCE proposal/adoption mechanism
 
-**Owners/anchors:** `src/core/contracts.ts` ArtifactRef/proposal/RunEvent contracts; `src/core/governance.ts`; `src/daemon/stage.ts` `proposalDisposition`, `proposalAdoptionRequest`, `adoptArtifactProposal`, `reconcilePendingArtifactProposals`.  
-**Required change:** extend the existing proposal path so R2 may target only current manifest-resolved P2/P3 owners and DESIGN only current P4/P5/P6 owners, with exact role/layer/path/base-hash re-resolution before adoption.  
-**Must not:** introduce stage-specific proposal DTOs, direct agent writes or a second decision store.  
-**Proof:** core/daemon negative tests reject wrong layer/path/hash/stale targets; adoption emits the existing immutable ArtifactRef/freshness consequences.
+**Solution:** SD09.  
+**Anchors:** `src/core/contracts.ts` proposal/ArtifactRef contracts; `src/core/governance.ts`; `src/daemon/stage.ts::proposalDisposition/proposalAdoptionRequest/adoptArtifactProposal/reconcilePendingArtifactProposals`; `src/daemon/authority.ts`.  
+**Required mutation:** R2 admits only current manifest-resolved P2/P3 targets; DESIGN only P4/P5/P6; exact role/layer/path/base-hash re-resolution before adoption.  
+**Forbidden:** stage-specific proposal DTOs/direct provider writes/second decision store.  
+**Proof:** core/daemon wrong-layer/path/hash/stale/adoption/freshness cases.
 
 ##### IA04 — durable-decision completion admission
 
-**Owners/anchors:** `src/core/lifecycle.ts` `evaluateStageCompletion`, `validateStageProviderTurn`, input/proposal derivation; `src/daemon/stage.ts` `runStageTurn`, `submitRunInput`.  
-**Required change:** after the latest answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT request, reject stage completion until a later proposal adoption proves durable authority.  
-**Must not:** persist chat as authority or create a new decision state machine.  
-**Proof:** core/daemon chronology tests cover adopted, rejected, cancelled, stale and ordinary INFORMATION/EVIDENCE input.
+**Solution:** SD08. Consumer dependency on IA03 when the durable target is permanent governance.  
+**Anchors:** `src/core/lifecycle.ts::evaluateStageCompletion/validateStageProviderTurn`; `src/daemon/stage.ts::runStageTurn/submitRunInput`.  
+**Required mutation:** after latest answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, reject stage completion until later adopted authority exists. INFORMATION/EVIDENCE remains unchanged.  
+**Proof:** core/daemon chronology cases for adopted/rejected/cancelled/stale and ordinary information input.
 
-##### IA05 — non-vacuous signed task contract
+##### IA05 — non-vacuous signed-task contract
 
-**Owners/anchors:** `src/core/contracts.ts` SignedTaskBlock/task schemas; `src/core/execution.ts` `parseSignedTaskBlockFromPlan`; `src/daemon/authority.ts` `validateTaskDefinitions`.  
-**Required change:** enforce implementation-required plans contain at least one materially specified task with nonblank id/objective and nonempty justified scope/changeSurface/acceptance/gates/authority/concerns under existing legality rules.  
-**Must not:** create another task representation.  
-**Proof:** exact positive/negative parser and R3/sign-off validation tests.
+**Solution:** SD10.  
+**Anchors:** `src/core/contracts.ts` SignedTaskBlock/task schemas; `src/core/execution.ts::parseSignedTaskBlockFromPlan`; `src/daemon/authority.ts::validateTaskDefinitions`.  
+**Required mutation:** implementation-required plan has at least one materially specified task with meaningful id/objective/scope/changeSurface/acceptance/gates/authority/concerns.  
+**Proof:** exact positive/negative parser and readiness/signoff validation tests.
 
 ##### IA06 — canonical Approval identity normalization
 
-**Owners/anchors:** `src/core/contracts.ts` Approval schema; `src/daemon/authority.ts` `signOffWorkItem`.  
-**Required change:** trim `approvedBy` at canonical parsing/admission and reject whitespace-only identity before persistence.  
-**Must not:** leave the invariant browser-owned.  
-**Proof:** direct daemon/contract negative tests plus browser feedback test.
+**Solution:** SD12.  
+**Anchors:** `src/core/contracts.ts` Approval schema; `src/daemon/authority.ts::signOffWorkItem`.  
+**Required mutation:** trim and reject whitespace-only `approvedBy` before persistence.  
+**Proof:** core/daemon direct-ingress negative tests plus browser feedback.
 
 ##### IA07 — typed BUILDER checkpoint request
 
-**Owners/anchors:** `src/core/contracts.ts` RunEvent payload; `src/core/execution.ts` `builderProviderTags`, `providerEventIsAdmitted`.  
-**Required change:** add exactly `GATE_CHECKPOINT_REQUESTED { gateId }`, admitted only as the terminal action of a BUILDER provider turn.  
-**Must not:** admit STAGE/REVIEWER/REMEDIATOR use or carry result/evidence in the request.  
+**Solution:** SD13.  
+**Anchors:** `src/core/contracts.ts` RunEvent payload; `src/core/execution.ts::builderProviderTags/providerEventIsAdmitted`.  
+**Required mutation:** add exactly `GATE_CHECKPOINT_REQUESTED { gateId }`, BUILDER-only, terminal action of that provider turn.  
 **Proof:** role/event admission tests.
 
 ##### IA08 — coordinator-owned signed checkpoint execution
 
-**Owners/anchors:** `src/daemon/execution.ts` execution turn/reaction functions including `executeMutatingRun` / `executePostSignoffRun`; `src/daemon/validation.ts` `runRequiredGates`, gate evidence/result owners.  
-**Required change:** validate signed gate/current manifest/freshness, execute the gate in the current builder workspace through existing validation effects, record existing GATE_PASSED/GATE_FAILED evidence, then continue the same Run/session.  
-**Must not:** grant provider shell/execute, create persisted checkpoint state or substitute checkpoint evidence for V3/V5/V7.  
-**Proof:** daemon checkpoint pass/fail/unsigned/stale/continuation tests.
+**Solution:** SD13. Depends on IA07.  
+**Anchors:** `src/daemon/execution.ts` mutating/post-signoff reaction owner; `src/daemon/validation.ts::runRequiredGates` and existing gate evidence/result owner.  
+**Required mutation:** validate signed gate/current manifest/freshness, execute in current builder workspace through validation effects, record existing GATE_PASSED/GATE_FAILED evidence, continue same Run/session.  
+**Forbidden:** provider shell/execute; persisted checkpoint state; checkpoint as substitute for V3/V5/V7.  
+**Proof:** daemon pass/fail/unsigned/stale/continuation cases.
 
 ##### IA09 — singular new-source planner
 
-**Owners/anchors:** `src/daemon/work-item-source.ts` `reconcileWorkItemSources`, `createWorkItemFromSource`.  
-**Required change:** factor one daemon-local new-source planner returning the existing REGISTERED QueuePlan for a validated source snapshot.  
-**Must not:** add another source model or persistence path.  
-**Proof:** unit/integration tests show created/discovered inputs produce equivalent admission plans except provenance.
+**Solution:** SD04.  
+**Anchor:** `src/daemon/work-item-source.ts::reconcileWorkItemSources/createWorkItemFromSource`.  
+**Required mutation:** factor one daemon-local new-source planner returning the existing REGISTERED QueuePlan from a validated source snapshot.  
+**Proof:** created/discovered inputs produce equivalent admission plans except provenance.
 
 ##### IA10 — converge created/discovered persistence
 
-**Owners/anchors:** `src/daemon/work-item-source.ts` `createWorkItemFromSource`, repository reconciliation/applyPlan owner.  
-**Required change:** route UI-created and discovered source snapshots through IA09 and the existing applyPlan persistence boundary; delete direct create-path WorkItem construction/store.  
-**Proof:** daemon tests prove one persistence owner, source read-back and diagnostics/freshness remain intact.
+**Solution:** SD04. Depends on IA09.  
+**Anchor:** `src/daemon/work-item-source.ts`.  
+**Required mutation:** route UI-created and discovered source snapshots through IA09 + existing applyPlan; delete direct create-path WorkItem construction/store.  
+**Proof:** daemon one-persistence-owner, read-back, diagnostics and freshness tests.
 
 ##### IA11 — canonical Create interaction
 
-**Owner/anchor:** `ui/src/CreateWorkItem.tsx`.  
-**Required change:** ordinary vocabulary is **Concerns**; linked remediation shows parent project as fixed context and cannot offer an invalid cross-project choice.  
-**Proof:** browser tests for ordinary creation and linked remediation.
+**Solution:** SD03.  
+**Anchor:** `ui/src/CreateWorkItem.tsx`.  
+**Required mutation:** ordinary vocabulary is Concerns; linked remediation shows fixed parent project context and no invalid cross-project selector. Preserve metadata/body ownership.  
+**Proof:** browser ordinary creation, metadata ownership and linked-remediation tests.
 
-##### IA12 — one archive/project/search queue derivation
+##### IA12 — one archive/project/search derivation
 
-**Owners/anchors:** `ui/src/app.tsx` `App`; `ui/src/WorkItemQueue.tsx` `WorkItemQueue`.  
-**Required change:** App selects active versus include-archived canonical dataset, then applies project/search filtering exactly once; queue receives filtered rows and archive-toggle behavior.  
-**Must not:** retain queue-local alternate filter semantics.  
-**Proof:** browser matrix for active/archived × project × search.
+**Solution:** SD05.  
+**Anchors:** `ui/src/app.tsx::App`; `ui/src/WorkItemQueue.tsx::WorkItemQueue`.  
+**Required mutation:** App selects active/include-archived canonical dataset then applies project/search exactly once; queue does not own alternate filtering.  
+**Proof:** browser active/archived × project × search matrix while archive identity/history remains unchanged.
 
 ##### IA13 — exact documentation-Git review
 
-**Owner/anchors:** `ui/src/DocumentWorkspace.tsx` `DocumentationGitConfirmation`, existing documentation status/path projection.  
-**Required change:** confirmation lists exact governed changed paths/states before commit.  
-**Must not:** create a second Git path/status owner.  
-**Proof:** browser assertions for exact paths and state labels, including negative stale/conflict cases.
+**Solution:** SD06.  
+**Anchor:** `ui/src/DocumentWorkspace.tsx::DocumentationGitConfirmation`.  
+**Required mutation:** list exact canonical governed changed paths/states before commit; reuse existing Git status owner.  
+**Proof:** browser exact-path/state review plus blocker cases. Do not alter save/status/eligibility semantics already proven conforming.
 
-##### IA14 — current attention remains visible during inspection
+##### IA14 — current attention survives inspection
 
-**Owners/anchors:** `src/core/lifecycle.ts` `deriveCurrentAttention` remains canonical; UI `ActivityWorkspace.tsx`, `WorkItemWorkspace.tsx`, `workbench-presentation.ts` material/summary derivation.  
-**Required change:** keep historical/supporting inspection but render the exact higher-priority current attention owner/action visibly and directly reachable whenever selected material differs.  
-**Must not:** create browser workflow policy or clear legitimate historical selection merely to show attention.  
-**Proof:** presentation/browser cases for required input, proposal, blocker, stale/recovery and historical selection.
+**Solution:** SD07.  
+**Anchors:** canonical `src/core/lifecycle.ts::deriveCurrentAttention` remains unchanged owner; UI `ActivityWorkspace.tsx`, `WorkItemWorkspace.tsx`, `workbench-presentation.ts`.  
+**Required mutation:** when inspected material differs from current owner, render exact higher-priority owner/reason/action and direct return while preserving legitimate inspection.  
+**Proof:** presentation/browser required-input/proposal/blocker/stale/recovery with historical selection.
 
 ##### IA15 — focus once per required-input request
 
-**Owners/anchors:** `ui/src/ActivityComposer.tsx` `ActivityComposer`; `ui/src/ActivityWorkspace.tsx` `StageRunMaterial`.  
-**Required change:** on a newly current required-input event id, move focus once to the Workbench-owned composer region; do not refocus on polling/rerender.  
-**Must not:** inspect private Astryx DOM/API or add workflow state.  
-**Proof:** browser focus-once, rerender and responsive continuity cases.
+**Solution:** SD15.  
+**Anchors:** `ui/src/ActivityComposer.tsx::ActivityComposer`; `ui/src/ActivityWorkspace.tsx::StageRunMaterial`.  
+**Required mutation:** new current required-input event id moves focus once to Workbench composer; rerender/polling does not refocus.  
+**Proof:** browser focus-once/rerender/responsive cases.
 
-##### IA16 — canonical Readiness verdict projection
+##### IA16 — canonical Readiness verdict
 
-**Owner/anchor:** `ui/src/ReadinessWorkspace.tsx` `ReadinessWorkspace` plus existing presentation helper owner.  
-**Required change:** dominant verdict is the typed R3 completion outcome; material maturity/currentness is separate supporting state.  
-**Proof:** browser/presentation tests for READY_FOR_SIGNOFF, RETURN_TO_* and BLOCKED, including stale material.
+**Solution:** SD11.  
+**Anchor:** `ui/src/ReadinessWorkspace.tsx::ReadinessWorkspace` plus existing presentation helper.  
+**Required mutation:** dominant verdict is typed R3 completion outcome; maturity/currentness separate.  
+**Proof:** READY_FOR_SIGNOFF/RETURN_TO_*/BLOCKED + stale material cases.
 
 ##### IA17 — Approval readiness/currentness hierarchy
 
-**Owner/anchor:** `ui/src/SignoffReview.tsx` `SignoffReview`.  
-**Required change:** present canonical readiness and package currentness before technical package identity; stale/history states never fabricate readiness.  
-**Proof:** browser/presentation tests for current/stale package states.
+**Solution:** SD12.  
+**Anchor:** `ui/src/SignoffReview.tsx::SignoffReview`.  
+**Required mutation:** readiness + package currentness precede task/technical identity; stale/history cannot fabricate readiness.  
+**Proof:** browser/presentation current/stale package cases.
 
 ##### IA18 — operator-first Settings hierarchy
 
-**Owner/anchors:** `ui/src/SettingsWorkspace.tsx` `SettingsWorkspace`, `RepositorySettings`, `ModelRuntimeSettings`.  
-**Required change:** readiness, meaning and available operator actions are primary; exact roots/endpoints/model-source/credential-like identity moves to existing Technical details except where an active Add/Move/configuration task requires the exact value.  
-**Must not:** alter canonical configuration/provider models.  
-**Proof:** browser tests for normal settings, attention/blockers and active configuration tasks.
+**Solution:** SD14.  
+**Anchors:** `ui/src/SettingsWorkspace.tsx::SettingsWorkspace/RepositorySettings/ModelRuntimeSettings`.  
+**Required mutation:** readiness/meaning/actions primary; exact roots/endpoints/model source/credential-like identity under Technical details except active configuration input.  
+**Proof:** browser normal Settings, blockers, Add/Move/configuration cases.
 
 ##### IA19 — product-language projection
 
-**Owners/anchors:** `README.md`; `ui/src/TerminalResult.tsx` `TerminalResult`; `ui/src/workbench-presentation.ts` result labels.  
-**Required change:** public/product surfaces use verified result as umbrella and **Verified candidate** for CANDIDATE_DONE; implementation remains conditional; no automatic delivery overclaim.  
-**Must not:** prettify internal enums into product copy.  
-**Proof:** presentation/browser copy assertions.
+**Solution:** SD01.  
+**Anchors:** `README.md`; `ui/src/TerminalResult.tsx::TerminalResult`; `ui/src/workbench-presentation.ts`.  
+**Required mutation:** verified result umbrella; Verified candidate only CANDIDATE_DONE; no universal implementation or automatic delivery overclaim; explicit mapping not enum prettification.  
+**Proof:** presentation/browser product-copy assertions.
 
-##### IA20 — exhaustive production-renderer classification certification
+##### IA20 — exhaustive renderer classification certification
 
+**Solution:** SD16.  
 **Owner:** `tests/certification.test.ts`.  
-**Required change:** derive/check complete production renderer coverage against the canonical Workbench renderer-to-primitive matrix, including currently omitted renderers such as ActivityComposer.  
-**Must not:** edit `tests/architecture.test.ts` or create a second UI registry.  
-**Proof:** test fails for an unclassified production renderer and passes the current approved set.
+**Required mutation:** derive/check complete production renderer coverage against canonical P4 matrix, including ActivityComposer; fail on an unclassified renderer.  
+**Forbidden:** edit `tests/architecture.test.ts` inside T1 or create second UI registry.  
+**Proof:** certification negative/positive fixture.
 
 ##### IA21 — scenario-41 work-kind certification
 
-**Owners:** `tests/browser.spec.ts` plus existing fixture/helpers.  
-**Required change:** certify all four WorkItem kinds' Work request and Research information contracts and preserve distinct Change/Defect downstream obligations.  
-**Proof:** explicit four-kind matrix, not label-only assertions.
+**Solution:** SD17.  
+**Owner:** `tests/browser.spec.ts`.  
+**Required mutation:** certify all four kinds' Work request + Research information contracts and distinct Change/Defect downstream obligations.  
+**Proof:** explicit four-kind semantic matrix.
 
-##### IA22 — System/Light/Dark component and semantic-role parity
+##### IA22 — System/Light/Dark component-semantic parity
 
+**Solution:** SD18.  
 **Owners:** `tests/browser.spec.ts`, `tests/workbench-presentation.test.ts`.  
-**Required change:** representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay states render the canonical component language and semantic roles under System/Light/Dark.  
-**Authority:** Workbench component architecture and Workbench theme.  
-**Proof:** semantic role/component assertions rather than incidental pixel snapshots.
+**Required mutation:** representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay states preserve canonical semantic roles under all effective themes.  
+**Proof:** semantic role/component assertions; no pixel-snapshot substitute.
 
-##### IA23 — targeted core/daemon/presentation regression closure
+##### IA23 — cross-solution regression closure
 
-**Owners:** `tests/core.test.ts`, `tests/daemon.test.ts`, `tests/workbench-presentation.test.ts`, with browser coverage where interaction is material.  
-**Required change:** add positive and negative proofs for IA01-IA19: authority resolution, proposal admission, durable decisions, task non-vacuity, Approval identity, checkpoint flow, source singularity, queue filtering, Git review, attention, Readiness/Approval/Settings/result language and focus.  
-**Proof:** every production IA action has at least one owned regression and all negative invariants remain explicit.
+**Upstream:** all SD01-SD19.  
+**Owners:** existing targeted core/daemon/presentation/browser/certification suites.  
+**Required mutation:** fill any integration-level positive/negative gaps needed to prove the composed solutions without duplicating action-specific tests. Explicitly prove no compatibility fallback, shadow owner or implementation-derived semantics.  
+**Proof:** all targeted suites green and V4/V5/V6 trace every added assertion to an SD/requirement/atom.
 
-##### IA24 — candidate closeout
+##### IA24 — exact candidate closeout
 
-**Owner/surface:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
-**Required change:** record user-visible/correctness consequences under Unreleased; run dependency-lock, typecheck, architecture, test, build and browser on the exact final candidate; complete V0-V7 with fresh V4/V5/V6 and no stale evidence reuse after edits.  
+**Upstream:** complete T1.  
+**Owner:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
+**Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6.  
 **Terminal:** only CANDIDATE_DONE or valid ALREADY_SATISFIED. PR merge/release/version bump remain outside T1.
+
+##### IA25 — guided productive installer completion
+
+**Solution:** SD19.  
+**Canonical authority:** P3 FR007, P4 GW-TR-007 and corrected P6.  
+**Owner/anchor:** `src/shell/setup.ts::runInstallerGuidedSetup/runGuidedSetupInternal`; `src/installer.ts::configureOrder/runInstaller` is the existing caller and is not expected to change.  
+**Required mutation:** remove/replace the fresh `configured === null` success/defer branch so installer-owned setup continues through existing private OpenCode login, model selection, exact target repository validation/selection and reference-root choices before returning success. Preserve valid incomplete v4 for daemon/Settings recovery and transient rollback-safe installer state. Preserve existing upgrade/migration retention and rollback.  
+**Forbidden:** new config schema; second setup owner; mandatory post-install Settings/provider-login step; speculative `src/installer.ts` edit. If setup.ts alone cannot realize SD19, return to DESIGN/PLAN.  
+**Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
 
 ---
@@ -1107,41 +927,36 @@ This phase is complete only when:
 
 #### 0.6.0 verification and closeout contract
 
-This file owns the detailed verification allocation inside the single P7 task. It does not create a second validation model; all semantics remain owned by `GW-DOC-VALIDATION-STANDARD-V1`, project gate bindings and canonical contracts.
+This component allocates proof inside the one signed T1. It does not create another validation model.
 
 ##### Architecture-feedback checkpoints
 
-| Checkpoint | After | Required gates/evidence |
+| Checkpoint | After execution wave | Required evidence |
 |---|---|---|
-| A | IA01-IA04 | typecheck, architecture, relevant core/daemon tests |
-| B | IA05-IA08 | typecheck, architecture, task/Approval/checkpoint core+daemon tests |
-| C | IA09-IA12 | typecheck, architecture, source/queue daemon+browser tests |
-| D | IA13-IA19 | typecheck, architecture, Workbench/browser/presentation tests |
-| E | IA20-IA23 | typecheck, architecture, full test, build, browser |
+| A | Wave 1 IA01-IA08 | typecheck + architecture + relevant core/daemon tests |
+| B | Wave 2 IA09-IA13 | typecheck + architecture + source/queue/Git daemon/browser tests |
+| C | Wave 3 IA14-IA19 | typecheck + architecture + Workbench/browser/presentation tests |
+| D | Wave 4 IA25 | typecheck + architecture + installer test + order-migration test + build |
+| E | Wave 5 IA20-IA23 | typecheck + architecture + full test + build + browser |
 
-A checkpoint is feedback inside T1 and never substitutes for V3/V5/V7.
+Checkpoints are feedback only and never substitute for final V3/V5/V7.
 
-##### Requirement-level verification law
+##### Requirement-level proof law
 
-For every row in phase files 01-11:
+For every stable requirement row in phases 01-11:
 
-- a CHANGE disposition is proven by its IA-specific positive assertion, at least one negative assertion and the applicable checkpoint/final gates;
-- a NO_CODE disposition is revalidated under V1/V4/V5/V6 and the final six-gate union; if current evidence disproves the positive no-change proof, execution stops and returns to DESIGN/PLAN;
-- tests prove authority-derived behavior and may not preserve incidental 0.5.0 behavior.
+- `POSITIVE_NO_CHANGE`: no production edit is authorized for that requirement. Revalidate its exact R1 evidence and named verification owner under V4/V5/V6; a contradiction returns upstream.
+- `DEPENDENCY_DELTA`: no duplicate edit is authorized; prove the requirement's own realization still conforms after the named dependency action lands.
+- technical/mixed delta: execute only the exact IA owner and prove the conforming remainder is unchanged.
+- verification delta: add only the missing proof; do not infer a behavioral rewrite.
 
-##### Test-owner allocation
+Every package atom must have exactly one execution owner. Shared IA references are consumer dependencies.
 
-| Action family | Primary verification owners |
-|---|---|
-| IA01-IA05 | tests/core.test.ts, tests/daemon.test.ts |
-| IA06-IA10 | tests/core.test.ts, tests/daemon.test.ts |
-| IA11-IA19 | tests/browser.spec.ts, tests/workbench-presentation.test.ts, targeted daemon/core tests where canonical ingress applies |
-| IA20 | tests/certification.test.ts |
-| IA21-IA22 | tests/browser.spec.ts, tests/workbench-presentation.test.ts |
-| IA23 | all existing targeted suites above |
-| IA24 | complete logical gate union + V0-V7 |
+##### Exact proof owners
 
-##### Final gate union
+Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA24 runs the final validation contract.
+
+##### Final logical gate union
 
 - dependency-lock
 - typecheck
@@ -1150,24 +965,19 @@ For every row in phase files 01-11:
 - build
 - browser
 
-`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata and other signed authority/verification material remain outside T1's implementation surface.
+##### V0-V7 final review obligations
 
-##### Final semantic review
+V4/V5/V6 explicitly verify:
+- all 112 stable rows retain their R1 evidence and DESIGN disposition;
+- all 24 package atoms are satisfied;
+- every positive no-change row remains true;
+- exact 30-path signed surface, no extra path;
+- FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
+- no compatibility/fallback/shadow state/owner;
+- corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
+- no implementation-derived product semantics.
 
-V4/V5/V6 must explicitly verify:
-
-- FCIS and pure/core versus daemon/shell/UI boundaries;
-- SoC and cohesive module responsibility;
-- DRY/canonical ownership;
-- strict typing;
-- no OOP/DTO/service/repository/controller/shadow-model family;
-- no hidden fallback/compatibility path;
-- exact signed surface and no unrelated cleanup;
-- no implementation-derived product semantics;
-- every phase row still traces R2 -> DESIGN -> IA/no-code -> proof;
-- no phase file or action introduces a material decision not present in signed DESIGN.
-
-Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstream return, not an implementation repair.
+`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata remain outside T1. Any pre-signoff G-F10 fitness-sensor correction changes verification material before Approval and forces downstream package revalidation.
 
 
 ## Canonical order-tasks block
@@ -1178,7 +988,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete fresh Order 0.6.0 authority-driven corrective design as one cumulative candidate, executing every requirement-level technical delta and verification delta in the signed modular PLAN package while preserving each positive no-code disposition and introducing no parallel semantic owner, DTO, lifecycle state, persistence/API family, dependency or implementation-derived product semantics.",
+      "objective": "Implement the complete authority-driven Order 0.6.0 semantic DESIGN as one cumulative verified candidate: execute SD01-SD19 through IA01-IA25 exactly where the G-F10 evidence identifies a technical or verification delta, preserve every requirement-level POSITIVE_NO_CHANGE realization, and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
       "dependsOn": [],
       "scope": [
         "README.md",
@@ -1191,6 +1001,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "src/daemon/stage.ts",
         "src/daemon/validation.ts",
         "src/daemon/work-item-source.ts",
+        "src/shell/setup.ts",
         "ui/src/ActivityComposer.tsx",
         "ui/src/ActivityWorkspace.tsx",
         "ui/src/CreateWorkItem.tsx",
@@ -1208,6 +1019,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "tests/daemon.test.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts",
+        "tests/installer.test.ts",
         "CHANGELOG.md"
       ],
       "exclusions": [
@@ -1217,7 +1029,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "docs/**",
         "package.json",
         "pontivus-order.toml",
-        "src/shell/**",
+        "src/installer.ts",
         "src/daemon/server.ts",
         "tests/architecture.test.ts",
         "ui/src/http.ts",
@@ -1234,7 +1046,8 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION",
         "GW-DOC-INSTALLATION-READINESS-V1",
         "GW-DOC-PRODUCT-IDENTITY-V1",
-        "GW-DOC-SYSTEM-BRIEF-V1"
+        "GW-DOC-SYSTEM-BRIEF-V1",
+        "GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP"
       ],
       "changeSurface": [
         "README.md",
@@ -1247,6 +1060,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "src/daemon/stage.ts",
         "src/daemon/validation.ts",
         "src/daemon/work-item-source.ts",
+        "src/shell/setup.ts",
         "ui/src/ActivityComposer.tsx",
         "ui/src/ActivityWorkspace.tsx",
         "ui/src/CreateWorkItem.tsx",
@@ -1264,6 +1078,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "tests/daemon.test.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts",
+        "tests/installer.test.ts",
         "CHANGELOG.md"
       ],
       "gateIds": [
@@ -1283,6 +1098,7 @@ Any failure requiring a P1-P6 semantic choice is BLOCKED_SPEC_OR_DESIGN / upstre
         "GW-P1-MINIMUM-CHANGE",
         "GW-P1-AUTHORITY-BEFORE-INFERENCE",
         "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
+        "GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
         "GW-DOC-WORKBENCH-THEME-V1",
         "GW-DOC-EXECUTION-CONTROL-PLANE-V1",
