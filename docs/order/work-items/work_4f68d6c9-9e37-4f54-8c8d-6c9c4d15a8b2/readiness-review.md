@@ -16,8 +16,8 @@ The remediation's substantive repository correction is already part of the pre-s
 - R1: `research.md`, blob `fcc98dc57ae0a8457e18cbef8d42d9fe2d4c849c`;
 - R2: `requirements.md`, blob `5190001b80173739975c40ea80262a897f68e7b9`;
 - DESIGN: `solution-design.md`, blob `004ae5bd5419c6147153332091f5731f57e62f67`;
-- PLAN: `implementation-plan.md`, blob `6ae6bd9f39ee5bba76346add42fbcb9b779aec11`;
-- corrected permanent verification material: `tests/architecture.test.ts`, blob `e68b94addd51ad58fc3e1a77367cf8a2a24da603`;
+- PLAN: `implementation-plan.md`, blob `50f0f4a40a2d978835f02e71954fcf09c5cf86d5`;
+- corrected permanent verification material: `tests/architecture.test.ts`, blob `bb4a89ab316e0f97d2304518b7eb172b9b559d9e`;
 - delivery record: `CHANGELOG.md`, current baseline.
 
 The exact Git baseline for eventual Approval must be re-resolved from the final committed package; no earlier commit is silently substituted.
