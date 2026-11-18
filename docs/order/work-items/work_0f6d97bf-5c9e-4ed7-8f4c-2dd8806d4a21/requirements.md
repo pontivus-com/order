@@ -15,11 +15,11 @@ R1 found two classes of downstream work:
 
 | Requirement | Disposition | Canonical owner |
 |---|---|---|
-| C01 canonical lifecycle versus internal execution/validation taxonomy | DELTA | GW-DOC-SYSTEM-BRIEF |
+| C01 canonical lifecycle versus internal execution/validation taxonomy | REFERENCE | GW-DOC-WORK-LIFECYCLE |
 | C01 lifecycle-context decision-boundary taxonomy | DELTA | GW-DOC-LIFECYCLE-CONTEXT |
 | C02 intake/kind/concern authoring semantics | REFERENCE | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM |
 | C02 ordinary Create presentation and linked-remediation same-project semantics | REFERENCE | GW-DOC-WORKBENCH-UX |
-| C03 queue/archive/project/search semantics | REFERENCE | GW-DOC-WORKBENCH-UX |
+| C03 queue/archive/project/search semantics | REFERENCE | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM |
 | C04 portable source/authoring/durability semantics | REFERENCE | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM |
 | C05 workspace/navigation/context semantics | REFERENCE | GW-DOC-WORKBENCH-UX |
 | C06 Research interaction/factual-closure semantics | REFERENCE | GW-DOC-WORK-LIFECYCLE |
@@ -31,14 +31,18 @@ R1 found two classes of downstream work:
 | C12 signed-task execution/validation semantics | REFERENCE | GW-DOC-VALIDATION-STANDARD |
 | C13 terminal result/Complete semantics | REFERENCE | GW-DOC-WORK-LIFECYCLE |
 | C14 governed material/proposal/evidence/dialogue semantics | REFERENCE | GW-DOC-MARKDOWN-WORKBENCH |
-| C15 provider/session/activity semantics | REFERENCE | GW-DOC-OPENCODE-INTEGRATION |
+| C15 provider/session/activity/input interaction semantics | REFERENCE | GW-DOC-WORKBENCH-UX |
+| C15 productive provider admission/failure semantics | REFERENCE | GW-DOC-PROJECT-GOVERNANCE-INTEGRATION |
 | C16 Settings/readiness/repository/account/model hierarchy | REFERENCE | GW-DOC-INSTALLATION-READINESS |
 | C17 current-attention/recovery/convergence semantics | REFERENCE | GW-DOC-WORKBENCH-UX |
 | C18 responsive/accessibility semantic continuity | REFERENCE | GW-DOC-WORKBENCH-UX |
 | C19 component/visual/theme functional language | REFERENCE | GW-DOC-WORKBENCH-UX |
 | C20 end-to-end certification/transition closure | REFERENCE | GW-DOC-SPECIFICATION-STANDARD |
-| C21 verified terminal-result and no-intent-invention product language | DELTA | GW-DOC-PRODUCT-IDENTITY |
+| C21 verified-result/verified-candidate terminal outcome semantics | REFERENCE | GW-DOC-WORK-LIFECYCLE |
+| C21 no-intent-invention functional boundary | REFERENCE | GW-DOC-LIFECYCLE-CONTEXT |
 | C22 project governance/authority/verification integration | REFERENCE | GW-DOC-PROJECT-GOVERNANCE-INTEGRATION |
+
+This ledger classifies P3 functional authority only, as required by `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION`. The already-applied C01/C21 P2 clarifications remain governed by `GW-DOC-SYSTEM-BRIEF` and `GW-DOC-PRODUCT-IDENTITY` and are recorded below as upstream product-authority clarification, not as P3 `REFERENCE`/`DELTA` owners.
 
 ## Required observable outcome/delta
 
