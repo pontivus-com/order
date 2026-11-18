@@ -6,11 +6,11 @@
 
 This PLAN consumes the confirmed G-F06/G-F07/G-F08 requirements and DESIGN only.
 
-The necessary permanent verification-material correction has already been applied **pre-signoff** at the existing canonical fitness owner because `tests/architecture.test.ts` is selected as PLAN/R3 `VERIFICATION_MATERIAL`; a signed task whose Approval binds that file may not mutate it. The exact corrected sensor blob at plan construction is `c4a937c9d3a607c8266ff78c9597992815fe0ce0`.
+The necessary permanent verification-material correction has already been applied **pre-signoff** at the existing canonical fitness owner because `tests/architecture.test.ts` is selected as PLAN/R3 `VERIFICATION_MATERIAL`; a signed task whose Approval binds that file may not mutate it. The exact corrected sensor blob at plan construction is `4bb4aff95104b87fdc725d29e1297d7c489b78e4`.
 
 The post-signoff execution task therefore authorizes no repository mutation. Its sole executable objective is to use the canonical V1 `ALREADY_SATISFIED` path to independently prove that the approved baseline already contains the complete correction. If the baseline does not satisfy the requirements, execution must return upstream; it may not edit the frozen verification material.
 
-Plan-construction repository baseline: `84d1bf9c8283e8923c577cdcea99388284670195`.
+Plan-construction repository baseline: `e3d540d64a51d70f7cc046c5bcb39282ea66d1b4`.
 
 ## Task topology
 
