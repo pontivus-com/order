@@ -38,6 +38,27 @@ This WorkItem is the sole active coordination/work point for the Order 0.6.0 des
 
 This does not make the WorkItem a permanent semantic authority. P1-P6 meaning remains with the canonical concern owners; this WorkItem owns only the governed change package and its campaign progression. Parallel 0.6.0 plans or design streams must not become competing status/decision owners.
 
+## Single campaign-plan and lifecycle-plan authority law
+
+This WorkItem has exactly one campaign-control plan and exactly one canonical P7 implementation-plan artifact:
+
+- `0.6.0-design-campaign-plan.md` is the sole authority for campaign sequencing, concern batching, mandatory pair audits, campaign findings/dependencies, concern/gate status and progression rules;
+- `implementation-plan.md` is the sole canonical P7 executable implementation-plan artifact for this WorkItem. It owns executable tasks only after fresh DESIGN closure and PLAN regeneration; while G5 is not passed it is non-current and cannot authorize implementation.
+
+No second prerequisite plan, remediation plan, completion plan, handover plan, audit plan or alternative implementation plan may be created for this WorkItem. A needed process/audit-rule change is made in `0.6.0-design-campaign-plan.md`. A needed executable-task change is made in `implementation-plan.md` at PLAN after the required upstream gates.
+
+The remaining WorkItem artifacts have bounded roles and cannot override either plan:
+
+- `0.6.0-concern-coverage-ledger.md` — inventory/coverage evidence only;
+- `research.md` — canonical R1 factual synthesis;
+- `requirements.md` — canonical R2 functional requirements;
+- `solution-design.md` — canonical DESIGN technical solution;
+- `readiness-review.md` — canonical R3 adversarial verdict.
+
+PR bodies, CI/test output, implementation observations, historical START/END records, prior lifecycle versions, handovers, prompts, model/chat output and external summaries are evidence/provenance only. They cannot change campaign status, bypass a pair audit, authorize the next pair, restore a stale downstream artifact, alter P7 scope or override current canonical P1-P6 authority.
+
+If any such information conflicts with the current campaign-control plan or the current lifecycle-stage authority, the conflict is recorded and routed to the owning canonical document. The conflicting lower-authority material never controls by default.
+
 ## Why this change is required
 
 The 0.6.0 redesign must not repeat the failure mode where a large integrated design is treated as complete while individual product concerns, state interactions, authority dependencies or downstream implementation consequences remain unexamined.
