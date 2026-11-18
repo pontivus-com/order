@@ -3453,3 +3453,90 @@ Trusted integration semantics may influence model execution, but they do not enl
 The productive admission boundary proves and binds the selected integration/account identity plus exact Order-owned repository/context/config identities for the lifetime of the live provider binding. These identities are transient admission/freshness state, not a separate durable evidence contract. Existing Run/provider diagnostics remain the durable execution evidence already owned elsewhere; this section does not require adding account/config identity fields to ProviderDiagnosticRecord or another persisted model. Order does not fabricate hashes for provider-native semantic bytes that OpenCode does not expose through its public API.
 
 No new persisted instruction-domain model is introduced. The shell derives this admission from existing repository/context/account/config/permission owners.
+
+
+## 37. Authority-driven 0.6.0 contract closure
+
+This section amends existing canonical contracts only where the fresh 0.6.0 DESIGN requires a stronger exact boundary.
+
+### 37.1 Resolved authority input
+
+The ProjectManifest grammar in §14 is unchanged.
+
+Before a productive stage consumes authority, Order derives one transient resolved authority projection from the validated manifest plus deterministic repository-pattern expansion:
+
+- `authority.p1` through `authority.p6` remain the complete selected source sets;
+- `precedence.<layer>` supplies precedence only between explicitly listed literal paths, highest first;
+- authority-array/filesystem ordering is never precedence;
+- P1 defaults are inherited unless one valid override names the stable default rule;
+- compatible extensions remain additive;
+- resolved fitness gates are the union required by §14.
+
+The projection is a functional result, not a canonical persisted/transport type. The manifest plus referenced authority bytes remain the authority/evidence inputs.
+
+### 37.2 R2/DESIGN permanent authority proposal admission
+
+Existing `ARTIFACT_PROPOSAL_CREATED` is the only proposal carrier.
+
+For a non-lifecycle proposal:
+- `role` MUST be `GOVERNANCE`;
+- in R2, `authorityLayer` MUST be P2 or P3;
+- in DESIGN, `authorityLayer` MUST be P4, P5 or P6;
+- `targetPath` MUST be an existing current path selected by the validated ProjectManifest for that exact layer;
+- `baseSha256` MUST equal current target bytes;
+- the target MUST be re-resolved immediately before adoption;
+- no new permanent authority file/owner may be created through this 0.6.0 path.
+
+Lifecycle proposals retain their existing role/layer/path contract. Both proposal forms use the same current proposal/disposition events and exact-patch application owner.
+
+### 37.3 Durable-decision human input
+
+HumanInputCategory is unchanged.
+
+`INFORMATION` and `EVIDENCE` are conversational-input categories.
+
+`STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` are durable-decision categories. `HUMAN_INPUT_RECEIVED` records decision input only. It is never itself a P2-P7 authority artifact.
+
+For a STAGE Run whose latest answered input is a durable-decision category, `STAGE_COMPLETED` is admissible only when a later `ARTIFACT_PROPOSAL_DISPOSITIONED { disposition: "ADOPTED" }` exists in that Run's chronology. A rejected/cancelled proposal does not satisfy the boundary. Manual external authority edits stale/restart the Run through existing freshness rules rather than being retroactively attributed to the chat answer.
+
+### 37.4 Signed task non-vacuity
+
+The existing single `SignedTaskBlock` remains the only executable task representation.
+
+For current v2 Change/Defect PLAN packages that proceed to sign-off:
+
+- `tasks` has at least one task;
+- every task `id` and `objective` is trimmed and non-empty;
+- every task has at least one `scope` entry;
+- every task has at least one `acceptanceRef`;
+- every task has at least one `changeSurface` entry;
+- every task has at least one `gateId`;
+- every task has at least one `authorityRef`;
+- every task has at least one `concernId`;
+- `dependsOn` and `exclusions` may remain empty;
+- all existing uniqueness, DAG, ref, concern, path, gate and authority validation remains mandatory.
+
+Investigation/Audit no-code terminal outcomes do not manufacture a signed task block because they do not enter PLAN/sign-off execution.
+
+### 37.5 Approval identity
+
+`Approval.approvedBy` remains a string field but canonical parsing normalizes it with trim and requires at least one non-whitespace character. NUL remains invalid under the existing string safety boundary.
+
+The browser may provide earlier feedback, but every daemon/persistence ingress uses the canonical schema and cannot persist whitespace-only approval identity.
+
+### 37.6 Builder checkpoint request
+
+`RunEventPayload` gains:
+
+```ts
+{
+  tag: "GATE_CHECKPOINT_REQUESTED";
+  gateId: GateId;
+}
+```
+
+Provider admission permits this event only for `BUILDER`. It is forbidden for STAGE, REVIEWER and REMEDIATOR.
+
+The request carries no result/evidence and does not satisfy validation. Only the coordinator may emit the existing `GATE_PASSED` / `GATE_FAILED` events after executing the exact resolved gate.
+
+The BUILDER turn contract permits at most one checkpoint request as the terminal action of that provider turn. The coordinator reacts, records the result and starts the next turn in the same live Run/session. Any other terminal completion/candidate handling waits until a subsequent turn that does not request a checkpoint.

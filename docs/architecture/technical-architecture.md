@@ -2453,3 +2453,76 @@ Permanent migration tests must prove v3 choices survive byte-for-semantic-value 
 **Acceptance criterion:** Settings can remove saved accounts, including the active/final account, and the returned refreshed `OpenCodeAccountState` plus readiness accurately reflect the resulting OpenCode-owned state without changing model configuration.
 
 **Failure/negative behavior:** Order must not use secret-bearing credential listing, infer a replacement active account, remove an unproven credential id, or permit removal to straddle active productive Runs.
+
+
+## 35. Authority-driven 0.6.0 technical closure
+
+This section closes only the technical realization decisions exposed by the 0.6.0 exhaustive authority-first campaign. It does not restate P2/P3 semantics and does not make current implementation shape a preservation target.
+
+### 35.1 Resolved project authority remains a pure core concern
+
+`src/core/governance.ts` owns one pure resolution operation over the already-validated `ProjectManifest` plus repository-pattern expansion results supplied by the shell. The operation resolves, without filesystem I/O or persistence:
+
+- the selected P1-P6 source paths per layer;
+- explicit same-layer precedence relations exactly as declared by `precedence.p1` through `precedence.p6`; unlisted same-layer sources gain no implied precedence;
+- inherited P1 defaults, explicit overrides and compatible extensions by stable rule/reference identity;
+- the union of direct fitness gates and override/extension gates;
+- the exact authority references that must remain material to stage context and sign-off.
+
+Authority-array order and filesystem order remain processing order only. They never become semantic precedence.
+
+`src/shell/project.ts` remains the repository-pattern/I/O owner. It expands authority and precedence selections against normalized repository-relative paths and validates that every referenced/precedence/override/extension source is reachable. It does not decide semantic authority.
+
+`src/daemon/authority.ts` consumes the pure resolved result before constructing stage context. The provider receives the exact current manifest plus material authority artifacts in the resolved layer/precedence order; the daemon never asks the provider to invent precedence/default/override semantics. A same-layer semantic contradiction for which the resolved relation supplies no winner remains `CONTRADICTORY_AUTHORITY` and blocks through the existing stage/conformance path.
+
+The resolved projection is transient functional-core output only. No new DTO, persisted table, HTTP model, ArtifactRole, lifecycle state or shadow authority document is introduced.
+
+### 35.2 Permanent authority mutation uses the existing proposal/adoption owner
+
+The existing `ARTIFACT_PROPOSAL_CREATED` / adoption path is extended rather than duplicated.
+
+- During R2, a non-lifecycle proposal may target only an existing manifest-resolved P2 or P3 authority path and must declare `role = GOVERNANCE` plus the exact matching authority layer.
+- During DESIGN, a non-lifecycle proposal may target only an existing manifest-resolved P4, P5 or P6 authority path and must declare `role = GOVERNANCE` plus the exact matching authority layer.
+- The target path must already be selected by the current resolved authority graph for that exact layer; this 0.6.0 design does not authorize creation of a new permanent authority owner.
+- The proposal `baseSha256` must match the current target bytes. Adoption re-resolves the project manifest/authority immediately before mutation and again before disposition.
+- Lifecycle-document proposals retain their current stage-role/path semantics.
+- Lifecycle and permanent-authority proposals share the same one-pending-proposal interaction grammar and disposition state. There is no second proposal queue/state machine.
+
+An adopted permanent-authority proposal creates the ordinary immutable `GOVERNANCE` ArtifactRef for the changed bytes and uses existing dependency/freshness invalidation. The WorkItem lifecycle document records only the package consequence; it does not become a second permanent owner.
+
+### 35.3 Durable-decision human input remains input, never authority
+
+The existing HumanInput categories remain the only input taxonomy.
+
+`INFORMATION` and `EVIDENCE` may be consumed as ordinary conversational facts.
+
+`STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` are durable-decision categories. A human reply may supply the decision input, but the reply event itself never becomes durable product/technical authority. Before a STAGE Run can complete after the most recent answered durable-decision request, a later adopted artifact proposal must exist in that Run history (current lifecycle output or an admitted permanent-authority proposal as applicable). Otherwise completion admission fails and the stage remains with its current owner.
+
+This is enforced by pure Run-event-history admission logic plus the existing daemon stage owner. No decision database or conversational-authority record is added.
+
+### 35.4 Existing source, queue and Workbench owners are corrected in place
+
+The following are realization corrections under already-binding P3/P4 ownership, not new architecture:
+
+- `src/daemon/work-item-source.ts` factors one daemon-local planner for a newly validated source snapshot. Both browser creation and repository discovery produce the existing REGISTERED `QueuePlan` and persist only through the existing `applyPlan` boundary.
+- `ui/src/app.tsx` owns active/include-archived query selection plus project/search derivation; `WorkItemQueue.tsx` receives the already-filtered rows and archive-toggle state while retaining row-local restore mutation presentation.
+- `DocumentWorkspace.tsx` reuses its existing canonical Git-status path set and renders the exact changed governed paths in the confirmation before commit.
+- Workbench current-attention derivation remains pure/canonical and independent of explicit historical/supporting material selection.
+- Readiness, Approval, Settings and terminal-result corrections remain projections of existing canonical state; no readiness, settings or result field is added.
+
+### 35.5 Module-boundary consequences
+
+No new production module is required.
+
+- `src/core/governance.ts`: pure authority/default/override/precedence resolution.
+- `src/core/lifecycle.ts`: pure stage/input/proposal/completion admission policy where lifecycle semantics are involved.
+- `src/core/contracts.ts`: canonical schemas/events only.
+- `src/core/execution.ts`: role/event admission for the one new checkpoint-request event.
+- `src/shell/project.ts`: deterministic repository-pattern expansion/manifest source proof only.
+- `src/daemon/authority.ts`: compose resolved authority material into stage/sign-off context.
+- `src/daemon/stage.ts`: stage interaction, proposal adoption and durable-decision completion admission.
+- `src/daemon/work-item-source.ts`: singular source-admission/reconciliation orchestration.
+- `src/daemon/execution.ts` + `src/daemon/validation.ts`: signed checkpoint request/reaction using the existing verification effect owner.
+- existing Workbench feature renderers remain presentation adapters over canonical values.
+
+If implementation would require another state model, transport shape, persistence table, service/class abstraction, new production module or dependency, it returns to DESIGN before such a change is made.

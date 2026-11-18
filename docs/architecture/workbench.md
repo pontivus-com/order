@@ -1796,3 +1796,52 @@ This design does not authorize:
 - redesign of OpenCode provider semantics unrelated to STAGE-turn admission/finalization.
 
 The minimum implementation is to make the existing canonical state and event stream actually obey the P3 state machine and to make the Workbench derive from that state consistently.
+
+
+## 16. Authority-driven 0.6.0 Workbench closure
+
+This section records the P4 consequences of the fresh 0.6.0 functional package without replacing the closed Workbench architecture above.
+
+### 16.1 Current attention survives historical/supporting selection
+
+The canonical current-attention owner remains the pure resolver defined by `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`. Explicit workflow/document/history selection affects inspected material only.
+
+When an explicit selection is not the current attention owner, the step summary must retain one compact current-attention block containing the exact current owner, human-facing reason/question/status and direct action to return to that owner. Selecting that action changes only inspection selection; it does not invent workflow state.
+
+The browser must not clear legitimate explicit selection merely because polling discovers new attention. It must also never make the new attention unreachable.
+
+### 16.2 Durable-decision input presentation
+
+For `HUMAN_INPUT_REQUESTED`:
+
+- `INFORMATION` and `EVIDENCE` use the ordinary reply composer.
+- `STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` remain replyable decision inputs, but the presentation explicitly states that the reply is not itself durable authority and that progression requires the owning governed artifact/proposal to be adopted.
+- After such a reply the provider may prepare the existing artifact proposal; the Workbench continues to use the same proposal-review surface. No separate “decision” editor/state is introduced.
+
+A new exact required-input request receives one focus transition keyed by its `RunEvent.id`. The focus owner is Order's existing dialogue/composer composition, not a feature-local effect. Because pinned Astryx `ChatComposer` exposes no public imperative input-focus contract, Order focuses the existing Workbench-owned composer region/container once with `preventScroll` where supported; normal keyboard/pointer interaction then owns focus. Polling/re-rendering with the same request id must not repeat the transition or steal focus.
+
+### 16.3 Readiness, Approval, Settings and terminal result projections
+
+- Readiness derives its dominant verdict from the latest applicable canonical R3 `STAGE_COMPLETED.completion.outcome`. Material maturity/currentness remains a separate supporting fact.
+- A current sign-off package at `AWAITING_SIGNOFF` presents **Ready for sign-off** and **Current** before package hashes/technical identity. Stale/returned/historical states do not fabricate readiness.
+- Settings keeps readiness/meaning/actions primary. Exact Git roots, document roots, endpoint/transport identity and model-list source are technical details except where the active Add/Move/configuration task requires that exact value.
+- Terminal result uses explicit product-language mapping. `CANDIDATE_DONE` renders **Verified candidate**; other WorkOutcome values use their canonical product-facing labels rather than prettified internal enum names.
+
+### 16.4 Queue/Create/documentation Git projection
+
+- Create renders **Concerns**, not “Concern IDs”.
+- Linked remediation fixes Project to the parent project and does not render an editable cross-project selector.
+- App-level queue state owns archive inclusion, project and search filtering as one derivation before rows reach `WorkItemQueue`.
+- Documentation Git confirmation lists the exact changed governed paths from the already-loaded canonical Git-status projection before operator confirmation.
+
+### 16.5 Renderer and theme certification owner
+
+The canonical renderer-to-primitive matrix in §8 remains the sole renderer classification.
+
+Because `tests/architecture.test.ts` is itself the `architecture` gate's signed verification material, 0.6.0 does not authorize an implementation task to mutate that file. Permanent exhaustive renderer coverage is added to the ordinary `test` gate through `tests/certification.test.ts`: it enumerates production Workbench renderers and proves bidirectional coverage against the canonical matrix/successor, including `ActivityComposer.tsx`.
+
+Browser certification extends the existing scenario matrix rather than creating a second UX test system:
+- scenario 41 proves kind-specific Research information for CHANGE/DEFECT/INVESTIGATION/AUDIT and preserved Change-vs-Defect downstream obligations;
+- scenarios 26 and 33-36 exercise representative Queue/Create/Settings/document/dialogue/review/Execution/evidence/result/Context/overlay semantic roles under System, Light and Dark activation.
+
+No feature-local visual baseline or screenshot-as-authority mechanism is introduced.

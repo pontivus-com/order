@@ -247,3 +247,36 @@ Initial terminal outcomes include:
 - `PROVIDER_FAILURE`.
 
 `CANDIDATE_DONE` means every applicable validation stage passed. It does not authorize commit, PR, merge, deployment, or production mutation.
+
+
+## 12. Signed in-task verification checkpoints
+
+A P7 architecture-feedback checkpoint is executable through the coordinator; productive providers remain denied ambient shell/execute authority.
+
+### 12.1 Request/result split
+
+The canonical provider event set gains exactly one BUILDER-only request:
+
+```text
+GATE_CHECKPOINT_REQUESTED { gateId }
+```
+
+The request is not verification proof. The coordinator accepts it only when:
+
+- the current Run role is `BUILDER`;
+- `gateId` is in the current signed ExecutionTask `gateIds`;
+- the gate still resolves from the current validated ProjectManifest;
+- approval/task/context freshness remains valid.
+
+The coordinator executes the exact gate in the current isolated builder workspace through the existing `runVerificationGate` / validation effect owner and records the existing coordinator-owned `GATE_PASSED` or `GATE_FAILED` event plus ordinary immutable gate evidence.
+
+### 12.2 Continuation
+
+After a checkpoint result the same BUILDER Run/provider session may continue with the exact result as its next trigger/context:
+
+- pass -> continue the signed task;
+- fail -> only correction within the signed design/change surface is allowed, followed by a new request for the required checkpoint or an explicit block.
+
+A checkpoint result does not substitute for V3/V5/V7 and does not mark a task/candidate successful. Final validation continues to execute the signed gate set independently at its existing stages.
+
+A request for an unsigned/unresolved gate is invalid provider output. No second gate registry, validation state machine, provider shell permission or persisted checkpoint status is introduced.
