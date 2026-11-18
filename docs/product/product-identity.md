@@ -180,7 +180,7 @@ The following are supported product facts:
 - bounded remediation exists where permitted by validation policy;
 - investigations and audits may terminate without implementation;
 - Order terminates at a verified result; executed delivery work reaches a verified candidate, while valid no-code work may terminate with a non-candidate result;
-- Order does not commit, push, merge, deploy, or mutate production as part of v1.
+- Order does not automatically commit implementation/candidate changes, push, merge, deploy, or mutate production as part of v1; explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability, not delivery automation.
 
 Do not present the following as measured facts without external evidence:
 

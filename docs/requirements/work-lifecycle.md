@@ -384,7 +384,7 @@ Impossible states should be structurally difficult to represent.
 
 ## 7. Order v1 functional requirements
 
-The following are the stable R2/P3 functional requirement identities for the already-approved v1 behavior. They refine the product intent `GW-P2-CONTROLLED-WORK` from [GW-DOC-SYSTEM-BRIEF-V1 §8](../product/system-brief.md); they do not introduce new product behavior. Detailed architecture and exact contracts remain owned by P4-P6.
+The following are the stable R2/P3 functional requirement identities for the already-approved v1 behavior. They refine the product intent `GW-P2-CONTROLLED-WORK` from [GW-DOC-SYSTEM-BRIEF-V1 §9](../product/system-brief.md); they do not introduce new product behavior. Detailed architecture and exact contracts remain owned by P4-P6.
 
 ### GW-FR-001-GOVERNED-LIFECYCLE
 

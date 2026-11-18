@@ -178,13 +178,15 @@ The initial execution provider is OpenCode.
 
 ## 8. Success criterion
 
-A successful Order run is not "the agent produced a patch."
+A successful Order WorkItem reaches a verified terminal result that is valid for its governed work kind and current authority.
 
-It is:
+A successful result does **not** require implementation. Investigation/Audit completion and other schema-valid no-code outcomes may terminate successfully when the governed lifecycle establishes that no candidate is required.
+
+When implementation is required and explicitly authorized, candidate success is stricter than "the agent produced a patch." It means:
 
 > An exact, approved execution task was still valid against the current repository, was implemented without exceeding its authorized boundary, and passed both prescribed deterministic verification and independent semantic review.
 
-Anything less remains incomplete or blocked.
+Anything less remains incomplete, returned to its owning stage, or blocked.
 
 ## 9. Stable product-intent reference
 
