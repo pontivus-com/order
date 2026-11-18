@@ -20,7 +20,7 @@
 
 ## Requested change
 
-Establish the complete, implementation-ready Order 0.6.0 product/design package by reviewing the product concern-by-concern from a closed factual baseline and progressing only through the governed lifecycle:
+Reconstruct the complete intended Order functional design that the 0.5.0 work was supposed to realize, using canonical P2/P3 product and functional authority—not the released 0.5.0 implementation—as the normative source. Then derive the complete 0.6.0 technical solution design and final implementation plan from that reconstructed functional design, progressing only through the governed lifecycle:
 
 ```text
 R1 prerequisite investigation
@@ -42,7 +42,7 @@ This does not make the WorkItem a permanent semantic authority. P1-P6 meaning re
 
 The 0.6.0 redesign must not repeat the failure mode where a large integrated design is treated as complete while individual product concerns, state interactions, authority dependencies or downstream implementation consequences remain unexamined.
 
-Phase 0 establishes the corrected documentation/authority/conformance foundation. 0.6.0 must now validate that foundation through actual design use while producing the next product baseline.
+Phase 0 establishes the corrected documentation/authority/conformance foundation. The 0.6.0 campaign then uses that foundation to reconstruct the complete functional design intended by the canonical product authority, close the omissions and contradictions that allowed 0.5.0 to diverge, derive the technical solution design, and produce the implementation plan that will make 0.6.0 realize that design. This is corrective design reconstruction, not preservation or incremental evolution of the released 0.5.0 application.
 
 The campaign therefore requires:
 
@@ -60,13 +60,15 @@ The campaign therefore requires:
 
 The campaign depends on the factual/governance baseline produced by the Phase 0 authority/conformance remediation in PR #69.
 
-G0 establishes one exact Phase 0 candidate commit as the factual baseline for this campaign. PR merge state is delivery provenance, not a prerequisite to fact gathering. If the Phase 0 candidate changes materially, G0 and every affected downstream concern are revalidated against the new exact candidate before relying on prior conclusions.
+G0 establishes one exact Phase 0 candidate commit as evidence that the campaign's authority, document-authoring and conformance machinery is trustworthy enough to perform the reconstruction. PR merge state, browser certification, release packaging and other delivery verification are delivery provenance, not prerequisites to R1/R2/DESIGN reconstruction. A delivery/test failure may block the campaign only when it demonstrates a defect in the canonical authority topology or in the lifecycle/authoring/conformance machinery required to produce trustworthy campaign artifacts. If the Phase 0 candidate changes materially in one of those campaign-foundation concerns, G0 and every affected downstream concern are revalidated against the new exact candidate before relying on prior conclusions.
 
 ## In scope
 
 The entire user-visible and workflow-relevant Order product surface needed to establish the 0.6.0 design, including lifecycle semantics, WorkItem/source behavior, queue/create/workspace interaction, every pre-signoff stage, approval, execution, completion, governed materials, OpenCode interaction, Settings/readiness, recovery/current-attention behavior, responsive/accessibility mechanics, visual/component/theme consistency and end-to-end certification obligations.
 
 Current implementation, prior releases, tests, rendered UI and historical design material may be inspected only as evidence of a gap, ownership issue, reusable capability or completed correction. They are not campaign deliverables and must not be documented as the desired 0.6.0 application/design baseline, fallback behavior, preservation target or regression contract. Absence of a finding means canonical authority is sufficient; it never means "keep the current application by default."
+
+**Campaign precedence rule:** if a campaign status note, PR/CI result, test, implementation observation, historical concern record, handover or lower-level document can be read as requiring preservation of current 0.5.0 behavior or as blocking design reconstruction for reasons unrelated to authority/authoring/conformance trustworthiness, this WorkItem rule controls. Such evidence must be reclassified to its proper delivery or defect role and must not redefine the 0.6.0 design objective.
 
 ## Explicit exclusions
 
