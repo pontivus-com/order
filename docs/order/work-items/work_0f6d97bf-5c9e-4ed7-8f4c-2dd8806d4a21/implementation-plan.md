@@ -6,7 +6,7 @@
 
 This is the sole current P7 implementation plan for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`.
 
-It consumes only the fresh G4-closed `solution-design.md`, the fresh G3-closed `requirements.md`, the current resolved P1-P6 authority graph, and the current WorkItem source. Current implementation, tests, UI, the 0.5.0 release, the superseded ten-path T1 plan and historical R3 conclusions remain evidence only and do not define the authorized 0.6.0 implementation surface.
+It consumes only the post-governance G4 package at commit `4241922dd082a722c652b4baefde53f8ca785c8b`: `solution-design.md` blob `cb16001f29aeb7a4e47bec40a55bb3f62d7263e3`, exhaustive G3 `requirements.md` blob `92cad7491a89e3c498826ae697b37d00e7568532`, the current resolved P1-P6 authority graph, and the current WorkItem source. Current implementation, tests, UI, the 0.5.0 release, the superseded ten-path T1 plan and historical R3 conclusions remain evidence only and do not define the authorized 0.6.0 implementation surface.
 
 The implementation worker may realize only the already-closed technical design. It may not choose a new product behavior, canonical owner, state meaning, persistence/transport shape, dependency, architecture direction, provider capability, compatibility fallback, or verification authority.
 
