@@ -2,7 +2,7 @@
 
 ## Proven defect/root cause
 
-The productive lifecycle permits a change-local R2 document to become a shadow P3 specification and permits stage promotion without proving one current deterministic lifecycle artifact. Repository delivery also lacked an explicit exact-current-candidate evidence rule and was incorrectly amended to depend on a nonexistent independent reviewer.
+The productive lifecycle permits a change-local R2 document to become a shadow P3 specification and permits stage promotion without proving one current deterministic lifecycle artifact. The current-v2 authoring contract was also incomplete at downstream stages: DESIGN initially omitted binding S7 decision content and PLAN omitted binding S8-S10 planning content, allowing structurally admitted lifecycle documents to omit obligations later required by readiness. Repository delivery also lacked an explicit exact-current-candidate evidence rule and was incorrectly amended to depend on a nonexistent independent reviewer.
 
 ## Functional authority disposition ledger
 
@@ -19,7 +19,7 @@ The productive lifecycle permits a change-local R2 document to become a shadow P
 
 ## Expected corrected behavior
 
-New Change/Defect authoring uses v2 schema pins with explicit canonical-authority disposition semantics. Historical v1 pins remain supported unchanged, and every materially amended canonical authority advances to V2 while its released V1 source remains byte-identical and independently resolvable by the V1 identifier. Every promotable pre-signoff completion binds exactly one current ArtifactRef at the deterministic stage path, and the coordinator rejects empty/multiple/wrong/stale bindings. R3 adversarially challenges authority topology and traceability. Public-repository merge readiness is bound to the exact current PR candidate and required verification evidence; a second human reviewer is not required when no independent reviewer exists.
+New Change/Defect authoring uses v2 schema pins with explicit canonical-authority disposition semantics and complete current-v2 downstream authoring contracts: DESIGN carries S7 and PLAN carries S8-S10. Historical v1 pins remain supported unchanged, and every materially amended canonical authority advances to V2 while its released V1 source remains byte-identical and independently resolvable by the V1 identifier. Every promotable pre-signoff completion binds exactly one current ArtifactRef at the deterministic stage path, and the coordinator rejects empty/multiple/wrong/stale or structurally incomplete current-v2 bindings. R3 adversarially challenges authority topology and traceability. Public-repository merge readiness is bound to the exact current PR candidate and required verification evidence; a second human reviewer is not required when no independent reviewer exists.
 
 ## Behavior that must remain unchanged
 
