@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-C20-F01 R1 record in `research.m
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-R1 closed all C01-C22 factual questions and classified every material realization as `CONFORMS` or `VIOLATES`. R2 therefore owns only the functional consequence of canonical authority and the explicit disposition of the R1 findings. Technical owner selection, data/control flow and implementation scope remain DESIGN/PLAN decisions.
+R1 closed all C01-C22 factual questions and classified every material stable-requirement realization with an explicit evidence-backed verdict (`CONFORMS`, qualified conformance, `MIXED`, `VIOLATES` or `VERIFICATION_GAP`). R2 therefore owns only the functional consequence of canonical authority and the explicit disposition of the R1 findings. Technical owner selection, data/control flow and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
@@ -173,7 +173,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10. It does 
 | `GW-FR-024-LIFECYCLE-FRESHNESS-VISIBILITY` | `MIXED` | `C17-O02`, `C17-O05`, `C17-O09` | `REFERENCE` | C17 |
 | `GW-FR-025-DURABLE-INTENT-INTERACTION` | `VIOLATES` | `C06-O13` | `REFERENCE` | C06 |
 | `GW-FR-026-SOURCE-BOUND-SIGNOFF-INTEGRATION` | `CONFORMS` | `C11-O01`, `C11-O02`, `C11-O07` | `REFERENCE` | C11 |
-|  `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `CONFORMS` | `C04-O15`, `C12-O03`, `C12-O17` | `REFERENCE` | C12  |
+| `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `CONFORMS` | `C04-O15`, `C12-O03`, `C12-O17` | `REFERENCE` | C12  |
 | `GW-FR-028-NONDELIVERY-TERMINAL-VIEW` | `CONFORMS` | `C13-O01`, `C13-O05` | `REFERENCE` | C13 |
 | `GW-FR-029-NO-IDE-SCOPE` | `CONFORMS` | `C04-O15` | `REFERENCE` | C02 |
 | `GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION` | `CONFORMS` | `C04-O04` | `REFERENCE` | C04 |
@@ -205,11 +205,11 @@ This ledger records the exact factual basis consumed by R2 after G-F10. It does 
 | `GW-FR-091-FIRST-CLASS-INSTALLATION-CONFIGURATION` | `CONFORMS` | `C16-O01`, `C16-O06`, `C16-O08`, `C16-O09` | `REFERENCE` | C16 |
 | `GW-FR-092-CONNECTED-REPOSITORY-CONFIGURATION` | `CONFORMS` | `C16-O02`, `C16-O03` | `REFERENCE` | C16 |
 | `GW-FR-093-DOCUMENT-ROOT-MIGRATION-SAFETY` | `CONFORMS` | `C16-O04` | `REFERENCE` | C16 |
-|  `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | `CONFORMS` | `C16-O01`, `C16-O02`, `C16-O06`, `C16-O08`, `DIRECT-FR095` | `REFERENCE` | C16  |
+| `GW-FR-095-CENTRALIZED-APPLICATION-SETTINGS` | `CONFORMS` | `C16-O01`, `C16-O02`, `C16-O06`, `C16-O08`, `DIRECT-FR095` | `REFERENCE` | C16  |
 | `GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION` | `CONFORMS` | `C07-O04` | `REFERENCE` | C07 |
 | `GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE` | `CONFORMS` | `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` | `REFERENCE` | C20 |
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `CONFORMS` | `C10-O01`, `C10-O09`, `C10-O10` | `REFERENCE` | C10 |
-|  `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | `CONFORMS` | `C15-O02`, `C15-O08`, `C15-O15`, `DIRECT-FR099` | `REFERENCE` | C15  |
+| `GW-FR-099-PRODUCTIVE-PROVIDER-WORKSPACE-CONTAINMENT` | `CONFORMS` | `C15-O02`, `C15-O08`, `C15-O15`, `DIRECT-FR099` | `REFERENCE` | C15  |
 | `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `CONFORMS` | `C22-O09` | `REFERENCE` | C22 |
 | `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `CONFORMS` | `C15-O03`, `C15-O04`, `C15-O08` | `REFERENCE` | C15 |
 | `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `CONFORMS` | `C15-O12`, `C15-O13` | `REFERENCE` | C15 |
