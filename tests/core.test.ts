@@ -1055,6 +1055,16 @@ describe("source-backed WorkItem core", () => {
     }
   });
 
+  it("carries the complete S7 design-content contract in current delivery templates", () => {
+    const change = stageTemplateForSchema("change-v2", "DESIGN");
+    const defect = stageTemplateForSchema("defect-v2", "DESIGN");
+
+    expect(change).toContain("## Existing capability/reuse, behavior to replace, and necessary new concepts");
+    expect(change).toContain("## Decisions/rationale/rejected alternatives");
+    expect(defect).toContain("## Existing capability/reuse, incorrect behavior to delete/replace, and necessary new concepts");
+    expect(defect).toContain("## Rejected alternatives/rationale");
+  });
+
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
     const metadata = {
       formatVersion: 1 as const,

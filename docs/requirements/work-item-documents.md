@@ -123,6 +123,8 @@ The published `change-v1` and `defect-v1` schema pins remain supported with thei
 
 New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template. Their R1 templates preserve the v1 evidence-section structure but are separate v2 template pins that bind the current `GW-DOC-LIFECYCLE-CONTEXT` concern; the exact v2 schema template resolves that current semantic snapshot as lifecycle-context V2, while new v2 WorkItems must not inherit the historical lifecycle-context V1 authority pin merely because the R1 evidence shape is unchanged.
 
+Current Change/Defect v2 DESIGN templates are not reduced package-local design summaries. They carry the complete `GW-DOC-SPECIFICATION-STANDARD` S7 content obligations, including existing capability/reuse, behavior to replace/delete, necessary new concepts, decision rationale and rejected alternatives, so the productive design agent is told the same design-completeness contract later challenged by R3.
+
 The v2 R2 template contains a **functional authority disposition ledger**. Each material requirement is classified as exactly one of:
 
 - `REFERENCE` — existing canonical P3 authority applies unchanged; the WorkItem records only its local consequence/acceptance and does not become a second normative owner;

@@ -47,3 +47,12 @@ Remediation: retain all historical v1 templates unchanged for v1-pinned WorkItem
 
 
 The full current-v2 template audit found the same failure class in the Change/Defect R2 templates: they cited Work lifecycle, Specification standard V2 and GW-FR-096 but omitted the current lifecycle-context stage owner. Current v2 DESIGN/PLAN/R3 already bound lifecycle-context V2. The remediation therefore adds lifecycle-context V2 to current R2 templates and a single regression test that proves every current v2 stage template binds lifecycle-context V2 and none binds lifecycle-context V1.
+
+
+## Downstream validation finding — v2 DESIGN template completeness
+
+The 0.6.0 C08 investigation found that the current Change/Defect v2 DESIGN templates were structurally narrower than the binding S7 design contract. They omitted explicit existing-capability/reuse analysis, behavior to replace/delete, necessary-new-concept justification and rejected-alternative rationale, even though `GW-DOC-SPECIFICATION-STANDARD` requires those design decisions and the historical v1 design template already carried alternatives/rationale.
+
+Because the schema template is injected verbatim into the productive DESIGN prompt and structurally defines admitted document sections, this is a Phase-0 authoring-contract defect rather than a future product-design choice.
+
+Remediation: extend the current v2 DESIGN templates to carry the complete S7 content contract, preserve historical v1 templates unchanged, align P3/P6 documentation, and add a permanent template regression.
