@@ -1065,6 +1065,48 @@ describe("source-backed WorkItem core", () => {
     expect(defect).toContain("## Rejected alternatives/rationale");
   });
 
+  it("carries the complete S8-S10 PLAN contract only in current delivery templates", () => {
+    const change = stageTemplateForSchema("change-v2", "PLAN");
+    const defect = stageTemplateForSchema("defect-v2", "PLAN");
+    const historical = stageTemplateForSchema("change-v1", "PLAN");
+
+    expect(change).not.toBeNull();
+    expect(defect).not.toBeNull();
+    expect(historical).not.toBeNull();
+
+    for (const heading of [
+      "## Requirement/design traceability",
+      "## Module ownership/decomposition constraints and architecture-feedback checkpoints",
+      "## Expected production and test/validation surface",
+      "## Completion evidence",
+      "## Minimum-change forecast",
+      "## Canonical order-tasks block",
+    ]) {
+      expect(change).toContain(heading);
+      expect(defect).toContain(heading);
+    }
+    expect(change).toContain("## Verification contract");
+    expect(defect).toContain("## Verification contract including reproduction/regression/preservation");
+    expect(change).toContain("GW-DOC-SPECIFICATION-STANDARD-V2");
+    expect(defect).toContain("GW-DOC-SPECIFICATION-STANDARD-V2");
+
+    expect(historical).not.toContain(
+      "## Module ownership/decomposition constraints and architecture-feedback checkpoints",
+    );
+    expect(historical).not.toContain("## Minimum-change forecast");
+
+    expect(() =>
+      validateStageDocumentStructure("change-v2", "PLAN", change!)
+    ).not.toThrow();
+    expect(() =>
+      validateStageDocumentStructure(
+        "change-v2",
+        "PLAN",
+        change!.replace("## Completion evidence\n", ""),
+      )
+    ).toThrow(/missing ordered section/);
+  });
+
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
     const metadata = {
       formatVersion: 1 as const,
