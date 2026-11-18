@@ -450,12 +450,16 @@ The following are semantic invariants, not implementation-preservation requireme
 
 ### Architecture fitness
 
-Extend the existing permanent architecture sensor only where it can prove ownership without freezing incidental layout:
+The current `architecture` gate and its material source `tests/architecture.test.ts` remain unchanged by the signed implementation task. That file is part of PLAN/R3 `VERIFICATION_MATERIAL`; allowing the implementation worker to modify it would let the candidate mutate a verification source that authorizes itself.
 
-1. `src/daemon/work-item-source.ts` has one WorkItem-registration persistence call path for source admission after the change; the create function must not directly persist a separately constructed WorkItem projection.
-2. `WorkItemQueue.tsx` must not own `listWorkItemsIncludingArchived` / the archived-inclusive server query; App remains the declared queue/global-query owner.
-3. no new production module, DTO/model/mapper/service/repository/controller, global client store, endpoint, schema, direct dependency or provider integration is introduced.
-4. existing Workbench renderer/primitive ownership sensors continue to pass.
+The existing architecture gate must continue to prove the already-materialized repository constraints, including module/dependency ownership, FCIS/effect direction, no OOP/DTO/mapper/service/repository/controller architecture, browser-safe core imports, Workbench renderer/primitive ownership and absence of unauthorized new production modules/dependencies.
+
+The two change-specific same-owner propositions are verified without self-mutating the architecture gate:
+
+1. daemon/integration evidence plus independent semantic review prove `src/daemon/work-item-source.ts` has one new-source registration mapping/persistence path and that `createWorkItemFromSource` does not construct/persist a competing WorkItem projection;
+2. browser evidence plus independent semantic review prove `App.tsx` remains the queue/global-query/filter owner and `WorkItemQueue.tsx` does not own the archived-inclusive server query.
+
+If implementation discovers that satisfying this design requires changing `tests/architecture.test.ts`, `pontivus-order.toml`, another verification material source, or the governing architecture/contract, execution stops and returns to DESIGN/PLAN. It must not weaken or rewrite its own verification boundary.
 
 ### Daemon/integration tests
 
@@ -479,14 +483,17 @@ Update permanent browser coverage to prove:
 
 ### Existing gates
 
-The final implementation must pass, at minimum:
+The signed implementation task uses only current manifest verification IDs and must pass their complete required union:
 
-- dependency lock;
-- typecheck;
-- architecture fitness;
-- full tests;
-- production build;
-- release-packager verification;
-- browser suite for the changed UI behavior.
+- `dependency-lock`;
+- `typecheck`;
+- `architecture`;
+- `test`;
+- `build`;
+- `browser`.
+
+The `architecture` verification material is immutable to the signed task as described above.
+
+Public-repository delivery additionally requires the permanent PR verification path, including its release-packager check and changelog/release-impact checks. That delivery evidence is not invented as a seventh ExecutionTask gate because it is not a `pontivus-order.toml [verification.*]` gate ID; it remains governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`.
 
 No green current test is treated as a preservation requirement when it encodes behavior explicitly superseded by this design.
