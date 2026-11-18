@@ -1791,6 +1791,7 @@ describe("architecture fitness", () => {
           ["reopened concerns", /Reopened concerns:/i],
           ["unproven items", /Unproven items:/i],
           ["verdict PASS", /Verdict:\s*`?PASS`?/i],
+          ["next-pair authorization", /Next (?:pair|R1 pair) authorized:\s*(?:YES|NO)/i],
         ] as const;
         for (const [label, pattern] of checks) {
           if (!pattern.test(record)) {
