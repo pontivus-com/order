@@ -72,7 +72,7 @@ The WorkItem is the campaign tracking and lifecycle package, not a replacement f
 - [Workbench technical architecture](architecture/workbench.md) — `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`
 - [Workbench theme and styling architecture](architecture/workbench-theme.md) — `GW-DOC-WORKBENCH-THEME-V1`
 
-The Workbench P4 design is split by concern: the component owner defines state/transition/observation/spatial/component composition and renderer coverage, while the theme owner defines exact System/Light/Dark behavior, semantic tokens, cross-component visual parity, foundation bridging and `theme.css`/stylesheet governance. Runtime remediation remains unimplemented; the next lifecycle activity is a P7 implementation plan derived from the closed P3/P4/P6 authority.
+The Workbench P4 design is split by concern: the component owner defines state/transition/observation/spatial/component composition and renderer coverage, while the theme owner defines exact System/Light/Dark behavior, semantic tokens, cross-component visual parity, foundation bridging and `theme.css`/stylesheet governance. Current 0.6.0 campaign state is owned exclusively by the WorkItem campaign registers; this documentation index does not project or infer the next lifecycle activity.
 
 ## Decisions
 
