@@ -73,7 +73,8 @@ Neither is a new domain state model.
 
 ```text
 validated ProjectManifest
-+ shell-expanded authority/precedence paths
++ shell-expanded authority paths
++ validated literal precedence paths
         |
         v
 core pure authority resolver
@@ -178,7 +179,6 @@ Production:
 - `src/core/execution.ts`
 - `src/core/governance.ts`
 - `src/core/lifecycle.ts`
-- `src/shell/project.ts`
 - `src/daemon/authority.ts`
 - `src/daemon/execution.ts`
 - `src/daemon/stage.ts`
