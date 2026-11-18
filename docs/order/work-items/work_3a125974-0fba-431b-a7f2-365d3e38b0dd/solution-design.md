@@ -8,7 +8,7 @@ The producer boundary is the pre-signoff authoring/conformance path: schema/temp
 
 - GW-FR-096 → Change/Defect v2 templates plus one canonical schema catalog with explicit current-authoring defaults.
 - GW-FR-097 → pure evaluateStageConformance plus exact path/hash/structure revalidation before coordinator-owned CONFORMANCE_PASSED; v2 R2 resolves parsed non-local ledger owners against the current manifest ref map, and PLAN parses its exact current `order-tasks` block before promotion.
-- GW-FR-098 → strengthened v2 R3 template and explicit R3 conformance questions.
+- GW-FR-098 → strengthened v2 R3 template, explicit R3 conformance questions, and reuse of the existing `validateTaskDefinitions` owner as a coordinator-side precondition for `READY_FOR_SIGNOFF`; return-to-* verdicts are not blocked by an invalid PLAN.
 - Specification S7 → current Change/Defect v2 DESIGN templates carry the complete design-content contract rather than a reduced package-local subset, while historical v1 template semantics remain unchanged.
 - Repository-delivery verification rule → P1 governance plus exact-current-candidate CI verification; no mandatory reviewer identity is introduced where no independent reviewer exists.
 
