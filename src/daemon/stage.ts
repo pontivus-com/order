@@ -102,6 +102,7 @@ import {
   getArtifact,
   getWorkItem,
   resolveStageContextState,
+  validateTaskDefinitions,
   type ResolvedContext,
 } from "./authority.ts";
 
@@ -306,6 +307,36 @@ const persistStageCompletionBatch = async (
         }
         if (run.stage === "PLAN") {
           parseSignedTaskBlockFromPlan(bytes);
+        }
+        if (
+          run.stage === "R3" &&
+          completion.outcome === "READY_FOR_SIGNOFF"
+        ) {
+          const plans = current.context.artifacts.filter(
+            (artifact) =>
+              artifact.workItemId === workItem.id &&
+              artifact.role === "PLAN",
+          );
+          if (plans.length !== 1 || plans[0] === undefined) {
+            throw new TypeError(
+              "R3 READY_FOR_SIGNOFF requires exactly one current PLAN artifact",
+            );
+          }
+          const planBytes = readWorkingTreeFile(
+            workItem.repositoryRoot,
+            plans[0].repositoryPath,
+          );
+          if (sha256(planBytes) !== plans[0].sha256) {
+            throw new TypeError(
+              "R3 READY_FOR_SIGNOFF references stale PLAN bytes",
+            );
+          }
+          await validateTaskDefinitions(
+            workItem,
+            manifest,
+            [...current.context.artifacts, ...outputArtifacts],
+            planBytes,
+          );
         }
       } catch (error) {
         outputConformanceFailure =
