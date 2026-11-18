@@ -157,7 +157,15 @@ A resumed provider session may be used only inside the same Order Run and lifecy
 
 `WAITING_FOR_INPUT` is a Run condition, not a lifecycle stage.
 
-## 6. Stage decision boundaries
+## 6. Lifecycle-stage and execution/review decision boundaries
+
+The subsections below describe more than one decision-boundary class and must not be read as one flat `WorkStage` enumeration:
+
+- `IDEA`, `R1`, `R2`, `DESIGN`, `PLAN` and `R3` are pre-sign-off canonical WorkItem stages;
+- `IMPLEMENT`, `TEST / MECHANICAL VALIDATION` and `INDEPENDENT REVIEW` are post-sign-off execution/validation roles or boundaries operating under canonical `EXECUTION`;
+- `AUDIT` describes the Audit work-kind evaluation boundary and does not add another canonical lifecycle stage.
+
+The canonical cross-step WorkItem transition relation remains owned by `GW-DOC-WORK-LIFECYCLE`.
 
 ### IDEA
 
