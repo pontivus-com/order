@@ -1038,6 +1038,23 @@ describe("source-backed WorkItem core", () => {
     expect(currentAudit).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
   });
 
+  it("binds every current v2 stage template to current lifecycle context", () => {
+    for (const schemaId of ["change-v2", "defect-v2"] as const) {
+      for (const stage of ["R1", "R2", "DESIGN", "PLAN", "R3"] as const) {
+        const template = stageTemplateForSchema(schemaId, stage);
+        expect(template).not.toBeNull();
+        expect(template).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+        expect(template).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+      }
+    }
+    for (const schemaId of ["investigation-v2", "audit-v2"] as const) {
+      const template = stageTemplateForSchema(schemaId, "R1");
+      expect(template).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+      expect(template).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+      expect(stageTemplateForSchema(schemaId, "R2")).toBeNull();
+    }
+  });
+
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
     const metadata = {
       formatVersion: 1 as const,
