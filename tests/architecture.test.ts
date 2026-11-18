@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, extname, join, matchesGlob, relative, resolve } from "node:path";
 
@@ -1937,5 +1938,311 @@ describe("architecture fitness", () => {
 
     expect(violations).toEqual([]);
   });
+
+  it("enforces exhaustive 0.6.0 semantic traceability package structure", () => {
+    const workItemRoot =
+      "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21";
+    const requirementsPath = workItemRoot + "/requirements.md";
+    if (!existsSync(join(repositoryRoot, requirementsPath))) return;
+
+    const researchPath = workItemRoot + "/research.md";
+    const designPath = workItemRoot + "/solution-design.md";
+    const planPath = workItemRoot + "/implementation-plan.md";
+    const phasePaths = [
+      "implementation-plan/00-governance.md",
+      "implementation-plan/01-a01-lifecycle-product.md",
+      "implementation-plan/02-a02-governance-intake.md",
+      "implementation-plan/03-a03-queue-source.md",
+      "implementation-plan/04-a04-workbench-research.md",
+      "implementation-plan/05-a05-requirements-design.md",
+      "implementation-plan/06-a06-plan-readiness.md",
+      "implementation-plan/07-a07-approval-execution.md",
+      "implementation-plan/08-a08-complete-materials.md",
+      "implementation-plan/09-a09-provider-settings.md",
+      "implementation-plan/10-a10-recovery-accessibility.md",
+      "implementation-plan/11-a11-component-certification.md",
+      "implementation-plan/12-action-catalog.md",
+      "implementation-plan/13-verification-closeout.md",
+    ] as const;
+    const semanticPhasePaths = phasePaths.filter((path) =>
+      /\/\d{2}-a\d{2}-/.test(path),
+    );
+
+    const requirements = sourceText(requirementsPath);
+    const research = sourceText(researchPath);
+    const design = sourceText(designPath);
+    const plan = sourceText(planPath);
+    const violations: string[] = [];
+
+    const duplicates = (values: readonly string[]): readonly string[] => {
+      const seen = new Set<string>();
+      const duplicate = new Set<string>();
+      for (const value of values) {
+        if (seen.has(value)) duplicate.add(value);
+        seen.add(value);
+      }
+      return [...duplicate].sort();
+    };
+    const exactSet = (
+      label: string,
+      actual: readonly string[],
+      expected: readonly string[],
+    ): void => {
+      const actualSet = new Set(actual);
+      const expectedSet = new Set(expected);
+      const missing = [...expectedSet].filter((value) => !actualSet.has(value)).sort();
+      const extra = [...actualSet].filter((value) => !expectedSet.has(value)).sort();
+      const duplicate = duplicates(actual);
+      if (missing.length > 0 || extra.length > 0 || duplicate.length > 0) {
+        violations.push(
+          label +
+            " set mismatch: missing=[" +
+            missing.join(",") +
+            "] extra=[" +
+            extra.join(",") +
+            "] duplicate=[" +
+            duplicate.join(",") +
+            "]",
+        );
+      }
+    };
+    const gitBlobSha = (path: string): string => {
+      const bytes = readFileSync(join(repositoryRoot, path));
+      return createHash("sha1")
+        .update("blob " + bytes.length + "\0")
+        .update(bytes)
+        .digest("hex");
+    };
+    const demoteHeadings = (source: string): string =>
+      source
+        .split(/\r?\n/)
+        .map((line) => {
+          const match = line.match(/^(#{1,6})\s+(.*)$/);
+          if (match === null) return line;
+          return "#".repeat(Math.min(6, match[1].length + 3)) + " " + match[2];
+        })
+        .join("\n");
+
+    const stableRequirements = [...requirements.matchAll(
+      /^\|\s*(GW-FR-[^|]+?)\s*\|\s*(?:REFERENCE|DELTA|LOCAL)\s*\|/gm,
+    )].map((match) => match[1]);
+    if (stableRequirements.length !== 112) {
+      violations.push(
+        "G-F10 stable requirement inventory must contain exactly 112 rows; found " +
+          stableRequirements.length,
+      );
+    }
+    if (duplicates(stableRequirements).length > 0) {
+      violations.push("G-F10 stable requirement inventory contains duplicates");
+    }
+
+    const researchRows = [...research.matchAll(
+      /^\| `(GW-FR-[^\`]+)` \| C\d{2} \| `[^\`]+` \| .* \| .* \| `(?:CONFORMS|CONFORMS_WITH_DEPENDENCY|CONFORMS_WITH_VERIFICATION_GAP|MIXED|VIOLATES|VERIFICATION_GAP)` \|/gm,
+    )].map((match) => match[1]);
+    exactSet("R1 stable evidence", researchRows, stableRequirements);
+    for (const line of research.split(/\r?\n/)) {
+      if (!/^\| `GW-FR-/.test(line)) continue;
+      if (!/`(?:C\d{2}-O\d+|DIRECT-FR\d+)`/.test(line)) {
+        violations.push("R1 stable evidence row lacks exact evidence reference: " + line);
+      }
+    }
+
+    const r2EvidenceRows = [...requirements.matchAll(
+      /^\| `(GW-FR-[^\`]+)` \| `(?:CONFORMS|CONFORMS_WITH_DEPENDENCY|CONFORMS_WITH_VERIFICATION_GAP|MIXED|VIOLATES|VERIFICATION_GAP)` \|/gm,
+    )].map((match) => match[1]);
+    exactSet("R2 evidence linkage", r2EvidenceRows, stableRequirements);
+
+    const designRows = [...design.matchAll(
+      /^\| `(GW-FR-[^\`]+)` \| ([^|]+) \| `[^\`]+` \| `(POSITIVE_NO_CHANGE|DEPENDENCY_DELTA|TECHNICAL_DELTA|MIXED_TECHNICAL_DELTA|VERIFICATION_DELTA|MIXED_TECHNICAL_AND_VERIFICATION_DELTA)` \| ([^|]+) \|/gm,
+    )].map((match) => ({
+      requirement: match[1],
+      evidence: match[2].trim(),
+      disposition: match[3],
+      solutions: match[4].trim(),
+    }));
+    exactSet(
+      "DESIGN stable disposition",
+      designRows.map((row) => row.requirement),
+      stableRequirements,
+    );
+    for (const row of designRows) {
+      if (!/`(?:C\d{2}-O\d+|DIRECT-FR\d+)`/.test(row.evidence)) {
+        violations.push(
+          "DESIGN row lacks exact R1 evidence: " + row.requirement,
+        );
+      }
+      if (
+        row.disposition === "POSITIVE_NO_CHANGE" &&
+        row.solutions !== "—"
+      ) {
+        violations.push(
+          "POSITIVE_NO_CHANGE must not carry an implementation solution: " +
+            row.requirement,
+        );
+      }
+      if (
+        row.disposition !== "POSITIVE_NO_CHANGE" &&
+        !/`SD\d{2}`/.test(row.solutions)
+      ) {
+        violations.push(
+          "DESIGN delta must identify at least one SD solution: " +
+            row.requirement,
+        );
+      }
+    }
+
+    const designAtoms = [...design.matchAll(/^\| `(PL-C[^\`]+)` \|/gm)].map(
+      (match) => match[1],
+    );
+    if (designAtoms.length !== 24 || duplicates(designAtoms).length > 0) {
+      violations.push(
+        "DESIGN package-local atom inventory must be 24 unique rows; found " +
+          designAtoms.length,
+      );
+    }
+
+    const phaseRequirementRows: { requirement: string; disposition: string }[] = [];
+    const phaseAtoms: string[] = [];
+    for (const relativePath of semanticPhasePaths) {
+      const source = sourceText(workItemRoot + "/" + relativePath);
+      for (const match of source.matchAll(
+        /^\| `(GW-FR-[^\`]+)` \| [^|]+ \| `([^\`]+)` \|/gm,
+      )) {
+        phaseRequirementRows.push({
+          requirement: match[1],
+          disposition: match[2],
+        });
+      }
+      phaseAtoms.push(
+        ...[...source.matchAll(/^\| `(PL-C[^\`]+)` \|/gm)].map(
+          (match) => match[1],
+        ),
+      );
+      if (source.includes("NO_CODE / IA24")) {
+        violations.push(relativePath + " retains prohibited generic no-code disposition");
+      }
+    }
+    exactSet(
+      "PLAN phase stable requirement",
+      phaseRequirementRows.map((row) => row.requirement),
+      stableRequirements,
+    );
+    exactSet("PLAN phase package atom", phaseAtoms, designAtoms);
+    const designDispositionByRequirement = new Map(
+      designRows.map((row) => [row.requirement, row.disposition]),
+    );
+    for (const row of phaseRequirementRows) {
+      if (designDispositionByRequirement.get(row.requirement) !== row.disposition) {
+        violations.push(
+          "PLAN phase disposition differs from DESIGN for " + row.requirement,
+        );
+      }
+    }
+
+    const actionCatalogPath = workItemRoot + "/implementation-plan/12-action-catalog.md";
+    const actionCatalog = sourceText(actionCatalogPath);
+    const actionIds = [...actionCatalog.matchAll(/^## (IA\d{2}) —/gm)].map(
+      (match) => match[1],
+    );
+    const expectedActions = Array.from(
+      { length: 25 },
+      (_, index) => "IA" + String(index + 1).padStart(2, "0"),
+    );
+    exactSet("PLAN action catalog", actionIds, expectedActions);
+    const phaseActionReferences = new Set(
+      semanticPhasePaths.flatMap((relativePath) =>
+        [...sourceText(workItemRoot + "/" + relativePath).matchAll(/\bIA\d{2}\b/g)].map(
+          (match) => match[0],
+        ),
+      ),
+    );
+    for (const action of expectedActions.filter(
+      (value) => value !== "IA23" && value !== "IA24",
+    )) {
+      if (!phaseActionReferences.has(action)) {
+        violations.push("PLAN action is not referenced by any semantic phase: " + action);
+      }
+    }
+    const closeout = sourceText(
+      workItemRoot + "/implementation-plan/13-verification-closeout.md",
+    );
+    for (const action of ["IA23", "IA24"]) {
+      if (!closeout.includes(action) && !actionCatalog.includes(action)) {
+        violations.push("Cross-solution/final action is not governed: " + action);
+      }
+    }
+
+    const expectedPhasePaths = [...phasePaths].sort();
+    const manifestRows = [...plan.matchAll(
+      /^\| `(implementation-plan\/[^\`]+)` \| `([0-9a-f]{40})` \|$/gm,
+    )].map((match) => ({ path: match[1], sha: match[2] }));
+    exactSet(
+      "PLAN modular source manifest",
+      manifestRows.map((row) => row.path),
+      expectedPhasePaths,
+    );
+    for (const row of manifestRows) {
+      const fullPath = workItemRoot + "/" + row.path;
+      if (gitBlobSha(fullPath) !== row.sha) {
+        violations.push("PLAN modular source blob mismatch: " + row.path);
+      }
+      const compiledMarker = "### Compiled component: `" + row.path + "`";
+      if (!plan.includes(compiledMarker)) {
+        violations.push("PLAN root lacks compiled component marker: " + row.path);
+      }
+      const demoted = demoteHeadings(sourceText(fullPath));
+      if (!plan.includes(demoted)) {
+        violations.push("PLAN root does not contain exact compiled component: " + row.path);
+      }
+    }
+
+    const taskBlocks = [...plan.matchAll(/```order-tasks\n([\s\S]*?)\n```/g)];
+    if (taskBlocks.length !== 1) {
+      violations.push(
+        "PLAN root must contain exactly one order-tasks block; found " +
+          taskBlocks.length,
+      );
+    } else {
+      try {
+        const parsed = JSON.parse(taskBlocks[0][1]) as {
+          tasks?: readonly {
+            scope?: readonly string[];
+            changeSurface?: readonly string[];
+            gateIds?: readonly string[];
+          }[];
+        };
+        const task = parsed.tasks?.[0];
+        if (parsed.tasks?.length !== 1 || task === undefined) {
+          violations.push("PLAN root must define exactly one cumulative T1");
+        } else {
+          const surfaceSection =
+            plan.split("## Exact signed implementation surface")[1]?.split(
+              "### Explicit exclusions",
+            )[0] ?? "";
+          const signedSurface = [...surfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
+            (match) => match[1],
+          );
+          if (signedSurface.length !== 30) {
+            violations.push(
+              "PLAN signed surface must contain exactly 30 paths; found " +
+                signedSurface.length,
+            );
+          }
+          exactSet("T1 scope", task.scope ?? [], signedSurface);
+          exactSet("T1 changeSurface", task.changeSurface ?? [], signedSurface);
+          exactSet(
+            "T1 gate union",
+            task.gateIds ?? [],
+            ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
+          );
+        }
+      } catch {
+        violations.push("PLAN order-tasks block must be valid JSON");
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
 
 });
