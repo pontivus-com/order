@@ -8,20 +8,21 @@
 
 `READY_FOR_SIGNOFF`.
 
-This is a fresh independent adversarial review performed only after the current final vertical alignment stage passed. The prior readiness artifact was treated as stale evidence because it was bound to superseded R1/R2/DESIGN/PLAN identities. No earlier R3 conclusion was inherited.
+This is a fresh adversarial R3 review performed only after the repaired package passed current final vertical alignment. The prior readiness artifact `a89133fd27c7838b1fcab440255531cc45d4077c` is stale historical evidence because its authority-topology conclusion was falsified by `ALIGN-A09-F01`. No earlier R3 conclusion is inherited, and this R3 performs no repair.
 
 ## Exact reviewed package
 
-- repository evidence baseline: `704c66cee598ee3b9f479ea20081ad9a49d46fa3`;
+- repository evidence baseline: `5e1252d24e517a78edc9d3ac9c32014693bb195e`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - WorkItem source `work-request.md`: `0786b08f8bb4e8400523ee92eb5cdcd60fd9dec7`;
-- R1 `research.md`: `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`;
-- R2 `requirements.md`: `6cf45126912da36b366b821c9c254d9e548e98f2`;
-- DESIGN `solution-design.md`: `6a7c201927370c48e7e218d2182b6e5b63083f3d`;
-- PLAN `implementation-plan.md`: `480cb1be69aa36c9fa4516e7a48d71dcc784e53b`;
-- campaign/evidence owner before this R3 consequence: `4070361318843a3b6b73febbaac89fc98230e327`;
-- final vertical-alignment evidence baseline: `73de0624d3aa85524d64ee68e1f52144e29a9133`;
+- R1 `research.md`: `1c07377f86634595e22707896f9b81d09d57acc5`;
+- R2 `requirements.md`: `a8566c7b829b94c911612866961fbc964502ee2d`;
+- DESIGN `solution-design.md`: `0d2429cc9330fe8df6833ccef357389cf1e54280`;
+- PLAN `implementation-plan.md`: `a5084eed5b4d2896d4d71f7ad750d27941a00fa9`;
+- campaign/evidence owner before this R3 consequence: `22c310f2cc703444de6124602e2b595f3d19a7c8`;
+- final vertical-alignment evidence baseline: `8a018ac603d9362b573ed2861776a32e1b3e78e4`;
 - project manifest `pontivus-order.toml`: `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`;
+- corrected P3 Installation Readiness: `9c2ec83a9552b7583f90e91080c014df4d6870df`;
 - lifecycle-context authority: `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7`;
 - specification-standard authority: `b69674076840c78849c7ce775565c73fd92f0ca1`;
 - canonical P6 contracts: `71f829cff8824db18194689eccdec83da6f5d19f`;
@@ -36,7 +37,7 @@ The only repository mutations produced by this R3 are this verdict artifact and 
 
 The final R1 reconstruction was performed on repository baseline `789e962bfa4d6cbbe6c6243b963f4c43f3dfff85`. Comparing that baseline with the reviewed head changes only this WorkItem's downstream `requirements.md`, `solution-design.md`, `implementation-plan.md`, modular PLAN authoring sources and campaign evidence. No production, UI, runtime, provider, test, manifest or permanent P1-P6 authority file changed after R1 reconstruction. Therefore no later repository mutation makes the current R1 realization evidence stale.
 
-The final vertical-alignment records bind exactly to R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`, R2 `6cf45126912da36b366b821c9c254d9e548e98f2`, DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d` and PLAN `480cb1be69aa36c9fa4516e7a48d71dcc784e53b`; all eleven domain audits and the integrated audit are PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
+The final vertical-alignment records bind exactly to R1 `1c07377f86634595e22707896f9b81d09d57acc5`, R2 `a8566c7b829b94c911612866961fbc964502ee2d`, DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280` and PLAN `a5084eed5b4d2896d4d71f7ad750d27941a00fa9`; all eleven domain audits and the integrated audit are PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
 
 ## S1-S12 package challenge
 
@@ -44,10 +45,10 @@ The final vertical-alignment records bind exactly to R1 `8ccdb12606ef31c20d4f7c2
 |---|---|---|
 | S1 identity/state | PASS | one source-backed WorkItem, one current R1/R2/DESIGN/PLAN/R3 lifecycle path and one campaign state owner; exact source/package identities are recorded above |
 | S2 proven outcome | PASS | Work request requires authority-driven reconstruction of the intended 0.6.0 design and explicitly rejects released/current implementation as normative product authority |
-| S3 research facts | PASS | R1 has zero material UNPROVEN; no runtime/test/P1-P6 evidence source changed after the final R1 reconstruction |
-| S4 pyramid requirements | PASS | R2 contains exactly 112 unique stable canonical requirement rows, all with canonical REFERENCE ownership; package consequences are explicit and implementation does not become P3 authority |
+| S3 research facts | PASS | repaired R1 records `C16-F04`, corrects FR007 ownership and has zero material UNPROVEN; the subsequent P3 mutation is explicitly owned and traced by R2 rather than silently treated as unchanged evidence |
+| S4 pyramid requirements | PASS | R2 contains exactly 112 unique stable canonical requirement rows: 111 `REFERENCE` and one governed `DELTA` (`GW-FR-079`) at its existing P3 owner; FR007 remains `REFERENCE` at Work Lifecycle and implementation does not become P3 authority |
 | S5 scope/exclusions | PASS | one signed cumulative T1 has seven hard scope patterns, 17 explicit exclusions and an exact 28-path forecast; no implicit while-here scope exists |
-| S6 resolved governance set | PASS | all 25 signed acceptance/authority refs resolve through current manifest `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`; no unsupported shadow owner or unresolved authority contradiction was found |
+| S6 resolved governance set | PASS | all 25 signed acceptance/authority refs resolve through current manifest `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`; repaired P3 bytes `9c2ec83a9552b7583f90e91080c014df4d6870df` make FR007 and FR079 compatible without `precedence.p3`; no unsupported shadow owner or unresolved authority contradiction remains |
 | S7 design | PASS | DESIGN contains the same 112 stable identities, 25 unique package atoms and SD01-SD19; failure/recovery, rejected alternatives, owner/boundary flow and zero open technical questions are explicit |
 | S8 implementation plan | PASS | PLAN contains the same 112 stable identities and 25 atoms, 14/14 modular source hashes match, IA01-IA25 are singular and one cumulative T1 delegates no material P1-P6 decision |
 | S9 minimum-change forecast | PASS | T1 `changeSurface` equals the DESIGN forecast exactly 28/28; every forecast path is inside scope and outside exclusions; same-layer variance is governed by V4/V5/V6 rather than silent scope expansion |
@@ -82,13 +83,28 @@ Immediately before this R3, each concern's Overall state remains `REVALIDATION` 
 
 **PASS.**
 
-R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c` explicitly separates canonical authority from implementation evidence, classifies every material realization, contains no open factual question and records zero material UNPROVEN obligations. The post-R1 repository-diff challenge proves no implementation/test/permanent-authority mutation invalidated those facts.
+R1 `1c07377f86634595e22707896f9b81d09d57acc5` explicitly separates canonical authority from implementation evidence, classifies every material realization, contains no open factual question and records zero material UNPROVEN obligations. The post-R1 repository-diff challenge proves no implementation/test/permanent-authority mutation invalidated those facts.
+
+## A09 authority-repair challenge
+
+**PASS.**
+
+The exact repaired authority graph was challenged rather than assuming that the previous FR007 choice was correct.
+
+- `pontivus-order.toml` still selects both Work Lifecycle and Installation Readiness in `authority.p3` and still declares no `precedence.p3`.
+- Work Lifecycle FR007 owns successful fresh-install completion: installer success requires the required repository, provider/model, OpenCode-account and daemon/readiness bootstrap to be complete.
+- Installation Readiness blob `9c2ec83a9552b7583f90e91080c014df4d6870df` now limits incomplete-readiness semantics to already-installed/update/recovery conditions and explicitly forbids successful fresh-install completion with mandatory setup outstanding.
+- R1 blob `1c07377f86634595e22707896f9b81d09d57acc5` correctly attributes FR007 to Work Lifecycle and records `C16-F04`.
+- R2 blob `a8566c7b829b94c911612866961fbc964502ee2d` owns the product decision and canonical P3 mutation; DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280` and PLAN `a5084eed5b4d2896d4d71f7ad750d27941a00fa9` map both FR007 and corrected FR079 through SD19/IA25.
+- No lower-layer implementation, test, P4/P6 wording or historical package is used as semantic precedence.
+
+The previous `CONTRADICTORY_AUTHORITY` condition is therefore removed by compatible canonical P3 semantics, not hidden by an inferred winner.
 
 ## R2 challenge
 
 **PASS.**
 
-R2 `6cf45126912da36b366b821c9c254d9e548e98f2` contains exactly 112 unique stable canonical requirement identities with no LOCAL row. Its strengthened package contract explicitly covers work kind, workflow step, information/hierarchy, interaction, OpenCode behavior, states/actions/transitions, failures/recovery/negative behavior and downstream consequences. Reference disposition is not used as shorthand for missing functional design.
+R2 `a8566c7b829b94c911612866961fbc964502ee2d` contains exactly 112 unique stable canonical requirement identities with no LOCAL row: 111 are `REFERENCE`, while `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` is the single stable `DELTA` required by `C16-F04`. FR007 remains owned by Work Lifecycle. The package contract explicitly covers work kind, workflow step, information/hierarchy, interaction, OpenCode behavior, states/actions/transitions, failures/recovery/negative behavior and downstream consequences. Neither `REFERENCE` nor the FR079 `DELTA` is used as shorthand for missing functional design.
 
 No product or authority decision remains for implementation.
 
@@ -96,7 +112,7 @@ No product or authority decision remains for implementation.
 
 **PASS.**
 
-DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d` contains exactly the same 112 stable requirement identities and 25 package atoms, with SD01-SD19. It explicitly realizes the complete work-kind/workflow-step contract, canonical carrier chains, OpenCode/session/input/proposal behavior, current-attention/material semantics, failure/recovery, reuse/remove/replace decisions, rejected alternatives and permanent proof ownership.
+DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280` contains exactly the same 112 stable requirement identities and 25 package atoms, with SD01-SD19. It explicitly realizes the complete work-kind/workflow-step contract, canonical carrier chains, OpenCode/session/input/proposal behavior, current-attention/material semantics, failure/recovery, reuse/remove/replace decisions, rejected alternatives and permanent proof ownership.
 
 No new WorkStage/status/outcome family, persistence/API family, DTO/OOP/service/repository/controller abstraction family or dependency is authorized. Open technical questions and material technical UNPROVEN are zero.
 
@@ -104,7 +120,7 @@ No new WorkStage/status/outcome family, persistence/API family, DTO/OOP/service/
 
 **PASS.**
 
-PLAN `480cb1be69aa36c9fa4516e7a48d71dcc784e53b` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
+PLAN `a5084eed5b4d2896d4d71f7ad750d27941a00fa9` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
 
 The sole canonical `order-tasks` block contains one cumulative `T1` with:
 
@@ -167,7 +183,7 @@ The design explicitly rejects new proposal/task/source/readiness/config DTO/serv
 
 Permanent architecture fitness `6a5bd394938250c00238db7995d0786b338e933f` independently enforces campaign-state ownership, stable requirement sets, PLAN compilation/source identities, single task-block structure, signed forecast/gate/concern sets and current vertical-audit structure.
 
-PR Verification #1487 / run `44632779685` is fully green on exact reviewed head `704c66cee598ee3b9f479ea20081ad9a49d46fa3`: release metadata, dependency-lock, typecheck, architecture, full test, build, release packaging and browser all passed. These results corroborate package feasibility and freshness; they do not substitute for authority or this R3 semantic judgment.
+PR Verification #1487 / run `44632779685` is fully green on exact reviewed head `5e1252d24e517a78edc9d3ac9c32014693bb195e`: release metadata, dependency-lock, typecheck, architecture, full test, build, release packaging and browser all passed. These results corroborate package feasibility and freshness; they do not substitute for authority or this R3 semantic judgment.
 
 ## Open decision/conflict ledger
 
