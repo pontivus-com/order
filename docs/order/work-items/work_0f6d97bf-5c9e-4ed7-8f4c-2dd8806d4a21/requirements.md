@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-C20-F01 R1 record in `research.m
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-R1 closed all C01-C22 factual questions and classified every material stable-requirement realization with an explicit evidence-backed verdict (`CONFORMS`, qualified conformance, `MIXED`, `VIOLATES` or `VERIFICATION_GAP`). R2 therefore owns only the functional consequence of canonical authority and the explicit disposition of the R1 findings. Technical owner selection, data/control flow and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `d85f6ac1e426e8c1bb85984e5700d61e4031fd50`. It retains the closed C01-C22 factual reconstruction and reopens C12 only for `C12-F02`, where ALIGN-A06 disproved the former `C12-O07` conformance classification. Every material stable-requirement realization still has an explicit evidence-backed verdict (`CONFORMS`, qualified conformance, `MIXED`, `VIOLATES` or `VERIFICATION_GAP`). R2 owns only the functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, execution-control bootstrap and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
@@ -149,7 +149,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10. It does 
 |---|---|---|---|---|
 | `GW-FR-001-GOVERNED-LIFECYCLE` | `CONFORMS` | `C01-O03`, `C01-O05`, `C01-O08` | `REFERENCE` | C01 |
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `CONFORMS` | `C01-O01`, `C01-O07` | `REFERENCE` | C01 |
-| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `CONFORMS` | `C12-O01`, `C12-O02`, `C12-O07` | `REFERENCE` | C12 |
+| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `MIXED` | `C12-O01`, `C12-O02`, `C12-O07` / `C12-F02` | `REFERENCE` | C12 |
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
 | `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
@@ -298,7 +298,7 @@ R2 consequence rule: a `REFERENCE` row with R1 `VIOLATES`, `MIXED`, `VERIFICATIO
 
 ### A06 — C09 PLAN + C10 R3
 
-**C09.** PLAN carries the complete S8-S10 package contract and exactly one canonical `order-tasks` block. An executable package cannot be vacuous: it must contain at least one materially specified task when implementation is required, and each task must have meaningful identity/objective, justified authority/acceptance/concern ownership, bounded scope/change surface and required gates. PLAN may not delegate product/architecture choices to implementation.
+**C09.** PLAN carries the complete S8-S10 package contract and exactly one canonical `order-tasks` block. An executable package cannot be vacuous: it must contain at least one materially specified task when implementation is required, and each task must have meaningful identity/objective, justified authority/acceptance/concern ownership, bounded semantic scope/exclusions, an expected physical `changeSurface` forecast and required gates. The forecast must be exact enough to review intended work but must not become a file-list rule that forces duplicate responsibility or forbids the minimum same-layer physical decomposition needed solely to preserve an already-resolved responsibility/effect boundary. Any change to semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior is not such variance and returns upstream. PLAN may not delegate product/architecture choices to implementation.
 
 **C10.** R3 is read-only adversarial review. Its dominant judgment is the canonical typed R3 outcome (`READY_FOR_SIGNOFF` or the exact return/block result), not document maturity/currentness. It returns defects to the exact owning stage and cannot repair them locally. `READY_FOR_SIGNOFF` requires current coherent authority, complete P1-P7 traceability and successful canonical signed-task mechanical validation.
 
@@ -306,7 +306,18 @@ R2 consequence rule: a `REFERENCE` row with R1 `VIOLATES`, `MIXED`, `VERIFICATIO
 
 **C11.** Approval is explicit human authorization of one exact current package. Canonical readiness and package currentness are primary review facts before technical identity. A valid approval identity is non-empty human-readable operator identity after semantic normalization; browser validation is feedback, not the invariant owner. Stale/different material cannot be signed.
 
-**C12.** EXECUTION materializes only signed tasks and preserves builder/reviewer/remediator separation, bounded repair and independent validation. If a signed PLAN requires an architecture-feedback checkpoint between architecture-affecting internal steps, Order must provide a governed coordinator-owned way to execute the resolved gate before the builder proceeds; denied ambient provider shell/execute permission is not relaxed to satisfy that obligation.
+**C12.** EXECUTION materializes only signed tasks and preserves builder/reviewer/remediator separation, bounded repair and independent validation. Signed semantic scope/exclusions remain authoritative; the task's expected `changeSurface` is a reviewed forecast rather than an exhaustive physical whitelist. Execution may admit only the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary, and that variance remains subject to semantic review, architecture/governance validation and minimum-change proof. A materially different semantic owner, public contract, state meaning, effect boundary, dependency/external dependency, validation contract or behavior is outside this allowance and returns upstream. If a signed PLAN requires an architecture-feedback checkpoint between architecture-affecting internal steps, Order must provide a governed coordinator-owned way to execute the resolved gate before the builder proceeds; denied ambient provider shell/execute permission is not relaxed to satisfy that obligation.
+
+#### A07 package-local execution-surface consequence
+
+`PL-C12-02` is a package-local trace key, not a new permanent P3 requirement. It carries `C12-F02` downward:
+
+- signed `scope`/`exclusions` bound authorized semantics/repository reach;
+- `changeSurface` is the exact expected physical forecast;
+- an unforecast path is not automatically authorized, but absence from the forecast alone is not a semantic scope breach;
+- the only in-task variance permitted without upstream redesign is the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary;
+- V4/V5/V6 must positively prove that such variance preserves canonical ownership/contracts/state/dependencies/behavior and is minimum sufficient change;
+- any new/changed semantic owner, public contract, state meaning, effect boundary, dependency/external dependency, validation contract or behavior returns to DESIGN/PLAN.
 
 ### A08 — C13 Complete + C14 governed materials
 
@@ -344,10 +355,10 @@ R2 consequence rule: a `REFERENCE` row with R1 `VIOLATES`, `MIXED`, `VERIFICATIO
 | C06 | Authority-changing human input requires durable authority update/block; ordinary information/evidence may continue interaction. |
 | C07 | R2 dispositions are explicit and permanent P2/P3 changes use the canonical proposal/adoption owner. |
 | C08 | P4-P6 changes use one validated canonical-owner proposal/adoption path and do not create shadow architecture/contracts. |
-| C09 | Implementation-required PLAN is materially non-vacuous, completely specified and has one canonical signed-task representation. |
+| C09 | Implementation-required PLAN is materially non-vacuous, completely specified, has one canonical signed-task representation, treats `changeSurface` as an expected physical forecast inside signed semantic scope, and does not force architecture-breaking file-list conformance. |
 | C10 | Dominant Readiness judgment is the canonical R3 outcome and defective packages return to the exact owning stage. |
 | C11 | Approval shows readiness + currentness first, accepts only meaningful human identity and signs only the exact current package. |
-| C12 | Signed tasks execute under canonical role/validation rules and required in-task architecture checkpoints are executable without ambient provider shell authority. |
+| C12 | Signed tasks execute under canonical role/validation rules; bounded S9-authorized same-layer physical variance can reach V4-V6 instead of failing solely for absence from the forecast; semantic scope expansion still returns upstream; required in-task architecture checkpoints are executable without ambient provider shell authority. |
 | C13 | COMPLETE is terminal and uses canonical verified-result/verified-candidate product language. |
 | C14 | Document/proposal/evidence/dialogue/currentness ownership remains explicit with no chat/activity authority shadow. |
 | C15 | Provider/session/input/failure behavior remains observable and bounded by Order authority; rejection preserves canonical state. |
