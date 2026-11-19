@@ -686,7 +686,7 @@ type SignedTaskBlock = Readonly<{
 }>;
 ```
 
-Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, every forecast `changeSurface` path must be admitted by signed `scope` and no exclusion, and `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, every forecast `changeSurface` path must be admitted by signed `scope` and no exclusion. `concernIds` must cover every manifest concern selected by the task's forecast production paths and any broader production `scope` pattern the task intentionally signs; the task may not omit an applicable concern merely because another concern already contributes the same logical gate. `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
 
 Task validation does not infer future decomposition paths. R3 instead proves that the signed scope/decomposition constraints are narrow enough to bound execution while still permitting the S8/S9 architecture-preserving variance rule above. A fixed forecast list must never be used to force a second responsibility into an existing module.
 
@@ -3557,3 +3557,27 @@ The request carries no result/evidence and does not satisfy validation. Only the
 The BUILDER turn contract permits at most one checkpoint request as the terminal action of that provider turn. The requested `gateId` must belong to the signed task's resolved gate set. The coordinator reacts, records the result and starts the next turn in the same live Run/session. Any other terminal completion/candidate handling waits until a subsequent turn that does not request a checkpoint.
 
 This protocol is an **execution-baseline capability**, not something a task may bootstrap for its own use. If a signed PLAN requires an architecture-feedback checkpoint, the exact Approval baseline/runtime that will execute that task must already admit `GATE_CHECKPOINT_REQUESTED`, execute the coordinator-owned gate and continue the same Run/session before R3 may return `READY_FOR_SIGNOFF`. Candidate bytes produced by that same task cannot be relied on to make the checkpoint protocol available to an already-running coordinator. A package whose baseline lacks the capability is `SPEC_INVALID` / not ready and returns to the owning pre-signoff layer or prerequisite foundation work; provider shell/execute permission is never granted as a workaround.
+
+### 37.7 Forecast variance admission
+
+`changeSurface` remains the immutable expected-path forecast defined in §7. It is not duplicated by another allowed-path model.
+
+V2 changed-path admission must deterministically reject:
+
+- a path outside signed `scope`;
+- a path admitted by `exclusions`;
+- any `AGENTS.md` repository-instruction path;
+- signed material authority, project-manifest/governance material, or immutable verification material that the task is not permitted to mutate.
+
+If a changed production path passes those checks but is absent from `changeSurface`, forecast absence alone is not `SCOPE_BREACH`. The path remains candidate evidence and proceeds through ordinary V3-V6. V4/V5/V6 must then positively prove that it is the minimum same-layer physical decomposition needed solely to preserve an already-resolved responsibility/effect boundary and that canonical semantic ownership, public contracts, state meaning, effect boundaries, dependency direction/external dependencies, validation contract and authorized behavior are unchanged.
+
+If those propositions change or cannot be proved, the candidate follows the existing `SCOPE_BREACH`, `GOVERNANCE_BREACH`, `BLOCKED_SPEC_OR_DESIGN` or `CHANGE_BLOAT` path as applicable. The worker cannot use forecast variance to add unrelated behavior, cleanup, dependency, authority, compatibility/fallback or verification scope.
+
+No task mutation, dynamic scope expansion, second allowed-path list, variance DTO or persisted variance state is introduced. Existing candidate changed-path evidence plus V4-V6 evidence are the proof.
+
+### 37.8 Execution-control baseline dependency
+
+The §37.6 checkpoint protocol and §37.7 forecast-variance validator are coordinator/runtime capabilities. A dependent task may rely on them only when the exact Approval baseline/runtime already implements them.
+
+Because same-Approval task dependencies do not transport candidate bytes and every Run starts from `Approval.baselineCommit`, a task cannot implement or modify the execution-control capability that determines whether that same task may continue. When the current baseline lacks a required capability, that correction is separately governed and integrated first; the dependent WorkItem is then freshly reconstructed/revalidated against the new exact baseline before sign-off.
+
