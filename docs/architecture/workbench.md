@@ -862,7 +862,7 @@ Adding a new Order-owned Workbench primitive is an architecture change. It requi
 
 ### 8.12.1 Astryx foundation-conformance law
 
-Order's semantic primitive boundary does not authorize rebuilding behavior that the pinned foundation already owns. For every §8.12 primitive, P7 first resolves the exact `@astryxdesign/core@0.7.13` component documentation recorded by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, then applies this precedence:
+Order's semantic primitive boundary does not authorize rebuilding behavior that the pinned foundation already owns. For every §8.12 primitive, P7 first resolves the exact `@astryxdesign/core@0.7.13` component documentation recorded by `GW-DOC-EXTERNAL-FACTS`, then applies this precedence:
 
 ```text
 Order product/workflow meaning
@@ -1676,7 +1676,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
 
-**Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
+**Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
 
 **Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
