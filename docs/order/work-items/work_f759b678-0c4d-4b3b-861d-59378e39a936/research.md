@@ -61,6 +61,7 @@ BUILDER provider turn
 - existing OpenCode session and active-provider ownership;
 - `runVerificationGate` and gate evidence writer;
 - current Approval/material freshness checks;
+- existing OpenCode role-specific output-contract generation in `src/shell/opencode.ts`;
 - existing V3/V5/V7 validation stages;
 - V4 independent reviewer and V6 minimum-change boundary.
 
