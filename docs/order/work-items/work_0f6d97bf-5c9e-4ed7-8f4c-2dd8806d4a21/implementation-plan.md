@@ -6,7 +6,7 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN consumes current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`, current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb` and current DESIGN `9ec7b943365b39819999672abb27654891f4a837`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE` or baseline reuse.
+This PLAN consumes current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`, current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb` and current DESIGN `9ec7b943365b39819999672abb27654891f4a837`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
 
 ## Exact modular source manifest
 
