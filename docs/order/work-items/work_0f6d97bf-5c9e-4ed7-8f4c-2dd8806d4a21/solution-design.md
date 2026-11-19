@@ -30,7 +30,7 @@ Current implementation/tests/UI are used only through the exact R1 evidence cite
 
 | Solution | Owned defect/outcome | Canonical technical owner | Expected implementation surface | Technical decision | Permanent proof |
 |---|---|---|---|---|---|
-| SD01 | C21 product-language realization | P2 Product Identity + P4 Workbench presentation | README.md; ui/src/TerminalResult.tsx; ui/src/workbench-presentation.ts | Use verified result as umbrella product outcome and Verified candidate only for executed delivery; no lifecycle/state change. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
+| SD01 | C21 product-language realization | P2 Product Identity + P4 Workbench presentation | README.md; ui/src/TerminalResult.tsx; ui/src/workbench-presentation.ts | Use verified result as umbrella product outcome and Verified candidate only for executed delivery; reuse the canonical P4 terminal-result projection and replace local enum prettification; no lifecycle/state/contract change. | tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
 | SD02 | C22 authority resolution | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-OPENCODE-INTEGRATION-V1 | src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Purely resolve same-layer precedence plus P1 default/override/extension/fitness bindings before productive provider context; unresolved material relation blocks before inference. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts |
 | SD03 | C02 authoring presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/CreateWorkItem.tsx | Ordinary label is Concerns; linked remediation project is fixed parent-project context. Preserve canonical kind/schema/body/metadata owners. | tests/browser.spec.ts |
 | SD04 | C02/C04 singular source admission | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/daemon/work-item-source.ts | Factor one new-source QueuePlan producer and persist both created/discovered sources through existing applyPlan; remove direct create-path WorkItem store. | tests/daemon.test.ts |
@@ -49,6 +49,58 @@ Current implementation/tests/UI are used only through the exact R1 evidence cite
 | SD17 | C20 scenario-41 certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | tests/browser.spec.ts | Certify all four work-kind Work request + Research information contracts and distinct Change/Defect downstream obligations. | tests/browser.spec.ts |
 | SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
 | SD19 | C16 guided productive installer | GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices exist. Preserve incomplete v4 as daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
+
+## A01 corrected-upstream no-code dispositions
+
+These rows are **trace dispositions, not new semantic requirements**. They retain material R2 consequences that have already been applied to their canonical authority owners and therefore require no T1 production mutation. They remain explicit so corrected authority cannot disappear between R2, DESIGN and PLAN merely because the code delta is zero.
+
+| Trace key | R2 consequence | Current canonical owner/evidence | DESIGN disposition | Technical consequence | Permanent proof |
+|---|---|---|---|---|---|
+| `A01-NC01` | C01 product-level success distinguishes verified terminal result from implementation-required verified candidate and preserves valid no-code terminal success. | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1`, §8 | `ALREADY_CORRECTED_NO_CODE` | No runtime/lifecycle mutation. DESIGN consumes the corrected P2 meaning as the product-level invariant for terminal presentation and lifecycle acceptance. | authority-byte/hash freshness + R1 C01-O06/O13/O14 recheck + V4 semantic review |
+| `A01-NC02` | C01 clause-level P3 DELTA points `GW-P2-CONTROLLED-WORK` to its actual System Brief §9 declaration. | `GW-DOC-WORK-LIFECYCLE` blob `013bc1297c3d167b776e115f428517b7cedbea57`, §7 | `ALREADY_CORRECTED_NO_CODE` | Documentation authority correction only; no runtime contract/state behavior changes. | exact authority-byte/hash freshness + R1 C01-O14 recheck + V4 semantic review |
+| `A01-NC03` | C21 canonical product language preserves verified-result/verified-candidate distinction, explicit product intent, conditional implementation and the bounded operator-triggered WorkItem documentation-Git allowance without implying automatic delivery commits. | `GW-DOC-PRODUCT-IDENTITY` blob `f45ee2ea00cf91c5b861c59d3d19f72b3e39611f` | `ALREADY_CORRECTED_NO_CODE` | No additional P2 mutation in T1. SD01 changes only the still-violating README/terminal projections; corrected canonical identity remains the source. | authority-byte/hash freshness + R1 C21 corrected-finding recheck + V4 semantic review |
+
+## SD01 complete technical realization — product-language projection
+
+**Canonical owner and reuse:** `GW-DOC-PRODUCT-IDENTITY` owns product language. `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §16.3` already owns the technical terminal-result projection rule: `CANDIDATE_DONE` renders **Verified candidate**, while other `WorkOutcome` variants use canonical product-facing labels rather than prettified internal enum names. SD01 reuses that owner; it does not create a second presentation policy.
+
+**Producer → carrier → consumer path:**
+
+```text
+canonical WorkItem.outcome (P6/core lifecycle result)
+  -> existing WorkItem browser projection
+  -> one pure product-facing outcome-label mapping in ui/src/workbench-presentation.ts
+  -> ui/src/TerminalResult.tsx attention + final-governed-outcome presentation
+
+P2 Product Identity canonical reusable descriptions
+  -> README.md public projection
+```
+
+**Required replacement/removal:**
+
+- remove the feature-local `TerminalResult.tsx::outcomeLabel` enum-prettification policy;
+- make `TerminalResult` consume the shared pure canonical product-label mapping;
+- correct README hero/intro/result-boundary language so implementation is conditional and verified result is the umbrella outcome;
+- remove the absolute public claim that Order simply “does not commit” where it would erase the governed operator-triggered WorkItem documentation-Git capability; preserve the prohibition on automatic implementation/candidate commit/push/merge/deploy.
+
+**Invariants / negative behavior:**
+
+- no `WorkStage`, `WorkOutcome`, persistence, HTTP, provider, task or lifecycle semantic changes;
+- `CANDIDATE_DONE` alone maps to **Verified candidate**;
+- every other current `WorkOutcome` maps explicitly to its canonical operator-facing product label; no fallback enum prettification may leak internal codes;
+- non-candidate outcomes must not render candidate resources or imply implementation occurred;
+- README must not imply that every WorkItem executes or that all terminal results are candidates;
+- no new DTO/view-model/state owner or presentation service is introduced.
+
+**Failure/recovery:** malformed/unknown outcome values remain a canonical contract/type violation; presentation does not guess a label. Resource-load failures remain existing TerminalResult supporting-state behavior and do not alter outcome classification.
+
+**Rejected alternatives:** keep local enum prettification (rejected: leaks internal state language); introduce a second product-label table inside `TerminalResult` (rejected: duplicate owner); change `WorkOutcome` values to match display copy (rejected: presentation concern leaking into canonical state contract).
+
+**Permanent proof propositions:**
+
+- `tests/workbench-presentation.test.ts`: exhaustive current `WorkOutcome` → canonical product-facing label mapping, including `CANDIDATE_DONE -> Verified candidate`, and no generic underscore/title prettification path;
+- `tests/browser.spec.ts`: terminal candidate presentation uses **Verified candidate** and a representative non-candidate terminal result uses its canonical non-candidate label without candidate resources;
+- `tests/certification.test.ts`: README retains **verified result** umbrella language, conditions implementation/candidate language, preserves the explicit documentation-Git exception, and does not restore universal candidate/delivery wording.
 
 ## Exhaustive stable-requirement technical ledger
 
@@ -206,7 +258,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 
 | Concern | Technical coverage |
 |---|---|
-| C01 | Stable rows + corrected permanent P2/P3 authority; no T1 lifecycle-state delta. |
+| C01 | Stable rows + explicit A01-NC01/A01-NC02 corrected-upstream no-code dispositions; no T1 lifecycle-state delta. |
 | C02 | Stable rows + PL-C02-01/02/03 -> SD03/SD04. |
 | C03 | Stable rows + PL-C03-01 -> SD05. |
 | C04 | Stable rows + PL-C04-01/02 -> SD04/SD06. |
@@ -226,7 +278,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C18 | Stable FR225 + PL-C18-01 -> SD15. |
 | C19 | Stable rows + PL-C19-01 -> SD16; local hierarchy dependencies SD11/12/14. |
 | C20 | Stable rows + PL-C20-01/02 -> SD17/SD18; imported focus/renderer verification SD15/16. |
-| C21 | PL-C21-01 -> SD01; other corrected P2 authority is already current. |
+| C21 | PL-C21-01 -> SD01 plus explicit A01-NC03 corrected-upstream no-code disposition. |
 | C22 | Stable dependency rows + PL-C22-01 -> SD02. |
 
 ## Detailed data/control flows
