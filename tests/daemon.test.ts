@@ -354,7 +354,7 @@ const createRepository = (projectId = "fixture"): string => {
 };
 
 const fakeOpenCode = `#!/usr/bin/env bun
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -510,6 +510,13 @@ const server = Bun.serve({
         } else if (mode === "checkpoint" || mode === "checkpoint-fail") {
           writeFileSync(join(process.cwd(), "src", "target.ts"), "needs-review\\n");
           output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"test"}]';
+        } else if (mode === "checkpoint-outside") {
+          writeFileSync(join(process.cwd(), "docs", "outside.ts"), "outside\\n");
+          output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"test"}]';
+        } else if (mode === "bloat") {
+          writeFileSync(join(process.cwd(), "src", "target.ts"), "fixed\\n");
+          writeFileSync(join(process.cwd(), "src", "extra.ts"), "removable\\n");
+          output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"candidate prepared","evidence":[]}]';
         } else if (mode === "checkpoint-unsigned") {
           output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"architecture"}]';
         } else {
@@ -521,6 +528,8 @@ const server = Bun.serve({
       } else if (text.includes("Order execution role: REMEDIATOR")) {
         if (mode === "fix" || mode === "checkpoint") {
           writeFileSync(join(process.cwd(), "src", "target.ts"), "fixed\\n");
+        } else if (mode === "bloat") {
+          rmSync(join(process.cwd(), "src", "extra.ts"), { force: true });
         }
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"repair attempted","evidence":[]}]';
       } else if (text.includes("Order execution role: REVIEWER")) {
@@ -531,9 +540,14 @@ const server = Bun.serve({
           text.includes("Mechanical validation events completed before V4:") &&
           text.includes('"tag":"VALIDATION_PASSED"') &&
           text.includes('"stage":"V3"');
-        output = target === "fixed\\n" && hasV4Inputs
-          ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
-          : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+        if (target === "fixed\\n" && hasV4Inputs && mode === "bloat" &&
+            existsSync(join(process.cwd(), "src", "extra.ts"))) {
+          output = '[{"tag":"REVIEW_PASSED","minimumChange":"CHANGE_BLOAT","minimumChangeSummary":"src/extra.ts is removable","evidence":[]}]';
+        } else {
+          output = target === "fixed\\n" && hasV4Inputs
+            ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
+            : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+        }
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
@@ -5604,6 +5618,45 @@ describe("daemon control plane", () => {
     expect(new Set(output.sessions).size).toBe(1);
   }, 30_000);
 
+  it("rejects an out-of-scope checkpoint diff before executing the gate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-scope-");
+    const binary = createFakeOpenCode("checkpoint-outside");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const events = runs.flatMap((run) => coord.listRunEvents(runtime, run.id));
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        gateResults: events.filter((event) =>
+          event.event.tag === "GATE_PASSED" || event.event.tag === "GATE_FAILED"
+        ).length,
+        v2Failures: events
+          .filter((event) =>
+            event.event.tag === "VALIDATION_FAILED" &&
+            event.event.stage === "V2"
+          )
+          .map((event) => event.event),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string };
+      gateResults: number;
+      v2Failures: Array<{ tag: string; stage: string; classification: string }>;
+    };
+
+    expect(output.gateResults).toBe(0);
+    expect(output.v2Failures).toHaveLength(1);
+    expect(output.v2Failures[0]).toMatchObject({
+      tag: "VALIDATION_FAILED",
+      stage: "V2",
+      classification: "SCOPE_BREACH",
+    });
+    expect(output.workItem.stage).toBe("PLAN");
+  }, 30_000);
+
   it("classifies a failed V5 governance fitness gate as GOVERNANCE_BREACH", () => {
     const repository = createRepository();
     const failingManifest = fixtureManifest.replace(
@@ -5639,6 +5692,66 @@ describe("daemon control plane", () => {
       tag: "VALIDATION_FAILED",
       stage: "V5",
       classification: "GOVERNANCE_BREACH",
+    });
+  }, 30_000);
+
+  it("classifies reviewer-proven removable surface as V6 CHANGE_BLOAT and permits one reduction", () => {
+    const repository = createRepository();
+    const planPath = join(repository, "docs", "plan.md");
+    writeFileSync(
+      planPath,
+      readFileSync(planPath, "utf8").replace(
+        '"scope":["src/target.ts"]',
+        '"scope":["src/**"]',
+      ),
+    );
+    runGit(repository, "add", "docs/plan.md");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-change-bloat-");
+    const binary = createFakeOpenCode("bloat");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const events = runs.flatMap((run) => coord.listRunEvents(runtime, run.id));
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        task: (await coord.listExecutionTasks(runtime, work))[0],
+        roles: runs.map((run) => run.role),
+        v6Bloat: events.filter((event) =>
+          event.event.tag === "VALIDATION_FAILED" &&
+          event.event.stage === "V6" &&
+          event.event.classification === "CHANGE_BLOAT"
+        ).map((event) => event.event),
+        v6Passes: events.filter((event) =>
+          event.event.tag === "VALIDATION_PASSED" &&
+          event.event.stage === "V6"
+        ).length,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string; outcome: string | null };
+      task: { state: string };
+      roles: string[];
+      v6Bloat: Array<{ tag: string; stage: string; classification: string; summary: string }>;
+      v6Passes: number;
+    };
+
+    expect(output.v6Bloat).toHaveLength(1);
+    expect(output.v6Bloat[0]).toMatchObject({
+      tag: "VALIDATION_FAILED",
+      stage: "V6",
+      classification: "CHANGE_BLOAT",
+      summary: "src/extra.ts is removable",
+    });
+    expect(output.roles).toEqual(["BUILDER", "REVIEWER", "REMEDIATOR", "REVIEWER"]);
+    expect(output.v6Passes).toBe(1);
+    expect(output.task.state).toBe("CANDIDATE_DONE");
+    expect(output.workItem).toMatchObject({
+      stage: "COMPLETE",
+      status: "COMPLETE",
+      outcome: "CANDIDATE_DONE",
     });
   }, 30_000);
 
