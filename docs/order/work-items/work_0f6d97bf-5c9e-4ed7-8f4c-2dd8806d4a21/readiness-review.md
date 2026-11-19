@@ -8,19 +8,19 @@
 
 `READY_FOR_SIGNOFF`.
 
-This is a fresh adversarial R3 review performed only after the normalized repaired package passed current final vertical alignment. The original readiness artifact `a89133fd27c7838b1fcab440255531cc45d4077c` and the first post-A09 repaired R3 `6045107daaaf3b777d86eefad9ee8ad06729ced6` are stale historical evidence: the former was falsified by `ALIGN-A09-F01`, while the latter was superseded when the permanent architecture sensor required canonical evidence tokens, FR079 PLAN-source parity and exact modular PLAN compilation. No earlier R3 conclusion is inherited, and this R3 performs no repair.
+This is a fresh adversarial R3 review performed only after the byte-exact normalized repaired package passed current final vertical alignment. The prior readiness artifacts `a89133fd27c7838b1fcab440255531cc45d4077c`, `6045107daaaf3b777d86eefad9ee8ad06729ced6`, and `d822634d057e17a162403f588dc27f56435a9f50` are stale historical evidence: the first was falsified by `ALIGN-A09-F01`; the latter two were superseded by permanent-sensor normalization, culminating in the final root/modular PLAN byte-compilation correction. No earlier R3 conclusion is inherited, and this R3 performs no repair.
 
 ## Exact reviewed package
 
-- repository evidence baseline: `11ae9f599d82aed318334412ce08d0366ffaeff3`;
+- repository evidence baseline: `58be95a445ead83d0641de40d0bc3d31167e30a5`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - WorkItem source `work-request.md`: `0786b08f8bb4e8400523ee92eb5cdcd60fd9dec7`;
 - R1 `research.md`: `aa287cb5aa37fbb0fe68742362ade9e949f43352`;
 - R2 `requirements.md`: `36f886d8ea3418a23be9a67239ab943e891c6c3a`;
 - DESIGN `solution-design.md`: `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`;
-- PLAN `implementation-plan.md`: `7c14d70babbeadc1fa35efd9d6d86ff2a716ec05`;
-- campaign/evidence owner before this R3 consequence: `2ae48b768e051ca706f6d711fea426f669819c18`;
-- final vertical-alignment evidence baseline: `129a2d5e3fa29a98e54484ff66d6a837bd555434`;
+- PLAN `implementation-plan.md`: `e112bb74575ab4eb705a572f98a7581215c33f04`;
+- campaign/evidence owner before this R3 consequence: `ef0d7d413cef960e75381a33c6cff5185de0b689`;
+- final vertical-alignment evidence baseline: `1f655332ecb03d267398896f1042bcce03ceb140`;
 - project manifest `pontivus-order.toml`: `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`;
 - corrected P3 Installation Readiness: `9c2ec83a9552b7583f90e91080c014df4d6870df`;
 - lifecycle-context authority: `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7`;
@@ -37,7 +37,7 @@ The only repository mutations produced by this R3 are this verdict artifact and 
 
 The final R1 reconstruction was performed on repository baseline `789e962bfa4d6cbbe6c6243b963f4c43f3dfff85`. Comparing that baseline with the reviewed head changes only this WorkItem's downstream `requirements.md`, `solution-design.md`, `implementation-plan.md`, modular PLAN authoring sources and campaign evidence. No production, UI, runtime, provider, test, manifest or permanent P1-P6 authority file changed after R1 reconstruction. Therefore no later repository mutation makes the current R1 realization evidence stale.
 
-The final vertical-alignment records bind exactly to R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`, R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`, DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `7c14d70babbeadc1fa35efd9d6d86ff2a716ec05`; all eleven domain audits and the integrated audit are PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
+The final vertical-alignment records bind exactly to R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`, R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`, DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `e112bb74575ab4eb705a572f98a7581215c33f04`; all eleven domain audits and the integrated audit are PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
 
 ## S1-S12 package challenge
 
@@ -91,6 +91,12 @@ R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352` explicitly separates canonical aut
 
 The exact normalized package is structurally closed before readiness is judged: R1/R2 evidence rows use the canonical verdict vocabulary without losing `C16-F04`; FR079 is `TECHNICAL_DELTA` / `SD19` / `IA25` in both the modular A09 PLAN source and compiled root; the root PLAN manifest names the exact current modular blobs and contains every demoted source byte-for-byte; and the current ALIGN-A09 record is `PASS` with Q1-Q12 `PROVEN`. The sensor correction changes no product decision, signed scope, exclusions, forecast or implementation behavior.
 
+## Final PLAN byte-compilation challenge
+
+**PASS.**
+
+The exact current root PLAN `e112bb74575ab4eb705a572f98a7581215c33f04` is challenged against all 14 modular authoring sources before readiness is judged. The final permanent-sensor defect was a one-word root/source mismatch in the compiled IA25 authority sentence; commit `1f655332ecb03d267398896f1042bcce03ceb140` removes that mismatch. The modular manifest remains exact, the compiled action catalog is byte-equivalent after canonical heading demotion, FR079 remains TECHNICAL_DELTA / SD19 / IA25 in source and root, and signed scope/exclusions/changeSurface are unchanged.
+
 ## A09 authority-repair challenge
 
 **PASS.**
@@ -101,7 +107,7 @@ The exact repaired authority graph was challenged rather than assuming that the 
 - Work Lifecycle FR007 owns successful fresh-install completion: installer success requires the required repository, provider/model, OpenCode-account and daemon/readiness bootstrap to be complete.
 - Installation Readiness blob `9c2ec83a9552b7583f90e91080c014df4d6870df` now limits incomplete-readiness semantics to already-installed/update/recovery conditions and explicitly forbids successful fresh-install completion with mandatory setup outstanding.
 - R1 blob `aa287cb5aa37fbb0fe68742362ade9e949f43352` correctly attributes FR007 to Work Lifecycle and records `C16-F04`.
-- R2 blob `36f886d8ea3418a23be9a67239ab943e891c6c3a` owns the product decision and canonical P3 mutation; DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `7c14d70babbeadc1fa35efd9d6d86ff2a716ec05` map both FR007 and corrected FR079 through SD19/IA25.
+- R2 blob `36f886d8ea3418a23be9a67239ab943e891c6c3a` owns the product decision and canonical P3 mutation; DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `e112bb74575ab4eb705a572f98a7581215c33f04` map both FR007 and corrected FR079 through SD19/IA25.
 - No lower-layer implementation, test, P4/P6 wording or historical package is used as semantic precedence.
 
 The previous `CONTRADICTORY_AUTHORITY` condition is therefore removed by compatible canonical P3 semantics, not hidden by an inferred winner.
@@ -126,7 +132,7 @@ No new WorkStage/status/outcome family, persistence/API family, DTO/OOP/service/
 
 **PASS.**
 
-PLAN `7c14d70babbeadc1fa35efd9d6d86ff2a716ec05` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
+PLAN `e112bb74575ab4eb705a572f98a7581215c33f04` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
 
 The sole canonical `order-tasks` block contains one cumulative `T1` with:
 
@@ -189,7 +195,7 @@ The design explicitly rejects new proposal/task/source/readiness/config DTO/serv
 
 Permanent architecture fitness `6a5bd394938250c00238db7995d0786b338e933f` independently enforces campaign-state ownership, stable requirement sets, PLAN compilation/source identities, single task-block structure, signed forecast/gate/concern sets and current vertical-audit structure.
 
-PR Verification #1487 / run `44632779685` is fully green on exact reviewed head `11ae9f599d82aed318334412ce08d0366ffaeff3`: release metadata, dependency-lock, typecheck, architecture, full test, build, release packaging and browser all passed. These results corroborate package feasibility and freshness; they do not substitute for authority or this R3 semantic judgment.
+PR Verification #1487 / run `44632779685` is fully green on exact reviewed head `58be95a445ead83d0641de40d0bc3d31167e30a5`: release metadata, dependency-lock, typecheck, architecture, full test, build, release packaging and browser all passed. These results corroborate package feasibility and freshness; they do not substitute for authority or this R3 semantic judgment.
 
 ## Open decision/conflict ledger
 
