@@ -4,14 +4,16 @@ Each IA action below has one execution owner. Semantic phase files may reference
 
 ## Execution waves
 
-1. **Wave 1 — authority/contracts/execution:** IA01-IA08.
-2. **Wave 2 — source/queue/Git:** IA09-IA13.
-3. **Wave 3 — Workbench/product presentation:** IA14-IA19.
-4. **Wave 4 — productive installer:** IA25.
-5. **Wave 5 — permanent certification:** IA20-IA23.
-6. **Wave 6 — candidate closeout:** IA24.
+0. **Preflight 0 — baseline-reuse proof:** IA07-IA08. No T1 production mutation.
+1. **Wave 1 — authority resolution and governed decisions:** IA01-IA04.
+2. **Wave 2 — task admission and Approval ingress:** IA05-IA06.
+3. **Wave 3 — source/queue/documentation Git:** IA09-IA13.
+4. **Wave 4 — Workbench/product presentation:** IA14-IA19.
+5. **Wave 5 — productive installer:** IA25.
+6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
+7. **Wave 7 — candidate closeout:** IA24.
 
-Architecture-feedback checkpoints in `13-verification-closeout.md` apply after each wave.
+The signed `architecture` gate is requested through the existing SD13 coordinator checkpoint after Waves 1-6 and must pass before the next wave begins. Preflight 0 proves that checkpoint and scope/forecast capabilities already exist in the Approval baseline; it does not bootstrap them. Wave 7 uses the ordinary final validation path and does not substitute an intermediate checkpoint for V3/V5/V7.
 
 ## IA01 — pure project-authority resolution
 
@@ -46,12 +48,14 @@ Architecture-feedback checkpoints in `13-verification-closeout.md` apply after e
 **Required mutation:** after latest answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, reject stage completion until later adopted authority exists. INFORMATION/EVIDENCE remains unchanged.  
 **Proof:** core/daemon chronology cases for adopted/rejected/cancelled/stale and ordinary information input.
 
-## IA05 — non-vacuous signed-task contract
+## IA05 — schema-aware current-v2 task admission
 
 **Solution:** SD10.  
-**Anchors:** `src/core/contracts.ts` SignedTaskBlock/task schemas; `src/core/execution.ts::parseSignedTaskBlockFromPlan`; `src/daemon/authority.ts::validateTaskDefinitions`.  
-**Required mutation:** implementation-required plan has at least one materially specified task with meaningful id/objective/scope/changeSurface/acceptance/gates/authority/concerns.  
-**Proof:** exact positive/negative parser and readiness/signoff validation tests.
+**Owners/anchors:** existing `SignedTaskBlockSchema` remains unchanged in `src/core/contracts.ts`; `src/core/execution.ts::parseSignedTaskBlockFromPlan` remains the one structural parser and gains one pure schema-aware admission helper over the parsed block; `src/daemon/stage.ts` owns PLAN/R3 authoring/conformance invocation; `src/daemon/authority.ts::validateTaskDefinitions` owns R3/sign-off deterministic task validation.  
+**Required mutation:** for `change-v2`/`defect-v2` only, enforce P6 §37.4 mechanical non-vacuity: non-empty task list; trimmed non-empty id/objective; non-empty scope, acceptanceRefs, changeSurface, gateIds, authorityRefs and concernIds. Keep `dependsOn`/exclusions optionally empty. The PLAN/R3 provider contract states these same v2-only mechanical clauses alongside the unchanged shared JSON Schema. PLAN conformance and R3/sign-off call the same pure admission owner. Published `change-v1`/`defect-v1` parsing/validation meaning is unchanged.  
+**Semantic boundary:** mechanical presence is not material task sufficiency. Existing PLAN conformance questions still prove objective/dependencies/traceability, module ownership/decomposition, checkpoint placement, surfaces, deletions/replacements, completion evidence, minimum-change forecast and verification contract; R3 independently challenges complete P1-P7 traceability/readiness.  
+**Forbidden:** tightening the shared SignedTaskBlock schema globally; a v2-only shadow task schema/parser; a second semantic-review path.  
+**Proof:** `tests/core.test.ts` preserves v1 cases and proves v2 positive/negative mechanical admission; `tests/daemon.test.ts` proves PLAN and READY_FOR_SIGNOFF/sign-off cannot bypass v2 admission; `tests/certification.test.ts` binds the single parser/admission/prompt path and rejects duplicate task schema/parser ownership.
 
 ## IA06 — canonical Approval identity normalization
 
@@ -60,20 +64,21 @@ Architecture-feedback checkpoints in `13-verification-closeout.md` apply after e
 **Required mutation:** trim and reject whitespace-only `approvedBy` before persistence.  
 **Proof:** core/daemon direct-ingress negative tests plus browser feedback.
 
-## IA07 — typed BUILDER checkpoint request
+## IA07 — signed-checkpoint baseline reuse proof
 
-**Solution:** SD13.  
-**Anchors:** `src/core/contracts.ts` RunEvent payload; `src/core/execution.ts::builderProviderTags/providerEventIsAdmitted`.  
-**Required mutation:** add exactly `GATE_CHECKPOINT_REQUESTED { gateId }`, BUILDER-only, terminal action of that provider turn.  
-**Proof:** role/event admission tests.
+**Solution:** SD13; package atom `PL-C12-01`.  
+**Baseline owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
+**Required action:** no T1 production mutation. Before Wave 1, revalidate that BUILDER alone may emit one terminal signed `GATE_CHECKPOINT_REQUESTED`, the coordinator checks freshness/current V2 scope before the effect, executes the signed gate, records existing GATE_PASSED/GATE_FAILED evidence, continues the same Run/provider session and never grants provider shell/execute. The implementation waves then consume this baseline capability exactly as scheduled by `13-verification-closeout.md`.  
+**Failure:** if the Approval baseline cannot prove this capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
+**Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current baseline verification.
 
-## IA08 — coordinator-owned signed checkpoint execution
+## IA08 — signed-scope/forecast baseline reuse proof
 
-**Solution:** SD13. Depends on IA07.  
-**Anchors:** `src/daemon/execution.ts` mutating/post-signoff reaction owner; `src/daemon/validation.ts::runRequiredGates` and existing gate evidence/result owner.  
-**Required mutation:** validate signed gate/current manifest/freshness, execute in current builder workspace through validation effects, record existing GATE_PASSED/GATE_FAILED evidence, continue same Run/session.  
-**Forbidden:** provider shell/execute; persisted checkpoint state; checkpoint as substitute for V3/V5/V7.  
-**Proof:** daemon pass/fail/unsigned/stale/continuation cases.
+**Solution:** SD10; package atom `PL-C12-02`.  
+**Baseline owners:** existing `src/shell/opencode.ts`, `src/daemon/validation.ts` and `src/daemon/execution.ts`.  
+**Required action:** no T1 production mutation. Revalidate that signed scope/exclusions are the hard reach boundary, `changeSurface` is immutable forecast evidence, forecast absence alone is not V2 `SCOPE_BREACH`, and in-scope unforecast decomposition can proceed only through independent V4, architecture/governance V5 and coordinator-owned V6 minimum-change evidence.  
+**Failure:** any contradiction blocks execution and returns to the owning pre-signoff layer; do not modify execution-foundation owners from this T1 to make the candidate admissible.  
+**Proof:** existing daemon/certification in-scope-unforecast, out-of-scope/exclusion/protected-path, V6 `CHANGE_BLOAT` and architecture-fitness cases.
 
 ## IA09 — singular new-source planner
 
