@@ -19,7 +19,7 @@ This design implements the current `GW-DOC-EXECUTION-CONTROL-PLANE-V1` §§12-13
 - pure role/turn policy: existing `src/core/execution.ts`;
 - gate effect/evidence: existing `src/daemon/validation.ts`;
 - execution orchestration: existing `src/daemon/execution.ts`;
-- provider session/effect boundary: unchanged `src/shell/opencode.ts`, no new permission;
+- provider output-contract/session boundary: existing `src/shell/opencode.ts`; advertise the checkpoint request only to BUILDER while preserving the same denied execute permission;
 - persistence: unchanged RunEvent persistence.
 
 ## Data/control flow
@@ -52,6 +52,7 @@ Production:
 - `src/core/execution.ts`
 - `src/daemon/validation.ts`
 - `src/daemon/execution.ts`
+- `src/shell/opencode.ts`
 
 Proof:
 - `tests/core.test.ts`
