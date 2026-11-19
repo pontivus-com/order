@@ -21,6 +21,7 @@ import {
 import {
   loadValidatedProjectManifest,
   repositoryPatternMatches,
+  resolveGovernanceGateIds,
 } from "../shell/project.ts";
 import {
   proveRepositoryRoot,
@@ -161,9 +162,6 @@ export const validateChangedPaths = (
     if (repositoryPathNamesAgentInstruction(path)) {
       return `candidate changed immutable repository instruction path: ${path}`;
     }
-    if (!task.changeSurface.includes(path)) {
-      return `candidate changed path outside signed changeSurface: ${path}`;
-    }
     if (!task.scope.some((pattern) => repositoryPatternMatches(pattern, path))) {
       return `candidate changed path outside signed scope: ${path}`;
     }
@@ -173,6 +171,12 @@ export const validateChangedPaths = (
   }
   return null;
 };
+
+export const forecastVariancePaths = (
+  task: ExecutionTask,
+  changedPaths: readonly RepositoryPath[],
+): readonly RepositoryPath[] =>
+  changedPaths.filter((path) => !task.changeSurface.includes(path));
 
 export const gateEvidence = (
   runtime: CoordinatorRuntime,
@@ -195,6 +199,52 @@ export const gateEvidence = (
   })),
   "application/json",
 );
+
+export const runCheckpointGate = async (
+  runtime: CoordinatorRuntime,
+  run: Run,
+  gateId: GateId,
+  workspace: string,
+  ordinal: number,
+): Promise<RunEvent> => {
+  const manifest = await loadValidatedProjectManifest(
+    getWorkItem(runtime, run.workItemId).repositoryRoot,
+  );
+  const result = await runVerificationGate(
+    workspace,
+    manifest,
+    gateId,
+    runtime.environment,
+  );
+  const ref = writeRunEvidence(
+    runtime,
+    run.id,
+    `validation/checkpoint-${ordinal}-${gateId}.json`,
+    new TextEncoder().encode(canonicalJson({
+      gateId,
+      exitCode: result.exitCode,
+      timedOut: result.timedOut,
+      cancelled: result.cancelled,
+      stdout: new TextDecoder().decode(result.stdout),
+      stderr: new TextDecoder().decode(result.stderr),
+    })),
+    "application/json",
+  );
+  const passed =
+    result.exitCode === 0 &&
+    !result.timedOut &&
+    !result.cancelled;
+  const classification = resolveGovernanceGateIds(manifest).includes(gateId)
+    ? "GOVERNANCE_BREACH"
+    : "TEST_FAILURE";
+  return appendRunEvent(
+    runtime,
+    run.id,
+    passed
+      ? { tag: "GATE_PASSED", gateId, evidence: [ref] }
+      : { tag: "GATE_FAILED", gateId, classification, evidence: [ref] },
+  );
+};
 
 export const runRequiredGates = async (
   runtime: CoordinatorRuntime,
