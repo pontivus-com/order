@@ -1569,9 +1569,14 @@ describe("A06 execution-foundation certification", () => {
     expect(daemonExecution).toContain("Coordinator checkpoint result:");
     expect(daemonExecution).toContain("resolveVerificationGate(manifest, checkpointRequest.gateId)");
     expect(daemonExecution).toContain("validation/v6-change-surface.json");
+    expect(daemonExecution).toContain("protectedPaths");
     expect(daemonExecution).not.toContain(
       "run the applicable resolved architecture fitness gate before proceeding",
     );
+
+    const opencode = read("src/shell/opencode.ts");
+    expect(opencode).toContain("remediatorProviderTags");
+    expect(opencode).toContain('role === "BUILDER"');
   });
 });
 
