@@ -108,6 +108,7 @@ export const builderProviderTags = new Set([
   "AGENT_MESSAGE_FINAL",
   "STAGE_BLOCKED",
   "TASK_ALREADY_SATISFIED",
+  "GATE_CHECKPOINT_REQUESTED",
   "OBSERVATION_RECORDED",
 ]);
 
@@ -137,11 +138,50 @@ export const providerEventIsAdmitted = (
     return payload.owningStage === "EXECUTION";
   }
 
-  if (payload.tag === "TASK_ALREADY_SATISFIED") {
+  if (
+    payload.tag === "TASK_ALREADY_SATISFIED" ||
+    payload.tag === "GATE_CHECKPOINT_REQUESTED"
+  ) {
     return role === "BUILDER";
   }
 
   return true;
+};
+
+type BuilderCheckpointRequest = Extract<
+  RunEventPayload,
+  { tag: "GATE_CHECKPOINT_REQUESTED" }
+>;
+
+export const builderCheckpointRequestForTurn = (
+  role: RunRole,
+  payloads: readonly RunEventPayload[],
+): BuilderCheckpointRequest | null => {
+  const requests = payloads.filter(
+    (payload): payload is BuilderCheckpointRequest =>
+      payload.tag === "GATE_CHECKPOINT_REQUESTED",
+  );
+  if (requests.length === 0) return null;
+  if (role !== "BUILDER") {
+    throw new TypeError("only BUILDER may request an execution checkpoint");
+  }
+  if (requests.length !== 1) {
+    throw new TypeError("BUILDER turn may request at most one execution checkpoint");
+  }
+  if (payloads.at(-1)?.tag !== "GATE_CHECKPOINT_REQUESTED") {
+    throw new TypeError("BUILDER checkpoint request must be the terminal turn action");
+  }
+  if (
+    payloads.slice(0, -1).some((payload) =>
+      payload.tag === "STAGE_BLOCKED" ||
+      payload.tag === "TASK_ALREADY_SATISFIED"
+    )
+  ) {
+    throw new TypeError(
+      "BUILDER checkpoint request cannot coexist with another terminal execution action",
+    );
+  }
+  return requests[0]!;
 };
 
 export const semanticRepairIsAllowed = (
