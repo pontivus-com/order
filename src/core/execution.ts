@@ -140,6 +140,14 @@ export const providerEventIsAdmitted = (
   if (!allowed) return false;
 
   if (
+    role === "REVIEWER" &&
+    payload.tag === "REVIEW_PASSED" &&
+    payload.minimumChange === undefined
+  ) {
+    return false;
+  }
+
+  if (
     (role === "BUILDER" || role === "REMEDIATOR") &&
     payload.tag === "STAGE_BLOCKED"
   ) {
