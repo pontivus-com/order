@@ -52,7 +52,7 @@ This document does not create a second lifecycle or governance system. Functiona
 
 ## 2. Locked v1 technology choices
 
-The exact version/provenance baseline for every external dependency is owned exclusively by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). This architecture document names required technology families and behavior only; it does not restate dependency version values.
+The exact version/provenance baseline for every external dependency is owned exclusively by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). This architecture document names required technology families and behavior only; it does not restate dependency version values.
 
 Order v1 uses one TypeScript codebase, with separate production-runtime and development/build/runtime contracts.
 
@@ -60,9 +60,9 @@ Order v1 uses one TypeScript codebase, with separate production-runtime and deve
 
 Order v1 productive daemon execution is **Linux-only**. Linux x64 and arm64 are the grounded runtime host families. Windows/macOS support is not implemented opportunistically in P7; either requires a later P4/P6 host-integration contract.
 
-- **TypeScript**, strict mode, command-line compiler/type-checker only; exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **`@types/bun`** for the Bun runtime declarations used by TypeScript; exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Bun** as Order package manager and production daemon/CLI runtime; exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
+- **TypeScript**, strict mode, command-line compiler/type-checker only; exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **`@types/bun`** for the Bun runtime declarations used by TypeScript; exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Bun** as Order package manager and production daemon/CLI runtime; exact pin from `GW-DOC-EXTERNAL-FACTS`;
 - **Bun.serve** with `development: false` for the loopback Order HTTP server;
 - **bun:sqlite** for Order SQLite access;
 - **Bun.spawn** with argv arrays, explicit environment/cwd and Order-owned cancellation/process-group handling for Git, OpenCode and verification;
@@ -74,24 +74,24 @@ Order v1 productive daemon execution is **Linux-only**. Linux x64 and arm64 are 
 - **SQLite**, WAL mode, one local host and one Order writer;
 - one re-armed **`setTimeout`** for the daemon-owned periodic coordinator wake-up.
 
-Bun executes/transpiles TypeScript but does not make runtime execution a type-check. The TypeScript build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` has no supported programmatic compiler API for this contract. Order therefore runs the pinned `tsc` CLI for type checking and does not import a TypeScript compiler API.
+Bun executes/transpiles TypeScript but does not make runtime execution a type-check. The TypeScript build bound by `GW-DOC-EXTERNAL-FACTS` has no supported programmatic compiler API for this contract. Order therefore runs the pinned `tsc` CLI for type checking and does not import a TypeScript compiler API.
 
-The v1 TypeScript compiler contract is exact: `target: "ESNext"`, `lib: ["ESNext", "DOM", "DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, and `types: ["bun"]`. These are grounded integration requirements in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md), not P7 choices.
+The v1 TypeScript compiler contract is exact: `target: "ESNext"`, `lib: ["ESNext", "DOM", "DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, and `types: ["bun"]`. These are grounded integration requirements in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md), not P7 choices.
 
-The repository pins exact Bun in `.bun-version`, exact Node in `.node-version`, exact direct package versions with no ranges in `package.json`, and their complete resolution in committed `bun.lock`. Runtime packages and dev/build packages use the exact grouping in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §2](../references/external-facts.md). CI and verification install through `bun ci`; P7 does not choose a different package manager/install mode. The upstream capability facts for every built-in above are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+The repository pins exact Bun in `.bun-version`, exact Node in `.node-version`, exact direct package versions with no ranges in `package.json`, and their complete resolution in committed `bun.lock`. Runtime packages and dev/build packages use the exact grouping in [GW-DOC-EXTERNAL-FACTS §2](../references/external-facts.md). CI and verification install through `bun ci`; P7 does not choose a different package manager/install mode. The upstream capability facts for every built-in above are owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 ### Development/build/browser-test runtime
 
-The Vite, Vitest and Playwright Test builds bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` have Node runtime contracts. Order uses:
+The Vite, Vitest and Playwright Test builds bound by `GW-DOC-EXTERNAL-FACTS` have Node runtime contracts. Order uses:
 
-- **Node**, pinned in `.node-version` to the exact value owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
+- **Node**, pinned in `.node-version` to the exact value owned by `GW-DOC-EXTERNAL-FACTS`;
 - Vite build: `node node_modules/vite/bin/vite.js build`;
 - Vitest: `node node_modules/vitest/vitest.mjs run`;
 - Playwright browser install: `node node_modules/@playwright/test/cli.js install chromium`;
 - Playwright tests: `node node_modules/@playwright/test/cli.js test`;
 - Bun remains package manager and production Order runtime.
 
-These entry points come from the exact pinned package manifests recorded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). Order does not invoke those CLIs through Bun or an ambient/global binary. Node compatibility is accepted because the pinned tools' documented requirements are satisfied and the build/test certification in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) passes.
+These entry points come from the exact pinned package manifests recorded in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). Order does not invoke those CLIs through Bun or an ambient/global binary. Node compatibility is accepted because the pinned tools' documented requirements are satisfied and the build/test certification in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) passes.
 
 ### Productive installation, guided setup and launcher
 
@@ -103,7 +103,7 @@ For the normal user-local install it must:
 
 - require Linux plus the grounded host transfer/archive and user-systemd capabilities; it never invokes `sudo` or a distro package manager;
 - stage the application/runtime installation before replacement. Re-running the installer is the supported update path: it detects an existing installation, quiesces the existing user service before any persisted-state transition, retains current configuration/provider credentials, upgrades supported previous configuration by preserving existing valid fields and supplying only newly introduced defaultable fields, and applies the P6 beta persisted-state transition policy before starting the new daemon;
-- install the exact Bun, Node and OpenCode versions owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` beneath the Order installation root instead of depending on ambient runtime binaries;
+- install the exact Bun, Node and OpenCode versions owned by `GW-DOC-EXTERNAL-FACTS` beneath the Order installation root instead of depending on ambient runtime binaries;
 - install the committed application dependency graph with pinned Bun, build production `dist/` with the pinned Node/Vite entry point, and refuse completion unless the expected runtime versions and `dist/index.html` are present;
 - install one `order` launcher in the user-local bin directory. The launcher prepends only the Order-private Bun/Node runtime paths, fixes `PONTIVUS_ORDER_OPENCODE_BIN` to the installed exact OpenCode binary, fixes the resolved Order state root for installed operation, and executes installed `src/cli.ts` with installed Bun;
 - make the default user-local launcher directory available to future login shells idempotently;
@@ -124,15 +124,15 @@ The user-level systemd unit is a host supervisor only. It starts exactly the ins
 
 ### Browser UI
 
-- **React** and **React DOM**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **`@types/react`** and **`@types/react-dom`**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Vite**, exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Tailwind CSS** with **`@tailwindcss/vite`**, exact pins from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **TanStack Query** for daemon-owned/server state, exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Zod** for canonical runtime schemas, exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Vitest** and **`@playwright/test`** for UI/integration validation, exact pins from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`.
+- **React** and **React DOM**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS`;
+- **`@types/react`** and **`@types/react-dom`**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS`;
+- **Vite**, exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Tailwind CSS** with **`@tailwindcss/vite`**, exact pins from `GW-DOC-EXTERNAL-FACTS`;
+- **TanStack Query** for daemon-owned/server state, exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Zod** for canonical runtime schemas, exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Vitest** and **`@playwright/test`** for UI/integration validation, exact pins from `GW-DOC-EXTERNAL-FACTS`.
 
-The automated v1 browser compatibility target is the exact Playwright-owned Chromium build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`. P7/CI explicitly installs that browser through the local Playwright CLI; package installation alone is not treated as browser installation. Order does not claim Firefox/WebKit compatibility in v1 without an explicit later certification change.
+The automated v1 browser compatibility target is the exact Playwright-owned Chromium build bound by `GW-DOC-EXTERNAL-FACTS`. P7/CI explicitly installs that browser through the local Playwright CLI; package installation alone is not treated as browser installation. Order does not claim Firefox/WebKit compatibility in v1 without an explicit later certification change.
 
 The UI is a static client SPA built by Vite and mounted with `react-dom/client.createRoot`; there is no SSR/hydration framework. Limited URL/search state uses the platform `URL`, `URLSearchParams` and History APIs; there is no router dependency.
 
@@ -140,7 +140,7 @@ Vite already transforms TSX; Order does not add `@vitejs/plugin-react` merely fo
 
 Vitest is explicitly Node-environment-only for functional-core, shell-unit and non-browser integration tests. DOM/browser behavior is validated by the pinned Playwright Chromium suite, so P7 does not add jsdom, happy-dom, React Testing Library or a Vitest browser package.
 
-The complete permitted direct package set is closed by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §8](../references/external-facts.md). P7 may not add convenience packages for TOML, UUIDs, hashing, globbing, SQLite, HTTP, scheduling, browser state, routing, DOM emulation/testing or other already-covered facilities.
+The complete permitted direct package set is closed by [GW-DOC-EXTERNAL-FACTS §8](../references/external-facts.md). P7 may not add convenience packages for TOML, UUIDs, hashing, globbing, SQLite, HTTP, scheduling, browser state, routing, DOM emulation/testing or other already-covered facilities.
 
 No Node-only server framework, ORM, workflow engine, message broker, DI framework or RPC framework is introduced.
 
@@ -164,7 +164,7 @@ The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COM
 
 The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one root theme preference/substrate, the pinned public Astryx token language plus only genuinely Order-specific structural/readability tokens, and one Order-authored presentation stylesheet. Primitives/specialists consume that theme language; feature modules cannot define local palettes, type/spacing systems, theme islands or alternate component chrome.
 
-Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
+Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
 
 Generic foundation guidance remains subordinate to the P3 product contract. The nine-stage rail therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
 
@@ -659,7 +659,7 @@ Conversation text alone never mutates an authoritative artifact.
 
 ## 15. OpenCode stage-session boundary
 
-The verified v1 integration uses the exact OpenCode server/client pair bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`.
+The verified v1 integration uses the exact OpenCode server/client pair bound by `GW-DOC-EXTERNAL-FACTS`.
 
 A new Order Run starts a fresh OpenCode session. Ordinary turns may continue it only while `contextHash`, provider/model and effective permissions are unchanged.
 
@@ -671,7 +671,7 @@ Sessions never cross Runs, lifecycle stages or work items.
 
 ## 16. OpenCode V2 server/client contract
 
-Order owns one foreground OpenCode provider process and its matching V2 client at the exact pins bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`. OpenCode remains an execution provider, never lifecycle/retry/context/completion authority.
+Order owns one foreground OpenCode provider process and its matching V2 client at the exact pins bound by `GW-DOC-EXTERNAL-FACTS`. OpenCode remains an execution provider, never lifecycle/retry/context/completion authority.
 
 The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INTEGRATION-V1 §§2-8](opencode-integration.md) and mechanically closed by [GW-DOC-CANONICAL-CONTRACTS §§25-26,29](../contracts/canonical-contracts.md):
 
@@ -816,9 +816,9 @@ A signed `ExecutionTask` names logical gate ids.
 
 Order resolves each gate through `pontivus-order.toml` and executes the exact argv in the isolated workspace.
 
-Every unattended/correctness-bearing external process uses argv, explicit cwd, an explicit allowlisted environment, bounded output and `Bun.spawn({ detached: true, ... })` so the child owns a separate Linux process group. The sole v1 exception is operator-invoked `order provider login <provider>`: the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` requires an interactive stdin/stdout TTY for authentication for legitimate key/form/code flows, so the process shell passes through the current terminal while still owning the explicit argv/cwd/private provider environment and detached process-group lifecycle. Order does not parse that interactive output as semantic evidence.
+Every unattended/correctness-bearing external process uses argv, explicit cwd, an explicit allowlisted environment, bounded output and `Bun.spawn({ detached: true, ... })` so the child owns a separate Linux process group. The sole v1 exception is operator-invoked `order provider login <provider>`: the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS` requires an interactive stdin/stdout TTY for authentication for legitimate key/form/code flows, so the process shell passes through the current terminal while still owning the explicit argv/cwd/private provider environment and detached process-group lifecycle. Order does not parse that interactive output as semantic evidence.
 
-Order does not pass Bun's child-only `timeout`/AbortSignal as the cancellation authority. One shell helper owns timeout and explicit cancellation: it sends `SIGTERM` to the whole group with `process.kill(-pgid, "SIGTERM")`, waits at most 5 seconds for group disappearance, then sends `SIGKILL` to the same group if it still exists. Group existence is checked with signal `0`. The operation is not considered cancelled until the child has settled and the group no longer exists. The exact Linux semantics and descendant fixture are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md) and [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
+Order does not pass Bun's child-only `timeout`/AbortSignal as the cancellation authority. One shell helper owns timeout and explicit cancellation: it sends `SIGTERM` to the whole group with `process.kill(-pgid, "SIGTERM")`, waits at most 5 seconds for group disappearance, then sends `SIGKILL` to the same group if it still exists. Group existence is checked with signal `0`. The operation is not considered cancelled until the child has settled and the group no longer exists. The exact Linux semantics and descendant fixture are owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md) and [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 The builder cannot invent, weaken, replace or omit a required gate.
 
@@ -920,16 +920,16 @@ P7/CI/startup certification covers:
 
 | Integration | Verified v1 contract | Required proof |
 |---|---|---|
-| OpenCode | exact server/client pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; productive workspace/instruction boundary in `GW-DOC-OPENCODE-INTEGRATION-V1` | authenticated server-info readiness/version, sessions, exact model, permissions, deterministic prompt-id idempotency, monotonic `time.idle` + outcome completion proof, final context retrieval, foreground-`serve` restart behavior, interrupt, isolated STAGE materialization, all-role instruction closure, direct-read containment, external-reference isolation and correct local-vs-provider failure classification |
-| Bun/Linux host | exact Bun/declaration pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; productive host Linux | explicit-env detached spawn + negative-pgid TERM/KILL cancellation, `Bun.serve` production mode/loopback, TOML parse, Glob options, CSPRNG/SHA-256/UUID, Linux filesystem allowlist + SQLite binding, timer non-overlap |
-| Node/Linux guarded Markdown replacement | `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §14` | exclusive create/symlink refusal, stale-hash no-write, same-directory temp + file fsync + atomic rename + parent-directory fsync + exact read-back/hash; two Order mutations with one old hash cannot both succeed |
+| OpenCode | exact server/client pins in `GW-DOC-EXTERNAL-FACTS`; productive workspace/instruction boundary in `GW-DOC-OPENCODE-INTEGRATION-V1` | authenticated server-info readiness/version, sessions, exact model, permissions, deterministic prompt-id idempotency, monotonic `time.idle` + outcome completion proof, final context retrieval, foreground-`serve` restart behavior, interrupt, isolated STAGE materialization, all-role instruction closure, direct-read containment, external-reference isolation and correct local-vs-provider failure classification |
+| Bun/Linux host | exact Bun/declaration pins in `GW-DOC-EXTERNAL-FACTS`; productive host Linux | explicit-env detached spawn + negative-pgid TERM/KILL cancellation, `Bun.serve` production mode/loopback, TOML parse, Glob options, CSPRNG/SHA-256/UUID, Linux filesystem allowlist + SQLite binding, timer non-overlap |
+| Node/Linux guarded Markdown replacement | `GW-DOC-EXTERNAL-FACTS §14` | exclusive create/symlink refusal, stale-hash no-write, same-directory temp + file fsync + atomic rename + parent-directory fsync + exact read-back/hash; two Order mutations with one old hash cannot both succeed |
 | SQLite | embedded, required >=3.37 features | WAL, FULL sync, FK, JSON, STRICT |
 | Git | local CLI | top-level, revision verify, isolated clone, detached checkout, porcelain-v1 |
-| Browser | host-provided UI runtime; exact automated Chromium baseline in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` | same-origin fetch/cookie semantics, token bootstrap, exact Origin enforcement, active-Run polling/catch-up |
-| Node/frontend | exact Node/frontend pins in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §2](../references/external-facts.md) | `tsc` typecheck, React `createRoot`, Vite TSX build, Tailwind Vite plugin, TanStack Query invalidation/refetch, Zod ingress parsing, Vitest and `@playwright/test` under Node |
+| Browser | host-provided UI runtime; exact automated Chromium baseline in `GW-DOC-EXTERNAL-FACTS` | same-origin fetch/cookie semantics, token bootstrap, exact Origin enforcement, active-Run polling/catch-up |
+| Node/frontend | exact Node/frontend pins in [GW-DOC-EXTERNAL-FACTS §2](../references/external-facts.md) | `tsc` typecheck, React `createRoot`, Vite TSX build, Tailwind Vite plugin, TanStack Query invalidation/refetch, Zod ingress parsing, Vitest and `@playwright/test` under Node |
 | Local UI primitive boundary | Order-owned local primitives plus authorized public Astryx dependencies | no private-source dependency + project-neutral/vendor-clean + forbidden-import scan |
 
-The exact Order pins, public upstream snapshot and host/runtime version policy are defined in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+The exact Order pins, public upstream snapshot and host/runtime version policy are defined in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 A failed capability probe blocks the integration; Order does not silently select a weaker fallback. A vendor/source upgrade that changes relied-on behavior is P4/P6 material and must be re-audited.
 
@@ -977,7 +977,7 @@ This section is the P4 owner for the source-backed WorkItem/Markdown-workbench e
 
 No new direct runtime or development dependency is authorized by this feature.
 
-The implementation reuses the existing pinned stack owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`:
+The implementation reuses the existing pinned stack owned by `GW-DOC-EXTERNAL-FACTS`:
 
 - React/React DOM for function-component presentation;
 - TanStack Query for daemon/server state;
@@ -986,7 +986,7 @@ The implementation reuses the existing pinned stack owned by `GW-DOC-EXTERNAL-FA
 - Bun SQLite for durable runtime projection;
 - existing Vite/Vitest/Playwright/Tailwind tooling.
 
-This extension adds a new correctness-bearing use of synchronous file replacement/durability mechanics. The refreshed `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` snapshot records the exact relied-upon contracts for Node `fs.openSync`/`O_EXCL`/`O_NOFOLLOW`, `fs.fsyncSync`, `fs.renameSync`, Linux `rename(2)` atomic replacement on the same filesystem, and the requirement to fsync the containing directory for durable directory-entry persistence. This architecture relies on that factual owner and does not own those vendor/host facts itself.
+This extension adds a new correctness-bearing use of synchronous file replacement/durability mechanics. The refreshed `GW-DOC-EXTERNAL-FACTS` snapshot records the exact relied-upon contracts for Node `fs.openSync`/`O_EXCL`/`O_NOFOLLOW`, `fs.fsyncSync`, `fs.renameSync`, Linux `rename(2)` atomic replacement on the same filesystem, and the requirement to fsync the containing directory for durable directory-entry persistence. This architecture relies on that factual owner and does not own those vendor/host facts itself.
 
 The governed Markdown editor remains a controlled native `<textarea>` interaction with local React presentation state. The source-backed WorkItem feature itself does not authorize CodeMirror, Monaco, ProseMirror/TipTap, Milkdown, EasyMDE, YAML/frontmatter tooling, a diff package, file watcher, ORM, Git library, generated API client, rich-text/AST authority or a second client-state store.
 
