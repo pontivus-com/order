@@ -124,7 +124,7 @@ export const executionPrompt = async (
     role === "BUILDER"
       ? "Before editing, inspect the signed task against the fresh baseline. If the required outcome is already satisfied, make no edits and emit TASK_ALREADY_SATISFIED with a concise factual summary. Otherwise implement exactly the signed task and do not emit TASK_ALREADY_SATISFIED. Stay within signed scope/exclusions; changeSurface is the reviewed physical forecast, not permission to avoid a minimum same-layer split required by the signed design. Preserve declared module responsibilities. At every P7-defined architecture feedback checkpoint, emit GATE_CHECKPOINT_REQUESTED with the applicable signed gateId as the terminal action of the turn. The coordinator executes the gate; continue only from its GATE_PASSED/GATE_FAILED result in this same Run/session. Do not use shell/execute for checkpoints and do not redesign."
       : role === "REVIEWER"
-        ? "Independently review the replayed candidate against the signed task and resolved authority. Compare the exact actual changed paths with the signed changeSurface forecast. Any unforecast production path is acceptable only when it is the minimum same-layer physical decomposition needed to preserve an already-resolved responsibility/effect boundary with no semantic-owner, public-contract, state, dependency, validation-contract or behavior change; otherwise fail. Explicitly check module cohesion/decomposition and minimum change. File length alone is not the criterion. Do not edit. Emit REVIEW_PASSED or REVIEW_FAILED."
+        ? "Independently review the replayed candidate against the signed task and resolved authority. Compare the exact actual changed paths with the signed changeSurface forecast. Any unforecast production path is acceptable only when it is the minimum same-layer physical decomposition needed to preserve an already-resolved responsibility/effect boundary with no semantic-owner, public-contract, state, dependency, validation-contract or behavior change; otherwise fail. Explicitly check module cohesion/decomposition and minimum change. File length alone is not the criterion. Do not edit. If V4 semantics fail, emit REVIEW_FAILED. If V4 semantics pass, emit REVIEW_PASSED with minimumChange=MINIMUM_SUFFICIENT and minimumChangeSummary=null when no removable surface exists, or minimumChange=CHANGE_BLOAT with a non-empty minimumChangeSummary identifying the removable surface when the candidate is semantically correct but unnecessarily large."
         : "Correct only the proven triggering failure in the replayed candidate. Preserve declared module responsibilities and do not broaden scope.";
   return [
     `Order execution role: ${role}`,
@@ -354,6 +354,7 @@ export const startProviderForExecutionRun = async (
   task: ExecutionTask,
   context: ResolvedContext,
   workspace: string,
+  protectedPaths: readonly string[] = [],
 ): Promise<ActiveProvider> => {
   const configuredModel = runtime.config.model;
   if (configuredModel === null) {
@@ -371,6 +372,7 @@ export const startProviderForExecutionRun = async (
     task,
     context.artifacts,
     runtime.config.referenceRoots,
+    protectedPaths,
   );
   updateRun(runtime, run.id, { providerSessionId: admission.sessionId });
   const active: ActiveProvider = {
@@ -395,6 +397,12 @@ export const executeMutatingRun = async (
   const workItem = getWorkItem(runtime, run.workItemId);
   const context = await approvalContext(runtime, approval, task, run.role);
   const workspace = workspaceForRun(runtime, run.id);
+  const closure = approvalClosure(runtime, approval);
+  const protectedPaths = [
+    closure.plan,
+    closure.r3,
+    ...closure.material,
+  ].map((artifact) => artifact.repositoryPath);
   const parentCandidate = candidateForRun(runtime, run);
   try {
     if (parentCandidate === null) {
@@ -445,6 +453,7 @@ export const executeMutatingRun = async (
       task,
       context,
       workspace,
+      protectedPaths,
     );
     const failure = run.role === "REMEDIATOR" && run.triggerEventId !== null
       ? getRunEvent(runtime, run.triggerEventId)
@@ -486,6 +495,24 @@ export const executeMutatingRun = async (
         }
         const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
         resolveVerificationGate(manifest, checkpointRequest.gateId);
+
+        const checkpointCapture = await captureCandidate(workspace);
+        const scopeError = validateChangedPaths(
+          task,
+          checkpointCapture.changedPaths,
+          protectedPaths,
+        );
+        if (scopeError !== null) {
+          const failure = appendValidationFailed(
+            runtime,
+            run.id,
+            "V2",
+            "SCOPE_BREACH",
+            scopeError,
+          );
+          await reviewFailureReaction(runtime, run, approval, task, failure);
+          return;
+        }
       }
 
       const accepted = persistExecutionProviderEvents(runtime, run, payloads);
@@ -886,6 +913,14 @@ export const executeReviewerRun = async (
   if (reviewPass.event.tag !== "REVIEW_PASSED") {
     throw new TypeError("expected REVIEW_PASSED");
   }
+  if (
+    reviewPass.event.minimumChange === undefined ||
+    reviewPass.event.minimumChangeSummary === undefined
+  ) {
+    throw new TypeError(
+      "current REVIEW_PASSED requires explicit minimum-change evidence",
+    );
+  }
   const reviewEvidence = reviewPass.event.evidence;
   const v4 = appendValidationPassed(runtime, run.id, "V4", reviewEvidence);
 
@@ -927,11 +962,27 @@ export const executeReviewerRun = async (
     })),
     "application/json",
   );
+  const v6Evidence = [...reviewEvidence, varianceEvidence];
+  if (reviewPass.event.minimumChange === "CHANGE_BLOAT") {
+    if (reviewPass.event.minimumChangeSummary === null) {
+      throw new TypeError("CHANGE_BLOAT review pass requires a summary");
+    }
+    const failure = appendValidationFailed(
+      runtime,
+      run.id,
+      "V6",
+      "CHANGE_BLOAT",
+      reviewPass.event.minimumChangeSummary,
+      v6Evidence,
+    );
+    await reviewFailureReaction(runtime, run, approval, task, failure);
+    return;
+  }
   const v6 = appendValidationPassed(
     runtime,
     run.id,
     "V6",
-    [...reviewEvidence, varianceEvidence],
+    v6Evidence,
   );
 
   const v7 = await runRequiredGates(runtime, run, task.gateIds, workspace, "V7");
