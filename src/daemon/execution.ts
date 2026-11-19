@@ -776,7 +776,13 @@ export const executeReviewerRun = async (
     return;
   }
 
-  const scopeError = validateChangedPaths(task, capture.changedPaths);
+  const closure = approvalClosure(runtime, approval);
+  const protectedPaths = [
+    closure.plan,
+    closure.r3,
+    ...closure.material,
+  ].map((artifact) => artifact.repositoryPath);
+  const scopeError = validateChangedPaths(task, capture.changedPaths, protectedPaths);
   if (scopeError !== null) {
     const failure = appendValidationFailed(
       runtime,
@@ -883,10 +889,7 @@ export const executeReviewerRun = async (
   const reviewEvidence = reviewPass.event.evidence;
   const v4 = appendValidationPassed(runtime, run.id, "V4", reviewEvidence);
 
-  const closure = approvalClosure(runtime, approval);
-  const authorityPaths = new Set(
-    [closure.plan, closure.r3, ...closure.material].map((artifact) => artifact.repositoryPath),
-  );
+  const authorityPaths = new Set(protectedPaths);
   const governanceViolation = capture.changedPaths.find((path) => authorityPaths.has(path));
   if (governanceViolation !== undefined) {
     const failure = appendValidationFailed(
