@@ -1633,9 +1633,9 @@ describe("architecture fitness", () => {
     const violations: string[] = [];
     const campaignDirectory = dirname(campaignPlanPath);
     const currentGateProjection =
-      /^(?:\*\*Status:\*\*[^\n]*\bG[0-6]\b[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED)\b|\s*(?:[-*]\s*)?(?:\*\*)?G[0-6](?:\*\*)?\s*(?::|=|is\b)[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED|complete|closed|ready)\b)/i;
+      /^(?:\*\*Status:\*\*[^\n]*\bG(?:5A|[0-6])\b[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED)\b|\s*(?:[-*]\s*)?(?:\*\*)?G(?:5A|[0-6])(?:\*\*)?\s*(?::|=|is\b)[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED|complete|closed|ready)\b)/i;
     const currentGateVerdictHeading =
-      /^#{1,6}\s+.*\bG[0-6]\b.*\b(?:verdict|status|closure|state)\b/i;
+      /^#{1,6}\s+.*\bG(?:5A|[0-6])\b.*\b(?:verdict|status|closure|state)\b/i;
     for (const entry of readdirSync(join(repositoryRoot, campaignDirectory), { withFileTypes: true })) {
       if (!entry.isFile() || !entry.name.endsWith(".md") || entry.name === "0.6.0-design-campaign-plan.md") {
         continue;
@@ -1644,7 +1644,7 @@ describe("architecture fitness", () => {
       for (const [index, line] of sourceText(siblingPath).split(/\r?\n/).entries()) {
         if (currentGateProjection.test(line) || currentGateVerdictHeading.test(line)) {
           violations.push(
-            `${siblingPath}:${index + 1}: current G0-G6 state must be owned only by campaign §18`,
+            `${siblingPath}:${index + 1}: current G0-G5/G5A/G6 state must be owned only by campaign §18`,
           );
         }
       }
@@ -1670,13 +1670,18 @@ describe("architecture fitness", () => {
       source.match(/## 7\. Master concern register\r?\n([\s\S]*?)(?=\r?\n## 8\.)/)?.[1] ?? "";
     const pairSection =
       source.match(/#### Current pair-audit status\r?\n([\s\S]*?)(?=\r?\n## 9\.)/)?.[1] ?? "";
+    const alignSection =
+      source.match(/## 13A\. Phase 3A — ALIGN final vertical domain completion\r?\n([\s\S]*?)(?=\r?\n## 14\.)/)?.[1] ?? "";
     const gateSection =
       source.match(/## 18\. Phase\/gate status register\r?\n([\s\S]*?)(?=\r?\n## 19\.)/)?.[1] ?? "";
 
     if (!concernSection.includes("sole current-state owner for C01-C22")) {
       violations.push("§7 must explicitly own all current concern state");
     }
-    if (!gateSection.includes("sole current-state owner for G0-G6")) {
+    if (!alignSection.includes("sole current-state owner for ALIGN audit progression")) {
+      violations.push("§13A must explicitly own current ALIGN audit progression");
+    }
+    if (!gateSection.includes("sole current-state owner for G0-G5, G5A and G6")) {
       violations.push("§18 must explicitly own all current gate state");
     }
 
@@ -1705,10 +1710,11 @@ describe("architecture fitness", () => {
       violations.push("§7 concern ids must be unique");
     }
 
+    const campaignGateOrder = ["G0", "G1", "G2", "G3", "G4", "G5", "G5A", "G6"] as const;
     const gates = new Map(
       gateSection
         .split(/\r?\n/)
-        .filter((line) => /^\| G[0-6] \|/.test(line))
+        .filter((line) => /^\| G(?:5A|[0-6]) \|/.test(line))
         .map((line) => {
           const cells = tableCells(line);
           return [cells[0] ?? "", {
@@ -1717,8 +1723,11 @@ describe("architecture fitness", () => {
           }] as const;
         }),
     );
-    if (gates.size !== 7) {
-      violations.push(`§18 must contain exactly G0-G6, found ${gates.size} gate rows`);
+    if (
+      gates.size !== campaignGateOrder.length ||
+      campaignGateOrder.some((gateId) => !gates.has(gateId))
+    ) {
+      violations.push("§18 must contain exactly G0-G5, G5A and G6");
     }
 
     const pairRows = pairSection
@@ -1818,14 +1827,13 @@ describe("architecture fitness", () => {
         }
       }
     }
-    for (let rank = 1; rank <= 6; rank += 1) {
-      const gateId = `G${rank}`;
-      if (gates.get(gateId)?.status !== "PASS") continue;
-      for (let prior = 0; prior < rank; prior += 1) {
-        if (gates.get(`G${prior}`)?.status !== "PASS") {
-          violations.push(`${gateId} PASS requires G0-G${rank - 1} PASS`);
-          break;
-        }
+    for (const [rank, gateId] of campaignGateOrder.entries()) {
+      if (rank === 0 || gates.get(gateId)?.status !== "PASS") continue;
+      const missingPrior = campaignGateOrder
+        .slice(0, rank)
+        .find((prior) => gates.get(prior)?.status !== "PASS");
+      if (missingPrior !== undefined) {
+        violations.push(`${gateId} PASS requires all prior campaign gates PASS; first missing: ${missingPrior}`);
       }
     }
 
@@ -1836,12 +1844,13 @@ describe("architecture fitness", () => {
       violations.push("at most one campaign gate may be IN_PROGRESS");
     }
     for (const gateId of inProgressGates) {
-      const rank = Number(gateId.slice(1));
-      for (let prior = 0; prior < rank; prior += 1) {
-        if (gates.get(`G${prior}`)?.status !== "PASS") {
-          violations.push(`${gateId} may be IN_PROGRESS only after G0-G${rank - 1} are PASS`);
-          break;
-        }
+      const rank = campaignGateOrder.indexOf(gateId as typeof campaignGateOrder[number]);
+      if (rank < 0) continue;
+      const missingPrior = campaignGateOrder
+        .slice(0, rank)
+        .find((prior) => gates.get(prior)?.status !== "PASS");
+      if (missingPrior !== undefined) {
+        violations.push(`${gateId} may be IN_PROGRESS only after all prior gates PASS; first missing: ${missingPrior}`);
       }
     }
 
