@@ -4,16 +4,18 @@
 
 ## Exact design basis
 
-This DESIGN is regenerated after G-F10 from the exact requirement-level factual/functional package, not from concern membership or current-state preservation.
+This DESIGN is freshness-rebound after the corrected execution foundation and the G-F11 external-facts lineage repair. Its semantic direction remains canonical authority -> current R1 facts -> current R2 functional consequences -> technical realization; current implementation/tests are realization evidence only.
 
-- R1 `research.md`: blob `ce49b87222a9594c82be2995eaa89a4a648385d0` — 112/112 stable requirements with exact realization evidence.
-- R2 `requirements.md`: blob `d2246f070f1748661b5c670952461612834def9c` — 112/112 stable requirements, all canonical `REFERENCE`, plus package consequences including FR007 installer closure.
-- P4 Technical Architecture: `8f3a15e0363f0055fbddc08ae829585f9bc8e556`.
-- P4 Workbench: `7ccbe98886effd8169b1d8700ef9cab257e37bd4`.
-- P4 Workbench Theme: `f8aa4ce3d453f59cd2cd607c80e58b334d8a563c`.
-- P4 OpenCode Integration: `1a02c3730a82c43b310fd0ebba1f4ac4285b24a8`.
-- P4 Execution Control Plane: `93f4fddbf2be3af97c8300b5c7692403a39cfb22`.
-- P6 Canonical Contracts: corrected blob `54198ef2d3e1d9ed7483a4de96e4c8c0086e9568`.
+- R1 `research.md`: blob `9aa1d2baefafd1a4e912df5e22a20bab0b71157f` — 112/112 stable requirements with exact current realization evidence; C12-F01/F02 are historical causal findings and current C12 execution evidence is conforming.
+- R2 `requirements.md`: blob `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb` — 112/112 stable requirements, all canonical `REFERENCE`, plus current package consequences including PL-C12-02 forecast-variance semantics.
+- P4 Technical Architecture: `3df354c4e8df490e6e870418aeb5e77f335b87e9`.
+- P4 Workbench: `36b5628f5d54d168aed25f0af71226114266068a`.
+- P4 Workbench Theme: `ec4c59408485d86e7c64802fed983e2072d063b9`.
+- P4 OpenCode Integration: `b00a7643d712d31b31624bf676174f757c8318f6`.
+- P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
+- P6 Canonical Contracts: `71f829cff8824db18194689eccdec83da6f5d19f`.
+- Exact current runtime evidence for the A06/A07 execution boundary: `src/core/contracts.ts` `8d3705fdc4a998a816422cc9e05bd021246636d6`; `src/core/execution.ts` `8eb779d852dbd7ff469b3374d8f5885ac538b2b7`; `src/daemon/execution.ts` `8f0687077a9b72abaaf5fb57fb43c73956a8dd14`; `src/daemon/validation.ts` `3ace35efdd05a57f2b52b01a6e234a0759ea52db`; `src/shell/opencode.ts` `6e7a7a60c8e6cc642fa4943bf0562aba53865cd2`.
+- Exact-head verification before this DESIGN freshness edit: PR Verification #1436 / run `44484126489` passed dependency-lock, typecheck, architecture, full tests, build, release packager and browser on `433087e97d47203d9b5ffd8d5b96c154e3e012a8`.
 
 Current implementation/tests/UI are used only through the exact R1 evidence cited below. A `POSITIVE_NO_CHANGE` is therefore an explicit technical decision backed by that evidence; it is never an implicit preservation target.
 
@@ -39,10 +41,10 @@ Current implementation/tests/UI are used only through the exact R1 evidence cite
 | SD07 | C05/C17 current-attention visibility | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ActivityWorkspace.tsx; ui/src/WorkItemWorkspace.tsx; ui/src/workbench-presentation.ts | Keep historical/supporting inspection while exact higher-priority current owner/reason/action remains visible and directly reachable; do not create browser workflow state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts |
 | SD08 | C06 durable authority-changing input | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/lifecycle.ts; src/daemon/stage.ts | After answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, stage completion requires later adopted canonical authority; INFORMATION/EVIDENCE unchanged. | tests/core.test.ts; tests/daemon.test.ts |
 | SD09 | C07/C08 permanent authority proposal/adoption | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/contracts.ts; src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Extend the one proposal/adoption owner: R2 admits current P2/P3 targets; DESIGN current P4/P5/P6 targets; re-resolve role/layer/path/base hash before adoption. No new proposal model. | tests/core.test.ts; tests/daemon.test.ts |
-| SD10 | C09 signed task contract, non-vacuity and execution-surface semantics | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-SPECIFICATION-STANDARD | src/core/contracts.ts; src/core/execution.ts; src/daemon/authority.ts; src/daemon/validation.ts | Keep the one SignedTaskBlock; reject vacuous tasks; signed scope/exclusions are the hard repository boundary while exact changeSurface is the reviewed physical forecast. V2 rejects true scope/exclusion/instruction/authority breaches, not forecast variance alone; V4/V5/V6 may admit only minimum same-layer decomposition that preserves existing ownership/contracts/state/effects/dependencies/behavior. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts |
+| SD10 | C09 signed task contract, non-vacuity and execution-surface semantics | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-SPECIFICATION-STANDARD | **Remaining T1 delta:** src/core/contracts.ts only. **Baseline reuse/no T1 edit:** src/core/execution.ts; src/daemon/authority.ts; src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Keep the one SignedTaskBlock. Tighten its existing canonical schema so current v2 Change/Defect packages reject the P6 §37.4 vacuity cases (empty task block; blank id/objective; empty scope/acceptance/changeSurface/gates/authority/concerns). Existing PLAN parsing, stage conformance and sign-off validation consume that same schema, so no second validator is introduced. The corrected baseline already owns signed scope/exclusions as the hard repository boundary, changeSurface as immutable forecast, V2 true-boundary rejection, V4/V5/V6 minimum same-layer variance review and coordinator-owned V6 CHANGE_BLOAT; T1 must reuse rather than reimplement those semantics. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts |
 | SD11 | C10 Readiness judgment | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ReadinessWorkspace.tsx; ui/src/workbench-presentation.ts | Dominant verdict derives from typed R3 completion outcome; material maturity/currentness is supporting state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts |
 | SD12 | C11 Approval identity and hierarchy | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | src/core/contracts.ts; src/daemon/authority.ts; ui/src/SignoffReview.tsx | Trim/reject blank approvedBy at canonical ingress and show readiness/currentness before technical package identity; browser validation remains feedback. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts |
-| SD13 | C12 signed in-task checkpoint | GW-DOC-EXECUTION-CONTROL-PLANE-V1 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/contracts.ts; src/core/execution.ts; src/daemon/execution.ts; src/daemon/validation.ts | BUILDER may request exactly one signed-task gate checkpoint as terminal turn action; coordinator executes the existing gate owner, records existing evidence/result and continues the same Run/session; provider shell remains denied. This capability is a baseline prerequisite: a task that requires checkpoints cannot bootstrap the protocol from its own candidate bytes. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts |
+| SD13 | C12 signed in-task checkpoint | GW-DOC-EXECUTION-CONTROL-PLANE-V1 + GW-DOC-CANONICAL-CONTRACTS-V2 | **Baseline capability already integrated; no T1 production edit:** src/core/contracts.ts; src/core/execution.ts; src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Current baseline satisfies P6 §37.6: BUILDER alone may request exactly one signed-task gate checkpoint as terminal turn action; the coordinator verifies freshness/signed gate/current V2 scope before effect, executes the existing gate owner, records GATE_PASSED/GATE_FAILED evidence and continues the same Run/provider session; provider shell/execute remains denied. Final PLAN may schedule/use this capability but must not bootstrap or reimplement it. | existing tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts are baseline proof; final PLAN may add only task-specific usage/cadence proof where required |
 | SD14 | C16 Settings hierarchy | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/SettingsWorkspace.tsx | Keep one canonical Settings/config owner but demote exact roots/endpoints/credential-like identities to Technical details except active configuration input. | tests/browser.spec.ts |
 | SD15 | C18 required-input focus | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ActivityComposer.tsx; ui/src/ActivityWorkspace.tsx | Focus Workbench-owned composer once for each newly current required-input event id; rerender/polling does not refocus; no private Astryx DOM policy. | tests/browser.spec.ts |
 | SD16 | C19 exhaustive renderer fitness | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | tests/certification.test.ts | Under immutable architecture-gate material rule, add exhaustive production-renderer classification proof to existing test gate, including ActivityComposer; do not mutate tests/architecture.test.ts inside T1. | tests/certification.test.ts |
@@ -50,38 +52,33 @@ Current implementation/tests/UI are used only through the exact R1 evidence cite
 | SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
 | SD19 | C16 guided productive installer | GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices exist. Preserve incomplete v4 as daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
 
-## A06 execution-foundation prerequisite — blocking before this WorkItem may reach sign-off
+## A06 execution-foundation prerequisite — satisfied baseline, retained as causal design evidence
 
-This is a **DESIGN precondition**, not a second P7 task representation and not permission to implement 0.6.0 product scope outside sign-off.
+This is a **DESIGN baseline dependency**, not a second P7 task representation and not permission to implement 0.6.0 product scope outside sign-off.
 
-ALIGN-A06 proves that two coordinator behaviors required by the signed package govern the execution process itself and therefore cannot be self-hosted by T1:
+ALIGN-A06 historically exposed two coordinator capabilities that a signed task cannot self-host because they govern the execution process judging that task:
 
-1. **surface-variance admission:** the host coordinator performs V2 `validateChangedPaths` before V4/V5/V6 and currently rejects every path absent from literal `changeSurface`; candidate changes to that validator cannot affect the already-running host that judges the same candidate;
-2. **architecture-feedback checkpoints:** the host coordinator currently performs one BUILDER provider turn and finalizes/captures the candidate; it does not admit/react to `GATE_CHECKPOINT_REQUESTED` or continue the same Run/session. Candidate implementation of that protocol cannot make it available to the already-running host.
+1. **surface-variance admission:** signed `scope`/exclusions must be the hard repository-reach boundary while `changeSurface` remains immutable forecast evidence, with minimum same-layer physical variance judged through V4/V5/V6 rather than rejected solely by V2;
+2. **architecture-feedback checkpoints:** a BUILDER must be able to request an already-signed gate, have the coordinator execute it, receive the result and continue in the same Run/provider session without ambient provider shell/execute permission.
 
-Therefore the exact repository/runtime baseline used for this WorkItem's future Approval **must already conform to corrected P6** before R3 can return `READY_FOR_SIGNOFF`.
+Those prerequisite defects are now corrected in the campaign ancestry. Current production evidence proves:
 
-The prerequisite foundation correction is owned by a separately governed pre-signoff WorkItem under the existing project authority. It must make no product/0.6.0 feature decision. Its allowed semantic scope is only the execution-control capability required to make already-binding S8/S9/P6 behavior executable:
+- `src/shell/opencode.ts` derives BUILDER/REMEDIATOR edit capability from signed `scope` and then applies immutable-path/symlink hard denies;
+- `src/daemon/validation.ts::validateChangedPaths` rejects instruction/protected/out-of-scope/excluded paths but does not reject forecast absence; `forecastVariancePaths` retains unforecast evidence;
+- `src/daemon/execution.ts` supplies forecast/actual evidence to independent review, runs governance gates at V5 and maps reviewer minimum-change evidence to coordinator-owned V6 PASS or `CHANGE_BLOAT`;
+- `GATE_CHECKPOINT_REQUESTED` is admitted only for BUILDER, must be terminal and signed, is V2-checked before the checkpoint effect, runs through the coordinator gate owner and continues the same Run/provider session;
+- provider shell/execute remains denied; no second gate registry, scope model, DTO/state family or dynamic task mutation exists;
+- core, daemon and certification tests permanently exercise signed checkpoint success/failure/unsigned/out-of-scope cases plus forecast variance and V6 `CHANGE_BLOAT`.
 
-- preserve the existing SignedTaskBlock, ExecutionTask, Run, RunEvent and validation-state owners; no second task/checkpoint/scope model and no DTO/service/repository/controller family;
-- make `scope`/exclusions the hard changed-path boundary and `changeSurface` the immutable expected forecast exactly as corrected P6 defines;
-- ensure V2 rejects actual signed-scope/exclusion/instruction/authority breaches but does not classify absence from the forecast alone as `SCOPE_BREACH`;
-- ensure the independent V4 reviewer receives the signed forecast plus actual changed paths and must reject any unforecast path that is not the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary;
-- run V5 architecture/governance fitness over the actual candidate and require any new production module to be covered by the authoritative architecture gate; if the existing gate is not generic enough to cover such a module, the foundation correction must strengthen that permanent fitness coverage before this campaign resumes;
-- make V6 positively recheck minimum sufficiency/architecture preservation rather than re-applying exact forecast membership;
-- implement corrected P6 `GATE_CHECKPOINT_REQUESTED` admission for BUILDER only, exact signed gate-id admission, coordinator-owned gate execution/evidence, pass/fail reaction and same-Run/same-session continuation without granting provider shell/execute;
-- preserve one active provider turn per Run and all existing cancellation/provider-failure/freshness semantics;
-- add positive/negative core/daemon/certification evidence for both behaviors.
+Therefore **SD13 is current baseline reuse, not T1 implementation work**. For SD10, the scope/forecast/V4-V6 portion is likewise current baseline reuse. The only remaining SD10 implementation delta is P6 §37.4 signed-task non-vacuity: the current `SignedTaskBlockSchema` still permits an empty task block, blank task id/objective and empty required task arrays. Because `parseSignedTaskBlockFromPlan`, PLAN conformance and `validateTaskDefinitions` already consume that single schema, the minimum DRY correction is to tighten the existing canonical schema in `src/core/contracts.ts`; no parallel validator or execution-path edit is justified.
 
-**Foundation acceptance before campaign re-entry:**
+**G4 re-entry requirements after this freshness correction:**
 
-- exact prerequisite WorkItem authority and implementation are committed on the campaign branch ancestry;
-- dependency-lock, typecheck, architecture, full test, build and materially relevant browser/certification gates pass on that exact baseline;
-- current production code, P6 and verification evidence agree on the two behaviors above;
-- the campaign reruns C12 factual evidence, R1-A07/H1, affected R2 A07/H2, DESIGN A06/A07/H3 and PLAN A06/A07/H4 before ALIGN-A06 is attempted again;
-- T1 no longer contains an action whose purpose is to bootstrap checkpoint capability for itself. Any remaining checkpoint action is proof/usage of a baseline capability, not its first implementation.
-
-Until those conditions hold, SD10/SD13 are technically specified but this WorkItem's PLAN is not executable and G5/G5A/G6 remain blocked.
+- revalidate DESIGN-A06 against current R2/P6 and the exact baseline/runtime evidence above;
+- revalidate DESIGN-A07 so C11 Approval and C12 execution consume the same signed task/currentness/checkpoint/variance semantics;
+- resume DESIGN-A08-A11 only after A07 passes, because they were predecessor-blocked rather than semantically invalidated;
+- run fresh H3 across the complete current DESIGN package;
+- only after G4 PASS may PLAN be regenerated. The regenerated PLAN must remove checkpoint-protocol/bootstrap implementation work, use the existing baseline checkpoint capability at each required architecture-feedback boundary, retain the corrected scope/forecast contract, and carry only the remaining SD10 non-vacuity implementation delta.
 
 ## A01 corrected-upstream no-code dispositions
 
@@ -278,7 +275,7 @@ Every `POSITIVE_NO_CHANGE` row explicitly consumes its named R1 producer→carri
 | `PL-C10-01` | C10-F01 | Readiness dominant verdict is typed R3 outcome. | `SD11` |
 | `PL-C11-01` | C11-F01 | Approval presents readiness and package currentness before technical identity. | `SD12` |
 | `PL-C11-02` | C11-F02 | Canonical approval identity is trimmed/nonblank at ingress. | `SD12` |
-| `PL-C12-01` | C12-F01 | Signed in-task architecture checkpoint is coordinator-executable without provider shell permission. | `SD13` |
+| `PL-C12-01` | C12-F01 | Signed in-task architecture checkpoint is coordinator-executable without provider shell permission. | `SD13` — baseline capability already conforms; no T1 production edit |
 | `PL-C16-01` | C16-F01 | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required. | `SD14` |
 | `PL-C16-02` | C16-F02 | Fresh productive install cannot succeed with mandatory repository/account/model setup deferred to Settings. | `SD19` |
 | `PL-C16-03` | C16-F03 | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. | `SD19` |
@@ -414,13 +411,10 @@ The former fresh `configured === null` success/defer branch in `runGuidedSetupIn
 ### Production paths expected to change
 - `README.md`
 - `src/core/contracts.ts`
-- `src/core/execution.ts`
 - `src/core/governance.ts`
 - `src/core/lifecycle.ts`
 - `src/daemon/authority.ts`
-- `src/daemon/execution.ts`
 - `src/daemon/stage.ts`
-- `src/daemon/validation.ts`
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 - `ui/src/ActivityComposer.tsx`
@@ -447,15 +441,15 @@ The former fresh `configured === null` success/defer branch in `runGuidedSetupIn
 ### Delivery metadata
 - `CHANGELOG.md`
 
-Total P7 candidate surface forecast: **30 paths** (23 production + 6 verification + 1 delivery).
+Total P7 candidate surface forecast after execution-foundation revalidation: **27 paths** (20 production + 6 verification + 1 delivery). The three removed production paths (`src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts`) are baseline capability owners for SD10/SD13 and must not be edited merely to reimplement already-conforming execution-control semantics.
 
 `docs/**`, `pontivus-order.toml`, package/lock/workflow metadata and `tests/architecture.test.ts` are not T1 implementation surface. P6 was corrected during DESIGN. G-F10 structural campaign fitness may update immutable architecture verification material **before sign-off**, followed by downstream revalidation; it is not an implementation task.
 
 ## Contract/state/persistence/transport consequences
 
 - No WorkStage/status/outcome/ArtifactRole/task-state/persistence-table/public-HTTP family is added.
-- Existing proposal, HumanInput, SignedTaskBlock, Approval, Run/RunEvent and validation representations are extended only where SD09/SD10/SD12/SD13 already require.
-- New runtime concepts remain limited to the already-designed transient pure resolved-authority projection and typed BUILDER checkpoint request.
+- Existing proposal, HumanInput, SignedTaskBlock, Approval, Run/RunEvent and validation representations remain the single owners. The current baseline already carries SD13's typed BUILDER checkpoint request and SD10's scope/forecast/V4-V6 execution semantics; T1 adds no parallel execution representation. The remaining SD10 change only tightens non-vacuity constraints on the existing SignedTaskBlock schema.
+- No new runtime concept is introduced by SD10/SD13 during T1; the transient resolved-authority projection and typed BUILDER checkpoint request are existing baseline capabilities.
 - SD19 changes no OrderConfig schema. It changes only when the productive installer is allowed to return success.
 - No new dependency is required.
 
@@ -468,7 +462,7 @@ Total P7 candidate surface forecast: **30 paths** (23 production + 6 verificatio
 - checkpoint failure -> only signed-scope correction or explicit block;
 - source-admission conflict -> existing QueuePlan/source diagnostics/recovery;
 - installer setup cancellation/provider/model/repository failure -> installer fails and existing rollback restores prior installation/config/service state; fresh install does not claim success;
-- any implementation discovery requiring a new semantic owner, state, persistence/transport shape, dependency or unlisted production path -> return to DESIGN/PLAN.
+- any implementation discovery requiring a new semantic owner, public contract, state meaning, persistence/transport or effect boundary, dependency direction/external dependency, validation contract, authorized behavior, or a path outside signed scope/exclusions -> return to DESIGN/PLAN; an in-scope path absent only from `changeSurface` is not itself an upstream-return condition and instead follows the governed V4/V5/V6 minimum-same-layer variance proof.
 
 ## Rejected alternatives
 
