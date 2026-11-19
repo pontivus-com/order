@@ -20,17 +20,9 @@
 
 ## Requested change
 
-Reconstruct the complete intended Order functional design that the 0.5.0 work was supposed to realize, using canonical P2/P3 product and functional authority—not the released 0.5.0 implementation—as the normative source. Then derive the complete 0.6.0 technical solution design and final implementation plan from that reconstructed functional design, progressing only through the governed lifecycle:
+Reconstruct the complete intended Order functional design that the 0.5.0 work was supposed to realize, using canonical P2/P3 product and functional authority—not the released 0.5.0 implementation—as the normative source. Then derive the complete 0.6.0 technical solution design and final implementation plan from that reconstructed functional design. **Campaign sequencing is not defined in this Work request.** The sole normative campaign progression is owned by `0.6.0-design-campaign-plan.md` and must be followed exactly as current there.
 
-```text
-R1 prerequisite investigation
-  -> R2 functional requirements / functional design
-  -> DESIGN technical solution design
-  -> PLAN final implementation plan
-  -> R3 adversarial readiness review
-```
-
-The work must be controlled by one campaign plan that proves complete concern coverage, marks the explicit start and end of each investigation, records findings and cross-concern dependencies, and tracks every concern through functional design, technical design and final plan coverage.
+The work must be controlled by that one campaign plan, which proves complete concern coverage, marks the explicit start and end of each investigation, records findings and cross-concern dependencies, tracks every concern through functional design, technical design and final plan coverage, and owns the mandatory final cross-layer alignment/readiness progression.
 
 ## Canonical 0.6.0 campaign work point
 
@@ -75,7 +67,7 @@ The campaign therefore requires:
 - technical-design closure before executable planning;
 - complete P1 -> P2 -> P3 -> P4/P5/P6 -> P7 traceability;
 - one final horizontal integration audit after individual concerns close;
-- no implementation work until the complete design/plan package passes R3 and explicit sign-off.
+- no implementation work until the **sole campaign progression owned by `0.6.0-design-campaign-plan.md`** has reached its implementation-authorizing boundary and the exact package has explicit sign-off. This Work request does not maintain a parallel readiness sequence.
 
 ## Phase 0 prerequisite
 
@@ -136,17 +128,8 @@ Unrelated defects or features discovered during the campaign are recorded and ro
 
 ## Completion condition
 
-This WorkItem is ready for implementation sign-off only when:
+This Work request owns **no independent campaign-completion, readiness or sign-off checklist**.
 
-1. the complete concern register has been proven against current canonical authority;
-2. every applicable canonical normative obligation has been atomized and has explicit authority, semantic/information and realization coverage;
-3. every realization path is classified `CONFORMS` or `VIOLATES`, with zero material `UNPROVEN` obligations;
-4. every concern investigation has a closed factual verdict supported by obligation-level proof rather than concern/ID coverage alone;
-5. every material finding has a disposition;
-6. functional design is complete across all concerns and every applicable workflow-step/work-kind information contract, and passes a horizontal integration audit;
-7. technical solution design completely realizes the functional design without unresolved material choices or unsupported `no technical change` assertions;
-8. the final implementation plan covers every required design obligation with no orphan task or uncovered requirement;
-9. R3 adversarially returns `READY_FOR_SIGNOFF`;
-10. the exact package is explicitly approved.
+The WorkItem's campaign completion, final alignment, R3 eligibility, readiness and implementation-authorizing progression are determined exclusively by the current gate/progression/completion rules in `0.6.0-design-campaign-plan.md`. Other lifecycle artifacts provide their bounded R1/R2/DESIGN/PLAN/R3 content or verdicts but must not restate or maintain a competing campaign progression.
 
-The detailed execution and coverage rules are owned by `0.6.0-design-campaign-plan.md` in this WorkItem directory.
+The exact package still requires explicit Approval/sign-off at the canonical lifecycle boundary.
