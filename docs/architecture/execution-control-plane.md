@@ -275,8 +275,45 @@ The coordinator executes the exact gate in the current isolated builder workspac
 After a checkpoint result the same BUILDER Run/provider session may continue with the exact result as its next trigger/context:
 
 - pass -> continue the signed task;
-- fail -> only correction within the signed design/change surface is allowed, followed by a new request for the required checkpoint or an explicit block.
+- fail -> only correction within the signed semantic scope/accepted design is allowed, including an S9-authorized minimum same-layer physical decomposition when required to preserve an already-resolved responsibility/effect boundary; otherwise block for upstream resolution. A physical path absent from the forecast is not by itself an upstream-return condition.
 
 A checkpoint result does not substitute for V3/V5/V7 and does not mark a task/candidate successful. Final validation continues to execute the signed gate set independently at its existing stages.
 
 A request for an unsigned/unresolved gate is invalid provider output. No second gate registry, validation state machine, provider shell permission or persisted checkpoint status is introduced.
+
+### 12.3 Execution-control baseline precondition
+
+Checkpoint capability is part of the coordinator that owns the Run, not part of candidate repository state.
+
+If a signed P7 task requires an in-task architecture-feedback checkpoint, the exact coordinator/runtime governing that Run must already implement this §12 contract **before sign-off and before the first BUILDER turn**. A task cannot satisfy this precondition by modifying its own candidate bytes:
+
+- every execution Run starts from the immutable Approval baseline;
+- the coordinator process, provider-event admission and turn/reaction loop are outside the candidate workspace;
+- dependency tasks in the same Approval change eligibility only and do not promote candidate bytes into another task baseline.
+
+Therefore a change to checkpoint event grammar, provider admission, coordinator gate execution or same-Run continuation that is required to govern a later package is a **prerequisite execution-control change**. It must be completed through a separately governed WorkItem, integrated into the repository/runtime baseline, and the dependent package must then be freshly reconstructed/revalidated against that exact baseline. A PLAN must not place the checkpoint-control implementation inside the same signed task whose ordered steps depend on that capability.
+
+This is a bootstrap constraint, not a second task-dependency model.
+
+## 13. Signed scope, change-surface forecast and architecture-preserving variance
+
+The signed task has two distinct boundaries:
+
+- `scope` / `exclusions` define the signed repository reach within which implementation may operate;
+- `changeSurface` records the exact **expected physical path forecast** reviewed at PLAN/sign-off.
+
+`changeSurface` is not an independent semantic authority and is not an exhaustive physical whitelist. The implementation remains bounded by the task objective, acceptance/authority references, signed concerns, scope/exclusions and the resolved P1-P6 design.
+
+V2 must fail closed for:
+
+- any changed path outside signed `scope`;
+- any changed path admitted by `exclusions`;
+- repository instructions such as `AGENTS.md`;
+- signed material authority, project-manifest/governance sources, or immutable verification sources that the task is not permitted to modify;
+- any deterministic protected path class owned by the Approval/project-governance closure.
+
+For an otherwise admitted path that is absent from `changeSurface`, V2 records no automatic scope breach merely because the forecast omitted that physical path. The resulting diff proceeds through the ordinary V3-V6 path. V4/V5/V6 must then positively prove that the variance is exactly the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary and that canonical semantic ownership, public contracts, state meaning, dependency direction, external dependencies, validation contract and authorized behavior are unchanged.
+
+If those propositions cannot be proved, classification is the existing appropriate `SCOPE_BREACH`, `GOVERNANCE_BREACH`, `BLOCKED_SPEC_OR_DESIGN` or `CHANGE_BLOAT` path; execution does not invent a design.
+
+The actual changed-path set is retained in the existing candidate/Run evidence. No new persisted “variance” DTO/state, dynamic scope mutation or second authorization list is introduced.
