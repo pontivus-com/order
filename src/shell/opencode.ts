@@ -35,6 +35,7 @@ import { canonicalJson } from "../core/canonical.ts";
 import {
   builderProviderTags,
   providerEventIsAdmitted,
+  remediatorProviderTags,
   reviewerProviderTags,
   stageProviderTags,
 } from "../core/execution.ts";
@@ -1273,7 +1274,9 @@ const providerTagsForRole = (role: RunRole): readonly string[] =>
     ? [...stageProviderTags]
     : role === "REVIEWER"
       ? [...reviewerProviderTags]
-      : [...builderProviderTags];
+      : role === "BUILDER"
+        ? [...builderProviderTags]
+        : [...remediatorProviderTags];
 
 const providerOutputContract = (role: RunRole): string =>
   [
