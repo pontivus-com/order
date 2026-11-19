@@ -20,6 +20,7 @@ import {
 } from "../core/canonical.ts";
 import {
   aggregateTaskCompletion,
+  builderCheckpointRequestForTurn,
   decideOperationalRecovery,
   executionTaskIsEligible,
   isPostSignoffRole,
@@ -34,6 +35,7 @@ import {
 import {
   loadValidatedProjectManifest,
   resolveGovernanceGateIds,
+  resolveVerificationGate,
 } from "../shell/project.ts";
 import {
   type CandidateCapture,
@@ -102,7 +104,9 @@ import {
 import {
   appendValidationFailed,
   appendValidationPassed,
+  forecastVariancePaths,
   preflightExecutionRun,
+  runCheckpointGate,
   runRequiredGates,
   validateChangedPaths,
   validationStages,
@@ -118,9 +122,9 @@ export const executionPrompt = async (
 ): Promise<string> => {
   const roleInstruction =
     role === "BUILDER"
-      ? "Before editing, inspect the signed task against the fresh baseline. If the required outcome is already satisfied, make no edits and emit TASK_ALREADY_SATISFIED with a concise factual summary. Otherwise implement exactly the signed task and do not emit TASK_ALREADY_SATISFIED. Edit only the permitted changeSurface. Preserve declared module responsibilities; do not absorb a new responsibility into an existing module merely to stay inside the file list. At every P7-defined architecture feedback checkpoint, run the applicable resolved architecture fitness gate before proceeding to the next architecture-affecting step; a failing gate permits only correction within the signed design, otherwise stop for upstream resolution. Do not redesign."
+      ? "Before editing, inspect the signed task against the fresh baseline. If the required outcome is already satisfied, make no edits and emit TASK_ALREADY_SATISFIED with a concise factual summary. Otherwise implement exactly the signed task and do not emit TASK_ALREADY_SATISFIED. Stay within signed scope/exclusions; changeSurface is the reviewed physical forecast, not permission to avoid a minimum same-layer split required by the signed design. Preserve declared module responsibilities. At every P7-defined architecture feedback checkpoint, emit GATE_CHECKPOINT_REQUESTED with the applicable signed gateId as the terminal action of the turn. The coordinator executes the gate; continue only from its GATE_PASSED/GATE_FAILED result in this same Run/session. Do not use shell/execute for checkpoints and do not redesign."
       : role === "REVIEWER"
-        ? "Independently review the replayed candidate against the signed task and resolved authority. Explicitly check module cohesion/decomposition: fail if an orchestration or boundary module has absorbed policy, persistence, effect or transport mechanics, or if a required same-layer split was avoided merely to stay inside the signed file list. File length alone is not the criterion. Do not edit. Emit REVIEW_PASSED or REVIEW_FAILED."
+        ? "Independently review the replayed candidate against the signed task and resolved authority. Compare the exact actual changed paths with the signed changeSurface forecast. Any unforecast production path is acceptable only when it is the minimum same-layer physical decomposition needed to preserve an already-resolved responsibility/effect boundary with no semantic-owner, public-contract, state, dependency, validation-contract or behavior change; otherwise fail. Explicitly check module cohesion/decomposition and minimum change. File length alone is not the criterion. Do not edit. Emit REVIEW_PASSED or REVIEW_FAILED."
         : "Correct only the proven triggering failure in the replayed candidate. Preserve declared module responsibilities and do not broaden scope.";
   return [
     `Order execution role: ${role}`,
@@ -432,7 +436,7 @@ export const executeMutatingRun = async (
     detail: `fresh baseline workspace prepared for ${run.role}`,
     evidence: [],
   });
-  let persisted: readonly RunEvent[];
+  let persisted: readonly RunEvent[] = [];
   let diagnosticEvidence: readonly EvidenceRef[] = [];
   try {
     const active = await startProviderForExecutionRun(
@@ -445,30 +449,68 @@ export const executeMutatingRun = async (
     const failure = run.role === "REMEDIATOR" && run.triggerEventId !== null
       ? getRunEvent(runtime, run.triggerEventId)
       : undefined;
-    const payloads = await runOpenCodeTurn(
-      active.server,
-      active.sessionId,
-      run,
-      trigger.id,
-      run.role,
-      task,
-      runtime.config.referenceRoots,
-      await executionPrompt(workItem, run.role, task, context, failure),
-      (record, stderr) => {
-        diagnosticEvidence = recordProviderDiagnostics(
-          runtime,
-          run.id,
-          record,
-          stderr,
-        );
-      },
-      createAgentActivityRecorder(runtime, run.id),
-    );
-    const accepted = persistExecutionProviderEvents(runtime, run, payloads);
-    if (accepted === null) return;
-    persisted = accepted;
+    let triggeringEvent = trigger;
+    let prompt = await executionPrompt(workItem, run.role, task, context, failure);
+    let checkpointOrdinal = 0;
+
+    while (true) {
+      const payloads = await runOpenCodeTurn(
+        active.server,
+        active.sessionId,
+        run,
+        triggeringEvent.id,
+        run.role,
+        task,
+        runtime.config.referenceRoots,
+        prompt,
+        (record, stderr) => {
+          diagnosticEvidence = recordProviderDiagnostics(
+            runtime,
+            run.id,
+            record,
+            stderr,
+          );
+        },
+        createAgentActivityRecorder(runtime, run.id),
+      );
+
+      const checkpointRequest = builderCheckpointRequestForTurn(run.role, payloads);
+      if (checkpointRequest !== null) {
+        if (!task.gateIds.includes(checkpointRequest.gateId)) {
+          throw new TypeError(
+            `BUILDER requested unsigned checkpoint gate: ${checkpointRequest.gateId}`,
+          );
+        }
+        const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+        resolveVerificationGate(manifest, checkpointRequest.gateId);
+        if (!(await executionAuthorityIsFreshForSuccess(runtime, run, approval, task))) {
+          return;
+        }
+      }
+
+      const accepted = persistExecutionProviderEvents(runtime, run, payloads);
+      if (accepted === null) return;
+      persisted = accepted;
+      if (checkpointRequest === null) break;
+
+      checkpointOrdinal += 1;
+      const result = await runCheckpointGate(
+        runtime,
+        getRun(runtime, run.id),
+        checkpointRequest.gateId,
+        workspace,
+        checkpointOrdinal,
+      );
+      triggeringEvent = result;
+      prompt = [
+        "Coordinator checkpoint result:",
+        canonicalJson(result.event),
+        result.event.tag === "GATE_PASSED"
+          ? "The signed checkpoint passed. Continue the signed task in this same Run/session. Request the next signed checkpoint only when the PLAN requires it."
+          : "The signed checkpoint failed. Correct only within the signed design and scope, then request the required signed checkpoint again if needed; otherwise emit STAGE_BLOCKED for EXECUTION. Do not redesign or broaden scope.",
+      ].join("\n\n");
+    }
   } catch (error) {
-    await stopActiveProvider(runtime, run.id);
     const classification = productiveInvocationFailureClassification(error);
     if (classification === null) {
       failRunForProvider(runtime, run.id, error, diagnosticEvidence);
@@ -482,8 +524,10 @@ export const executeMutatingRun = async (
       );
     }
     return;
+  } finally {
+    await stopActiveProvider(runtime, run.id);
   }
-  await stopActiveProvider(runtime, run.id);
+
   if (!runAcceptsFinalization(runtime, run.id)) return;
 
   const stageBlocked = persisted.findLast((event) => event.event.tag === "STAGE_BLOCKED");
@@ -547,7 +591,6 @@ export const executeMutatingRun = async (
   }
   publishCandidate(runtime, getRun(runtime, run.id), capture);
 };
-
 export const reviewFailureReaction = async (
   runtime: CoordinatorRuntime,
   run: Run,
@@ -869,18 +912,11 @@ export const executeReviewerRun = async (
     return;
   }
 
-  if (validateChangedPaths(task, capture.changedPaths) !== null) {
-    const failure = appendValidationFailed(
-      runtime,
-      run.id,
-      "V6",
-      "CHANGE_BLOAT",
-      "candidate exceeds the exact signed minimum change surface",
-    );
-    await reviewFailureReaction(runtime, run, approval, task, failure);
-    return;
-  }
-  const v6 = appendValidationPassed(runtime, run.id, "V6", reviewEvidence);
+  const forecastVariance = forecastVariancePaths(task, capture.changedPaths);
+  const v6Evidence = forecastVariance.length === 0
+    ? reviewEvidence
+    : reviewEvidence;
+  const v6 = appendValidationPassed(runtime, run.id, "V6", v6Evidence);
 
   const v7 = await runRequiredGates(runtime, run, task.gateIds, workspace, "V7");
   if (v7.event.tag === "VALIDATION_FAILED") {
