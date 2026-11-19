@@ -276,6 +276,7 @@ Every `POSITIVE_NO_CHANGE` row explicitly consumes its named R1 producer→carri
 | `PL-C11-01` | C11-F01 | Approval presents readiness and package currentness before technical identity. | `SD12` |
 | `PL-C11-02` | C11-F02 | Canonical approval identity is trimmed/nonblank at ingress. | `SD12` |
 | `PL-C12-01` | C12-F01 | Signed in-task architecture checkpoint is coordinator-executable without provider shell permission. | `SD13` — baseline capability already conforms; no T1 production edit |
+| `PL-C12-02` | C12-F02 | Signed `scope`/exclusions remain the hard execution boundary; `changeSurface` is immutable forecast evidence; an in-scope unforecast path may proceed only as minimum same-layer responsibility-preserving decomposition proven through V4/V5/V6, while any semantic expansion returns upstream. | `SD10` — baseline scope/forecast/V4-V6 semantics already conform; no T1 production edit for variance admission |
 | `PL-C16-01` | C16-F01 | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required. | `SD14` |
 | `PL-C16-02` | C16-F02 | Fresh productive install cannot succeed with mandatory repository/account/model setup deferred to Settings. | `SD19` |
 | `PL-C16-03` | C16-F03 | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. | `SD19` |
@@ -301,7 +302,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C09 | PL-C09-01 -> SD10. |
 | C10 | Stable FR221 + PL-C10-01 -> SD11. |
 | C11 | Stable FR222 + PL-C11-01/02 -> SD12. |
-| C12 | Stable rows + PL-C12-01 -> SD13. |
+| C12 | Stable rows + PL-C12-01 -> SD13 baseline checkpoint capability; PL-C12-02 -> SD10 baseline scope/forecast/V4-V6 capability. The only remaining C12-adjacent T1 work under SD10 is C09-owned SignedTaskBlock non-vacuity, not execution-foundation reimplementation. |
 | C13 | Stable rows; positive no technical delta. |
 | C14 | Stable rows; positive no technical delta, with SD09 affecting only newly admitted permanent-governance proposal targets. |
 | C15 | Stable rows; positive no provider/session technical delta. |
