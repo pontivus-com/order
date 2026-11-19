@@ -4,15 +4,18 @@ This component allocates proof inside the one signed T1. It does not create anot
 
 ## Architecture-feedback checkpoints
 
-| Checkpoint | After execution wave | Required evidence |
-|---|---|---|
-| A | Wave 1 IA01-IA08 | typecheck + architecture + relevant core/daemon tests |
-| B | Wave 2 IA09-IA13 | typecheck + architecture + source/queue/Git daemon/browser tests |
-| C | Wave 3 IA14-IA19 | typecheck + architecture + Workbench/browser/presentation tests |
-| D | Wave 4 IA25 | typecheck + architecture + installer test + order-migration test + build |
-| E | Wave 5 IA20-IA23 | typecheck + architecture + full test + build + browser |
+Preflight IA07 proves the exact Approval baseline already supports coordinator-owned signed checkpoints; no T1 candidate byte is relied upon to create this capability.
 
-Checkpoints are feedback only and never substitute for final V3/V5/V7.
+| Checkpoint | After execution wave | Required coordinator evidence |
+|---|---|---|
+| A | Wave 1 IA01-IA04 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 2 |
+| B | Wave 2 IA05-IA06 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 3 |
+| C | Wave 3 IA09-IA13 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 4 |
+| D | Wave 4 IA14-IA19 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 5 |
+| E | Wave 5 IA25 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 6 |
+| F | Wave 6 IA20-IA23 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 7 closeout |
+
+Each checkpoint is requested by BUILDER as the terminal action of that provider turn and is executed by the coordinator in the same Run/provider session. A failed checkpoint permits only correction inside the already signed design/scope or an explicit execution block; it does not grant provider shell/execute or authorize redesign. Checkpoints are architecture feedback only and never substitute for final V3/V5/V7 or the task's complete logical gate union.
 
 ## Requirement-level proof law
 
@@ -43,13 +46,17 @@ Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 
 ## V0-V7 final review obligations
 
 V4/V5/V6 explicitly verify:
-- all 112 stable rows retain their R1 evidence and DESIGN disposition;
-- all 24 package atoms are satisfied;
-- every positive no-change row remains true;
-- exact 30-path signed surface, no extra path;
+- all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
+- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or baseline-reuse proof owner;
+- every `POSITIVE_NO_CHANGE` and baseline-reuse obligation remains true;
+- the signed 28-path `changeSurface` remains the immutable forecast;
+- every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
+- forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
+- current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
+- all required intermediate architecture checkpoints were coordinator-executed and passed before the next wave;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
 - no implementation-derived product semantics.
 
-`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata remain outside T1. Any pre-signoff G-F10 fitness-sensor correction changes verification material before Approval and forces downstream package revalidation.
+`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
