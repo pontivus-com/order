@@ -1568,7 +1568,19 @@ describe("A06 execution-foundation certification", () => {
     expect(daemonExecution).toContain("runCheckpointGate(");
     expect(daemonExecution).toContain("Coordinator checkpoint result:");
     expect(daemonExecution).toContain("resolveVerificationGate(manifest, checkpointRequest.gateId)");
+    expect(daemonExecution).toContain("checkpointCapture.changedPaths");
+    expect(daemonExecution).toContain('"SCOPE_BREACH"');
     expect(daemonExecution).toContain("validation/v6-change-surface.json");
+    expect(daemonExecution).toContain('reviewPass.event.minimumChange === "CHANGE_BLOAT"');
+    expect(daemonExecution).toContain('"V6",');
+    expect(daemonExecution).toContain('"CHANGE_BLOAT",');
+
+    const opencode = read("src/shell/opencode.ts");
+    expect(opencode).toContain("repositoryScopeCapabilityResource");
+    expect(opencode).toContain("task.scope.map");
+    expect(opencode).not.toContain("for (const path of task.changeSurface)");
+    expect(opencode).toContain('"*/AGENTS.md"');
+    expect(opencode).toContain("workspaceSymlinkPaths");
     expect(daemonExecution).toContain("protectedPaths");
     expect(daemonExecution).not.toContain(
       "run the applicable resolved architecture fitness gate before proceeding",
