@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
+  ArtifactRefSchema,
   ExecutionTaskSchema,
   InstallationReadinessSchema,
   OpenCodeAccountLoginAttemptSchema,
@@ -2534,7 +2535,24 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await page.getByRole("button", { name: "Save", exact: true }).click();
   const savedPlan = page.getByLabel("Implementation plan document Markdown source");
   await expect(savedPlan).toBeVisible();
-  await expect.poll(() => markdownSourceValue(savedPlan)).toContain("saved plan edit");
+  const savedPlanForm = page.locator("form.order-markdown-editor").filter({ has: savedPlan });
+  await expect(savedPlanForm.getByText("Current", { exact: true })).toBeVisible();
+
+  const currentItem = await workItemForTitle(page, "Lifecycle editing workbench");
+  await expect.poll(async () => {
+    const artifactsResponse = await page.context().request.get(
+      "/api/work-items/" + currentItem.id + "/lifecycle-artifacts",
+    );
+    if (artifactsResponse.status() !== 200) return "";
+    const artifacts = ArtifactRefSchema.array().parse(await artifactsResponse.json());
+    const currentPlan = artifacts.find((artifact) => artifact.role === "PLAN");
+    if (currentPlan === undefined) return "";
+    const contentResponse = await page.context().request.get(
+      "/api/artifacts/" + currentPlan.id + "/content",
+    );
+    return contentResponse.status() === 200 ? await contentResponse.text() : "";
+  }).toContain("saved plan edit");
+
   await page.getByRole("button", { name: "Context" }).click();
   await expect(page.getByTestId("selected-view-context")).toContainText("Implementation plan");
   await expect(page.getByTestId("selected-view-context")).toContainText("Governed document");

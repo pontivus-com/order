@@ -16,6 +16,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Make lifecycle Markdown browser verification assert canonical post-save PLAN bytes and editor save completion instead of reconstructing the document from CodeMirror's virtualized rendered lines, eliminating a timing-sensitive false failure without changing product behavior.
+
 - Clarify 0.6.0 documentation-state hygiene so retained G1/PLAN/R3 audit records and the canonical R3 verdict cannot be mistaken for current campaign state, while preserving the campaign registers as the sole current-state owners and creating no parallel plan or readiness authority.
 
 - Restore canonical external-facts snapshot lineage: retain the exact 2026-11-12 factual source under its dated version identity, keep the live factual owner current, bind permanent consumers through stable `GW-DOC-EXTERNAL-FACTS`, and permanently reject dated snapshot/version/Verified-date drift.
