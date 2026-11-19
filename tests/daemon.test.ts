@@ -219,7 +219,7 @@ describe("candidate changed-path instruction immutability", () => {
   it("rejects AGENTS.md through the production validator under the Bun runtime", () => {
     const script = `
       import { ExecutionTaskSchema } from "./src/core/contracts.ts";
-      import { validateChangedPaths } from "./src/daemon/validation.ts";
+      import { forecastVariancePaths, validateChangedPaths } from "./src/daemon/validation.ts";
 
       const task = ExecutionTaskSchema.parse({
         id: "task_11111111-1111-4111-8111-111111111111",
@@ -242,6 +242,17 @@ describe("candidate changed-path instruction immutability", () => {
         if (result === null || !result.includes("immutable repository instruction")) process.exit(1);
       }
       if (validateChangedPaths(task, ["src/target.ts"]) !== null) process.exit(2);
+      if (validateChangedPaths(task, ["src/unforecast.ts"]) !== null) process.exit(3);
+      if (JSON.stringify(forecastVariancePaths(task, ["src/target.ts", "src/unforecast.ts"])) !== JSON.stringify(["src/unforecast.ts"])) process.exit(4);
+
+      const bounded = ExecutionTaskSchema.parse({
+        ...task,
+        scope: ["src/**"],
+        exclusions: ["src/excluded.ts"],
+      });
+      if (!validateChangedPaths(bounded, ["docs/outside.md"])?.includes("outside signed scope")) process.exit(5);
+      if (!validateChangedPaths(bounded, ["src/excluded.ts"])?.includes("excluded path")) process.exit(6);
+      if (!validateChangedPaths(bounded, ["src/target.ts"], ["src/target.ts"])?.includes("signed authority/governance/verification")) process.exit(7);
     `;
 
     expect(() =>
@@ -496,12 +507,19 @@ const server = Bun.serve({
           output = '[{"tag":"TASK_ALREADY_SATISFIED","summary":"baseline already satisfies the signed task"}]';
         } else if (mode === "empty") {
           output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"no candidate produced","evidence":[]}]';
+        } else if (mode === "checkpoint" || mode === "checkpoint-fail") {
+          writeFileSync(join(process.cwd(), "src", "target.ts"), "needs-review\\n");
+          output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"test"}]';
+        } else if (mode === "checkpoint-unsigned") {
+          output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"architecture"}]';
         } else {
           writeFileSync(join(process.cwd(), "src", "target.ts"), "needs-review\\n");
           output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"candidate prepared","evidence":[]}]';
         }
+      } else if (text.includes("Coordinator checkpoint result:") && mode === "checkpoint-fail") {
+        output = '[{"tag":"STAGE_BLOCKED","reason":"signed checkpoint failed","owningStage":"EXECUTION"}]';
       } else if (text.includes("Order execution role: REMEDIATOR")) {
-        if (mode === "fix") {
+        if (mode === "fix" || mode === "checkpoint") {
           writeFileSync(join(process.cwd(), "src", "target.ts"), "fixed\\n");
         }
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"repair attempted","evidence":[]}]';
@@ -5403,6 +5421,187 @@ describe("daemon control plane", () => {
       record.exceptionMessage === null
     )).toBe(true);
     expect(output.diagnosticsBeforeProviderEvents).toBe(true);
+  }, 30_000);
+
+  it("executes signed BUILDER checkpoints and continues the same Run/provider session", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-");
+    const binary = createFakeOpenCode("checkpoint");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const builder = runs.find((run) => run.role === "BUILDER");
+      if (!builder) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, builder.id);
+      const diagnostics = events
+        .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+        .flatMap((event) =>
+          event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED"
+            ? event.event.evidence
+                .filter((ref) => ref.relativePath.endsWith("/diagnostic.json"))
+                .map((ref) => JSON.parse(new TextDecoder().decode(
+                  rt.readRunEvidenceBytes(runtime.stateRoot, builder.id, ref.relativePath),
+                )))
+            : []
+        );
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        builder: {
+          id: builder.id,
+          status: builder.status,
+          providerSessionId: builder.providerSessionId,
+        },
+        eventTags: events.map((event) => event.event.tag),
+        checkpointGateIds: events
+          .filter((event) => event.event.tag === "GATE_CHECKPOINT_REQUESTED" || event.event.tag === "GATE_PASSED")
+          .map((event) => "gateId" in event.event ? event.event.gateId : null),
+        diagnosticSessions: diagnostics.map((record) => record.providerSessionId),
+        diagnosticPrompts: diagnostics.map((record) => record.promptId),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string; outcome: string | null };
+      builder: { id: string; status: string; providerSessionId: string | null };
+      eventTags: string[];
+      checkpointGateIds: Array<string | null>;
+      diagnosticSessions: string[];
+      diagnosticPrompts: string[];
+    };
+
+    expect(output.workItem).toMatchObject({
+      stage: "COMPLETE",
+      status: "COMPLETE",
+      outcome: "CANDIDATE_DONE",
+    });
+    expect(output.eventTags).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.eventTags).toContain("GATE_PASSED");
+    expect(output.eventTags.indexOf("GATE_CHECKPOINT_REQUESTED"))
+      .toBeLessThan(output.eventTags.indexOf("GATE_PASSED"));
+    expect(output.eventTags.indexOf("GATE_PASSED"))
+      .toBeLessThan(output.eventTags.indexOf("CANDIDATE_STATE_RECORDED"));
+    expect(output.checkpointGateIds).toEqual(["test", "test"]);
+    expect(output.diagnosticSessions).toHaveLength(2);
+    expect(new Set(output.diagnosticSessions).size).toBe(1);
+    expect(new Set(output.diagnosticPrompts).size).toBe(2);
+  }, 30_000);
+
+  it("rejects an unsigned BUILDER checkpoint before executing the gate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-unsigned-");
+    const binary = createFakeOpenCode("checkpoint-unsigned");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      const execOwner = await import("./src/daemon/execution.ts");
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      const started = await execOwner.startExactExecutionTask(
+        runtime,
+        work,
+        tasks[0].id,
+      );
+      await execOwner.executePostSignoffRun(
+        runtime,
+        started.run,
+        started.task,
+        started.approval,
+      );
+      const current = coord.listRuns(runtime, work)
+        .filter((run) => run.executionTaskId !== null)
+        .find((run) => run.id === started.run.id);
+      if (!current) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, current.id);
+      console.log(JSON.stringify({
+        run: {
+          status: current.status,
+          terminalClassification: current.terminalClassification,
+        },
+        tags: events.map((event) => event.event.tag),
+        checkpointResults: events.filter((event) =>
+          event.event.tag === "GATE_PASSED" ||
+          event.event.tag === "GATE_FAILED"
+        ).length,
+        providerFailure: events.find((event) =>
+          event.event.tag === "PROVIDER_FAILED"
+        )?.event ?? null,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      run: { status: string; terminalClassification: string | null };
+      tags: string[];
+      checkpointResults: number;
+      providerFailure: { tag: string; detail: string } | null;
+    };
+
+    expect(output.run).toMatchObject({
+      status: "FAILED",
+      terminalClassification: "PROVIDER_FAILURE",
+    });
+    expect(output.checkpointResults).toBe(0);
+    expect(output.tags).not.toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.providerFailure).toMatchObject({
+      tag: "PROVIDER_FAILED",
+    });
+    expect(output.providerFailure?.detail).toContain(
+      "requested unsigned checkpoint gate",
+    );
+  }, 30_000);
+
+  it("continues a failed signed checkpoint only to an explicit execution block", () => {
+    const repository = createRepository();
+    const failingManifest = fixtureManifest.replace(
+      'argv = ["bash", "-c", "test -f src/target.ts"]',
+      'argv = ["bash", "-c", "exit 1"]',
+    );
+    writeFileSync(join(repository, "pontivus-order.toml"), failingManifest);
+    runGit(repository, "add", "pontivus-order.toml");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-checkpoint-fail-");
+    const binary = createFakeOpenCode("checkpoint-fail");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const builder = runs.find((run) => run.role === "BUILDER");
+      if (!builder) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, builder.id);
+      const diagnostics = events
+        .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+        .flatMap((event) =>
+          event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED"
+            ? event.event.evidence
+                .filter((ref) => ref.relativePath.endsWith("/diagnostic.json"))
+                .map((ref) => JSON.parse(new TextDecoder().decode(
+                  rt.readRunEvidenceBytes(runtime.stateRoot, builder.id, ref.relativePath),
+                )))
+            : []
+        );
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        builder: { status: builder.status, terminalClassification: builder.terminalClassification },
+        tags: events.map((event) => event.event.tag),
+        sessions: diagnostics.map((record) => record.providerSessionId),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string; outcome: string | null };
+      builder: { status: string; terminalClassification: string | null };
+      tags: string[];
+      sessions: string[];
+    };
+
+    expect(output.workItem).toMatchObject({ stage: "EXECUTION", status: "BLOCKED" });
+    expect(output.builder).toMatchObject({
+      status: "BLOCKED",
+      terminalClassification: "PRECONDITION_FAILED",
+    });
+    expect(output.tags).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.tags).toContain("GATE_FAILED");
+    expect(output.tags).toContain("STAGE_BLOCKED");
+    expect(output.sessions).toHaveLength(2);
+    expect(new Set(output.sessions).size).toBe(1);
   }, 30_000);
 
   it("classifies a failed V5 governance fitness gate as GOVERNANCE_BREACH", () => {

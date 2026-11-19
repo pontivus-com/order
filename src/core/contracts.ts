@@ -982,6 +982,7 @@ const RunEventPayloadBaseSchema = z.union([
     evidence: evidenceArray,
   }),
   z.strictObject({ tag: z.literal("PROVIDER_FAILED"), detail: z.string(), evidence: evidenceArray }),
+  z.strictObject({ tag: z.literal("GATE_CHECKPOINT_REQUESTED"), gateId: GateIdSchema }),
   z.strictObject({ tag: z.literal("GATE_PASSED"), gateId: GateIdSchema, evidence: evidenceArray }),
   z.strictObject({
     tag: z.literal("GATE_FAILED"),

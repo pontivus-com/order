@@ -1547,6 +1547,40 @@ describe("Order cross-boundary certification", () => {
 });
 
 
+describe("A06 execution-foundation certification", () => {
+  it("permanently wires forecast variance and coordinator-owned builder checkpoints", () => {
+    const contracts = read("src/core/contracts.ts");
+    const coreExecution = read("src/core/execution.ts");
+    const daemonExecution = read("src/daemon/execution.ts");
+    const validation = read("src/daemon/validation.ts");
+
+    expect(contracts).toContain('z.literal("GATE_CHECKPOINT_REQUESTED")');
+    expect(coreExecution).toContain('"GATE_CHECKPOINT_REQUESTED"');
+    expect(coreExecution).toContain("builderCheckpointRequestForTurn");
+    expect(coreExecution).toContain("checkpoint request must be the terminal turn action");
+
+    expect(validation).not.toContain("outside signed changeSurface");
+    expect(validation).toContain("forecastVariancePaths");
+    expect(validation).toContain("runCheckpointGate");
+    expect(validation).toContain("validation/checkpoint-");
+
+    expect(daemonExecution).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(daemonExecution).toContain("runCheckpointGate(");
+    expect(daemonExecution).toContain("Coordinator checkpoint result:");
+    expect(daemonExecution).toContain("resolveVerificationGate(manifest, checkpointRequest.gateId)");
+    expect(daemonExecution).toContain("validation/v6-change-surface.json");
+    expect(daemonExecution).toContain("protectedPaths");
+    expect(daemonExecution).not.toContain(
+      "run the applicable resolved architecture fitness gate before proceeding",
+    );
+
+    const opencode = read("src/shell/opencode.ts");
+    expect(opencode).toContain("remediatorProviderTags");
+    expect(opencode).toContain('role === "BUILDER"');
+  });
+});
+
+
 describe("public release delivery certification", () => {
   it("keeps one package-derived version owner and retained PR/release automation", () => {
     const packageJson = JSON.parse(read("package.json")) as {
