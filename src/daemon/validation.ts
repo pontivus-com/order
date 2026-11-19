@@ -157,10 +157,15 @@ export const preflightExecutionRun = async (
 export const validateChangedPaths = (
   task: ExecutionTask,
   changedPaths: readonly RepositoryPath[],
+  protectedPaths: readonly RepositoryPath[] = [],
 ): string | null => {
+  const protectedSet = new Set(protectedPaths);
   for (const path of changedPaths) {
     if (repositoryPathNamesAgentInstruction(path)) {
       return `candidate changed immutable repository instruction path: ${path}`;
+    }
+    if (protectedSet.has(path)) {
+      return `candidate changed signed authority/governance/verification path: ${path}`;
     }
     if (!task.scope.some((pattern) => repositoryPatternMatches(pattern, path))) {
       return `candidate changed path outside signed scope: ${path}`;
