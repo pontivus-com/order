@@ -481,11 +481,11 @@ export const executeMutatingRun = async (
             `BUILDER requested unsigned checkpoint gate: ${checkpointRequest.gateId}`,
           );
         }
-        const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-        resolveVerificationGate(manifest, checkpointRequest.gateId);
         if (!(await executionAuthorityIsFreshForSuccess(runtime, run, approval, task))) {
           return;
         }
+        const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+        resolveVerificationGate(manifest, checkpointRequest.gateId);
       }
 
       const accepted = persistExecutionProviderEvents(runtime, run, payloads);
