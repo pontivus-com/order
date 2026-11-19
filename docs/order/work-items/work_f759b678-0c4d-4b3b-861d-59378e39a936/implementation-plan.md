@@ -8,7 +8,7 @@ Implement only the accepted F01/F02 foundation correction defined by current P4/
 
 ## Task topology
 
-One cumulative task is sufficient because the event contract, pure admission, daemon orchestration and focused proof are one execution-control responsibility with no independently deliverable product behavior.
+One cumulative task is sufficient because the event contract, pure admission, shell provider contract, daemon orchestration and focused proof are one execution-control responsibility with no independently deliverable product behavior.
 
 ### Task T1 — realize the corrected execution-control baseline
 
@@ -16,11 +16,12 @@ One cumulative task is sufficient because the event contract, pure admission, da
 
 **Execution order:**
 1. extend the canonical RunEvent union and pure BUILDER checkpoint-turn admission;
-2. correct V2 changed-path admission and checkpoint gate effect reuse;
-3. implement same-Run/same-session BUILDER checkpoint continuation;
-4. update V4/V6 minimum-change wording/control so forecast variance is reviewed rather than auto-rejected;
-5. add exact core/daemon/certification proof;
-6. run the full required gate union.
+2. expose the checkpoint tag only in BUILDER's shell-owned provider output contract;
+3. correct V2 changed-path admission and checkpoint gate effect reuse;
+4. implement same-Run/same-session BUILDER checkpoint continuation;
+5. update V4/V6 minimum-change control so forecast variance is reviewed rather than auto-rejected;
+6. add exact core/daemon/certification proof;
+7. run the full required gate union.
 
 **Architecture-feedback checkpoints:** none are required inside this prerequisite task itself; this task establishes the checkpoint capability for later packages and must not self-bootstrap it.
 
@@ -30,6 +31,7 @@ One cumulative task is sufficient because the event contract, pure admission, da
 - `src/core/execution.ts`
 - `src/daemon/validation.ts`
 - `src/daemon/execution.ts`
+- `src/shell/opencode.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
 - `tests/certification.test.ts`
@@ -40,7 +42,7 @@ One cumulative task is sufficient because the event contract, pure admission, da
 - `pontivus-order.toml`
 - P1-P6 authority documents;
 - 0.6.0 campaign R1/R2/DESIGN/PLAN files;
-- UI/source/shell behavior not required by F01/F02;
+- UI/source behavior and unrelated shell behavior not required by F01/F02;
 - dependencies and persistence schemas.
 
 ## Completion evidence
@@ -66,6 +68,7 @@ One cumulative task is sufficient because the event contract, pure admission, da
       "scope": [
         "src/core/**",
         "src/daemon/**",
+        "src/shell/opencode.ts",
         "tests/**"
       ],
       "exclusions": [
@@ -81,6 +84,7 @@ One cumulative task is sufficient because the event contract, pure admission, da
         "src/core/execution.ts",
         "src/daemon/execution.ts",
         "src/daemon/validation.ts",
+        "src/shell/opencode.ts",
         "tests/certification.test.ts",
         "tests/core.test.ts",
         "tests/daemon.test.ts"
@@ -106,6 +110,7 @@ One cumulative task is sufficient because the event contract, pure admission, da
         "core",
         "daemon",
         "foundation",
+        "shell",
         "verification"
       ]
     }
