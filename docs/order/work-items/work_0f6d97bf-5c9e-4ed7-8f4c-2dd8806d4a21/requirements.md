@@ -2,11 +2,11 @@
 
 ## P2 intent and R1 factual basis
 
-This R2 artifact is rebuilt from the fresh post-C20-F01 R1 record in `research.md`, the current P2/P3 authority graph resolved through `pontivus-order.toml`, and no other normative source.
+This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record in `research.md`, the current P2/P3 authority graph resolved through `pontivus-order.toml`, and no other normative source.
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `d85f6ac1e426e8c1bb85984e5700d61e4031fd50`. It retains the closed C01-C22 factual reconstruction and reopens C12 only for `C12-F02`, where ALIGN-A06 disproved the former `C12-O07` conformance classification. Every material stable-requirement realization still has an explicit evidence-backed verdict (`CONFORMS`, qualified conformance, `MIXED`, `VIOLATES` or `VERIFICATION_GAP`). R2 owns only the functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, execution-control bootstrap and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`. It contains the closed C01-C22 factual reconstruction after the corrective execution foundation: C12 is `FACTS_CLOSED`, C12-F01/F02 remain historical causal records only, and the corrected C12 execution obligations are evidence-backed `CONFORMS` (with C12-O10 retaining only its separately owned upstream C22-F01 dependency). Every material stable-requirement realization has an explicit evidence-backed verdict (`CONFORMS`, qualified conformance, `MIXED`, `VIOLATES` or `VERIFICATION_GAP`). R2 owns only the functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, execution-control bootstrap and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
@@ -149,7 +149,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10. It does 
 |---|---|---|---|---|
 | `GW-FR-001-GOVERNED-LIFECYCLE` | `CONFORMS` | `C01-O03`, `C01-O05`, `C01-O08` | `REFERENCE` | C01 |
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `CONFORMS` | `C01-O01`, `C01-O07` | `REFERENCE` | C01 |
-| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `MIXED` | `C12-O01`, `C12-O02`, `C12-O07` / `C12-F02` | `REFERENCE` | C12 |
+| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `CONFORMS` | `C12-O01`, `C12-O02`, `C12-O07` | `REFERENCE` | C12 |
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
 | `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
@@ -310,7 +310,7 @@ R2 consequence rule: a `REFERENCE` row with R1 `VIOLATES`, `MIXED`, `VERIFICATIO
 
 #### A07 package-local execution-surface consequence
 
-`PL-C12-02` is a package-local trace key, not a new permanent P3 requirement. It carries `C12-F02` downward:
+`PL-C12-02` is a package-local trace key, not a new permanent P3 requirement. It preserves the functional consequence exposed by historical `C12-F02`; the current R1 realization now conforms, but the rule remains required by canonical lifecycle/execution authority:
 
 - signed `scope`/`exclusions` bound authorized semantics/repository reach;
 - `changeSurface` is the exact expected physical forecast;
