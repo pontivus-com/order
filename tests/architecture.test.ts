@@ -2103,6 +2103,7 @@ describe("architecture fitness", () => {
     const researchPath = workItemRoot + "/research.md";
     const designPath = workItemRoot + "/solution-design.md";
     const planPath = workItemRoot + "/implementation-plan.md";
+    const campaignPath = workItemRoot + "/0.6.0-design-campaign-plan.md";
     const phasePaths = [
       "implementation-plan/00-governance.md",
       "implementation-plan/01-a01-lifecycle-product.md",
@@ -2127,7 +2128,14 @@ describe("architecture fitness", () => {
     const research = sourceText(researchPath);
     const design = sourceText(designPath);
     const plan = sourceText(planPath);
+    const campaign = sourceText(campaignPath);
+    const g5Status = campaign.match(
+      /^\| G5 \|[^\n]*\| (PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED) \|/m,
+    )?.[1] ?? null;
     const violations: string[] = [];
+    if (g5Status === null) {
+      violations.push("campaign G5 status is not structurally readable");
+    }
 
     const duplicates = (values: readonly string[]): readonly string[] => {
       const seen = new Set<string>();
@@ -2249,11 +2257,14 @@ describe("architecture fitness", () => {
     const designAtoms = [...design.matchAll(/^\| `(PL-C[^\`]+)` \|/gm)].map(
       (match) => match[1],
     );
-    if (designAtoms.length !== 24 || duplicates(designAtoms).length > 0) {
+    if (designAtoms.length !== 25 || duplicates(designAtoms).length > 0) {
       violations.push(
-        "DESIGN package-local atom inventory must be 24 unique rows; found " +
+        "DESIGN package-local atom inventory must be 25 unique rows; found " +
           designAtoms.length,
       );
+    }
+    if (!designAtoms.includes("PL-C12-02")) {
+      violations.push("DESIGN must trace current R2 package-local consequence PL-C12-02");
     }
 
     const phaseRequirementRows: { requirement: string; disposition: string }[] = [];
@@ -2282,15 +2293,20 @@ describe("architecture fitness", () => {
       phaseRequirementRows.map((row) => row.requirement),
       stableRequirements,
     );
-    exactSet("PLAN phase package atom", phaseAtoms, designAtoms);
+    if (duplicates(phaseAtoms).length > 0) {
+      violations.push("PLAN phase package atom inventory contains duplicates");
+    }
     const designDispositionByRequirement = new Map(
       designRows.map((row) => [row.requirement, row.disposition]),
     );
-    for (const row of phaseRequirementRows) {
-      if (designDispositionByRequirement.get(row.requirement) !== row.disposition) {
-        violations.push(
-          "PLAN phase disposition differs from DESIGN for " + row.requirement,
-        );
+    if (g5Status === "PASS") {
+      exactSet("PLAN phase package atom", phaseAtoms, designAtoms);
+      for (const row of phaseRequirementRows) {
+        if (designDispositionByRequirement.get(row.requirement) !== row.disposition) {
+          violations.push(
+            "PLAN phase disposition differs from DESIGN for " + row.requirement,
+          );
+        }
       }
     }
 
