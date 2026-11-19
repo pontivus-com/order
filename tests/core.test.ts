@@ -395,6 +395,38 @@ describe("canonical scalar and strict ingress contracts", () => {
       }).success,
     ).toBe(false);
 
+    const historicalReviewPass = {
+      tag: "REVIEW_PASSED",
+      evidence: [],
+    } as const;
+    expect(RunEventPayloadSchema.safeParse(historicalReviewPass).success).toBe(true);
+    expect(providerEventIsAdmitted("REVIEWER", historicalReviewPass)).toBe(false);
+
+    const currentReviewPass = {
+      tag: "REVIEW_PASSED",
+      minimumChange: "MINIMUM_SUFFICIENT",
+      minimumChangeSummary: null,
+      evidence: [],
+    } as const;
+    expect(RunEventPayloadSchema.safeParse(currentReviewPass).success).toBe(true);
+    expect(providerEventIsAdmitted("REVIEWER", currentReviewPass)).toBe(true);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "REVIEW_PASSED",
+        minimumChange: "CHANGE_BLOAT",
+        minimumChangeSummary: null,
+        evidence: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "REVIEW_PASSED",
+        minimumChange: "CHANGE_BLOAT",
+        minimumChangeSummary: "src/extra.ts is removable",
+        evidence: [],
+      }).success,
+    ).toBe(true);
+
     expect(
       RunEventPayloadSchema.safeParse({
         tag: "VALIDATION_FAILED",
