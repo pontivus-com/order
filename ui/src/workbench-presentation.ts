@@ -689,6 +689,12 @@ export const runEventPresentation = (
       return { label: "Agent setup blocked", detail: payload.detail, tone: "error" };
     case "PROVIDER_FAILED":
       return { label: "Agent execution failed", detail: payload.detail, tone: "error" };
+    case "GATE_CHECKPOINT_REQUESTED":
+      return {
+        label: "Verification checkpoint requested",
+        detail: `${payload.gateId} is awaiting coordinator verification.`,
+        tone: "neutral",
+      };
     case "GATE_PASSED":
       return { label: "Verification passed", detail: `${payload.gateId} passed.`, tone: "success" };
     case "GATE_FAILED":
