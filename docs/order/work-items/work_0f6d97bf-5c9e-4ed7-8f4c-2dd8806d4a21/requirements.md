@@ -6,13 +6,13 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `1c07377f86634595e22707896f9b81d09d57acc5`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
-The v2 disposition ledger is obligation-complete against current canonical P3 authority. It contains exactly one row for each of the **112 unique manifest-canonical stable `GW-FR-*` requirements** selected by `authority.p3`. Every stable requirement is `REFERENCE`: its existing P3 owner remains normative, while the A01-A11 sections below state the explicit 0.6.0 functional consequence for the concern(s) that consume it. `REFERENCE` is therefore not shorthand for "no behavior"; it preserves ownership while this package makes the required behavior explicit.
+The v2 disposition ledger is obligation-complete against current canonical P3 authority. It contains exactly one row for each of the **112 unique manifest-canonical stable `GW-FR-*` requirements** selected by `authority.p3`. Of those stable requirements, **111 are `REFERENCE`** and retain their existing P3 semantics; **`GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` is `DELTA`** because R1 `C16-F04` proved its current successful-install semantics collide with `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` at the same P3 layer. `REFERENCE` is not shorthand for "no behavior"; it preserves ownership while this package makes the required behavior explicit.
 
-One additional non-stable normative-clause row records the C01 Work Lifecycle cross-reference correction that has no dedicated `GW-FR-*` identity. It is a `DELTA` to the existing P3 document owner, not a new requirement namespace.
+Two additional non-stable normative-clause rows record P3 corrections that do not have dedicated stable requirement identities: the C01 Work Lifecycle cross-reference correction and the C16 Installation Readiness §§2/4.2 fresh-install/recovery boundary correction. Both are `DELTA` to existing P3 document owners, not new requirement namespaces.
 
 No `LOCAL` requirement is needed because every 0.6.0 functional obligation is already owned by canonical P2/P3 authority.
 
@@ -65,7 +65,7 @@ No `LOCAL` requirement is needed because every 0.6.0 functional obligation is al
 | GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY | REFERENCE | GW-DOC-INSTALLATION-READINESS | C16 |
 | GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT | REFERENCE | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM | C04 |
 | GW-FR-078-PORTABLE-WORKITEM-ARCHIVE | REFERENCE | GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM | C03 |
-| GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS | REFERENCE | GW-DOC-INSTALLATION-READINESS | C16 |
+| GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS | DELTA | GW-DOC-INSTALLATION-READINESS | C16 |
 | GW-FR-080-CONFIGURATION-CONTINUITY | REFERENCE | GW-DOC-INSTALLATION-READINESS | C16 |
 | GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY | REFERENCE | GW-DOC-INSTALLATION-READINESS | C16 |
 | GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY | REFERENCE | GW-DOC-INSTALLATION-READINESS | C16 |
@@ -131,6 +131,7 @@ No `LOCAL` requirement is needed because every 0.6.0 functional obligation is al
 | GW-FR-241-DERIVED-MATERIAL-MATURITY | REFERENCE | GW-DOC-WORKBENCH-UX | C14 |
 | GW-FR-242-DIALOGUE-REPLY-CONTEXT | REFERENCE | GW-DOC-WORKBENCH-UX | C14 |
 | GW-DOC-WORK-LIFECYCLE clause: `GW-P2-CONTROLLED-WORK` System Brief cross-reference | DELTA | GW-DOC-WORK-LIFECYCLE | C01 |
+| GW-DOC-INSTALLATION-READINESS clauses: §§2/4.2 fresh-install success versus recovery readiness | DELTA | GW-DOC-INSTALLATION-READINESS | C16 |
 
 The stable-ID table is a mechanical ownership/completeness proof only. Normative P3 clauses without stable IDs remain mandatory semantic audit material under each R2 pair audit and cannot be declared complete by identifier counting.
 
@@ -143,7 +144,7 @@ The C01 clause-level P3 `DELTA` corrects the `GW-P2-CONTROLLED-WORK` cross-refer
 
 ## G-F10 R1-to-R2 semantic revalidation ledger
 
-This ledger records the exact factual basis consumed by R2 after G-F10. It does not copy permanent P3 semantics: the canonical owner in the primary disposition ledger remains authoritative. Every stable requirement stays `REFERENCE` because the functional requirement itself is unchanged; R1 realization violations determine downstream correction ownership, not a new R2 requirement.
+This ledger records the exact factual basis consumed by R2 after G-F10 plus the post-G6 `ALIGN-A09-F01` revalidation. It does not copy permanent P3 semantics: the canonical owner in the primary disposition ledger remains authoritative. Stable requirements remain `REFERENCE` unless R1 proves that the current canonical requirement itself participates in an authority defect. `C16-F04` does exactly that for `GW-FR-079`, so FR079 is the single stable `DELTA`; FR007 remains `REFERENCE` at its correct owner, `GW-DOC-WORK-LIFECYCLE`.
 
 | Stable requirement | R1 realization verdict | Exact R1 evidence | R2 disposition | Primary concern |
 |---|---|---|---|---|
@@ -153,7 +154,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10. It does 
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
 | `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
-| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `VIOLATES` | `DIRECT-FR007` | `REFERENCE` | C16 |
+| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `CONTRADICTORY_AUTHORITY` | `DIRECT-FR007`, `C16-F04` | `REFERENCE` | C16 |
 | `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `CONFORMS` | `C16-O02`, `C16-O05`, `C22-O10` | `REFERENCE` | C22 |
 | `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | `CONFORMS` | `C04-O01`, `C04-O04` | `REFERENCE` | C04 |
 | `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | `CONFORMS` | `C02-O01` | `REFERENCE` | C02 |
@@ -194,7 +195,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10. It does 
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `CONFORMS` | `C16-O07` | `REFERENCE` | C16 |
 | `GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT` | `CONFORMS` | `C04-O03` | `REFERENCE` | C04 |
 | `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE` | `CONFORMS` | `C03-O06`, `C03-O08` | `REFERENCE` | C03 |
-| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `CONFORMS` | `C16-O09`, `C16-O10` | `REFERENCE` | C16 |
+| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `CONTRADICTORY_AUTHORITY` | `C16-O09`, `C16-O10`, `C16-F04` | `DELTA` | C16 |
 | `GW-FR-080-CONFIGURATION-CONTINUITY` | `CONFORMS` | `DIRECT-FR080` | `REFERENCE` | C16 |
 | `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `CONFORMS` | `C16-O06`, `DIRECT-FR081` | `REFERENCE` | C16 |
 | `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `CONFORMS` | `C16-O04`, `DIRECT-FR082` | `REFERENCE` | C16 |
@@ -416,7 +417,9 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 
 **C15.** OpenCode/provider interaction remains a trusted execution/information channel inside Order's resolved authority and permission boundary. Session continuity, observable activity, exact required input and provider failure are visible without turning provider state into lifecycle authority. Rejected/failed provider actions preserve canonical state and expose the owning recovery path.
 
-**C16.** Productive installation and Settings have distinct responsibilities. Fresh installation is a guided productive bootstrap: before reporting successful installation it must collect the required operator-owned repository, OpenCode-account and model choices inside the installer-owned flow, using existing canonical configuration/provider owners; it must not defer mandatory first-run setup to a separate browser Settings step. Supported update/migration retains valid existing configuration under the canonical continuity rules. After installation, Settings remains operator-first: readiness/attention, meaning and available actions are primary. Exact Git/document paths, endpoint/API identity, credential identifiers and similar diagnostic identity are secondary/on-demand except when the active Add/Move/configuration task requires them to choose or enter a value.
+**C16.** Productive installation and Settings have distinct responsibilities. Fresh installation is a guided productive bootstrap: before reporting successful installation it must collect the required operator-owned repository, OpenCode-account and model choices inside the installer-owned flow, using existing canonical configuration/provider owners; it must not defer mandatory first-run setup to a separate browser Settings step. Supported update/migration retains valid existing configuration under the canonical continuity rules. An already-installed runtime may enter a non-productive recovery condition if readiness is later lost or an update exposes unresolved configuration; that recovery state does not redefine successful fresh-install completion. After installation, Settings remains operator-first: readiness/attention, meaning and available actions are primary. Exact Git/document paths, endpoint/API identity, credential identifiers and similar diagnostic identity are secondary/on-demand except when the active Add/Move/configuration task requires them to choose or enter a value.
+
+**C16 authority resolution — `C16-F04`.** R2 explicitly resolves the same-layer P3 contradiction; this is a product decision, not inferred precedence. `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` remains unchanged at `GW-DOC-WORK-LIFECYCLE` and continues to own successful fresh-install completion. `GW-DOC-INSTALLATION-READINESS` is amended at §§2/4.2 and `GW-FR-079` so its readiness/recovery semantics apply to already-installed/update/recovery conditions and cannot authorize successful fresh-install completion while required repository, account, model or daemon setup remains. Settings retains post-install management and recovery ownership. No `precedence.p3` entry, second installation state model or alternate setup workflow is introduced.
 
 ### A10 — C17 recovery/current attention + C18 responsive/accessibility
 
