@@ -16,6 +16,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Reopen and close the A06 execution-foundation fidelity gap: derive productive BUILDER/REMEDIATOR edit capability from signed scope rather than `changeSurface` forecast, hard-deny immutable authority/instruction/Git/symlink paths, revalidate exact scope before checkpoint effects, and restore coordinator-owned V6 `CHANGE_BLOAT` with one bounded reduction path.
+
 - Revalidate C12 execution facts on the verified A06 foundation baseline: confirm coordinator-owned in-task checkpoints and forecast-vs-scope validation now conform, dispose C12-F01/F02 as current R1 realization defects, and keep R1-A07/H1 plus downstream design/PLAN freshness explicitly outstanding.
 
 - Implement the separately governed A06 execution foundation: treat `changeSurface` as a reviewed forecast inside signed scope/exclusions, keep signed authority/governance/verification material fail-closed, add BUILDER-only coordinator gate checkpoints with same-Run/same-session continuation while provider execute permission remains denied, and neutrally project checkpoint requests through the existing Workbench Run-event presentation.
