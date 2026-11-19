@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `1c07377f86634595e22707896f9b81d09d57acc5`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `aa287cb5aa37fbb0fe68742362ade9e949f43352`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
@@ -154,7 +154,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `CONFORMS_WITH_DEPENDENCY` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `REFERENCE` | C20 |
 | `GW-FR-005-LOCAL-WORKBENCH` | `CONFORMS` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `REFERENCE` | C05 |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `CONFORMS` | `C12-O12`, `C12-O13`, `C12-O19` | `REFERENCE` | C12 |
-| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `CONTRADICTORY_AUTHORITY` | `DIRECT-FR007`, `C16-F04` | `REFERENCE` | C16 |
+| `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `VIOLATES` | `DIRECT-FR007`, `C16-F04` | `REFERENCE` | C16 |
 | `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `CONFORMS` | `C16-O02`, `C16-O05`, `C22-O10` | `REFERENCE` | C22 |
 | `GW-FR-009-PORTABLE-WORK-ITEM-SOURCE` | `CONFORMS` | `C04-O01`, `C04-O04` | `REFERENCE` | C04 |
 | `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | `CONFORMS` | `C02-O01` | `REFERENCE` | C02 |
@@ -195,7 +195,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `CONFORMS` | `C16-O07` | `REFERENCE` | C16 |
 | `GW-FR-077-DIRECT-WORKITEM-TITLE-EDIT` | `CONFORMS` | `C04-O03` | `REFERENCE` | C04 |
 | `GW-FR-078-PORTABLE-WORKITEM-ARCHIVE` | `CONFORMS` | `C03-O06`, `C03-O08` | `REFERENCE` | C03 |
-| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `CONTRADICTORY_AUTHORITY` | `C16-O09`, `C16-O10`, `C16-F04` | `DELTA` | C16 |
+| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `MIXED` | `C16-O09`, `C16-O10`, `C16-F04` | `DELTA` | C16 |
 | `GW-FR-080-CONFIGURATION-CONTINUITY` | `CONFORMS` | `DIRECT-FR080` | `REFERENCE` | C16 |
 | `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `CONFORMS` | `C16-O06`, `DIRECT-FR081` | `REFERENCE` | C16 |
 | `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `CONFORMS` | `C16-O04`, `DIRECT-FR082` | `REFERENCE` | C16 |
