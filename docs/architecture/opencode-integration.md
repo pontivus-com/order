@@ -12,10 +12,10 @@ Order manages OpenCode through one narrow V2 server/client shell whose behavior 
 
 ## 2. Verified v1 provider baseline
 
-The exact v1 OpenCode server/client pins and their provenance are owned exclusively by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). This document owns only the integration semantics for that bound provider/client pair:
+The exact v1 OpenCode server/client pins and their provenance are owned exclusively by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). This document owns only the integration semantics for that bound provider/client pair:
 
-- OpenCode server binary: exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- V2 TypeScript client: matching exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
+- OpenCode server binary: exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- V2 TypeScript client: matching exact pin from `GW-DOC-EXTERNAL-FACTS`;
 - HTTP API: released OpenCode V2 server API;
 - server process: Order-owned foreground `opencode serve`;
 - network: loopback only;
@@ -25,7 +25,7 @@ The server binary and client package must have the same exact version. Order che
 
 Order does not use the OpenCode shared/background service and does not depend on repeated `opencode run --session` process invocations for interaction.
 
-The plain foreground launch mode is material. In the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, restart continuity is installed only when the server is started with a lifecycle hook; the CLI supplies that hook for `opencode serve --service`, not for plain foreground `opencode serve`. Order v1 therefore does not rely on OpenCode automatic suspended-session restart recovery. Switching Order to `--service` is a P4/P6 integration change, not an implementation detail.
+The plain foreground launch mode is material. In the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS`, restart continuity is installed only when the server is started with a lifecycle hook; the CLI supplies that hook for `opencode serve --service`, not for plain foreground `opencode serve`. Order v1 therefore does not rely on OpenCode automatic suspended-session restart recovery. Switching Order to `--service` is a P4/P6 integration change, not an implementation detail.
 
 The behavioral contracts in §§7–8 are grounded in the pinned OpenCode `v2.2.6` sources: `specs/v2/session.md`, `packages/protocol/src/groups/session.ts`, `packages/schema/src/session.ts`, `packages/schema/src/session-message.ts`, `packages/core/src/session/session.ts`, `packages/core/src/session/projector.ts`, `packages/core/src/session/runner/llm.ts`, `packages/cli/src/server-process.ts`, `packages/server/src/process.ts` and `packages/protocol/src/groups/event.ts`.
 
