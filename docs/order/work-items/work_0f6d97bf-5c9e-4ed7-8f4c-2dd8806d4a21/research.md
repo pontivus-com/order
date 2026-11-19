@@ -52,7 +52,7 @@ G-F01 through G-F08 are current reusable foundation corrections and are independ
 
 ### Current factual findings
 
-The following table is the R1 factual finding set. Later R2/DESIGN/foundation corrections do not erase the factual discovery record. The first A06 foundation closure at `e573b0582c404530d4f412876968125a01e8e54d` was subsequently disproved by implementation-fidelity review: C12-F01 checkpoint behavior remains corrected, while C12-F02 is reopened because productive provider edit permission still used `changeSurface` as a physical whitelist and V6 could not emit `CHANGE_BLOAT`. Corrective implementation candidate `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c` now addresses both fidelity defects, but §7 remains `GAP_FOUND` until exact-head foundation verification and fresh C12 closure complete.
+The following table is the R1 factual discovery set. Later R2/DESIGN/foundation corrections do not erase causal findings, but the table distinguishes historical/resolved findings from current realization gaps. C12-F01/C12-F02 are retained as historical foundation findings only: the fresh corrective-foundation revalidation below proves both resolved in the current execution baseline. No current C12 factual gap remains.
 
 | Finding | Factual result | Downstream owner |
 |---|---|---|
@@ -70,8 +70,8 @@ The following table is the R1 factual finding set. Later R2/DESIGN/foundation co
 | C10-F01 | Readiness dominant verdict still presents material maturity instead of canonical R3 verdict | R2 reference + downstream projection |
 | C11-F01 | Approval does not directly present canonical readiness with package currentness | R2 reference + downstream projection |
 | C11-F02 | whitespace-only approval identity can pass canonical ingress despite browser-only validation | DESIGN / P6 + daemon admission |
-| C12-F01 | Historical pre-foundation defect: required in-task architecture feedback checkpoints were not productively executable under the denied-execute provider boundary. The first prerequisite added BUILDER-only coordinator checkpoint request/admission, signed gate execution/evidence and same-Run/provider-session continuation without provider execute permission; the corrective implementation candidate retains that behavior and additionally validates exact signed scope before any checkpoint gate effect. | Provisionally corrected; retain as historical causal evidence and freshly regress with the corrective foundation before C12 closes |
-| C12-F02 | Reopened foundation defect: the first prerequisite corrected V2 forecast-vs-scope admission but productive OpenCode permissions still granted edit only for exact `changeSurface`, so a legitimate unforecast split could not be produced. The same implementation also made V6 an unconditional PASS after V4/V5. Corrective implementation candidate `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c` derives provider edit capability from signed scope with immutable hard denies, validates exact scope before checkpoint effects, and maps structured independent-review minimum-change evidence to coordinator-owned V6 PASS/`CHANGE_BLOAT`. | OPEN until exact-head verification and fresh C12 revalidation close the foundation |
+| C12-F01 | Historical pre-foundation defect: required in-task architecture feedback checkpoints were not productively executable under the denied-execute provider boundary. | RESOLVED in the current execution foundation; retained as causal evidence only |
+| C12-F02 | Historical foundation defect: productive OpenCode edit permission used `changeSurface` as a physical whitelist and V6 could not emit `CHANGE_BLOAT`, preventing legitimate signed-scope architecture-preserving decomposition from reaching semantic/minimum-change review. | RESOLVED in the current execution foundation; retained as causal evidence only |
 | C16-F01 | Settings still promotes filesystem/transport identity into ordinary primary content | R2 reference + downstream presentation |
 | C16-F02 | Fresh installation returns success after initializing empty v4 configuration while explicitly deferring required repository/OpenCode-account/model setup to browser Settings, violating `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | R2 reference + DESIGN installer/setup realization |
 | C16-F03 | `GW-DOC-CANONICAL-CONTRACTS` P6 explicitly permits a fresh v4 install to persist `model = null` / empty repositories and finish configuration later in browser Settings, contradicting higher P3 `GW-FR-007` and P4 `GW-TR-007` productive-installer closure | DESIGN / canonical P6 contract correction |
@@ -270,6 +270,120 @@ valid operator/system decision and action
 For the Workbench, the audit also covered the applicable cross-product of workflow step, work kind, interaction condition, current-attention condition, material/currentness condition, current/historical selection and responsive class.
 
 The final C19/C20 audit additionally checked application-wide renderer/component/theme ownership and the 45 required certification scenarios rather than inferring completeness from a green test suite.
+
+## G-F12 final R1 design-set reconstruction audit
+
+**Audit date:** 2026-11-20.  
+**Exact repository evidence baseline:** `4e618ff9fb3c2ac6e011718e416cd8cee854eef9`.  
+**Purpose:** close G2 under the strengthened campaign §4.3 rule by making the complete factual information/realization model explicit before R2 or DESIGN may reconstruct anything.
+
+### Exact authority/evidence identities re-inspected
+
+- `GW-DOC-WORKBENCH-UX` / `docs/requirements/workbench.md`: `132901f6d86d736825b97e4348665efc0c78de66`.
+- `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` / `docs/requirements/work-item-documents.md`: `84290c22a1b22a6f510a2422e98cd45611514668`.
+- `GW-DOC-WORK-LIFECYCLE` / `docs/requirements/work-lifecycle.md`: `013bc1297c3d167b776e115f428517b7cedbea57`.
+- `GW-DOC-LIFECYCLE-CONTEXT` / `docs/requirements/lifecycle-context.md`: `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7`.
+- `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE` / `docs/architecture/workbench.md`: `36b5628f5d54d168aed25f0af71226114266068a`.
+- `GW-DOC-OPENCODE-INTEGRATION-V1` / `docs/architecture/opencode-integration.md`: `b00a7643d712d31b31624bf676174f757c8318f6`.
+- current schema/template realization `src/core/work-item-source.ts`: `2a5a428e6bfe6e565f0d7517b48a379fb6f7f91e`.
+- current STAGE prompt/admission realization `src/daemon/stage.ts`: `43deec0ab826bbe016ba58421ec696a5e1112a47`.
+- current pre-signoff Workbench realization `ui/src/PreSignoffStageWorkspace.tsx`: `8c6f04ca20c912b026f9e81346a85985025adde8`.
+- current dialogue realization `ui/src/ActivityWorkspace.tsx`: `9025a735bb410102a13d1e901d3cd26dfd0b91f0`.
+
+The stable-requirement ledger above remains the exhaustive 112/112 requirement-level factual inventory. This G-F12 section adds the missing **cross-product synthesis** that R2 and DESIGN require; it does not replace the ledger or create product/technical authority.
+
+### Work kind × workflow-step information/realization matrix
+
+| Work kind / step | Canonical required information and behavior | Current factual producer → carrier → consumer realization | Current factual verdict / owned gap |
+|---|---|---|---|
+| CHANGE / Work request | requested outcome; current context; constraints/non-goals; evidence/references. Project, type and concerns are controlled selections; derived metadata is system-owned. | P3 catalog/intake → `change-v2` default schema → `change-intake-v2` headings in `work-item-source.ts` → portable source Markdown → source parser/reconciliation → Work request Markdown editor. Create uses catalog radios and project/concern controls. | Core kind/template path **CONFORMS**. Create still labels ordinary concerns as raw “Concern IDs” and therefore retains C02-F01. |
+| DEFECT / Work request | observed behavior; expected behavior; reproduction/evidence; behavior that must remain unchanged; impact/context. | P3 → `defect-v2` → defect intake headings → portable source → Work request editor → R1 source context. | **CONFORMS** for information carrier; C02-F01 applies to shared Create presentation. |
+| INVESTIGATION / Work request | question; why it matters; known evidence/context; investigation boundary. | P3 → `investigation-v2` → investigation intake headings → portable source → Work request editor → R1 source context. | **CONFORMS** for information carrier. |
+| AUDIT / Work request | target under audit; governing authority/criteria; scope/exclusions; requested evidence/verdict. | P3 → `audit-v2` → audit intake headings → portable source → Work request editor → R1 source context. | **CONFORMS** for information carrier. |
+| linked remediation creation | only a completed same-project Investigation/Audit may create linked CHANGE/DEFECT remediation; parent link is immutable provenance. | source kind/outcome → UI derived-remediation mode → eligible CHANGE/DEFECT schemas + immutable parent id → new source-backed WorkItem. Current Create still renders an editable Project selector. | **VIOLATES** same-project presentation/admission intent at UI: C02-F02. |
+| CHANGE / R1 Research | current state/absence; evidence; governing authority; affected producer→consumer path; downstream invariants; unresolved facts; verdict. | `change-r1-v2` → `stageTemplateForSchema` → `stagePrompt` with exact source Markdown, resolved context and allowed outcome set → isolated Research STAGE → adopted R1 ArtifactRef → Dialogue/Research document through shared pre-signoff Workbench. | Structural information path **CONFORMS**. Permanent four-kind E2E proof remains incomplete under C20-F02. |
+| DEFECT / R1 Research | observed symptom/reproduction; proven root cause; producer→carrier→consumer path; downstream effects/invariants; governing authority; unresolved facts; verdict. | `defect-r1-v2` → same shared STAGE/provider path with defect-specific template → R1 artifact → Dialogue/document. | Structural information path **CONFORMS**; C20-F02 verification gap remains. |
+| INVESTIGATION / R1 Research | question; evidence for/against; findings; unresolved questions; conclusion. Successful `INVESTIGATION_COMPLETE` is terminal and must not manufacture delivery stages. | `investigation-r1-v2` + allowed R1 completion set → STAGE output → lifecycle completion → COMPLETE / INVESTIGATION_COMPLETE → governed result material in TerminalResult. No R2/DESIGN/PLAN template is returned for investigation schemas. | **CONFORMS** structurally; C20-F02 lacks complete permanent four-kind proof. |
+| AUDIT / R1 Research | target/criteria; evidence by criterion; findings; verdict. Successful `AUDIT_COMPLETE` is terminal and must not manufacture delivery stages. | `audit-r1-v2` + allowed R1 completion set → STAGE output → lifecycle completion → COMPLETE / AUDIT_COMPLETE → governed result material. No downstream delivery template exists for audit schemas. | **CONFORMS** structurally; C20-F02 verification gap remains. |
+| all kinds / R1 human interaction | dialogue may collect INFORMATION/EVIDENCE and bounded questions; a durable intent/authority decision cannot become authority merely because it was said in chat. | RunEvent transcript and exact required-input ownership → ActivityWorkspace/ActivityComposer. Current durable-decision categories can be answered, but current completion path lacks the deterministic adopted-authority requirement later specified by P4. | **VIOLATES** durable-clarification boundary: C06-F01. |
+| CHANGE / R2 Requirements | P2 intent + R1 facts; authority disposition; observable outcome/delta; acceptance; scope/exclusions; negative behavior; material constraints; open product/authority questions. | `change-r2-v2` → stage template → R2 STAGE. `stagePrompt` includes exact Work request Markdown at R2; upstream Research/source are inspectable through pre-signoff supporting material; resulting R2 artifact is editable governed Markdown. | Kind-specific requirement carrier **CONFORMS**. Productive permanent P2/P3 amendment cannot yet use the existing proposal/adoption path: C07-F01. |
+| DEFECT / R2 Requirements | proven defect/root cause; authority disposition; expected corrected behavior; behavior that must remain unchanged; acceptance proving original defect; regression/preservation acceptance; scope/exclusions; open questions. | `defect-r2-v2` → same shared STAGE/workbench machinery with defect-specific template and upstream Research/source. | Kind-specific requirement carrier **CONFORMS**; C07-F01 remains. |
+| INVESTIGATION/AUDIT / R2 | not applicable after successful terminal R1 outcome. | catalog returns no R2 template for Investigation/Audit schemas; valid R1 completion terminalizes rather than advancing. | **CONFORMS**. |
+| CHANGE / DESIGN | requirement→solution map; canonical owner/boundaries; reuse/replacement/new concepts; technical architecture; contracts/state/data flow; rationale/rejected alternatives; compatibility/preservation; failure; validation. | `change-design-v2` → DESIGN STAGE with resolved R2/R1/context → adopted DESIGN Markdown → shared document/dialogue/proposal UI. | Kind-specific DESIGN carrier **CONFORMS**. Productive permanent P4-P6 authority amendment gap remains C08-F01. |
+| DEFECT / DESIGN | proven root-cause/producer boundary; requirement→solution map; correction at canonical owner; reuse and incorrect behavior to delete/replace; rejected alternatives; preserved invariants; minimum root-cause remediation; failure; regression validation. | `defect-design-v2` → same shared DESIGN STAGE/provider/UI with defect-specific template. | Kind-specific DESIGN carrier **CONFORMS**; C08-F01 remains. |
+| CHANGE / PLAN | exact tasks/dependencies/objectives; traceability; module/decomposition/checkpoints; production/test surface; deletions/replacements; completion evidence; minimum-change forecast; verification contract; one `order-tasks` block. | `change-plan-v2` → PLAN STAGE → governed plan Markdown + signed task block → pre-signoff document/dialogue surface. | Kind-specific plan carrier **CONFORMS**; executable task non-vacuity remains C09-F01. |
+| DEFECT / PLAN | root-cause remediation tasks plus the same planning completeness, with explicit reproduction/regression/preservation verification. | `defect-plan-v2` → same shared PLAN STAGE with defect-specific template. | Kind-specific plan carrier **CONFORMS**; C09-F01 remains. |
+| CHANGE/DEFECT / R3 | shared adversarial readiness: authority topology, P1-P7 traceability, package completeness, open conflicts, evidence, findings, exact return owner. | `delivery-r3-v2` → Readiness STAGE → R3 artifact/Run events → ReadinessWorkspace Review composition. | Stage semantics **CONFORMS**; current dominant verdict presentation derives from material maturity rather than canonical R3 outcome: C10-F01. |
+| CHANGE/DEFECT / Approval | current package readiness/currentness; signed task meaning/scope/gates; governed documents; approver identity; exact-package sign-off; technical hashes secondary. | SignoffPackage + lifecycle artifacts + signed tasks → SignoffReview Review surface → exact package hash and approver command → Approval/tasks. | Core exact-package flow **CONFORMS**. Presentation lacks direct canonical readiness with currentness (C11-F01); daemon ingress admits whitespace-only identity (C11-F02). |
+| CHANGE/DEFECT / Implementation | persistent operational task master/detail; current task/blocker/action; current attempt; validation boundary; chronology/evidence. Manual action targets exact canonical current approved task. | immutable approved tasks → pure ExecutionOwner/validation boundary → ExecutionWorkspace master/detail → BUILDER/REVIEWER/REMEDIATOR RunEvents/evidence. Current foundation proves signed-scope capability, checkpoints, V0-V7 and bounded remediation. | **CONFORMS** after C12 foundation remediation. |
+| delivery / Complete | governed final outcome first; verified candidate resources/history when `CANDIDATE_DONE`; prior reached steps remain inspectable. | WorkOutcome + candidate evidence → TerminalResult + reached workflow rail. | Structural result path **CONFORMS**. Current candidate-facing label still prettifies internal enum rather than canonical “Verified candidate”: C21-F05. |
+| Investigation/Audit / Complete | evidence-backed terminal result; linked remediation action only where canonically permitted; no fake delivery artifacts. | terminal WorkOutcome + R1 artifact → TerminalResult governed result material; remediation creates separate source-backed Change/Defect. | Terminal result **CONFORMS**; linked remediation Project editability remains C02-F02. |
+
+### Shared pre-signoff interaction and OpenCode realization
+
+The canonical functional design uses **kind-specific information semantics over shared lifecycle/provider/Workbench machinery**, not separate UI or provider systems for each kind.
+
+Current factual path:
+
+```text
+WorkItem.schemaId
+  -> canonical catalog kind + allowed stage/template set
+  -> stageTemplateForSchema(schemaId, stage)
+  -> resolved lifecycle context + current Work request/upstream artifacts
+  -> stagePrompt(stage, schema/template/context)
+  -> shared productive STAGE admission
+  -> isolated OpenCode inspection workspace
+  -> Research / Requirements / Solution design / Implementation plan / Readiness STAGE role
+  -> typed provider-result admission
+  -> RunEvents / proposal / governed ArtifactRef
+  -> canonical lifecycle policy/current-attention derivation
+  -> shared Workbench Dialogue / Document / Review projection
+```
+
+Facts closed by direct evidence:
+
+- OpenCode has stage-role differences (Research/Requirements/Design/Plan/Readiness) but **no separate provider role per work kind**; work-kind specialization comes from the schema-selected template plus resolved context.
+- all productive STAGE roles use the same isolated inspection/admission boundary, read/glob/grep repository permissions, configured STAGE reference roots, exact selected-account trusted capabilities and instruction closure;
+- Research and Requirements prompts directly include current source Markdown; later stages consume resolved governed upstream artifacts/context rather than inventing a second work-kind state model;
+- PreSignoffStageWorkspace uses one stable material grammar for R1/R2/DESIGN/PLAN: current Run, current governed document, source/upstream supporting material, proposal and evidence;
+- ActivityWorkspace renders conversation separately from bounded agent activity and workflow/system events; an OPEN continuation requires a substantive agent message, while REQUIRED_INPUT binds the reply to the exact request;
+- the current proposal mechanism is complete for lifecycle-document proposals but not for productive permanent-authority proposals required by C07/C08;
+- C22-F01 remains a separate authority-resolution defect: manifest precedence/default/override/extension semantics are not yet resolved by one pure productive owner before provider interpretation.
+
+**R1 verdict:** shared machinery is materially proven and no separate kind-specific runtime/UI model is required by evidence. The missing 0.6.0 work is the already-owned authority/proposal/current-attention/presentation/certification corrections; R2/DESIGN must describe the full shared-versus-specialized mapping explicitly and may not infer it from these implementation facts.
+
+### Cross-cutting A01-A11 factual closure under G-F12
+
+| Pair | Final factual synthesis required by G-F12 | Current realization classification | Current decision inputs carried forward |
+|---|---|---|---|
+| A01 — C01+C21 | lifecycle stages, kind-gated R1 terminalization, result taxonomy and product-language boundary are explicit through terminal result. | Lifecycle/state model **CONFORMS**; product-language realization remains partially violated. | C21-F03/C21-F05 remain downstream realization work; earlier canonical wording corrections remain authoritative. |
+| A02 — C22+C02 | four-kind catalog, versioned schemas, intake information, same-project linked remediation and project-authority resolution are explicitly traced. | Catalog/schema/intake carrier **CONFORMS** with UI defects; authority resolution **VIOLATES**. | C02-F01/F02/F03 and C22-F01. |
+| A03 — C03+C04 | repository-native source → reconciliation → queue → document editor/Git → source freshness path is explicit. | Core portable-source behavior mostly **CONFORMS**; source-admission singularity, archived filtering and exact commit-path review have known violations. | C03-F01, C04-F01/F02. |
+| A04 — C05+C06 | stable workspace/current attention plus all four R1 information contracts, dialogue/input and material selection are explicit. | Shared geometry/material grammar and four R1 templates **CONFORM**; current-attention visibility and durable-decision handling violate authority. | C05-F01, C06-F01; C20-F02 consumes verification consequence. |
+| A05 — C07+C08 | Change/Defect R2 and DESIGN information contracts are explicitly distinct while using shared STAGE/Workbench machinery. | Kind-specific stage/template paths **CONFORM**; permanent P2-P6 proposal/adoption path is missing. | C07-F01/C08-F01. |
+| A06 — C09+C10 | Change/Defect plan distinction, exact signed task semantics and R3 Review hierarchy are explicit. | Plan information carrier **CONFORMS**; signed-task admissibility and readiness verdict projection violate required behavior. | C09-F01, C10-F01. |
+| A07 — C11+C12 | exact-package approval, currentness, implementation master/detail, current-task ownership and V0-V7 execution are explicit. | Execution foundation **CONFORMS**; Approval hierarchy/identity ingress have bounded gaps. | C11-F01/F02; C12-F01/F02 historical/resolved only. |
+| A08 — C13+C14 | terminal outcomes plus document/proposal/evidence/dialogue/material maturity semantics are explicit for both delivery and no-code terminal work. | Material/result core **CONFORMS**; permanent-authority proposal dependency remains imported from A05. | no new A08 factual finding. |
+| A09 — C15+C16 | provider session/admission/failure/observable-activity path plus installation/Settings information ownership are explicit. | Provider path **CONFORMS**; installer productive-bootstrap and Settings hierarchy violate authority. | C16-F01/F02/F03. |
+| A10 — C17+C18 | current attention/recovery/convergence plus responsive/focus behavior are explicit. | State/recovery/responsive continuity largely **CONFORMS**; current-attention visibility imports C05-F01 and one-time required-input focus is missing. | C05-F01, C18-F01. |
+| A11 — C19+C20 | renderer/component/theme ownership and complete certification obligations are explicit, including work-kind scenario 41. | Base component/theme realization materially exists; permanent exhaustive renderer and browser matrices remain incomplete. | C19-F01, C20-F02/F03. |
+
+### G-F12 R1 closure decision
+
+The strengthened audit discovered **no new product requirement, architecture decision or implementation defect** beyond the existing factual finding set. It did discover and now corrects a **R1 synthesis/compression defect**: prior evidence proved the pieces, but did not make the complete work-kind × stage × information × OpenCode × UI path explicit enough for downstream lifecycle artifacts.
+
+All material G-F12 factual questions are now classified:
+
+- canonical required semantics: **PROVEN** from current P2/P3/P4 authorities;
+- current realization path: **PROVEN** for every applicable material combination above;
+- current realization verdict: **CONFORMS / VIOLATES / verification-gap with exact owner**; no material item remains unclassified;
+- shared-versus-kind/stage-specific boundary: **PROVEN**;
+- Investigation/Audit terminalization versus Change/Defect delivery continuation: **PROVEN**;
+- OpenCode stage integration and Workbench carrier path: **PROVEN**;
+- unresolved factual questions: **NONE**;
+- material `UNPROVEN`: **0**.
+
+R2 may therefore proceed only after the campaign's fresh R1 A01-A11 pair audits bind this exact synthesis. R2 must state the complete functional consequences itself; it may not cite this implementation evidence as the desired design.
 
 ## Post-governance-audit R1 freshness revalidation
 
