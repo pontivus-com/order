@@ -20,6 +20,7 @@ This design implements the current `GW-DOC-EXECUTION-CONTROL-PLANE-V1` §§12-13
 - gate effect/evidence: existing `src/daemon/validation.ts`;
 - execution orchestration: existing `src/daemon/execution.ts`;
 - provider output-contract/session boundary: existing `src/shell/opencode.ts`; advertise the checkpoint request only to BUILDER while preserving the same denied execute permission;
+- presentation consumer: existing `ui/src/workbench-presentation.ts::runEventPresentation`; add one neutral projection for the canonical request and no UI-owned policy/state;
 - persistence: unchanged RunEvent persistence.
 
 ## Data/control flow
@@ -53,10 +54,12 @@ Production:
 - `src/daemon/validation.ts`
 - `src/daemon/execution.ts`
 - `src/shell/opencode.ts`
+- `ui/src/workbench-presentation.ts`
 
 Proof:
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
+- `tests/workbench-presentation.test.ts`
 - `tests/certification.test.ts`
 
 No new production module is required.
@@ -88,6 +91,9 @@ Daemon:
 - same Run/session performs a second BUILDER turn after checkpoint;
 - unsigned gate is rejected without execution;
 - pass/fail continuation behavior is covered.
+
+Presentation:
+- exhaustive RunEvent projection accepts the checkpoint request and renders coordinator-owned verification activity without policy/state.
 
 Certification:
 - production contract contains checkpoint request;
