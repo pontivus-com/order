@@ -6,9 +6,15 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 after G4 closure from current R2 `6cf45126912da36b366b821c9c254d9e548e98f2` and DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
+This PLAN is reconstructed under G-F12 after G4 closure from current R2 `a8566c7b829b94c911612866961fbc964502ee2d` and DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
 
-This PLAN consumes current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`, current R2 `6cf45126912da36b366b821c9c254d9e548e98f2` and current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+This PLAN consumes current R1 `1c07377f86634595e22707896f9b81d09d57acc5`, current R2 `a8566c7b829b94c911612866961fbc964502ee2d` and current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+
+## Post-A09 plan revalidation
+
+This PLAN is re-bound to R1 `1c07377f86634595e22707896f9b81d09d57acc5`, R2 `a8566c7b829b94c911612866961fbc964502ee2d`, DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280` and corrected P3 Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+
+The authority repair does not create a new execution task or broaden T1. It changes A09 traceability in one place: corrected FR079 now consumes the same SD19/IA25 installer mutation as FR007. Existing Settings/update/recovery behavior remains positive reuse. The exact signed scope/exclusions and 28-path `changeSurface` forecast are unchanged.
 
 ## Exact modular source manifest
 
@@ -137,9 +143,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ##### Exact upstream package
 
-- R1 `research.md`: `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`.
-- R2 `requirements.md`: `6cf45126912da36b366b821c9c254d9e548e98f2`.
-- DESIGN `solution-design.md`: `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+- R1 `research.md`: `1c07377f86634595e22707896f9b81d09d57acc5`.
+- R2 `requirements.md`: `a8566c7b829b94c911612866961fbc964502ee2d`.
+- DESIGN `solution-design.md`: `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
@@ -194,7 +200,7 @@ Do **not** return upstream solely because an otherwise admissible path is absent
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -253,7 +259,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -308,7 +314,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -377,7 +383,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -443,7 +449,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -484,7 +490,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -528,7 +534,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -583,7 +589,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -629,7 +635,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -640,7 +646,7 @@ Package atoms in phase: **0**.
 | `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `C16-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O07` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `C16-O09`, `C16-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O09`, `C16-O10` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS` | `C16-O09`, `C16-O10`, `C16-F04` | `TECHNICAL_DELTA` | `SD19` | `IA25` | — | Recheck corrected fresh-install readiness via new `tests/installer.test.ts`; retain existing Settings/recovery proof in tests/browser.spec.ts, tests/certification.test.ts and tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-080-CONFIGURATION-CONTINUITY` | `DIRECT-FR080` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `DIRECT-FR080` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-081-OPENCODE-ACCOUNT-CONTINUITY` | `C16-O06`, `DIRECT-FR081` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06`, `DIRECT-FR081` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-082-REPOSITORY-AND-DOCUMENT-CONTINUITY` | `C16-O04`, `DIRECT-FR082` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O04`, `DIRECT-FR082` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -692,7 +698,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -739,7 +745,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`; current R2 `6cf45126912da36b366b821c9c254d9e548e98f2`; current DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d`.
+**Upstream:** current R1 `1c07377f86634595e22707896f9b81d09d57acc5`; current R2 `a8566c7b829b94c911612866961fbc964502ee2d`; current DESIGN `0d2429cc9330fe8df6833ccef357389cf1e54280`.
 
 ##### Stable requirement execution dispositions
 
@@ -991,9 +997,9 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 ##### IA25 — guided productive installer completion
 
 **Solution:** SD19.  
-**Canonical authority:** P3 FR007, P4 GW-TR-007 and corrected P6.  
+**Canonical authority:** P3 FR007 plus corrected P3 FR079 / Installation Readiness blob `9c2ec83a9552b7583f90e91080c014df4d6870df`, P4 GW-TR-007 and corrected P6.  
 **Owner/anchor:** `src/shell/setup.ts::runInstallerGuidedSetup/runGuidedSetupInternal`; `src/installer.ts::configureOrder/runInstaller` is the existing caller and is not expected to change.  
-**Required mutation:** remove/replace the fresh `configured === null` success/defer branch so installer-owned setup continues through existing private OpenCode login, model selection, exact target repository validation/selection and reference-root choices before returning success. Preserve valid incomplete v4 for daemon/Settings recovery and transient rollback-safe installer state. Preserve existing upgrade/migration retention and rollback.  
+**Required mutation:** remove/replace the fresh `configured === null` success/defer branch so installer-owned setup continues through existing private OpenCode login, model selection, exact target repository validation/selection and reference-root choices before returning success and proving productive daemon/readiness. Preserve valid incomplete v4 only as post-install/update daemon/Settings recovery and transient rollback-safe installer state. Preserve existing upgrade/migration retention and rollback.  
 **Forbidden:** new config schema; second setup owner; mandatory post-install Settings/provider-login step; speculative `src/installer.ts` edit. If setup.ts alone cannot realize SD19, return to DESIGN/PLAN.  
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
