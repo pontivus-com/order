@@ -26,7 +26,10 @@ Architecture-feedback checkpoints in `13-verification-closeout.md` apply after e
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
 **Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction; invalid/unresolved bindings block before provider use.  
-**Proof:** `tests/daemon.test.ts` productive-context admission and negative unresolved-binding cases.
+**Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; context construction that bypasses the IA01 resolved projection.  
+**Proof:**
+- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection and unresolved material bindings block before provider use;
+- `tests/certification.test.ts` — representative production project manifest with same-layer precedence/default/override/extension reaches the real STAGE context in the resolved order/binding set, and an equivalent unresolved relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order or provider interpretation.
 
 ## IA03 — one GOVERNANCE proposal/adoption mechanism
 
