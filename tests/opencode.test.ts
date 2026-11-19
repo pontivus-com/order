@@ -472,10 +472,23 @@ describe("OpenCode shell", () => {
     });
   });
 
-  it("creates deny-first exact-path permission rules for multi-resource patch authorization", () => {
+  it("creates a signed-scope edit envelope with immutable-path hard denies", () => {
     const output = bunEval(`
       const o = await import("./src/shell/opencode.ts");
-      console.log(JSON.stringify(o.openCodePermissionRules("BUILDER", ${taskLiteral}, [])));
+      const task = {
+        ...${taskLiteral},
+        scope: ["src/**"],
+        changeSurface: ["src/a.ts"],
+      };
+      console.log(JSON.stringify(o.openCodePermissionRules(
+        "BUILDER",
+        task,
+        [],
+        [],
+        [],
+        ["src/authority.ts"],
+        ["src/link"],
+      )));
     `) as unknown[];
 
     expect(output).toEqual([
@@ -485,8 +498,14 @@ describe("OpenCode shell", () => {
       { action: "grep", resource: "*", effect: "allow" },
       { action: "read", resource: ".git", effect: "deny" },
       { action: "read", resource: ".git/*", effect: "deny" },
-      { action: "edit", resource: "src/a.ts", effect: "allow" },
-      { action: "edit", resource: "src/b.ts", effect: "allow" },
+      { action: "edit", resource: "src/*", effect: "allow" },
+      { action: "edit", resource: "*/AGENTS.md", effect: "deny" },
+      { action: "edit", resource: ".git", effect: "deny" },
+      { action: "edit", resource: ".git/*", effect: "deny" },
+      { action: "edit", resource: "AGENTS.md", effect: "deny" },
+      { action: "edit", resource: "src/authority.ts", effect: "deny" },
+      { action: "edit", resource: "src/link", effect: "deny" },
+      { action: "edit", resource: "src/link/*", effect: "deny" },
     ]);
   });
 
