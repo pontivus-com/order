@@ -16,7 +16,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
-- Implement the separately governed A06 execution foundation: treat `changeSurface` as a reviewed forecast inside signed scope/exclusions, keep signed authority/governance/verification material fail-closed, and add BUILDER-only coordinator gate checkpoints with same-Run/same-session continuation while provider execute permission remains denied.
+- Implement the separately governed A06 execution foundation: treat `changeSurface` as a reviewed forecast inside signed scope/exclusions, keep signed authority/governance/verification material fail-closed, add BUILDER-only coordinator gate checkpoints with same-Run/same-session continuation while provider execute permission remains denied, and neutrally project checkpoint requests through the existing Workbench Run-event presentation.
 
 - Reconcile and complete the reopened 0.6.0 ALIGN-A06 campaign record: pin the current P6 identity, distinguish current pair-audit progression from historical PASS evidence, repair the PLAN-A02 cross-concern audit proof, define ALIGN finding identities, record the complete F01/F02/F03 ownership/remediation/closure path, and keep downstream pairs blocked until the separately governed execution-foundation prerequisite is integrated and revalidated.
 
