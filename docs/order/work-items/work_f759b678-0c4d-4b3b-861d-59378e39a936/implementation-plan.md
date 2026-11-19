@@ -8,7 +8,7 @@ Implement only the accepted F01/F02 foundation correction defined by current P4/
 
 ## Task topology
 
-One cumulative task is sufficient because the event contract, pure admission, shell provider contract, daemon orchestration and focused proof are one execution-control responsibility with no independently deliverable product behavior.
+One cumulative task is sufficient because the event contract, pure admission, shell provider contract, daemon orchestration, exhaustive canonical-event presentation consumer and focused proof are one execution-control responsibility with no independently deliverable product behavior.
 
 ### Task T1 — realize the corrected execution-control baseline
 
@@ -20,8 +20,9 @@ One cumulative task is sufficient because the event contract, pure admission, sh
 3. correct V2 changed-path admission and checkpoint gate effect reuse;
 4. implement same-Run/same-session BUILDER checkpoint continuation;
 5. update V4/V6 minimum-change control so forecast variance is reviewed rather than auto-rejected;
-6. add exact core/daemon/certification proof;
-7. run the full required gate union.
+6. close every typed canonical-event consumer, including the neutral Workbench presentation projection;
+7. add exact core/daemon/presentation/certification proof;
+8. run the full required gate union.
 
 **Architecture-feedback checkpoints:** none are required inside this prerequisite task itself; this task establishes the checkpoint capability for later packages and must not self-bootstrap it.
 
@@ -32,8 +33,10 @@ One cumulative task is sufficient because the event contract, pure admission, sh
 - `src/daemon/validation.ts`
 - `src/daemon/execution.ts`
 - `src/shell/opencode.ts`
+- `ui/src/workbench-presentation.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
+- `tests/workbench-presentation.test.ts`
 - `tests/certification.test.ts`
 
 ### Explicit exclusions
@@ -42,7 +45,7 @@ One cumulative task is sufficient because the event contract, pure admission, sh
 - `pontivus-order.toml`
 - P1-P6 authority documents;
 - 0.6.0 campaign R1/R2/DESIGN/PLAN files;
-- UI/source behavior and unrelated shell behavior not required by F01/F02;
+- UI redesign, browser checkpoint policy/state, source behavior and unrelated shell behavior not required by F01/F02;
 - dependencies and persistence schemas.
 
 ## Completion evidence
@@ -69,6 +72,7 @@ One cumulative task is sufficient because the event contract, pure admission, sh
         "src/core/**",
         "src/daemon/**",
         "src/shell/opencode.ts",
+        "ui/src/workbench-presentation.ts",
         "tests/**"
       ],
       "exclusions": [
@@ -85,9 +89,11 @@ One cumulative task is sufficient because the event contract, pure admission, sh
         "src/daemon/execution.ts",
         "src/daemon/validation.ts",
         "src/shell/opencode.ts",
+        "ui/src/workbench-presentation.ts",
         "tests/certification.test.ts",
         "tests/core.test.ts",
-        "tests/daemon.test.ts"
+        "tests/daemon.test.ts",
+        "tests/workbench-presentation.test.ts"
       ],
       "gateIds": [
         "architecture",
@@ -111,6 +117,7 @@ One cumulative task is sufficient because the event contract, pure admission, sh
         "daemon",
         "foundation",
         "shell",
+        "ui",
         "verification"
       ]
     }

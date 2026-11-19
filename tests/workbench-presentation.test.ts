@@ -774,6 +774,7 @@ describe("Run presentation", () => {
         evidence,
       },
       { tag: "PROVIDER_FAILED", detail: "Provider unavailable", evidence },
+      { tag: "GATE_CHECKPOINT_REQUESTED", gateId: "test" },
       { tag: "GATE_PASSED", gateId: "test", evidence },
       {
         tag: "GATE_FAILED",
@@ -851,6 +852,7 @@ describe("Run presentation", () => {
       "PROVIDER_DIAGNOSTICS_RECORDED",
       "PRODUCTIVE_INVOCATION_FAILED",
       "PROVIDER_FAILED",
+      "GATE_CHECKPOINT_REQUESTED",
       "GATE_PASSED",
       "GATE_FAILED",
       "REVIEW_PASSED",
@@ -879,5 +881,12 @@ describe("Run presentation", () => {
     expect(
       presentations.find(([tag]) => tag === "PROVIDER_FAILED")?.[1].label,
     ).toBe("Agent execution failed");
+    expect(
+      presentations.find(([tag]) => tag === "GATE_CHECKPOINT_REQUESTED")?.[1],
+    ).toEqual({
+      label: "Verification checkpoint requested",
+      detail: "test is awaiting coordinator verification.",
+      tone: "neutral",
+    });
   });
 });

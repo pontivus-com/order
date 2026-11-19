@@ -22,7 +22,7 @@ This verdict applies only to prerequisite WorkItem `work_f759b678-0c4d-4b3b-861d
 
 ## DESIGN challenge
 
-**PASS.** The solution extends the existing canonical event/admission/coordinator/validation owners and the existing shell-owned provider output contract while reusing the existing gate effect. No DTO, service, state model, dependency, provider execute permission or parallel gate/variance owner is introduced.
+**PASS.** The solution extends the existing canonical event/admission/coordinator/validation owners, the shell-owned provider output contract and the existing exhaustive Workbench Run-event presentation consumer while reusing the existing gate effect. No DTO, service, state model, dependency, provider execute permission or parallel gate/variance owner is introduced.
 
 ## PLAN legality and executability challenge
 
@@ -40,7 +40,7 @@ This verdict applies only to prerequisite WorkItem `work_f759b678-0c4d-4b3b-861d
 
 ## Minimum-change and anti-bloat review
 
-**PASS.** No new production module is needed. The change extends the existing core, daemon and shell owners and adds focused proof only.
+**PASS.** No new production module is needed. The change extends existing core, daemon and shell owners plus the existing UI event-projection consumer, with focused proof only.
 
 ## Failure/recovery review
 
@@ -48,7 +48,7 @@ This verdict applies only to prerequisite WorkItem `work_f759b678-0c4d-4b3b-861d
 
 ## Verification ownership review
 
-**PASS, subject to exact-final-head PR verification.** Existing project gates remain the only permanent verification owners.
+**PASS, subject to exact-final-head PR verification.** Run #1382 correctly rejected the first integrated candidate at typecheck because the canonical event union had an uncovered exhaustive UI consumer. This package now includes that consumer and its focused proof; existing project gates remain the only permanent verification owners.
 
 ## Open decision/conflict ledger
 

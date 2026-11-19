@@ -35,7 +35,8 @@ This package restores the already-governed execution-control semantics needed by
 - the same Run and same live provider session continue from that result;
 - a pass permits continuation; a failure permits only in-scope correction under the signed design or an explicit block;
 - checkpoint results never substitute for V3/V5/V7;
-- the shell-owned provider output contract advertises the request only to BUILDER; no provider shell/execute capability is granted.
+- the shell-owned provider output contract advertises the request only to BUILDER; no provider shell/execute capability is granted;
+- any existing exhaustive RunEvent presentation projects the checkpoint request as neutral coordinator-owned verification activity and does not acquire checkpoint state, admission or decision ownership.
 
 ## Acceptance criteria
 
@@ -49,10 +50,10 @@ In scope:
 - execution coordinator checkpoint reaction/continuation;
 - V2 forecast/scope distinction;
 - V4/V5/V6 forecast-variance proof flow;
-- focused core/daemon/certification tests.
+- focused core/daemon/presentation/certification tests.
 
 Out of scope:
-- 0.6.0 feature/UI work;
+- 0.6.0 feature/UI redesign or checkpoint policy in the browser;
 - stale 0.6.0 PLAN regeneration;
 - new persistence/transport/API/dependency/state model;
 - provider execute permission;
