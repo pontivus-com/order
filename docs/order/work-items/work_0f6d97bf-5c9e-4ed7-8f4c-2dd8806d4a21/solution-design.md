@@ -4,10 +4,10 @@
 
 ## Exact design basis
 
-This DESIGN is freshness-rebound after the corrected execution foundation and the G-F11 external-facts lineage repair. Its semantic direction remains canonical authority -> current R1 facts -> current R2 functional consequences -> technical realization; current implementation/tests are realization evidence only.
+This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
-- R1 `research.md`: blob `9aa1d2baefafd1a4e912df5e22a20bab0b71157f` — 112/112 stable requirements with exact current realization evidence; C12-F01/F02 are historical causal findings and current C12 execution evidence is conforming.
-- R2 `requirements.md`: blob `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb` — 112/112 stable requirements, all canonical `REFERENCE`, plus current package consequences including PL-C12-02 forecast-variance semantics.
+- R1 `research.md`: blob `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c` — G-F12 reconstructed factual package; 112/112 stable requirements retain exact evidence and the complete work-kind × workflow-step × information × OpenCode × Workbench realization analysis; material UNPROVEN = 0.
+- R2 `requirements.md`: blob `6cf45126912da36b366b821c9c254d9e548e98f2` — G-F12 reconstructed functional package; 112/112 stable requirements retain canonical `REFERENCE` ownership while complete package behavior is explicit for all four work kinds, every applicable workflow step, productive interaction, current attention/material selection, failure/return and terminal closure.
 - P4 Technical Architecture: `3df354c4e8df490e6e870418aeb5e77f335b87e9`.
 - P4 Workbench: `36b5628f5d54d168aed25f0af71226114266068a`.
 - P4 Workbench Theme: `ec4c59408485d86e7c64802fed983e2072d063b9`.
@@ -15,7 +15,7 @@ This DESIGN is freshness-rebound after the corrected execution foundation and th
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
 - P6 Canonical Contracts: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - Exact current runtime evidence for the A06/A07 execution boundary: `src/core/contracts.ts` `8d3705fdc4a998a816422cc9e05bd021246636d6`; `src/core/execution.ts` `8eb779d852dbd7ff469b3374d8f5885ac538b2b7`; `src/daemon/execution.ts` `8f0687077a9b72abaaf5fb57fb43c73956a8dd14`; `src/daemon/validation.ts` `3ace35efdd05a57f2b52b01a6e234a0759ea52db`; `src/shell/opencode.ts` `6e7a7a60c8e6cc642fa4943bf0562aba53865cd2`.
-- Exact-head verification before this DESIGN freshness edit: PR Verification #1436 / run `44484126489` passed dependency-lock, typecheck, architecture, full tests, build, release packager and browser on `433087e97d47203d9b5ffd8d5b96c154e3e012a8`.
+- Exact-head verification before this G4 reconstruction: PR Verification #1482 / run `44625901452` passed on branch head `17d2c0a993c347619a07ecf35bb0e04e0d672e93`.
 
 Current implementation/tests/UI are used only through the exact R1 evidence cited below. A `POSITIVE_NO_CHANGE` is therefore an explicit technical decision backed by that evidence; it is never an implicit preservation target.
 
@@ -27,6 +27,121 @@ Current implementation/tests/UI are used only through the exact R1 evidence cite
 - `MIXED_TECHNICAL_DELTA`: only the exact violated sub-obligation changes; conforming remainder is preserved by authority.
 - `VERIFICATION_DELTA`: behavior is conforming but binding permanent proof is incomplete.
 - `MIXED_TECHNICAL_AND_VERIFICATION_DELTA`: both an exact behavioral sub-obligation and permanent proof require correction.
+
+## G-F12 complete technical realization reconstruction
+
+This section is the mandatory package-level technical projection required by campaign §4.3. It does not replace P4-P6 owners. It makes their exact 0.6.0 realization explicit so PLAN and implementation do not have to recover architecture from current code, tests, historical UI or generic no-change rows.
+
+### Package technical invariants
+
+1. The canonical semantic carriers remain WorkItem, ArtifactRef, Approval, ExecutionTask, Run and RunEvent. No workflow aggregate, DTO/model family, second task representation, second proposal representation or browser-owned authority is introduced.
+2. Work kind is derived from the pinned WorkItem schema. The ordinary v2 pins are change-v2, defect-v2, investigation-v2 and audit-v2. The schema catalog owns which downstream templates exist; Investigation/Audit have R1 only and do not acquire fake R2/DESIGN/PLAN/R3 carriers.
+3. Pre-signoff productive work is one STAGE Run at the current lifecycle stage. src/daemon/authority.ts resolves current source/project/P1-P6 context; src/daemon/stage.ts owns R1/R2/DESIGN/PLAN/R3 orchestration; src/daemon/run.ts owns Run/RunEvent/provider-session mechanics; src/shell/opencode.ts owns the provider effect. The exact context identity is carried by Run.contextHash.
+4. Governed lifecycle documents are repository Markdown identified by ArtifactRef. Direct human Save and provider proposal/adoption are the only pre-signoff mutation ingresses; conversation and provider state never become authority.
+5. Lifecycle, attention, material-currentness, recovery, rail, execution-owner and validation-boundary decisions remain pure core policy in src/core/lifecycle.ts. The UI consumes those decisions; it does not reconstruct them from labels, selected history or transport state.
+6. The browser reads canonical daemon state through the existing loopback HTTP/TanStack Query boundary. WorkItemWorkspace composes WorkItem plus subordinate Run, RunEvent, ArtifactRef, ExecutionTask, source-diagnostic and sign-off-package queries. No aggregate workflow transport object is added.
+7. Workbench renderers compose the canonical primitives owned by GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2. Responsive/theme changes may recompose presentation but may not change the current owner, action, material semantics or lifecycle transition.
+8. OpenCode is a provider inside Order. Every productive session is subordinate to one Run, one stage, one contextHash, one selected provider/model and one effective permission profile. Provider loss/rejection never becomes lifecycle authority and never applies a partial workflow effect.
+9. PLAN receives a complete DESIGN decision. Implementation may make only the already-authorized minimum same-layer physical decomposition; a new semantic owner, contract/state meaning, effect boundary, dependency, validation contract or behavior returns upstream.
+
+### Canonical technical carrier chain
+
+    validated repository source + ProjectManifest/P1-P6
+      -> WorkItemSourceSnapshot + WorkItem
+      -> resolved stage context/contextHash
+      -> Run(role=STAGE) + RunEvent[]
+      -> exact lifecycle ArtifactRef (R1/R2/DESIGN/PLAN/R3)
+      -> Approval + ExecutionTask[] after exact sign-off
+      -> Run(role=BUILDER/REVIEWER/REMEDIATOR) + validation/evidence RunEvents
+      -> WorkItem(COMPLETE, outcome) + terminal governed material
+
+At every arrow the producer and consumer use the existing canonical type/schema owner. A document, event, selection or provider transcript that is not in this chain is evidence/presentation only and cannot create another authority path.
+
+### Work-kind × workflow-step technical realization
+
+| Work kind / step | Schema, context and governed carrier | Producer -> carrier -> consumer | Pure/effect ownership and Workbench composition | Failure/recovery/terminal realization | Reuse, delta and permanent proof consequence |
+|---|---|---|---|---|---|
+| CHANGE / Work request | change-v2 -> change-intake-v2; exact Markdown source is WorkItemSourceSnapshot and WorkItem.sourceSha256/schemaId binds classification. | CreateWorkItem / guarded source Save -> source file + canonical source parse/reconcile -> WorkItem IDEA/R1 context. | src/core/work-item-source.ts owns catalog/template/parse policy; daemon source owner applies one QueuePlan/persistence path; CreateWorkItem and DocumentWorkspace render WorkbenchForm/Markdown source. Filesystem/Git remain shell effects. | INVALID_SOURCE/duplicate/project/concern/stale diagnostics block productive start; expected-hash Save fails closed. Source change returns progressed work through canonical freshness policy. | Preserve singular source owner; SD03/SD04/SD06 cover exact known deltas. core/daemon/browser certification prove template, admission and Git review. |
+| DEFECT / Work request | defect-v2 -> defect-intake-v2 with observed/expected/reproduction/preservation sections; same WorkItemSourceSnapshot carrier. | Same source pipeline; defect schemaId deterministically selects defect R1 and later delivery templates. | Same core/daemon/UI owners; no Defect-specific state model. | Same source diagnostics; missing known facts remain source/R1 work rather than inferred values. | Preserve shared source machinery and kind-specific template; SD03/SD04/SD06 plus schema/catalog tests. |
+| INVESTIGATION / Work request | investigation-v2 -> investigation-intake-v2; same source/WorkItem carriers; downstream schema set intentionally ends after R1. | Source -> WorkItem -> R1 context only. | Same source owner/UI; no delivery artifact placeholders are materialized. | Source invalidity blocks R1. Later remediation is a new same-project Change/Defect source with derivedFromWorkItemId provenance. | Positive reuse of catalog/lifecycle terminalization; terminal/browser certification must prove no fake downstream stages. |
+| AUDIT / Work request | audit-v2 -> audit-intake-v2; same source/WorkItem carriers; downstream schema set intentionally ends after R1. | Source -> WorkItem -> R1 context only. | Same source owner/UI; audit criteria remain content, not a new runtime stage. | Source invalidity blocks R1; remediation is separate work. | Positive reuse; certify audit terminalization and linked-remediation boundary. |
+| CHANGE / Research | change-r1-v2. Resolved source + P1/P2/project authority + repository/runtime evidence become current contextHash for Run(STAGE,R1). R1 Markdown is ArtifactRef role R1. | authority resolver -> stage Run/OpenCode turn -> admitted RunEvent batch -> R1 ArtifactRef/conformance -> WorkItem R2 or terminal outcome. | core lifecycle validates turn/completion; daemon stage/run own orchestration/persistence; OpenCode shell owns provider effect; ActivityWorkspace/DocumentWorkspace/ProposalReview render dialogue/activity/document/proposal through Workbench primitives. | HUMAN_INPUT_REQUESTED may wait; provider rejection applies no requested effects; PROVIDER_FAILED leaves WorkItem at R1; STAGE_BLOCKED owns blocker; DISPROVEN/DUPLICATE/ALREADY_SATISFIED terminalize. | Existing carrier/session model reused. SD08 applies durable-authority input correction; SD17 closes four-kind scenario proof. |
+| DEFECT / Research | defect-r1-v2; identical carrier topology with defect root-cause/reproduction/preservation content. | Same pipeline; accepted R1 ArtifactRef is the factual root-cause input to R2. | Same owners; no generic Change template substitutes for defect semantics. | CONFIRMED only after factual/root-cause closure; invalid/rejected provider result cannot fabricate closure. | Reuse shared STAGE machinery; kind-specific template/context and scenario-41 certification remain explicit. |
+| INVESTIGATION / Research | investigation-r1-v2; R1 ArtifactRef is the governed result material. | stage Run -> R1 ArtifactRef -> StageCompletion INVESTIGATION_COMPLETE/DUPLICATE/ALREADY_SATISFIED -> WorkItem COMPLETE. | Same STAGE/OpenCode/event owners; TerminalResult consumes final WorkItem plus R1 artifact/evidence. | NEEDS_DECISION/BLOCKED retain R1; provider failure retains R1; no R2 template exists. | Positive reuse; proof must assert no R2/DESIGN/PLAN/R3/Execution artifacts are created. |
+| AUDIT / Research | audit-r1-v2; R1 ArtifactRef carries criterion evidence/findings/verdict. | stage Run -> R1 ArtifactRef -> AUDIT_COMPLETE/DUPLICATE/ALREADY_SATISFIED -> COMPLETE. | Same STAGE/OpenCode/event owners and TerminalResult projection. | Block/failure retains R1; no delivery stage is synthesized. | Positive reuse; proof mirrors Investigation with audit outcome semantics. |
+| CHANGE / Requirements | change-r2-v2; context consumes current source + R1 + resolved P2/P3 authority. R2 Markdown is ArtifactRef role R2. | R1/current authority -> Run(STAGE,R2) -> admitted events/proposals -> R2 ArtifactRef/conformance -> DESIGN. | src/daemon/stage.ts owns productive R2; proposal target admission/adoption stays in existing authority/proposal owner; ActivityWorkspace + LifecycleDocumentMaterial + ProposalReview render one current interaction/document. | Missing intent/contradiction blocks. Authority-changing chat is insufficient until canonical source/owner adoption and context re-resolution. | SD09 extends one proposal/adoption path for P2/P3 targets; all other R2 carrier mechanics are positive reuse. |
+| DEFECT / Requirements | defect-r2-v2; same carriers, but template preserves corrected behavior plus unchanged/regression behavior. | Same R2 pipeline -> DESIGN. | Same owners; Defect semantics remain in template/content rather than another state machine. | Missing correction/preservation semantics blocks R2. | SD09 shared authority path; proof must retain defect-specific R2 template and downstream preservation trace. |
+| INVESTIGATION / AUDIT / Requirements | stageTemplateIdFor returns no R2 template for these schemas. | No producer, no ArtifactRef R2, no Start R2 transition. | Workbench derives UNREACHED rather than empty productive material. | A remediation need creates a distinct Change/Defect WorkItem. | Positive terminalization proof; no technical delta. |
+| CHANGE / Solution design | change-design-v2; context consumes current R2 plus relevant P4-P6/project authority; output is ArtifactRef role DESIGN. | R2 -> Run(STAGE,DESIGN) -> events/proposals -> DESIGN ArtifactRef/conformance -> PLAN. | stage/authority/run/OpenCode owners unchanged; permanent P4-P6 amendment uses the same proposal/adoption carrier with target/layer validation. Workbench uses dialogue/document/review composition. | Missing R2 behavior returns upstream; stale proposal/base hash rejects and re-resolves. | SD09 admits current P4-P6 proposal targets; package technical realization is this DESIGN itself. |
+| DEFECT / Solution design | defect-design-v2; same carriers with root-cause correction, behavior-to-delete/replace and preserved invariants. | R2 -> DESIGN ArtifactRef -> PLAN. | Same owners; minimum root-cause remediation is design content, not an execution heuristic. | Symptom masking or preservation weakening fails DESIGN conformance and returns to R2/DESIGN owner. | Existing technical owners plus SD01-SD19 exact deltas; regression proof remains mandatory. |
+| INVESTIGATION / AUDIT / Solution design | no DESIGN template exists for these schema pins. | No DESIGN Run/artifact. | UNREACHED presentation only. | Separate remediation work if needed. | Positive no-downstream-carrier proof. |
+| CHANGE / Implementation plan | change-plan-v2; PLAN ArtifactRef contains S8-S10 content and exactly one canonical order-tasks block. | DESIGN -> Run(STAGE,PLAN) -> PLAN ArtifactRef/conformance -> R3. | stage owner renders prompt/template; src/core/execution.ts remains the single signed-task parser/admission owner; daemon authority/stage consume it. Document/dialogue proposal surfaces remain shared. | Vacuous/semantically incomplete current-v2 PLAN is rejected; missing architecture choice returns to DESIGN rather than implementation. | SD10 owns v2 non-vacuity only; existing scope/forecast/checkpoint execution foundation is reused. |
+| DEFECT / Implementation plan | defect-plan-v2; same task carrier with root-cause/removal/reproduction/regression/preservation obligations. | DESIGN -> PLAN ArtifactRef -> R3. | Same task/parser/daemon owners; no remediation DTO/task variant. | Omitted reproduction/preservation proof fails PLAN conformance/R3. | SD10 shared mechanical admission; defect-specific semantic proof retained. |
+| INVESTIGATION / AUDIT / Implementation plan | no PLAN template and no signed task block. | No PLAN/R3/Approval/Execution producer. | UNREACHED downstream presentation. | Linked remediation is separate. | Positive terminalization proof. |
+| CHANGE / DEFECT / Readiness review | delivery-r3-v2; Run(STAGE,R3) consumes exact current P1-P7 package and produces ArtifactRef role R3 plus typed StageCompletion. | current package -> R3 Run -> READY_FOR_SIGNOFF or exact RETURN_TO_* -> AWAITING_SIGNOFF or upstream owner. | src/daemon/stage.ts/authority.ts own package/context/conformance; core lifecycle owns typed return; ReadinessWorkspace maps verdict/current material into WorkbenchReview. | Return routes to exact R1/R2/DESIGN/PLAN owner; REQUIRED_INPUT may temporarily own attention; readiness never repairs defects. | SD11 fixes verdict hierarchy; existing R3 carrier is reused. |
+| CHANGE / DEFECT / Approval | No provider Run. Exact sign-off package binds baseline commit, source hash, material ArtifactRefs, R3 and parsed task block. Approval + ExecutionTask are canonical carriers. | daemon authority builds package -> SignoffReview -> explicit sign-off -> Approval + materialized ExecutionTasks -> EXECUTION. | Core schemas/task materialization and daemon authority own invariants/persistence; SignoffReview renders WorkbenchReview and technical disclosure. | stale/different package, invalid readiness or invalid approver blocks; no partial Approval/tasks. | SD12 fixes identity/hierarchy; existing exact-package/sign-off mechanism reused. |
+| CHANGE / DEFECT / Implementation | Approval-owned ExecutionTask is immutable task meaning plus mutable task state; Runs use BUILDER/REVIEWER/REMEDIATOR and RunEvents/evidence through V0-V7. | exact current task -> BUILDER candidate -> deterministic/mechanical checks -> independent REVIEWER -> bounded REMEDIATOR/review as authorized -> verified candidate. | src/core/execution.ts pure policy; daemon execution/validation/run/authority own orchestration; shell Git/OpenCode/gates own effects; ExecutionWorkspace maps current ExecutionOwner, ValidationBoundary, attempts/evidence into MasterDetail/Table/Timeline. | scope/governance/spec/stale/provider failures follow canonical classification/recovery; checkpoint is coordinator-owned; failure never expands task authority. | SD13/checkpoint and scope-forecast baseline are reused; SD10 retains only v2 task-admission delta. Permanent V0-V7/certification proof remains authoritative. |
+| CHANGE / DEFECT / Complete | WorkItem(stage=COMPLETE,status=COMPLETE,outcome=CANDIDATE_DONE or other valid terminal outcome) is terminal authority; candidate evidence stays RunEvent/EvidenceRef material. | successful aggregate execution reaction -> WorkItem COMPLETE -> TerminalResult. | core/daemon transition policy owns terminal mutation; TerminalResult uses WorkbenchSurface/Status/resources and has no workflow mutation. | COMPLETE cannot resume; later work is new work. | SD01 fixes result language; candidate/result evidence paths otherwise reused. |
+| INVESTIGATION / AUDIT / Complete | WorkItem COMPLETE with INVESTIGATION_COMPLETE/AUDIT_COMPLETE/DUPLICATE/ALREADY_SATISFIED plus reached R1 ArtifactRef/evidence. | terminal R1 reaction -> COMPLETE -> TerminalResult; optional linked remediation starts a new source-backed WorkItem. | Same core terminal owner; TerminalResult reads R1 result, no execution structures. | Original terminal WorkItem is immutable. | Positive reuse; browser certification proves result primacy and separate linked remediation. |
+
+### Productive OpenCode interaction realization
+
+| Functional condition | Exact technical realization |
+|---|---|
+| stage starts | src/daemon/authority.ts resolves current source/project/P1-P6 material and contextHash; src/daemon/stage.ts creates one INTERACTIVE STAGE Run; src/daemon/run.ts persists STAGE_STARTED before provider admission; src/shell/opencode.ts creates/validates the fresh provider session and exact model/permission/context boundary. |
+| processing / bounded activity | Provider-native events never reach the browser. The shell normalizes only the allowlisted activity categories; the daemon Run owner persists bounded AGENT_ACTIVITY_RECORDED RunEvents. Activity is observational and never completion authority. |
+| OPEN continuation | An admitted non-controlling STAGE provider batch contains exactly one nonblank AGENT_MESSAGE_FINAL. stageRunInteraction derives OPEN from Run/RunEvents; ActivityComposer may send only against that current interaction. |
+| REQUIRED_INPUT | HUMAN_INPUT_REQUESTED(category,question) is the controlling event and Run may become WAITING_FOR_INPUT. stageInputIsAdmitted accepts the exact requestEventId; HUMAN_INPUT_RECEIVED and the Run-state reaction are atomic before the next turn. |
+| INFORMATION / EVIDENCE reply | HUMAN_INPUT_RECEIVED continues the same stage/session only while contextHash/model/permissions/source snapshot remain current. It does not mutate source or permanent authority. |
+| STAGE_CHOICE / AUTHORITY_DECISION / AUTHORITY_CONFLICT | The category remains explicit in RunEvent. If the answer changes durable intent/authority, stage completion remains blocked until direct governed Save or the existing ARTIFACT_PROPOSAL_CREATED -> ADOPTION_REQUESTED -> DISPOSITIONED(ADOPTED, ArtifactRef) path materializes canonical bytes and context is re-resolved. SD08 closes the missing admission rule. |
+| proposal pending/applying | deriveProposalDecision identifies the sole pending/adopting proposal. ProposalReview owns Adopt/Reject; ActivityComposer cannot compete with proposal mutation. Adoption verifies base hash/target/layer, writes exact patch, records ArtifactRef, invalidates downstream conformance and replaces context/session as required. |
+| provider result rejected | validateStageProviderTurn/stageProviderBatchRejectionCode validates the entire result array before persistence. A rejected batch persists no requested workflow effect; bounded admission diagnostics are recorded and the Run fails at the same stage. |
+| provider/process failure | Provider diagnostics/evidence and PROVIDER_FAILED or PRODUCTIVE_INVOCATION_FAILED identify the failure boundary. Canonical WorkItem/ArtifactRef state is unchanged; pre-signoff read-only session replacement is allowed only from current canonical context. |
+| current attempt vs history | WorkItemWorkspace reads canonical Run list and selected RunEvent detail. Historical selection is presentation state only; deriveCurrentAttention/resolveWorkflowMaterial keep current required input/proposal/blocker/action reachable. |
+| technical provider identity | Run.contextHash/providerSessionId and bounded ProviderDiagnosticRecord evidence are technical detail. Account/model/session transport identity appears through disclosure/context only unless configuration or recovery makes it the current task. |
+
+### Current-attention, material-selection and responsive realization
+
+The closed core decision vocabulary is reused directly: ReachState, StageRunInteraction, ProposalDecision, MaterialCurrentness, MaterialPresentationState, ExecutionOwner, ValidationBoundary, RecoveryDisposition, ObservationCoherence, CurrentAttentionTag and WorkflowRailItem. These are pure derived values in src/core/lifecycle.ts, not persisted status tables or transport DTOs.
+
+WorkItemWorkspace is the composition owner. It obtains the dedicated current WorkItem observation plus subordinate canonical collections, derives current attention before material presentation, then calls the pure material resolver. Explicit source/document/history/task/evidence selection may change the detail being inspected but never the command target or attention owner. ActivityWorkspace, ReadinessWorkspace, SignoffReview, ExecutionWorkspace, DocumentWorkspace and TerminalResult receive already-canonical facts/decisions and map them into the exact Workbench primitives named by the P4 renderer matrix.
+
+Wide/medium/narrow presentation keeps the same canonical data and derived decisions. Workbench primitives may move supporting material into selector/drawer/overlay composition, but current task, current attention, dirty state, mutation owner, return origin and semantic reading order remain invariant. System/Light/Dark changes token/theme treatment only. C18 required-input focus is implemented at the Workbench dialogue/composer boundary keyed to the exact request event id; polling/rerendering may not repeatedly steal focus.
+
+### Failure, upstream return and terminal realization
+
+| Condition | Technical owner and required reaction |
+|---|---|
+| source invalid/stale/conflicting | source parser/reconciliation emits typed diagnostic; productive command fails before stage/provider work; explicit reconcile/save owns recovery. |
+| unresolved authority/context | core governance + daemon authority fail context gate; no provider prompt compensates; WorkItem remains/returns to the owning stage. |
+| stage provider batch invalid | complete batch is rejected before persistence; no partial RunEvent/workflow effect; Run fails at same stage. |
+| provider transport/process/completion failure | shell/Run owner records bounded diagnostics/evidence; canonical workflow state is preserved; permitted pre-signoff replacement reconstructs from canonical context only. |
+| required human input | exact HUMAN_INPUT_REQUESTED event owns the reply until admitted; reply does not create authority by itself. |
+| stale proposal/base/target | proposal adoption rejects/reconciles; no patch is guessed or retargeted. |
+| source or lifecycle document direct edit | expected-hash guarded Save writes canonical bytes, invalidates downstream conformance and returns/remains at the exact owning stage. |
+| R3 return | typed RETURN_TO_RESEARCH/REQUIREMENTS/DESIGN/PLAN routes through core lifecycle policy and preserves reached history. |
+| stale Approval | sign-off/implementation admission rejects and routes to canonical currentness owner; Approval is never silently refreshed. |
+| execution validation/provider failure | canonical V0-V7 classification selects retry/remediation/block/upstream return under the signed task; no semantic scope growth. |
+| Investigation/Audit successful R1 | WorkItem transitions directly to COMPLETE with typed outcome; no downstream artifact/task/run family is fabricated. |
+| COMPLETE | terminal WorkItem/outcome plus reached governed material is read-only; follow-up is a new WorkItem. |
+
+### Integration with the 112 stable dispositions and package atoms
+
+The existing 112-row DESIGN ledger remains the requirement-level ownership/disposition index. Under G-F12 it is no longer permitted to stand alone: each row is interpreted through the explicit carrier/stage model above and its named P4-P6 owner. POSITIVE_NO_CHANGE therefore means the required package technical realization is the shared model above plus the row's exact evidence-backed owner/path; it never means preserve current code because tests are green.
+
+The 25 package-local atoms remain the exact non-stable corrections and the SD01-SD19 catalog remains the delta/verification solution set. The reconstruction adds no new product behavior and no new implementation solution. It makes explicit the technical realization that all those rows consume.
+
+### G-F12 DESIGN closure decision
+
+- Every applicable work kind and workflow step has an explicit schema/template applicability decision, canonical carrier chain, producer/consumer boundary, core/daemon/shell/UI ownership, failure/recovery/terminal path and proof consequence.
+- Investigation/Audit technical terminalization is explicit and has no synthetic delivery carrier.
+- Change/Defect technical divergence is explicit through R1/R2/DESIGN/PLAN while shared R3/Approval/Implementation/Complete machinery remains singular.
+- The complete OpenCode interaction model is mapped to Run/RunEvent/context/session/proposal/admission owners.
+- Current attention/material selection, primary/supporting/technical hierarchy, responsive semantics and focus ownership are mapped to the closed core derivations and Workbench primitive composition.
+- Existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new dependency is introduced.
+- Open technical questions: NONE.
+- Material technical UNPROVEN: 0.
+- PLAN may decompose only the explicit SD01-SD19 delta/verification obligations and the positive proof obligations attached to reused realization; it may not infer a missing technical decision from implementation.
 
 ## Technical change solution catalog
 
