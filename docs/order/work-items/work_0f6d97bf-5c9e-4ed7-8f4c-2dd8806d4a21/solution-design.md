@@ -59,6 +59,8 @@ These rows are **trace dispositions, not new semantic requirements**. They retai
 | `A01-NC01` | C01 product-level success distinguishes verified terminal result from implementation-required verified candidate and preserves valid no-code terminal success. | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1`, §8 | `ALREADY_CORRECTED_NO_CODE` | No runtime/lifecycle mutation. DESIGN consumes the corrected P2 meaning as the product-level invariant for terminal presentation and lifecycle acceptance. | authority-byte/hash freshness + R1 C01-O06/O13/O14 recheck + V4 semantic review |
 | `A01-NC02` | C01 clause-level P3 DELTA points `GW-P2-CONTROLLED-WORK` to its actual System Brief §9 declaration. | `GW-DOC-WORK-LIFECYCLE` blob `013bc1297c3d167b776e115f428517b7cedbea57`, §7 | `ALREADY_CORRECTED_NO_CODE` | Documentation authority correction only; no runtime contract/state behavior changes. | exact authority-byte/hash freshness + R1 C01-O14 recheck + V4 semantic review |
 | `A01-NC03` | C21 canonical product language preserves verified-result/verified-candidate distinction, explicit product intent, conditional implementation and the bounded operator-triggered WorkItem documentation-Git allowance without implying automatic delivery commits. | `GW-DOC-PRODUCT-IDENTITY` blob `f45ee2ea00cf91c5b861c59d3d19f72b3e39611f` | `ALREADY_CORRECTED_NO_CODE` | No additional P2 mutation in T1. SD01 changes only the still-violating README/terminal projections; corrected canonical identity remains the source. | authority-byte/hash freshness + R1 C21 corrected-finding recheck + V4 semantic review |
+| `A01-NC04` | C01 canonical lifecycle documentation distinguishes WorkItem lifecycle stages from internal EXECUTION implementation/validation subflow and valid no-code terminal completion. | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1` | `ALREADY_CORRECTED_NO_CODE` | Authority/documentation correction only; no new WorkStage or runtime transition semantics. Stable FR001/FR228 realization remains unchanged. | authority-byte/hash freshness + C01-F01/C01-O03/O05/O08 recheck + V4 semantic review |
+| `A01-NC05` | C01 lifecycle-context terminology distinguishes canonical WorkItem stages from EXECUTION validation-role boundaries and the Audit work-kind evaluation boundary. | `GW-DOC-LIFECYCLE-CONTEXT` blob `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7` | `ALREADY_CORRECTED_NO_CODE` | Context/authority wording correction only; no new lifecycle stage, RunRole or work-kind state. | authority-byte/hash freshness + C01-F02/X-C01-C22-01 recheck + V4 semantic review |
 
 ## SD01 complete technical realization — product-language projection
 
@@ -258,7 +260,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 
 | Concern | Technical coverage |
 |---|---|
-| C01 | Stable rows + explicit A01-NC01/A01-NC02 corrected-upstream no-code dispositions; no T1 lifecycle-state delta. |
+| C01 | Stable rows + explicit A01-NC01/A01-NC02/A01-NC04/A01-NC05 corrected-upstream no-code dispositions; no T1 lifecycle-state delta. |
 | C02 | Stable rows + PL-C02-01/02/03 -> SD03/SD04. |
 | C03 | Stable rows + PL-C03-01 -> SD05. |
 | C04 | Stable rows + PL-C04-01/02 -> SD04/SD06. |
