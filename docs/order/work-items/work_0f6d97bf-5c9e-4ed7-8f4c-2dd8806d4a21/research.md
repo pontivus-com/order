@@ -52,7 +52,7 @@ G-F01 through G-F08 are current reusable foundation corrections and are independ
 
 ### Current factual findings
 
-The following table is the R1 factual finding set. Later R2/DESIGN/foundation corrections do not erase the factual discovery record; where authority or realization has since been corrected, the finding is retained as disposed historical evidence rather than misrepresented as a current violation. Post-A06-foundation revalidation at campaign head `e573b0582c404530d4f412876968125a01e8e54d` confirms that C12-F01/F02 are no longer current C12 realization violations; their remaining ALIGN trace is downstream freshness/PLAN work, not an open R1 fact.
+The following table is the R1 factual finding set. Later R2/DESIGN/foundation corrections do not erase the factual discovery record. The first A06 foundation closure at `e573b0582c404530d4f412876968125a01e8e54d` was subsequently disproved by implementation-fidelity review: C12-F01 checkpoint behavior remains corrected, while C12-F02 is reopened because productive provider edit permission still used `changeSurface` as a physical whitelist and V6 could not emit `CHANGE_BLOAT`. Corrective implementation candidate `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c` now addresses both fidelity defects, but §7 remains `GAP_FOUND` until exact-head foundation verification and fresh C12 closure complete.
 
 | Finding | Factual result | Downstream owner |
 |---|---|---|
@@ -70,8 +70,8 @@ The following table is the R1 factual finding set. Later R2/DESIGN/foundation co
 | C10-F01 | Readiness dominant verdict still presents material maturity instead of canonical R3 verdict | R2 reference + downstream projection |
 | C11-F01 | Approval does not directly present canonical readiness with package currentness | R2 reference + downstream projection |
 | C11-F02 | whitespace-only approval identity can pass canonical ingress despite browser-only validation | DESIGN / P6 + daemon admission |
-| C12-F01 | Historical pre-foundation defect: required in-task architecture feedback checkpoints were not productively executable under the denied-execute provider boundary. Current foundation baseline `a5df1bb45805326be5401fed393a416a4edd4ee6` adds BUILDER-only coordinator checkpoint request/admission, signed gate execution/evidence and same-Run/provider-session continuation without provider execute permission. | R1 factual defect disposed by foundation; ALIGN-A06 still requires downstream freshness and regenerated PLAN cadence/self-bootstrap correction |
-| C12-F02 | Historical pre-foundation defect: V2 treated signed `changeSurface` as an exhaustive literal-path whitelist. Current foundation baseline `a5df1bb45805326be5401fed393a416a4edd4ee6` instead rejects instruction/protected/out-of-scope/excluded paths while allowing an otherwise admitted unforecast path to proceed through V4/V5/V6 forecast-variance proof. | R1 factual defect disposed by foundation; ALIGN-A06 still requires downstream freshness and regenerated PLAN bounded-scope/forecast incorporation |
+| C12-F01 | Historical pre-foundation defect: required in-task architecture feedback checkpoints were not productively executable under the denied-execute provider boundary. The first prerequisite added BUILDER-only coordinator checkpoint request/admission, signed gate execution/evidence and same-Run/provider-session continuation without provider execute permission; the corrective implementation candidate retains that behavior and additionally validates exact signed scope before any checkpoint gate effect. | Provisionally corrected; retain as historical causal evidence and freshly regress with the corrective foundation before C12 closes |
+| C12-F02 | Reopened foundation defect: the first prerequisite corrected V2 forecast-vs-scope admission but productive OpenCode permissions still granted edit only for exact `changeSurface`, so a legitimate unforecast split could not be produced. The same implementation also made V6 an unconditional PASS after V4/V5. Corrective implementation candidate `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c` derives provider edit capability from signed scope with immutable hard denies, validates exact scope before checkpoint effects, and maps structured independent-review minimum-change evidence to coordinator-owned V6 PASS/`CHANGE_BLOAT`. | OPEN until exact-head verification and fresh C12 revalidation close the foundation |
 | C16-F01 | Settings still promotes filesystem/transport identity into ordinary primary content | R2 reference + downstream presentation |
 | C16-F02 | Fresh installation returns success after initializing empty v4 configuration while explicitly deferring required repository/OpenCode-account/model setup to browser Settings, violating `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | R2 reference + DESIGN installer/setup realization |
 | C16-F03 | `GW-DOC-CANONICAL-CONTRACTS` P6 explicitly permits a fresh v4 install to persist `model = null` / empty repositories and finish configuration later in browser Settings, contradicting higher P3 `GW-FR-007` and P4 `GW-TR-007` productive-installer closure | DESIGN / canonical P6 contract correction |
@@ -361,6 +361,24 @@ This section is retained as the causal pre-foundation discovery record. It is su
 **R1 disposition:** `FACTS_CLOSED`.
 
 **Revalidation trigger:** a change to execution-task/current-owner derivation, provider role/permission admission, checkpoint request/result protocol, signed scope/exclusion/forecast semantics, V0-V7 classification/routing, remediation/recovery budget, or Implementation current-owner presentation.
+
+## Corrective A06 foundation factual candidate — verification pending
+
+**Corrective implementation candidate:** `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c`.  
+**Corrective WorkItem:** `work_6a8de5c1-3f2b-4f7a-9d21-8c0e7b15a642`.  
+**Current campaign disposition:** C12 remains `GAP_FOUND`; ALIGN-A06-F01 remains `OPEN_FOUNDATION`; G0/G1 remain blocked until exact-head verification and current C12 revalidation complete.
+
+The corrective candidate changes the complete affected execution chain rather than only downstream V2:
+
+- `src/shell/opencode.ts` now derives BUILDER/REMEDIATOR native edit capability from a transient signed-`scope` envelope rather than `changeSurface`; final last-match denies cover Git metadata, root/nested `AGENTS.md`, Approval-closure protected material and workspace symlink paths/descendants;
+- `src/shell/repository.ts` exposes the existing workspace symlink surface solely for those transient hard denies; no persisted path/permission model is added;
+- `src/daemon/execution.ts` applies the exact canonical V2 validator to current changed paths before executing a requested checkpoint, so a broad provider capability envelope cannot make an out-of-scope intermediate candidate observable by a gate;
+- current productive `REVIEW_PASSED` requires structured `minimumChange = MINIMUM_SUFFICIENT | CHANGE_BLOAT` evidence; historical persisted passes remain parseable but are not admitted as new provider output;
+- after V4/V5, the coordinator maps `MINIMUM_SUFFICIENT` to V6 PASS and `CHANGE_BLOAT` to `VALIDATION_FAILED / V6 / CHANGE_BLOAT`, reusing the existing one-targeted-remediation policy;
+- permanent daemon proof demonstrates an out-of-scope checkpoint diff produces V2 `SCOPE_BREACH` with zero gate result, and a semantically correct but reducible candidate produces V6 `CHANGE_BLOAT`, one REMEDIATOR reduction, then a fresh V6 PASS;
+- permanent OpenCode proof demonstrates an in-scope path absent from `changeSurface` is inside the productive edit capability envelope while protected/symlink/instruction resources remain denied.
+
+PR Verification #1406 attempt 1 on this implementation candidate passed release metadata, dependency-lock, typecheck, architecture, all 274 non-browser tests, build and release packaging. Its only failure was one pre-existing Markdown-navigation browser case (`tests/browser.spec.ts:2465`) on a UI/document-save surface untouched by the corrective change; 36/37 browser cases passed. A same-SHA rerun was started without weakening that test. This partial verification is implementation evidence only and does **not** close G0/C12.
 
 ## Downstream invariants
 
