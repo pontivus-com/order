@@ -116,7 +116,7 @@ export const builderProviderTags = new Set([
   "GATE_CHECKPOINT_REQUESTED",
 ]);
 
-export const remediatorProviderTags = new Set(mutatingProviderTags);
+export const remediatorProviderTags = new Set<string>(mutatingProviderTags);
 
 export const reviewerProviderTags = new Set([
   "REVIEW_PASSED",
