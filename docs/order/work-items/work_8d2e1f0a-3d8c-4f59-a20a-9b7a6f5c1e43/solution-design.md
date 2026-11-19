@@ -23,6 +23,8 @@ The correction preserves the existing documentation provenance architecture. It 
 - `docs/README.md`;
 - `docs/architecture/opencode-integration.md`;
 - `docs/architecture/technical-architecture.md`;
+- `docs/architecture/workbench-theme.md`;
+- `docs/architecture/workbench.md`;
 - `docs/contracts/canonical-contracts.md`;
 - `docs/decisions/technical-decisions.md`;
 - `tests/architecture.test.ts`;
