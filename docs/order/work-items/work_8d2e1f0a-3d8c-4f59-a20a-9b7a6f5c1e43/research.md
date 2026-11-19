@@ -25,13 +25,17 @@ The live factual owner conflates stable-current identity with an exact dated sna
 
 ## Current permanent consumers requiring rebinding
 
-The audit found live dated-ID references in:
+The complete permanent-fitness audit found live dated-ID references in:
 - root `AGENTS.md`;
 - `docs/README.md`;
 - `docs/architecture/opencode-integration.md`;
 - `docs/architecture/technical-architecture.md`;
+- `docs/architecture/workbench-theme.md`;
+- `docs/architecture/workbench.md`;
 - `docs/contracts/canonical-contracts.md`;
 - `docs/decisions/technical-decisions.md`.
+
+The first exact-head PR Verification #1426 / run `44479533124` proved the new fitness rule was active and failed architecture specifically on the three initially missed current consumers in `workbench-theme.md` and `workbench.md`. Those references are part of the same G-F11 correction; the invariant was not weakened.
 
 Retained `.v1.md` historical sources are intentionally not rewritten.
 
