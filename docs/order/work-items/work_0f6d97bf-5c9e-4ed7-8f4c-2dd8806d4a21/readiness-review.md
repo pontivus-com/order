@@ -12,19 +12,19 @@ This is a fresh independent adversarial review performed only after current G5A 
 
 ## Exact reviewed package
 
-- repository baseline: `222dd76d3556c3f75011a5f4ba2d4864f9050b32`;
+- repository baseline: `727991c8049d0a65fa9ae22e2edcaabac3ee5744`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - WorkItem source `work-request.md`: `0786b08f8bb4e8400523ee92eb5cdcd60fd9dec7`;
 - R1 `research.md`: `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`;
 - R2 `requirements.md`: `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`;
 - DESIGN `solution-design.md`: `9ec7b943365b39819999672abb27654891f4a837`;
 - PLAN `implementation-plan.md`: `863c36468b3d6bfadbbeff4110c27e0a1e5dffe2`;
-- campaign/evidence owner `0.6.0-design-campaign-plan.md`: `274b65ad899d154b16217eeb465776f901fd1cca`;
+- campaign/evidence owner `0.6.0-design-campaign-plan.md`: `9c77e4efca554cb42ad0d032abd2c9027740261c`;
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`;
 - permanent architecture/campaign fitness `tests/architecture.test.ts`: `6a5bd394938250c00238db7995d0786b338e933f`;
 - current browser verification source `tests/browser.spec.ts`: `5aa628b4f06f1bcf34961fe216225776352709f1`.
 
-Freshness trigger: PLAN root commit `97a50d394dbc662746fbd2b5c6af78c329a7ce8d` corrected only the P7 authority sentence so current implementation/tests are never preservation authority and DESIGN remains the authority for `POSITIVE_NO_CHANGE`/baseline-reuse dispositions. Campaign commit `222dd76d3556c3f75011a5f4ba2d4864f9050b32` then reran PLAN-A01-A11/H4 and ALIGN-A01-A11/H1 against corrected PLAN `863c36468b3d6bfadbbeff4110c27e0a1e5dffe2`. R1, R2, DESIGN, modular PLAN sources, production/UI/runtime/provider bytes, task semantics, scope/exclusions, IA ownership, checkpoints and proof propositions are unchanged. Exact-head PR verification remains delivery provenance and does not supply desired-state authority.
+Freshness trigger: PLAN root commit `97a50d394dbc662746fbd2b5c6af78c329a7ce8d` corrected only the P7 authority sentence so current implementation/tests are never preservation authority and DESIGN remains the authority for `POSITIVE_NO_CHANGE`/baseline-reuse dispositions. Campaign baseline `727991c8049d0a65fa9ae22e2edcaabac3ee5744` contains the corrected current PLAN-A01-A11 records, fresh H4 integration audit, fresh ALIGN-A01-A11/H1 records and an explicitly reopened G6 pending this R3, all against corrected PLAN `863c36468b3d6bfadbbeff4110c27e0a1e5dffe2`. R1, R2, DESIGN, modular PLAN sources, production/UI/runtime/provider bytes, task semantics, scope/exclusions, IA ownership, checkpoints and proof propositions are unchanged. Exact-head PR verification remains delivery provenance and does not supply desired-state authority.
 
 ## S1-S12 package challenge
 
