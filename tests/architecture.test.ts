@@ -2331,6 +2331,21 @@ describe("architecture fitness", () => {
       }
     }
 
+    const a01Phase = sourceText(
+      workItemRoot + "/implementation-plan/01-a01-lifecycle-product.md",
+    );
+    for (const traceKey of ["A01-NC01", "A01-NC02", "A01-NC03"]) {
+      if (!design.includes("`" + traceKey + "`")) {
+        violations.push("DESIGN missing corrected-upstream A01 no-code trace: " + traceKey);
+      }
+      if (!a01Phase.includes("`" + traceKey + "`")) {
+        violations.push("PLAN A01 source missing corrected-upstream no-code trace: " + traceKey);
+      }
+      if (!plan.includes("`" + traceKey + "`")) {
+        violations.push("PLAN root missing compiled corrected-upstream A01 no-code trace: " + traceKey);
+      }
+    }
+
     const taskBlocks = [...plan.matchAll(/```order-tasks\n([\s\S]*?)\n```/g)];
     if (taskBlocks.length !== 1) {
       violations.push(
