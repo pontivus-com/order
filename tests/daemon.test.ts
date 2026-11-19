@@ -5487,6 +5487,67 @@ describe("daemon control plane", () => {
     expect(new Set(output.diagnosticPrompts).size).toBe(2);
   }, 30_000);
 
+  it("rejects an unsigned BUILDER checkpoint before executing the gate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-unsigned-");
+    const binary = createFakeOpenCode("checkpoint-unsigned");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      const execOwner = await import("./src/daemon/execution.ts");
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      const started = await execOwner.startExactExecutionTask(
+        runtime,
+        work,
+        tasks[0].id,
+      );
+      await execOwner.executePostSignoffRun(
+        runtime,
+        started.run,
+        started.task,
+        started.approval,
+      );
+      const current = coord.listRuns(runtime, work)
+        .filter((run) => run.executionTaskId !== null)
+        .find((run) => run.id === started.run.id);
+      if (!current) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, current.id);
+      console.log(JSON.stringify({
+        run: {
+          status: current.status,
+          terminalClassification: current.terminalClassification,
+        },
+        tags: events.map((event) => event.event.tag),
+        checkpointResults: events.filter((event) =>
+          event.event.tag === "GATE_PASSED" ||
+          event.event.tag === "GATE_FAILED"
+        ).length,
+        providerFailure: events.find((event) =>
+          event.event.tag === "PROVIDER_FAILED"
+        )?.event ?? null,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      run: { status: string; terminalClassification: string | null };
+      tags: string[];
+      checkpointResults: number;
+      providerFailure: { tag: string; detail: string } | null;
+    };
+
+    expect(output.run).toMatchObject({
+      status: "FAILED",
+      terminalClassification: "PROVIDER_FAILURE",
+    });
+    expect(output.checkpointResults).toBe(0);
+    expect(output.tags).not.toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.providerFailure).toMatchObject({
+      tag: "PROVIDER_FAILED",
+    });
+    expect(output.providerFailure?.detail).toContain(
+      "requested unsigned checkpoint gate",
+    );
+  }, 30_000);
+
   it("continues a failed signed checkpoint only to an explicit execution block", () => {
     const repository = createRepository();
     const failingManifest = fixtureManifest.replace(
