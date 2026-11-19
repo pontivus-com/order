@@ -252,6 +252,7 @@ describe("candidate changed-path instruction immutability", () => {
       });
       if (!validateChangedPaths(bounded, ["docs/outside.md"])?.includes("outside signed scope")) process.exit(5);
       if (!validateChangedPaths(bounded, ["src/excluded.ts"])?.includes("excluded path")) process.exit(6);
+      if (!validateChangedPaths(bounded, ["src/target.ts"], ["src/target.ts"])?.includes("signed authority/governance/verification")) process.exit(7);
     `;
 
     expect(() =>
