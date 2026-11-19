@@ -35,7 +35,7 @@ This package restores the already-governed execution-control semantics needed by
 - the same Run and same live provider session continue from that result;
 - a pass permits continuation; a failure permits only in-scope correction under the signed design or an explicit block;
 - checkpoint results never substitute for V3/V5/V7;
-- no provider shell/execute capability is granted.
+- the shell-owned provider output contract advertises the request only to BUILDER; no provider shell/execute capability is granted.
 
 ## Acceptance criteria
 
@@ -45,7 +45,7 @@ The correction is complete when core/daemon/certification proof demonstrates all
 
 In scope:
 - canonical RunEvent checkpoint request;
-- pure role/turn admission;
+- pure role/turn admission and exact BUILDER-only provider output contract;
 - execution coordinator checkpoint reaction/continuation;
 - V2 forecast/scope distinction;
 - V4/V5/V6 forecast-variance proof flow;
