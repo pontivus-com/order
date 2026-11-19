@@ -16,6 +16,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Restore canonical external-facts snapshot lineage: retain the exact 2026-11-12 factual source under its dated version identity, keep the live factual owner current, bind permanent consumers through stable `GW-DOC-EXTERNAL-FACTS`, and permanently reject dated snapshot/version/Verified-date drift.
+
 - Reopen and close the A06 execution-foundation fidelity gap: derive productive BUILDER/REMEDIATOR edit capability from signed scope rather than `changeSurface` forecast, hard-deny immutable authority/instruction/Git/symlink paths, revalidate exact scope before checkpoint effects, and restore coordinator-owned V6 `CHANGE_BLOAT` with one bounded reduction path.
 
 - Revalidate C12 execution facts on the verified A06 foundation baseline: confirm coordinator-owned in-task checkpoints and forecast-vs-scope validation now conform, dispose C12-F01/F02 as current R1 realization defects, and keep R1-A07/H1 plus downstream design/PLAN freshness explicitly outstanding.
