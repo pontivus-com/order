@@ -319,66 +319,51 @@ The related C12-F01 checkpoint finding had the same baseline-dependency shape: t
 
 This section is retained as the causal pre-foundation discovery record. It is superseded for current C12 realization by the post-foundation revalidation below.
 
-## Post-A06-foundation C12 factual revalidation
+## Fresh corrective-foundation C12 factual revalidation
 
-**Exact campaign evidence baseline:** `e573b0582c404530d4f412876968125a01e8e54d`.  
-**Verified execution-foundation baseline:** `a5df1bb45805326be5401fed393a416a4edd4ee6`.  
-**Foundation verification:** PR Verification #1383 / run `44446379578` passed release metadata, dependency-lock, typecheck, architecture, full tests, build, release packager and browser. Current campaign head differs from the foundation baseline only in the campaign plan and concern-coverage ledger, so the production/test realization reviewed below is byte-identical to the verified foundation implementation.
+**Rerun date:** 2026-11-19.  
+**Exact campaign evidence baseline:** `6130337c2e280364660c22b64650dbea6054e8ac`.  
+**Corrective implementation baseline:** `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c` (ancestor; production/test bytes remain identical at the exact evidence baseline).  
+**Exact-head verification:** PR Verification #1407 / run `44458038548` passed release metadata, dependency-lock, Playwright installation, typecheck, architecture, full tests, build, release packager and browser on `6130337c2e280364660c22b64650dbea6054e8ac`.
 
-**Authority re-inspected:** `GW-DOC-WORK-LIFECYCLE-V1` GW-FR-003/GW-FR-004/GW-FR-006; `GW-DOC-LIFECYCLE-CONTEXT-V2` IMPLEMENT boundary and architecture-feedback checkpoint rule; `GW-DOC-VALIDATION-STANDARD-V1` V2/V4/V5/V6/V7; `GW-DOC-EXECUTION-CONTROL-PLANE-V1` §§12-13; `GW-DOC-CANONICAL-CONTRACTS-V2` §§37.6-37.8; applicable Workbench execution presentation authority.
+**Authority re-inspected:** `GW-DOC-WORK-LIFECYCLE-V1` GW-FR-003/GW-FR-004/GW-FR-006; `GW-DOC-LIFECYCLE-CONTEXT-V2` IMPLEMENT and architecture-feedback-checkpoint boundaries; `GW-DOC-VALIDATION-STANDARD-V1` V2/V4/V5/V6/V7; `GW-DOC-EXECUTION-CONTROL-PLANE-V1`; `GW-DOC-CANONICAL-CONTRACTS-V2` signed task/RunEvent/validation contracts; `GW-DOC-OPENCODE-INTEGRATION-V1` productive provider admission; and the applicable Workbench execution-presentation authority.
 
-**Changed realization re-inspected:** `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts`, `src/shell/opencode.ts`, the neutral `ui/src/workbench-presentation.ts` RunEvent projection, focused core/daemon/presentation/certification proof, and the unchanged current-owner/workspace paths affected by C12.
+**Changed realization re-inspected:** `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts`, `src/shell/opencode.ts`, `src/shell/repository.ts`, the unchanged neutral `ui/src/workbench-presentation.ts` RunEvent projection, and focused core/daemon/OpenCode/certification proof.
 
 ### Current C12 obligation proof
 
 | ID | Current factual realization | Verdict |
 |---|---|---|
-| C12-O01 | Approval/task block -> reconstructed ExecutionTask -> pure current-owner derivation -> daemon exact-task start/recheck; dependency success remains required. | CONFORMS |
-| C12-O02 | BUILDER/REMEDIATOR still start from a fresh Approval-baseline checkout or verified replayed candidate; candidate state crosses Runs through captured evidence, not provider memory. | CONFORMS |
-| C12-O03 | Provider permissions remain role-bounded and shell/execute remains denied. Mutation authority is bounded by signed objective/authority/concerns plus `scope`/exclusions; `changeSurface` is forecast evidence rather than a second permission list. | CONFORMS |
-| C12-O04 | BUILDER alone may emit one terminal `GATE_CHECKPOINT_REQUESTED` per provider turn; the gate must be signed/currently resolvable, coordinator executes it in the current workspace, records `GATE_PASSED`/`GATE_FAILED`, and continues the same Run/provider session. | CONFORMS — C12-F01 disposed |
-| C12-O05 | Existing V0/V1 approval/task/dependency/current-authority/precondition checks are retained before productive mutation. | CONFORMS |
-| C12-O06 | Zero-diff success still requires explicit BUILDER `TASK_ALREADY_SATISFIED`; checkpoint requests do not satisfy or replace terminal candidate handling. | CONFORMS |
-| C12-O07 | V2 now rejects `AGENTS.md`, signed authority/governance/verification material, paths outside signed scope and exclusions. A path absent only from `changeSurface` is admitted as forecast variance and proceeds through V4/V5/V6. | CONFORMS — C12-F02 disposed |
-| C12-O08 | V3/V7 still execute exact signed project gates through the coordinator. Checkpoint gates reuse the same project gate effect but do not replace final V3/V5/V7 evidence. | CONFORMS |
-| C12-O09 | V4 remains fresh read-only semantic review and receives the actual candidate/task/authority/mechanical evidence needed to judge unforecast architecture-preserving decomposition. | CONFORMS |
-| C12-O10 | V5 still rejects signed-authority mutation and executes manifest governance fitness across the candidate; C22-F01 remains separately owned and is not a C12 factual gap. | CONFORMS subject to upstream C22-F01 |
-| C12-O11 | V6 now records exact `forecast`, `actual` and `unforecast` paths and carries independent review evidence; an unforecast same-layer split is not bloat merely because it was absent from the forecast. | CONFORMS |
-| C12-O12 | V7 still reruns required signed gates after review/remediation; checkpoint results do not satisfy V7. | CONFORMS |
-| C12-O13 | `CANDIDATE_DONE` still requires current V0-V7 evidence plus exact candidate linkage; checkpoint success alone cannot complete a task. | CONFORMS |
-| C12-O14 | Failure classification/routing remains bounded; stale/spec/governance/scope failures return/block at their canonical owner and checkpoint failure permits only signed-scope correction or explicit block. | CONFORMS |
-| C12-O15 | Semantic repair budget and operational recovery remain bounded; checkpoint continuation keeps one live provider session with serialized turns rather than creating parallel execution authority. | CONFORMS |
-| C12-O16 | Manual Implementation action still targets the canonical current approved task; historical selection remains inspection-only. | CONFORMS |
-| C12-O17 | Execution master/detail/current-owner presentation is unchanged; the new checkpoint request has only a neutral RunEvent presentation and creates no browser-owned checkpoint state/policy. | CONFORMS |
-| C12-O18 | Out-of-scope discovery remains observation/new-work material; forecast variance does not authorize semantic scope expansion. | CONFORMS |
+| C12-O01 | Approval/signed task block -> immutable reconstructed ExecutionTask -> pure current-owner/dependency eligibility -> daemon exact-task start/recheck. | CONFORMS |
+| C12-O02 | BUILDER/REMEDIATOR start from the exact Approval-baseline checkout or a replayed/hash-verified candidate; candidate state crosses Runs only through captured evidence. | CONFORMS |
+| C12-O03 | Productive OpenCode roles remain deny-first, shell/execute remains denied, and BUILDER/REMEDIATOR native edit capability is derived from a transient signed-`scope` capability envelope rather than `changeSurface`. Final last-match denies cover Git metadata, root/nested `AGENTS.md`, Approval-closure protected material and workspace symlink paths/descendants. Exact repository authorization remains the signed `scope`/exclusions contract enforced by the canonical Bun.Glob validator. | CONFORMS |
+| C12-O04 | BUILDER alone may emit one terminal `GATE_CHECKPOINT_REQUESTED` per provider turn. The gate must be signed and currently resolvable; before any gate effect the coordinator captures the current diff and applies exact V2 scope/exclusion/protected-path admission, then executes the gate and records `GATE_PASSED`/`GATE_FAILED` while continuing the same Run/provider session. | CONFORMS — C12-F01 resolved |
+| C12-O05 | Existing V0/V1 approval/task/dependency/current-authority/precondition checks remain in force before productive mutation. | CONFORMS |
+| C12-O06 | Zero-diff success still requires explicit BUILDER `TASK_ALREADY_SATISFIED`; checkpoint requests neither satisfy nor replace terminal candidate handling. | CONFORMS |
+| C12-O07 | V2 rejects repository instruction paths, signed authority/governance/verification material, paths outside signed scope and exclusions. Forecast absence alone is not a scope breach: an in-scope path absent from `changeSurface` can be produced by the provider capability envelope, is retained as forecast variance, and proceeds through V3-V6. | CONFORMS — C12-F02 resolved |
+| C12-O08 | V3/V7 execute the exact signed project gates through the coordinator. Checkpoint gates use the same coordinator-owned gate effect but never replace final V3/V5/V7 evidence. | CONFORMS |
+| C12-O09 | V4 remains fresh read-only independent semantic review over the replayed candidate, signed task/authority, exact diff and preceding mechanical evidence; current productive reviewer PASS requires an explicit minimum-change proposition. | CONFORMS |
+| C12-O10 | V5 rejects signed-authority mutation and executes manifest governance fitness across the candidate. C22-F01 remains separately owned and does not constitute a C12 factual gap. | CONFORMS subject to upstream C22-F01 |
+| C12-O11 | V6 records exact forecast/actual/unforecast evidence and is no longer unconditional. After V4/V5, the coordinator maps reviewer `MINIMUM_SUFFICIENT` evidence to V6 PASS and `CHANGE_BLOAT` to coordinator-owned `VALIDATION_FAILED / V6 / CHANGE_BLOAT` with the removable-surface summary. Permanent proof exercises one bounded reduction and a subsequent fresh V6 PASS. | CONFORMS |
+| C12-O12 | V7 reruns the required signed gates after review/remediation; checkpoint results do not satisfy V7. | CONFORMS |
+| C12-O13 | `CANDIDATE_DONE` requires the current V0-V7 chain plus exact candidate linkage; checkpoint success alone cannot complete a task. | CONFORMS |
+| C12-O14 | Failure classification/routing remains bounded: scope/governance/spec/stale failures return or block at the canonical owner, and V6 `CHANGE_BLOAT` uses the existing single targeted reduction entitlement. | CONFORMS |
+| C12-O15 | Semantic repair and operational recovery remain bounded; repeated `CHANGE_BLOAT` does not create an unbounded remediator loop, and checkpoint continuation serializes turns in one active provider session rather than creating parallel authority. | CONFORMS |
+| C12-O16 | Manual Implementation action still targets the canonical current approved task; historical task selection remains inspection-only. | CONFORMS |
+| C12-O17 | Execution master/detail/current-owner presentation is unchanged; checkpoint request/result events remain neutral RunEvent presentation and create no browser-owned execution policy. | CONFORMS |
+| C12-O18 | Out-of-scope discovery remains observation/new-work material; provider capability superset and forecast variance do not authorize semantic scope expansion. | CONFORMS |
 | C12-O19 | Execution still cannot commit/push/merge/deploy the product candidate; checkpoint execution is coordinator verification, not provider delivery authority. | CONFORMS |
 | C12-O20 | Approval/material freshness is checked before checkpoint execution/continuation and again before success; stale authority follows the existing upstream-return policy. | CONFORMS |
 
-**Current C12 findings:** NONE. Historical C12-F01/F02 remain traceable as the defects that caused the separately governed foundation remediation, but they are no longer current R1 realization findings.
+**Focused permanent proof re-inspected:** daemon coverage proves full BUILDER -> REVIEWER -> one REMEDIATOR -> final REVIEWER V0-V7 completion, same-Run signed checkpoint continuation, unsigned-checkpoint rejection, out-of-scope checkpoint rejection before any gate result, V5 governance breach, V6 `CHANGE_BLOAT` plus one reduction/fresh pass, and recurrence blocking. OpenCode proof requires signed-scope edit capability plus immutable-path hard denies. Certification permanently rejects the former `for (const path of task.changeSurface)` permission loop and requires the checkpoint-V2 and V6 classification paths.
+
+**Current C12 findings:** NONE. C12-F01 and C12-F02 remain historical causal records only; both are resolved in the current execution foundation.
 
 **Open factual questions:** NONE.  
 **Material UNPROVEN obligations:** NONE.  
 **R1 disposition:** `FACTS_CLOSED`.
 
 **Revalidation trigger:** a change to execution-task/current-owner derivation, provider role/permission admission, checkpoint request/result protocol, signed scope/exclusion/forecast semantics, V0-V7 classification/routing, remediation/recovery budget, or Implementation current-owner presentation.
-
-## Corrective A06 foundation factual candidate — verification pending
-
-**Corrective implementation candidate:** `ba1e3f64fb203b4d67a58d6c80ec653b38f7036c`.  
-**Corrective WorkItem:** `work_6a8de5c1-3f2b-4f7a-9d21-8c0e7b15a642`.  
-**Current campaign disposition:** C12 remains `GAP_FOUND`; ALIGN-A06-F01 remains `OPEN_FOUNDATION`; G0/G1 remain blocked until exact-head verification and current C12 revalidation complete.
-
-The corrective candidate changes the complete affected execution chain rather than only downstream V2:
-
-- `src/shell/opencode.ts` now derives BUILDER/REMEDIATOR native edit capability from a transient signed-`scope` envelope rather than `changeSurface`; final last-match denies cover Git metadata, root/nested `AGENTS.md`, Approval-closure protected material and workspace symlink paths/descendants;
-- `src/shell/repository.ts` exposes the existing workspace symlink surface solely for those transient hard denies; no persisted path/permission model is added;
-- `src/daemon/execution.ts` applies the exact canonical V2 validator to current changed paths before executing a requested checkpoint, so a broad provider capability envelope cannot make an out-of-scope intermediate candidate observable by a gate;
-- current productive `REVIEW_PASSED` requires structured `minimumChange = MINIMUM_SUFFICIENT | CHANGE_BLOAT` evidence; historical persisted passes remain parseable but are not admitted as new provider output;
-- after V4/V5, the coordinator maps `MINIMUM_SUFFICIENT` to V6 PASS and `CHANGE_BLOAT` to `VALIDATION_FAILED / V6 / CHANGE_BLOAT`, reusing the existing one-targeted-remediation policy;
-- permanent daemon proof demonstrates an out-of-scope checkpoint diff produces V2 `SCOPE_BREACH` with zero gate result, and a semantically correct but reducible candidate produces V6 `CHANGE_BLOAT`, one REMEDIATOR reduction, then a fresh V6 PASS;
-- permanent OpenCode proof demonstrates an in-scope path absent from `changeSurface` is inside the productive edit capability envelope while protected/symlink/instruction resources remain denied.
-
-PR Verification #1406 attempt 1 on this implementation candidate passed release metadata, dependency-lock, typecheck, architecture, all 274 non-browser tests, build and release packaging. Its only failure was one pre-existing Markdown-navigation browser case (`tests/browser.spec.ts:2465`) on a UI/document-save surface untouched by the corrective change; 36/37 browser cases passed. A same-SHA rerun was started without weakening that test. This partial verification is implementation evidence only and does **not** close G0/C12.
 
 ## Downstream invariants
 
