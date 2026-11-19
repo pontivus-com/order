@@ -331,7 +331,20 @@ type ExecutionTask = Readonly<{
 
 Task content other than `state` is immutable after materialization.
 
-`changeSurface` contains exact literal `RepositoryPath` values. Every value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, be disjoint from the material authority/project-manifest/verification sources in the Approval closure, and have a final path segment other than `AGENTS.md`. The instruction-path prohibition is existence-independent: a signed task cannot authorize creation of a new `AGENTS.md` merely because the path did not exist when the Approval was materialized. A worker never mutates the authority that authorizes its own execution.
+`scope` plus `exclusions` is the signed task's hard repository-reach boundary. `changeSurface` contains the exact literal `RepositoryPath` values forecast by PLAN as the expected physical implementation surface; it is immutable signed review material, but it is **not** an exhaustive physical-path whitelist.
+
+Every `changeSurface` value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, be disjoint from the material authority/project-manifest/verification sources in the Approval closure, and have a final path segment other than `AGENTS.md`. The instruction-path prohibition is existence-independent: a signed task cannot authorize creation of a new `AGENTS.md` merely because the path did not exist when the Approval was materialized. A worker never mutates the authority that authorizes its own execution.
+
+A candidate path absent from `changeSurface` is not automatically a `SCOPE_BREACH`. It remains admissible only when all of the following hold:
+
+- the path is admitted by signed `scope` and by no signed exclusion;
+- it is not signed authority, project-manifest, verification-authority or repository-instruction material;
+- the implementation/reviewer evidence proves the path is the **minimum same-layer physical decomposition required solely to preserve an already-approved responsibility/effect boundary**;
+- canonical semantic ownership, public contracts, state meaning, dependency direction and authorized behavior are unchanged;
+- V5 architecture/governance gates cover the resulting production module and pass;
+- V4/V6 positively prove the variance is architecture-preserving and minimum-sufficient.
+
+The signed `changeSurface` remains the comparison forecast in that case; Order records the actual changed paths in candidate evidence rather than mutating the task. A changed path outside signed `scope`, inside an exclusion, or representing a new/changed semantic owner, public contract, state model, effect boundary, dependency direction/external dependency, validation contract or authorized behavior is not architecture-preserving variance and returns through the existing `SCOPE_BREACH` / `GOVERNANCE_BREACH` / `SPEC_INVALID` ownership rules as applicable.
 
 A post-signoff task remains `RUNNING` through implementation and V2-V7 validation; validation progress belongs to its Run/RunEvents and does not create another task state.
 
@@ -673,7 +686,9 @@ type SignedTaskBlock = Readonly<{
 }>;
 ```
 
-Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, every forecast `changeSurface` path must be admitted by signed `scope` and no exclusion, and `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+
+Task validation does not infer future decomposition paths. R3 instead proves that the signed scope/decomposition constraints are narrow enough to bound execution while still permitting the S8/S9 architecture-preserving variance rule above. A fixed forecast list must never be used to force a second responsibility into an existing module.
 
 Every `acceptanceRefs` and `authorityRefs` value must resolve through the same manifest's `refs` map described in §14. An unresolved reference is `SPEC_INVALID`; runtime never scans arbitrary prose or invents an alias/source mapping.
 
@@ -3539,4 +3554,6 @@ Provider admission permits this event only for `BUILDER`. It is forbidden for ST
 
 The request carries no result/evidence and does not satisfy validation. Only the coordinator may emit the existing `GATE_PASSED` / `GATE_FAILED` events after executing the exact resolved gate.
 
-The BUILDER turn contract permits at most one checkpoint request as the terminal action of that provider turn. The coordinator reacts, records the result and starts the next turn in the same live Run/session. Any other terminal completion/candidate handling waits until a subsequent turn that does not request a checkpoint.
+The BUILDER turn contract permits at most one checkpoint request as the terminal action of that provider turn. The requested `gateId` must belong to the signed task's resolved gate set. The coordinator reacts, records the result and starts the next turn in the same live Run/session. Any other terminal completion/candidate handling waits until a subsequent turn that does not request a checkpoint.
+
+This protocol is an **execution-baseline capability**, not something a task may bootstrap for its own use. If a signed PLAN requires an architecture-feedback checkpoint, the exact Approval baseline/runtime that will execute that task must already admit `GATE_CHECKPOINT_REQUESTED`, execute the coordinator-owned gate and continue the same Run/session before R3 may return `READY_FOR_SIGNOFF`. Candidate bytes produced by that same task cannot be relied on to make the checkpoint protocol available to an already-running coordinator. A package whose baseline lacks the capability is `SPEC_INVALID` / not ready and returns to the owning pre-signoff layer or prerequisite foundation work; provider shell/execute permission is never granted as a workaround.
