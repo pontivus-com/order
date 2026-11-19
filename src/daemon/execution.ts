@@ -913,10 +913,23 @@ export const executeReviewerRun = async (
   }
 
   const forecastVariance = forecastVariancePaths(task, capture.changedPaths);
-  const v6Evidence = forecastVariance.length === 0
-    ? reviewEvidence
-    : reviewEvidence;
-  const v6 = appendValidationPassed(runtime, run.id, "V6", v6Evidence);
+  const varianceEvidence = writeRunEvidence(
+    runtime,
+    run.id,
+    "validation/v6-change-surface.json",
+    new TextEncoder().encode(canonicalJson({
+      forecast: task.changeSurface,
+      actual: capture.changedPaths,
+      unforecast: forecastVariance,
+    })),
+    "application/json",
+  );
+  const v6 = appendValidationPassed(
+    runtime,
+    run.id,
+    "V6",
+    [...reviewEvidence, varianceEvidence],
+  );
 
   const v7 = await runRequiredGates(runtime, run, task.gateIds, workspace, "V7");
   if (v7.event.tag === "VALIDATION_FAILED") {
