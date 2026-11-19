@@ -2,148 +2,172 @@
 
 # Order 0.6.0 readiness review
 
-**Current-state interpretation:** this file is the canonical R3 verdict for the exact reviewed package below. Campaign progression remains owned by `0.6.0-design-campaign-plan.md`; this R3 does not itself authorize implementation or replace explicit human sign-off.
+**Current-state interpretation:** this file is the canonical R3 verdict for the exact reviewed package below. Campaign progression remains owned exclusively by `0.6.0-design-campaign-plan.md`; this artifact does not itself close campaign state, authorize implementation, or replace explicit human sign-off.
 
 ## Readiness verdict
 
 `READY_FOR_SIGNOFF`.
 
-This is a fresh independent adversarial review performed only after current G5A PASS. It treats R1, R2, DESIGN, PLAN and ALIGN conclusions as untrusted inputs and supersedes every earlier R3 verdict for campaign progression.
+This is a fresh independent adversarial review performed only after the current final vertical alignment stage passed. The prior readiness artifact was treated as stale evidence because it was bound to superseded R1/R2/DESIGN/PLAN identities. No earlier R3 conclusion was inherited.
 
 ## Exact reviewed package
 
-- repository baseline: `727991c8049d0a65fa9ae22e2edcaabac3ee5744`;
+- repository evidence baseline: `704c66cee598ee3b9f479ea20081ad9a49d46fa3`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - WorkItem source `work-request.md`: `0786b08f8bb4e8400523ee92eb5cdcd60fd9dec7`;
-- R1 `research.md`: `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`;
-- R2 `requirements.md`: `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`;
-- DESIGN `solution-design.md`: `9ec7b943365b39819999672abb27654891f4a837`;
-- PLAN `implementation-plan.md`: `863c36468b3d6bfadbbeff4110c27e0a1e5dffe2`;
-- campaign/evidence owner `0.6.0-design-campaign-plan.md`: `9c77e4efca554cb42ad0d032abd2c9027740261c`;
-- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`;
-- permanent architecture/campaign fitness `tests/architecture.test.ts`: `6a5bd394938250c00238db7995d0786b338e933f`;
-- current browser verification source `tests/browser.spec.ts`: `5aa628b4f06f1bcf34961fe216225776352709f1`.
+- R1 `research.md`: `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`;
+- R2 `requirements.md`: `6cf45126912da36b366b821c9c254d9e548e98f2`;
+- DESIGN `solution-design.md`: `6a7c201927370c48e7e218d2182b6e5b63083f3d`;
+- PLAN `implementation-plan.md`: `480cb1be69aa36c9fa4516e7a48d71dcc784e53b`;
+- campaign/evidence owner before this R3 consequence: `4070361318843a3b6b73febbaac89fc98230e327`;
+- final vertical-alignment evidence baseline: `73de0624d3aa85524d64ee68e1f52144e29a9133`;
+- project manifest `pontivus-order.toml`: `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`;
+- lifecycle-context authority: `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7`;
+- specification-standard authority: `b69674076840c78849c7ce775565c73fd92f0ca1`;
+- canonical P6 contracts: `71f829cff8824db18194689eccdec83da6f5d19f`;
+- permanent architecture/campaign fitness: `6a5bd394938250c00238db7995d0786b338e933f`;
+- browser verification source: `5aa628b4f06f1bcf34961fe216225776352709f1`.
 
-Freshness trigger: PLAN root commit `97a50d394dbc662746fbd2b5c6af78c329a7ce8d` corrected only the P7 authority sentence so current implementation/tests are never preservation authority and DESIGN remains the authority for `POSITIVE_NO_CHANGE`/baseline-reuse dispositions. Campaign baseline `727991c8049d0a65fa9ae22e2edcaabac3ee5744` contains the corrected current PLAN-A01-A11 records, fresh H4 integration audit, fresh ALIGN-A01-A11/H1 records and an explicitly reopened G6 pending this R3, all against corrected PLAN `863c36468b3d6bfadbbeff4110c27e0a1e5dffe2`. R1, R2, DESIGN, modular PLAN sources, production/UI/runtime/provider bytes, task semantics, scope/exclusions, IA ownership, checkpoints and proof propositions are unchanged. Exact-head PR verification remains delivery provenance and does not supply desired-state authority.
+The only repository mutations produced by this R3 are this verdict artifact and the campaign's bounded state consequence. They do not change R1, R2, DESIGN, PLAN, permanent P1-P6 authority, production code, tests, task semantics, scope, exclusions, forecast, verification ownership, or implementation behavior.
+
+## Independence and freshness challenge
+
+**PASS.**
+
+The final R1 reconstruction was performed on repository baseline `789e962bfa4d6cbbe6c6243b963f4c43f3dfff85`. Comparing that baseline with the reviewed head changes only this WorkItem's downstream `requirements.md`, `solution-design.md`, `implementation-plan.md`, modular PLAN authoring sources and campaign evidence. No production, UI, runtime, provider, test, manifest or permanent P1-P6 authority file changed after R1 reconstruction. Therefore no later repository mutation makes the current R1 realization evidence stale.
+
+The final vertical-alignment records bind exactly to R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c`, R2 `6cf45126912da36b366b821c9c254d9e548e98f2`, DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d` and PLAN `480cb1be69aa36c9fa4516e7a48d71dcc784e53b`; all eleven domain audits and the integrated audit are PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
 
 ## S1-S12 package challenge
 
 | Specification section | R3 result | Evidence |
 |---|---|---|
-| S1 identity/state | PASS | one governed WorkItem source, one campaign state owner, one current R1/R2/DESIGN/PLAN/R3 lifecycle path; modular PLAN sources are compile inputs only |
-| S2 proven outcome | PASS | Work request fixes authority-driven 0.6.0 reconstruction as the requested outcome and forbids current-state preservation as product authority |
-| S3 research facts | PASS | R1 has no open factual question and zero material `UNPROVEN`; later verification-harness change was freshly revalidated without changing product facts |
-| S4 pyramid requirements | PASS | exactly 112 unique stable R2 rows, all canonical `REFERENCE`; package-local consequences remain explicit and no implementation choice is promoted into P3 authority |
-| S5 scope/exclusions | PASS | one signed cumulative T1 has explicit hard scope, 17 exclusions and a 28-path forecast; no implicit “while here” scope |
-| S6 resolved governance set | PASS | current P1-P6 owners and exact semantic versions resolve through the manifest; no competing current owner, unsupported shadow specification or unresolved authority contradiction was found |
-| S7 design | PASS | 112 unique stable DESIGN rows + 25 unique package atoms + SD01-SD19; zero material technical `UNPROVEN`; no open technical question |
-| S8 implementation plan | PASS | 112 unique stable PLAN rows + 25 atoms + IA01-IA25; 14/14 modular source hashes match; one cumulative T1; no material P1-P6 choice is delegated to implementation |
-| S9 minimum-change forecast | PASS | signed T1 `changeSurface` is exactly the 28-path DESIGN forecast; canonical scope/exclusions remain the hard boundary and forecast variance is governed by existing V4/V5/V6 proof rather than dynamic scope expansion |
-| S10 verification contract | PASS | exact final gate union is dependency-lock/typecheck/architecture/test/build/browser; coordinator-owned architecture checkpoints A-F gate Waves 1-6; action-specific proof owners remain explicit |
+| S1 identity/state | PASS | one source-backed WorkItem, one current R1/R2/DESIGN/PLAN/R3 lifecycle path and one campaign state owner; exact source/package identities are recorded above |
+| S2 proven outcome | PASS | Work request requires authority-driven reconstruction of the intended 0.6.0 design and explicitly rejects released/current implementation as normative product authority |
+| S3 research facts | PASS | R1 has zero material UNPROVEN; no runtime/test/P1-P6 evidence source changed after the final R1 reconstruction |
+| S4 pyramid requirements | PASS | R2 contains exactly 112 unique stable canonical requirement rows, all with canonical REFERENCE ownership; package consequences are explicit and implementation does not become P3 authority |
+| S5 scope/exclusions | PASS | one signed cumulative T1 has seven hard scope patterns, 17 explicit exclusions and an exact 28-path forecast; no implicit while-here scope exists |
+| S6 resolved governance set | PASS | all 25 signed acceptance/authority refs resolve through current manifest `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`; no unsupported shadow owner or unresolved authority contradiction was found |
+| S7 design | PASS | DESIGN contains the same 112 stable identities, 25 unique package atoms and SD01-SD19; failure/recovery, rejected alternatives, owner/boundary flow and zero open technical questions are explicit |
+| S8 implementation plan | PASS | PLAN contains the same 112 stable identities and 25 atoms, 14/14 modular source hashes match, IA01-IA25 are singular and one cumulative T1 delegates no material P1-P6 decision |
+| S9 minimum-change forecast | PASS | T1 `changeSurface` equals the DESIGN forecast exactly 28/28; every forecast path is inside scope and outside exclusions; same-layer variance is governed by V4/V5/V6 rather than silent scope expansion |
+| S10 verification contract | PASS | task gate union is exactly dependency-lock/typecheck/architecture/test/build/browser; every gate and concern resolves in the manifest and all concern-required gates are signed |
 | S11 open-question ledger | PASS | unresolved factual, product, authority, architecture and implementation-blocking questions are all zero |
-| S12 readiness verdict | PASS | this R3 returns `READY_FOR_SIGNOFF` with the exact evidence package above |
+| S12 readiness verdict | PASS | this independent R3 returns `READY_FOR_SIGNOFF` with exact evidence identities and no repair performed inside R3 |
 
 ## Authority-topology challenge
 
 **PASS.**
 
-The permanent P1-P6 canonical-owner graph remains the normative source. The WorkItem owns only its governed change package and campaign progression. Current canonical-document uniqueness/version lineage is mechanically guarded by permanent architecture fitness. Historical semantic versions, Git history, prior releases and prior campaign/R3 records remain provenance rather than competing current owners.
+The permanent P1-P6 graph remains normative. The WorkItem owns only its governed change package and campaign process. Stable/versioned authority references resolve through `pontivus-order.toml [refs]`; R2 stable requirements resolve to canonical P3 owners; DESIGN consumes rather than duplicates P4-P6 ownership; PLAN is the sole normative P7 task artifact.
 
-The WorkItem contains exactly one current root R1, R2, DESIGN, PLAN and R3 lifecycle artifact. `implementation-plan/00-13` are exact-hash authoring sources compiled into the one canonical root PLAN; they own no independent lifecycle/task/status authority. No parallel remediation/completion/handover/alternative implementation plan is present.
+There is exactly one current root R1, R2, DESIGN, PLAN and R3 artifact. `implementation-plan/00-13` are exact-hash authoring inputs compiled into the one root PLAN and carry no independent task/lifecycle authority. No remediation, handover, alternate plan, DTO/model family or shadow specification competes with the current package.
 
-## Campaign-completeness challenge
+## Concern and finding challenge
 
 **PASS.**
 
-- concern register contains exactly C01-C22;
-- every concern has exactly one CONCERN START and one CONCERN END record;
-- all 22 current Overall states are `CLOSED`;
-- no `OPEN_*` campaign finding status remains;
-- historical `ALIGN-A06-F01/F02/F03` are now finally disposed as `RESOLVED_PLAN` against the current PLAN and ALIGN evidence;
-- R1/R2/DESIGN/PLAN pair audits A01-A11 are current PASS on exact baseline `fbe6850c51524d12be18eab2d1704279a05f2790`;
-- ALIGN-A01-A11 and ALIGN-H1 are current PASS on that exact semantic package, with Q1-Q12 PROVEN in each domain;
-- the only subsequent repository mutation is campaign evidence/state bookkeeping and does not alter any consumed semantic obligation or proof source.
+- the master register contains exactly C01-C22;
+- each concern has exactly one CONCERN START and one CONCERN END record;
+- every concern has R2=`FUNCTIONAL_CLOSED`, DESIGN=`TECHNICAL_CLOSED` and PLAN=`PLAN_COVERED`;
+- R1 `GAP_FOUND` cells are closed factual records whose downstream disposition is complete, not open phase state;
+- no `OPEN_*` finding disposition remains;
+- findings recorded as `DESIGNED` have exact DESIGN/PLAN ownership and final vertical proof; they are not unresolved incoming findings;
+- mandatory R1/R2/DESIGN/PLAN pair audits A01-A11 are PASS;
+- all final vertical domain audits plus the integrated audit are PASS.
 
-No concern is closed with an unresolved incoming finding.
+Immediately before this R3, each concern's Overall state remains `REVALIDATION` solely because final readiness has not yet been adjudicated. This review finds every concern eligible for `Overall=CLOSED`: all applicable phases have passed and no unresolved incoming cross-concern finding remains. The campaign register, not this file, owns that state mutation.
 
 ## R1 challenge
 
 **PASS.**
 
-R1 remains `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`. It explicitly distinguishes authority from implementation evidence, has no open factual question and records zero material `UNPROVEN` obligations. The browser-verification correction changes how canonical PLAN save/readback is observed; it does not change runtime behavior or any R1 fact. Current implementation, UI, tests, prior releases and historical design are evidence only, never desired-state authority.
+R1 `8ccdb12606ef31c20d4f7c2c0ef8bb869e1e901c` explicitly separates canonical authority from implementation evidence, classifies every material realization, contains no open factual question and records zero material UNPROVEN obligations. The post-R1 repository-diff challenge proves no implementation/test/permanent-authority mutation invalidated those facts.
 
 ## R2 challenge
 
 **PASS.**
 
-R2 contains exactly 112 unique stable canonical `REFERENCE` rows and no `LOCAL` requirement. Every fresh factual finding has an explicit functional disposition; open product/authority questions are `NONE`. The package does not silently turn current behavior into a compatibility or preservation contract.
+R2 `6cf45126912da36b366b821c9c254d9e548e98f2` contains exactly 112 unique stable canonical requirement identities with no LOCAL row. Its strengthened package contract explicitly covers work kind, workflow step, information/hierarchy, interaction, OpenCode behavior, states/actions/transitions, failures/recovery/negative behavior and downstream consequences. Reference disposition is not used as shorthand for missing functional design.
+
+No product or authority decision remains for implementation.
 
 ## DESIGN challenge
 
 **PASS.**
 
-DESIGN contains exactly the same 112 stable requirement identities as R2, 25 unique package-local atoms including `PL-C12-02`, SD01-SD19, no missing/extra stable row, and zero material technical `UNPROVEN`. It keeps the checkpoint and scope/forecast execution foundation as baseline reuse, preserves v1 signed-task semantics while specifying only the current-v2 non-vacuity delta, introduces no new WorkStage/status/outcome/persistence/API family or external dependency, and leaves no technical question open.
+DESIGN `6a7c201927370c48e7e218d2182b6e5b63083f3d` contains exactly the same 112 stable requirement identities and 25 package atoms, with SD01-SD19. It explicitly realizes the complete work-kind/workflow-step contract, canonical carrier chains, OpenCode/session/input/proposal behavior, current-attention/material semantics, failure/recovery, reuse/remove/replace decisions, rejected alternatives and permanent proof ownership.
 
-## PLAN challenge
+No new WorkStage/status/outcome family, persistence/API family, DTO/OOP/service/repository/controller abstraction family or dependency is authorized. Open technical questions and material technical UNPROVEN are zero.
+
+## PLAN and signed-task challenge
 
 **PASS.**
 
-PLAN contains exactly the same 112 stable identities and 25 atoms as DESIGN with no missing/extra row. All 14 modular source SHA pins match the current source blobs. IA01-IA25 are each defined once; shared IA references are consumers rather than duplicate owners; IA23/IA24 remain integration/final closeout rather than generic substitutes for known proof.
+PLAN `480cb1be69aa36c9fa4516e7a48d71dcc784e53b` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
 
-The single cumulative T1 has:
+The sole canonical `order-tasks` block contains one cumulative `T1` with:
 
-- one materially specific objective;
-- hard scope over README/core/daemon/shell/UI/tests/CHANGELOG;
-- 17 explicit exclusions protecting execution-foundation and non-T1 owners;
-- 11 acceptance references and 14 authority references;
-- exact 28-path `changeSurface`, identical to DESIGN;
-- exact gate union dependency-lock/typecheck/architecture/test/build/browser;
-- exact concern union core/daemon/foundation/shell/ui/verification;
-- no task dependency requiring candidate-byte transport.
+- non-empty id and materially specific objective;
+- no task dependency;
+- seven scope patterns;
+- 17 explicit exclusions;
+- 11 acceptance references;
+- 14 authority references;
+- 28 exact `changeSurface` paths;
+- six logical gates;
+- six concern ids.
 
-IA07/IA08 are proof/reuse actions only. T1 does not bootstrap the checkpoint or scope/variance mechanism that governs its own execution.
+Mechanical challenge results:
 
-## ALIGN and bidirectional-trace challenge
+- 28/28 DESIGN forecast paths equal T1 `changeSurface`;
+- zero forecast paths lie outside signed scope;
+- zero forecast paths are covered by exclusions;
+- all signed acceptance/authority refs resolve through current manifest;
+- all signed concern ids resolve;
+- all signed gate ids resolve;
+- no concern-required logical gate is omitted;
+- the single-task package has no candidate-byte dependency problem.
+
+The exact current T1 is therefore materially non-vacuous even though SD10 correctly retains implementation work to make current-v2 non-vacuity admission a permanent canonical runtime guarantee. That future enforcement delta does not make this exact signed package ambiguous.
+
+## Bidirectional trace challenge
 
 **PASS.**
 
 Forward trace closes:
 
-`canonical P2/P3 -> exact R1 evidence -> R2 consequence -> DESIGN disposition/SD -> PLAN IA/no-code/baseline proof -> verification owner`.
+`canonical P2/P3 -> R1 evidence -> R2 functional consequence -> DESIGN disposition/SD -> PLAN IA/no-code/DESIGN-positive proof -> verification owner`.
 
-Reverse trace also closes:
+Reverse trace closes:
 
 `IA/proof -> SD/technical obligation -> R2/P3 authority -> factual evidence`.
 
-Counts agree exactly: 112 R2 = 112 DESIGN = 112 PLAN stable identities; 25 DESIGN = 25 PLAN atoms; IA01-IA25 are unique. No orphan IA semantic work, unowned package atom, shadow task model or implementation action without upstream authority was found.
+Counts independently agree: 112 R2 = 112 DESIGN = 112 PLAN stable identities; 25 DESIGN = 25 PLAN package atoms; SD01-SD19 and IA01-IA25 are unique; five corrected-upstream A01 no-code traces remain explicit. No orphan implementation action, package atom, proof proposition or shadow task model was found.
 
-The historical A06 alignment failures are specifically closed:
-
-- forecast absence is no longer treated as automatic scope failure;
-- checkpoint execution is pre-existing coordinator capability with explicit A-F cadence;
-- signed T1 concern ownership includes `shell`.
-
-## Architecture and minimum-change challenge
+## Failure, recovery and negative-behavior challenge
 
 **PASS.**
 
-FCIS, SoC, DRY/canonical ownership, strict typing, authority-before-inference, minimum change and the prohibition on OOP/DTO/service/repository/controller families remain binding.
+R2 explicitly defines required failure/recovery/negative behavior across applicable work-kind and workflow-step interactions. DESIGN has a dedicated failure/recovery contract covering unresolved authority, stale proposals, durable decisions without adopted authority, vacuous v2 tasks, blank approval identity, unsigned checkpoints, source conflicts, installer failure/rollback and upstream return when implementation discovers a new semantic owner/contract/state/effect/dependency/validation behavior.
 
-The broad signed scope is not an implicit permission surface: exclusions/protected material remain hard, the 28-path forecast is immutable review evidence, and any unforecast path must positively satisfy the existing same-layer V4/V5/V6 minimum-sufficiency proof. Any new semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior returns upstream.
+PLAN preserves the same stop/return boundary. An implementation worker may choose only local mechanics inside the signed design; any new product behavior, semantic architecture, public contract, state meaning, dependency, validation contract or scope meaning returns upstream. No failure path is delegated to ad hoc worker judgment.
 
-## Installer and productive-boundary challenge
+## Minimum-change and architecture challenge
 
 **PASS.**
 
-Current authority requires guided productive bootstrap. SD19/IA25 changes only the existing guided setup owner and its installer proof so fresh installation cannot report success while mandatory repository/account/model setup remains incomplete. Existing incomplete-v4 recovery and supported update/migration continuity remain separate baseline capabilities. `src/installer.ts` is not pre-authorized implementation surface; if current evidence is disproved and that owner must change, execution returns to DESIGN rather than broadening T1.
+FCIS, SoC, DRY/canonical ownership, strict typing, authority-before-inference, minimum change and the no-OOP/no-DTO architecture remain binding. The broad scope is a reach envelope, not permission to mutate everything inside it. The exact 28-path forecast is immutable review evidence. An unforecast path is admissible only when it is inside signed scope/outside exclusions and positively satisfies the existing same-layer V4/V5/V6 architecture/minimum-sufficiency proof; any semantic architecture change returns upstream.
+
+The design explicitly rejects new proposal/task/source/readiness/config DTO/service/state models and unnecessary installer/config/schema expansion.
 
 ## Verification challenge
 
 **PASS.**
 
-Permanent architecture fitness structurally enforces the campaign-state owners, exact stable sets, PLAN source/root compilation, one task block, signed forecast/gate/concern sets and current ALIGN record shape. The immediately preceding ALIGN package head is fully green through dependency-lock, typecheck, architecture, 274 unit/integration tests, build, release packaging and all 37 browser tests.
+Permanent architecture fitness `6a5bd394938250c00238db7995d0786b338e933f` independently enforces campaign-state ownership, stable requirement sets, PLAN compilation/source identities, single task-block structure, signed forecast/gate/concern sets and current vertical-audit structure.
 
-These green tests corroborate feasibility and current evidence only; they are not used as substitutes for authority, semantic traceability or this independent R3 review.
+PR Verification #1487 / run `44632779685` is fully green on exact reviewed head `704c66cee598ee3b9f479ea20081ad9a49d46fa3`: release metadata, dependency-lock, typecheck, architecture, full test, build, release packaging and browser all passed. These results corroborate package feasibility and freshness; they do not substitute for authority or this R3 semantic judgment.
 
 ## Open decision/conflict ledger
 
@@ -158,19 +182,14 @@ These green tests corroborate feasibility and current evidence only; they are no
 | DESIGN row without disposition | NONE |
 | package atom without solution | NONE |
 | delta without IA/proof ownership | NONE |
-| positive-no-change without evidence/proof | NONE |
+| positive-no-change/DESIGN-positive reuse without proof owner | NONE |
 | orphan IA semantic work | NONE |
 | unsigned required implementation surface | NONE |
 | unsupported shadow specification | NONE |
 | duplicate current canonical owner | NONE |
-| compatibility/fallback preservation target | NONE |
+| compatibility/fallback/current-state preservation target | NONE |
 | verification-material self-mutation inside T1 | NONE |
-
-## Final adversarial question
-
-No current package defect was found that would force the implementation worker to invent product behavior, choose architecture, reinterpret canonical ownership, create an unauthorized state/DTO/transport model, expand semantic scope, or guess how success is proven.
-
-Implementation can still discover that a current positive-no-change fact is false, that a forecasted owner cannot realize the approved design, or that a checkpoint/gate fails. Those are already governed stop/return conditions; they are not unresolved pre-signoff decisions and do not authorize downstream invention.
+| unresolved incoming cross-concern finding | NONE |
 
 ## Adversarial findings
 
@@ -182,6 +201,6 @@ No finding requires return to R1, R2, DESIGN or PLAN.
 
 `READY_FOR_SIGNOFF`.
 
-The exact reviewed package is coherent, current, authority-driven, bidirectionally traceable and executable without a material implementation decision being delegated downstream.
+The exact reviewed package is current, authority-driven, bidirectionally traceable and executable without delegating a material product, architecture, ownership, scope or verification decision to implementation.
 
-This verdict **does not authorize T1**. Explicit human sign-off of the exact current package remains the separate canonical action required before implementation.
+This verdict does **not** authorize T1. Explicit human sign-off of the exact current package remains the separate canonical action required before implementation.
