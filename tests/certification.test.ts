@@ -1586,7 +1586,6 @@ describe("A06 execution-foundation certification", () => {
       "run the applicable resolved architecture fitness gate before proceeding",
     );
 
-    const opencode = read("src/shell/opencode.ts");
     expect(opencode).toContain("remediatorProviderTags");
     expect(opencode).toContain('role === "BUILDER"');
   });
