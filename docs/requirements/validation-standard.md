@@ -146,6 +146,8 @@ The reviewer returns only:
 - `FAIL_REPAIRABLE`;
 - `BLOCKED_SPEC_OR_DESIGN`.
 
+For a productive current `PASS`, the reviewer also supplies the structured V6 proposition `MINIMUM_SUFFICIENT` or `CHANGE_BLOAT`; the latter includes a non-empty summary identifying removable surface. This is reviewer evidence, not ownership of the durable validation class. The coordinator remains the owner that emits `VALIDATION_PASSED / V6` or `VALIDATION_FAILED / V6 / CHANGE_BLOAT` after V5.
+
 It cannot edit the implementation.
 
 ## 8. V5 — Architecture and governance validation
@@ -185,7 +187,7 @@ The validator asks:
 - If the diff includes a same-layer physical split, is that split the minimum structure required to preserve an existing responsibility/effect boundary rather than speculative fragmentation? Such an architecture-preserving split is not `CHANGE_BLOAT` merely because it adds a file.
 - Did the actual change surface materially exceed the approved forecast?
 
-A failure here is a real validation failure even if all tests pass.
+A failure here is a real validation failure even if all tests pass. V6 consumes the structured minimum-change proposition from the independent V4 reviewer after V5 has passed; it must not manufacture PASS merely because variance evidence was written. `CHANGE_BLOAT` is emitted by the coordinator at V6 and retains the existing one-targeted-reduction policy.
 
 ## 10. V7 — Final required gates
 
