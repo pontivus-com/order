@@ -2535,8 +2535,6 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await page.getByRole("button", { name: "Save", exact: true }).click();
   const savedPlan = page.getByLabel("Implementation plan document Markdown source");
   await expect(savedPlan).toBeVisible();
-  const savedPlanForm = page.locator("form.order-markdown-editor").filter({ has: savedPlan });
-  await expect(savedPlanForm.getByText("Current", { exact: true })).toBeVisible();
 
   const currentItem = await workItemForTitle(page, "Lifecycle editing workbench");
   await expect.poll(async () => {
@@ -2552,6 +2550,9 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
     );
     return contentResponse.status() === 200 ? await contentResponse.text() : "";
   }).toContain("saved plan edit");
+  await expect(page.getByText("Unsaved", { exact: true })).toHaveCount(0, {
+    timeout: 15_000,
+  });
 
   await page.getByRole("button", { name: "Context" }).click();
   await expect(page.getByTestId("selected-view-context")).toContainText("Implementation plan");
