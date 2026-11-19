@@ -2,6 +2,8 @@
 
 # Order 0.6.0 readiness review
 
+**Current-state interpretation:** this file records the R3 verdict for the exact reviewed package below. It does not project current campaign readiness, sign-off or implementation authority. Current campaign progression is owned by the registers in `0.6.0-design-campaign-plan.md`; when the reviewed package is superseded or invalidated, the verdict below remains historical evidence until a fresh governed R3 replaces it.
+
 ## Readiness verdict
 
 `READY_FOR_SIGNOFF`.

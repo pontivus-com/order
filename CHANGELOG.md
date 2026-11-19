@@ -16,6 +16,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Clarify 0.6.0 documentation-state hygiene so retained G1/PLAN/R3 audit records and the canonical R3 verdict cannot be mistaken for current campaign state, while preserving the campaign registers as the sole current-state owners and creating no parallel plan or readiness authority.
+
 - Restore canonical external-facts snapshot lineage: retain the exact 2026-11-12 factual source under its dated version identity, keep the live factual owner current, bind permanent consumers through stable `GW-DOC-EXTERNAL-FACTS`, and permanently reject dated snapshot/version/Verified-date drift.
 
 - Reopen and close the A06 execution-foundation fidelity gap: derive productive BUILDER/REMEDIATOR edit capability from signed scope rather than `changeSurface` forecast, hard-deny immutable authority/instruction/Git/symlink paths, revalidate exact scope before checkpoint effects, and restore coordinator-owned V6 `CHANGE_BLOAT` with one bounded reduction path.
