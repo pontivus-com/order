@@ -104,13 +104,19 @@ export const stageProviderTags = new Set([
   "OBSERVATION_RECORDED",
 ]);
 
-export const builderProviderTags = new Set([
+const mutatingProviderTags = [
   "AGENT_MESSAGE_FINAL",
   "STAGE_BLOCKED",
+  "OBSERVATION_RECORDED",
+] as const;
+
+export const builderProviderTags = new Set([
+  ...mutatingProviderTags,
   "TASK_ALREADY_SATISFIED",
   "GATE_CHECKPOINT_REQUESTED",
-  "OBSERVATION_RECORDED",
 ]);
+
+export const remediatorProviderTags = new Set(mutatingProviderTags);
 
 export const reviewerProviderTags = new Set([
   "REVIEW_PASSED",
@@ -127,7 +133,9 @@ export const providerEventIsAdmitted = (
       ? stageProviderTags.has(payload.tag)
       : role === "REVIEWER"
         ? reviewerProviderTags.has(payload.tag)
-        : builderProviderTags.has(payload.tag);
+        : role === "BUILDER"
+          ? builderProviderTags.has(payload.tag)
+          : remediatorProviderTags.has(payload.tag);
 
   if (!allowed) return false;
 
