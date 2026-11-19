@@ -1215,8 +1215,10 @@ describe("architecture fitness", () => {
     const concernByPath = new Map<string, ConcernMetadata>();
     const currentOwnerByStable = new Map<string, string>();
     const seenVersioned = new Map<string, string>();
+    const retainedVersionMatch = (path: string): RegExpMatchArray | null =>
+      path.match(/\.v([0-9]+)(?:-(\d{4}-\d{2}-\d{2}))?\.md$/);
     const retainedSemanticVersionPath = (path: string): boolean =>
-      /\.v[0-9]+\.md$/.test(path);
+      retainedVersionMatch(path) !== null;
 
     for (const path of activeDocumentationFiles) {
       const source = sourceText(path);
@@ -1237,14 +1239,29 @@ describe("architecture fitness", () => {
           `${path}: versioned concern id ${versioned} must extend stable id ${stable} with -V...`,
         );
       }
-      const retainedVersion = path.match(/\.v([0-9]+)\.md$/)?.[1];
-      if (
-        retainedVersion !== undefined &&
-        !versioned.endsWith(`-V${retainedVersion}`)
-      ) {
-        violations.push(
-          `${path}: retained semantic-version filename must match ${versioned}`,
-        );
+      const retainedVersion = retainedVersionMatch(path);
+      if (retainedVersion !== null) {
+        const semanticVersion = retainedVersion[1];
+        const snapshotDate = retainedVersion[2];
+        const expectedSuffix =
+          `-V${semanticVersion}${snapshotDate === undefined ? "" : `-${snapshotDate}`}`;
+        if (!versioned.endsWith(expectedSuffix)) {
+          violations.push(
+            `${path}: retained semantic-version filename must match ${versioned}`,
+          );
+        }
+      }
+
+      const versionSnapshotDate =
+        versioned.match(/-V[0-9]+-(\d{4}-\d{2}-\d{2})$/)?.[1];
+      if (versionSnapshotDate !== undefined) {
+        const verifiedDate =
+          source.match(/^\*\*Verified:\*\*\s*(\d{4}-\d{2}-\d{2})\s*$/m)?.[1];
+        if (verifiedDate !== versionSnapshotDate) {
+          violations.push(
+            `${path}: dated version ${versioned} must match declared Verified date ${versionSnapshotDate}`,
+          );
+        }
       }
 
       if (!retainedSemanticVersionPath(path)) {
@@ -1406,12 +1423,12 @@ describe("architecture fitness", () => {
 
         for (const [index, line] of lines.entries()) {
           if (![...referenceForms].some((reference) => line.includes(reference))) continue;
-          if (
-            !line.includes(metadata.stableId) &&
-            !line.includes(metadata.versionedId)
-          ) {
+          const concernIds = [...concernByPath.values()]
+            .filter((candidate) => candidate.stableId === metadata.stableId)
+            .flatMap((candidate) => [candidate.stableId, candidate.versionedId]);
+          if (!concernIds.some((id) => line.includes(id))) {
             violations.push(
-              `${sourcePath}:${index + 1}: reference to ${metadata.path} must carry ${metadata.stableId} or ${metadata.versionedId}`,
+              `${sourcePath}:${index + 1}: reference to ${metadata.path} must carry an identifier for canonical concern ${metadata.stableId}`,
             );
           }
         }
