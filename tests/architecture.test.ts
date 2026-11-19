@@ -2382,6 +2382,20 @@ describe("architecture fitness", () => {
       }
     }
 
+    const designSurfaceSection =
+      design.split("## Exact implementation surface forecast")[1]?.split(
+        "## Contract/state/persistence/transport consequences",
+      )[0] ?? "";
+    const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
+      (match) => match[1],
+    );
+    if (designSurface.length !== 28 || duplicates(designSurface).length > 0) {
+      violations.push(
+        "DESIGN implementation forecast must contain 28 unique paths; found " +
+          designSurface.length,
+      );
+    }
+
     const taskBlocks = [...plan.matchAll(/```order-tasks\n([\s\S]*?)\n```/g)];
     if (taskBlocks.length !== 1) {
       violations.push(
@@ -2393,33 +2407,76 @@ describe("architecture fitness", () => {
         const parsed = JSON.parse(taskBlocks[0][1]) as {
           tasks?: readonly {
             scope?: readonly string[];
+            exclusions?: readonly string[];
             changeSurface?: readonly string[];
             gateIds?: readonly string[];
+            concernIds?: readonly string[];
           }[];
         };
         const task = parsed.tasks?.[0];
         if (parsed.tasks?.length !== 1 || task === undefined) {
           violations.push("PLAN root must define exactly one cumulative T1");
-        } else {
+        } else if (g5Status === "PASS") {
           const surfaceSection =
             plan.split("## Exact signed implementation surface")[1]?.split(
-              "### Explicit exclusions",
+              "## Exhaustive traceability invariants",
             )[0] ?? "";
           const signedSurface = [...surfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
             (match) => match[1],
           );
-          if (signedSurface.length !== 30) {
+          if (signedSurface.length !== 28 || duplicates(signedSurface).length > 0) {
             violations.push(
-              "PLAN signed surface must contain exactly 30 paths; found " +
+              "PLAN signed changeSurface must contain 28 unique paths; found " +
                 signedSurface.length,
             );
           }
-          exactSet("T1 scope", task.scope ?? [], signedSurface);
-          exactSet("T1 changeSurface", task.changeSurface ?? [], signedSurface);
+          exactSet("PLAN signed changeSurface", signedSurface, designSurface);
+          exactSet(
+            "T1 scope",
+            task.scope ?? [],
+            [
+              "README.md",
+              "src/core/**",
+              "src/daemon/**",
+              "src/shell/**",
+              "ui/src/**",
+              "tests/**",
+              "CHANGELOG.md",
+            ],
+          );
+          exactSet(
+            "T1 exclusions",
+            task.exclusions ?? [],
+            [
+              "src/daemon/execution.ts",
+              "src/daemon/validation.ts",
+              "src/daemon/server.ts",
+              "src/shell/config.ts",
+              "src/shell/file-write.ts",
+              "src/shell/opencode.ts",
+              "src/shell/process.ts",
+              "src/shell/project-config.ts",
+              "src/shell/project.ts",
+              "src/shell/repository.ts",
+              "src/shell/runtime.ts",
+              "src/shell/sqlite.ts",
+              "src/shell/work-item-source.ts",
+              "ui/src/http.ts",
+              "ui/src/query-keys.ts",
+              "ui/src/theme.css",
+              "tests/architecture.test.ts",
+            ],
+          );
+          exactSet("T1 changeSurface", task.changeSurface ?? [], designSurface);
           exactSet(
             "T1 gate union",
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
+          );
+          exactSet(
+            "T1 concern union",
+            task.concernIds ?? [],
+            ["core", "daemon", "foundation", "shell", "ui", "verification"],
           );
         }
       } catch {
