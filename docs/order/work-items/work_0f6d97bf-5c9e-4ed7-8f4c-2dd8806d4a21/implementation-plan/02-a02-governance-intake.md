@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ## Stable requirement execution dispositions
 
@@ -23,7 +23,7 @@ Stable rows in phase: **8**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C22-01` | C22-F01 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings before productive interpretation. |
+| `PL-C22-01` | C22-F01 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings before productive interpretation; IA02 also owns the exact production-path certification proof declared by SD02. |
 | `PL-C02-01` | C02-F01 | `SD03` | `IA11` | — | Ordinary Create language is Concerns, not raw Concern IDs. |
 | `PL-C02-02` | C02-F02 | `SD03` | `IA11` | — | Linked remediation project is fixed to parent project and not offered as invalid editable choice. |
 | `PL-C02-03` | C02-F03/C04-F01 | `SD04` | `IA09`, `IA10` | — | Created and discovered sources share one productive admission/persistence owner. |
@@ -44,5 +44,6 @@ Package atoms in phase: **4**.
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
 3. dependency-only rows consume the named IA action without duplicating its implementation;
 4. every package atom is satisfied by its one execution owner;
-5. action-specific tests plus `13-verification-closeout.md` pass;
-6. any evidence contradiction returns upstream rather than broadening scope.
+5. SD02 certification is owned by IA02 and proves the productive production path, not only the pure helper/daemon unit boundary;
+6. action-specific tests plus `13-verification-closeout.md` pass;
+7. any evidence contradiction returns upstream rather than broadening scope.
