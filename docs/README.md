@@ -88,7 +88,7 @@ The Workbench P4 design is split by concern: the component owner defines state/t
 
 ## External facts and references
 
-- [External facts](references/external-facts.md) — `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`
+- [External facts](references/external-facts.md) — `GW-DOC-EXTERNAL-FACTS`
 - [OpenSpec](references/openspec.md) — `GW-DOC-REF-OPENSPEC-V1-2026-11-12`
 - [GitHub Spec Kit](references/spec-kit.md) — `GW-DOC-REF-SPEC-KIT-V1-2026-11-12`
 - [Kiro Specs](references/kiro-specs.md) — `GW-DOC-REF-KIRO-SPECS-V1-2026-11-12`
