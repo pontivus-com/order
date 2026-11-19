@@ -13,7 +13,7 @@ Post-signoff execution therefore has no mutation surface and may only prove the 
 1. retain exact 2026-11-12 external-facts blob under the dated retained semantic path;
 2. assign the live external-facts owner its actual 2026-11-16 version ID;
 3. update manifest resolution for stable current, exact 2026-11-12 and exact 2026-11-16 identities;
-4. rebind current permanent consumers to stable `GW-DOC-EXTERNAL-FACTS`;
+4. rebind the complete current permanent consumer set identified by R1/DESIGN to stable `GW-DOC-EXTERNAL-FACTS`, including Workbench and theme architecture consumers surfaced by the first exact-head architecture run;
 5. extend existing architecture fitness for dated retained versions and Verified-date equality;
 6. update ordinary delivery metadata;
 7. verify no retained historical source was modified.
