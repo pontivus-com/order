@@ -67,7 +67,7 @@ PASS by direct repository inspection:
 
 The first exact-head PR Verification #1426 / run `44479533124` passed release metadata, dependency-lock and typecheck, then failed the architecture gate because the newly strengthened current-consumer rule found three remaining dated pins: `workbench-theme.md` line 44 and `workbench.md` lines 865/1679. This was a valid detection by the new invariant, not a reason to weaken it.
 
-Those three current references were rebound to stable `GW-DOC-EXTERNAL-FACTS`; R1, DESIGN and PLAN were then refreshed to include the complete consumer surface. A fresh exact-head run is required before G0 restoration.
+Those three current references were rebound to stable `GW-DOC-EXTERNAL-FACTS`; R1, DESIGN and PLAN were then refreshed to include the complete consumer surface. Fresh exact-head PR Verification #1431 / run `44480111804` then passed release metadata, dependency-lock, typecheck, architecture, full test, build, release-packager and browser on correction candidate `24ac08bee5454fd50c6b7dc071bb9270c9f6ac45`.
 
 ## PLAN legality
 
@@ -83,15 +83,18 @@ No production code, dependency, package pin, runtime contract, persistence, tran
 
 ## Verification ownership
 
-The complete repository gate still must pass on an exact candidate containing this R3 record before campaign G0 can be restored. A green earlier head is not reused as final evidence.
+PASS on exact correction candidate `24ac08bee5454fd50c6b7dc071bb9270c9f6ac45` through PR Verification #1431 / run `44480111804`.
 
-Required gates:
+Passed gates:
 - dependency-lock;
 - typecheck;
 - architecture;
 - test;
 - build;
+- release-packager;
 - browser.
+
+The verified candidate contains this R3 record and the complete corrected authority/reference/sensor package. Later campaign-register evidence commits may descend from this candidate; they do not substitute another unverified correction baseline.
 
 ## Open decision/conflict ledger
 
@@ -103,10 +106,10 @@ Required gates:
 | unresolved architecture decision | NONE |
 | unowned finding | NONE |
 | mutation required after sign-off | NONE |
-| campaign G0 restored | NO — exact corrected candidate verification remains required |
+| campaign G0 restored | NOT OWNED HERE — correction candidate is fully verified; campaign §18 remains the sole current-state owner |
 
 ## Final R3 disposition
 
 `READY_FOR_SIGNOFF`.
 
-Campaign G0 remains blocked until the exact corrected candidate is integrated by ancestry and the required foundation verification is green.
+The G-F11 correction candidate is integrated by ancestry and fully verified. Campaign §18 may now close G-F11/G0 after rebinding its supporting coverage evidence; this readiness review does not itself project campaign state.
