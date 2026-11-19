@@ -92,6 +92,7 @@ import {
 } from "../src/core/work-item-source.ts";
 import {
   aggregateTaskCompletion,
+  builderCheckpointRequestForTurn,
   decideOperationalRecovery,
   dependencyIsSatisfied,
   executionResumeIsAllowed,
@@ -848,6 +849,34 @@ describe("functional lifecycle and execution policy", () => {
     expect(providerEventIsAdmitted("REVIEWER", { tag: "TASK_ALREADY_SATISFIED", summary: "already correct" })).toBe(false);
     expect(providerEventIsAdmitted("REVIEWER", { tag: "REVIEW_FAILED", classification: "REVIEW_FAILURE", summary: "", evidence: [] })).toBe(true);
     expect(providerEventIsAdmitted("REVIEWER", { tag: "VALIDATION_PASSED", stage: "V4", evidence: [] })).toBe(false);
+  });
+
+  it("admits exactly one terminal checkpoint request only for BUILDER", () => {
+    const checkpoint = RunEventPayloadSchema.parse({
+      tag: "GATE_CHECKPOINT_REQUESTED",
+      gateId: "architecture",
+    });
+    expect(providerEventIsAdmitted("BUILDER", checkpoint)).toBe(true);
+    expect(providerEventIsAdmitted("REMEDIATOR", checkpoint)).toBe(false);
+    expect(providerEventIsAdmitted("REVIEWER", checkpoint)).toBe(false);
+    expect(providerEventIsAdmitted("STAGE", checkpoint)).toBe(false);
+
+    expect(builderCheckpointRequestForTurn("BUILDER", [
+      { tag: "AGENT_MESSAGE_FINAL", text: "checkpoint", evidence: [] },
+      checkpoint,
+    ])).toEqual(checkpoint);
+    expect(() => builderCheckpointRequestForTurn("BUILDER", [
+      checkpoint,
+      { tag: "AGENT_MESSAGE_FINAL", text: "not terminal", evidence: [] },
+    ])).toThrow("terminal turn action");
+    expect(() => builderCheckpointRequestForTurn("BUILDER", [
+      checkpoint,
+      checkpoint,
+    ])).toThrow("at most one");
+    expect(() => builderCheckpointRequestForTurn("BUILDER", [
+      { tag: "STAGE_BLOCKED", reason: "blocked", owningStage: "EXECUTION" },
+      checkpoint,
+    ])).toThrow("cannot coexist");
   });
 
   it("allows one semantic repair per repairable failure class", () => {
