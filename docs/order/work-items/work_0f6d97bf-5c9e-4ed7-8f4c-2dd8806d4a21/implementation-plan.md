@@ -6,26 +6,26 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
+This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
 | `implementation-plan/00-governance.md` | `2f001b6aa56197382cc59666c2acae5b44ddf73a` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `e73bb1be69b8ea88ce183a3d76db53c3a541ec66` |
-| `implementation-plan/02-a02-governance-intake.md` | `bf35cca6f11284a75a9e5d287f5655341eb2a258` |
-| `implementation-plan/03-a03-queue-source.md` | `8fbe662a5b70e081d298ab0d16e7161d278c213a` |
-| `implementation-plan/04-a04-workbench-research.md` | `d0b83ff17026b850c27ff78388463db0fb33fa54` |
-| `implementation-plan/05-a05-requirements-design.md` | `5813351f177a16a5913363b3ddf2f127101e9756` |
-| `implementation-plan/06-a06-plan-readiness.md` | `c3489e623548748223d0186c7a209aaffeaef392` |
-| `implementation-plan/07-a07-approval-execution.md` | `4faf8d44a5c1b4f0fa0247c38bfdb2788243ebb6` |
-| `implementation-plan/08-a08-complete-materials.md` | `a18b1a675d8d3cf25481a8f7267da8bf28c60202` |
-| `implementation-plan/09-a09-provider-settings.md` | `ebc8ab9282c07d4437d2544cd6d83e50affcbe8b` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `17d68cc9960f33689a67fcc77778f92ac9180483` |
-| `implementation-plan/11-a11-component-certification.md` | `33b9f947d67e100c464828bf9e487ace42fe5a3c` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `d99ddbf8df734eb9cf7768cf97f70599421dd89f` |
+| `implementation-plan/02-a02-governance-intake.md` | `01e81a692c16dfc7c4adc05c8e743618245d93b0` |
+| `implementation-plan/03-a03-queue-source.md` | `8f2cca485b34847ecef2161d5f179b6e86d7fd38` |
+| `implementation-plan/04-a04-workbench-research.md` | `e350c1d95c9ce9383da091b12b9520c7fd5ab1b7` |
+| `implementation-plan/05-a05-requirements-design.md` | `7e2b542eae92346b4cc0f348f1cb95545970ab1d` |
+| `implementation-plan/06-a06-plan-readiness.md` | `89985955bec32b8b36feba8ac0818655cedc2b70` |
+| `implementation-plan/07-a07-approval-execution.md` | `a496beccad0cbac3c7b9e9bb3490c4e3ae30732b` |
+| `implementation-plan/08-a08-complete-materials.md` | `c29a6cbe1ceff9d6ae6d77c0b0d5a6a97660baa8` |
+| `implementation-plan/09-a09-provider-settings.md` | `c87253362c5966a032923db17029600c6cec6453` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `cd8b5cccb8f8ba50f923425aa0730be6e92c5e10` |
+| `implementation-plan/11-a11-component-certification.md` | `6263efae2e408af6e3edd5f0543520607a3dd447` |
 | `implementation-plan/12-action-catalog.md` | `5e6816a3b3d43230f07bfe5166480b1137363158` |
-| `implementation-plan/13-verification-closeout.md` | `5791fade7c8ed5a6b96f3307c9aca15825b0bf6b` |
+| `implementation-plan/13-verification-closeout.md` | `3ea7ab3e3e524a54b4184cb38bfafae6d1058166` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -93,7 +93,7 @@ Total signed T1 changeSurface: **30 paths**.
 
 - exactly 112 stable requirements occur once across A01-A11;
 - exactly 24 package-local atomic obligations occur once across A01-A11;
-- A01 corrected-upstream no-code trace rows `A01-NC01`-`A01-NC03` remain explicit and authorize no T1 mutation;
+- A01 corrected-upstream no-code trace rows `A01-NC01`-`A01-NC05` remain explicit and authorize no T1 mutation;
 - every stable row names its exact R1 evidence and DESIGN disposition;
 - every POSITIVE_NO_CHANGE row has no execution action and names exact verification ownership;
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
@@ -147,7 +147,7 @@ Return to DESIGN/PLAN before editing when execution requires a new semantic owne
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -170,8 +170,10 @@ These rows carry material R2 consequences that are already corrected in canonica
 | `A01-NC01` — C01 verified-terminal success/no-code distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1`, §8 | Recheck exact authority identity plus R1 C01-O06/O13/O14 under V4; any contradiction returns to R2/DESIGN. |
 | `A01-NC02` — C01 `GW-P2-CONTROLLED-WORK` cross-reference | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-WORK-LIFECYCLE` blob `013bc1297c3d167b776e115f428517b7cedbea57`, §7 → System Brief §9 | Recheck exact authority identity plus R1 C01-O14 under V4; do not edit runtime behavior for this documentation correction. |
 | `A01-NC03` — C21 canonical product-language/commit boundary | `ALREADY_CORRECTED_NO_CODE` | NONE — no additional P2 edit in T1 | `GW-DOC-PRODUCT-IDENTITY` blob `f45ee2ea00cf91c5b861c59d3d19f72b3e39611f` | Recheck exact authority identity and corrected C21-F01/F02/F04 semantics under V4; IA19 changes only the still-violating README/terminal projections. |
+| `A01-NC04` — C01 WorkItem-stage vs execution-subflow distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-SYSTEM-BRIEF` blob `a1784be23293cb65b4a70952e45e5e16a0515ca1` | Recheck C01-F01/C01-O03/O05/O08 and exact authority identity under V4; no new lifecycle/state mutation. |
+| `A01-NC05` — C01 lifecycle-context stage/role/work-kind distinction | `ALREADY_CORRECTED_NO_CODE` | NONE — no T1 edit | `GW-DOC-LIFECYCLE-CONTEXT` blob `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7` | Recheck C01-F02/X-C01-C22-01 and exact authority identity under V4; no new stage/role/work-kind state. |
 
-No-code rows in phase: **3**.
+No-code rows in phase: **5**.
 
 ##### Package-local atomic obligations
 
@@ -204,7 +206,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -258,7 +260,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -327,7 +329,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -393,7 +395,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -434,7 +436,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -478,7 +480,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -532,7 +534,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -578,7 +580,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -641,7 +643,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -688,7 +690,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `390ff911d3fd46ec989a622cd1a54f198a50b934`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
 
 ##### Stable requirement execution dispositions
 
@@ -970,7 +972,7 @@ For every stable requirement row in phases 01-11:
 
 Every package atom must have exactly one execution owner. Shared IA references are consumer dependencies.
 
-A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC03` are also binding proof instructions: verify their exact canonical authority identities and stated R1 semantic propositions under V4, authorize no T1 production mutation for those corrections, and return upstream if any authority/evidence contradiction is found.
+A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof instructions: verify their exact canonical authority identities and stated R1 semantic propositions under V4, authorize no T1 production mutation for those corrections, and return upstream if any authority/evidence contradiction is found.
 
 ##### Exact proof owners
 
