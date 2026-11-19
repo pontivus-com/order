@@ -990,7 +990,46 @@ const RunEventPayloadBaseSchema = z.union([
     classification: ValidationClassificationSchema,
     evidence: evidenceArray,
   }),
-  z.strictObject({ tag: z.literal("REVIEW_PASSED"), evidence: evidenceArray }),
+  z.strictObject({
+    tag: z.literal("REVIEW_PASSED"),
+    minimumChange: z.enum(["MINIMUM_SUFFICIENT", "CHANGE_BLOAT"]).optional(),
+    minimumChangeSummary: z.string().min(1).nullable().optional(),
+    evidence: evidenceArray,
+  }).superRefine((value, ctx) => {
+    const historical =
+      value.minimumChange === undefined &&
+      value.minimumChangeSummary === undefined;
+    if (historical) return;
+    if (
+      value.minimumChange === undefined ||
+      value.minimumChangeSummary === undefined
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "REVIEW_PASSED minimum-change fields must be supplied together",
+      });
+      return;
+    }
+    if (
+      value.minimumChange === "MINIMUM_SUFFICIENT" &&
+      value.minimumChangeSummary !== null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "MINIMUM_SUFFICIENT requires null minimumChangeSummary",
+      });
+    }
+    if (
+      value.minimumChange === "CHANGE_BLOAT" &&
+      (value.minimumChangeSummary === null ||
+        value.minimumChangeSummary.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CHANGE_BLOAT requires a non-empty minimumChangeSummary",
+      });
+    }
+  }),
   z.strictObject({
     tag: z.literal("REVIEW_FAILED"),
     classification: z.literal("REVIEW_FAILURE"),
