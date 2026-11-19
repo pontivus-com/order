@@ -2066,7 +2066,11 @@ describe("architecture fitness", () => {
           violations.push("G1 coverage ledger must record the exact current G0 baseline SHA");
         }
       }
-      if (/^\| G-F\d+ .*OPEN_FOUNDATION/m.test(source)) {
+      const openFoundationFinding = source
+        .split(/\\r?\
+/)
+        .some((line) => line.startsWith("| ") && line.includes("| OPEN_FOUNDATION |"));
+      if (openFoundationFinding) {
         violations.push("G0 PASS is illegal while an OPEN_FOUNDATION finding remains");
       }
     }
