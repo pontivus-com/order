@@ -6,45 +6,75 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
+This PLAN consumes current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`, current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb` and current DESIGN `9ec7b943365b39819999672abb27654891f4a837`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE` or baseline reuse.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `2f001b6aa56197382cc59666c2acae5b44ddf73a` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `cae15e1b78b268900810fbc64968e6818af84e63` |
-| `implementation-plan/02-a02-governance-intake.md` | `887c6550034d7a3b8354f2c4e889560f257add96` |
-| `implementation-plan/03-a03-queue-source.md` | `43a3e2020b48f859c289cd6e1af22a446ee028ca` |
-| `implementation-plan/04-a04-workbench-research.md` | `d3ef08f5806668a13d7c62561f71668cc9a55a24` |
-| `implementation-plan/05-a05-requirements-design.md` | `9cf2e3b6c21266bc7eaccf77d6b4cbb063d17752` |
-| `implementation-plan/06-a06-plan-readiness.md` | `ebdd60713377b1b79d4072546958f140bf953e3c` |
-| `implementation-plan/07-a07-approval-execution.md` | `1514786244ce2a2c44d0e6119ca1e0819fc8224f` |
-| `implementation-plan/08-a08-complete-materials.md` | `4ac4d375ba34a541cc57a963f33a778dc2fb5583` |
-| `implementation-plan/09-a09-provider-settings.md` | `0cba1fd77f6f2f85232ca48f376dbf4ab62461c4` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `ec8c9f78ce6cf8364c868f00bbd1835bf65180e3` |
-| `implementation-plan/11-a11-component-certification.md` | `88e959cecc16a02d635123c427ffe495a20cd982` |
-| `implementation-plan/12-action-catalog.md` | `39bacf92450ef68379939ebd78a7538eab977be7` |
-| `implementation-plan/13-verification-closeout.md` | `3ea7ab3e3e524a54b4184cb38bfafae6d1058166` |
+| `implementation-plan/00-governance.md` | `e6e6006e97515b3a473259b9e4ad4dc6865c77ce` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `d71c6ef7d338176b2cebee27bf44f461a037098e` |
+| `implementation-plan/02-a02-governance-intake.md` | `bfb5dc010eeb00b16188a55c4d4a804e3b4a924f` |
+| `implementation-plan/03-a03-queue-source.md` | `8e6ffa49690461ff65753deb30c337ca82b8bf0b` |
+| `implementation-plan/04-a04-workbench-research.md` | `453cc7e5cdce7a1d859be4890eb478b1db2420be` |
+| `implementation-plan/05-a05-requirements-design.md` | `bf75e9fdb18c3e1f0a7b868ddd64f14482ba5f46` |
+| `implementation-plan/06-a06-plan-readiness.md` | `ec5b48ee6e819c0629d371fa2aa67ace2bba9709` |
+| `implementation-plan/07-a07-approval-execution.md` | `69e38f5f2f060b8d09eb37f8d727355ce62a7251` |
+| `implementation-plan/08-a08-complete-materials.md` | `fa08145dcaa0218838209dd9a2fc616b0af496c2` |
+| `implementation-plan/09-a09-provider-settings.md` | `7503e7d3088a0ef5503b7fb88a771f1332fa4070` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `729045d4b69c84fd7e5344f45747f34dde368952` |
+| `implementation-plan/11-a11-component-certification.md` | `34198f09d5cd2a76bb5e1379261dadf83769d7b6` |
+| `implementation-plan/12-action-catalog.md` | `ce06cc6f4f1b3b8b673d0f651a69ea3d9b5a5fc5` |
+| `implementation-plan/13-verification-closeout.md` | `461478a86732b262c13ec2640b0d7a83af2938fa` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
 ## Semantic coverage versus execution ownership
 
-A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA25 in the compiled action catalog are the single implementation-action definitions, assigned to ordered execution waves. A phase may consume an IA owned elsewhere without duplicating it.
+A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA25 in the compiled action catalog are the single action definitions: production mutation, verification-only, baseline-reuse/no-code proof, or closeout. A phase may consume an IA owned elsewhere without duplicating it.
+
+## Signed execution scope
+
+### Scope patterns
+- `README.md`
+- `src/core/**`
+- `src/daemon/**`
+- `src/shell/**`
+- `ui/src/**`
+- `tests/**`
+- `CHANGELOG.md`
+
+### Explicit exclusions
+- `src/daemon/execution.ts`
+- `src/daemon/validation.ts`
+- `src/daemon/server.ts`
+- `src/shell/config.ts`
+- `src/shell/file-write.ts`
+- `src/shell/opencode.ts`
+- `src/shell/process.ts`
+- `src/shell/project-config.ts`
+- `src/shell/project.ts`
+- `src/shell/repository.ts`
+- `src/shell/runtime.ts`
+- `src/shell/sqlite.ts`
+- `src/shell/work-item-source.ts`
+- `ui/src/http.ts`
+- `ui/src/query-keys.ts`
+- `ui/src/theme.css`
+- `tests/architecture.test.ts`
+
+The signed scope is the hard repository-reach envelope. P1-P6 material, project-manifest authority and other paths outside these scope patterns are not authorized even when not repeated as exclusions. The exclusions protect known non-T1/baseline-reuse paths inside the broader same-layer envelopes. An unforecast path inside scope is not automatically authorized; it must satisfy the existing V4/V5/V6 minimum same-layer variance proof.
 
 ## Exact signed implementation surface
 
-### Production (23)
+### Production (21)
 - `README.md`
 - `src/core/contracts.ts`
 - `src/core/execution.ts`
 - `src/core/governance.ts`
 - `src/core/lifecycle.ts`
 - `src/daemon/authority.ts`
-- `src/daemon/execution.ts`
 - `src/daemon/stage.ts`
-- `src/daemon/validation.ts`
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 - `ui/src/ActivityComposer.tsx`
@@ -71,36 +101,25 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 ### Delivery metadata (1)
 - `CHANGELOG.md`
 
-Total signed T1 changeSurface: **30 paths**.
+Total signed T1 `changeSurface`: **28 paths**.
 
-### Explicit exclusions
-- `.github/**`
-- `AGENTS.md`
-- `bun.lock`
-- `docs/**`
-- `package.json`
-- `pontivus-order.toml`
-- `src/installer.ts`
-- `src/daemon/server.ts`
-- `tests/architecture.test.ts`
-- `ui/src/http.ts`
-- `ui/src/query-keys.ts`
-- `ui/src/theme.css`
-
-`docs/**` including corrected P6 are pre-signoff DESIGN authority, not T1 implementation. `tests/architecture.test.ts` is signed architecture-gate material and cannot be mutated inside T1. `src/installer.ts` is explicitly excluded because current DESIGN proves it already calls the canonical guided-setup owner; a newly required change there returns to DESIGN/PLAN.
+`src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts` are execution-foundation baseline owners and are excluded from T1. `tests/architecture.test.ts` is pre-signoff verification material and is excluded from T1.
 
 ## Exhaustive traceability invariants
 
 - exactly 112 stable requirements occur once across A01-A11;
-- exactly 24 package-local atomic obligations occur once across A01-A11;
+- exactly 25 package-local atomic obligations occur once across A01-A11, including `PL-C12-02`;
 - A01 corrected-upstream no-code trace rows `A01-NC01`-`A01-NC05` remain explicit and authorize no T1 mutation;
-- every stable row names its exact R1 evidence and DESIGN disposition;
-- every POSITIVE_NO_CHANGE row has no execution action and names exact verification ownership;
+- every stable row names its exact current R1 evidence and current DESIGN disposition;
+- every `POSITIVE_NO_CHANGE` row has no execution mutation and names exact verification ownership;
+- IA07/IA08 are baseline-reuse/no-code proof owners for `PL-C12-01`/`PL-C12-02` and authorize no execution-foundation production edit;
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
 - every technical/verification delta maps to one or more exact IA actions;
 - every IA01-IA25 is defined exactly once; IA23/IA24 are explicit cross-solution/final actions rather than orphan work;
-- all execution work remains inside the exact 30-path surface;
-- a disproved positive no-change or newly required path causes an upstream return.
+- the immutable forecast is the exact 28-path `changeSurface`; actual variance is admissible only inside signed scope/exclusions and only through positive V4/V5/V6 minimum same-layer proof;
+- required signed `architecture` checkpoints pass after Waves 1-6 before the next wave begins;
+- current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
+- a disproved positive-no-change/baseline-reuse proposition or newly required semantic decision causes an upstream return; a merely unforecast but otherwise admissible same-layer path does not.
 
 ## Compiled modular phase specification
 
@@ -112,32 +131,56 @@ Total signed T1 changeSurface: **30 paths**.
 
 This directory is the maintainable authoring decomposition of the **single** canonical P7 artifact at `../implementation-plan.md`. The root PLAN compiles these files in full and lists their exact Git blob SHAs. Directory files own no independent lifecycle state, Approval material or executable task block.
 
+##### Exact upstream package
+
+- R1 `research.md`: `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`.
+- R2 `requirements.md`: `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`.
+- DESIGN `solution-design.md`: `9ec7b943365b39819999672abb27654891f4a837`.
+- P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
+- Current execution-control foundation is already integrated and is consumed as baseline capability, not reimplemented by T1.
+
 ##### Traceability law
 
 Every stable P3 requirement and every package-local atomic obligation follows:
 
 ```text
 canonical P3 / package consequence
- -> exact G-F10 R1 evidence
+ -> exact current R1 evidence
+ -> exact current R2 consequence
  -> exact DESIGN disposition
- -> execution owner IAxx OR dependency-only IAxx OR POSITIVE_NO_CHANGE
+ -> one IA implementation owner, one baseline-reuse proof owner, or POSITIVE_NO_CHANGE
  -> exact verification owner
 ```
 
-A positive no-change disposition is an implementation instruction: **do not edit for this requirement** and revalidate the named evidence/proof. If execution disproves it, return upstream.
+A positive no-change or baseline-reuse disposition is an implementation instruction: **do not edit for that obligation** and revalidate the named evidence/proof. If execution disproves it, return upstream.
 
 ##### Execution ownership
 
-A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA action is defined exactly once in `12-action-catalog.md` and assigned to one execution wave.
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA25 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a baseline-reuse/no-code proof obligation, or final closeout; they do not create a second task representation.
+
+SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current execution-baseline capabilities. IA07/IA08 therefore prove/reuse those capabilities and authorize **no T1 production mutation** to their existing owners.
+
+##### Signed scope and forecast law
+
+The one signed T1 uses:
+
+- bounded `scope` patterns as the hard repository-reach envelope;
+- explicit `exclusions` to protect known non-T1/baseline-reuse paths inside that envelope;
+- exact 28-path `changeSurface` as the immutable expected physical forecast.
+
+A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
 
 ##### Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
 
+Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
+
 ##### Stop conditions
 
-Return to DESIGN/PLAN before editing when execution requires a new semantic owner, state meaning, public contract, persistence/transport shape, external dependency, provider capability, verification authority, or path outside the signed changeSurface.
+Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
+Do **not** return upstream solely because an otherwise admissible path is absent from `changeSurface`; that case follows the governed V4/V5/V6 variance proof.
 
 ---
 
@@ -147,7 +190,7 @@ Return to DESIGN/PLAN before editing when execution requires a new semantic owne
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -206,7 +249,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -261,7 +304,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -330,7 +373,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -396,7 +439,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -437,7 +480,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -453,7 +496,7 @@ Stable rows in phase: **3**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Implementation-required signed task package is materially non-vacuous. |
+| `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
 | `PL-C10-01` | C10-F01 | `SD11` | `IA16` | — | Readiness dominant verdict is typed R3 outcome. |
 
 Package atoms in phase: **2**.
@@ -477,11 +520,11 @@ Package atoms in phase: **2**.
 
 ### Compiled component: `implementation-plan/07-a07-approval-execution.md`
 
-#### A07 — Approval and execution checkpoints
+#### A07 — Approval and execution
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -506,16 +549,17 @@ Stable rows in phase: **10**.
 |---|---|---|---|---|---|
 | `PL-C11-01` | C11-F01 | `SD12` | `IA17` | — | Approval presents readiness and package currentness before technical identity. |
 | `PL-C11-02` | C11-F02 | `SD12` | `IA06` | — | Canonical approval identity is trimmed/nonblank at ingress. |
-| `PL-C12-01` | C12-F01 | `SD13` | `IA07`, `IA08` | — | Signed in-task architecture checkpoint is coordinator-executable without provider shell permission. |
+| `PL-C12-01` | C12-F01 | `SD13` | `IA07` — baseline-reuse proof only | — | Signed in-task architecture checkpoint remains coordinator-executable without provider shell permission; T1 consumes the existing capability and does not implement it. |
+| `PL-C12-02` | C12-F02 | `SD10` | `IA08` — baseline-reuse proof only | — | Signed scope/exclusions remain the hard execution boundary; `changeSurface` is exact forecast evidence; admissible in-scope unforecast decomposition is governed by existing V4/V5/V6 and is not reimplemented by T1. |
 
-Package atoms in phase: **3**.
+Package atoms in phase: **4**.
 
 ##### Referenced actions
 
-- **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA06** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA07** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA08** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA17** — consume the single implementation definition in `12-action-catalog.md`.
+- **IA06** — consume the single implementation definition in `12-action-catalog.md`.
+- **IA07** — consume the single baseline-checkpoint proof definition; authorize no checkpoint-protocol production edit.
+- **IA08** — consume the single scope/forecast/V4-V6 baseline proof definition; authorize no execution-foundation production edit.
 
 ##### Completion proof
 
@@ -535,7 +579,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -581,7 +625,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -644,7 +688,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -691,7 +735,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
+**Upstream:** current R1 `9aa1d2baefafd1a4e912df5e22a20bab0b71157f`; current R2 `b80fe3de7636d9fce36e6d4f502bf20ff794b6bb`; current DESIGN `9ec7b943365b39819999672abb27654891f4a837`.
 
 ##### Stable requirement execution dispositions
 
@@ -747,14 +791,16 @@ Each IA action below has one execution owner. Semantic phase files may reference
 
 ##### Execution waves
 
-1. **Wave 1 — authority/contracts/execution:** IA01-IA08.
-2. **Wave 2 — source/queue/Git:** IA09-IA13.
-3. **Wave 3 — Workbench/product presentation:** IA14-IA19.
-4. **Wave 4 — productive installer:** IA25.
-5. **Wave 5 — permanent certification:** IA20-IA23.
-6. **Wave 6 — candidate closeout:** IA24.
+0. **Preflight 0 — baseline-reuse proof:** IA07-IA08. No T1 production mutation.
+1. **Wave 1 — authority resolution and governed decisions:** IA01-IA04.
+2. **Wave 2 — task admission and Approval ingress:** IA05-IA06.
+3. **Wave 3 — source/queue/documentation Git:** IA09-IA13.
+4. **Wave 4 — Workbench/product presentation:** IA14-IA19.
+5. **Wave 5 — productive installer:** IA25.
+6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
+7. **Wave 7 — candidate closeout:** IA24.
 
-Architecture-feedback checkpoints in `13-verification-closeout.md` apply after each wave.
+The signed `architecture` gate is requested through the existing SD13 coordinator checkpoint after Waves 1-6 and must pass before the next wave begins. Preflight 0 proves that checkpoint and scope/forecast capabilities already exist in the Approval baseline; it does not bootstrap them. Wave 7 uses the ordinary final validation path and does not substitute an intermediate checkpoint for V3/V5/V7.
 
 ##### IA01 — pure project-authority resolution
 
@@ -789,12 +835,14 @@ Architecture-feedback checkpoints in `13-verification-closeout.md` apply after e
 **Required mutation:** after latest answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, reject stage completion until later adopted authority exists. INFORMATION/EVIDENCE remains unchanged.  
 **Proof:** core/daemon chronology cases for adopted/rejected/cancelled/stale and ordinary information input.
 
-##### IA05 — non-vacuous signed-task contract
+##### IA05 — schema-aware current-v2 task admission
 
 **Solution:** SD10.  
-**Anchors:** `src/core/contracts.ts` SignedTaskBlock/task schemas; `src/core/execution.ts::parseSignedTaskBlockFromPlan`; `src/daemon/authority.ts::validateTaskDefinitions`.  
-**Required mutation:** implementation-required plan has at least one materially specified task with meaningful id/objective/scope/changeSurface/acceptance/gates/authority/concerns.  
-**Proof:** exact positive/negative parser and readiness/signoff validation tests.
+**Owners/anchors:** existing `SignedTaskBlockSchema` remains unchanged in `src/core/contracts.ts`; `src/core/execution.ts::parseSignedTaskBlockFromPlan` remains the one structural parser and gains one pure schema-aware admission helper over the parsed block; `src/daemon/stage.ts` owns PLAN/R3 authoring/conformance invocation; `src/daemon/authority.ts::validateTaskDefinitions` owns R3/sign-off deterministic task validation.  
+**Required mutation:** for `change-v2`/`defect-v2` only, enforce P6 §37.4 mechanical non-vacuity: non-empty task list; trimmed non-empty id/objective; non-empty scope, acceptanceRefs, changeSurface, gateIds, authorityRefs and concernIds. Keep `dependsOn`/exclusions optionally empty. The PLAN/R3 provider contract states these same v2-only mechanical clauses alongside the unchanged shared JSON Schema. PLAN conformance and R3/sign-off call the same pure admission owner. Published `change-v1`/`defect-v1` parsing/validation meaning is unchanged.  
+**Semantic boundary:** mechanical presence is not material task sufficiency. Existing PLAN conformance questions still prove objective/dependencies/traceability, module ownership/decomposition, checkpoint placement, surfaces, deletions/replacements, completion evidence, minimum-change forecast and verification contract; R3 independently challenges complete P1-P7 traceability/readiness.  
+**Forbidden:** tightening the shared SignedTaskBlock schema globally; a v2-only shadow task schema/parser; a second semantic-review path.  
+**Proof:** `tests/core.test.ts` preserves v1 cases and proves v2 positive/negative mechanical admission; `tests/daemon.test.ts` proves PLAN and READY_FOR_SIGNOFF/sign-off cannot bypass v2 admission; `tests/certification.test.ts` binds the single parser/admission/prompt path and rejects duplicate task schema/parser ownership.
 
 ##### IA06 — canonical Approval identity normalization
 
@@ -803,20 +851,21 @@ Architecture-feedback checkpoints in `13-verification-closeout.md` apply after e
 **Required mutation:** trim and reject whitespace-only `approvedBy` before persistence.  
 **Proof:** core/daemon direct-ingress negative tests plus browser feedback.
 
-##### IA07 — typed BUILDER checkpoint request
+##### IA07 — signed-checkpoint baseline reuse proof
 
-**Solution:** SD13.  
-**Anchors:** `src/core/contracts.ts` RunEvent payload; `src/core/execution.ts::builderProviderTags/providerEventIsAdmitted`.  
-**Required mutation:** add exactly `GATE_CHECKPOINT_REQUESTED { gateId }`, BUILDER-only, terminal action of that provider turn.  
-**Proof:** role/event admission tests.
+**Solution:** SD13; package atom `PL-C12-01`.  
+**Baseline owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
+**Required action:** no T1 production mutation. Before Wave 1, revalidate that BUILDER alone may emit one terminal signed `GATE_CHECKPOINT_REQUESTED`, the coordinator checks freshness/current V2 scope before the effect, executes the signed gate, records existing GATE_PASSED/GATE_FAILED evidence, continues the same Run/provider session and never grants provider shell/execute. The implementation waves then consume this baseline capability exactly as scheduled by `13-verification-closeout.md`.  
+**Failure:** if the Approval baseline cannot prove this capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
+**Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current baseline verification.
 
-##### IA08 — coordinator-owned signed checkpoint execution
+##### IA08 — signed-scope/forecast baseline reuse proof
 
-**Solution:** SD13. Depends on IA07.  
-**Anchors:** `src/daemon/execution.ts` mutating/post-signoff reaction owner; `src/daemon/validation.ts::runRequiredGates` and existing gate evidence/result owner.  
-**Required mutation:** validate signed gate/current manifest/freshness, execute in current builder workspace through validation effects, record existing GATE_PASSED/GATE_FAILED evidence, continue same Run/session.  
-**Forbidden:** provider shell/execute; persisted checkpoint state; checkpoint as substitute for V3/V5/V7.  
-**Proof:** daemon pass/fail/unsigned/stale/continuation cases.
+**Solution:** SD10; package atom `PL-C12-02`.  
+**Baseline owners:** existing `src/shell/opencode.ts`, `src/daemon/validation.ts` and `src/daemon/execution.ts`.  
+**Required action:** no T1 production mutation. Revalidate that signed scope/exclusions are the hard reach boundary, `changeSurface` is immutable forecast evidence, forecast absence alone is not V2 `SCOPE_BREACH`, and in-scope unforecast decomposition can proceed only through independent V4, architecture/governance V5 and coordinator-owned V6 minimum-change evidence.  
+**Failure:** any contradiction blocks execution and returns to the owning pre-signoff layer; do not modify execution-foundation owners from this T1 to make the candidate admissible.  
+**Proof:** existing daemon/certification in-scope-unforecast, out-of-scope/exclusion/protected-path, V6 `CHANGE_BLOAT` and architecture-fitness cases.
 
 ##### IA09 — singular new-source planner
 
@@ -955,15 +1004,18 @@ This component allocates proof inside the one signed T1. It does not create anot
 
 ##### Architecture-feedback checkpoints
 
-| Checkpoint | After execution wave | Required evidence |
-|---|---|---|
-| A | Wave 1 IA01-IA08 | typecheck + architecture + relevant core/daemon tests |
-| B | Wave 2 IA09-IA13 | typecheck + architecture + source/queue/Git daemon/browser tests |
-| C | Wave 3 IA14-IA19 | typecheck + architecture + Workbench/browser/presentation tests |
-| D | Wave 4 IA25 | typecheck + architecture + installer test + order-migration test + build |
-| E | Wave 5 IA20-IA23 | typecheck + architecture + full test + build + browser |
+Preflight IA07 proves the exact Approval baseline already supports coordinator-owned signed checkpoints; no T1 candidate byte is relied upon to create this capability.
 
-Checkpoints are feedback only and never substitute for final V3/V5/V7.
+| Checkpoint | After execution wave | Required coordinator evidence |
+|---|---|---|
+| A | Wave 1 IA01-IA04 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 2 |
+| B | Wave 2 IA05-IA06 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 3 |
+| C | Wave 3 IA09-IA13 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 4 |
+| D | Wave 4 IA14-IA19 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 5 |
+| E | Wave 5 IA25 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 6 |
+| F | Wave 6 IA20-IA23 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 7 closeout |
+
+Each checkpoint is requested by BUILDER as the terminal action of that provider turn and is executed by the coordinator in the same Run/provider session. A failed checkpoint permits only correction inside the already signed design/scope or an explicit execution block; it does not grant provider shell/execute or authorize redesign. Checkpoints are architecture feedback only and never substitute for final V3/V5/V7 or the task's complete logical gate union.
 
 ##### Requirement-level proof law
 
@@ -994,16 +1046,20 @@ Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 
 ##### V0-V7 final review obligations
 
 V4/V5/V6 explicitly verify:
-- all 112 stable rows retain their R1 evidence and DESIGN disposition;
-- all 24 package atoms are satisfied;
-- every positive no-change row remains true;
-- exact 30-path signed surface, no extra path;
+- all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
+- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or baseline-reuse proof owner;
+- every `POSITIVE_NO_CHANGE` and baseline-reuse obligation remains true;
+- the signed 28-path `changeSurface` remains the immutable forecast;
+- every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
+- forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
+- current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
+- all required intermediate architecture checkpoints were coordinator-executed and passed before the next wave;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
 - no implementation-derived product semantics.
 
-`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata remain outside T1. Any pre-signoff G-F10 fitness-sensor correction changes verification material before Approval and forces downstream package revalidation.
+`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
 
 
 ## Canonical order-tasks block
@@ -1014,53 +1070,35 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 semantic DESIGN as one cumulative verified candidate: execute SD01-SD19 through IA01-IA25 exactly where the G-F10 evidence identifies a technical or verification delta, preserve every requirement-level POSITIVE_NO_CHANGE realization, and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
+      "objective": "Implement the complete authority-driven Order 0.6.0 current DESIGN as one cumulative verified candidate: execute SD01-SD19 through IA01-IA25 only where the current R1/R2/DESIGN package assigns a technical or verification delta; preserve every POSITIVE_NO_CHANGE and baseline-reuse obligation; use the existing coordinator checkpoint and scope/forecast/V4-V6 capabilities rather than reimplementing them; preserve published v1 task semantics while adding only the current-v2 non-vacuity admission; and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
       "dependsOn": [],
       "scope": [
         "README.md",
-        "src/core/contracts.ts",
-        "src/core/execution.ts",
-        "src/core/governance.ts",
-        "src/core/lifecycle.ts",
-        "src/daemon/authority.ts",
-        "src/daemon/execution.ts",
-        "src/daemon/stage.ts",
-        "src/daemon/validation.ts",
-        "src/daemon/work-item-source.ts",
-        "src/shell/setup.ts",
-        "ui/src/ActivityComposer.tsx",
-        "ui/src/ActivityWorkspace.tsx",
-        "ui/src/CreateWorkItem.tsx",
-        "ui/src/DocumentWorkspace.tsx",
-        "ui/src/ReadinessWorkspace.tsx",
-        "ui/src/SettingsWorkspace.tsx",
-        "ui/src/SignoffReview.tsx",
-        "ui/src/TerminalResult.tsx",
-        "ui/src/WorkItemQueue.tsx",
-        "ui/src/WorkItemWorkspace.tsx",
-        "ui/src/app.tsx",
-        "ui/src/workbench-presentation.ts",
-        "tests/certification.test.ts",
-        "tests/core.test.ts",
-        "tests/daemon.test.ts",
-        "tests/browser.spec.ts",
-        "tests/workbench-presentation.test.ts",
-        "tests/installer.test.ts",
+        "src/core/**",
+        "src/daemon/**",
+        "src/shell/**",
+        "ui/src/**",
+        "tests/**",
         "CHANGELOG.md"
       ],
       "exclusions": [
-        ".github/**",
-        "AGENTS.md",
-        "bun.lock",
-        "docs/**",
-        "package.json",
-        "pontivus-order.toml",
-        "src/installer.ts",
+        "src/daemon/execution.ts",
+        "src/daemon/validation.ts",
         "src/daemon/server.ts",
-        "tests/architecture.test.ts",
+        "src/shell/config.ts",
+        "src/shell/file-write.ts",
+        "src/shell/opencode.ts",
+        "src/shell/process.ts",
+        "src/shell/project-config.ts",
+        "src/shell/project.ts",
+        "src/shell/repository.ts",
+        "src/shell/runtime.ts",
+        "src/shell/sqlite.ts",
+        "src/shell/work-item-source.ts",
         "ui/src/http.ts",
         "ui/src/query-keys.ts",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "tests/architecture.test.ts"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORK-LIFECYCLE-V1",
@@ -1082,9 +1120,7 @@ V4/V5/V6 explicitly verify:
         "src/core/governance.ts",
         "src/core/lifecycle.ts",
         "src/daemon/authority.ts",
-        "src/daemon/execution.ts",
         "src/daemon/stage.ts",
-        "src/daemon/validation.ts",
         "src/daemon/work-item-source.ts",
         "src/shell/setup.ts",
         "ui/src/ActivityComposer.tsx",
@@ -1135,6 +1171,7 @@ V4/V5/V6 explicitly verify:
         "core",
         "daemon",
         "foundation",
+        "shell",
         "ui",
         "verification"
       ]
