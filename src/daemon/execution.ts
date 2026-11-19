@@ -9,6 +9,7 @@ import {
   type RunEventPayload,
   type RunId,
   type RunRole,
+  type RepositoryPath,
   RunSchema,
   type Sha256,
   type ValidationStage,
@@ -354,7 +355,7 @@ export const startProviderForExecutionRun = async (
   task: ExecutionTask,
   context: ResolvedContext,
   workspace: string,
-  protectedPaths: readonly string[] = [],
+  protectedPaths: readonly RepositoryPath[] = [],
 ): Promise<ActiveProvider> => {
   const configuredModel = runtime.config.model;
   if (configuredModel === null) {
