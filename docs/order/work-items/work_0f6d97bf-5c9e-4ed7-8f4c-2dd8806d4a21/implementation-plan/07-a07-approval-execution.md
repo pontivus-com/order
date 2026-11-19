@@ -1,4 +1,4 @@
-# A07 — Approval and execution checkpoints
+# A07 — Approval and execution
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
@@ -27,16 +27,17 @@ Stable rows in phase: **10**.
 |---|---|---|---|---|---|
 | `PL-C11-01` | C11-F01 | `SD12` | `IA17` | — | Approval presents readiness and package currentness before technical identity. |
 | `PL-C11-02` | C11-F02 | `SD12` | `IA06` | — | Canonical approval identity is trimmed/nonblank at ingress. |
-| `PL-C12-01` | C12-F01 | `SD13` | `IA07`, `IA08` | — | Signed in-task architecture checkpoint is coordinator-executable without provider shell permission. |
+| `PL-C12-01` | C12-F01 | `SD13` | `IA07` — baseline-reuse proof only | — | Signed in-task architecture checkpoint remains coordinator-executable without provider shell permission; T1 consumes the existing capability and does not implement it. |
+| `PL-C12-02` | C12-F02 | `SD10` | `IA08` — baseline-reuse proof only | — | Signed scope/exclusions remain the hard execution boundary; `changeSurface` is exact forecast evidence; admissible in-scope unforecast decomposition is governed by existing V4/V5/V6 and is not reimplemented by T1. |
 
-Package atoms in phase: **3**.
+Package atoms in phase: **4**.
 
 ## Referenced actions
 
-- **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA06** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA07** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA08** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA17** — consume the single implementation definition in `12-action-catalog.md`.
+- **IA06** — consume the single implementation definition in `12-action-catalog.md`.
+- **IA07** — consume the single baseline-checkpoint proof definition; authorize no checkpoint-protocol production edit.
+- **IA08** — consume the single scope/forecast/V4-V6 baseline proof definition; authorize no execution-foundation production edit.
 
 ## Completion proof
 
