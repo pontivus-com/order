@@ -13,7 +13,7 @@ Before changing Order design or implementation:
 2. resolve and read `GW-DOC-LIFECYCLE-CONTEXT`;
 3. for implementation/integration work, resolve and read `GW-DOC-TECHNICAL-ARCHITECTURE`;
 4. for data, persistence, transport, manifest or task-contract work, resolve and read `GW-DOC-CANONICAL-CONTRACTS`;
-5. before any external dependency/integration/version claim or change, resolve and read `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` plus `GW-DOC-OPENCODE-INTEGRATION-V1` when OpenCode semantics apply;
+5. before any external dependency/integration/version claim or change, resolve and read `GW-DOC-EXTERNAL-FACTS` plus `GW-DOC-OPENCODE-INTEGRATION-V1` when OpenCode semantics apply;
 6. when work is executed under a current signed P7 task, resolve that task's authority references and do not exceed its semantic scope;
 7. treat implementation and tests as evidence below those authorities.
 
