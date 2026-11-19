@@ -8,6 +8,7 @@
     "core",
     "daemon",
     "shell",
+    "ui",
     "verification"
   ],
   "schemaId": "defect-v2"
@@ -44,7 +45,8 @@ At branch baseline `ebf266a9017701c9c729d7d7b4a2073d3e59993a`:
 - `src/core/contracts.ts` has `GATE_PASSED`/`GATE_FAILED` but no `GATE_CHECKPOINT_REQUESTED`;
 - `src/core/execution.ts::builderProviderTags` omits checkpoint requests;
 - `src/shell/opencode.ts` derives provider role output contracts from those tag sets and must advertise the checkpoint only to BUILDER;
-- `src/daemon/execution.ts::executeMutatingRun` performs one `runOpenCodeTurn`, persists it, stops the provider, and immediately finalizes/block/publishes the candidate.
+- `src/daemon/execution.ts::executeMutatingRun` performs one `runOpenCodeTurn`, persists it, stops the provider, and immediately finalizes/block/publishes the candidate;
+- integrated verification run #1382 exposed `ui/src/workbench-presentation.ts::runEventPresentation` as an exhaustive canonical RunEvent consumer that must project the new checkpoint request to remain type-complete.
 
 ## Governing authority
 
@@ -59,7 +61,7 @@ At branch baseline `ebf266a9017701c9c729d7d7b4a2073d3e59993a`:
 
 ## Behavior that must remain unchanged
 
-No product/UI behavior, Approval model, task dependency model, provider permission policy, persistence schema, HTTP contract, dependency, DTO/model family or alternate validation state is introduced. The stale 0.6.0 PLAN is not modified by this WorkItem.
+No product behavior, Approval model, task dependency model, provider permission policy, persistence schema, HTTP contract, dependency, DTO/model family or alternate validation state is introduced. The existing Workbench Run-event projection may add only the neutral presentation required for the new canonical checkpoint request; it must not create UI-owned checkpoint policy or state. The stale 0.6.0 PLAN is not modified by this WorkItem.
 
 ## Impact/context
 
