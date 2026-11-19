@@ -460,7 +460,7 @@ Total P7 candidate surface forecast after execution-foundation and v1-compatibil
 - invalid/unresolved authority relation -> owning pre-signoff stage blocks before productive inference;
 - stale/wrong governance proposal -> reject/reconcile through existing proposal owner;
 - durable decision with no later adopted authority -> stage remains blocked;
-- vacuous task / blank Approval identity / unsigned checkpoint -> reject at canonical ingress;
+- vacuous current-v2 Change/Defect task package / blank Approval identity / unsigned checkpoint -> reject at the owning canonical admission boundary; retained v1 task validation semantics are unchanged;
 - checkpoint failure -> only signed-scope correction or explicit block;
 - source-admission conflict -> existing QueuePlan/source diagnostics/recovery;
 - installer setup cancellation/provider/model/repository failure -> installer fails and existing rollback restores prior installation/config/service state; fresh install does not claim success;
