@@ -25,9 +25,11 @@ This concern covers:
 
 ## 2. Productive installation readiness
 
-Installation completion and productive readiness are distinct concepts.
+Fresh-install completion and post-install productive readiness are related but not interchangeable boundaries.
 
-Order may be successfully installed while still requiring operator configuration. The application must never represent such an installation as fully ready for productive agent work.
+For a **fresh installation**, successful installer completion requires the guided productive-bootstrap conditions owned by `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP`. The installer must not report success while mandatory initial repository, provider/model, required OpenCode-account or daemon setup remains outstanding.
+
+For an **already-installed system**, productive readiness may later become incomplete because configuration is removed, credentials become unavailable, an update exposes unresolved configuration, or another recoverable condition occurs. That condition does not make the application uninstalled; it blocks only the productive behavior that depends on the missing readiness and routes the operator to the canonical recovery surface.
 
 Productive readiness requires, at minimum:
 
@@ -39,7 +41,7 @@ Productive readiness requires, at minimum:
 
 Readiness is derived from canonical configuration and integration state. It is not a second lifecycle state and need not be persisted as an independent status value.
 
-A missing readiness condition blocks only the productive behavior that requires it. The workbench remains available so the operator can complete/recover configuration.
+After installation, a missing readiness condition blocks only the productive behavior that requires it. The workbench remains available so the operator can complete or recover configuration.
 
 ## 3. Installation and upgrade continuity policy
 
@@ -73,9 +75,11 @@ The update must preserve them as OpenCode-owned credential state. The user must 
 
 If the current Order private OpenCode namespace contains no usable saved account, Order must not copy credential secrets from an ambient/global OpenCode installation, another application namespace or an unknown predecessor store merely to make the UI appear configured.
 
-Instead:
+For a fresh installation whose selected productive model requires an authenticated OpenCode account, the guided installer remains in setup and **must not report successful installation** until a usable account exists.
 
-- installation may complete into a clear **OpenCode account required** condition;
+For an already-installed system, including a supported update/recovery case where no usable account can be retained or deterministically restored:
+
+- Order may enter a clear **OpenCode account required** recovery condition;
 - the normal workbench immediately exposes the Add OpenCode account flow;
 - productive OpenCode-backed Runs are blocked until a usable account exists;
 - the blocker explains the required recovery action in ordinary language.
@@ -246,11 +250,11 @@ A successful update reports any configuration that still requires operator actio
 
 ### GW-FR-079-PRODUCTIVE-INSTALLATION-READINESS
 
-**Required behavior:** Order distinguishes successful installation from productive readiness and surfaces missing required account/repository/model configuration before productive work is attempted. The selected OpenCode account is an explicit trusted integration under `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE`; provider-native Library/MCP semantics do not create a separate readiness blocker.
+**Required behavior:** Order makes successful fresh-install completion contingent on the productive-bootstrap requirements owned by `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP`, while separately supporting explicit post-install/update recovery when readiness later becomes incomplete. The selected OpenCode account is an explicit trusted integration under `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE`; provider-native Library/MCP semantics do not create a separate readiness blocker.
 
-**Acceptance criterion:** an installation lacking a required OpenCode account, valid target repository or valid model selection opens a usable setup/recovery experience and cannot start affected productive Runs. A usable selected account may contribute its trusted Console integration context without additional operator setup.
+**Acceptance criterion:** a fresh installation does not report success until the required OpenCode account, valid target repository, valid model selection and productive daemon/readiness conditions are satisfied. After installation, if one of those conditions is lost or an update leaves an unresolved recoverable condition, the workbench remains usable for setup/recovery and affected productive Runs remain blocked. A usable selected account may contribute its trusted Console integration context without additional operator setup.
 
-**Failure/negative behavior:** unresolved setup must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state.
+**Failure/negative behavior:** mandatory fresh-install setup must not be deferred past reported installer success. Post-install unresolved readiness must not appear only as an internal daemon error, empty unexplained workbench, downstream provider/workflow failure, or a falsely READY state.
 
 ### GW-FR-080-CONFIGURATION-CONTINUITY
 
