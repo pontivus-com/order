@@ -16,6 +16,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Reconcile the reopened 0.6.0 campaign control state after ALIGN-A06: pin the current P6 identity, distinguish current pair-audit progression from historical PASS evidence, repair the PLAN-A02 cross-concern audit proof, and keep downstream pairs blocked until the separately governed execution-foundation prerequisite is integrated and revalidated.
+
 - Require every v2 R2 `REFERENCE`/`DELTA` authority-disposition owner to resolve specifically through canonical P3 authority, reject P2/P4 layer leakage before stage promotion and in permanent WorkItem hygiene, and correct the 0.6.0 campaign ledger without changing its functional or technical design.
 
 ## [0.5.0] - 2026-11-17
