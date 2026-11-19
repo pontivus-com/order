@@ -25,6 +25,8 @@ For every stable requirement row in phases 01-11:
 
 Every package atom must have exactly one execution owner. Shared IA references are consumer dependencies.
 
+A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC03` are also binding proof instructions: verify their exact canonical authority identities and stated R1 semantic propositions under V4, authorize no T1 production mutation for those corrections, and return upstream if any authority/evidence contradiction is found.
+
 ## Exact proof owners
 
 Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA24 runs the final validation contract.
