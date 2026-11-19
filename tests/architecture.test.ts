@@ -2067,8 +2067,7 @@ describe("architecture fitness", () => {
         }
       }
       const openFoundationFinding = source
-        .split(/\\r?\
-/)
+        .split(/\r?\n/)
         .some((line) => line.startsWith("| ") && line.includes("| OPEN_FOUNDATION |"));
       if (openFoundationFinding) {
         violations.push("G0 PASS is illegal while an OPEN_FOUNDATION finding remains");
