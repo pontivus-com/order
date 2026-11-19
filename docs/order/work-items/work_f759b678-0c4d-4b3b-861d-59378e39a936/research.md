@@ -28,6 +28,10 @@ The current canonical RunEvent schema has result events `GATE_PASSED`/`GATE_FAIL
 
 The existing effect owner already exists: `src/daemon/validation.ts::runRequiredGates` executes resolved project gates and records evidence. The correction therefore requires no new gate registry or effect subsystem.
 
+### Verification-discovered canonical consumer
+
+After the first foundation integration, PR Verification run #1382 reached typecheck and failed at `ui/src/workbench-presentation.ts::runEventPresentation`: the exhaustive `RunEventPayload` switch had no `GATE_CHECKPOINT_REQUESTED` branch. This is a direct typed consumer of the canonical event union, not a new product requirement. The minimum correction is a neutral informational projection plus focused presentation proof; no browser-owned checkpoint state or decision policy is permitted.
+
 ## Root cause
 
 The earlier implementation encoded an exact file-list interpretation at V2 and a single-turn BUILDER orchestration model. Later authority clarified that physical forecast and semantic scope are distinct and that architecture feedback is a coordinator-mediated multi-turn control-plane operation.
@@ -62,6 +66,7 @@ BUILDER provider turn
 - `runVerificationGate` and gate evidence writer;
 - current Approval/material freshness checks;
 - existing OpenCode role-specific output-contract generation in `src/shell/opencode.ts`;
+- existing exhaustive RunEvent presentation projection in `ui/src/workbench-presentation.ts`;
 - existing V3/V5/V7 validation stages;
 - V4 independent reviewer and V6 minimum-change boundary.
 
