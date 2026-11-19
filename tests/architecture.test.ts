@@ -1811,6 +1811,132 @@ describe("architecture fitness", () => {
       }
     }
 
+    const alignRows = alignSection
+      .split(/\r?\n/)
+      .filter((line) => /^\| ALIGN-(?:A\d{2}|H1) \|/.test(line))
+      .map((line) => {
+        const cells = tableCells(line);
+        return {
+          id: cells[0] ?? "",
+          status: cells[1] ?? "",
+          evidence: cells[2] ?? "",
+        };
+      });
+    const expectedAlignIds = [
+      ...Array.from({ length: 11 }, (_, index) =>
+        "ALIGN-A" + String(index + 1).padStart(2, "0")
+      ),
+      "ALIGN-H1",
+    ];
+    if (
+      alignRows.length !== expectedAlignIds.length ||
+      expectedAlignIds.some((id) => !alignRows.some((row) => row.id === id))
+    ) {
+      violations.push("§13A must contain exactly ALIGN-A01-A11 and ALIGN-H1 current status rows");
+    }
+    const alignById = new Map(alignRows.map((row) => [row.id, row] as const));
+    const allowedAlignStatuses = new Set([
+      "NOT_STARTED", "IN_REVIEW", "PASS", "FAIL", "BLOCKED", "REVALIDATION",
+    ]);
+    for (const row of alignRows) {
+      if (!allowedAlignStatuses.has(row.status)) {
+        violations.push(row.id + " has invalid ALIGN status: " + row.status);
+      }
+    }
+    for (let index = 0; index < 11; index += 1) {
+      const id = expectedAlignIds[index]!;
+      if (alignById.get(id)?.status !== "PASS") continue;
+      if (index > 0) {
+        const prior = expectedAlignIds[index - 1]!;
+        if (alignById.get(prior)?.status !== "PASS") {
+          violations.push(id + " PASS requires " + prior + " PASS");
+        }
+      }
+    }
+    if (
+      alignById.get("ALIGN-H1")?.status === "PASS" &&
+      expectedAlignIds.slice(0, 11).some((id) => alignById.get(id)?.status !== "PASS")
+    ) {
+      violations.push("ALIGN-H1 PASS requires ALIGN-A01-A11 PASS");
+    }
+
+    for (const row of alignRows) {
+      if (row.status !== "PASS" && row.status !== "FAIL") continue;
+      const startToken = "ALIGN AUDIT START: " + row.id;
+      const endToken = "ALIGN AUDIT END: " + row.id;
+      const startCount = alignSection.split(startToken).length - 1;
+      const endCount = alignSection.split(endToken).length - 1;
+      const start = alignSection.indexOf(startToken);
+      const end = alignSection.indexOf(endToken, start + startToken.length);
+      if (startCount !== 1 || endCount !== 1 || start < 0 || end < 0) {
+        violations.push(
+          row.id + " " + row.status +
+            " requires exactly one current ALIGN audit record; starts=" +
+            startCount + ", ends=" + endCount,
+        );
+        continue;
+      }
+      const record = alignSection.slice(start, end + endToken.length + 500);
+      const requiredRecordPatterns: readonly [string, RegExp][] = [
+        ["repository baseline", /Repository evidence baseline:\*\*\s*`[0-9a-f]{40}`/i],
+        ["R1 blob", /R1 blob:\*\*\s*`[0-9a-f]{40}`/i],
+        ["R2 blob", /R2 blob:\*\*\s*`[0-9a-f]{40}`/i],
+        ["DESIGN blob", /DESIGN blob:\*\*\s*`[0-9a-f]{40}`/i],
+        ["PLAN blob", /PLAN blob:\*\*\s*`[0-9a-f]{40}`/i],
+        ["atomic vertical matrix", /Atomic vertical matrix/i],
+        ["reverse trace", /Reverse trace/i],
+        ["cross-domain imports\/exports", /Cross-domain imports\/exports/i],
+        ["quality summary", /Quality summary/i],
+        ["findings", /Findings:/i],
+        ["failure route", /Failure route:/i],
+      ];
+      for (const [label, pattern] of requiredRecordPatterns) {
+        if (!pattern.test(record)) {
+          violations.push(row.id + " " + row.status + " record missing " + label);
+        }
+      }
+      if (!record.includes("**Verdict:** `" + row.status + "`")) {
+        violations.push(row.id + " record verdict does not match current status " + row.status);
+      }
+      if (row.status === "PASS") {
+        for (let quality = 1; quality <= 12; quality += 1) {
+          const qPattern = new RegExp(
+            "\\| Q" + quality + "[^|]*\\|\\s*PROVEN\\s*\\|",
+            "i",
+          );
+          if (!qPattern.test(record)) {
+            violations.push(row.id + " PASS requires Q" + quality + " PROVEN");
+          }
+        }
+      }
+    }
+
+    if (
+      gates.get("G5A")?.status === "PASS" &&
+      expectedAlignIds.some((id) => alignById.get(id)?.status !== "PASS")
+    ) {
+      violations.push("G5A PASS requires ALIGN-A01-A11 and ALIGN-H1 PASS");
+    }
+
+    for (
+      const entry of readdirSync(join(repositoryRoot, campaignDirectory), {
+        withFileTypes: true,
+      })
+    ) {
+      if (
+        !entry.isFile() ||
+        !entry.name.endsWith(".md") ||
+        entry.name === "0.6.0-design-campaign-plan.md"
+      ) {
+        continue;
+      }
+      const siblingPath = join(campaignDirectory, entry.name).replaceAll("\\", "/");
+      const sibling = sourceText(siblingPath);
+      if (/^\| G5A \|/m.test(sibling) || /ALIGN AUDIT START:\s*ALIGN-/m.test(sibling)) {
+        violations.push(siblingPath + ": competing ALIGN/G5A campaign progression projection");
+      }
+    }
+
     const gatePairPhase = [
       ["G2", "R1"],
       ["G3", "R2"],
