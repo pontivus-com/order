@@ -31,7 +31,7 @@ Current implementation/tests/UI are used only through the exact R1 evidence cite
 | Solution | Owned defect/outcome | Canonical technical owner | Expected implementation surface | Technical decision | Permanent proof |
 |---|---|---|---|---|---|
 | SD01 | C21 product-language realization | P2 Product Identity + P4 Workbench presentation | README.md; ui/src/TerminalResult.tsx; ui/src/workbench-presentation.ts | Use verified result as umbrella product outcome and Verified candidate only for executed delivery; reuse the canonical P4 terminal-result projection and replace local enum prettification; no lifecycle/state/contract change. | tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
-| SD02 | C22 authority resolution | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-OPENCODE-INTEGRATION-V1 | src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Purely resolve same-layer precedence plus P1 default/override/extension/fitness bindings before productive provider context; unresolved material relation blocks before inference. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts |
+| SD02 | C22 authority resolution | GW-DOC-TECHNICAL-ARCHITECTURE-V2 §35.1 + GW-DOC-OPENCODE-INTEGRATION-V1 | src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Reuse the permanent P4 §35.1 contract: pure same-layer precedence plus P1 default/override/extension/fitness resolution before productive provider context; unresolved material relation blocks before inference. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts — exact propositions below |
 | SD03 | C02 authoring presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/CreateWorkItem.tsx | Ordinary label is Concerns; linked remediation project is fixed parent-project context. Preserve canonical kind/schema/body/metadata owners. | tests/browser.spec.ts |
 | SD04 | C02/C04 singular source admission | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/daemon/work-item-source.ts | Factor one new-source QueuePlan producer and persist both created/discovered sources through existing applyPlan; remove direct create-path WorkItem store. | tests/daemon.test.ts |
 | SD05 | C03 archived queue filtering | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/app.tsx; ui/src/WorkItemQueue.tsx | App selects active/include-archived canonical dataset then applies project/search once; queue does not replace filtering semantics. | tests/browser.spec.ts |
@@ -296,6 +296,16 @@ validated ProjectManifest + shell-expanded selected authority paths
 ```
 
 Semantic contradiction remains stage-owned; the resolver supplies explicit relation/ordering and blocks unresolved structural ambiguity before provider interpretation.
+
+### SD02 permanent proof allocation
+
+SD02 does **not** restate the permanent P4 authority-resolution algorithm; `GW-DOC-TECHNICAL-ARCHITECTURE-V2 §35.1` remains its single technical owner. The WorkItem DESIGN owns only the package-specific proof allocation:
+
+- `tests/core.test.ts` proves the pure resolver over already-validated manifest/source inputs: explicit same-layer precedence only, no authority-array/filesystem-order precedence, inherited P1 defaults plus explicit overrides/compatible extensions, direct+rule fitness-gate union, stable authority-reference materiality, and rejection of structurally unresolved/invalid relations;
+- `tests/daemon.test.ts` proves `resolveStageContextState/resolveStageContext` consume that resolved projection before stage/context/conformance/sign-off dependency construction and block unresolved material authority before provider use;
+- `tests/certification.test.ts` proves the **productive production path** rather than a local helper in isolation: a representative real project-manifest fixture with same-layer precedence/default/override/extension inputs reaches the production STAGE context in the resolved order/binding set, while an equivalent unresolved same-layer relation is rejected before any provider turn. The certification must exercise the production core/daemon boundary and must fail if productive context falls back to raw manifest array/filesystem order or provider interpretation.
+
+The certification assertion is a known SD02 obligation. It is owned by the SD02 implementation action that integrates the resolver into productive context; it must not be deferred to generic cross-solution regression closure.
 
 ### F2 — permanent authority proposal/adoption (SD09)
 
