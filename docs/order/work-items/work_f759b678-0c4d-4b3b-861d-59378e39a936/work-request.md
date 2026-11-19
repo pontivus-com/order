@@ -7,6 +7,7 @@
     "foundation",
     "core",
     "daemon",
+    "shell",
     "verification"
   ],
   "schemaId": "defect-v2"
@@ -42,6 +43,7 @@ At branch baseline `ebf266a9017701c9c729d7d7b4a2073d3e59993a`:
 - `src/daemon/validation.ts::validateChangedPaths` rejects every changed path absent from `task.changeSurface` before scope/exclusion validation can admit it;
 - `src/core/contracts.ts` has `GATE_PASSED`/`GATE_FAILED` but no `GATE_CHECKPOINT_REQUESTED`;
 - `src/core/execution.ts::builderProviderTags` omits checkpoint requests;
+- `src/shell/opencode.ts` derives provider role output contracts from those tag sets and must advertise the checkpoint only to BUILDER;
 - `src/daemon/execution.ts::executeMutatingRun` performs one `runOpenCodeTurn`, persists it, stops the provider, and immediately finalizes/block/publishes the candidate.
 
 ## Governing authority
