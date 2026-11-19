@@ -52,7 +52,7 @@ G-F01 through G-F08 are current reusable foundation corrections and are independ
 
 ### Current factual findings
 
-The following table is the R1 factual finding set. Later R2/DESIGN corrections do not erase the factual discovery record; where authority has since been corrected, the finding is retained as disposed historical evidence rather than misrepresented as a current violation. None is an unresolved R1 fact.
+The following table is the R1 factual finding set. Later R2/DESIGN corrections do not erase the factual discovery record; where authority has since been corrected, the finding is retained as disposed historical evidence rather than misrepresented as a current violation. `C12-F02` is a newly reopened current R1 fact discovered by the governed ALIGN-A06 audit; downstream closure is stale until it is disposed.
 
 | Finding | Factual result | Downstream owner |
 |---|---|---|
@@ -71,6 +71,7 @@ The following table is the R1 factual finding set. Later R2/DESIGN corrections d
 | C11-F01 | Approval does not directly present canonical readiness with package currentness | R2 reference + downstream projection |
 | C11-F02 | whitespace-only approval identity can pass canonical ingress despite browser-only validation | DESIGN / P6 + daemon admission |
 | C12-F01 | required in-task architecture feedback checkpoints are not productively executable under the denied-execute provider boundary | DESIGN / execution checkpoint mechanism |
+| C12-F02 | current execution validation treats signed `changeSurface` as an exhaustive literal-path whitelist and returns SCOPE_BREACH for every unlisted changed path, contradicting S9/Lifecycle Context authority that permits the minimum same-layer physical decomposition needed solely to preserve an already-resolved responsibility/effect boundary without upstream return | DESIGN / P6 validation/task-surface contract + PLAN |
 | C16-F01 | Settings still promotes filesystem/transport identity into ordinary primary content | R2 reference + downstream presentation |
 | C16-F02 | Fresh installation returns success after initializing empty v4 configuration while explicitly deferring required repository/OpenCode-account/model setup to browser Settings, violating `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | R2 reference + DESIGN installer/setup realization |
 | C16-F03 | `GW-DOC-CANONICAL-CONTRACTS` P6 explicitly permits a fresh v4 install to persist `model = null` / empty repositories and finish configuration later in browser Settings, contradicting higher P3 `GW-FR-007` and P4 `GW-TR-007` productive-installer closure | DESIGN / canonical P6 contract correction |
@@ -104,7 +105,7 @@ Verdict meanings:
 |---|---|---|---|---|---|---|
 | `GW-FR-001-GOVERNED-LIFECYCLE` | C01 | `GW-DOC-WORK-LIFECYCLE` | work progresses only through the canonical IDEA → R1 → R2 → DESIGN → PLAN → R3 → explicit sign-off → execution lifecycle, with each stage constrained to its own decision boundary. | `C01-O03` [CONFORMS] P3 §2.1 -> P6 `WorkStage` -> core `stageOrder` -> P4 rail derivation -> UI `workflowSteps`; no extra IMPLEMENT/TEST/REVIEW WorkStage exists ; `C01-O05` [CONFORMS] P3 §2.2 -> core transition-cause union -> daemon mutation owners -> core/browser observation; negative transitions reject ; `C01-O08` [CONFORMS] System Brief §6 + P3/P6 -> execution Run/validation state -> `src/daemon/execution.ts`; WorkStage/core rail remain nine stages | `CONFORMS` | — |
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | C01 | `GW-DOC-WORK-LIFECYCLE` | every approved execution task is reproducibly derived from exact committed authority, plan, readiness and verification material. | `C01-O01` [CONFORMS] P2 controlled-work intent -> P3 stage/conformance rules -> P6 WorkItem/Approval/ExecutionTask -> `transitionWorkItem` + daemon stage/sign-off admission -> Workbench actions ; `C01-O07` [CONFORMS] P3 §3 -> P6 Approval/ArtifactRef closure -> `computeSignoffPackage` / freshness recheck -> atomic `SIGN_OFF` transition + task materialization | `CONFORMS` | — |
-| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | C12 | `GW-DOC-WORK-LIFECYCLE` | Order durably owns task/run state outside model sessions and executes at most the exact authorized task under its dependencies, scope, exclusions and baseline. | `C12-O01` [CONFORMS] Approval/task block -> reconstructed ExecutionTask -> pure ExecutionOwner -> daemon exact task start/recheck ; `C12-O02` [CONFORMS] Run -> workspace path -> fresh checkout/replay+hash verification -> candidate evidence ; `C12-O07` [CONFORMS] candidate changed paths -> canonical validator -> SCOPE_BREACH | `CONFORMS` | — |
+| `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | C12 | `GW-DOC-WORK-LIFECYCLE` | Order durably owns task/run state outside model sessions and executes at most the exact authorized task under its dependencies, scope, exclusions and baseline. | `C12-O01` [CONFORMS] Approval/task block -> reconstructed ExecutionTask -> pure ExecutionOwner -> daemon exact task start/recheck ; `C12-O02` [CONFORMS] Run -> workspace path -> fresh checkout/replay+hash verification -> candidate evidence ; `C12-O07` [VIOLATES — C12-F02] candidate changed paths -> `validateChangedPaths` -> every path absent from literal `task.changeSurface` becomes SCOPE_BREACH before V4/V5/V6 can distinguish an S9-authorized same-layer architecture-preserving split from semantic scope expansion. The durable task/baseline owner remains correct; the surface-admission sub-obligation is over-restrictive relative to higher S9/Lifecycle Context implementation authority. | `MIXED` | `C12-F02` |
 | `GW-FR-004-INDEPENDENT-VALIDATION` | C20 | `GW-DOC-WORK-LIFECYCLE` | candidate completion requires prescribed deterministic gates plus independent semantic review, architecture/governance validation and minimum-change validation. | `C12-O08` [CONFORMS] task gate ids -> manifest gate bindings -> coordinator shell process -> RunEvents/evidence ; `C12-O09` [CONFORMS] replayed candidate -> REVIEWER permissions/prompt -> REVIEW_PASSED/FAILED -> V4 ; `C12-O10` [CONFORMS subject to upstream C22-F01 governance-resolution gap] approval closure paths + manifest governance gates -> V5 -> GOVERNANCE_BREACH ; `C12-O11` [CONFORMS] V4 reviewer anti-bloat/cohesion mandate + exact changed-path recheck -> V6 evidence ; `C12-O12` [CONFORMS] final reviewer candidate -> exact task gates -> V7 ; `C20-O10` [CONFORMS, with C10/C11 projection findings separately owned] C11-C13 audits + validation standard + execution-control-plane + browser/daemon evidence | `CONFORMS_WITH_DEPENDENCY` | `C22-F01` |
 | `GW-FR-005-LOCAL-WORKBENCH` | C05 | `GW-DOC-WORK-LIFECYCLE` | one local browser workbench exposes the governed lifecycle, authority/evidence inspection, explicit artifact-proposal disposition, readiness inspection, explicit sign-off and candidate inspection over daemon-owned state. The same workbench supports light and dark appearance with an operator-selectable `System \| Light \| Dark` preference; `System` is the default and follows the operating-system/browser color-scheme preference. | `C05-O01` [CONFORMS] core `deriveReachedStages/deriveWorkflowRail` -> `WorkflowRail` -> WorkbenchRail; labels come from one workflow presentation map ; `C05-O04` [CONFORMS] root `contextOpen=false` + explicit Context action -> WorkItemContext/drawer; browser coverage verifies no automatic opening and bounded behavior ; `C05-O12` [CONFORMS; full component/visual consistency remains C19-owned] WorkbenchLayout + rail/identity/context + stage-specific primary renderers ; `C19-O06` [CONFORMS] P3 GW-FR-235 -> P4 theme owner -> root App/Astryx Theme ; `C19-O08` [CONFORMS] P3 §11.13 -> P4 theme -> browser theme/dirty-state evidence | `CONFORMS` | — |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | C12 | `GW-DOC-WORK-LIFECYCLE` | successful execution yields the minimum sufficient verified candidate for the signed task and hands it off without performing downstream delivery operations. | `C12-O12` [CONFORMS] final reviewer candidate -> exact task gates -> V7 ; `C12-O13` [CONFORMS] ordered validation events -> CANDIDATE_RECORDED -> task state -> aggregate WorkItem completion ; `C12-O19` [CONFORMS] provider permissions/workspace + Order effect boundaries | `CONFORMS` | — |
@@ -289,6 +290,32 @@ Freshness consequences are explicit:
 - material `UNPROVEN` count remains zero.
 
 The post-audit R1 pair records in the campaign plan must bind this refreshed synthesis, the exact repository baseline, the current campaign evidence snapshot and current authority identities before G2 may return to PASS.
+
+## ALIGN-A06 C12 factual reopening
+
+**Audit baseline:** `3ea9932f9bb396fdc4584704d284903be04de254`.
+
+The governed final alignment audit disproved the prior C12-O07 conformance claim.
+
+Exact current realization:
+
+```text
+signed task changeSurface
+  -> src/daemon/validation.ts::validateChangedPaths
+  -> if !task.changeSurface.includes(path)
+  -> VALIDATION_FAILED / SCOPE_BREACH
+```
+
+This is not a valid desired-state preservation rule. `GW-DOC-SPECIFICATION-STANDARD` S9 and `GW-DOC-LIFECYCLE-CONTEXT` IMPLEMENT explicitly permit the minimum same-layer physical decomposition required solely to preserve an already-binding responsibility/effect boundary when canonical semantic ownership, public contracts, state meaning, dependency direction and authorized behavior do not change. Such decomposition is judged by the ordinary semantic/architecture/minimum-change path; it does not return upstream merely because it adds or moves a file.
+
+The current runtime cannot make that distinction because V2 rejects the path before V4/V5/V6 review. The current P6 literal-path wording and P7 exact-30-path stop rule reinforce the same overconstraint. Therefore:
+
+- C12-O07 is `VIOLATES`, not `CONFORMS`;
+- the defect is factual evidence of a P6/DESIGN/PLAN mismatch, not a new product requirement;
+- arbitrary scope expansion remains forbidden: the correction must preserve signed semantic scope/exclusions and route genuinely new semantic owner/contract/state/effect/dependency/behavior decisions upstream;
+- because the active coordinator performs V2/V6 outside the candidate workspace, a task cannot rely on a validator correction implemented by that same task to admit its own previously unlisted architecture-preserving split. Any package that relies on the corrected behavior requires that execution-control capability in its approved baseline.
+
+The related C12-F01 checkpoint finding has the same baseline-dependency shape: the current coordinator executes one provider turn then captures the candidate; it does not admit/react to `GATE_CHECKPOINT_REQUESTED`. A T1 that implements the checkpoint protocol cannot use its own candidate bytes to obtain checkpoint capability during that same Run.
 
 ## Downstream invariants
 
