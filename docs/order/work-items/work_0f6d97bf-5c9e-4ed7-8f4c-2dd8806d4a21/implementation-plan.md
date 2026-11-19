@@ -6,25 +6,25 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
+This PLAN consumes G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`. Current implementation/tests are evidence only; they are not preservation authority except where DESIGN explicitly records `POSITIVE_NO_CHANGE`.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
 | `implementation-plan/00-governance.md` | `2f001b6aa56197382cc59666c2acae5b44ddf73a` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `d99ddbf8df734eb9cf7768cf97f70599421dd89f` |
-| `implementation-plan/02-a02-governance-intake.md` | `01e81a692c16dfc7c4adc05c8e743618245d93b0` |
-| `implementation-plan/03-a03-queue-source.md` | `8f2cca485b34847ecef2161d5f179b6e86d7fd38` |
-| `implementation-plan/04-a04-workbench-research.md` | `e350c1d95c9ce9383da091b12b9520c7fd5ab1b7` |
-| `implementation-plan/05-a05-requirements-design.md` | `7e2b542eae92346b4cc0f348f1cb95545970ab1d` |
-| `implementation-plan/06-a06-plan-readiness.md` | `89985955bec32b8b36feba8ac0818655cedc2b70` |
-| `implementation-plan/07-a07-approval-execution.md` | `a496beccad0cbac3c7b9e9bb3490c4e3ae30732b` |
-| `implementation-plan/08-a08-complete-materials.md` | `c29a6cbe1ceff9d6ae6d77c0b0d5a6a97660baa8` |
-| `implementation-plan/09-a09-provider-settings.md` | `c87253362c5966a032923db17029600c6cec6453` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `cd8b5cccb8f8ba50f923425aa0730be6e92c5e10` |
-| `implementation-plan/11-a11-component-certification.md` | `6263efae2e408af6e3edd5f0543520607a3dd447` |
-| `implementation-plan/12-action-catalog.md` | `5e6816a3b3d43230f07bfe5166480b1137363158` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `cae15e1b78b268900810fbc64968e6818af84e63` |
+| `implementation-plan/02-a02-governance-intake.md` | `887c6550034d7a3b8354f2c4e889560f257add96` |
+| `implementation-plan/03-a03-queue-source.md` | `43a3e2020b48f859c289cd6e1af22a446ee028ca` |
+| `implementation-plan/04-a04-workbench-research.md` | `d3ef08f5806668a13d7c62561f71668cc9a55a24` |
+| `implementation-plan/05-a05-requirements-design.md` | `9cf2e3b6c21266bc7eaccf77d6b4cbb063d17752` |
+| `implementation-plan/06-a06-plan-readiness.md` | `ebdd60713377b1b79d4072546958f140bf953e3c` |
+| `implementation-plan/07-a07-approval-execution.md` | `1514786244ce2a2c44d0e6119ca1e0819fc8224f` |
+| `implementation-plan/08-a08-complete-materials.md` | `4ac4d375ba34a541cc57a963f33a778dc2fb5583` |
+| `implementation-plan/09-a09-provider-settings.md` | `0cba1fd77f6f2f85232ca48f376dbf4ab62461c4` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `ec8c9f78ce6cf8364c868f00bbd1835bf65180e3` |
+| `implementation-plan/11-a11-component-certification.md` | `88e959cecc16a02d635123c427ffe495a20cd982` |
+| `implementation-plan/12-action-catalog.md` | `39bacf92450ef68379939ebd78a7538eab977be7` |
 | `implementation-plan/13-verification-closeout.md` | `3ea7ab3e3e524a54b4184cb38bfafae6d1058166` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -147,7 +147,7 @@ Return to DESIGN/PLAN before editing when execution requires a new semantic owne
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -206,7 +206,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -227,7 +227,7 @@ Stable rows in phase: **8**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C22-01` | C22-F01 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings before productive interpretation. |
+| `PL-C22-01` | C22-F01 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings before productive interpretation; IA02 also owns the exact production-path certification proof declared by SD02. |
 | `PL-C02-01` | C02-F01 | `SD03` | `IA11` | — | Ordinary Create language is Concerns, not raw Concern IDs. |
 | `PL-C02-02` | C02-F02 | `SD03` | `IA11` | — | Linked remediation project is fixed to parent project and not offered as invalid editable choice. |
 | `PL-C02-03` | C02-F03/C04-F01 | `SD04` | `IA09`, `IA10` | — | Created and discovered sources share one productive admission/persistence owner. |
@@ -248,8 +248,9 @@ Package atoms in phase: **4**.
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
 3. dependency-only rows consume the named IA action without duplicating its implementation;
 4. every package atom is satisfied by its one execution owner;
-5. action-specific tests plus `13-verification-closeout.md` pass;
-6. any evidence contradiction returns upstream rather than broadening scope.
+5. SD02 certification is owned by IA02 and proves the productive production path, not only the pure helper/daemon unit boundary;
+6. action-specific tests plus `13-verification-closeout.md` pass;
+7. any evidence contradiction returns upstream rather than broadening scope.
 
 
 ---
@@ -260,7 +261,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -329,7 +330,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -395,7 +396,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -436,7 +437,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -480,7 +481,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -534,7 +535,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -580,7 +581,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -643,7 +644,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -690,7 +691,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `069f1f26fff19ee35cf5fa030c1c77f5801caa8c`.
+**Upstream:** exact G-F10 R1/R2 evidence and semantic DESIGN blob `adfacca187384db22ec5f587364db82f964d83df`.
 
 ##### Stable requirement execution dispositions
 
@@ -768,7 +769,10 @@ Architecture-feedback checkpoints in `13-verification-closeout.md` apply after e
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
 **Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction; invalid/unresolved bindings block before provider use.  
-**Proof:** `tests/daemon.test.ts` productive-context admission and negative unresolved-binding cases.
+**Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; context construction that bypasses the IA01 resolved projection.  
+**Proof:**
+- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection and unresolved material bindings block before provider use;
+- `tests/certification.test.ts` — representative production project manifest with same-layer precedence/default/override/extension reaches the real STAGE context in the resolved order/binding set, and an equivalent unresolved relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order or provider interpretation.
 
 ##### IA03 — one GOVERNANCE proposal/adoption mechanism
 
