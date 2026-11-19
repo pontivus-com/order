@@ -2334,7 +2334,7 @@ describe("architecture fitness", () => {
     const a01Phase = sourceText(
       workItemRoot + "/implementation-plan/01-a01-lifecycle-product.md",
     );
-    for (const traceKey of ["A01-NC01", "A01-NC02", "A01-NC03"]) {
+    for (const traceKey of ["A01-NC01", "A01-NC02", "A01-NC03", "A01-NC04", "A01-NC05"]) {
       if (!design.includes("`" + traceKey + "`")) {
         violations.push("DESIGN missing corrected-upstream A01 no-code trace: " + traceKey);
       }
