@@ -13,10 +13,10 @@ The substantive correction is pre-signoff authority/verification material. The l
 ## Exact reviewed package
 
 - Work request: blob `daee1a3d3c5abd43f5196ee4d780dee37065d277`;
-- R1: blob `3d7ae664c75c57905c497742f1c6949d1297e9ac`;
+- R1: blob `73ed2c7e5a2eccc8d8265679ee4d0e68be74f935`;
 - R2: blob `1fe70c9345cfed40323ca77897580602071f62d4`;
-- DESIGN: blob `9c9d2b28426b2756f3156e4dddf6444149116d57`;
-- PLAN: blob `baef70d1038977f4bac5395cd5975b6698a56e63`;
+- DESIGN: blob `ec58db86a1d9140e76e23b1eefc91d6379dd965e`;
+- PLAN: blob `0e68a4853267e41837dedd2c686ac67b35d84728`;
 - exact retained 2026-11-12 external-facts source: `docs/references/external-facts.v1-2026-11-12.md`, blob `da866ffe75c54e16d9a98b64db880fd64a7b07d6`;
 - live external-facts owner: blob `ac97d3897edc0845e968df967283321f08ce442d`;
 - authority/ref registry: `pontivus-order.toml`, blob `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`;
@@ -58,10 +58,16 @@ PASS by direct repository inspection:
 - retained historical blob equals the recovered pre-refresh blob exactly: `da866ffe75c54e16d9a98b64db880fd64a7b07d6`;
 - live owner declares `GW-DOC-EXTERNAL-FACTS-V1-2026-11-16` and `Verified: 2026-11-16`;
 - manifest resolves stable `GW-DOC-EXTERNAL-FACTS` and current dated identity to the live owner and resolves `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` to the retained source;
-- current permanent consumers audited in R1 contain no 2026-11-12 version pin and use stable `GW-DOC-EXTERNAL-FACTS`;
+- the complete current permanent consumer set audited by the strengthened architecture fitness rule contains no 2026-11-12 version pin and uses stable `GW-DOC-EXTERNAL-FACTS`; the initially missed Workbench/theme references are corrected at blobs `36b5628f5d54d168aed25f0af71226114266068a` and `ec4c59408485d86e7c64802fed983e2072d063b9`;
 - retained `technical-architecture.v1.md` remains blob `6e362164dcc6d61c7242cac430ae8d114f56016c`;
 - retained `canonical-contracts.v1.md` remains blob `44db773f1e2b5417eba730c2a8c57ec44b11942f`;
 - permanent fitness now recognizes `.vN-YYYY-MM-DD.md`, binds filename/version/date, checks dated version IDs against `Verified`, and preserves historical navigation references without weakening current-consumer stable-ID enforcement.
+
+## Exact-head verification feedback
+
+The first exact-head PR Verification #1426 / run `44479533124` passed release metadata, dependency-lock and typecheck, then failed the architecture gate because the newly strengthened current-consumer rule found three remaining dated pins: `workbench-theme.md` line 44 and `workbench.md` lines 865/1679. This was a valid detection by the new invariant, not a reason to weaken it.
+
+Those three current references were rebound to stable `GW-DOC-EXTERNAL-FACTS`; R1, DESIGN and PLAN were then refreshed to include the complete consumer surface. A fresh exact-head run is required before G0 restoration.
 
 ## PLAN legality
 
