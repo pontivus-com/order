@@ -1,10 +1,10 @@
 # 0.6.0 implementation action catalog
 
-Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility.
+Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD19 under G-F12; historical action existence is not justification for retaining an action.
 
 ## Execution waves
 
-0. **Preflight 0 — baseline-reuse proof:** IA07-IA08. No T1 production mutation.
+0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No T1 production mutation.
 1. **Wave 1 — authority resolution and governed decisions:** IA01-IA04.
 2. **Wave 2 — task admission and Approval ingress:** IA05-IA06.
 3. **Wave 3 — source/queue/documentation Git:** IA09-IA13.
@@ -13,7 +13,7 @@ Each IA action below has one execution owner. Semantic phase files may reference
 6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
 7. **Wave 7 — candidate closeout:** IA24.
 
-The signed `architecture` gate is requested through the existing SD13 coordinator checkpoint after Waves 1-6 and must pass before the next wave begins. Preflight 0 proves that checkpoint and scope/forecast capabilities already exist in the Approval baseline; it does not bootstrap them. Wave 7 uses the ordinary final validation path and does not substitute an intermediate checkpoint for V3/V5/V7.
+The signed `architecture` gate is requested through the existing SD13 coordinator checkpoint after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast realizations identified by current DESIGN; it does not bootstrap them or treat current implementation as authority. Wave 7 uses the ordinary final validation path and does not substitute an intermediate checkpoint for V3/V5/V7.
 
 ## IA01 — pure project-authority resolution
 
@@ -64,18 +64,18 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 **Required mutation:** trim and reject whitespace-only `approvedBy` before persistence.  
 **Proof:** core/daemon direct-ingress negative tests plus browser feedback.
 
-## IA07 — signed-checkpoint baseline reuse proof
+## IA07 — signed-checkpoint DESIGN-positive reuse proof
 
 **Solution:** SD13; package atom `PL-C12-01`.  
-**Baseline owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
-**Required action:** no T1 production mutation. Before Wave 1, revalidate that BUILDER alone may emit one terminal signed `GATE_CHECKPOINT_REQUESTED`, the coordinator checks freshness/current V2 scope before the effect, executes the signed gate, records existing GATE_PASSED/GATE_FAILED evidence, continues the same Run/provider session and never grants provider shell/execute. The implementation waves then consume this baseline capability exactly as scheduled by `13-verification-closeout.md`.  
-**Failure:** if the Approval baseline cannot prove this capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
-**Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current baseline verification.
+**Existing realization evidence owners:** existing `src/core/contracts.ts`, `src/core/execution.ts`, `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts`.  
+**Required action:** no T1 production mutation. Before Wave 1, revalidate that BUILDER alone may emit one terminal signed `GATE_CHECKPOINT_REQUESTED`, the coordinator checks freshness/current V2 scope before the effect, executes the signed gate, records existing GATE_PASSED/GATE_FAILED evidence, continues the same Run/provider session and never grants provider shell/execute. The implementation waves then consume this DESIGN-positive capability exactly as scheduled by `13-verification-closeout.md`.  
+**Failure:** if current evidence cannot prove the DESIGN-required capability, stop before mutation and return upstream; do not self-bootstrap the checkpoint protocol.  
+**Proof:** existing core/daemon/certification checkpoint success, failure, unsigned, out-of-scope and same-session cases plus exact current realization verification.
 
-## IA08 — signed-scope/forecast baseline reuse proof
+## IA08 — signed-scope/forecast DESIGN-positive reuse proof
 
 **Solution:** SD10; package atom `PL-C12-02`.  
-**Baseline owners:** existing `src/shell/opencode.ts`, `src/daemon/validation.ts` and `src/daemon/execution.ts`.  
+**Existing realization evidence owners:** existing `src/shell/opencode.ts`, `src/daemon/validation.ts` and `src/daemon/execution.ts`.  
 **Required action:** no T1 production mutation. Revalidate that signed scope/exclusions are the hard reach boundary, `changeSurface` is immutable forecast evidence, forecast absence alone is not V2 `SCOPE_BREACH`, and in-scope unforecast decomposition can proceed only through independent V4, architecture/governance V5 and coordinator-owned V6 minimum-change evidence.  
 **Failure:** any contradiction blocks execution and returns to the owning pre-signoff layer; do not modify execution-foundation owners from this T1 to make the candidate admissible.  
 **Proof:** existing daemon/certification in-scope-unforecast, out-of-scope/exclusion/protected-path, V6 `CHANGE_BLOAT` and architecture-fitness cases.

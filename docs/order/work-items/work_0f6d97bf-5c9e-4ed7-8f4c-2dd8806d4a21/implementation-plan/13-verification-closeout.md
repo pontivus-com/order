@@ -4,7 +4,7 @@ This component allocates proof inside the one signed T1. It does not create anot
 
 ## Architecture-feedback checkpoints
 
-Preflight IA07 proves the exact Approval baseline already supports coordinator-owned signed checkpoints; no T1 candidate byte is relied upon to create this capability.
+Preflight IA07 re-proves the exact DESIGN-required Approval/checkpoint realization from current evidence; no T1 candidate byte is relied upon to create this capability and current implementation does not define the requirement.
 
 | Checkpoint | After execution wave | Required coordinator evidence |
 |---|---|---|
@@ -23,7 +23,7 @@ For every stable requirement row in phases 01-11:
 
 - `POSITIVE_NO_CHANGE`: no production edit is authorized for that requirement. Revalidate its exact R1 evidence and named verification owner under V4/V5/V6; a contradiction returns upstream.
 - `DEPENDENCY_DELTA`: no duplicate edit is authorized; prove the requirement's own realization still conforms after the named dependency action lands.
-- technical/mixed delta: execute only the exact IA owner and prove the conforming remainder is unchanged.
+- technical/mixed delta: execute only the exact IA owner and prove the authority-defined remainder still conforms; do not infer a preservation target from current implementation.
 - verification delta: add only the missing proof; do not infer a behavioral rewrite.
 
 Every package atom must have exactly one execution owner. Shared IA references are consumer dependencies.
@@ -47,8 +47,8 @@ Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
-- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or baseline-reuse proof owner;
-- every `POSITIVE_NO_CHANGE` and baseline-reuse obligation remains true;
+- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
+- every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
 - the signed 28-path `changeSurface` remains the immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
