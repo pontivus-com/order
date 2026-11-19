@@ -18,7 +18,7 @@ Stable rows in phase: **3**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Implementation-required signed task package is materially non-vacuous. |
+| `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
 | `PL-C10-01` | C10-F01 | `SD11` | `IA16` | — | Readiness dominant verdict is typed R3 outcome. |
 
 Package atoms in phase: **2**.
