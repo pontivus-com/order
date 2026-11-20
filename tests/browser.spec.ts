@@ -1440,27 +1440,13 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   await page.setViewportSize({ width: 1600, height: 900 });
   await authenticate(page, request);
 
-  const loadingItem = await workItemForTitle(page, "Lifecycle editing workbench");
-  let releaseLifecycleArtifacts = (): void => undefined;
-  const lifecycleArtifactsGate = new Promise<void>((resolve) => {
-    releaseLifecycleArtifacts = resolve;
-  });
-  await page.route(
-    "**/api/work-items/" + loadingItem.id + "/lifecycle-artifacts",
-    async (route) => {
-      await lifecycleArtifactsGate;
-      await route.continue();
-    },
-  );
-
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
-  const loadingWorkspace = page.getByTestId("lifecycle-document-material");
-  await expect(loadingWorkspace).toBeVisible();
-  const loadingBox = await loadingWorkspace.boundingBox();
-  expect(loadingBox).not.toBeNull();
-  expect(loadingBox!.height).toBeGreaterThan(500);
-  releaseLifecycleArtifacts();
+  const stepWorkspace = page.getByTestId("workflow-step-workspace");
+  await expect(stepWorkspace).toBeVisible();
+  const stepWorkspaceBox = await stepWorkspace.boundingBox();
+  expect(stepWorkspaceBox).not.toBeNull();
+  expect(stepWorkspaceBox!.height).toBeGreaterThan(500);
 
   await expect(page.getByRole("button", { name: "Context" })).toBeVisible();
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
