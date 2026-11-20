@@ -4,6 +4,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -39,6 +40,28 @@ const bunEval = (
     throw new Error(result.stderr || result.stdout);
   }
   return JSON.parse(result.stdout.trim());
+};
+
+const bunDriveEval = (
+  code: string,
+  environment: Record<string, string>,
+): unknown => {
+  const result = spawnSync("bun", ["--eval", code], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    env: { ...process.env, ...environment },
+    timeout: 180_000,
+  });
+  if (result.status !== 0) {
+    throw new Error(result.stderr || result.stdout);
+  }
+  const lines = result.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  const encoded = lines.at(-1);
+  if (encoded === undefined) throw new Error("Drive exact-pin test produced no JSON result");
+  return JSON.parse(encoded);
 };
 
 const fakeOpenCodeSource = `#!/usr/bin/env bun
@@ -593,7 +616,16 @@ describe("OpenCode shell", () => {
   });
 
   const pinnedOpenCodeBinary = process.env.PONTIVUS_ORDER_OPENCODE_BIN;
+  const pinnedOpenCodeDriveRoot = process.env.PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT;
   const pinnedOpenCodeTest = pinnedOpenCodeBinary === undefined ? it.skip : it;
+  const pinnedOpenCodeDriveConfigured =
+    pinnedOpenCodeBinary !== undefined && pinnedOpenCodeDriveRoot !== undefined;
+  if (process.env.CI === "1" && !pinnedOpenCodeDriveConfigured) {
+    throw new Error(
+      "PR verification requires exact OpenCode and OpenCode Drive verification tooling",
+    );
+  }
+  const pinnedOpenCodeDriveTest = pinnedOpenCodeDriveConfigured ? it : it.skip;
 
   pinnedOpenCodeTest("projects an empty account set through the real pinned OpenCode account-control process", () => {
     const state = tempDir("order-opencode-real-account-state-");
@@ -615,6 +647,176 @@ describe("OpenCode shell", () => {
 
     expect(output).toEqual([]);
   });
+
+  pinnedOpenCodeDriveTest(
+    "runs Order's production turn boundary against real OpenCode 2.2.6 with Drive deterministic simulation",
+    () => {
+      const driveIndex = join(
+        pinnedOpenCodeDriveRoot!,
+        "node_modules",
+        "opencode-drive",
+        "src",
+        "index.ts",
+      );
+      const output = bunDriveEval(`
+        import { Buffer } from "node:buffer";
+        import { readdirSync, readFileSync } from "node:fs";
+        import { join } from "node:path";
+        import { pathToFileURL } from "node:url";
+
+        const drive = await import(pathToFileURL(${JSON.stringify(driveIndex)}).href);
+        const order = await import("./src/shell/opencode.ts");
+        const { OpenCode } = await import("@opencode/client");
+        const { Effect, Llm, OpenCodeDriver } = drive;
+
+        const result = await Effect.runPromise(
+          OpenCodeDriver.use(
+            {
+              project: {
+                git: true,
+                files: { "AGENTS.md": "# Order SD20 exact-pin verification\\n" },
+              },
+              opencode: {
+                command: [process.env.PONTIVUS_ORDER_OPENCODE_BIN],
+              },
+            },
+            ({ llm, directory, environment }) =>
+              Effect.gen(function* () {
+                yield* llm.queue(
+                  Llm.text(
+                    '[{"tag":"AGENT_MESSAGE_FINAL","text":"drive-exact-pin","evidence":[]}]',
+                  ),
+                );
+                return yield* Effect.promise(async () => {
+                  await order.assertOpenCodeBinaryVersion(
+                    process.env.PONTIVUS_ORDER_OPENCODE_BIN,
+                    directory,
+                    process.env,
+                  );
+
+                  const serviceDirectory = join(environment.XDG_STATE_HOME, "opencode");
+                  const registration = readdirSync(serviceDirectory)
+                    .filter((name) => /^service(?:-[^.]+)?\\.json$/.test(name))
+                    .map((name) =>
+                      JSON.parse(readFileSync(join(serviceDirectory, name), "utf8"))
+                    )
+                    .find(
+                      (candidate) =>
+                        typeof candidate?.url === "string" &&
+                        typeof candidate?.password === "string",
+                    );
+                  if (registration === undefined) {
+                    throw new Error("Drive-managed OpenCode service registration was not found");
+                  }
+
+                  const client = OpenCode.make({
+                    baseUrl: registration.url,
+                    headers: {
+                      Authorization:
+                        "Basic " +
+                        Buffer.from("opencode:" + registration.password).toString("base64"),
+                    },
+                  });
+                  const info = await client.server.info();
+                  const models = await client.model.list({
+                    location: { directory },
+                  });
+                  const candidate = models.data.find(
+                    (model) => model.enabled && model.providerID === "simulation",
+                  );
+                  if (candidate === undefined) {
+                    throw new Error("Drive simulation provider model was not available");
+                  }
+                  const model = {
+                    providerID: candidate.providerID,
+                    id: candidate.id,
+                  };
+                  const permissions = order.openCodePermissionRules("STAGE", null, []);
+                  const session = await client.session.create({
+                    location: { directory },
+                  });
+                  await client.session.switchModel({
+                    sessionID: session.id,
+                    model,
+                  });
+                  await client.session.update({
+                    sessionID: session.id,
+                    permissions,
+                  });
+                  const rebound = await client.session.get({ sessionID: session.id });
+
+                  let diagnostic = null;
+                  const events = await order.runOpenCodeTurn(
+                    {
+                      client,
+                      process: {},
+                      model,
+                      workspace: directory,
+                      diagnosticStderr: {
+                        reset() {},
+                        record() {},
+                        snapshot() { return null; },
+                        redact(text) { return text; },
+                      },
+                    },
+                    session.id,
+                    {
+                      id: "run_33333333-3333-4333-8333-333333333333",
+                      contextHash: "sha256:" + "b".repeat(64),
+                    },
+                    "event_44444444-4444-4444-8444-444444444444",
+                    "STAGE",
+                    null,
+                    [],
+                    "Return the canonical event array.",
+                    (record) => {
+                      diagnostic = record;
+                    },
+                  );
+
+                  return {
+                    version: info.version,
+                    model,
+                    reboundModel: rebound.model,
+                    events,
+                    diagnostic,
+                  };
+                });
+              }),
+          ),
+        );
+
+        console.log(JSON.stringify(result));
+      `, {
+        PONTIVUS_ORDER_OPENCODE_BIN: pinnedOpenCodeBinary!,
+        PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: pinnedOpenCodeDriveRoot!,
+      }) as {
+        version: string;
+        model: { providerID: string; id: string };
+        reboundModel: { providerID: string; id: string; variant?: string };
+        events: unknown[];
+        diagnostic: {
+          outcome: string;
+          providerId: string;
+          modelId: string;
+          failurePhase: string | null;
+        };
+      };
+
+      expect(output.version).toBe("2.2.6");
+      expect(output.model.providerID).toBe("simulation");
+      expect(output.reboundModel).toMatchObject(output.model);
+      expect(output.events).toEqual([
+        { tag: "AGENT_MESSAGE_FINAL", text: "drive-exact-pin", evidence: [] },
+      ]);
+      expect(output.diagnostic).toMatchObject({
+        outcome: "SUCCEEDED",
+        providerId: "simulation",
+        modelId: output.model.id,
+        failurePhase: null,
+      });
+    },
+  );
 
   it("projects and mutates saved accounts only through safe integration state", () => {
     const workspace = tempDir("order-opencode-accounts-");
@@ -786,7 +988,7 @@ describe("OpenCode shell", () => {
     expect(output.builder).not.toContainEqual(expect.objectContaining({ action: "external_directory" }));
   });
 
-  it("bootstraps exact 2.2.6, binds the configured model, and completes a deterministic productive turn", () => {
+  it("exercises the productive-turn contract through the fake OpenCode fixture", () => {
     const workspace = tempDir("order-opencode-server-");
     const state = tempDir("order-opencode-state-");
     writeFileSync(join(workspace, "AGENTS.md"), "# authority\n");
