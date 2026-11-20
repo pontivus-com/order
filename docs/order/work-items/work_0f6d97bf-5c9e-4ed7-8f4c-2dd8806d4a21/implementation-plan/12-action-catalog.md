@@ -13,7 +13,7 @@ Each IA action below has one execution owner. Semantic phase files may reference
 6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
 7. **Wave 7 — candidate closeout:** IA24.
 
-The signed `architecture` gate is requested through the existing SD13 coordinator checkpoint after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast realizations identified by current DESIGN; it does not bootstrap them or treat current implementation as authority. Wave 7 uses the ordinary final validation path and does not substitute an intermediate checkpoint for V3/V5/V7.
+Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`; this prepares the fresh isolated workspace using the project-owned exact `bun ci` verification command before any Node-based architecture/test/build/typecheck checkpoint can execute. The signed `architecture` gate is then requested after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast/V4-V6 realizations identified by current DESIGN; it does not bootstrap or modify them. The execution harness must provision the exact Playwright-owned Chromium runtime required by P6 before T1 begins, because the signed `browser` gate intentionally runs the project test command and does not install its browser dependency. Wave 7 uses the ordinary final validation path and does not substitute any intermediate checkpoint for V3/V5/V7.
 
 ## IA01 — pure project-authority resolution
 
