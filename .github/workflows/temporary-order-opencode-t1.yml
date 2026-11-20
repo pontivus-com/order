@@ -1,0 +1,447 @@
+name: Temporary Order OpenCode T1 Certification
+
+on:
+  push:
+    branches:
+      - fix/0.6.0-r2-p3-authority-layer-conformance
+    paths:
+      - .github/workflows/temporary-order-opencode-t1.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: temporary-order-opencode-t1
+  cancel-in-progress: false
+
+jobs:
+  certify:
+    name: live-order-opencode-t1
+    runs-on: [self-hosted, linux, x64, pontivus-order-opencode]
+    timeout-minutes: 360
+    env:
+      WORK_ITEM_ID: work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21
+      EXPECTED_BASELINE: 3c9fa8e70f710426735bfd823aef365ddf9fa5f8
+      PONTIVUS_ORDER_BIND: 127.0.0.1:17347
+
+    steps:
+      - name: Checkout exact temporary-scaffold branch head
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch --no-tags origin "+${GITHUB_REF}:refs/remotes/origin/certification"
+          git checkout --detach refs/remotes/origin/certification
+          test "$(git rev-parse HEAD)" = "${GITHUB_SHA}"
+
+      - name: Install exact Node and Bun
+        shell: bash
+        run: |
+          set -euo pipefail
+          node_root="${RUNNER_TEMP}/node"
+          mkdir -p "${node_root}"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz"             "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
+          echo "${node_root}/bin" >> "${GITHUB_PATH}"
+
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip"             "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
+          mkdir -p "${RUNNER_TEMP}/bun-bin"
+          cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
+          chmod +x "${RUNNER_TEMP}/bun-bin/bun"
+          echo "${RUNNER_TEMP}/bun-bin" >> "${GITHUB_PATH}"
+
+      - name: Install exact OpenCode
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "${RUNNER_TEMP}/pontivus-order-opencode"
+          BUN_INSTALL="${RUNNER_TEMP}/pontivus-order-opencode"             "${RUNNER_TEMP}/bun-bin/bun" install -g --trust @opencode/cli@2.2.6
+          test "$("${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" --version)" = "opencode v2.2.6"
+          echo "PONTIVUS_ORDER_OPENCODE_BIN=${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" >> "${GITHUB_ENV}"
+
+      - name: Install candidate dependencies and build daemon assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$("${RUNNER_TEMP}/node/bin/node" --version)" = "v26.13.0"
+          test "$("${RUNNER_TEMP}/bun-bin/bun" --version)" = "1.4.4"
+          "${RUNNER_TEMP}/bun-bin/bun" ci
+          "${RUNNER_TEMP}/node/bin/node" node_modules/vite/bin/vite.js build
+          test -s dist/index.html
+
+      - name: Materialize isolated signed-Approval seed state
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT:?self-hosted runner must export PONTIVUS_ORDER_CI_SEED_STATE_ROOT}"
+          : "${PONTIVUS_ORDER_CI_RUN_ROOT:?self-hosted runner must export PONTIVUS_ORDER_CI_RUN_ROOT}"
+          test -d "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT}"
+          test -d "${PONTIVUS_ORDER_CI_RUN_ROOT}"
+
+          case "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT}" in
+            "${GITHUB_WORKSPACE}"|"${GITHUB_WORKSPACE}"/*)
+              echo "seed state root must live outside the GitHub workspace" >&2
+              exit 1
+              ;;
+          esac
+
+          state_root="${PONTIVUS_ORDER_CI_RUN_ROOT%/}/gha-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          rm -rf "${state_root}"
+          mkdir -p "${state_root}"
+          cp -a "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT}/." "${state_root}/"
+          chmod -R go-rwx "${state_root}"
+          echo "PONTIVUS_ORDER_STATE_ROOT=${state_root}" >> "${GITHUB_ENV}"
+          echo "ORDER_CI_STATE_ROOT=${state_root}" >> "${GITHUB_ENV}"
+
+      - name: Prove seed is the fresh signed T1
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "${RUNNER_TEMP}/verify-seed.ts" <<'TS'
+          import {
+            WorkItemIdSchema,
+          } from "./src/core/contracts.ts";
+          import {
+            openOrderDatabase,
+            loadArtifact,
+            loadCurrentApprovalForWorkItem,
+            loadTaskStatesForApproval,
+            loadWorkItem,
+            reconstructExecutionTask,
+          } from "./src/shell/sqlite.ts";
+          import { readCommittedFile } from "./src/shell/repository.ts";
+
+          const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
+          const workItemId = WorkItemIdSchema.parse(process.env.WORK_ITEM_ID);
+          const expectedBaseline = process.env.EXPECTED_BASELINE;
+          if (!stateRoot || !expectedBaseline) throw new TypeError("CI certification environment is incomplete");
+
+          const database = openOrderDatabase(stateRoot);
+          try {
+            const workItem = loadWorkItem(database, workItemId);
+            const approval = loadCurrentApprovalForWorkItem(database, workItemId);
+            if (approval === null) throw new TypeError("seed has no current signed Approval");
+            if (approval.baselineCommit !== expectedBaseline) {
+              throw new TypeError(
+                `seed Approval baseline mismatch: ${approval.baselineCommit} != ${expectedBaseline}`,
+              );
+            }
+            const plan = loadArtifact(database, approval.planArtifactRefId);
+            const planBytes = await readCommittedFile(
+              workItem.repositoryRoot,
+              approval.baselineCommit,
+              plan.repositoryPath,
+            );
+            const tasks = loadTaskStatesForApproval(database, approval.id).map(([taskId]) =>
+              reconstructExecutionTask(database, taskId, planBytes)
+            );
+            const t1 = tasks.find((task) => task.planTaskId === "T1");
+            if (t1 === undefined) throw new TypeError("seed Approval has no T1");
+            if (tasks.length !== 1) throw new TypeError("seed Approval must contain exactly one execution task");
+            if (t1.state !== "TODO") {
+              throw new TypeError(`seed T1 must be TODO, found ${t1.state}`);
+            }
+            const runCount = database
+              .query("SELECT count(*) AS value FROM runs WHERE executionTaskId = ?1;")
+              .get(t1.id) as { value: number } | null;
+            if (runCount === null || runCount.value !== 0) {
+              throw new TypeError("seed T1 must have zero post-signoff Runs");
+            }
+            process.stdout.write(JSON.stringify({
+              workItemId: workItem.id,
+              approvalId: approval.id,
+              baselineCommit: approval.baselineCommit,
+              executionTaskId: t1.id,
+              planTaskId: t1.planTaskId,
+              taskState: t1.state,
+            }) + "\n");
+          } finally {
+            database.close();
+          }
+          TS
+          "${RUNNER_TEMP}/bun-bin/bun" "${RUNNER_TEMP}/verify-seed.ts"
+
+      - name: Start candidate Order daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+          test ! -e /etc/opencode
+          daemon_log="${ORDER_CI_STATE_ROOT}/ci-daemon.log"
+          "${RUNNER_TEMP}/bun-bin/bun" src/cli.ts daemon >"${daemon_log}" 2>&1 &
+          daemon_pid=$!
+          echo "ORDER_CI_DAEMON_PID=${daemon_pid}" >> "${GITHUB_ENV}"
+          echo "${daemon_pid}" > "${ORDER_CI_STATE_ROOT}/ci-daemon.pid"
+
+          healthy=false
+          for _ in $(seq 1 90); do
+            if "${RUNNER_TEMP}/bun-bin/bun" src/cli.ts status >"${RUNNER_TEMP}/order-status.json" 2>/dev/null; then
+              healthy=true
+              break
+            fi
+            if ! kill -0 "${daemon_pid}" 2>/dev/null; then
+              echo "Order daemon exited before becoming healthy" >&2
+              tail -n 200 "${daemon_log}" >&2 || true
+              exit 1
+            fi
+            sleep 2
+          done
+          test "${healthy}" = "true"
+          cat "${RUNNER_TEMP}/order-status.json"
+
+      - name: Start or observe exact T1 through production API
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin="http://${PONTIVUS_ORDER_BIND}"
+          connect_url="$("${RUNNER_TEMP}/bun-bin/bun" src/cli.ts open)"
+          cookie="${RUNNER_TEMP}/order-cookie.txt"
+          curl -fsS -L -c "${cookie}" -o /dev/null "${connect_url}"
+
+          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks.json"
+
+          task_id="$("${RUNNER_TEMP}/bun-bin/bun" -e '
+            const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks.json").text());
+            const t = tasks.find((value) => value.planTaskId === "T1");
+            if (!t) process.exit(2);
+            process.stdout.write(t.id);
+          ')"
+          task_state="$("${RUNNER_TEMP}/bun-bin/bun" -e '
+            const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks.json").text());
+            const t = tasks.find((value) => value.planTaskId === "T1");
+            if (!t) process.exit(2);
+            process.stdout.write(t.state);
+          ')"
+          echo "ORDER_CI_TASK_ID=${task_id}" >> "${GITHUB_ENV}"
+
+          if [[ "${task_state}" == "TODO" ]]; then
+            if ! curl -fsS -b "${cookie}"               -H "Origin: ${origin}"               -H "Content-Type: application/json"               -X POST               "${origin}/api/work-items/${WORK_ITEM_ID}/tasks/${task_id}/start"               -d '{}' > "${RUNNER_TEMP}/start-task.json"; then
+              curl -fsS -b "${cookie}"                 "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-after-start-race.json"
+              current="$("${RUNNER_TEMP}/bun-bin/bun" -e '
+                const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks-after-start-race.json").text());
+                const t = tasks.find((value) => value.planTaskId === "T1");
+                process.stdout.write(t?.state ?? "MISSING");
+              ')"
+              [[ "${current}" == "RUNNING" ]] || exit 1
+            fi
+          elif [[ "${task_state}" != "RUNNING" ]]; then
+            echo "T1 entered unexpected state before certification start: ${task_state}" >&2
+            exit 1
+          fi
+
+          echo "task_id=${task_id}"
+
+      - name: Wait for coordinator terminal state
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin="http://${PONTIVUS_ORDER_BIND}"
+          cookie="${RUNNER_TEMP}/order-cookie.txt"
+
+          terminal=""
+          for _ in $(seq 1 2160); do
+            curl -fsS -b "${cookie}"               "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-current.json"
+            terminal="$("${RUNNER_TEMP}/bun-bin/bun" -e '
+              const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks-current.json").text());
+              const t = tasks.find((value) => value.id === process.env.ORDER_CI_TASK_ID);
+              if (!t) process.exit(2);
+              process.stdout.write(t.state);
+            ')"
+            case "${terminal}" in
+              CANDIDATE_DONE|ALREADY_SATISFIED|BLOCKED)
+                break
+                ;;
+            esac
+            sleep 10
+          done
+
+          echo "T1 terminal state: ${terminal}"
+          [[ "${terminal}" == "CANDIDATE_DONE" ]] || {
+            tail -n 250 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
+            exit 1
+          }
+
+      - name: Capture and verify persisted execution evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          origin="http://${PONTIVUS_ORDER_BIND}"
+          cookie="${RUNNER_TEMP}/order-cookie.txt"
+          evidence_dir="${RUNNER_TEMP}/order-live-evidence"
+          mkdir -p "${evidence_dir}/events"
+
+          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}" > "${evidence_dir}/work-item.json"
+          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${evidence_dir}/tasks.json"
+          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}/runs" > "${evidence_dir}/runs.json"
+
+          "${RUNNER_TEMP}/bun-bin/bun" -e '
+            const runs = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/order-live-evidence/runs.json").text());
+            for (const run of runs) console.log(run.id);
+          ' | while read -r run_id; do
+            curl -fsS -b "${cookie}"               "${origin}/api/runs/${run_id}/events?afterSequence=0"               > "${evidence_dir}/events/${run_id}.json"
+          done
+
+          cat > "${RUNNER_TEMP}/verify-live-run.ts" <<'TS'
+          const root = process.env.RUNNER_TEMP + "/order-live-evidence";
+          const taskId = process.env.ORDER_CI_TASK_ID;
+          const baseline = process.env.EXPECTED_BASELINE;
+          if (!taskId || !baseline) throw new TypeError("certification identity is incomplete");
+
+          const workItem = JSON.parse(await Bun.file(root + "/work-item.json").text());
+          const tasks = JSON.parse(await Bun.file(root + "/tasks.json").text());
+          const allRuns = JSON.parse(await Bun.file(root + "/runs.json").text());
+          const task = tasks.find((value: { id: string }) => value.id === taskId);
+          if (!task) throw new TypeError("T1 disappeared from canonical task projection");
+          if (task.state !== "CANDIDATE_DONE") {
+            throw new TypeError(`T1 did not close CANDIDATE_DONE: ${task.state}`);
+          }
+          if (
+            workItem.stage !== "COMPLETE" ||
+            workItem.status !== "COMPLETE" ||
+            workItem.outcome !== "CANDIDATE_DONE"
+          ) {
+            throw new TypeError("WorkItem did not close with canonical CANDIDATE_DONE outcome");
+          }
+
+          const runs = allRuns.filter(
+            (run: { executionTaskId: string | null }) => run.executionTaskId === taskId,
+          );
+          if (runs.length < 2) throw new TypeError("expected BUILDER and REVIEWER execution Runs");
+          if (runs.some((run: { baselineCommit: string }) => run.baselineCommit !== baseline)) {
+            throw new TypeError("post-signoff Run escaped the signed Approval baseline");
+          }
+
+          const eventsByRun = new Map<string, any[]>();
+          for (const run of runs) {
+            eventsByRun.set(
+              run.id,
+              JSON.parse(await Bun.file(root + "/events/" + run.id + ".json").text()),
+            );
+          }
+
+          const builders = runs.filter((run: { role: string }) => run.role === "BUILDER");
+          if (builders.length !== 1) {
+            throw new TypeError(`fresh certification requires exactly one BUILDER Run, found ${builders.length}`);
+          }
+          const builder = builders[0];
+          const builderEvents = eventsByRun.get(builder.id) ?? [];
+          const requests = builderEvents.filter(
+            (event: any) => event.event.tag === "GATE_CHECKPOINT_REQUESTED",
+          );
+          const passes = builderEvents.filter(
+            (event: any) => event.event.tag === "GATE_PASSED" && event.event.gateId === "architecture",
+          );
+          const failures = builderEvents.filter(
+            (event: any) => event.event.tag === "GATE_FAILED",
+          );
+          if (requests.length !== 6 || passes.length !== 6 || failures.length !== 0) {
+            throw new TypeError(
+              `checkpoint chronology invalid: requests=${requests.length} passes=${passes.length} failures=${failures.length}`,
+            );
+          }
+          if (requests.some((event: any) => event.event.gateId !== "architecture")) {
+            throw new TypeError("checkpoint request used a non-architecture gate");
+          }
+          for (let index = 0; index < 6; index += 1) {
+            if (!(requests[index].sequence < passes[index].sequence)) {
+              throw new TypeError(`checkpoint ${index + 1} did not pass after its request`);
+            }
+            if (index < 5 && !(passes[index].sequence < requests[index + 1].sequence)) {
+              throw new TypeError(`checkpoint ${index + 1} did not pass before checkpoint ${index + 2}`);
+            }
+          }
+          const candidate = builderEvents.findLast(
+            (event: any) => event.event.tag === "CANDIDATE_STATE_RECORDED",
+          );
+          if (!candidate) throw new TypeError("BUILDER did not persist candidate state");
+          if (!(passes[5].sequence < candidate.sequence)) {
+            throw new TypeError("candidate was recorded before checkpoint F passed");
+          }
+          if (!builderEvents.some((event: any) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")) {
+            throw new TypeError("BUILDER has no persisted OpenCode provider diagnostics");
+          }
+
+          const finalReviewer = runs
+            .filter((run: { role: string }) => run.role === "REVIEWER")
+            .findLast((run: { terminalClassification: string | null }) =>
+              run.terminalClassification === "CANDIDATE_DONE"
+            );
+          if (!finalReviewer) throw new TypeError("no REVIEWER closed CANDIDATE_DONE");
+          const reviewEvents = eventsByRun.get(finalReviewer.id) ?? [];
+          if (!reviewEvents.some((event: any) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")) {
+            throw new TypeError("REVIEWER has no persisted OpenCode provider diagnostics");
+          }
+          const reviewPass = reviewEvents.findLast(
+            (event: any) => event.event.tag === "REVIEW_PASSED",
+          );
+          if (
+            !reviewPass ||
+            reviewPass.event.minimumChange !== "MINIMUM_SUFFICIENT" ||
+            reviewPass.event.minimumChangeSummary !== null
+          ) {
+            throw new TypeError("REVIEWER did not supply current MINIMUM_SUFFICIENT evidence");
+          }
+
+          const validationPasses = reviewEvents.filter(
+            (event: any) => event.event.tag === "VALIDATION_PASSED",
+          );
+          const byStage = new Map(validationPasses.map((event: any) => [event.event.stage, event]));
+          const expectedStages = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7"];
+          if (expectedStages.some((stage) => !byStage.has(stage))) {
+            throw new TypeError("final REVIEWER does not contain VALIDATION_PASSED V0-V7");
+          }
+          if (reviewEvents.some((event: any) => event.event.tag === "VALIDATION_FAILED")) {
+            throw new TypeError("final REVIEWER contains a validation failure");
+          }
+          const recorded = reviewEvents.filter(
+            (event: any) => event.event.tag === "CANDIDATE_RECORDED",
+          );
+          if (recorded.length !== 1 || recorded[0].event.validationEventIds.length !== 8) {
+            throw new TypeError("final REVIEWER did not persist one eight-stage CANDIDATE_RECORDED event");
+          }
+
+          const summary = {
+            workItemId: workItem.id,
+            executionTaskId: task.id,
+            baselineCommit: baseline,
+            builderRunId: builder.id,
+            checkpointRequests: requests.map((event: any) => ({
+              sequence: event.sequence,
+              gateId: event.event.gateId,
+            })),
+            checkpointPasses: passes.map((event: any) => ({
+              sequence: event.sequence,
+              gateId: event.event.gateId,
+            })),
+            candidateChangedPaths: candidate.event.changedPaths,
+            reviewerRunId: finalReviewer.id,
+            validationStages: expectedStages,
+            outcome: workItem.outcome,
+          };
+          await Bun.write(root + "/summary.json", JSON.stringify(summary, null, 2) + "\n");
+          process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
+          TS
+
+          "${RUNNER_TEMP}/bun-bin/bun" "${RUNNER_TEMP}/verify-live-run.ts"
+          {
+            echo "## Live Order/OpenCode T1 certification"
+            echo
+            echo '~~~json'
+            cat "${evidence_dir}/summary.json"
+            echo '~~~'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Stop daemon
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -n "${ORDER_CI_DAEMON_PID:-}" ]]; then
+            kill "${ORDER_CI_DAEMON_PID}" 2>/dev/null || true
+            for _ in $(seq 1 20); do
+              kill -0 "${ORDER_CI_DAEMON_PID}" 2>/dev/null || exit 0
+              sleep 1
+            done
+            kill -KILL "${ORDER_CI_DAEMON_PID}" 2>/dev/null || true
+          fi
