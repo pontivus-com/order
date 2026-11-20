@@ -1,24 +1,31 @@
 # 0.6.0 verification and closeout contract
 
-This component allocates proof inside the one signed T1. It does not create another validation model.
+This component allocates proof across the one canonical signed task graph T1-T11. It does not create another validation model.
 
-## Architecture-feedback checkpoints
+## Task-boundary architecture checkpoints
 
-Preflight IA07 re-proves the exact DESIGN-required Approval/checkpoint realization from current evidence; no T1 candidate byte is relied upon to create this capability and current implementation does not define the requirement.
+Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
 
-Before the first implementation wave, the execution harness must already provide the exact Playwright-owned Chromium runtime required by P6. The BUILDER must then request the signed `dependency-lock` gate as bootstrap checkpoint `P`; the coordinator executes exact `bun ci` in the fresh isolated builder workspace and `P` must `GATE_PASSED` before Wave 1. This is verification-environment preparation through existing project gate ownership, not provider shell access and not a new dependency state model.
+Before T1 begins, the execution harness provides the exact Playwright-owned Chromium runtime required by P6 and the BUILDER requests the signed `dependency-lock` gate. Exact `bun ci` must `GATE_PASSED` before implementation mutation.
 
-| Checkpoint | After execution wave | Required coordinator evidence |
+Every signed task carries the same six logical gate IDs. In addition to the task's final gate union, the dependency chain has explicit stop/go boundaries:
+
+| Completed task | Before dependent task | Required retained evidence |
 |---|---|---|
-| P | Before Wave 1 | signed `dependency-lock` checkpoint -> `GATE_PASSED` before any implementation edit/architecture checkpoint |
-| A | Wave 1 IA01-IA04 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 2 |
-| B | Wave 2 IA05-IA06 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 3 |
-| C | Wave 3 IA09-IA13 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 4 |
-| D | Wave 4 IA14-IA19 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 5 |
-| E | Wave 5 IA25 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 6 |
-| F | Wave 6 IA20-IA23 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 7 rendered acceptance |
+| T1 | T2 | non-UI baseline gates PASS; no protected execution-foundation mutation |
+| T2 | T3 | `architecture` + primitive browser harness PASS; shared foundation accepted for use |
+| T3 | T4 | `architecture` + Queue/Create functional/rendered row review PASS |
+| T4 | T5 | `architecture` + WorkItem shell/Work request/document review PASS |
+| T5 | T6 | `architecture` + productive pre-signoff semantic/rendered review PASS |
+| T6 | T7 | `architecture` + Readiness/Approval semantic/rendered review PASS |
+| T7 | T8 | `architecture` + Implementation master/detail semantic/rendered review PASS |
+| T8 | T9 | `architecture` + Complete/Evidence/Context semantic/rendered review PASS |
+| T9 | T10 | `architecture` + Settings/account semantic/rendered review PASS |
+| T10 | T11 | complete semantic/component/theme/responsive regression suite PASS |
 
-Each checkpoint is requested by BUILDER as the terminal action of that provider turn and is executed by the coordinator in the same Run/provider session. Bootstrap checkpoint P exists only to make the fresh workspace capable of running the signed verification commands; checkpoints A-F remain architecture-feedback checkpoints. A failed checkpoint permits only correction inside the already signed design/scope or an explicit execution block; it does not grant provider shell/execute or authorize redesign. Checkpoints never substitute for final V3/V5/V7 or the task's complete logical gate union.
+A dependent task must not start merely because the previous task compiled. Its owning deletion proof, semantic acceptance and required rendered evidence must be retained. If a downstream task discovers that IA27/T2 foundation behavior is insufficient, the owning earlier task is reopened; local CSS/primitive bypass in the downstream task is not an admissible repair.
+
+A failed checkpoint permits only correction inside the owning signed task/design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Task-boundary checkpoints never substitute for V3/V5/V7 or the task's complete logical gate union.
 
 ## Requirement-level proof law
 
@@ -110,7 +117,7 @@ V4/V5/V6 explicitly verify:
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
-- bootstrap `dependency-lock` checkpoint P passed before Wave 1 and all six required architecture checkpoints A-F were coordinator-executed and passed before the next wave;
+- bootstrap `dependency-lock` passed before T1 and every T1-T10 dependency boundary retained its required architecture/semantic/rendered stop-go evidence before the dependent task began;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
