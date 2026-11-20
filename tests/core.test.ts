@@ -1110,6 +1110,19 @@ describe("functional lifecycle and execution policy", () => {
       run,
       [started, informationalRequest, answer],
     )).toBe(true);
+
+    const evidenceRequest = RunEventSchema.parse({
+      ...request,
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "EVIDENCE",
+        question: "Which evidence should be considered?",
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, evidenceRequest, answer],
+    )).toBe(true);
   });
 
   it("computes approval freshness from semantic source identity and bytes, not generated ids or commit id", () => {
