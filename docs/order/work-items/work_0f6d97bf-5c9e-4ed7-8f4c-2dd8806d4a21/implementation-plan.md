@@ -33,7 +33,7 @@ C20-F04 proves that `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` was 
 | `implementation-plan/10-a10-recovery-accessibility.md` | `9703ab2b0058b5b4c8637b8f400c58fb9e6296ea` |
 | `implementation-plan/11-a11-component-certification.md` | `40da8996d3c0274ec8312ba971aee0284f5c81b4` |
 | `implementation-plan/12-action-catalog.md` | `0204b5bd98d653e9391d9140e1d8fd805c610052` |
-| `implementation-plan/13-verification-closeout.md` | `ac694a8994111a311922cbcec1f1328ef8d0c178` |
+| `implementation-plan/13-verification-closeout.md` | `57b606364ee5ae23af7689907fc1bb5244173338` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -1053,6 +1053,12 @@ A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof
 Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA24 runs the final validation contract.
 
 SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA24: permanent PR verification must execute the actual supported OpenCode 2.2.6 process through Order's production OpenCode boundary while deterministic model output is supplied by the exact isolated simulation tooling authorized by SD20. A fake OpenCode executable, a removed temporary workflow, or a simulated response path that does not launch the exact supported OpenCode process cannot satisfy this proposition. The evidence must state the simulation boundary and must not be reused as proof of remote provider availability, Console OAuth/account connectivity or model quality.
+
+###### Pre-Approval structural-sensor correction
+
+Current `tests/architecture.test.ts` is stale against the corrected package: its permanent PLAN fitness check still requires exactly 28 signed `changeSurface` paths even though current DESIGN/PLAN now require 30. This is a pre-signoff verification-material defect, not T1 implementation surface.
+
+Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the current 30-path DESIGN/PLAN set without creating a second package registry. The sensor should continue proving uniqueness plus exact set equality between DESIGN forecast and signed T1 surface; it must not preserve the obsolete literal 28 as authority. Re-run the architecture gate and root/modular compilation checks on the exact corrected package before Approval. `tests/architecture.test.ts` remains excluded from T1 after this pre-Approval correction.
 
 ##### 0.6.0 implementation delivery branch
 
