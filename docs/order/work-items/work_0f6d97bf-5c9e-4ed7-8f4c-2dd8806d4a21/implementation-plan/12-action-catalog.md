@@ -19,7 +19,7 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 
 **Solution:** SD02.  
 **Owner/anchors:** `src/core/governance.ts`, existing authority-layer/concern/material/freshness pure functions.  
-**Required mutation:** add the minimum pure resolved-authority projection over validated manifest inputs and shell-expanded selected paths, including same-layer precedence plus inherited P1 default/override/extension and fitness bindings.  
+**Required mutation:** add the minimum pure resolved-authority projection over validated manifest inputs and shell-expanded selected paths, preserving the selected P1-P6 set as authority reachability, exact stable/versioned ref-to-source identity, same-layer precedence plus inherited P1 default/override/extension and fitness bindings. IA01 does not decide stage materiality.  
 **Forbidden:** filesystem/provider I/O; semantic contradiction inference; DTO/service/repository/class family; parallel authority graph.  
 **Proof:** `tests/core.test.ts` ordering/default/override/extension/invalid-input cases.
 
@@ -27,11 +27,11 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
-**Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction; invalid/unresolved bindings block before provider use.  
-**Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; context construction that bypasses the IA01 resolved projection.  
+**Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction, then derive the applicable material-authority subset from the pinned WorkItem schema/template, mandatory stage policy and explicit upstream/signed authority refs plus dependencies. Stable refs bind current canonical owners; explicit versioned refs bind exact retained snapshots. A selected/reachable retained source must not become stage material merely because it shares an authority layer. Invalid/unresolved applicable bindings block before provider use.  
+**Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; include-every-selected-source context projection; implicit promotion of retained historical sources into current-schema context; context construction that bypasses the IA01 resolved projection or the canonical lifecycle-context applicability rule.  
 **Proof:**
-- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection and unresolved material bindings block before provider use;
-- `tests/certification.test.ts` — representative production project manifest with same-layer precedence/default/override/extension reaches the real STAGE context in the resolved order/binding set, and an equivalent unresolved relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order or provider interpretation.
+- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection, derives the schema/stage-applicable material subset, excludes an unrelated retained V1 source from a current-v2 context, includes the exact retained source when a pinned historical schema or explicit versioned ref requires it, and blocks unresolved applicable bindings before provider use;
+- `tests/certification.test.ts` — representative production project manifest with both current and retained semantic sources plus same-layer precedence/default/override/extension reaches the real STAGE context with only the applicable material set in resolved order. Current-v2 and historical exact-version cases are both proved, and an equivalent unresolved simultaneously-applicable relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order, include-every-selected-source projection, or provider interpretation.
 
 ## IA03 — one GOVERNANCE proposal/adoption mechanism
 
