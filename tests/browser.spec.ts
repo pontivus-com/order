@@ -1276,7 +1276,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     fixture: "Create WorkItem deterministic CHANGE input",
     viewport: { width: 1440, height: 900 },
     theme: "Light",
-    route: "/?dialog=create-work-item",
+    route: "/",
     references: ["docs/references/workbench-ui/create-work-item.svg"],
     authorityRefs: [
       "GW-DOC-WORKBENCH-UX",
