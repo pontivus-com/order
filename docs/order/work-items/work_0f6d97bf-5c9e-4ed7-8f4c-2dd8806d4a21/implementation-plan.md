@@ -6,33 +6,35 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 after G4 closure from current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937` and DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
+This PLAN is reconstructed under G-F12 after G4 closure from current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d` and DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
 
-This PLAN consumes current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`, current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937` and current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+This PLAN consumes current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`, current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d` and current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
 
-## Current post-C20 certification revalidation
+## Current post-C20/C22 authority-materiality revalidation
 
-This PLAN is re-bound to R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`, R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`, DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44` and corrected P3 Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+This PLAN is re-bound to R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`, R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`, DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728` and corrected P3 Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 
 C20-F04 proves that `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` was incorrectly treated as already satisfied: permanent productive-turn tests use a fake OpenCode executable, while the removed temporary branch scaffold only demonstrated a viable exact-process simulation technique. SD20 therefore adds one verification-only delta owned by IA23: `tests/opencode.test.ts` permanently exercises the actual supported OpenCode 2.2.6 process through Order's production boundary, and `.github/workflows/ci.yml` installs exact isolated `opencode-drive@2.4.1` + `effect@4.0.1` verification tooling. No production behavior, runtime dependency, package/lock surface, configuration/state model or alternate provider path is added. The signed forecast is consequently 30 paths.
+
+C22-F02 proves that manifest layer selection is authority **reachability**, not blanket stage materiality. SD02/IA01-IA02 therefore preserve exact stable/versioned ref-to-source identity in the pure resolved projection and make the daemon derive only the pinned-schema/stage/explicit-ref applicable material subset before provider use. Retained V1 snapshots remain resolvable by exact versioned ref but do not enter unrelated current-v2 context merely because they share a selected authority layer. This refinement uses the existing SD02 implementation/test owners and adds no new T1 path, state model, dependency or authority subsystem.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `5e3d40883106535cd41bec754cff16780f758e30` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `adcaefc1636ddb895b684b7216f17795cd2d04a2` |
-| `implementation-plan/02-a02-governance-intake.md` | `6112441000d73d862cfedbb14c163bd1aa3f66be` |
-| `implementation-plan/03-a03-queue-source.md` | `90c512f2380235dab09532304ffc01634ff3032d` |
-| `implementation-plan/04-a04-workbench-research.md` | `c91f0ea24cff90e9c1f635df9915d2f07ad93f4f` |
-| `implementation-plan/05-a05-requirements-design.md` | `9a11b4c121e055d398e843b45bcbca9970096e83` |
-| `implementation-plan/06-a06-plan-readiness.md` | `ccdc9aa6cc7fb2f8f77dc18e6393e8a8c7b3d403` |
-| `implementation-plan/07-a07-approval-execution.md` | `16aaf5973234ef3132207cb7da760b973e1be9db` |
-| `implementation-plan/08-a08-complete-materials.md` | `3cbccab5618e32b4ed2ce70fb7b5d3e2e5aae8ba` |
-| `implementation-plan/09-a09-provider-settings.md` | `05b3d10cfe98c069e6f467af028170f468d734a4` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `9703ab2b0058b5b4c8637b8f400c58fb9e6296ea` |
-| `implementation-plan/11-a11-component-certification.md` | `40da8996d3c0274ec8312ba971aee0284f5c81b4` |
-| `implementation-plan/12-action-catalog.md` | `0204b5bd98d653e9391d9140e1d8fd805c610052` |
+| `implementation-plan/00-governance.md` | `2fa3896abcd351d3186ea4a4d04e3b65e786ecf1` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `41253868d40275a8b5380ba544a2c60110a32295` |
+| `implementation-plan/02-a02-governance-intake.md` | `8d02082a732e67ec6ff2a827138513a4c1a4e54c` |
+| `implementation-plan/03-a03-queue-source.md` | `2965ab2d6599be375ba03c60b9513375b1de6412` |
+| `implementation-plan/04-a04-workbench-research.md` | `72283eeafc82a70967732e54ecda9b4e6537933b` |
+| `implementation-plan/05-a05-requirements-design.md` | `f366d0110bee20a9cdfc60f81f99e0f97b8fe049` |
+| `implementation-plan/06-a06-plan-readiness.md` | `3d50c563e46508a380a917c7196ee37c7a5ef00d` |
+| `implementation-plan/07-a07-approval-execution.md` | `207d3651457d22a0bc497db41235adfb31525ba3` |
+| `implementation-plan/08-a08-complete-materials.md` | `79ac12fa22650d980a25390647710adce45f6a35` |
+| `implementation-plan/09-a09-provider-settings.md` | `bfd715be3a5dff9f31969b788576c0137578be0d` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
+| `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
+| `implementation-plan/12-action-catalog.md` | `016f62f8fe3029f1e4ea318d2bb6ae1c1744eafc` |
 | `implementation-plan/13-verification-closeout.md` | `57b606364ee5ae23af7689907fc1bb5244173338` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -148,9 +150,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ##### Exact upstream package
 
-- R1 `research.md`: `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`.
-- R2 `requirements.md`: `bf8699df1349fcf977a3e2d7690d78f83736d937`.
-- DESIGN `solution-design.md`: `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+- R1 `research.md`: `a22200e0765f740e89b2f05727e126fbf9e0b034`.
+- R2 `requirements.md`: `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`.
+- DESIGN `solution-design.md`: `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -192,6 +194,8 @@ A path absent from `changeSurface` is not automatically authorized and is not au
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
 
+For SD02, manifest authority selection is the reachable source set; IA02 must project only the lifecycle-applicable stable/versioned material selected by the pinned schema/stage/explicit refs. A retained historical source may remain reachable without entering current v2 context by raw layer membership.
+
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
 
 ##### Stop conditions
@@ -208,7 +212,7 @@ Do **not** return upstream solely because an otherwise admissible path is absent
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -267,7 +271,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -280,7 +284,7 @@ Package atoms in phase: **1**.
 | `GW-FR-029-NO-IDE-SCOPE` | `C04-O15` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` | `C02-O07`, `C02-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C02-O07`, `C02-O08` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `C22-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C22-O09` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Recheck `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Prove the reachable authority graph is resolved before provider use and the productive stage materializes only the pinned-schema/stage/explicit-ref applicable stable/versioned subset; retained V1 reachability alone must not inject V1 into current v2 context. Recheck via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
 Stable rows in phase: **8**.
 
@@ -288,7 +292,7 @@ Stable rows in phase: **8**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C22-01` | C22-F01 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings before productive interpretation; IA02 also owns the exact production-path certification proof declared by SD02. |
+| `PL-C22-01` | C22-F01/C22-F02 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings over the reachable graph, then derive stage materiality from the pinned schema/stage/explicit refs so retained semantic versions remain live by exact versioned ref without leaking into unrelated current-schema context; IA02 owns the production-path proof. |
 | `PL-C02-01` | C02-F01 | `SD03` | `IA11` | — | Ordinary Create language is Concerns, not raw Concern IDs. |
 | `PL-C02-02` | C02-F02 | `SD03` | `IA11` | — | Linked remediation project is fixed to parent project and not offered as invalid editable choice. |
 | `PL-C02-03` | C02-F03/C04-F01 | `SD04` | `IA09`, `IA10` | — | Created and discovered sources share one productive admission/persistence owner. |
@@ -309,10 +313,9 @@ Package atoms in phase: **4**.
 2. `POSITIVE_NO_CHANGE` rows receive no implementation edit for that requirement and their named proof is revalidated;
 3. dependency-only rows consume the named IA action without duplicating its implementation;
 4. every package atom is satisfied by its one execution owner;
-5. SD02 certification is owned by IA02 and proves the productive production path, not only the pure helper/daemon unit boundary;
+5. SD02 certification is owned by IA02 and proves the productive production path, including stable-current versus explicit-versioned materiality with both retained and current sources selected/reachable, not only the pure helper/daemon unit boundary;
 6. action-specific tests plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
-
 
 ---
 
@@ -322,7 +325,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -391,7 +394,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -448,7 +451,6 @@ Package atoms in phase: **2**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
-
 ---
 
 ### Compiled component: `implementation-plan/05-a05-requirements-design.md`
@@ -457,7 +459,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -498,7 +500,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -542,7 +544,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -597,7 +599,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -643,7 +645,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -706,7 +708,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -753,7 +755,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 
 ##### Stable requirement execution dispositions
 
@@ -824,7 +826,7 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 
 **Solution:** SD02.  
 **Owner/anchors:** `src/core/governance.ts`, existing authority-layer/concern/material/freshness pure functions.  
-**Required mutation:** add the minimum pure resolved-authority projection over validated manifest inputs and shell-expanded selected paths, including same-layer precedence plus inherited P1 default/override/extension and fitness bindings.  
+**Required mutation:** add the minimum pure resolved-authority projection over validated manifest inputs and shell-expanded selected paths, preserving the selected P1-P6 set as authority reachability, exact stable/versioned ref-to-source identity, same-layer precedence plus inherited P1 default/override/extension and fitness bindings. IA01 does not decide stage materiality.  
 **Forbidden:** filesystem/provider I/O; semantic contradiction inference; DTO/service/repository/class family; parallel authority graph.  
 **Proof:** `tests/core.test.ts` ordering/default/override/extension/invalid-input cases.
 
@@ -832,11 +834,11 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 
 **Solution:** SD02. Depends on IA01.  
 **Anchors:** `src/daemon/authority.ts::resolveStageContextState/resolveStageContext`; `src/daemon/stage.ts::stagePrompt` and stage admission.  
-**Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction; invalid/unresolved bindings block before provider use.  
-**Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; context construction that bypasses the IA01 resolved projection.  
+**Required mutation:** consume IA01 result before provider context/conformance/sign-off dependency construction, then derive the applicable material-authority subset from the pinned WorkItem schema/template, mandatory stage policy and explicit upstream/signed authority refs plus dependencies. Stable refs bind current canonical owners; explicit versioned refs bind exact retained snapshots. A selected/reachable retained source must not become stage material merely because it shares an authority layer. Invalid/unresolved applicable bindings block before provider use.  
+**Forbidden:** provider interpretation of raw manifest order as precedence; daemon-owned second authority graph; include-every-selected-source context projection; implicit promotion of retained historical sources into current-schema context; context construction that bypasses the IA01 resolved projection or the canonical lifecycle-context applicability rule.  
 **Proof:**
-- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection and unresolved material bindings block before provider use;
-- `tests/certification.test.ts` — representative production project manifest with same-layer precedence/default/override/extension reaches the real STAGE context in the resolved order/binding set, and an equivalent unresolved relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order or provider interpretation.
+- `tests/daemon.test.ts` — productive-context admission consumes the resolved projection, derives the schema/stage-applicable material subset, excludes an unrelated retained V1 source from a current-v2 context, includes the exact retained source when a pinned historical schema or explicit versioned ref requires it, and blocks unresolved applicable bindings before provider use;
+- `tests/certification.test.ts` — representative production project manifest with both current and retained semantic sources plus same-layer precedence/default/override/extension reaches the real STAGE context with only the applicable material set in resolved order. Current-v2 and historical exact-version cases are both proved, and an equivalent unresolved simultaneously-applicable relation fails before any provider turn. The certification must fail if production falls back to raw manifest array/filesystem order, include-every-selected-source projection, or provider interpretation.
 
 ##### IA03 — one GOVERNANCE proposal/adoption mechanism
 
@@ -1010,7 +1012,6 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 **Required mutation:** remove/replace the fresh `configured === null` success/defer branch so installer-owned setup continues through existing private OpenCode login, model selection, exact target repository validation/selection and reference-root choices before returning success and proving productive daemon/readiness. Preserve valid incomplete v4 only as post-install/update daemon/Settings recovery and transient rollback-safe installer state. Preserve existing upgrade/migration retention and rollback.  
 **Forbidden:** new config schema; second setup owner; mandatory post-install Settings/provider-login step; speculative `src/installer.ts` edit. If setup.ts alone cannot realize SD19, return to DESIGN/PLAN.  
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
-
 
 ---
 
