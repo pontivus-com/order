@@ -23,6 +23,8 @@ jobs:
       WORK_ITEM_ID: work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21
       EXPECTED_BASELINE: 3c9fa8e70f710426735bfd823aef365ddf9fa5f8
       PONTIVUS_ORDER_BIND: 127.0.0.1:17347
+      OPENCODE_AUTH_EXPORT_B64: ${{ secrets.PONTIVUS_ORDER_CI_OPENCODE_AUTH_B64 }}
+      PONTIVUS_ORDER_CI_MODEL: ${{ vars.PONTIVUS_ORDER_CI_MODEL }}
 
     steps:
       - name: Checkout exact temporary-scaffold branch head
@@ -41,11 +43,13 @@ jobs:
           set -euo pipefail
           node_root="${RUNNER_TEMP}/node"
           mkdir -p "${node_root}"
-          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz"             "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
+          curl -fsSLo "${RUNNER_TEMP}/node.tar.xz" \
+            "https://nodejs.org/dist/v26.13.0/node-v26.13.0-linux-x64.tar.xz"
           tar -xJf "${RUNNER_TEMP}/node.tar.xz" -C "${node_root}" --strip-components=1
           echo "${node_root}/bin" >> "${GITHUB_PATH}"
 
-          curl -fsSLo "${RUNNER_TEMP}/bun.zip"             "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
+          curl -fsSLo "${RUNNER_TEMP}/bun.zip" \
+            "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip"
           unzip -q "${RUNNER_TEMP}/bun.zip" -d "${RUNNER_TEMP}/bun-unpack"
           mkdir -p "${RUNNER_TEMP}/bun-bin"
           cp "${RUNNER_TEMP}/bun-unpack/bun-linux-x64/bun" "${RUNNER_TEMP}/bun-bin/bun"
@@ -57,7 +61,8 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf "${RUNNER_TEMP}/pontivus-order-opencode"
-          BUN_INSTALL="${RUNNER_TEMP}/pontivus-order-opencode"             "${RUNNER_TEMP}/bun-bin/bun" install -g --trust @opencode/cli@2.2.6
+          BUN_INSTALL="${RUNNER_TEMP}/pontivus-order-opencode" \
+            "${RUNNER_TEMP}/bun-bin/bun" install -g --trust @opencode/cli@2.2.6
           test "$("${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" --version)" = "opencode v2.2.6"
           echo "PONTIVUS_ORDER_OPENCODE_BIN=${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" >> "${GITHUB_ENV}"
 
@@ -71,35 +76,411 @@ jobs:
           "${RUNNER_TEMP}/node/bin/node" node_modules/vite/bin/vite.js build
           test -s dist/index.html
 
-      - name: Materialize isolated signed-Approval seed state
+      - name: Construct signed T1 execution seed from canonical baseline
         shell: bash
         run: |
           set -euo pipefail
-          : "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT:?self-hosted runner must export PONTIVUS_ORDER_CI_SEED_STATE_ROOT}"
-          : "${PONTIVUS_ORDER_CI_RUN_ROOT:?self-hosted runner must export PONTIVUS_ORDER_CI_RUN_ROOT}"
-          test -d "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT}"
-          test -d "${PONTIVUS_ORDER_CI_RUN_ROOT}"
-
-          case "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT}" in
-            "${GITHUB_WORKSPACE}"|"${GITHUB_WORKSPACE}"/*)
-              echo "seed state root must live outside the GitHub workspace" >&2
-              exit 1
-              ;;
-          esac
-
-          state_root="${PONTIVUS_ORDER_CI_RUN_ROOT%/}/gha-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          state_root="${RUNNER_TEMP}/order-state"
           rm -rf "${state_root}"
           mkdir -p "${state_root}"
-          cp -a "${PONTIVUS_ORDER_CI_SEED_STATE_ROOT}/." "${state_root}/"
-          chmod -R go-rwx "${state_root}"
+          chmod 700 "${state_root}"
           echo "PONTIVUS_ORDER_STATE_ROOT=${state_root}" >> "${GITHUB_ENV}"
           echo "ORDER_CI_STATE_ROOT=${state_root}" >> "${GITHUB_ENV}"
+          export PONTIVUS_ORDER_STATE_ROOT="${state_root}"
+
+          cat > .temporary-order-bootstrap.ts <<'TS'
+          import {
+            ApprovalSchema,
+            ArtifactRefSchema,
+            WorkItemIdSchema,
+            type ArtifactRef,
+            type ArtifactRole,
+            type AuthorityLayer,
+          } from "./src/core/contracts.ts";
+          import {
+            canonicalApprovalPackageJson,
+          } from "./src/core/canonical.ts";
+          import {
+            admitSignedTaskBlockForSchema,
+            materializeExecutionTasks,
+            parseSignedTaskBlockFromPlan,
+          } from "./src/core/execution.ts";
+          import {
+            authorityLayerForManifestLayer,
+            resolveProjectAuthority,
+          } from "./src/core/governance.ts";
+          import {
+            workItemDocumentPath,
+          } from "./src/core/work-item-source.ts";
+          import {
+            validateTaskDefinitions,
+          } from "./src/daemon/authority.ts";
+          import {
+            createCoordinatorRuntime,
+          } from "./src/daemon/runtime.ts";
+          import {
+            reconcileWorkItemSources,
+          } from "./src/daemon/work-item-source.ts";
+          import {
+            buildOrderConfig,
+            writeOrderConfig,
+          } from "./src/shell/config.ts";
+          import {
+            expandRepositoryPatterns,
+            loadValidatedProjectManifest,
+            resolveAuthoritySources,
+            resolveConcernAuthoritySources,
+          } from "./src/shell/project.ts";
+          import {
+            readCommittedFile,
+          } from "./src/shell/repository.ts";
+          import {
+            newApprovalId,
+            newArtifactRefId,
+            newExecutionTaskId,
+            nowIsoDateTime,
+            sha256,
+            sha256Text,
+          } from "./src/shell/runtime.ts";
+          import {
+            loadWorkItem,
+            openOrderDatabase,
+            storeApproval,
+            storeArtifact,
+            storeArtifactDependency,
+            storeExecutionTask,
+            updateWorkItemLifecycle,
+            withTransaction,
+          } from "./src/shell/sqlite.ts";
+
+          const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
+          const baseline = process.env.EXPECTED_BASELINE;
+          const rawWorkItemId = process.env.WORK_ITEM_ID;
+          if (!stateRoot || !baseline || !rawWorkItemId) {
+            throw new TypeError("CI seed environment is incomplete");
+          }
+          const workItemId = WorkItemIdSchema.parse(rawWorkItemId);
+          const repositoryRoot = process.cwd();
+
+          const initialConfig = writeOrderConfig(
+            stateRoot,
+            buildOrderConfig(null, [repositoryRoot], []),
+          );
+          const database = openOrderDatabase(stateRoot);
+          const runtime = createCoordinatorRuntime(
+            database,
+            stateRoot,
+            process.env,
+            initialConfig,
+          );
+
+          try {
+            const reconciliation = await reconcileWorkItemSources(runtime, [repositoryRoot]);
+            if (reconciliation.diagnostics.some((entry) => entry.workItemId === workItemId)) {
+              throw new TypeError("target WorkItem source has reconciliation diagnostics");
+            }
+            const workItem = loadWorkItem(database, workItemId);
+
+            const baselineSource = await readCommittedFile(
+              repositoryRoot,
+              baseline,
+              workItem.sourcePath,
+            );
+            if (sha256(baselineSource) !== workItem.sourceSha256) {
+              throw new TypeError("current WorkItem source does not match signed baseline");
+            }
+
+            const manifest = await loadValidatedProjectManifest(repositoryRoot);
+            if (manifest.projectId !== workItem.projectId) {
+              throw new TypeError("target WorkItem project does not match manifest");
+            }
+            const expandedAuthority = await resolveAuthoritySources(
+              repositoryRoot,
+              manifest,
+            );
+            const authority = resolveProjectAuthority(manifest, expandedAuthority);
+
+            const artifacts = new Map<string, ArtifactRef>();
+            const addArtifact = async (
+              repositoryPath: string,
+              role: ArtifactRole,
+              authorityLayer: AuthorityLayer | null,
+            ): Promise<ArtifactRef> => {
+              const key = JSON.stringify([repositoryPath, role, authorityLayer]);
+              const existing = artifacts.get(key);
+              if (existing !== undefined) return existing;
+              const bytes = await readCommittedFile(
+                repositoryRoot,
+                baseline,
+                repositoryPath,
+              );
+              const artifact = ArtifactRefSchema.parse({
+                id: newArtifactRefId(),
+                workItemId,
+                repositoryPath,
+                role,
+                authorityLayer,
+                sha256: sha256(bytes),
+                gitCommit: baseline,
+              });
+              storeArtifact(database, artifact);
+              artifacts.set(key, artifact);
+              return artifact;
+            };
+
+            for (const layer of authority.layers) {
+              for (const repositoryPath of layer.sources) {
+                await addArtifact(
+                  repositoryPath,
+                  "GOVERNANCE",
+                  authorityLayerForManifestLayer(layer.layer),
+                );
+              }
+            }
+            await addArtifact("pontivus-order.toml", "PROJECT_MANIFEST", null);
+
+            for (const repositoryPath of await resolveConcernAuthoritySources(
+              repositoryRoot,
+              manifest,
+              workItem.concernIds,
+            )) {
+              await addArtifact(repositoryPath, "GOVERNANCE", null);
+            }
+
+            for (const gate of Object.values(manifest.verification)) {
+              for (const repositoryPath of await expandRepositoryPatterns(
+                repositoryRoot,
+                gate.materialRefs,
+              )) {
+                await addArtifact(
+                  repositoryPath,
+                  "VERIFICATION_MATERIAL",
+                  null,
+                );
+              }
+            }
+
+            const lifecycle = [
+              ["R1", "P1"],
+              ["R2", "P3"],
+              ["DESIGN", "P6"],
+              ["PLAN", "P7"],
+              ["R3", "P7"],
+            ] as const;
+            const lifecycleArtifacts = new Map<string, ArtifactRef>();
+            for (const [role, layer] of lifecycle) {
+              const repositoryPath = workItemDocumentPath(
+                manifest.workItems.root,
+                workItemId,
+                role,
+              );
+              lifecycleArtifacts.set(
+                role,
+                await addArtifact(repositoryPath, role, layer),
+              );
+            }
+
+            const plan = lifecycleArtifacts.get("PLAN");
+            const r3 = lifecycleArtifacts.get("R3");
+            if (plan === undefined || r3 === undefined) {
+              throw new TypeError("CI seed lifecycle roots are incomplete");
+            }
+
+            const material = [...artifacts.values()].filter(
+              (artifact) => artifact.id !== plan.id && artifact.id !== r3.id,
+            );
+            for (const dependency of [plan, ...material]) {
+              storeArtifactDependency(database, r3.id, dependency.id);
+            }
+
+            const planBytes = await readCommittedFile(
+              repositoryRoot,
+              baseline,
+              plan.repositoryPath,
+            );
+            const parsedBlock = admitSignedTaskBlockForSchema(
+              workItem.schemaId,
+              parseSignedTaskBlockFromPlan(planBytes),
+            );
+            if (
+              parsedBlock.tasks.length !== 1 ||
+              parsedBlock.tasks[0]?.id !== "T1"
+            ) {
+              throw new TypeError("signed baseline does not contain exactly T1");
+            }
+            await validateTaskDefinitions(
+              workItem,
+              manifest,
+              [plan, r3, ...material],
+              planBytes,
+            );
+
+            const packageHash = sha256Text(
+              canonicalApprovalPackageJson({
+                workItemId,
+                baselineCommit: baseline,
+                sourceSha256: workItem.sourceSha256,
+                plan,
+                r3,
+                materialArtifacts: material,
+              }),
+            );
+            const approval = ApprovalSchema.parse({
+              id: newApprovalId(),
+              workItemId,
+              baselineCommit: baseline,
+              packageHash,
+              planArtifactRefId: plan.id,
+              r3ArtifactRefId: r3.id,
+              sourceSha256: workItem.sourceSha256,
+              approvedBy: "github-actions-live-certification",
+              approvedAt: nowIsoDateTime(),
+            });
+            const tasks = materializeExecutionTasks(
+              approval.id,
+              parsedBlock,
+              parsedBlock.tasks.map(() => newExecutionTaskId()),
+            );
+
+            withTransaction(database, () => {
+              storeApproval(database, approval);
+              for (const task of tasks) storeExecutionTask(database, task);
+              updateWorkItemLifecycle(database, workItemId, {
+                stage: "EXECUTION",
+                status: "ACTIVE",
+                outcome: null,
+              });
+            });
+
+            process.stdout.write(JSON.stringify({
+              workItemId,
+              approvalId: approval.id,
+              baselineCommit: approval.baselineCommit,
+              packageHash: approval.packageHash,
+              sourceSha256: approval.sourceSha256,
+              executionTaskId: tasks[0]?.id,
+              planTaskId: tasks[0]?.planTaskId,
+              taskState: tasks[0]?.state,
+              materialCount: material.length,
+            }) + "\n");
+          } finally {
+            database.close();
+          }
+          TS
+
+          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-bootstrap.ts \
+            > "${RUNNER_TEMP}/seed-summary.json"
+          rm -f .temporary-order-bootstrap.ts
+          cat "${RUNNER_TEMP}/seed-summary.json"
+
+      - name: Import saved OpenCode Console credential and select model
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${OPENCODE_AUTH_EXPORT_B64}" ]]; then
+            echo "Missing Actions secret PONTIVUS_ORDER_CI_OPENCODE_AUTH_B64." >&2
+            echo "Populate it with base64 of a native 'opencode auth export opencode' credential export." >&2
+            exit 2
+          fi
+
+          auth_file="${RUNNER_TEMP}/opencode-auth.json"
+          printf '%s' "${OPENCODE_AUTH_EXPORT_B64}" | base64 --decode > "${auth_file}"
+          chmod 600 "${auth_file}"
+
+          cat > .temporary-order-opencode-auth.ts <<'TS'
+          import {
+            buildOrderConfig,
+            writeOrderConfig,
+          } from "./src/shell/config.ts";
+          import {
+            buildOpenCodeEnvironment,
+            listAvailableOpenCodeModels,
+            listOpenCodeAccounts,
+            startOpenCodeAccountControl,
+            stopOpenCodeAccountControl,
+          } from "./src/shell/opencode.ts";
+
+          const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
+          const binary = process.env.PONTIVUS_ORDER_OPENCODE_BIN;
+          const authFile = process.env.RUNNER_TEMP + "/opencode-auth.json";
+          if (!stateRoot || !binary) throw new TypeError("OpenCode CI environment is incomplete");
+
+          const authEnvironment = buildOpenCodeEnvironment(stateRoot, process.env);
+          const child = Bun.spawn(
+            [binary, "auth", "import", authFile, "--standalone"],
+            {
+              cwd: process.cwd(),
+              env: authEnvironment,
+              stdin: "ignore",
+              stdout: "pipe",
+              stderr: "pipe",
+            },
+          );
+          const [exitCode, stdout, stderr] = await Promise.all([
+            child.exited,
+            new Response(child.stdout).text(),
+            new Response(child.stderr).text(),
+          ]);
+          if (exitCode !== 0) {
+            throw new TypeError(
+              "OpenCode auth import failed: " +
+                (stderr.trim() || stdout.trim() || "unknown failure"),
+            );
+          }
+
+          const control = await startOpenCodeAccountControl(stateRoot, process.env);
+          try {
+            const accounts = await listOpenCodeAccounts(control);
+            const active = accounts.find(
+              (account) => account.active && account.status.status === "READY",
+            );
+            if (active === undefined) {
+              throw new TypeError(
+                "imported OpenCode credential does not expose a usable active Console account",
+              );
+            }
+          } finally {
+            await stopOpenCodeAccountControl(control);
+          }
+
+          const models = await listAvailableOpenCodeModels(
+            stateRoot,
+            process.cwd(),
+            process.env,
+          );
+          if (models.length === 0) {
+            throw new TypeError("OpenCode Console credential exposes no enabled models");
+          }
+          const requested = process.env.PONTIVUS_ORDER_CI_MODEL?.trim() ?? "";
+          const selected = requested.length === 0
+            ? models.find((model) => model.providerID === "opencode") ?? models[0]
+            : models.find((model) => `${model.providerID}/${model.id}` === requested);
+          if (selected === undefined) {
+            throw new TypeError(
+              "requested CI model is not enabled: " + requested,
+            );
+          }
+          writeOrderConfig(
+            stateRoot,
+            buildOrderConfig(selected, [process.cwd()], []),
+          );
+          process.stdout.write(JSON.stringify({
+            providerID: selected.providerID,
+            modelId: selected.id,
+          }) + "\n");
+          TS
+
+          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-auth.ts \
+            > "${RUNNER_TEMP}/opencode-model.json"
+          rm -f .temporary-order-opencode-auth.ts
+          rm -f "${auth_file}"
+          cat "${RUNNER_TEMP}/opencode-model.json"
 
       - name: Prove seed is the fresh signed T1
         shell: bash
         run: |
           set -euo pipefail
-          cat > "${RUNNER_TEMP}/verify-seed.ts" <<'TS'
+          cat > .temporary-order-verify-seed.ts <<'TS'
           import {
             WorkItemIdSchema,
           } from "./src/core/contracts.ts";
@@ -161,7 +542,8 @@ jobs:
             database.close();
           }
           TS
-          "${RUNNER_TEMP}/bun-bin/bun" ".temporary-order-verify-seed.ts"\n          rm -f ".temporary-order-verify-seed.ts"
+          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-verify-seed.ts
+          rm -f .temporary-order-verify-seed.ts
 
       - name: Start candidate Order daemon
         shell: bash
@@ -199,7 +581,8 @@ jobs:
           cookie="${RUNNER_TEMP}/order-cookie.txt"
           curl -fsS -L -c "${cookie}" -o /dev/null "${connect_url}"
 
-          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks.json"
+          curl -fsS -b "${cookie}" \
+            "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks.json"
 
           task_id="$("${RUNNER_TEMP}/bun-bin/bun" -e '
             const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks.json").text());
@@ -216,15 +599,12 @@ jobs:
           echo "ORDER_CI_TASK_ID=${task_id}" >> "${GITHUB_ENV}"
 
           if [[ "${task_state}" == "TODO" ]]; then
-            if ! curl -fsS -b "${cookie}"               -H "Origin: ${origin}"               -H "Content-Type: application/json"               -X POST               "${origin}/api/work-items/${WORK_ITEM_ID}/tasks/${task_id}/start"               -d '{}' > "${RUNNER_TEMP}/start-task.json"; then
-              curl -fsS -b "${cookie}"                 "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-after-start-race.json"
-              current="$("${RUNNER_TEMP}/bun-bin/bun" -e '
-                const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks-after-start-race.json").text());
-                const t = tasks.find((value) => value.planTaskId === "T1");
-                process.stdout.write(t?.state ?? "MISSING");
-              ')"
-              [[ "${current}" == "RUNNING" ]] || exit 1
-            fi
+            curl -fsS -b "${cookie}" \
+              -H "Origin: ${origin}" \
+              -H "Content-Type: application/json" \
+              -X POST \
+              "${origin}/api/work-items/${WORK_ITEM_ID}/tasks/${task_id}/start" \
+              -d '{}' > "${RUNNER_TEMP}/start-task.json"
           elif [[ "${task_state}" != "RUNNING" ]]; then
             echo "T1 entered unexpected state before certification start: ${task_state}" >&2
             exit 1
@@ -241,7 +621,8 @@ jobs:
 
           terminal=""
           for _ in $(seq 1 2160); do
-            curl -fsS -b "${cookie}"               "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-current.json"
+            curl -fsS -b "${cookie}" \
+              "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-current.json"
             terminal="$("${RUNNER_TEMP}/bun-bin/bun" -e '
               const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks-current.json").text());
               const t = tasks.find((value) => value.id === process.env.ORDER_CI_TASK_ID);
@@ -271,18 +652,23 @@ jobs:
           evidence_dir="${RUNNER_TEMP}/order-live-evidence"
           mkdir -p "${evidence_dir}/events"
 
-          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}" > "${evidence_dir}/work-item.json"
-          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${evidence_dir}/tasks.json"
-          curl -fsS -b "${cookie}"             "${origin}/api/work-items/${WORK_ITEM_ID}/runs" > "${evidence_dir}/runs.json"
+          curl -fsS -b "${cookie}" \
+            "${origin}/api/work-items/${WORK_ITEM_ID}" > "${evidence_dir}/work-item.json"
+          curl -fsS -b "${cookie}" \
+            "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${evidence_dir}/tasks.json"
+          curl -fsS -b "${cookie}" \
+            "${origin}/api/work-items/${WORK_ITEM_ID}/runs" > "${evidence_dir}/runs.json"
 
           "${RUNNER_TEMP}/bun-bin/bun" -e '
             const runs = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/order-live-evidence/runs.json").text());
             for (const run of runs) console.log(run.id);
           ' | while read -r run_id; do
-            curl -fsS -b "${cookie}"               "${origin}/api/runs/${run_id}/events?afterSequence=0"               > "${evidence_dir}/events/${run_id}.json"
+            curl -fsS -b "${cookie}" \
+              "${origin}/api/runs/${run_id}/events?afterSequence=0" \
+              > "${evidence_dir}/events/${run_id}.json"
           done
 
-          cat > "${RUNNER_TEMP}/verify-live-run.ts" <<'TS'
+          cat > .temporary-order-verify-live-run.ts <<'TS'
           const root = process.env.RUNNER_TEMP + "/order-live-evidence";
           const taskId = process.env.ORDER_CI_TASK_ID;
           const baseline = process.env.EXPECTED_BASELINE;
@@ -423,7 +809,8 @@ jobs:
           process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
           TS
 
-          "${RUNNER_TEMP}/bun-bin/bun" "${RUNNER_TEMP}/verify-live-run.ts"
+          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-verify-live-run.ts
+          rm -f .temporary-order-verify-live-run.ts
           {
             echo "## Live Order/OpenCode T1 certification"
             echo
