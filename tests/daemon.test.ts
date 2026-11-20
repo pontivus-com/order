@@ -5373,6 +5373,11 @@ describe("daemon control plane", () => {
           'P1-STRICT = "docs/principles.md"',
           'P1-FCIS-EXT = "AGENTS.md"',
           "",
+        ].join("\n"),
+      )
+      .replace(
+        "[governance.fitness]\n",
+        [
           "[precedence]",
           'p2 = ["docs/product-b.md", "docs/product-a.md"]',
           "",
@@ -5387,6 +5392,8 @@ describe("daemon control plane", () => {
           'source = "AGENTS.md"',
           'authorityRef = "P1-FCIS-EXT"',
           'gates = ["test"]',
+          "",
+          "[governance.fitness]",
           "",
         ].join("\n"),
       );
@@ -5942,7 +5949,9 @@ describe("daemon control plane", () => {
     `) as { fresh: boolean; changedOwners: string[] };
 
     expect(output.fresh).toBe(false);
-    expect(output.changedOwners).toContain("R1");
+    expect(output.changedOwners).toContain("R2");
+    expect(output.changedOwners).toContain("PLAN");
+    expect(output.changedOwners).not.toContain("R1");
   }, 30_000);
 
   it("does not let a running execution Run overwrite an observed source-drift return", () => {
