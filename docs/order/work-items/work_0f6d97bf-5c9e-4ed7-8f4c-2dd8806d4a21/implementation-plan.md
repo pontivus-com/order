@@ -22,7 +22,7 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `dc81f018ea2555a9112f78eb513ebc6981c53659` |
+| `implementation-plan/00-governance.md` | `1496f321bde9733dfc945310575a743ee6d97ae0` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `41253868d40275a8b5380ba544a2c60110a32295` |
 | `implementation-plan/02-a02-governance-intake.md` | `8d02082a732e67ec6ff2a827138513a4c1a4e54c` |
 | `implementation-plan/03-a03-queue-source.md` | `2965ab2d6599be375ba03c60b9513375b1de6412` |
@@ -34,14 +34,14 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 | `implementation-plan/09-a09-provider-settings.md` | `bfd715be3a5dff9f31969b788576c0137578be0d` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
 | `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
-| `implementation-plan/12-action-catalog.md` | `f845fd814265d8d36c1598ab4f0d681cddb1bd9b` |
-| `implementation-plan/13-verification-closeout.md` | `1d7df1d78af0462d58214fccf6ba89afbb3a58cf` |
+| `implementation-plan/12-action-catalog.md` | `d68543193c896d8c1824c78c8a9014313a4b5ebc` |
+| `implementation-plan/13-verification-closeout.md` | `c707ce4b77d778bd960c6b337e491d98f6527c53` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
 ## Semantic coverage versus execution ownership
 
-A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA26 in the compiled action catalog are the single action definitions: production mutation, verification-only, DESIGN-positive-reuse/no-code proof, or closeout. Their continued presence is justified by current R2/DESIGN traceability, not historical PLAN continuity. A phase may consume an IA owned elsewhere without duplicating it.
+A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA34 in the compiled action catalog are the single action definitions: production mutation, verification-only, DESIGN-positive-reuse/no-code proof, or closeout. Their continued presence is justified by current R2/DESIGN traceability, not historical PLAN continuity. A phase may consume an IA owned elsewhere without duplicating it.
 
 ## Signed execution scope
 
@@ -130,7 +130,7 @@ Total signed T1 `changeSurface`: **30 paths**.
 - IA07/IA08 are DESIGN-positive-reuse/no-code proof owners for `PL-C12-01`/`PL-C12-02` and authorize no execution-foundation production edit;
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
 - every technical/verification delta maps to one or more exact IA actions;
-- every IA01-IA26 is defined exactly once; IA23/IA26/IA24 are explicit cross-solution/rendered-acceptance/final actions rather than orphan work;
+- every IA01-IA34 is defined exactly once; IA27-IA34/IA23/IA26/IA24 are explicit cross-solution/rendered-acceptance/final actions rather than orphan work;
 - the immutable forecast is the exact 30-path `changeSurface`; actual variance is admissible only inside signed scope/exclusions and only through positive V4/V5/V6 minimum same-layer proof;
 - signed `dependency-lock` bootstrap checkpoint P passes before Wave 1, and required signed `architecture` checkpoints A-F pass after Waves 1-6 before the next wave begins;
 - current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
@@ -174,7 +174,9 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ##### Execution ownership
 
-A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA26 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
+
+IA27-IA34 are the presentation reconstruction owners. IA27 exclusively owns shared primitive/theme/style implementation. IA28-IA34 own feature-renderer migration and may consume but may not modify IA27-owned presentation foundation files. If a downstream composition cannot be realized through the signed primitive responsibilities, execution returns to IA27/DESIGN rather than creating local presentation ownership.
 
 IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
@@ -188,7 +190,7 @@ The one signed T1 uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
 - explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
-- exact 30-path `changeSurface` as the immutable expected physical forecast.
+- task-local exact `changeSurface` forecasts whose union is the immutable expected physical forecast for the cumulative candidate.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
 
@@ -800,21 +802,26 @@ Package atoms in phase: **3**.
 
 #### 0.6.0 implementation action catalog
 
-Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD20 under G-F12; historical action existence is not justification for retaining an action.
+Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD30 under post-rendered-evidence reconstruction; historical action existence is not justification for retaining an action.
 
 ##### Execution waves
 
-0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No T1 production mutation.
-1. **Wave 1 — authority resolution and governed decisions:** IA01-IA04.
-2. **Wave 2 — task admission and Approval ingress:** IA05-IA06.
-3. **Wave 3 — source/queue/documentation Git:** IA09-IA13.
-4. **Wave 4 — Workbench/product presentation:** IA14-IA19.
-5. **Wave 5 — productive installer:** IA25.
-6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
-7. **Wave 7 — rendered product acceptance:** IA26.
-8. **Wave 8 — candidate closeout:** IA24.
+0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
+1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
+2. **Wave 2 — Workbench foundation replacement:** IA27. No feature renderer migration may begin until this passes its architecture/browser checkpoint.
+3. **Wave 3 — Queue/Create:** IA11, IA12, IA28.
+4. **Wave 4 — WorkItem shell + Work request/document:** IA13, IA14, IA29.
+5. **Wave 5 — productive pre-signoff stages:** IA15, IA30.
+6. **Wave 6 — Readiness/Approval:** IA16, IA17, IA31.
+7. **Wave 7 — Implementation master/detail:** IA32.
+8. **Wave 8 — Complete/Evidence/Context/product language:** IA19, IA33.
+9. **Wave 9 — Settings/account/configuration:** IA18, IA34.
+10. **Wave 10 — permanent semantic/component certification:** IA20-IA22.
+11. **Wave 11 — cross-solution regression closure:** IA23.
+12. **Wave 12 — rendered product acceptance:** IA26.
+13. **Wave 13 — candidate closeout:** IA24.
 
-Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`; this prepares the fresh isolated workspace using the project-owned exact `bun ci` verification command before any Node-based architecture/test/build/typecheck checkpoint can execute. The signed `architecture` gate is then requested after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast/V4-V6 realizations identified by current DESIGN; it does not bootstrap or modify them. The execution harness must provision the exact Playwright-owned Chromium runtime required by P6 before T1 begins, because the signed `browser` gate intentionally runs the project test command and does not install its browser dependency. Wave 7 runs only after the ordinary permanent gates are green and produces the exact-candidate rendered acceptance evidence through GitHub Actions. Wave 8 performs ordinary final validation/closeout only after IA26 is complete and does not substitute rendered evidence for V3/V5/V7.
+Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`. After Wave 2 and after each presentation wave 3-9, the signed `architecture` gate and the task-specific browser subset must pass before its dependent UI task begins. A downstream renderer task may not change `ui/src/primitives/**`, `ui/src/theme.css` or `ui/src/styles.css`; if the canonical composition cannot be realized, execution returns to IA27 rather than introducing local presentation ownership. Wave 10 proves the migrated renderer/component/theme system semantically. Wave 12 produces exact-candidate rendered evidence only after ordinary gates are green. Wave 13 closes only after every rendered row is accepted.
 
 ##### IA01 — pure project-authority resolution
 
@@ -986,7 +993,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 ##### IA23 — cross-solution regression closure
 
-**Upstream:** all SD01-SD20.  
+**Upstream:** all SD01-SD30.  
 **Owners:** existing targeted core/daemon/presentation/browser/certification suites plus `tests/opencode.test.ts` and `.github/workflows/ci.yml` for SD20.  
 **Required mutation:** fill any integration-level positive/negative gaps needed to prove the composed solutions without duplicating action-specific tests. Explicitly prove no compatibility fallback, shadow owner or implementation-derived semantics. For SD20 specifically, add one permanent exact-pin OpenCode integration tier: PR verification installs exact `opencode-drive@2.4.1` + `effect@4.0.1` into runner-temporary verification space, `tests/opencode.test.ts` launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode environment/admission/session path, and deterministic model responses are supplied through the Drive simulation provider/controller. Existing `fake-opencode` fixtures remain lower-level doubles and do not satisfy this exact-pin proposition. Do not add the simulation tooling to Order's product/runtime package graph, lockfiles, release bundle, configuration or state, and do not claim remote-provider availability, Console OAuth/account connectivity or model quality from simulated responses.  
 **Proof:** exact-pin SD20 integration case passes in permanent PR verification; all targeted suites green; V4/V5/V6 trace every added assertion/tooling change to an SD/requirement/atom.
@@ -1007,6 +1014,78 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Forbidden:** new config schema; second setup owner; mandatory post-install Settings/provider-login step; speculative `src/installer.ts` edit. If setup.ts alone cannot realize SD19, return to DESIGN/PLAN.  
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
+
+##### IA27 — rebuild the Workbench primitive/theme foundation
+
+**Solution:** SD21, with SD29 structural responsibilities.
+**Owners:** every existing `ui/src/primitives/*.tsx` owner; `ui/src/theme.css`; `ui/src/styles.css`.
+**Required mutation:** rebuild the existing closed P4 primitive vocabulary so it is the sole recurring structural/visual grammar. Primitive APIs remain domain/query/policy blind and keep the canonical responsibilities; implementations may be replaced internally. Use pinned Astryx public components/props/density/layout first and public theme tokens second. Establish canonical shell/form/table/status/notice/task-panel/review/master-detail/context/dialogue/settings/resource/timeline geometry and wide/medium/narrow behavior. Reduce `styles.css` to foundation imports/global non-feature ownership. Remove duplicate/obsolete layout systems and recurring feature-era selectors from `theme.css` rather than preserving aliases/overrides.
+**Hard audit boundary:** IA27 must not import WorkItem/Run/domain/query state into primitives. It must not change domain contracts, API/query ownership or lifecycle semantics. It must not introduce a new primitive responsibility unless DESIGN is amended.
+**Deletion proof:** no compatibility presentation path, hidden legacy DOM grammar, private Astryx token/internal selector, generic arbitrary-slot mega-primitive, feature-specific breakpoint authority or duplicate recurring component system remains.
+**Proof:** architecture/certification primitive-to-Astryx/ownership checks; focused primitive browser harness across wide/narrow and Light/Dark; CSS selector audit. IA28-IA34 are blocked until IA27 PASS.
+
+##### IA28 — migrate Queue and Create onto the rebuilt foundation
+
+**Solutions:** SD22 plus existing SD03/SD05 semantic deltas through IA11/IA12.
+**Owners:** `ui/src/app.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.
+**Required mutation:** recompose Queue as the canonical Operational scan and Create/remediation as the canonical bounded Form/configuration task using IA27 primitives only. Keep normal populated Queue separate from source-diagnostic, empty, search and archive states. Create must present controlled Project/kind/Concerns/title plus system-derived context with one dominant Create action and no editable linked-remediation project.
+**Deletion proof:** remove Queue/Create feature-owned recurring table/form/control/status/layout chrome and any legacy page/modal composition that duplicates primitive responsibilities.
+**Forbidden:** modifying primitive/theme/style owners from this task; feature-local component CSS; inventing new queue/create semantics from SVGs.
+**Proof:** functional Queue/Create browser matrix, wide+narrow capture, Light/Dark representative capture, and explicit comparison to `queue*.svg`, `create-work-item.svg`, `create-linked-remediation.svg`; zero unresolved row-level FAIL before IA29.
+
+##### IA29 — migrate WorkItem shell, Work request and governed documents
+
+**Solution:** SD23 plus IA13/IA14 where applicable.
+**Owners:** `ui/src/WorkItemWorkspace.tsx`, `ui/src/WorkItemIdentityRow.tsx`, `ui/src/WorkflowRail.tsx`, `ui/src/WorkflowStepFrame.tsx`, `ui/src/DocumentWorkspace.tsx`, `ui/src/MarkdownEditor.tsx`, `ui/src/MarkdownSourceEditor.tsx`.
+**Required mutation:** compose one stable selected-WorkItem shell from toolbar/identity/nine-stage rail/current-attention/primary material/optional Context slots. Work request is a Document interaction with source intent primary and metadata/Git/currentness subordinate. Preserve exact current-attention reachability during historical/document inspection and exact governed Git review.
+**Deletion proof:** delete generic-frame/layout branches, identity/rail/document chrome and old selectors that compete with primitive-owned shell/document geometry.
+**Forbidden:** changing lifecycle/material-selection/query semantics; modifying IA27 owners.
+**Proof:** Work request/document/Git/current-attention browser tests plus wide+narrow rendered comparison to Work request/document/current-attention references; zero unresolved FAIL before IA30.
+
+##### IA30 — migrate Research, Requirements, Solution design and Plan
+
+**Solution:** SD24 plus IA15 and existing productive-stage semantic corrections.
+**Owners:** `ui/src/PreSignoffStageWorkspace.tsx`, `ui/src/ActivityWorkspace.tsx`, `ui/src/ActivityComposer.tsx`, `ui/src/WorkflowMaterialSelector.tsx`, `ui/src/ProposalReview.tsx`, `ui/src/RunEventTimeline.tsx`.
+**Required mutation:** make all productive pre-signoff stages use one Surface/Attention/Selector composition with canonical Document, Dialogue and Review sub-compositions. Current required input/proposal/blocker/processing owns attention; current governed document is primary otherwise; history/evidence/activity stays subordinate. Stage-specific schema/information obligations change content only, never layout grammar.
+**Deletion proof:** remove stage-local dialogue/proposal/timeline/layout systems, feature-selected overlay mechanics and presentation branches that duplicate IA27.
+**Forbidden:** modifying Run/RunEvent/proposal/adoption authority; modifying IA27 owners.
+**Proof:** four-kind Research + Change/Defect downstream browser matrix, required-input focus once, proposal/document/dialogue states, wide+narrow and per-stage rendered comparisons; zero unresolved FAIL before IA31.
+
+##### IA31 — migrate Readiness and Approval reviews
+
+**Solution:** SD25 plus IA16/IA17.
+**Owners:** `ui/src/ReadinessWorkspace.tsx`, `ui/src/SignoffReview.tsx`.
+**Required mutation:** render both as canonical Review compositions. Readiness makes typed R3 verdict/findings/return owner dominant. Approval makes readiness/currentness/task meaning dominant with technical package identity subordinate and exact sign-off as the sole primary mutation.
+**Deletion proof:** remove generic stage-frame/card presentation and technical-identity-first review layout.
+**Forbidden:** changing R3/Approval contracts or ingress semantics; modifying IA27 owners.
+**Proof:** readiness return/blocked/ready and Approval current/stale/sign-off cases plus wide+narrow rendered comparison to readiness/approval references; zero unresolved FAIL before IA32.
+
+##### IA32 — migrate Implementation operational master/detail
+
+**Solution:** SD26.
+**Owner:** `ui/src/ExecutionWorkspace.tsx` consuming IA27 primitives and the IA30 timeline adapter.
+**Required mutation:** use the one canonical persistent operational master/detail topology. Wide has fixed master width; constrained uses primitive-owned start Drawer while detail remains primary. Detail presents current execution owner/action, attempt, blocker, validation and chronology; historical task selection never steals current attention.
+**Deletion proof:** delete alternate stacked/card/task-count-driven execution layouts and execution-specific recurring component chrome.
+**Forbidden:** changing execution/task/validation semantics; modifying IA27 or IA30 owners.
+**Proof:** execution task-state/attempt/blocker/validation browser matrix plus wide+narrow rendered comparison to implementation/task-state references; zero unresolved FAIL before IA33.
+
+##### IA33 — migrate Complete, Evidence and Context/material surfaces
+
+**Solution:** SD27 plus IA19 product-language projection.
+**Owners:** `ui/src/TerminalResult.tsx`, `ui/src/EvidenceViewer.tsx`, `ui/src/WorkItemContext.tsx`.
+**Required mutation:** Complete uses canonical Terminal-result composition with final outcome primary, candidate resources only for executed delivery and linked remediation as separate authoring. Evidence uses Evidence-class presentation. Context is secondary/supporting only, docked wide and Drawer constrained.
+**Deletion proof:** remove result/evidence/context feature-card systems, duplicated metadata/status chrome and alternate context topology.
+**Forbidden:** changing outcome/resource/material semantics; modifying IA27 owners.
+**Proof:** candidate/non-candidate/linked-remediation/evidence/context browser cases plus wide+narrow rendered comparison; zero unresolved FAIL before IA34.
+
+##### IA34 — migrate Settings and OpenCode/account configuration
+
+**Solution:** SD28 plus IA18.
+**Owners:** `ui/src/SettingsWorkspace.tsx`, `ui/src/OpenCodeAccountControl.tsx`, `ui/src/OpenCodeAccountSettings.tsx`.
+**Required mutation:** use canonical SettingsLayout/Form/Table/Status/Notice/Confirmation composition. Productive readiness, meaning and available operator actions are primary. Exact paths/endpoints/account/credential-like identity are subordinate unless the active configuration task requires them. Repository/account/model tasks use the same control/action grammar as Create.
+**Deletion proof:** remove admin-page/card/bespoke account/repository/model component systems and recurring Settings feature chrome.
+**Forbidden:** changing config/provider/readiness ownership; modifying IA27 owners.
+**Proof:** settings/readiness/repository/account/model/login/confirmation browser matrix plus wide+narrow and theme rendered comparisons; zero unresolved FAIL before IA20-IA23/IA26.
 ##### IA26 — rendered 0.6.0 UX/UI acceptance evidence
 
 **Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and the reviewed derived visual reference pack at `docs/references/workbench-ui/README.md`. Current R2/DESIGN/P3-P6 authority wins over any 0.5.0 SVG reference on conflict.  
@@ -1080,7 +1159,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 Current `tests/architecture.test.ts` is stale against the corrected package: its permanent PLAN fitness check still requires exactly 28 signed `changeSurface` paths even though current DESIGN/PLAN now require 30. This is a pre-signoff verification-material defect, not T1 implementation surface.
 
-Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the current 30-path DESIGN/PLAN set without creating a second package registry. The sensor should continue proving uniqueness plus exact set equality between DESIGN forecast and signed T1 surface; it must not preserve the obsolete literal 28 as authority. The same sensor currently enumerates exactly IA01-IA25 and treats only IA23/IA24 as cross-solution/final actions; after this PLAN correction it must instead structurally require the exact IA01-IA26 catalog and govern IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it must not turn IA26 into a semantic phase owner or move `tests/architecture.test.ts` into T1. Re-run the architecture gate and root/modular compilation checks on the exact corrected package before G5 may return to PASS. `tests/architecture.test.ts` remains excluded from T1 after this pre-Approval correction.
+Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the corrected DESIGN/PLAN task-local forecast union without creating a second package registry. The sensor must prove uniqueness plus exact set equality between DESIGN forecast and the union of signed task `changeSurface` entries; it must not preserve historical literal path counts as authority. It must structurally require the exact IA01-IA34 catalog, enforce one definition per IA, and recognize IA27-IA34 as the presentation reconstruction owners plus IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it does not move `tests/architecture.test.ts` into signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
 ##### 0.6.0 implementation delivery branch
 
@@ -1120,7 +1199,7 @@ GitHub Actions must:
 6. fail on missing/duplicate mappings, unreachable declared state, uncaught browser/runtime errors, missing/empty captures, or incomplete manifest/index;
 7. upload the actual captures plus manifest/index as one PR-run artifact using `actions/upload-artifact` pinned to commit `ea165f8d65b6e75b540449e92b4886f43607fa02` (the current `v4` ref at PLAN correction time), with artifact identity including the exact checked-out candidate SHA.
 
-The capture harness may add deterministic fixture setup and screenshot calls inside the already signed `tests/browser.spec.ts` verification owner. The CI mutation remains inside the already signed `.github/workflows/ci.yml` owner. No new T1 path is required, so the exact 30-path `changeSurface` remains unchanged.
+The capture harness may add deterministic fixture setup and screenshot calls inside the signed `tests/browser.spec.ts` verification owner. The CI mutation remains inside the signed `.github/workflows/ci.yml` owner. Rendered acceptance is carried by its own verification task and does not authorize presentation changes.
 
 ###### Acceptance review contract
 
@@ -1143,7 +1222,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- the signed 30-path `changeSurface` remains the immutable forecast;
+- each signed task retains its exact `changeSurface`; the union remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
@@ -1164,17 +1243,18 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 current DESIGN as one cumulative verified candidate: execute SD01-SD20 through IA01-IA26 only where the current R1/R2/DESIGN package assigns a technical or verification delta, including SD20 exact-pin OpenCode certification through permanent test/CI verification only and IA26 exact-candidate rendered UX/UI acceptance through the existing browser/CI verification owners; create no implementation mutation for any POSITIVE_NO_CHANGE or DESIGN-positive-reuse obligation and return upstream if its evidence is disproved; use the existing coordinator checkpoint and scope/forecast/V4-V6 capabilities rather than reimplementing them; retain the authority-required published v1 task semantics while adding only the current-v2 non-vacuity admission; and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
+      "objective": "Preserve and revalidate the already-correct non-UI 0.6.0 technical corrections from SD01-SD20 while the presentation package is rebuilt: authority resolution/materiality, durable authority input/proposals, current-v2 task admission, Approval ingress, singular source admission, guided installer and exact-pin OpenCode certification remain the canonical baseline. Make only the exact remaining non-UI mutations already authorized by DESIGN; do not alter presentation semantics or reimplement execution-foundation reuse.",
       "dependsOn": [],
       "scope": [
         "README.md",
         "src/core/**",
         "src/daemon/**",
         "src/shell/**",
-        "ui/src/**",
-        "tests/**",
-        ".github/workflows/ci.yml",
-        "CHANGELOG.md"
+        "tests/core.test.ts",
+        "tests/daemon.test.ts",
+        "tests/installer.test.ts",
+        "tests/opencode.test.ts",
+        ".github/workflows/ci.yml"
       ],
       "exclusions": [
         "src/daemon/execution.ts",
@@ -1190,24 +1270,15 @@ V4/V5/V6 explicitly verify:
         "src/shell/runtime.ts",
         "src/shell/sqlite.ts",
         "src/shell/work-item-source.ts",
-        "ui/src/http.ts",
-        "ui/src/query-keys.ts",
-        "ui/src/theme.css",
+        "ui/src/**",
         "tests/architecture.test.ts"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORK-LIFECYCLE-V1",
         "GW-DOC-LIFECYCLE-CONTEXT-V2",
         "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2",
-        "GW-DOC-WORKBENCH-UX-V2",
-        "GW-DOC-SPECIFICATION-STANDARD-V2",
-        "GW-DOC-VALIDATION-STANDARD-V1",
-        "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION",
+        "GW-DOC-CANONICAL-CONTRACTS-V2",
         "GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE",
-        "GW-DOC-EXTERNAL-FACTS",
-        "GW-DOC-INSTALLATION-READINESS-V1",
-        "GW-DOC-PRODUCT-IDENTITY-V1",
-        "GW-DOC-SYSTEM-BRIEF-V1",
         "GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP"
       ],
       "changeSurface": [
@@ -1220,25 +1291,634 @@ V4/V5/V6 explicitly verify:
         "src/daemon/stage.ts",
         "src/daemon/work-item-source.ts",
         "src/shell/setup.ts",
+        "tests/core.test.ts",
+        "tests/daemon.test.ts",
+        "tests/installer.test.ts",
+        "tests/opencode.test.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
+        "GW-DOC-CANONICAL-CONTRACTS-V2",
+        "GW-DOC-OPENCODE-INTEGRATION-V1"
+      ],
+      "concernIds": [
+        "core",
+        "daemon",
+        "foundation",
+        "shell",
+        "verification"
+      ]
+    },
+    {
+      "id": "T2",
+      "objective": "Rebuild the closed Workbench primitive/theme foundation for SD21 before any screen migration. Rewrite primitive implementations as necessary while preserving their canonical responsibilities; establish Astryx-first geometry, control/form/table/status/notice/dialogue/review/master-detail/context/settings behavior, responsive ownership and theme semantics; remove duplicate/obsolete feature-era recurring presentation systems. This task owns the shared presentation foundation exclusively.",
+      "dependsOn": [
+        "T1"
+      ],
+      "scope": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css",
+        "tests/browser.spec.ts",
+        "tests/certification.test.ts"
+      ],
+      "exclusions": [
+        "ui/src/app.tsx",
         "ui/src/ActivityComposer.tsx",
         "ui/src/ActivityWorkspace.tsx",
         "ui/src/CreateWorkItem.tsx",
         "ui/src/DocumentWorkspace.tsx",
+        "ui/src/EvidenceViewer.tsx",
+        "ui/src/ExecutionWorkspace.tsx",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/OpenCodeAccountControl.tsx",
+        "ui/src/OpenCodeAccountSettings.tsx",
+        "ui/src/PreSignoffStageWorkspace.tsx",
+        "ui/src/ProposalReview.tsx",
         "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/RunEventTimeline.tsx",
         "ui/src/SettingsWorkspace.tsx",
         "ui/src/SignoffReview.tsx",
         "ui/src/TerminalResult.tsx",
+        "ui/src/WorkItemContext.tsx",
+        "ui/src/WorkItemIdentityRow.tsx",
         "ui/src/WorkItemQueue.tsx",
         "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/WorkflowMaterialSelector.tsx",
+        "ui/src/WorkflowRail.tsx",
+        "ui/src/WorkflowStepFrame.tsx"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "ui/src/primitives/WorkbenchAction.tsx",
+        "ui/src/primitives/WorkbenchAttention.tsx",
+        "ui/src/primitives/WorkbenchConfirmation.tsx",
+        "ui/src/primitives/WorkbenchContextPanel.tsx",
+        "ui/src/primitives/WorkbenchDialogue.tsx",
+        "ui/src/primitives/WorkbenchDisclosure.tsx",
+        "ui/src/primitives/WorkbenchField.tsx",
+        "ui/src/primitives/WorkbenchForm.tsx",
+        "ui/src/primitives/WorkbenchIcon.tsx",
+        "ui/src/primitives/WorkbenchIdentity.tsx",
+        "ui/src/primitives/WorkbenchLayout.tsx",
+        "ui/src/primitives/WorkbenchMasterDetail.tsx",
+        "ui/src/primitives/WorkbenchNotice.tsx",
+        "ui/src/primitives/WorkbenchRail.tsx",
+        "ui/src/primitives/WorkbenchResourceRow.tsx",
+        "ui/src/primitives/WorkbenchReview.tsx",
+        "ui/src/primitives/WorkbenchSectionHeader.tsx",
+        "ui/src/primitives/WorkbenchSelector.tsx",
+        "ui/src/primitives/WorkbenchSettingsLayout.tsx",
+        "ui/src/primitives/WorkbenchState.tsx",
+        "ui/src/primitives/WorkbenchStatus.tsx",
+        "ui/src/primitives/WorkbenchSurface.tsx",
+        "ui/src/primitives/WorkbenchTable.tsx",
+        "ui/src/primitives/WorkbenchTaskPanel.tsx",
+        "ui/src/primitives/WorkbenchTimeline.tsx",
+        "ui/src/primitives/WorkbenchToolbar.tsx",
+        "ui/src/primitives/WorkbenchUtilityLink.tsx",
+        "ui/src/styles.css",
+        "ui/src/theme.css",
+        "tests/browser.spec.ts",
+        "tests/certification.test.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1"
+      ],
+      "concernIds": [
+        "foundation",
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T3",
+      "objective": "Migrate Queue and Create WorkItem onto the rebuilt foundation (SD22, IA11, IA12, IA28). Queue must be the canonical Operational scan with normal, empty, search, archive and source-diagnostic states distinct; Create/remediation must use the canonical task-panel/form hierarchy with controlled Project/kind/Concerns/title and subordinate derived metadata. Delete the old Queue/Create presentation grammar; do not modify T2 foundation files.",
+      "dependsOn": [
+        "T2"
+      ],
+      "scope": [
         "ui/src/app.tsx",
+        "ui/src/WorkItemQueue.tsx",
+        "ui/src/CreateWorkItem.tsx",
+        "tests/browser.spec.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "ui/src/app.tsx",
+        "ui/src/WorkItemQueue.tsx",
+        "ui/src/CreateWorkItem.tsx",
+        "tests/browser.spec.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T4",
+      "objective": "Migrate the selected WorkItem shell, Work request and governed document surfaces onto the rebuilt foundation (SD23, IA13, IA14, IA29). Establish one stable identity/rail/current-attention/primary-material/Context shell, preserve observational selection and exact current-attention reachability, render Work request as the canonical Document interaction, and retain exact documentation-Git review. Delete generic-frame and document/identity/rail legacy presentation ownership.",
+      "dependsOn": [
+        "T3"
+      ],
+      "scope": [
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/WorkItemIdentityRow.tsx",
+        "ui/src/WorkflowRail.tsx",
+        "ui/src/WorkflowStepFrame.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
         "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/WorkItemIdentityRow.tsx",
+        "ui/src/WorkflowRail.tsx",
+        "ui/src/WorkflowStepFrame.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T5",
+      "objective": "Migrate Research, Requirements, Solution design and Implementation plan onto the single pre-signoff interaction grammar (SD24, IA15, IA30). Current required input/proposal/blocker/processing owns attention; current governed document is primary otherwise; history, evidence and bounded activity remain subordinate. Stage-specific schema information changes content only, never the structural grammar. Delete stage-local dialogue/proposal/timeline/layout systems.",
+      "dependsOn": [
+        "T4"
+      ],
+      "scope": [
+        "ui/src/PreSignoffStageWorkspace.tsx",
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/WorkflowMaterialSelector.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "ui/src/PreSignoffStageWorkspace.tsx",
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/WorkflowMaterialSelector.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T6",
+      "objective": "Migrate Readiness and Approval to canonical Review compositions (SD25, IA16, IA17, IA31). Readiness must make the typed R3 verdict/findings/return owner dominant; Approval must make readiness/currentness/task meaning dominant with package identity subordinate and exact sign-off as the sole primary mutation. Delete generic stage/card review presentation.",
+      "dependsOn": [
+        "T5"
+      ],
+      "scope": [
+        "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/SignoffReview.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/SignoffReview.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T7",
+      "objective": "Migrate Implementation to the canonical operational master/detail topology (SD26, IA32). Wide uses one fixed master width; constrained uses the primitive-owned start Drawer while detail remains primary. Present the current execution owner/action, attempt, blocker, validation and chronology without allowing historical selection to steal attention. Delete stacked/card/task-count-driven execution alternatives.",
+      "dependsOn": [
+        "T6"
+      ],
+      "scope": [
+        "ui/src/ExecutionWorkspace.tsx",
+        "tests/browser.spec.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css",
+        "ui/src/RunEventTimeline.tsx"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "ui/src/ExecutionWorkspace.tsx",
+        "tests/browser.spec.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-EXECUTION-CONTROL-PLANE-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T8",
+      "objective": "Migrate Complete, Evidence and Context/material surfaces (SD27, IA19, IA33). Complete must use canonical terminal-result hierarchy with correct verified-result/verified-candidate language and resources only when applicable; Evidence remains an Evidence-class surface; Context is supporting/technical only and uses docked-wide/Drawer-constrained behavior. Delete result/evidence/context feature-card systems.",
+      "dependsOn": [
+        "T7"
+      ],
+      "scope": [
+        "ui/src/TerminalResult.tsx",
+        "ui/src/EvidenceViewer.tsx",
+        "ui/src/WorkItemContext.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-PRODUCT-IDENTITY-V1"
+      ],
+      "changeSurface": [
+        "ui/src/TerminalResult.tsx",
+        "ui/src/EvidenceViewer.tsx",
+        "ui/src/WorkItemContext.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-PRODUCT-IDENTITY-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T9",
+      "objective": "Migrate Settings, repository/account/model configuration and OpenCode account surfaces (SD28, IA18, IA34). Readiness, meaning and available operator actions are primary; exact paths/endpoints/account/credential-like identity are subordinate unless task-required. Reuse the same Form/Table/Status/Notice/Confirmation grammar as the rest of Workbench and delete bespoke admin/account component systems.",
+      "dependsOn": [
+        "T8"
+      ],
+      "scope": [
+        "ui/src/SettingsWorkspace.tsx",
+        "ui/src/OpenCodeAccountControl.tsx",
+        "ui/src/OpenCodeAccountSettings.tsx",
+        "tests/browser.spec.ts"
+      ],
+      "exclusions": [
+        "ui/src/primitives/**",
+        "ui/src/styles.css",
+        "ui/src/theme.css"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-INSTALLATION-READINESS-V1"
+      ],
+      "changeSurface": [
+        "ui/src/SettingsWorkspace.tsx",
+        "ui/src/OpenCodeAccountControl.tsx",
+        "ui/src/OpenCodeAccountSettings.tsx",
+        "tests/browser.spec.ts"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1"
+      ],
+      "concernIds": [
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T10",
+      "objective": "Certify the fully migrated Workbench as one component/theme/interaction system (SD16-SD18, SD29, IA20-IA23). Prove exhaustive renderer classification, no foundation bypass or feature-local recurring presentation ownership, scenario-41 work-kind behavior, responsive semantic continuity, System/Light/Dark component parity and cross-solution regression closure. This task may change verification only; production UI defects return to their owning T2-T9 task.",
+      "dependsOn": [
+        "T9"
+      ],
+      "scope": [
+        "tests/browser.spec.ts",
         "tests/certification.test.ts",
+        "tests/workbench-presentation.test.ts",
         "tests/core.test.ts",
         "tests/daemon.test.ts",
-        "tests/browser.spec.ts",
-        "tests/workbench-presentation.test.ts",
         "tests/installer.test.ts",
         "tests/opencode.test.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "exclusions": [
+        "ui/src/**",
+        "src/**",
+        "tests/architecture.test.ts"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-SPECIFICATION-STANDARD-V2",
+        "GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE"
+      ],
+      "changeSurface": [
+        "tests/browser.spec.ts",
+        "tests/certification.test.ts",
+        "tests/workbench-presentation.test.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
+        "GW-DOC-OPENCODE-INTEGRATION-V1"
+      ],
+      "concernIds": [
+        "foundation",
+        "ui",
+        "verification"
+      ]
+    },
+    {
+      "id": "T11",
+      "objective": "Produce and review the exhaustive exact-candidate rendered acceptance package (SD30, IA26) and close only when every governed screen/state has PASS for schema/information fidelity, UX/interaction fidelity and visual/UI fidelity. GitHub Actions captures PNGs and manifest/index against the reviewed SVG set plus current authority; any FAIL routes back to its owning T2-T9 task and requires fresh post-fix evidence. After zero unresolved FAIL, record closeout metadata and run the complete final gates/V0-V7.",
+      "dependsOn": [
+        "T10"
+      ],
+      "scope": [
+        "tests/browser.spec.ts",
+        "tests/certification.test.ts",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md"
+      ],
+      "exclusions": [
+        "ui/src/**",
+        "src/**",
+        "tests/architecture.test.ts"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-SPECIFICATION-STANDARD-V2",
+        "GW-DOC-VALIDATION-STANDARD-V1"
+      ],
+      "changeSurface": [
+        "tests/browser.spec.ts",
+        "tests/certification.test.ts",
         ".github/workflows/ci.yml",
         "CHANGELOG.md"
       ],
@@ -1258,19 +1938,11 @@ V4/V5/V6 explicitly verify:
         "GW-P1-CANONICAL-OWNERSHIP",
         "GW-P1-MINIMUM-CHANGE",
         "GW-P1-AUTHORITY-BEFORE-INFERENCE",
-        "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
-        "GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
-        "GW-DOC-WORKBENCH-THEME-V1",
-        "GW-DOC-EXECUTION-CONTROL-PLANE-V1",
-        "GW-DOC-OPENCODE-INTEGRATION-V1",
-        "GW-DOC-CANONICAL-CONTRACTS-V2"
+        "GW-DOC-WORKBENCH-THEME-V1"
       ],
       "concernIds": [
-        "core",
-        "daemon",
         "foundation",
-        "shell",
         "ui",
         "verification"
       ]
