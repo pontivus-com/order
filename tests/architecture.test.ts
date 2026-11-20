@@ -2541,7 +2541,7 @@ describe("architecture fitness", () => {
         const foundationPaths = new Set([
           "ui/src/styles.css",
           "ui/src/theme.css",
-          ...[...sourceFiles.keys()].filter((value) =>
+          ...designSurface.filter((value) =>
             value.startsWith("ui/src/primitives/") && value.endsWith(".tsx")
           ),
         ]);
