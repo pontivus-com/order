@@ -36,12 +36,12 @@ Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 
 
 ## 0.6.0 implementation delivery branch
 
-T1's public implementation candidate must be accumulated and reviewed as one cohesive non-release PR on branch `feat/0.6.0-implementation`, created from the then-current `master` after the approved design package is present there. This is a repository-delivery constraint only; it does not change Order's Approval baseline, execution workspace, candidate-evidence or validation semantics.
+T1's public implementation candidate must continue on the existing current 0.6.0 work branch and PR: `fix/0.6.0-r2-p3-authority-layer-conformance` / PR #75. No replacement implementation branch is created. This is a repository-delivery constraint only; it does not change Order's Approval baseline, execution workspace, candidate-evidence or validation semantics.
 
-- all T1 production, verification and `[Unreleased]` changelog changes for this package are delivered through that one implementation branch/PR;
-- do not split the signed T1 across multiple work PRs solely for convenience; any material need to change signed scope, design, ownership or task semantics returns upstream through the normal lifecycle;
+- all remaining T1 production, verification and `[Unreleased]` changelog changes for this package continue on that same current branch/PR;
+- do not split the signed T1 across additional work branches/PRs solely for organizational convenience; any material need to change signed scope, design, ownership or task semantics returns upstream through the normal lifecycle while remaining on this governed work branch unless repository governance itself requires otherwise;
 - do not use `release/v0.6.0` for product implementation; that branch name remains reserved for the later metadata-only release PR governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`;
-- no direct `master` delivery is permitted, and the exact implementation PR candidate must pass the repository's required verification before merge.
+- no direct `master` delivery is permitted, and the exact current PR candidate must pass the repository's required verification before merge.
 
 ## Final logical gate union
 
