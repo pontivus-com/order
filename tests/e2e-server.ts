@@ -458,10 +458,26 @@ projectId = "order-e2e"
 [authority]
 p1 = []
 p2 = []
-p3 = []
-p4 = []
+p3 = ["docs/authority-p3.md"]
+p4 = ["docs/authority-p4.md"]
 p5 = []
-p6 = []
+p6 = ["docs/authority-p6.md"]
+
+[refs]
+GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1 = "docs/authority-p3.md"
+GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2 = "docs/authority-p3.md"
+GW-DOC-WORK-LIFECYCLE-V1 = "docs/authority-p3.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/authority-p3.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/authority-p3.md"
+GW-DOC-SPECIFICATION-STANDARD-V1 = "docs/authority-p3.md"
+GW-DOC-SPECIFICATION-STANDARD-V2 = "docs/authority-p3.md"
+GW-DOC-VALIDATION-STANDARD-V1 = "docs/authority-p3.md"
+GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION = "docs/authority-p3.md"
+GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW = "docs/authority-p3.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V1 = "docs/authority-p4.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V2 = "docs/authority-p4.md"
+GW-DOC-CANONICAL-CONTRACTS-V1 = "docs/authority-p6.md"
+GW-DOC-CANONICAL-CONTRACTS-V2 = "docs/authority-p6.md"
 
 [concerns.browser]
 authority = []
@@ -470,6 +486,18 @@ gates = []
 `;
 
 writeFileSync(join(repositoryRoot, "pontivus-order.toml"), manifestText);
+writeFileSync(
+  join(repositoryRoot, "docs", "authority-p3.md"),
+  "# Browser fixture lifecycle/specification authority\n",
+);
+writeFileSync(
+  join(repositoryRoot, "docs", "authority-p4.md"),
+  "# Browser fixture technical architecture authority\n",
+);
+writeFileSync(
+  join(repositoryRoot, "docs", "authority-p6.md"),
+  "# Browser fixture canonical contracts authority\n",
+);
 writeFileSync(join(repositoryRoot, "docs", "r1.md"), researchText);
 writeFileSync(join(repositoryRoot, "docs", "change-r1.md"), changeResearchText);
 writeFileSync(join(repositoryRoot, "docs", "defect-r1.md"), defectResearchText);
