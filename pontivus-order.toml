@@ -2,12 +2,12 @@ version = 1
 projectId = "order"
 
 [authority]
-p1 = ["AGENTS.md", "docs/governance/minimum-change.md", "docs/governance/systems-governance.md", "docs/governance/repository-delivery.md"]
+p1 = ["AGENTS.md", "docs/governance/minimum-change.md", "docs/governance/systems-governance.md", "docs/governance/repository-delivery.md", "docs/governance/repository-delivery.v1.md"]
 p2 = ["docs/product/system-brief.md", "docs/product/product-identity.md"]
-p3 = ["docs/requirements/work-lifecycle.md", "docs/requirements/specification-standard.md", "docs/requirements/validation-standard.md", "docs/requirements/project-governance-integration.md", "docs/requirements/lifecycle-context.md", "docs/requirements/work-item-documents.md", "docs/requirements/markdown-workbench.md", "docs/requirements/workbench.md", "docs/requirements/installation-readiness.md"]
-p4 = ["docs/architecture/execution-control-plane.md", "docs/architecture/opencode-integration.md", "docs/architecture/technical-architecture.md", "docs/references/external-facts.md", "docs/architecture/workbench.md", "docs/architecture/workbench-theme.md"]
+p3 = ["docs/requirements/work-lifecycle.md", "docs/requirements/specification-standard.md", "docs/requirements/specification-standard.v1.md", "docs/requirements/validation-standard.md", "docs/requirements/project-governance-integration.md", "docs/requirements/lifecycle-context.md", "docs/requirements/lifecycle-context.v1.md", "docs/requirements/work-item-documents.md", "docs/requirements/work-item-documents.v1.md", "docs/requirements/markdown-workbench.md", "docs/requirements/workbench.md", "docs/requirements/installation-readiness.md"]
+p4 = ["docs/architecture/execution-control-plane.md", "docs/architecture/opencode-integration.md", "docs/architecture/technical-architecture.md", "docs/architecture/technical-architecture.v1.md", "docs/references/external-facts.md", "docs/references/external-facts.v1-2026-11-12.md", "docs/references/openspec.md", "docs/references/spec-kit.md", "docs/references/kiro-specs.md", "docs/references/bmad.md", "docs/architecture/workbench.md", "docs/architecture/workbench-theme.md"]
 p5 = ["docs/decisions/technical-decisions.md"]
-p6 = ["docs/contracts/canonical-contracts.md"]
+p6 = ["docs/contracts/canonical-contracts.md", "docs/contracts/canonical-contracts.v1.md"]
 
 [refs]
 GW-P1-DOD = "docs/governance/systems-governance.md"
