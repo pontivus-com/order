@@ -735,7 +735,21 @@ jobs:
               ]);
             }
 
-            throw new TypeError("unexpected REMEDIATOR request for exact corrected candidate");
+            if (role === "REMEDIATOR") {
+              process.stderr.write(JSON.stringify({
+                kind: "unexpected-remediator",
+                reason: "mechanical gate failed during deterministic exact-candidate certification",
+              }) + "\n");
+              return textResponse([
+                {
+                  tag: "STAGE_BLOCKED",
+                  reason: "Deterministic certification reached REMEDIATOR because a coordinator-owned mechanical gate failed; this harness must not invent a repair.",
+                  owningStage: "EXECUTION",
+                },
+              ]);
+            }
+
+            throw new TypeError("unrecognized productive role");
           };
 
           const controllerProgram = Effect.scoped(
@@ -1227,6 +1241,14 @@ jobs:
                 echo "=== events ${run_id} ===" >&2
                 curl -sS -b "${cookie}"                   "${origin}/api/runs/${run_id}/events?afterSequence=0" >&2 || true
                 echo >&2
+                validation_root="${ORDER_CI_STATE_ROOT}/evidence/${run_id}/validation"
+                if [[ -d "${validation_root}" ]]; then
+                  while IFS= read -r evidence_file; do
+                    echo "=== validation evidence ${evidence_file#${ORDER_CI_STATE_ROOT}/evidence/${run_id}/} ===" >&2
+                    cat "${evidence_file}" >&2 || true
+                    echo >&2
+                  done < <(find "${validation_root}" -type f -name '*.json' -print | sort)
+                fi
               done
             fi
             echo "=== daemon tail ===" >&2
