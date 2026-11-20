@@ -226,7 +226,11 @@ jobs:
 
           try {
             const reconciliation = await reconcileWorkItemSources(runtime, [repositoryRoot]);
-            if (reconciliation.diagnostics.some((entry) => entry.workItemId === workItemId)) {
+            const targetDiagnostics = reconciliation.diagnostics.filter(
+              (entry) => entry.workItemId === workItemId,
+            );
+            if (targetDiagnostics.length > 0) {
+              process.stderr.write("target WorkItem reconciliation diagnostics: " + JSON.stringify(targetDiagnostics) + "\n");
               throw new TypeError("target WorkItem source has reconciliation diagnostics");
             }
             const workItem = loadWorkItem(database, workItemId);
