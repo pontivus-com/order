@@ -96,6 +96,16 @@ jobs:
           set -euo pipefail
           real="${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode"
           bun="${RUNNER_TEMP}/bun-bin/bun"
+
+          # Account control owns only OpenCode credential state. Keep it offline
+          # and simulated, but do not load the Drive-backed model provider that
+          # productive execution uses.
+          if [[ "\${PWD}" == */opencode/account-control ]]; then
+            export OPENCODE_SIMULATE=1
+            unset OPENCODE_DRIVE
+            exec "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@"
+          fi
+
           merged="\$("${RUNNER_TEMP}/bun-bin/bun" -e '
             const base = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT ?? "{}");
             const simulation = {
@@ -738,7 +748,6 @@ jobs:
             writeOrderConfig,
           } from "./src/shell/config.ts";
           import {
-            listAvailableOpenCodeModels,
             listOpenCodeAccounts,
             startOpenCodeAccountControl,
             stopOpenCodeAccountControl,
@@ -811,25 +820,10 @@ jobs:
             await stopOpenCodeAccountControl(control);
           }
 
-          const models = await retryProjection(
-            "OpenCode model projection",
-            () => listAvailableOpenCodeModels(
-              stateRoot,
-              targetRoot,
-              process.env,
-            ),
-          );
-          const selected = models.find(
-            (model) =>
-              model.providerID === "simulation" &&
-              model.id === "order-sim-model",
-          );
-          if (selected === undefined) {
-            throw new TypeError(
-              "OpenCode simulation model is unavailable; enabled=" +
-                models.map((model) => model.providerID + "/" + model.id).join(","),
-            );
-          }
+          const selected = {
+            providerID: "simulation",
+            id: "order-sim-model",
+          } as const;
           writeOrderConfig(
             stateRoot,
             buildOrderConfig(selected, [targetRoot], []),
@@ -838,31 +832,18 @@ jobs:
             providerID: selected.providerID,
             modelId: selected.id,
             mode: "OPENCODE_SIMULATE",
+            modelAdmission: "deferred-to-productive-start",
           }) + "\n");
           TS
 
           "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-simulation.ts
           rm -f .temporary-order-opencode-simulation.ts
 
-          compatible=false
-          for _ in $(seq 1 100); do
-            if [[ -s "${ORDER_CI_DRIVE_COMPATIBLE}" ]]; then
-              compatible=true
-              break
-            fi
-            if ! kill -0 "${ORDER_CI_DRIVE_PID}" 2>/dev/null; then
-              echo "OpenCode Drive controller exited before compatibility negotiation" >&2
-              cat "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
-              exit 1
-            fi
-            sleep 0.1
-          done
-          if [[ "${compatible}" != "true" ]]; then
-            echo "OpenCode Drive did not negotiate the pinned OpenCode simulation protocol" >&2
+          if ! kill -0 "${ORDER_CI_DRIVE_PID}" 2>/dev/null; then
+            echo "OpenCode Drive controller exited before productive execution" >&2
             cat "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
             exit 1
           fi
-          cat "${ORDER_CI_DRIVE_COMPATIBLE}"
 
       - name: Prove seed is the fresh signed T1
         shell: bash
@@ -998,6 +979,26 @@ jobs:
             exit 1
           fi
 
+          compatible=false
+          for _ in $(seq 1 600); do
+            if [[ -s "${ORDER_CI_DRIVE_COMPATIBLE}" ]]; then
+              compatible=true
+              break
+            fi
+            if ! kill -0 "${ORDER_CI_DRIVE_PID}" 2>/dev/null; then
+              echo "OpenCode Drive controller exited during productive admission" >&2
+              cat "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+              exit 1
+            fi
+            sleep 0.1
+          done
+          if [[ "${compatible}" != "true" ]]; then
+            echo "Productive OpenCode did not negotiate the pinned Drive simulation protocol" >&2
+            tail -n 250 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
+            tail -n 250 "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+            exit 1
+          fi
+          cat "${ORDER_CI_DRIVE_COMPATIBLE}"
           echo "task_id=${task_id}"
 
       - name: Wait for coordinator terminal state
