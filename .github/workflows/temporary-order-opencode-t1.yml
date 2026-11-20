@@ -752,6 +752,7 @@ jobs:
             writeOrderConfig,
           } from "./src/shell/config.ts";
           import {
+            listAvailableOpenCodeModels,
             listOpenCodeAccounts,
             startOpenCodeAccountControl,
             stopOpenCodeAccountControl,
@@ -832,12 +833,50 @@ jobs:
             stateRoot,
             buildOrderConfig(selected, [targetRoot], []),
           );
-          process.stdout.write(JSON.stringify({
-            providerID: selected.providerID,
-            modelId: selected.id,
-            mode: "OPENCODE_SIMULATE",
-            modelAdmission: "deferred-to-productive-start",
-          }) + "\n");
+
+          try {
+            const models = await listAvailableOpenCodeModels(
+              stateRoot,
+              targetRoot,
+              process.env,
+            );
+            process.stdout.write(JSON.stringify({
+              providerID: selected.providerID,
+              modelId: selected.id,
+              mode: "OPENCODE_SIMULATE",
+              modelAdmission: "preflight-passed",
+              availableModels: models,
+            }) + "\n");
+          } catch (error) {
+            const seen = new Set<unknown>();
+            const describe = (value: unknown, depth = 0): unknown => {
+              if (depth > 5) return "[depth-limit]";
+              if (value === null || typeof value !== "object") return value;
+              if (seen.has(value)) return "[cycle]";
+              seen.add(value);
+              const record: Record<string, unknown> = {};
+              for (const key of Object.getOwnPropertyNames(value)) {
+                try {
+                  record[key] = describe((value as Record<string, unknown>)[key], depth + 1);
+                } catch (cause) {
+                  record[key] = "[unreadable:" + String(cause) + "]";
+                }
+              }
+              if (value instanceof Error) {
+                record.name = value.name;
+                record.message = value.message;
+                record.stack = value.stack;
+                record.cause = describe(value.cause, depth + 1);
+              }
+              return record;
+            };
+            process.stderr.write(
+              "SIMULATION_MODEL_PREFLIGHT_ERROR=" +
+                JSON.stringify(describe(error), null, 2) +
+                "\n",
+            );
+            throw error;
+          }
           TS
 
           "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-simulation.ts
