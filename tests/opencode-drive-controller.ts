@@ -10,13 +10,10 @@ if (!driveRoot || !marker) {
 const moduleUrl = (path: string): string =>
   pathToFileURL(join(driveRoot, path)).href;
 
-const Cause = await import(moduleUrl("node_modules/effect/dist/esm/Cause.js"));
-const Effect = await import(moduleUrl("node_modules/effect/dist/esm/Effect.js"));
-const Exit = await import(moduleUrl("node_modules/effect/dist/esm/Exit.js"));
-const Stream = await import(moduleUrl("node_modules/effect/dist/esm/Stream.js"));
-const Llm = await import(
-  moduleUrl("node_modules/opencode-drive/src/driver/llm.ts")
+const drive = await import(
+  moduleUrl("node_modules/opencode-drive/src/index.ts")
 );
+const { Effect, Llm } = drive;
 const SimulationConnector = await import(
   moduleUrl("node_modules/opencode-drive/src/simulation/connector.ts")
 );
@@ -25,12 +22,12 @@ const LlmController = await import(
 );
 
 const response = () =>
-  Stream.fromIterable([
+  LlmController.response(
     Llm.text(
       '[{"tag":"AGENT_MESSAGE_FINAL","text":"drive-production-admission","evidence":[]}]',
     ),
     Llm.finish("stop"),
-  ]);
+  );
 
 const program = Effect.scoped(
   Effect.gen(function* () {
@@ -58,13 +55,13 @@ const program = Effect.scoped(
           );
         }),
       );
-      const outcome = yield* Effect.exit(cycle);
-      if (Exit.isFailure(outcome)) {
-        yield* Effect.sync(() =>
-          process.stderr.write(Cause.pretty(outcome.cause) + "\n")
-        );
-        yield* Effect.sleep("100 millis");
-      }
+      yield* Effect.matchCauseEffect(cycle, {
+        onFailure: (cause) =>
+          Effect.sync(() =>
+            process.stderr.write(String(cause) + "\n")
+          ).pipe(Effect.andThen(Effect.sleep("100 millis"))),
+        onSuccess: () => Effect.void,
+      });
     }
   }),
 );
