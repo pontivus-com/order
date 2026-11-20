@@ -18,19 +18,27 @@
 
 <!-- Order template: change-intake-v2; authority: GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM, GW-DOC-WORK-LIFECYCLE -->
 
-## Requested change
+## Requested outcome
 
 Reconstruct the complete intended Order functional design that the 0.5.0 work was supposed to realize, using canonical P2/P3 product and functional authority—not the released 0.5.0 implementation—as the normative source. Then derive the complete 0.6.0 technical solution design and final implementation plan from that reconstructed functional design. **Campaign sequencing is not defined in this Work request.** The sole normative campaign progression is owned by `0.6.0-design-campaign-plan.md` and must be followed exactly as current there.
 
 The work must be controlled by that one campaign plan, which proves complete concern coverage, marks the explicit start and end of each investigation, records findings and cross-concern dependencies, tracks every concern through functional design, technical design and final plan coverage, and owns the mandatory final cross-layer alignment/readiness progression.
 
-## Canonical 0.6.0 campaign work point
+## Current context
+
+This WorkItem coordinates the existing Order 0.6.0 authority-first reconstruction campaign. The detailed campaign-control, lifecycle-package and implementation observations below are context for that requested outcome; they do not replace the canonical P1-P6 owners or the campaign's sole current-state register.
+
+### Canonical 0.6.0 campaign work point
 
 This WorkItem is the sole active coordination/work point for the Order 0.6.0 design campaign. All campaign status, concern coverage, design-stage progress and readiness disposition must resolve back to `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21` and its lifecycle artifacts.
 
 This does not make the WorkItem a permanent semantic authority. P1-P6 meaning remains with the canonical concern owners; this WorkItem owns only the governed change package and its campaign progression. Parallel 0.6.0 plans or design streams must not become competing status/decision owners.
 
-## Single campaign-plan and lifecycle-plan authority law
+## Constraints/non-goals
+
+The work must remain authority-driven and single-owned. It must not infer desired 0.6.0 behavior from current implementation/tests/history, create competing campaign or implementation plans, duplicate canonical semantic owners, bypass explicit sign-off, or introduce compatibility/fallback behavior absent from current authority. The detailed constraints below refine these non-goals.
+
+### Single campaign-plan and lifecycle-plan authority law
 
 This WorkItem has exactly one campaign-control plan and exactly one canonical P7 implementation-plan artifact:
 
@@ -69,7 +77,16 @@ The campaign therefore requires:
 - one final horizontal integration audit after individual concerns close;
 - no implementation work until the **sole campaign progression owned by `0.6.0-design-campaign-plan.md`** has reached its implementation-authorizing boundary and the exact package has explicit sign-off. This Work request does not maintain a parallel readiness sequence.
 
-## Phase 0 prerequisite
+## Evidence/references
+
+The governing and evidentiary basis for this request is:
+
+- current P1-P6 authority and stable/versioned references resolved through root `pontivus-order.toml`;
+- `0.6.0-design-campaign-plan.md` as the sole campaign sequencing/status owner;
+- `research.md`, `requirements.md`, `solution-design.md`, `implementation-plan.md` and `readiness-review.md` as the governed lifecycle artifacts for this WorkItem;
+- repository implementation, tests, PR/CI output and historical package material only as evidence/provenance subject to the authority rules above.
+
+### Phase 0 prerequisite
 
 The campaign depends on the factual/governance baseline produced by the Phase 0 authority/conformance remediation in PR #69.
 
