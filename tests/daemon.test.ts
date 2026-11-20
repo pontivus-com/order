@@ -3067,6 +3067,7 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const authority = await import("./src/daemon/authority.ts");
       const runStore = await import("./src/daemon/run.ts");
+      const sourceCore = await import("./src/core/work-item-source.ts");
 
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const repositoryRoot = ${JSON.stringify(repository)};
@@ -3104,9 +3105,12 @@ describe("daemon control plane", () => {
       fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\n");
       fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\n");
       fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\n");
+      const planTemplate = sourceCore.stageTemplateForSchema("change-v2", "PLAN");
+      if (planTemplate === null) throw new TypeError("missing current-v2 PLAN template");
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
-        "# plan\n\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
+        planTemplate +
+          "\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
       );
 
       const outputs = {
