@@ -924,11 +924,43 @@ describe("functional lifecycle and execution policy", () => {
       },
       r2Authority,
     )).toBe(false);
+    expect(permanentAuthorityProposalIsAdmitted(
+      "R2",
+      {
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        targetPath: "docs/not-selected.md",
+      },
+      r2Authority,
+    )).toBe(false);
   });
 
   it("requires adopted authority after answered durable decision input before completion", () => {
-    const run = RunSchema.parse({ ...stageRun(), stage: "R2" });
-    const started = stageStarted(run);
+    const run = RunSchema.parse({
+      ...baseRun(),
+      id: `run_${uuidB}`,
+      executionTaskId: null,
+      stage: "R2",
+      mode: "INTERACTIVE",
+      role: "STAGE",
+      triggerEventId: null,
+      status: "RUNNING",
+      attempt: 1,
+      terminalClassification: null,
+      endedAt: null,
+    });
+    const started = RunEventSchema.parse({
+      id: `event_${uuidA}`,
+      runId: run.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "STAGE_STARTED",
+        stage: "R2",
+        mode: "INTERACTIVE",
+        contextHash: hashA,
+      },
+    });
     const request = RunEventSchema.parse({
       id: `event_${uuidB}`,
       runId: run.id,
@@ -1039,6 +1071,30 @@ describe("functional lifecycle and execution policy", () => {
       run,
       [started, request, answer, proposal, rejected, continuation],
     )).toBe(false);
+
+    // A stale/pending proposal has no adopted disposition and therefore cannot
+    // satisfy the durable-decision completion boundary.
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, request, answer, proposal, adoptionRequested],
+    )).toBe(false);
+
+    const cancelledRun = RunSchema.parse({
+      ...run,
+      status: "CANCELLED",
+      endedAt: "2026-11-11T03:31:00.000Z",
+    });
+    expect(() =>
+      validateStageProviderTurn(
+        cancelledRun,
+        [started, request, answer, proposal, adoptionRequested],
+        [{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R2", outcome: "ACCEPTED" },
+          artifactRefIds: [],
+        }],
+      )
+    ).toThrow(/RUNNING STAGE Run/);
 
     const informationalRequest = RunEventSchema.parse({
       ...request,
