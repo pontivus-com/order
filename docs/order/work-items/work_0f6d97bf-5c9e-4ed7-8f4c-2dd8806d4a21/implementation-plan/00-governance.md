@@ -30,7 +30,9 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ## Execution ownership
 
-A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA26 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
+
+IA27-IA34 are the presentation reconstruction owners. IA27 exclusively owns shared primitive/theme/style implementation. IA28-IA34 own feature-renderer migration and may consume but may not modify IA27-owned presentation foundation files. If a downstream composition cannot be realized through the signed primitive responsibilities, execution returns to IA27/DESIGN rather than creating local presentation ownership.
 
 IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
@@ -44,7 +46,7 @@ The one signed T1 uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
 - explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
-- exact 30-path `changeSurface` as the immutable expected physical forecast.
+- task-local exact `changeSurface` forecasts whose union is the immutable expected physical forecast for the cumulative candidate.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
 
