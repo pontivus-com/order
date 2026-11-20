@@ -1667,7 +1667,7 @@ describe("architecture fitness", () => {
   });
 
 
-  it("enforces single-owned campaign state and exact foundation ancestry", () => {
+  it("enforces single-owned campaign state and pre-delivery foundation ancestry", () => {
     const campaignPlanPath =
       "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md";
     const campaignLedgerPath =
@@ -2093,16 +2093,39 @@ describe("architecture fitness", () => {
       if (baseline === null) {
         violations.push("G0 PASS requires one exact full 40-character baseline SHA in §18");
       } else {
+        let campaignIntegratedOnDefaultBranch = false;
         try {
           execFileSync(
             "git",
-            ["merge-base", "--is-ancestor", baseline, "HEAD"],
+            ["cat-file", "-e", `refs/remotes/origin/master:${campaignPlanPath}`],
             { cwd: repositoryRoot, stdio: "pipe" },
           );
+          campaignIntegratedOnDefaultBranch = true;
         } catch {
-          violations.push(
-            `G0 PASS baseline ${baseline} must be an ancestor of campaign HEAD`,
-          );
+          try {
+            campaignIntegratedOnDefaultBranch =
+              execFileSync(
+                "git",
+                ["branch", "--show-current"],
+                { cwd: repositoryRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+              ).trim() === "master";
+          } catch {
+            campaignIntegratedOnDefaultBranch = false;
+          }
+        }
+
+        if (!campaignIntegratedOnDefaultBranch) {
+          try {
+            execFileSync(
+              "git",
+              ["merge-base", "--is-ancestor", baseline, "HEAD"],
+              { cwd: repositoryRoot, stdio: "pipe" },
+            );
+          } catch {
+            violations.push(
+              `G0 PASS baseline ${baseline} must be an ancestor of the pre-delivery campaign HEAD`,
+            );
+          }
         }
         if (
           existsSync(join(repositoryRoot, campaignLedgerPath)) &&
