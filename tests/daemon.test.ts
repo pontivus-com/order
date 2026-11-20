@@ -5587,6 +5587,64 @@ describe("daemon control plane", () => {
       "docs/work-lifecycle.md",
     ]);
   }, 60_000);
+  it("blocks before provider use when pinned template authority is unresolved", () => {
+    const repository = createRepository();
+    const manifestPath = join(repository, "pontivus-order.toml");
+    writeFileSync(
+      manifestPath,
+      readFileSync(manifestPath, "utf8").replace(
+        'GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"\n',
+        "",
+      ),
+    );
+    runGit(repository, "add", "pontivus-order.toml");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-unresolved-template-authority-");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v2",
+        title: "unresolved template authority",
+        concernIds: [],
+      });
+      let error = null;
+      try {
+        await authority.resolveStageContextState(
+          runtime,
+          coord.getWorkItem(runtime, created.id),
+          "R1",
+        );
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      console.log(JSON.stringify({
+        error,
+        runCount: coord.listRuns(runtime, created.id).length,
+      }));
+      database.close();
+    `) as { error: string | null; runCount: number };
+
+    expect(output.error).toContain(
+      "stage template AuthorityRef is not reachable in R1 context: GW-DOC-LIFECYCLE-CONTEXT-V2",
+    );
+    expect(output.runCount).toBe(0);
+  }, 30_000);
   it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
     const repository = createRepository();
     writeFileSync(join(repository, "docs", "product.md"), "# product\n");
