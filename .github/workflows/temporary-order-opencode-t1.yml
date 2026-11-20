@@ -96,7 +96,7 @@ jobs:
           set -euo pipefail
           real="${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode"
           bun="${RUNNER_TEMP}/bun-bin/bun"
-          merged="$("${RUNNER_TEMP}/bun-bin/bun" -e '
+          merged="\$("${RUNNER_TEMP}/bun-bin/bun" -e '
             const base = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT ?? "{}");
             const simulation = {
               name: "Order CI Simulation",
