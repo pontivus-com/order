@@ -34,6 +34,15 @@ A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof
 
 Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA24 runs the final validation contract.
 
+## 0.6.0 implementation delivery branch
+
+T1's public implementation candidate must be accumulated and reviewed as one cohesive non-release PR on branch `feat/0.6.0-implementation`, created from the then-current `master` after the approved design package is present there. This is a repository-delivery constraint only; it does not change Order's Approval baseline, execution workspace, candidate-evidence or validation semantics.
+
+- all T1 production, verification and `[Unreleased]` changelog changes for this package are delivered through that one implementation branch/PR;
+- do not split the signed T1 across multiple work PRs solely for convenience; any material need to change signed scope, design, ownership or task semantics returns upstream through the normal lifecycle;
+- do not use `release/v0.6.0` for product implementation; that branch name remains reserved for the later metadata-only release PR governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`;
+- no direct `master` delivery is permitted, and the exact implementation PR candidate must pass the repository's required verification before merge.
+
 ## Final logical gate union
 
 - dependency-lock
