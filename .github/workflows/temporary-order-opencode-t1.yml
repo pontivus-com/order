@@ -135,16 +135,27 @@ jobs:
           export OPENCODE_SIMULATE=1
           export OPENCODE_DRIVE=1
 
-          # OpenCode publishes its HTTP endpoint before Location plugins have
-          # necessarily finished activating. Order treats that as transport
-          # readiness and then immediately queries models. Buffer only stdout
-          # for this temporary simulation harness so the same generation can
-          # finish the bounded Console-plugin retry sequence without being restarted.
+          # OpenCode starts Location plugins on the first location-scoped
+          # request, while Order's first productive location request is
+          # model.list, whose handler waits at most five seconds. Prime the
+          # exact workspace Location through integration.get (which does not
+          # await plugin activation), allow the bounded simulated Console
+          # retries to settle, then expose the same server endpoint to Order.
           if [[ "\${1:-}" == "serve" ]]; then
-            "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@" | {
-              sleep 9
-              cat
-            }
+            primed=0
+            "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@" | while IFS= read -r line; do
+              if [[ "\${primed}" -eq 0 && "\${line}" =~ (http://127\\.0\\.0\\.1:[0-9]+) ]]; then
+                endpoint="\${BASH_REMATCH[1]}"
+                curl -sS -u "opencode:\${OPENCODE_PASSWORD}" \
+                  --get \
+                  --data-urlencode "location[directory]=\${PWD}" \
+                  "\${endpoint}/api/integration/opencode" \
+                  >/dev/null 2>&1 || true
+                sleep 9
+                primed=1
+              fi
+              printf '%s\\n' "\${line}"
+            done
             exit \${PIPESTATUS[0]}
           fi
           exec "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@"
