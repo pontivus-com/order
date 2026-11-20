@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e01ce75ee0ece676c195a46f810186c24814e11f`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
 
 ## Stable requirement execution dispositions
 
@@ -23,12 +23,12 @@ Package atoms in phase: **2**.
 
 ## Cross-domain presentation reconstruction dependency
 
-Requirements and Solution design retain their existing authority/proposal semantics, but their runtime surfaces are migrated by SD24/IA30 as part of PL-C19-02. This phase supplies stage-specific governed information; it does not own another layout grammar.
+Requirements and Solution design retain their existing authority/proposal semantics, but their old runtime screens are discarded and replaced by SD24/IA30 as part of PL-C19-02. This phase supplies stage-specific governed information; it does not own another layout grammar.
 
 ## Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the single productive pre-signoff renderer migration definition for Requirements and Solution design.
+- **IA30** — consume the single productive pre-signoff destructive screen replacement definition for Requirements and Solution design.
 
 ## Completion proof
 
