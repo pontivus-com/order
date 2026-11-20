@@ -1441,10 +1441,14 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   await authenticate(page, request);
 
   const loadingItem = await workItemForTitle(page, "Lifecycle editing workbench");
+  let releaseLifecycleArtifacts = (): void => undefined;
+  const lifecycleArtifactsGate = new Promise<void>((resolve) => {
+    releaseLifecycleArtifacts = resolve;
+  });
   await page.route(
     "**/api/work-items/" + loadingItem.id + "/lifecycle-artifacts",
     async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      await lifecycleArtifactsGate;
       await route.continue();
     },
   );
@@ -1456,6 +1460,7 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   const loadingBox = await loadingWorkspace.boundingBox();
   expect(loadingBox).not.toBeNull();
   expect(loadingBox!.height).toBeGreaterThan(500);
+  releaseLifecycleArtifacts();
 
   await expect(page.getByRole("button", { name: "Context" })).toBeVisible();
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
