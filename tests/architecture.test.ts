@@ -2367,7 +2367,7 @@ describe("architecture fitness", () => {
       (match) => match[1],
     );
     const expectedActions = Array.from(
-      { length: 26 },
+      { length: 34 },
       (_, index) => "IA" + String(index + 1).padStart(2, "0"),
     );
     exactSet("PLAN action catalog", actionIds, expectedActions);
@@ -2440,9 +2440,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 30 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 73 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 30 unique paths; found " +
+        "DESIGN implementation forecast must contain 73 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2457,79 +2457,126 @@ describe("architecture fitness", () => {
       try {
         const parsed = JSON.parse(taskBlocks[0][1]) as {
           tasks?: readonly {
+            id?: string;
+            objective?: string;
+            dependsOn?: readonly string[];
             scope?: readonly string[];
             exclusions?: readonly string[];
+            acceptanceRefs?: readonly string[];
             changeSurface?: readonly string[];
             gateIds?: readonly string[];
+            authorityRefs?: readonly string[];
             concernIds?: readonly string[];
           }[];
         };
-        const task = parsed.tasks?.[0];
-        if (parsed.tasks?.length !== 1 || task === undefined) {
-          violations.push("PLAN root must define exactly one cumulative T1");
-        } else if (g5Status === "PASS") {
-          const surfaceSection =
-            plan.split("## Exact signed implementation surface")[1]?.split(
-              "## Exhaustive traceability invariants",
-            )[0] ?? "";
-          const signedSurface = [...surfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
-            (match) => match[1],
-          );
-          if (signedSurface.length !== 30 || duplicates(signedSurface).length > 0) {
-            violations.push(
-              "PLAN signed changeSurface must contain 30 unique paths; found " +
-                signedSurface.length,
-            );
+        const tasks = parsed.tasks ?? [];
+        const expectedTaskIds = Array.from(
+          { length: 11 },
+          (_, index) => "T" + String(index + 1),
+        );
+        exactSet(
+          "PLAN signed task ids",
+          tasks.flatMap((task) => task.id === undefined ? [] : [task.id]),
+          expectedTaskIds,
+        );
+        if (tasks.length !== 11) {
+          violations.push("PLAN root must define exactly 11 signed tasks");
+        }
+
+        const byId = new Map(
+          tasks.flatMap((task) => task.id === undefined ? [] : [[task.id, task] as const]),
+        );
+        for (let index = 0; index < expectedTaskIds.length; index += 1) {
+          const id = expectedTaskIds[index];
+          const task = byId.get(id);
+          if (task === undefined) continue;
+          const expectedDependencies = index === 0 ? [] : [expectedTaskIds[index - 1]];
+          exactSet(id + " dependencies", task.dependsOn ?? [], expectedDependencies);
+          if ((task.objective ?? "").trim().length === 0) {
+            violations.push(id + " objective must be non-empty");
           }
-          exactSet("PLAN signed changeSurface", signedSurface, designSurface);
+          for (const [field, values] of [
+            ["scope", task.scope],
+            ["acceptanceRefs", task.acceptanceRefs],
+            ["changeSurface", task.changeSurface],
+            ["gateIds", task.gateIds],
+            ["authorityRefs", task.authorityRefs],
+            ["concernIds", task.concernIds],
+          ] as const) {
+            if ((values ?? []).length === 0) {
+              violations.push(id + " " + field + " must be non-empty");
+            }
+          }
           exactSet(
-            "T1 scope",
-            task.scope ?? [],
-            [
-              "README.md",
-              "src/core/**",
-              "src/daemon/**",
-              "src/shell/**",
-              "ui/src/**",
-              "tests/**",
-              ".github/workflows/ci.yml",
-              "CHANGELOG.md",
-            ],
-          );
-          exactSet(
-            "T1 exclusions",
-            task.exclusions ?? [],
-            [
-              "src/daemon/execution.ts",
-              "src/daemon/validation.ts",
-              "src/daemon/server.ts",
-              "src/shell/config.ts",
-              "src/shell/file-write.ts",
-              "src/shell/opencode.ts",
-              "src/shell/process.ts",
-              "src/shell/project-config.ts",
-              "src/shell/project.ts",
-              "src/shell/repository.ts",
-              "src/shell/runtime.ts",
-              "src/shell/sqlite.ts",
-              "src/shell/work-item-source.ts",
-              "ui/src/http.ts",
-              "ui/src/query-keys.ts",
-              "ui/src/theme.css",
-              "tests/architecture.test.ts",
-            ],
-          );
-          exactSet("T1 changeSurface", task.changeSurface ?? [], designSurface);
-          exactSet(
-            "T1 gate union",
+            id + " gate union",
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          exactSet(
-            "T1 concern union",
-            task.concernIds ?? [],
-            ["core", "daemon", "foundation", "shell", "ui", "verification"],
+        }
+
+        const signedSurface = [...new Set(tasks.flatMap((task) => task.changeSurface ?? []))];
+        if (signedSurface.length !== 73) {
+          violations.push(
+            "PLAN signed changeSurface union must contain 73 unique paths; found " +
+              signedSurface.length,
           );
+        }
+        exactSet("PLAN signed changeSurface union", signedSurface, designSurface);
+
+        const surfaceSection =
+          plan.split("## Exact signed implementation surface")[1]?.split(
+            "## Exhaustive traceability invariants",
+          )[0] ?? "";
+        const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
+          (match) => match[1],
+        );
+        if (documentedSurface.length !== 73 || duplicates(documentedSurface).length > 0) {
+          violations.push(
+            "PLAN documented signed surface must contain 73 unique paths; found " +
+              documentedSurface.length,
+          );
+        }
+        exactSet("PLAN documented signed surface", documentedSurface, designSurface);
+
+        const foundationPaths = new Set([
+          "ui/src/styles.css",
+          "ui/src/theme.css",
+          ...[...sourceFiles.keys()].filter((value) =>
+            value.startsWith("ui/src/primitives/") && value.endsWith(".tsx")
+          ),
+        ]);
+        const t2 = byId.get("T2");
+        if (t2 !== undefined) {
+          exactSet(
+            "T2 foundation production surface",
+            (t2.changeSurface ?? []).filter((value) => foundationPaths.has(value)),
+            [...foundationPaths],
+          );
+        }
+        for (const id of ["T3", "T4", "T5", "T6", "T7", "T8", "T9"]) {
+          const task = byId.get(id);
+          if (task === undefined) continue;
+          const illegal = (task.changeSurface ?? []).filter((value) => foundationPaths.has(value));
+          if (illegal.length > 0) {
+            violations.push(
+              id + " must not modify T2 foundation paths: " + illegal.join(", "),
+            );
+          }
+        }
+
+        const concernUnion = [...new Set(tasks.flatMap((task) => task.concernIds ?? []))];
+        exactSet(
+          "PLAN concern union",
+          concernUnion,
+          ["core", "daemon", "foundation", "shell", "ui", "verification"],
+        );
+
+        if (g5Status === "PASS") {
+          for (const id of expectedTaskIds) {
+            if (!actionCatalog.includes("| " + id + " |")) {
+              violations.push("PLAN audit ledger missing signed task: " + id);
+            }
+          }
         }
       } catch {
         violations.push("PLAN order-tasks block must be valid JSON");
