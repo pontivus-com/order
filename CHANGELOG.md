@@ -18,6 +18,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
+- Complete the 0.6.0 implementation remediation against canonical authority: project only schema/stage-applicable authority into productive context and freshness while retaining the full reachable governance graph for proposal admission, make fresh-workspace verification executable through dependency-lock bootstrap plus pinned Chromium preparation, and permanently certify Order's production OpenCode admission/session/turn boundary against real OpenCode 2.2.6 with isolated `opencode-drive@2.4.1` deterministic simulation.
+
 - Keep the completed 0.6.0 campaign fitness valid after canonical squash delivery: enforce G0 baseline ancestry while the campaign is pre-delivery, then preserve the exact baseline as historical evidence once the campaign package is integrated on `master`, so later release/default-branch verification does not require squashed feature-branch commits to remain ancestors.
 
 - Close the adversarial 0.6.0 Wave 1–4 remediation gaps without adding new semantic owners: preserve one-time required-input focus across Workbench remounts, keep current attention explicit during historical inspection with one direct return to its owning action, and complete permanent proof for durable EVIDENCE input, current-v2 PLAN/R3/sign-off task admission, Approval identity, queue filter composition, documentation-Git blockers, and typed Readiness verdict/currentness separation.
