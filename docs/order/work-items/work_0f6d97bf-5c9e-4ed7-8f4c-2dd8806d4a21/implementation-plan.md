@@ -6,17 +6,17 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 after G4 closure from current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d` and DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
+This PLAN is reconstructed under G-F12 after G4 closure from current R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
 
-This PLAN consumes current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`, current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d` and current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+This PLAN consumes current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, current R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
 
-## Current post-C20/C22 authority-materiality revalidation
+## Current post-rendered-evidence reconstruction
 
-This PLAN is re-bound to R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`, R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`, DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728` and corrected P3 Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+This PLAN is bound to current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`. R1 C19-F02/C20-F05 and the exact-candidate Queue/Create evidence invalidate the prior assumption that the existing Workbench presentation was already conforming.
 
-C20-F04 proves that `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` was incorrectly treated as already satisfied: permanent productive-turn tests use a fake OpenCode executable, while the removed temporary branch scaffold only demonstrated a viable exact-process simulation technique. SD20 therefore adds one verification-only delta owned by IA23: `tests/opencode.test.ts` permanently exercises the actual supported OpenCode 2.2.6 process through Order's production boundary, and `.github/workflows/ci.yml` installs exact isolated `opencode-drive@2.4.1` + `effect@4.0.1` verification tooling. No production behavior, runtime dependency, package/lock surface, configuration/state model or alternate provider path is added. The signed forecast is consequently 30 paths.
+R2 product semantics remain unchanged. Corrected DESIGN SD21-SD30 now requires a foundation-first Workbench reconstruction: rebuild the closed primitive/theme owner, migrate every renderer family, delete competing feature-era presentation systems, re-prove responsive/theme semantics, then run exact-candidate rendered acceptance. Existing non-UI SD01-SD20 corrections remain part of the cumulative candidate and are preserved/revalidated by T1.
 
-C22-F02 proves that manifest layer selection is authority **reachability**, not blanket stage materiality. SD02/IA01-IA02 therefore preserve exact stable/versioned ref-to-source identity in the pure resolved projection and make the daemon derive only the pinned-schema/stage/explicit-ref applicable material subset before provider use. Retained V1 snapshots remain resolvable by exact versioned ref but do not enter unrelated current-v2 context merely because they share a selected authority layer. This refinement uses the existing SD02 implementation/test owners and adds no new T1 path, state model, dependency or authority subsystem.
+The signed execution representation is now an 11-task dependency graph rather than one monolithic T1. Each task has its own exact `changeSurface`; the cumulative forecast is their **73-path union**. Shared presentation foundation files belong only to T2. Downstream UI tasks are forbidden from changing them and must route any foundation insufficiency back to T2/DESIGN.
 
 ## Exact modular source manifest
 
@@ -34,7 +34,7 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 | `implementation-plan/09-a09-provider-settings.md` | `bfd715be3a5dff9f31969b788576c0137578be0d` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
 | `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
-| `implementation-plan/12-action-catalog.md` | `d68543193c896d8c1824c78c8a9014313a4b5ebc` |
+| `implementation-plan/12-action-catalog.md` | `548fd314b2a85e2007d144c39124990505858cdd` |
 | `implementation-plan/13-verification-closeout.md` | `c707ce4b77d778bd960c6b337e491d98f6527c53` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -45,7 +45,9 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 
 ## Signed execution scope
 
-### Scope patterns
+The root PLAN's repository envelope remains broad enough for the cumulative 0.6.0 candidate, but **authorization is task-local**. Each signed task's `scope`, `exclusions` and exact `changeSurface` govern its mutation. A later UI task cannot use the root envelope to edit T2 foundation files.
+
+### Cumulative scope patterns
 - `README.md`
 - `src/core/**`
 - `src/daemon/**`
@@ -55,7 +57,7 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 - `.github/workflows/ci.yml`
 - `CHANGELOG.md`
 
-### Explicit exclusions
+### Known cumulative non-target/protected implementation paths
 - `src/daemon/execution.ts`
 - `src/daemon/validation.ts`
 - `src/daemon/server.ts`
@@ -71,14 +73,17 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 - `src/shell/work-item-source.ts`
 - `ui/src/http.ts`
 - `ui/src/query-keys.ts`
-- `ui/src/theme.css`
+- `ui/src/main.tsx`
+- `ui/src/markdown-source-formatting.ts`
 - `tests/architecture.test.ts`
 
-The signed scope is the hard repository-reach envelope. P1-P6 material, project-manifest authority and other paths outside these scope patterns are not authorized even when not repeated as exclusions. The exclusions protect known non-T1/DESIGN-positive-reuse paths inside the broader same-layer envelopes. An unforecast path inside scope is not automatically authorized; it must satisfy the existing V4/V5/V6 minimum same-layer variance proof.
+`ui/src/theme.css`, `ui/src/styles.css` and `ui/src/primitives/**` are no longer excluded: they are the explicit T2 foundation reconstruction surface. They are excluded from downstream T3-T9 tasks.
 
 ## Exact signed implementation surface
 
-### Production (21)
+The exact cumulative signed forecast is the union of all task-local change surfaces: **73 unique paths**.
+
+### Non-UI production (9)
 - `README.md`
 - `src/core/contracts.ts`
 - `src/core/execution.ts`
@@ -88,27 +93,72 @@ The signed scope is the hard repository-reach envelope. P1-P6 material, project-
 - `src/daemon/stage.ts`
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
+
+### UI presentation production (55)
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
 - `ui/src/DocumentWorkspace.tsx`
+- `ui/src/EvidenceViewer.tsx`
+- `ui/src/ExecutionWorkspace.tsx`
+- `ui/src/MarkdownEditor.tsx`
+- `ui/src/MarkdownSourceEditor.tsx`
+- `ui/src/OpenCodeAccountControl.tsx`
+- `ui/src/OpenCodeAccountSettings.tsx`
+- `ui/src/PreSignoffStageWorkspace.tsx`
+- `ui/src/ProposalReview.tsx`
 - `ui/src/ReadinessWorkspace.tsx`
+- `ui/src/RunEventTimeline.tsx`
 - `ui/src/SettingsWorkspace.tsx`
 - `ui/src/SignoffReview.tsx`
 - `ui/src/TerminalResult.tsx`
+- `ui/src/WorkItemContext.tsx`
+- `ui/src/WorkItemIdentityRow.tsx`
 - `ui/src/WorkItemQueue.tsx`
 - `ui/src/WorkItemWorkspace.tsx`
+- `ui/src/WorkflowMaterialSelector.tsx`
+- `ui/src/WorkflowRail.tsx`
+- `ui/src/WorkflowStepFrame.tsx`
 - `ui/src/app.tsx`
+- `ui/src/primitives/WorkbenchAction.tsx`
+- `ui/src/primitives/WorkbenchAttention.tsx`
+- `ui/src/primitives/WorkbenchConfirmation.tsx`
+- `ui/src/primitives/WorkbenchContextPanel.tsx`
+- `ui/src/primitives/WorkbenchDialogue.tsx`
+- `ui/src/primitives/WorkbenchDisclosure.tsx`
+- `ui/src/primitives/WorkbenchField.tsx`
+- `ui/src/primitives/WorkbenchForm.tsx`
+- `ui/src/primitives/WorkbenchIcon.tsx`
+- `ui/src/primitives/WorkbenchIdentity.tsx`
+- `ui/src/primitives/WorkbenchLayout.tsx`
+- `ui/src/primitives/WorkbenchMasterDetail.tsx`
+- `ui/src/primitives/WorkbenchNotice.tsx`
+- `ui/src/primitives/WorkbenchRail.tsx`
+- `ui/src/primitives/WorkbenchResourceRow.tsx`
+- `ui/src/primitives/WorkbenchReview.tsx`
+- `ui/src/primitives/WorkbenchSectionHeader.tsx`
+- `ui/src/primitives/WorkbenchSelector.tsx`
+- `ui/src/primitives/WorkbenchSettingsLayout.tsx`
+- `ui/src/primitives/WorkbenchState.tsx`
+- `ui/src/primitives/WorkbenchStatus.tsx`
+- `ui/src/primitives/WorkbenchSurface.tsx`
+- `ui/src/primitives/WorkbenchTable.tsx`
+- `ui/src/primitives/WorkbenchTaskPanel.tsx`
+- `ui/src/primitives/WorkbenchTimeline.tsx`
+- `ui/src/primitives/WorkbenchToolbar.tsx`
+- `ui/src/primitives/WorkbenchUtilityLink.tsx`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
 - `ui/src/workbench-presentation.ts`
 
 ### Verification (7)
+- `tests/browser.spec.ts`
 - `tests/certification.test.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
-- `tests/browser.spec.ts`
-- `tests/workbench-presentation.test.ts`
 - `tests/installer.test.ts`
 - `tests/opencode.test.ts`
+- `tests/workbench-presentation.test.ts`
 
 ### Permanent verification infrastructure (1)
 - `.github/workflows/ci.yml`
@@ -116,9 +166,7 @@ The signed scope is the hard repository-reach envelope. P1-P6 material, project-
 ### Delivery metadata (1)
 - `CHANGELOG.md`
 
-Total signed T1 `changeSurface`: **30 paths**.
-
-`src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts` are execution-foundation baseline owners and are excluded from T1. `tests/architecture.test.ts` is pre-signoff verification material and is excluded from T1.
+Task-local ownership is authoritative. Repetition of a verification path across tasks is intentional; production UI ownership is partitioned so T2 exclusively owns the shared foundation and T3-T9 own renderer families.
 
 ## Exhaustive traceability invariants
 
@@ -131,8 +179,8 @@ Total signed T1 `changeSurface`: **30 paths**.
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
 - every technical/verification delta maps to one or more exact IA actions;
 - every IA01-IA34 is defined exactly once; IA27-IA34/IA23/IA26/IA24 are explicit cross-solution/rendered-acceptance/final actions rather than orphan work;
-- the immutable forecast is the exact 30-path `changeSurface`; actual variance is admissible only inside signed scope/exclusions and only through positive V4/V5/V6 minimum same-layer proof;
-- signed `dependency-lock` bootstrap checkpoint P passes before Wave 1, and required signed `architecture` checkpoints A-F pass after Waves 1-6 before the next wave begins;
+- the immutable cumulative forecast is the exact 73-path union of task-local `changeSurface` entries; task-local scope/exclusions remain binding and variance still requires positive V4/V5/V6 minimum same-layer proof;
+- signed `dependency-lock` passes before implementation; T2 and each dependent presentation task T3-T9 must pass its architecture checkpoint and task-specific browser proof before the next UI task begins; T10/T11 own final semantic/rendered closure;
 - current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
 - a disproved positive-no-change/baseline-reuse proposition or newly required semantic decision causes an upstream return; a merely unforecast but otherwise admissible same-layer path does not.
 
@@ -803,6 +851,26 @@ Package atoms in phase: **3**.
 #### 0.6.0 implementation action catalog
 
 Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD30 under post-rendered-evidence reconstruction; historical action existence is not justification for retaining an action.
+
+##### Signed-task audit ledger
+
+This is a trace/readability view of the one canonical `order-tasks` block in the root PLAN. It is **not** another executable task representation. A mismatch with the root block makes PLAN non-current.
+
+| Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
+|---|---|---|---|---|---|
+| T1 | SD01-SD20 non-UI remainder; IA01-IA10/IA25/SD20 portion of IA23 | — | core/daemon/shell + exact-pin verification | no reintroduction of execution-foundation or provider compatibility paths | all ordinary gates + targeted non-UI regressions |
+| T2 | SD21; IA27 | T1 | `ui/src/primitives/**`, `theme.css`, `styles.css` | duplicate/obsolete recurring UI/layout systems and feature-era primitive-equivalent selectors removed | primitive ownership/Astryx conformance + wide/narrow/theme harness PASS |
+| T3 | SD22 + SD03/SD05; IA11/IA12/IA28 | T2 | Queue/Create/application entry renderers | old Queue/Create table/form/modal grammar removed | Queue/Create functional matrix + rendered comparisons PASS |
+| T4 | SD23; IA13/IA14/IA29 | T3 | WorkItem shell, rail, Work request/document renderers | generic frame/identity/rail/document competing presentation removed | Work request/document/current-attention/Git + rendered PASS |
+| T5 | SD24; IA15/IA30 | T4 | pre-signoff Dialogue/Document/Proposal adapters | stage-local dialogue/proposal/timeline/layout systems removed | Research/Requirements/Design/Plan semantic + rendered PASS |
+| T6 | SD25; IA16/IA17/IA31 | T5 | Readiness + Approval renderers | generic stage/card and technical-first review grammar removed | readiness/return/currentness/sign-off + rendered PASS |
+| T7 | SD26; IA32 | T6 | Execution renderer | alternate stacked/card/task-count-driven execution layouts removed | task/attempt/blocker/validation/master-detail + rendered PASS |
+| T8 | SD27 + SD01 projection; IA19/IA33 | T7 | Complete/Evidence/Context renderers | result/evidence/context feature-card systems removed | candidate/non-candidate/evidence/context + rendered PASS |
+| T9 | SD28 + SD14; IA18/IA34 | T8 | Settings/account/configuration renderers | bespoke admin/account/repository/model component grammar removed | settings/readiness/account/model + rendered PASS |
+| T10 | SD16-SD18/SD29; IA20-IA23 | T9 | verification only | no production mutation; any production defect routes to T2-T9 | exhaustive renderer/theme/responsive/scenario/regression certification PASS |
+| T11 | SD30; IA26/IA24 | T10 | rendered evidence + CI + closeout metadata | no screenshot-driven production patch inside acceptance task | exhaustive manifest + row-level schema/UX/visual PASS + final V0-V7 |
+
+**Audit rule:** a task cannot be marked complete because later tasks happen to render acceptably. Its own deletion evidence, semantic proof and rendered proof must be retained. A downstream task discovering a foundation defect reopens the owning earlier task rather than patching around it.
 
 ##### Execution waves
 
