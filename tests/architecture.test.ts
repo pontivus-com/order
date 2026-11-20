@@ -2440,14 +2440,14 @@ describe("architecture fitness", () => {
 
     const designSurfaceSection =
       design.split("## Exact implementation surface forecast")[1]?.split(
-        "## Contract/state/persistence/transport consequences",
+        "### Explicit retained UI paths outside changeSurface",
       )[0] ?? "";
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 73 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 43 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 73 unique paths; found " +
+        "DESIGN implementation forecast must contain 43 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2520,9 +2520,9 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = [...new Set(tasks.flatMap((task) => task.changeSurface ?? []))];
-        if (signedSurface.length !== 73) {
+        if (signedSurface.length !== 43) {
           violations.push(
-            "PLAN signed changeSurface union must contain 73 unique paths; found " +
+            "PLAN signed changeSurface union must contain 43 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2535,38 +2535,104 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 73 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 43 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented signed surface must contain 73 unique paths; found " +
+            "PLAN documented signed surface must contain 43 unique paths; found " +
               documentedSurface.length,
           );
         }
         exactSet("PLAN documented signed surface", documentedSurface, designSurface);
 
-        const foundationPaths = new Set([
-          "ui/src/styles.css",
-          "ui/src/theme.css",
-          ...designSurface.filter((value) =>
-            value.startsWith("ui/src/primitives/") && value.endsWith(".tsx")
-          ),
+        const retainedPrimitivePrefix = "ui/src/primitives/";
+        const retainedUiPaths = new Set([
+          "ui/src/MarkdownEditor.tsx",
+          "ui/src/MarkdownSourceEditor.tsx",
+          "ui/src/workbench-presentation.ts",
+          "ui/src/http.ts",
+          "ui/src/query-keys.ts",
+          "ui/src/markdown-source-formatting.ts",
+          "ui/src/theme.ts",
+          "ui/src/main.tsx",
         ]);
+        const illegallyMutableRetained = signedSurface.filter(
+          (value) => value.startsWith(retainedPrimitivePrefix) || retainedUiPaths.has(value),
+        );
+        if (illegallyMutableRetained.length > 0) {
+          violations.push(
+            "PLAN must retain primitives/non-screen helpers outside changeSurface: " +
+              illegallyMutableRetained.join(", "),
+          );
+        }
+
         const t2 = byId.get("T2");
         if (t2 !== undefined) {
           exactSet(
-            "T2 foundation production surface",
-            (t2.changeSurface ?? []).filter((value) => foundationPaths.has(value)),
-            [...foundationPaths],
+            "T2 UI production surface",
+            (t2.changeSurface ?? []).filter((value) => value.startsWith("ui/src/")),
+            ["ui/src/styles.css", "ui/src/theme.css"],
           );
+          if (!(t2.exclusions ?? []).includes("ui/src/primitives/**")) {
+            violations.push("T2 must explicitly exclude primitive source mutation");
+          }
         }
+
+        const expectedReplacementScreens = [
+          "ui/src/app.tsx",
+          "ui/src/WorkItemQueue.tsx",
+          "ui/src/CreateWorkItem.tsx",
+          "ui/src/WorkItemWorkspace.tsx",
+          "ui/src/WorkItemIdentityRow.tsx",
+          "ui/src/WorkflowRail.tsx",
+          "ui/src/WorkflowStepFrame.tsx",
+          "ui/src/DocumentWorkspace.tsx",
+          "ui/src/PreSignoffStageWorkspace.tsx",
+          "ui/src/ActivityWorkspace.tsx",
+          "ui/src/ActivityComposer.tsx",
+          "ui/src/WorkflowMaterialSelector.tsx",
+          "ui/src/ProposalReview.tsx",
+          "ui/src/RunEventTimeline.tsx",
+          "ui/src/ReadinessWorkspace.tsx",
+          "ui/src/SignoffReview.tsx",
+          "ui/src/ExecutionWorkspace.tsx",
+          "ui/src/TerminalResult.tsx",
+          "ui/src/EvidenceViewer.tsx",
+          "ui/src/WorkItemContext.tsx",
+          "ui/src/SettingsWorkspace.tsx",
+          "ui/src/OpenCodeAccountControl.tsx",
+          "ui/src/OpenCodeAccountSettings.tsx",
+        ];
+        const replacementSurface = ["T3", "T4", "T5", "T6", "T7", "T8", "T9"].flatMap(
+          (id) => byId.get(id)?.changeSurface?.filter((value) => value.startsWith("ui/src/")) ?? [],
+        );
+        exactSet("PLAN destructive screen replacement set", replacementSurface, expectedReplacementScreens);
+
         for (const id of ["T3", "T4", "T5", "T6", "T7", "T8", "T9"]) {
           const task = byId.get(id);
           if (task === undefined) continue;
-          const illegal = (task.changeSurface ?? []).filter((value) => foundationPaths.has(value));
+          const illegal = (task.changeSurface ?? []).filter(
+            (value) =>
+              value.startsWith(retainedPrimitivePrefix) ||
+              retainedUiPaths.has(value) ||
+              value === "ui/src/styles.css" ||
+              value === "ui/src/theme.css",
+          );
           if (illegal.length > 0) {
             violations.push(
-              id + " must not modify T2 foundation paths: " + illegal.join(", "),
+              id + " must not modify retained primitive/helper/shared-style paths: " +
+                illegal.join(", "),
             );
           }
+          if (!(task.exclusions ?? []).includes("ui/src/primitives/**")) {
+            violations.push(id + " must explicitly exclude primitive source mutation");
+          }
+          const objective = task.objective ?? "";
+          if (!/purge|delete/i.test(objective) || !/replace|recreat/i.test(objective)) {
+            violations.push(id + " objective must require purge-before-replacement");
+          }
+        }
+
+        if (!actionCatalog.includes("Destructive screen replacement protocol for IA28-IA34")) {
+          violations.push("PLAN action catalog must define the destructive screen replacement protocol");
         }
 
         const concernUnion = [...new Set(tasks.flatMap((task) => task.concernIds ?? []))];
