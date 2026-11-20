@@ -34,7 +34,7 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 | `implementation-plan/09-a09-provider-settings.md` | `bfd715be3a5dff9f31969b788576c0137578be0d` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
 | `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
-| `implementation-plan/12-action-catalog.md` | `0fd2c4e440b1b0201f39b6f749f1ed026fcb556a` |
+| `implementation-plan/12-action-catalog.md` | `f845fd814265d8d36c1598ab4f0d681cddb1bd9b` |
 | `implementation-plan/13-verification-closeout.md` | `1d7df1d78af0462d58214fccf6ba89afbb3a58cf` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -1010,7 +1010,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 ##### IA26 — rendered 0.6.0 UX/UI acceptance evidence
 
 **Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and the reviewed derived visual reference pack at `docs/references/workbench-ui/README.md`. Current R2/DESIGN/P3-P6 authority wins over any 0.5.0 SVG reference on conflict.  
-**Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication.  
+**Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication; `tests/certification.test.ts` for the exact CI supply-chain rule permitting only the pinned first-party artifact uploader required by this acceptance path.  
 **Required mutation:** extend the existing Playwright/GitHub Actions verification path so the exact PR merge candidate renders and captures the complete governed Workbench surface/state set after the ordinary `browser` gate is green. The implementation must:
 - capture every one of the nine lifecycle steps — Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete — from populated deterministic canonical fixtures, not empty shells;
 - capture every `SURF-*` entry in the `docs/references/workbench-ui/README.md` complete audited surface table, including Queue, Create, Settings/repositories, Settings/OpenCode/accounts, model/runtime Settings, Context, document authoring/read-only, dialogue/activity, proposal review, evidence, approval-task detail, execution-task detail and all confirmation/destructive overlays;
