@@ -831,6 +831,10 @@ export const approvalContext = async (
   }
   const closure = approvalClosure(runtime, approval);
   const material = deduplicateArtifacts([closure.plan, ...closure.material]);
+  const [, authority] = await resolveCurrentStageAuthority(
+    validated.workItem,
+    "R3",
+  );
   const contextHash = sha256Text(
     canonicalJson({
       stage: "EXECUTION",
@@ -838,11 +842,13 @@ export const approvalContext = async (
       workItemId: approval.workItemId,
       sourceSha256: approval.sourceSha256,
       task,
+      resolvedAuthority: authority,
       materialArtifacts: sortedMaterialProjection(material),
     }),
   );
   return {
     source: validated.source,
+    authority,
     artifacts: material,
     p1Paths: material
       .filter((artifact) => artifact.authorityLayer === "P1")
