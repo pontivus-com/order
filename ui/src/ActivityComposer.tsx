@@ -6,24 +6,29 @@ import * as api from "./http.ts";
 import { runIsActive } from "./workbench-presentation.ts";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 
-export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSubmitted, onError }: Readonly<{
-  run: Run; pending: RunEvent | null; mutationsDisabled?: boolean; onSubmitted: (event: RunEvent) => Promise<void>; onError?: (error: unknown) => void | Promise<void>;
+export const ActivityComposer = ({ run, pending, focusedRequiredInputEventId, mutationsDisabled = false, onRequiredInputFocused, onSubmitted, onError }: Readonly<{
+  run: Run;
+  pending: RunEvent | null;
+  focusedRequiredInputEventId: RunEvent["id"] | null;
+  mutationsDisabled?: boolean;
+  onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
+  onSubmitted: (event: RunEvent) => Promise<void>;
+  onError?: (error: unknown) => void | Promise<void>;
 }>) => {
   const composerRegionRef = useRef<HTMLDivElement>(null);
-  const focusedRequestEventId = useRef<RunEvent["id"] | null>(null);
   const requiredInputEventId =
     pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.id : null;
 
   useEffect(() => {
     if (
       requiredInputEventId === null ||
-      focusedRequestEventId.current === requiredInputEventId
+      focusedRequiredInputEventId === requiredInputEventId
     ) {
       return;
     }
     composerRegionRef.current?.focus({ preventScroll: true });
-    focusedRequestEventId.current = requiredInputEventId;
-  }, [requiredInputEventId]);
+    onRequiredInputFocused(requiredInputEventId);
+  }, [focusedRequiredInputEventId, onRequiredInputFocused, requiredInputEventId]);
 
   const input = useMutation({
     mutationFn: (text: string) => {

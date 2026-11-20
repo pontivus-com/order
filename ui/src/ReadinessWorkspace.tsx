@@ -54,7 +54,9 @@ export const ReadinessWorkspace = ({
   currentRunId,
   currentInteraction,
   currentAttention,
+  focusedRequiredInputEventId,
   mutationsDisabled = false,
+  onRequiredInputFocused,
   onSelectMaterial,
   onOpenArtifactEvidence,
   onOpenEvidence,
@@ -73,7 +75,9 @@ export const ReadinessWorkspace = ({
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
+  focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean;
+  onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -190,7 +194,9 @@ export const ReadinessWorkspace = ({
             currentRunId={workItem.stage === "R3" ? currentRunId : null}
             currentInteraction={workItem.stage === "R3" ? currentInteraction : null}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={mutationsDisabled}
+            onRequiredInputFocused={onRequiredInputFocused}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}

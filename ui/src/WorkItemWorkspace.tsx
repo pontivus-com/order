@@ -171,6 +171,8 @@ export const WorkItemWorkspace = ({
   const [mutationConflict, setMutationConflict] = useState(false);
   const [mutationRefreshPending, setMutationRefreshPending] = useState(false);
   const [terminalDrainPending, setTerminalDrainPending] = useState(false);
+  const [focusedRequiredInputEventId, setFocusedRequiredInputEventId] =
+    useState<RunEvent["id"] | null>(null);
   const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
   const mutationConflictObservation = useRef<string | null>(null);
   const mutationConflictWorkItemUpdatedAt = useRef<number | null>(null);
@@ -1260,6 +1262,47 @@ export const WorkItemWorkspace = ({
     }
   })();
 
+  const currentOwnerAction =
+    canRetry ? (
+      <WorkbenchAction
+        label={"Retry " + workflow.label}
+        tone="primary"
+        loading={start.isPending}
+        disabled={mutationsDisabled || dirty || start.isPending}
+        onClick={() => start.mutate()}
+      />
+    ) : canResume ? (
+      <WorkbenchAction
+        label="Resume resolved blocker"
+        tone="primary"
+        loading={resumeCurrent.isPending}
+        disabled={mutationsDisabled || resumeCurrent.isPending}
+        onClick={() => resumeCurrent.mutate()}
+      />
+    ) : canReconcile ? (
+      <WorkbenchAction
+        label={
+          sourceAuthorityRequiresReconciliation
+            ? "Reconcile source authority"
+            : currentness.tag === "STALE"
+              ? "Return to " + workflowPresentation(currentness.owner).label
+              : "Reconcile authority"
+        }
+        tone="primary"
+        loading={reconcileAuthority.isPending}
+        disabled={mutationsDisabled || reconcileAuthority.isPending}
+        onClick={() => reconcileAuthority.mutate()}
+      />
+    ) : canStart ? (
+      <WorkbenchAction
+        label={startLabelForStage(workItem.stage)}
+        tone="primary"
+        loading={start.isPending}
+        disabled={mutationsDisabled || dirty || start.isPending}
+        onClick={() => start.mutate()}
+      />
+    ) : null;
+
   const stepSummary = (
     <WorkflowStepSummary
       label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
@@ -1271,61 +1314,28 @@ export const WorkItemWorkspace = ({
       blocker={summaryBlocker}
       action={
         inspectedHistorical ? (
-          <WorkbenchAction
-            label={"Return to " + workflow.label}
-            tone="primary"
-            onClick={() => inspectWorkflowStep(workItem.stage)}
-          />
-        ) : canRetry ? (
-          <WorkbenchAction
-            label={"Retry " + workflow.label}
-            tone="primary"
-            loading={start.isPending}
-            disabled={mutationsDisabled || dirty || start.isPending}
-            onClick={() => start.mutate()}
-          />
-        ) : canResume ? (
-          <WorkbenchAction
-            label="Resume resolved blocker"
-            tone="primary"
-            loading={resumeCurrent.isPending}
-            disabled={mutationsDisabled || resumeCurrent.isPending}
-            onClick={() => resumeCurrent.mutate()}
-          />
-        ) : canReconcile ? (
-          <WorkbenchAction
-            label={
-              sourceAuthorityRequiresReconciliation
-                ? "Reconcile source authority"
-                : currentness.tag === "STALE"
-                  ? "Return to " + workflowPresentation(currentness.owner).label
-                  : "Reconcile authority"
-            }
-            tone="primary"
-            loading={reconcileAuthority.isPending}
-            disabled={mutationsDisabled || reconcileAuthority.isPending}
-            onClick={() => reconcileAuthority.mutate()}
-          />
-        ) : canStart ? (
-          <WorkbenchAction
-            label={startLabelForStage(workItem.stage)}
-            tone="primary"
-            loading={start.isPending}
-            disabled={mutationsDisabled || dirty || start.isPending}
-            onClick={() => start.mutate()}
-          />
-        ) : workItem.stage === "COMPLETE" &&
+          <div className="order-inline-actions">
+            <WorkbenchAction
+              label={"Return to " + workflow.label}
+              tone="primary"
+              onClick={() => inspectWorkflowStep(workItem.stage)}
+            />
+            {currentOwnerAction}
+          </div>
+        ) : currentOwnerAction ?? (
+          workItem.stage === "COMPLETE" &&
           (
             workItem.outcome === "INVESTIGATION_COMPLETE" ||
             workItem.outcome === "AUDIT_COMPLETE"
           ) ? (
-          <WorkbenchAction
-            label="Create linked remediation"
-            tone="primary"
-            disabled={mutationsDisabled}
-            onClick={() => onCreateRemediation(workItem)}
-          />
-        ) : undefined
+            <WorkbenchAction
+              label="Create linked remediation"
+              tone="primary"
+              disabled={mutationsDisabled}
+              onClick={() => onCreateRemediation(workItem)}
+            />
+          ) : undefined
+        )
       }
     />
   );
@@ -1408,7 +1418,9 @@ export const WorkItemWorkspace = ({
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={workflowMutationsDisabled}
+            onRequiredInputFocused={setFocusedRequiredInputEventId}
             authoringMutationsDisabled={documentMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
@@ -1439,7 +1451,9 @@ export const WorkItemWorkspace = ({
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={workflowMutationsDisabled}
+            onRequiredInputFocused={setFocusedRequiredInputEventId}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: "R3",

@@ -62,12 +62,14 @@ const openCodeSessionStatus = (run: Run): string => {
   return "OpenCode session completed";
 };
 
-export const StageRunMaterial = ({ stage, runs, runEvents, companion, selectedRunId, currentRunId, currentInteraction, currentAttention, mutationsDisabled = false, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
+export const StageRunMaterial = ({ stage, runs, runEvents, companion, selectedRunId, currentRunId, currentInteraction, currentAttention, focusedRequiredInputEventId, mutationsDisabled = false, onRequiredInputFocused, onSelectedRunChange, onOpenEvidence, onOpenProposalReview, onMutationRefresh, onMutationError }: Readonly<{
   stage: PreSignoffStage; runs: readonly Run[]; runEvents: readonly RunEvent[]; companion?: ReactNode; selectedRunId: Run["id"] | null;
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
+  focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean;
+  onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSelectedRunChange: (runId: Run["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
   onOpenProposalReview?: (selection: ProposalSelection) => void;
@@ -239,7 +241,9 @@ export const StageRunMaterial = ({ stage, runs, runEvents, companion, selectedRu
         composer={canAnswer ? <ActivityComposer
           run={selectedRun}
           pending={pending}
+          focusedRequiredInputEventId={focusedRequiredInputEventId}
           mutationsDisabled={mutationsDisabled}
+          onRequiredInputFocused={onRequiredInputFocused}
           onSubmitted={async (event) => {
             setInputError(null);
             await onMutationRefresh(event);
