@@ -8,7 +8,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `d2eb1627e2b9a145f785b04829b56c623b7431e9`.
 - R2 `requirements.md`: `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`.
-- DESIGN `solution-design.md`: `8591f18ef98316e276c6dcfa9524857a98b7dedc`.
+- DESIGN `solution-design.md`: `f21d1530b01a43e28be47742236b339770022059`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
