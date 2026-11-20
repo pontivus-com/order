@@ -1586,7 +1586,7 @@ describe("Order cross-boundary certification", () => {
 
 
 describe("0.6.0 Wave 1 authority-governance certification", () => {
-  it("exercises resolved authority through the production core-daemon-STAGE context", () => {
+  it("keeps reachable authority distinct from material STAGE context", () => {
     const repository = mkdtempSync(join(tmpdir(), "order-cert-authority-repo-"));
     const state = mkdtempSync(join(tmpdir(), "order-cert-authority-state-"));
     try {
@@ -1778,10 +1778,9 @@ materialRefs = []
         sources: ["docs/product-b.md", "docs/product-a.md"],
         precedence: ["docs/product-b.md", "docs/product-a.md"],
       });
-      expect(output.p2Artifacts).toEqual([
-        "docs/product-b.md",
-        "docs/product-a.md",
-      ]);
+      expect(output.p2Artifacts).toEqual([]);
+      // Both P2 sources remain reachable in the resolved authority projection,
+      // but neither is stage-applicable merely because it shares the layer.
       expect(output.inherited).toContain("GW-P1-FCIS");
       expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
       expect(output.fitness).toEqual(["architecture", "test"]);
