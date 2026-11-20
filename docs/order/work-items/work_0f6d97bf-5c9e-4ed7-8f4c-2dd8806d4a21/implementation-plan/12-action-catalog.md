@@ -9,14 +9,14 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
 | T1 | SD01-SD20 non-UI remainder; IA01-IA10/IA25/SD20 portion of IA23 | — | core/daemon/shell + exact-pin verification | no reintroduction of execution-foundation or provider compatibility paths | all ordinary gates + targeted non-UI regressions |
-| T2 | SD21; IA27 | T1 | `ui/src/primitives/**`, `theme.css`, `styles.css` | duplicate/obsolete recurring UI/layout systems and feature-era primitive-equivalent selectors removed | primitive ownership/Astryx conformance + wide/narrow/theme harness PASS |
-| T3 | SD22 + SD03/SD05; IA11/IA12/IA28 | T2 | Queue/Create/application entry renderers | old Queue/Create table/form/modal grammar removed | Queue/Create functional matrix + rendered comparisons PASS |
-| T4 | SD23; IA13/IA14/IA29 | T3 | WorkItem shell, rail, Work request/document renderers | generic frame/identity/rail/document competing presentation removed | Work request/document/current-attention/Git + rendered PASS |
-| T5 | SD24; IA15/IA30 | T4 | pre-signoff Dialogue/Document/Proposal adapters | stage-local dialogue/proposal/timeline/layout systems removed | Research/Requirements/Design/Plan semantic + rendered PASS |
-| T6 | SD25; IA16/IA17/IA31 | T5 | Readiness + Approval renderers | generic stage/card and technical-first review grammar removed | readiness/return/currentness/sign-off + rendered PASS |
-| T7 | SD26; IA32 | T6 | Execution renderer | alternate stacked/card/task-count-driven execution layouts removed | task/attempt/blocker/validation/master-detail + rendered PASS |
-| T8 | SD27 + SD01 projection; IA19/IA33 | T7 | Complete/Evidence/Context renderers | result/evidence/context feature-card systems removed | candidate/non-candidate/evidence/context + rendered PASS |
-| T9 | SD28 + SD14; IA18/IA34 | T8 | Settings/account/configuration renderers | bespoke admin/account/repository/model component grammar removed | settings/readiness/account/model + rendered PASS |
+| T2 | SD21; IA27 | T1 | `theme.css`, `styles.css` + verification; primitives are read-only retained capability | obsolete screen-specific/compatibility selectors removed; primitive source unchanged | primitive ownership/Astryx containment + CSS purge audit PASS |
+| T3 | SD22 + SD03/SD05; IA11/IA12/IA28 | T2 | Queue/Create/application entry screens | purge commit deletes old screens before clean recreation; no old JSX/layout reuse | fresh screen-schema review + Queue/Create functional/rendered PASS |
+| T4 | SD23; IA13/IA14/IA29 | T3 | WorkItem shell, rail, Work request/document screens | purge commit deletes old screen compositions; Markdown editors remain retained leaves | fresh screen-schema review + Work request/document/current-attention/Git rendered PASS |
+| T5 | SD24; IA15/IA30 | T4 | pre-signoff screen/adapters | purge commit deletes old productive-stage screens/adapters before clean recreation | fresh per-stage information-schema review + semantic/rendered PASS |
+| T6 | SD25; IA16/IA17/IA31 | T5 | Readiness + Approval screens | purge commit deletes both old review screens before clean recreation | fresh review-schema + readiness/return/currentness/sign-off rendered PASS |
+| T7 | SD26; IA32 | T6 | Implementation screen | purge commit deletes old Implementation screen before clean recreation | fresh implementation-schema + task/attempt/blocker/validation/master-detail rendered PASS |
+| T8 | SD27 + SD01 projection; IA19/IA33 | T7 | Complete/Evidence/Context screens | purge commit deletes old terminal/material screens before clean recreation | fresh terminal/material schemas + candidate/non-candidate/evidence/context rendered PASS |
+| T9 | SD28 + SD14; IA18/IA34 | T8 | Settings/account/configuration screens | purge commit deletes old Settings/account screens before clean recreation | fresh configuration schema + settings/readiness/account/model rendered PASS |
 | T10 | SD16-SD18/SD29; IA20-IA23 | T9 | verification only | no production mutation; any production defect routes to T2-T9 | exhaustive renderer/theme/responsive/scenario/regression certification PASS |
 | T11 | SD30; IA26/IA24 | T10 | rendered evidence + CI + closeout metadata | no screenshot-driven production patch inside acceptance task | exhaustive manifest + row-level schema/UX/visual PASS + final V0-V7 |
 
@@ -26,20 +26,20 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
 1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
-2. **Wave 2 — Workbench foundation replacement:** IA27. No feature renderer migration may begin until this passes its architecture/browser checkpoint.
-3. **Wave 3 — Queue/Create:** IA11, IA12, IA28.
-4. **Wave 4 — WorkItem shell + Work request/document:** IA13, IA14, IA29.
-5. **Wave 5 — productive pre-signoff stages:** IA15, IA30.
-6. **Wave 6 — Readiness/Approval:** IA16, IA17, IA31.
-7. **Wave 7 — Implementation master/detail:** IA32.
-8. **Wave 8 — Complete/Evidence/Context/product language:** IA19, IA33.
-9. **Wave 9 — Settings/account/configuration:** IA18, IA34.
+2. **Wave 2 — primitive preservation + legacy screen reset boundary:** IA27. No screen replacement may begin until retained primitives are certified and shared screen-specific CSS/compatibility rules are purged.
+3. **Wave 3 — destructive Queue/Create replacement:** IA11, IA12, IA28.
+4. **Wave 4 — destructive WorkItem shell + Work request/document replacement:** IA13, IA14, IA29.
+5. **Wave 5 — destructive productive pre-signoff screen replacement:** IA15, IA30.
+6. **Wave 6 — destructive Readiness/Approval replacement:** IA16, IA17, IA31.
+7. **Wave 7 — destructive Implementation replacement:** IA32.
+8. **Wave 8 — destructive Complete/Evidence/Context replacement:** IA19, IA33.
+9. **Wave 9 — destructive Settings/account/configuration replacement:** IA18, IA34.
 10. **Wave 10 — permanent semantic/component certification:** IA20-IA22.
 11. **Wave 11 — cross-solution regression closure:** IA23.
 12. **Wave 12 — rendered product acceptance:** IA26.
 13. **Wave 13 — candidate closeout:** IA24.
 
-Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`. After Wave 2 and after each presentation wave 3-9, the signed `architecture` gate and the task-specific browser subset must pass before its dependent UI task begins. A downstream renderer task may not change `ui/src/primitives/**`, `ui/src/theme.css` or `ui/src/styles.css`; if the canonical composition cannot be realized, execution returns to IA27 rather than introducing local presentation ownership. Wave 10 proves the migrated renderer/component/theme system semantically. Wave 12 produces exact-candidate rendered evidence only after ordinary gates are green. Wave 13 closes only after every rendered row is accepted.
+Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`. After Wave 2 and after each presentation wave 3-9, the signed `architecture` gate and task-specific browser/rendered proof must pass before the dependent screen family begins. `ui/src/primitives/**`, approved leaf/content mechanisms and non-screen query/policy helpers are retained and are not screen-task mutation surfaces. IA27 may modify `theme.css`/`styles.css` only to remove obsolete screen-specific/compatibility presentation rules; it does not redesign primitives. Every IA28-IA34 task must create a purge checkpoint commit deleting its owned old screen files before any replacement screen code is authored, then recreate those paths from the current R2 screen-information schema. A downstream task may not patch or copy the pre-purge screen implementation. If retained primitive capability is insufficient, execution returns to DESIGN instead of modifying primitives locally. Wave 10 proves the replacement renderer/component/theme system semantically. Wave 12 produces exact-candidate rendered evidence only after ordinary gates are green. Wave 13 closes only after every rendered row is accepted.
 
 ## IA01 — pure project-authority resolution
 
@@ -233,77 +233,87 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
 
-## IA27 — rebuild the Workbench primitive/theme foundation
+## IA27 — preserve primitives and purge legacy screen presentation
 
-**Solution:** SD21, with SD29 structural responsibilities.
-**Owners:** every existing `ui/src/primitives/*.tsx` owner; `ui/src/theme.css`; `ui/src/styles.css`.
-**Required mutation:** rebuild the existing closed P4 primitive vocabulary so it is the sole recurring structural/visual grammar. Primitive APIs remain domain/query/policy blind and keep the canonical responsibilities; implementations may be replaced internally. Use pinned Astryx public components/props/density/layout first and public theme tokens second. Establish canonical shell/form/table/status/notice/task-panel/review/master-detail/context/dialogue/settings/resource/timeline geometry and wide/medium/narrow behavior. Reduce `styles.css` to foundation imports/global non-feature ownership. Remove duplicate/obsolete layout systems and recurring feature-era selectors from `theme.css` rather than preserving aliases/overrides.
-**Hard audit boundary:** IA27 must not import WorkItem/Run/domain/query state into primitives. It must not change domain contracts, API/query ownership or lifecycle semantics. It must not introduce a new primitive responsibility unless DESIGN is amended.
-**Deletion proof:** no compatibility presentation path, hidden legacy DOM grammar, private Astryx token/internal selector, generic arbitrary-slot mega-primitive, feature-specific breakpoint authority or duplicate recurring component system remains.
-**Proof:** architecture/certification primitive-to-Astryx/ownership checks; focused primitive browser harness across wide/narrow and Light/Dark; CSS selector audit. IA28-IA34 are blocked until IA27 PASS.
+**Solution:** SD21, with SD29 containment rules.
+**Owners:** `ui/src/theme.css`; `ui/src/styles.css`; `tests/certification.test.ts`; `tests/browser.spec.ts`. `ui/src/primitives/**` is an explicitly retained, read-only implementation dependency for this campaign.
+**Required mutation:** certify the existing canonical P4 primitive vocabulary and approved leaf boundaries without redesigning primitive source. Remove from shared stylesheets every obsolete screen-specific selector, compatibility presentation rule, feature-era topology rule or descendant override whose only purpose is to support the discarded screen implementations. Retain primitive/theme/global rules required by current P4/P5.
+**Hard audit boundary:** no `ui/src/primitives/*.tsx` mutation; no WorkItem/Run/domain/query policy moved into primitives; no new primitive responsibility; no replacement screen authored in IA27.
+**Deletion proof:** CSS/stylesheet audit identifies retained primitive/global rules versus deleted screen-specific rules; no compatibility selector remains for a pre-reconstruction screen class/DOM hierarchy.
+**Proof:** primitive ownership/Astryx containment certification; stylesheet selector audit; primitive smoke/browser proof. IA28-IA34 are blocked until IA27 PASS.
 
-## IA28 — migrate Queue and Create onto the rebuilt foundation
+### Destructive screen replacement protocol for IA28-IA34
+
+Every screen task follows the same non-negotiable sequence:
+
+1. **Purge checkpoint:** create a task-local Git commit deleting all old screen/composition files owned by that IA and deleting any remaining task-local screen CSS/compatibility selectors. The purge commit contains no replacement screen JSX/DOM.
+2. **Fresh schema checkpoint:** record/review the current R2 screen-information schema for the owned screens: Primary, Supporting, Technical, actions, states, responsive semantic order and work-kind/stage differences. This is design evidence, not a runtime DTO.
+3. **Clean recreation:** recreate the deleted screen paths from that schema using retained Workbench primitives, approved leaves and canonical underlying query/domain owners. Pre-purge screen blobs are forbidden as implementation templates.
+4. **No structural reuse:** old JSX/DOM hierarchy, field grouping, card/panel structure, table-column design, action placement, responsive branching, screen-local CSS/classes and visual hierarchy may not be copied or incrementally transformed.
+5. **Proof before dependency advance:** semantic/browser tests plus required rendered comparison must PASS with zero unresolved row-level FAIL before the next screen task begins.
+
+If required non-visual behavior exists only inside an old screen file, the task may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision.
+
+## IA28 — destructively replace Queue and Create
 
 **Solutions:** SD22 plus existing SD03/SD05 semantic deltas through IA11/IA12.
 **Owners:** `ui/src/app.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.
-**Required mutation:** recompose Queue as the canonical Operational scan and Create/remediation as the canonical bounded Form/configuration task using IA27 primitives only. Keep normal populated Queue separate from source-diagnostic, empty, search and archive states. Create must present controlled Project/kind/Concerns/title plus system-derived context with one dominant Create action and no editable linked-remediation project.
-**Deletion proof:** remove Queue/Create feature-owned recurring table/form/control/status/layout chrome and any legacy page/modal composition that duplicates primitive responsibilities.
-**Forbidden:** modifying primitive/theme/style owners from this task; feature-local component CSS; inventing new queue/create semantics from SVGs.
-**Proof:** functional Queue/Create browser matrix, wide+narrow capture, Light/Dark representative capture, and explicit comparison to `queue*.svg`, `create-work-item.svg`, `create-linked-remediation.svg`; zero unresolved row-level FAIL before IA29.
+**Required mutation:** execute the destructive screen replacement protocol for the three owned paths. Build a fresh Queue Operational scan and Create/remediation TaskPanel→Form/configuration from R2. Keep normal populated Queue separate from source-diagnostic, empty, search and archive states. Create presents controlled Project/kind/Concerns/title plus subordinate derived context and one dominant Create action.
+**Forbidden:** primitive mutation; feature-local structural CSS; copying old queue/modal/form/table composition; using SVGs as product authority.
+**Proof:** purge commit + fresh screen-schema review + Queue/Create functional browser matrix + wide/narrow and theme rendered comparison to `queue*.svg`, `create-work-item.svg`, `create-linked-remediation.svg`.
 
-## IA29 — migrate WorkItem shell, Work request and governed documents
+## IA29 — destructively replace WorkItem shell, Work request and document screens
 
 **Solution:** SD23 plus IA13/IA14 where applicable.
-**Owners:** `ui/src/WorkItemWorkspace.tsx`, `ui/src/WorkItemIdentityRow.tsx`, `ui/src/WorkflowRail.tsx`, `ui/src/WorkflowStepFrame.tsx`, `ui/src/DocumentWorkspace.tsx`, `ui/src/MarkdownEditor.tsx`, `ui/src/MarkdownSourceEditor.tsx`.
-**Required mutation:** compose one stable selected-WorkItem shell from toolbar/identity/nine-stage rail/current-attention/primary material/optional Context slots. Work request is a Document interaction with source intent primary and metadata/Git/currentness subordinate. Preserve exact current-attention reachability during historical/document inspection and exact governed Git review.
-**Deletion proof:** delete generic-frame/layout branches, identity/rail/document chrome and old selectors that compete with primitive-owned shell/document geometry.
-**Forbidden:** changing lifecycle/material-selection/query semantics; modifying IA27 owners.
-**Proof:** Work request/document/Git/current-attention browser tests plus wide+narrow rendered comparison to Work request/document/current-attention references; zero unresolved FAIL before IA30.
+**Owners:** `ui/src/WorkItemWorkspace.tsx`, `ui/src/WorkItemIdentityRow.tsx`, `ui/src/WorkflowRail.tsx`, `ui/src/WorkflowStepFrame.tsx`, `ui/src/DocumentWorkspace.tsx`.
+**Retained dependencies:** `ui/src/MarkdownEditor.tsx`, `ui/src/MarkdownSourceEditor.tsx`, `ui/src/workbench-presentation.ts`, query/API/domain owners.
+**Required mutation:** delete the five owned old screen/composition paths at the purge checkpoint and recreate them from the fresh WorkItem-shell/document information schema. Compose one identity/nine-stage rail/current-attention/primary-material/optional-Context shell. Work request is a fresh Document-class screen. Markdown editors remain content leaves and do not contribute outer screen grammar.
+**Forbidden:** primitive/retained-leaf mutation for screen convenience; copying old shell/frame/identity/rail/document markup or classes.
+**Proof:** purge commit + fresh screen-schema review + Work request/document/Git/current-attention tests + wide/narrow rendered comparison.
 
-## IA30 — migrate Research, Requirements, Solution design and Plan
+## IA30 — destructively replace Research, Requirements, Solution design and Plan screens
 
 **Solution:** SD24 plus IA15 and existing productive-stage semantic corrections.
 **Owners:** `ui/src/PreSignoffStageWorkspace.tsx`, `ui/src/ActivityWorkspace.tsx`, `ui/src/ActivityComposer.tsx`, `ui/src/WorkflowMaterialSelector.tsx`, `ui/src/ProposalReview.tsx`, `ui/src/RunEventTimeline.tsx`.
-**Required mutation:** make all productive pre-signoff stages use one Surface/Attention/Selector composition with canonical Document, Dialogue and Review sub-compositions. Current required input/proposal/blocker/processing owns attention; current governed document is primary otherwise; history/evidence/activity stays subordinate. Stage-specific schema/information obligations change content only, never layout grammar.
-**Deletion proof:** remove stage-local dialogue/proposal/timeline/layout systems, feature-selected overlay mechanics and presentation branches that duplicate IA27.
-**Forbidden:** modifying Run/RunEvent/proposal/adoption authority; modifying IA27 owners.
-**Proof:** four-kind Research + Change/Defect downstream browser matrix, required-input focus once, proposal/document/dialogue states, wide+narrow and per-stage rendered comparisons; zero unresolved FAIL before IA31.
+**Retained dependencies:** `ui/src/workbench-presentation.ts`, query/API/domain owners, Workbench primitives.
+**Required mutation:** delete all six owned old paths at the purge checkpoint, then recreate the productive-stage family from fresh R2 schemas. Research/Requirements/Solution design/Plan share one current-attention/Document/Dialogue/Review grammar while retaining stage-specific information obligations. Current required input/proposal/blocker/processing owns attention; current governed document is primary otherwise; history/evidence/activity is subordinate.
+**Forbidden:** old stage layout reuse; primitive mutation; feature-owned responsive topology; copying prior dialogue/proposal/timeline composition.
+**Proof:** purge commit + four fresh stage-schema reviews + four-kind Research/Change/Defect downstream browser matrix + required-input/proposal/document/dialogue rendered review.
 
-## IA31 — migrate Readiness and Approval reviews
+## IA31 — destructively replace Readiness and Approval
 
 **Solution:** SD25 plus IA16/IA17.
 **Owners:** `ui/src/ReadinessWorkspace.tsx`, `ui/src/SignoffReview.tsx`.
-**Required mutation:** render both as canonical Review compositions. Readiness makes typed R3 verdict/findings/return owner dominant. Approval makes readiness/currentness/task meaning dominant with technical package identity subordinate and exact sign-off as the sole primary mutation.
-**Deletion proof:** remove generic stage-frame/card presentation and technical-identity-first review layout.
-**Forbidden:** changing R3/Approval contracts or ingress semantics; modifying IA27 owners.
-**Proof:** readiness return/blocked/ready and Approval current/stale/sign-off cases plus wide+narrow rendered comparison to readiness/approval references; zero unresolved FAIL before IA32.
+**Required mutation:** delete both old screens at the purge checkpoint, then recreate them as fresh Review-class screens from R2. Readiness makes typed R3 verdict/findings/return owner dominant. Approval makes readiness/currentness/task meaning dominant and sign-off the sole primary mutation; technical identity is subordinate.
+**Forbidden:** old generic stage/card review markup; primitive mutation; technical-identity-first hierarchy.
+**Proof:** purge commit + fresh Readiness/Approval schemas + readiness return/blocked/ready and Approval current/stale/sign-off tests + wide/narrow rendered review.
 
-## IA32 — migrate Implementation operational master/detail
+## IA32 — destructively replace Implementation
 
 **Solution:** SD26.
-**Owner:** `ui/src/ExecutionWorkspace.tsx` consuming IA27 primitives and the IA30 timeline adapter.
-**Required mutation:** use the one canonical persistent operational master/detail topology. Wide has fixed master width; constrained uses primitive-owned start Drawer while detail remains primary. Detail presents current execution owner/action, attempt, blocker, validation and chronology; historical task selection never steals current attention.
-**Deletion proof:** delete alternate stacked/card/task-count-driven execution layouts and execution-specific recurring component chrome.
-**Forbidden:** changing execution/task/validation semantics; modifying IA27 or IA30 owners.
-**Proof:** execution task-state/attempt/blocker/validation browser matrix plus wide+narrow rendered comparison to implementation/task-state references; zero unresolved FAIL before IA33.
+**Owner:** `ui/src/ExecutionWorkspace.tsx`.
+**Retained dependencies:** replacement `RunEventTimeline` from IA30, Workbench primitives, canonical execution/query owners.
+**Required mutation:** delete the old Implementation screen at the purge checkpoint, then recreate it from the fresh C12 screen schema as the canonical operational master/detail topology. Detail presents current task/owner/action, attempt, blocker, validation and chronology; historical selection never steals current attention.
+**Forbidden:** old stacked/card/task-count-driven layout; primitive mutation; copying prior execution markup/classes.
+**Proof:** purge commit + fresh Implementation schema + execution task/attempt/blocker/validation tests + wide/narrow rendered comparison.
 
-## IA33 — migrate Complete, Evidence and Context/material surfaces
+## IA33 — destructively replace Complete, Evidence and Context
 
 **Solution:** SD27 plus IA19 product-language projection.
 **Owners:** `ui/src/TerminalResult.tsx`, `ui/src/EvidenceViewer.tsx`, `ui/src/WorkItemContext.tsx`.
-**Required mutation:** Complete uses canonical Terminal-result composition with final outcome primary, candidate resources only for executed delivery and linked remediation as separate authoring. Evidence uses Evidence-class presentation. Context is secondary/supporting only, docked wide and Drawer constrained.
-**Deletion proof:** remove result/evidence/context feature-card systems, duplicated metadata/status chrome and alternate context topology.
-**Forbidden:** changing outcome/resource/material semantics; modifying IA27 owners.
-**Proof:** candidate/non-candidate/linked-remediation/evidence/context browser cases plus wide+narrow rendered comparison; zero unresolved FAIL before IA34.
+**Retained dependencies:** approved raw-content leaves, `ui/src/workbench-presentation.ts`, canonical material/query owners.
+**Required mutation:** delete all three old screens at the purge checkpoint, then recreate fresh Terminal result, Evidence and Compact context screens from R2. Complete makes final outcome primary, candidate resources only when applicable, and linked remediation a separate authoring action. Context remains supporting/technical only.
+**Forbidden:** old result/evidence/context card systems; primitive mutation; copying prior screen hierarchy.
+**Proof:** purge commit + fresh terminal/evidence/context schemas + candidate/non-candidate/linked-remediation/material tests + wide/narrow rendered review.
 
-## IA34 — migrate Settings and OpenCode/account configuration
+## IA34 — destructively replace Settings and OpenCode/account configuration
 
 **Solution:** SD28 plus IA18.
 **Owners:** `ui/src/SettingsWorkspace.tsx`, `ui/src/OpenCodeAccountControl.tsx`, `ui/src/OpenCodeAccountSettings.tsx`.
-**Required mutation:** use canonical SettingsLayout/Form/Table/Status/Notice/Confirmation composition. Productive readiness, meaning and available operator actions are primary. Exact paths/endpoints/account/credential-like identity are subordinate unless the active configuration task requires them. Repository/account/model tasks use the same control/action grammar as Create.
-**Deletion proof:** remove admin-page/card/bespoke account/repository/model component systems and recurring Settings feature chrome.
-**Forbidden:** changing config/provider/readiness ownership; modifying IA27 owners.
-**Proof:** settings/readiness/repository/account/model/login/confirmation browser matrix plus wide+narrow and theme rendered comparisons; zero unresolved FAIL before IA20-IA23/IA26.
+**Required mutation:** delete all three old screen implementations at the purge checkpoint, then recreate fresh operator-first Settings/configuration screens from R2. Readiness/meaning/actions are primary; exact paths/endpoints/account identifiers are subordinate unless the active task requires them.
+**Forbidden:** old admin/card/account/repository/model screen grammar; primitive mutation; feature-local structural CSS.
+**Proof:** purge commit + fresh Settings/account/configuration schemas + readiness/repository/account/model/login/confirmation tests + wide/narrow/theme rendered review.
+
 ## IA26 — rendered 0.6.0 UX/UI acceptance evidence
 
 **Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and the reviewed derived visual reference pack at `docs/references/workbench-ui/README.md`. Current R2/DESIGN/P3-P6 authority wins over any 0.5.0 SVG reference on conflict.  
