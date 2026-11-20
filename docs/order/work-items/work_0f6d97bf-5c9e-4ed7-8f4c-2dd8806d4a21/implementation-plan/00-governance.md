@@ -6,9 +6,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`.
-- R2 `requirements.md`: `bf8699df1349fcf977a3e2d7690d78f83736d937`.
-- DESIGN `solution-design.md`: `67a55fcd476edfbfc905af7c4e828812de7aae44`.
+- R1 `research.md`: `a22200e0765f740e89b2f05727e126fbf9e0b034`.
+- R2 `requirements.md`: `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`.
+- DESIGN `solution-design.md`: `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -49,6 +49,8 @@ A path absent from `changeSurface` is not automatically authorized and is not au
 ## Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
+
+For SD02, manifest authority selection is the reachable source set; IA02 must project only the lifecycle-applicable stable/versioned material selected by the pinned schema/stage/explicit refs. A retained historical source may remain reachable without entering current v2 context by raw layer membership.
 
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
 
