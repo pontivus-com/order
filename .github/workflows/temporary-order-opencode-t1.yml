@@ -16,15 +16,15 @@ concurrency:
 
 jobs:
   certify:
-    name: live-order-opencode-t1
+    name: simulated-order-opencode-t1
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
       WORK_ITEM_ID: work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21
       EXPECTED_BASELINE: 3c9fa8e70f710426735bfd823aef365ddf9fa5f8
+      EXPECTED_CANDIDATE: 9f1f9c6c33b4c0afbdd9e06874015a7caa129573
+      OPENCODE_DRIVE_VERSION: 2.4.1
       PONTIVUS_ORDER_BIND: 127.0.0.1:17347
-      OPENCODE_AUTH_EXPORT_B64: ${{ secrets.PONTIVUS_ORDER_CI_OPENCODE_AUTH_B64 }}
-      PONTIVUS_ORDER_CI_MODEL: ${{ vars.PONTIVUS_ORDER_CI_MODEL }}
 
     steps:
       - name: Checkout exact temporary-scaffold branch head
@@ -64,7 +64,69 @@ jobs:
           BUN_INSTALL="${RUNNER_TEMP}/pontivus-order-opencode" \
             "${RUNNER_TEMP}/bun-bin/bun" install -g --trust @opencode/cli@2.2.6
           test "$("${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" --version)" = "opencode v2.2.6"
-          echo "PONTIVUS_ORDER_OPENCODE_BIN=${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" >> "${GITHUB_ENV}"
+          echo "PONTIVUS_ORDER_REAL_OPENCODE_BIN=${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" >> "${GITHUB_ENV}"
+
+      - name: Install exact OpenCode Drive simulation harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          drive_root="${RUNNER_TEMP}/order-drive"
+          rm -rf "${drive_root}"
+          mkdir -p "${drive_root}"
+          cat > "${drive_root}/package.json" <<'JSON'
+          {
+            "private": true,
+            "type": "module"
+          }
+          JSON
+          (
+            cd "${drive_root}"
+            "${RUNNER_TEMP}/bun-bin/bun" add --exact               "opencode-drive@${OPENCODE_DRIVE_VERSION}"               "effect@4.0.1"
+          )
+          DRIVE_ROOT="${drive_root}" EXPECTED_VERSION="${OPENCODE_DRIVE_VERSION}"             "${RUNNER_TEMP}/bun-bin/bun" -e '
+              const pkg = await Bun.file(process.env.DRIVE_ROOT + "/node_modules/opencode-drive/package.json").json();
+              if (pkg.version !== process.env.EXPECTED_VERSION) {
+                throw new TypeError("OpenCode Drive version mismatch: " + pkg.version);
+              }
+            '
+
+          wrapper="${RUNNER_TEMP}/order-opencode-sim"
+          cat > "${wrapper}" <<EOF
+          #!/usr/bin/env bash
+          set -euo pipefail
+          real="${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode"
+          bun="${RUNNER_TEMP}/bun-bin/bun"
+          merged="$("${RUNNER_TEMP}/bun-bin/bun" -e '
+            const base = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT ?? "{}");
+            const simulation = {
+              name: "Order CI Simulation",
+              package: "@opencode/ai/providers/openai/chat",
+              settings: { apiKey: "order-ci-simulation" },
+              models: {
+                "order-sim-model": {
+                  name: "Order CI Simulated Model",
+                  capabilities: { tools: true, input: ["text"], output: ["text"] },
+                  cost: { input: 0, output: 0 },
+                  limit: { context: 4000000, output: 1000000 }
+                }
+              }
+            };
+            process.stdout.write(JSON.stringify({
+              ...base,
+              update: "disable",
+              providers: { ...(base.providers ?? {}), simulation }
+            }));
+          ')"
+          export OPENCODE_CONFIG_CONTENT="${merged}"
+          export OPENCODE_SIMULATE=1
+          export OPENCODE_DRIVE=1
+          exec "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "$@"
+          EOF
+          chmod +x "${wrapper}"
+          test "$("${wrapper}" --version)" = "opencode v2.2.6"
+
+          echo "ORDER_CI_DRIVE_ROOT=${drive_root}" >> "${GITHUB_ENV}"
+          echo "PONTIVUS_ORDER_OPENCODE_BIN=${wrapper}" >> "${GITHUB_ENV}"
 
       - name: Install candidate dependencies and build daemon assets
         shell: bash
@@ -442,105 +504,277 @@ jobs:
           rm -f .temporary-order-bootstrap.ts
           cat "${RUNNER_TEMP}/seed-summary.json"
 
-      - name: Establish OpenCode Console account and select model
+      - name: Start OpenCode Drive deterministic model controller
         shell: bash
         run: |
           set -euo pipefail
-          cat > .temporary-order-opencode-auth.ts <<'TS'
+          unexpected="$(git diff --name-only "${EXPECTED_CANDIDATE}" HEAD -- .             ':(exclude).github/workflows/temporary-order-opencode-t1.yml')"
+          if [[ -n "${unexpected}" ]]; then
+            echo "Current branch differs from the exact implementation candidate outside temporary certification scaffolding:" >&2
+            echo "${unexpected}" >&2
+            exit 1
+          fi
+
+          cat > "${ORDER_CI_DRIVE_ROOT}/order-controller.ts" <<'TS'
+          import * as Effect from "effect/Effect";
+          import * as Exit from "effect/Exit";
+          import * as Stream from "effect/Stream";
+          import * as Llm from "opencode-drive/llm";
+          import * as SimulationConnector from "./node_modules/opencode-drive/src/simulation/connector.ts";
+          import * as LlmController from "./node_modules/opencode-drive/src/driver/llm-controller.ts";
+
+          const repository = process.env.GITHUB_WORKSPACE;
+          const candidateCommit = process.env.EXPECTED_CANDIDATE;
+          const compatibleMarker = process.env.ORDER_CI_DRIVE_COMPATIBLE;
+          if (!repository || !candidateCommit || !compatibleMarker) {
+            throw new TypeError("Drive controller environment is incomplete");
+          }
+
+          const waves = [
+            [
+              "src/core/contracts.ts",
+              "src/core/governance.ts",
+              "src/core/lifecycle.ts",
+              "src/daemon/authority.ts",
+              "src/daemon/stage.ts",
+              "tests/certification.test.ts",
+              "tests/core.test.ts",
+              "tests/daemon.test.ts",
+            ],
+            ["src/core/execution.ts"],
+            [
+              "src/daemon/work-item-source.ts",
+              "tests/browser.spec.ts",
+              "ui/src/CreateWorkItem.tsx",
+              "ui/src/DocumentWorkspace.tsx",
+              "ui/src/WorkItemQueue.tsx",
+              "ui/src/app.tsx",
+            ],
+            [
+              "README.md",
+              "tests/workbench-presentation.test.ts",
+              "ui/src/ActivityComposer.tsx",
+              "ui/src/ActivityWorkspace.tsx",
+              "ui/src/PreSignoffStageWorkspace.tsx",
+              "ui/src/ReadinessWorkspace.tsx",
+              "ui/src/SettingsWorkspace.tsx",
+              "ui/src/SignoffReview.tsx",
+              "ui/src/TerminalResult.tsx",
+              "ui/src/WorkItemWorkspace.tsx",
+              "ui/src/workbench-presentation.ts",
+            ],
+            [
+              "src/shell/setup.ts",
+              "tests/installer.test.ts",
+              "tests/shell.test.ts",
+            ],
+            ["tests/e2e-server.ts"],
+          ] as const;
+          const closeout = ["CHANGELOG.md"] as const;
+          const allPaths = [...waves.flat(), ...closeout];
+
+          const readCandidate = (path: string): string => {
+            const result = Bun.spawnSync(
+              ["git", "-C", repository, "show", candidateCommit + ":" + path],
+              { stdout: "pipe", stderr: "pipe" },
+            );
+            if (result.exitCode !== 0) {
+              throw new TypeError(
+                "cannot read candidate path " + path + ": " +
+                  new TextDecoder().decode(result.stderr).trim(),
+              );
+            }
+            return new TextDecoder().decode(result.stdout);
+          };
+          const candidate = new Map(allPaths.map((path) => [path, readCandidate(path)]));
+
+          type Role = "BUILDER" | "REVIEWER" | "REMEDIATOR";
+          let role: Role | null = null;
+          let waveIndex = 0;
+          let pathIndex = 0;
+          let closeoutIndex = 0;
+          let callIndex = 0;
+
+          const textResponse = (value: unknown) =>
+            Stream.fromIterable([
+              Llm.text(JSON.stringify(value)),
+              Llm.finish("stop"),
+            ]);
+
+          const writeResponse = (path: string) => {
+            const content = candidate.get(path);
+            if (content === undefined) throw new TypeError("candidate content missing for " + path);
+            callIndex += 1;
+            return Stream.fromIterable([
+              Llm.toolCall({
+                index: 0,
+                id: "call_order_" + String(callIndex).padStart(3, "0"),
+                name: "write",
+                input: { path, content },
+              }),
+              Llm.finish("tool-calls"),
+            ]);
+          };
+
+          const detectRole = (body: unknown): Role => {
+            const value = JSON.stringify(body);
+            if (value.includes("Order execution role: BUILDER")) return "BUILDER";
+            if (value.includes("Order execution role: REVIEWER")) return "REVIEWER";
+            if (value.includes("Order execution role: REMEDIATOR")) return "REMEDIATOR";
+            throw new TypeError("unrecognized Order productive LLM request");
+          };
+
+          const controllerProgram = Effect.scoped(
+            Effect.gen(function* () {
+              const controller = yield* LlmController.make({
+                requestTimeout: 60_000,
+                settlementTimeout: 60_000,
+              });
+
+              yield* controller.serve((request) => {
+                role ??= detectRole(request.body);
+
+                if (role === "BUILDER") {
+                  if (waveIndex < waves.length) {
+                    const paths = waves[waveIndex];
+                    if (pathIndex < paths.length) {
+                      const path = paths[pathIndex];
+                      pathIndex += 1;
+                      return writeResponse(path);
+                    }
+                    pathIndex = 0;
+                    waveIndex += 1;
+                    return textResponse([
+                      { tag: "GATE_CHECKPOINT_REQUESTED", gateId: "architecture" },
+                    ]);
+                  }
+
+                  if (closeoutIndex < closeout.length) {
+                    const path = closeout[closeoutIndex];
+                    closeoutIndex += 1;
+                    return writeResponse(path);
+                  }
+
+                  return textResponse([
+                    {
+                      tag: "AGENT_MESSAGE_FINAL",
+                      text: "Exact authority-driven candidate assembled through OpenCode simulation.",
+                      evidence: [],
+                    },
+                  ]);
+                }
+
+                if (role === "REVIEWER") {
+                  return textResponse([
+                    {
+                      tag: "REVIEW_PASSED",
+                      minimumChange: "MINIMUM_SUFFICIENT",
+                      minimumChangeSummary: null,
+                      evidence: [],
+                    },
+                  ]);
+                }
+
+                throw new TypeError("unexpected REMEDIATOR request for exact corrected candidate");
+              });
+
+              while (true) {
+                const cycle = Effect.scoped(
+                  Effect.gen(function* () {
+                    const backend = yield* SimulationConnector.backend(
+                      "ws://127.0.0.1:40950",
+                      {
+                        connectTimeout: 1_000,
+                        requestTimeout: 60_000,
+                        compatibility: "required",
+                      },
+                    );
+                    yield* Effect.promise(() =>
+                      Bun.write(compatibleMarker, "OpenCode simulation protocol negotiated\n")
+                    );
+                    role = null;
+                    const attachment = yield* controller.attach(backend);
+                    yield* backend.closed.pipe(Effect.ensuring(attachment.detach()));
+                  }),
+                );
+                const outcome = yield* Effect.exit(cycle);
+                if (Exit.isFailure(outcome)) {
+                  yield* Effect.sleep("100 millis");
+                }
+              }
+            }),
+          );
+
+          await Effect.runPromise(controllerProgram);
+          TS
+
+          export ORDER_CI_DRIVE_COMPATIBLE="${RUNNER_TEMP}/order-drive-compatible"
+          rm -f "${ORDER_CI_DRIVE_COMPATIBLE}"
+          controller_log="${RUNNER_TEMP}/order-drive-controller.log"
+          (
+            cd "${ORDER_CI_DRIVE_ROOT}"
+            GITHUB_WORKSPACE="${GITHUB_WORKSPACE}"               EXPECTED_CANDIDATE="${EXPECTED_CANDIDATE}"               ORDER_CI_DRIVE_COMPATIBLE="${ORDER_CI_DRIVE_COMPATIBLE}"               "${RUNNER_TEMP}/bun-bin/bun" order-controller.ts
+          ) >"${controller_log}" 2>&1 &
+          controller_pid=$!
+          echo "ORDER_CI_DRIVE_PID=${controller_pid}" >> "${GITHUB_ENV}"
+          echo "ORDER_CI_DRIVE_COMPATIBLE=${ORDER_CI_DRIVE_COMPATIBLE}" >> "${GITHUB_ENV}"
+          echo "${controller_pid}" > "${RUNNER_TEMP}/order-drive-controller.pid"
+          sleep 1
+          if ! kill -0 "${controller_pid}" 2>/dev/null; then
+            echo "OpenCode Drive controller exited during startup" >&2
+            cat "${controller_log}" >&2 || true
+            exit 1
+          fi
+
+      - name: Seed OpenCode simulation account and select simulated model
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > .temporary-order-opencode-simulation.ts <<'TS'
           import {
             buildOrderConfig,
             writeOrderConfig,
           } from "./src/shell/config.ts";
           import {
-            buildOpenCodeEnvironment,
             listAvailableOpenCodeModels,
             listOpenCodeAccounts,
-            pollOpenCodeAccountOAuth,
             startOpenCodeAccountControl,
-            startOpenCodeAccountOAuth,
             stopOpenCodeAccountControl,
           } from "./src/shell/opencode.ts";
 
           const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
-          const binary = process.env.PONTIVUS_ORDER_OPENCODE_BIN;
           const targetRoot = process.env.TARGET_REPOSITORY_ROOT;
-          if (!stateRoot || !binary || !targetRoot) {
-            throw new TypeError("OpenCode CI environment is incomplete");
+          if (!stateRoot || !targetRoot) {
+            throw new TypeError("OpenCode simulation environment is incomplete");
           }
 
-          const exported = process.env.OPENCODE_AUTH_EXPORT_B64?.trim() ?? "";
-          if (exported.length > 0) {
-            const authFile = process.env.RUNNER_TEMP + "/opencode-auth.json";
-            await Bun.write(authFile, Uint8Array.from(Buffer.from(exported, "base64")));
-            const authEnvironment = buildOpenCodeEnvironment(stateRoot, process.env);
-            const child = Bun.spawn(
-              [binary, "auth", "import", authFile, "--standalone"],
-              {
-                cwd: targetRoot,
-                env: authEnvironment,
-                stdin: "ignore",
-                stdout: "pipe",
-                stderr: "pipe",
-              },
-            );
-            const [exitCode, stdout, stderr] = await Promise.all([
-              child.exited,
-              new Response(child.stdout).text(),
-              new Response(child.stderr).text(),
-            ]);
-            await Bun.file(authFile).delete().catch(() => undefined);
-            if (exitCode !== 0) {
-              throw new TypeError(
-                "OpenCode auth import failed: " +
-                  (stderr.trim() || stdout.trim() || "unknown failure"),
-              );
-            }
-          } else {
-            const control = await startOpenCodeAccountControl(stateRoot, process.env);
-            try {
-              const existing = await listOpenCodeAccounts(control);
-              if (!existing.some((account) => account.active && account.status.status === "READY")) {
-                const started = await startOpenCodeAccountOAuth(
-                  control,
-                  "github-actions-live-certification",
-                );
-                process.stdout.write("\n=== OPENCODE CONSOLE AUTHORIZATION REQUIRED ===\n");
-                process.stdout.write("URL: " + started.authorizationUrl + "\n");
-                process.stdout.write("Instructions: " + started.instructions + "\n");
-                process.stdout.write("Expires: " + started.expiresAt + "\n");
-                process.stdout.write("=== END AUTHORIZATION REQUEST ===\n\n");
-
-                while (true) {
-                  const status = await pollOpenCodeAccountOAuth(
-                    control,
-                    started.providerAttemptId,
-                  );
-                  if (status.status === "COMPLETED") break;
-                  if (status.status === "FAILED") {
-                    throw new TypeError("OpenCode Console authorization failed: " + status.message);
-                  }
-                  if (status.status === "EXPIRED") {
-                    throw new TypeError("OpenCode Console authorization expired");
-                  }
-                  await Bun.sleep(3000);
-                }
-              }
-            } finally {
-              await stopOpenCodeAccountControl(control);
-            }
-          }
-
-          const verify = await startOpenCodeAccountControl(stateRoot, process.env);
+          const control = await startOpenCodeAccountControl(stateRoot, process.env);
           try {
-            const accounts = await listOpenCodeAccounts(verify);
+            let accounts = await listOpenCodeAccounts(control);
+            if (!accounts.some((account) => account.active && account.status.status === "READY")) {
+              await control.client.credential.create({
+                integrationID: "opencode",
+                label: "github-actions-simulation",
+                value: {
+                  type: "oauth",
+                  methodID: "device",
+                  refresh: "order-ci-simulation-refresh",
+                  access: "order-ci-simulation-access",
+                  expires: Date.now() + 86_400_000,
+                  metadata: { orgName: "Order CI Simulation" },
+                },
+                activate: true,
+              });
+              accounts = await listOpenCodeAccounts(control);
+            }
             const active = accounts.find(
               (account) => account.active && account.status.status === "READY",
             );
             if (active === undefined) {
-              throw new TypeError("OpenCode Console account is not productively READY");
+              throw new TypeError("simulated OpenCode Console account is not productively READY");
             }
           } finally {
-            await stopOpenCodeAccountControl(verify);
+            await stopOpenCodeAccountControl(control);
           }
 
           const models = await listAvailableOpenCodeModels(
@@ -548,15 +782,16 @@ jobs:
             targetRoot,
             process.env,
           );
-          if (models.length === 0) {
-            throw new TypeError("OpenCode Console account exposes no enabled models");
-          }
-          const requested = process.env.PONTIVUS_ORDER_CI_MODEL?.trim() ?? "";
-          const selected = requested.length === 0
-            ? models.find((model) => model.providerID === "opencode") ?? models[0]
-            : models.find((model) => `${model.providerID}/${model.id}` === requested);
+          const selected = models.find(
+            (model) =>
+              model.providerID === "simulation" &&
+              model.id === "order-sim-model",
+          );
           if (selected === undefined) {
-            throw new TypeError("requested CI model is not enabled: " + requested);
+            throw new TypeError(
+              "OpenCode simulation model is unavailable; enabled=" +
+                models.map((model) => model.providerID + "/" + model.id).join(","),
+            );
           }
           writeOrderConfig(
             stateRoot,
@@ -565,11 +800,32 @@ jobs:
           process.stdout.write(JSON.stringify({
             providerID: selected.providerID,
             modelId: selected.id,
+            mode: "OPENCODE_SIMULATE",
           }) + "\n");
           TS
 
-          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-auth.ts
-          rm -f .temporary-order-opencode-auth.ts
+          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-simulation.ts
+          rm -f .temporary-order-opencode-simulation.ts
+
+          compatible=false
+          for _ in $(seq 1 100); do
+            if [[ -s "${ORDER_CI_DRIVE_COMPATIBLE}" ]]; then
+              compatible=true
+              break
+            fi
+            if ! kill -0 "${ORDER_CI_DRIVE_PID}" 2>/dev/null; then
+              echo "OpenCode Drive controller exited before compatibility negotiation" >&2
+              cat "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+              exit 1
+            fi
+            sleep 0.1
+          done
+          if [[ "${compatible}" != "true" ]]; then
+            echo "OpenCode Drive did not negotiate the pinned OpenCode simulation protocol" >&2
+            cat "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+            exit 1
+          fi
+          cat "${ORDER_CI_DRIVE_COMPATIBLE}"
 
       - name: Prove seed is the fresh signed T1
         shell: bash
@@ -735,6 +991,7 @@ jobs:
           echo "T1 terminal state: ${terminal}"
           [[ "${terminal}" == "CANDIDATE_DONE" ]] || {
             tail -n 250 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
+            tail -n 250 "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
             exit 1
           }
 
@@ -914,7 +1171,7 @@ jobs:
             echo '~~~'
           } >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Stop daemon
+      - name: Stop daemon and OpenCode Drive controller
         if: always()
         shell: bash
         run: |
@@ -922,8 +1179,20 @@ jobs:
           if [[ -n "${ORDER_CI_DAEMON_PID:-}" ]]; then
             kill "${ORDER_CI_DAEMON_PID}" 2>/dev/null || true
             for _ in $(seq 1 20); do
-              kill -0 "${ORDER_CI_DAEMON_PID}" 2>/dev/null || exit 0
+              kill -0 "${ORDER_CI_DAEMON_PID}" 2>/dev/null || break
               sleep 1
             done
             kill -KILL "${ORDER_CI_DAEMON_PID}" 2>/dev/null || true
+          fi
+          if [[ -n "${ORDER_CI_DRIVE_PID:-}" ]]; then
+            kill "${ORDER_CI_DRIVE_PID}" 2>/dev/null || true
+            for _ in $(seq 1 20); do
+              kill -0 "${ORDER_CI_DRIVE_PID}" 2>/dev/null || break
+              sleep 0.25
+            done
+            kill -KILL "${ORDER_CI_DRIVE_PID}" 2>/dev/null || true
+          fi
+          if [[ -s "${RUNNER_TEMP}/order-drive-controller.log" ]]; then
+            echo "=== OpenCode Drive controller tail ==="
+            tail -n 100 "${RUNNER_TEMP}/order-drive-controller.log" || true
           fi
