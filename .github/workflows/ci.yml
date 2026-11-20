@@ -114,3 +114,27 @@ jobs:
 
       - name: browser
         run: node node_modules/@playwright/test/cli.js test
+
+      - name: Record rendered acceptance candidate
+        id: rendered_candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: rendered acceptance phase 1
+        env:
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR: ${{ runner.temp }}/order-rendered-acceptance
+          PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA: ${{ steps.rendered_candidate.outputs.sha }}
+        run: >-
+          node node_modules/@playwright/test/cli.js test
+          --grep "rendered acceptance phase 1 captures Queue and Create WorkItem"
+
+      - name: Upload rendered acceptance phase 1
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rendered-acceptance-phase-1-${{ steps.rendered_candidate.outputs.sha }}
+          path: ${{ runner.temp }}/order-rendered-acceptance
+          if-no-files-found: error
+          retention-days: 14
