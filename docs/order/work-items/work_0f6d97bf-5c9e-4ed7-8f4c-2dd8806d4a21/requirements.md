@@ -214,7 +214,7 @@ This ledger records the exact factual basis consumed by R2 after G-F10 plus the 
 | `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `CONFORMS` | `C22-O09` | `REFERENCE` | C22 |
 | `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `CONFORMS` | `C15-O03`, `C15-O04`, `C15-O08` | `REFERENCE` | C15 |
 | `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `CONFORMS` | `C15-O12`, `C15-O13` | `REFERENCE` | C15 |
-| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `CONFORMS` | `DIRECT-FR103` | `REFERENCE` | C20 |
+| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `VERIFICATION_GAP` | `DIRECT-FR103`, `C20-F04` | `REFERENCE` | C20 |
 | `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | `CONFORMS` | `C15-O03`, `C15-O04` | `REFERENCE` | C15 |
 | `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `CONFORMS_WITH_DEPENDENCY` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `REFERENCE` | C22 |
 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `MIXED` | `C05-O05`, `C05-O06`, `C05-O11` | `REFERENCE` | C05 |
@@ -431,7 +431,7 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 
 **C19.** The application has one Workbench/Astryx component and theme language. Every production renderer must be classifiable against the canonical renderer-to-primitive ownership matrix; an unclassified renderer is an architecture defect, not permission for a feature-local visual system.
 
-**C20.** Certification proves the reconstructed authority, not historical behavior. Permanent verification must cover the complete required scenario matrix, including all four WorkItem kinds' Research information contracts and the Change/Defect downstream distinction (scenario 41), plus representative cross-application component/semantic-role parity under System/Light/Dark modes (scenarios 26 and 33-36). Green adjacent tests do not imply untested obligations.
+**C20.** Certification proves the reconstructed authority, not historical behavior. Permanent verification must cover the complete required scenario matrix, including all four WorkItem kinds' Research information contracts and the Change/Defect downstream distinction (scenario 41), plus representative cross-application component/semantic-role parity under System/Light/Dark modes (scenarios 26 and 33-36). It must also satisfy `GW-FR-103` at the actual productive OpenCode process boundary: a fake OpenCode executable may support lower-level deterministic fixtures but cannot by itself prove the exact supported OpenCode process/session contract. Deterministic model simulation is admissible for repeatable integration proof only when the OpenCode process under test is the exact supported pin and the evidence states which external provider/account semantics are intentionally not proved by the simulation. Temporary branch-only scaffolding is not a substitute for retained permanent certification. Green adjacent tests do not imply untested obligations.
 
 ## Acceptance criteria
 
@@ -456,7 +456,7 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 | C17 | Canonical current attention/recovery remains visible/reachable through selection, failure and asynchronous convergence. |
 | C18 | Responsive/focus/keyboard semantics hold; each new required-input request receives one non-repeating focus transition. |
 | C19 | Every production renderer is covered by the canonical primitive ownership rule and one theme/component system. |
-| C20 | Permanent certification covers the full kind/stage and representative cross-application theme/semantic-role matrices required by P3. |
+| C20 | Permanent certification covers the full kind/stage and representative cross-application theme/semantic-role matrices required by P3, plus the exact-pin productive OpenCode process/session boundary required by `GW-FR-103`; fake-process fixtures and temporary scaffolding alone are insufficient. |
 | C21 | Public/product surfaces consistently use verified result/verified candidate and do not overclaim automatic delivery commits or universal execution. |
 | C22 | Authority precedence/default/override/extension semantics resolve before provider interpretation and unresolved contradiction blocks. |
 
