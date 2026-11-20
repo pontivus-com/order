@@ -2,11 +2,11 @@
 
 # Order 0.6.0 readiness review
 
-**Current-state interpretation:** this file is the canonical R3 verdict for the exact reviewed package below. Campaign progression remains owned exclusively by `0.6.0-design-campaign-plan.md`; this artifact does not itself close campaign state, authorize implementation, or replace explicit human sign-off.
+**Supersession notice:** this artifact is retained as historical R3 evidence for the exact package recorded below. It is no longer the current readiness verdict. Post-R3 reconciliation proved `C20-F04`: permanent `GW-FR-103` exact-pin OpenCode certification was missing, which changed R1, R2, DESIGN and PLAN through SD20/IA23. Campaign progression remains owned exclusively by `0.6.0-design-campaign-plan.md`; fresh affected pair/ALIGN revalidation, G5A and a new adversarial R3 are required before sign-off can again be authorized.
 
 ## Readiness verdict
 
-`READY_FOR_SIGNOFF`.
+Historical verdict: `READY_FOR_SIGNOFF` — **superseded; not current sign-off authority**.
 
 This is a fresh adversarial R3 review performed only after the byte-exact normalized repaired package passed current final vertical alignment. The prior readiness artifacts `e1f7ecc5bed230461fd6945c72c5b8216c087d18`, `a89133fd27c7838b1fcab440255531cc45d4077c`, `6045107daaaf3b777d86eefad9ee8ad06729ced6`, `d822634d057e17a162403f588dc27f56435a9f50`, and `84cf4d17e9f662b1ab86895ac806277e027a20dc` are stale historical evidence: the first was falsified by `ALIGN-A09-F01`; the latter two were superseded by permanent-sensor normalization, culminating in the final root/modular PLAN byte-compilation correction. No earlier R3 conclusion is inherited, and this R3 performs no repair.
 
