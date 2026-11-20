@@ -2308,6 +2308,36 @@ test("work-type variants preserve their canonical Work request information contr
   await expect(defectRequirements).toContainText("Behavior that must remain unchanged");
   await expect(defectRequirements).toContainText("Regression / preservation acceptance");
   await expect(defectRequirements).not.toContainText("Proven current-state / absence basis");
+
+  await page.goto("/");
+  await openWorkItem(page, "Change solution design contract");
+  const changeDesign = page.getByTestId("lifecycle-document-material");
+  await expect(changeDesign).toContainText("Requested outcome");
+  await expect(changeDesign).toContainText("Proven current-state / absence basis");
+  await expect(changeDesign).not.toContainText("Proven root cause / producing boundary");
+
+  await page.goto("/");
+  await openWorkItem(page, "Defect solution design contract");
+  const defectDesign = page.getByTestId("lifecycle-document-material");
+  await expect(defectDesign).toContainText("Proven root cause / producing boundary");
+  await expect(defectDesign).toContainText("Preservation invariants");
+  await expect(defectDesign).not.toContainText("Proven current-state / absence basis");
+
+  await page.goto("/");
+  await openWorkItem(page, "Change implementation plan contract");
+  const changePlan = page.getByTestId("lifecycle-document-material");
+  await expect(changePlan).toContainText("Requested outcome");
+  await expect(changePlan).toContainText("Proven current-state / absence basis");
+  await expect(changePlan).not.toContainText("Exact remediation");
+
+  await page.goto("/");
+  await openWorkItem(page, "Defect implementation plan contract");
+  const defectPlan = page.getByTestId("lifecycle-document-material");
+  await expect(defectPlan).toContainText("Exact remediation");
+  await expect(defectPlan).toContainText("Reproduction verification");
+  await expect(defectPlan).toContainText("Regression verification");
+  await expect(defectPlan).toContainText("Preservation verification");
+  await expect(defectPlan).not.toContainText("Proven current-state / absence basis");
 });
 
 test("Readiness required input owns the action without replacing Review", async ({

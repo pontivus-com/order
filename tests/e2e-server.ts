@@ -285,6 +285,67 @@ Regression and preservation checks are mandatory.
 Only the governed remediation is in scope.
 `;
 
+const changeDesignContractText = `# Solution design
+
+## Requested outcome
+
+The design remains traceable to the requested outcome.
+
+## Proven current-state / absence basis
+
+The chosen solution addresses the confirmed current-state absence.
+
+## Solution boundary
+
+Only the governed change is designed.
+`;
+const defectDesignContractText = `# Solution design
+
+## Proven root cause / producing boundary
+
+The solution is anchored to the proven producing boundary.
+
+## Preservation invariants
+
+Unchanged behavior remains an explicit design constraint.
+
+## Remediation design
+
+The defect is corrected at its owning boundary.
+`;
+const changePlanContractText = `# Implementation plan
+
+## Requested outcome
+
+The implementation tasks remain traceable to the requested outcome.
+
+## Proven current-state / absence basis
+
+The task set closes the confirmed current-state absence.
+
+## Planned change
+
+Only the governed delta is implemented and verified.
+`;
+const defectPlanContractText = `# Implementation plan
+
+## Exact remediation
+
+The plan repairs the proven defect at its producing boundary.
+
+## Reproduction verification
+
+The original failure is reproduced and closed.
+
+## Regression verification
+
+The remediation is checked for regression.
+
+## Preservation verification
+
+Behavior required to remain unchanged is explicitly verified.
+`;
+
 const requirementsText = `# Requirements
 
 ## Purpose / product model
@@ -417,6 +478,10 @@ writeFileSync(join(repositoryRoot, "docs", "audit-r1.md"), auditResearchText);
 writeFileSync(join(repositoryRoot, "docs", "r2.md"), requirementsText);
 writeFileSync(join(repositoryRoot, "docs", "change-r2.md"), changeRequirementsContractText);
 writeFileSync(join(repositoryRoot, "docs", "defect-r2.md"), defectRequirementsContractText);
+writeFileSync(join(repositoryRoot, "docs", "change-design.md"), changeDesignContractText);
+writeFileSync(join(repositoryRoot, "docs", "defect-design.md"), defectDesignContractText);
+writeFileSync(join(repositoryRoot, "docs", "change-plan.md"), changePlanContractText);
+writeFileSync(join(repositoryRoot, "docs", "defect-plan.md"), defectPlanContractText);
 writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
 writeFileSync(
@@ -764,6 +829,24 @@ for (const [title, schemaId, path] of [
   const item = workItem(title, "R2", "ACTIVE", null, schemaId);
   storeWorkItem(database, item);
   await currentFileArtifact(seedRuntime, item, path, "R2", "P3");
+}
+
+for (const [title, schemaId, path] of [
+  ["Change solution design contract", "change-v1", "docs/change-design.md"],
+  ["Defect solution design contract", "defect-v1", "docs/defect-design.md"],
+] as const) {
+  const item = workItem(title, "DESIGN", "ACTIVE", null, schemaId);
+  storeWorkItem(database, item);
+  await currentFileArtifact(seedRuntime, item, path, "DESIGN", "P6");
+}
+
+for (const [title, schemaId, path] of [
+  ["Change implementation plan contract", "change-v1", "docs/change-plan.md"],
+  ["Defect implementation plan contract", "defect-v1", "docs/defect-plan.md"],
+] as const) {
+  const item = workItem(title, "PLAN", "ACTIVE", null, schemaId);
+  storeWorkItem(database, item);
+  await currentFileArtifact(seedRuntime, item, path, "PLAN", "P7");
 }
 
 const seedConformance = async (
