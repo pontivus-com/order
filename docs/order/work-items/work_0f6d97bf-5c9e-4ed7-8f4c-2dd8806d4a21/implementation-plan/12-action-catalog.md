@@ -2,6 +2,26 @@
 
 Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD30 under post-rendered-evidence reconstruction; historical action existence is not justification for retaining an action.
 
+## Signed-task audit ledger
+
+This is a trace/readability view of the one canonical `order-tasks` block in the root PLAN. It is **not** another executable task representation. A mismatch with the root block makes PLAN non-current.
+
+| Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
+|---|---|---|---|---|---|
+| T1 | SD01-SD20 non-UI remainder; IA01-IA10/IA25/SD20 portion of IA23 | — | core/daemon/shell + exact-pin verification | no reintroduction of execution-foundation or provider compatibility paths | all ordinary gates + targeted non-UI regressions |
+| T2 | SD21; IA27 | T1 | `ui/src/primitives/**`, `theme.css`, `styles.css` | duplicate/obsolete recurring UI/layout systems and feature-era primitive-equivalent selectors removed | primitive ownership/Astryx conformance + wide/narrow/theme harness PASS |
+| T3 | SD22 + SD03/SD05; IA11/IA12/IA28 | T2 | Queue/Create/application entry renderers | old Queue/Create table/form/modal grammar removed | Queue/Create functional matrix + rendered comparisons PASS |
+| T4 | SD23; IA13/IA14/IA29 | T3 | WorkItem shell, rail, Work request/document renderers | generic frame/identity/rail/document competing presentation removed | Work request/document/current-attention/Git + rendered PASS |
+| T5 | SD24; IA15/IA30 | T4 | pre-signoff Dialogue/Document/Proposal adapters | stage-local dialogue/proposal/timeline/layout systems removed | Research/Requirements/Design/Plan semantic + rendered PASS |
+| T6 | SD25; IA16/IA17/IA31 | T5 | Readiness + Approval renderers | generic stage/card and technical-first review grammar removed | readiness/return/currentness/sign-off + rendered PASS |
+| T7 | SD26; IA32 | T6 | Execution renderer | alternate stacked/card/task-count-driven execution layouts removed | task/attempt/blocker/validation/master-detail + rendered PASS |
+| T8 | SD27 + SD01 projection; IA19/IA33 | T7 | Complete/Evidence/Context renderers | result/evidence/context feature-card systems removed | candidate/non-candidate/evidence/context + rendered PASS |
+| T9 | SD28 + SD14; IA18/IA34 | T8 | Settings/account/configuration renderers | bespoke admin/account/repository/model component grammar removed | settings/readiness/account/model + rendered PASS |
+| T10 | SD16-SD18/SD29; IA20-IA23 | T9 | verification only | no production mutation; any production defect routes to T2-T9 | exhaustive renderer/theme/responsive/scenario/regression certification PASS |
+| T11 | SD30; IA26/IA24 | T10 | rendered evidence + CI + closeout metadata | no screenshot-driven production patch inside acceptance task | exhaustive manifest + row-level schema/UX/visual PASS + final V0-V7 |
+
+**Audit rule:** a task cannot be marked complete because later tasks happen to render acceptably. Its own deletion evidence, semantic proof and rendered proof must be retained. A downstream task discovering a foundation defect reopens the owning earlier task rather than patching around it.
+
 ## Execution waves
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
