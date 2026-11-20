@@ -1709,6 +1709,10 @@ materialRefs = []
         });
         const currentWork = coord.getWorkItem(runtime, currentCreated.id);
         const retainedWork = coord.getWorkItem(runtime, retainedCreated.id);
+        const [, reachable] = await authority.resolveCurrentStageAuthority(
+          currentWork,
+          "R1",
+        );
         const current = await authority.resolveStageContextState(
           runtime, currentWork, "R1",
         );
@@ -1721,10 +1725,16 @@ materialRefs = []
         const retainedPrompt = await stage.stagePrompt(
           retainedWork, "R1", retained.context, [], [],
         );
-        const p2 = current.context.authority.layers.find(
+        const p2 = reachable.layers.find(
           (entry) => entry.layer === "p2",
         );
-        const p3 = current.context.authority.layers.find(
+        const p3 = reachable.layers.find(
+          (entry) => entry.layer === "p3",
+        );
+        const currentMaterialP3 = current.context.authority.layers.find(
+          (entry) => entry.layer === "p3",
+        );
+        const retainedMaterialP3 = retained.context.authority.layers.find(
           (entry) => entry.layer === "p3",
         );
         const materialP3 = (context) => context.artifacts
@@ -1754,8 +1764,12 @@ materialRefs = []
           p2,
           p3,
           materialP2,
+          currentMaterialP3,
+          retainedMaterialP3,
           currentP3: materialP3(current.context),
           retainedP3: materialP3(retained.context),
+          currentAuthorityRefs: current.context.authority.authorityRefs,
+          retainedAuthorityRefs: retained.context.authority.authorityRefs,
           inherited: current.context.authority.inheritedDefaultRuleIds,
           fitness: current.context.authority.fitnessGateIds,
           currentPromptHasProjection:
@@ -1779,8 +1793,12 @@ materialRefs = []
         p2: { layer: string; sources: string[]; precedence: string[] };
         p3: { layer: string; sources: string[]; precedence: string[] };
         materialP2: string[];
+        currentMaterialP3: { layer: string; sources: string[]; precedence: string[] };
+        retainedMaterialP3: { layer: string; sources: string[]; precedence: string[] };
         currentP3: string[];
         retainedP3: string[];
+        currentAuthorityRefs: Array<[string, string]>;
+        retainedAuthorityRefs: Array<[string, string]>;
         inherited: string[];
         fitness: string[];
         currentPromptHasProjection: boolean;
@@ -1807,6 +1825,44 @@ materialRefs = []
         ],
       });
       expect(output.materialP2).toEqual([]);
+      expect(output.currentMaterialP3).toEqual({
+        layer: "p3",
+        sources: [
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+        precedence: [
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+      });
+      expect(output.retainedMaterialP3).toEqual({
+        layer: "p3",
+        sources: [
+          "docs/lifecycle-context-v1.md",
+          "docs/work-lifecycle.md",
+        ],
+        precedence: [
+          "docs/lifecycle-context-v1.md",
+          "docs/work-lifecycle.md",
+        ],
+      });
+      expect(output.currentAuthorityRefs).toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "docs/lifecycle-context-current.md",
+      ]);
+      expect(output.currentAuthorityRefs).not.toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V1",
+        "docs/lifecycle-context-v1.md",
+      ]);
+      expect(output.retainedAuthorityRefs).toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V1",
+        "docs/lifecycle-context-v1.md",
+      ]);
+      expect(output.retainedAuthorityRefs).not.toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "docs/lifecycle-context-current.md",
+      ]);
       expect(output.currentP3).toEqual([
         "docs/lifecycle-context-current.md",
         "docs/work-lifecycle.md",
@@ -1836,6 +1892,7 @@ materialRefs = []
     expect(governance).toContain("inheritedDefaultRuleIds");
     expect(governance).toContain("fitnessGateIdsByDefaultRuleId");
     expect(governance).toContain("permanentAuthorityProposalIsAdmitted");
+    expect(governance).toContain("export const projectAuthorityForSources");
     expect(governance).not.toContain("readFileSync");
     expect(governance).not.toContain("Bun.Glob");
 
