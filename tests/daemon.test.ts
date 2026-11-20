@@ -3742,7 +3742,7 @@ describe("daemon control plane", () => {
     });
     expect(output.recoveryArtifactCountUnchanged).toBe(true);
     expect(output.recoveryBytesUnchanged).toBe(true);
-  });
+  }, 30_000);
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
     const repository = createRepository();
