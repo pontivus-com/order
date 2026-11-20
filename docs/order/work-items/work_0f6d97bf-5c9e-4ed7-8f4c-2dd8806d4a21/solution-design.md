@@ -7,7 +7,7 @@
 This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
 - R1 `research.md`: blob `d2eb1627e2b9a145f785b04829b56c623b7431e9` — G-F12 factual package plus post-closeout rendered-evidence findings C19-F02/C20-F05. The first exact-candidate Queue/Create capture proves the Workbench presentation migration is incomplete; current UI remains defect evidence, not desired-state authority.
-- R2 `requirements.md`: blob `e01ce75ee0ece676c195a46f810186c24814e11f` — functional package unchanged in product semantics but now explicitly binds the rendered-evidence consequence: every UI domain must realize the already-defined Primary/Supporting/Technical hierarchy and canonical interaction class through one Workbench language; semantic/browser assertions alone cannot prove rendered fulfillment.
+- R2 `requirements.md`: blob `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` — functional package unchanged in product semantics but now explicitly binds the rendered-evidence consequence: every UI domain must realize the already-defined Primary/Supporting/Technical hierarchy and canonical interaction class through one Workbench language; semantic/browser assertions alone cannot prove rendered fulfillment.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
 - P4 Workbench: `36b5628f5d54d168aed25f0af71226114266068a`.
@@ -143,24 +143,29 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 
 ### G-F12 DESIGN closure decision — corrected after rendered-evidence revalidation
 
-The previous DESIGN closure incorrectly treated the Workbench presentation foundation as already conforming. C19-F02/C20-F05 disprove that implementation assumption without changing R2 product semantics. This corrected DESIGN therefore distinguishes **semantic preservation** from **presentation replacement**:
+The previous DESIGN closure incorrectly treated the Workbench screen realization as reusable. C19-F02/C20-F05 disprove that assumption without changing R2 product semantics. This corrected DESIGN draws a hard boundary between **retained UI capability** and **discarded screen implementation**:
 
 - canonical lifecycle/domain/query/daemon/persistence/provider owners remain unchanged unless another existing SD explicitly changes them;
-- the browser presentation layer is **not** preserved as a baseline: P4 already requires architecture-preserving re-composition around the closed Workbench primitive/theme system and deletion of superseded feature-era presentation mechanisms;
-- every applicable work kind and workflow step retains the R2 information/interaction contract, but its renderer must be migrated onto the exact interaction class and primitive composition in P4 §8.15;
-- the application shell, Queue/Create, WorkItem shell, pre-signoff Document/Dialogue/Review surfaces, Approval, Implementation, Complete, Context, Evidence and Settings are all covered by explicit technical solutions below;
-- responsive/accessibility/theme behavior is designed as primitive-owned composition, not feature-specific shrink/wrap logic;
-- old feature-owned recurring form/table/status/notice/overlay/layout styling is deleted as each domain migrates; compatibility wrappers, hidden old DOM, duplicate CSS systems and local override patches are prohibited;
+- the canonical Order Workbench primitive vocabulary and its approved Astryx/leaf-content foundations are retained as implementation capability; they are not redesign targets for this campaign unless a primitive-specific defect is independently proven upstream;
+- the existing application/screen implementations are **not** preserved, migrated, refactored or used as layout/information-design templates;
+- every replacement screen derives a fresh screen-information schema from current R2 and the canonical P4 screen-construction grammar, then composes that schema from retained primitives;
+- the old screen file is removed before replacement authorship begins; any valid underlying query/domain behavior is consumed again from its canonical owner rather than copied as screen code;
+- old screen JSX/DOM structure, field grouping, table columns, cards/panels, action placement, responsive branches, feature-local CSS and visual hierarchy are explicitly non-authoritative and may not be carried forward for compatibility;
+- shared stylesheets may change only to purge obsolete screen-specific selectors/compatibility rules and retain the primitive/theme foundation; downstream screen tasks may not create new feature-local structural CSS;
 - exact-candidate rendered acceptance supplements semantic/browser certification and is required before final closeout;
 - existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
 - open technical questions: NONE;
-- material technical UNPROVEN: 0 **after** SD21-SD30 below are included as binding DESIGN;
-- PLAN must implement SD21 before domain migrations SD22-SD29, then permanent certification/SD30; it may not tune individual screens on the superseded presentation foundation.
+- material technical UNPROVEN: 0 after SD21-SD30 below are included as binding DESIGN;
+- PLAN must establish the preservation/purge boundary first, then destructively replace each screen family, then run permanent certification/SD30. A task that edits the old screen into the new one is nonconforming.
 
-#### UI reconstruction preservation boundary
+#### Retained UI capability boundary
 
-The following are preserved and must not be redesigned by UI implementation:
+The following are retained and may be reused:
 
+- all canonical `ui/src/primitives/*.tsx` Workbench primitives under P4 §8.12-§8.14;
+- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/workbench-presentation.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` insofar as they retain their current non-screen responsibilities;
+- `ui/src/MarkdownEditor.tsx` and `ui/src/MarkdownSourceEditor.tsx` as approved specialized content/editor mechanisms under P4 §8.19, not as outer screen grammar;
+- `ui/src/theme.css` and `ui/src/styles.css` only as primitive/theme/global foundations after obsolete screen-specific selectors and compatibility presentation rules are purged;
 - `src/core/lifecycle.ts` lifecycle/current-attention/material/recovery/rail decisions;
 - WorkItem/ArtifactRef/Run/RunEvent/Approval/ExecutionTask canonical contracts and persistence;
 - daemon/API/TanStack Query producer→carrier→consumer ownership;
@@ -168,14 +173,59 @@ The following are preserved and must not be redesigned by UI implementation:
 - proposal/adoption, sign-off, execution and provider admission/recovery behavior;
 - exact source/Markdown/Git ownership and stale-write/freshness rules.
 
-The following are replaced/re-composed:
+Retained capability is not permission to preserve a screen. A retained helper may be consumed only for its existing non-screen responsibility.
 
-- primitive implementations and their recurring geometry/presentation;
-- `theme.css` feature-era recurring visual/layout ownership;
-- application shell/toolbar/Queue/Create composition;
-- every renderer in the canonical P4 renderer matrix plus the identity/rail/material-selector adapters that feed primitive composition;
-- responsive composition and cross-service theme parity;
-- old presentation branches/selectors whose responsibility is now primitive-owned.
+#### Destructive screen-replacement boundary
+
+The following existing screen/composition modules are replacement targets, not migration targets:
+
+- `ui/src/app.tsx`;
+- `ui/src/WorkItemQueue.tsx`;
+- `ui/src/CreateWorkItem.tsx`;
+- `ui/src/WorkItemWorkspace.tsx`;
+- `ui/src/WorkItemIdentityRow.tsx`;
+- `ui/src/WorkflowRail.tsx`;
+- `ui/src/WorkflowStepFrame.tsx`;
+- `ui/src/DocumentWorkspace.tsx`;
+- `ui/src/ActivityWorkspace.tsx`;
+- `ui/src/ActivityComposer.tsx`;
+- `ui/src/PreSignoffStageWorkspace.tsx`;
+- `ui/src/WorkflowMaterialSelector.tsx`;
+- `ui/src/ProposalReview.tsx`;
+- `ui/src/RunEventTimeline.tsx`;
+- `ui/src/ReadinessWorkspace.tsx`;
+- `ui/src/SignoffReview.tsx`;
+- `ui/src/ExecutionWorkspace.tsx`;
+- `ui/src/TerminalResult.tsx`;
+- `ui/src/EvidenceViewer.tsx`;
+- `ui/src/WorkItemContext.tsx`;
+- `ui/src/SettingsWorkspace.tsx`;
+- `ui/src/OpenCodeAccountControl.tsx`;
+- `ui/src/OpenCodeAccountSettings.tsx`.
+
+For each owned task, the pre-reconstruction blob of every target above is defect evidence only. Replacement implementation must not copy or incrementally edit its screen composition. The task must first record a purge checkpoint in Git history where its owned old screen files are deleted, then author the replacement from the current screen-information schema. The purge checkpoint may be an intermediate non-green local commit; only the completed replacement task is pushed/validated as the candidate.
+
+If non-visual logic exists only inside a discarded screen file, that does not create reuse authority. The implementation must either consume the already-canonical underlying owner directly or return upstream for an architecture-preserving extraction decision. Copying screen-local hooks/state/branching merely because they existed is prohibited.
+
+#### Fresh screen-information-schema matrix
+
+These are design-time screen contracts, not DTOs or runtime state shapes.
+
+| Screen/service family | Primary information / action | Supporting information | Technical information | Required interaction class | Legacy-screen compatibility |
+|---|---|---|---|---|---|
+| Queue | current actionable work collection; New work item; current stage/status meaning | project/search/archive filtering; concerns and useful scan context | source/readiness diagnostics only when they own attention | Operational scan | NONE — old table/banner composition is discarded |
+| Create/remediation | Project context, work kind, human title, Concerns, one Create action | derived repository/documentation/schema context | IDs/internal metadata only when diagnostically required | Task panel → Form/configuration | NONE — old modal/form grouping is discarded |
+| WorkItem shell | WorkItem identity, current lifecycle step, current attention, one primary material | historical/reached navigation and optional Context entry | hashes/paths/IDs on demand | Workbench shell + owning material class | NONE — old shell/frame structure is discarded |
+| Work request/document | governed intent/document content and current document action | selector/upstream material/currentness | exact path/hash/Git state when relevant | Document | NONE |
+| Research/Requirements/Design/Plan | current governed document or current dialogue/proposal action, according to attention precedence | history, evidence, prior attempts, supporting activity | provider/session/baseline identity when recovery/config requires it | Document / Dialogue / Review using one productive-stage grammar | NONE |
+| Readiness | typed R3 verdict, findings, exact return owner/action | package/material context | technical package identity on demand | Review | NONE |
+| Approval | readiness/currentness, task/package meaning, sign-off action | supporting package material | hashes/identities on demand | Review | NONE |
+| Implementation | current task/owner/action, attempt, blocker, validation and chronology | task master list/history/evidence | execution IDs/technical diagnostics when task-relevant | Operational master/detail | NONE |
+| Complete | canonical final outcome and valid next action | evidence/resources where applicable; linked remediation action | technical result identity on demand | Terminal result | NONE |
+| Evidence/Context | selected evidence or compact supporting context | related resource metadata | raw technical values only because this surface owns them | Evidence / Compact context | NONE |
+| Settings/account/configuration | readiness, meaning, productive configuration action | repositories/accounts/models/reference roots as task context | exact paths/endpoints/account identifiers where configuration requires them | Settings + Form/configuration | NONE |
+
+A replacement screen is technically invalid if its information hierarchy can be obtained by restyling/rearranging the old screen rather than implementing this matrix and the exact R2 domain contract afresh.
 
 ## Technical change solution catalog
 
@@ -201,15 +251,15 @@ The following are replaced/re-composed:
 | SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
 | SD19 | C16 guided productive installer | corrected P3 `GW-FR-007` + `GW-FR-079`; GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices and daemon/readiness conditions exist. Preserve incomplete v4 as post-install/update daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
 | SD20 | C20 exact-pin OpenCode integration certification | `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE`; `GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION`; `GW-DOC-EXTERNAL-FACTS` | `tests/opencode.test.ts`; `.github/workflows/ci.yml` | Add one permanent verification-only exact-pin tier: CI installs isolated `opencode-drive@2.4.1` + `effect@4.0.1` tooling outside Order's package/runtime dependency graph; the test launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode shell/session boundary and drives deterministic model responses through the simulation provider/controller. Existing fake OpenCode fixtures remain fast unit/shell/daemon doubles only and cannot satisfy the exact-pin proposition. No production source, runtime dependency, config/state model or alternate provider path is introduced. | permanent exact-pin integration case in `tests/opencode.test.ts`, executed by PR verification; existing fake/adversarial tests remain complementary |
-| SD21 | C19-F02 foundational Workbench reconstruction | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | `ui/src/primitives/*.tsx`; `ui/src/theme.css`; `ui/src/styles.css` | Rebuild the closed primitive/theme layer as the sole recurring structural/visual owner. Use pinned Astryx substrates/public props/tokens first; Order CSS owns only residual canonical geometry/semantics. Primitive APIs remain narrow/domain-blind and may be internally rewritten. Delete feature-era recurring component/layout CSS and duplicate/obsolete presentation systems rather than aliasing them. No compatibility presentation path survives. | architecture/certification ownership tests; primitive browser harness; rendered evidence |
-| SD22 | C02/C03 application shell + Queue/Create realization | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C02/C03 | `ui/src/app.tsx`; `ui/src/WorkItemQueue.tsx`; `ui/src/CreateWorkItem.tsx`; toolbar/task/form/table primitives | Queue becomes exact Operational scan composition; normal/empty/search/archive/readiness/source-diagnostic states remain distinct. Create/remediation becomes TaskPanel→Form/configuration with task title/context, controlled Project/kind/Concerns, human title, derived metadata/supporting context and one primary action. No generic legacy queue page/form grammar. | browser functional matrix + Queue/Create rendered SVG comparisons |
-| SD23 | C04/C05 WorkItem shell + Work request/document realization | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C04/C05/C17 | `ui/src/WorkItemWorkspace.tsx`; `WorkItemIdentityRow.tsx`; `WorkflowRail.tsx`; `WorkflowStepFrame.tsx`; `DocumentWorkspace.tsx`; Markdown renderers; Identity/Rail/Surface/Attention primitives | Recompose selected WorkItem around one stable shell: application toolbar, identity, nine-step rail, current-attention band, one primary material canvas and optional Context. Work request is a Document-class surface with source intent primary and technical/source metadata subordinate. Remove old generic-frame/feature layout responsibility that competes with primitive geometry. | browser geometry/current-attention/source cases + Work request/SVG rendered review |
-| SD24 | C06/C07/C08/C09 pre-signoff productive-stage family | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 productive interaction contract | `PreSignoffStageWorkspace.tsx`; `ActivityWorkspace.tsx`; `ActivityComposer.tsx`; `WorkflowMaterialSelector.tsx`; `ProposalReview.tsx`; `RunEventTimeline.tsx`; Dialogue/Selector/Review/Timeline primitives | Research, Requirements, Solution design and Implementation plan share one stable Surface/Attention/Selector grammar. Current dialogue/question/proposal/blocker owns attention; current document is primary otherwise; history/evidence/activity is subordinate. Stage-specific information differs without creating stage-specific layout systems. | stage interaction/browser matrix + per-step rendered SVG/state review |
-| SD25 | C10/C11 Readiness + Approval review realization | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C10/C11 | `ReadinessWorkspace.tsx`; `SignoffReview.tsx`; Review/Disclosure/Status/Action/Form primitives | Both are Review-class compositions, not generic stage frames. R3 verdict/findings/return owner dominate Readiness. Approval readiness/currentness/task meaning dominate package review; hashes/identity remain technical/on-demand. Sign-off remains the sole primary mutation. | browser verdict/currentness/sign-off cases + Readiness/Approval SVG review |
-| SD26 | C12 Implementation operational master/detail | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C12 | `ExecutionWorkspace.tsx`; `RunEventTimeline.tsx`; MasterDetail/Surface/Attention/Table/Timeline/Status primitives | Wide Implementation uses the single fixed master/detail topology; selected task detail shows current owner/action, attempt, blocker, validation and chronology. Historical selection never steals current attention. Medium/narrow use the primitive-owned start Drawer; no stacked/card alternative. | execution browser matrix + Implementation/task-state SVG review |
-| SD27 | C13/C14 Complete + Evidence + Context/material realization | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C13/C14 | `TerminalResult.tsx`; `EvidenceViewer.tsx`; `WorkItemContext.tsx`; resource/status/surface/context primitives | Complete is Terminal-result class with canonical outcome primary, candidate resources only when applicable, and linked remediation as separate authoring action. Evidence is Evidence-class surface. Context is secondary diagnostic/supporting material only, docked wide and Drawer constrained. | terminal/material browser cases + Complete/Evidence/Context rendered review |
-| SD28 | C15/C16 Settings/account/configuration presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C15/C16 | `SettingsWorkspace.tsx`; `OpenCodeAccountControl.tsx`; `OpenCodeAccountSettings.tsx`; SettingsLayout/Form/Table/Status/Notice/Confirmation primitives | Settings is operator-first configuration: readiness/meaning/actions primary, technical identity disclosed/on-demand unless task-required. Account/repository/model controls use the same form/action/status language as Create; no admin-page cards or bespoke account grammar. | Settings/account browser cases + Settings SVG review |
-| SD29 | C18 responsive/accessibility/focus re-composition | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | all structural primitives + affected renderer composition; no feature breakpoint ownership | Wide/medium/narrow behavior is owned once by Layout/Rail/Selector/MasterDetail/Context/Dialogue/Settings primitives. Preserve semantic order/action ownership/focus return/dirty state. Required-input focus-once remains SD15. Delete feature-level responsive topology rules that duplicate primitive ownership. | wide/medium/narrow browser matrix + responsive SVG rendered review |
+| SD21 | C19-F02 primitive-preservation + screen-reset boundary | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | `ui/src/theme.css`; `ui/src/styles.css`; `tests/certification.test.ts`; `tests/browser.spec.ts` | Freeze the existing canonical Workbench primitive implementations as retained capability for this campaign. Do not rewrite `ui/src/primitives/*.tsx`. Purge obsolete screen-specific selectors/compatibility presentation rules from shared stylesheets; certify primitive public responsibilities and approved leaf boundaries; establish the destructive screen-replacement manifest above. A primitive defect discovered later returns to DESIGN rather than being silently repaired by a screen task. | primitive ownership/Astryx containment checks; CSS selector purge audit; primitive smoke/browser proof |
+| SD22 | C02/C03 fresh Queue/Create screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C02/C03 | `ui/src/app.tsx`; `ui/src/WorkItemQueue.tsx`; `ui/src/CreateWorkItem.tsx` | Delete the old Queue/Create/application composition first, then author fresh screens from the R2 screen-information schema using retained primitives. Queue is a new Operational scan; Create/remediation is a new TaskPanel→Form/configuration composition. No JSX, field grouping, table-column choice, modal geometry or screen CSS from the old implementation is a compatibility target. | purge checkpoint + functional browser matrix + Queue/Create rendered SVG comparison |
+| SD23 | C04/C05 fresh WorkItem shell + Work request/document screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C04/C05/C17 | `ui/src/WorkItemWorkspace.tsx`; `WorkItemIdentityRow.tsx`; `WorkflowRail.tsx`; `WorkflowStepFrame.tsx`; `DocumentWorkspace.tsx` | Delete the old shell/frame/document compositions first, then author a fresh selected-WorkItem shell from retained primitives and current R2. Retain `MarkdownEditor`/`MarkdownSourceEditor` only as content leaves. Work request is a newly composed Document-class screen; old frame/identity/rail/document markup is not reused. | purge checkpoint + shell/current-attention/Git browser proof + Work request/document rendered review |
+| SD24 | C06/C07/C08/C09 fresh productive-stage screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 productive interaction contract | `PreSignoffStageWorkspace.tsx`; `ActivityWorkspace.tsx`; `ActivityComposer.tsx`; `WorkflowMaterialSelector.tsx`; `ProposalReview.tsx`; `RunEventTimeline.tsx` | Delete the old productive-stage screen/adapters first, then author the Research/Requirements/Solution design/Plan screens from the fresh information schema using one retained primitive grammar. Stage-specific information changes content, never screen topology. No old dialogue/proposal/timeline layout or responsive branch is reused. | purge checkpoint + stage interaction/browser matrix + per-step rendered review |
+| SD25 | C10/C11 fresh Readiness + Approval screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C10/C11 | `ReadinessWorkspace.tsx`; `SignoffReview.tsx` | Delete both old review screens before replacement. Author new Review-class screens from R2: Readiness is verdict/findings/return-owner first; Approval is readiness/currentness/task meaning then exact sign-off, with technical package identity subordinate. No generic stage/card review composition survives. | purge checkpoint + verdict/currentness/sign-off browser proof + rendered review |
+| SD26 | C12 fresh Implementation screen | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C12 | `ExecutionWorkspace.tsx`; `RunEventTimeline.tsx` | Delete the old Implementation screen and chronology adapter before replacement. Author a fresh operational master/detail screen from R2 and retained primitives; wide uses the canonical master/detail topology and constrained layout uses primitive-owned Drawer behavior. No stacked/card/task-count-driven legacy layout survives. | purge checkpoint + execution browser matrix + Implementation/task-state rendered review |
+| SD27 | C13/C14 fresh Complete/Evidence/Context screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C13/C14 | `TerminalResult.tsx`; `EvidenceViewer.tsx`; `WorkItemContext.tsx` | Delete the old result/evidence/context screens first, then author fresh Terminal result, Evidence and Compact context compositions from R2 using retained primitives/approved raw-content leaves. No feature-card/result/context topology is reused. | purge checkpoint + terminal/material browser proof + Complete/Evidence/Context rendered review |
+| SD28 | C15/C16 fresh Settings/account/configuration screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C15/C16 | `SettingsWorkspace.tsx`; `OpenCodeAccountControl.tsx`; `OpenCodeAccountSettings.tsx` | Delete the old Settings/account screen implementations first, then author fresh operator-first configuration screens from R2 using retained Settings/Form/Table/Status/Notice/Confirmation primitives. No admin-page/card/bespoke account grammar is retained. | purge checkpoint + Settings/account browser matrix + rendered review |
+| SD29 | C18 responsive/accessibility on replacement screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | replacement screen files from SD22-SD28; retained primitives are consumed, not modified | New screens consume the primitive-owned wide/medium/narrow and focus mechanics. Delete old feature-level responsive branches with each screen purge. Required-input focus-once remains SD15. No replacement task may add viewport-driven structural JSX or feature-owned breakpoint topology. | wide/medium/narrow browser matrix + responsive rendered review |
 | SD30 | C20 rendered and semantic UI acceptance | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 + R2 C20 | `tests/browser.spec.ts`; `tests/certification.test.ts`; `.github/workflows/ci.yml` | Keep semantic/architecture/browser certification, add exact-candidate rendered evidence for every governed surface/state. GitHub Actions produces PNG+manifest/index; review records independent schema/information, UX/interaction and visual/UI verdicts against current authority plus reviewed SVG where not superseded. A FAIL blocks closeout and requires fresh post-fix evidence. | permanent CI evidence artifact + zero unresolved rendered acceptance FAIL |
 
 ## A06 execution-foundation prerequisite — satisfied baseline, retained as causal design evidence
