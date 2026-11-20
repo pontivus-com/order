@@ -5475,7 +5475,9 @@ describe("daemon control plane", () => {
       sources: ["docs/product-b.md", "docs/product-a.md"],
       precedence: ["docs/product-b.md", "docs/product-a.md"],
     });
-    expect(output.p2Paths).toEqual(["docs/product-b.md", "docs/product-a.md"]);
+    expect(output.p2Paths).toEqual([]);
+    // Reachability/precedence remain in the authority projection; material
+    // context excludes unrelated selected sources.
     expect(output.inherited).toContain("GW-P1-FCIS");
     expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
     expect(output.fitness).toEqual(["architecture", "test"]);
@@ -5483,6 +5485,69 @@ describe("daemon control plane", () => {
     expect(output.promptUsesResolvedP2Order).toBe(true);
     expect(output.blockedBeforeRun).toBe(true);
   }, 30_000);
+
+
+  it("binds current-v2 and historical schema pins to their exact lifecycle authority refs", () => {
+    const prepare = (schema: "change-v1" | "change-v2") => {
+      const repository = createRepository("fixture");
+      writeFileSync(join(repository, "docs", "work-lifecycle.md"), "# work lifecycle\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-current.md"), "# current lifecycle context\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-v1.md"), "# retained lifecycle context v1\n");
+      const manifestPath = join(repository, "pontivus-order.toml");
+      const manifest = readFileSync(manifestPath, "utf8")
+        .replace(
+          "p3 = []",
+          'p3 = ["docs/work-lifecycle.md", "docs/lifecycle-context-current.md", "docs/lifecycle-context-v1.md"]',
+        )
+        .replace(
+          "[refs]\n",
+          [
+            "[refs]",
+            'GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"',
+            'GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"',
+            'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"',
+            "",
+          ].join("\n"),
+        );
+      writeFileSync(manifestPath, manifest);
+      runGit(repository, "add", ".");
+      runGit(repository, "commit", "--amend", "--no-edit");
+      const state = tempDir("order-daemon-authority-pin-");
+      const output = bunEval(
+        seedSignoffScript(
+          repository,
+          state,
+          \`
+            const r2Context = await authority.resolveStageContext(
+              runtime,
+              seedWorkItem,
+              "R2",
+            );
+            const p3Paths = r2Context.artifacts
+              .filter((artifact) => artifact.authorityLayer === "P3")
+              .map((artifact) => artifact.repositoryPath);
+          \`,
+          "human",
+          schema,
+        ) + \`
+          console.log(JSON.stringify({ p3Paths }));
+          database.close();
+        \`,
+      ) as { p3Paths: string[] };
+      rmSync(repository, { recursive: true, force: true });
+      rmSync(state, { recursive: true, force: true });
+      return output.p3Paths;
+    };
+
+    expect(prepare("change-v2")).toEqual([
+      "docs/lifecycle-context-current.md",
+      "docs/work-lifecycle.md",
+    ]);
+    expect(prepare("change-v1")).toEqual([
+      "docs/lifecycle-context-v1.md",
+      "docs/work-lifecycle.md",
+    ]);
+  }, 60_000);
 
   it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
     const repository = createRepository();
