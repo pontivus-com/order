@@ -689,8 +689,9 @@ jobs:
                         compatibility: "required",
                       },
                     );
+                    yield* backend.attachTools([]);
                     yield* Effect.promise(() =>
-                      Bun.write(compatibleMarker, "OpenCode simulation protocol negotiated\n")
+                      Bun.write(compatibleMarker, "OpenCode simulation LLM/tool protocols negotiated\n")
                     );
                     role = null;
                     const attachment = yield* controller.attach(backend);
