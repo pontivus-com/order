@@ -2389,9 +2389,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 28 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 30 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 28 unique paths; found " +
+        "DESIGN implementation forecast must contain 30 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2424,9 +2424,9 @@ describe("architecture fitness", () => {
           const signedSurface = [...surfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
             (match) => match[1],
           );
-          if (signedSurface.length !== 28 || duplicates(signedSurface).length > 0) {
+          if (signedSurface.length !== 30 || duplicates(signedSurface).length > 0) {
             violations.push(
-              "PLAN signed changeSurface must contain 28 unique paths; found " +
+              "PLAN signed changeSurface must contain 30 unique paths; found " +
                 signedSurface.length,
             );
           }
@@ -2441,6 +2441,7 @@ describe("architecture fitness", () => {
               "src/shell/**",
               "ui/src/**",
               "tests/**",
+              ".github/workflows/ci.yml",
               "CHANGELOG.md",
             ],
           );
