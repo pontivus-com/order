@@ -134,6 +134,19 @@ jobs:
           export OPENCODE_CONFIG_CONTENT="\${merged}"
           export OPENCODE_SIMULATE=1
           export OPENCODE_DRIVE=1
+
+          # OpenCode publishes its HTTP endpoint before Location plugins have
+          # necessarily finished activating. Order treats that as transport
+          # readiness and then immediately queries models. Buffer only stdout
+          # for this temporary simulation harness so the same generation can
+          # finish plugin activation without being restarted.
+          if [[ "\${1:-}" == "serve" ]]; then
+            "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@" | {
+              sleep 2
+              cat
+            }
+            exit \${PIPESTATUS[0]}
+          fi
           exec "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@"
           EOF
           chmod +x "${wrapper}"
