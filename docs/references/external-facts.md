@@ -143,6 +143,14 @@ The same pinned source also exposes `OPENCODE_CONFIG_CONTENT` to foreground `ser
 
 The pinned configuration discovery also includes the global `~/.agents` root when global discovery is enabled, and the compatibility plugin scans `~/.agents/skills`. The Claude-disable option suppresses Claude compatibility roots but does not itself remove the global `.agents` root. Consequently a fresh productive HOME/config root is the supported Order-side way to exclude accumulated filesystem-global compatibility skills while retaining the separately configured persistent `OPENCODE_DB` credential/database state.
 
+### OpenCode Drive 2.4.1 deterministic simulation facts
+
+The immutable upstream tag `anomalyco/opencode-drive@v2.4.1` publishes package `opencode-drive` version `2.4.1` with the declared purpose “Drive real and simulated OpenCode instances”. The package exports `OpenCodeDriver` and `Llm`; its manifest declares peer dependency `effect@4.0.1`. The tagged README states that Drive targets the `opencode` executable from `PATH` unless an explicit target is supplied, and that its simulated model is an ordinary provider in the fixture configuration whose requests are handled by Drive's LLM controller.
+
+These facts support a verification-only use in which the OpenCode process under test remains the exact Order-supported OpenCode binary while model responses are deterministic and controlled. They do not establish remote-provider availability, OpenCode Console OAuth/account behavior, external model quality, or any provider-side semantic guarantee that the simulation does not exercise. This fact record does not itself authorize a dependency or CI change; any retained Order use must be owned by the OpenCode architecture and P7 verification plan.
+
+Primary sources: immutable `anomalyco/opencode-drive@v2.4.1` `packages/drive/package.json`, `packages/drive/README.md`, `packages/drive/src/driver/index.ts`, and `packages/drive/src/index.ts`.
+
 ### OpenCode 2.2.6 setup/model/external-directory facts
 
 The same immutable `anomalyco/opencode@v2.2.6` source additionally establishes the capabilities required by guided bootstrap and configured STAGE reference roots:
