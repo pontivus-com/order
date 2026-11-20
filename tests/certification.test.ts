@@ -1,9 +1,14 @@
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
+  mkdtempSync,
   readFileSync,
   readdirSync,
+  rmSync,
+  writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -1548,6 +1553,215 @@ describe("Order cross-boundary certification", () => {
 
 
 describe("0.6.0 Wave 1 authority-governance certification", () => {
+  it("exercises resolved authority through the production core-daemon-STAGE context", () => {
+    const repository = mkdtempSync(join(tmpdir(), "order-cert-authority-repo-"));
+    const state = mkdtempSync(join(tmpdir(), "order-cert-authority-state-"));
+    try {
+      mkdirSync(join(repository, "docs"), { recursive: true });
+      mkdirSync(join(repository, "src"), { recursive: true });
+      writeFileSync(join(repository, "AGENTS.md"), "# agent authority\n");
+      writeFileSync(join(repository, "docs", "principles.md"), "# principles\n");
+      writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
+      writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+      writeFileSync(
+        join(repository, "pontivus-order.toml"),
+        `version = 1
+projectId = "certification"
+
+[authority]
+p1 = ["AGENTS.md", "docs/principles.md"]
+p2 = ["docs/product-a.md", "docs/product-b.md"]
+p3 = []
+p4 = []
+p5 = []
+p6 = []
+
+[refs]
+P1-STRICT = "docs/principles.md"
+P1-FCIS-EXT = "AGENTS.md"
+
+[precedence]
+p2 = ["docs/product-b.md", "docs/product-a.md"]
+
+[[governance.overrides]]
+defaultRuleId = "GW-P1-STRICT-TYPING"
+source = "docs/principles.md"
+authorityRef = "P1-STRICT"
+gates = ["architecture"]
+
+[[governance.extensions]]
+defaultRuleId = "GW-P1-FCIS"
+source = "AGENTS.md"
+authorityRef = "P1-FCIS-EXT"
+gates = ["test"]
+
+[governance.fitness]
+GW-P1-FCIS = ["architecture"]
+
+[concerns.shell]
+authority = ["AGENTS.md"]
+paths = ["src/**"]
+gates = ["test"]
+
+[verification.architecture]
+argv = ["bash", "-c", "true"]
+cwd = "."
+timeoutSeconds = 30
+inheritEnv = []
+materialRefs = []
+
+[verification.test]
+argv = ["bash", "-c", "true"]
+cwd = "."
+timeoutSeconds = 30
+inheritEnv = []
+materialRefs = []
+`,
+      );
+      writeFileSync(join(repository, "src", "target.ts"), "export {};\n");
+      for (const args of [
+        ["init"],
+        ["config", "user.email", "certification@example.com"],
+        ["config", "user.name", "Certification"],
+        ["add", "."],
+        ["commit", "-m", "certification baseline"],
+      ]) {
+        const result = spawnSync("git", args, {
+          cwd: repository,
+          encoding: "utf8",
+        });
+        if (result.status !== 0) {
+          throw new Error(
+            `git ${args.join(" ")} failed: ${result.stderr}`,
+          );
+        }
+      }
+
+      const script = `
+        const fs = await import("node:fs");
+        const sql = await import("./src/shell/sqlite.ts");
+        const coord = await import("./src/daemon/coordinator.ts");
+        const authority = await import("./src/daemon/authority.ts");
+        const stage = await import("./src/daemon/stage.ts");
+        const repositoryRoot = ${JSON.stringify(repository)};
+        const stateRoot = ${JSON.stringify(state)};
+        const database = sql.openOrderDatabase(stateRoot);
+        const runtime = coord.createCoordinatorRuntime(
+          database,
+          stateRoot,
+          process.env,
+          {
+            version: 4,
+            model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+            repositoryRoots: [repositoryRoot],
+            referenceRoots: [],
+          },
+        );
+        const created = await coord.createWorkItem(runtime, {
+          projectId: "certification",
+          schemaId: "change-v1",
+          title: "authority certification",
+          concernIds: ["shell"],
+        });
+        const workItem = coord.getWorkItem(runtime, created.id);
+        const stateResolution = await authority.resolveStageContextState(
+          runtime,
+          workItem,
+          "R1",
+        );
+        const prompt = await stage.stagePrompt(
+          workItem,
+          "R1",
+          stateResolution.context,
+          [],
+          [],
+        );
+        const p2 = stateResolution.context.authority.layers.find(
+          (entry) => entry.layer === "p2",
+        );
+        const p2Artifacts = stateResolution.context.artifacts
+          .filter((artifact) => artifact.authorityLayer === "P2")
+          .map((artifact) => artifact.repositoryPath);
+
+        const manifestPath = repositoryRoot + "/pontivus-order.toml";
+        fs.writeFileSync(
+          manifestPath,
+          fs.readFileSync(manifestPath, "utf8").replace(
+            'p2 = ["docs/product-b.md", "docs/product-a.md"]',
+            'p2 = ["docs/product-b.md", "docs/missing.md"]',
+          ),
+        );
+        let blockedBeforeProvider = false;
+        let rejection = "";
+        try {
+          await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+        } catch (error) {
+          rejection = error instanceof Error ? error.message : String(error);
+          blockedBeforeProvider =
+            coord.listRuns(runtime, created.id).length === 0;
+        }
+        console.log(JSON.stringify({
+          p2,
+          p2Artifacts,
+          inherited:
+            stateResolution.context.authority.inheritedDefaultRuleIds,
+          fitness: stateResolution.context.authority.fitnessGateIds,
+          promptHasProjection:
+            prompt.includes("Resolved project authority projection:"),
+          promptOrder:
+            prompt.indexOf("docs/product-b.md") <
+            prompt.indexOf("docs/product-a.md"),
+          blockedBeforeProvider,
+          rejection,
+        }));
+        database.close();
+      `;
+      const result = spawnSync("bun", ["-e", script], {
+        cwd: root,
+        encoding: "utf8",
+        env: process.env,
+      });
+      if (result.status !== 0) {
+        throw new Error(
+          `production authority certification failed: ${result.stderr}`,
+        );
+      }
+      const output = JSON.parse(result.stdout.trim()) as {
+        p2: {
+          layer: string;
+          sources: string[];
+          precedence: string[];
+        };
+        p2Artifacts: string[];
+        inherited: string[];
+        fitness: string[];
+        promptHasProjection: boolean;
+        promptOrder: boolean;
+        blockedBeforeProvider: boolean;
+        rejection: string;
+      };
+      expect(output.p2).toEqual({
+        layer: "p2",
+        sources: ["docs/product-b.md", "docs/product-a.md"],
+        precedence: ["docs/product-b.md", "docs/product-a.md"],
+      });
+      expect(output.p2Artifacts).toEqual([
+        "docs/product-b.md",
+        "docs/product-a.md",
+      ]);
+      expect(output.inherited).toContain("GW-P1-FCIS");
+      expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
+      expect(output.fitness).toEqual(["architecture", "test"]);
+      expect(output.promptHasProjection).toBe(true);
+      expect(output.promptOrder).toBe(true);
+      expect(output.blockedBeforeProvider).toBe(true);
+      expect(output.rejection).toMatch(/precedence\.p2/);
+    } finally {
+      rmSync(repository, { recursive: true, force: true });
+      rmSync(state, { recursive: true, force: true });
+    }
+  }, 30_000);
+
   it("binds resolved authority, governed proposals and durable decisions to the production STAGE path", () => {
     const governance = read("src/core/governance.ts");
     expect(governance).toContain("export const resolveProjectAuthority");
