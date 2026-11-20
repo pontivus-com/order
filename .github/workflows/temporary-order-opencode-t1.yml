@@ -139,10 +139,10 @@ jobs:
           # necessarily finished activating. Order treats that as transport
           # readiness and then immediately queries models. Buffer only stdout
           # for this temporary simulation harness so the same generation can
-          # finish plugin activation without being restarted.
+          # finish the bounded Console-plugin retry sequence without being restarted.
           if [[ "\${1:-}" == "serve" ]]; then
             "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@" | {
-              sleep 2
+              sleep 9
               cat
             }
             exit \${PIPESTATUS[0]}
