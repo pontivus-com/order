@@ -74,7 +74,7 @@ At every arrow the producer and consumer use the existing canonical type/schema 
 | DEFECT / Requirements | defect-r2-v2; same carriers, but template preserves corrected behavior plus unchanged/regression behavior. | Same R2 pipeline -> DESIGN. | Same owners; Defect semantics remain in template/content rather than another state machine. | Missing correction/preservation semantics blocks R2. | SD09 shared authority path; proof must retain defect-specific R2 template and downstream preservation trace. |
 | INVESTIGATION / AUDIT / Requirements | stageTemplateIdFor returns no R2 template for these schemas. | No producer, no ArtifactRef R2, no Start R2 transition. | Workbench derives UNREACHED rather than empty productive material. | A remediation need creates a distinct Change/Defect WorkItem. | Positive terminalization proof; no technical delta. |
 | CHANGE / Solution design | change-design-v2; context consumes current R2 plus relevant P4-P6/project authority; output is ArtifactRef role DESIGN. | R2 -> Run(STAGE,DESIGN) -> events/proposals -> DESIGN ArtifactRef/conformance -> PLAN. | stage/authority/run/OpenCode owners unchanged; permanent P4-P6 amendment uses the same proposal/adoption carrier with target/layer validation. Workbench uses dialogue/document/review composition. | Missing R2 behavior returns upstream; stale proposal/base hash rejects and re-resolves. | SD09 admits current P4-P6 proposal targets; package technical realization is this DESIGN itself. |
-| DEFECT / Solution design | defect-design-v2; same carriers with root-cause correction, behavior-to-delete/replace and preserved invariants. | R2 -> DESIGN ArtifactRef -> PLAN. | Same owners; minimum root-cause remediation is design content, not an execution heuristic. | Symptom masking or preservation weakening fails DESIGN conformance and returns to R2/DESIGN owner. | Existing technical owners plus SD01-SD19 exact deltas; regression proof remains mandatory. |
+| DEFECT / Solution design | defect-design-v2; same carriers with root-cause correction, behavior-to-delete/replace and preserved invariants. | R2 -> DESIGN ArtifactRef -> PLAN. | Same owners; minimum root-cause remediation is design content, not an execution heuristic. | Symptom masking or preservation weakening fails DESIGN conformance and returns to R2/DESIGN owner. | Existing technical owners plus SD01-SD20 exact deltas; regression proof remains mandatory. |
 | INVESTIGATION / AUDIT / Solution design | no DESIGN template exists for these schema pins. | No DESIGN Run/artifact. | UNREACHED presentation only. | Separate remediation work if needed. | Positive no-downstream-carrier proof. |
 | CHANGE / Implementation plan | change-plan-v2; PLAN ArtifactRef contains S8-S10 content and exactly one canonical order-tasks block. | DESIGN -> Run(STAGE,PLAN) -> PLAN ArtifactRef/conformance -> R3. | stage owner renders prompt/template; src/core/execution.ts remains the single signed-task parser/admission owner; daemon authority/stage consume it. Document/dialogue proposal surfaces remain shared. | Vacuous/semantically incomplete current-v2 PLAN is rejected; missing architecture choice returns to DESIGN rather than implementation. | SD10 owns v2 non-vacuity only; existing scope/forecast/checkpoint execution foundation is reused. |
 | DEFECT / Implementation plan | defect-plan-v2; same task carrier with root-cause/removal/reproduction/regression/preservation obligations. | DESIGN -> PLAN ArtifactRef -> R3. | Same task/parser/daemon owners; no remediation DTO/task variant. | Omitted reproduction/preservation proof fails PLAN conformance/R3. | SD10 shared mechanical admission; defect-specific semantic proof retained. |
@@ -130,7 +130,7 @@ Wide/medium/narrow presentation keeps the same canonical data and derived decisi
 
 The existing 112-row DESIGN ledger remains the requirement-level ownership/disposition index. Under G-F12 it is no longer permitted to stand alone: each row is interpreted through the explicit carrier/stage model above and its named P4-P6 owner. POSITIVE_NO_CHANGE therefore means the required package technical realization is the shared model above plus the row's exact evidence-backed owner/path; it never means preserve current code because tests are green.
 
-The 25 package-local atoms remain the exact non-stable corrections and the SD01-SD19 catalog remains the delta/verification solution set. The reconstruction adds no new product behavior and no new implementation solution. It makes explicit the technical realization that all those rows consume.
+The 25 package-local atoms remain the exact non-stable corrections and the SD01-SD20 catalog remains the delta/verification solution set. The reconstruction adds no new product behavior and no new implementation solution. It makes explicit the technical realization that all those rows consume.
 
 ### Post-A09 authority revalidation
 
@@ -151,7 +151,7 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 - Existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new dependency is introduced.
 - Open technical questions: NONE.
 - Material technical UNPROVEN: 0.
-- PLAN may decompose only the explicit SD01-SD19 delta/verification obligations and the positive proof obligations attached to reused realization; it may not infer a missing technical decision from implementation.
+- PLAN may decompose only the explicit SD01-SD20 delta/verification obligations and the positive proof obligations attached to reused realization; it may not infer a missing technical decision from implementation.
 
 ## Technical change solution catalog
 
@@ -176,6 +176,7 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 | SD17 | C20 scenario-41 certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | tests/browser.spec.ts | Certify all four work-kind Work request + Research information contracts and distinct Change/Defect downstream obligations. | tests/browser.spec.ts |
 | SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
 | SD19 | C16 guided productive installer | corrected P3 `GW-FR-007` + `GW-FR-079`; GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices and daemon/readiness conditions exist. Preserve incomplete v4 as post-install/update daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
+| SD20 | C20 exact-pin OpenCode integration certification | `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE`; `GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION`; `GW-DOC-EXTERNAL-FACTS` | `tests/opencode.test.ts`; `.github/workflows/ci.yml` | Add one permanent verification-only exact-pin tier: CI installs isolated `opencode-drive@2.4.1` + `effect@4.0.1` tooling outside Order's package/runtime dependency graph; the test launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode shell/session boundary and drives deterministic model responses through the simulation provider/controller. Existing fake OpenCode fixtures remain fast unit/shell/daemon doubles only and cannot satisfy the exact-pin proposition. No production source, runtime dependency, config/state model or alternate provider path is introduced. | permanent exact-pin integration case in `tests/opencode.test.ts`, executed by PR verification; existing fake/adversarial tests remain complementary |
 
 ## A06 execution-foundation prerequisite — satisfied baseline, retained as causal design evidence
 
@@ -329,7 +330,7 @@ P2 Product Identity canonical reusable descriptions
 | `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `C22-O09` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/daemon.test.ts; tests/certification.test.ts |
 | `GW-FR-101-PRODUCTIVE-OPENCODE-PATH-CONSISTENCY` | `C15-O03`, `C15-O04`, `C15-O08` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/daemon.test.ts; tests/certification.test.ts |
 | `GW-FR-102-FAILURE-ORIGIN-CLASSIFICATION` | `C15-O12`, `C15-O13` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/daemon.test.ts; tests/certification.test.ts |
-| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `DIRECT-FR103` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/daemon.test.ts; tests/certification.test.ts |
+| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `DIRECT-FR103`, `C20-F04` | `VERIFICATION_GAP` | `VERIFICATION_DELTA` | `SD20` | `GW-DOC-OPENCODE-INTEGRATION-V1`; `GW-DOC-EXTERNAL-FACTS` | Existing fake-provider suites remain useful lower-level proof, but they do not certify the exact supported OpenCode process/session boundary. Add a permanent real-2.2.6-process deterministic-simulation integration tier and keep the simulation proof boundary explicit. | `tests/opencode.test.ts`; `.github/workflows/ci.yml`; existing `tests/daemon.test.ts`/`tests/certification.test.ts` as complementary structural/adversarial proof |
 | `GW-FR-104-STAGE-WORKSPACE-FRESHNESS` | `C15-O03`, `C15-O04` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/daemon.test.ts; tests/certification.test.ts |
 | `GW-FR-105-PRODUCTIVE-MODEL-CONTEXT-AUTHORITY-CLOSURE` | `C22-O06`, `C22-O09`, `C22-O10`, `C15-O15` | `CONFORMS_WITH_DEPENDENCY` | `DEPENDENCY_DELTA` | `SD02` | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-CANONICAL-CONTRACTS-V2 | Trusted integration/context classification remains; Order-governed authority must first be deterministically resolved under C22-F01. | tests/daemon.test.ts; tests/certification.test.ts |
 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `C05-O05`, `C05-O06`, `C05-O11` | `MIXED` | `MIXED_TECHNICAL_DELTA` | `SD07` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Observation derivation remains; presentation must preserve the exact current attention owner while historical/supporting material is inspected. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
@@ -435,7 +436,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C17 | Stable rows + imported PL-C05-01 -> SD07. |
 | C18 | Stable FR225 + PL-C18-01 -> SD15. |
 | C19 | Stable rows + PL-C19-01 -> SD16; local hierarchy dependencies SD11/12/14. |
-| C20 | Stable rows + PL-C20-01/02 -> SD17/SD18; imported focus/renderer verification SD15/16. |
+| C20 | Stable rows + PL-C20-01/02 -> SD17/SD18; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
 | C21 | PL-C21-01 -> SD01 plus explicit A01-NC03 corrected-upstream no-code disposition. |
 | C22 | Stable dependency rows + PL-C22-01 -> SD02. |
 
@@ -532,6 +533,20 @@ install.sh bootstrap
 
 The former fresh `configured === null` success/defer branch in `runGuidedSetupInternal` is removed/replaced so the existing later guided path executes. Incomplete config v4 remains a canonical daemon/Settings recovery state and may exist transiently during rollback-safe install, but productive installer success cannot terminate on it. Update/migration retention/rollback paths are unchanged.
 
+### F8 — exact-pin OpenCode deterministic simulation certification (SD20)
+
+```text
+permanent PR verification
+ -> exact OpenCode 2.2.6 CLI/server
+ -> Order production OpenCode environment/admission/session path
+ -> isolated opencode-drive 2.4.1 simulation controller
+ -> deterministic model/tool responses
+ -> exact session/permission/turn/diagnostic assertions
+```
+
+The real OpenCode process remains the subject under test; only the model side is simulated. Fake OpenCode executables continue to serve lower-level deterministic fixtures and are never counted as exact-pin integration evidence. The Drive/Effect tooling is installed into CI-owned temporary verification space, not Order's package graph, release bundle, runtime state or product configuration. Simulation evidence is explicitly limited to the process/protocol behavior it exercises and cannot be reused as proof of remote provider availability, Console OAuth connectivity or model quality.
+
+
 ## Exact implementation surface forecast
 
 ### Production paths expected to change
@@ -564,13 +579,17 @@ The former fresh `configured === null` success/defer branch in `runGuidedSetupIn
 - `tests/browser.spec.ts`
 - `tests/workbench-presentation.test.ts`
 - `tests/installer.test.ts`
+- `tests/opencode.test.ts`
+
+### Permanent verification infrastructure
+- `.github/workflows/ci.yml`
 
 ### Delivery metadata
 - `CHANGELOG.md`
 
-Total P7 candidate surface forecast after execution-foundation and v1-compatibility revalidation: **28 paths** (21 production + 6 verification + 1 delivery). `src/core/execution.ts` remains because it is the existing task-block parsing/admission core and is the minimum owner for schema-aware v2 non-vacuity. `src/daemon/execution.ts` and `src/daemon/validation.ts` are removed from T1: their SD10/SD13 execution-foundation behavior already conforms and must not be reimplemented.
+Total P7 candidate surface forecast after exact-pin OpenCode certification reconciliation: **30 paths** (21 production + 7 verification + 1 permanent verification-infrastructure + 1 delivery). `src/core/execution.ts` remains because it is the existing task-block parsing/admission core and is the minimum owner for schema-aware v2 non-vacuity. `src/daemon/execution.ts` and `src/daemon/validation.ts` are removed from T1: their SD10/SD13 execution-foundation behavior already conforms and must not be reimplemented.
 
-`docs/**`, `pontivus-order.toml`, package/lock/workflow metadata and `tests/architecture.test.ts` are not T1 implementation surface. P6 was corrected during DESIGN. G-F10 structural campaign fitness may update immutable architecture verification material **before sign-off**, followed by downstream revalidation; it is not an implementation task.
+`docs/**`, `pontivus-order.toml`, package/lock metadata, workflow metadata other than the explicitly authorized `.github/workflows/ci.yml` SD20 verification change, and `tests/architecture.test.ts` are not T1 implementation surface. P6 was corrected during DESIGN. G-F10 structural campaign fitness may update immutable architecture verification material **before sign-off**, followed by downstream revalidation; it is not an implementation task.
 
 ## Contract/state/persistence/transport consequences
 
@@ -578,7 +597,7 @@ Total P7 candidate surface forecast after execution-foundation and v1-compatibil
 - Existing proposal, HumanInput, SignedTaskBlock, Approval, Run/RunEvent and validation representations remain the single owners. The current baseline already carries SD13's typed BUILDER checkpoint request and SD10's scope/forecast/V4-V6 execution semantics; T1 adds no parallel execution representation. The remaining SD10 change adds only schema-version-aware non-vacuity admission over the existing parsed SignedTaskBlock and does not mutate the canonical task shape.
 - No new runtime concept is introduced by SD10/SD13 during T1; the transient resolved-authority projection and typed BUILDER checkpoint request are existing baseline capabilities.
 - SD19 changes no OrderConfig schema. It changes only when the productive installer is allowed to return success.
-- No new dependency is required.
+- No product/runtime dependency is added. SD20 uses exact `opencode-drive@2.4.1` and `effect@4.0.1` only as isolated permanent-CI verification tooling outside `package.json`/lockfiles and outside the release/runtime dependency graph.
 
 ## Failure and recovery
 
