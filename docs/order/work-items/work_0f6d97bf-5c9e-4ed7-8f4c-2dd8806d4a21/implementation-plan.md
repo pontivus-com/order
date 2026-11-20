@@ -22,7 +22,7 @@ The signed execution representation remains an 11-task dependency graph. Each ta
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `fee8fc1dfc6d04e09906933e9779a776b9b14a0d` |
+| `implementation-plan/00-governance.md` | `c5fa990291b4994e44fec64a4682f6ee617ce9ec` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `709ed8191ddf45ae196dc51886891cd4ba4fee33` |
 | `implementation-plan/02-a02-governance-intake.md` | `d0819ceeea155416c116789633a1cabd1ab14159` |
 | `implementation-plan/03-a03-queue-source.md` | `fe6bfc99c2cc8426e70a7f8af260f5bb3f1dfd73` |
@@ -188,10 +188,10 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 
 ##### Signed scope and forecast law
 
-The one signed T1 uses:
+The canonical signed T1-T11 task graph uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
-- explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
+- explicit `exclusions` to protect paths outside the current task owner, including retained UI capability and DESIGN-positive-reuse paths inside the cumulative envelope;
 - task-local exact `changeSurface` forecasts whose union is the immutable expected physical forecast for the cumulative candidate.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
