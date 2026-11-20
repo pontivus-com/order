@@ -21,9 +21,14 @@ Stable rows in phase: **1**.
 
 Package atoms in phase: **2**.
 
+## Cross-domain presentation reconstruction dependency
+
+Requirements and Solution design retain their existing authority/proposal semantics, but their runtime surfaces are migrated by SD24/IA30 as part of PL-C19-02. This phase supplies stage-specific governed information; it does not own another layout grammar.
+
 ## Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA30** — consume the single productive pre-signoff renderer migration definition for Requirements and Solution design.
 
 ## Completion proof
 
