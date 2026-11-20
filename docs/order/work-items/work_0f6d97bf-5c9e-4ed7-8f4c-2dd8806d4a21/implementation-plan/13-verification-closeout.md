@@ -13,7 +13,7 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | Completed task | Before dependent task | Required retained evidence |
 |---|---|---|
 | T1 | T2 | non-UI baseline gates PASS; no protected execution-foundation mutation |
-| T2 | T3 | `architecture` + primitive browser harness PASS; shared foundation accepted for use |
+| T2 | T3 | retained primitives certified unchanged; legacy screen-specific/compatibility CSS purge audited; no screen replacement authored yet |
 | T3 | T4 | `architecture` + Queue/Create functional/rendered row review PASS |
 | T4 | T5 | `architecture` + WorkItem shell/Work request/document review PASS |
 | T5 | T6 | `architecture` + productive pre-signoff semantic/rendered review PASS |
@@ -23,9 +23,23 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | T9 | T10 | `architecture` + Settings/account semantic/rendered review PASS |
 | T10 | T11 | complete semantic/component/theme/responsive regression suite PASS |
 
-A dependent task must not start merely because the previous task compiled. Its owning deletion proof, semantic acceptance and required rendered evidence must be retained. If a downstream task discovers that IA27/T2 foundation behavior is insufficient, the owning earlier task is reopened; local CSS/primitive bypass in the downstream task is not an admissible repair.
+A dependent task must not start merely because the previous task compiled. For T3-T9, the task evidence must include a purge checkpoint commit deleting the owned old screen files before any replacement authorship, a fresh screen-information-schema review, and the task-specific semantic/rendered proof. Pre-purge screen blobs are defect evidence only and cannot be accepted as implementation ancestry. If a downstream task discovers a genuine primitive defect, execution returns to DESIGN; neither T2 nor the screen task may rewrite primitives as a convenience fix. Local CSS/primitive bypass is not an admissible repair.
 
 A failed checkpoint permits only correction inside the owning signed task/design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Task-boundary checkpoints never substitute for V3/V5/V7 or the task's complete logical gate union.
+
+## Screen purge/rebuild evidence law
+
+For T3-T9, verification must retain both sides of the replacement boundary:
+
+- the purge checkpoint Git commit and exact deleted screen paths;
+- proof that the purge commit contains no replacement screen JSX/DOM;
+- the fresh screen-information-schema review derived from current R2;
+- replacement commits authored after the purge checkpoint;
+- a diff/audit proving retained primitives and approved non-screen helpers were not modified for screen convenience;
+- task-specific semantic/browser evidence;
+- task-specific rendered comparison and row-level PASS/FAIL.
+
+A final screen that looks correct is insufficient if the task cannot prove the old screen implementation was removed before replacement. Conversely, deletion alone is insufficient without fresh schema and rendered proof.
 
 ## Requirement-level proof law
 
