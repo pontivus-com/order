@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -22,6 +22,94 @@ if (stateRoot === undefined || stateRoot.length === 0) {
 const daemonToken = readFileSync(join(stateRoot, "daemon-token"), "utf8").trim();
 const repositoryRoot = stateRoot + "-e2e-project";
 const fixtureControlURL = "http://127.0.0.1:17348";
+
+const renderedAcceptanceDir = process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR;
+const renderedAcceptanceCandidateSha =
+  process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA;
+
+type RenderedAcceptanceEntry = Readonly<{
+  id: string;
+  workItemKind: "QUEUE" | "CHANGE" | "DEFECT" | "INVESTIGATION" | "AUDIT";
+  workflowStep: string | null;
+  surface: string;
+  state: string;
+  fixture: string;
+  viewport: Readonly<{ width: number; height: number }>;
+  theme: "Light" | "Dark" | "System/light" | "System/dark";
+  route: string;
+  references: readonly string[];
+  authorityRefs: readonly string[];
+  screenshot: string;
+}>;
+
+const writeRenderedAcceptanceEvidence = (
+  entries: readonly RenderedAcceptanceEntry[],
+): void => {
+  if (renderedAcceptanceDir === undefined) {
+    throw new TypeError("PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR is required");
+  }
+  if (
+    renderedAcceptanceCandidateSha === undefined ||
+    renderedAcceptanceCandidateSha.length === 0
+  ) {
+    throw new TypeError(
+      "PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA is required",
+    );
+  }
+  mkdirSync(renderedAcceptanceDir, { recursive: true });
+  writeFileSync(
+    join(renderedAcceptanceDir, "manifest.json"),
+    JSON.stringify(
+      {
+        schemaVersion: 1,
+        candidateSha: renderedAcceptanceCandidateSha,
+        entries,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  writeFileSync(
+    join(renderedAcceptanceDir, "index.md"),
+    [
+      "# Order 0.6.0 rendered acceptance — phase 1",
+      "",
+      "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
+      "",
+      "| Capture | Surface/state | Reference | Authority |",
+      "|---|---|---|---|",
+      ...entries.map((entry) =>
+        "| \`" + entry.screenshot + "\` | " + entry.surface + " / " + entry.state +
+        " | " + entry.references.map((value) => "\`" + value + "\`").join(", ") +
+        " | " + entry.authorityRefs.map((value) => "\`" + value + "\`").join(", ") +
+        " |"
+      ),
+      "",
+      "These captures are runtime evidence only. Current canonical authority wins over a derived SVG reference on conflict.",
+      "",
+    ].join("\n"),
+  );
+};
+
+const captureRenderedAcceptance = async (
+  page: Page,
+  entry: Omit<RenderedAcceptanceEntry, "screenshot">,
+): Promise<RenderedAcceptanceEntry> => {
+  if (renderedAcceptanceDir === undefined) {
+    throw new TypeError("PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR is required");
+  }
+  mkdirSync(renderedAcceptanceDir, { recursive: true });
+  const screenshot = entry.id + ".png";
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await page.screenshot({
+    path: join(renderedAcceptanceDir, screenshot),
+    fullPage: false,
+    animations: "disabled",
+  });
+  return { ...entry, screenshot };
+};
 
 const fixtureMutation = async (
   request: APIRequestContext,
@@ -1117,6 +1205,91 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 
   expect(websocketUrls).toEqual([]);
   expect(eventStreamUrls).toEqual([]);
+});
+
+
+test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
+  page,
+  request,
+}) => {
+  test.skip(
+    renderedAcceptanceDir === undefined,
+    "rendered acceptance capture runs only in its GitHub Actions evidence step",
+  );
+
+  const runtimeErrors: string[] = [];
+  page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      runtimeErrors.push("console: " + message.text());
+    }
+  });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await authenticate(page, request);
+  await page.getByRole("radio", { name: "Light" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  await expect(rowFor(page, "Proposal review")).toBeVisible();
+
+  const entries: RenderedAcceptanceEntry[] = [];
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-populated",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "active-list-populated",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/queue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+
+  await page.getByRole("button", { name: "New work item" }).click();
+  const createDialog = page.getByRole("dialog", { name: "Create work item" });
+  await expect(createDialog).toBeVisible();
+  await createDialog.getByRole("combobox", { name: "Project Required" }).click();
+  await page.getByRole("option", { name: "order-e2e", exact: true }).click();
+  await createDialog.getByRole("radio", { name: "CHANGE" }).click();
+  await createDialog.getByLabel("Title").fill("Rendered acceptance change");
+  await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
+  await page.getByRole("option", { name: "browser" }).click();
+  await page.keyboard.press("Escape");
+  await expect(createDialog.getByLabel("Title")).toHaveValue(
+    "Rendered acceptance change",
+  );
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "create-work-item-wide-light-change",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CREATE-001",
+    state: "ordinary-change-populated",
+    fixture: "Create WorkItem deterministic CHANGE input",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/?dialog=create-work-item",
+    references: ["docs/references/workbench-ui/create-work-item.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+
+  writeRenderedAcceptanceEvidence(entries);
+  expect(entries.map((entry) => entry.surface)).toEqual([
+    "SURF-QUEUE-001",
+    "SURF-CREATE-001",
+  ]);
+  expect(runtimeErrors).toEqual([]);
 });
 
 
