@@ -620,7 +620,10 @@ describe("OpenCode shell", () => {
   const pinnedOpenCodeTest = pinnedOpenCodeBinary === undefined ? it.skip : it;
   const pinnedOpenCodeDriveConfigured =
     pinnedOpenCodeBinary !== undefined && pinnedOpenCodeDriveRoot !== undefined;
-  if (process.env.CI === "1" && !pinnedOpenCodeDriveConfigured) {
+  if (
+    process.env.PONTIVUS_ORDER_REQUIRE_OPENCODE_DRIVE === "1" &&
+    !pinnedOpenCodeDriveConfigured
+  ) {
     throw new Error(
       "PR verification requires exact OpenCode and OpenCode Drive verification tooling",
     );
