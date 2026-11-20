@@ -36,10 +36,8 @@ import {
   approvalMaterialIsFresh,
   artifactRoleForStage,
   authorityLayerForManifestLayer,
-  authorityLayersForStage,
   deduplicateArtifacts,
   deduplicateArtifactsPreservingOrder,
-  projectAuthorityForLayers,
   resolveProjectAuthority,
   type PreSignoffStage,
   type ResolvedProjectAuthority,
@@ -309,10 +307,7 @@ export const resolveCurrentStageAuthority = async (
   const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
   return [
     manifest,
-    projectAuthorityForLayers(
-      resolveProjectAuthority(manifest, sources),
-      authorityLayersForStage(stage),
-    ),
+    resolveProjectAuthority(manifest, sources),
   ];
 };
 
@@ -320,7 +315,7 @@ export const resolveCurrentStageAuthority = async (
 const authorityRefTokenPattern = (authorityRef: AuthorityRef): RegExp =>
   new RegExp(
     "(?:^|[^A-Za-z0-9_-])" +
-      authorityRef.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\export type StageContextResolution = Readonly<{") +
+      authorityRef.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\authorityRef.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\export type StageContextResolution = Readonly<{")") +
       "(?=$|[^A-Za-z0-9_-])",
     "m",
   );
