@@ -1106,7 +1106,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await createDialog.getByRole("radio", { name: "CHANGE" }).click();
   await createDialog.getByLabel("Title").fill("Created in browser");
-  await createDialog.getByLabel("Concerns").click();
+  await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
   await createDialog.getByRole("button", { name: "Create work item" }).click();
@@ -1135,7 +1135,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
     .toContainText("docs/order/work-items");
   await createDialog.getByRole("radio", { name: "CHANGE" }).click();
   await createDialog.getByLabel("Title").fill("Repository-native management");
-  await createDialog.getByLabel("Concerns").click();
+  await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
   await createDialog.getByRole("button", { name: "Create work item" }).click();
@@ -2372,7 +2372,9 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
-  await expect(review.getByText("Review in progress", { exact: true })).toBeVisible();
+  await expect(
+    review.locator(".order-readiness-verdict").getByText("Review in progress", { exact: true }),
+  ).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   const selector = page.getByRole("combobox", { name: "Readiness material" });
   await expect(selector).toBeVisible();
