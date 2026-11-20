@@ -2032,6 +2032,7 @@ describe("public release delivery certification", () => {
   it("retains permanent 0.2.1 installed-state and browser seam certification", () => {
     const suites = {
       shell: read("tests/shell.test.ts"),
+      installer: read("tests/installer.test.ts"),
       daemon: read("tests/daemon.test.ts"),
       opencode: read("tests/opencode.test.ts"),
       migration: read("tests/order-migration.test.ts"),
@@ -2039,11 +2040,18 @@ describe("public release delivery certification", () => {
     };
 
     for (const required of [
-      "initializes fresh installs as valid incomplete v4 without terminal configuration prompts",
       "retains current incomplete v4 exactly during installer update without prompting",
       "supports valid incomplete v4 configuration and expected-hash replacement",
     ]) {
       expect(suites.shell).toContain(required);
+    }
+
+    for (const required of [
+      "fresh success completes provider, model and repository choices before returning zero",
+      "fresh provider failure cannot persist deferred Settings configuration",
+      "fresh provider cancellation returns 130 without persisting deferred configuration",
+    ]) {
+      expect(suites.installer).toContain(required);
     }
 
     for (const required of [
