@@ -1338,6 +1338,8 @@ test("documentation Git blockers remain canonical and visible in the browser", a
   ] as const) {
     blocker = nextBlocker;
     await page.reload();
+    await expect(page.getByTestId("work-item-workspace")).toBeVisible();
+    await selectWorkflowStep(page, "Work request");
     await expect(page.getByText("Documentation cannot be saved to Git", { exact: true }))
       .toBeVisible();
     await expect(page.getByText(message, { exact: true })).toBeVisible();
@@ -1694,11 +1696,17 @@ test("historical inspection preserves current attention reason, return and curre
     await selectWorkflowStep(page, "Work request");
     const summary = page.getByTestId("workflow-step-summary");
     await expect(summary.getByText(status, { exact: true })).toBeVisible();
-    await expect(page.getByRole("button", {
+    const returnToCurrent = page.getByRole("button", {
       name: "Return to Implementation plan",
       exact: true,
-    })).toBeVisible();
+    });
+    await expect(returnToCurrent).toBeVisible();
     if (currentAction !== null) {
+      await expect(page.getByRole("button", {
+        name: currentAction,
+        exact: true,
+      })).toHaveCount(0);
+      await returnToCurrent.click();
       await expect(page.getByRole("button", {
         name: currentAction,
         exact: true,
@@ -1708,11 +1716,17 @@ test("historical inspection preserves current attention reason, return and curre
   }
 
   await openWorkItem(page, "Stale approval recovery");
-  await selectWorkflowStep(page, "Work request");
   const staleSummary = page.getByTestId("workflow-step-summary");
+  await expect(staleSummary).toContainText("Package stale");
+  await selectWorkflowStep(page, "Work request");
   await expect(staleSummary.getByText("Stale authority", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Return to Approval", exact: true }))
-    .toBeVisible();
+  const returnToApproval = page.getByRole("button", { name: "Return to Approval", exact: true });
+  await expect(returnToApproval).toBeVisible();
+  await expect(page.getByRole("button", {
+    name: "Return to Implementation plan",
+    exact: true,
+  })).toHaveCount(0);
+  await returnToApproval.click();
   await expect(page.getByRole("button", {
     name: "Return to Implementation plan",
     exact: true,
@@ -2590,6 +2604,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await backToQueue(page);
 
   await openWorkItem(page, "Stale approval recovery");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Package stale");
   await selectWorkflowStep(page, "Readiness review");
   const staleReview = page.getByTestId("review-workspace");
   await expect(

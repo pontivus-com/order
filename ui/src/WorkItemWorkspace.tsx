@@ -1314,14 +1314,11 @@ export const WorkItemWorkspace = ({
       blocker={summaryBlocker}
       action={
         inspectedHistorical ? (
-          <div className="order-inline-actions">
-            <WorkbenchAction
-              label={"Return to " + workflow.label}
-              tone="primary"
-              onClick={() => inspectWorkflowStep(workItem.stage)}
-            />
-            {currentOwnerAction}
-          </div>
+          <WorkbenchAction
+            label={"Return to " + workflow.label}
+            tone="primary"
+            onClick={() => inspectWorkflowStep(workItem.stage)}
+          />
         ) : currentOwnerAction ?? (
           workItem.stage === "COMPLETE" &&
           (

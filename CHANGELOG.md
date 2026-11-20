@@ -18,7 +18,7 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Fixed
 
-- Close the adversarial 0.6.0 Wave 1–4 remediation gaps without adding new semantic owners: preserve one-time required-input focus across Workbench remounts, keep exact current recovery actions reachable during historical inspection, and complete permanent proof for durable EVIDENCE input, current-v2 PLAN/R3/sign-off task admission, Approval identity, queue filter composition, documentation-Git blockers, and typed Readiness verdict/currentness separation.
+- Close the adversarial 0.6.0 Wave 1–4 remediation gaps without adding new semantic owners: preserve one-time required-input focus across Workbench remounts, keep current attention explicit during historical inspection with one direct return to its owning action, and complete permanent proof for durable EVIDENCE input, current-v2 PLAN/R3/sign-off task admission, Approval identity, queue filter composition, documentation-Git blockers, and typed Readiness verdict/currentness separation.
 
 - Make lifecycle Markdown browser verification assert canonical post-save PLAN bytes and editor save completion instead of reconstructing the document from CodeMirror's virtualized rendered lines, eliminating a timing-sensitive false failure without changing product behavior.
 
