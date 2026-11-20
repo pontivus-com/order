@@ -171,7 +171,7 @@ Task-local ownership is authoritative. Repetition of a verification path across 
 ## Exhaustive traceability invariants
 
 - exactly 112 stable requirements occur once across A01-A11;
-- exactly 25 package-local atomic obligations occur once across A01-A11, including `PL-C12-02`;
+- exactly 27 package-local atomic obligations occur once across A01-A11, including `PL-C12-02`, `PL-C19-02` and `PL-C20-03`;
 - A01 corrected-upstream no-code trace rows `A01-NC01`-`A01-NC05` remain explicit and authorize no T1 mutation;
 - every stable row names its exact current R1 evidence and current DESIGN disposition;
 - every `POSITIVE_NO_CHANGE` row has no execution mutation and names exact verification ownership;
@@ -1288,7 +1288,7 @@ Any failed row blocks closeout, opens remediation at the defective implementatio
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
-- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
+- all 27 package-local atoms, including `PL-C12-02`, `PL-C19-02` and `PL-C20-03`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
 - each signed task retains its exact `changeSurface`; the union remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
