@@ -651,170 +651,255 @@ describe("OpenCode shell", () => {
   });
 
   pinnedOpenCodeDriveTest(
-    "runs Order's production turn boundary against real OpenCode 2.2.6 with Drive deterministic simulation",
+    "runs exact OpenCode 2.2.6 through Order production admission with Drive deterministic simulation",
     () => {
-      const driveIndex = join(
-        pinnedOpenCodeDriveRoot!,
-        "node_modules",
-        "opencode-drive",
-        "src",
-        "index.ts",
+      const workspace = tempDir("order-opencode-drive-production-workspace-");
+      const state = tempDir("order-opencode-drive-production-state-");
+      const harness = tempDir("order-opencode-drive-production-harness-");
+      writeFileSync(join(workspace, "README.md"), "# SD20 production admission\n");
+
+      const wrapper = join(harness, "opencode");
+      writeFileSync(
+        wrapper,
+        `#!/usr/bin/env bash
+set -euo pipefail
+real=${JSON.stringify(pinnedOpenCodeBinary!)}
+
+if [[ "\${PWD}" == */opencode/account-control ]]; then
+  export OPENCODE_SIMULATE=1
+  unset OPENCODE_DRIVE
+  exec "\${real}" "$@"
+fi
+
+if [[ "\${1:-}" == "serve" ]]; then
+  merged="$(bun -e '
+    const base = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT ?? "{}");
+    const simulation = {
+      name: "Order SD20 Simulation",
+      package: "@opencode/ai/providers/openai/chat",
+      settings: { apiKey: "order-sd20-simulation" },
+      models: {
+        "order-sim-model": {
+          name: "Order SD20 Simulated Model",
+          capabilities: { tools: true, input: ["text"], output: ["text"] },
+          cost: { input: 0, output: 0 },
+          limit: { context: 4000000, output: 1000000 }
+        }
+      }
+    };
+    process.stdout.write(JSON.stringify({
+      ...base,
+      update: "disable",
+      providers: { ...(base.providers ?? {}), simulation }
+    }));
+  ')"
+  export OPENCODE_CONFIG_CONTENT="\${merged}"
+  export OPENCODE_SIMULATE=1
+  export OPENCODE_DRIVE=1
+
+  primed=0
+  "\${real}" "$@" | while IFS= read -r line; do
+    if [[ "\${primed}" -eq 0 && "\${line}" =~ (http://127\\.0\\.0\\.1:[0-9]+) ]]; then
+      endpoint="\${BASH_REMATCH[1]}"
+      curl -sS -u "opencode:\${OPENCODE_PASSWORD}" \
+        --get \
+        --data-urlencode "location[directory]=\${PWD}" \
+        "\${endpoint}/api/integration/opencode" \
+        >/dev/null 2>&1 || true
+      sleep 9
+      primed=1
+    fi
+    printf '%s\n' "\${line}"
+  done
+  exit "\${PIPESTATUS[0]}"
+fi
+
+exec "\${real}" "$@"
+`,
+        { mode: 0o755 },
       );
-      const output = bunDriveEval(`
-        import { Buffer } from "node:buffer";
-        import { readdirSync, readFileSync } from "node:fs";
-        import { join } from "node:path";
-        import { pathToFileURL } from "node:url";
+      chmodSync(wrapper, 0o755);
 
-        const drive = await import(pathToFileURL(${JSON.stringify(driveIndex)}).href);
-        const order = await import("./src/shell/opencode.ts");
-        const { OpenCode } = await import("@opencode/client");
-        const { Effect, Llm, OpenCodeDriver } = drive;
+      const controllerPath = join(
+        pinnedOpenCodeDriveRoot!,
+        `order-sd20-controller-${process.pid}.ts`,
+      );
+      const compatibleMarker = join(harness, "drive-compatible");
+      writeFileSync(
+        controllerPath,
+        `import * as Cause from "effect/Cause";
+import * as Effect from "effect/Effect";
+import * as Exit from "effect/Exit";
+import * as Stream from "effect/Stream";
+import * as Llm from "opencode-drive/llm";
+import * as SimulationConnector from "./node_modules/opencode-drive/src/simulation/connector.ts";
+import * as LlmController from "./node_modules/opencode-drive/src/driver/llm-controller.ts";
 
-        const result = await Effect.runPromise(
-          OpenCodeDriver.use(
-            {
-              project: {
-                git: true,
-                files: { "AGENTS.md": "# Order SD20 exact-pin verification\\n" },
-              },
-              opencode: {
-                command: [process.env.PONTIVUS_ORDER_OPENCODE_BIN],
-              },
-            },
-            ({ llm, directory, environment }) =>
-              Effect.gen(function* () {
-                yield* llm.queue(
-                  Llm.text(
-                    '[{"tag":"AGENT_MESSAGE_FINAL","text":"drive-exact-pin","evidence":[]}]',
-                  ),
-                );
-                return yield* Effect.promise(async () => {
-                  await order.assertOpenCodeBinaryVersion(
-                    process.env.PONTIVUS_ORDER_OPENCODE_BIN,
-                    directory,
-                    process.env,
-                  );
+const marker = process.env.ORDER_SD20_COMPATIBLE;
+if (!marker) throw new TypeError("missing compatibility marker");
 
-                  const serviceDirectory = join(environment.XDG_STATE_HOME, "opencode");
-                  const registration = readdirSync(serviceDirectory)
-                    .filter((name) => /^service(?:-[^.]+)?\\.json$/.test(name))
-                    .map((name) =>
-                      JSON.parse(readFileSync(join(serviceDirectory, name), "utf8"))
-                    )
-                    .find(
-                      (candidate) =>
-                        typeof candidate?.url === "string" &&
-                        typeof candidate?.password === "string",
-                    );
-                  if (registration === undefined) {
-                    throw new Error("Drive-managed OpenCode service registration was not found");
-                  }
+const response = () => Stream.fromIterable([
+  Llm.text('[{"tag":"AGENT_MESSAGE_FINAL","text":"drive-production-admission","evidence":[]} ]'.replace("} ]", "}]")),
+  Llm.finish("stop"),
+]);
 
-                  const client = OpenCode.make({
-                    baseUrl: registration.url,
-                    headers: {
-                      Authorization:
-                        "Basic " +
-                        Buffer.from("opencode:" + registration.password).toString("base64"),
-                    },
-                  });
-                  const info = await client.server.info();
-                  const models = await client.model.list({
-                    location: { directory },
-                  });
-                  const candidate = models.data.find(
-                    (model) => model.enabled && model.providerID === "simulation",
-                  );
-                  if (candidate === undefined) {
-                    throw new Error("Drive simulation provider model was not available");
-                  }
-                  const model = {
-                    providerID: candidate.providerID,
-                    id: candidate.id,
-                  };
-                  const permissions = order.openCodePermissionRules("STAGE", null, []);
-                  const session = await client.session.create({
-                    location: { directory },
-                  });
-                  await client.session.switchModel({
-                    sessionID: session.id,
-                    model,
-                  });
-                  await client.session.update({
-                    sessionID: session.id,
-                    permissions,
-                  });
-                  const rebound = await client.session.get({ sessionID: session.id });
+const program = Effect.scoped(
+  Effect.gen(function* () {
+    while (true) {
+      const cycle = Effect.scoped(
+        Effect.gen(function* () {
+          const controller = yield* LlmController.make({
+            requestTimeout: 60_000,
+            settlementTimeout: 60_000,
+          });
+          yield* controller.serve(() => response());
+         ÛÛÝXÚÙ[HZY[
+Ú[][][ÛÛÛXÝÜXÚÙ[
+ÜÎËÌLËNMLÂÛÛXÝ[Y[Ý]WÌ\]Y\Ý[Y[Ý]ÌÛÛ\]X[]N\]Z\YK
+NÂZY[
+XÚÙ[]XÚÛÛÊ×JNÂZY[
+YXÝÛZ\ÙJ
 
-                  let diagnostic = null;
-                  const events = await order.runOpenCodeTurn(
-                    {
-                      client,
-                      process: {},
-                      model,
-                      workspace: directory,
-                      diagnosticStderr: {
-                        reset() {},
-                        record() {},
-                        snapshot() { return null; },
-                        redact(text) { return text; },
-                      },
-                    },
-                    session.id,
-                    {
-                      id: "run_33333333-3333-4333-8333-333333333333",
-                      contextHash: "sha256:" + "b".repeat(64),
-                    },
-                    "event_44444444-4444-4444-8444-444444444444",
-                    "STAGE",
-                    null,
-                    [],
-                    "Return the canonical event array.",
-                    (record) => {
-                      diagnostic = record;
-                    },
-                  );
+HO[Ü]JX\Ù\ÛÛ\]XWJNÂÛÛÝ]XÚY[HZY[
+ÛÛÛ\]XÚ
+XÚÙ[
+NÂZY[
+XÚÙ[ÛÜÙY\JYXÝ[Ý\[Ê]XÚY[]XÚ
 
-                  return {
-                    version: info.version,
-                    model,
-                    reboundModel: rebound.model,
-                    events,
-                    diagnostic,
-                  };
+JJNÂJK
+NÂÛÛÝÝ]ÛÛYHHZY[
+YXÝ^]
+ÞXÛJNÂY
+^]\ÑZ[\JÝ]ÛÛYJJHÂZY[
+YXÝÞ[Ê
+
+HOØÙ\ÜËÝ\Ü]JØ]\ÙK]JÝ]ÛÛYKØ]\ÙJH
+ÈB
+NÂZY[
+YXÝÛY\
+LZ[\ÈNÂBBJKNÂ]ØZ]YXÝ[ÛZ\ÙJÙÜ[JNÂ
+NÂ]Ý]]Â\Ú[ÛÝ[ÎÂ[Ù[ÈÝY\QÝ[ÎÈYÝ[ÎÈ\X[ÎÝ[ÈNÂ\Z\ÜÚ[ÛÎ[ÛÝÛ×NÂ\ÝYXØÛÝ[YÝ[ÎÂÛÛ\]XNÛÛX[Â][Î[ÛÝÛ×NÂXYÛÜÝXÎÂÝ]ÛÛYNÝ[ÎÂÝY\YÝ[ÎÂ[Ù[YÝ[ÎÂZ[\T\ÙNÝ[È[ÂNÂNÂHÂÝ]]H[]Q][
+[\ÜÈ^\ÝÔÞ[ÈHÛHÙNÈÂÛÛÝÜ\H]ØZ][\Ü
+ÜÜËÜÚ[ÛÜ[ÛÙKÈNÂÛÛÝÝ]TÛÝH	ÒÓÓÝ[ÚYJÝ]J_NÂÛÛÝÛÜÜÜXÙHH	ÒÓÓÝ[ÚYJÛÜÜÜXÙJ_NÂ6öç7B6öçG&öÆÆW"Ò'Vâç7vâ¢²&'Vâ"ÂG´¥4ôâç7G&ævg6öçG&öÆÆW%FÕÒÀ¢°¢7vC¢G´¥4ôâç7G&ævgææVD÷Vä6öFTG&fU&ö÷BÒÀ¢Vçc¢°¢ââç&ö6W72æVçbÀ¢õ$DU%õ4C#ô4ôÕD$ÄS¢G´¥4ôâç7G&ævg6ö×F&ÆTÖ&¶W"ÒÀ¢ÒÀ¢7FF÷WC¢'R"À¢7FFW'#¢'R"À¢ÒÀ¢° ¢6öç7B6÷W&6TVçf&öæÖVçBÒ°¢ââç&ö6W72æVçbÀ¢ôåDeU5ôõ$DU%ôõTä4ôDUô$ã¢G´¥4ôâç7G&ævgw&W"ÒÀ¢Ó° ¢½¹ÍÐÉÑÉåAÉ½©Ñ¥½¸ôÍå¹¡½ÁÉÑ¥½¸¤ôøì(±Ð±ÍÑÉÉ½Èô¹Õ±°ì(½È¡±ÐÑÑµÁÐôÀìÑÑµÁÐðÄÈÀìÑÑµÁÐ¬ôÄ¤ì(ÑÉäì(ÉÑÕÉ¸Ý¥Ð½ÁÉÑ¥½¸ ¤ì(ôÑ ¡ÉÉ½È¤ì(±ÍÑÉÉ½ÈôÉÉ½Èì(Ý¥Ð	Õ¸¹Í±À ÈÔÀ¤ì(ô(ô(Ñ¡É½Ü±ÍÑÉÉ½Èì(ôì((ÑÉäì(const control = await order.startOpenCodeAccountControl(
+              stateRoot,
+              sourceEnvironment,
+            );
+            try {
+              let accounts = await retryProjection(
+                () => order.listOpenCodeAccounts(control),
+              );
+              if (!accounts.some(
+                (account) => account.active && account.status.status === "READY",
+              )) {
+                await control.client.credential.create({
+                  integrationID: "opencode",
+                  label: "sd20-simulation",
+                  value: {
+                    type: "oauth",
+                    methodID: "device",
+                    refresh: "order-sd20-simulation-refresh",
+                    access: "order-sd20-simulation-access",
+                    expires: Date.now() + 86_400_000,
+                    metadata: { orgName: "Order SD20 Simulation" },
+                  },
+                  activate: true,
                 });
-              }),
-          ),
-        );
+                accounts = await retryProjection(
+                  () => order.listOpenCodeAccounts(control),
+                );
+              }
+              if (!accounts.some(
+                (account) => account.active && account.status.status === "READY",
+              )) {
+                throw new TypeError("simulation account did not become READY");
+              }
+            } finally {
+              await order.stopOpenCodeAccountControl(control);
+            }
 
-        console.log(JSON.stringify(result));
-      `, {
-        PONTIVUS_ORDER_OPENCODE_BIN: pinnedOpenCodeBinary!,
-        PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: pinnedOpenCodeDriveRoot!,
-      }) as {
-        version: string;
-        model: { providerID: string; id: string };
-        reboundModel: { providerID: string; id: string; variant?: string };
-        events: unknown[];
-        diagnostic: {
-          outcome: string;
-          providerId: string;
-          modelId: string;
-          failurePhase: string | null;
-        };
-      };
+            const admission = await order.admitProductiveOpenCode(
+              stateRoot,
+              workspace,
+              {
+                providerID: "simulation",
+                id: "order-sim-model",
+              },
+              sourceEnvironment,
+              "STAGE",
+              null,
+              [],
+              [],
+            );
+            try {
+              const serverInfo = await admission.server.client.server.info();
+              const session = await admission.server.client.session.get({
+                sessionID: admission.sessionId,
+              });
+              let diagnostic = null;
+              const events = await order.runOpenCodeTurn(
+                admission.server,
+                admission.sessionId,
+                {
+                  id: "run_33333333-3333-4333-8333-333333333333",
+                  contextHash: "sha256:" + "b".repeat(64),
+                },
+                "event_44444444-4444-4444-8444-444444444444",
+                "STAGE",
+                null,
+                [],
+                "Return the canonical event array.",
+                (record) => {
+                  diagnostic = record;
+                },
+              );
+              console.log(JSON.stringify({
+                version: serverInfo.version,
+                model: session.model,
+                permissions: session.permissions,
+                trustedAccountId: admission.trustedAccountId,
+                compatible: existsSync(${JSON.stringify(compatibleMarker)}),
+                events,
+                diagnostic,
+              }));
+            } finally {
+              await order.stopOpenCodeServer(admission.server);
+            }
+          } finally {
+            controller.kill();
+            await controller.exited;
+          }
+        `, {
+          PONTIVUS_ORDER_OPENCODE_BIN: wrapper,
+          PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: pinnedOpenCodeDriveRoot!,
+        }) as typeof output;
+      } finally {
+        rmSync(controllerPath, { force: true });
+      }
 
       expect(output.version).toBe("2.2.6");
-      expect(output.model.providerID).toBe("simulation");
-      expect(output.reboundModel).toMatchObject(output.model);
+      expect(output.compatible).toBe(true);
+      expect(output.model).toMatchObject({
+        providerID: "simulation",
+        id: "order-sim-model",
+      });
+      expect(output.permissions).toEqual(
+        expect.arrayContaining([
+          { action: "*", resource: "*", effect: "deny" },
+          { action: "read", resource: "*", effect: "allow" },
+        ]),
+      );
+      expect(output.trustedAccountId.length).toBeGreaterThan(0);
       expect(output.events).toEqual([
-        { tag: "AGENT_MESSAGE_FINAL", text: "drive-exact-pin", evidence: [] },
+        {
+          tag: "AGENT_MESSAGE_FINAL",
+          text: "drive-production-admission",
+          evidence: [],
+        },
       ]);
       expect(output.diagnostic).toMatchObject({
         outcome: "SUCCEEDED",
         providerId: "simulation",
-        modelId: output.model.id,
+        modelId: "order-sim-model",
         failurePhase: null,
       });
     },
