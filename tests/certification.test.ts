@@ -1810,6 +1810,37 @@ materialRefs = []
   });
 });
 
+describe("0.6.0 Wave 3 source and queue ownership certification", () => {
+  it("keeps one new-source planner, one persistence owner, and one queue derivation", () => {
+    const source = read("src/daemon/work-item-source.ts");
+    const create = source.slice(
+      source.indexOf("export const createWorkItemFromSource"),
+      source.indexOf("const activeRunExists"),
+    );
+    expect(source).toContain("const planNewSource =");
+    expect(source).toContain('planNewSource(source, project, "DISCOVERED", archived)');
+    expect(create).toContain('planNewSource(source, project, "CREATED", false)');
+    expect(create).toContain("applyPlan(runtime, plan)");
+    expect(create).not.toContain("storeWorkItem(");
+
+    const app = read("ui/src/app.tsx");
+    const queue = read("ui/src/WorkItemQueue.tsx");
+    expect(app).toContain("showArchived ? archivedWorkItemsQuery.data ?? workItems : workItems");
+    expect(app).toContain("queueDataset.filter((item) => item.projectId === queueProjectId)");
+    expect(queue).not.toContain("useQuery(");
+    expect(queue).not.toContain("listWorkItemsIncludingArchived");
+
+    const createWorkItem = read("ui/src/CreateWorkItem.tsx");
+    expect(createWorkItem).toContain('label="Concerns"');
+    expect(createWorkItem).toContain('data-testid="linked-remediation-project"');
+
+    const documents = read("ui/src/DocumentWorkspace.tsx");
+    expect(documents).toContain("state.changedGitPaths.map");
+    expect(documents).toContain("path.repositoryPath");
+    expect(documents).toContain("path.state");
+  });
+});
+
 describe("0.6.0 Wave 2 contract certification", () => {
   it("keeps one task parser with schema-aware v2 admission and canonical Approval identity", () => {
     const contracts = read("src/core/contracts.ts");

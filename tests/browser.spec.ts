@@ -1044,7 +1044,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await createDialog.getByRole("radio", { name: "CHANGE" }).click();
   await createDialog.getByLabel("Title").fill("Created in browser");
-  await createDialog.getByLabel("Concern IDs").click();
+  await createDialog.getByLabel("Concerns").click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
   await createDialog.getByRole("button", { name: "Create work item" }).click();
@@ -1073,7 +1073,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
     .toContainText("docs/order/work-items");
   await createDialog.getByRole("radio", { name: "CHANGE" }).click();
   await createDialog.getByLabel("Title").fill("Repository-native management");
-  await createDialog.getByLabel("Concern IDs").click();
+  await createDialog.getByLabel("Concerns").click();
   await page.getByRole("option", { name: "browser" }).click();
   await page.keyboard.press("Escape");
   await createDialog.getByRole("button", { name: "Create work item" }).click();
@@ -1088,7 +1088,8 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
     name: "Save WorkItem documentation to Git?",
   });
   await expect(gitDialog).toContainText("Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.");
-  await expect(gitDialog).not.toContainText("work-request.md");
+  await expect(gitDialog).toContainText("work-request.md");
+  await expect(gitDialog).toContainText("[UNTRACKED]");
   await gitDialog.getByRole("button", { name: "Save documentation to Git" }).click();
   await expect(documentState).toContainText("Saved to Git");
 
@@ -1100,9 +1101,12 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await expect(documentState).toContainText("Saved to project, not Git");
 
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
-  await page.getByRole("alertdialog", {
+  const renamedGitDialog = page.getByRole("alertdialog", {
     name: "Save WorkItem documentation to Git?",
-  }).getByRole("button", { name: "Save documentation to Git" }).click();
+  });
+  await expect(renamedGitDialog).toContainText("work-request.md");
+  await expect(renamedGitDialog).toContainText("[MODIFIED]");
+  await renamedGitDialog.getByRole("button", { name: "Save documentation to Git" }).click();
   await expect(documentState).toContainText("Saved to Git");
 
   await page.getByRole("button", { name: "Archive", exact: true }).click();
@@ -1110,6 +1114,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
     .getByRole("button", { name: "Archive work item" }).click();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(rowFor(page, "Repository-native management renamed")).toHaveCount(0);
+  await page.getByLabel("Search work items").fill("Repository-native management renamed");
 
   await page.getByRole("button", { name: "Show archived" }).click();
   const archivedRow = rowFor(page, "Repository-native management renamed");
@@ -2643,6 +2648,8 @@ test("terminal investigation and audit results remain closed and linked remediat
   await expect(dialog).toContainText("Parent INVESTIGATION");
   await expect(dialog).toContainText("Completed investigation");
   await expect(dialog).toContainText(parent.id);
+  await expect(dialog.getByTestId("linked-remediation-project")).toContainText(parent.projectId);
+  await expect(dialog.getByRole("combobox", { name: "Project Required" })).toHaveCount(0);
   await expect(dialog.getByRole("radio", { name: "CHANGE" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "DEFECT" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "INVESTIGATION" })).toHaveCount(0);

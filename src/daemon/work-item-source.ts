@@ -115,6 +115,35 @@ type QueuePlan = Readonly<{
   workItem: WorkItem;
 }>;
 
+type NewSourceOrigin = "CREATED" | "DISCOVERED";
+
+const planNewSource = (
+  source: ParsedWorkItemSource,
+  project: ConfiguredProject,
+  origin: NewSourceOrigin,
+  archived: boolean,
+): QueuePlan => ({
+  disposition: "REGISTERED",
+  source,
+  workItem: WorkItemSchema.parse({
+    id: source.metadata.id,
+    projectId: source.metadata.projectId,
+    repositoryRoot: project.repositoryRoot,
+    title: source.title,
+    origin,
+    schemaId: source.metadata.schemaId,
+    sourcePath: source.path,
+    sourceSha256: source.sha256,
+    derivedFromWorkItemId: source.metadata.derivedFromWorkItemId ?? null,
+    stage: "IDEA",
+    status: "ACTIVE",
+    outcome: null,
+    concernIds: source.metadata.concernIds,
+    archived,
+    createdAt: nowIsoDateTime(),
+  }),
+});
+
 const diagnostic = (
   projectId: ProjectId,
   source: ParsedWorkItemSource | null,
@@ -353,27 +382,7 @@ const inspectQueue = async (
 
     const prior = existing.get(source.metadata.id);
     if (prior === undefined) {
-      plans.push({
-        disposition: "REGISTERED",
-        source,
-        workItem: WorkItemSchema.parse({
-          id: source.metadata.id,
-          projectId: source.metadata.projectId,
-          repositoryRoot: project.repositoryRoot,
-          title: source.title,
-          origin: "DISCOVERED",
-          schemaId: source.metadata.schemaId,
-          sourcePath: source.path,
-          sourceSha256: source.sha256,
-          derivedFromWorkItemId: source.metadata.derivedFromWorkItemId ?? null,
-          stage: "IDEA",
-          status: "ACTIVE",
-          outcome: null,
-          concernIds: source.metadata.concernIds,
-          archived,
-          createdAt: nowIsoDateTime(),
-        }),
-      });
+      plans.push(planNewSource(source, project, "DISCOVERED", archived));
       continue;
     }
 
@@ -675,25 +684,9 @@ export const createWorkItemFromSource = async (
     markdown,
   );
   const source = readWorkItemSource(project.repositoryRoot, created.path);
-  const value = WorkItemSchema.parse({
-    id,
-    projectId: command.projectId,
-    repositoryRoot: project.repositoryRoot,
-    title: source.title,
-    origin: "CREATED",
-    schemaId: command.schemaId,
-    sourcePath: source.path,
-    sourceSha256: source.sha256,
-    derivedFromWorkItemId: parentId,
-    stage: "IDEA",
-    status: "ACTIVE",
-    outcome: null,
-    concernIds: source.metadata.concernIds,
-    archived: false,
-    createdAt: nowIsoDateTime(),
-  });
-  storeWorkItem(runtime.database, value);
-  return value;
+  const plan = planNewSource(source, project, "CREATED", false);
+  withTransaction(runtime.database, () => applyPlan(runtime, plan));
+  return plan.workItem;
 };
 
 const activeRunExists = (

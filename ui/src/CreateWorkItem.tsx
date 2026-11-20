@@ -38,14 +38,22 @@ export const CreateWorkItem = ({
     <WorkbenchForm
       onSubmit={submit}
       content={<>
-        <Selector
-          label="Project"
-          options={projects.map((project) => ({ value: project.projectId, label: project.projectId }))}
-          value={projectId}
-          onChange={onProjectChange}
-          isRequired
-          width="100%"
-        />
+        {derivedFromWorkItem === null ? (
+          <Selector
+            label="Project"
+            options={projects.map((project) => ({ value: project.projectId, label: project.projectId }))}
+            value={projectId}
+            onChange={onProjectChange}
+            isRequired
+            width="100%"
+          />
+        ) : (
+          <div className="order-create-derived" data-testid="linked-remediation-project">
+            <strong>Project</strong>
+            <span>{derivedFromWorkItem.projectId}</span>
+            <small>Fixed to the parent WorkItem project.</small>
+          </div>
+        )}
         {selectedProject ? <div className="order-create-location" data-testid="create-work-item-location"><span>Repository documentation root</span><code>{selectedProject.workItems.root}</code></div> : null}
         <RadioList
           label="Work item type"
@@ -60,7 +68,7 @@ export const CreateWorkItem = ({
           ))}
         </RadioList>
         <TextInput label="Title" value={title} onChange={onTitleChange} isRequired width="100%" />
-        <MultiSelector label="Concern IDs" options={[...availableConcernIds]} value={[...concernIds]} onChange={(value) => onConcernIdsChange(value)} hasSearch size="sm" placeholder="Select concerns" width="100%" />
+        <MultiSelector label="Concerns" options={[...availableConcernIds]} value={[...concernIds]} onChange={(value) => onConcernIdsChange(value)} hasSearch size="sm" placeholder="Select concerns" width="100%" />
         {derivedFromWorkItem !== null ? (
           <div className="order-create-derived">
             <strong>Canonical lineage</strong>

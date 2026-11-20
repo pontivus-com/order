@@ -4478,6 +4478,81 @@ describe("daemon control plane", () => {
     expect(output.taskStates.every((stateValue) => stateValue === "BLOCKED")).toBe(true);
   });
 
+  it("converges created and discovered sources through the same registered WorkItem semantics", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-source-registration-owner-");
+    const output = bunEval(`
+      const sourceCore = await import("./src/core/work-item-source.ts");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "registration semantics",
+        concernIds: ["shell"],
+      });
+
+      const discoveredId = rt.newWorkItemId();
+      sourceShell.createWorkItemSourceFile(
+        repository,
+        "docs/order/work-items",
+        discoveredId,
+        sourceCore.renderWorkItemSourceMarkdown({
+          formatVersion: 1,
+          id: discoveredId,
+          projectId: "fixture",
+          concernIds: ["shell"],
+          schemaId: "change-v1",
+        }, "registration semantics"),
+      );
+      const reconciliation = await coord.reconcileSources(runtime);
+      const discovered = coord.getWorkItem(runtime, discoveredId);
+      const projection = (item) => ({
+        projectId: item.projectId,
+        title: item.title,
+        schemaId: item.schemaId,
+        stage: item.stage,
+        status: item.status,
+        outcome: item.outcome,
+        concernIds: item.concernIds,
+        archived: item.archived,
+      });
+      console.log(JSON.stringify({
+        createdOrigin: created.origin,
+        discoveredOrigin: discovered.origin,
+        sameSemantics:
+          JSON.stringify(projection(created)) === JSON.stringify(projection(discovered)),
+        registered: reconciliation.registered,
+      }));
+      database.close();
+    `) as {
+      createdOrigin: string;
+      discoveredOrigin: string;
+      sameSemantics: boolean;
+      registered: string[];
+    };
+
+    expect(output.createdOrigin).toBe("CREATED");
+    expect(output.discoveredOrigin).toBe("DISCOVERED");
+    expect(output.sameSemantics).toBe(true);
+    expect(output.registered).toHaveLength(1);
+  });
+
   it("keeps unresolved project and concern diagnostics as distinct typed source conditions", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-resolution-");
