@@ -442,8 +442,10 @@ Every `POSITIVE_NO_CHANGE` row explicitly consumes its named R1 producer→carri
 | `PL-C16-03` | C16-F03 | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. | `SD19` |
 | `PL-C18-01` | C18-F01 | New required input moves focus once to its Workbench composer and polling does not steal it repeatedly. | `SD15` |
 | `PL-C19-01` | C19-F01 | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. | `SD16` |
+| `PL-C19-02` | C19-F02 | Recompose the presentation layer from the canonical primitive/theme system, migrate every renderer family and delete old recurring feature-era presentation ownership rather than wrapping it. | `SD21`-`SD29` |
 | `PL-C20-01` | C20-F02 | Permanent browser certification proves complete four-kind Research/downstream scenario 41. | `SD17` |
 | `PL-C20-02` | C20-F03 | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. | `SD18` |
+| `PL-C20-03` | C20-F05 | Exact-candidate rendered acceptance covers every governed screen/state and records independent schema/information, UX/interaction and visual/UI verdicts with no unresolved FAIL. | `SD30` |
 
 These atoms are the non-stable/package-local obligations that the earlier 22-row concern summary compressed too aggressively. They are downstream of R2 and do not create new permanent P3 identifiers.
 
@@ -455,7 +457,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C02 | Stable rows + PL-C02-01/02/03 -> SD03/SD04. |
 | C03 | Stable rows + PL-C03-01 -> SD05. |
 | C04 | Stable rows + PL-C04-01/02 -> SD04/SD06. |
-| C05 | Stable rows + PL-C05-01 -> SD07. |
+| C05 | Stable current-attention semantics + PL-C05-01 -> SD07; rendered shell/geometry realization -> SD21/SD23/SD24/SD29. |
 | C06 | Stable rows + PL-C06-01 -> SD08. |
 | C07 | Stable FR096 + PL-C07-01 -> SD09. |
 | C08 | PL-C08-01 -> SD09; package technical consequence only. |
@@ -466,11 +468,11 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C13 | Stable rows; positive no technical delta. |
 | C14 | Stable rows; positive no technical delta, with SD09 affecting only newly admitted permanent-governance proposal targets. |
 | C15 | Stable rows; positive no provider/session technical delta. |
-| C16 | Stable rows + PL-C16-01 -> SD14; PL-C16-02/03 -> SD19; P6 contradiction already corrected in canonical owner. |
+| C16 | PL-C16-01 operator hierarchy -> SD14 plus Settings presentation reconstruction SD21/SD28/SD29; PL-C16-02/03 -> SD19; P6 contradiction already corrected in canonical owner. |
 | C17 | Stable rows + imported PL-C05-01 -> SD07. |
-| C18 | Stable FR225 + PL-C18-01 -> SD15. |
-| C19 | Stable rows + PL-C19-01 -> SD16; local hierarchy dependencies SD11/12/14. |
-| C20 | Stable rows + PL-C20-01/02 -> SD17/SD18; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
+| C18 | PL-C18-01 -> SD15; presentation-wide responsive/accessibility re-composition -> SD21/SD29/SD30. |
+| C19 | PL-C19-01 -> SD16; C19-F02/PL-C19-02 requires foundational primitive/theme reconstruction and exhaustive renderer migration SD21-SD29; rendered acceptance SD30. |
+| C20 | PL-C20-01/02 -> SD17/SD18; C20-F05/PL-C20-03 -> SD30 rendered acceptance; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
 | C21 | PL-C21-01 -> SD01 plus explicit A01-NC03 corrected-upstream no-code disposition. |
 | C22 | Stable dependency rows + PL-C22-01 -> SD02. |
 
@@ -549,9 +551,28 @@ repository discovery --------------------+
 
 `origin=CREATED|DISCOVERED` remains provenance only.
 
-### F6 — queue/presentation (SD05-SD07, SD11-SD15)
+### F6 — Workbench presentation reconstruction (SD05-SD07, SD11-SD18, SD21-SD30)
 
 Canonical daemon facts are projected once; browser selection never becomes workflow authority. Include-archived selects a dataset before project/search filtering. Historical/supporting material selection never hides current attention. Readiness/Approval/Settings/product labels/focus are projections of existing typed state.
+
+The presentation path is reconstructed in dependency order:
+
+```text
+canonical browser/domain/query facts
+ -> SD21 closed primitive/theme foundation
+ -> SD22 Queue/Create application services
+ -> SD23 WorkItem shell + Work request/document
+ -> SD24 Research/Requirements/Design/Plan shared productive-stage grammar
+ -> SD25 Readiness/Approval review grammar
+ -> SD26 Implementation master/detail
+ -> SD27 Complete/Evidence/Context
+ -> SD28 Settings/account/configuration
+ -> SD29 primitive-owned responsive/accessibility recomposition
+ -> SD16/SD17/SD18 semantic certification
+ -> SD30 exact-candidate rendered acceptance
+```
+
+No domain renderer owns recurring component chrome, structural breakpoint policy, generic form/table/status/notice grammar or overlay topology after migration. Old selectors/branches are deleted as their primitive owner becomes active; implementation must not keep a compatibility presentation path.
 
 ### F7 — productive installer closure (SD19)
 
@@ -585,7 +606,9 @@ The real OpenCode process remains the subject under test; only the model side is
 
 ## Exact implementation surface forecast
 
-### Production paths expected to change
+The corrected DESIGN broadens the UI implementation forecast because the canonical P4 re-composition was previously omitted. This is intentional presentation-layer replacement, not semantic scope expansion.
+
+### Existing non-UI production paths retained from SD01-SD20
 - `README.md`
 - `src/core/contracts.ts`
 - `src/core/execution.ts`
@@ -595,18 +618,41 @@ The real OpenCode process remains the subject under test; only the model side is
 - `src/daemon/stage.ts`
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
+
+### UI presentation paths expected to change under SD21-SD29
+
+All canonical presentation owners are forecast because every renderer must be migrated and the primitive layer itself rebuilt:
+
+- `ui/src/app.tsx`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
 - `ui/src/DocumentWorkspace.tsx`
+- `ui/src/EvidenceViewer.tsx`
+- `ui/src/ExecutionWorkspace.tsx`
+- `ui/src/MarkdownEditor.tsx`
+- `ui/src/MarkdownSourceEditor.tsx`
+- `ui/src/OpenCodeAccountControl.tsx`
+- `ui/src/OpenCodeAccountSettings.tsx`
+- `ui/src/PreSignoffStageWorkspace.tsx`
+- `ui/src/ProposalReview.tsx`
 - `ui/src/ReadinessWorkspace.tsx`
+- `ui/src/RunEventTimeline.tsx`
 - `ui/src/SettingsWorkspace.tsx`
 - `ui/src/SignoffReview.tsx`
 - `ui/src/TerminalResult.tsx`
+- `ui/src/WorkItemContext.tsx`
+- `ui/src/WorkItemIdentityRow.tsx`
 - `ui/src/WorkItemQueue.tsx`
 - `ui/src/WorkItemWorkspace.tsx`
-- `ui/src/app.tsx`
-- `ui/src/workbench-presentation.ts`
+- `ui/src/WorkflowMaterialSelector.tsx`
+- `ui/src/WorkflowRail.tsx`
+- `ui/src/WorkflowStepFrame.tsx`
+- every existing `ui/src/primitives/*.tsx` owner in the closed P4 vocabulary.
+
+This forecast intentionally excludes `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/main.tsx` and `ui/src/markdown-source-formatting.ts` unless implementation discovers a genuine presentation-boundary defect; those modules are not presentation owners and may not be changed merely for convenience.
 
 ### Verification paths expected to change/create
 - `tests/certification.test.ts`
@@ -623,9 +669,7 @@ The real OpenCode process remains the subject under test; only the model side is
 ### Delivery metadata
 - `CHANGELOG.md`
 
-Total P7 candidate surface forecast after exact-pin OpenCode certification reconciliation: **30 paths** (21 production + 7 verification + 1 permanent verification-infrastructure + 1 delivery). `src/core/execution.ts` remains because it is the existing task-block parsing/admission core and is the minimum owner for schema-aware v2 non-vacuity. `src/daemon/execution.ts` and `src/daemon/validation.ts` are removed from T1: their SD10/SD13 execution-foundation behavior already conforms and must not be reimplemented.
-
-`docs/**`, `pontivus-order.toml`, package/lock metadata, workflow metadata other than the explicitly authorized `.github/workflows/ci.yml` SD20 verification change, and `tests/architecture.test.ts` are not T1 implementation surface. P6 was corrected during DESIGN. G-F10 structural campaign fitness may update immutable architecture verification material **before sign-off**, followed by downstream revalidation; it is not an implementation task.
+P7 must enumerate the exact file set from the presentation owners above rather than preserving the obsolete 30-path forecast. Same-layer decomposition inside `ui/src/primitives/` is allowed only when it preserves the closed P4 responsibility set; adding a new primitive responsibility still returns to DESIGN. Deleting obsolete selectors/branches/files is expected implementation work and is not optional cleanup.
 
 ## Contract/state/persistence/transport consequences
 
@@ -655,10 +699,13 @@ Total P7 candidate surface forecast after exact-pin OpenCode certification recon
 - preserving deferred-Settings fresh-install success because current P6/code did so — rejected by higher P3/P4 authority; P6 is corrected;
 - changing OrderConfig schema to solve FR007 — unnecessary; existing incomplete-config state remains useful for recovery;
 - modifying `src/installer.ts` preemptively — unnecessary under current evidence because it already calls the canonical guided setup owner; if SD19 cannot be realized solely in `src/shell/setup.ts`, return to DESIGN rather than broadening scope;
-- modifying `tests/architecture.test.ts` inside T1 — rejected because it is signed verification material.
+- modifying `tests/architecture.test.ts` merely to bless the old presentation — rejected; pre-sign-off campaign fitness may update stale structural enumerations only after corrected DESIGN/PLAN requires it.
+- screen-by-screen CSS tuning on the existing presentation foundation — rejected by P4 structural remediation boundary and C19-F02.
+- preserving current primitive implementations because their filenames/API names exist — rejected; primitives are implementation and may be rewritten to satisfy their canonical P4 responsibility.
+- retaining feature-era recurring component/layout CSS behind higher-specificity primitive overrides or hidden compatibility DOM — rejected; superseded presentation ownership must be deleted.
 
 ## Open technical questions
 
 NONE.
 
-Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. PLAN must decompose only the delta solutions above and must carry exact positive-no-change proof obligations without inventing implementation work for conforming requirements.
+Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: foundation first, exhaustive renderer migration second, semantic/rendered certification last. PLAN must preserve domain/state owners while authorizing deletion/replacement of the superseded presentation implementation; it must not convert this into incremental screen styling.
