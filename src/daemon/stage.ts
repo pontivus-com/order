@@ -521,7 +521,12 @@ const persistAndReactStageBatch = async (
     currentRun,
     listRunEvents(runtime, currentRun.id),
     payloads,
-    currentAuthority,
+    (proposal) =>
+      permanentAuthorityProposalIsAdmitted(
+        currentRun.stage,
+        proposal,
+        currentAuthority,
+      ),
   );
   for (const payload of payloads) {
     if (
@@ -742,7 +747,12 @@ export const runStageTurn = async (
       getRun(runtime, run.id),
       listRunEvents(runtime, run.id),
       events,
-      context.authority,
+      (proposal) =>
+        permanentAuthorityProposalIsAdmitted(
+          run.stage,
+          proposal,
+          context.authority,
+        ),
     );
     if (rejection !== null) {
       const admissionEvidence = recordStageProviderBatchAdmissionDiagnostic(

@@ -1801,6 +1801,7 @@ materialRefs = []
     ).toBeGreaterThanOrEqual(2);
 
     const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).not.toContain('from "./governance.ts"');
     expect(lifecycle).toContain("durableDecisionCompletionIsAdmitted");
     expect(lifecycle).toContain(
       "stage completion after durable decision input requires a later adopted canonical authority proposal",

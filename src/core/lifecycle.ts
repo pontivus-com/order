@@ -14,11 +14,6 @@ import {
   type WorkItem,
   type WorkStage,
 } from "./contracts.ts";
-import {
-  isPreSignoffStage,
-  permanentAuthorityProposalIsAdmitted,
-  type ResolvedProjectAuthority,
-} from "./governance.ts";
 export type { UpstreamReturnStage } from "./contracts.ts";
 
 export const directlyEditableArtifactRoles = [
@@ -494,12 +489,27 @@ export const stageInputIsAdmitted = (
   }
 };
 
+type ArtifactProposalPayload = Extract<
+  RunEventPayload,
+  { tag: "ARTIFACT_PROPOSAL_CREATED" }
+>;
+
+type PermanentAuthorityProposalAdmission = (
+  proposal: ArtifactProposalPayload,
+) => boolean;
+
 const artifactProposalPayload = (
   run: Run,
   payload: RunEventPayload,
-): payload is Extract<RunEventPayload, { tag: "ARTIFACT_PROPOSAL_CREATED" }> => {
+): payload is ArtifactProposalPayload => {
   if (payload.tag !== "ARTIFACT_PROPOSAL_CREATED") return false;
-  if (!isPreSignoffStage(run.stage)) {
+  if (
+    run.stage !== "R1" &&
+    run.stage !== "R2" &&
+    run.stage !== "DESIGN" &&
+    run.stage !== "PLAN" &&
+    run.stage !== "R3"
+  ) {
     throw new TypeError("artifact proposal requires a lifecycle artifact-owning stage");
   }
   return true;
@@ -621,7 +631,8 @@ export const stageProviderBatchRejectionCode = (
   run: Run,
   priorEvents: readonly RunEvent[],
   payloads: readonly RunEventPayload[],
-  resolvedAuthority: ResolvedProjectAuthority | null = null,
+  permanentAuthorityProposalIsAdmitted: PermanentAuthorityProposalAdmission =
+    () => false,
 ): StageProviderBatchRejectionCode | null => {
   if (payloads.length === 0) return "EMPTY_BATCH";
 
@@ -651,13 +662,7 @@ export const stageProviderBatchRejectionCode = (
   if (proposal?.tag === "ARTIFACT_PROPOSAL_CREATED") {
     const lifecycleProposal = proposal.role === run.stage;
     const permanentAuthorityProposal =
-      resolvedAuthority !== null &&
-      isPreSignoffStage(run.stage) &&
-      permanentAuthorityProposalIsAdmitted(
-        run.stage,
-        proposal,
-        resolvedAuthority,
-      );
+      permanentAuthorityProposalIsAdmitted(proposal);
     if (!lifecycleProposal && !permanentAuthorityProposal) {
       return "PROPOSAL_ROLE_MISMATCH";
     }
@@ -751,7 +756,8 @@ export const validateStageProviderTurn = (
   run: Run,
   priorEvents: readonly RunEvent[],
   payloads: readonly RunEventPayload[],
-  resolvedAuthority: ResolvedProjectAuthority | null = null,
+  permanentAuthorityProposalIsAdmitted: PermanentAuthorityProposalAdmission =
+    () => false,
 ): void => {
   if (run.role !== "STAGE" || run.status !== "RUNNING") {
     throw new TypeError("provider turn requires RUNNING STAGE Run");
@@ -764,7 +770,7 @@ export const validateStageProviderTurn = (
     run,
     priorEvents,
     payloads,
-    resolvedAuthority,
+    permanentAuthorityProposalIsAdmitted,
   );
   if (rejection !== null) {
     throw new TypeError(stageProviderBatchRejectionMessage(rejection));
