@@ -656,7 +656,7 @@ The real OpenCode process remains the subject under test; only the model side is
 
 ## Exact implementation surface forecast
 
-The corrected DESIGN forecast is the exact union of the signed task-local `changeSurface` entries. Historical literal path counts are not authority. The current forecast is **73 unique paths**.
+The corrected DESIGN forecast is the exact union of signed task-local `changeSurface` entries: **43 unique paths**. Retained primitives and retained non-screen UI helpers are deliberately absent because this campaign does not authorize their mutation for screen replacement.
 
 ### Non-UI production
 - `README.md`
@@ -669,15 +669,13 @@ The corrected DESIGN forecast is the exact union of the signed task-local `chang
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 
-### UI presentation production
+### UI production replacement/purge surface
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
 - `ui/src/DocumentWorkspace.tsx`
 - `ui/src/EvidenceViewer.tsx`
 - `ui/src/ExecutionWorkspace.tsx`
-- `ui/src/MarkdownEditor.tsx`
-- `ui/src/MarkdownSourceEditor.tsx`
 - `ui/src/OpenCodeAccountControl.tsx`
 - `ui/src/OpenCodeAccountSettings.tsx`
 - `ui/src/PreSignoffStageWorkspace.tsx`
@@ -695,36 +693,8 @@ The corrected DESIGN forecast is the exact union of the signed task-local `chang
 - `ui/src/WorkflowRail.tsx`
 - `ui/src/WorkflowStepFrame.tsx`
 - `ui/src/app.tsx`
-- `ui/src/primitives/WorkbenchAction.tsx`
-- `ui/src/primitives/WorkbenchAttention.tsx`
-- `ui/src/primitives/WorkbenchConfirmation.tsx`
-- `ui/src/primitives/WorkbenchContextPanel.tsx`
-- `ui/src/primitives/WorkbenchDialogue.tsx`
-- `ui/src/primitives/WorkbenchDisclosure.tsx`
-- `ui/src/primitives/WorkbenchField.tsx`
-- `ui/src/primitives/WorkbenchForm.tsx`
-- `ui/src/primitives/WorkbenchIcon.tsx`
-- `ui/src/primitives/WorkbenchIdentity.tsx`
-- `ui/src/primitives/WorkbenchLayout.tsx`
-- `ui/src/primitives/WorkbenchMasterDetail.tsx`
-- `ui/src/primitives/WorkbenchNotice.tsx`
-- `ui/src/primitives/WorkbenchRail.tsx`
-- `ui/src/primitives/WorkbenchResourceRow.tsx`
-- `ui/src/primitives/WorkbenchReview.tsx`
-- `ui/src/primitives/WorkbenchSectionHeader.tsx`
-- `ui/src/primitives/WorkbenchSelector.tsx`
-- `ui/src/primitives/WorkbenchSettingsLayout.tsx`
-- `ui/src/primitives/WorkbenchState.tsx`
-- `ui/src/primitives/WorkbenchStatus.tsx`
-- `ui/src/primitives/WorkbenchSurface.tsx`
-- `ui/src/primitives/WorkbenchTable.tsx`
-- `ui/src/primitives/WorkbenchTaskPanel.tsx`
-- `ui/src/primitives/WorkbenchTimeline.tsx`
-- `ui/src/primitives/WorkbenchToolbar.tsx`
-- `ui/src/primitives/WorkbenchUtilityLink.tsx`
 - `ui/src/styles.css`
 - `ui/src/theme.css`
-- `ui/src/workbench-presentation.ts`
 
 ### Verification
 - `tests/browser.spec.ts`
@@ -741,7 +711,14 @@ The corrected DESIGN forecast is the exact union of the signed task-local `chang
 ### Delivery metadata
 - `CHANGELOG.md`
 
-Same-layer decomposition outside this exact forecast is not automatically authorized; it follows the signed scope/exclusions plus V4/V5/V6 minimum same-layer variance law. Adding a new semantic owner, new primitive responsibility, contract/state/effect/dependency/validation behavior or new runtime dependency returns upstream.
+### Explicit retained UI paths outside changeSurface
+
+- `ui/src/primitives/**` — canonical Workbench primitives; read-only for this campaign unless a separately proven primitive defect returns upstream;
+- `ui/src/MarkdownEditor.tsx` and `ui/src/MarkdownSourceEditor.tsx` — approved specialized content/editor leaves;
+- `ui/src/workbench-presentation.ts` — pure presentation-policy mapping owner;
+- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts`, `ui/src/main.tsx` — non-screen infrastructure/helpers.
+
+Same-layer decomposition outside this exact forecast is not automatically authorized. A screen task may not use V4/V5/V6 variance to mutate a retained primitive/helper merely because doing so would simplify the replacement. Primitive/helper mutation requires a separately proven owner-level defect and upstream DESIGN/PLAN correction.
 
 ## Contract/state/persistence/transport consequences
 
@@ -773,11 +750,11 @@ Same-layer decomposition outside this exact forecast is not automatically author
 - modifying `src/installer.ts` preemptively — unnecessary under current evidence because it already calls the canonical guided setup owner; if SD19 cannot be realized solely in `src/shell/setup.ts`, return to DESIGN rather than broadening scope;
 - modifying `tests/architecture.test.ts` merely to bless the old presentation — rejected; pre-sign-off campaign fitness may update stale structural enumerations only after corrected DESIGN/PLAN requires it.
 - screen-by-screen CSS tuning on the existing presentation foundation — rejected by P4 structural remediation boundary and C19-F02.
-- preserving current primitive implementations because their filenames/API names exist — rejected; primitives are implementation and may be rewritten to satisfy their canonical P4 responsibility.
-- retaining feature-era recurring component/layout CSS behind higher-specificity primitive overrides or hidden compatibility DOM — rejected; superseded presentation ownership must be deleted.
+- rewriting retained primitives as part of screen replacement — rejected. The canonical primitive implementation is explicitly preserved for this campaign; a primitive-specific defect must be independently proven and returned upstream before primitive source may change.
+- retaining feature-era screen/component/layout CSS behind higher-specificity primitive overrides or hidden compatibility DOM — rejected; old screen presentation support is purged before replacement.
 
 ## Open technical questions
 
 NONE.
 
-Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: foundation first, exhaustive renderer migration second, semantic/rendered certification last. PLAN must preserve domain/state owners while authorizing deletion/replacement of the superseded presentation implementation; it must not convert this into incremental screen styling.
+Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: preserve/certify primitives and purge legacy screen support first; destructively replace every screen family second; semantic/rendered certification last. PLAN must preserve domain/state/primitive owners while requiring deletion and clean recreation of the superseded screen implementation; incremental screen migration is prohibited.
