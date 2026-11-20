@@ -17,7 +17,7 @@ concurrency:
 jobs:
   certify:
     name: live-order-opencode-t1
-    runs-on: [self-hosted, linux, x64, pontivus-order-opencode]
+    runs-on: ubuntu-24.04
     timeout-minutes: 360
     env:
       WORK_ITEM_ID: work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21
