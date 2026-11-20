@@ -26,9 +26,13 @@ Stable rows in phase: **7**.
 
 Package atoms in phase: **0**.
 
+## Cross-domain presentation reconstruction dependency
+
+C13/C14 domain semantics remain stable, but Complete, Evidence and Context/material presentation is rebuilt by SD27/IA33 under PL-C19-02. This phase does not preserve the current feature-card/layout implementation as a baseline.
+
 ## Referenced actions
 
-- No IA action is owned by this phase; all stable requirements are positive no-change.
+- **IA33** — consume the single Complete/Evidence/Context migration definition; C13/C14 remain the semantic owners of outcome/material meaning.
 
 ## Completion proof
 
