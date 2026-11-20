@@ -6,8 +6,11 @@ This component allocates proof inside the one signed T1. It does not create anot
 
 Preflight IA07 re-proves the exact DESIGN-required Approval/checkpoint realization from current evidence; no T1 candidate byte is relied upon to create this capability and current implementation does not define the requirement.
 
+Before the first implementation wave, the execution harness must already provide the exact Playwright-owned Chromium runtime required by P6. The BUILDER must then request the signed `dependency-lock` gate as bootstrap checkpoint `P`; the coordinator executes exact `bun ci` in the fresh isolated builder workspace and `P` must `GATE_PASSED` before Wave 1. This is verification-environment preparation through existing project gate ownership, not provider shell access and not a new dependency state model.
+
 | Checkpoint | After execution wave | Required coordinator evidence |
 |---|---|---|
+| P | Before Wave 1 | signed `dependency-lock` checkpoint -> `GATE_PASSED` before any implementation edit/architecture checkpoint |
 | A | Wave 1 IA01-IA04 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 2 |
 | B | Wave 2 IA05-IA06 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 3 |
 | C | Wave 3 IA09-IA13 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 4 |
@@ -15,7 +18,7 @@ Preflight IA07 re-proves the exact DESIGN-required Approval/checkpoint realizati
 | E | Wave 5 IA25 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 6 |
 | F | Wave 6 IA20-IA23 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 7 closeout |
 
-Each checkpoint is requested by BUILDER as the terminal action of that provider turn and is executed by the coordinator in the same Run/provider session. A failed checkpoint permits only correction inside the already signed design/scope or an explicit execution block; it does not grant provider shell/execute or authorize redesign. Checkpoints are architecture feedback only and never substitute for final V3/V5/V7 or the task's complete logical gate union.
+Each checkpoint is requested by BUILDER as the terminal action of that provider turn and is executed by the coordinator in the same Run/provider session. Bootstrap checkpoint P exists only to make the fresh workspace capable of running the signed verification commands; checkpoints A-F remain architecture-feedback checkpoints. A failed checkpoint permits only correction inside the already signed design/scope or an explicit execution block; it does not grant provider shell/execute or authorize redesign. Checkpoints never substitute for final V3/V5/V7 or the task's complete logical gate union.
 
 ## Requirement-level proof law
 
@@ -44,21 +47,23 @@ Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so
 
 ## 0.6.0 implementation delivery branch
 
-T1's public implementation candidate must continue on the existing current 0.6.0 work branch and PR: `fix/0.6.0-r2-p3-authority-layer-conformance` / PR #75. No replacement implementation branch is created. This is a repository-delivery constraint only; it does not change Order's Approval baseline, execution workspace, candidate-evidence or validation semantics.
+The original 0.6.0 implementation branch was deleted after its unauthorized squash delivery to `master`. Remediation continues on the surviving 0.6.0 continuation branch/PR `fix/0.6.0-post-squash-campaign-fitness` / PR #83, which is based on that accidentally integrated candidate. This is a repository-delivery fact only; it does not treat `master` as authorization to release, does not alter Order's Approval/execution semantics, and does not authorize another merge.
 
-- all remaining T1 production, verification and `[Unreleased]` changelog changes for this package continue on that same current branch/PR;
+- all remaining 0.6.0 remediation, verification and `[Unreleased]` changelog changes continue on PR #83 until the implementation and governed closeout are complete;
 - do not split the signed T1 across additional work branches/PRs solely for organizational convenience; any material need to change signed scope, design, ownership or task semantics returns upstream through the normal lifecycle while remaining on this governed work branch unless repository governance itself requires otherwise;
 - do not use `release/v0.6.0` for product implementation; that branch name remains reserved for the later metadata-only release PR governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`;
-- no direct `master` delivery is permitted, and the exact current PR candidate must pass the repository's required verification before merge.
+- no further direct or PR-mediated `master` delivery is permitted without explicit user authorization, and the exact current PR candidate must pass the repository's required verification before it can even become merge-ready.
 
-## Final logical gate union
+## Final logical gate union and order
 
-- dependency-lock
-- typecheck
-- architecture
-- test
-- build
-- browser
+The signed task's `gateIds` order is executable order for each fresh REVIEWER workspace and for final V3/V7. `dependency-lock` must be first so later Node-based gates see the exact lockfile-installed dependency graph. The execution harness must have provisioned the pinned Playwright Chromium runtime before execution starts.
+
+1. dependency-lock
+2. typecheck
+3. architecture
+4. test
+5. build
+6. browser
 
 ## V0-V7 final review obligations
 
@@ -70,7 +75,7 @@ V4/V5/V6 explicitly verify:
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
-- all required intermediate architecture checkpoints were coordinator-executed and passed before the next wave;
+- bootstrap `dependency-lock` checkpoint P passed before Wave 1 and all six required architecture checkpoints A-F were coordinator-executed and passed before the next wave;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
