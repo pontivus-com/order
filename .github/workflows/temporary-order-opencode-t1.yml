@@ -117,10 +117,10 @@ jobs:
               providers: { ...(base.providers ?? {}), simulation }
             }));
           ')"
-          export OPENCODE_CONFIG_CONTENT="${merged}"
+          export OPENCODE_CONFIG_CONTENT="\${merged}"
           export OPENCODE_SIMULATE=1
           export OPENCODE_DRIVE=1
-          exec "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "$@"
+          exec "${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode" "\$@"
           EOF
           chmod +x "${wrapper}"
           test "$("${wrapper}" --version)" = "opencode v2.2.6"
