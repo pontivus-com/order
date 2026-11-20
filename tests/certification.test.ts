@@ -2166,7 +2166,11 @@ describe("public release delivery certification", () => {
     expect(ci).toContain("pull_request:");
     expect(ci).toContain("name: verify");
     expect(ci).toContain("scripts/verify-release.ts --mode pr");
-    expect(ci).not.toContain("uses:");
+    expect(
+      [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
+    ).toEqual([
+      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+    ]);
 
     expect(release).toContain("name: Release");
     expect(release).toContain("scripts/verify-release.ts --mode release-commit");
