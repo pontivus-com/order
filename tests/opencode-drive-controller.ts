@@ -56,7 +56,7 @@ const program = Effect.scoped(
         }),
       );
       yield* Effect.matchCauseEffect(cycle, {
-        onFailure: (cause) =>
+        onFailure: (cause: unknown) =>
           Effect.sync(() =>
             process.stderr.write(String(cause) + "\n")
           ).pipe(Effect.andThen(Effect.sleep("100 millis"))),
