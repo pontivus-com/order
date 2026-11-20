@@ -548,6 +548,10 @@ const server = Bun.serve({
             ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
             : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
         }
+      } else if (mode === "stage-durable-complete") {
+        output = text.includes("Human input:")
+          ? '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]'
+          : '[{"tag":"HUMAN_INPUT_REQUESTED","category":"AUTHORITY_DECISION","question":"Which authority governs?"}]';
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
       } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
@@ -4987,6 +4991,378 @@ describe("daemon control plane", () => {
     expect(output.content).toBe("accepted\n");
     expect(output.proposalPath).toMatch(/\/research\.md$/);
     expect(output.stage).toBe("R1");
+  }, 30_000);
+
+  it("resolves manifest precedence and P1 governance before STAGE provider use", () => {
+    const repository = createRepository();
+    writeFileSync(join(repository, "docs", "principles.md"), "# project principles\n");
+    writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
+    writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+    const manifest = fixtureManifest
+      .replace(
+        'p1 = ["AGENTS.md"]',
+        'p1 = ["AGENTS.md", "docs/principles.md"]',
+      )
+      .replace(
+        "p2 = []",
+        'p2 = ["docs/product-a.md", "docs/product-b.md"]',
+      )
+      .replace(
+        "[refs]\n",
+        [
+          "[refs]",
+          'P1-STRICT = "docs/principles.md"',
+          'P1-FCIS-EXT = "AGENTS.md"',
+          "",
+          "[precedence]",
+          'p2 = ["docs/product-b.md", "docs/product-a.md"]',
+          "",
+          "[[governance.overrides]]",
+          'defaultRuleId = "GW-P1-STRICT-TYPING"',
+          'source = "docs/principles.md"',
+          'authorityRef = "P1-STRICT"',
+          'gates = ["architecture"]',
+          "",
+          "[[governance.extensions]]",
+          'defaultRuleId = "GW-P1-FCIS"',
+          'source = "AGENTS.md"',
+          'authorityRef = "P1-FCIS-EXT"',
+          'gates = ["test"]',
+          "",
+        ].join("\n"),
+      );
+    writeFileSync(join(repository, "pontivus-order.toml"), manifest);
+    runGit(repository, "add", ".");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-resolved-authority-");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const stage = await import("./src/daemon/stage.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "resolved authority",
+        concernIds: ["shell"],
+      });
+      const current = coord.getWorkItem(runtime, created.id);
+      const resolved = await authority.resolveStageContextState(
+        runtime,
+        current,
+        "R1",
+      );
+      const prompt = await stage.stagePrompt(
+        current,
+        "R1",
+        resolved.context,
+        [],
+        [],
+      );
+      const p2Paths = resolved.context.artifacts
+        .filter((artifact) => artifact.authorityLayer === "P2")
+        .map((artifact) => artifact.repositoryPath);
+      const p1 = resolved.context.authority.layers.find(
+        (entry) => entry.layer === "p1",
+      );
+      const p2 = resolved.context.authority.layers.find(
+        (entry) => entry.layer === "p2",
+      );
+
+      const invalidManifest = fs.readFileSync(
+        repositoryRoot + "/pontivus-order.toml",
+        "utf8",
+      ).replace(
+        'p2 = ["docs/product-b.md", "docs/product-a.md"]',
+        'p2 = ["docs/product-b.md", "docs/missing.md"]',
+      );
+      fs.writeFileSync(repositoryRoot + "/pontivus-order.toml", invalidManifest);
+      let blockedBeforeRun = false;
+      try {
+        await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      } catch {
+        blockedBeforeRun = coord.listRuns(runtime, created.id).length === 0;
+      }
+      console.log(JSON.stringify({
+        p1,
+        p2,
+        p2Paths,
+        inherited: resolved.context.authority.inheritedDefaultRuleIds,
+        fitness: resolved.context.authority.fitnessGateIds,
+        promptHasProjection: prompt.includes("Resolved project authority projection:"),
+        promptUsesResolvedP2Order:
+          prompt.indexOf("docs/product-b.md") <
+          prompt.indexOf("docs/product-a.md"),
+        blockedBeforeRun,
+      }));
+      database.close();
+    `) as {
+      p1: { layer: string; sources: string[]; precedence: string[] };
+      p2: { layer: string; sources: string[]; precedence: string[] };
+      p2Paths: string[];
+      inherited: string[];
+      fitness: string[];
+      promptHasProjection: boolean;
+      promptUsesResolvedP2Order: boolean;
+      blockedBeforeRun: boolean;
+    };
+
+    expect(output.p1.sources).toEqual(["AGENTS.md", "docs/principles.md"]);
+    expect(output.p2).toEqual({
+      layer: "p2",
+      sources: ["docs/product-b.md", "docs/product-a.md"],
+      precedence: ["docs/product-b.md", "docs/product-a.md"],
+    });
+    expect(output.p2Paths).toEqual(["docs/product-b.md", "docs/product-a.md"]);
+    expect(output.inherited).toContain("GW-P1-FCIS");
+    expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
+    expect(output.fitness).toEqual(["architecture", "test"]);
+    expect(output.promptHasProjection).toBe(true);
+    expect(output.promptUsesResolvedP2Order).toBe(true);
+    expect(output.blockedBeforeRun).toBe(true);
+  }, 30_000);
+
+  it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
+    const repository = createRepository();
+    writeFileSync(join(repository, "docs", "product.md"), "# product\n");
+    writeFileSync(
+      join(repository, "pontivus-order.toml"),
+      fixtureManifest.replace("p2 = []", 'p2 = ["docs/product.md"]'),
+    );
+    runGit(repository, "add", ".");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-governance-proposal-");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "governance proposal",
+        concernIds: ["shell"],
+      });
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "R2",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R2",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: rt.sha256Text("governance-proposal"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R2",
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "Permanent authority proposal ready",
+        evidence: [],
+      });
+      const productPath = "docs/product.md";
+      const base = rt.sha256Text("# product\\n");
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: productPath,
+        baseSha256: base,
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        unifiedDiff:
+          "--- a/docs/product.md\\n" +
+          "+++ b/docs/product.md\\n" +
+          "@@ -1 +1 @@\\n" +
+          "-# product\\n" +
+          "+# product adopted\\n",
+        rationale: "Adopt the durable product decision",
+      });
+      const adopted = await coord.adoptArtifactProposal(runtime, proposal.id);
+
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "Second permanent authority proposal",
+        evidence: [],
+      });
+      const staleBase = rt.sha256Text("# product adopted\\n");
+      const stale = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: productPath,
+        baseSha256: staleBase,
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        unifiedDiff:
+          "--- a/docs/product.md\\n" +
+          "+++ b/docs/product.md\\n" +
+          "@@ -1 +1 @@\\n" +
+          "-# product adopted\\n" +
+          "+# stale attempt\\n",
+        rationale: "This base will become stale",
+      });
+      fs.writeFileSync(repositoryRoot + "/" + productPath, "# external change\\n");
+      let staleError = null;
+      try {
+        await coord.adoptArtifactProposal(runtime, stale.id);
+      } catch (error) {
+        staleError = error instanceof Error ? error.message : String(error);
+      }
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        adopted: {
+          role: adopted.role,
+          layer: adopted.authorityLayer,
+          path: adopted.repositoryPath,
+        },
+        contentAfterFirstAdoption:
+          events.some((event) =>
+            event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+            event.event.proposalEventId === proposal.id &&
+            event.event.disposition === "ADOPTED"
+          ),
+        staleError,
+        adoptionRequests: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ).length,
+        stage: coord.getWorkItem(runtime, workItem.id).stage,
+      }));
+      database.close();
+    `) as {
+      adopted: { role: string; layer: string; path: string };
+      contentAfterFirstAdoption: boolean;
+      staleError: string | null;
+      adoptionRequests: number;
+      stage: string;
+    };
+
+    expect(output.adopted).toEqual({
+      role: "GOVERNANCE",
+      layer: "P2",
+      path: "docs/product.md",
+    });
+    expect(output.contentAfterFirstAdoption).toBe(true);
+    expect(output.staleError).toContain("baseSha256 is stale");
+    expect(output.adoptionRequests).toBe(1);
+    expect(output.stage).toBe("R2");
+  }, 30_000);
+
+  it("rejects STAGE completion after durable decision input without later adoption", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-durable-decision-");
+    const binary = createFakeOpenCode("stage-durable-complete");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "durable decision",
+        concernIds: ["shell"],
+      });
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()]);
+      const request = coord.listRunEvents(runtime, run.id).find(
+        (event) => event.event.tag === "HUMAN_INPUT_REQUESTED"
+      );
+      if (!request || request.event.tag !== "HUMAN_INPUT_REQUESTED") {
+        throw new Error("missing durable request");
+      }
+      await coord.submitRunInput(
+        runtime,
+        run.id,
+        "Use the canonical authority.",
+        request.id,
+      );
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const finalRun = coord.getRun(runtime, run.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        status: finalRun.status,
+        terminalClassification: finalRun.terminalClassification,
+        completions: events.filter((event) =>
+          event.event.tag === "STAGE_COMPLETED"
+        ).length,
+        providerFailure: events.find((event) =>
+          event.event.tag === "PROVIDER_FAILED"
+        )?.event ?? null,
+        workItem: coord.getWorkItem(runtime, created.id),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      status: string;
+      terminalClassification: string | null;
+      completions: number;
+      providerFailure: { tag: string; detail: string } | null;
+      workItem: { stage: string; status: string };
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.terminalClassification).toBe("PROVIDER_FAILURE");
+    expect(output.completions).toBe(0);
+    expect(output.providerFailure?.detail).toContain(
+      "later adopted canonical authority proposal",
+    );
+    expect(output.workItem).toMatchObject({ stage: "R1", status: "ACTIVE" });
   }, 30_000);
 
   it("rejects sign-off when material authority changes after R3", () => {

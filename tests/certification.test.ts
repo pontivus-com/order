@@ -1547,6 +1547,54 @@ describe("Order cross-boundary certification", () => {
 });
 
 
+describe("0.6.0 Wave 1 authority-governance certification", () => {
+  it("binds resolved authority, governed proposals and durable decisions to the production STAGE path", () => {
+    const governance = read("src/core/governance.ts");
+    expect(governance).toContain("export const resolveProjectAuthority");
+    expect(governance).toContain("manifest.precedence[layer]");
+    expect(governance).toContain("inheritedDefaultRuleIds");
+    expect(governance).toContain("fitnessGateIdsByDefaultRuleId");
+    expect(governance).toContain("permanentAuthorityProposalIsAdmitted");
+    expect(governance).not.toContain("readFileSync");
+    expect(governance).not.toContain("Bun.Glob");
+
+    const authority = read("src/daemon/authority.ts");
+    const stageAuthority = authority.slice(
+      authority.indexOf("export const resolveCurrentStageAuthority"),
+      authority.indexOf("export type StageContextResolution"),
+    );
+    expect(stageAuthority).toContain("resolveAuthoritySources");
+    expect(stageAuthority).toContain("resolveProjectAuthority(manifest, sources)");
+    const stageContext = authority.slice(
+      authority.indexOf("export const resolveStageContextState"),
+      authority.indexOf("export const resolveStageConformanceState"),
+    );
+    expect(stageContext).toContain("for (const layer of authority.layers)");
+    expect(stageContext).not.toContain("for (const path of sources[layer])");
+    expect(stageContext).not.toContain("manifest.authority[");
+
+    const stage = read("src/daemon/stage.ts");
+    expect(stage).toContain("canonicalJson(context.authority)");
+    expect(stage).toContain("resolveCurrentStageAuthority");
+    expect(stage).toContain("permanentAuthorityProposalIsAdmitted");
+    expect(stage).toContain("permanent authority proposal baseSha256 is stale");
+    const adoption = stage.slice(
+      stage.indexOf("const adoptArtifactProposalUnlocked"),
+      stage.indexOf("export const adoptArtifactProposal"),
+    );
+    expect(
+      adoption.match(/resolveCurrentStageAuthority/g)?.length ?? 0,
+    ).toBeGreaterThanOrEqual(2);
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).toContain("durableDecisionCompletionIsAdmitted");
+    expect(lifecycle).toContain(
+      "stage completion after durable decision input requires a later adopted canonical authority proposal",
+    );
+    expect(lifecycle).not.toContain("durableDecisionStore");
+  });
+});
+
 describe("A06 execution-foundation certification", () => {
   it("permanently wires forecast variance and coordinator-owned builder checkpoints", () => {
     const contracts = read("src/core/contracts.ts");
