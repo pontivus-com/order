@@ -386,6 +386,35 @@ The functional domains requiring fresh technical realization are exhaustive acro
 
 No R2 product decision is reopened by this evidence. DESIGN is reopened because the technical realization must now implement these already-defined functional obligations instead of preserving the current presentation.
 
+
+### Screen-replacement functional law
+
+The current screen implementations are **not** preservation targets, compatibility targets, migration templates or information-design baselines. Their only permitted role in the reconstruction is defect evidence showing what must not be carried forward.
+
+For this campaign, a **screen information schema** means the design-time functional mapping from the current R2 contract into:
+
+- required Primary information and its ordering;
+- required Supporting information and its relationship to the primary task;
+- Technical information and the exact condition under which it becomes visible;
+- current action owner and permitted secondary actions;
+- empty/loading/processing/input/proposal/blocker/failure/stale/recovery/terminal states that materially change the screen;
+- interaction class and responsive semantic order;
+- work-kind or lifecycle-stage differences that change information content.
+
+It is **not** a DTO, transport shape, persisted model, browser state object or second semantic owner. Runtime values continue to come from the existing canonical contracts, lifecycle derivations, daemon/API/query owners and approved presentation-policy functions.
+
+The replacement implementation law is destructive:
+
+1. UI primitives and approved non-screen content mechanisms are retained as reusable implementation capability.
+2. The old application/screen composition is removed before the replacement screen is authored.
+3. No old screen JSX/DOM hierarchy, field grouping, table-column selection, card/panel arrangement, control placement, screen-local CSS, responsive branch or visual hierarchy is presumed correct or copied forward.
+4. Replacement screen structure is derived only from the current functional contract, current P4/P5/P6 authority and the reviewed SVG composition where it is not superseded.
+5. Existing underlying query/mutation/domain code may be reused only through its canonical owner. Logic embedded only inside an old screen is not automatically reusable; it must be re-derived or extracted only when its non-visual responsibility is independently authorized and contains no screen-composition policy.
+6. A replacement is nonconforming if it can be described as the old screen with renamed classes, new wrappers, changed spacing, different tokens or rearranged cards.
+7. Every replacement screen must have a fresh screen-information-schema review and rendered comparison before its task may close.
+
+This law intentionally makes the new screen layer incompatible with the old screen grammar. Functional/domain compatibility is preserved below the screen boundary; presentation compatibility is neither required nor desired.
+
 ## Required observable outcome/delta
 
 ### A01 — C01 product model + C21 product identity
