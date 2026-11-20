@@ -38,6 +38,7 @@ import {
   authorityLayerForManifestLayer,
   deduplicateArtifacts,
   deduplicateArtifactsPreservingOrder,
+  projectAuthorityForSources,
   resolveProjectAuthority,
   type PreSignoffStage,
   type ResolvedProjectAuthority,
@@ -708,6 +709,10 @@ export const resolveStageContextState = async (
     authority,
     priorOutputs,
   );
+  const materialAuthority = projectAuthorityForSources(
+    authority,
+    applicable.resolved.map((entry) => entry.path),
+  );
   for (const entry of applicable.resolved) {
     artifacts.push(
       await resolveCurrentArtifact(
@@ -750,7 +755,7 @@ export const resolveStageContextState = async (
 
   artifacts.push(...priorOutputs);
   return {
-    context: resolvedContext(workItem, source, stage, authority, artifacts),
+    context: resolvedContext(workItem, source, stage, materialAuthority, artifacts),
     staleStage,
   };
 };
@@ -956,9 +961,17 @@ export const approvalContext = async (
   }
   const closure = approvalClosure(runtime, approval);
   const material = deduplicateArtifacts([closure.plan, ...closure.material]);
-  const [, authority] = await resolveCurrentStageAuthority(
+  const [, reachableAuthority] = await resolveCurrentStageAuthority(
     validated.workItem,
     "R3",
+  );
+  const authority = projectAuthorityForSources(
+    reachableAuthority,
+    material
+      .filter((artifact) =>
+        artifact.role === "GOVERNANCE" && artifact.authorityLayer !== null
+      )
+      .map((artifact) => artifact.repositoryPath),
   );
   const contextHash = sha256Text(
     canonicalJson({
