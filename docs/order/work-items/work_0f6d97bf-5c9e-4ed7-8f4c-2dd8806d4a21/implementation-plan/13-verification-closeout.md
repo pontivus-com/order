@@ -43,7 +43,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 Current `tests/architecture.test.ts` is stale against the corrected package: its permanent PLAN fitness check still requires exactly 28 signed `changeSurface` paths even though current DESIGN/PLAN now require 30. This is a pre-signoff verification-material defect, not T1 implementation surface.
 
-Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the current 30-path DESIGN/PLAN set without creating a second package registry. The sensor should continue proving uniqueness plus exact set equality between DESIGN forecast and signed T1 surface; it must not preserve the obsolete literal 28 as authority. The same sensor currently enumerates exactly IA01-IA25 and treats only IA23/IA24 as cross-solution/final actions; after this PLAN correction it must instead structurally require the exact IA01-IA26 catalog and govern IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it must not turn IA26 into a semantic phase owner or move `tests/architecture.test.ts` into T1. Re-run the architecture gate and root/modular compilation checks on the exact corrected package before G5 may return to PASS. `tests/architecture.test.ts` remains excluded from T1 after this pre-Approval correction.
+Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the corrected DESIGN/PLAN task-local forecast union without creating a second package registry. The sensor must prove uniqueness plus exact set equality between DESIGN forecast and the union of signed task `changeSurface` entries; it must not preserve historical literal path counts as authority. It must structurally require the exact IA01-IA34 catalog, enforce one definition per IA, and recognize IA27-IA34 as the presentation reconstruction owners plus IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it does not move `tests/architecture.test.ts` into signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
 ## 0.6.0 implementation delivery branch
 
@@ -83,7 +83,7 @@ GitHub Actions must:
 6. fail on missing/duplicate mappings, unreachable declared state, uncaught browser/runtime errors, missing/empty captures, or incomplete manifest/index;
 7. upload the actual captures plus manifest/index as one PR-run artifact using `actions/upload-artifact` pinned to commit `ea165f8d65b6e75b540449e92b4886f43607fa02` (the current `v4` ref at PLAN correction time), with artifact identity including the exact checked-out candidate SHA.
 
-The capture harness may add deterministic fixture setup and screenshot calls inside the already signed `tests/browser.spec.ts` verification owner. The CI mutation remains inside the already signed `.github/workflows/ci.yml` owner. No new T1 path is required, so the exact 30-path `changeSurface` remains unchanged.
+The capture harness may add deterministic fixture setup and screenshot calls inside the signed `tests/browser.spec.ts` verification owner. The CI mutation remains inside the signed `.github/workflows/ci.yml` owner. Rendered acceptance is carried by its own verification task and does not authorize presentation changes.
 
 ### Acceptance review contract
 
@@ -106,7 +106,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- the signed 30-path `changeSurface` remains the immutable forecast;
+- each signed task retains its exact `changeSurface`; the union remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
