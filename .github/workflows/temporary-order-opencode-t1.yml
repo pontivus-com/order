@@ -116,10 +116,25 @@ jobs:
             await Bun.write(path, next);
           '
 
+          TARGET_SOURCE="${target}/docs/order/work-items/${WORK_ITEM_ID}/work-request.md" "${RUNNER_TEMP}/bun-bin/bun" -e '
+            const path = process.env.TARGET_SOURCE;
+            let text = await Bun.file(path).text();
+            if (!text.includes("## Requested change\n")) {
+              throw new TypeError("diagnostic source correction did not find Requested change");
+            }
+            text = text.replace("## Requested change\n", "## Requested outcome\n");
+            for (const heading of ["Current context", "Constraints/non-goals", "Evidence/references"]) {
+              if (!text.includes("\n## " + heading + "\n")) {
+                text = text.replace(/\s*$/, "") + "\n\n## " + heading + "\n\n";
+              }
+            }
+            await Bun.write(path, text);
+          '
+
           git -C "${target}" config user.name "github-actions[bot]"
           git -C "${target}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git -C "${target}" add pontivus-order.toml
-          git -C "${target}" commit -m "ci diagnostic: correct invalid live AuthorityRef bindings"
+          git -C "${target}" add pontivus-order.toml "docs/order/work-items/${WORK_ITEM_ID}/work-request.md"
+          git -C "${target}" commit -m "ci diagnostic: normalize pre-execution authority/source inputs"
           effective="$(git -C "${target}" rev-parse HEAD)"
           test "$(git -C "${target}" rev-parse HEAD^)" = "${EXPECTED_BASELINE}"
           echo "TARGET_REPOSITORY_ROOT=${target}" >> "${GITHUB_ENV}"
