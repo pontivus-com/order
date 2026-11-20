@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { stageTemplateForSchema } from "../src/core/work-item-source.ts";
 import { orderVersion } from "../src/version.ts";
 
 describe("productive invocation failure origin", () => {
@@ -293,6 +294,14 @@ const fixturePlan = `# fixture plan
 {"version":1,"tasks":[{"id":"T1","objective":"make the target correct","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]}]}
 \`\`\`
 `;
+
+const currentV2PlanTemplate = stageTemplateForSchema("change-v2", "PLAN");
+if (currentV2PlanTemplate === null) {
+  throw new TypeError("missing current-v2 PLAN template");
+}
+const vacuousCurrentV2Plan =
+  currentV2PlanTemplate +
+  '\n```order-tasks\n{"version":1,"tasks":[]}\n```\n';
 
 const fixtureManifest = `version = 1
 projectId = "fixture"
@@ -3030,10 +3039,6 @@ describe("daemon control plane", () => {
   it("rejects a vacuous current-v2 task block at sign-off package ingress", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-v2-signoff-task-admission-");
-    const vacuousPlan =
-      "# plan\n\n```order-tasks\n" +
-      '{"version":1,"tasks":[]}\n' +
-      "```\n";
     const output = bunEval(`
       let error = null;
       try {
@@ -3043,7 +3048,7 @@ describe("daemon control plane", () => {
           "",
           "human",
           "change-v2",
-          vacuousPlan,
+          vacuousCurrentV2Plan,
         )}
       } catch (cause) {
         error = cause instanceof Error ? cause.message : String(cause);
@@ -3067,7 +3072,6 @@ describe("daemon control plane", () => {
       const coord = await import("./src/daemon/coordinator.ts");
       const authority = await import("./src/daemon/authority.ts");
       const runStore = await import("./src/daemon/run.ts");
-      const sourceCore = await import("./src/core/work-item-source.ts");
 
       const database = sql.openOrderDatabase(${JSON.stringify(state)});
       const repositoryRoot = ${JSON.stringify(repository)};
@@ -3105,12 +3109,9 @@ describe("daemon control plane", () => {
       fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\n");
       fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\n");
       fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\n");
-      const planTemplate = sourceCore.stageTemplateForSchema("change-v2", "PLAN");
-      if (planTemplate === null) throw new TypeError("missing current-v2 PLAN template");
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
-        planTemplate +
-          "\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
+        "<!-- Order template: change-plan-v2; authority: GW-DOC-LIFECYCLE-CONTEXT-V2, GW-DOC-CANONICAL-CONTRACTS-V2, GW-DOC-SPECIFICATION-STANDARD-V2 -->\n\n## Exact task units/dependencies/objectives\n\n## Requirement/design traceability\n\n## Module ownership/decomposition constraints and architecture-feedback checkpoints\n\n## Expected production and test/validation surface\n\n## Required deletions/replacements\n\n## Completion evidence\n\n## Minimum-change forecast\n\n## Verification contract\n\n## Canonical order-tasks block\n\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
       );
 
       const outputs = {
@@ -3246,7 +3247,7 @@ describe("daemon control plane", () => {
       fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
-        "# plan\n\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
+        "<!-- Order template: change-plan-v2; authority: GW-DOC-LIFECYCLE-CONTEXT-V2, GW-DOC-CANONICAL-CONTRACTS-V2, GW-DOC-SPECIFICATION-STANDARD-V2 -->\n\n## Exact task units/dependencies/objectives\n\n## Requirement/design traceability\n\n## Module ownership/decomposition constraints and architecture-feedback checkpoints\n\n## Expected production and test/validation surface\n\n## Required deletions/replacements\n\n## Completion evidence\n\n## Minimum-change forecast\n\n## Verification contract\n\n## Canonical order-tasks block\n\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
       );
       fs.writeFileSync(path.join(repositoryRoot, files.R3), "# READY_FOR_SIGNOFF\\n");
 
