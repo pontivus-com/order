@@ -96,6 +96,10 @@ jobs:
           set -euo pipefail
           real="${RUNNER_TEMP}/pontivus-order-opencode/bin/opencode"
           bun="${RUNNER_TEMP}/bun-bin/bun"
+          {
+            echo "wrapper pid=\$\$ ppid=\$PPID pwd=\$PWD argv=\$*"
+            ps -o pid=,ppid=,pgid=,sid=,stat=,cmd= -p "\$\$" -p "\$PPID" || true
+          } >> "${RUNNER_TEMP}/order-process-trace.log" 2>&1
 
           # Account control owns only OpenCode credential state. Keep it offline
           # and simulated, but do not load the Drive-backed model provider that
@@ -924,6 +928,10 @@ jobs:
           daemon_pid=$!
           echo "ORDER_CI_DAEMON_PID=${daemon_pid}" >> "${GITHUB_ENV}"
           echo "${daemon_pid}" > "${ORDER_CI_STATE_ROOT}/ci-daemon.pid"
+          {
+            echo "daemon process topology at launch"
+            ps -o pid=,ppid=,pgid=,sid=,stat=,cmd= -p "${daemon_pid}" -p "\$\$" || true
+          } >> "${RUNNER_TEMP}/order-process-trace.log" 2>&1
 
           healthy=false
           for _ in $(seq 1 90); do
@@ -961,6 +969,19 @@ jobs:
           echo
           if [[ "${readiness_curl_status}" -ne 0 || "${readiness_status}" != "200" ]]; then
             echo "Readiness probe failed before T1 start" >&2
+            if kill -0 "${ORDER_CI_DAEMON_PID}" 2>/dev/null; then
+              echo "daemon_alive_after_readiness_failure=true" >&2
+              ps -o pid=,ppid=,pgid=,sid=,stat=,cmd= -p "${ORDER_CI_DAEMON_PID}" >&2 || true
+            else
+              echo "daemon_alive_after_readiness_failure=false" >&2
+              set +e
+              wait "${ORDER_CI_DAEMON_PID}"
+              daemon_status=$?
+              set -e
+              echo "daemon_exit_status=${daemon_status}" >&2
+            fi
+            echo "=== process topology trace ===" >&2
+            cat "${RUNNER_TEMP}/order-process-trace.log" >&2 || true
             echo "=== daemon tail ===" >&2
             tail -n 300 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
             echo "=== Drive controller tail ===" >&2
@@ -1257,6 +1278,10 @@ jobs:
               sleep 0.25
             done
             kill -KILL "${ORDER_CI_DRIVE_PID}" 2>/dev/null || true
+          fi
+          if [[ -s "${RUNNER_TEMP}/order-process-trace.log" ]]; then
+            echo "=== Process topology trace ==="
+            cat "${RUNNER_TEMP}/order-process-trace.log" || true
           fi
           if [[ -s "${ORDER_CI_STATE_ROOT:-}/ci-daemon.log" ]]; then
             echo "=== Order daemon tail ==="
