@@ -5517,7 +5517,7 @@ describe("daemon control plane", () => {
         seedSignoffScript(
           repository,
           state,
-          \`
+          `
             const r2Context = await authority.resolveStageContext(
               runtime,
               seedWorkItem,
@@ -5526,13 +5526,13 @@ describe("daemon control plane", () => {
             const p3Paths = r2Context.artifacts
               .filter((artifact) => artifact.authorityLayer === "P3")
               .map((artifact) => artifact.repositoryPath);
-          \`,
+          `,
           "human",
           schema,
-        ) + \`
+        ) + `
           console.log(JSON.stringify({ p3Paths }));
           database.close();
-        \`,
+        `,
       ) as { p3Paths: string[] };
       rmSync(repository, { recursive: true, force: true });
       rmSync(state, { recursive: true, force: true });
