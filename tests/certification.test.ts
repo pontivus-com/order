@@ -1810,6 +1810,44 @@ materialRefs = []
   });
 });
 
+describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
+  it("keeps current attention, readiness, approval hierarchy, focus, settings detail and product labels on canonical owners", () => {
+    const presentation = read("ui/src/workbench-presentation.ts");
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    const composer = read("ui/src/ActivityComposer.tsx");
+    const readiness = read("ui/src/ReadinessWorkspace.tsx");
+    const approval = read("ui/src/SignoffReview.tsx");
+    const settings = read("ui/src/SettingsWorkspace.tsx");
+    const terminal = read("ui/src/TerminalResult.tsx");
+    const readme = read("README.md");
+
+    expect(workspace).toContain("canonicalCurrentMaterialIdentity");
+    expect(workspace).toContain("materialIdentity !== canonicalCurrentMaterialIdentity");
+    expect(workspace).toContain('label={"Return to " + workflow.label}');
+
+    expect(composer).toContain("ChatComposerInputHandle");
+    expect(composer).toContain("focusedRequestEventId.current === requiredInputEventId");
+    expect(composer).toContain("composerInputRef.current?.focus()");
+    expect(composer).toContain("handleRef={composerInputRef}");
+
+    expect(readiness).toContain("readinessOutcomeLabel(readinessOutcome)");
+    expect(readiness).not.toContain("Derived from governed readiness-review material when present");
+    expect(approval).toContain('data-testid="approval-readiness-summary"');
+    expect(approval).toContain('label="Ready for sign-off"');
+
+    expect(settings).toContain('label="Technical details"');
+    expect(settings).toContain('data-testid="repository-technical-details"');
+    expect(settings).not.toContain('{ key: "repository", label: "Git root" }');
+
+    expect(presentation).toContain("export const workOutcomeProductLabel");
+    expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
+    expect(terminal).toContain("workOutcomeProductLabel(workItem.outcome)");
+    expect(terminal).not.toContain("replaceAll(\"_\",\" \")");
+    expect(readme).toContain("Every WorkItem ends at a governed **verified result**");
+    expect(readme).toContain("Explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability");
+  });
+});
+
 describe("0.6.0 Wave 3 source and queue ownership certification", () => {
   it("keeps one new-source planner, one persistence owner, and one queue derivation", () => {
     const source = read("src/daemon/work-item-source.ts");

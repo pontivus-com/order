@@ -21,7 +21,9 @@ import {
   runEventPlane,
   runEventPresentation,
   workflowRunEvents,
+  readinessOutcomeLabel,
   runStatusLabel,
+  workOutcomeProductLabel,
   workflowStepState,
   type ProposalSelection,
   type WorkflowMaterial,
@@ -237,6 +239,21 @@ const resolveFixtureMaterial = (
 };
 
 describe("workflow presentation policy", () => {
+  it("uses explicit canonical product labels and typed Readiness outcomes", () => {
+    expect(workOutcomeProductLabel(null)).toBe("Complete");
+    expect(workOutcomeProductLabel("DISPROVEN")).toBe("Disproven");
+    expect(workOutcomeProductLabel("DUPLICATE")).toBe("Duplicate");
+    expect(workOutcomeProductLabel("ALREADY_SATISFIED")).toBe("Already satisfied");
+    expect(workOutcomeProductLabel("INVESTIGATION_COMPLETE")).toBe("Investigation complete");
+    expect(workOutcomeProductLabel("AUDIT_COMPLETE")).toBe("Audit complete");
+    expect(workOutcomeProductLabel("CANDIDATE_DONE")).toBe("Verified candidate");
+
+    expect(readinessOutcomeLabel("READY_FOR_SIGNOFF")).toBe("Ready for sign-off");
+    expect(readinessOutcomeLabel("RETURN_TO_RESEARCH")).toBe("Return to Research");
+    expect(readinessOutcomeLabel("RETURN_TO_REQUIREMENTS")).toBe("Return to Requirements");
+    expect(readinessOutcomeLabel("RETURN_TO_DESIGN")).toBe("Return to Solution design");
+    expect(readinessOutcomeLabel("RETURN_TO_PLAN")).toBe("Return to Implementation plan");
+  });
   it("projects current, historical and unreached workflow steps", () => {
     const current = workItem("PLAN");
     const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "PLAN"]);

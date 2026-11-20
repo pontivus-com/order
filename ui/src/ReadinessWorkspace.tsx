@@ -20,6 +20,7 @@ import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
+  readinessOutcomeLabel,
   runStatusLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
@@ -93,6 +94,29 @@ export const ReadinessWorkspace = ({
     .filter((artifact) => packageRoles.has(artifact.role))
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
+  const readinessCompletion = stageRuns
+    .flatMap((run) => {
+      const event = [...runEvents]
+        .filter((candidate) =>
+          candidate.runId === run.id &&
+          candidate.event.tag === "STAGE_COMPLETED" &&
+          candidate.event.completion.stage === "R3")
+        .sort((left, right) => right.sequence - left.sequence)[0];
+      return event === undefined ? [] : [event];
+    })[0] ?? null;
+  const readinessOutcome =
+    readinessCompletion?.event.tag === "STAGE_COMPLETED" &&
+      readinessCompletion.event.completion.stage === "R3"
+      ? readinessCompletion.event.completion.outcome
+      : null;
+  const readinessVerdict =
+    readinessOutcome !== null
+      ? readinessOutcomeLabel(readinessOutcome)
+      : stageRuns[0]?.status === "BLOCKED"
+        ? "Blocked"
+        : stageRuns[0]?.status === "FAILED"
+          ? "Review failed"
+          : "Review in progress";
 
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
@@ -218,7 +242,7 @@ export const ReadinessWorkspace = ({
             <div className="order-readiness-review-body">
               <section className="order-readiness-verdict">
                 <strong>Readiness verdict</strong>
-                <span>{materialState === null ? "Derived from governed readiness-review material when present" : materialPresentationStateLabel(materialState)}</span>
+                <span>{readinessVerdict}</span>
               </section>
               {requiredInputOwnsAttention && selectedSecondaryMaterial ? (
                 <section className="order-readiness-current-interaction">

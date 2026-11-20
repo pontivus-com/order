@@ -18,6 +18,7 @@ import {
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
+import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
@@ -247,8 +248,6 @@ const RepositorySettings = ({
           label="Connected repositories"
           columns={[
             { key: "project", label: "Project" },
-            { key: "repository", label: "Git root" },
-            { key: "documents", label: "WorkItem documents" },
             { key: "status", label: "Status" },
             { key: "actions", label: "" },
           ]}
@@ -256,8 +255,6 @@ const RepositorySettings = ({
             id: repository.repositoryRoot,
             cells: {
               project: repository.projectId ?? "Needs attention",
-              repository: <code>{repository.repositoryRoot}</code>,
-              documents: <code>{repository.workItemsRoot ?? "Unavailable until manifest is valid"}</code>,
               status: <WorkbenchStatus tone={repository.status === "READY" && repository.attention.length === 0 ? "success" : "warning"} label={repositoryAttentionText(repository)} />,
               actions: <div className="order-inline-actions">
                 {repository.status === "READY" ? <WorkbenchAction label={"Move WorkItem documents for " + (repository.projectId ?? repository.repositoryRoot)} onClick={() => { setMigrationRepository(repository.repositoryRoot); setTargetWorkItemsRoot(repository.workItemsRoot ?? ""); }} /> : null}
@@ -265,6 +262,22 @@ const RepositorySettings = ({
               </div>,
             },
           }))}
+        />
+      ) : null}
+      {repositories.length > 0 ? (
+        <WorkbenchDisclosure
+          label="Technical details"
+          content={
+            <div className="order-settings-supporting-info" data-testid="repository-technical-details">
+              {repositories.map((repository) => (
+                <section key={repository.repositoryRoot}>
+                  <h3>{repository.projectId ?? "Repository requiring attention"}</h3>
+                  <p>Git root: <code>{repository.repositoryRoot}</code></p>
+                  <p>WorkItem documents: <code>{repository.workItemsRoot ?? "Unavailable until manifest is valid"}</code></p>
+                </section>
+              ))}
+            </div>
+          }
         />
       ) : null}
       <div className="order-settings-add-repository"><WorkbenchAction label="Add repository" tone="primary" onClick={() => setAddRepositoryOpen(true)} /></div>
@@ -349,10 +362,15 @@ const ModelRuntimeSettings = () => {
           }
         />
       </div>
-      <section className="order-settings-supporting-info">
-        <h3>Model list source</h3>
-        <p><code>GET /api/settings/models</code> → <code>OpenCodeModelRef[]</code>; unavailable or invalid configured values surface with explicit readiness attention.</p>
-      </section>
+      <WorkbenchDisclosure
+        label="Technical details"
+        content={
+          <section className="order-settings-supporting-info">
+            <h3>Model list source</h3>
+            <p><code>GET /api/settings/models</code> → <code>OpenCodeModelRef[]</code>; unavailable or invalid configured values surface with explicit readiness attention.</p>
+          </section>
+        }
+      />
       {updateModel.error ? (
         <WorkbenchNotice tone="danger" title="Model update failed" description={errorText(updateModel.error)} />
       ) : null}

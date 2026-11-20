@@ -25,6 +25,7 @@ import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts
 import {
   materialPresentationStateLabel,
   resolveWorkflowMaterial,
+  workOutcomeProductLabel,
   runIsActive,
   runStatusLabel,
   workflowMaterialIdentity,
@@ -594,9 +595,30 @@ export const WorkItemWorkspace = ({
     explicitSelection: explicitMaterial,
     dirtyDocument: dirty,
   });
+  const canonicalCurrentMaterial = resolveWorkflowMaterial({
+    workItem,
+    selectedStep: workItem.stage,
+    reachedStages,
+    runs,
+    artifacts,
+    currentStageRunId: currentStageRun?.id ?? null,
+    currentStageRunActive: currentStageRun !== null && runIsActive(currentStageRun),
+    currentAttention,
+    stageInteraction: currentStageInteraction,
+    executionOwner,
+    pendingProposal,
+    approvalPackageAvailable: signoffPackageQuery.data != null,
+    tasks,
+    selectedTaskId: null,
+    selectedRunId: null,
+    explicitSelection: null,
+    dirtyDocument: false,
+  });
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
   const materialIdentity = workflowMaterialIdentity(material);
+  const canonicalCurrentMaterialIdentity =
+    workflowMaterialIdentity(canonicalCurrentMaterial);
   const selectedStageMaterialState =
     selectedStageArtifact !== null &&
     (
@@ -720,11 +742,9 @@ export const WorkItemWorkspace = ({
       return "Package current · ready to sign";
     }
     if (selectedStep === "COMPLETE") {
-      return workItem.outcome
-        ? ordinaryClassification(workItem.outcome)
-        : selectedStepState === "CURRENT"
-          ? "Complete"
-          : "Not yet reached";
+      return selectedStepState === "CURRENT"
+        ? workOutcomeProductLabel(workItem.outcome)
+        : "Not yet reached";
     }
     return undefined;
   })();
@@ -1201,7 +1221,9 @@ export const WorkItemWorkspace = ({
                   }
                 : null;
 
-  const inspectedHistorical = !currentStepSelected;
+  const inspectedHistorical =
+    !currentStepSelected ||
+    materialIdentity !== canonicalCurrentMaterialIdentity;
   const currentAttentionStatusLabel = (() => {
     if (!inspectedHistorical) return summaryStatusLabel;
     switch (currentAttention) {

@@ -16,6 +16,41 @@ import {
   type StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 
+type StageCompletionEvent = Extract<
+  RunEvent["event"],
+  { readonly tag: "STAGE_COMPLETED" }
+>;
+type ReadinessOutcome = Extract<
+  StageCompletionEvent["completion"],
+  { readonly stage: "R3" }
+>["outcome"];
+
+export const workOutcomeProductLabel = (
+  outcome: WorkItem["outcome"],
+): string => {
+  switch (outcome) {
+    case null: return "Complete";
+    case "DISPROVEN": return "Disproven";
+    case "DUPLICATE": return "Duplicate";
+    case "ALREADY_SATISFIED": return "Already satisfied";
+    case "INVESTIGATION_COMPLETE": return "Investigation complete";
+    case "AUDIT_COMPLETE": return "Audit complete";
+    case "CANDIDATE_DONE": return "Verified candidate";
+  }
+};
+
+export const readinessOutcomeLabel = (
+  outcome: ReadinessOutcome,
+): string => {
+  switch (outcome) {
+    case "READY_FOR_SIGNOFF": return "Ready for sign-off";
+    case "RETURN_TO_RESEARCH": return "Return to Research";
+    case "RETURN_TO_REQUIREMENTS": return "Return to Requirements";
+    case "RETURN_TO_DESIGN": return "Return to Solution design";
+    case "RETURN_TO_PLAN": return "Return to Implementation plan";
+  }
+};
+
 export type SettingsDestination = "repositories" | "opencode" | "model";
 
 export const settingsDestinationForReadinessBlocker = (

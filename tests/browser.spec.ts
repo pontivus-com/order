@@ -1473,10 +1473,16 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(
     page.getByText("Which constraint should the plan prioritize?", { exact: true }),
   ).toBeVisible();
+  const requiredInputComposer = page.getByTestId("activity-composer");
   await expect(
-    page.getByTestId("activity-composer")
-      .getByText("Answer the question above", { exact: true }),
+    requiredInputComposer.getByText("Answer the question above", { exact: true }),
   ).toBeVisible();
+  const requiredInputField = requiredInputComposer.getByLabel("Message input");
+  await expect(requiredInputField).toBeFocused();
+  const contextControl = page.getByRole("button", { name: "Context", exact: true });
+  await contextControl.focus();
+  await page.waitForTimeout(1_000);
+  await expect(contextControl).toBeFocused();
   await expect(
     page.getByTestId("activity-composer")
       .getByText("Which constraint should the plan prioritize?", { exact: true }),
@@ -1493,6 +1499,8 @@ test("canonical Run feedback remains visible in the owning workflow context with
 
   await openDisclosureResource(page, "Supporting material and history", "Open attempt 2");
   await expect(page.getByText("Agent setup blocked", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation plan");
+  await expect(page.getByRole("button", { name: "Return to Implementation plan", exact: true })).toBeVisible();
   await expect(
     page.getByText("Technical diagnostics available", { exact: true }),
   ).toBeVisible();
@@ -2208,6 +2216,7 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
+  await expect(review.getByText("Ready for sign-off", { exact: true })).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   const selector = page.getByRole("combobox", { name: "Readiness material" });
   await expect(selector).toBeVisible();
@@ -2315,10 +2324,13 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
 
   await backToQueue(page);
   await openWorkItem(page, "Awaiting sign-off");
-  await expect(page.getByTestId("review-workspace")).toBeVisible();
+  const approvalReview = page.getByTestId("review-workspace");
+  await expect(approvalReview).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toContainText(
     "Package current · ready to sign",
   );
+  await expect(approvalReview.getByTestId("approval-readiness-summary"))
+    .toContainText("Ready for sign-off");
   const packageHash = page.getByTestId("signoff-package-hash");
   await expect(packageHash).toHaveText(/^sha256:[0-9a-f]{64}$/);
   await expect(packageHash).toBeHidden();

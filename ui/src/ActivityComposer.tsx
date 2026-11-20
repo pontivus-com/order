@@ -1,5 +1,10 @@
+import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ChatComposer } from "@astryxdesign/core/Chat";
+import {
+  ChatComposer,
+  ChatComposerInput,
+  type ChatComposerInputHandle,
+} from "@astryxdesign/core/Chat";
 import type { Run, RunEvent } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { runIsActive } from "./workbench-presentation.ts";
@@ -8,6 +13,22 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSubmitted, onError }: Readonly<{
   run: Run; pending: RunEvent | null; mutationsDisabled?: boolean; onSubmitted: (event: RunEvent) => Promise<void>; onError?: (error: unknown) => void | Promise<void>;
 }>) => {
+  const composerInputRef = useRef<ChatComposerInputHandle>(null);
+  const focusedRequestEventId = useRef<RunEvent["id"] | null>(null);
+  const requiredInputEventId =
+    pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? pending.id : null;
+
+  useEffect(() => {
+    if (
+      requiredInputEventId === null ||
+      focusedRequestEventId.current === requiredInputEventId
+    ) {
+      return;
+    }
+    composerInputRef.current?.focus();
+    focusedRequestEventId.current = requiredInputEventId;
+  }, [requiredInputEventId]);
+
   const input = useMutation({
     mutationFn: (text: string) => {
       if (run.role !== "STAGE" || !runIsActive(run)) throw new TypeError("selected Activity does not accept human input");
@@ -23,7 +44,13 @@ export const ActivityComposer = ({ run, pending, mutationsDisabled = false, onSu
         <strong>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer the question above" : "Continue current work"}</strong>
         <span>{pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Your reply is bound to the exact question shown in the conversation." : "Send the next instruction or answer for this interactive activity."}</span>
       </div>
-      <ChatComposer onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }} placeholder={pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer and continue" : "Continue current work"} isDisabled={mutationsDisabled || input.isPending} elevation="none" />
+      <ChatComposer
+        input={<ChatComposerInput handleRef={composerInputRef} />}
+        onSubmit={(value) => { if (!mutationsDisabled && value.trim().length > 0) input.mutate(value); }}
+        placeholder={pending?.event.tag === "HUMAN_INPUT_REQUESTED" ? "Answer and continue" : "Continue current work"}
+        isDisabled={mutationsDisabled || input.isPending}
+        elevation="none"
+      />
     </div>
   );
 };
