@@ -10,7 +10,7 @@
 |---|---|---|---|---|---|---|
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11` | `IA16` | — | Recheck `C10-O06`, `C10-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11`, `SD25` | `IA16`, `IA31` | — | Typed R3 verdict semantics and the rebuilt Review composition must jointly make readiness/findings/return owner dominant; verify semantic + rendered evidence. |
 
 Stable rows in phase: **3**.
 
@@ -19,7 +19,7 @@ Stable rows in phase: **3**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
-| `PL-C10-01` | C10-F01 | `SD11` | `IA16` | — | Readiness dominant verdict is typed R3 outcome. |
+| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is typed R3 outcome and IA31 owns its canonical Review presentation. |
 
 Package atoms in phase: **2**.
 
@@ -27,6 +27,8 @@ Package atoms in phase: **2**.
 
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA30** — consume the shared pre-signoff renderer migration for the Implementation plan surface.
+- **IA31** — consume the single Readiness/Approval Review migration definition for R3 presentation.
 
 ## Completion proof
 
