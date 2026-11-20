@@ -3111,7 +3111,7 @@ describe("daemon control plane", () => {
       fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\n");
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
-        "<!-- Order template: change-plan-v2; authority: GW-DOC-LIFECYCLE-CONTEXT-V2, GW-DOC-CANONICAL-CONTRACTS-V2, GW-DOC-SPECIFICATION-STANDARD-V2 -->\n\n## Exact task units/dependencies/objectives\n\n## Requirement/design traceability\n\n## Module ownership/decomposition constraints and architecture-feedback checkpoints\n\n## Expected production and test/validation surface\n\n## Required deletions/replacements\n\n## Completion evidence\n\n## Minimum-change forecast\n\n## Verification contract\n\n## Canonical order-tasks block\n\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
+        ${JSON.stringify(vacuousCurrentV2Plan)},
       );
 
       const outputs = {
@@ -3247,7 +3247,7 @@ describe("daemon control plane", () => {
       fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
-        "<!-- Order template: change-plan-v2; authority: GW-DOC-LIFECYCLE-CONTEXT-V2, GW-DOC-CANONICAL-CONTRACTS-V2, GW-DOC-SPECIFICATION-STANDARD-V2 -->\n\n## Exact task units/dependencies/objectives\n\n## Requirement/design traceability\n\n## Module ownership/decomposition constraints and architecture-feedback checkpoints\n\n## Expected production and test/validation surface\n\n## Required deletions/replacements\n\n## Completion evidence\n\n## Minimum-change forecast\n\n## Verification contract\n\n## Canonical order-tasks block\n\n```order-tasks\n{\"version\":1,\"tasks\":[]}\n```\n",
+        ${JSON.stringify(vacuousCurrentV2Plan)},
       );
       fs.writeFileSync(path.join(repositoryRoot, files.R3), "# READY_FOR_SIGNOFF\\n");
 
