@@ -2222,7 +2222,7 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
-  await expect(review.getByText("Ready for sign-off", { exact: true })).toBeVisible();
+  await expect(review.getByText("Review in progress", { exact: true })).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   const selector = page.getByRole("combobox", { name: "Readiness material" });
   await expect(selector).toBeVisible();
