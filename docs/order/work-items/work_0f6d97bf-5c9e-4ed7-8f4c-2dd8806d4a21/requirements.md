@@ -352,6 +352,40 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 - material functional UNPROVEN: 0.
 - DESIGN may choose technical realization only within these functional boundaries.
 
+## Post-rendered-evidence functional revalidation
+
+The exact-candidate screenshot audit does **not** introduce new product behavior. It disproves the downstream assumption that the existing browser realization already satisfied the complete Workbench presentation contract. R2 therefore keeps the functional model above unchanged and makes the following downstream consequence explicit:
+
+- every screen must realize the same Primary / Supporting / Technical hierarchy already defined by the work-kind × workflow-step contract;
+- Queue/Create/Settings and every lifecycle surface must use one recognizable component/action/form/status/notice/collection language rather than a feature-specific or historical grammar;
+- the interaction class is functionally significant: Operational scan, Form/configuration, Document, Dialogue, Review, Operational master/detail, Evidence, Terminal result, Context and Safety/exception must remain distinct and must not collapse into generic cards/forms/panels merely because the underlying controls function;
+- the actual user-facing information required by each work kind/stage must be present and legible in the rendered composition; technically correct hidden/collapsed/mis-prioritized information is not functional fulfillment;
+- responsive recomposition preserves the same semantic ordering and current-action ownership; it may not rescue an incorrect wide composition by shrinking/wrapping the old layout;
+- System/Light/Dark parity means the same hierarchy/component meaning is retained, not merely that theme tokens switch;
+- exact-candidate rendered evidence is required to prove these obligations because semantic DOM/component assertions alone cannot demonstrate information hierarchy, density, geometry or visual affordance fidelity.
+
+The functional domains requiring fresh technical realization are exhaustive across the UI surface, even where their underlying domain/state behavior remains valid:
+
+| Functional domain | Preserved functional owner | Required downstream realization consequence |
+|---|---|---|
+| C02 intake/Create | controlled Project/kind/Concerns + derived metadata | Form/configuration composition must expose those concepts with the intended hierarchy and no legacy/raw metadata grammar. |
+| C03 Queue | one active/archive/project/search derivation + explicit diagnostics | Operational-scan composition must keep normal Queue, diagnostics, empty/search/archive states as distinct readable states. |
+| C04 source/document Git | exact Markdown/source/Git ownership | Document and confirmation surfaces must retain canonical source primacy and exact-path review without feature-local chrome. |
+| C05/C17 workspace/current attention | current attention wins while inspection remains observational | WorkItem shell, rail, selector, Context and material surface must preserve one stable hierarchy across every stage. |
+| C06/C07/C08/C09 productive pre-signoff | one Dialogue/Document/Proposal interaction grammar with stage-specific information | Research, Requirements, Solution design and Plan must reuse the same structural grammar while rendering different governed information obligations. |
+| C10 Readiness | typed R3 verdict + findings/return owner | Review composition must make the verdict and defect owner dominant. |
+| C11 Approval | readiness/currentness + exact package/sign-off | Review composition must keep package judgment primary and technical identity subordinate. |
+| C12 Implementation | current task/attempt/blocker/validation/evidence | Operational master/detail must be the stable execution topology. |
+| C13 Complete | final governed outcome + valid resources/remediation | Terminal-result composition must make outcome primary and preserve kind-specific terminal behavior. |
+| C14 governed materials | documents/proposals/evidence/dialogue remain distinct | Material renderers must retain distinct semantics inside the common Workbench language. |
+| C15 provider interaction | bounded session/activity/input/failure | Dialogue/activity presentation must keep provider plumbing secondary except when it owns recovery. |
+| C16 Settings | readiness/meaning/action primary; technical identity secondary | Settings must use the same configuration/form language and must not revert to diagnostic/admin-page hierarchy. |
+| C18 responsive/accessibility | semantic continuity + safe focus/keyboard | Every primitive/surface must have an explicit wide/medium/narrow and focus contract. |
+| C19 component/theme | one Workbench/Astryx language | All recurring structure/visual semantics must be owned by the canonical primitive/theme system; feature-era alternatives are nonconforming. |
+| C20 certification | authority-complete proof | Acceptance must include actual rendered screen/state evidence in addition to semantic/browser assertions. |
+
+No R2 product decision is reopened by this evidence. DESIGN is reopened because the technical realization must now implement these already-defined functional obligations instead of preserving the current presentation.
+
 ## Required observable outcome/delta
 
 ### A01 — C01 product model + C21 product identity
