@@ -114,7 +114,7 @@ jobs:
             const base = JSON.parse(process.env.OPENCODE_CONFIG_CONTENT ?? "{}");
             const simulation = {
               name: "Order CI Simulation",
-              package: "@opencode-ai/ai/providers/openai/chat",
+              package: "@opencode/ai/providers/openai/chat",
               settings: { apiKey: "order-ci-simulation" },
               models: {
                 "order-sim-model": {
