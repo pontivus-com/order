@@ -950,11 +950,23 @@ jobs:
           cookie="${RUNNER_TEMP}/order-cookie.txt"
           curl -fsS -L -c "${cookie}" -o /dev/null "${connect_url}"
 
-          curl -fsS -b "${cookie}" \
-            "${origin}/api/settings/readiness" > "${RUNNER_TEMP}/readiness.json"
+          set +e
+          readiness_status="$(curl -sS -o "${RUNNER_TEMP}/readiness.json" -w '%{http_code}' -b "${cookie}" \
+            "${origin}/api/settings/readiness")"
+          readiness_curl_status=$?
+          set -e
           echo "=== execution readiness immediately before T1 start ==="
-          cat "${RUNNER_TEMP}/readiness.json"
+          echo "curl_status=${readiness_curl_status} http_status=${readiness_status}"
+          cat "${RUNNER_TEMP}/readiness.json" 2>/dev/null || true
           echo
+          if [[ "${readiness_curl_status}" -ne 0 || "${readiness_status}" != "200" ]]; then
+            echo "Readiness probe failed before T1 start" >&2
+            echo "=== daemon tail ===" >&2
+            tail -n 300 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
+            echo "=== Drive controller tail ===" >&2
+            tail -n 300 "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+            exit 1
+          fi
 
           curl -fsS -b "${cookie}" \
             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks.json"
@@ -1246,7 +1258,11 @@ jobs:
             done
             kill -KILL "${ORDER_CI_DRIVE_PID}" 2>/dev/null || true
           fi
+          if [[ -s "${ORDER_CI_STATE_ROOT:-}/ci-daemon.log" ]]; then
+            echo "=== Order daemon tail ==="
+            tail -n 300 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" || true
+          fi
           if [[ -s "${RUNNER_TEMP}/order-drive-controller.log" ]]; then
             echo "=== OpenCode Drive controller tail ==="
-            tail -n 100 "${RUNNER_TEMP}/order-drive-controller.log" || true
+            tail -n 300 "${RUNNER_TEMP}/order-drive-controller.log" || true
           fi
