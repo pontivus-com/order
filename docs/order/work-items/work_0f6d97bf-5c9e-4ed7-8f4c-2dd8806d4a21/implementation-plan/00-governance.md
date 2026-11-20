@@ -42,10 +42,10 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 
 ## Signed scope and forecast law
 
-The one signed T1 uses:
+The canonical signed T1-T11 task graph uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
-- explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
+- explicit `exclusions` to protect paths outside the current task owner, including retained UI capability and DESIGN-positive-reuse paths inside the cumulative envelope;
 - task-local exact `changeSurface` forecasts whose union is the immutable expected physical forecast for the cumulative candidate.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
