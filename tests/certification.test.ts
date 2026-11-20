@@ -504,8 +504,8 @@ describe("Order cross-boundary certification", () => {
     const canonicalRendererNames = [...new Set(
       [...rendererAuthority.matchAll(/`([^`]+\.tsx)`/g)]
         .map((match) => match[1]!)
-        .filter((name) => name !== "*.tsx" && name !== "main.tsx")
-        .map((name) => name.slice(name.lastIndexOf("/") + 1)),
+        .map((name) => name.slice(name.lastIndexOf("/") + 1))
+        .filter((name) => name !== "*.tsx" && name !== "main.tsx"),
     )].sort();
     const productionRenderers = renderers.filter((name) => name !== "main.tsx");
     expect(canonicalRendererNames).toContain("ActivityComposer.tsx");
