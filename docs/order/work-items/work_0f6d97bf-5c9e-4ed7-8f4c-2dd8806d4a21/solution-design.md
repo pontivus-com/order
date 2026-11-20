@@ -606,9 +606,9 @@ The real OpenCode process remains the subject under test; only the model side is
 
 ## Exact implementation surface forecast
 
-The corrected DESIGN broadens the UI implementation forecast because the canonical P4 re-composition was previously omitted. This is intentional presentation-layer replacement, not semantic scope expansion.
+The corrected DESIGN forecast is the exact union of the signed task-local `changeSurface` entries. Historical literal path counts are not authority. The current forecast is **73 unique paths**.
 
-### Existing non-UI production paths retained from SD01-SD20
+### Non-UI production
 - `README.md`
 - `src/core/contracts.ts`
 - `src/core/execution.ts`
@@ -619,13 +619,7 @@ The corrected DESIGN broadens the UI implementation forecast because the canonic
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 
-### UI presentation paths expected to change under SD21-SD29
-
-All canonical presentation owners are forecast because every renderer must be migrated and the primitive layer itself rebuilt:
-
-- `ui/src/app.tsx`
-- `ui/src/styles.css`
-- `ui/src/theme.css`
+### UI presentation production
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
@@ -650,18 +644,46 @@ All canonical presentation owners are forecast because every renderer must be mi
 - `ui/src/WorkflowMaterialSelector.tsx`
 - `ui/src/WorkflowRail.tsx`
 - `ui/src/WorkflowStepFrame.tsx`
-- every existing `ui/src/primitives/*.tsx` owner in the closed P4 vocabulary.
+- `ui/src/app.tsx`
+- `ui/src/primitives/WorkbenchAction.tsx`
+- `ui/src/primitives/WorkbenchAttention.tsx`
+- `ui/src/primitives/WorkbenchConfirmation.tsx`
+- `ui/src/primitives/WorkbenchContextPanel.tsx`
+- `ui/src/primitives/WorkbenchDialogue.tsx`
+- `ui/src/primitives/WorkbenchDisclosure.tsx`
+- `ui/src/primitives/WorkbenchField.tsx`
+- `ui/src/primitives/WorkbenchForm.tsx`
+- `ui/src/primitives/WorkbenchIcon.tsx`
+- `ui/src/primitives/WorkbenchIdentity.tsx`
+- `ui/src/primitives/WorkbenchLayout.tsx`
+- `ui/src/primitives/WorkbenchMasterDetail.tsx`
+- `ui/src/primitives/WorkbenchNotice.tsx`
+- `ui/src/primitives/WorkbenchRail.tsx`
+- `ui/src/primitives/WorkbenchResourceRow.tsx`
+- `ui/src/primitives/WorkbenchReview.tsx`
+- `ui/src/primitives/WorkbenchSectionHeader.tsx`
+- `ui/src/primitives/WorkbenchSelector.tsx`
+- `ui/src/primitives/WorkbenchSettingsLayout.tsx`
+- `ui/src/primitives/WorkbenchState.tsx`
+- `ui/src/primitives/WorkbenchStatus.tsx`
+- `ui/src/primitives/WorkbenchSurface.tsx`
+- `ui/src/primitives/WorkbenchTable.tsx`
+- `ui/src/primitives/WorkbenchTaskPanel.tsx`
+- `ui/src/primitives/WorkbenchTimeline.tsx`
+- `ui/src/primitives/WorkbenchToolbar.tsx`
+- `ui/src/primitives/WorkbenchUtilityLink.tsx`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
+- `ui/src/workbench-presentation.ts`
 
-This forecast intentionally excludes `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/main.tsx` and `ui/src/markdown-source-formatting.ts` unless implementation discovers a genuine presentation-boundary defect; those modules are not presentation owners and may not be changed merely for convenience.
-
-### Verification paths expected to change/create
+### Verification
+- `tests/browser.spec.ts`
 - `tests/certification.test.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
-- `tests/browser.spec.ts`
-- `tests/workbench-presentation.test.ts`
 - `tests/installer.test.ts`
 - `tests/opencode.test.ts`
+- `tests/workbench-presentation.test.ts`
 
 ### Permanent verification infrastructure
 - `.github/workflows/ci.yml`
@@ -669,7 +691,7 @@ This forecast intentionally excludes `ui/src/http.ts`, `ui/src/query-keys.ts`, `
 ### Delivery metadata
 - `CHANGELOG.md`
 
-P7 must enumerate the exact file set from the presentation owners above rather than preserving the obsolete 30-path forecast. Same-layer decomposition inside `ui/src/primitives/` is allowed only when it preserves the closed P4 responsibility set; adding a new primitive responsibility still returns to DESIGN. Deleting obsolete selectors/branches/files is expected implementation work and is not optional cleanup.
+Same-layer decomposition outside this exact forecast is not automatically authorized; it follows the signed scope/exclusions plus V4/V5/V6 minimum same-layer variance law. Adding a new semantic owner, new primitive responsibility, contract/state/effect/dependency/validation behavior or new runtime dependency returns upstream.
 
 ## Contract/state/persistence/transport consequences
 
