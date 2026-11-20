@@ -6,9 +6,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `aa287cb5aa37fbb0fe68742362ade9e949f43352`.
-- R2 `requirements.md`: `36f886d8ea3418a23be9a67239ab943e891c6c3a`.
-- DESIGN `solution-design.md`: `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+- R1 `research.md`: `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`.
+- R2 `requirements.md`: `bf8699df1349fcf977a3e2d7690d78f83736d937`.
+- DESIGN `solution-design.md`: `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -34,13 +34,15 @@ A semantic phase may reference an IA action owned by another phase. That referen
 
 SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current execution capabilities positively proven by DESIGN. IA07/IA08 therefore prove/reuse those capabilities and authorize **no T1 production mutation** to their existing owners.
 
+SD20 is a verification-only delta. IA23 owns its permanent realization through `tests/opencode.test.ts` and `.github/workflows/ci.yml`: the actual supported OpenCode 2.2.6 process is exercised through Order's production OpenCode boundary while deterministic model responses are provided by exact isolated CI tooling `opencode-drive@2.4.1` + `effect@4.0.1`. These verification tools are not product/runtime dependencies and do not enter `package.json`, lockfiles, release bundles, Order configuration or runtime state.
+
 ## Signed scope and forecast law
 
 The one signed T1 uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
 - explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
-- exact 28-path `changeSurface` as the immutable expected physical forecast.
+- exact 30-path `changeSurface` as the immutable expected physical forecast.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
 
