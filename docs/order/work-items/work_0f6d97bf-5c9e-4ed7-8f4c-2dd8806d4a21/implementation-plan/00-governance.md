@@ -6,9 +6,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `a22200e0765f740e89b2f05727e126fbf9e0b034`.
-- R2 `requirements.md`: `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`.
-- DESIGN `solution-design.md`: `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+- R1 `research.md`: `d2eb1627e2b9a145f785b04829b56c623b7431e9`.
+- R2 `requirements.md`: `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`.
+- DESIGN `solution-design.md`: `8591f18ef98316e276c6dcfa9524857a98b7dedc`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -32,7 +32,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
-IA27-IA34 are the presentation reconstruction owners. IA27 exclusively owns shared primitive/theme/style implementation. IA28-IA34 own feature-renderer migration and may consume but may not modify IA27-owned presentation foundation files. If a downstream composition cannot be realized through the signed primitive responsibilities, execution returns to IA27/DESIGN rather than creating local presentation ownership.
+IA27-IA34 are the presentation reconstruction owners. The existing canonical `ui/src/primitives/**` implementation is retained read-only capability for this campaign. IA27 owns only certification of that primitive boundary plus deletion of obsolete screen-specific/compatibility rules from shared stylesheets; it does not redesign primitives. IA28-IA34 own destructive screen replacement. Each must record a purge checkpoint deleting its old owned screen files before replacement authorship, and may not copy or incrementally transform the pre-purge screen implementation. If the retained primitives are insufficient, execution returns to DESIGN rather than changing primitives or creating local presentation ownership.
 
 IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
@@ -57,6 +57,17 @@ FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository
 For SD02, manifest authority selection is the reachable source set; IA02 must project only the lifecycle-applicable stable/versioned material selected by the pinned schema/stage/explicit refs. A retained historical source may remain reachable without entering current v2 context by raw layer membership.
 
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
+
+## Screen replacement non-reuse law
+
+For IA28-IA34, current screen implementation is defect evidence only.
+
+- pre-reconstruction screen blobs are not preservation targets, compatibility targets, migration sources or implementation templates;
+- the purge checkpoint must precede replacement authorship in Git history;
+- a replacement task may reuse only retained primitives, approved leaf/content mechanisms and canonical non-screen domain/query/policy owners;
+- copying old JSX/DOM structure, screen-local state branching, field grouping, table-column design, card/panel composition, action placement, responsive markup, CSS classes or visual hierarchy is a task breach;
+- a screen-information schema is design-time trace material only and must not become a DTO/browser state family;
+- screen task completion requires both deletion evidence and fresh semantic/rendered evidence.
 
 ## Stop conditions
 
