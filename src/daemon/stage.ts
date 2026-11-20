@@ -512,10 +512,11 @@ const persistAndReactStageBatch = async (
   if (!isPreSignoffStage(currentRun.stage)) {
     throw new TypeError("STAGE proposal admission requires a pre-signoff stage");
   }
+  const currentStage = currentRun.stage;
   const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
   const [, currentAuthority] = await resolveCurrentStageAuthority(
     currentWorkItem,
-    currentRun.stage,
+    currentStage,
   );
   validateStageProviderTurn(
     currentRun,
@@ -523,7 +524,7 @@ const persistAndReactStageBatch = async (
     payloads,
     (proposal) =>
       permanentAuthorityProposalIsAdmitted(
-        currentRun.stage,
+        currentStage,
         proposal,
         currentAuthority,
       ),
@@ -537,7 +538,7 @@ const persistAndReactStageBatch = async (
     }
     if (
       !permanentAuthorityProposalIsAdmitted(
-        currentRun.stage,
+        currentStage,
         payload,
         currentAuthority,
       )
@@ -637,6 +638,7 @@ export const runStageTurn = async (
   if (!isPreSignoffStage(run.stage)) {
     throw new TypeError("STAGE Run must use a pre-signoff lifecycle stage");
   }
+  const runStage = run.stage;
   const initialCancellation = cancelledStageRun(runtime, run.id);
   if (initialCancellation !== null) return initialCancellation;
 
@@ -749,7 +751,7 @@ export const runStageTurn = async (
       events,
       (proposal) =>
         permanentAuthorityProposalIsAdmitted(
-          run.stage,
+          runStage,
           proposal,
           context.authority,
         ),
