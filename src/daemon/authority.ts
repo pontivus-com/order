@@ -850,6 +850,25 @@ export const dependencyClosure = (
   return [...result].sort();
 };
 
+const expandLifecycleMaterialDependencies = (
+  runtime: CoordinatorRuntime,
+  artifacts: readonly ArtifactRef[],
+): readonly ArtifactRef[] =>
+  deduplicateArtifacts([
+    ...artifacts,
+    ...artifacts
+      .filter((artifact) =>
+        artifact.role === "R1" ||
+        artifact.role === "R2" ||
+        artifact.role === "DESIGN" ||
+        artifact.role === "PLAN" ||
+        artifact.role === "R3"
+      )
+      .flatMap((artifact) =>
+        dependencyClosure(runtime, artifact.id).map((id) => getArtifact(runtime, id))
+      ),
+  ]);
+
 export const approvalClosure = (
   runtime: CoordinatorRuntime,
   approval: Approval,
@@ -1030,7 +1049,12 @@ const currentApprovalMaterialSet = async (
     "R3",
     false,
   );
-  const current: ArtifactRef[] = [...currentState.context.artifacts];
+  const current: ArtifactRef[] = [
+    ...expandLifecycleMaterialDependencies(
+      runtime,
+      currentState.context.artifacts,
+    ),
+  ];
 
   for (const artifact of signed) {
     if (
@@ -1271,10 +1295,13 @@ export const computeSignoffPackage = async (
     r3Root,
     ...dependencyClosure(runtime, r3Root.id).map((id) => getArtifact(runtime, id)),
   ]);
-  const currentMaterial = deduplicateArtifacts([
-    ...currentR3.context.artifacts,
-    r3Root,
-  ]);
+  const currentMaterial = expandLifecycleMaterialDependencies(
+    runtime,
+    deduplicateArtifacts([
+      ...currentR3.context.artifacts,
+      r3Root,
+    ]),
+  );
   if (!approvalMaterialIsFresh(conformedClosure, currentMaterial)) {
     const owner = routeApprovalStale(
       changedMaterialOwners(conformedClosure, currentMaterial),
