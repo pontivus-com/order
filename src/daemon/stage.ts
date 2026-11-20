@@ -766,6 +766,10 @@ export const runStageTurn = async (
       },
       createAgentActivityRecorder(runtime, run.id),
     );
+    const [, currentAuthority] = await resolveCurrentStageAuthority(
+      workItem,
+      runStage,
+    );
     const rejection = stageProviderBatchRejectionCode(
       getRun(runtime, run.id),
       listRunEvents(runtime, run.id),
@@ -774,7 +778,7 @@ export const runStageTurn = async (
         permanentAuthorityProposalIsAdmitted(
           runStage,
           proposal,
-          context.authority,
+          currentAuthority,
         ),
     );
     if (rejection !== null) {
