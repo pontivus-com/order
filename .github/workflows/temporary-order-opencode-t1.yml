@@ -1055,8 +1055,30 @@ jobs:
             echo
           done
 
+          # The diagnostic seed is deliberately BLOCKED only to keep the
+          # daemon's synchronous initial scheduler tick from auto-starting T1
+          # before /api/health exists. Resume through the production lifecycle
+          # API before resolving the now-current TODO task projection.
+          resume_status="$(curl -sS -o "${RUNNER_TEMP}/resume-work-item.json" -w '%{http_code}' -b "${cookie}" \
+            -H "Origin: ${origin}" \
+            -H "Content-Type: application/json" \
+            -X POST \
+            "${origin}/api/work-items/${WORK_ITEM_ID}/resume" \
+            -d '{}')"
+          if [[ "${resume_status}" != "200" ]]; then
+            echo "T1 diagnostic resume failed with HTTP ${resume_status}" >&2
+            cat "${RUNNER_TEMP}/resume-work-item.json" >&2 || true
+            exit 1
+          fi
+          echo "=== resumed WorkItem ==="
+          cat "${RUNNER_TEMP}/resume-work-item.json"
+          echo
+
           curl -fsS -b "${cookie}" \
             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks.json"
+          echo "=== T1 task projection after resume ==="
+          cat "${RUNNER_TEMP}/tasks.json"
+          echo
 
           task_id="$("${RUNNER_TEMP}/bun-bin/bun" -e '
             const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks.json").text());
@@ -1072,46 +1094,20 @@ jobs:
           ')"
           echo "ORDER_CI_TASK_ID=${task_id}" >> "${GITHUB_ENV}"
 
-          # The diagnostic seed is deliberately BLOCKED only to keep the
-          # daemon's synchronous initial scheduler tick from auto-starting T1
-          # before /api/health exists. Resume through the production lifecycle
-          # API, then prove it restored the signed task to TODO with no Run.
-          if [[ "${task_state}" == "BLOCKED" ]]; then
-            resume_status="$(curl -sS -o "${RUNNER_TEMP}/resume-work-item.json" -w '%{http_code}' -b "${cookie}" \
-              -H "Origin: ${origin}" \
-              -H "Content-Type: application/json" \
-              -X POST \
-              "${origin}/api/work-items/${WORK_ITEM_ID}/resume" \
-              -d '{}')"
-            if [[ "${resume_status}" != "200" ]]; then
-              echo "T1 diagnostic resume failed with HTTP ${resume_status}" >&2
-              cat "${RUNNER_TEMP}/resume-work-item.json" >&2 || true
-              exit 1
-            fi
-
-            curl -fsS -b "${cookie}" \
-              "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-after-resume.json"
-            task_state="$("${RUNNER_TEMP}/bun-bin/bun" -e '
-              const tasks = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/tasks-after-resume.json").text());
-              const t = tasks.find((value) => value.id === process.env.ORDER_CI_TASK_ID);
-              if (!t) process.exit(2);
-              process.stdout.write(t.state);
-            ')"
-            if [[ "${task_state}" != "TODO" ]]; then
-              echo "T1 resume did not restore TODO: ${task_state}" >&2
-              exit 1
-            fi
-
-            curl -fsS -b "${cookie}" \
-              "${origin}/api/work-items/${WORK_ITEM_ID}/runs" > "${RUNNER_TEMP}/runs-before-start.json"
-            "${RUNNER_TEMP}/bun-bin/bun" -e '
-              const runs = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/runs-before-start.json").text());
-              const taskRuns = runs.filter((value) => value.executionTaskId === process.env.ORDER_CI_TASK_ID);
-              if (taskRuns.length !== 0) {
-                throw new Error("resume created post-signoff Run before explicit task start");
-              }
-            '
+          if [[ "${task_state}" != "TODO" ]]; then
+            echo "T1 resume did not restore TODO: ${task_state}" >&2
+            exit 1
           fi
+
+          curl -fsS -b "${cookie}" \
+            "${origin}/api/work-items/${WORK_ITEM_ID}/runs" > "${RUNNER_TEMP}/runs-before-start.json"
+          "${RUNNER_TEMP}/bun-bin/bun" -e '
+            const runs = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/runs-before-start.json").text());
+            const taskRuns = runs.filter((value) => value.executionTaskId === process.env.ORDER_CI_TASK_ID);
+            if (taskRuns.length !== 0) {
+              throw new Error("resume created post-signoff Run before explicit task start");
+            }
+          '
 
           if [[ "${task_state}" == "TODO" ]]; then
             start_status="$(curl -sS -o "${RUNNER_TEMP}/start-task.json" -w '%{http_code}' -b "${cookie}" \
