@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { orderVersion } from "../src/version.ts";
 
 import {
+  ApprovalSchema,
   ArtifactRefSchema,
   EvidencePathSchema,
   ExecutionTaskSchema,
@@ -41,14 +42,19 @@ import {
   approvalMaterialIsFresh,
   canonicalAbsolutePathIsWithinRoot,
   conformanceEventMatchesRun,
+  evaluateStageConformance,
   invalidatedArtifactIds,
+  permanentAuthorityProposalIsAdmitted,
+  projectAuthorityForLayers,
   resolveApplicableArtifactIds,
   resolveConcernIds,
+  resolveProjectAuthority,
 } from "../src/core/governance.ts";
 import {
   artifactReturnOwner,
   deriveCurrentAttention,
   deriveExecutionOwner,
+  durableDecisionCompletionIsAdmitted,
   artifactHasCurrentStageConformance,
   deriveMaterialPresentationState,
   materialCurrentnessForStage,
@@ -72,6 +78,7 @@ import {
 } from "../src/core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
+  authorityDispositionOwnerRefs,
   classifyExistingWorkItemSource,
   defaultSchemaForKind,
   duplicateWorkItemSourceIds,
@@ -80,19 +87,24 @@ import {
   recomposeWorkItemSourceBody,
   renderWorkItemSourceMarkdown,
   rewriteWorkItemSourceTitle,
+  stageTemplateForSchema,
   unresolvedConcernIdsForProject,
+  validateStageDocumentStructure,
   workItemArchiveMarkerPath,
   workItemDocumentPath,
   workItemKindForSchema,
   workItemSchemaCatalog,
 } from "../src/core/work-item-source.ts";
 import {
+  admitSignedTaskBlockForSchema,
   aggregateTaskCompletion,
+  builderCheckpointRequestForTurn,
   decideOperationalRecovery,
   dependencyIsSatisfied,
   executionResumeIsAllowed,
   executionTaskIsEligible,
   materializeExecutionTasks,
+  parseSignedTaskBlockFromPlan,
   providerEventIsAdmitted,
   semanticRepairIsAllowed,
 } from "../src/core/execution.ts";
@@ -389,6 +401,38 @@ describe("canonical scalar and strict ingress contracts", () => {
       }).success,
     ).toBe(false);
 
+    const historicalReviewPass = {
+      tag: "REVIEW_PASSED",
+      evidence: [],
+    } as const;
+    expect(RunEventPayloadSchema.safeParse(historicalReviewPass).success).toBe(true);
+    expect(providerEventIsAdmitted("REVIEWER", historicalReviewPass)).toBe(false);
+
+    const currentReviewPass = {
+      tag: "REVIEW_PASSED",
+      minimumChange: "MINIMUM_SUFFICIENT",
+      minimumChangeSummary: null,
+      evidence: [],
+    } as const;
+    expect(RunEventPayloadSchema.safeParse(currentReviewPass).success).toBe(true);
+    expect(providerEventIsAdmitted("REVIEWER", currentReviewPass)).toBe(true);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "REVIEW_PASSED",
+        minimumChange: "CHANGE_BLOAT",
+        minimumChangeSummary: null,
+        evidence: [],
+      }).success,
+    ).toBe(false);
+    expect(
+      RunEventPayloadSchema.safeParse({
+        tag: "REVIEW_PASSED",
+        minimumChange: "CHANGE_BLOAT",
+        minimumChangeSummary: "src/extra.ts is removable",
+        evidence: [],
+      }).success,
+    ).toBe(true);
+
     expect(
       RunEventPayloadSchema.safeParse({
         tag: "VALIDATION_FAILED",
@@ -513,6 +557,30 @@ describe("signed task and manifest contracts", () => {
         tasks: [{ ...task, changeSurface: ["nested/AGENTS.md.bak"] }],
       }).success,
     ).toBe(true);
+  });
+
+  it("parses exactly one canonical order-tasks block from PLAN bytes", () => {
+    const encoder = new TextEncoder();
+    const valid = [
+      "# Plan",
+      "",
+      "```order-tasks",
+      JSON.stringify({ version: 1, tasks: [task] }),
+      "```",
+      "",
+    ].join("\n");
+    expect(parseSignedTaskBlockFromPlan(encoder.encode(valid))).toEqual({
+      version: 1,
+      tasks: [task],
+    });
+    expect(() =>
+      parseSignedTaskBlockFromPlan(encoder.encode("# Plan\n"))
+    ).toThrow(/exactly one order-tasks block/);
+    expect(() =>
+      parseSignedTaskBlockFromPlan(
+        encoder.encode(valid + "\n" + valid),
+      )
+    ).toThrow(/exactly one order-tasks block/);
   });
 
   it("rejects duplicate, non-local and cyclic task dependencies", () => {
@@ -736,6 +804,383 @@ describe("functional lifecycle and execution policy", () => {
     ]);
   });
 
+  it("resolves project authority before provider inference without implicit same-layer precedence", () => {
+    const manifest = ProjectManifestSchema.parse({
+      version: 1,
+      projectId: "example",
+      authority: {
+        p1: ["AGENTS.md", "docs/principles.md"],
+        p2: ["docs/product.md"],
+        p3: ["docs/requirements.md"],
+        p4: ["docs/legacy-architecture.md", "docs/architecture.md"],
+        p5: [],
+        p6: [],
+      },
+      refs: {
+        "P1-STRICT": "docs/principles.md",
+        "P1-FCIS-EXT": "AGENTS.md",
+        "P2-PRODUCT": "docs/product.md",
+        "P4-CURRENT": "docs/architecture.md",
+      },
+      precedence: {
+        p4: ["docs/architecture.md", "docs/legacy-architecture.md"],
+      },
+      governance: {
+        overrides: [{
+          defaultRuleId: "GW-P1-STRICT-TYPING",
+          source: "docs/principles.md",
+          authorityRef: "P1-STRICT",
+          gates: ["architecture"],
+        }],
+        extensions: [{
+          defaultRuleId: "GW-P1-FCIS",
+          source: "AGENTS.md",
+          authorityRef: "P1-FCIS-EXT",
+          gates: ["test"],
+        }],
+        fitness: {
+          "GW-P1-FCIS": ["architecture"],
+        },
+      },
+      verification: {
+        architecture: {
+          argv: ["node", "architecture.js"],
+          timeoutSeconds: 10,
+          inheritEnv: [],
+          materialRefs: [],
+        },
+        test: {
+          argv: ["node", "test.js"],
+          timeoutSeconds: 10,
+          inheritEnv: [],
+          materialRefs: [],
+        },
+      },
+    });
+    const sources = {
+      p1: ["docs/principles.md", "AGENTS.md"],
+      p2: ["docs/product.md"],
+      p3: ["docs/requirements.md"],
+      p4: ["docs/legacy-architecture.md", "docs/architecture.md"],
+      p5: [],
+      p6: [],
+    } as const;
+    const resolved = resolveProjectAuthority(manifest, sources);
+    expect(resolved.layers.find((entry) => entry.layer === "p1")).toEqual({
+      layer: "p1",
+      sources: ["AGENTS.md", "docs/principles.md"],
+      precedence: [],
+    });
+    expect(resolved.layers.find((entry) => entry.layer === "p4")).toEqual({
+      layer: "p4",
+      sources: ["docs/architecture.md", "docs/legacy-architecture.md"],
+      precedence: ["docs/architecture.md", "docs/legacy-architecture.md"],
+    });
+    expect(resolved.inheritedDefaultRuleIds).toContain("GW-P1-FCIS");
+    expect(resolved.inheritedDefaultRuleIds).not.toContain("GW-P1-STRICT-TYPING");
+    expect(
+      resolved.fitnessGateIdsByDefaultRuleId.find(
+        ([ruleId]) => ruleId === "GW-P1-FCIS",
+      )?.[1],
+    ).toEqual(["architecture", "test"]);
+    expect(resolved.fitnessGateIds).toEqual(["architecture", "test"]);
+
+    const r2Authority = projectAuthorityForLayers(
+      resolved,
+      ["p1", "p2", "p3"],
+    );
+    expect(r2Authority.layers.map((entry) => entry.layer))
+      .toEqual(["p1", "p2", "p3"]);
+    expect(r2Authority.authorityRefs).not.toContainEqual(
+      ["P4-CURRENT", "docs/architecture.md"],
+    );
+
+    expect(() =>
+      resolveProjectAuthority(manifest, {
+        ...sources,
+        p4: ["docs/architecture.md"],
+      })
+    ).toThrow(/precedence\.p4 path is not selected/);
+    expect(() =>
+      resolveProjectAuthority(manifest, {
+        ...sources,
+        p1: ["AGENTS.md"],
+      })
+    ).toThrow(/source is not selected/);
+
+    expect(permanentAuthorityProposalIsAdmitted(
+      "R2",
+      {
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        targetPath: "docs/product.md",
+      },
+      r2Authority,
+    )).toBe(true);
+    expect(permanentAuthorityProposalIsAdmitted(
+      "R2",
+      {
+        role: "GOVERNANCE",
+        authorityLayer: "P4",
+        targetPath: "docs/architecture.md",
+      },
+      r2Authority,
+    )).toBe(false);
+    expect(permanentAuthorityProposalIsAdmitted(
+      "R2",
+      {
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        targetPath: "docs/not-selected.md",
+      },
+      r2Authority,
+    )).toBe(false);
+  });
+
+  it("requires adopted authority after answered durable decision input before completion", () => {
+    const run = RunSchema.parse({
+      ...baseRun(),
+      id: `run_${uuidB}`,
+      executionTaskId: null,
+      stage: "R2",
+      mode: "INTERACTIVE",
+      role: "STAGE",
+      triggerEventId: null,
+      status: "RUNNING",
+      attempt: 1,
+      terminalClassification: null,
+      endedAt: null,
+    });
+    const started = RunEventSchema.parse({
+      id: `event_${uuidA}`,
+      runId: run.id,
+      sequence: 1,
+      occurredAt: "2026-11-11T03:30:00.000Z",
+      event: {
+        tag: "STAGE_STARTED",
+        stage: "R2",
+        mode: "INTERACTIVE",
+        contextHash: hashA,
+      },
+    });
+    const request = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "AUTHORITY_DECISION",
+        question: "Which authority should govern?",
+      },
+    });
+    const answer = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: request.id,
+        text: "Use the canonical P2 owner.",
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, request, answer],
+    )).toBe(false);
+
+    const proposal = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: run.id,
+      sequence: 4,
+      occurredAt: "2026-11-11T03:30:03.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/product.md",
+        baseSha256: hashA,
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        unifiedDiff: "--- a/docs/product.md\n+++ b/docs/product.md\n@@ -1 +1 @@\n-old\n+new\n",
+        rationale: "Persist the decision in canonical authority",
+      },
+    });
+    const adoptionRequested = RunEventSchema.parse({
+      id: "event_55555555-5555-4555-8555-555555555555",
+      runId: run.id,
+      sequence: 5,
+      occurredAt: "2026-11-11T03:30:04.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: proposal.id,
+      },
+    });
+    const adopted = RunEventSchema.parse({
+      id: "event_66666666-6666-4666-8666-666666666666",
+      runId: run.id,
+      sequence: 6,
+      occurredAt: "2026-11-11T03:30:05.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "ADOPTED",
+        adoptedArtifactRefId: `artifact_${uuidA}`,
+      },
+    });
+    const continuation = RunEventSchema.parse({
+      id: "event_77777777-7777-4777-8777-777777777777",
+      runId: run.id,
+      sequence: 7,
+      occurredAt: "2026-11-11T03:30:06.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: null,
+        text: "Continue after adoption.",
+      },
+    });
+    const adoptedHistory = [
+      started,
+      request,
+      answer,
+      proposal,
+      adoptionRequested,
+      adopted,
+      continuation,
+    ];
+    expect(durableDecisionCompletionIsAdmitted(run, adoptedHistory)).toBe(true);
+    expect(() =>
+      validateStageProviderTurn(
+        run,
+        adoptedHistory,
+        [{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R2", outcome: "ACCEPTED" },
+          artifactRefIds: [],
+        }],
+      )
+    ).not.toThrow();
+
+    const rejected = RunEventSchema.parse({
+      ...adopted,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "REJECTED",
+        adoptedArtifactRefId: null,
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, request, answer, proposal, rejected, continuation],
+    )).toBe(false);
+
+    // A stale/pending proposal has no adopted disposition and therefore cannot
+    // satisfy the durable-decision completion boundary.
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, request, answer, proposal, adoptionRequested],
+    )).toBe(false);
+
+    // An unrelated proposal that predates the durable answer cannot become the
+    // decision's durable authority merely because it is adopted afterwards.
+    const priorProposal = RunEventSchema.parse({
+      ...proposal,
+      id: "event_66666666-6666-4666-8666-666666666666",
+      sequence: 2,
+    });
+    const laterRequest = RunEventSchema.parse({
+      ...request,
+      id: "event_77777777-7777-4777-8777-777777777777",
+      sequence: 3,
+    });
+    const laterAnswer = RunEventSchema.parse({
+      ...answer,
+      id: "event_88888888-8888-4888-8888-888888888888",
+      sequence: 4,
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: laterRequest.id,
+        text: "Use the canonical P2 owner.",
+      },
+    });
+    const priorAdoptionRequested = RunEventSchema.parse({
+      ...adoptionRequested,
+      id: "event_99999999-9999-4999-8999-999999999999",
+      sequence: 5,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: priorProposal.id,
+      },
+    });
+    const priorAdopted = RunEventSchema.parse({
+      ...adopted,
+      id: "event_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      sequence: 6,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: priorProposal.id,
+        disposition: "ADOPTED",
+        adoptedArtifactRefId: adopted.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+          ? adopted.event.adoptedArtifactRefId
+          : null,
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [
+        started,
+        priorProposal,
+        laterRequest,
+        laterAnswer,
+        priorAdoptionRequested,
+        priorAdopted,
+      ],
+    )).toBe(false);
+
+    const cancelledRun = RunSchema.parse({
+      ...run,
+      status: "CANCELLED",
+      endedAt: "2026-11-11T03:31:00.000Z",
+    });
+    expect(() =>
+      validateStageProviderTurn(
+        cancelledRun,
+        [started, request, answer, proposal, adoptionRequested],
+        [{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R2", outcome: "ACCEPTED" },
+          artifactRefIds: [],
+        }],
+      )
+    ).toThrow(/RUNNING STAGE Run/);
+
+    const informationalRequest = RunEventSchema.parse({
+      ...request,
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "What evidence is available?",
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, informationalRequest, answer],
+    )).toBe(true);
+
+    const evidenceRequest = RunEventSchema.parse({
+      ...request,
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "EVIDENCE",
+        question: "Which evidence should be considered?",
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, evidenceRequest, answer],
+    )).toBe(true);
+  });
+
   it("computes approval freshness from semantic source identity and bytes, not generated ids or commit id", () => {
     const signed = [artifact(uuidA, "AGENTS.md", "GOVERNANCE", "P1", hashA, commitA)];
     const sameMaterial = [artifact(uuidB, "AGENTS.md", "GOVERNANCE", "P1", hashA, commitB)];
@@ -791,6 +1236,82 @@ describe("functional lifecycle and execution policy", () => {
     expect("candidate" in completed[1]!).toBe(false);
   });
 
+  it("enforces signed-task non-vacuity only for current v2 Change/Defect", () => {
+    const legacyVacuous = SignedTaskBlockSchema.parse({ version: 1, tasks: [] });
+    expect(admitSignedTaskBlockForSchema("change-v1", legacyVacuous)).toBe(legacyVacuous);
+    expect(admitSignedTaskBlockForSchema("defect-v1", legacyVacuous)).toBe(legacyVacuous);
+    expect(() => admitSignedTaskBlockForSchema("change-v2", legacyVacuous))
+      .toThrow(/at least one signed task/);
+
+    const currentTask = {
+      id: "T1",
+      objective: "Implement the governed change",
+      dependsOn: [],
+      scope: ["src/**"],
+      exclusions: [],
+      acceptanceRefs: ["FR-1"],
+      changeSurface: ["src/a.ts"],
+      gateIds: ["test"],
+      authorityRefs: ["ADR-1"],
+      concernIds: ["core"],
+    };
+    const admitted = SignedTaskBlockSchema.parse({
+      version: 1,
+      tasks: [currentTask],
+    });
+    expect(admitSignedTaskBlockForSchema("change-v2", admitted)).toBe(admitted);
+    expect(admitSignedTaskBlockForSchema("defect-v2", admitted)).toBe(admitted);
+
+    for (const [field, value] of [
+      ["scope", []],
+      ["acceptanceRefs", []],
+      ["changeSurface", []],
+      ["gateIds", []],
+      ["authorityRefs", []],
+      ["concernIds", []],
+    ] as const) {
+      const block = SignedTaskBlockSchema.parse({
+        version: 1,
+        tasks: [{ ...currentTask, [field]: value }],
+      });
+      expect(() => admitSignedTaskBlockForSchema("change-v2", block))
+        .toThrow(new RegExp("non-empty " + field));
+    }
+
+    for (const [field, value] of [
+      ["id", "  "],
+      ["id", " T1"],
+      ["objective", "  "],
+      ["objective", "Implement the governed change "],
+    ] as const) {
+      const block = SignedTaskBlockSchema.parse({
+        version: 1,
+        tasks: [{ ...currentTask, [field]: value }],
+      });
+      expect(() => admitSignedTaskBlockForSchema("change-v2", block))
+        .toThrow(new RegExp(field + " must be trimmed and non-empty"));
+    }
+  });
+
+  it("normalizes and validates Approval identity in the canonical schema", () => {
+    const input = {
+      id: `approval_${uuidA}`,
+      workItemId: `work_${uuidA}`,
+      baselineCommit: commitA,
+      packageHash: hashA,
+      planArtifactRefId: `artifact_${uuidA}`,
+      r3ArtifactRefId: `artifact_${uuidB}`,
+      sourceSha256: hashB,
+      approvedAt: "2026-11-11T03:30:00.000Z",
+    };
+    expect(ApprovalSchema.parse({
+      ...input,
+      approvedBy: "  Human Operator  ",
+    }).approvedBy).toBe("Human Operator");
+    expect(ApprovalSchema.safeParse({ ...input, approvedBy: "   " }).success).toBe(false);
+    expect(ApprovalSchema.safeParse({ ...input, approvedBy: "human\0operator" }).success).toBe(false);
+  });
+
   it("computes aggregate completion exactly from successful terminal task states", () => {
     expect(dependencyIsSatisfied("CANDIDATE_DONE")).toBe(true);
     expect(dependencyIsSatisfied("ALREADY_SATISFIED")).toBe(true);
@@ -819,6 +1340,34 @@ describe("functional lifecycle and execution policy", () => {
     expect(providerEventIsAdmitted("REVIEWER", { tag: "TASK_ALREADY_SATISFIED", summary: "already correct" })).toBe(false);
     expect(providerEventIsAdmitted("REVIEWER", { tag: "REVIEW_FAILED", classification: "REVIEW_FAILURE", summary: "", evidence: [] })).toBe(true);
     expect(providerEventIsAdmitted("REVIEWER", { tag: "VALIDATION_PASSED", stage: "V4", evidence: [] })).toBe(false);
+  });
+
+  it("admits exactly one terminal checkpoint request only for BUILDER", () => {
+    const checkpoint = RunEventPayloadSchema.parse({
+      tag: "GATE_CHECKPOINT_REQUESTED",
+      gateId: "architecture",
+    });
+    expect(providerEventIsAdmitted("BUILDER", checkpoint)).toBe(true);
+    expect(providerEventIsAdmitted("REMEDIATOR", checkpoint)).toBe(false);
+    expect(providerEventIsAdmitted("REVIEWER", checkpoint)).toBe(false);
+    expect(providerEventIsAdmitted("STAGE", checkpoint)).toBe(false);
+
+    expect(builderCheckpointRequestForTurn("BUILDER", [
+      { tag: "AGENT_MESSAGE_FINAL", text: "checkpoint", evidence: [] },
+      checkpoint,
+    ])).toEqual(checkpoint);
+    expect(() => builderCheckpointRequestForTurn("BUILDER", [
+      checkpoint,
+      { tag: "AGENT_MESSAGE_FINAL", text: "not terminal", evidence: [] },
+    ])).toThrow("terminal turn action");
+    expect(() => builderCheckpointRequestForTurn("BUILDER", [
+      checkpoint,
+      checkpoint,
+    ])).toThrow("at most one");
+    expect(() => builderCheckpointRequestForTurn("BUILDER", [
+      { tag: "STAGE_BLOCKED", reason: "blocked", owningStage: "EXECUTION" },
+      checkpoint,
+    ])).toThrow("cannot coexist");
   });
 
   it("allows one semantic repair per repairable failure class", () => {
@@ -902,15 +1451,67 @@ describe("functional lifecycle and execution policy", () => {
 });
 
 
+describe("stage conformance output closure", () => {
+  it("requires exactly one canonical output artifact for promotion", () => {
+    const output = ArtifactRefSchema.parse({
+      id: `artifact_${uuidA}`,
+      workItemId: `work_${uuidB}`,
+      repositoryPath: `docs/order/work-items/work_${uuidB}/requirements.md`,
+      role: "R2",
+      authorityLayer: "P3",
+      sha256: hashA,
+      gitCommit: null,
+    });
+
+    expect(
+      evaluateStageConformance("R2", output.workItemId, output.repositoryPath, []),
+    ).toMatchObject({ tag: "FAIL" });
+    expect(
+      evaluateStageConformance(
+        "R2",
+        output.workItemId,
+        output.repositoryPath,
+        [output, output],
+      ),
+    ).toMatchObject({ tag: "FAIL" });
+    expect(
+      evaluateStageConformance(
+        "R2",
+        output.workItemId,
+        output.repositoryPath,
+        [output],
+      ),
+    ).toEqual({ tag: "PASS", output });
+    expect(
+      evaluateStageConformance(
+        "R2",
+        output.workItemId,
+        "docs/order/work-items/other/requirements.md",
+        [output],
+      ),
+    ).toMatchObject({ tag: "FAIL" });
+  });
+});
+
 describe("source-backed WorkItem core", () => {
   it("round-trips the exact schema catalog and derives kind from schemaId only", () => {
     const expected = [
-      ["change-v1", "CHANGE"],
-      ["defect-v1", "DEFECT"],
-      ["investigation-v1", "INVESTIGATION"],
-      ["audit-v1", "AUDIT"],
+      ["change-v1", "CHANGE", false],
+      ["defect-v1", "DEFECT", false],
+      ["change-v2", "CHANGE", true],
+      ["defect-v2", "DEFECT", true],
+      ["investigation-v1", "INVESTIGATION", false],
+      ["audit-v1", "AUDIT", false],
+      ["investigation-v2", "INVESTIGATION", true],
+      ["audit-v2", "AUDIT", true],
     ] as const;
-    expect(workItemSchemaCatalog.map((entry) => [entry.schemaId, entry.kind])).toEqual(expected);
+    expect(
+      workItemSchemaCatalog.map((entry) => [
+        entry.schemaId,
+        entry.kind,
+        entry.authoringDefault,
+      ]),
+    ).toEqual(expected);
 
     for (const [schemaId, kind] of expected) {
       const metadata = {
@@ -930,6 +1531,100 @@ describe("source-backed WorkItem core", () => {
       expect(parsed.title).toBe("Canonical source");
       expect(workItemKindForSchema(parsed.metadata.schemaId)).toBe(kind);
     }
+  });
+
+  it("keeps historical R1 authority pins isolated from current v2 delivery authoring", () => {
+    const historicalChange = stageTemplateForSchema("change-v1", "R1");
+    const historicalDefect = stageTemplateForSchema("defect-v1", "R1");
+    const currentChange = stageTemplateForSchema("change-v2", "R1");
+    const currentDefect = stageTemplateForSchema("defect-v2", "R1");
+
+    const historicalInvestigation = stageTemplateForSchema("investigation-v1", "R1");
+    const historicalAudit = stageTemplateForSchema("audit-v1", "R1");
+    const currentInvestigation = stageTemplateForSchema("investigation-v2", "R1");
+    const currentAudit = stageTemplateForSchema("audit-v2", "R1");
+
+    expect(historicalChange).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(historicalDefect).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(historicalInvestigation).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(historicalAudit).toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentChange).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentDefect).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentInvestigation).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentAudit).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+    expect(currentChange).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentDefect).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentInvestigation).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+    expect(currentAudit).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+  });
+
+  it("binds every current v2 stage template to current lifecycle context", () => {
+    for (const schemaId of ["change-v2", "defect-v2"] as const) {
+      for (const stage of ["R1", "R2", "DESIGN", "PLAN", "R3"] as const) {
+        const template = stageTemplateForSchema(schemaId, stage);
+        expect(template).not.toBeNull();
+        expect(template).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+        expect(template).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+      }
+    }
+    for (const schemaId of ["investigation-v2", "audit-v2"] as const) {
+      const template = stageTemplateForSchema(schemaId, "R1");
+      expect(template).toContain("GW-DOC-LIFECYCLE-CONTEXT-V2");
+      expect(template).not.toContain("GW-DOC-LIFECYCLE-CONTEXT-V1");
+      expect(stageTemplateForSchema(schemaId, "R2")).toBeNull();
+    }
+  });
+
+  it("carries the complete S7 design-content contract in current delivery templates", () => {
+    const change = stageTemplateForSchema("change-v2", "DESIGN");
+    const defect = stageTemplateForSchema("defect-v2", "DESIGN");
+
+    expect(change).toContain("## Existing capability/reuse, behavior to replace, and necessary new concepts");
+    expect(change).toContain("## Decisions/rationale/rejected alternatives");
+    expect(defect).toContain("## Existing capability/reuse, incorrect behavior to delete/replace, and necessary new concepts");
+    expect(defect).toContain("## Rejected alternatives/rationale");
+  });
+
+  it("carries the complete S8-S10 PLAN contract only in current delivery templates", () => {
+    const change = stageTemplateForSchema("change-v2", "PLAN");
+    const defect = stageTemplateForSchema("defect-v2", "PLAN");
+    const historical = stageTemplateForSchema("change-v1", "PLAN");
+
+    expect(change).not.toBeNull();
+    expect(defect).not.toBeNull();
+    expect(historical).not.toBeNull();
+
+    for (const heading of [
+      "## Requirement/design traceability",
+      "## Module ownership/decomposition constraints and architecture-feedback checkpoints",
+      "## Expected production and test/validation surface",
+      "## Completion evidence",
+      "## Minimum-change forecast",
+      "## Canonical order-tasks block",
+    ]) {
+      expect(change).toContain(heading);
+      expect(defect).toContain(heading);
+    }
+    expect(change).toContain("## Verification contract");
+    expect(defect).toContain("## Verification contract including reproduction/regression/preservation");
+    expect(change).toContain("GW-DOC-SPECIFICATION-STANDARD-V2");
+    expect(defect).toContain("GW-DOC-SPECIFICATION-STANDARD-V2");
+
+    expect(historical).not.toContain(
+      "## Module ownership/decomposition constraints and architecture-feedback checkpoints",
+    );
+    expect(historical).not.toContain("## Minimum-change forecast");
+
+    expect(() =>
+      validateStageDocumentStructure("change-v2", "PLAN", change!)
+    ).not.toThrow();
+    expect(() =>
+      validateStageDocumentStructure(
+        "change-v2",
+        "PLAN",
+        change!.replace("## Completion evidence\n", ""),
+      )
+    ).toThrow(/missing ordered section/);
   });
 
   it("projects the exact human body and preserves exact metadata bytes during body recomposition", () => {
@@ -1008,17 +1703,116 @@ describe("source-backed WorkItem core", () => {
     expect(duplicateWorkItemSourceIds([first, second])).toEqual([`work_${uuidA}`]);
   });
 
+  it("enforces v2 stage structure without reinterpreting v1 pins", () => {
+    const valid = [
+      "# Requirements",
+      "",
+      "## Proven defect/root cause",
+      "",
+      "## Functional authority disposition ledger",
+      "",
+      "| Requirement | Disposition | Canonical owner |",
+      "|---|---|---|",
+      "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+      "",
+      "## Expected corrected behavior",
+      "",
+      "## Behavior that must remain unchanged",
+      "",
+      "## Acceptance proving the original defect",
+      "",
+      "## Regression/preservation acceptance",
+      "",
+      "## Scope/exclusions",
+      "",
+      "## Open product/authority questions",
+      "",
+    ].join("\n");
+    expect(() =>
+      validateStageDocumentStructure("defect-v2", "R2", valid)
+    ).not.toThrow();
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace("## Functional authority disposition ledger\n", ""),
+      )
+    ).toThrow(/missing ordered section/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+          "|  |  |  |",
+        ),
+      )
+    ).toThrow(/requires at least one requirement row/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace("| REFERENCE |", "| COPY |"),
+      )
+    ).toThrow(/must be REFERENCE, DELTA or LOCAL/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "GW-P1-DOC-CANONICALITY",
+          "not-a-canonical-owner",
+        ),
+      )
+    ).toThrow(/requires a GW-\* canonical owner/);
+    expect(() =>
+      validateStageDocumentStructure(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+          "| Package-local defect acceptance | LOCAL | — |",
+        ),
+      )
+    ).not.toThrow();
+    expect(
+      authorityDispositionOwnerRefs("defect-v2", "R2", valid),
+    ).toEqual(["GW-P1-DOC-CANONICALITY"]);
+    expect(
+      authorityDispositionOwnerRefs(
+        "defect-v2",
+        "R2",
+        valid.replace(
+          "| Preserve canonical document ownership | REFERENCE | GW-P1-DOC-CANONICALITY |",
+          "| Package-local defect acceptance | LOCAL | — |",
+        ),
+      ),
+    ).toEqual([]);
+    expect(() =>
+      validateStageDocumentStructure("defect-v1", "R2", "# legacy\n")
+    ).not.toThrow();
+  });
+
   it("owns kind defaults and R1 completion admissibility in the source catalog", () => {
-    expect(defaultSchemaForKind("CHANGE")).toBe("change-v1");
-    expect(defaultSchemaForKind("DEFECT")).toBe("defect-v1");
-    expect(defaultSchemaForKind("INVESTIGATION")).toBe("investigation-v1");
-    expect(defaultSchemaForKind("AUDIT")).toBe("audit-v1");
-    expect(allowedR1CompletionsForSchema("investigation-v1")).toEqual([
+    expect(defaultSchemaForKind("CHANGE")).toBe("change-v2");
+    expect(defaultSchemaForKind("DEFECT")).toBe("defect-v2");
+    expect(defaultSchemaForKind("INVESTIGATION")).toBe("investigation-v2");
+    expect(defaultSchemaForKind("AUDIT")).toBe("audit-v2");
+    const investigationOutcomes = [
       "INVESTIGATION_COMPLETE",
       "DUPLICATE",
       "ALREADY_SATISFIED",
-    ]);
+    ] as const;
+    expect(allowedR1CompletionsForSchema("investigation-v1")).toEqual(investigationOutcomes);
+    expect(allowedR1CompletionsForSchema("investigation-v2")).toEqual(investigationOutcomes);
     expect(allowedR1CompletionsForSchema("audit-v1")).not.toContain("CONFIRMED");
+    expect(allowedR1CompletionsForSchema("audit-v2")).toEqual([
+      "AUDIT_COMPLETE",
+      "DUPLICATE",
+      "ALREADY_SATISFIED",
+    ]);
+    expect(stageTemplateForSchema("investigation-v2", "R2")).toBeNull();
+    expect(stageTemplateForSchema("audit-v2", "R2")).toBeNull();
   });
 
   it("classifies current source changes without daemon-owned policy", () => {

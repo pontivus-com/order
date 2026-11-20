@@ -2,7 +2,7 @@
 
 **Status:** Binding factual reference  
 **Canonical concern ID:** `GW-DOC-EXTERNAL-FACTS`  
-**Versioned concern ID:** `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`  
+**Versioned concern ID:** `GW-DOC-EXTERNAL-FACTS-V1-2026-11-16`  
 **Verified:** 2026-11-16  
 **2026-11-16 Astryx chat-leaf closure:** verified against immutable `meta/astryx@v0.7.13` source that `packages/core/src/Chat/index.ts` publicly exports `ChatLayout`, `ChatMessage`, `ChatMessageMetadata`, `ChatComposer` and `ChatToolCalls`. Order's Phase 2B Workbench design relies only on `ChatLayout`, `ChatMessage`, `ChatMessageMetadata` and `ChatComposer` as leaves inside the Order-owned `WorkbenchDialogue` composition. `ChatToolCalls` is intentionally not used to expose provider-native tool records; Order persists/renders only its own bounded/redacted activity projection. No dependency pin changes. Source: immutable `meta/astryx@v0.7.13/packages/core/src/Chat/index.ts` plus the corresponding component sources.  
 **2026-11-15 Astryx Workbench best-practice audit:** re-audited Order's exact pinned `meta/astryx@v0.7.13` component/theme documentation and compared it with the current Astryx authoring/layout/theme/migration guidance. The pinned component contracts support the following relied-upon integration facts: `AppShell` is the outer application shell and `Layout` is for named sub-page regions while Stack/HStack/VStack/Grid-style primitives are preferred for simple stacking; `Button` reserves primary emphasis for one dominant command, keeps loading/disabled controls focusable, requires specific labels, and recommends `IconButton` for icon-only commands; `Link` is the styled navigation primitive and supports safe internal/external navigation semantics, so pure navigation need not be represented as a Button; `TextInput`, `TextArea`, `Selector` and the other styled Astryx form controls own their label/description/status field shell, while `Field` is the low-level wrapper for native/custom/third-party controls that lack one; `Selector` supports a secondary trigger variant plus `presentation="adaptive"`, which deterministically uses its anchored selection surface outside compact touch contexts and its built-in bottom-sheet presentation on compact touch contexts; `SegmentedControl` is for 2-5 mutually exclusive modes, not page navigation; `Stepper` explicitly recommends another pattern above seven steps, so Order's canonical nine-stage lifecycle rail must not be forced into Stepper; `Drawer` is an overlay inspector/detail surface with caller-owned open state, visible close action and focus return, not a docked reflow panel; `Dialog` is for one bounded task/form and `AlertDialog` only for destructive/irreversible confirmation, holding the dialog open while an asynchronous action settles; `Table` is for uniform row/column data and should enable only needed plugins; `List` is for meaningful collections and avoids nested interactive targets; `StatusDot` requires an accessible label and should be paired with visible text/non-color meaning rather than encoding many states in a dot; `Badge` is intentionally attention-expensive and should not decorate ordinary metadata or every healthy row; `Banner` is persistent page/section feedback, does not create a live region merely from status, and async status changes use the shared announcement mechanism without duplicate announcement. The pinned `@astryxdesign/theme-neutral@0.7.13` package explicitly exports `./built`, so Order's root may consume `@astryxdesign/theme-neutral/built` without introducing the Astryx CLI. Astryx's general authoring guidance also requires component props, layout primitives and public design tokens before custom CSS/internal selectors, container-owned padding, token spacing, consistent row control size, deliberate density, and responsive recomposition rather than universal shrinking. Theme guidance prefers built/static themes for known production themes and prohibits private `--_` token overrides; Order does not add the Astryx CLI merely for this remediation because its already-installed built Neutral theme plus public-token bridge can realize the fixed Order visual roles without another direct tool dependency. If a future required visual behavior cannot be expressed by the pinned public component/theme surface, it returns to P4/external-fact review rather than targeting Astryx internals. Upstream has since released fixed-group `0.7.15`; Order remains deliberately pinned to audited `0.7.13`, and this audit does not authorize an upgrade. Sources: immutable `meta/astryx@v0.7.13` component docs for Theme, AppShell, Layout, Button, IconButton, Link, Field, TextInput, TextArea, Selector, SegmentedControl, Stepper, Drawer, Dialog, AlertDialog, Table, List, StatusDot, Badge and Banner plus `packages/themes/neutral/package.json`; current https://astryx.atmeta.com/docs/is-my-code-good, /docs/layout, /docs/authoring, /docs/theme and /docs/migration; https://github.com/meta/astryx/releases.  
@@ -37,9 +37,9 @@ It distinguishes five things that must not be conflated:
 
 A package existing, a runtime being broadly compatible, or a behavior being familiar from another version is not evidence.
 
-An upstream release becoming newer does **not** silently change the Order pin. Changing a Order pin or relying on a materially different vendor behavior is a P4/P6 design change and requires the integration certification in [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) to be rerun.
+An upstream release becoming newer does **not** silently change the Order pin. Changing a Order pin or relying on a materially different vendor behavior is a P4/P6 design change and requires the integration certification in [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) to be rerun.
 
-This document owns external facts and provenance. [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md) owns the decision to use each dependency and the permitted direct-dependency surface. [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) owns the exact Order-side use contracts and certification. OpenCode behavioral semantics remain owned by [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md).
+This document owns external facts and provenance. [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md) owns the decision to use each dependency and the permitted direct-dependency surface. [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) owns the exact Order-side use contracts and certification. OpenCode behavioral semantics remain owned by [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md).
 
 No Order document or implementation may infer an external dependency behavior from memory, generic ecosystem knowledge, a newer release, or a transitive package. If a relied-upon behavior is not grounded here or in [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) for OpenCode, the implementation must fail closed and return to P4/P6.
 
@@ -142,6 +142,14 @@ These facts are certified against the exact 2.2.6 pin. A provider upgrade requir
 The same pinned source also exposes `OPENCODE_CONFIG_CONTENT` to foreground `serve` and loads that inline JSON as a high-priority process configuration layer. This gives Order a supported native access point for Run-specific explicit instructions/skills/references/MCP configuration without mutating the persistent private OpenCode account namespace.
 
 The pinned configuration discovery also includes the global `~/.agents` root when global discovery is enabled, and the compatibility plugin scans `~/.agents/skills`. The Claude-disable option suppresses Claude compatibility roots but does not itself remove the global `.agents` root. Consequently a fresh productive HOME/config root is the supported Order-side way to exclude accumulated filesystem-global compatibility skills while retaining the separately configured persistent `OPENCODE_DB` credential/database state.
+
+### OpenCode Drive 2.4.1 deterministic simulation facts
+
+The immutable upstream tag `anomalyco/opencode-drive@v2.4.1` publishes package `opencode-drive` version `2.4.1` with the declared purpose “Drive real and simulated OpenCode instances”. The package exports `OpenCodeDriver` and `Llm`; its manifest declares peer dependency `effect@4.0.1`. The tagged README states that Drive targets the `opencode` executable from `PATH` unless an explicit target is supplied, and that its simulated model is an ordinary provider in the fixture configuration whose requests are handled by Drive's LLM controller.
+
+These facts support a verification-only use in which the OpenCode process under test remains the exact Order-supported OpenCode binary while model responses are deterministic and controlled. They do not establish remote-provider availability, OpenCode Console OAuth/account behavior, external model quality, or any provider-side semantic guarantee that the simulation does not exercise. This fact record does not itself authorize a dependency or CI change; any retained Order use must be owned by the OpenCode architecture and P7 verification plan.
+
+Primary sources: immutable `anomalyco/opencode-drive@v2.4.1` `packages/drive/package.json`, `packages/drive/README.md`, `packages/drive/src/driver/index.ts`, and `packages/drive/src/index.ts`.
 
 ### OpenCode 2.2.6 setup/model/external-directory facts
 
@@ -246,7 +254,7 @@ Sources:
 - https://bun.sh/docs/runtime/child-process
 - https://bun.sh/reference/bun/Spawn/SpawnOptions/detached
 
-Order therefore does not use Bun's child-only timeout/AbortSignal termination as its cancellation mechanism. On the Linux v1 host it starts the child detached, treats the child pid as the process-group id, and owns group termination through `process.kill(-pgid, signal)` under the Linux/POSIX semantics in §7.0. Descendant-kill certification remains mandatory in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+Order therefore does not use Bun's child-only timeout/AbortSignal termination as its cancellation mechanism. On the Linux v1 host it starts the child detached, treats the child pid as the process-group id, and owns group termination through `process.kill(-pgid, signal)` under the Linux/POSIX semantics in §7.0. Descendant-kill certification remains mandatory in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Bun's spawn environment defaults to the process environment captured when Bun started. Order consequently supplies the complete permitted child environment explicitly instead of relying on that default.
 
@@ -278,7 +286,7 @@ Source:
 
 - https://bun.sh/docs/runtime/glob
 
-Order's exact fixed options and deterministic post-scan sorting are design contracts in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md); they are not inferred from Bun defaults.
+Order's exact fixed options and deterministic post-scan sorting are design contracts in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md); they are not inferred from Bun defaults.
 
 ### 3.7 Filesystem classification
 
@@ -345,7 +353,7 @@ Source:
 
 - https://bun.sh/docs/test/runtime-behavior#timers
 
-Order uses one re-armed `setTimeout` for the periodic coordinator rather than introducing a scheduler package. Non-overlap and the 3600-second schedule are Order contracts certified by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+Order uses one re-armed `setTimeout` for the periodic coordinator rather than introducing a scheduler package. Non-overlap and the 3600-second schedule are Order contracts certified by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 4. TypeScript, Node and build/test tooling facts
 
@@ -761,7 +769,7 @@ A relative override/base variable is rejected rather than silently resolved agai
 
 ### 7.4 Host browser launch
 
-Order's browser transport does not require a platform-specific “open default browser” command or npm opener package. The correctness boundary is the authenticated one-time connect URL plus the browser HTTP contract in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+Order's browser transport does not require a platform-specific “open default browser” command or npm opener package. The correctness boundary is the authenticated one-time connect URL plus the browser HTTP contract in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Core v1 therefore emits that connect URL to stdout. Host-native automatic browser launching is optional packaging/convenience work outside the v1 correctness path and may not be introduced as a hidden direct dependency.
 
@@ -833,7 +841,7 @@ SELECT sqlite_version()
 
 A version mismatch in an exactly pinned dependency is an integration preflight failure.
 
-A host-provided or built-in capability is accepted only when its exact [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) certification passes. A successful version string does not substitute for a behavior probe.
+A host-provided or built-in capability is accepted only when its exact [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) certification passes. A successful version string does not substitute for a behavior probe.
 
 ## 10. Freshness rule
 
@@ -854,9 +862,9 @@ This document owns **external dependency facts and their provenance**.
 
 It does not own:
 
-- the architectural decision to use a technology or exclude an unnecessary one -> [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md);
+- the architectural decision to use a technology or exclude an unnecessary one -> [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md);
 - OpenCode behavioral integration semantics -> [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md);
-- Order-side runtime/data/transport/persistence/use contracts and capability tests -> [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+- Order-side runtime/data/transport/persistence/use contracts and capability tests -> [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Those documents reference this factual baseline rather than re-infer dependency behavior independently.
 
@@ -873,7 +881,7 @@ Sources:
 - https://www.rfc-editor.org/rfc/rfc3339.html
 - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
 
-Order intentionally uses the narrower 24-character `toISOString()` representation rather than accepting every RFC 3339 spelling. The exact parser/generator is owned by [GW-DOC-CANONICAL-CONTRACTS-V1 §3](../contracts/canonical-contracts.md).
+Order intentionally uses the narrower 24-character `toISOString()` representation rather than accepting every RFC 3339 spelling. The exact parser/generator is owned by [GW-DOC-CANONICAL-CONTRACTS §3](../contracts/canonical-contracts.md).
 
 ### 12.2 JSON primitive serialization
 
@@ -883,7 +891,7 @@ Source:
 
 - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
 
-Order therefore owns a small recursive canonical serializer in [GW-DOC-CANONICAL-CONTRACTS-V1 §6](../contracts/canonical-contracts.md): it sorts object keys itself and uses `JSON.stringify()` only for primitive/string escaping, never by rebuilding a supposedly sorted object and relying on insertion/property-order behavior.
+Order therefore owns a small recursive canonical serializer in [GW-DOC-CANONICAL-CONTRACTS §6](../contracts/canonical-contracts.md): it sorts object keys itself and uses `JSON.stringify()` only for primitive/string escaping, never by rebuilding a supposedly sorted object and relying on insertion/property-order behavior.
 
 ### 12.3 CLI bearer authentication
 
@@ -915,34 +923,34 @@ This matrix is a cross-reference only. It does not duplicate the semantic owners
 
 | Dependency/capability | Grounded facts/provenance | Order use/governance owner | Executable proof owner |
 |---|---|---|---|
-| OpenCode 2.2.6 + `@opencode/client@2.2.6` | §2 plus pinned-source audit in [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) | [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Bun 1.4.4 runtime + `@types/bun@1.4.4` | §§2–3 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| `Bun.serve` | §3.2 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,17](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§18,29](../contracts/canonical-contracts.md) |
-| Linux productive-host + `Bun.spawn`/process-group capability | §§3.3, 7.0 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,21](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§15,21,29](../contracts/canonical-contracts.md) |
-| `bun:sqlite` + embedded SQLite | §§3.4, 7.2 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,6](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§15–17,29](../contracts/canonical-contracts.md) |
-| `Bun.TOML.parse` | §3.5 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §9](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§14,29](../contracts/canonical-contracts.md) |
-| `Bun.Glob` | §3.6 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§5,9](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§14,29](../contracts/canonical-contracts.md) |
-| `node:fs statfsSync` | §3.7 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §6](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§15,29](../contracts/canonical-contracts.md) |
-| UUIDv4 + CSPRNG secret/token + SHA-256 built-ins | §3.8 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§3,20,24,29](../contracts/canonical-contracts.md) |
-| `setTimeout` scheduler | §3.9 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §19](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§23,29](../contracts/canonical-contracts.md) |
-| TypeScript 7.0.2 | §§2, 4.1 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Node 26.13.0 | §§2, 4.2 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Vite 8.3.5 | §§2, 4.3 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Vitest 5.0.5 Node-only test environment | §§2, 4.4 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| `@playwright/test@1.64.1` + Chromium 156.0.8078.4 | §§2, 4.5, 5.5 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,27](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| React/React DOM 19.3.1 + declaration packages | §§2, 5.1 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Tailwind 4.3.3 + `@tailwindcss/vite@4.3.3` exact Vite/CSS wiring | §§2, 5.2 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| TanStack Query 5.105.0 + explicit QueryClient/polling policy | §§2, 5.3 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,17](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS-V1 §27](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Zod 4.6.7 strict canonical ingress | §§2, 5.4 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §8](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§2–14,29](../contracts/canonical-contracts.md) |
-| Host browser HTTP/cookie semantics | §§5.5, 7.4 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §17](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS-V1 §24](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Host Git CLI | §7.1 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§4,20–21,30](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§29,32](../contracts/canonical-contracts.md) |
-| XDG/HOME state convention | §7.3 | [GW-DOC-CANONICAL-CONTRACTS-V1 §§15,22](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| OpenCode private auth/model listing + external-directory authorization | OpenCode 2.2.6 setup/model/external-directory facts | [GW-DOC-OPENCODE-INTEGRATION-V1 §§3,5–6](../architecture/opencode-integration.md) and [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,16](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§22,26,29](../contracts/canonical-contracts.md) |
-| user-level systemd unit discovery/enable/start | §4.7 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §§2,19](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §§22–23,29](../contracts/canonical-contracts.md) |
-| RFC3339/`Date.toISOString()` timestamp contract | §12.1 | [GW-DOC-CANONICAL-CONTRACTS-V1 §3](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| canonical JSON/`JSON.stringify` primitive escaping | §12.2 | [GW-DOC-CANONICAL-CONTRACTS-V1 §6](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Bearer + browser Fetch/Origin/cookie protocol behavior | §§12.3–12.4 | [GW-DOC-CANONICAL-CONTRACTS-V1 §§18–20,24](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) |
-| Node/Linux guarded Markdown replacement (`openSync`/`O_EXCL`/`O_NOFOLLOW`, `fsyncSync`, same-filesystem `rename`, directory fsync) | §14 | [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §29](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS-V1 §31](../contracts/canonical-contracts.md) | deterministic source/file-write integration tests required by P4/P6 |
+| OpenCode 2.2.6 + `@opencode/client@2.2.6` | §2 plus pinned-source audit in [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) | [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Bun 1.4.4 runtime + `@types/bun@1.4.4` | §§2–3 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| `Bun.serve` | §3.2 | [GW-DOC-TECHNICAL-ARCHITECTURE §§2,17](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§18,29](../contracts/canonical-contracts.md) |
+| Linux productive-host + `Bun.spawn`/process-group capability | §§3.3, 7.0 | [GW-DOC-TECHNICAL-ARCHITECTURE §§2,21](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§15,21,29](../contracts/canonical-contracts.md) |
+| `bun:sqlite` + embedded SQLite | §§3.4, 7.2 | [GW-DOC-TECHNICAL-ARCHITECTURE §§2,6](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§15–17,29](../contracts/canonical-contracts.md) |
+| `Bun.TOML.parse` | §3.5 | [GW-DOC-TECHNICAL-ARCHITECTURE §9](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§14,29](../contracts/canonical-contracts.md) |
+| `Bun.Glob` | §3.6 | [GW-DOC-TECHNICAL-ARCHITECTURE §§5,9](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§14,29](../contracts/canonical-contracts.md) |
+| `node:fs statfsSync` | §3.7 | [GW-DOC-TECHNICAL-ARCHITECTURE §6](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§15,29](../contracts/canonical-contracts.md) |
+| UUIDv4 + CSPRNG secret/token + SHA-256 built-ins | §3.8 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§3,20,24,29](../contracts/canonical-contracts.md) |
+| `setTimeout` scheduler | §3.9 | [GW-DOC-TECHNICAL-ARCHITECTURE §19](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§23,29](../contracts/canonical-contracts.md) |
+| TypeScript 7.0.2 | §§2, 4.1 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Node 26.13.0 | §§2, 4.2 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Vite 8.3.5 | §§2, 4.3 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Vitest 5.0.5 Node-only test environment | §§2, 4.4 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| `@playwright/test@1.64.1` + Chromium 156.0.8078.4 | §§2, 4.5, 5.5 | [GW-DOC-TECHNICAL-ARCHITECTURE §§2,27](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| React/React DOM 19.3.1 + declaration packages | §§2, 5.1 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Tailwind 4.3.3 + `@tailwindcss/vite@4.3.3` exact Vite/CSS wiring | §§2, 5.2 | [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| TanStack Query 5.105.0 + explicit QueryClient/polling policy | §§2, 5.3 | [GW-DOC-TECHNICAL-ARCHITECTURE §§2,17](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS §27](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Zod 4.6.7 strict canonical ingress | §§2, 5.4 | [GW-DOC-TECHNICAL-ARCHITECTURE §8](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§2–14,29](../contracts/canonical-contracts.md) |
+| Host browser HTTP/cookie semantics | §§5.5, 7.4 | [GW-DOC-TECHNICAL-ARCHITECTURE §17](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS §24](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Host Git CLI | §7.1 | [GW-DOC-TECHNICAL-ARCHITECTURE §§4,20–21,30](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§29,32](../contracts/canonical-contracts.md) |
+| XDG/HOME state convention | §7.3 | [GW-DOC-CANONICAL-CONTRACTS §§15,22](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| OpenCode private auth/model listing + external-directory authorization | OpenCode 2.2.6 setup/model/external-directory facts | [GW-DOC-OPENCODE-INTEGRATION-V1 §§3,5–6](../architecture/opencode-integration.md) and [GW-DOC-TECHNICAL-ARCHITECTURE §§2,16](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§22,26,29](../contracts/canonical-contracts.md) |
+| user-level systemd unit discovery/enable/start | §4.7 | [GW-DOC-TECHNICAL-ARCHITECTURE §§2,19](../architecture/technical-architecture.md) | [GW-DOC-CANONICAL-CONTRACTS §§22–23,29](../contracts/canonical-contracts.md) |
+| RFC3339/`Date.toISOString()` timestamp contract | §12.1 | [GW-DOC-CANONICAL-CONTRACTS §3](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| canonical JSON/`JSON.stringify` primitive escaping | §12.2 | [GW-DOC-CANONICAL-CONTRACTS §6](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Bearer + browser Fetch/Origin/cookie protocol behavior | §§12.3–12.4 | [GW-DOC-CANONICAL-CONTRACTS §§18–20,24](../contracts/canonical-contracts.md) | [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) |
+| Node/Linux guarded Markdown replacement (`openSync`/`O_EXCL`/`O_NOFOLLOW`, `fsyncSync`, same-filesystem `rename`, directory fsync) | §14 | [GW-DOC-TECHNICAL-ARCHITECTURE §29](../architecture/technical-architecture.md) and [GW-DOC-CANONICAL-CONTRACTS §31](../contracts/canonical-contracts.md) | deterministic source/file-write integration tests required by P4/P6 |
 
 If an implementation dependency or relied-upon behavior has no applicable row in this matrix (and is not an explicitly excluded convenience in §8), or if two rows assign contradictory owners/contracts to the same behavior, the dependency surface is not closed and implementation returns to P4/P6 instead of choosing a library or behavior.
 
@@ -1042,7 +1050,7 @@ For stable `1.x+` releases:
 - MINOR increments for backward-compatible functionality;
 - PATCH increments for backward-compatible bug fixes.
 
-SemVer explicitly defines `0.y.z` as initial development. Order therefore owns its more specific pre-1.0 release-impact policy in `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` while retaining the SemVer numeric/version grammar.
+SemVer explicitly defines `0.y.z` as initial development. Order therefore owns its more specific pre-1.0 release-impact policy in `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` while retaining the SemVer numeric/version grammar.
 
 A released version's contents are immutable; a changed build requires a new version.
 

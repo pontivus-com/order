@@ -25,7 +25,9 @@ import {
   type ProviderDiagnosticRecord,
   type ProviderTurnOutcome,
   repositoryPathNamesAgentInstruction,
+  RepositoryPatternSchema,
   type RepositoryPath,
+  type RepositoryPattern,
   type Run,
   type RunEventId,
   type RunEventPayload,
@@ -35,6 +37,7 @@ import { canonicalJson } from "../core/canonical.ts";
 import {
   builderProviderTags,
   providerEventIsAdmitted,
+  remediatorProviderTags,
   reviewerProviderTags,
   stageProviderTags,
 } from "../core/execution.ts";
@@ -42,6 +45,7 @@ import {
   enumerateAgentInstructions,
   proveWorkspaceEscapeConstraints,
   readWorkingTreeFile,
+  workspaceSymlinkPaths,
 } from "./repository.ts";
 import {
   processOutputLimitBytes,
@@ -852,12 +856,30 @@ const denyAllRule = (): PermissionRule => ({
 export const normalizeOpenCodeMcpNamespace = (serverName: string): string =>
   serverName.replace(/[^A-Za-z0-9_-]/g, "_");
 
+const repositoryScopeCapabilityResource = (
+  pattern: RepositoryPattern,
+): string => {
+  const canonical = RepositoryPatternSchema.parse(pattern);
+  const globMeta = "*?{}[]!()+@";
+  let firstMeta = -1;
+  for (let index = 0; index < canonical.length; index += 1) {
+    if (globMeta.includes(canonical[index] ?? "")) {
+      firstMeta = index;
+      break;
+    }
+  }
+  if (firstMeta < 0) return canonical;
+  return canonical.slice(0, firstMeta) + "*";
+};
+
 export const openCodePermissionRules = (
   role: RunRole,
   task: ExecutionTask | null,
   referenceRoots: readonly string[],
   skillIds: readonly string[] = [],
   mcpServerNames: readonly string[] = [],
+  protectedPaths: readonly RepositoryPath[] = [],
+  symlinkPaths: readonly RepositoryPath[] = [],
 ): readonly PermissionRule[] => {
   if (role !== "STAGE" && task === null) {
     throw new TypeError("post-signoff OpenCode permissions require an ExecutionTask");
@@ -886,8 +908,26 @@ export const openCodePermissionRules = (
     if (task === null) {
       throw new TypeError("mutating OpenCode permissions require an ExecutionTask");
     }
-    for (const path of task.changeSurface) {
-      rules.push({ action: "edit", resource: path, effect: "allow" });
+    const scopeResources = [...new Set(
+      task.scope.map((pattern) => repositoryScopeCapabilityResource(pattern)),
+    )].sort();
+    for (const resource of scopeResources) {
+      rules.push({ action: "edit", resource, effect: "allow" });
+    }
+
+    const immutableResources = new Set<string>([
+      ".git",
+      ".git/*",
+      "AGENTS.md",
+      "*/AGENTS.md",
+      ...protectedPaths,
+    ]);
+    for (const path of symlinkPaths) {
+      immutableResources.add(path);
+      immutableResources.add(path + "/*");
+    }
+    for (const resource of [...immutableResources].sort()) {
+      rules.push({ action: "edit", resource, effect: "deny" });
     }
   }
 
@@ -1063,11 +1103,22 @@ export const admitProductiveOpenCode = async (
   task: ExecutionTask | null,
   resolvedArtifacts: readonly ArtifactRef[],
   referenceRoots: readonly string[],
+  protectedPaths: readonly RepositoryPath[] = [],
 ): Promise<ProductiveOpenCodeAdmission> => {
   let basePermissions: readonly PermissionRule[];
+  let symlinkPaths: readonly RepositoryPath[];
   try {
     await assertAgentInstructionsResolved(workspace, resolvedArtifacts, task);
-    basePermissions = openCodePermissionRules(role, task, referenceRoots);
+    symlinkPaths = workspaceSymlinkPaths(workspace);
+    basePermissions = openCodePermissionRules(
+      role,
+      task,
+      referenceRoots,
+      [],
+      [],
+      protectedPaths,
+      symlinkPaths,
+    );
   } catch (error) {
     throw productiveInvocationFailure("PRECONDITION_FAILED", error);
   }
@@ -1089,6 +1140,8 @@ export const admitProductiveOpenCode = async (
         referenceRoots,
         integration.skillIds,
         integration.mcpServerNames,
+        protectedPaths,
+        symlinkPaths,
       ).slice(basePermissions.length),
     ];
     const sessionId = await createBoundOpenCodeSession(server, permissions);
@@ -1273,7 +1326,9 @@ const providerTagsForRole = (role: RunRole): readonly string[] =>
     ? [...stageProviderTags]
     : role === "REVIEWER"
       ? [...reviewerProviderTags]
-      : [...builderProviderTags];
+      : role === "BUILDER"
+        ? [...builderProviderTags]
+        : [...remediatorProviderTags];
 
 const providerOutputContract = (role: RunRole): string =>
   [

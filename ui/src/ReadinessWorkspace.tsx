@@ -20,6 +20,7 @@ import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   lifecycleArtifactLabel,
   materialPresentationStateLabel,
+  readinessOutcomeLabel,
   runStatusLabel,
   type EvidenceSelection,
   type WorkflowMaterial,
@@ -53,7 +54,9 @@ export const ReadinessWorkspace = ({
   currentRunId,
   currentInteraction,
   currentAttention,
+  focusedRequiredInputEventId,
   mutationsDisabled = false,
+  onRequiredInputFocused,
   onSelectMaterial,
   onOpenArtifactEvidence,
   onOpenEvidence,
@@ -72,7 +75,9 @@ export const ReadinessWorkspace = ({
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
+  focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean;
+  onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
   onOpenEvidence: (selection: EvidenceSelection) => void;
@@ -93,6 +98,29 @@ export const ReadinessWorkspace = ({
     .filter((artifact) => packageRoles.has(artifact.role))
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
+  const latestReadinessRun = stageRuns[0] ?? null;
+  const readinessCompletion =
+    latestReadinessRun === null
+      ? null
+      : [...runEvents]
+        .filter((candidate) =>
+          candidate.runId === latestReadinessRun.id &&
+          candidate.event.tag === "STAGE_COMPLETED" &&
+          candidate.event.completion.stage === "R3")
+        .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
+  const readinessOutcome =
+    readinessCompletion?.event.tag === "STAGE_COMPLETED" &&
+      readinessCompletion.event.completion.stage === "R3"
+      ? readinessCompletion.event.completion.outcome
+      : null;
+  const readinessVerdict =
+    readinessOutcome !== null
+      ? readinessOutcomeLabel(readinessOutcome)
+      : latestReadinessRun?.status === "BLOCKED"
+        ? "Blocked"
+        : latestReadinessRun?.status === "FAILED"
+          ? "Review failed"
+          : "Review in progress";
 
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
@@ -166,7 +194,9 @@ export const ReadinessWorkspace = ({
             currentRunId={workItem.stage === "R3" ? currentRunId : null}
             currentInteraction={workItem.stage === "R3" ? currentInteraction : null}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={mutationsDisabled}
+            onRequiredInputFocused={onRequiredInputFocused}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}
@@ -218,7 +248,7 @@ export const ReadinessWorkspace = ({
             <div className="order-readiness-review-body">
               <section className="order-readiness-verdict">
                 <strong>Readiness verdict</strong>
-                <span>{materialState === null ? "Derived from governed readiness-review material when present" : materialPresentationStateLabel(materialState)}</span>
+                <span>{readinessVerdict}</span>
               </section>
               {requiredInputOwnsAttention && selectedSecondaryMaterial ? (
                 <section className="order-readiness-current-interaction">

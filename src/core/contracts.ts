@@ -6,7 +6,7 @@ const gitCommitPattern = /^[0-9a-f]{40}$/;
 const sha256Pattern = /^sha256:[0-9a-f]{64}$/;
 const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const envNamePattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const defaultRuleIds = [
+export const defaultRuleIds = [
   "GW-P1-DOD",
   "GW-P1-FCIS",
   "GW-P1-SOC",
@@ -336,8 +336,12 @@ export const WorkItemKindSchema = z.enum([
 export const WorkItemSchemaIdSchema = z.enum([
   "change-v1",
   "defect-v1",
+  "change-v2",
+  "defect-v2",
   "investigation-v1",
   "audit-v1",
+  "investigation-v2",
+  "audit-v2",
 ]);
 
 export const isWorkItemSourcePath = (value: string): boolean => {
@@ -484,6 +488,7 @@ export const CreateWorkItemSourceSchema = z.strictObject({
 export const WorkItemSchemaCatalogEntrySchema = z.strictObject({
   schemaId: WorkItemSchemaIdSchema,
   kind: WorkItemKindSchema,
+  authoringDefault: z.boolean(),
 });
 
 export const WorkItemSourceDiagnosticCodeSchema = z.enum([
@@ -674,7 +679,10 @@ export const ApprovalSchema = z.strictObject({
   planArtifactRefId: ArtifactRefIdSchema,
   r3ArtifactRefId: ArtifactRefIdSchema,
   sourceSha256: Sha256Schema,
-  approvedBy: z.string(),
+  approvedBy: z.string()
+    .trim()
+    .min(1, "approvedBy must be non-empty")
+    .refine((value) => !value.includes("\0"), "approvedBy must not contain NUL"),
   approvedAt: IsoDateTimeSchema,
 });
 
@@ -977,6 +985,7 @@ const RunEventPayloadBaseSchema = z.union([
     evidence: evidenceArray,
   }),
   z.strictObject({ tag: z.literal("PROVIDER_FAILED"), detail: z.string(), evidence: evidenceArray }),
+  z.strictObject({ tag: z.literal("GATE_CHECKPOINT_REQUESTED"), gateId: GateIdSchema }),
   z.strictObject({ tag: z.literal("GATE_PASSED"), gateId: GateIdSchema, evidence: evidenceArray }),
   z.strictObject({
     tag: z.literal("GATE_FAILED"),
@@ -984,7 +993,46 @@ const RunEventPayloadBaseSchema = z.union([
     classification: ValidationClassificationSchema,
     evidence: evidenceArray,
   }),
-  z.strictObject({ tag: z.literal("REVIEW_PASSED"), evidence: evidenceArray }),
+  z.strictObject({
+    tag: z.literal("REVIEW_PASSED"),
+    minimumChange: z.enum(["MINIMUM_SUFFICIENT", "CHANGE_BLOAT"]).optional(),
+    minimumChangeSummary: z.string().min(1).nullable().optional(),
+    evidence: evidenceArray,
+  }).superRefine((value, ctx) => {
+    const historical =
+      value.minimumChange === undefined &&
+      value.minimumChangeSummary === undefined;
+    if (historical) return;
+    if (
+      value.minimumChange === undefined ||
+      value.minimumChangeSummary === undefined
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "REVIEW_PASSED minimum-change fields must be supplied together",
+      });
+      return;
+    }
+    if (
+      value.minimumChange === "MINIMUM_SUFFICIENT" &&
+      value.minimumChangeSummary !== null
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "MINIMUM_SUFFICIENT requires null minimumChangeSummary",
+      });
+    }
+    if (
+      value.minimumChange === "CHANGE_BLOAT" &&
+      (value.minimumChangeSummary === null ||
+        value.minimumChangeSummary.trim().length === 0)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "CHANGE_BLOAT requires a non-empty minimumChangeSummary",
+      });
+    }
+  }),
   z.strictObject({
     tag: z.literal("REVIEW_FAILED"),
     classification: z.literal("REVIEW_FAILURE"),
@@ -1165,7 +1213,8 @@ const precedenceShape = {
   p6: z.array(RepositoryPathSchema).readonly().optional(),
 } as const;
 
-const DefaultRuleIdSchema = z.enum(defaultRuleIds);
+export const DefaultRuleIdSchema = z.enum(defaultRuleIds);
+export type DefaultRuleId = z.infer<typeof DefaultRuleIdSchema>;
 
 const GovernanceRuleSchema = z.strictObject({
   defaultRuleId: DefaultRuleIdSchema,

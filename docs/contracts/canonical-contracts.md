@@ -2,7 +2,7 @@
 
 **Status:** Binding P6 contract standard
 **Canonical concern ID:** `GW-DOC-CANONICAL-CONTRACTS`  
-**Versioned concern ID:** `GW-DOC-CANONICAL-CONTRACTS-V1`  
+**Versioned concern ID:** `GW-DOC-CANONICAL-CONTRACTS-V2`  
 
 ## 1. Purpose
 
@@ -13,7 +13,7 @@ This document owns the repository's exact v1 P6 contracts for canonical semantic
 
 ### 1.1 Product-identity contract
 
-Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`; live installation/process namespace and bounded predecessor migration are realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, while this document owns the exact P6 names and contracts declared below.
+Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`; live installation/process namespace and bounded predecessor migration are realized by `GW-DOC-TECHNICAL-ARCHITECTURE`, while this document owns the exact P6 names and contracts declared below.
 
 The Order cutover is complete for the productive runtime. Current productive contracts use only:
 
@@ -21,13 +21,13 @@ The Order cutover is complete for the productive runtime. Current productive con
 - executable task fence for newly authored productive plans: `order-tasks`;
 - state override: `PONTIVUS_ORDER_STATE_ROOT`;
 - database filename: `order.sqlite3`;
-- exact Order config/runtime identities declared by this P6 contract and realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
+- exact Order config/runtime identities declared by this P6 contract and realized by `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 The productive runtime does not retain Gateweft aliases or fallback readers. Gateweft naming is permitted only in historical provenance and the installer-owned, one-way migration boundary for the immediately preceding supported beta.
 
 Stable `GW-*` authority identifiers, semantic schema meaning, WorkItem/lifecycle state, task semantics, authority-map meaning and database semantic schema are unchanged by the namespace transition.
 
-This document does not redefine lifecycle meaning, validation semantics or authority precedence. Those remain owned by [GW-DOC-WORK-LIFECYCLE-V1](../requirements/work-lifecycle.md), [GW-DOC-VALIDATION-STANDARD-V1](../requirements/validation-standard.md), [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](../governance/systems-governance.md) and [GW-DOC-LIFECYCLE-CONTEXT-V1](../requirements/lifecycle-context.md).
+This document does not redefine lifecycle meaning, validation semantics or authority precedence. Those remain owned by [GW-DOC-WORK-LIFECYCLE-V1](../requirements/work-lifecycle.md), [GW-DOC-VALIDATION-STANDARD-V1](../requirements/validation-standard.md), [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](../governance/systems-governance.md) and [GW-DOC-LIFECYCLE-CONTEXT](../requirements/lifecycle-context.md).
 
 There are no DTO/domain/persistence copies. One canonical schema owns each semantic type.
 
@@ -75,7 +75,7 @@ type IsoDateTime = string;     // exactly YYYY-MM-DDTHH:mm:ss.sssZ
 
 Parsers enforce the comments above at ingress.
 
-`IsoDateTime` is the deliberate Order subset of RFC 3339 grounded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §12.1](../references/external-facts.md): exactly 24 ASCII characters matching `/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/`. Ingress additionally requires `Date.parse(value)` to be finite and `new Date(Date.parse(value)).toISOString() === value`. Generation calls `new Date(epochMillis).toISOString()` and rejects any result that does not match the 24-character grammar. Offsets, lowercase `t/z`, variable fractional precision, extended years and leap-second spellings are not canonical Order values.
+`IsoDateTime` is the deliberate Order subset of RFC 3339 grounded in [GW-DOC-EXTERNAL-FACTS §12.1](../references/external-facts.md): exactly 24 ASCII characters matching `/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/`. Ingress additionally requires `Date.parse(value)` to be finite and `new Date(Date.parse(value)).toISOString() === value`. Generation calls `new Date(epochMillis).toISOString()` and rejects any result that does not match the 24-character grammar. Offsets, lowercase `t/z`, variable fractional precision, extended years and leap-second spellings are not canonical Order values.
 
 Order-generated UUID identifiers use the platform `crypto.randomUUID()` UUIDv4 operation and prepend the canonical prefix. No UUID package is permitted.
 
@@ -105,7 +105,7 @@ const sha256TextHex = (text: string): string =>
   sha256Hex(utf8.encode(text));
 ```
 
-Exact repository-file identity passes the exact file bytes to `sha256Hex`. Canonical JSON and any other textual identity pass the exact canonical string to `sha256TextHex`. No hash call relies on an implicit string encoding. The canonical `Sha256` value is `sha256:${hex}`. `Bun.hash` is forbidden for canonical identity because it is non-cryptographic. The underlying UUID/CSPRNG/UTF-8/hash capability facts are grounded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+Exact repository-file identity passes the exact file bytes to `sha256Hex`. Canonical JSON and any other textual identity pass the exact canonical string to `sha256TextHex`. No hash call relies on an implicit string encoding. The canonical `Sha256` value is `sha256:${hex}`. `Bun.hash` is forbidden for canonical identity because it is non-cryptographic. The underlying UUID/CSPRNG/UTF-8/hash capability facts are grounded in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 ## 4. WorkItem
 
@@ -290,7 +290,7 @@ One pure `canonicalJson(value)` function owns every Order canonical-JSON identit
 6. no whitespace or trailing newline is emitted;
 7. the final string is encoded as UTF-8 only when bytes are required for hashing/persistence.
 
-The function never constructs a newly sorted object and then relies on ordinary property enumeration order. Array sorting happens only at the semantic owner before canonicalization when that specific contract declares an array order-insensitive; canonicalization itself never reorders arrays. The `JSON.stringify` primitive behavior relied upon here is grounded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §12.2](../references/external-facts.md).
+The function never constructs a newly sorted object and then relies on ordinary property enumeration order. Array sorting happens only at the semantic owner before canonicalization when that specific contract declares an array order-insensitive; canonicalization itself never reorders arrays. The `JSON.stringify` primitive behavior relied upon here is grounded in [GW-DOC-EXTERNAL-FACTS §12.2](../references/external-facts.md).
 
 Approval freshness is computed, not stored; no mutable `isStale` field exists.
 
@@ -331,7 +331,20 @@ type ExecutionTask = Readonly<{
 
 Task content other than `state` is immutable after materialization.
 
-`changeSurface` contains exact literal `RepositoryPath` values. Every value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, be disjoint from the material authority/project-manifest/verification sources in the Approval closure, and have a final path segment other than `AGENTS.md`. The instruction-path prohibition is existence-independent: a signed task cannot authorize creation of a new `AGENTS.md` merely because the path did not exist when the Approval was materialized. A worker never mutates the authority that authorizes its own execution.
+`scope` plus `exclusions` is the signed task's hard repository-reach boundary. `changeSurface` contains the exact literal `RepositoryPath` values forecast by PLAN as the expected physical implementation surface; it is immutable signed review material, but it is **not** an exhaustive physical-path whitelist.
+
+Every `changeSurface` value must be admitted by at least one `scope` pattern, admitted by no `exclusions` pattern, be unique, be disjoint from the material authority/project-manifest/verification sources in the Approval closure, and have a final path segment other than `AGENTS.md`. The instruction-path prohibition is existence-independent: a signed task cannot authorize creation of a new `AGENTS.md` merely because the path did not exist when the Approval was materialized. A worker never mutates the authority that authorizes its own execution.
+
+A candidate path absent from `changeSurface` is not automatically a `SCOPE_BREACH`. It remains admissible only when all of the following hold:
+
+- the path is admitted by signed `scope` and by no signed exclusion;
+- it is not signed authority, project-manifest, verification-authority or repository-instruction material;
+- the implementation/reviewer evidence proves the path is the **minimum same-layer physical decomposition required solely to preserve an already-approved responsibility/effect boundary**;
+- canonical semantic ownership, public contracts, state meaning, dependency direction and authorized behavior are unchanged;
+- V5 architecture/governance gates cover the resulting production module and pass;
+- V4/V6 positively prove the variance is architecture-preserving and minimum-sufficient.
+
+The signed `changeSurface` remains the comparison forecast in that case; Order records the actual changed paths in candidate evidence rather than mutating the task. A changed path outside signed `scope`, inside an exclusion, or representing a new/changed semantic owner, public contract, state model, effect boundary, dependency direction/external dependency, validation contract or authorized behavior is not architecture-preserving variance and returns through the existing `SCOPE_BREACH` / `GOVERNANCE_BREACH` / `SPEC_INVALID` ownership rules as applicable.
 
 A post-signoff task remains `RUNNING` through implementation and V2-V7 validation; validation progress belongs to its Run/RunEvents and does not create another task state.
 
@@ -545,7 +558,12 @@ type RunEventPayload =
   | { tag: "PROVIDER_FAILED"; detail: string; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_PASSED"; gateId: GateId; evidence: readonly EvidenceRef[] }
   | { tag: "GATE_FAILED"; gateId: GateId; classification: ValidationClassification; evidence: readonly EvidenceRef[] }
-  | { tag: "REVIEW_PASSED"; evidence: readonly EvidenceRef[] }
+  | {
+      tag: "REVIEW_PASSED";
+      minimumChange: "MINIMUM_SUFFICIENT" | "CHANGE_BLOAT";
+      minimumChangeSummary: string | null;
+      evidence: readonly EvidenceRef[];
+    }
   | { tag: "TASK_ALREADY_SATISFIED"; summary: string }
   | { tag: "REVIEW_FAILED"; classification: "REVIEW_FAILURE"; summary: string; evidence: readonly EvidenceRef[] }
   | {
@@ -597,11 +615,11 @@ RunEvent invariants:
 - `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED` is coordinator/human-owned and is persisted before the repository patch effect; once present, rejection is no longer valid and a later adopt call may reconcile only that exact persisted proposal;
 - for the P4 proposal-decision projection, an unresolved proposal with no adoption-request event is `PENDING(P)`; the exact proposal with `ARTIFACT_PROPOSAL_ADOPTION_REQUESTED(P)` and no disposition is `ADOPTION_IN_PROGRESS(P)`; a disposition removes it from current proposal-decision state. No proposal-state column/DTO is added;
 - `ARTIFACT_PROPOSAL_DISPOSITIONED` with `ADOPTED` requires non-null `adoptedArtifactRefId`; `REJECTED` requires null;
-- V4 reviewer `FAIL_REPAIRABLE` maps to `REVIEW_FAILED / REVIEW_FAILURE`; `BLOCKED_SPEC_OR_DESIGN` maps to `REVIEW_FAILED / BLOCKED_FOR_REANALYSIS` with an exact `returnTo` owning stage. Scope, governance and change-bloat classifications remain coordinator-owned V2/V5/V6 results;
+- V4 reviewer `FAIL_REPAIRABLE` maps to `REVIEW_FAILED / REVIEW_FAILURE`; `BLOCKED_SPEC_OR_DESIGN` maps to `REVIEW_FAILED / BLOCKED_FOR_REANALYSIS` with an exact `returnTo` owning stage. A current productive `REVIEW_PASSED` also carries the reviewer's structured minimum-change proposition: `MINIMUM_SUFFICIENT` with null summary, or `CHANGE_BLOAT` with a non-empty removable-surface summary. This proposition is evidence only; scope, governance and change-bloat classifications remain coordinator-owned V2/V5/V6 results;
 - `VALIDATION_FAILED / PRECONDITION_FAILED` is the durable owner of the blocking fact: it uses the applicable V0/V1 stage, a non-empty `summary`, and supporting EvidenceRefs where available before the Run/task block reaction;
 - `CANDIDATE_STATE_RECORDED` is coordinator-only and may be emitted only after its patch EvidenceRef has been durably written/read-back/hash-verified; `changedPaths` is unique and canonically sorted;
 - `CANDIDATE_RECORDED` is coordinator-only and may be emitted only in the final `REVIEWER` Run; `candidateStateEventId` must equal that Run's `triggerEventId`; `validationEventIds` must reference exactly one `VALIDATION_PASSED` event for each V0-V7 stage in V0→V7 order, and all eight pass events must have been emitted in that same final REVIEWER Run after its candidate replay was verified. No validation pass from an earlier candidate or Run is reusable;
-- `VALIDATION_PASSED / V4` additionally requires a preceding `REVIEW_PASSED` event in that same REVIEWER Run; `VALIDATION_FAILED / V4` is derived from that Run's `REVIEW_FAILED` result rather than invented independently;
+- `VALIDATION_PASSED / V4` additionally requires a preceding `REVIEW_PASSED` event in that same REVIEWER Run; `VALIDATION_FAILED / V4` is derived from that Run's `REVIEW_FAILED` result rather than invented independently. After V5 passes, the coordinator maps that same `REVIEW_PASSED.minimumChange`: `MINIMUM_SUFFICIENT` permits `VALIDATION_PASSED / V6`, while `CHANGE_BLOAT` requires `VALIDATION_FAILED / V6 / CHANGE_BLOAT` carrying the review evidence and removable-surface summary;
 - `TASK_ALREADY_SATISFIED` is provider-emittable only by a BUILDER. The coordinator accepts it as the V1 semantic no-op result only when the BUILDER workspace has zero changed paths. A zero-diff BUILDER Run without this explicit event is invalid provider output and must not become `ALREADY_SATISFIED`;
 - provider output authorization is additionally constrained by Run role in §25; a valid-shaped but role-forbidden event is invalid provider output;
 - `AGENT_ACTIVITY_RECORDED` is coordinator-owned observational state only and is never provider-emittable;
@@ -642,7 +660,7 @@ Conformance is persisted without another domain model.
 For a promotable stage output:
 
 1. Order resolves the exact material ArtifactRefs used by the stage context, including applicable authority plus project-manifest and verification-material refs when they materially constrain that stage;
-2. deterministic/mechanical checks and any stage-required semantic review run;
+2. deterministic/mechanical checks and any stage-required semantic review run; for PLAN this includes parsing exactly one canonical `order-tasks` block from the exact current PLAN bytes with `parseSignedTaskBlockFromPlan(...)` before conformance can pass;
 3. on pass, for each output ArtifactRef Order inserts `artifactDependencies(output, dependency)` for every such material ArtifactRef from the resolved context;
 4. the coordinator emits `CONFORMANCE_PASSED` with the output ids, context hash and evidence, or `CONFORMANCE_FAILED`;
 5. promotion may occur only after the conformance event and dependency inserts commit in the same SQLite transaction as the WorkItem transition.
@@ -673,7 +691,9 @@ type SignedTaskBlock = Readonly<{
 }>;
 ```
 
-Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+Task ids are unique, dependencies are acyclic and local to the block, arrays contain unique values, every `changeSurface` value has a final path segment other than `AGENTS.md`, and all gate/concern ids must resolve through `pontivus-order.toml`. For each task, every forecast `changeSurface` path must be admitted by signed `scope` and no exclusion. `concernIds` must cover every manifest concern selected by the task's forecast production paths and any broader production `scope` pattern the task intentionally signs; the task may not omit an applicable concern merely because another concern already contributes the same logical gate. `gateIds` must include every logical gate required by every signed `concernId`; concern-required gates are resolved before sign-off and become part of the immutable signed task rather than being appended dynamically during execution.
+
+Task validation does not infer future decomposition paths. R3 instead proves that the signed scope/decomposition constraints are narrow enough to bound execution while still permitting the S8/S9 architecture-preserving variance rule above. A fixed forecast list must never be used to force a second responsibility into an existing module.
 
 Every `acceptanceRefs` and `authorityRefs` value must resolve through the same manifest's `refs` map described in §14. An unresolved reference is `SPEC_INVALID`; runtime never scans arbitrary prose or invents an alias/source mapping.
 
@@ -806,7 +826,7 @@ State-root resolution is exact:
 3. else if `HOME` is non-empty and absolute, use `$HOME/.local/state/pontivus-order`;
 4. otherwise startup fails and requires an explicit absolute `PONTIVUS_ORDER_STATE_ROOT`.
 
-Relative values are invalid; Order never resolves them against cwd. This follows the grounded XDG state convention in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+Relative values are invalid; Order never resolves them against cwd. This follows the grounded XDG state convention in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 Owned layout:
 
@@ -834,7 +854,7 @@ Btrfs           0x9123683e
 F2FS            0xf2f52010
 ```
 
-Startup calls `statfsSync(stateRoot).type` and accepts only those exact values. NFS, CIFS/SMB, 9P, FUSE, overlayfs, tmpfs and every unknown value are rejected rather than guessed safe. The allowed values and Linux provenance are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+Startup calls `statfsSync(stateRoot).type` and accepts only those exact values. NFS, CIFS/SMB, 9P, FUSE, overlayfs, tmpfs and every unknown value are rejected rather than guessed safe. The allowed values and Linux provenance are owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 After the filesystem-type check, startup also runs the two-connection WAL locking smoke test in the state root. Both checks must pass; neither substitutes for the other.
 
@@ -1001,7 +1021,7 @@ Production static files are read only from `new URL("../../dist/", import.meta.u
 
 Browser API calls use relative URLs. The shared browser HTTP helper always calls `fetch(relativeUrl, { ...options, credentials: "same-origin" })` and does not override `mode`; standard fetch `cors` mode is therefore retained. JSON commands set `Content-Type: application/json` and encode the exact command body with ordinary JSON. Browser code never supplies an `Authorization` header.
 
-CLI daemon calls authenticate only with the exact header `Authorization: Bearer <daemon-token>`. The daemon token is never accepted from a URL query parameter, cookie or JSON/form body. This Bearer transport is grounded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §12.3](../references/external-facts.md).
+CLI daemon calls authenticate only with the exact header `Authorization: Bearer <daemon-token>`. The daemon token is never accepted from a URL query parameter, cookie or JSON/form body. This Bearer transport is grounded in [GW-DOC-EXTERNAL-FACTS §12.3](../references/external-facts.md).
 
 No generic `{data,error}` wrapper exists. Success returns the canonical value directly. JSON API responses use `Content-Type: application/json; charset=utf-8`; raw artifact/evidence-content responses return exact bytes with `Content-Type: application/octet-stream`. ArtifactRef does not own or infer a MIME type. `EvidenceRef.mediaType` is display metadata only and never makes same-origin evidence executable.
 
@@ -1230,7 +1250,7 @@ Set-Cookie: pontivus_order_session=<64-lowercase-hex>; Path=/; HttpOnly; SameSit
 
 `Domain`, `Expires`, `Max-Age` and `Secure` are omitted. v1 is deliberately loopback HTTP rather than HTTPS, so a Secure-cookie contract is not invented. The cookie is therefore a host-scoped browser session cookie, while daemon memory remains the actual validity authority; daemon restart invalidates every prior browser session id.
 
-Every browser mutation requires both a currently valid `pontivus_order_session` and an `Origin` header exactly equal to the daemon's own loopback origin. Missing, `null`, or different Origin is rejected. Because the shared browser helper retains default `cors` fetch mode, `Referrer-Policy: no-referrer` does not suppress the real Origin on those mutation requests; this behavior is grounded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §12.4](../references/external-facts.md).
+Every browser mutation requires both a currently valid `pontivus_order_session` and an `Origin` header exactly equal to the daemon's own loopback origin. Missing, `null`, or different Origin is rejected. Because the shared browser helper retains default `cors` fetch mode, `Referrer-Policy: no-referrer` does not suppress the real Origin on those mutation requests; this behavior is grounded in [GW-DOC-EXTERNAL-FACTS §12.4](../references/external-facts.md).
 
 - CORS is not enabled for other origins;
 - the OpenCode child server is never exposed to browser code.
@@ -1312,7 +1332,7 @@ Config v4 invariants:
 - every configured target repository and reference root is pairwise path-disjoint after canonical resolution, so STAGE external-reference permission cannot re-enter a target repository outside its admitted provider workspace;
 - WorkItem source/document location is resolved inside each selected repository through §32, never through OrderConfig.
 
-Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. Fresh setup may write a valid but non-productive v4 configuration with `model = null` and/or no target repositories so the authenticated browser can open Settings and complete configuration. Broad parent roots are never recursively crawled or guessed into a project catalog.
+Config v4 is the current daemon/ordinary CLI contract. Config v3 is accepted only by the bounded v3→v4 configuration migration in §35.11; config v2 remains accepted only by the installer-owned v2→v3 document migration followed immediately by v3→v4 conversion. A valid but non-productive v4 configuration with `model = null` and/or no target repositories may exist for configuration-capable daemon startup, authenticated Settings repair/recovery, explicit post-install reconfiguration, or as a transient rollback-safe installer state. **The productive fresh installer may not report success or hand ordinary use to Settings while required first-run repository/OpenCode-account/model choices remain incomplete; it must continue the installer-owned guided setup required by `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` and `GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` before successful completion.** Broad parent roots are never recursively crawled or guessed into a project catalog.
 
 For each STAGE OpenCode session, reference-root permissions retain the existing deny-first exact `external_directory` semantics. Target repositories and the WorkItem root do not become generic external-reference permissions.
 
@@ -1412,9 +1432,9 @@ Order owns:
 └── opencode.db
 ```
 
-The provider child receives the private HOME/XDG roots, dedicated `OPENCODE_DB`, `OPENCODE_DISABLE_PROJECT_CONFIG=1`, `OPENCODE_DISABLE_CLAUDE_CODE=1`, `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`, `OPENCODE_DISABLE_AUTOUPDATE=1` and the Order-owned auth secret. `/etc/opencode` must be absent. The OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` always includes its embedded Web UI in foreground `serve` and exposes no UI-only disable switch; Order therefore keeps the provider on its private random loopback listener and never exposes, forwards, links or consumes that UI. `OPENCODE_PURE=1`/`OPENCODE_DISABLE_EXTERNAL_SKILLS=1` are defense in depth only unless certified.
+The provider child receives the private HOME/XDG roots, dedicated `OPENCODE_DB`, `OPENCODE_DISABLE_PROJECT_CONFIG=1`, `OPENCODE_DISABLE_CLAUDE_CODE=1`, `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`, `OPENCODE_DISABLE_AUTOUPDATE=1` and the Order-owned auth secret. `/etc/opencode` must be absent. The OpenCode build bound by `GW-DOC-EXTERNAL-FACTS` always includes its embedded Web UI in foreground `serve` and exposes no UI-only disable switch; Order therefore keeps the provider on its private random loopback listener and never exposes, forwards, links or consumes that UI. `OPENCODE_PURE=1`/`OPENCODE_DISABLE_EXTERNAL_SKILLS=1` are defense in depth only unless certified.
 
-The exact v1 OpenCode server/client pins are owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`. Order starts exactly `opencode serve --hostname 127.0.0.1 --port 0`, parses only the pinned loopback startup endpoint, and requires authenticated `GET /api/info` (`client.server.info()`) to report the exact version within 60 seconds. Plain foreground serve is retained; `--service` is not used.
+The exact v1 OpenCode server/client pins are owned by `GW-DOC-EXTERNAL-FACTS`. Order starts exactly `opencode serve --hostname 127.0.0.1 --port 0`, parses only the pinned loopback startup endpoint, and requires authenticated `GET /api/info` (`client.server.info()`) to report the exact version within 60 seconds. Plain foreground serve is retained; `--service` is not used.
 
 Before productive use, Order also proves the repository `AGENTS.md` set is already resolved material P1 authority as required by [GW-DOC-OPENCODE-INTEGRATION-V1 §3](../architecture/opencode-integration.md).
 
@@ -1434,7 +1454,7 @@ openCodePromptId =
   )
 ```
 
-Admission for the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` remains idempotent for the same Session/input id. Order never creates a second id for the same productive turn.
+Admission for the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS` remains idempotent for the same Session/input id. Order never creates a second id for the same productive turn.
 
 Before admission Order records the current `session.get().time.idle`, calls `session.prompt`, waits for strict idle advancement, reads the resulting `succeeded | failed | interrupted` outcome, and only on `succeeded` retrieves the final assistant result through `session.context`. Outcome without the idle advancement and `session.active` are not terminal authority. Event streaming and experimental `session.wait` remain non-authoritative.
 
@@ -1444,7 +1464,7 @@ Provider loss on post-signoff Runs follows §21's action-key budget. Read-only p
 
 Credentials remain OpenCode-owned. Guided `order setup` uses the same private provider environment/database. When existing config plus private credentials cannot prove the configured model available, setup executes `opencode --standalone auth login` without a provider argument so the pinned OpenCode CLI owns provider/method selection. Order then starts its normal pinned private foreground OpenCode server in setup mode without requiring a preselected model, calls V2 `client.model.list` for the setup location, filters to entries with `enabled === true`, presents their exact `providerID/id` identities, and requires the operator to choose one before writing `OrderConfig`. The ordinary productive server path still requires the selected model and rejects it unless the same V2 catalog reports that exact entry enabled.
 
-`order provider login <provider>` remains an explicit maintenance command and executes exactly `opencode --standalone auth login <provider>` in the same namespace. Because authentication in the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` calls `requireInteractive()` for key/form/code flows, setup/login inherit stdin/stdout/stderr from the current TTY and are not bounded-output semantic processes. Login text and secrets are never parsed or persisted by Order; the V2 model catalog is used only to select/verify the exact model identity written to canonical config.
+`order provider login <provider>` remains an explicit maintenance command and executes exactly `opencode --standalone auth login <provider>` in the same namespace. Because authentication in the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS` calls `requireInteractive()` for key/form/code flows, setup/login inherit stdin/stdout/stderr from the current TTY and are not bounded-output semantic processes. Login text and secrets are never parsed or persisted by Order; the V2 model catalog is used only to select/verify the exact model identity written to canonical config.
 
 ## 27. UI state rule
 
@@ -1458,25 +1478,25 @@ Client state must not own WorkItem lifecycle, Approval, ExecutionTask state, Run
 
 ## 28. UI composition boundary
 
-P6 does not prescribe a feature-directory hierarchy. Order-specific UI composition may remain directly under `ui/src/` and is split only when the present semantic responsibility or independently testable boundary requires it under [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §7](../architecture/technical-architecture.md).
+P6 does not prescribe a feature-directory hierarchy. Order-specific UI composition may remain directly under `ui/src/` and is split only when the present semantic responsibility or independently testable boundary requires it under [GW-DOC-TECHNICAL-ARCHITECTURE §7](../architecture/technical-architecture.md).
 
 Reusable Order-local primitives live in `ui/src/primitives/` only when they own a present reusable UI responsibility. They must remain project-neutral, vendor-clean, and free of deprecated Radix/Tremor imports or higher-level Order domain semantics.
 
 ## 29. External integration certification
 
-Before `orderd` becomes ready it validates the deterministic local portion of this certification against [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md): the exact Bun pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, SQLite §15 capabilities and actual engine version, Git binary/version/required commands, exact OpenCode server/client version/readiness through authenticated server info, and configured provider/model availability.
+Before `orderd` becomes ready it validates the deterministic local portion of this certification against [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md): the exact Bun pin from `GW-DOC-EXTERNAL-FACTS`, SQLite §15 capabilities and actual engine version, Git binary/version/required commands, exact OpenCode server/client version/readiness through authenticated server info, and configured provider/model availability.
 
 CI/integration tests additionally prove:
 
 - **State-root/XDG + daemon-token boundary:** an absolute `PONTIVUS_ORDER_STATE_ROOT` wins; relative `PONTIVUS_ORDER_STATE_ROOT` is rejected; absent override uses an absolute `XDG_STATE_HOME/pontivus-order`; absent XDG uses absolute `HOME/.local/state/pontivus-order`; relative XDG/HOME values are rejected rather than resolved against cwd; no usable absolute base fails startup. A missing daemon-token file is created as a non-symlink owner-only file containing exactly one 64-lowercase-hex `secureTokenHex()`; an existing unsafe, symlinked, incorrectly permissioned or malformed token file fails startup rather than being accepted or silently replaced.
-- **OpenCode:** exact `opencode serve --hostname 127.0.0.1 --port 0` foreground bootstrap; bounded parsing of the loopback startup endpoint; 60-second authenticated exact-version readiness against `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; private HOME/XDG/DB; failure when `/etc/opencode` exists; pinned project/Claude discovery-disable flags; admitted provider-workspace/instruction closure under `GW-DOC-OPENCODE-INTEGRATION-V1`; deny-first role permissions including `.git` and `.git/*` read denial plus exact literal edit paths; multi-resource patch authorization; exact deterministic `msg_` prompt-id derivation; same-session/same-type same-id admission does not create a second user input; strictly advanced `time.idle` plus `succeeded | failed | interrupted`; successful final context retrieval; 3600-second productive-turn bound/interrupt; no `session.active`, experimental wait or event-stream correctness dependency.
-- **Bun/Linux runtime boundary:** startup rejects any `process.platform` other than `"linux"`; the installed Bun and `@types/bun` exactly match `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; `Bun.serve` binds only the configured loopback address with `development: false`; `Bun.TOML.parse` parses a UTF-8 manifest string that is then rejected on canonical-schema failure; `Bun.Glob` uses exactly the §14 options; UUID generation matches the canonical prefixed UUIDv4 grammar; the secure-token helper returns exactly 64 lowercase hexadecimal characters from a 32-byte `crypto.getRandomValues` call and no secret/token path uses `Math.random`; `Bun.CryptoHasher("sha256")` matches known SHA-256 vectors while `Bun.hash` is absent from canonical identity code; `statfsSync(stateRoot).type` accepts only the four §15 Linux filesystem magic values and the SQLite smoke test also passes; the one-shot/re-armed timer tests prove one immediate startup tick, exactly 3600 seconds between re-arms and no overlapping coordinator ticks.
+- **OpenCode:** exact `opencode serve --hostname 127.0.0.1 --port 0` foreground bootstrap; bounded parsing of the loopback startup endpoint; 60-second authenticated exact-version readiness against `GW-DOC-EXTERNAL-FACTS`; private HOME/XDG/DB; failure when `/etc/opencode` exists; pinned project/Claude discovery-disable flags; admitted provider-workspace/instruction closure under `GW-DOC-OPENCODE-INTEGRATION-V1`; deny-first role permissions including `.git` and `.git/*` read denial plus mutating signed-scope capability envelopes with final immutable-path/symlink edit denies; multi-resource patch authorization; exact deterministic `msg_` prompt-id derivation; same-session/same-type same-id admission does not create a second user input; strictly advanced `time.idle` plus `succeeded | failed | interrupted`; successful final context retrieval; 3600-second productive-turn bound/interrupt; no `session.active`, experimental wait or event-stream correctness dependency.
+- **Bun/Linux runtime boundary:** startup rejects any `process.platform` other than `"linux"`; the installed Bun and `@types/bun` exactly match `GW-DOC-EXTERNAL-FACTS`; `Bun.serve` binds only the configured loopback address with `development: false`; `Bun.TOML.parse` parses a UTF-8 manifest string that is then rejected on canonical-schema failure; `Bun.Glob` uses exactly the §14 options; UUID generation matches the canonical prefixed UUIDv4 grammar; the secure-token helper returns exactly 64 lowercase hexadecimal characters from a 32-byte `crypto.getRandomValues` call and no secret/token path uses `Math.random`; `Bun.CryptoHasher("sha256")` matches known SHA-256 vectors while `Bun.hash` is absent from canonical identity code; `statfsSync(stateRoot).type` accepts only the four §15 Linux filesystem magic values and the SQLite smoke test also passes; the one-shot/re-armed timer tests prove one immediate startup tick, exactly 3600 seconds between re-arms and no overlapping coordinator ticks.
 - **Process cancellation boundary:** every spawned external command receives explicit argv/cwd/allowlisted env and is started with `detached: true`; unattended/correctness-bearing commands use bounded captured output, while the sole operator-facing provider-login path inherits the TTY and produces no parsed semantic evidence; Order does not pass Bun `timeout`/AbortSignal as cancellation authority. The integration fixture starts a child that itself starts a long-lived descendant, then proves both timeout and explicit cancellation follow the same Linux group path: `process.kill(-pgid, "SIGTERM")`, at most 5 seconds of bounded wait, signal-`0` existence check, `process.kill(-pgid, "SIGKILL")` if still present, child settlement, and final group nonexistence before the operation settles.
 - **Git:** registered root equals `git rev-parse --show-toplevel`; every execution Run uses `git clone --no-local --no-checkout -- <source> <workspace>`, exact baseline verification/detached checkout/clean start, with Git system/global config and prompting disabled; candidate capture proves NUL-delimited no-rename changed paths including untracked files, temporary-index `--intent-to-add` inclusion of new files, binary/full-index/no-renames patch hashing, replay into a separate fresh checkout, and exact regenerated patch-hash/changed-path equality; gitlinks/submodules are not traversed automatically.
 - **Artifact/evidence safety:** committed material hashes come from Git blob bytes at the approved commit; proposal/adoption accepts regular files only and rejects canonical targets outside repository root; evidence writes/readback reject escape/symlink/non-regular targets and evidence HTTP retrieval requires an exact persisted `(runId, EvidencePath)` reference plus current SHA-256 equality.
-- **Package/lockfile boundary:** `package.json` contains exactly the direct runtime and dev dependency groups in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §2](../references/external-facts.md), every version string is exact with no range/tag, `.bun-version` and `.node-version` exactly match `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, committed `bun.lock` is present, and `bun ci` succeeds without changing either manifest or lockfile. The direct-dependency set contains none of the excluded convenience packages in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §8](../references/external-facts.md), including router, jsdom/happy-dom, React Testing Library and Vitest-browser packages; transitive declaration/runtime helpers such as `@types/node`, `undici-types`, `playwright` and `playwright-core` are accepted only as lockfile-owned transitives of the declared direct dependencies.
-- **TypeScript/build behavior:** the `tsc` build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` is the type-check authority and no compiler API is imported; the effective compiler options exactly match [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §2](../architecture/technical-architecture.md): `target: "ESNext"`, `lib: ["ESNext","DOM","DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, `types: ["bun"]`; `node node_modules/vite/bin/vite.js build` succeeds without `@vitejs/plugin-react`; the production bundle mounts with `react-dom/client.createRoot`; Vite config contains the required `tailwindcss()` plugin and application CSS contains exactly one `@import "tailwindcss";`; `node node_modules/vitest/vitest.mjs run` succeeds with Vitest `environment: "node"` and no per-file jsdom/happy-dom/browser-environment override.
-- **Playwright/browser protocol behavior:** CI runs `node node_modules/@playwright/test/cli.js install chromium` and then `node node_modules/@playwright/test/cli.js test` under the Node pin in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, using the Playwright-owned Chromium build bound by that same snapshot rather than assuming package installation supplied a browser; the suite proves fresh 64-lowercase-hex one-time connect tokens, single consumption, expiry rejection after 60 seconds, `303 Location: /`, `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, exact `pontivus_order_session=<64hex>; Path=/; HttpOnly; SameSite=Strict` attributes with no Domain/Expires/Max-Age/Secure, explicit browser `credentials: "same-origin"` with default cors mode, same-origin mutations carrying the exact real `Origin`, rejection of missing/null/wrong Origin, unauthenticated work-state rejection while the liveness-only `/api/health` remains public, Run/RunEvent polling/catch-up and absence of any required browser WebSocket/SSE transport. Firefox/WebKit are not certified v1 targets.
+- **Package/lockfile boundary:** `package.json` contains exactly the direct runtime and dev dependency groups in [GW-DOC-EXTERNAL-FACTS §2](../references/external-facts.md), every version string is exact with no range/tag, `.bun-version` and `.node-version` exactly match `GW-DOC-EXTERNAL-FACTS`, committed `bun.lock` is present, and `bun ci` succeeds without changing either manifest or lockfile. The direct-dependency set contains none of the excluded convenience packages in [GW-DOC-EXTERNAL-FACTS §8](../references/external-facts.md), including router, jsdom/happy-dom, React Testing Library and Vitest-browser packages; transitive declaration/runtime helpers such as `@types/node`, `undici-types`, `playwright` and `playwright-core` are accepted only as lockfile-owned transitives of the declared direct dependencies.
+- **TypeScript/build behavior:** the `tsc` build bound by `GW-DOC-EXTERNAL-FACTS` is the type-check authority and no compiler API is imported; the effective compiler options exactly match [GW-DOC-TECHNICAL-ARCHITECTURE §2](../architecture/technical-architecture.md): `target: "ESNext"`, `lib: ["ESNext","DOM","DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, `types: ["bun"]`; `node node_modules/vite/bin/vite.js build` succeeds without `@vitejs/plugin-react`; the production bundle mounts with `react-dom/client.createRoot`; Vite config contains the required `tailwindcss()` plugin and application CSS contains exactly one `@import "tailwindcss";`; `node node_modules/vitest/vitest.mjs run` succeeds with Vitest `environment: "node"` and no per-file jsdom/happy-dom/browser-environment override.
+- **Playwright/browser protocol behavior:** CI runs `node node_modules/@playwright/test/cli.js install chromium` and then `node node_modules/@playwright/test/cli.js test` under the Node pin in `GW-DOC-EXTERNAL-FACTS`, using the Playwright-owned Chromium build bound by that same snapshot rather than assuming package installation supplied a browser; the suite proves fresh 64-lowercase-hex one-time connect tokens, single consumption, expiry rejection after 60 seconds, `303 Location: /`, `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, exact `pontivus_order_session=<64hex>; Path=/; HttpOnly; SameSite=Strict` attributes with no Domain/Expires/Max-Age/Secure, explicit browser `credentials: "same-origin"` with default cors mode, same-origin mutations carrying the exact real `Origin`, rejection of missing/null/wrong Origin, unauthenticated work-state rejection while the liveness-only `/api/health` remains public, Run/RunEvent polling/catch-up and absence of any required browser WebSocket/SSE transport. Firefox/WebKit are not certified v1 targets.
 - **Serialization/time behavior:** table-driven tests prove the exact §3 24-character `IsoDateTime` parser/generator rejects offsets, extended years, variable fractions and invalid dates; canonical-JSON tests prove recursive key sorting, array-order preservation, exact primitive escaping, and rejection of unsupported/non-finite/cyclic values; UTF-8 fixtures prove `TextEncoder` bytes are passed to the byte-only SHA-256 helper for non-ASCII text; fixed fixtures make package/task/context hashes byte-for-byte deterministic.
 - **Browser state/schema behavior:** one QueryClient has exactly the §19 defaults; active Run/RunEvent polling is exactly 1000 ms and stops when inactive; successful mutations invalidate/refetch only affected keys; component-local presentation state remains React-local; URL/search state uses only native URL/URLSearchParams/History APIs and no router/global-state package is present. All HTTP/persistence/provider/config ingress that maps to canonical semantics rejects unknown object keys and proceeds only with the owning strict Zod schema's parsed value.
 - **Local UI boundary:** repository-local primitives use only authorized public dependencies and pass project-neutral/vendor-clean plus Radix/Tremor forbidden-import checks; no private-source provenance is required at runtime or certification.
@@ -1487,13 +1507,13 @@ CI/integration tests additionally prove:
 - **Source-backed approval/schema:** sign-off binds a required non-null source SHA-256; V0/V1 reject changed/missing/invalid/duplicate/ambiguous source state before productive execution; fresh SQLite v2 creation includes the source projection and source-bound approval columns, and unsupported legacy schema versions fail before mutation.
 - **Markdown workbench browser contract:** controlled project/kind/concern creation, source diagnostics/refresh, lifecycle document navigation, Save/Cancel/dirty/conflict behavior, no silent stale-buffer rebase, owning-stage return after save, R3 read-only behavior, source-bound sign-off invalidation, non-delivery terminal presentation and absence of code/config/candidate editing are proven in the real SPA.
 
-Startup/CI evidence records the actual OpenCode, Bun, Node, TypeScript, Git and SQLite versions it observed. Package/lockfile certification records the exact frontend/library versions. The authoritative dated facts and provenance are in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+Startup/CI evidence records the actual OpenCode, Bun, Node, TypeScript, Git and SQLite versions it observed. Package/lockfile certification records the exact frontend/library versions. The authoritative dated facts and provenance are in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 An external upgrade invalidating any certification item is P4/P6 material.
 
 ## 30. Implementation contract
 
-A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v3 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md).
+A P7 implementation plan may decompose these contracts into repository changes, but it may not alter the semantic field names/types/invariants, HTTP mutation/query semantics, current SQLite schema-v3 contract, source/approval binding, code-layout dependency direction, local-only host boundary, no-OOP/no-DTO rule or technology families and external integration contracts locked in [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md).
 
 Any required change to those items returns to DESIGN/P6.
 
@@ -1563,7 +1583,7 @@ const WorkItemSourceMetadataSchema = z.strictObject({
 });
 ```
 
-`derivedFromWorkItemId` is omitted for ordinary intake. It is used only when a completed investigation/audit creates a separately governed remediation WorkItem as required by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`.
+`derivedFromWorkItemId` is omitted for ordinary intake. It is used only when a completed investigation/audit creates a separately governed remediation WorkItem as required by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 `formatVersion` versions only the portable front-matter grammar; `schemaId` pins the WorkItem workflow/template semantics. The two version concepts are deliberately named separately.
 
@@ -1683,30 +1703,39 @@ const WorkItemKindSchema = z.enum([
 const WorkItemSchemaIdSchema = z.enum([
   "change-v1",
   "defect-v1",
+  "change-v2",
+  "defect-v2",
   "investigation-v1",
   "audit-v1",
+  "investigation-v2",
+  "audit-v2",
 ]);
 
 const WorkItemSchemaCatalogEntrySchema = z.strictObject({
   schemaId: WorkItemSchemaIdSchema,
   kind: WorkItemKindSchema,
+  authoringDefault: z.boolean(),
 });
 ```
 
-The built-in catalog is immutable v1 product data in `src/core/work-item-source.ts` and is the only schemaId -> kind mapping.
+The built-in catalog in `src/core/work-item-source.ts` is the only schemaId -> kind mapping. Published schema ids are immutable semantic pins; the catalog also identifies the one current ordinary-authoring default for each kind without changing historical schema meaning.
 
 The authoring templates are owned in the same module as immutable Markdown strings keyed by schema id. They reference the owning lifecycle/functional document identifiers and do not copy the complete normative lifecycle rules.
 
 A published schema id pins its template and structural validation semantics. A later release must not change what an existing `*-v1` source means or make a previously valid source invalid by changing that schema's required structure. A materially changed template/validation contract requires a new schema id; the existing id remains resolvable for previously authored WorkItems.
 
-The same core owner resolves the complete v1 authoring/stage-template policy; call sites do not maintain kind-specific switches. The minimum template set is:
+The same core owner resolves the complete authoring/stage-template policy across historical and current schema pins; call sites do not maintain kind-specific switches. The minimum template set is:
 
-| Schema | Intake template | R1 template | Later stage templates | Allowed successful R1 completion |
-|---|---|---|---|---|
-| `change-v1` | `change-intake-v1` | `change-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `defect-v1` | `defect-intake-v1` | `defect-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `investigation-v1` | `investigation-intake-v1` | `investigation-r1-v1` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
-| `audit-v1` | `audit-intake-v1` | `audit-r1-v1` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| Schema | Authoring default | Intake template | R1 template | Later stage templates | Allowed successful R1 completion |
+|---|---|---|---|---|---|
+| `change-v1` | no | `change-intake-v1` | `change-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `defect-v1` | no | `defect-intake-v1` | `defect-r1-v1` | `delivery-r2-v1`, `delivery-design-v1`, `delivery-plan-v1`, `delivery-r3-v1` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `change-v2` | yes | `change-intake-v2` | `change-r1-v2` | `change-r2-v2`, `change-design-v2`, `change-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `defect-v2` | yes | `defect-intake-v2` | `defect-r1-v2` | `defect-r2-v2`, `defect-design-v2`, `defect-plan-v2`, `delivery-r3-v2` | `CONFIRMED`, `DISPROVEN`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `investigation-v1` | no | `investigation-intake-v1` | `investigation-r1-v1` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `audit-v1` | no | `audit-intake-v1` | `audit-r1-v1` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `investigation-v2` | yes | `investigation-intake-v2` | `investigation-r1-v2` | none | `INVESTIGATION_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
+| `audit-v2` | yes | `audit-intake-v2` | `audit-r1-v2` | none | `AUDIT_COMPLETE`, `DUPLICATE`, `ALREADY_SATISFIED` |
 
 The v1 template structures are intentionally small and reference the existing lifecycle/specification owners rather than copying their rules:
 
@@ -1723,7 +1752,20 @@ The v1 template structures are intentionally small and reference the existing li
 - `delivery-plan-v1`: Exact task units/dependencies; requirement/design traceability; expected change surface; deletions/additions/modifications; validation sequence; canonical `order-tasks` block.
 - `delivery-r3-v1`: Readiness verdict; evidence; adversarial findings; exact defective layer/return stage when not ready.
 
-Artifact prerequisites are **not** copied into a second schema DAG. The schema selects the permitted stage/template set; prerequisite order and stage ownership remain resolved from `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-LIFECYCLE-CONTEXT-V1`. This is the local DRY consequence that must also be reflected when amending `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`.
+The v2 R1 authority-hygiene templates preserve their corresponding v1 R1 section structure and allowed outcome set but bind the current lifecycle-context V2 semantic snapshot. Historical v1 templates retain their original lifecycle-context V1 pins. `investigation-v2` and `audit-v2` remain R1-terminal and authorize no later lifecycle template.
+
+The v2 delivery templates add only the authority-hygiene semantics owned by the corrected schema pins:
+
+- `change-r2-v2`: P2 intent and R1 factual basis; a non-empty functional authority disposition table with columns `Requirement | Disposition | Canonical owner`; required observable outcome/delta; acceptance criteria; scope/exclusions; failure/negative behavior; material compatibility/security/performance constraints; open product/authority questions. Each disposition is exactly `REFERENCE | DELTA | LOCAL`; `REFERENCE`/`DELTA` require a `GW-*` canonical owner.
+- `defect-r2-v2`: proven defect/root cause; the same non-empty functional authority disposition table/row grammar; expected corrected behavior; behavior that must remain unchanged; acceptance proving the original defect; regression/preservation acceptance; scope/exclusions; open product/authority questions.
+- `change-design-v2` / `defect-design-v2`: kind-specific requirement-to-solution ownership plus the complete S7 design-content contract: canonical owner/boundaries; existing capability/reuse; behavior to replace/delete; genuinely necessary new concepts; technical/contracts/data-flow changes; decisions/rationale and rejected alternatives; preservation/downstream invariants; failure behavior; validation obligations. This does not change lifecycle semantics.
+- `change-plan-v2` / `defect-plan-v2`: kind-specific exact implementation/remediation planning while carrying the complete `GW-DOC-SPECIFICATION-STANDARD` S8-S10 content contract: task objective/dependencies/traceability, module ownership/decomposition constraints and required architecture-feedback checkpoints, expected production and test/validation surface, required deletions/replacements, completion evidence, minimum-change forecast and complete logical verification contract, while retaining exactly one canonical `order-tasks` block as the sole executable-task representation.
+- `delivery-r3-v2`: readiness verdict; authority topology review; P1-P7 traceability review; lifecycle package completeness; open decision/conflict ledger; evidence; adversarial findings; exact defective layer/return stage when not ready.
+
+For `change-v2` and `defect-v2`, `validateStageDocumentStructure(...)` is the single P6 structural owner for lifecycle-stage Markdown admission. In R2 it validates both the ordered v2 template sections and the disposition-table row grammar above; `stage.ts` then resolves every `REFERENCE`/`DELTA` canonical-owner ID from that same parsed ledger against the already-loaded current project `[refs]` map before conformance may pass. The repository architecture sensor separately verifies v2 WorkItem hygiene (no canonical-owner metadata and no retired `WF-FR-*` shadow namespace). These checks are structural/admission rules only; R3 remains the independent semantic judge of whether a claimed `REFERENCE`, `DELTA` or `LOCAL` classification is substantively correct.
+
+
+Artifact prerequisites are **not** copied into a second schema DAG. The schema selects the permitted stage/template set; prerequisite order and stage ownership remain resolved from `GW-DOC-WORK-LIFECYCLE-V1` / `GW-DOC-LIFECYCLE-CONTEXT`. This is the local DRY consequence that must also be reflected when amending `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 #### Source diagnostics/reconciliation contracts (P6)
 
@@ -1774,9 +1816,9 @@ scan exact source files
 
 The `registered`, `updated`, `moved` and `unchanged` sets are pairwise disjoint. `moved` means source path changed while the exact source SHA-256 stayed unchanged; a path change accompanied by changed bytes is `updated` and therefore follows source-change freshness.
 
-A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary inspection is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing, unresolved or valid-but-changed state of that recorded source is a source-boundary precondition/reconciliation-required condition for the attempted productive command: Order preserves the WorkItem's existing stage/status/outcome and rejects that command. A missing/moved/changed source becomes a lifecycle transition only through explicit reconciliation/save. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced.
+A duplicate id detected by startup/explicit full reconciliation prevents either duplicate source from updating/materializing that WorkItem until resolved and remains a visible blocking queue diagnostic. Productive-boundary inspection is deliberately different: conforming to `GW-FR-013-PORTABLE-QUEUE-RECONCILIATION` and `GW-DOC-TECHNICAL-ARCHITECTURE`, it reads only the WorkItem's recorded source path and does not rescan the queue to discover another path, a moved source or a newly introduced duplicate. Invalid, missing, unresolved or valid-but-changed state of that recorded source is a source-boundary precondition/reconciliation-required condition for the attempted productive command: Order preserves the WorkItem's existing stage/status/outcome and rejects that command. A missing/moved/changed source becomes a lifecycle transition only through explicit reconciliation/save. No `SOURCE_INVALID`/`SOURCE_MISSING` WorkStatus variant is introduced.
 
-For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE-V1 §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
+For a known non-terminal WorkItem, explicit source reconciliation applies valid external source changes to title/body/concern ids. If the WorkItem is still an unprogressed IDEA, reconciliation keeps it IDEA / ACTIVE; once it has progressed beyond IDEA, a material source change invokes the canonical return to R1 / ACTIVE. Changes to `schemaId` or `projectId` are accepted only for an unprogressed IDEA with no STAGE Run. Any change to `derivedFromWorkItemId` after creation, or any later schema/project reclassification, emits `SOURCE_RECLASSIFICATION_BLOCKED` and leaves the prior projection/lifecycle state unchanged. A read or productive precondition inspection may detect these conditions but does not apply the reconciliation implicitly. For `COMPLETE`, [GW-DOC-TECHNICAL-ARCHITECTURE §29 source-freshness rules](../architecture/technical-architecture.md) terminal-integrity rules apply.
 
 #### Source create/update mutation
 
@@ -1872,6 +1914,8 @@ This uses the last conformant output paths as the deterministic draft-path set; 
 
 Promotion still requires `STAGE_COMPLETED` referencing an exact current role ArtifactRef and the existing conformance checks. A file change during the Run fails promotion through exact-hash validation.
 
+For every promotable R1/R2/DESIGN/PLAN/R3 completion, `artifactRefIds` contains exactly one coordinator-known ArtifactRef for the current WorkItem, current stage role and deterministic lifecycle-document path. Order projects the eligible **current persisted stage output** ArtifactRef ids into the productive stage prompt only as completion bindings; the model does not invent persistence identity. That current output may be the artifact just adopted in the active stage Run, an unchanged previously known stage output, or the current persisted snapshot created by an authorized human edit. The separate **current stage draft for review** projection remains limited to changed human-authored bytes and is not reused as the completion-eligibility definition. The coordinator re-resolves the completion id, validates current bytes and the pinned schema's structural stage contract, and only then may emit `CONFORMANCE_PASSED`. Zero/multiple/wrong-role/wrong-path/stale output bindings produce `CONFORMANCE_FAILED` and no lifecycle promotion.
+
 #### Source-backed stage/context flow
 
 Before every productive stage start/resume/promotion boundary:
@@ -1890,7 +1934,7 @@ Productive inspection is non-mutating. Only the explicit reconcile/save paths ap
 Prompt projection:
 
 - R1: exact current WorkItem Markdown is included;
-- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT-V1`;
+- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT`;
 - DESIGN/PLAN/R3: validated upstream artifacts remain the normal semantic carriers; raw source text is omitted unless the lifecycle context resolver says it is materially required;
 - every pre-signoff source-backed stage context hash includes the exact source SHA-256 even when the source body is not rendered.
 
@@ -2487,7 +2531,7 @@ Permanent integration tests must prove:
 
 ## 33. OpenCode saved-account management canonical contracts
 
-This section is the binding P6 contract for OpenCode account management as governed by `GW-DOC-INSTALLATION-READINESS-V1` and technically realized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
+This section is the binding P6 contract for OpenCode account management as governed by `GW-DOC-INSTALLATION-READINESS-V1` and technically realized by `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 It manages saved **OpenCode Console login accounts** used by subsequent OpenCode work. It does not define provider/model selection and does not persist credential secrets in Order.
 
@@ -2771,7 +2815,7 @@ Permanent integration/browser tests must prove:
 
 ## 34. WorkItem management, API failure and provider diagnostic contracts
 
-This section is the binding P6 closure for WorkItem management governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and its technical realization in `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
+This section is the binding P6 closure for WorkItem management governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and its technical realization in `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 ### 34.1 Deterministic archive marker
 
@@ -3297,7 +3341,7 @@ version 3 -> 4
 
 No semantic choices are introduced and no existing repository/model selection is reset.
 
-A fresh installation may create:
+A configuration-capable daemon/recovery flow may persist:
 
 ```json
 {
@@ -3308,7 +3352,7 @@ A fresh installation may create:
 }
 ```
 
-when the operator elects to complete configuration in the browser.
+as a valid non-productive configuration so authenticated Settings can expose and repair readiness blockers. The productive fresh installer may use the same canonical shape only as an intermediate rollback-safe state while guided setup is still in progress; **it must not treat that state as successful installation or defer mandatory first-run repository/OpenCode-account/model choices to the browser.** Successful productive installation exits only after the installer-owned guided setup has established the required choices and the normal installer health proof passes.
 
 Daemon startup under incomplete v4 configuration:
 
@@ -3429,3 +3473,120 @@ Trusted integration semantics may influence model execution, but they do not enl
 The productive admission boundary proves and binds the selected integration/account identity plus exact Order-owned repository/context/config identities for the lifetime of the live provider binding. These identities are transient admission/freshness state, not a separate durable evidence contract. Existing Run/provider diagnostics remain the durable execution evidence already owned elsewhere; this section does not require adding account/config identity fields to ProviderDiagnosticRecord or another persisted model. Order does not fabricate hashes for provider-native semantic bytes that OpenCode does not expose through its public API.
 
 No new persisted instruction-domain model is introduced. The shell derives this admission from existing repository/context/account/config/permission owners.
+
+
+## 37. Authority-driven 0.6.0 contract closure
+
+This section amends existing canonical contracts only where the fresh 0.6.0 DESIGN requires a stronger exact boundary.
+
+### 37.1 Resolved authority input
+
+The ProjectManifest grammar in §14 is unchanged.
+
+Before a productive stage consumes authority, Order derives one transient resolved authority projection from the validated manifest plus deterministic repository-pattern expansion:
+
+- `authority.p1` through `authority.p6` remain the complete selected source sets;
+- `precedence.<layer>` supplies precedence only between explicitly listed literal paths, highest first;
+- authority-array/filesystem ordering is never precedence;
+- P1 defaults are inherited unless one valid override names the stable default rule;
+- compatible extensions remain additive;
+- resolved fitness gates are the union required by §14.
+
+The projection is a functional result, not a canonical persisted/transport type. The manifest plus referenced authority bytes remain the authority/evidence inputs.
+
+### 37.2 R2/DESIGN permanent authority proposal admission
+
+Existing `ARTIFACT_PROPOSAL_CREATED` is the only proposal carrier.
+
+For a non-lifecycle proposal:
+- `role` MUST be `GOVERNANCE`;
+- in R2, `authorityLayer` MUST be P2 or P3;
+- in DESIGN, `authorityLayer` MUST be P4, P5 or P6;
+- `targetPath` MUST be an existing current path selected by the validated ProjectManifest for that exact layer;
+- `baseSha256` MUST equal current target bytes;
+- the target MUST be re-resolved immediately before adoption;
+- no new permanent authority file/owner may be created through this 0.6.0 path.
+
+Lifecycle proposals retain their existing role/layer/path contract. Both proposal forms use the same current proposal/disposition events and exact-patch application owner.
+
+### 37.3 Durable-decision human input
+
+HumanInputCategory is unchanged.
+
+`INFORMATION` and `EVIDENCE` are conversational-input categories.
+
+`STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` are durable-decision categories. `HUMAN_INPUT_RECEIVED` records decision input only. It is never itself a P2-P7 authority artifact.
+
+For a STAGE Run whose latest answered input is a durable-decision category, `STAGE_COMPLETED` is admissible only when a later `ARTIFACT_PROPOSAL_DISPOSITIONED { disposition: "ADOPTED" }` exists in that Run's chronology. A rejected/cancelled proposal does not satisfy the boundary. Manual external authority edits stale/restart the Run through existing freshness rules rather than being retroactively attributed to the chat answer.
+
+### 37.4 Signed task non-vacuity
+
+The existing single `SignedTaskBlock` remains the only executable task representation.
+
+For current v2 Change/Defect PLAN packages that proceed to sign-off:
+
+- `tasks` has at least one task;
+- every task `id` and `objective` is trimmed and non-empty;
+- every task has at least one `scope` entry;
+- every task has at least one `acceptanceRef`;
+- every task has at least one `changeSurface` entry;
+- every task has at least one `gateId`;
+- every task has at least one `authorityRef`;
+- every task has at least one `concernId`;
+- `dependsOn` and `exclusions` may remain empty;
+- all existing uniqueness, DAG, ref, concern, path, gate and authority validation remains mandatory.
+
+Investigation/Audit no-code terminal outcomes do not manufacture a signed task block because they do not enter PLAN/sign-off execution.
+
+### 37.5 Approval identity
+
+`Approval.approvedBy` remains a string field but canonical parsing normalizes it with trim and requires at least one non-whitespace character. NUL remains invalid under the existing string safety boundary.
+
+The browser may provide earlier feedback, but every daemon/persistence ingress uses the canonical schema and cannot persist whitespace-only approval identity.
+
+### 37.6 Builder checkpoint request
+
+`RunEventPayload` gains:
+
+```ts
+{
+  tag: "GATE_CHECKPOINT_REQUESTED";
+  gateId: GateId;
+}
+```
+
+Provider admission permits this event only for `BUILDER`. It is forbidden for STAGE, REVIEWER and REMEDIATOR.
+
+The request carries no result/evidence and does not satisfy validation. Only the coordinator may emit the existing `GATE_PASSED` / `GATE_FAILED` events after executing the exact resolved gate.
+
+The BUILDER turn contract permits at most one checkpoint request as the terminal action of that provider turn. The requested `gateId` must belong to the signed task's resolved gate set. The coordinator reacts, records the result and starts the next turn in the same live Run/session. Any other terminal completion/candidate handling waits until a subsequent turn that does not request a checkpoint.
+
+This protocol is an **execution-baseline capability**, not something a task may bootstrap for its own use. If a signed PLAN requires an architecture-feedback checkpoint, the exact Approval baseline/runtime that will execute that task must already admit `GATE_CHECKPOINT_REQUESTED`, execute the coordinator-owned gate and continue the same Run/session before R3 may return `READY_FOR_SIGNOFF`. Candidate bytes produced by that same task cannot be relied on to make the checkpoint protocol available to an already-running coordinator. A package whose baseline lacks the capability is `SPEC_INVALID` / not ready and returns to the owning pre-signoff layer or prerequisite foundation work; provider shell/execute permission is never granted as a workaround.
+
+### 37.7 Forecast variance admission
+
+`changeSurface` remains the immutable expected-path forecast defined in §7. It is not duplicated by another allowed-path model.
+
+V2 changed-path admission must deterministically reject:
+
+- a path outside signed `scope`;
+- a path admitted by `exclusions`;
+- any `AGENTS.md` repository-instruction path;
+- signed material authority, project-manifest/governance material, or immutable verification material that the task is not permitted to mutate.
+
+If a changed production path passes those checks but is absent from `changeSurface`, forecast absence alone is not `SCOPE_BREACH`. The path remains candidate evidence and proceeds through ordinary V3-V6. V4/V5/V6 must then positively prove that it is the minimum same-layer physical decomposition needed solely to preserve an already-resolved responsibility/effect boundary and that canonical semantic ownership, public contracts, state meaning, effect boundaries, dependency direction/external dependencies, validation contract and authorized behavior are unchanged.
+
+If those propositions change or cannot be proved, the candidate follows the existing `SCOPE_BREACH`, `GOVERNANCE_BREACH`, `BLOCKED_SPEC_OR_DESIGN` or `CHANGE_BLOAT` path as applicable. The worker cannot use forecast variance to add unrelated behavior, cleanup, dependency, authority, compatibility/fallback or verification scope.
+
+No task mutation, dynamic scope expansion, second allowed-path list, variance DTO or persisted variance state is introduced. Existing candidate changed-path evidence plus V4-V6 evidence are the proof.
+
+The productive OpenCode permission profile is not a second scope owner. For BUILDER/REMEDIATOR, the shell projects each signed scope pattern into the minimum transient OpenCode wildcard envelope guaranteed to contain that canonical Bun.Glob scope, then appends last-match edit denies for Git metadata, all `AGENTS.md` paths, signed authority/project-manifest/verification material and workspace symlinks. Because the pinned OpenCode wildcard language cannot represent every Bun.Glob pattern exactly, this envelope may be a strict superset. The coordinator therefore re-applies this section's exact canonical `scope`/`exclusions`/protected-path validator to the current workspace diff before executing any requested in-task checkpoint; an invalid diff yields the existing V2 `SCOPE_BREACH` path and no checkpoint effect occurs. Final candidate V2 validation remains mandatory.
+
+The independent reviewer supplies V6 semantic evidence without owning the validation classification. A current productive `REVIEW_PASSED` carries `minimumChange = MINIMUM_SUFFICIENT | CHANGE_BLOAT` and a null/non-null summary accordingly. After V4 and V5 pass, the coordinator emits V6 PASS only for `MINIMUM_SUFFICIENT`; `CHANGE_BLOAT` becomes coordinator-owned `VALIDATION_FAILED / V6 / CHANGE_BLOAT` and follows the existing single targeted reduction policy.
+
+### 37.8 Execution-control baseline dependency
+
+The §37.6 checkpoint protocol and §37.7 forecast-variance validator are coordinator/runtime capabilities. A dependent task may rely on them only when the exact Approval baseline/runtime already implements them.
+
+Because same-Approval task dependencies do not transport candidate bytes and every Run starts from `Approval.baselineCommit`, a task cannot implement or modify the execution-control capability that determines whether that same task may continue. When the current baseline lacks a required capability, that correction is separately governed and integrated first; the dependent WorkItem is then freshly reconstructed/revalidated against the new exact baseline before sign-off.
+

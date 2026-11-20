@@ -124,6 +124,7 @@ export const App = () => {
   const [settingsSection, setSettingsSection] = useState<SettingsSection | null>(settingsSectionFromUrl);
   const [queueProjectId, setQueueProjectId] = useState("");
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [themePreference, setThemePreference] = useState<ThemePreference>(savedThemePreference);
   const [createOpen, setCreateOpen] = useState(false);
   const [contextOpen, setContextOpen] = useState(false);
@@ -142,6 +143,11 @@ export const App = () => {
   const originatingRowId = useRef<WorkItemId | null>(null);
 
   const workItemsQuery = useQuery({ queryKey: workbenchQueryKeys.workItems, queryFn: api.listWorkItems });
+  const archivedWorkItemsQuery = useQuery({
+    queryKey: workbenchQueryKeys.workItemsIncludingArchived,
+    queryFn: api.listWorkItemsIncludingArchived,
+    enabled: showArchived,
+  });
   const selectedWorkItemQuery = useQuery({
     queryKey: selectedWorkItemId === null
       ? (["workItem", null] as const)
@@ -197,8 +203,9 @@ export const App = () => {
   }, [projectId, projectsQuery.data]);
 
   useEffect(() => {
-    if (derivedFromWorkItemId === null && schemaId === "" && schemasQuery.data?.[0]) {
-      setSchemaId(schemasQuery.data[0].schemaId);
+    if (derivedFromWorkItemId === null && schemaId === "" && schemasQuery.data) {
+      const defaultSchema = schemasQuery.data.find((schema) => schema.authoringDefault);
+      if (defaultSchema) setSchemaId(defaultSchema.schemaId);
     }
   }, [derivedFromWorkItemId, schemaId, schemasQuery.data]);
 
@@ -303,6 +310,7 @@ export const App = () => {
     onSuccess: async (created) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItems }),
+        queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemsIncludingArchived }),
         queryClient.invalidateQueries({ queryKey: workbenchQueryKeys.workItemSourceDiagnostics }),
       ]);
       resetCreate();
@@ -336,10 +344,12 @@ export const App = () => {
     setContextDocumentSha256(sha256);
   }, []);
 
+  const queueDataset =
+    showArchived ? archivedWorkItemsQuery.data ?? workItems : workItems;
   const filtered = useMemo(() => {
     const scoped = queueProjectId.length === 0
-      ? workItems
-      : workItems.filter((item) => item.projectId === queueProjectId);
+      ? queueDataset
+      : queueDataset.filter((item) => item.projectId === queueProjectId);
     const query = search.trim().toLowerCase();
     if (query.length === 0) return scoped;
     return scoped.filter((item) =>
@@ -348,7 +358,7 @@ export const App = () => {
       item.stage.toLowerCase().includes(query) ||
       item.status.toLowerCase().includes(query) ||
       item.concernIds.some((id) => id.toLowerCase().includes(query)));
-  }, [search, queueProjectId, workItems]);
+  }, [search, queueProjectId, queueDataset]);
 
   const selectTheme = (value: string): void => {
     if (value !== "system" && value !== "light" && value !== "dark") return;
@@ -427,17 +437,15 @@ export const App = () => {
 
   const queue = workItemsQuery.isPending ? (
     <WorkbenchEmptyState title="Loading work items…" />
-  ) : filtered.length === 0 ? (
-    <WorkbenchEmptyState
-      title={search.trim().length > 0 ? "No matching work items" : "No work items"}
-      description="Create a WorkItem source to begin governed progression."
-    />
   ) : (
     <Suspense fallback={<WorkbenchEmptyState compact title="Loading work queue…" />}>
       <WorkItemQueue
         workItems={filtered}
         schemas={schemasQuery.data ?? []}
         selectedWorkItemId={selectedWorkItemId}
+        showArchived={showArchived}
+        emptyTitle={search.trim().length > 0 ? "No matching work items" : "No work items"}
+        onShowArchivedChange={setShowArchived}
         onSelect={requestSelection}
       />
     </Suspense>

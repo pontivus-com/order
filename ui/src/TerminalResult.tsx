@@ -6,7 +6,12 @@ import { Tab, TabList } from "@astryxdesign/core/TabList";
 import { MarkdownTextSchema, type ArtifactRef, type RunEvent, type WorkItem } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
 import { workbenchQueryKeys } from "./query-keys.ts";
-import { eventEvidence, lifecycleArtifactRoleRank, type EvidenceSelection } from "./workbench-presentation.ts";
+import {
+  eventEvidence,
+  lifecycleArtifactRoleRank,
+  workOutcomeProductLabel,
+  type EvidenceSelection,
+} from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchAttention } from "./primitives/WorkbenchAttention.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
@@ -24,7 +29,6 @@ const resultText=(workItem:WorkItem):string=>{switch(workItem.outcome){
   case"CANDIDATE_DONE":return"Implementation completed with a verified candidate. Detailed task and attempt history remains available under the reached Implementation step.";
   default:return"The WorkItem is complete.";
 }};
-const outcomeLabel=(workItem:WorkItem):string=>{const label=(workItem.outcome??"COMPLETE").replaceAll("_"," ").toLowerCase();return label.length===0?label:label[0]!.toUpperCase()+label.slice(1);};
 const decode=(bytes:Uint8Array):Readonly<{kind:"MARKDOWN"|"TEXT";value:string}>=>{try{const value=new TextDecoder("utf-8",{fatal:true}).decode(bytes);const markdown=MarkdownTextSchema.safeParse(value);return markdown.success?{kind:"MARKDOWN",value:markdown.data}:{kind:"TEXT",value};}catch{const preview=Array.from(bytes.slice(0,256),(value)=>value.toString(16).padStart(2,"0")).join(" ");return{kind:"TEXT",value:"Binary result material ("+bytes.byteLength+" bytes)\n"+preview+(bytes.byteLength>256?" …":"")};}};
 
 export const TerminalResult=({workItem,onOpenEvidence,onCreateRemediation}:Readonly<{
@@ -44,7 +48,7 @@ export const TerminalResult=({workItem,onOpenEvidence,onCreateRemediation}:Reado
   const uniqueCandidateEvidence=candidateEvidence.filter((candidate,index,all)=>all.findIndex((other)=>other.runId===candidate.runId&&other.evidence.relativePath===candidate.evidence.relativePath)===index);
 
   const attention=<WorkbenchAttention
-    title={outcomeLabel(workItem)}
+    title={workOutcomeProductLabel(workItem.outcome)}
     purpose={resultText(workItem)}
     status={<WorkbenchStatus tone={candidateDone?"success":"neutral"} label={candidateDone?"Verified candidate":"Terminal outcome"}/>}
     action={evidenceBacked&&onCreateRemediation?<WorkbenchAction label="Create linked remediation" tone="primary" onClick={()=>onCreateRemediation(workItem)}/>:undefined}
@@ -54,7 +58,7 @@ export const TerminalResult=({workItem,onOpenEvidence,onCreateRemediation}:Reado
     <section className="order-workspace-section" data-testid="final-governed-outcome">
       <WorkbenchSectionHeader title="Final governed outcome"/>
       <div>
-        <h3>{outcomeLabel(workItem)}</h3>
+        <h3>{workOutcomeProductLabel(workItem.outcome)}</h3>
         <p>{resultText(workItem)}</p>
       </div>
     </section>

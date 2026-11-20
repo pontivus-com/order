@@ -7,8 +7,9 @@
 </p>
 
 <p align="center">
-  From idea to verified result. Order carries software work through definition,
-  implementation, testing, review, remediation, and independent verification.
+  From idea to verified result. Order carries software work through governed
+  definition and, where implementation is required and authorized, execution,
+  testing, review, bounded remediation, and independent verification.
 </p>
 
 <p align="center">
@@ -31,7 +32,7 @@
 
 Start with something that needs to happen: a feature, defect, change, investigation, audit, documentation update, infrastructure change, UI change, or other repository-governed work.
 
-Order carries that work through the production process. It establishes what is actually true, defines the required outcome, resolves the solution and implementation plan, checks readiness, requires explicit sign-off before productive implementation, runs coding agents against the authorized work, tests and independently reviews the result, performs bounded remediation where appropriate, and produces a verified candidate.
+Order carries that work through the production process needed for the work itself. It establishes what is actually true, defines the required outcome, resolves the solution and implementation plan, and checks readiness. Where implementation is required and authorized, Order requires explicit sign-off, runs coding agents against the authorized work, tests and independently reviews the result, performs bounded remediation where appropriate, and produces a verified candidate. Work that validly requires no implementation terminates with its verified non-candidate result.
 
 The user manages **what work should happen**. Order manages **how that work is carried through**.
 
@@ -44,8 +45,8 @@ Some work correctly ends without implementation. An investigation can conclude t
 1. **Start with the work.** Create a WorkItem for the feature, defect, change, investigation, audit, or other governed repository work.
 2. **Bring the idea into focus.** Order works through current-state research, requirements, design, planning, and independent readiness review as applicable.
 3. **Authorize the exact package.** Productive implementation begins only after explicit sign-off on the resolved package, baseline, tasks, scope, and validation contract.
-4. **Run the factory.** Coding agents execute the authorized work. Order owns durable state, dependencies, verification, independent review, and bounded remediation.
-5. **Get the result.** Successful implementation terminates as a **verified candidate** with the evidence needed to inspect what was done and why it qualifies.
+4. **Run the factory when implementation is required.** Coding agents execute only the authorized work. Order owns durable state, dependencies, verification, independent review, and bounded remediation.
+5. **Get the result.** Every WorkItem ends at a governed **verified result**. Executed delivery work may terminate as a **verified candidate**; valid no-code work terminates with its verified non-candidate result.
 
 The agent does the work. It does not redefine the work, and it does not certify its own result.
 
@@ -119,7 +120,7 @@ A verified candidate means the exact authorized task was still valid against the
 | **Investigation / audit complete** | The requested analysis completed without manufacturing remediation work. |
 | **Blocked / returned upstream** | A material requirement, design, authority, readiness, or validation issue must be resolved at its owning stage. |
 
-Order stops at the verified candidate boundary. It does not commit, push, merge, deploy, or mutate production as part of v1.
+Order stops at the verified result boundary. It does not automatically commit implementation or candidate changes, push, merge, deploy, or mutate production as part of v1. Explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability, not delivery automation.
 
 ## Quick start
 

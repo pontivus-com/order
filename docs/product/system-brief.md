@@ -94,24 +94,30 @@ project authority + semantic context
               v
           Order
    lifecycle / authorization
-              |
-              v
-        coding agent
-              |
-              v
-      verified candidate
+          /       \
+         /         \ when execution is authorized
+        v           v
+verified no-code   coding agent
+    result             |
+                       v
+              verified candidate
 ```
 
 ## 6. Desired lifecycle
 
+The canonical WorkItem lifecycle and the internal post-sign-off execution/validation sequence are distinct levels.
+
 ```text
+CANONICAL WORKITEM LIFECYCLE
+
 IDEA
   |
   v
-R1 RESEARCH
-  |
-  v
-R2 REQUIREMENTS
+R1 RESEARCH ------------------------------+
+  |                                       |
+  | confirmed                             | schema-valid terminal outcome
+  v                                       v
+R2 REQUIREMENTS                         COMPLETE
   |
   v
 DESIGN
@@ -132,23 +138,20 @@ AWAITING SIGN-OFF
 =============================
   |
   v
-TODO
+EXECUTION
   |
+  | internal signed-task / validation sequence
   v
-IMPLEMENT
+IMPLEMENT -> MECHANICAL VERIFY -> INDEPENDENT REVIEW
+                 ^                       |
+                 +--- bounded repair <---+
   |
+  | all approved tasks successfully validated
   v
-MECHANICAL VERIFY
-  |
-  v
-INDEPENDENT REVIEW
-  |
-  v
-MECHANICAL VERIFY
-  |
-  v
-CANDIDATE DONE
+COMPLETE
 ```
+
+`IMPLEMENT`, mechanical validation and independent review describe decision/validation boundaries inside the canonical `EXECUTION` stage; they are not additional WorkItem lifecycle stages.
 
 ## 7. Non-goals for v1
 
@@ -175,13 +178,15 @@ The initial execution provider is OpenCode.
 
 ## 8. Success criterion
 
-A successful Order run is not "the agent produced a patch."
+A successful Order WorkItem reaches a verified terminal result that is valid for its governed work kind and current authority.
 
-It is:
+A successful result does **not** require implementation. Investigation/Audit completion and other schema-valid no-code outcomes may terminate successfully when the governed lifecycle establishes that no candidate is required.
+
+When implementation is required and explicitly authorized, candidate success is stricter than "the agent produced a patch." It means:
 
 > An exact, approved execution task was still valid against the current repository, was implemented without exceeding its authorized boundary, and passed both prescribed deterministic verification and independent semantic review.
 
-Anything less remains incomplete or blocked.
+Anything less remains incomplete, returned to its owning stage, or blocked.
 
 ## 9. Stable product-intent reference
 

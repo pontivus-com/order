@@ -10,10 +10,10 @@ These rules apply to all work in this repository. This file owns agent operating
 Before changing Order design or implementation:
 
 1. resolve and read `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`;
-2. resolve and read `GW-DOC-LIFECYCLE-CONTEXT-V1`;
-3. for implementation/integration work, resolve and read `GW-DOC-TECHNICAL-ARCHITECTURE-V1`;
-4. for data, persistence, transport, manifest or task-contract work, resolve and read `GW-DOC-CANONICAL-CONTRACTS-V1`;
-5. before any external dependency/integration/version claim or change, resolve and read `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` plus `GW-DOC-OPENCODE-INTEGRATION-V1` when OpenCode semantics apply;
+2. resolve and read `GW-DOC-LIFECYCLE-CONTEXT`;
+3. for implementation/integration work, resolve and read `GW-DOC-TECHNICAL-ARCHITECTURE`;
+4. for data, persistence, transport, manifest or task-contract work, resolve and read `GW-DOC-CANONICAL-CONTRACTS`;
+5. before any external dependency/integration/version claim or change, resolve and read `GW-DOC-EXTERNAL-FACTS` plus `GW-DOC-OPENCODE-INTEGRATION-V1` when OpenCode semantics apply;
 6. when work is executed under a current signed P7 task, resolve that task's authority references and do not exceed its semantic scope;
 7. treat implementation and tests as evidence below those authorities.
 
@@ -32,13 +32,13 @@ For every governed concern:
 - local documents may state only their own consequence, dependency, evidence, or integration obligation and cite the owner identifier;
 - never create a shadow specification for convenience;
 - give Order-owned permanent documentation semantic directory/file names and preserve canonical identifiers across path moves; do not introduce ordinal-prefix filenames as an authority-order mechanism;
-- keep change-specific Research / Requirements / Solution design / Implementation plan / Readiness artifacts in the repository-native WorkItem document set governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` rather than adding release-specific numbered plans to the permanent design set;
+- keep change-specific Research / Requirements / Solution design / Implementation plan / Readiness artifacts in the repository-native WorkItem document set governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` rather than adding release-specific numbered plans to the permanent design set;
 - use Git history, merged pull requests, releases and `CHANGELOG.md` as completed implementation provenance; do not retain superseded/completed copies in the live canonical documentation tree unless an older semantic version must remain independently selectable under `GW-P1-DOC-CANONICALITY`.
 
 
 ## Public repository pull-request delivery
 
-Public repository delivery is governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+Public repository delivery is governed by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`.
 
 Operational consequences for agents:
 
@@ -55,9 +55,25 @@ Operational consequences for agents:
 
 Short-lived branch prefixes are limited to the canonical public-delivery set (`feat/`, `fix/`, `docs/`, `chore/`, `release/`, `revert/`).
 
+## Governed campaign/control-state discipline
+
+When a governed campaign/control document declares canonical current-state registers, agents must treat those registers as the only current-state owners.
+
+Operational consequences:
+
+- read the designated concern-state and gate-state registers before reporting or mutating campaign status;
+- do not infer current campaign state from document headers, narrative summaries, START/END history, handovers, prior model output, PR descriptions or another branch;
+- do not copy files or cite a verified commit on another branch as proof that a campaign branch contains that foundation state;
+- where the campaign owner requires a baseline commit to be contained, prove Git ancestry against the actual campaign branch `HEAD` before advancing the gate;
+- a downstream foundational defect reopens the affected gate/register state before remediation; the gate returns to PASS only after the correction is governed, integrated into campaign history, and the required fitness/coverage checks are rerun;
+- after any campaign-state mutation, run the repository's campaign-state fitness sensor and derive the reported state again from the canonical registers;
+- never maintain a second prose status projection for convenience.
+
+These are operating consequences of `GW-P1-DRY`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-DOC-CANONICALITY` and the current campaign owner. They do not create a separate product/lifecycle/state contract.
+
 ## Continuous conformance and decision boundaries
 
-All lifecycle context selection, conformance and promotion behavior is owned by `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+All lifecycle context selection, conformance and promotion behavior is owned by `GW-DOC-LIFECYCLE-CONTEXT`.
 
 An agent may decide only what its current lifecycle stage owns. Do not invent missing product intent, let a lower layer redesign a higher one, broaden implementation scope, alter canonical contracts during implementation, or let a reviewer silently repair the work it judges.
 
@@ -65,7 +81,7 @@ Runtime prompts, summaries, prior model output, generated context projections an
 
 ## Implementation architecture
 
-Implementation must conform to the resolved `GW-P1-*` rules owned by `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, the concrete v1 architecture owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`, and minimum-change policy owned by `GW-DOC-MINIMUM-CHANGE-V1`.
+Implementation must conform to the resolved `GW-P1-*` rules owned by `GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1`, the current technical architecture owned by `GW-DOC-TECHNICAL-ARCHITECTURE`, and minimum-change policy owned by `GW-DOC-MINIMUM-CHANGE-V1`.
 
 Operational consequences for agents:
 
@@ -99,6 +115,6 @@ Under public PR delivery, this exception remains valid **inside the current shor
 
 ## Current repository phase
 
-The materialized v1 module ownership/dependency graph is owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V1` §7 and enforced by `tests/architecture.test.ts`.
+The materialized v1 module ownership/dependency graph remains governed by the current `GW-DOC-TECHNICAL-ARCHITECTURE` §7 and enforced by `tests/architecture.test.ts`.
 
 Continuous implementation preserves that canonical architecture. The historical P7-14 initial implementation plan is provenance, not a standing gate on later maintenance.

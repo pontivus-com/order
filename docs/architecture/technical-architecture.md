@@ -2,7 +2,7 @@
 
 **Status:** Binding technical design standard
 **Canonical concern ID:** `GW-DOC-TECHNICAL-ARCHITECTURE`  
-**Versioned concern ID:** `GW-DOC-TECHNICAL-ARCHITECTURE-V1`  
+**Versioned concern ID:** `GW-DOC-TECHNICAL-ARCHITECTURE-V2`  
 
 ## 1. Purpose
 
@@ -35,10 +35,10 @@ These ids classify the existing material P4 constraints; the detailed contracts 
 - **GW-TR-003-REPRODUCIBLE-AUTHORITY-STATE** — project authority, approval, task and durable state are reproducible from the canonical manifest/artifact/persistence model. **Acceptance:** §§4, 8–12 and 23 plus P6 persistence/freshness contracts pass; no parallel authority/state store exists.
 - **GW-TR-004-ISOLATED-BOUNDED-EXECUTION** — unattended execution uses exact-baseline isolated workspaces, the single OpenCode boundary and bounded verification/process cancellation. **Acceptance:** §§15–16 and 20–24 pass; human working trees, hidden provider recovery and task-to-task candidate promotion are not used.
 - **GW-TR-005-LOCAL-SECURE-WORKBENCH** — browser and CLI remain clients of the loopback daemon with the fixed local authentication/HTTP/polling/UI-state model, while governed Markdown authoring remains a bounded pre-signoff surface. **Acceptance:** §§17–19, 29 and P6 transport/security contracts pass; no remote hosting, alternate transport, browser-owned workflow state or production-code editor exists.
-- **GW-TR-006-CLOSED-INTEGRATION-CERTIFICATION** — the exact direct dependency/runtime set and every relied-upon external behavior are closed by the dated facts/certification contract. **Acceptance:** §§2, 21, 27–28 and [GW-DOC-CANONICAL-CONTRACTS-V1 §29](../contracts/canonical-contracts.md) pass with no extra direct dependency or ungrounded external behavior.
+- **GW-TR-006-CLOSED-INTEGRATION-CERTIFICATION** — the exact direct dependency/runtime set and every relied-upon external behavior are closed by the dated facts/certification contract. **Acceptance:** §§2, 21, 27–28 and [GW-DOC-CANONICAL-CONTRACTS §29](../contracts/canonical-contracts.md) pass with no extra direct dependency or ungrounded external behavior.
 - **GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP** — the one-command installer establishes the complete usable local system, including private-provider authentication, exact model binding, persistent access configuration, user-level daemon supervision and health verification. **Acceptance:** §2 productive installation, §19 and P6 §§22–26 pass with no mandatory post-install setup command or model environment variable.
 - **GW-TR-008-GOVERNED-FILESYSTEM-ACCESS** — exact target repositories, the portable WorkItem root, Order state and STAGE-only reference roots are distinct least-authority boundaries. **Acceptance:** §§9, 16, 20, 29 and P6 §§22,31 reject alternate source/repository mutation paths, prove root disjointness, and certify that only STAGE receives exact configured external-directory read access.
-- **GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION** — public repository delivery is PR-only and releases are version/changelog/tag/asset-bound to one exact master commit. **Acceptance:** §33 and `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` pass; no direct-master release path, mutable release tag or master-clone public distribution remains.
+- **GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION** — public repository delivery is PR-only and releases are version/changelog/tag/asset-bound to one exact master commit. **Acceptance:** §33 and `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` pass; no direct-master release path, mutable release tag or master-clone public distribution remains.
 
 This document does not create a second lifecycle or governance system. Functional ownership remains:
 
@@ -47,12 +47,12 @@ This document does not create a second lifecycle or governance system. Functiona
 - OpenCode semantics -> [GW-DOC-OPENCODE-INTEGRATION-V1](opencode-integration.md);
 - project authority -> [GW-DOC-PROJECT-GOVERNANCE-INTEGRATION-V1](../requirements/project-governance-integration.md);
 - systems pyramid -> [GW-DOC-SYSTEMS-GOVERNANCE-PYRAMID-V1](../governance/systems-governance.md);
-- context resolution/conformance -> [GW-DOC-LIFECYCLE-CONTEXT-V1](../requirements/lifecycle-context.md);
-- exact Order P6 data, transport and persistence contracts -> [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+- context resolution/conformance -> [GW-DOC-LIFECYCLE-CONTEXT](../requirements/lifecycle-context.md);
+- exact Order P6 data, transport and persistence contracts -> [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 2. Locked v1 technology choices
 
-The exact version/provenance baseline for every external dependency is owned exclusively by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). This architecture document names required technology families and behavior only; it does not restate dependency version values.
+The exact version/provenance baseline for every external dependency is owned exclusively by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). This architecture document names required technology families and behavior only; it does not restate dependency version values.
 
 Order v1 uses one TypeScript codebase, with separate production-runtime and development/build/runtime contracts.
 
@@ -60,9 +60,9 @@ Order v1 uses one TypeScript codebase, with separate production-runtime and deve
 
 Order v1 productive daemon execution is **Linux-only**. Linux x64 and arm64 are the grounded runtime host families. Windows/macOS support is not implemented opportunistically in P7; either requires a later P4/P6 host-integration contract.
 
-- **TypeScript**, strict mode, command-line compiler/type-checker only; exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **`@types/bun`** for the Bun runtime declarations used by TypeScript; exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Bun** as Order package manager and production daemon/CLI runtime; exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
+- **TypeScript**, strict mode, command-line compiler/type-checker only; exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **`@types/bun`** for the Bun runtime declarations used by TypeScript; exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Bun** as Order package manager and production daemon/CLI runtime; exact pin from `GW-DOC-EXTERNAL-FACTS`;
 - **Bun.serve** with `development: false` for the loopback Order HTTP server;
 - **bun:sqlite** for Order SQLite access;
 - **Bun.spawn** with argv arrays, explicit environment/cwd and Order-owned cancellation/process-group handling for Git, OpenCode and verification;
@@ -74,24 +74,24 @@ Order v1 productive daemon execution is **Linux-only**. Linux x64 and arm64 are 
 - **SQLite**, WAL mode, one local host and one Order writer;
 - one re-armed **`setTimeout`** for the daemon-owned periodic coordinator wake-up.
 
-Bun executes/transpiles TypeScript but does not make runtime execution a type-check. The TypeScript build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` has no supported programmatic compiler API for this contract. Order therefore runs the pinned `tsc` CLI for type checking and does not import a TypeScript compiler API.
+Bun executes/transpiles TypeScript but does not make runtime execution a type-check. The TypeScript build bound by `GW-DOC-EXTERNAL-FACTS` has no supported programmatic compiler API for this contract. Order therefore runs the pinned `tsc` CLI for type checking and does not import a TypeScript compiler API.
 
-The v1 TypeScript compiler contract is exact: `target: "ESNext"`, `lib: ["ESNext", "DOM", "DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, and `types: ["bun"]`. These are grounded integration requirements in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md), not P7 choices.
+The v1 TypeScript compiler contract is exact: `target: "ESNext"`, `lib: ["ESNext", "DOM", "DOM.Iterable"]`, `module: "Preserve"`, `moduleResolution: "bundler"`, `moduleDetection: "force"`, `jsx: "react-jsx"`, `allowImportingTsExtensions: true`, `verbatimModuleSyntax: true`, `isolatedModules: true`, `strict: true`, `noEmit: true`, and `types: ["bun"]`. These are grounded integration requirements in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md), not P7 choices.
 
-The repository pins exact Bun in `.bun-version`, exact Node in `.node-version`, exact direct package versions with no ranges in `package.json`, and their complete resolution in committed `bun.lock`. Runtime packages and dev/build packages use the exact grouping in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §2](../references/external-facts.md). CI and verification install through `bun ci`; P7 does not choose a different package manager/install mode. The upstream capability facts for every built-in above are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+The repository pins exact Bun in `.bun-version`, exact Node in `.node-version`, exact direct package versions with no ranges in `package.json`, and their complete resolution in committed `bun.lock`. Runtime packages and dev/build packages use the exact grouping in [GW-DOC-EXTERNAL-FACTS §2](../references/external-facts.md). CI and verification install through `bun ci`; P7 does not choose a different package manager/install mode. The upstream capability facts for every built-in above are owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 ### Development/build/browser-test runtime
 
-The Vite, Vitest and Playwright Test builds bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` have Node runtime contracts. Order uses:
+The Vite, Vitest and Playwright Test builds bound by `GW-DOC-EXTERNAL-FACTS` have Node runtime contracts. Order uses:
 
-- **Node**, pinned in `.node-version` to the exact value owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
+- **Node**, pinned in `.node-version` to the exact value owned by `GW-DOC-EXTERNAL-FACTS`;
 - Vite build: `node node_modules/vite/bin/vite.js build`;
 - Vitest: `node node_modules/vitest/vitest.mjs run`;
 - Playwright browser install: `node node_modules/@playwright/test/cli.js install chromium`;
 - Playwright tests: `node node_modules/@playwright/test/cli.js test`;
 - Bun remains package manager and production Order runtime.
 
-These entry points come from the exact pinned package manifests recorded in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). Order does not invoke those CLIs through Bun or an ambient/global binary. Node compatibility is accepted because the pinned tools' documented requirements are satisfied and the build/test certification in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) passes.
+These entry points come from the exact pinned package manifests recorded in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). Order does not invoke those CLIs through Bun or an ambient/global binary. Node compatibility is accepted because the pinned tools' documented requirements are satisfied and the build/test certification in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) passes.
 
 ### Productive installation, guided setup and launcher
 
@@ -103,7 +103,7 @@ For the normal user-local install it must:
 
 - require Linux plus the grounded host transfer/archive and user-systemd capabilities; it never invokes `sudo` or a distro package manager;
 - stage the application/runtime installation before replacement. Re-running the installer is the supported update path: it detects an existing installation, quiesces the existing user service before any persisted-state transition, retains current configuration/provider credentials, upgrades supported previous configuration by preserving existing valid fields and supplying only newly introduced defaultable fields, and applies the P6 beta persisted-state transition policy before starting the new daemon;
-- install the exact Bun, Node and OpenCode versions owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` beneath the Order installation root instead of depending on ambient runtime binaries;
+- install the exact Bun, Node and OpenCode versions owned by `GW-DOC-EXTERNAL-FACTS` beneath the Order installation root instead of depending on ambient runtime binaries;
 - install the committed application dependency graph with pinned Bun, build production `dist/` with the pinned Node/Vite entry point, and refuse completion unless the expected runtime versions and `dist/index.html` are present;
 - install one `order` launcher in the user-local bin directory. The launcher prepends only the Order-private Bun/Node runtime paths, fixes `PONTIVUS_ORDER_OPENCODE_BIN` to the installed exact OpenCode binary, fixes the resolved Order state root for installed operation, and executes installed `src/cli.ts` with installed Bun;
 - make the default user-local launcher directory available to future login shells idempotently;
@@ -124,15 +124,15 @@ The user-level systemd unit is a host supervisor only. It starts exactly the ins
 
 ### Browser UI
 
-- **React** and **React DOM**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **`@types/react`** and **`@types/react-dom`**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Vite**, exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Tailwind CSS** with **`@tailwindcss/vite`**, exact pins from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **TanStack Query** for daemon-owned/server state, exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Zod** for canonical runtime schemas, exact pin from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`;
-- **Vitest** and **`@playwright/test`** for UI/integration validation, exact pins from `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`.
+- **React** and **React DOM**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS`;
+- **`@types/react`** and **`@types/react-dom`**, at the exact pins owned by `GW-DOC-EXTERNAL-FACTS`;
+- **Vite**, exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Tailwind CSS** with **`@tailwindcss/vite`**, exact pins from `GW-DOC-EXTERNAL-FACTS`;
+- **TanStack Query** for daemon-owned/server state, exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Zod** for canonical runtime schemas, exact pin from `GW-DOC-EXTERNAL-FACTS`;
+- **Vitest** and **`@playwright/test`** for UI/integration validation, exact pins from `GW-DOC-EXTERNAL-FACTS`.
 
-The automated v1 browser compatibility target is the exact Playwright-owned Chromium build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`. P7/CI explicitly installs that browser through the local Playwright CLI; package installation alone is not treated as browser installation. Order does not claim Firefox/WebKit compatibility in v1 without an explicit later certification change.
+The automated v1 browser compatibility target is the exact Playwright-owned Chromium build bound by `GW-DOC-EXTERNAL-FACTS`. P7/CI explicitly installs that browser through the local Playwright CLI; package installation alone is not treated as browser installation. Order does not claim Firefox/WebKit compatibility in v1 without an explicit later certification change.
 
 The UI is a static client SPA built by Vite and mounted with `react-dom/client.createRoot`; there is no SSR/hydration framework. Limited URL/search state uses the platform `URL`, `URLSearchParams` and History APIs; there is no router dependency.
 
@@ -140,7 +140,7 @@ Vite already transforms TSX; Order does not add `@vitejs/plugin-react` merely fo
 
 Vitest is explicitly Node-environment-only for functional-core, shell-unit and non-browser integration tests. DOM/browser behavior is validated by the pinned Playwright Chromium suite, so P7 does not add jsdom, happy-dom, React Testing Library or a Vitest browser package.
 
-The complete permitted direct package set is closed by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §8](../references/external-facts.md). P7 may not add convenience packages for TOML, UUIDs, hashing, globbing, SQLite, HTTP, scheduling, browser state, routing, DOM emulation/testing or other already-covered facilities.
+The complete permitted direct package set is closed by [GW-DOC-EXTERNAL-FACTS §8](../references/external-facts.md). P7 may not add convenience packages for TOML, UUIDs, hashing, globbing, SQLite, HTTP, scheduling, browser state, routing, DOM emulation/testing or other already-covered facilities.
 
 No Node-only server framework, ORM, workflow engine, message broker, DI framework or RPC framework is introduced.
 
@@ -164,7 +164,7 @@ The Workbench structural primitive vocabulary is closed by `GW-DOC-WORKBENCH-COM
 
 The visual enforcement boundary is closed by `GW-DOC-WORKBENCH-THEME-V1`: one root theme preference/substrate, the pinned public Astryx token language plus only genuinely Order-specific structural/readability tokens, and one Order-authored presentation stylesheet. Primitives/specialists consume that theme language; feature modules cannot define local palettes, type/spacing systems, theme islands or alternate component chrome.
 
-Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
+Order does not introduce a replacement primitive framework merely to recreate behavior the pinned design system already owns. Under `GW-TR-103-ASTRYX-FOUNDATION-CONFORMANCE` and `GW-DOC-EXTERNAL-FACTS`, a local semantic primitive composes the suitable Astryx component for low-level interaction/accessibility/state mechanics, exhausts supported props/layout/density/public theme tokens before custom CSS, and never targets private `--_` variables or generated/internal selectors. The local primitive continues to own the narrower Order semantic API and composition rule; Astryx does not own Order information architecture, domain semantics, browser/server state or lifecycle behavior.
 
 Generic foundation guidance remains subordinate to the P3 product contract. The nine-stage rail therefore is not forced into Astryx Stepper (whose pinned guidance recommends another pattern above seven steps), no AppShell SideNav is added to Order's single-navigation-axis Workbench, and a wide docked Context does not become a floating Drawer merely because Drawer exists.
 
@@ -336,7 +336,7 @@ Transport and persistence either:
 1. encode/decode the canonical P6 type directly; or
 2. carry minimal command arguments or ephemeral provider-stream frames that are not alternate representations of a domain concept.
 
-The exact canonical types are owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The exact canonical types are owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 7. Minimum physical implementation shape
 
@@ -395,7 +395,7 @@ A minimal same-layer physical split required to preserve an already-binding resp
 
 If a split requires a new semantic owner, public contract, state model, effect boundary, dependency direction, external dependency, or behavior outside the approved task, that is an architecture change and returns to DESIGN/PLAN. It is not compliant to keep adding functions to a catch-all module merely to avoid a physical split.
 
-When an architecture-preserving split introduces a new production module, the same implementation change must register the module's explicit same-layer dependency allowance and any mechanically checkable owner constraint in permanent architecture fitness. Ordinarily this extends `tests/architecture.test.ts`. When that file is part of the signed Approval's `VERIFICATION_MATERIAL` closure and is therefore immutable under `GW-DOC-CANONICAL-CONTRACTS-V1`, the Workbench V2 change instead adds its new module/owner/primitive/renderer/forbidden-mechanic assertions to the existing `tests/certification.test.ts`, executed by the signed `test` gate. This is a physical sensor-placement rule, not permission to alter `tests/architecture.test.ts`, bypass the `architecture` gate, reduce the baseline dependency DAG, omit required assertions or weaken the architecture fitness standard. The candidate must pass both gates, and any future change requiring alteration of immutable verification material returns to the owning authority before sign-off.
+When an architecture-preserving split introduces a new production module, the same implementation change must register the module's explicit same-layer dependency allowance and any mechanically checkable owner constraint in permanent architecture fitness. Ordinarily this extends `tests/architecture.test.ts`. When that file is part of the signed Approval's `VERIFICATION_MATERIAL` closure and is therefore immutable under `GW-DOC-CANONICAL-CONTRACTS`, the Workbench V2 change instead adds its new module/owner/primitive/renderer/forbidden-mechanic assertions to the existing `tests/certification.test.ts`, executed by the signed `test` gate. This is a physical sensor-placement rule, not permission to alter `tests/architecture.test.ts`, bypass the `architecture` gate, reduce the baseline dependency DAG, omit required assertions or weaken the architecture fitness standard. The candidate must pass both gates, and any future change requiring alteration of immutable verification material returns to the owning authority before sign-off.
 
 Raw file length, LOC and function count are diagnostic review signals only. They may trigger investigation, but architecture compliance is decided by responsibility ownership and boundary preservation rather than a numeric size limit.
 
@@ -497,7 +497,7 @@ Forbidden dependency directions:
 
 ## 8. Canonical P6 model ownership
 
-The canonical P6 data model is defined in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The canonical P6 data model is defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 The initial top-level semantic concepts are:
 
@@ -534,7 +534,7 @@ It owns:
 - concern-required logical gates;
 - logical verification gate -> exact argv/cwd/timeout/environment/material-reference binding.
 
-The exact manifest grammar is owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The exact manifest grammar is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Verification commands are argv arrays, never interpolated shell strings.
 
@@ -583,7 +583,7 @@ v1 requires exactly one machine-readable fenced block in the signed plan:
 ```
 ````
 
-The exact task-block schema is defined in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The exact task-block schema is defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Rules:
 
@@ -602,7 +602,7 @@ v1 uses SHA-256 over exact bytes.
 
 Each material `ArtifactRef` identifies an exact repository file at an exact baseline.
 
-Approval package hashing uses Order canonical JSON defined in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+Approval package hashing uses Order canonical JSON defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Before sign-off:
 
@@ -659,7 +659,7 @@ Conversation text alone never mutates an authoritative artifact.
 
 ## 15. OpenCode stage-session boundary
 
-The verified v1 integration uses the exact OpenCode server/client pair bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`.
+The verified v1 integration uses the exact OpenCode server/client pair bound by `GW-DOC-EXTERNAL-FACTS`.
 
 A new Order Run starts a fresh OpenCode session. Ordinary turns may continue it only while `contextHash`, provider/model and effective permissions are unchanged.
 
@@ -671,9 +671,9 @@ Sessions never cross Runs, lifecycle stages or work items.
 
 ## 16. OpenCode V2 server/client contract
 
-Order owns one foreground OpenCode provider process and its matching V2 client at the exact pins bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`. OpenCode remains an execution provider, never lifecycle/retry/context/completion authority.
+Order owns one foreground OpenCode provider process and its matching V2 client at the exact pins bound by `GW-DOC-EXTERNAL-FACTS`. OpenCode remains an execution provider, never lifecycle/retry/context/completion authority.
 
-The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INTEGRATION-V1 §§2-8](opencode-integration.md) and mechanically closed by [GW-DOC-CANONICAL-CONTRACTS-V1 §§25-26,29](../contracts/canonical-contracts.md):
+The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INTEGRATION-V1 §§2-8](opencode-integration.md) and mechanically closed by [GW-DOC-CANONICAL-CONTRACTS §§25-26,29](../contracts/canonical-contracts.md):
 
 - launch `opencode serve --hostname 127.0.0.1 --port 0`;
 - derive the actual private loopback endpoint only from the pinned bounded startup report, then authenticate and prove exact server-info readiness/version within 60 seconds;
@@ -681,7 +681,7 @@ The exact provider isolation/bootstrap contract is owned by [GW-DOC-OPENCODE-INT
 - fail closed when Linux `/etc/opencode` exists because pinned foreground `serve` cannot disable that system-config source;
 - disable project/Claude compatibility discovery with the pinned flags certified for the bound OpenCode build;
 - treat pinned read-triggered nested `AGENTS.md` injection only as a rendering of Order-pre-resolved, material P1 authority; unresolved repository instruction files block productive invocation;
-- install deny-first, exact role-specific permissions; STAGE may receive only the configured P6 reference-root `external_directory` read boundary and its prompt lists those roots as non-authoritative read-only locations, while every post-signoff role remains external-directory denied and mutation is allowed only for exact literal `ExecutionTask.changeSurface` paths;
+- install deny-first, exact role-specific permissions; STAGE may receive only the configured P6 reference-root `external_directory` read boundary and its prompt lists those roots as non-authoritative read-only locations, while every post-signoff role remains external-directory denied; BUILDER/REMEDIATOR native edit capability is a transient signed-scope envelope with immutable authority/instruction/Git/symlink hard denies, while exact scope/exclusion semantics remain coordinator-owned and `ExecutionTask.changeSurface` is only the immutable forecast;
 - bind and read back the exact provider/model from the canonical persisted Order configuration; silent fallback is rejected;
 - derive one deterministic prompt id from persisted Order identity; no event stream or experimental wait endpoint is correctness authority; the event stream may be consumed best-effort only for bounded/redacted operator-visible activity under `GW-DOC-OPENCODE-INTEGRATION-V1`;
 - prove terminal completion through advancing `time.idle` + outcome + final context;
@@ -705,7 +705,7 @@ It serves:
 
 v1 binds to loopback only. Remote/multi-user hosting is out of scope.
 
-The exact HTTP contracts are owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The exact HTTP contracts are owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 Important rules:
 
@@ -764,7 +764,7 @@ order provider login <provider>
 - `daemon` runs `orderd` in the foreground for the installed user service and explicit diagnostics; ordinary installed operation is supervised by the user-level `pontivus-order.service`;
 - `setup` is the explicit post-install reconfiguration/recovery surface for the same canonical P6 configuration. Bare `order setup` reuses an already-valid configuration/credential binding without prompting; `order setup --reconfigure` explicitly reopens model/root choices. The productive installer does not invoke either CLI form; both the installer and CLI reuse one canonical guided-configuration functional boundary;
 - `provider login <provider>` remains a narrow maintenance/recovery command for the same private OpenCode credential namespace; normal first-run authentication is driven directly by the custom installer through the same canonical provider shell functions;
-- `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
+- `open` performs the one-time browser-session bootstrap in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) and emits the authenticated connect URL; core v1 does not depend on a host default-browser opener;
 - `status` and `tick` call daemon HTTP contracts through CLI Bearer authentication. `tick` is an operational/global coordinator command and is not the Workbench task-local Start action. Lifecycle resume, exact current-task start and sign-off remain Workbench actions rather than duplicate CLI workflows.
 
 `orderd` owns periodic scheduling directly:
@@ -816,9 +816,9 @@ A signed `ExecutionTask` names logical gate ids.
 
 Order resolves each gate through `pontivus-order.toml` and executes the exact argv in the isolated workspace.
 
-Every unattended/correctness-bearing external process uses argv, explicit cwd, an explicit allowlisted environment, bounded output and `Bun.spawn({ detached: true, ... })` so the child owns a separate Linux process group. The sole v1 exception is operator-invoked `order provider login <provider>`: the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` requires an interactive stdin/stdout TTY for authentication for legitimate key/form/code flows, so the process shell passes through the current terminal while still owning the explicit argv/cwd/private provider environment and detached process-group lifecycle. Order does not parse that interactive output as semantic evidence.
+Every unattended/correctness-bearing external process uses argv, explicit cwd, an explicit allowlisted environment, bounded output and `Bun.spawn({ detached: true, ... })` so the child owns a separate Linux process group. The sole v1 exception is operator-invoked `order provider login <provider>`: the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS` requires an interactive stdin/stdout TTY for authentication for legitimate key/form/code flows, so the process shell passes through the current terminal while still owning the explicit argv/cwd/private provider environment and detached process-group lifecycle. Order does not parse that interactive output as semantic evidence.
 
-Order does not pass Bun's child-only `timeout`/AbortSignal as the cancellation authority. One shell helper owns timeout and explicit cancellation: it sends `SIGTERM` to the whole group with `process.kill(-pgid, "SIGTERM")`, waits at most 5 seconds for group disappearance, then sends `SIGKILL` to the same group if it still exists. Group existence is checked with signal `0`. The operation is not considered cancelled until the child has settled and the group no longer exists. The exact Linux semantics and descendant fixture are owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md) and [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+Order does not pass Bun's child-only `timeout`/AbortSignal as the cancellation authority. One shell helper owns timeout and explicit cancellation: it sends `SIGTERM` to the whole group with `process.kill(-pgid, "SIGTERM")`, waits at most 5 seconds for group disappearance, then sends `SIGKILL` to the same group if it still exists. Group existence is checked with signal `0`. The operation is not considered cancelled until the child has settled and the group no longer exists. The exact Linux semantics and descendant fixture are owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md) and [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 The builder cannot invent, weaken, replace or omit a required gate.
 
@@ -832,7 +832,7 @@ Order does not use an event bus.
 
 Pure reaction policy maps current state + admitted RunEvent/turn batch + governing policy to promotion, return, invalidation, bounded remediation, operational retry, linked IDEA creation or block. For STAGE Runs, the complete provider-result batch is validated before persistence and the provider batch plus coordinator reaction is committed atomically when no filesystem effect intervenes.
 
-The exact event union is defined in [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The exact event union is defined in [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## 23. Dependency invalidation
 
@@ -920,16 +920,16 @@ P7/CI/startup certification covers:
 
 | Integration | Verified v1 contract | Required proof |
 |---|---|---|
-| OpenCode | exact server/client pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; productive workspace/instruction boundary in `GW-DOC-OPENCODE-INTEGRATION-V1` | authenticated server-info readiness/version, sessions, exact model, permissions, deterministic prompt-id idempotency, monotonic `time.idle` + outcome completion proof, final context retrieval, foreground-`serve` restart behavior, interrupt, isolated STAGE materialization, all-role instruction closure, direct-read containment, external-reference isolation and correct local-vs-provider failure classification |
-| Bun/Linux host | exact Bun/declaration pins in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; productive host Linux | explicit-env detached spawn + negative-pgid TERM/KILL cancellation, `Bun.serve` production mode/loopback, TOML parse, Glob options, CSPRNG/SHA-256/UUID, Linux filesystem allowlist + SQLite binding, timer non-overlap |
-| Node/Linux guarded Markdown replacement | `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §14` | exclusive create/symlink refusal, stale-hash no-write, same-directory temp + file fsync + atomic rename + parent-directory fsync + exact read-back/hash; two Order mutations with one old hash cannot both succeed |
+| OpenCode | exact server/client pins in `GW-DOC-EXTERNAL-FACTS`; productive workspace/instruction boundary in `GW-DOC-OPENCODE-INTEGRATION-V1` | authenticated server-info readiness/version, sessions, exact model, permissions, deterministic prompt-id idempotency, monotonic `time.idle` + outcome completion proof, final context retrieval, foreground-`serve` restart behavior, interrupt, isolated STAGE materialization, all-role instruction closure, direct-read containment, external-reference isolation and correct local-vs-provider failure classification |
+| Bun/Linux host | exact Bun/declaration pins in `GW-DOC-EXTERNAL-FACTS`; productive host Linux | explicit-env detached spawn + negative-pgid TERM/KILL cancellation, `Bun.serve` production mode/loopback, TOML parse, Glob options, CSPRNG/SHA-256/UUID, Linux filesystem allowlist + SQLite binding, timer non-overlap |
+| Node/Linux guarded Markdown replacement | `GW-DOC-EXTERNAL-FACTS §14` | exclusive create/symlink refusal, stale-hash no-write, same-directory temp + file fsync + atomic rename + parent-directory fsync + exact read-back/hash; two Order mutations with one old hash cannot both succeed |
 | SQLite | embedded, required >=3.37 features | WAL, FULL sync, FK, JSON, STRICT |
 | Git | local CLI | top-level, revision verify, isolated clone, detached checkout, porcelain-v1 |
-| Browser | host-provided UI runtime; exact automated Chromium baseline in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` | same-origin fetch/cookie semantics, token bootstrap, exact Origin enforcement, active-Run polling/catch-up |
-| Node/frontend | exact Node/frontend pins in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12 §2](../references/external-facts.md) | `tsc` typecheck, React `createRoot`, Vite TSX build, Tailwind Vite plugin, TanStack Query invalidation/refetch, Zod ingress parsing, Vitest and `@playwright/test` under Node |
+| Browser | host-provided UI runtime; exact automated Chromium baseline in `GW-DOC-EXTERNAL-FACTS` | same-origin fetch/cookie semantics, token bootstrap, exact Origin enforcement, active-Run polling/catch-up |
+| Node/frontend | exact Node/frontend pins in [GW-DOC-EXTERNAL-FACTS §2](../references/external-facts.md) | `tsc` typecheck, React `createRoot`, Vite TSX build, Tailwind Vite plugin, TanStack Query invalidation/refetch, Zod ingress parsing, Vitest and `@playwright/test` under Node |
 | Local UI primitive boundary | Order-owned local primitives plus authorized public Astryx dependencies | no private-source dependency + project-neutral/vendor-clean + forbidden-import scan |
 
-The exact Order pins, public upstream snapshot and host/runtime version policy are defined in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md).
+The exact Order pins, public upstream snapshot and host/runtime version policy are defined in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md).
 
 A failed capability probe blocks the integration; Order does not silently select a weaker fallback. A vendor/source upgrade that changes relied-on behavior is P4/P6 material and must be re-audited.
 
@@ -971,13 +971,13 @@ A later requirement may change an exclusion only through the normal Order govern
 
 ## 29. Source-backed WorkItem and Markdown-workbench architecture
 
-This section is the P4 owner for the source-backed WorkItem/Markdown-workbench extension governed functionally by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. Exact schemas, persistence and HTTP shapes remain solely P6-owned by `GW-DOC-CANONICAL-CONTRACTS-V1`.
+This section is the P4 owner for the source-backed WorkItem/Markdown-workbench extension governed functionally by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. Exact schemas, persistence and HTTP shapes remain solely P6-owned by `GW-DOC-CANONICAL-CONTRACTS`.
 
 #### Dependency decision
 
 No new direct runtime or development dependency is authorized by this feature.
 
-The implementation reuses the existing pinned stack owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`:
+The implementation reuses the existing pinned stack owned by `GW-DOC-EXTERNAL-FACTS`:
 
 - React/React DOM for function-component presentation;
 - TanStack Query for daemon/server state;
@@ -986,7 +986,7 @@ The implementation reuses the existing pinned stack owned by `GW-DOC-EXTERNAL-FA
 - Bun SQLite for durable runtime projection;
 - existing Vite/Vitest/Playwright/Tailwind tooling.
 
-This extension adds a new correctness-bearing use of synchronous file replacement/durability mechanics. The refreshed `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` snapshot records the exact relied-upon contracts for Node `fs.openSync`/`O_EXCL`/`O_NOFOLLOW`, `fs.fsyncSync`, `fs.renameSync`, Linux `rename(2)` atomic replacement on the same filesystem, and the requirement to fsync the containing directory for durable directory-entry persistence. This architecture relies on that factual owner and does not own those vendor/host facts itself.
+This extension adds a new correctness-bearing use of synchronous file replacement/durability mechanics. The refreshed `GW-DOC-EXTERNAL-FACTS` snapshot records the exact relied-upon contracts for Node `fs.openSync`/`O_EXCL`/`O_NOFOLLOW`, `fs.fsyncSync`, `fs.renameSync`, Linux `rename(2)` atomic replacement on the same filesystem, and the requirement to fsync the containing directory for durable directory-entry persistence. This architecture relies on that factual owner and does not own those vendor/host facts itself.
 
 The governed Markdown editor remains a controlled native `<textarea>` interaction with local React presentation state. The source-backed WorkItem feature itself does not authorize CodeMirror, Monaco, ProseMirror/TipTap, Milkdown, EasyMDE, YAML/frontmatter tooling, a diff package, file watcher, ORM, Git library, generated API client, rich-text/AST authority or a second client-state store.
 
@@ -1141,7 +1141,7 @@ Presentation-local selection/editor/dirty state remains React component state. T
 
 #### Portable source location and discovery
 
-Productive `OrderConfig` v3 contains exact target `repositoryRoots` and STAGE `referenceRoots` only. WorkItem source location is project-owned inside the selected target repository under the resolved `pontivus-order.toml [workItems].root`, defaulting to `docs/order/work-items`. The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS-V1 §32](../contracts/canonical-contracts.md).
+Productive `OrderConfig` v3 contains exact target `repositoryRoots` and STAGE `referenceRoots` only. WorkItem source location is project-owned inside the selected target repository under the resolved `pontivus-order.toml [workItems].root`, defaulting to `docs/order/work-items`. The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS §32](../contracts/canonical-contracts.md).
 
 The daemon reconciles only deterministic `<workItems.root>/<WorkItemId>/work-request.md` candidates for each exact configured repository. It does not recursively inspect unrelated Markdown and does not adopt a moved source path. Symlinks are not followed as source files or traversal boundaries.
 
@@ -1164,7 +1164,7 @@ revalidate current WorkItem source
 Prompt projection:
 
 - R1: exact current WorkItem Markdown is included;
-- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT-V1`;
+- R2: exact current WorkItem Markdown is included where source-backed P2 intent is required by `GW-DOC-LIFECYCLE-CONTEXT`;
 - DESIGN/PLAN/R3: validated upstream artifacts remain the normal semantic carriers; raw source text is omitted unless the lifecycle context resolver says it is materially required;
 - every pre-signoff source-backed stage context hash includes the exact source SHA-256 even when the source body is not rendered.
 
@@ -1324,6 +1324,11 @@ Permanent tests must prove at least:
 - arbitrary repository artifact direct write rejected;
 - downstream historical lifecycle artifact edit rejected while an earlier stage owns the WorkItem;
 - human-edited current stage draft is supplied for reconformance.
+- every promotable R1/R2/DESIGN/PLAN/R3 completion passes the functional-core `evaluateStageConformance` decision for exactly one current deterministic output before coordinator-owned `CONFORMANCE_PASSED` and lifecycle transition;
+- PLAN completion additionally parses exactly one canonical `order-tasks` block from those exact current PLAN bytes before promotion; prompt wording or a section heading alone is not task-contract conformance;
+- R3 `READY_FOR_SIGNOFF` additionally validates that the current PLAN task definitions resolve every signed gate, concern and authority/acceptance ref, include concern-required gates, keep each change-surface path inside signed scope/outside exclusions, and do not mutate the current material authority closure; a return-to-* R3 outcome remains available when PLAN is defective;
+- delivery-schema v2 stage Markdown satisfies its pinned ordered structural template before promotion; v2 R2 additionally has a non-empty `REFERENCE | DELTA | LOCAL` authority-disposition ledger with canonical `GW-*` owners where required; historical v1 schema pins retain their original structural semantics.
+- the permanent architecture fitness sensor scans repository v2 WorkItem documents for shadow-authority hygiene: they cannot declare canonical concern ownership, cannot introduce the retired `WF-FR-*` namespace, and their R2 authority ledger cannot be absent or structurally empty.
 
 ##### Browser
 
@@ -1357,7 +1362,7 @@ The architecture above does not authorize implementation by itself. It is the bi
 
 ## 30. Repository-native WorkItem documentation architecture
 
-This section is the current P4 architecture for the repository-native WorkItem/documentation requirements owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
+This section is the current P4 architecture for the repository-native WorkItem/documentation requirements owned by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and `GW-DOC-MARKDOWN-WORKBENCH-V1`. It supersedes earlier architecture passages that describe one productive installation-global `workItemRoot`.
 
 ### 30.1 Boundary model
 
@@ -1961,7 +1966,7 @@ Evidence size is bounded by the existing Run-evidence policy; stderr capture use
 
 ## 33. Public repository delivery and release architecture
 
-This section is the P4 realization of `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+This section is the P4 realization of `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`.
 
 ### 33.1 Version owner
 
@@ -2124,7 +2129,7 @@ Floating `@main`, `@master` and mutable major-only action tags are not accepted 
 
 ## 34. Settings/configuration architecture
 
-This section is the P4 realization of the installation/configuration requirements owned by `GW-DOC-INSTALLATION-READINESS-V1` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS-V1 §35`.
+This section is the P4 realization of the installation/configuration requirements owned by `GW-DOC-INSTALLATION-READINESS-V1` and the P6 contracts in `GW-DOC-CANONICAL-CONTRACTS §35`.
 
 The design preserves one canonical configuration/runtime ownership path rather than layering Settings behavior over independent state or file writes.
 
@@ -2448,3 +2453,80 @@ Permanent migration tests must prove v3 choices survive byte-for-semantic-value 
 **Acceptance criterion:** Settings can remove saved accounts, including the active/final account, and the returned refreshed `OpenCodeAccountState` plus readiness accurately reflect the resulting OpenCode-owned state without changing model configuration.
 
 **Failure/negative behavior:** Order must not use secret-bearing credential listing, infer a replacement active account, remove an unproven credential id, or permit removal to straddle active productive Runs.
+
+
+## 35. Authority-driven 0.6.0 technical closure
+
+This section closes only the technical realization decisions exposed by the 0.6.0 exhaustive authority-first campaign. It does not restate P2/P3 semantics and does not make current implementation shape a preservation target.
+
+### 35.1 Resolved project authority remains a pure core concern
+
+`src/core/governance.ts` owns one pure resolution operation over the already-validated `ProjectManifest` plus repository-pattern expansion results supplied by the shell. The operation resolves, without filesystem I/O or persistence:
+
+- the selected P1-P6 source paths per layer;
+- explicit same-layer precedence relations exactly as declared by `precedence.p1` through `precedence.p6`; unlisted same-layer sources gain no implied precedence;
+- inherited P1 defaults, explicit overrides and compatible extensions by stable rule/reference identity;
+- the union of direct fitness gates and override/extension gates;
+- the exact authority references that must remain material to stage context and sign-off.
+
+Authority-array order and filesystem order remain processing order only. They never become semantic precedence.
+
+The selected `authority.p1`–`authority.p6` sources are a **reachable authority set**, not an instruction to materialize every selected source into every stage. Stage materiality remains owned by `GW-DOC-LIFECYCLE-CONTEXT`: the current pinned WorkItem schema/template, mandatory stage policy, explicit upstream/signed authority references and their dependencies select the applicable subset. A stable `GW-DOC-*` ref resolves the current canonical owner; an explicit versioned ref resolves that exact retained semantic snapshot. A retained older semantic source may therefore remain selected/reachable so its versioned ref is live under P6 without entering a current-schema context merely because it shares the same authority layer.
+
+The pure resolved projection must preserve enough ref/source identity to make that applicability deterministic. The daemon materializes only the applicable authority sources for the current stage and schema pin, then applies explicit same-layer precedence among sources that are simultaneously applicable. It must not turn `projectAuthorityForLayers(...)` or raw layer membership into an "include every selected file" context policy. Historical schema pins remain resolvable under their exact versioned authority while current v2 work consumes current stable owners unless a governing template/task explicitly names an older versioned ref.
+
+`src/shell/project.ts` remains the repository-pattern/I/O owner. It expands authority and precedence selections against normalized repository-relative paths and validates that every referenced/precedence/override/extension source is reachable. It does not decide semantic authority.
+
+`src/daemon/authority.ts` consumes the pure resolved result before constructing stage context. The provider receives the exact current manifest plus material authority artifacts in the resolved layer/precedence order; the daemon never asks the provider to invent precedence/default/override semantics. A same-layer semantic contradiction for which the resolved relation supplies no winner remains `CONTRADICTORY_AUTHORITY` and blocks through the existing stage/conformance path.
+
+The resolved projection is transient functional-core output only. No new DTO, persisted table, HTTP model, ArtifactRole, lifecycle state or shadow authority document is introduced.
+
+### 35.2 Permanent authority mutation uses the existing proposal/adoption owner
+
+The existing `ARTIFACT_PROPOSAL_CREATED` / adoption path is extended rather than duplicated.
+
+- During R2, a non-lifecycle proposal may target only an existing manifest-resolved P2 or P3 authority path and must declare `role = GOVERNANCE` plus the exact matching authority layer.
+- During DESIGN, a non-lifecycle proposal may target only an existing manifest-resolved P4, P5 or P6 authority path and must declare `role = GOVERNANCE` plus the exact matching authority layer.
+- The target path must already be selected by the current resolved authority graph for that exact layer; this 0.6.0 design does not authorize creation of a new permanent authority owner.
+- The proposal `baseSha256` must match the current target bytes. Adoption re-resolves the project manifest/authority immediately before mutation and again before disposition.
+- Lifecycle-document proposals retain their current stage-role/path semantics.
+- Lifecycle and permanent-authority proposals share the same one-pending-proposal interaction grammar and disposition state. There is no second proposal queue/state machine.
+
+An adopted permanent-authority proposal creates the ordinary immutable `GOVERNANCE` ArtifactRef for the changed bytes and uses existing dependency/freshness invalidation. The WorkItem lifecycle document records only the package consequence; it does not become a second permanent owner.
+
+### 35.3 Durable-decision human input remains input, never authority
+
+The existing HumanInput categories remain the only input taxonomy.
+
+`INFORMATION` and `EVIDENCE` may be consumed as ordinary conversational facts.
+
+`STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` are durable-decision categories. A human reply may supply the decision input, but the reply event itself never becomes durable product/technical authority. Before a STAGE Run can complete after the most recent answered durable-decision request, a later adopted artifact proposal must exist in that Run history (current lifecycle output or an admitted permanent-authority proposal as applicable). Otherwise completion admission fails and the stage remains with its current owner.
+
+This is enforced by pure Run-event-history admission logic plus the existing daemon stage owner. No decision database or conversational-authority record is added.
+
+### 35.4 Existing source, queue and Workbench owners are corrected in place
+
+The following are realization corrections under already-binding P3/P4 ownership, not new architecture:
+
+- `src/daemon/work-item-source.ts` factors one daemon-local planner for a newly validated source snapshot. Both browser creation and repository discovery produce the existing REGISTERED `QueuePlan` and persist only through the existing `applyPlan` boundary.
+- `ui/src/app.tsx` owns active/include-archived query selection plus project/search derivation; `WorkItemQueue.tsx` receives the already-filtered rows and archive-toggle state while retaining row-local restore mutation presentation.
+- `DocumentWorkspace.tsx` reuses its existing canonical Git-status path set and renders the exact changed governed paths in the confirmation before commit.
+- Workbench current-attention derivation remains pure/canonical and independent of explicit historical/supporting material selection.
+- Readiness, Approval, Settings and terminal-result corrections remain projections of existing canonical state; no readiness, settings or result field is added.
+
+### 35.5 Module-boundary consequences
+
+No new production module is required.
+
+- `src/core/governance.ts`: pure authority/default/override/precedence resolution.
+- `src/core/lifecycle.ts`: pure stage/input/proposal/completion admission policy where lifecycle semantics are involved.
+- `src/core/contracts.ts`: canonical schemas/events only.
+- `src/core/execution.ts`: role/event admission for the one new checkpoint-request event.
+- `src/shell/project.ts`: deterministic repository-pattern expansion/manifest source proof only.
+- `src/daemon/authority.ts`: compose resolved authority material into stage/sign-off context.
+- `src/daemon/stage.ts`: stage interaction, proposal adoption and durable-decision completion admission.
+- `src/daemon/work-item-source.ts`: singular source-admission/reconciliation orchestration.
+- `src/daemon/execution.ts` + `src/daemon/validation.ts`: signed checkpoint request/reaction using the existing verification effect owner.
+- existing Workbench feature renderers remain presentation adapters over canonical values.
+
+If implementation would require another state model, transport shape, persistence table, service/class abstraction, new production module or dependency, it returns to DESIGN before such a change is made.

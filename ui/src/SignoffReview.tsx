@@ -449,6 +449,14 @@ export const SignoffReview = ({
 
     return (
       <section className="order-workspace-section order-approval-overview" data-testid="review-workspace">
+        <div className="order-section-heading" data-testid="approval-readiness-summary">
+          <div>
+            <h2>Readiness</h2>
+            <span>Current R3 readiness admitted this exact package for authorization.</span>
+          </div>
+          <WorkbenchStatus tone="success" label="Ready for sign-off" />
+        </div>
+
         <div className="order-section-heading">
           <div>
             <h2>Package currentness</h2>

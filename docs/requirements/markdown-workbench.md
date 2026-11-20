@@ -22,7 +22,7 @@ This document owns only the **new operator interaction consequences of source-ba
 - terminal Markdown/result presentation for non-delivery investigation/audit completion;
 - repository-local documentation location/status and explicit human-triggered Git persistence for governed WorkItem Markdown.
 
-It does not own the generic queue, Run dialogue, artifact-proposal lifecycle, sign-off command, execution scheduler, validation semantics, candidate semantics, WorkItem-source identity/schema/reconciliation policy, lifecycle transitions, stage decision boundaries, technical architecture, persistence, or HTTP contracts. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`.
+It does not own the generic queue, Run dialogue, artifact-proposal lifecycle, sign-off command, execution scheduler, validation semantics, candidate semantics, WorkItem-source identity/schema/reconciliation policy, lifecycle transitions, stage decision boundaries, technical architecture, persistence, or HTTP contracts. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`, `GW-DOC-LIFECYCLE-CONTEXT`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE` and `GW-DOC-CANONICAL-CONTRACTS`.
 
 ## 2. Operator model
 
@@ -49,14 +49,14 @@ The queue remains the operator's entry point.
 Each valid WorkItem row exposes enough information to decide what needs attention:
 
 - title;
-- work kind resolved from the pinned WorkItem schema under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`;
+- work kind resolved from the pinned WorkItem schema under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`;
 - project;
 - lifecycle stage;
 - lifecycle status/outcome where applicable;
 - concerns;
 - source health/freshness state when it is not current.
 
-The queue provides an explicit **Refresh sources** action. That action invokes canonical reconciliation across the resolved WorkItem-document roots of the configured target repositories under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`; the UI does not scan or interpret files independently.
+The queue provides an explicit **Refresh sources** action. That action invokes canonical reconciliation across the resolved WorkItem-document roots of the configured target repositories under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`; the UI does not scan or interpret files independently.
 
 Source failures that cannot be represented as valid WorkItems remain visible through a queue-level diagnostics surface. At minimum it distinguishes:
 
@@ -70,7 +70,7 @@ A diagnostic identifies the source path and the actionable reason. Order must no
 
 ## 4. Governed WorkItem creation
 
-`GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` owns the catalog-driven authoring choices and derived metadata. The local workbench requires **Project** selection first because that choice resolves the repository and project-local Order documentation root. It then renders the canonical kind/concern choices plus the title input; it does not maintain another option list or add free-text process identifiers.
+`GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` owns the catalog-driven authoring choices and derived metadata. The local workbench requires **Project** selection first because that choice resolves the repository and project-local Order documentation root. It then renders the canonical kind/concern choices plus the title input; it does not maintain another option list or add free-text process identifiers.
 
 Before creation, the workbench shows the selected project and resolved repository-relative documentation root. After the create command materializes/reconciles `<documentation-root>/<WorkItemId>/work-request.md`, the workbench opens that exact source for further authoring. Browser creation and repository-authored Markdown therefore converge on the same project-local source-backed workspace.
 
@@ -111,7 +111,7 @@ A successful save must enter the same canonical freshness/conformance system use
 
 ### 6.2 R3 independence
 
-R3 is an independent readiness judgment under `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+R3 is an independent readiness judgment under `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT`.
 
 The R3 Markdown result is viewable but not directly human-editable. If R3 is wrong or stale, the operator returns/reruns the owning readiness process rather than rewriting the independent verdict in place.
 
@@ -146,7 +146,7 @@ The existing interactive STAGE dialogue remains part of the WorkItem workspace.
 
 The UI distinguishes transient conversation from durable Markdown authority.
 
-When material human clarification changes the originating request/P2 intent, downstream promotion cannot rely on the chat message alone under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`. The workbench must make the required action explicit: update the WorkItem source or the appropriate canonical project authority, save it, then resume/re-run from the lifecycle state selected by canonical freshness rules.
+When material human clarification changes the originating request/P2 intent, downstream promotion cannot rely on the chat message alone under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`. The workbench must make the required action explicit: update the WorkItem source or the appropriate canonical project authority, save it, then resume/re-run from the lifecycle state selected by canonical freshness rules.
 
 The workbench must not silently copy a chat answer into Markdown or silently treat the answer as durable authority.
 
@@ -186,7 +186,7 @@ Run history, questions, evidence and artifact proposals remain inspectable from 
 
 ## 11. R3 and sign-off package review
 
-The exact sign-off package, approval baseline, task display, package hash and explicit approval action remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`.
+The exact sign-off package, approval baseline, task display, package hash and explicit approval action remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE` and `GW-DOC-CANONICAL-CONTRACTS`.
 
 This extension adds two source-backed workbench behaviors to that existing surface:
 
@@ -205,7 +205,7 @@ Signed lifecycle Markdown may remain inspectable, but changing it requires retur
 
 ## 13. Investigation and audit completion
 
-`INVESTIGATION` and `AUDIT` WorkItems may terminate without implementation under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`.
+`INVESTIGATION` and `AUDIT` WorkItems may terminate without implementation under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 The terminal workbench view must present the evidence-backed result as successful non-delivery completion rather than as a failed or incomplete execution flow.
 
@@ -394,7 +394,7 @@ This workbench extension does not authorize:
 
 ## 17. Downstream design obligations
 
-`GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1` must resolve, without changing the behavior above:
+`GW-DOC-TECHNICAL-ARCHITECTURE` and `GW-DOC-CANONICAL-CONTRACTS` must resolve, without changing the behavior above:
 
 1. one canonical Markdown source/catalog parser and one filesystem effect owner for repository-local WorkItem files;
 2. the source/document query, optimistic-save, documentation-Git-status and exact path-scoped commit command contracts;
@@ -432,7 +432,7 @@ The canonical Markdown repository file remains the only persisted document autho
 
 For lifecycle documents and other wholly human-authored Markdown, the editor buffer is the exact complete source string.
 
-For the portable WorkItem source, the ordinary editor buffer may be the human-authored body defined by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §15. In that case Order composes the saved canonical file from:
+For the portable WorkItem source, the ordinary editor buffer may be the human-authored body defined by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` §15. In that case Order composes the saved canonical file from:
 
 - the current validated system-owned metadata envelope, preserved unchanged; and
 - the exact current human-authored body buffer.
@@ -606,7 +606,7 @@ This extension does not authorize:
 
 ## 19. WorkItem source authoring presentation addendum (2026-11-13)
 
-This section owns only the editor/presentation consequence of `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` §15.
+This section owns only the editor/presentation consequence of `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` §15.
 
 ### 19.1 Normal authoring surface
 

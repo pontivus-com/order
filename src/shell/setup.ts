@@ -419,15 +419,6 @@ const runGuidedSetupInternal = async (
     upgrading = true;
   }
 
-  if (allowLegacyUpdate && configured === null && !reconfigure) {
-    writeOrderConfig(stateRoot, buildOrderConfig(null, [], []));
-    writeStdout(
-      "Order installation initialized with configuration version 4.\n" +
-      "requires operator action: complete repository, OpenCode account and model setup in browser Settings.\n",
-    );
-    return 0;
-  }
-
   if (allowLegacyUpdate && configured?.version === 4 && !reconfigure) {
     writeOrderConfig(stateRoot, configured);
     const concerns = [

@@ -48,7 +48,7 @@ candidate done
 
 The LLM does engineering work inside the task. It does not own queue state, validation branching, retry policy, task selection, approval validity, or final completion state.
 
-Concrete workspace, provider, event/reaction, project-manifest, and candidate-handoff hooks are defined by [GW-DOC-TECHNICAL-ARCHITECTURE-V1](technical-architecture.md).
+Concrete workspace, provider, event/reaction, project-manifest, and candidate-handoff hooks are defined by [GW-DOC-TECHNICAL-ARCHITECTURE](technical-architecture.md).
 
 ## 2. v1 execution topology
 
@@ -134,9 +134,9 @@ In both modes one SQLite transaction:
 
 The manual command cannot cause another globally eligible task to be selected. It does not create a second queue, scheduler or claim state.
 
-If the daemon stops while a post-signoff Run is `RUNNING`, startup recovery marks that Run `FAILED / COORDINATOR_INTERRUPTED`, abandons its workspace, and applies the bounded operational-action retry policy in [GW-DOC-CANONICAL-CONTRACTS-V1 §§8,21](../contracts/canonical-contracts.md). When the single automatic replacement is permitted the ExecutionTask remains `RUNNING` and the coordinator creates the same-role/same-trigger continuation Run; otherwise task and WorkItem block. Automatic recovery never routes through `TODO`.
+If the daemon stops while a post-signoff Run is `RUNNING`, startup recovery marks that Run `FAILED / COORDINATOR_INTERRUPTED`, abandons its workspace, and applies the bounded operational-action retry policy in [GW-DOC-CANONICAL-CONTRACTS §§8,21](../contracts/canonical-contracts.md). When the single automatic replacement is permitted the ExecutionTask remains `RUNNING` and the coordinator creates the same-role/same-trigger continuation Run; otherwise task and WorkItem block. Automatic recovery never routes through `TODO`.
 
-A task remains `RUNNING` across builder/reviewer/remediator Run boundaries. When no Run is active for that task, the coordinator first reconciles the last durable RunEvent and starts the uniquely required continuation Run, if any, before considering another `TODO` task. Exact continuation eligibility/atomicity is owned by [GW-DOC-CANONICAL-CONTRACTS-V1 §§17,23](../contracts/canonical-contracts.md).
+A task remains `RUNNING` across builder/reviewer/remediator Run boundaries. When no Run is active for that task, the coordinator first reconciles the last durable RunEvent and starts the uniquely required continuation Run, if any, before considering another `TODO` task. Exact continuation eligibility/atomicity is owned by [GW-DOC-CANONICAL-CONTRACTS §§17,23](../contracts/canonical-contracts.md).
 
 ## 5. Preflight
 
@@ -182,7 +182,7 @@ Purpose: independently prove or disprove semantic completion, architecture/gover
 
 Purpose: apply only one already-classified repairable failure to the exact triggering candidate under the existing signed task. A remediator is mutating but owns no new scope, requirement, architecture, contract or failure classification.
 
-A provider failure during a mutating builder/remediator Run abandons that execution workspace. Post-signoff replacement is governed only by the bounded operational-action policy in [GW-DOC-CANONICAL-CONTRACTS-V1 §21](../contracts/canonical-contracts.md), and every permitted replacement starts from a fresh isolated checkout. Pre-signoff read-only stage Runs may replace a lost provider session from canonical Order/repository state; post-signoff reviewer replacement is likewise bounded by [GW-DOC-CANONICAL-CONTRACTS-V1 §21](../contracts/canonical-contracts.md).
+A provider failure during a mutating builder/remediator Run abandons that execution workspace. Post-signoff replacement is governed only by the bounded operational-action policy in [GW-DOC-CANONICAL-CONTRACTS §21](../contracts/canonical-contracts.md), and every permitted replacement starts from a fresh isolated checkout. Pre-signoff read-only stage Runs may replace a lost provider session from canonical Order/repository state; post-signoff reviewer replacement is likewise bounded by [GW-DOC-CANONICAL-CONTRACTS §21](../contracts/canonical-contracts.md).
 
 ## 7. Mechanical verification
 
@@ -225,7 +225,7 @@ Large raw transcripts/logs are not canonical task state. v1 defines no automated
 
 ## 10. Semantic event/reaction path
 
-Execution effects are normalized into the semantic `RunEvent` contract owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md), under the technical architecture in [GW-DOC-TECHNICAL-ARCHITECTURE-V1](technical-architecture.md).
+Execution effects are normalized into the semantic `RunEvent` contract owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md), under the technical architecture in [GW-DOC-TECHNICAL-ARCHITECTURE](technical-architecture.md).
 
 The functional core classifies each semantic event into the next allowed reaction: promotion, bounded remediation, operational retry, invalidation, upstream return, linked IDEA creation, or block.
 
@@ -247,3 +247,75 @@ Initial terminal outcomes include:
 - `PROVIDER_FAILURE`.
 
 `CANDIDATE_DONE` means every applicable validation stage passed. It does not authorize commit, PR, merge, deployment, or production mutation.
+
+
+## 12. Signed in-task verification checkpoints
+
+A P7 architecture-feedback checkpoint is executable through the coordinator; productive providers remain denied ambient shell/execute authority.
+
+### 12.1 Request/result split
+
+The canonical provider event set gains exactly one BUILDER-only request:
+
+```text
+GATE_CHECKPOINT_REQUESTED { gateId }
+```
+
+The request is not verification proof. The coordinator accepts it only when:
+
+- the current Run role is `BUILDER`;
+- `gateId` is in the current signed ExecutionTask `gateIds`;
+- the gate still resolves from the current validated ProjectManifest;
+- approval/task/context freshness remains valid.
+
+The coordinator executes the exact gate in the current isolated builder workspace through the existing `runVerificationGate` / validation effect owner and records the existing coordinator-owned `GATE_PASSED` or `GATE_FAILED` event plus ordinary immutable gate evidence.
+
+### 12.2 Continuation
+
+After a checkpoint result the same BUILDER Run/provider session may continue with the exact result as its next trigger/context:
+
+- pass -> continue the signed task;
+- fail -> only correction within the signed semantic scope/accepted design is allowed, including an S9-authorized minimum same-layer physical decomposition when required to preserve an already-resolved responsibility/effect boundary; otherwise block for upstream resolution. A physical path absent from the forecast is not by itself an upstream-return condition.
+
+A checkpoint result does not substitute for V3/V5/V7 and does not mark a task/candidate successful. Final validation continues to execute the signed gate set independently at its existing stages.
+
+A request for an unsigned/unresolved gate is invalid provider output. No second gate registry, validation state machine, provider shell permission or persisted checkpoint status is introduced.
+
+### 12.3 Execution-control baseline precondition
+
+Checkpoint capability is part of the coordinator that owns the Run, not part of candidate repository state.
+
+If a signed P7 task requires an in-task architecture-feedback checkpoint, the exact coordinator/runtime governing that Run must already implement this §12 contract **before sign-off and before the first BUILDER turn**. A task cannot satisfy this precondition by modifying its own candidate bytes:
+
+- every execution Run starts from the immutable Approval baseline;
+- the coordinator process, provider-event admission and turn/reaction loop are outside the candidate workspace;
+- dependency tasks in the same Approval change eligibility only and do not promote candidate bytes into another task baseline.
+
+Therefore a change to checkpoint event grammar, provider admission, coordinator gate execution or same-Run continuation that is required to govern a later package is a **prerequisite execution-control change**. It must be completed through a separately governed WorkItem, integrated into the repository/runtime baseline, and the dependent package must then be freshly reconstructed/revalidated against that exact baseline. A PLAN must not place the checkpoint-control implementation inside the same signed task whose ordered steps depend on that capability.
+
+This is a bootstrap constraint, not a second task-dependency model.
+
+## 13. Signed scope, change-surface forecast and architecture-preserving variance
+
+The signed task has two distinct boundaries:
+
+- `scope` / `exclusions` define the signed repository reach within which implementation may operate;
+- `changeSurface` records the exact **expected physical path forecast** reviewed at PLAN/sign-off.
+
+`changeSurface` is not an independent semantic authority and is not an exhaustive physical whitelist. The implementation remains bounded by the task objective, acceptance/authority references, signed concerns, scope/exclusions and the resolved P1-P6 design.
+
+V2 must fail closed for:
+
+- any changed path outside signed `scope`;
+- any changed path admitted by `exclusions`;
+- repository instructions such as `AGENTS.md`;
+- signed material authority, project-manifest/governance sources, or immutable verification sources that the task is not permitted to modify;
+- any deterministic protected path class owned by the Approval/project-governance closure.
+
+For an otherwise admitted path that is absent from `changeSurface`, V2 records no automatic scope breach merely because the forecast omitted that physical path. The resulting diff proceeds through the ordinary V3-V6 path. V4/V5/V6 must then positively prove that the variance is exactly the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary and that canonical semantic ownership, public contracts, state meaning, dependency direction, external dependencies, validation contract and authorized behavior are unchanged. Productive BUILDER/REMEDIATOR native edit permission is therefore derived from a transient signed-scope capability envelope rather than the forecast; immutable authority/instruction/Git/symlink paths remain hard-denied. The envelope is not semantic authorization and may be broader than Bun.Glob when the pinned provider wildcard cannot encode the signed pattern exactly.
+
+If those propositions cannot be proved, classification is the existing appropriate `SCOPE_BREACH`, `GOVERNANCE_BREACH`, `BLOCKED_SPEC_OR_DESIGN` or `CHANGE_BLOAT` path; execution does not invent a design. Before a BUILDER checkpoint gate is allowed to observe the mutable workspace, the coordinator captures the current diff and applies the exact V2 signed-scope/exclusion/protected-path validator; an invalid intermediate diff blocks through the existing scope path and the gate is not executed.
+
+V6 is not an unconditional evidence-recording pass. A V4 `REVIEW_PASSED` includes the independent reviewer's structured minimum-change proposition. After V5 passes, the coordinator alone maps that proposition to V6: `MINIMUM_SUFFICIENT` passes; `CHANGE_BLOAT` emits `VALIDATION_FAILED / V6 / CHANGE_BLOAT` with the review evidence and removable-surface summary and may consume only the existing bounded reduction entitlement.
+
+The actual changed-path set is retained in the existing candidate/Run evidence. No new persisted “variance” DTO/state, dynamic scope mutation or second authorization list is introduced.

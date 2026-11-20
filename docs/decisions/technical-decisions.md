@@ -4,7 +4,7 @@
 **Canonical concern ID:** `GW-DOC-TECHNICAL-DECISIONS`  
 **Versioned concern ID:** `GW-DOC-TECHNICAL-DECISIONS-V1`  
 
-This register records consequential technical choices that were previously open. Their owning technical contract is [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md).
+This register records consequential technical choices that were previously open. Their owning technical contract is [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md).
 
 ## D1 — Workspace isolation strategy
 
@@ -46,15 +46,15 @@ Any signed closure artifact byte change or approved WorkItem-source byte change 
 
 **Status:** RESOLVED
 
-The verified v1 provider baseline is the exact matching OpenCode server/V2-client pair owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). This decision owns the requirement that the pair is exact and matched; it does not duplicate the version values.
+The verified v1 provider baseline is the exact matching OpenCode server/V2-client pair owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). This decision owns the requirement that the pair is exact and matched; it does not duplicate the version values.
 
 Order starts and supervises its own loopback-only `opencode serve` child process. It does not use repeated `opencode run --session` invocations as the interactive control plane and does not attach to an arbitrary user OpenCode background service.
 
 Each Order Run starts with a fresh OpenCode session. Ordinary turns may continue that session only while the resolved Order `contextHash` remains unchanged. A material authority/context change replaces the OpenCode session before the next productive turn, even when the Order Run and lifecycle stage remain the same. Sessions never cross Order Run, lifecycle-stage or work-item boundaries.
 
-Order does not subscribe to OpenCode's live event stream in v1 and does not depend on experimental event/wait APIs for correctness. It uses the pinned released V2 durable-session contract and a deterministic prompt admission id. Post-signoff provider loss is governed by Order's bounded same-role/same-trigger operational replacement policy: at most one automatic replacement Run, always with a fresh D1 checkout/session, then block. The exact admission, completion and provider-loss semantics are owned by [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) and [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md). Plain foreground `opencode serve` remains part of this resolved decision; switching to OpenCode service mode is a material integration change.
+Order does not subscribe to OpenCode's live event stream in v1 and does not depend on experimental event/wait APIs for correctness. It uses the pinned released V2 durable-session contract and a deterministic prompt admission id. Post-signoff provider loss is governed by Order's bounded same-role/same-trigger operational replacement policy: at most one automatic replacement Run, always with a fresh D1 checkout/session, then block. The exact admission, completion and provider-loss semantics are owned by [GW-DOC-OPENCODE-INTEGRATION-V1](../architecture/opencode-integration.md) and [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md). Plain foreground `opencode serve` remains part of this resolved decision; switching to OpenCode service mode is a material integration change.
 
-The provider process runs in a Order-private HOME/XDG/database namespace and fails closed on the pinned Linux system-config source that the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` cannot disable. Ordinary project/Claude compatibility discovery is disabled through the pinned foreground-server controls. Because the bound OpenCode build's `read` tool can still inject nested `AGENTS.md`, Order pre-resolves every such file as material P1 authority before productive use; that provider behavior is therefore a rendering of already-resolved authority, not an alternate discovery mechanism. External plugin/skill sources are kept off Order's correctness path by the isolated namespace and deny-first session capability profile; `OPENCODE_PURE`/external-skill flags are defense in depth unless independently certified. Order never delegates Order HITL decisions to OpenCode `ask` permissions.
+The provider process runs in a Order-private HOME/XDG/database namespace and fails closed on the pinned Linux system-config source that the OpenCode build bound by `GW-DOC-EXTERNAL-FACTS` cannot disable. Ordinary project/Claude compatibility discovery is disabled through the pinned foreground-server controls. Because the bound OpenCode build's `read` tool can still inject nested `AGENTS.md`, Order pre-resolves every such file as material P1 authority before productive use; that provider behavior is therefore a rendering of already-resolved authority, not an alternate discovery mechanism. External plugin/skill sources are kept off Order's correctness path by the isolated namespace and deny-first session capability profile; `OPENCODE_PURE`/external-skill flags are defense in depth unless independently certified. Order never delegates Order HITL decisions to OpenCode `ask` permissions.
 
 The current released V2 client contract does not provide a verified equivalent of the legacy SDK's JSON-schema output mechanism. Order therefore uses final assistant JSON text plus its canonical Zod parser, with at most one tool-disabled format-repair turn. A future native structured-output path may replace this rendering only after a pinned-version capability audit.
 
@@ -128,13 +128,13 @@ No message broker/event-bus architecture is introduced.
 
 **Status:** RESOLVED
 
-v1 uses the exact dependency set and pins owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). This decision owns the closed technology/dependency choice and exact-pin posture; the version values remain solely in that canonical factual snapshot.
+v1 uses the exact dependency set and pins owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). This decision owns the closed technology/dependency choice and exact-pin posture; the version values remain solely in that canonical factual snapshot.
 
-These are Order v1 pins, not claims that every pin is the newest upstream package. The factual upstream-versus-pin snapshot, exact runtime/dev dependency grouping, lockfile/install contract and Pontivus reuse baseline are documented in [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). Productive v1 daemon execution is Linux-only; Windows/macOS are later P4/P6 host integrations rather than P7 branches.
+These are Order v1 pins, not claims that every pin is the newest upstream package. The factual upstream-versus-pin snapshot, exact runtime/dev dependency grouping, lockfile/install contract and Pontivus reuse baseline are documented in [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). Productive v1 daemon execution is Linux-only; Windows/macOS are later P4/P6 host integrations rather than P7 branches.
 
-TypeScript 7.0 has no stable programmatic compiler API, so Order does not import the TypeScript compiler API. The complete TypeScript/Bun/Vite compiler options are fixed by [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md) and certified by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md), rather than left to P7. Vite/Vitest/`@playwright/test` run under the pinned Node runtime rather than relying on Bun's Node compatibility.
+TypeScript 7.0 has no stable programmatic compiler API, so Order does not import the TypeScript compiler API. The complete TypeScript/Bun/Vite compiler options are fixed by [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md) and certified by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md), rather than left to P7. Vite/Vitest/`@playwright/test` run under the pinned Node runtime rather than relying on Bun's Node compatibility.
 
-The automated v1 browser compatibility target is the exact Playwright-owned Chromium build identified by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`; Firefox/WebKit compatibility is not implied. TanStack Query owns daemon/server state in the UI; ordinary React component/URL state owns presentation-local state; no global client-state store is introduced. Zod owns canonical runtime schemas.
+The automated v1 browser compatibility target is the exact Playwright-owned Chromium build identified by `GW-DOC-EXTERNAL-FACTS`; Firefox/WebKit compatibility is not implied. TanStack Query owns daemon/server state in the UI; ordinary React component/URL state owns presentation-local state; no global client-state store is introduced. Zod owns canonical runtime schemas.
 
 The local SPA is served by the persistent Bun daemon. No SSR framework, ORM, Electron/Tauri runtime, Radix, Tremor or replacement application framework is introduced in v1. D16 authorizes a selective pinned Astryx component dependency beneath Order's existing local semantic UI boundary; that does not transfer workbench information architecture or state ownership to Astryx.
 
@@ -150,13 +150,13 @@ Order uses only project-neutral UI contracts/patterns/primitives permitted by it
 
 Browser and CLI use the same loopback HTTP command/query boundary. The browser observes active Runs by polling the canonical Run/RunEvent queries and invalidating/refetching after mutations. `order open` emits the one-time authenticated connect URL; automatic host-browser launching is not a v1 correctness dependency. v1 has no browser WebSocket/SSE transport and no provider-token forwarding.
 
-The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md).
+The exact contract is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md).
 
 ## D13 — P6 contract and persistence ownership
 
 **Status:** RESOLVED
 
-[GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md) is the single owner of v1 semantic schemas, `pontivus-order.toml`, the signed task-block grammar, SQLite schema and HTTP contracts.
+[GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md) is the single owner of v1 semantic schemas, `pontivus-order.toml`, the signed task-block grammar, SQLite schema and HTTP contracts.
 
 One Zod schema/type owns each semantic concept. There are no DTO/domain/persistence/UI copies.
 
@@ -168,7 +168,7 @@ Every external capability on Order's correctness path requires both a pinned/ver
 
 This applies to OpenCode, Linux host/process/filesystem semantics, Bun subprocess/HTTP/TOML/Glob/crypto/timer behavior, embedded SQLite features/pragmas, Git checkout/status semantics, package/lockfile materialization, Node/frontend tooling, browser loopback security/protocol behavior, timestamp/canonical-JSON standards and the selected generic UI component substrate.
 
-Vendor documentation alone is not runtime proof. The dated version/provenance snapshot is owned by [GW-DOC-EXTERNAL-FACTS-V1-2026-11-12](../references/external-facts.md). An upgrade or failed capability probe blocks execution rather than silently selecting a fallback.
+Vendor documentation alone is not runtime proof. The dated version/provenance snapshot is owned by [GW-DOC-EXTERNAL-FACTS](../references/external-facts.md). An upgrade or failed capability probe blocks execution rather than silently selecting a fallback.
 
 ## D15 — Productive bootstrap, private provider state and repository access
 
@@ -191,7 +191,7 @@ This decision introduces no provider abstraction, credential copy/import layer, 
 
 **Status:** RESOLVED
 
-Order uses the exact pinned Astryx dependency set owned by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` to implement generic accessible workbench interactions defined by `GW-DOC-WORKBENCH-UX-V2` and technically constrained by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`.
+Order uses the exact pinned Astryx dependency set owned by `GW-DOC-EXTERNAL-FACTS` to implement generic accessible workbench interactions defined by `GW-DOC-WORKBENCH-UX-V2` and technically constrained by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`.
 
 Astryx remains below Order's local semantic UI boundary. Order continues to own information architecture, lifecycle/domain state, action semantics, responsive space allocation, canonical types, TanStack Query server state and browser presentation state. Astryx may supply layout, drawer, table/list, selector, segmented-control, icon, chat, status, code/evidence and related generic interaction primitives.
 
@@ -208,7 +208,7 @@ The root Astryx Theme is the single mounted component owner of ongoing root them
 
 **Status:** RESOLVED
 
-Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`. The live technical namespace and bounded predecessor migration are owned by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`.
+Public product identity is owned by `GW-DOC-PRODUCT-IDENTITY-V1`. The live technical namespace and bounded predecessor migration are owned by `GW-DOC-TECHNICAL-ARCHITECTURE`.
 
 The identity change is a semantic-preserving product/technical rename, not a lifecycle or domain redesign. Stable `GW-*` authority identifiers remain unchanged. The productive runtime has one live identity after cutover; Gateweft recognition is limited to historical provenance, the final pre-cutover task-fence bootstrap, and bounded installer-owned predecessor migration.
 
@@ -264,4 +264,4 @@ All repository changes, including documentation/governance changes, are delivere
 
 After a release PR merges, permanent release automation re-verifies the exact `master` commit, builds/checksums the Order release bundle, creates immutable `vX.Y.Z` tag semantics and publishes the matching GitHub Release/assets. Public installation/update consumes release assets, not arbitrary `master`.
 
-The complete governance/automation contract is owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1` and `GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION`.
+The complete governance/automation contract is owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY` and `GW-TR-057-PUBLIC-REPOSITORY-RELEASE-AUTOMATION`.

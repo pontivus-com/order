@@ -2,9 +2,39 @@
 
 All notable public changes to Order are recorded here.
 
-Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1`.
+Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVERY`.
 
 ## [Unreleased]
+
+### Changed
+
+- Implement the authority-driven 0.6.0 candidate across the existing canonical owners: resolve project authority into productive context, govern permanent-authority and durable-decision admission, add current-v2 Change/Defect task non-vacuity and normalized Approval identity without changing published v1 task semantics, converge created/discovered WorkItem registration and queue/create/documentation-Git behavior, align Workbench attention/readiness/Approval/Settings/result semantics and work-kind/theme certification, and require fresh installation to complete productive guided setup while retaining incomplete-v4 recovery, upgrade continuity, and the explicit operator-triggered WorkItem documentation-Git exception.
+
+- Reopen the 0.6.0 design campaign after an adversarial gate audit disproved the former G0-G6 closure: add a separately governed Phase-0 correction for single-owned campaign state, mandatory pair-audit evidence/progression, and exhaustive stable-P3 R2 disposition coverage; strengthen permanent campaign fitness before any new readiness/sign-off attempt.
+
+- Establish WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21` as the sole governed 0.6.0 design-campaign work point: exhaustive concern/requirement inventory, explicit concern START/END investigation boundaries, cross-concern finding tracking, integrated functional-design and technical-design gates, complete P1→P7 traceability, and adversarial readiness before implementation authority.
+
+- Close the documentation-governance failure that allowed 0.5.0 authority drift before any 0.6.0 product redesign: add authority-aware Change/Defect v2 authoring schemas while preserving v1 history, require explicit P3 requirement dispositions, require current-v2 DESIGN and PLAN authoring to carry the complete binding S7 and S8-S10 content contracts, restore functional-core stage conformance output closure so empty/wrong/stale/incomplete lifecycle artifacts cannot promote, strengthen R3 authority-topology review, and bind repository delivery to exact-current-candidate verification without assuming a nonexistent independent reviewer.
+
+### Fixed
+
+- Close the adversarial 0.6.0 Wave 1–4 remediation gaps without adding new semantic owners: preserve one-time required-input focus across Workbench remounts, keep current attention explicit during historical inspection with one direct return to its owning action, and complete permanent proof for durable EVIDENCE input, current-v2 PLAN/R3/sign-off task admission, Approval identity, queue filter composition, documentation-Git blockers, and typed Readiness verdict/currentness separation.
+
+- Make lifecycle Markdown browser verification assert canonical post-save PLAN bytes and editor save completion instead of reconstructing the document from CodeMirror's virtualized rendered lines, eliminating a timing-sensitive false failure without changing product behavior.
+
+- Clarify 0.6.0 documentation-state hygiene so retained G1/PLAN/R3 audit records and the canonical R3 verdict cannot be mistaken for current campaign state, while preserving the campaign registers as the sole current-state owners and creating no parallel plan or readiness authority.
+
+- Restore canonical external-facts snapshot lineage: retain the exact 2026-11-12 factual source under its dated version identity, keep the live factual owner current, bind permanent consumers through stable `GW-DOC-EXTERNAL-FACTS`, and permanently reject dated snapshot/version/Verified-date drift.
+
+- Reopen and close the A06 execution-foundation fidelity gap: derive productive BUILDER/REMEDIATOR edit capability from signed scope rather than `changeSurface` forecast, hard-deny immutable authority/instruction/Git/symlink paths, revalidate exact scope before checkpoint effects, and restore coordinator-owned V6 `CHANGE_BLOAT` with one bounded reduction path.
+
+- Revalidate C12 execution facts on the verified A06 foundation baseline: confirm coordinator-owned in-task checkpoints and forecast-vs-scope validation now conform, dispose C12-F01/F02 as current R1 realization defects, and keep R1-A07/H1 plus downstream design/PLAN freshness explicitly outstanding.
+
+- Implement the separately governed A06 execution foundation: treat `changeSurface` as a reviewed forecast inside signed scope/exclusions, keep signed authority/governance/verification material fail-closed, add BUILDER-only coordinator gate checkpoints with same-Run/same-session continuation while provider execute permission remains denied, and neutrally project checkpoint requests through the existing Workbench Run-event presentation.
+
+- Reconcile and complete the reopened 0.6.0 ALIGN-A06 campaign record: pin the current P6 identity, distinguish current pair-audit progression from historical PASS evidence, repair the PLAN-A02 cross-concern audit proof, define ALIGN finding identities, record the complete F01/F02/F03 ownership/remediation/closure path, and keep downstream pairs blocked until the separately governed execution-foundation prerequisite is integrated and revalidated.
+
+- Require every v2 R2 `REFERENCE`/`DELTA` authority-disposition owner to resolve specifically through canonical P3 authority, reject P2/P4 layer leakage before stage promotion and in permanent WorkItem hygiene, and correct the 0.6.0 campaign ledger without changing its functional or technical design.
 
 ## [0.5.0] - 2026-11-17
 

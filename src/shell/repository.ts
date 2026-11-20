@@ -520,6 +520,32 @@ const pathIsInside = (root: string, target: string): boolean => {
   return delta === "" || (delta !== ".." && !delta.startsWith(`..${sep}`) && !delta.startsWith("/"));
 };
 
+export const workspaceSymlinkPaths = (
+  workspace: string,
+): readonly RepositoryPath[] => {
+  const root = realpathSync(workspace);
+  const paths: RepositoryPath[] = [];
+
+  const visit = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const absolute = join(directory, entry.name);
+      const stat = lstatSync(absolute);
+      if (stat.isSymbolicLink()) {
+        paths.push(
+          RepositoryPathSchema.parse(
+            relative(root, absolute).replaceAll("\\", "/"),
+          ),
+        );
+        continue;
+      }
+      if (stat.isDirectory()) visit(absolute);
+    }
+  };
+
+  visit(root);
+  return [...new Set(paths)].sort();
+};
+
 export const proveWorkspaceEscapeConstraints = (
   workspace: string,
   editPaths: readonly RepositoryPath[] = [],

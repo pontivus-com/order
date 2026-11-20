@@ -39,9 +39,9 @@ This design conforms to:
 - `GW-DOC-WORKBENCH-UX-V2` for observable visual/theme behavior;
 - `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2` for the closed primitive/approved-leaf vocabulary;
 - `GW-DOC-PRODUCT-IDENTITY-V1` for the aperture/focus identity and deep navy / Order-blue posture;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` for UI dependency/state/module boundaries;
-- `GW-DOC-CANONICAL-CONTRACTS-V1 §27` for browser/server-state ownership;
-- `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12` for the exact pinned Astryx `0.7.13` public component/theme contract and audited best-practice guidance;
+- `GW-DOC-TECHNICAL-ARCHITECTURE` for UI dependency/state/module boundaries;
+- `GW-DOC-CANONICAL-CONTRACTS §27` for browser/server-state ownership;
+- `GW-DOC-EXTERNAL-FACTS` for the exact pinned Astryx `0.7.13` public component/theme contract and audited best-practice guidance;
 - `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP` and `GW-P1-MINIMUM-CHANGE`.
 
 ## 3. Design thesis

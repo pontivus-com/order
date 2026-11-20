@@ -16,10 +16,11 @@
 | Category descriptor | **Open-source software factory for coding agents.** |
 | Primary proposition | **Ideas in. Results out.** |
 | Supporting line | **From idea to verified result.** |
-| One-line description | **Order turns ideas for software work into verified results by carrying them through definition, implementation, testing, review, bounded remediation, and independent verification.** |
+| One-line description | **Order turns ideas for software work into verified results by carrying them through governed definition and, where implementation is required and authorized, the execution, testing, review, bounded remediation, and independent verification needed for that work.** |
 | Short description | **An open-source software factory that carries software work from idea to verified result.** |
-| Technical description | **A local workbench and execution control plane that turns governed software work into verified candidates.** |
-| Terminal product outcome | **Verified candidate** |
+| Technical description | **A local workbench and execution control plane that carries governed software work to verified terminal results, including verified candidates when execution is required.** |
+| Terminal product outcome | **Verified result** |
+| Executed delivery outcome | **Verified candidate** |
 | Family relationship | **Span preserves engineering understanding. Order carries engineering work through to verified results.** |
 
 ## 2. Product job
@@ -123,11 +124,11 @@ Use this when the reader needs to understand what kind of product Order is.
 
 ### Standard description
 
-> Order turns ideas for software work into verified results by carrying them through definition, implementation, testing, review, bounded remediation, and independent verification.
+> Order turns ideas for software work into verified results by carrying them through governed definition and, where implementation is required and authorized, the execution, testing, review, bounded remediation, and independent verification needed for that work.
 
 ### Expanded description
 
-> Start with a feature, bug, change, audit, investigation, documentation task, infrastructure change, or other piece of repository-governed work. Order works out what needs to happen, makes the work implementation-ready, requires explicit sign-off before productive execution, runs coding agents against the authorized work, tests and reviews the result, performs bounded remediation where appropriate, and produces a verified candidate.
+> Start with a feature, bug, change, audit, investigation, documentation task, infrastructure change, or other piece of repository-governed work. Order establishes what is true, carries explicit product intent into governed work, and makes implementation work ready only when the required outcome is already authorized. When implementation is required, Order requires explicit sign-off, runs coding agents against the authorized work, tests and reviews the result, performs bounded remediation where appropriate, and produces a verified candidate. Work that validly requires no implementation terminates with its verified non-candidate result.
 
 ### Technical description
 
@@ -178,8 +179,8 @@ The following are supported product facts:
 - independent semantic review is required for candidate completion;
 - bounded remediation exists where permitted by validation policy;
 - investigations and audits may terminate without implementation;
-- Order terminates at a verified candidate;
-- Order does not commit, push, merge, deploy, or mutate production as part of v1.
+- Order terminates at a verified result; executed delivery work reaches a verified candidate, while valid no-code work may terminate with a non-candidate result;
+- Order does not automatically commit implementation/candidate changes, push, merge, deploy, or mutate production as part of v1; explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability, not delivery automation.
 
 Do not present the following as measured facts without external evidence:
 
@@ -254,7 +255,7 @@ Do not position Order primarily as:
 
 Those descriptions either expose an internal mechanism or materially understate the product.
 
-The product-level abstraction is the **software factory**: software work enters as an idea or requested change and is carried through the necessary definition, execution, validation, and remediation to a verified terminal result.
+The product-level abstraction is the **software factory**: software work enters as an idea or requested change and is carried through governed definition and only the execution, validation, and remediation applicable to that work, ending in a verified terminal result.
 
 ## 11. Naming usage
 

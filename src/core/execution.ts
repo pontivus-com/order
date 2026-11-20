@@ -104,12 +104,19 @@ export const stageProviderTags = new Set([
   "OBSERVATION_RECORDED",
 ]);
 
-export const builderProviderTags = new Set([
+const mutatingProviderTags = [
   "AGENT_MESSAGE_FINAL",
   "STAGE_BLOCKED",
-  "TASK_ALREADY_SATISFIED",
   "OBSERVATION_RECORDED",
+] as const;
+
+export const builderProviderTags = new Set([
+  ...mutatingProviderTags,
+  "TASK_ALREADY_SATISFIED",
+  "GATE_CHECKPOINT_REQUESTED",
 ]);
+
+export const remediatorProviderTags = new Set<string>(mutatingProviderTags);
 
 export const reviewerProviderTags = new Set([
   "REVIEW_PASSED",
@@ -126,9 +133,19 @@ export const providerEventIsAdmitted = (
       ? stageProviderTags.has(payload.tag)
       : role === "REVIEWER"
         ? reviewerProviderTags.has(payload.tag)
-        : builderProviderTags.has(payload.tag);
+        : role === "BUILDER"
+          ? builderProviderTags.has(payload.tag)
+          : remediatorProviderTags.has(payload.tag);
 
   if (!allowed) return false;
+
+  if (
+    role === "REVIEWER" &&
+    payload.tag === "REVIEW_PASSED" &&
+    payload.minimumChange === undefined
+  ) {
+    return false;
+  }
 
   if (
     (role === "BUILDER" || role === "REMEDIATOR") &&
@@ -137,11 +154,50 @@ export const providerEventIsAdmitted = (
     return payload.owningStage === "EXECUTION";
   }
 
-  if (payload.tag === "TASK_ALREADY_SATISFIED") {
+  if (
+    payload.tag === "TASK_ALREADY_SATISFIED" ||
+    payload.tag === "GATE_CHECKPOINT_REQUESTED"
+  ) {
     return role === "BUILDER";
   }
 
   return true;
+};
+
+type BuilderCheckpointRequest = Extract<
+  RunEventPayload,
+  { tag: "GATE_CHECKPOINT_REQUESTED" }
+>;
+
+export const builderCheckpointRequestForTurn = (
+  role: RunRole,
+  payloads: readonly RunEventPayload[],
+): BuilderCheckpointRequest | null => {
+  const requests = payloads.filter(
+    (payload): payload is BuilderCheckpointRequest =>
+      payload.tag === "GATE_CHECKPOINT_REQUESTED",
+  );
+  if (requests.length === 0) return null;
+  if (role !== "BUILDER") {
+    throw new TypeError("only BUILDER may request an execution checkpoint");
+  }
+  if (requests.length !== 1) {
+    throw new TypeError("BUILDER turn may request at most one execution checkpoint");
+  }
+  if (payloads.at(-1)?.tag !== "GATE_CHECKPOINT_REQUESTED") {
+    throw new TypeError("BUILDER checkpoint request must be the terminal turn action");
+  }
+  if (
+    payloads.slice(0, -1).some((payload) =>
+      payload.tag === "STAGE_BLOCKED" ||
+      payload.tag === "TASK_ALREADY_SATISFIED"
+    )
+  ) {
+    throw new TypeError(
+      "BUILDER checkpoint request cannot coexist with another terminal execution action",
+    );
+  }
+  return requests[0]!;
 };
 
 export const semanticRepairIsAllowed = (
@@ -214,4 +270,36 @@ export const parseSignedTaskBlockFromPlan = (planBytes: Uint8Array) => {
     throw new TypeError("order-tasks block must contain valid JSON", { cause: error });
   }
   return SignedTaskBlockSchema.parse(parsed);
+};
+
+export const admitSignedTaskBlockForSchema = (
+  schemaId: WorkItem["schemaId"],
+  block: SignedTaskBlock,
+): SignedTaskBlock => {
+  if (schemaId !== "change-v2" && schemaId !== "defect-v2") return block;
+
+  if (block.tasks.length === 0) {
+    throw new TypeError("current v2 Change/Defect PLAN requires at least one signed task");
+  }
+  for (const task of block.tasks) {
+    if (task.id.length === 0 || task.id !== task.id.trim()) {
+      throw new TypeError("current v2 signed task id must be trimmed and non-empty");
+    }
+    if (task.objective.length === 0 || task.objective !== task.objective.trim()) {
+      throw new TypeError("current v2 signed task objective must be trimmed and non-empty");
+    }
+    for (const [field, count] of [
+      ["scope", task.scope.length],
+      ["acceptanceRefs", task.acceptanceRefs.length],
+      ["changeSurface", task.changeSurface.length],
+      ["gateIds", task.gateIds.length],
+      ["authorityRefs", task.authorityRefs.length],
+      ["concernIds", task.concernIds.length],
+    ] as const) {
+      if (count === 0) {
+        throw new TypeError(`current v2 signed task ${task.id} requires non-empty ${field}`);
+      }
+    }
+  }
+  return block;
 };

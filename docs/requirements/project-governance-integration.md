@@ -205,9 +205,9 @@ It must not require a project to duplicate authoritative content into a Order-sp
 
 The project integration is an authority map, not a second architecture repository.
 
-v1 materializes this integration as project-root `pontivus-order.toml`. Its integration role is defined here and in [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md); its exact P6 grammar is owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md). It stores authority source patterns, explicit same-layer precedence, override/extension references, direct P1 fitness-gate bindings and verification bindings only; it must not duplicate project semantic authority.
+v1 materializes this integration as project-root `pontivus-order.toml`. Its integration role is defined here and in [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md); its exact P6 grammar is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md). It stores authority source patterns, explicit same-layer precedence, override/extension references, direct P1 fitness-gate bindings and verification bindings only; it must not duplicate project semantic authority.
 
-Order uses that map as an input to [GW-DOC-LIFECYCLE-CONTEXT-V1](lifecycle-context.md), which selects the applicable authority for each lifecycle stage without copying project semantics into Order-owned duplicates.
+Order uses that map as an input to [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md), which selects the applicable authority for each lifecycle stage without copying project semantics into Order-owned duplicates.
 
 The same manifest may define project concern ids, deterministic path/surface mappings, concern-specific authority references, and concern-required logical validation gates. Concern ids are applicability metadata only; they do not create new lifecycle states or semantic owners.
 

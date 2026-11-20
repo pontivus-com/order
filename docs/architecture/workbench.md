@@ -19,10 +19,10 @@ The realization conforms to:
 
 - `GW-DOC-WORKBENCH-UX-V2`, including its functional state-transition model and §22 binding functional requirements;
 - `GW-DOC-WORK-LIFECYCLE-V1 §2.1-§2.3` for the canonical cross-step lifecycle relation;
-- `GW-DOC-LIFECYCLE-CONTEXT-V1` for stage decision/context/conformance boundaries;
+- `GW-DOC-LIFECYCLE-CONTEXT` for stage decision/context/conformance boundaries;
 - `GW-DOC-VALIDATION-STANDARD-V1` for post-signoff failure classification;
-- `GW-DOC-TECHNICAL-ARCHITECTURE-V1` for FCIS/SoC topology and module/dependency ownership;
-- `GW-DOC-CANONICAL-CONTRACTS-V1` for canonical P6 data, persistence and transport;
+- `GW-DOC-TECHNICAL-ARCHITECTURE` for FCIS/SoC topology and module/dependency ownership;
+- `GW-DOC-CANONICAL-CONTRACTS` for canonical P6 data, persistence and transport;
 - `GW-DOC-WORKBENCH-THEME-V1` for exact theme tokens, visual-role mapping, root theme activation and stylesheet governance;
 - `GW-P1-FCIS`, `GW-P1-SOC`, `GW-P1-DRY`, `GW-P1-STRICT-TYPING`, `GW-P1-CANONICAL-OWNERSHIP`, `GW-P1-EXPLICIT-FLOW` and `GW-P1-MINIMUM-CHANGE`.
 
@@ -42,7 +42,7 @@ WorkItemSourceSnapshot / diagnostics
 
 No new persisted `WorkflowState`, `WorkbenchState`, `TurnState`, `ReachedStage`, workflow-state table, transport aggregate, DTO/view-model family or browser-owned mirror is introduced.
 
-`src/core/lifecycle.ts` remains the **single browser-safe pure workflow-semantics owner** already authorized by `GW-DOC-TECHNICAL-ARCHITECTURE-V1`. Within that owner, mutation and observation are separate pure function families:
+`src/core/lifecycle.ts` remains the **single browser-safe pure workflow-semantics owner** already authorized by `GW-DOC-TECHNICAL-ARCHITECTURE`. Within that owner, mutation and observation are separate pure function families:
 
 - **mutation semantics:** admitted lifecycle causes, stage/status/outcome transitions, block/resume and upstream-return routing;
 - **read-only workflow semantics:** reach, STAGE interaction, proposal-decision/adoption state, material currentness, execution owner/validation boundary, recovery route, observation coherence, current attention and workflow-rail projection.
@@ -862,7 +862,7 @@ Adding a new Order-owned Workbench primitive is an architecture change. It requi
 
 ### 8.12.1 Astryx foundation-conformance law
 
-Order's semantic primitive boundary does not authorize rebuilding behavior that the pinned foundation already owns. For every §8.12 primitive, P7 first resolves the exact `@astryxdesign/core@0.7.13` component documentation recorded by `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`, then applies this precedence:
+Order's semantic primitive boundary does not authorize rebuilding behavior that the pinned foundation already owns. For every §8.12 primitive, P7 first resolves the exact `@astryxdesign/core@0.7.13` component documentation recorded by `GW-DOC-EXTERNAL-FACTS`, then applies this precedence:
 
 ```text
 Order product/workflow meaning
@@ -1279,7 +1279,7 @@ This directly removes the current duplicated `Workflow action failed` rendering 
 
 ## 11. Required P6 amendments
 
-`GW-DOC-CANONICAL-CONTRACTS-V1` must be amended in the same design package to bind:
+`GW-DOC-CANONICAL-CONTRACTS` must be amended in the same design package to bind:
 
 1. IDEA source Save remains IDEA; progressed source changes return to R1.
 2. GET/query operations in §18/§19 are non-mutating.
@@ -1676,7 +1676,7 @@ The UI remediation is structurally complete only when all of the following are t
 
 **Realizes:** `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR`, `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE`, `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION`, `GW-FR-235-GLOBAL-THEME-PARITY`.
 
-**Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS-V1-2026-11-12`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
+**Required behavior:** every Order-owned primitive follows §8.12.1 against the exact pinned Astryx contract recorded in `GW-DOC-EXTERNAL-FACTS`: a suitable Astryx component owns its low-level interaction/accessibility/state/theme mechanics, Order owns the narrower product-semantic wrapper/composition, and supported props/public tokens are exhausted before custom CSS or raw mechanics.
 
 **Acceptance:** the primitive-to-foundation mapping is mechanically covered; architecture/browser tests reject feature bypass of the semantic owner, raw reimplementation of a suitable foundation mechanic, private/internal Astryx selector/token dependencies, Button-for-navigation misuse, nested/incorrect modal-drawer patterns, Field double-wrapping, multiple-primary-command views, badge saturation, and feature-selected overlay substitution for `WorkbenchSelector`, and misuse of SegmentedControl/Stepper for the nine-stage workflow rail. Intentional Order divergences in §8.12.1 remain explicit and tested.
 
@@ -1751,7 +1751,7 @@ Browser tests prove all `GW-DOC-WORKBENCH-UX-V2 §23` certification scenarios, i
 
 ### 14.6 Architecture fitness
 
-For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE-V1` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
+For the Workbench V2 P7 transition, `tests/architecture.test.ts` is immutable `VERIFICATION_MATERIAL` because `pontivus-order.toml [verification.architecture].materialRefs` includes that exact path. The signed candidate must not modify it. The existing `architecture` gate continues to execute that baseline sensor unchanged. The required **new** Workbench-specific dependency-map registration, primitive/renderer completeness and forbidden-mechanic assertions below are implemented in the already-existing `tests/certification.test.ts` and exercised by the required `test` gate in the same cumulative implementation. This satisfies the architecture-preserving module-registration requirement of `GW-DOC-TECHNICAL-ARCHITECTURE` without treating a signed verification source as candidate change surface. Neither gate may be removed, waived or weakened; tests must reject omissions/bypasses rather than merely assert that new files exist.
 
 Permanent sensors prove:
 
@@ -1796,3 +1796,52 @@ This design does not authorize:
 - redesign of OpenCode provider semantics unrelated to STAGE-turn admission/finalization.
 
 The minimum implementation is to make the existing canonical state and event stream actually obey the P3 state machine and to make the Workbench derive from that state consistently.
+
+
+## 16. Authority-driven 0.6.0 Workbench closure
+
+This section records the P4 consequences of the fresh 0.6.0 functional package without replacing the closed Workbench architecture above.
+
+### 16.1 Current attention survives historical/supporting selection
+
+The canonical current-attention owner remains the pure resolver defined by `GW-TR-089-CURRENT-ATTENTION-OWNERSHIP`. Explicit workflow/document/history selection affects inspected material only.
+
+When an explicit selection is not the current attention owner, the step summary must retain one compact current-attention block containing the exact current owner, human-facing reason/question/status and direct action to return to that owner. Selecting that action changes only inspection selection; it does not invent workflow state.
+
+The browser must not clear legitimate explicit selection merely because polling discovers new attention. It must also never make the new attention unreachable.
+
+### 16.2 Durable-decision input presentation
+
+For `HUMAN_INPUT_REQUESTED`:
+
+- `INFORMATION` and `EVIDENCE` use the ordinary reply composer.
+- `STAGE_CHOICE`, `AUTHORITY_DECISION` and `AUTHORITY_CONFLICT` remain replyable decision inputs, but the presentation explicitly states that the reply is not itself durable authority and that progression requires the owning governed artifact/proposal to be adopted.
+- After such a reply the provider may prepare the existing artifact proposal; the Workbench continues to use the same proposal-review surface. No separate “decision” editor/state is introduced.
+
+A new exact required-input request receives one focus transition keyed by its `RunEvent.id`. The focus owner is Order's existing dialogue/composer composition, not a feature-local effect. Because pinned Astryx `ChatComposer` exposes no public imperative input-focus contract, Order focuses the existing Workbench-owned composer region/container once with `preventScroll` where supported; normal keyboard/pointer interaction then owns focus. Polling/re-rendering with the same request id must not repeat the transition or steal focus.
+
+### 16.3 Readiness, Approval, Settings and terminal result projections
+
+- Readiness derives its dominant verdict from the latest applicable canonical R3 `STAGE_COMPLETED.completion.outcome`. Material maturity/currentness remains a separate supporting fact.
+- A current sign-off package at `AWAITING_SIGNOFF` presents **Ready for sign-off** and **Current** before package hashes/technical identity. Stale/returned/historical states do not fabricate readiness.
+- Settings keeps readiness/meaning/actions primary. Exact Git roots, document roots, endpoint/transport identity and model-list source are technical details except where the active Add/Move/configuration task requires that exact value.
+- Terminal result uses explicit product-language mapping. `CANDIDATE_DONE` renders **Verified candidate**; other WorkOutcome values use their canonical product-facing labels rather than prettified internal enum names.
+
+### 16.4 Queue/Create/documentation Git projection
+
+- Create renders **Concerns**, not “Concern IDs”.
+- Linked remediation fixes Project to the parent project and does not render an editable cross-project selector.
+- App-level queue state owns archive inclusion, project and search filtering as one derivation before rows reach `WorkItemQueue`.
+- Documentation Git confirmation lists the exact changed governed paths from the already-loaded canonical Git-status projection before operator confirmation.
+
+### 16.5 Renderer and theme certification owner
+
+The canonical renderer-to-primitive matrix in §8 remains the sole renderer classification.
+
+Because `tests/architecture.test.ts` is itself the `architecture` gate's signed verification material, 0.6.0 does not authorize an implementation task to mutate that file. Permanent exhaustive renderer coverage is added to the ordinary `test` gate through `tests/certification.test.ts`: it enumerates production Workbench renderers and proves bidirectional coverage against the canonical matrix/successor, including `ActivityComposer.tsx`.
+
+Browser certification extends the existing scenario matrix rather than creating a second UX test system:
+- scenario 41 proves kind-specific Research information for CHANGE/DEFECT/INVESTIGATION/AUDIT and preserved Change-vs-Defect downstream obligations;
+- scenarios 26 and 33-36 exercise representative Queue/Create/Settings/document/dialogue/review/Execution/evidence/result/Context/overlay semantic roles under System, Light and Dark activation.
+
+No feature-local visual baseline or screenshot-as-authority mechanism is introduced.

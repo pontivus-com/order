@@ -36,11 +36,16 @@ import {
   authorityLayerForManifestLayer,
   authorityLayersForStage,
   deduplicateArtifacts,
+  deduplicateArtifactsPreservingOrder,
+  projectAuthorityForLayers,
+  resolveProjectAuthority,
   type PreSignoffStage,
+  type ResolvedProjectAuthority,
   priorStagesForStage,
   sortedMaterialProjection,
 } from "../core/governance.ts";
 import {
+  admitSignedTaskBlockForSchema,
   materializeExecutionTasks,
   parseSignedTaskBlockFromPlan,
 } from "../core/execution.ts";
@@ -255,6 +260,7 @@ export const currentFileArtifact = async (
 
 export type ResolvedContext = Readonly<{
   source: WorkItemSourceSnapshot;
+  authority: ResolvedProjectAuthority;
   artifacts: readonly ArtifactRef[];
   p1Paths: readonly RepositoryPath[];
   contextHash: Sha256;
@@ -264,11 +270,13 @@ const resolvedContext = (
   workItem: WorkItem,
   source: WorkItemSourceSnapshot,
   stage: PreSignoffStage,
+  authority: ResolvedProjectAuthority,
   artifacts: readonly ArtifactRef[],
 ): ResolvedContext => {
-  const resolved = deduplicateArtifacts(artifacts);
+  const resolved = deduplicateArtifactsPreservingOrder(artifacts);
   return {
     source,
+    authority,
     artifacts: resolved,
     p1Paths: resolved
       .filter((artifact) => artifact.authorityLayer === "P1")
@@ -278,10 +286,29 @@ const resolvedContext = (
         stage,
         workItemId: workItem.id,
         sourceSha256: workItem.sourceSha256,
+        resolvedAuthority: authority,
         materialArtifacts: sortedMaterialProjection(resolved),
       }),
     ),
   };
+};
+
+export const resolveCurrentStageAuthority = async (
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+): Promise<readonly [ProjectManifest, ResolvedProjectAuthority]> => {
+  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  if (manifest.projectId !== workItem.projectId) {
+    throw new TypeError("WorkItem projectId no longer matches pontivus-order.toml");
+  }
+  const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
+  return [
+    manifest,
+    projectAuthorityForLayers(
+      resolveProjectAuthority(manifest, sources),
+      authorityLayersForStage(stage),
+    ),
+  ];
 };
 
 export type StageContextResolution = Readonly<{
@@ -414,6 +441,25 @@ const latestRunCandidateArtifacts = (
   return [];
 };
 
+export const currentStageCompletionArtifacts = (
+  runtime: CoordinatorRuntime,
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+): readonly ArtifactRef[] => {
+  const candidates = latestRunCandidateArtifacts(runtime, workItem.id, stage);
+  return deduplicateArtifacts(
+    candidates.flatMap((candidate) => {
+      if (!candidate.repositoryPath.endsWith(".md")) return [];
+      const current = persistedCurrentArtifactSnapshot(
+        runtime,
+        workItem,
+        candidate,
+      );
+      return current === null ? [] : [current];
+    }),
+  );
+};
+
 export const currentStageDraftArtifacts = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
@@ -509,12 +555,7 @@ export const resolveStageContextState = async (
   const validated = await revalidateWorkItemSource(runtime, workItem.id);
   workItem = validated.workItem;
   const source = validated.source;
-  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  if (manifest.projectId !== workItem.projectId) {
-    throw new TypeError("WorkItem projectId no longer matches pontivus-order.toml");
-  }
-
-  const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
+  const [manifest, authority] = await resolveCurrentStageAuthority(workItem, stage);
   const resolveCurrentArtifact = (
     path: RepositoryPath,
     role: ArtifactRef["role"],
@@ -524,13 +565,13 @@ export const resolveStageContextState = async (
       ? currentFileArtifact(runtime, workItem, path, role, authorityLayer)
       : inspectCurrentFileArtifact(workItem, path, role, authorityLayer);
   const artifacts: ArtifactRef[] = [];
-  for (const layer of authorityLayersForStage(stage)) {
-    for (const path of sources[layer]) {
+  for (const layer of authority.layers) {
+    for (const path of layer.sources) {
       artifacts.push(
         await resolveCurrentArtifact(
           path,
           "GOVERNANCE",
-          authorityLayerForManifestLayer(layer),
+          authorityLayerForManifestLayer(layer.layer),
         ),
       );
     }
@@ -580,7 +621,7 @@ export const resolveStageContextState = async (
     );
     if (conformance.staleStage !== null) {
       return {
-        context: resolvedContext(workItem, source, stage, artifacts),
+        context: resolvedContext(workItem, source, stage, authority, artifacts),
         staleStage: conformance.staleStage,
       };
     }
@@ -588,7 +629,7 @@ export const resolveStageContextState = async (
   }
 
   return {
-    context: resolvedContext(workItem, source, stage, artifacts),
+    context: resolvedContext(workItem, source, stage, authority, artifacts),
     staleStage: null,
   };
 };
@@ -738,9 +779,12 @@ export const validateTaskDefinitions = async (
   manifest: ProjectManifest,
   closureArtifacts: readonly ArtifactRef[],
   planBytes: Uint8Array,
-): Promise<void> => {
+): Promise<ReturnType<typeof parseSignedTaskBlockFromPlan>> => {
   await validateProjectManifestResolution(workItem.repositoryRoot, manifest);
-  const block = parseSignedTaskBlockFromPlan(planBytes);
+  const block = admitSignedTaskBlockForSchema(
+    workItem.schemaId,
+    parseSignedTaskBlockFromPlan(planBytes),
+  );
   const materialPaths = new Set(
     closureArtifacts.map((artifact) => artifact.repositoryPath),
   );
@@ -777,6 +821,7 @@ export const validateTaskDefinitions = async (
       }
     }
   }
+  return block;
 };
 
 export const approvalContext = async (
@@ -791,6 +836,10 @@ export const approvalContext = async (
   }
   const closure = approvalClosure(runtime, approval);
   const material = deduplicateArtifacts([closure.plan, ...closure.material]);
+  const [, authority] = await resolveCurrentStageAuthority(
+    validated.workItem,
+    "R3",
+  );
   const contextHash = sha256Text(
     canonicalJson({
       stage: "EXECUTION",
@@ -798,11 +847,13 @@ export const approvalContext = async (
       workItemId: approval.workItemId,
       sourceSha256: approval.sourceSha256,
       task,
+      resolvedAuthority: authority,
       materialArtifacts: sortedMaterialProjection(material),
     }),
   );
   return {
     source: validated.source,
+    authority,
     artifacts: material,
     p1Paths: material
       .filter((artifact) => artifact.authorityLayer === "P1")
@@ -840,21 +891,17 @@ const currentApprovalMaterialSet = async (
     ];
   }
 
-  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  if (manifest.projectId !== workItem.projectId) {
-    throw new TypeError("WorkItem projectId no longer matches pontivus-order.toml");
-  }
+  const [manifest, authority] = await resolveCurrentStageAuthority(workItem, "R3");
 
   const current: ArtifactRef[] = [];
-  const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
-  for (const layer of authorityLayersForStage("R3")) {
-    for (const path of sources[layer]) {
+  for (const layer of authority.layers) {
+    for (const path of layer.sources) {
       current.push(
         await inspectCurrentFileArtifact(
           workItem,
           path,
           "GOVERNANCE",
-          authorityLayerForManifestLayer(layer),
+          authorityLayerForManifestLayer(layer.layer),
         ),
       );
     }
@@ -1202,7 +1249,7 @@ export const computeSignoffPackage = async (
     plan.repositoryPath,
   );
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  await validateTaskDefinitions(
+  const taskBlock = await validateTaskDefinitions(
     workItem,
     manifest,
     [plan, r3, ...material],
@@ -1218,7 +1265,6 @@ export const computeSignoffPackage = async (
       materialArtifacts: material,
     }),
   );
-  const taskBlock = parseSignedTaskBlockFromPlan(planBytes);
   return {
     baselineCommit,
     packageHash,
@@ -1371,7 +1417,6 @@ const signOffWorkItemUnlocked = async (
   expectedPackageHash: Sha256,
   approvedBy: string,
 ): Promise<Approval> => {
-  if (approvedBy.length === 0) throw new TypeError("approvedBy must be non-empty");
   const prepared = await computeSignoffPackage(runtime, workItemId);
   if (prepared.packageHash !== expectedPackageHash) {
     throw new TypeError("expectedPackageHash does not match the current sign-off package");

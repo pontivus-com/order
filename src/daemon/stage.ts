@@ -19,9 +19,15 @@ import {
 } from "../core/canonical.ts";
 import {
   artifactRoleForStage,
+  evaluateStageConformance,
   isPreSignoffStage,
+  permanentAuthorityProposalIsAdmitted,
   type PreSignoffStage,
 } from "../core/governance.ts";
+import {
+  admitSignedTaskBlockForSchema,
+  parseSignedTaskBlockFromPlan,
+} from "../core/execution.ts";
 import {
   artifactReturnOwner,
   deriveProposalDecision,
@@ -33,10 +39,15 @@ import {
 } from "../core/lifecycle.ts";
 import {
   allowedR1CompletionsForSchema,
+  authorityDispositionOwnerRefs,
   stageTemplateForSchema,
+  validateStageDocumentStructure,
   workItemDocumentPath,
 } from "../core/work-item-source.ts";
-import { loadValidatedProjectManifest } from "../shell/project.ts";
+import {
+  loadValidatedProjectManifest,
+  repositoryPatternMatches,
+} from "../shell/project.ts";
 import {
   adoptProposalPatch,
   captureCandidate,
@@ -93,10 +104,13 @@ import {
   updateRun,
 } from "./run.ts";
 import {
+  currentStageCompletionArtifacts,
   currentStageDraftArtifacts,
   getArtifact,
   getWorkItem,
+  resolveCurrentStageAuthority,
   resolveStageContextState,
+  validateTaskDefinitions,
   type ResolvedContext,
 } from "./authority.ts";
 
@@ -121,29 +135,75 @@ const cancelledStageRun = (
   return null;
 };
 
-const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
-  stage === "PLAN"
+const signedTaskBlockPromptContract = (
+  stage: PreSignoffStage,
+  schemaId: WorkItem["schemaId"],
+): string => {
+  const currentV2NonVacuity =
+    schemaId === "change-v2" || schemaId === "defect-v2"
+      ? [
+          "Current v2 Change/Defect task admission also requires at least one task.",
+          "Every task id and objective must be trimmed and non-empty.",
+          "Every task must have non-empty scope, acceptanceRefs, changeSurface, gateIds, authorityRefs and concernIds; dependsOn and exclusions may be empty.",
+        ].join("\n")
+      : "";
+
+  return stage === "PLAN"
     ? [
         "PLAN machine-readable contract:",
         "The PLAN artifact must contain exactly one fenced block opened by ```order-tasks.",
         "The fence body must be one JSON object satisfying the canonical SignedTaskBlock JSON Schema below.",
         "Do not rename fields or replace the outer object with a bare task array.",
+        currentV2NonVacuity,
         `Canonical SignedTaskBlock JSON Schema: ${SignedTaskBlockJsonSchemaText}`,
-      ].join("\n")
+      ].filter((value) => value.length > 0).join("\n")
     : stage === "R3"
       ? [
           "R3 task-contract check:",
           "Before READY_FOR_SIGNOFF, verify the PLAN contains exactly one ```order-tasks fenced JSON object satisfying the canonical SignedTaskBlock JSON Schema below.",
+          currentV2NonVacuity,
           `Canonical SignedTaskBlock JSON Schema: ${SignedTaskBlockJsonSchemaText}`,
-        ].join("\n")
+        ].filter((value) => value.length > 0).join("\n")
       : "";
+};
 
 export const stageDecisionText: Record<PreSignoffStage, string> = {
   R1: "Establish facts/root cause only. Do not invent product behavior, architecture, or implementation.",
-  R2: "Resolve product intent/functional requirements only. Do not decide architecture or implementation.",
-  DESIGN: "Resolve technical architecture/decisions/contracts within higher authority. Do not change product intent.",
-  PLAN: "Define the exact minimum repository transition. Do not invent requirements or architecture.",
-  R3: "Independently evaluate readiness. Do not rewrite requirements, design, or plan.",
+  R2: "Resolve product intent/functional requirements only. Reconcile every material requirement to canonical P3 authority; do not create a shadow specification or decide architecture/implementation.",
+  DESIGN: "Resolve technical architecture/decisions/contracts within higher authority. Prove every design decision traces to accepted functional authority; do not change product intent.",
+  PLAN: "Define the exact minimum repository transition. Prove every task traces to resolved requirement/design authority; do not invent requirements or architecture.",
+  R3: "Independently evaluate readiness, including canonical authority ownership, shadow-specification risk and complete P1-P7 traceability. Do not rewrite requirements, design, or plan.",
+};
+
+const stageConformanceQuestions: Record<PreSignoffStage, readonly string[]> = {
+  R1: [
+    "Are factual claims evidence-backed and are unresolved facts explicit?",
+    "Does the output avoid product, architecture and implementation decisions?",
+  ],
+  R2: [
+    "Is supplied P2 intent sufficient, with missing product intent blocked rather than inferred?",
+    "Does every material functional requirement identify its relationship to existing canonical P3 authority as REFERENCE, DELTA or LOCAL?",
+    "Does any LOCAL requirement duplicate an existing canonical concern or any DELTA silently weaken an existing owner?",
+    "Are acceptance, failure/negative behavior, scope/exclusions and open product/authority questions closed?",
+  ],
+  DESIGN: [
+    "Does every material design decision trace to accepted P3 authority?",
+    "Are canonical owners/boundaries explicit without weakening product requirements?",
+    "Are preservation, downstream and validation obligations closed?",
+  ],
+  PLAN: [
+    "Does every task trace upward to resolved requirement/design authority?",
+    "Does every required outcome trace downward to a task or explicit no-code disposition?",
+    "Does every task close its objective/dependencies, module ownership/decomposition constraints, required architecture-feedback checkpoints, expected production and test/validation surface, required deletions/replacements, and completion evidence?",
+    "Does the PLAN contain the complete minimum-change forecast and logical verification contract required by S9-S10?",
+    "Does no task delegate a material P1-P6 decision to implementation?",
+  ],
+  R3: [
+    "Is there exactly one canonical owner for every material governed concern and no shadow specification?",
+    "Is P1-P7 traceability complete in both directions?",
+    "Is the lifecycle document package complete/current and are blocking questions/conflicts zero?",
+    "Is READY_FOR_SIGNOFF supported by current evidence rather than earlier completion claims?",
+  ],
 };
 
 export const stagePrompt = async (
@@ -153,6 +213,7 @@ export const stagePrompt = async (
   currentStageDrafts: readonly ArtifactRef[],
   referenceRoots: readonly string[],
   userInput?: string,
+  completionArtifacts: readonly ArtifactRef[] = currentStageDrafts,
 ): Promise<string> => {
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
   const expectedOutputPath = workItemDocumentPath(
@@ -160,11 +221,27 @@ export const stagePrompt = async (
     workItem.id,
     stage,
   );
+  const completionBindings = completionArtifacts.map((artifact) => ({
+    id: artifact.id,
+    repositoryPath: artifact.repositoryPath,
+    role: artifact.role,
+    sha256: artifact.sha256,
+  }));
   return [
     `Order lifecycle stage: ${stage}`,
     stageDecisionText[stage],
     `Canonical output path for this stage: ${expectedOutputPath}. Any ARTIFACT_PROPOSAL_CREATED for role ${stage} must target exactly this path.`,
+    stage === "R2"
+      ? "Permanent authority proposal boundary: role GOVERNANCE may target only an existing current resolved P2/P3 authority path, must declare its exact layer and current baseSha256, and is re-resolved before adoption."
+      : stage === "DESIGN"
+        ? "Permanent authority proposal boundary: role GOVERNANCE may target only an existing current resolved P4/P5/P6 authority path, must declare its exact layer and current baseSha256, and is re-resolved before adoption."
+        : "",
     `WorkItem: ${canonicalJson(workItem)}`,
+    [
+      "Resolved project authority projection:",
+      "Only each precedence list is semantic same-layer precedence; remaining source ordering is deterministic processing order only.",
+      canonicalJson(context.authority),
+    ].join("\n"),
     stage === "R1" || stage === "R2"
       ? `Canonical WorkItem source Markdown:\n${context.source.markdown}`
       : "",
@@ -172,12 +249,21 @@ export const stagePrompt = async (
     stage === "R1"
       ? `Allowed successful R1 completion outcomes for schema ${workItem.schemaId}: ${allowedR1CompletionsForSchema(workItem.schemaId).join(", ")}`
       : "",
-    signedTaskBlockPromptContract(stage),
+    signedTaskBlockPromptContract(stage, workItem.schemaId),
+    [
+      "Stage conformance questions:",
+      ...stageConformanceQuestions[stage].map((question) => "- " + question),
+    ].join("\n"),
     currentStageDrafts.length === 0
-      ? ""
+      ? [
+          "Completion is not yet admissible: no current stage output ArtifactRef exists.",
+          "Create/propose and have the canonical stage artifact adopted before emitting STAGE_COMPLETED.",
+        ].join("\n")
       : [
           "Current stage draft for review (own-stage output, not higher authority):",
           await renderArtifacts(workItem, currentStageDrafts),
+          "Coordinator-owned completion bindings: " + canonicalJson(completionBindings),
+          "If and only if the stage is conformant, STAGE_COMPLETED.artifactRefIds must contain exactly one id from the binding above for the canonical output path.",
         ].join("\n"),
     userInput === undefined ? "" : `Human input: ${userInput}`,
     referenceRoots.length === 0
@@ -211,23 +297,99 @@ const persistStageCompletionBatch = async (
       ? current.staleStage ?? run.stage
       : null;
 
+  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  const expectedOutputPath = workItemDocumentPath(
+    manifest.workItems.root,
+    workItem.id,
+    run.stage,
+  );
   const outputArtifacts = completionPayload.artifactRefIds.map((id) =>
     getArtifact(runtime, id)
   );
-  for (const artifact of outputArtifacts) {
-    if (
-      artifact.workItemId !== run.workItemId ||
-      artifact.role !== artifactRoleForStage(run.stage) ||
-      sha256(
-        readWorkingTreeFile(
-          workItem.repositoryRoot,
-          artifact.repositoryPath,
-        ),
-      ) !== artifact.sha256
-    ) {
-      throw new TypeError(
-        "stage completion references an invalid or stale output ArtifactRef",
-      );
+  const outputEvaluation = evaluateStageConformance(
+    run.stage,
+    workItem.id,
+    expectedOutputPath,
+    outputArtifacts,
+  );
+  let outputConformanceFailure =
+    outputEvaluation.tag === "FAIL" ? outputEvaluation.summary : null;
+  if (outputEvaluation.tag === "PASS") {
+    const bytes = readWorkingTreeFile(
+      workItem.repositoryRoot,
+      outputEvaluation.output.repositoryPath,
+    );
+    if (sha256(bytes) !== outputEvaluation.output.sha256) {
+      outputConformanceFailure = "stage completion references stale output bytes";
+    } else {
+      try {
+        const markdown = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+        validateStageDocumentStructure(
+          workItem.schemaId,
+          run.stage,
+          markdown,
+        );
+        for (const authorityRef of authorityDispositionOwnerRefs(
+          workItem.schemaId,
+          run.stage,
+          markdown,
+        )) {
+          const ownerPath = manifest.refs[authorityRef];
+          if (ownerPath === undefined) {
+            throw new TypeError(
+              `functional authority disposition references unresolved owner: ${authorityRef}`,
+            );
+          }
+          if (
+            !manifest.authority.p3.some((pattern) =>
+              repositoryPatternMatches(pattern, ownerPath)
+            )
+          ) {
+            throw new TypeError(
+              `functional authority disposition owner is not canonical P3 authority: ${authorityRef}`,
+            );
+          }
+        }
+        if (run.stage === "PLAN") {
+          admitSignedTaskBlockForSchema(
+            workItem.schemaId,
+            parseSignedTaskBlockFromPlan(bytes),
+          );
+        }
+        if (
+          run.stage === "R3" &&
+          completion.outcome === "READY_FOR_SIGNOFF"
+        ) {
+          const plans = current.context.artifacts.filter(
+            (artifact) =>
+              artifact.workItemId === workItem.id &&
+              artifact.role === "PLAN",
+          );
+          if (plans.length !== 1 || plans[0] === undefined) {
+            throw new TypeError(
+              "R3 READY_FOR_SIGNOFF requires exactly one current PLAN artifact",
+            );
+          }
+          const planBytes = readWorkingTreeFile(
+            workItem.repositoryRoot,
+            plans[0].repositoryPath,
+          );
+          if (sha256(planBytes) !== plans[0].sha256) {
+            throw new TypeError(
+              "R3 READY_FOR_SIGNOFF references stale PLAN bytes",
+            );
+          }
+          await validateTaskDefinitions(
+            workItem,
+            manifest,
+            [...current.context.artifacts, ...outputArtifacts],
+            planBytes,
+          );
+        }
+      } catch (error) {
+        outputConformanceFailure =
+          error instanceof Error ? error.message : String(error);
+      }
     }
   }
 
@@ -272,6 +434,28 @@ const persistStageCompletionBatch = async (
         evidence: [],
       });
       updateWorkItemLifecycle(runtime.database, run.workItemId, transition);
+      return {
+        persisted,
+        run: updateRun(runtime, run.id, {
+          status: "BLOCKED",
+          endedAt: nowIsoDateTime(),
+        }),
+      };
+    }
+
+    if (outputConformanceFailure !== null) {
+      const transition = transitionWorkItem(currentWorkItem, {
+        tag: "LIFECYCLE_ARTIFACT_CHANGED",
+        owner: completion.stage,
+      });
+      appendRunEvent(runtime, run.id, {
+        tag: "CONFORMANCE_FAILED",
+        stage: run.stage,
+        defectiveLayer: null,
+        summary: outputConformanceFailure,
+        evidence: [],
+      });
+      updateWorkItemLifecycle(runtime.database, workItem.id, transition);
       return {
         persisted,
         run: updateRun(runtime, run.id, {
@@ -346,11 +530,56 @@ const persistAndReactStageBatch = async (
   if (currentRun.status === "CANCELLED") {
     return { run: currentRun, persisted: [] };
   }
+  if (!isPreSignoffStage(currentRun.stage)) {
+    throw new TypeError("STAGE proposal admission requires a pre-signoff stage");
+  }
+  const currentStage = currentRun.stage;
+  const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
+  const [, currentAuthority] = await resolveCurrentStageAuthority(
+    currentWorkItem,
+    currentStage,
+  );
   validateStageProviderTurn(
     currentRun,
     listRunEvents(runtime, currentRun.id),
     payloads,
+    (proposal) =>
+      permanentAuthorityProposalIsAdmitted(
+        currentStage,
+        proposal,
+        currentAuthority,
+      ),
   );
+  for (const payload of payloads) {
+    if (
+      payload.tag !== "ARTIFACT_PROPOSAL_CREATED" ||
+      payload.role !== "GOVERNANCE"
+    ) {
+      continue;
+    }
+    if (
+      !permanentAuthorityProposalIsAdmitted(
+        currentStage,
+        payload,
+        currentAuthority,
+      )
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target is not admitted by current resolved authority",
+      );
+    }
+    if (payload.baseSha256 === null) {
+      throw new TypeError(
+        "permanent authority proposal requires the current target baseSha256",
+      );
+    }
+    const currentSha256 = sha256(
+      readWorkingTreeFile(currentWorkItem.repositoryRoot, payload.targetPath),
+    );
+    if (currentSha256 !== payload.baseSha256) {
+      throw new TypeError("permanent authority proposal baseSha256 is stale");
+    }
+  }
   for (const payload of payloads) {
     validatePayloadEvidence(runtime, currentRun.id, payload);
   }
@@ -430,6 +659,7 @@ export const runStageTurn = async (
   if (!isPreSignoffStage(run.stage)) {
     throw new TypeError("STAGE Run must use a pre-signoff lifecycle stage");
   }
+  const runStage = run.stage;
   const initialCancellation = cancelledStageRun(runtime, run.id);
   if (initialCancellation !== null) return initialCancellation;
 
@@ -524,6 +754,7 @@ export const runStageTurn = async (
         await currentStageDraftArtifacts(runtime, workItem, run.stage),
         runtime.config.referenceRoots,
         userInput,
+        currentStageCompletionArtifacts(runtime, workItem, run.stage),
       ),
       (record, stderr) => {
         diagnosticEvidence = recordProviderDiagnostics(
@@ -539,6 +770,12 @@ export const runStageTurn = async (
       getRun(runtime, run.id),
       listRunEvents(runtime, run.id),
       events,
+      (proposal) =>
+        permanentAuthorityProposalIsAdmitted(
+          runStage,
+          proposal,
+          context.authority,
+        ),
     );
     if (rejection !== null) {
       const admissionEvidence = recordStageProviderBatchAdmissionDiagnostic(
@@ -890,6 +1127,38 @@ const adoptArtifactProposalUnlocked = async (
   }
 
   const project = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  if (proposal.event.role === "GOVERNANCE") {
+    if (proposal.event.baseSha256 === null) {
+      throw new TypeError(
+        "permanent authority proposal requires the current target baseSha256",
+      );
+    }
+    const [, currentAuthority] = await resolveCurrentStageAuthority(
+      workItem,
+      run.stage,
+    );
+    if (
+      !permanentAuthorityProposalIsAdmitted(
+        run.stage,
+        proposal.event,
+        currentAuthority,
+      )
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target is not admitted by current resolved authority",
+      );
+    }
+    if (
+      sha256(
+        readWorkingTreeFile(
+          workItem.repositoryRoot,
+          proposal.event.targetPath,
+        ),
+      ) !== proposal.event.baseSha256
+    ) {
+      throw new TypeError("permanent authority proposal baseSha256 is stale");
+    }
+  }
   if (lifecycleProposalRole(proposal.event.role)) {
     const expectedPath = workItemDocumentPath(
       project.workItems.root,
@@ -950,6 +1219,36 @@ const adoptArtifactProposalUnlocked = async (
     proposal.event.unifiedDiff,
     adoptionRequested,
   );
+  if (proposal.event.role === "GOVERNANCE") {
+    const [, currentAuthority] = await resolveCurrentStageAuthority(
+      workItem,
+      run.stage,
+    );
+    if (
+      !permanentAuthorityProposalIsAdmitted(
+        run.stage,
+        proposal.event,
+        currentAuthority,
+      )
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target stopped being admitted before disposition",
+      );
+    }
+    if (
+      sha256(
+        readWorkingTreeFile(
+          workItem.repositoryRoot,
+          proposal.event.targetPath,
+        ),
+      ) !== resultingHash
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target changed before disposition",
+      );
+    }
+  }
+
   const artifact = ArtifactRefSchema.parse({
     id: newArtifactRefId(),
     workItemId: workItem.id,

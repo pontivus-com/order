@@ -2,7 +2,7 @@
 
 **Status:** Binding functional design  
 **Canonical concern ID:** `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`  
-**Versioned concern ID:** `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`  
+**Versioned concern ID:** `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2`  
 **Pyramid layer:** P3 functional requirements
 
 ## 1. Purpose
@@ -19,7 +19,7 @@ This document owns the functional behavior for:
 - repository-local source and lifecycle-document discovery/reconciliation on a new installation;
 - source-change freshness behavior.
 
-It does not own the existing lifecycle stage semantics, stage decision boundaries, specification quality rules, post-sign-off execution policy, validation branches, persistence schema, HTTP contracts or exact filesystem/configuration grammar. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-LIFECYCLE-CONTEXT-V1`, `GW-DOC-SPECIFICATION-STANDARD-V1`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE-V1` and `GW-DOC-CANONICAL-CONTRACTS-V1`.
+It does not own the existing lifecycle stage semantics, stage decision boundaries, specification quality rules, post-sign-off execution policy, validation branches, persistence schema, HTTP contracts or exact filesystem/configuration grammar. Those remain owned by `GW-DOC-WORK-LIFECYCLE-V1`, `GW-DOC-LIFECYCLE-CONTEXT`, `GW-DOC-SPECIFICATION-STANDARD`, `GW-DOC-EXECUTION-CONTROL-PLANE-V1`, `GW-DOC-VALIDATION-STANDARD-V1`, `GW-DOC-TECHNICAL-ARCHITECTURE` and `GW-DOC-CANONICAL-CONTRACTS`.
 
 ## 2. Reference basis
 
@@ -89,12 +89,16 @@ The exact front-matter grammar, identifier formats and persisted source projecti
 
 Order provides one canonical resolved authoring catalog. The UI, Markdown creator, source validator and agent-intake path consume that same catalog; none owns a parallel list.
 
-The v1 catalog contains one pinned schema family for each WorkItem kind:
+The built-in catalog resolves every published schema pin and identifies one ordinary-authoring default per WorkItem kind.
+
+The historical v1 pins remain:
 
 - `change-v1`;
 - `defect-v1`;
 - `investigation-v1`;
 - `audit-v1`.
+
+The current ordinary-authoring defaults are `change-v2`, `defect-v2`, `investigation-v2` and `audit-v2`. Investigation/Audit v2 preserve the v1 intake/R1 structure and terminal outcome semantics; their new schema pins exist only so newly authored work binds the current WorkItem-document and lifecycle-context authority rather than historical V1 template authority.
 
 A WorkItem pins its schema when created or first adopted. A later Order release may offer a newer default schema, but it must not silently reinterpret an existing WorkItem under the newer schema.
 
@@ -107,11 +111,37 @@ The schema determines:
 - required source-document sections;
 - the canonical Order authority each generated stage artifact must satisfy.
 
-Lifecycle prerequisite ordering and stage ownership remain governed solely by `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT-V1`; the schema catalog does not create a second artifact/stage DAG.
+Lifecycle prerequisite ordering and stage ownership remain governed solely by `GW-DOC-WORK-LIFECYCLE-V1` and `GW-DOC-LIFECYCLE-CONTEXT`; the schema catalog does not create a second artifact/stage DAG.
 
 Templates guide content; they do not create a second definition of R1/R2/DESIGN/PLAN/R3 semantics. Stage templates must cite and conform to the canonical stage owner rather than restating those rules as an independent specification.
 
 Published schema identifiers are immutable semantic pins. A material change to a schema's template or structural validation semantics requires a new schema identifier; an existing published identifier must remain resolvable with its original meaning for previously authored WorkItems.
+
+### 6.1 Delivery schema v2 authority-hygiene correction
+
+The published `change-v1` and `defect-v1` schema pins remain supported with their original template/validation semantics. They are historical compatibility pins and are no longer the ordinary authoring defaults after the authority-hygiene correction.
+
+New Change and Defect authoring uses `change-v2` and `defect-v2`. These v2 schemas preserve the existing intake and R1 evidence semantics but replace the shared generic downstream delivery templates with kind-specific R2/DESIGN/PLAN templates and one strengthened delivery R3 template. Their R1 templates preserve the v1 evidence-section structure but are separate v2 template pins that bind the current `GW-DOC-LIFECYCLE-CONTEXT` concern; the exact v2 schema template resolves that current semantic snapshot as lifecycle-context V2, while new v2 WorkItems must not inherit the historical lifecycle-context V1 authority pin merely because the R1 evidence shape is unchanged.
+
+Current Change/Defect v2 DESIGN templates are not reduced package-local design summaries. They carry the complete `GW-DOC-SPECIFICATION-STANDARD` S7 content obligations, including existing capability/reuse, behavior to replace/delete, necessary new concepts, decision rationale and rejected alternatives, so the productive design agent is told the same design-completeness contract later challenged by R3.
+
+Current Change/Defect v2 PLAN templates are likewise not reduced wrappers around the signed task block. They carry the complete `GW-DOC-SPECIFICATION-STANDARD` S8-S10 planning obligations: explicit task objectives/dependencies/traceability, module ownership/decomposition constraints and any required architecture-feedback checkpoints, expected production and test/validation surface, required deletions/replacements, completion evidence, the minimum-change forecast, the logical verification contract, and exactly one canonical `order-tasks` block. The block remains the single executable-task representation; the surrounding PLAN Markdown supplies the binding planning context required by S8-S10 and must not create a second task model.
+
+The v2 R2 template contains a **functional authority disposition ledger**. Each material requirement is classified as exactly one of:
+
+- `REFERENCE` — existing canonical P3 authority applies unchanged; the WorkItem records only its local consequence/acceptance and does not become a second normative owner;
+- `DELTA` — the WorkItem changes an existing canonical P3 concern and identifies that owner explicitly;
+- `LOCAL` — no existing canonical P3 concern owns the exact requirement, so the WorkItem owns it for this package without duplicating another concern.
+
+These dispositions are requirement-authoring semantics, not new runtime state, persistence fields or WorkItem kinds. R3 independently challenges their correctness.
+
+The catalog exposes which schema is the current authoring default for each kind while continuing to resolve every published historical schema id. Ordinary Create presents only the current authoring default per kind; discovery and existing WorkItems continue to accept their pinned historical schemas.
+
+### 6.2 Investigation/Audit v2 authority-hygiene correction
+
+The published `investigation-v1` and `audit-v1` schema pins remain resolvable with their original intake/R1 templates and lifecycle-context V1 authority references for existing pinned WorkItems.
+
+New Investigation and Audit authoring uses `investigation-v2` and `audit-v2`. These schemas do **not** add downstream delivery stages or change their allowed successful R1 outcomes. They preserve the existing intake/R1 content structure while binding the current `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` and `GW-DOC-LIFECYCLE-CONTEXT` semantic owners. This prevents newly authored terminal-analysis work from inheriting historical lifecycle authority solely because its R1 document shape is unchanged.
 
 ## 7. Built-in intake template variants
 
@@ -254,9 +284,9 @@ Before a productive pre-signoff OpenCode turn, Order must resolve one current va
 - the exact originating source content where the current stage is entitled to receive the originating observation/request or P2 intent;
 - the source-derived WorkItem metadata needed by that stage;
 - the resolved stage template/instruction selected by the pinned WorkItem schema where an authored stage artifact is required;
-- the existing project authority/evidence selected by `GW-DOC-LIFECYCLE-CONTEXT-V1`.
+- the existing project authority/evidence selected by `GW-DOC-LIFECYCLE-CONTEXT`.
 
-R1 must receive the current source narrative. R2 must receive the source-backed P2 intent when it remains materially necessary to define the required outcome. Later stages receive raw source bytes only when `GW-DOC-LIFECYCLE-CONTEXT-V1` requires them; validated upstream artifacts remain the normal minimum-context carrier otherwise.
+R1 must receive the current source narrative. R2 must receive the source-backed P2 intent when it remains materially necessary to define the required outcome. Later stages receive raw source bytes only when `GW-DOC-LIFECYCLE-CONTEXT` requires them; validated upstream artifacts remain the normal minimum-context carrier otherwise.
 
 An OpenCode stage must not reconstruct the originating request from a database title/origin/concern projection, guess the selected template from prose, or independently discover a different WorkItem source file.
 
@@ -382,6 +412,14 @@ This preserves restartability: after provider/session loss, Order must be able t
 **Acceptance criterion:** after session/provider loss, every material intent fact required to reconstruct the WorkItem is available from durable canonical inputs; transient Run conversation is not the sole owner of changed intent.
 
 **Failure/negative behavior:** Order must not let a human chat answer silently redefine WorkItem intent for later stages or sign-off while the portable source remains unchanged.
+
+### GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION
+
+**Required behavior:** delivery-schema R2 artifacts must classify every material functional requirement against the existing canonical P3 authority set before downstream design may consume it. The admissible dispositions are `REFERENCE` when an existing canonical requirement applies unchanged, `DELTA` when the WorkItem changes an existing canonical concern, and `LOCAL` when the WorkItem legitimately owns a package-local functional requirement for which no canonical owner already exists.
+
+**Acceptance criterion:** every delivery-schema v2 R2 artifact contains a non-empty functional-authority disposition ledger with at least one material requirement row; every row uses exactly `REFERENCE`, `DELTA` or `LOCAL`; `REFERENCE` and `DELTA` name a canonical `GW-*` owner that resolves through the current project authority map; `REFERENCE` does not restate the referenced concern as a second normative copy, `DELTA` identifies the existing owner being changed, and `LOCAL` is independently reviewable as non-overlapping with existing canonical P3 authority. The pinned v2 structural validator and permanent WorkItem-hygiene sensor reject missing/empty/malformed ledgers and shadow `WF-FR-*` namespaces without reinterpreting historical v1 WorkItems.
+
+**Failure/negative behavior:** a WorkItem must not silently create a parallel permanent requirement namespace for behavior already owned by canonical P3, weaken a referenced higher obligation through a local restatement, or proceed to DESIGN with unresolved product/authority ownership.
 
 ### GW-FR-060-PROJECT-LOCAL-WORKITEM-DOCUMENTATION
 

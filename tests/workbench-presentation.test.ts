@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -21,7 +22,9 @@ import {
   runEventPlane,
   runEventPresentation,
   workflowRunEvents,
+  readinessOutcomeLabel,
   runStatusLabel,
+  workOutcomeProductLabel,
   workflowStepState,
   type ProposalSelection,
   type WorkflowMaterial,
@@ -237,6 +240,28 @@ const resolveFixtureMaterial = (
 };
 
 describe("workflow presentation policy", () => {
+  it("keeps workflow semantics independent of theme selection", () => {
+    const presentation = readFileSync(
+      new URL("../ui/src/workbench-presentation.ts", import.meta.url),
+      "utf8",
+    );
+    expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme|localStorage/);
+  });
+  it("uses explicit canonical product labels and typed Readiness outcomes", () => {
+    expect(workOutcomeProductLabel(null)).toBe("Complete");
+    expect(workOutcomeProductLabel("DISPROVEN")).toBe("Disproven");
+    expect(workOutcomeProductLabel("DUPLICATE")).toBe("Duplicate");
+    expect(workOutcomeProductLabel("ALREADY_SATISFIED")).toBe("Already satisfied");
+    expect(workOutcomeProductLabel("INVESTIGATION_COMPLETE")).toBe("Investigation complete");
+    expect(workOutcomeProductLabel("AUDIT_COMPLETE")).toBe("Audit complete");
+    expect(workOutcomeProductLabel("CANDIDATE_DONE")).toBe("Verified candidate");
+
+    expect(readinessOutcomeLabel("READY_FOR_SIGNOFF")).toBe("Ready for sign-off");
+    expect(readinessOutcomeLabel("RETURN_TO_RESEARCH")).toBe("Return to Research");
+    expect(readinessOutcomeLabel("RETURN_TO_REQUIREMENTS")).toBe("Return to Requirements");
+    expect(readinessOutcomeLabel("RETURN_TO_DESIGN")).toBe("Return to Solution design");
+    expect(readinessOutcomeLabel("RETURN_TO_PLAN")).toBe("Return to Implementation plan");
+  });
   it("projects current, historical and unreached workflow steps", () => {
     const current = workItem("PLAN");
     const reached = new Set<WorkItem["stage"]>(["IDEA", "R1", "PLAN"]);
@@ -385,6 +410,41 @@ describe("workflow presentation policy", () => {
       kind: "STAGE_RUN",
       runId: newerRun.id,
     });
+  });
+
+  it("preserves explicit historical inspection across current attention categories", () => {
+    const current = stageRun("PLAN", "WAITING_FOR_INPUT", 2, uuidB);
+    const historical = stageRun("PLAN", "COMPLETED", 1, uuidC);
+    const historicalSelection = { kind: "STAGE_RUN", runId: historical.id } as const;
+    const base = {
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN" as const,
+      runs: [historical, current],
+      artifacts: [artifact("PLAN", uuidD)],
+      currentStageRunId: current.id,
+      explicitSelection: historicalSelection,
+    };
+    for (const currentAttention of [
+      "REQUIRED_INPUT",
+      "PROPOSAL_DECISION",
+      "BLOCKER",
+      "RECOVERY",
+      "MUTATION_CONFLICT",
+    ] as const) {
+      expect(resolveFixtureMaterial({
+        ...base,
+        currentAttention,
+        stageInteraction:
+          currentAttention === "REQUIRED_INPUT"
+            ? { tag: "REQUIRED_INPUT", requestEventId: `event_${uuidI}` }
+            : { tag: "OPEN" },
+        pendingProposal:
+          currentAttention === "PROPOSAL_DECISION"
+            ? { runId: current.id, eventId: `event_${uuidF}` }
+            : null,
+      })).toEqual(historicalSelection);
+    }
   });
 
   it("resolves Readiness, Approval, Implementation and Complete without generic modes", () => {
@@ -774,6 +834,7 @@ describe("Run presentation", () => {
         evidence,
       },
       { tag: "PROVIDER_FAILED", detail: "Provider unavailable", evidence },
+      { tag: "GATE_CHECKPOINT_REQUESTED", gateId: "test" },
       { tag: "GATE_PASSED", gateId: "test", evidence },
       {
         tag: "GATE_FAILED",
@@ -851,6 +912,7 @@ describe("Run presentation", () => {
       "PROVIDER_DIAGNOSTICS_RECORDED",
       "PRODUCTIVE_INVOCATION_FAILED",
       "PROVIDER_FAILED",
+      "GATE_CHECKPOINT_REQUESTED",
       "GATE_PASSED",
       "GATE_FAILED",
       "REVIEW_PASSED",
@@ -879,5 +941,12 @@ describe("Run presentation", () => {
     expect(
       presentations.find(([tag]) => tag === "PROVIDER_FAILED")?.[1].label,
     ).toBe("Agent execution failed");
+    expect(
+      presentations.find(([tag]) => tag === "GATE_CHECKPOINT_REQUESTED")?.[1],
+    ).toEqual({
+      label: "Verification checkpoint requested",
+      detail: "test is awaiting coordinator verification.",
+      tone: "neutral",
+    });
   });
 });

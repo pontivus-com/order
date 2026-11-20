@@ -1,5 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { WorkItem, WorkItemId, WorkItemSchemaCatalogEntry } from "../../src/core/contracts.ts";
 import * as api from "./http.ts";
@@ -9,22 +8,28 @@ import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
+import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
 import { workflowPresentation } from "./workbench-presentation.ts";
 
-export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect }: Readonly<{
+export const WorkItemQueue = ({
+  workItems,
+  schemas,
+  selectedWorkItemId,
+  showArchived,
+  emptyTitle,
+  onShowArchivedChange,
+  onSelect,
+}: Readonly<{
   workItems: readonly WorkItem[];
   schemas: readonly WorkItemSchemaCatalogEntry[];
   selectedWorkItemId: WorkItemId | null;
+  showArchived: boolean;
+  emptyTitle: string;
+  onShowArchivedChange: (value: boolean) => void;
   onSelect: (id: WorkItemId) => void;
 }>) => {
   const queryClient = useQueryClient();
-  const [showArchived, setShowArchived] = useState(false);
-  const archivedQuery = useQuery({
-    queryKey: workbenchQueryKeys.workItemsIncludingArchived,
-    queryFn: api.listWorkItemsIncludingArchived,
-    enabled: showArchived,
-  });
   const restore = useMutation({
     mutationFn: (workItem: WorkItem) => api.setWorkItemArchived(workItem.id, { expectedArchived: true, archived: false }),
     onSuccess: async (updated) => {
@@ -40,8 +45,6 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
       ]);
     },
   });
-  const visibleItems = showArchived ? archivedQuery.data ?? workItems : workItems;
-
   return (
     <div data-testid="work-item-queue">
       <WorkbenchSurface
@@ -49,12 +52,18 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
           <WorkbenchSectionHeader
             title="Work items"
             description={showArchived ? "Active and archived governed work." : "Active governed work."}
-            action={<WorkbenchAction label={showArchived ? "Hide archived" : "Show archived"} onClick={() => setShowArchived((value) => !value)} />}
+            action={<WorkbenchAction label={showArchived ? "Hide archived" : "Show archived"} onClick={() => onShowArchivedChange(!showArchived)} />}
           />
         }
         material={<>
           {restore.error ? <WorkbenchNotice tone="danger" title="Restore failed" description={restore.error instanceof Error ? restore.error.message : String(restore.error)} /> : null}
-          <WorkbenchTable
+          {workItems.length === 0 ? (
+            <WorkbenchEmptyState
+              compact
+              title={emptyTitle}
+              description="Create a WorkItem source to begin governed progression."
+            />
+          ) : <WorkbenchTable
         label="Work items"
         selection="single"
         columns={[
@@ -65,7 +74,7 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
           { key: "concerns", label: "Concerns" },
           { key: "actions", label: "" },
         ]}
-        rows={visibleItems.map((item) => {
+        rows={workItems.map((item) => {
           const kind = schemas.find((schema) => schema.schemaId === item.schemaId)?.kind ?? item.schemaId;
           return {
             id: item.id,
@@ -86,7 +95,7 @@ export const WorkItemQueue = ({ workItems, schemas, selectedWorkItemId, onSelect
             },
           };
         })}
-          />
+          />}
         </>}
       />
     </div>

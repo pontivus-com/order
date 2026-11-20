@@ -25,6 +25,7 @@ import { invalidateWorkbenchMutation, workbenchQueryKeys } from "./query-keys.ts
 import {
   materialPresentationStateLabel,
   resolveWorkflowMaterial,
+  workOutcomeProductLabel,
   runIsActive,
   runStatusLabel,
   workflowMaterialIdentity,
@@ -170,6 +171,8 @@ export const WorkItemWorkspace = ({
   const [mutationConflict, setMutationConflict] = useState(false);
   const [mutationRefreshPending, setMutationRefreshPending] = useState(false);
   const [terminalDrainPending, setTerminalDrainPending] = useState(false);
+  const [focusedRequiredInputEventId, setFocusedRequiredInputEventId] =
+    useState<RunEvent["id"] | null>(null);
   const priorActiveRunIds = useRef<readonly Run["id"][]>([]);
   const mutationConflictObservation = useRef<string | null>(null);
   const mutationConflictWorkItemUpdatedAt = useRef<number | null>(null);
@@ -594,9 +597,30 @@ export const WorkItemWorkspace = ({
     explicitSelection: explicitMaterial,
     dirtyDocument: dirty,
   });
+  const canonicalCurrentMaterial = resolveWorkflowMaterial({
+    workItem,
+    selectedStep: workItem.stage,
+    reachedStages,
+    runs,
+    artifacts,
+    currentStageRunId: currentStageRun?.id ?? null,
+    currentStageRunActive: currentStageRun !== null && runIsActive(currentStageRun),
+    currentAttention,
+    stageInteraction: currentStageInteraction,
+    executionOwner,
+    pendingProposal,
+    approvalPackageAvailable: signoffPackageQuery.data != null,
+    tasks,
+    selectedTaskId: null,
+    selectedRunId: null,
+    explicitSelection: null,
+    dirtyDocument: false,
+  });
   const evidence =
     material.kind === "EVIDENCE" ? material.selection : null;
   const materialIdentity = workflowMaterialIdentity(material);
+  const canonicalCurrentMaterialIdentity =
+    workflowMaterialIdentity(canonicalCurrentMaterial);
   const selectedStageMaterialState =
     selectedStageArtifact !== null &&
     (
@@ -720,11 +744,9 @@ export const WorkItemWorkspace = ({
       return "Package current · ready to sign";
     }
     if (selectedStep === "COMPLETE") {
-      return workItem.outcome
-        ? ordinaryClassification(workItem.outcome)
-        : selectedStepState === "CURRENT"
-          ? "Complete"
-          : "Not yet reached";
+      return selectedStepState === "CURRENT"
+        ? workOutcomeProductLabel(workItem.outcome)
+        : "Not yet reached";
     }
     return undefined;
   })();
@@ -1201,7 +1223,9 @@ export const WorkItemWorkspace = ({
                   }
                 : null;
 
-  const inspectedHistorical = !currentStepSelected;
+  const inspectedHistorical =
+    !currentStepSelected ||
+    materialIdentity !== canonicalCurrentMaterialIdentity;
   const currentAttentionStatusLabel = (() => {
     if (!inspectedHistorical) return summaryStatusLabel;
     switch (currentAttention) {
@@ -1238,6 +1262,47 @@ export const WorkItemWorkspace = ({
     }
   })();
 
+  const currentOwnerAction =
+    canRetry ? (
+      <WorkbenchAction
+        label={"Retry " + workflow.label}
+        tone="primary"
+        loading={start.isPending}
+        disabled={mutationsDisabled || dirty || start.isPending}
+        onClick={() => start.mutate()}
+      />
+    ) : canResume ? (
+      <WorkbenchAction
+        label="Resume resolved blocker"
+        tone="primary"
+        loading={resumeCurrent.isPending}
+        disabled={mutationsDisabled || resumeCurrent.isPending}
+        onClick={() => resumeCurrent.mutate()}
+      />
+    ) : canReconcile ? (
+      <WorkbenchAction
+        label={
+          sourceAuthorityRequiresReconciliation
+            ? "Reconcile source authority"
+            : currentness.tag === "STALE"
+              ? "Return to " + workflowPresentation(currentness.owner).label
+              : "Reconcile authority"
+        }
+        tone="primary"
+        loading={reconcileAuthority.isPending}
+        disabled={mutationsDisabled || reconcileAuthority.isPending}
+        onClick={() => reconcileAuthority.mutate()}
+      />
+    ) : canStart ? (
+      <WorkbenchAction
+        label={startLabelForStage(workItem.stage)}
+        tone="primary"
+        loading={start.isPending}
+        disabled={mutationsDisabled || dirty || start.isPending}
+        onClick={() => start.mutate()}
+      />
+    ) : null;
+
   const stepSummary = (
     <WorkflowStepSummary
       label={inspectedHistorical ? workflow.label : selectedWorkflow.label}
@@ -1254,56 +1319,20 @@ export const WorkItemWorkspace = ({
             tone="primary"
             onClick={() => inspectWorkflowStep(workItem.stage)}
           />
-        ) : canRetry ? (
-          <WorkbenchAction
-            label={"Retry " + workflow.label}
-            tone="primary"
-            loading={start.isPending}
-            disabled={mutationsDisabled || dirty || start.isPending}
-            onClick={() => start.mutate()}
-          />
-        ) : canResume ? (
-          <WorkbenchAction
-            label="Resume resolved blocker"
-            tone="primary"
-            loading={resumeCurrent.isPending}
-            disabled={mutationsDisabled || resumeCurrent.isPending}
-            onClick={() => resumeCurrent.mutate()}
-          />
-        ) : canReconcile ? (
-          <WorkbenchAction
-            label={
-              sourceAuthorityRequiresReconciliation
-                ? "Reconcile source authority"
-                : currentness.tag === "STALE"
-                  ? "Return to " + workflowPresentation(currentness.owner).label
-                  : "Reconcile authority"
-            }
-            tone="primary"
-            loading={reconcileAuthority.isPending}
-            disabled={mutationsDisabled || reconcileAuthority.isPending}
-            onClick={() => reconcileAuthority.mutate()}
-          />
-        ) : canStart ? (
-          <WorkbenchAction
-            label={startLabelForStage(workItem.stage)}
-            tone="primary"
-            loading={start.isPending}
-            disabled={mutationsDisabled || dirty || start.isPending}
-            onClick={() => start.mutate()}
-          />
-        ) : workItem.stage === "COMPLETE" &&
+        ) : currentOwnerAction ?? (
+          workItem.stage === "COMPLETE" &&
           (
             workItem.outcome === "INVESTIGATION_COMPLETE" ||
             workItem.outcome === "AUDIT_COMPLETE"
           ) ? (
-          <WorkbenchAction
-            label="Create linked remediation"
-            tone="primary"
-            disabled={mutationsDisabled}
-            onClick={() => onCreateRemediation(workItem)}
-          />
-        ) : undefined
+            <WorkbenchAction
+              label="Create linked remediation"
+              tone="primary"
+              disabled={mutationsDisabled}
+              onClick={() => onCreateRemediation(workItem)}
+            />
+          ) : undefined
+        )
       }
     />
   );
@@ -1386,7 +1415,9 @@ export const WorkItemWorkspace = ({
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={workflowMutationsDisabled}
+            onRequiredInputFocused={setFocusedRequiredInputEventId}
             authoringMutationsDisabled={documentMutationsDisabled}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
@@ -1417,7 +1448,9 @@ export const WorkItemWorkspace = ({
             currentRunId={currentStageRun?.id ?? null}
             currentInteraction={currentStageInteraction}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={workflowMutationsDisabled}
+            onRequiredInputFocused={setFocusedRequiredInputEventId}
             onSelectMaterial={(nextMaterial) =>
               requestSelection({
                 step: "R3",

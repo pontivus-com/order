@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { stageTemplateForSchema } from "../src/core/work-item-source.ts";
 import { orderVersion } from "../src/version.ts";
 
 describe("productive invocation failure origin", () => {
@@ -219,7 +220,7 @@ describe("candidate changed-path instruction immutability", () => {
   it("rejects AGENTS.md through the production validator under the Bun runtime", () => {
     const script = `
       import { ExecutionTaskSchema } from "./src/core/contracts.ts";
-      import { validateChangedPaths } from "./src/daemon/validation.ts";
+      import { forecastVariancePaths, validateChangedPaths } from "./src/daemon/validation.ts";
 
       const task = ExecutionTaskSchema.parse({
         id: "task_11111111-1111-4111-8111-111111111111",
@@ -242,6 +243,17 @@ describe("candidate changed-path instruction immutability", () => {
         if (result === null || !result.includes("immutable repository instruction")) process.exit(1);
       }
       if (validateChangedPaths(task, ["src/target.ts"]) !== null) process.exit(2);
+      if (validateChangedPaths(task, ["src/unforecast.ts"]) !== null) process.exit(3);
+      if (JSON.stringify(forecastVariancePaths(task, ["src/target.ts", "src/unforecast.ts"])) !== JSON.stringify(["src/unforecast.ts"])) process.exit(4);
+
+      const bounded = ExecutionTaskSchema.parse({
+        ...task,
+        scope: ["src/**"],
+        exclusions: ["src/excluded.ts"],
+      });
+      if (!validateChangedPaths(bounded, ["docs/outside.md"])?.includes("outside signed scope")) process.exit(5);
+      if (!validateChangedPaths(bounded, ["src/excluded.ts"])?.includes("excluded path")) process.exit(6);
+      if (!validateChangedPaths(bounded, ["src/target.ts"], ["src/target.ts"])?.includes("signed authority/governance/verification")) process.exit(7);
     `;
 
     expect(() =>
@@ -282,6 +294,18 @@ const fixturePlan = `# fixture plan
 {"version":1,"tasks":[{"id":"T1","objective":"make the target correct","dependsOn":[],"scope":["src/target.ts"],"exclusions":[],"acceptanceRefs":[],"changeSurface":["src/target.ts"],"gateIds":["test"],"authorityRefs":[],"concernIds":["shell"]}]}
 \`\`\`
 `;
+
+const currentV2PlanTemplate = stageTemplateForSchema("change-v2", "PLAN");
+if (currentV2PlanTemplate === null) {
+  throw new TypeError("missing current-v2 PLAN template");
+}
+const vacuousCurrentV2Plan =
+  currentV2PlanTemplate +
+  '\n```order-tasks\n{"version":1,"tasks":[]}\n```\n';
+const currentV2R3Template = stageTemplateForSchema("change-v2", "R3");
+if (currentV2R3Template === null) {
+  throw new TypeError("missing current-v2 R3 template");
+}
 
 const fixtureManifest = `version = 1
 projectId = "fixture"
@@ -343,7 +367,7 @@ const createRepository = (projectId = "fixture"): string => {
 };
 
 const fakeOpenCode = `#!/usr/bin/env bun
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -496,13 +520,29 @@ const server = Bun.serve({
           output = '[{"tag":"TASK_ALREADY_SATISFIED","summary":"baseline already satisfies the signed task"}]';
         } else if (mode === "empty") {
           output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"no candidate produced","evidence":[]}]';
+        } else if (mode === "checkpoint" || mode === "checkpoint-fail") {
+          writeFileSync(join(process.cwd(), "src", "target.ts"), "needs-review\\n");
+          output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"test"}]';
+        } else if (mode === "checkpoint-outside") {
+          writeFileSync(join(process.cwd(), "docs", "outside.ts"), "outside\\n");
+          output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"test"}]';
+        } else if (mode === "bloat") {
+          writeFileSync(join(process.cwd(), "src", "target.ts"), "fixed\\n");
+          writeFileSync(join(process.cwd(), "src", "extra.ts"), "removable\\n");
+          output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"candidate prepared","evidence":[]}]';
+        } else if (mode === "checkpoint-unsigned") {
+          output = '[{"tag":"GATE_CHECKPOINT_REQUESTED","gateId":"architecture"}]';
         } else {
           writeFileSync(join(process.cwd(), "src", "target.ts"), "needs-review\\n");
           output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"candidate prepared","evidence":[]}]';
         }
+      } else if (text.includes("Coordinator checkpoint result:") && mode === "checkpoint-fail") {
+        output = '[{"tag":"STAGE_BLOCKED","reason":"signed checkpoint failed","owningStage":"EXECUTION"}]';
       } else if (text.includes("Order execution role: REMEDIATOR")) {
-        if (mode === "fix") {
+        if (mode === "fix" || mode === "checkpoint") {
           writeFileSync(join(process.cwd(), "src", "target.ts"), "fixed\\n");
+        } else if (mode === "bloat") {
+          rmSync(join(process.cwd(), "src", "extra.ts"), { force: true });
         }
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"repair attempted","evidence":[]}]';
       } else if (text.includes("Order execution role: REVIEWER")) {
@@ -513,13 +553,52 @@ const server = Bun.serve({
           text.includes("Mechanical validation events completed before V4:") &&
           text.includes('"tag":"VALIDATION_PASSED"') &&
           text.includes('"stage":"V3"');
-        output = target === "fixed\\n" && hasV4Inputs
-          ? '[{"tag":"REVIEW_PASSED","evidence":[]}]'
-          : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+        if (target === "fixed\\n" && hasV4Inputs && mode === "bloat" &&
+            existsSync(join(process.cwd(), "src", "extra.ts"))) {
+          output = '[{"tag":"REVIEW_PASSED","minimumChange":"CHANGE_BLOAT","minimumChangeSummary":"src/extra.ts is removable","evidence":[]}]';
+        } else {
+          output = target === "fixed\\n" && hasV4Inputs
+            ? '[{"tag":"REVIEW_PASSED","minimumChange":"MINIMUM_SUFFICIENT","minimumChangeSummary":null,"evidence":[]}]'
+            : '[{"tag":"REVIEW_FAILED","classification":"REVIEW_FAILURE","summary":"target still needs repair or V4 inputs are incomplete","evidence":[]}]';
+        }
+      } else if (mode === "stage-durable-complete") {
+        output = text.includes("Human input:")
+          ? '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]'
+          : '[{"tag":"HUMAN_INPUT_REQUESTED","category":"AUTHORITY_DECISION","question":"Which authority governs?"}]';
       } else if (mode === "stage-invalid-batch") {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"one","evidence":[]},{"tag":"AGENT_MESSAGE_FINAL","text":"two","evidence":[]}]';
-      } else if (mode === "stage-invalid-r1" || mode === "stage-complete-delay") {
+      } else if (mode === "stage-invalid-r1" || mode === "stage-bound-r1") {
+        const bindingPath = join(own, "binding-id");
+        const bindingId = existsSync(bindingPath)
+          ? readFileSync(bindingPath, "utf8").trim()
+          : "";
+        output = JSON.stringify([{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R1", outcome: "CONFIRMED" },
+          artifactRefIds: bindingId.length === 0 ? [] : [bindingId],
+        }]);
+      } else if (mode === "stage-empty-output" || mode === "stage-complete-delay") {
         output = '[{"tag":"STAGE_COMPLETED","completion":{"stage":"R1","outcome":"CONFIRMED"},"artifactRefIds":[]}]';
+      } else if (mode === "stage-plan-complete") {
+        const bindingPath = join(own, "binding-id");
+        const bindingId = existsSync(bindingPath)
+          ? readFileSync(bindingPath, "utf8").trim()
+          : "";
+        output = JSON.stringify([{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "PLAN", outcome: "ACCEPTED" },
+          artifactRefIds: bindingId.length === 0 ? [] : [bindingId],
+        }]);
+      } else if (mode === "stage-r3-ready") {
+        const bindingPath = join(own, "binding-id");
+        const bindingId = existsSync(bindingPath)
+          ? readFileSync(bindingPath, "utf8").trim()
+          : "";
+        output = JSON.stringify([{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+          artifactRefIds: bindingId.length === 0 ? [] : [bindingId],
+        }]);
       } else {
         output = '[{"tag":"AGENT_MESSAGE_FINAL","text":"ok","evidence":[]}]';
       }
@@ -605,6 +684,9 @@ const seedSignoffScript = (
   repositoryRoot: string,
   stateRoot: string,
   beforeSignoff = "",
+  approvedBy = "human",
+  schemaId: "change-v1" | "change-v2" = "change-v1",
+  planMarkdown: string | null = null,
 ): string => {
   const workItemRoot = join(repositoryRoot, "docs", "order", "work-items");
   mkdirSync(workItemRoot, { recursive: true });
@@ -640,7 +722,7 @@ const seedSignoffScript = (
       id: work,
       projectId: "fixture",
       concernIds: ["shell"],
-      schemaId: "change-v1",
+      schemaId: ${JSON.stringify(schemaId)},
     },
     "fixture",
   );
@@ -654,8 +736,11 @@ const seedSignoffScript = (
     repositoryRoot,
     createdSource.path,
   );
+  ${planMarkdown === null
+    ? ""
+    : `await Bun.write(repositoryRoot + "/docs/plan.md", ${JSON.stringify(planMarkdown)});`}
   for (const argv of [
-    ["git", "add", "--", createdSource.path],
+    ["git", "add", "--", createdSource.path${planMarkdown === null ? "" : ', "docs/plan.md"'}],
     ["git", "commit", "-qm", "seed WorkItem source"],
   ]) {
     const result = Bun.spawnSync(argv, {
@@ -741,7 +826,12 @@ const seedSignoffScript = (
   ${beforeSignoff}
 
   const prepared = await coord.computeSignoffPackage(runtime, work);
-  const approval = await coord.signOffWorkItem(runtime, work, prepared.packageHash, "human");
+  const approval = await coord.signOffWorkItem(
+    runtime,
+    work,
+    prepared.packageHash,
+    ${JSON.stringify(approvedBy)},
+  );
 `;
 };
 
@@ -799,6 +889,15 @@ describe("daemon control plane", () => {
               schemaId: "change-v1",
             },
             markdown: ${JSON.stringify(sourceMarkdown)},
+          },
+          authority: {
+            layers: [],
+            inheritedDefaultRuleIds: [],
+            overrides: [],
+            extensions: [],
+            fitnessGateIdsByDefaultRuleId: [],
+            fitnessGateIds: [],
+            authorityRefs: [],
           },
           artifacts: [],
           p1Paths: [],
@@ -2875,10 +2974,375 @@ describe("daemon control plane", () => {
     )).toBe(true);
   }, 30_000);
 
-  it("blocks a schema-invalid R1 provider completion atomically", () => {
+  it("applies current-v2 task admission in the daemon task-validation owner without changing v1", () => {
     const repository = createRepository();
-    const state = tempDir("order-daemon-kind-invalid-r1-");
-    const binary = createFakeOpenCode("stage-invalid-r1");
+    const state = tempDir("order-daemon-v2-task-admission-");
+    const output = bunEval(`
+      const authority = await import("./src/daemon/authority.ts");
+      const project = await import("./src/shell/project.ts");
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const manifest = await project.loadValidatedProjectManifest(repositoryRoot);
+      const planBytes = new TextEncoder().encode(
+        "# plan\\n\\n\`\`\`order-tasks\\n{\\\"version\\\":1,\\\"tasks\\\":[]}\\n\`\`\`\\n",
+      );
+      const workItem = { repositoryRoot, schemaId: "change-v2" };
+      let v2Error = null;
+      try {
+        await authority.validateTaskDefinitions(workItem, manifest, [], planBytes);
+      } catch (error) {
+        v2Error = error instanceof Error ? error.message : String(error);
+      }
+      let v1Error = null;
+      try {
+        await authority.validateTaskDefinitions(
+          { repositoryRoot, schemaId: "change-v1" },
+          manifest,
+          [],
+          planBytes,
+        );
+      } catch (error) {
+        v1Error = error instanceof Error ? error.message : String(error);
+      }
+      console.log(JSON.stringify({ v2Error, v1Error }));
+    `) as { v2Error: string | null; v1Error: string | null };
+
+    expect(output.v2Error).toMatch(/at least one signed task/);
+    expect(output.v1Error).toBeNull();
+  }, 30_000);
+
+  it("normalizes approval identity before daemon persistence", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-approval-identity-");
+    const output = bunEval(
+      seedSignoffScript(repository, state, "", "  Human Operator  ") +
+        `
+          console.log(JSON.stringify({ approvedBy: approval.approvedBy }));
+          database.close();
+        `,
+    ) as { approvedBy: string };
+
+    expect(output.approvedBy).toBe("Human Operator");
+  }, 30_000);
+
+  it("rejects whitespace-only approval identity at daemon ingress before persistence", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-approval-identity-blank-");
+    const output = bunEval(`
+      let error = null;
+      try {
+        ${seedSignoffScript(repository, state, "", "   ")}
+      } catch (cause) {
+        error = cause instanceof Error ? cause.message : String(cause);
+      }
+      console.log(JSON.stringify({ error }));
+    `) as { error: string | null };
+
+    expect(output.error).toMatch(/approvedBy must be non-empty/);
+  }, 30_000);
+
+  it("rejects a vacuous current-v2 task block at sign-off package ingress", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-v2-signoff-task-admission-");
+    const output = bunEval(`
+      let error = null;
+      try {
+        ${seedSignoffScript(
+          repository,
+          state,
+          "",
+          "human",
+          "change-v2",
+          vacuousCurrentV2Plan,
+        )}
+      } catch (cause) {
+        error = cause instanceof Error ? cause.message : String(cause);
+      }
+      console.log(JSON.stringify({ error }));
+    `) as { error: string | null };
+
+    expect(output.error).toMatch(/at least one signed task/);
+  }, 30_000);
+
+  it("blocks current-v2 PLAN completion when the signed task block is vacuous", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-plan-v2-task-validation-");
+    const binary = createFakeOpenCode("stage-plan-complete");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v2",
+        title: "PLAN v2 task validation",
+        concernIds: ["shell"],
+      });
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "PLAN",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const root = "docs/order/work-items/" + workItem.id;
+      const files = {
+        R1: root + "/research.md",
+        R2: root + "/requirements.md",
+        DESIGN: root + "/solution-design.md",
+        PLAN: root + "/implementation-plan.md",
+      };
+      fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(
+        path.join(repositoryRoot, files.PLAN),
+        ${JSON.stringify(vacuousCurrentV2Plan)},
+      );
+
+      const outputs = {
+        R1: await authority.currentFileArtifact(runtime, workItem, files.R1, "R1", "P1"),
+        R2: await authority.currentFileArtifact(runtime, workItem, files.R2, "R2", "P3"),
+        DESIGN: await authority.currentFileArtifact(runtime, workItem, files.DESIGN, "DESIGN", "P6"),
+        PLAN: await authority.currentFileArtifact(runtime, workItem, files.PLAN, "PLAN", "P7"),
+      };
+      const repo = await import("./src/shell/repository.ts");
+      const baseline = await repo.resolveHeadCommit(repositoryRoot);
+      const conform = async (stage, artifact) => {
+        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const row = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: workItem.id,
+          executionTaskId: null,
+          stage,
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "COMPLETED",
+          attempt: runStore.nextAttempt(runtime, workItem.id, stage, null),
+          baselineCommit: baseline,
+          contextHash: context.contextHash,
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: rt.nowIsoDateTime(),
+          endedAt: rt.nowIsoDateTime(),
+        });
+        sql.withTransaction(database, () => {
+          for (const dependency of context.artifacts) {
+            if (dependency.id !== artifact.id) {
+              sql.storeArtifactDependency(database, artifact.id, dependency.id);
+            }
+          }
+          runStore.appendRunEvent(runtime, row.id, {
+            tag: "CONFORMANCE_PASSED",
+            stage,
+            outputArtifactRefIds: [artifact.id],
+            contextHash: context.contextHash,
+            evidence: [],
+          });
+        });
+      };
+      await conform("R1", outputs.R1);
+      await conform("R2", outputs.R2);
+      await conform("DESIGN", outputs.DESIGN);
+
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        outputs.PLAN.id,
+      );
+      const run = await coord.startStageRun(runtime, workItem.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, workItem.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      runStatus: string;
+      stage: string;
+      failures: string[];
+    };
+
+    expect(output.runStatus).toBe("BLOCKED");
+    expect(output.stage).toBe("PLAN");
+    expect(output.failures.some((failure) =>
+      /at least one signed task/.test(failure)
+    )).toBe(true);
+  }, 30_000);
+
+  it("blocks R3 READY_FOR_SIGNOFF when signed task definitions are mechanically invalid", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-r3-task-validation-");
+    const binary = createFakeOpenCode("stage-r3-ready");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v2",
+        title: "R3 task validation",
+        concernIds: ["shell"],
+      });
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "R3",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const root = "docs/order/work-items/" + workItem.id;
+      const files = {
+        R1: root + "/research.md",
+        R2: root + "/requirements.md",
+        DESIGN: root + "/solution-design.md",
+        PLAN: root + "/implementation-plan.md",
+        R3: root + "/readiness-review.md",
+      };
+      fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
+      fs.writeFileSync(
+        path.join(repositoryRoot, files.PLAN),
+        ${JSON.stringify(vacuousCurrentV2Plan)},
+      );
+      fs.writeFileSync(
+        path.join(repositoryRoot, files.R3),
+        ${JSON.stringify(currentV2R3Template)},
+      );
+
+      const outputs = {
+        R1: await authority.currentFileArtifact(runtime, workItem, files.R1, "R1", "P1"),
+        R2: await authority.currentFileArtifact(runtime, workItem, files.R2, "R2", "P3"),
+        DESIGN: await authority.currentFileArtifact(runtime, workItem, files.DESIGN, "DESIGN", "P6"),
+        PLAN: await authority.currentFileArtifact(runtime, workItem, files.PLAN, "PLAN", "P7"),
+        R3: await authority.currentFileArtifact(runtime, workItem, files.R3, "R3", "P7"),
+      };
+      const repo = await import("./src/shell/repository.ts");
+      const baseline = await repo.resolveHeadCommit(repositoryRoot);
+      const conform = async (stage, artifact) => {
+        const context = await authority.resolveStageContext(runtime, workItem, stage);
+        const row = runStore.insertRun(runtime, {
+          id: rt.newRunId(),
+          workItemId: workItem.id,
+          executionTaskId: null,
+          stage,
+          mode: "INTERACTIVE",
+          role: "STAGE",
+          triggerEventId: null,
+          status: "COMPLETED",
+          attempt: runStore.nextAttempt(runtime, workItem.id, stage, null),
+          baselineCommit: baseline,
+          contextHash: context.contextHash,
+          providerSessionId: null,
+          terminalClassification: null,
+          startedAt: rt.nowIsoDateTime(),
+          endedAt: rt.nowIsoDateTime(),
+        });
+        sql.withTransaction(database, () => {
+          for (const dependency of context.artifacts) {
+            if (dependency.id !== artifact.id) {
+              sql.storeArtifactDependency(database, artifact.id, dependency.id);
+            }
+          }
+          runStore.appendRunEvent(runtime, row.id, {
+            tag: "CONFORMANCE_PASSED",
+            stage,
+            outputArtifactRefIds: [artifact.id],
+            contextHash: context.contextHash,
+            evidence: [],
+          });
+        });
+      };
+      await conform("R1", outputs.R1);
+      await conform("R2", outputs.R2);
+      await conform("DESIGN", outputs.DESIGN);
+      await conform("PLAN", outputs.PLAN);
+
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        outputs.R3.id,
+      );
+      const run = await coord.startStageRun(runtime, workItem.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, workItem.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      runStatus: string;
+      stage: string;
+      failures: string[];
+    };
+
+    expect(output.runStatus).toBe("BLOCKED");
+    expect(output.stage).toBe("R3");
+    expect(output.failures.some((failure) =>
+      /at least one signed task/.test(failure)
+    )).toBe(true);
+  }, 30_000);
+  it("blocks a stage completion that has no lifecycle output artifact", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-empty-stage-output-");
+    const binary = createFakeOpenCode("stage-empty-output");
 
     const output = bunEval(`
       const sql = await import("./src/shell/sqlite.ts");
@@ -2898,8 +3362,8 @@ describe("daemon control plane", () => {
       );
       const created = await coord.createWorkItem(runtime, {
         projectId: "fixture",
-        schemaId: "audit-v1",
-        title: "audit completion mismatch",
+        schemaId: "change-v1",
+        title: "empty R1 output",
         concernIds: ["shell"],
       });
       const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
@@ -2912,9 +3376,9 @@ describe("daemon control plane", () => {
       console.log(JSON.stringify({
         runStatus: settled.status,
         stage: after.stage,
-        status: after.status,
-        outcome: after.outcome,
-        completionCount: events.filter((event) => event.event.tag === "STAGE_COMPLETED").length,
+        completionCount: events.filter((event) =>
+          event.event.tag === "STAGE_COMPLETED"
+        ).length,
         failures: events
           .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
           .map((event) => event.event.tag === "CONFORMANCE_FAILED"
@@ -2925,8 +3389,6 @@ describe("daemon control plane", () => {
     `, providerEnvironment(binary, state)) as {
       runStatus: string;
       stage: string;
-      status: string;
-      outcome: string | null;
       completionCount: number;
       failures: string[];
     };
@@ -2934,11 +3396,227 @@ describe("daemon control plane", () => {
     expect(output).toEqual({
       runStatus: "BLOCKED",
       stage: "R1",
-      status: "ACTIVE",
-      outcome: null,
       completionCount: 1,
+      failures: ["stage completion requires exactly one current output ArtifactRef; received 0"],
+    });
+  }, 30_000);
+
+  it("preserves schema-outcome conformance after exact output binding passes", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-kind-invalid-r1-");
+    const binary = createFakeOpenCode("stage-invalid-r1");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "audit-v1",
+        title: "audit completion mismatch",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const outputPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      fs.mkdirSync(path.dirname(path.join(repositoryRoot, outputPath)), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(repositoryRoot, outputPath), "# Audit research\\n");
+      const artifact = await authority.currentFileArtifact(
+        runtime,
+        workItem,
+        outputPath,
+        "R1",
+        "P1",
+      );
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        artifact.id,
+      );
+      const priorRun = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: rt.sha256Text("prior-audit-r1-draft"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: rt.nowIsoDateTime(),
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "CONFORMANCE_PASSED",
+        stage: "R1",
+        outputArtifactRefIds: [artifact.id],
+        contextHash: priorRun.contextHash,
+        evidence: [],
+      });
+
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, created.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        failures: events
+          .filter((event) => event.event.tag === "CONFORMANCE_FAILED")
+          .map((event) => event.event.tag === "CONFORMANCE_FAILED"
+            ? event.event.summary
+            : ""),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      runStatus: string;
+      stage: string;
+      failures: string[];
+    };
+
+    expect(output).toEqual({
+      runStatus: "BLOCKED",
+      stage: "R1",
       failures: ["R1 outcome CONFIRMED is invalid for schema audit-v1"],
     });
+  }, 30_000);
+
+  it("promotes only when completion binds the exact current lifecycle artifact", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-bound-r1-");
+    const binary = createFakeOpenCode("stage-bound-r1");
+
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const path = await import("node:path");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const runStore = await import("./src/daemon/run.ts");
+
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "bound R1 output",
+        concernIds: ["shell"],
+      });
+      sql.promoteIdeaToR1(database, created.id);
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const outputPath =
+        "docs/order/work-items/" + workItem.id + "/research.md";
+      fs.mkdirSync(path.dirname(path.join(repositoryRoot, outputPath)), {
+        recursive: true,
+      });
+      fs.writeFileSync(path.join(repositoryRoot, outputPath), "# Change research\\n");
+      const artifact = await authority.currentFileArtifact(
+        runtime,
+        workItem,
+        outputPath,
+        "R1",
+        "P1",
+      );
+      fs.writeFileSync(
+        path.join(path.dirname(process.env.PONTIVUS_ORDER_OPENCODE_BIN), "binding-id"),
+        artifact.id,
+      );
+      const priorRun = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R1",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "COMPLETED",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: rt.sha256Text("prior-change-r1-draft"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: rt.nowIsoDateTime(),
+      });
+      runStore.appendRunEvent(runtime, priorRun.id, {
+        tag: "CONFORMANCE_PASSED",
+        stage: "R1",
+        outputArtifactRefIds: [artifact.id],
+        contextHash: priorRun.contextHash,
+        evidence: [],
+      });
+
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const settled = coord.getRun(runtime, run.id);
+      const after = coord.getWorkItem(runtime, created.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      const conformance = events.findLast((event) =>
+        event.event.tag === "CONFORMANCE_PASSED"
+      );
+      console.log(JSON.stringify({
+        runStatus: settled.status,
+        stage: after.stage,
+        conformanceOutput:
+          conformance?.event.tag === "CONFORMANCE_PASSED"
+            ? conformance.event.outputArtifactRefIds
+            : [],
+        expectedArtifact: artifact.id,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state)) as {
+      runStatus: string;
+      stage: string;
+      conformanceOutput: string[];
+      expectedArtifact: string;
+    };
+
+    expect(output.runStatus).toBe("COMPLETED");
+    expect(output.stage).toBe("R2");
+    expect(output.conformanceOutput).toEqual([output.expectedArtifact]);
   }, 30_000);
 
   it("keeps sign-off package inspection read-only when current Markdown diverges", () => {
@@ -4007,6 +4685,81 @@ describe("daemon control plane", () => {
     expect(output.taskStates.every((stateValue) => stateValue === "BLOCKED")).toBe(true);
   });
 
+  it("converges created and discovered sources through the same registered WorkItem semantics", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-source-registration-owner-");
+    const output = bunEval(`
+      const sourceCore = await import("./src/core/work-item-source.ts");
+      const sourceShell = await import("./src/shell/work-item-source.ts");
+      const sql = await import("./src/shell/sqlite.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "registration semantics",
+        concernIds: ["shell"],
+      });
+
+      const discoveredId = rt.newWorkItemId();
+      sourceShell.createWorkItemSourceFile(
+        ${JSON.stringify(repository)},
+        "docs/order/work-items",
+        discoveredId,
+        sourceCore.renderWorkItemSourceMarkdown({
+          formatVersion: 1,
+          id: discoveredId,
+          projectId: "fixture",
+          concernIds: ["shell"],
+          schemaId: "change-v1",
+        }, "registration semantics"),
+      );
+      const reconciliation = await coord.reconcileSources(runtime);
+      const discovered = coord.getWorkItem(runtime, discoveredId);
+      const projection = (item) => ({
+        projectId: item.projectId,
+        title: item.title,
+        schemaId: item.schemaId,
+        stage: item.stage,
+        status: item.status,
+        outcome: item.outcome,
+        concernIds: item.concernIds,
+        archived: item.archived,
+      });
+      console.log(JSON.stringify({
+        createdOrigin: created.origin,
+        discoveredOrigin: discovered.origin,
+        sameSemantics:
+          JSON.stringify(projection(created)) === JSON.stringify(projection(discovered)),
+        registered: reconciliation.registered,
+      }));
+      database.close();
+    `) as {
+      createdOrigin: string;
+      discoveredOrigin: string;
+      sameSemantics: boolean;
+      registered: string[];
+    };
+
+    expect(output.createdOrigin).toBe("CREATED");
+    expect(output.discoveredOrigin).toBe("DISCOVERED");
+    expect(output.sameSemantics).toBe(true);
+    expect(output.registered).toHaveLength(1);
+  });
+
   it("keeps unresolved project and concern diagnostics as distinct typed source conditions", () => {
     const repository = createRepository();
     const state = tempDir("order-daemon-source-resolution-");
@@ -4381,6 +5134,11 @@ describe("daemon control plane", () => {
       const currentLifecycle = await coord.listCurrentLifecycleArtifacts(runtime, workItem.id);
       const currentPlan = currentLifecycle.find((artifact) => artifact.role === "PLAN") ?? null;
       const drafts = await authority.currentStageDraftArtifacts(runtime, after, "PLAN");
+      const completionArtifacts = authority.currentStageCompletionArtifacts(
+        runtime,
+        after,
+        "PLAN",
+      );
       const contextState = await authority.resolveStageContextState(runtime, after, "PLAN");
       const prompt = await stageOwner.stagePrompt(
         after,
@@ -4388,6 +5146,8 @@ describe("daemon control plane", () => {
         contextState.context,
         drafts,
         [],
+        undefined,
+        completionArtifacts,
       );
       let r3Rejected = false;
       try {
@@ -4409,6 +5169,10 @@ describe("daemon control plane", () => {
         promptHasDraft:
           prompt.includes("Current stage draft for review") &&
           prompt.includes("plan after"),
+        completionArtifactId: completionArtifacts[0]?.id ?? null,
+        promptHasCompletionBinding:
+          completionArtifacts.length === 1 &&
+          prompt.includes(completionArtifacts[0].id),
         conformanceCount: runStore.listRunEvents(runtime, priorPlanRun.id)
           .filter((event) => event.event.tag === "CONFORMANCE_PASSED").length,
         r3Rejected,
@@ -4423,6 +5187,8 @@ describe("daemon control plane", () => {
       draftCount: number;
       draftSha256: string | null;
       promptHasDraft: boolean;
+      completionArtifactId: string | null;
+      promptHasCompletionBinding: boolean;
       conformanceCount: number;
       r3Rejected: boolean;
     };
@@ -4436,6 +5202,8 @@ describe("daemon control plane", () => {
     expect(output.draftCount).toBe(1);
     expect(output.draftSha256).toBe(output.saved.sha256);
     expect(output.promptHasDraft).toBe(true);
+    expect(output.completionArtifactId).toBe(output.currentPlanId);
+    expect(output.promptHasCompletionBinding).toBe(true);
     expect(output.conformanceCount).toBe(1);
     expect(output.r3Rejected).toBe(true);
     expect(readFileSync(join(repository, "docs", "plan.md"), "utf8")).toBe("plan after\n");
@@ -4570,6 +5338,378 @@ describe("daemon control plane", () => {
     expect(output.content).toBe("accepted\n");
     expect(output.proposalPath).toMatch(/\/research\.md$/);
     expect(output.stage).toBe("R1");
+  }, 30_000);
+
+  it("resolves manifest precedence and P1 governance before STAGE provider use", () => {
+    const repository = createRepository();
+    writeFileSync(join(repository, "docs", "principles.md"), "# project principles\n");
+    writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
+    writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+    const manifest = fixtureManifest
+      .replace(
+        'p1 = ["AGENTS.md"]',
+        'p1 = ["AGENTS.md", "docs/principles.md"]',
+      )
+      .replace(
+        "p2 = []",
+        'p2 = ["docs/product-a.md", "docs/product-b.md"]',
+      )
+      .replace(
+        "[refs]\n",
+        [
+          "[refs]",
+          'P1-STRICT = "docs/principles.md"',
+          'P1-FCIS-EXT = "AGENTS.md"',
+          "",
+          "[precedence]",
+          'p2 = ["docs/product-b.md", "docs/product-a.md"]',
+          "",
+          "[[governance.overrides]]",
+          'defaultRuleId = "GW-P1-STRICT-TYPING"',
+          'source = "docs/principles.md"',
+          'authorityRef = "P1-STRICT"',
+          'gates = ["architecture"]',
+          "",
+          "[[governance.extensions]]",
+          'defaultRuleId = "GW-P1-FCIS"',
+          'source = "AGENTS.md"',
+          'authorityRef = "P1-FCIS-EXT"',
+          'gates = ["test"]',
+          "",
+        ].join("\n"),
+      );
+    writeFileSync(join(repository, "pontivus-order.toml"), manifest);
+    runGit(repository, "add", ".");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-resolved-authority-");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const stage = await import("./src/daemon/stage.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "resolved authority",
+        concernIds: ["shell"],
+      });
+      const current = coord.getWorkItem(runtime, created.id);
+      const resolved = await authority.resolveStageContextState(
+        runtime,
+        current,
+        "R1",
+      );
+      const prompt = await stage.stagePrompt(
+        current,
+        "R1",
+        resolved.context,
+        [],
+        [],
+      );
+      const p2Paths = resolved.context.artifacts
+        .filter((artifact) => artifact.authorityLayer === "P2")
+        .map((artifact) => artifact.repositoryPath);
+      const p1 = resolved.context.authority.layers.find(
+        (entry) => entry.layer === "p1",
+      );
+      const p2 = resolved.context.authority.layers.find(
+        (entry) => entry.layer === "p2",
+      );
+
+      const invalidManifest = fs.readFileSync(
+        repositoryRoot + "/pontivus-order.toml",
+        "utf8",
+      ).replace(
+        'p2 = ["docs/product-b.md", "docs/product-a.md"]',
+        'p2 = ["docs/product-b.md", "docs/missing.md"]',
+      );
+      fs.writeFileSync(repositoryRoot + "/pontivus-order.toml", invalidManifest);
+      let blockedBeforeRun = false;
+      try {
+        await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      } catch {
+        blockedBeforeRun = coord.listRuns(runtime, created.id).length === 0;
+      }
+      console.log(JSON.stringify({
+        p1,
+        p2,
+        p2Paths,
+        inherited: resolved.context.authority.inheritedDefaultRuleIds,
+        fitness: resolved.context.authority.fitnessGateIds,
+        promptHasProjection: prompt.includes("Resolved project authority projection:"),
+        promptUsesResolvedP2Order:
+          prompt.indexOf("docs/product-b.md") <
+          prompt.indexOf("docs/product-a.md"),
+        blockedBeforeRun,
+      }));
+      database.close();
+    `) as {
+      p1: { layer: string; sources: string[]; precedence: string[] };
+      p2: { layer: string; sources: string[]; precedence: string[] };
+      p2Paths: string[];
+      inherited: string[];
+      fitness: string[];
+      promptHasProjection: boolean;
+      promptUsesResolvedP2Order: boolean;
+      blockedBeforeRun: boolean;
+    };
+
+    expect(output.p1.sources).toEqual(["AGENTS.md", "docs/principles.md"]);
+    expect(output.p2).toEqual({
+      layer: "p2",
+      sources: ["docs/product-b.md", "docs/product-a.md"],
+      precedence: ["docs/product-b.md", "docs/product-a.md"],
+    });
+    expect(output.p2Paths).toEqual(["docs/product-b.md", "docs/product-a.md"]);
+    expect(output.inherited).toContain("GW-P1-FCIS");
+    expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
+    expect(output.fitness).toEqual(["architecture", "test"]);
+    expect(output.promptHasProjection).toBe(true);
+    expect(output.promptUsesResolvedP2Order).toBe(true);
+    expect(output.blockedBeforeRun).toBe(true);
+  }, 30_000);
+
+  it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
+    const repository = createRepository();
+    writeFileSync(join(repository, "docs", "product.md"), "# product\n");
+    writeFileSync(
+      join(repository, "pontivus-order.toml"),
+      fixtureManifest.replace("p2 = []", 'p2 = ["docs/product.md"]'),
+    );
+    runGit(repository, "add", ".");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-governance-proposal-");
+    const output = bunEval(`
+      const fs = await import("node:fs");
+      const sql = await import("./src/shell/sqlite.ts");
+      const repo = await import("./src/shell/repository.ts");
+      const rt = await import("./src/shell/runtime.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const runStore = await import("./src/daemon/run.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [repositoryRoot],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "governance proposal",
+        concernIds: ["shell"],
+      });
+      sql.updateWorkItemLifecycle(database, created.id, {
+        stage: "R2",
+        status: "ACTIVE",
+        outcome: null,
+      });
+      const workItem = coord.getWorkItem(runtime, created.id);
+      const run = runStore.insertRun(runtime, {
+        id: rt.newRunId(),
+        workItemId: workItem.id,
+        executionTaskId: null,
+        stage: "R2",
+        mode: "INTERACTIVE",
+        role: "STAGE",
+        triggerEventId: null,
+        status: "RUNNING",
+        attempt: 1,
+        baselineCommit: await repo.resolveHeadCommit(repositoryRoot),
+        contextHash: rt.sha256Text("governance-proposal"),
+        providerSessionId: null,
+        terminalClassification: null,
+        startedAt: rt.nowIsoDateTime(),
+        endedAt: null,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "STAGE_STARTED",
+        stage: "R2",
+        mode: "INTERACTIVE",
+        contextHash: run.contextHash,
+      });
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "Permanent authority proposal ready",
+        evidence: [],
+      });
+      const productPath = "docs/product.md";
+      const base = rt.sha256Text("# product\\n");
+      const proposal = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: productPath,
+        baseSha256: base,
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        unifiedDiff:
+          "--- a/docs/product.md\\n" +
+          "+++ b/docs/product.md\\n" +
+          "@@ -1 +1 @@\\n" +
+          "-# product\\n" +
+          "+# product adopted\\n",
+        rationale: "Adopt the durable product decision",
+      });
+      const adopted = await coord.adoptArtifactProposal(runtime, proposal.id);
+
+      runStore.appendRunEvent(runtime, run.id, {
+        tag: "AGENT_MESSAGE_FINAL",
+        text: "Second permanent authority proposal",
+        evidence: [],
+      });
+      const staleBase = rt.sha256Text("# product adopted\\n");
+      const stale = runStore.appendRunEvent(runtime, run.id, {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: productPath,
+        baseSha256: staleBase,
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        unifiedDiff:
+          "--- a/docs/product.md\\n" +
+          "+++ b/docs/product.md\\n" +
+          "@@ -1 +1 @@\\n" +
+          "-# product adopted\\n" +
+          "+# stale attempt\\n",
+        rationale: "This base will become stale",
+      });
+      fs.writeFileSync(repositoryRoot + "/" + productPath, "# external change\\n");
+      let staleError = null;
+      try {
+        await coord.adoptArtifactProposal(runtime, stale.id);
+      } catch (error) {
+        staleError = error instanceof Error ? error.message : String(error);
+      }
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        adopted: {
+          role: adopted.role,
+          layer: adopted.authorityLayer,
+          path: adopted.repositoryPath,
+        },
+        contentAfterFirstAdoption:
+          events.some((event) =>
+            event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+            event.event.proposalEventId === proposal.id &&
+            event.event.disposition === "ADOPTED"
+          ),
+        staleError,
+        adoptionRequests: events.filter((event) =>
+          event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED"
+        ).length,
+        stage: coord.getWorkItem(runtime, workItem.id).stage,
+      }));
+      database.close();
+    `) as {
+      adopted: { role: string; layer: string; path: string };
+      contentAfterFirstAdoption: boolean;
+      staleError: string | null;
+      adoptionRequests: number;
+      stage: string;
+    };
+
+    expect(output.adopted).toEqual({
+      role: "GOVERNANCE",
+      layer: "P2",
+      path: "docs/product.md",
+    });
+    expect(output.contentAfterFirstAdoption).toBe(true);
+    expect(output.staleError).toContain("baseSha256 is stale");
+    expect(output.adoptionRequests).toBe(1);
+    expect(output.stage).toBe("R2");
+  }, 30_000);
+
+  it("rejects STAGE completion after durable decision input without later adoption", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-durable-decision-");
+    const binary = createFakeOpenCode("stage-durable-complete");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v1",
+        title: "durable decision",
+        concernIds: ["shell"],
+      });
+      const run = await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+      await Promise.all([...runtime.stageTurnTasks.values()]);
+      const request = coord.listRunEvents(runtime, run.id).find(
+        (event) => event.event.tag === "HUMAN_INPUT_REQUESTED"
+      );
+      if (!request || request.event.tag !== "HUMAN_INPUT_REQUESTED") {
+        throw new Error("missing durable request");
+      }
+      await coord.submitRunInput(
+        runtime,
+        run.id,
+        "Use the canonical authority.",
+        request.id,
+      );
+      await Promise.all(
+        [...runtime.stageTurnTasks.values()].map((task) => task.catch(() => undefined)),
+      );
+      const finalRun = coord.getRun(runtime, run.id);
+      const events = coord.listRunEvents(runtime, run.id);
+      console.log(JSON.stringify({
+        status: finalRun.status,
+        terminalClassification: finalRun.terminalClassification,
+        completions: events.filter((event) =>
+          event.event.tag === "STAGE_COMPLETED"
+        ).length,
+        providerFailure: events.find((event) =>
+          event.event.tag === "PROVIDER_FAILED"
+        )?.event ?? null,
+        workItem: coord.getWorkItem(runtime, created.id),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 30_000) as {
+      status: string;
+      terminalClassification: string | null;
+      completions: number;
+      providerFailure: { tag: string; detail: string } | null;
+      workItem: { stage: string; status: string };
+    };
+
+    expect(output.status).toBe("FAILED");
+    expect(output.terminalClassification).toBe("PROVIDER_FAILURE");
+    expect(output.completions).toBe(0);
+    expect(output.providerFailure?.detail).toContain(
+      "later adopted canonical authority proposal",
+    );
+    expect(output.workItem).toMatchObject({ stage: "R1", status: "ACTIVE" });
   }, 30_000);
 
   it("rejects sign-off when material authority changes after R3", () => {
@@ -5020,6 +6160,226 @@ describe("daemon control plane", () => {
     expect(output.diagnosticsBeforeProviderEvents).toBe(true);
   }, 30_000);
 
+  it("executes signed BUILDER checkpoints and continues the same Run/provider session", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-");
+    const binary = createFakeOpenCode("checkpoint");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const builder = runs.find((run) => run.role === "BUILDER");
+      if (!builder) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, builder.id);
+      const diagnostics = events
+        .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+        .flatMap((event) =>
+          event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED"
+            ? event.event.evidence
+                .filter((ref) => ref.relativePath.endsWith("/diagnostic.json"))
+                .map((ref) => JSON.parse(new TextDecoder().decode(
+                  rt.readRunEvidenceBytes(runtime.stateRoot, builder.id, ref.relativePath),
+                )))
+            : []
+        );
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        builder: {
+          id: builder.id,
+          status: builder.status,
+          providerSessionId: builder.providerSessionId,
+        },
+        eventTags: events.map((event) => event.event.tag),
+        checkpointGateIds: events
+          .filter((event) => event.event.tag === "GATE_CHECKPOINT_REQUESTED" || event.event.tag === "GATE_PASSED")
+          .map((event) => "gateId" in event.event ? event.event.gateId : null),
+        diagnosticSessions: diagnostics.map((record) => record.providerSessionId),
+        diagnosticPrompts: diagnostics.map((record) => record.promptId),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string; outcome: string | null };
+      builder: { id: string; status: string; providerSessionId: string | null };
+      eventTags: string[];
+      checkpointGateIds: Array<string | null>;
+      diagnosticSessions: string[];
+      diagnosticPrompts: string[];
+    };
+
+    expect(output.workItem).toMatchObject({
+      stage: "COMPLETE",
+      status: "COMPLETE",
+      outcome: "CANDIDATE_DONE",
+    });
+    expect(output.eventTags).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.eventTags).toContain("GATE_PASSED");
+    expect(output.eventTags.indexOf("GATE_CHECKPOINT_REQUESTED"))
+      .toBeLessThan(output.eventTags.indexOf("GATE_PASSED"));
+    expect(output.eventTags.indexOf("GATE_PASSED"))
+      .toBeLessThan(output.eventTags.indexOf("CANDIDATE_STATE_RECORDED"));
+    expect(output.checkpointGateIds).toEqual(["test", "test"]);
+    expect(output.diagnosticSessions).toHaveLength(2);
+    expect(new Set(output.diagnosticSessions).size).toBe(1);
+    expect(new Set(output.diagnosticPrompts).size).toBe(2);
+  }, 30_000);
+
+  it("rejects an unsigned BUILDER checkpoint before executing the gate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-unsigned-");
+    const binary = createFakeOpenCode("checkpoint-unsigned");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      const execOwner = await import("./src/daemon/execution.ts");
+      const tasks = await coord.listExecutionTasks(runtime, work);
+      const started = await execOwner.startExactExecutionTask(
+        runtime,
+        work,
+        tasks[0].id,
+      );
+      await execOwner.executePostSignoffRun(
+        runtime,
+        started.run,
+        started.task,
+        started.approval,
+      );
+      const current = coord.listRuns(runtime, work)
+        .filter((run) => run.executionTaskId !== null)
+        .find((run) => run.id === started.run.id);
+      if (!current) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, current.id);
+      console.log(JSON.stringify({
+        run: {
+          status: current.status,
+          terminalClassification: current.terminalClassification,
+        },
+        tags: events.map((event) => event.event.tag),
+        checkpointResults: events.filter((event) =>
+          event.event.tag === "GATE_PASSED" ||
+          event.event.tag === "GATE_FAILED"
+        ).length,
+        providerFailure: events.find((event) =>
+          event.event.tag === "PROVIDER_FAILED"
+        )?.event ?? null,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      run: { status: string; terminalClassification: string | null };
+      tags: string[];
+      checkpointResults: number;
+      providerFailure: { tag: string; detail: string } | null;
+    };
+
+    expect(output.run).toMatchObject({
+      status: "FAILED",
+      terminalClassification: "PROVIDER_FAILURE",
+    });
+    expect(output.checkpointResults).toBe(0);
+    expect(output.tags).not.toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.providerFailure).toMatchObject({
+      tag: "PROVIDER_FAILED",
+    });
+    expect(output.providerFailure?.detail).toContain(
+      "requested unsigned checkpoint gate",
+    );
+  }, 30_000);
+
+  it("continues a failed signed checkpoint only to an explicit execution block", () => {
+    const repository = createRepository();
+    const failingManifest = fixtureManifest.replace(
+      'argv = ["bash", "-c", "test -f src/target.ts"]',
+      'argv = ["bash", "-c", "exit 1"]',
+    );
+    writeFileSync(join(repository, "pontivus-order.toml"), failingManifest);
+    runGit(repository, "add", "pontivus-order.toml");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-checkpoint-fail-");
+    const binary = createFakeOpenCode("checkpoint-fail");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const builder = runs.find((run) => run.role === "BUILDER");
+      if (!builder) throw new Error("missing builder run");
+      const events = coord.listRunEvents(runtime, builder.id);
+      const diagnostics = events
+        .filter((event) => event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED")
+        .flatMap((event) =>
+          event.event.tag === "PROVIDER_DIAGNOSTICS_RECORDED"
+            ? event.event.evidence
+                .filter((ref) => ref.relativePath.endsWith("/diagnostic.json"))
+                .map((ref) => JSON.parse(new TextDecoder().decode(
+                  rt.readRunEvidenceBytes(runtime.stateRoot, builder.id, ref.relativePath),
+                )))
+            : []
+        );
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        builder: { status: builder.status, terminalClassification: builder.terminalClassification },
+        tags: events.map((event) => event.event.tag),
+        sessions: diagnostics.map((record) => record.providerSessionId),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string; outcome: string | null };
+      builder: { status: string; terminalClassification: string | null };
+      tags: string[];
+      sessions: string[];
+    };
+
+    expect(output.workItem).toMatchObject({ stage: "EXECUTION", status: "BLOCKED" });
+    expect(output.builder).toMatchObject({
+      status: "BLOCKED",
+      terminalClassification: "PRECONDITION_FAILED",
+    });
+    expect(output.tags).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(output.tags).toContain("GATE_FAILED");
+    expect(output.tags).toContain("STAGE_BLOCKED");
+    expect(output.sessions).toHaveLength(2);
+    expect(new Set(output.sessions).size).toBe(1);
+  }, 30_000);
+
+  it("rejects an out-of-scope checkpoint diff before executing the gate", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-checkpoint-scope-");
+    const binary = createFakeOpenCode("checkpoint-outside");
+
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const events = runs.flatMap((run) => coord.listRunEvents(runtime, run.id));
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        gateResults: events.filter((event) =>
+          event.event.tag === "GATE_PASSED" || event.event.tag === "GATE_FAILED"
+        ).length,
+        v2Failures: events
+          .filter((event) =>
+            event.event.tag === "VALIDATION_FAILED" &&
+            event.event.stage === "V2"
+          )
+          .map((event) => event.event),
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string };
+      gateResults: number;
+      v2Failures: Array<{ tag: string; stage: string; classification: string }>;
+    };
+
+    expect(output.gateResults).toBe(0);
+    expect(output.v2Failures).toHaveLength(1);
+    expect(output.v2Failures[0]).toMatchObject({
+      tag: "VALIDATION_FAILED",
+      stage: "V2",
+      classification: "SCOPE_BREACH",
+    });
+    expect(output.workItem.stage).toBe("PLAN");
+  }, 30_000);
+
   it("classifies a failed V5 governance fitness gate as GOVERNANCE_BREACH", () => {
     const repository = createRepository();
     const failingManifest = fixtureManifest.replace(
@@ -5055,6 +6415,66 @@ describe("daemon control plane", () => {
       tag: "VALIDATION_FAILED",
       stage: "V5",
       classification: "GOVERNANCE_BREACH",
+    });
+  }, 30_000);
+
+  it("classifies reviewer-proven removable surface as V6 CHANGE_BLOAT and permits one reduction", () => {
+    const repository = createRepository();
+    const planPath = join(repository, "docs", "plan.md");
+    writeFileSync(
+      planPath,
+      readFileSync(planPath, "utf8").replace(
+        '"scope":["src/target.ts"]',
+        '"scope":["src/**"]',
+      ),
+    );
+    runGit(repository, "add", "docs/plan.md");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-change-bloat-");
+    const binary = createFakeOpenCode("bloat");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await coord.runCoordinatorTick(runtime);
+      const runs = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
+      const events = runs.flatMap((run) => coord.listRunEvents(runtime, run.id));
+      console.log(JSON.stringify({
+        workItem: coord.getWorkItem(runtime, work),
+        task: (await coord.listExecutionTasks(runtime, work))[0],
+        roles: runs.map((run) => run.role),
+        v6Bloat: events.filter((event) =>
+          event.event.tag === "VALIDATION_FAILED" &&
+          event.event.stage === "V6" &&
+          event.event.classification === "CHANGE_BLOAT"
+        ).map((event) => event.event),
+        v6Passes: events.filter((event) =>
+          event.event.tag === "VALIDATION_PASSED" &&
+          event.event.stage === "V6"
+        ).length,
+      }));
+      database.close();
+    `, providerEnvironment(binary, state), 180_000) as {
+      workItem: { stage: string; status: string; outcome: string | null };
+      task: { state: string };
+      roles: string[];
+      v6Bloat: Array<{ tag: string; stage: string; classification: string; summary: string }>;
+      v6Passes: number;
+    };
+
+    expect(output.v6Bloat).toHaveLength(1);
+    expect(output.v6Bloat[0]).toMatchObject({
+      tag: "VALIDATION_FAILED",
+      stage: "V6",
+      classification: "CHANGE_BLOAT",
+      summary: "src/extra.ts is removable",
+    });
+    expect(output.roles).toEqual(["BUILDER", "REVIEWER", "REMEDIATOR", "REVIEWER"]);
+    expect(output.v6Passes).toBe(1);
+    expect(output.task.state).toBe("CANDIDATE_DONE");
+    expect(output.workItem).toMatchObject({
+      stage: "COMPLETE",
+      status: "COMPLETE",
+      outcome: "CANDIDATE_DONE",
     });
   }, 30_000);
 

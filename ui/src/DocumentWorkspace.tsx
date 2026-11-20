@@ -235,7 +235,10 @@ const DocumentationGitConfirmation = ({
     open={state.confirmGitSave}
     onOpenChange={state.setConfirmGitSave}
     title="Save WorkItem documentation to Git?"
-    description="Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed."
+    description={[
+      "Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.",
+      ...state.changedGitPaths.map((path) => `${path.repositoryPath} [${path.state}]`),
+    ].join(" ")}
     confirmLabel="Save documentation to Git"
     actionTone="primary"
     pending={state.commitDocumentation.isPending}

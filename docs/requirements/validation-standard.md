@@ -8,7 +8,7 @@
 
 Validation is not one final test command and does not begin only after implementation.
 
-Pre-execution lifecycle artifacts are continuously validated under [GW-DOC-LIFECYCLE-CONTEXT-V1](lifecycle-context.md). This document defines the execution/candidate validation branches after sign-off.
+Pre-execution lifecycle artifacts are continuously validated under [GW-DOC-LIFECYCLE-CONTEXT](lifecycle-context.md). This document defines the execution/candidate validation branches after sign-off.
 
 Order validates the work package and the resulting change at multiple independent boundaries so that a coding agent cannot compensate for a weak specification, a scope breach, or an architecture violation by merely making tests green.
 
@@ -65,7 +65,7 @@ Prove:
 - task dependencies are complete;
 - no blocking question has reopened;
 - exact execution task is still the signed-off task;
-- for source-backed work, the current WorkItem source snapshot still matches the source identity bound into the approved package by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`.
+- for source-backed work, the current WorkItem source snapshot still matches the source identity bound into the approved package by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`.
 
 Failure is not repairable by the implementation worker.
 
@@ -146,6 +146,8 @@ The reviewer returns only:
 - `FAIL_REPAIRABLE`;
 - `BLOCKED_SPEC_OR_DESIGN`.
 
+For a productive current `PASS`, the reviewer also supplies the structured V6 proposition `MINIMUM_SUFFICIENT` or `CHANGE_BLOAT`; the latter includes a non-empty summary identifying removable surface. This is reviewer evidence, not ownership of the durable validation class. The coordinator remains the owner that emits `VALIDATION_PASSED / V6` or `VALIDATION_FAILED / V6 / CHANGE_BLOAT` after V5.
+
 It cannot edit the implementation.
 
 ## 8. V5 — Architecture and governance validation
@@ -185,7 +187,7 @@ The validator asks:
 - If the diff includes a same-layer physical split, is that split the minimum structure required to preserve an existing responsibility/effect boundary rather than speculative fragmentation? Such an architecture-preserving split is not `CHANGE_BLOAT` merely because it adds a file.
 - Did the actual change surface materially exceed the approved forecast?
 
-A failure here is a real validation failure even if all tests pass.
+A failure here is a real validation failure even if all tests pass. V6 consumes the structured minimum-change proposition from the independent V4 reviewer after V5 has passed; it must not manufacture PASS merely because variance evidence was written. `CHANGE_BLOAT` is emitted by the coordinator at V6 and retains the existing one-targeted-reduction policy.
 
 ## 10. V7 — Final required gates
 
@@ -208,13 +210,13 @@ Order classifies failures before deciding what may happen next.
 | `GOVERNANCE_BREACH` | Candidate violates binding architecture/project rule | No blind repair; return to design unless correction is unambiguous within scope |
 | `CHANGE_BLOAT` | Candidate contains unnecessary structure/change | One targeted reduction may be allowed if no design decision is required |
 | `ENVIRONMENT_BLOCKED` | Required execution environment is unavailable/broken | No semantic retry charge |
-| `PROVIDER_FAILURE` | OpenCode/provider session failed operationally | One automatic replacement at most for the exact operational action key; then block, per [GW-DOC-CANONICAL-CONTRACTS-V1 §21](../contracts/canonical-contracts.md) |
+| `PROVIDER_FAILURE` | OpenCode/provider session failed operationally | One automatic replacement at most for the exact operational action key; then block, per [GW-DOC-CANONICAL-CONTRACTS §21](../contracts/canonical-contracts.md) |
 | `ALREADY_SATISFIED` | Required outcome already exists | No implementation needed |
 
 The model does not choose the failure class where deterministic evidence can decide it.
 
 ## 12. Evidence law
 
-`CANDIDATE_DONE` requires one current coordinator-owned `VALIDATION_PASSED` result for every V0-V7 stage and one `CANDIDATE_RECORDED` event linking those results to the exact final candidate state as defined by [GW-DOC-CANONICAL-CONTRACTS-V1 §§10,17](../contracts/canonical-contracts.md).
+`CANDIDATE_DONE` requires one current coordinator-owned `VALIDATION_PASSED` result for every V0-V7 stage and one `CANDIDATE_RECORDED` event linking those results to the exact final candidate state as defined by [GW-DOC-CANONICAL-CONTRACTS §§10,17](../contracts/canonical-contracts.md).
 
 A model statement such as "all requirements are met" is never sufficient evidence by itself.

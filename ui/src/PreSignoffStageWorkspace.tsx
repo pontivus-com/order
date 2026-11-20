@@ -65,8 +65,10 @@ export const PreSignoffStageWorkspace = ({
   currentRunId,
   currentInteraction,
   currentAttention,
+  focusedRequiredInputEventId,
   mutationsDisabled = false,
   authoringMutationsDisabled = false,
+  onRequiredInputFocused,
   onSelectMaterial,
   onDirtyChange,
   onOpenArtifactEvidence,
@@ -89,8 +91,10 @@ export const PreSignoffStageWorkspace = ({
   currentRunId: Run["id"] | null;
   currentInteraction: StageRunInteraction | null;
   currentAttention: CurrentAttentionTag;
+  focusedRequiredInputEventId: RunEvent["id"] | null;
   mutationsDisabled?: boolean;
   authoringMutationsDisabled?: boolean;
+  onRequiredInputFocused: (eventId: RunEvent["id"]) => void;
   onSelectMaterial: (material: WorkflowMaterial) => void;
   onDirtyChange: (dirty: boolean) => void;
   onOpenArtifactEvidence: (artifactId: ArtifactRef["id"]) => void;
@@ -225,7 +229,9 @@ export const PreSignoffStageWorkspace = ({
             currentRunId={workItem.stage === stage ? currentRunId : null}
             currentInteraction={workItem.stage === stage ? currentInteraction : null}
             currentAttention={currentAttention}
+            focusedRequiredInputEventId={focusedRequiredInputEventId}
             mutationsDisabled={mutationsDisabled}
+            onRequiredInputFocused={onRequiredInputFocused}
             onSelectedRunChange={(runId) =>
               onSelectMaterial({ kind: "STAGE_RUN", runId })}
             onOpenEvidence={onOpenEvidence}

@@ -1,9 +1,14 @@
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
+  mkdtempSync,
   readFileSync,
   readdirSync,
+  rmSync,
+  writeFileSync,
 } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -486,6 +491,38 @@ describe("Order cross-boundary certification", () => {
       "app.tsx",
       "main.tsx",
     ]);
+
+    const componentArchitecture = read("docs/architecture/workbench.md");
+    const rendererAuthorityStart = componentArchitecture.indexOf("### 8.16");
+    const rendererAuthorityEnd = componentArchitecture.indexOf("### 8.18");
+    expect(rendererAuthorityStart).toBeGreaterThanOrEqual(0);
+    expect(rendererAuthorityEnd).toBeGreaterThan(rendererAuthorityStart);
+    const rendererAuthority = componentArchitecture.slice(
+      rendererAuthorityStart,
+      rendererAuthorityEnd,
+    );
+    const canonicalRendererNames = [...new Set(
+      [...rendererAuthority.matchAll(/`([^`]+\.tsx)`/g)]
+        .map((match) => match[1]!)
+        .map((name) => name.slice(name.lastIndexOf("/") + 1))
+        .filter((name) => name !== "*.tsx" && name !== "main.tsx"),
+    )].sort();
+    const productionRenderers = renderers.filter((name) => name !== "main.tsx");
+    expect(canonicalRendererNames).toContain("ActivityComposer.tsx");
+    expect(canonicalRendererNames).toEqual(productionRenderers);
+
+    const unclassified = (
+      names: readonly string[],
+      classifications: readonly string[],
+    ): readonly string[] =>
+      names.filter((name) =>
+        name !== "main.tsx" && !classifications.includes(name)
+      );
+    expect(unclassified(renderers, canonicalRendererNames)).toEqual([]);
+    expect(unclassified(
+      [...renderers, "UnclassifiedFixture.tsx"],
+      canonicalRendererNames,
+    )).toEqual(["UnclassifiedFixture.tsx"]);
 
     const bootstrap = new Set(["main.tsx"]);
     const rendererSource = renderers
@@ -1412,7 +1449,8 @@ describe("Order cross-boundary certification", () => {
       "build",
       "browser",
       "verified candidate",
-      "does not commit, push, merge, deploy",
+      "does not automatically commit implementation or candidate changes",
+      "push, merge, deploy",
     ]) {
       expect(readme).toContain(required);
     }
@@ -1547,6 +1585,461 @@ describe("Order cross-boundary certification", () => {
 });
 
 
+describe("0.6.0 Wave 1 authority-governance certification", () => {
+  it("exercises resolved authority through the production core-daemon-STAGE context", () => {
+    const repository = mkdtempSync(join(tmpdir(), "order-cert-authority-repo-"));
+    const state = mkdtempSync(join(tmpdir(), "order-cert-authority-state-"));
+    try {
+      mkdirSync(join(repository, "docs"), { recursive: true });
+      mkdirSync(join(repository, "src"), { recursive: true });
+      writeFileSync(join(repository, "AGENTS.md"), "# agent authority\n");
+      writeFileSync(join(repository, "docs", "principles.md"), "# principles\n");
+      writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
+      writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+      writeFileSync(
+        join(repository, "pontivus-order.toml"),
+        `version = 1
+projectId = "certification"
+
+[authority]
+p1 = ["AGENTS.md", "docs/principles.md"]
+p2 = ["docs/product-a.md", "docs/product-b.md"]
+p3 = []
+p4 = []
+p5 = []
+p6 = []
+
+[refs]
+P1-STRICT = "docs/principles.md"
+P1-FCIS-EXT = "AGENTS.md"
+
+[precedence]
+p2 = ["docs/product-b.md", "docs/product-a.md"]
+
+[[governance.overrides]]
+defaultRuleId = "GW-P1-STRICT-TYPING"
+source = "docs/principles.md"
+authorityRef = "P1-STRICT"
+gates = ["architecture"]
+
+[[governance.extensions]]
+defaultRuleId = "GW-P1-FCIS"
+source = "AGENTS.md"
+authorityRef = "P1-FCIS-EXT"
+gates = ["test"]
+
+[governance.fitness]
+GW-P1-FCIS = ["architecture"]
+
+[concerns.shell]
+authority = ["AGENTS.md"]
+paths = ["src/**"]
+gates = ["test"]
+
+[verification.architecture]
+argv = ["bash", "-c", "true"]
+cwd = "."
+timeoutSeconds = 30
+inheritEnv = []
+materialRefs = []
+
+[verification.test]
+argv = ["bash", "-c", "true"]
+cwd = "."
+timeoutSeconds = 30
+inheritEnv = []
+materialRefs = []
+`,
+      );
+      writeFileSync(join(repository, "src", "target.ts"), "export {};\n");
+      for (const args of [
+        ["init"],
+        ["config", "user.email", "certification@example.com"],
+        ["config", "user.name", "Certification"],
+        ["add", "."],
+        ["commit", "-m", "certification baseline"],
+      ]) {
+        const result = spawnSync("git", args, {
+          cwd: repository,
+          encoding: "utf8",
+        });
+        if (result.status !== 0) {
+          throw new Error(
+            `git ${args.join(" ")} failed: ${result.stderr}`,
+          );
+        }
+      }
+
+      const script = `
+        const fs = await import("node:fs");
+        const sql = await import("./src/shell/sqlite.ts");
+        const coord = await import("./src/daemon/coordinator.ts");
+        const authority = await import("./src/daemon/authority.ts");
+        const stage = await import("./src/daemon/stage.ts");
+        const repositoryRoot = ${JSON.stringify(repository)};
+        const stateRoot = ${JSON.stringify(state)};
+        const database = sql.openOrderDatabase(stateRoot);
+        const runtime = coord.createCoordinatorRuntime(
+          database,
+          stateRoot,
+          process.env,
+          {
+            version: 4,
+            model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+            repositoryRoots: [repositoryRoot],
+            referenceRoots: [],
+          },
+        );
+        const created = await coord.createWorkItem(runtime, {
+          projectId: "certification",
+          schemaId: "change-v1",
+          title: "authority certification",
+          concernIds: ["shell"],
+        });
+        const workItem = coord.getWorkItem(runtime, created.id);
+        const stateResolution = await authority.resolveStageContextState(
+          runtime,
+          workItem,
+          "R1",
+        );
+        const prompt = await stage.stagePrompt(
+          workItem,
+          "R1",
+          stateResolution.context,
+          [],
+          [],
+        );
+        const p2 = stateResolution.context.authority.layers.find(
+          (entry) => entry.layer === "p2",
+        );
+        const p2Artifacts = stateResolution.context.artifacts
+          .filter((artifact) => artifact.authorityLayer === "P2")
+          .map((artifact) => artifact.repositoryPath);
+
+        const manifestPath = repositoryRoot + "/pontivus-order.toml";
+        fs.writeFileSync(
+          manifestPath,
+          fs.readFileSync(manifestPath, "utf8").replace(
+            'p2 = ["docs/product-b.md", "docs/product-a.md"]',
+            'p2 = ["docs/product-b.md", "docs/missing.md"]',
+          ),
+        );
+        let blockedBeforeProvider = false;
+        let rejection = "";
+        try {
+          await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+        } catch (error) {
+          rejection = error instanceof Error ? error.message : String(error);
+          blockedBeforeProvider =
+            coord.listRuns(runtime, created.id).length === 0;
+        }
+        console.log(JSON.stringify({
+          p2,
+          p2Artifacts,
+          inherited:
+            stateResolution.context.authority.inheritedDefaultRuleIds,
+          fitness: stateResolution.context.authority.fitnessGateIds,
+          promptHasProjection:
+            prompt.includes("Resolved project authority projection:"),
+          promptOrder:
+            prompt.indexOf("docs/product-b.md") <
+            prompt.indexOf("docs/product-a.md"),
+          blockedBeforeProvider,
+          rejection,
+        }));
+        database.close();
+      `;
+      const result = spawnSync("bun", ["-e", script], {
+        cwd: root,
+        encoding: "utf8",
+        env: process.env,
+      });
+      if (result.status !== 0) {
+        throw new Error(
+          `production authority certification failed: ${result.stderr}`,
+        );
+      }
+      const output = JSON.parse(result.stdout.trim()) as {
+        p2: {
+          layer: string;
+          sources: string[];
+          precedence: string[];
+        };
+        p2Artifacts: string[];
+        inherited: string[];
+        fitness: string[];
+        promptHasProjection: boolean;
+        promptOrder: boolean;
+        blockedBeforeProvider: boolean;
+        rejection: string;
+      };
+      expect(output.p2).toEqual({
+        layer: "p2",
+        sources: ["docs/product-b.md", "docs/product-a.md"],
+        precedence: ["docs/product-b.md", "docs/product-a.md"],
+      });
+      expect(output.p2Artifacts).toEqual([
+        "docs/product-b.md",
+        "docs/product-a.md",
+      ]);
+      expect(output.inherited).toContain("GW-P1-FCIS");
+      expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
+      expect(output.fitness).toEqual(["architecture", "test"]);
+      expect(output.promptHasProjection).toBe(true);
+      expect(output.promptOrder).toBe(true);
+      expect(output.blockedBeforeProvider).toBe(true);
+      expect(output.rejection).toMatch(/precedence\.p2/);
+    } finally {
+      rmSync(repository, { recursive: true, force: true });
+      rmSync(state, { recursive: true, force: true });
+    }
+  }, 30_000);
+
+  it("binds resolved authority, governed proposals and durable decisions to the production STAGE path", () => {
+    const governance = read("src/core/governance.ts");
+    expect(governance).toContain("export const resolveProjectAuthority");
+    expect(governance).toContain("manifest.precedence[layer]");
+    expect(governance).toContain("inheritedDefaultRuleIds");
+    expect(governance).toContain("fitnessGateIdsByDefaultRuleId");
+    expect(governance).toContain("permanentAuthorityProposalIsAdmitted");
+    expect(governance).not.toContain("readFileSync");
+    expect(governance).not.toContain("Bun.Glob");
+
+    const authority = read("src/daemon/authority.ts");
+    const stageAuthority = authority.slice(
+      authority.indexOf("export const resolveCurrentStageAuthority"),
+      authority.indexOf("export type StageContextResolution"),
+    );
+    expect(stageAuthority).toContain("resolveAuthoritySources");
+    expect(stageAuthority).toContain("resolveProjectAuthority(manifest, sources)");
+    const stageContext = authority.slice(
+      authority.indexOf("export const resolveStageContextState"),
+      authority.indexOf("export const resolveStageConformanceState"),
+    );
+    expect(stageContext).toContain("for (const layer of authority.layers)");
+    expect(stageContext).not.toContain("for (const path of sources[layer])");
+    expect(stageContext).not.toContain("manifest.authority[");
+
+    const stage = read("src/daemon/stage.ts");
+    expect(stage).toContain("canonicalJson(context.authority)");
+    expect(stage).toContain("resolveCurrentStageAuthority");
+    expect(stage).toContain("permanentAuthorityProposalIsAdmitted");
+    expect(stage).toContain("permanent authority proposal baseSha256 is stale");
+    const adoption = stage.slice(
+      stage.indexOf("const adoptArtifactProposalUnlocked"),
+      stage.indexOf("export const adoptArtifactProposal"),
+    );
+    expect(
+      adoption.match(/resolveCurrentStageAuthority/g)?.length ?? 0,
+    ).toBeGreaterThanOrEqual(2);
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).not.toContain('from "./governance.ts"');
+    expect(lifecycle).toContain("durableDecisionCompletionIsAdmitted");
+    expect(lifecycle).toContain(
+      "stage completion after durable decision input requires a later adopted canonical authority proposal",
+    );
+    expect(lifecycle).not.toContain("durableDecisionStore");
+  });
+});
+
+describe("0.6.0 composed closure certification", () => {
+  it("keeps one canonical owner per corrected concern with no compatibility fallback or shadow state", () => {
+    const source = read("src/daemon/work-item-source.ts");
+    const create = source.slice(
+      source.indexOf("export const createWorkItemFromSource"),
+      source.indexOf("const activeRunExists"),
+    );
+    expect(create).toContain("applyPlan(runtime, plan)");
+    expect(create).not.toContain("storeWorkItem(");
+
+    const execution = read("src/core/execution.ts");
+    expect(execution.match(/SignedTaskBlockSchema\.parse/g) ?? []).toHaveLength(1);
+    expect(execution).toContain("admitSignedTaskBlockForSchema");
+
+    const governance = read("src/core/governance.ts");
+    expect(governance).toContain("resolveProjectAuthority");
+    expect(governance).toContain("permanentAuthorityProposalIsAdmitted");
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).toContain("durableDecisionCompletionIsAdmitted");
+    expect(lifecycle).not.toContain("durableDecisionStore");
+
+    const setup = read("src/shell/setup.ts");
+    expect(setup).not.toContain("allowLegacyUpdate && configured === null && !reconfigure");
+    expect(setup).toContain("allowLegacyUpdate && configured?.version === 4 && !reconfigure");
+    expect(setup).toContain("setup in browser Settings.");
+
+    const presentation = read("ui/src/workbench-presentation.ts");
+    expect(presentation).toContain("workOutcomeProductLabel");
+    expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme/);
+
+    const daemonExecution = read("src/daemon/execution.ts");
+    const validation = read("src/daemon/validation.ts");
+    const openCode = read("src/shell/opencode.ts");
+    expect(daemonExecution).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(validation).toContain("forecastVariancePaths");
+    expect(openCode).toContain("task.scope.map");
+    expect(openCode).not.toContain("for (const path of task.changeSurface)");
+  });
+});
+
+describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
+  it("keeps current attention, readiness, approval hierarchy, focus, settings detail and product labels on canonical owners", () => {
+    const presentation = read("ui/src/workbench-presentation.ts");
+    const workspace = read("ui/src/WorkItemWorkspace.tsx");
+    const composer = read("ui/src/ActivityComposer.tsx");
+    const readiness = read("ui/src/ReadinessWorkspace.tsx");
+    const approval = read("ui/src/SignoffReview.tsx");
+    const settings = read("ui/src/SettingsWorkspace.tsx");
+    const terminal = read("ui/src/TerminalResult.tsx");
+    const readme = read("README.md");
+
+    expect(workspace).toContain("canonicalCurrentMaterialIdentity");
+    expect(workspace).toContain("materialIdentity !== canonicalCurrentMaterialIdentity");
+    expect(workspace).toContain('label={"Return to " + workflow.label}');
+
+    expect(workspace).toContain("focusedRequiredInputEventId, setFocusedRequiredInputEventId");
+    expect(workspace).toContain("onRequiredInputFocused={setFocusedRequiredInputEventId}");
+    expect(composer).toContain("focusedRequiredInputEventId === requiredInputEventId");
+    expect(composer).toContain("onRequiredInputFocused(requiredInputEventId)");
+    expect(composer).not.toContain("focusedRequestEventId.current");
+    expect(composer).toContain("composerRegionRef.current?.focus({ preventScroll: true })");
+    expect(composer).toContain("ref={composerRegionRef}");
+    expect(composer).toContain("tabIndex={-1}");
+    expect(composer).not.toContain("ChatComposerInputHandle");
+    expect(composer).not.toContain("handleRef=");
+
+    expect(readiness).toContain("readinessOutcomeLabel(readinessOutcome)");
+    expect(readiness).not.toContain("Derived from governed readiness-review material when present");
+    expect(approval).toContain('data-testid="approval-readiness-summary"');
+    expect(approval).toContain('label="Ready for sign-off"');
+
+    expect(settings).toContain('label="Technical details"');
+    expect(settings).toContain('data-testid="repository-technical-details"');
+    expect(settings).not.toContain('{ key: "repository", label: "Git root" }');
+
+    expect(presentation).toContain("export const workOutcomeProductLabel");
+    expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
+    expect(terminal).toContain("workOutcomeProductLabel(workItem.outcome)");
+    const terminalOutcomeOwner = terminal.slice(
+      terminal.indexOf("const attention="),
+      terminal.indexOf("const material="),
+    );
+    expect(terminalOutcomeOwner).not.toContain("replaceAll(\"_\",\" \")");
+    expect(readme).toContain("Every WorkItem ends at a governed **verified result**");
+    expect(readme).toContain("Explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability");
+  });
+});
+
+describe("0.6.0 Wave 3 source and queue ownership certification", () => {
+  it("keeps one new-source planner, one persistence owner, and one queue derivation", () => {
+    const source = read("src/daemon/work-item-source.ts");
+    const create = source.slice(
+      source.indexOf("export const createWorkItemFromSource"),
+      source.indexOf("const activeRunExists"),
+    );
+    expect(source).toContain("const planNewSource =");
+    expect(source).toContain('planNewSource(source, project, "DISCOVERED", archived)');
+    expect(create).toContain('planNewSource(source, project, "CREATED", false)');
+    expect(create).toContain("applyPlan(runtime, plan)");
+    expect(create).not.toContain("storeWorkItem(");
+
+    const app = read("ui/src/app.tsx");
+    const queue = read("ui/src/WorkItemQueue.tsx");
+    expect(app).toContain("showArchived ? archivedWorkItemsQuery.data ?? workItems : workItems");
+    expect(app).toContain("queueDataset.filter((item) => item.projectId === queueProjectId)");
+    expect(queue).not.toContain("useQuery(");
+    expect(queue).not.toContain("listWorkItemsIncludingArchived");
+
+    const createWorkItem = read("ui/src/CreateWorkItem.tsx");
+    expect(createWorkItem).toContain('label="Concerns"');
+    expect(createWorkItem).toContain('data-testid="linked-remediation-project"');
+
+    const documents = read("ui/src/DocumentWorkspace.tsx");
+    expect(documents).toContain("state.changedGitPaths.map");
+    expect(documents).toContain("path.repositoryPath");
+    expect(documents).toContain("path.state");
+  });
+});
+
+describe("0.6.0 Wave 2 contract certification", () => {
+  it("keeps one task parser with schema-aware v2 admission and canonical Approval identity", () => {
+    const contracts = read("src/core/contracts.ts");
+    const execution = read("src/core/execution.ts");
+    const stage = read("src/daemon/stage.ts");
+    const authority = read("src/daemon/authority.ts");
+
+    expect(execution).toContain("export const admitSignedTaskBlockForSchema");
+    expect(execution).toContain('schemaId !== "change-v2" && schemaId !== "defect-v2"');
+    expect(execution.match(/SignedTaskBlockSchema\.parse/g) ?? []).toHaveLength(1);
+
+    const signedSchema = contracts.slice(
+      contracts.indexOf("const SignedTaskDefinitionSchema"),
+      contracts.indexOf("export const SignedTaskBlockJsonSchemaText"),
+    );
+    expect(signedSchema).not.toContain(".min(1");
+    expect(signedSchema).not.toContain(".trim()");
+    expect(stage).toContain("admitSignedTaskBlockForSchema(");
+    expect(stage).toContain("Current v2 Change/Defect task admission also requires at least one task.");
+    expect(authority).toContain("const block = admitSignedTaskBlockForSchema(");
+    expect(authority).toContain("const taskBlock = await validateTaskDefinitions(");
+
+    const approvalSchema = contracts.slice(
+      contracts.indexOf("export const ApprovalSchema"),
+      contracts.indexOf("export type Approval ="),
+    );
+    expect(approvalSchema).toContain(".trim()");
+    expect(approvalSchema).toContain('approvedBy must be non-empty');
+    expect(approvalSchema).toContain('approvedBy must not contain NUL');
+  });
+});
+
+describe("A06 execution-foundation certification", () => {
+  it("permanently wires forecast variance and coordinator-owned builder checkpoints", () => {
+    const contracts = read("src/core/contracts.ts");
+    const coreExecution = read("src/core/execution.ts");
+    const daemonExecution = read("src/daemon/execution.ts");
+    const validation = read("src/daemon/validation.ts");
+
+    expect(contracts).toContain('z.literal("GATE_CHECKPOINT_REQUESTED")');
+    expect(coreExecution).toContain('"GATE_CHECKPOINT_REQUESTED"');
+    expect(coreExecution).toContain("builderCheckpointRequestForTurn");
+    expect(coreExecution).toContain("checkpoint request must be the terminal turn action");
+
+    expect(validation).not.toContain("outside signed changeSurface");
+    expect(validation).toContain("forecastVariancePaths");
+    expect(validation).toContain("runCheckpointGate");
+    expect(validation).toContain("validation/checkpoint-");
+
+    expect(daemonExecution).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(daemonExecution).toContain("runCheckpointGate(");
+    expect(daemonExecution).toContain("Coordinator checkpoint result:");
+    expect(daemonExecution).toContain("resolveVerificationGate(manifest, checkpointRequest.gateId)");
+    expect(daemonExecution).toContain("checkpointCapture.changedPaths");
+    expect(daemonExecution).toContain('"SCOPE_BREACH"');
+    expect(daemonExecution).toContain("validation/v6-change-surface.json");
+    expect(daemonExecution).toContain('reviewPass.event.minimumChange === "CHANGE_BLOAT"');
+    expect(daemonExecution).toContain('"V6",');
+    expect(daemonExecution).toContain('"CHANGE_BLOAT",');
+
+    const opencode = read("src/shell/opencode.ts");
+    expect(opencode).toContain("repositoryScopeCapabilityResource");
+    expect(opencode).toContain("task.scope.map");
+    expect(opencode).not.toContain("for (const path of task.changeSurface)");
+    expect(opencode).toContain('"*/AGENTS.md"');
+    expect(opencode).toContain("workspaceSymlinkPaths");
+    expect(daemonExecution).toContain("protectedPaths");
+    expect(daemonExecution).not.toContain(
+      "run the applicable resolved architecture fitness gate before proceeding",
+    );
+
+    expect(opencode).toContain("remediatorProviderTags");
+    expect(opencode).toContain('role === "BUILDER"');
+  });
+});
+
+
 describe("public release delivery certification", () => {
   it("keeps one package-derived version owner and retained PR/release automation", () => {
     const packageJson = JSON.parse(read("package.json")) as {
@@ -1616,6 +2109,7 @@ describe("public release delivery certification", () => {
   it("retains permanent 0.2.1 installed-state and browser seam certification", () => {
     const suites = {
       shell: read("tests/shell.test.ts"),
+      installer: read("tests/installer.test.ts"),
       daemon: read("tests/daemon.test.ts"),
       opencode: read("tests/opencode.test.ts"),
       migration: read("tests/order-migration.test.ts"),
@@ -1623,11 +2117,18 @@ describe("public release delivery certification", () => {
     };
 
     for (const required of [
-      "initializes fresh installs as valid incomplete v4 without terminal configuration prompts",
       "retains current incomplete v4 exactly during installer update without prompting",
       "supports valid incomplete v4 configuration and expected-hash replacement",
     ]) {
       expect(suites.shell).toContain(required);
+    }
+
+    for (const required of [
+      "fresh success completes provider, model and repository choices before returning zero",
+      "fresh provider failure cannot persist deferred Settings configuration",
+      "fresh provider cancellation returns 130 without persisting deferred configuration",
+    ]) {
+      expect(suites.installer).toContain(required);
     }
 
     for (const required of [

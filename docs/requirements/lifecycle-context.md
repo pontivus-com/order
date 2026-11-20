@@ -2,7 +2,7 @@
 
 **Status:** Binding design standard
 **Canonical concern ID:** `GW-DOC-LIFECYCLE-CONTEXT`  
-**Versioned concern ID:** `GW-DOC-LIFECYCLE-CONTEXT-V1`  
+**Versioned concern ID:** `GW-DOC-LIFECYCLE-CONTEXT-V2`  
 
 ## 1. Purpose
 
@@ -59,7 +59,7 @@ The runtime context is an ephemeral projection over canonical sources. It is not
 
 Selected source content may be materialized into an agent prompt for execution, but its authority remains the referenced canonical source.
 
-For a source-backed WorkItem governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`, the current validated WorkItem Markdown is also a canonical **originating input**. It is not automatically project authority merely because it is canonical input. Its source-backed P2 intent has only the authority supplied by the operator/project under this lifecycle. The durable WorkItem projection may carry identity/classification, but it must not replace the source narrative in a stage that is entitled to receive that narrative.
+For a source-backed WorkItem governed by `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`, the current validated WorkItem Markdown is also a canonical **originating input**. It is not automatically project authority merely because it is canonical input. Its source-backed P2 intent has only the authority supplied by the operator/project under this lifecycle. The durable WorkItem projection may carry identity/classification, but it must not replace the source narrative in a stage that is entitled to receive that narrative.
 
 ## 3. Minimum sufficient context rule
 
@@ -80,7 +80,7 @@ Order must never use "include everything" as the default context policy.
 Before invoking an agent, Order resolves:
 
 - current lifecycle stage;
-- the current validated WorkItem source snapshot and pinned authoring schema where `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` applies;
+- the current validated WorkItem source snapshot and pinned authoring schema where `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` applies;
 - applicable project-defined engineering concern ids;
 - pyramid layer(s) the stage may create or modify;
 - applicable P0 rules;
@@ -96,9 +96,9 @@ Before invoking an agent, Order resolves:
 - expected artifact/output;
 - promotion gate.
 
-Concern applicability is resolved before authority projection according to [GW-DOC-TECHNICAL-ARCHITECTURE-V1](../architecture/technical-architecture.md). Concerns are project-defined applicability metadata and do not create separate workflows.
+Concern applicability is resolved before authority projection according to [GW-DOC-TECHNICAL-ARCHITECTURE](../architecture/technical-architecture.md). Concerns are project-defined applicability metadata and do not create separate workflows.
 
-Authority applicability is deterministic. Every explicit `AuthorityRef` is first resolved by exact lookup through the validated project `pontivus-order.toml [refs]` map owned by [GW-DOC-CANONICAL-CONTRACTS-V1 §14](../contracts/canonical-contracts.md). A missing mapping is incomplete context; agents never search prose or infer the source of an identifier.
+Authority applicability is deterministic. Every explicit `AuthorityRef` is first resolved by exact lookup through the validated project `pontivus-order.toml [refs]` map owned by [GW-DOC-CANONICAL-CONTRACTS §14](../contracts/canonical-contracts.md). A missing mapping is incomplete context; agents never search prose or infer the source of an identifier.
 
 The applicable source set is the union of:
 
@@ -153,11 +153,19 @@ The governed Markdown workbench adds one distinct **direct human-authoring ingre
 
 Interactive chat text remains non-canonical. If a conversation materially changes originating intent or project authority, the operator must explicitly adopt/write that change into the WorkItem source or other canonical authority before later stages may rely on it.
 
-A resumed provider session may be used only inside the same Order Run and lifecycle stage. For source-backed work, productive continuation additionally requires the current WorkItem source snapshot to match the Run's resolved context identity; a source change requires reconciliation and context re-resolution before the provider may continue productively. A material human clarification of originating request/P2 intent is not promoted merely because it was received as Run input: it must first be adopted into the WorkItem source or another canonical project authority under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1`. If the session is lost, the stage must be reconstructable from the current WorkItem source, canonical authority, persisted evidence and unresolved questions.
+A resumed provider session may be used only inside the same Order Run and lifecycle stage. For source-backed work, productive continuation additionally requires the current WorkItem source snapshot to match the Run's resolved context identity; a source change requires reconciliation and context re-resolution before the provider may continue productively. A material human clarification of originating request/P2 intent is not promoted merely because it was received as Run input: it must first be adopted into the WorkItem source or another canonical project authority under `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM`. If the session is lost, the stage must be reconstructable from the current WorkItem source, canonical authority, persisted evidence and unresolved questions.
 
 `WAITING_FOR_INPUT` is a Run condition, not a lifecycle stage.
 
-## 6. Stage decision boundaries
+## 6. Lifecycle-stage and execution/review decision boundaries
+
+The subsections below describe more than one decision-boundary class and must not be read as one flat `WorkStage` enumeration:
+
+- `IDEA`, `R1`, `R2`, `DESIGN`, `PLAN` and `R3` are pre-sign-off canonical WorkItem stages;
+- `IMPLEMENT`, `TEST / MECHANICAL VALIDATION` and `INDEPENDENT REVIEW` are post-sign-off execution/validation roles or boundaries operating under canonical `EXECUTION`;
+- `AUDIT` describes the Audit work-kind evaluation boundary and does not add another canonical lifecycle stage.
+
+The canonical cross-step WorkItem transition relation remains owned by `GW-DOC-WORK-LIFECYCLE`.
 
 ### IDEA
 
@@ -188,7 +196,7 @@ A resumed provider session may be used only inside the same Order Run and lifecy
 **Receives:**
 
 - P0 applicable controls;
-- current source-backed originating observation/request and its validated WorkItem classification when `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1` applies;
+- current source-backed originating observation/request and its validated WorkItem classification when `GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM` applies;
 - resolved P1 principles relevant to investigation;
 - original P2 intent/problem statement where available;
 - project authority map;
@@ -502,6 +510,16 @@ A lower stage may become more specific. It may not silently weaken an obligation
 
 Continuous conformance does **not** require a fresh independent agent at every boundary. By default, independent semantic review is mandatory at R3 and post-implementation V4. Earlier stages use deterministic/mechanical checks plus their stage-owned conformance result unless explicit project governance requires an additional independent review.
 
+For R2/DESIGN/PLAN, the productive prompt makes the applicable stage conformance questions explicit before the stage may declare completion. For delivery-schema v2 R2 this includes canonical P3 ownership/disposition, absence of shadow specifications, closure of acceptance/failure/scope semantics and zero unresolved material product/authority decisions. DESIGN proves every material solution decision traces to accepted functional authority. PLAN proves every task traces upward and leaves no material P1-P6 decision to implementation. R3 independently re-evaluates the whole authority topology rather than trusting those earlier stage-owned conclusions.
+
+### GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE
+
+**Required behavior:** promotion from every promotable pre-signoff stage requires exactly one current ArtifactRef for that stage's deterministic WorkItem lifecycle-document path, bound to the exact current repository bytes and admitted by that stage's schema/template policy.
+
+**Acceptance criterion:** `STAGE_COMPLETED` cannot promote with zero outputs, multiple outputs, another WorkItem's artifact, the wrong role/path, stale bytes or a v2 stage document missing required template structure, or a v2 R2 `REFERENCE`/`DELTA` owner that cannot resolve through the current project authority map. PLAN additionally cannot promote unless its exact current bytes contain exactly one canonical `order-tasks` block that parses under the signed-task contract. The coordinator, not the model, owns final conformance admission and records `CONFORMANCE_PASSED` only after these checks and the stage-owned semantic conformance result are current.
+
+**Failure/negative behavior:** provider completion text, a structurally valid event, an earlier artifact hash, or an empty `artifactRefIds` array must not create lifecycle promotion or a successful conformance event.
+
 ## 8. Monotonic obligation propagation
 
 Once an obligation becomes applicable, it persists into every lower layer until it is explicitly superseded by valid higher-layer authority.
@@ -543,7 +561,7 @@ If the artifact changes materially, its prior conformance result is stale.
 
 If material higher authority changes, dependent conformance results are stale.
 
-The exact persisted representation is owned by [GW-DOC-CANONICAL-CONTRACTS-V1](../contracts/canonical-contracts.md): coordinator-owned conformance RunEvents plus explicit ArtifactRef dependency edges. Order does not create a duplicate conformance domain model.
+The exact persisted representation is owned by [GW-DOC-CANONICAL-CONTRACTS](../contracts/canonical-contracts.md): coordinator-owned conformance RunEvents plus explicit ArtifactRef dependency edges. Order does not create a duplicate conformance domain model.
 
 ## 10. Downstream handoff rule
 
