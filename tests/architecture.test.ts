@@ -1363,14 +1363,28 @@ describe("architecture fitness", () => {
         ) {
           continue;
         }
-        if (retainedSemanticVersionPath(authorityPath)) {
-          violations.push(
-            `${authorityPath}: retained semantic-version source must not appear in the current authority set`,
-          );
-        } else if (!concernByPath.has(authorityPath)) {
+        const metadata = concernByPath.get(authorityPath);
+        if (metadata === undefined) {
           violations.push(
             `${authorityPath}: literal authority document must declare canonical concern metadata`,
           );
+          continue;
+        }
+        if (retainedSemanticVersionPath(authorityPath)) {
+          const currentPath = currentOwnerByStable.get(metadata.stableId);
+          if (currentPath === undefined) {
+            violations.push(
+              `${authorityPath}: retained semantic-version authority must have a current canonical owner for ${metadata.stableId}`,
+            );
+            continue;
+          }
+          const currentSelectedInLayer = [...match[1].matchAll(/"([^"]+)"/g)]
+            .some((candidate) => candidate[1] === currentPath);
+          if (!currentSelectedInLayer) {
+            violations.push(
+              `${authorityPath}: retained semantic-version authority must be selected beside current owner ${currentPath} in the same authority layer`,
+            );
+          }
         }
       }
     }
