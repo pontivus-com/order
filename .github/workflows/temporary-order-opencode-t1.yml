@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: temporary-order-opencode-t1
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   certify:
@@ -161,7 +161,7 @@ jobs:
             database.close();
           }
           TS
-          "${RUNNER_TEMP}/bun-bin/bun" "${RUNNER_TEMP}/verify-seed.ts"
+          "${RUNNER_TEMP}/bun-bin/bun" ".temporary-order-verify-seed.ts"\n          rm -f ".temporary-order-verify-seed.ts"
 
       - name: Start candidate Order daemon
         shell: bash
