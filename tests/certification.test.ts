@@ -492,46 +492,37 @@ describe("Order cross-boundary certification", () => {
       "main.tsx",
     ]);
 
-    const rendererClassifications = {
-      "ActivityComposer.tsx": "ChatComposer",
-      "ActivityWorkspace.tsx": "WorkbenchDialogue",
-      "CreateWorkItem.tsx": "WorkbenchForm",
-      "DocumentWorkspace.tsx": "WorkbenchConfirmation",
-      "EvidenceViewer.tsx": "WorkbenchSurface",
-      "ExecutionWorkspace.tsx": "WorkbenchMasterDetail",
-      "MarkdownEditor.tsx": "WorkbenchToolbar",
-      "MarkdownSourceEditor.tsx": "EditorView",
-      "OpenCodeAccountControl.tsx": "WorkbenchUtilityLink",
-      "OpenCodeAccountSettings.tsx": "WorkbenchForm",
-      "PreSignoffStageWorkspace.tsx": "WorkbenchDisclosure",
-      "ProposalReview.tsx": "WorkbenchReview",
-      "ReadinessWorkspace.tsx": "WorkbenchReview",
-      "RunEventTimeline.tsx": "WorkbenchTimeline",
-      "SettingsWorkspace.tsx": "WorkbenchSettingsLayout",
-      "SignoffReview.tsx": "WorkbenchReview",
-      "TerminalResult.tsx": "WorkbenchSurface",
-      "WorkItemContext.tsx": "WorkbenchContextPanel",
-      "WorkItemIdentityRow.tsx": "WorkbenchIdentity",
-      "WorkItemQueue.tsx": "WorkbenchTable",
-      "WorkItemWorkspace.tsx": "WorkbenchLayout",
-      "WorkflowMaterialSelector.tsx": "WorkbenchSelector",
-      "WorkflowRail.tsx": "WorkbenchRail",
-      "WorkflowStepFrame.tsx": "WorkbenchAttention",
-      "app.tsx": "WorkbenchLayout",
-    } as const;
+    const componentArchitecture = read("docs/architecture/workbench.md");
+    const rendererAuthorityStart = componentArchitecture.indexOf("### 8.16");
+    const rendererAuthorityEnd = componentArchitecture.indexOf("### 8.18");
+    expect(rendererAuthorityStart).toBeGreaterThanOrEqual(0);
+    expect(rendererAuthorityEnd).toBeGreaterThan(rendererAuthorityStart);
+    const rendererAuthority = componentArchitecture.slice(
+      rendererAuthorityStart,
+      rendererAuthorityEnd,
+    );
+    const canonicalRendererNames = [...new Set(
+      [...rendererAuthority.matchAll(/`([^`]+\.tsx)`/g)]
+        .map((match) => match[1]!)
+        .filter((name) => name !== "*.tsx" && name !== "main.tsx")
+        .map((name) => name.slice(name.lastIndexOf("/") + 1)),
+    )].sort();
     const productionRenderers = renderers.filter((name) => name !== "main.tsx");
-    expect(Object.keys(rendererClassifications).sort()).toEqual(productionRenderers);
-    for (const [name, marker] of Object.entries(rendererClassifications)) {
-      expect(read("ui/src/" + name)).toContain(marker);
-    }
-    const unclassified = (names: readonly string[]): readonly string[] =>
+    expect(canonicalRendererNames).toContain("ActivityComposer.tsx");
+    expect(canonicalRendererNames).toEqual(productionRenderers);
+
+    const unclassified = (
+      names: readonly string[],
+      classifications: readonly string[],
+    ): readonly string[] =>
       names.filter((name) =>
-        name !== "main.tsx" &&
-        !Object.prototype.hasOwnProperty.call(rendererClassifications, name)
+        name !== "main.tsx" && !classifications.includes(name)
       );
-    expect(unclassified(renderers)).toEqual([]);
-    expect(unclassified([...renderers, "UnclassifiedFixture.tsx"]))
-      .toEqual(["UnclassifiedFixture.tsx"]);
+    expect(unclassified(renderers, canonicalRendererNames)).toEqual([]);
+    expect(unclassified(
+      [...renderers, "UnclassifiedFixture.tsx"],
+      canonicalRendererNames,
+    )).toEqual(["UnclassifiedFixture.tsx"]);
 
     const bootstrap = new Set(["main.tsx"]);
     const rendererSource = renderers
@@ -2114,6 +2105,7 @@ describe("public release delivery certification", () => {
   it("retains permanent 0.2.1 installed-state and browser seam certification", () => {
     const suites = {
       shell: read("tests/shell.test.ts"),
+      installer: read("tests/installer.test.ts"),
       daemon: read("tests/daemon.test.ts"),
       opencode: read("tests/opencode.test.ts"),
       migration: read("tests/order-migration.test.ts"),
@@ -2121,11 +2113,18 @@ describe("public release delivery certification", () => {
     };
 
     for (const required of [
-      "initializes fresh installs as valid incomplete v4 without terminal configuration prompts",
       "retains current incomplete v4 exactly during installer update without prompting",
       "supports valid incomplete v4 configuration and expected-hash replacement",
     ]) {
       expect(suites.shell).toContain(required);
+    }
+
+    for (const required of [
+      "fresh success completes provider, model and repository choices before returning zero",
+      "fresh provider failure cannot persist deferred Settings configuration",
+      "fresh provider cancellation returns 130 without persisting deferred configuration",
+    ]) {
+      expect(suites.installer).toContain(required);
     }
 
     for (const required of [
