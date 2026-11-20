@@ -6,92 +6,110 @@
 
 `READY_FOR_SIGNOFF`.
 
-This is the fresh adversarial R3 for the reconstructed 0.6.0 Workbench package. It evaluates whether the exact current R1/R2/DESIGN/PLAN package is complete, internally coherent and implementation-ready. It does **not** claim that the UI reconstruction has already been implemented, does not satisfy T11 rendered acceptance, and does not authorize PR #83 merge, release, version bump, tag or publication.
+This is the fresh adversarial R3 for the **primitive-preserving, destructive screen-replacement** 0.6.0 package. It determines whether the exact current R1/R2/DESIGN/PLAN package is complete and unambiguous enough to sign for implementation. It does **not** claim that the replacement screens already exist, does not satisfy T11 rendered acceptance, and does not authorize PR #83 merge/release.
 
 Exact reviewed package:
 
-- repository evidence baseline: `34c022f26b6ed67545caf1264eb6403c57862674`;
+- repository evidence baseline: `3022596aeadcf00b69f2cd8b6c7bc56522f3e0d6`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - R1 `research.md`: `d2eb1627e2b9a145f785b04829b56c623b7431e9`;
-- R2 `requirements.md`: `e01ce75ee0ece676c195a46f810186c24814e11f`;
-- DESIGN `solution-design.md`: `ceedee6d695b2384de86f194dacf7166662f9d96`;
-- PLAN `implementation-plan.md`: `11135e69880a4d77a8a548bc53dbe79af76f2fa4`;
-- pre-R3 campaign state: `ec4ce127b38e28a331381d236f761ebbc0f60013`;
-- permanent architecture/campaign sensor: `a6f25b3429c6a45932492d4929e78bfc6ce662d0`;
-- PR Verification #1745 / Actions run `44833230625`: dependency-lock, typecheck, architecture, full test and build were green at R3 review time. This is package/baseline fitness evidence only, not proof that T2-T11 have been executed.
+- R2 `requirements.md`: `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`;
+- DESIGN `solution-design.md`: `f21d1530b01a43e28be47742236b339770022059`;
+- PLAN `implementation-plan.md`: `5e7b1aba387a5720e5e23a1013dd8a66c1a6d060`;
+- pre-R3 campaign state: `ce33c94cb9fdcf0f14a29b47a0032b411f8a6068`;
+- permanent architecture/campaign sensor: `85d49a9493d45d10e85a34a72d77479f99971c1e`;
+- PR Verification #1771 / Actions run `44836026174`: dependency-lock, typecheck and strengthened architecture/package checks were green at R3 review time. This is package fitness evidence only, not proof that the screen replacement tasks have executed.
 
 ## Adversarial challenge summary
 
 | Challenge | Result | R3 disposition |
 |---|---|---|
-| R3-P01 — authority-driven package rather than current-UI preservation | PASS | R2 remains authority-derived. Current UI/screenshots are defect evidence only; they are not a preservation or compatibility target. |
-| R3-P02 — structural root cause is solved rather than cosmetically patched | PASS | C19-F02 is solved at DESIGN by SD21-SD29: rebuild the shared primitive/theme foundation, migrate every renderer family, and delete competing feature-era presentation ownership. Screen-by-screen CSS tuning on the old foundation is explicitly forbidden. |
-| R3-P03 — complete workflow/screen information coverage | PASS | R2 explicitly covers all four work kinds and every applicable lifecycle step, with Primary/Supporting/Technical hierarchy and interaction class. SD22-SD28 map Queue/Create, WorkItem shell/documents, productive pre-signoff stages, Readiness/Approval, Implementation, Complete/Evidence/Context and Settings. |
-| R3-P04 — singular implementation ownership and ordering | PASS | PLAN has 11 signed tasks in the strict T1→T11 chain. T2 exclusively owns `ui/src/primitives/**`, `ui/src/theme.css` and `ui/src/styles.css`; T3-T9 consume that foundation and are forbidden from modifying it. Foundation insufficiency routes back to T2/DESIGN rather than local override work. |
-| R3-P05 — deletion/replacement is explicit | PASS | IA27-IA34 require removal of obsolete recurring component/layout CSS, feature-owned grammar, alternate execution/card layouts, generic review frames and bespoke Settings/admin systems. Compatibility presentation paths, hidden legacy DOM grammar and local CSS bypasses are prohibited. |
-| R3-P06 — architecture integrity | PASS | Domain/core/daemon/query/persistence/provider semantics remain singular. No new DTO, OOP/service/repository/controller layer, second authority/state graph, alternate provider path or new product/runtime dependency is introduced. |
-| R3-P07 — proof is sufficient and independent | PASS | T10 owns semantic/component/theme/responsive certification. T11/SD30/IA26 owns exact-candidate rendered acceptance with PNG+manifest/index evidence and independent schema/information, UX/interaction and visual/UI verdicts. Screenshot review supplements rather than replaces semantic/browser proof. |
-| R3-P08 — executable scope/traceability | PASS | 112 stable requirements + 27 package-local atoms + 5 corrected-upstream no-code traces = 144 explicit vertical obligations. SD01-SD30, IA01-IA34 and the exact 73-path task-union forecast are bidirectionally traced; G5A records Q1-Q12 PROVEN across A01-A11/H1. |
-| R3-P09 — failure/recovery and negative boundaries | PASS | Each UI migration has forbidden alternatives and proof obligations. Any task failure remains in its owning task; a downstream foundation problem reopens T2; any rendered acceptance FAIL reopens the defective T2-T9 owner and requires fresh exact-candidate evidence. |
-| R3-P10 — no residual worker design inference | PASS | Task objectives, dependencies, files, deletion duties, forbidden alternatives, acceptance refs, proof owners, gate IDs and stop/go checkpoints are explicit. The worker is not asked to choose product hierarchy, interaction grammar, primitive ownership, responsive topology or acceptance criteria. |
+| R3-P01 — current screens are evidence, not desired-state authority | PASS | R2 explicitly states that pre-reconstruction screen implementations are not preservation, compatibility, migration or information-design baselines. |
+| R3-P02 — primitive boundary is exact | PASS | `ui/src/primitives/**` is retained read-only capability for this campaign. T2 does not rebuild primitives; it certifies them and removes obsolete screen-support/compatibility CSS only. A genuine primitive defect must return upstream to DESIGN. |
+| R3-P03 — old screens are actually removed before replacement | PASS | IA28-IA34 and T3-T9 require a task-local Git purge checkpoint deleting owned old screen files before any replacement JSX/DOM is authored. Final-state similarity cannot substitute for this deletion evidence. |
+| R3-P04 — no old screen implementation can leak forward as a template | PASS | Copying or incrementally transforming old JSX/DOM hierarchy, field grouping, table-column design, card/panel structure, action placement, responsive markup, screen-local CSS/classes or visual hierarchy is explicitly a task breach. |
+| R3-P05 — replacement screens have fresh information design | PASS | R2 defines a design-time screen-information schema covering Primary, Supporting, Technical information, actions, material states, responsive order and work-kind/stage differences. The schema is not a DTO/browser state family. |
+| R3-P06 — complete screen replacement set | PASS | DESIGN enumerates the exact 23 old screen/composition paths to be destructively replaced: application/Queue/Create, WorkItem shell/document, productive pre-signoff, Readiness/Approval, Implementation, Complete/Evidence/Context and Settings/account screens. |
+| R3-P07 — retained capability is not accidentally mutable | PASS | PLAN excludes primitives, Markdown editor leaves, pure presentation policy and query/API helpers from the mutable forecast. The exact cumulative `changeSurface` is 43 paths. The permanent architecture sensor rejects primitive/helper mutation. |
+| R3-P08 — screen logic embedded in old files cannot be silently salvaged | PASS | If required non-visual behavior exists only inside a discarded screen file, implementation must consume a canonical underlying owner or return upstream for an architecture-preserving extraction decision. Existence in old screen code is not reuse authority. |
+| R3-P09 — task ordering prevents regression | PASS | T2 establishes the retained primitive/CSS-purge boundary. T3-T9 each purge then recreate one screen family and must pass fresh schema + semantic + rendered review before the dependent task starts. T10 is verification-only; T11 is rendered acceptance/closeout. |
+| R3-P10 — minimum change is applied at the correct layer | PASS | Minimum change preserves domain/contracts/lifecycle/query/primitives. It does not preserve defective screens. Destructive replacement is the minimum authority-compliant change at the screen layer. |
+| R3-P11 — proof is independent of implementation self-assertion | PASS | T10 proves screen classification, primitive containment, absence of compatibility screen grammar, responsive/theme semantics and cross-solution regression. T11 independently evaluates schema/information, UX/interaction and visual/UI fidelity from exact-candidate rendered evidence. |
+| R3-P12 — no residual implementation choice | PASS | Screen owners, purge paths, retained dependencies, information contracts, primitive composition, forbidden reuse, responsive ownership, proof requirements and failure routes are explicit. The worker is not asked to decide whether to preserve old screen structure. |
 
-## Task-graph readiness
+## Retained capability
 
-The signed execution order is accepted as the minimum auditable reconstruction:
+The implementation may preserve and reuse only the already-authorized capability boundary:
 
-1. **T1 — non-UI baseline:** preserve/revalidate already-correct SD01-SD20 technical corrections.
-2. **T2 — Workbench foundation:** rebuild primitives/theme/styles and delete competing presentation foundations.
-3. **T3 — Queue/Create:** Operational scan + Form/configuration.
-4. **T4 — WorkItem shell/Work request/documents:** stable identity/rail/attention/material shell.
-5. **T5 — Research/Requirements/Solution design/Plan:** one productive pre-signoff interaction grammar.
-6. **T6 — Readiness/Approval:** canonical Review compositions.
-7. **T7 — Implementation:** canonical operational master/detail.
-8. **T8 — Complete/Evidence/Context:** terminal/material presentation.
-9. **T9 — Settings/OpenCode/account/configuration:** operator-first Settings grammar.
-10. **T10 — unified certification:** verification-only component/theme/responsive/scenario regression closure.
-11. **T11 — rendered acceptance and closeout:** exhaustive exact-candidate evidence, row-level review, then final V0-V7/IA24.
+- canonical `ui/src/primitives/**` Workbench primitives;
+- `MarkdownEditor` / `MarkdownSourceEditor` as specialized content leaves only;
+- `workbench-presentation.ts` as pure presentation policy;
+- HTTP/query-key/formatting/theme/bootstrap helpers in their current non-screen responsibilities;
+- canonical core/daemon/query/persistence/provider/lifecycle owners.
 
-Each signed task retains the six logical gate IDs. The task-boundary contract additionally requires architecture plus task-specific semantic/rendered evidence before a dependent presentation task starts.
+Shared `theme.css` / `styles.css` are not blank-slate rewrites: T2 may remove legacy screen-support/compatibility selectors while retaining the primitive/theme/global rules required by current P4/P5.
 
-## Rendered evidence boundary
+## Destructive screen replacement set
 
-The reviewed SVG set under `docs/references/workbench-ui/` is derived comparison material, not semantic authority. Current R2/DESIGN/P3-P6 authority wins on conflict.
+The following existing screen/composition implementations are explicitly disposable and must be deleted before replacement authorship:
 
-T11 cannot close on an aggregate screenshot judgment. Every required evidence row must independently PASS:
+- `app.tsx`, `WorkItemQueue.tsx`, `CreateWorkItem.tsx`;
+- `WorkItemWorkspace.tsx`, `WorkItemIdentityRow.tsx`, `WorkflowRail.tsx`, `WorkflowStepFrame.tsx`, `DocumentWorkspace.tsx`;
+- `PreSignoffStageWorkspace.tsx`, `ActivityWorkspace.tsx`, `ActivityComposer.tsx`, `WorkflowMaterialSelector.tsx`, `ProposalReview.tsx`, `RunEventTimeline.tsx`;
+- `ReadinessWorkspace.tsx`, `SignoffReview.tsx`;
+- `ExecutionWorkspace.tsx`;
+- `TerminalResult.tsx`, `EvidenceViewer.tsx`, `WorkItemContext.tsx`;
+- `SettingsWorkspace.tsx`, `OpenCodeAccountControl.tsx`, `OpenCodeAccountSettings.tsx`.
 
-1. schema/information fidelity;
-2. UX/interaction fidelity;
-3. visual/UI fidelity.
+The old files may be inspected before purge only as defect evidence or to locate canonical underlying owners. Their screen composition is never a baseline.
 
-A material divergence is a blocking FAIL unless an exact newer authority is recorded as superseding the reference. Pixel-diff threshold alone is insufficient.
+## Signed execution sequence
 
-## Minimum-change and preservation decision
+1. **T1 — non-UI baseline:** preserve/revalidate already-correct non-screen 0.6.0 work.
+2. **T2 — retained primitive boundary:** certify primitives unchanged; purge shared legacy screen-support/compatibility CSS; author no replacement screen.
+3. **T3 — Queue/Create:** purge three old paths, review fresh screen schemas, recreate from retained primitives.
+4. **T4 — WorkItem shell/Work request/document:** purge five old screen paths, retain Markdown editors as content leaves, recreate shell/document screens.
+5. **T5 — productive pre-signoff:** purge six old screen/adapters, recreate Research/Requirements/Solution design/Plan from fresh schemas.
+6. **T6 — Readiness/Approval:** purge two old review screens, recreate fresh Review compositions.
+7. **T7 — Implementation:** purge old execution screen, recreate canonical master/detail.
+8. **T8 — Complete/Evidence/Context:** purge three old screens, recreate terminal/material screens.
+9. **T9 — Settings/account/configuration:** purge three old screens, recreate operator-first configuration screens.
+10. **T10 — unified certification:** verification only; production defects route to T2-T9 or DESIGN.
+11. **T11 — rendered acceptance/closeout:** exhaustive exact-candidate evidence and final gates.
 
-Minimum change means **preserve the correct semantic architecture while replacing the incorrect presentation realization**. It does not mean retain the current UI structure because it exists.
+The exact mutable forecast is **43 paths**. The exact destructive replacement set is **23 screen/composition paths**. The package still closes 144 vertical obligations: 112 stable requirements + 27 package-local atoms + 5 corrected-upstream no-code traces.
 
-Preserved:
-- lifecycle/work-kind/stage semantics;
-- canonical contracts and persistence;
-- daemon/API/query ownership;
-- proposal/adoption, sign-off, execution and provider semantics;
-- exact Markdown/Git/freshness rules.
+## Purge-before-rebuild evidence standard
 
-Rebuilt/replaced:
-- Workbench primitive implementations where required;
-- recurring theme/layout/component presentation;
-- application shell/Queue/Create composition;
-- every governed renderer family;
-- responsive composition;
-- obsolete presentation selectors/branches and duplicate visual grammar.
+For T3-T9, task completion requires retained evidence of:
+
+1. a purge checkpoint commit that deletes all task-owned old screen files and contains no replacement screen JSX/DOM;
+2. the fresh R2-derived screen-information-schema review;
+3. replacement commits after the purge checkpoint;
+4. proof that retained primitives/helpers were not modified for screen convenience;
+5. task-specific semantic/browser proof;
+6. task-specific rendered review with zero unresolved FAIL.
+
+A visually correct final screen does not pass if the task cannot prove that the old implementation was removed before replacement.
+
+## Rendered acceptance boundary
+
+T11 cannot close on aggregate screenshot judgment. Every required evidence row must independently PASS:
+
+- schema/information fidelity;
+- UX/interaction fidelity;
+- visual/UI fidelity.
+
+Any screen-level FAIL reopens T3-T9. A shared stylesheet-purge defect reopens T2. A genuine primitive defect returns to DESIGN. Pixel matching alone remains insufficient and SVGs remain derived comparison material rather than semantic authority.
 
 ## Findings
 
 No blocking R3 finding remains.
 
-The historical pre-reconstruction implementation candidate and historical `READY_FOR_SIGNOFF` review remain evidence only. They are not accepted as implementation proof for SD21-SD30.
+The prior R3 and prior 73-path/primitive-rebuild package are superseded historical evidence. They cannot authorize current sign-off or implementation.
 
 ## Final R3 disposition
 
 **Verdict:** `READY_FOR_SIGNOFF`.
 
-The exact current package is sufficiently complete and unambiguous to be signed for implementation. Sign-off would authorize execution of the signed T1-T11 task graph only. It would not mean the reconstruction is complete and would not authorize repository merge/release. Completion requires successful task execution, T10 certification, T11 rendered acceptance with zero unresolved FAIL, and the final execution/closeout gates.
+The exact current package is sufficiently complete and unambiguous to be explicitly signed for implementation. Sign-off authorizes only execution of the signed T1-T11 task graph under the destructive screen-replacement law. It does not authorize retaining or incrementally refactoring the old screens, does not mean T2-T11 are complete, and does not authorize PR merge/release.
