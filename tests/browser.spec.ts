@@ -2789,7 +2789,6 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await approvedBy.fill("browser-approver");
   await expect(signoff).toBeEnabled();
 
-  const signoff = page.getByRole("button", { name: "Sign off exact package" });
   let releaseSignoff = (): void => {};
   let markSignoffHandled = (): void => {};
   const signoffBarrier = new Promise<void>((resolve) => {
