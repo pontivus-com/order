@@ -130,7 +130,7 @@ Wide/medium/narrow presentation keeps the same canonical data and derived decisi
 
 The existing 112-row DESIGN ledger remains the requirement-level ownership/disposition index. Under G-F12 it is no longer permitted to stand alone: each row is interpreted through the explicit carrier/stage model above and its named P4-P6 owner. POSITIVE_NO_CHANGE therefore means the required package technical realization is the shared model above plus the row's exact evidence-backed owner/path; it never means preserve current code because tests are green.
 
-The 25 package-local atoms remain the exact non-stable corrections and the SD01-SD20 catalog remains the delta/verification solution set. The reconstruction adds no new product behavior and no new implementation solution. It makes explicit the technical realization that all those rows consume.
+The corrected package now contains 27 package-local atoms: the prior 25 plus `PL-C19-02` for the structurally missing presentation reconstruction and `PL-C20-03` for exact-candidate rendered acceptance. SD01-SD30 are the complete current delta/verification solution set. The two added atoms change no product semantics; they correct the technical/proof realization of existing C19/C20 functional authority.
 
 ### Post-A09 authority revalidation
 
