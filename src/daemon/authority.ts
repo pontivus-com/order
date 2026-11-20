@@ -333,10 +333,17 @@ const stageTemplateAuthorityRefs = (
     throw new TypeError("stage template is missing its canonical authority identity");
   }
   const reachable = new Set(authority.authorityRefs.map(([authorityRef]) => authorityRef));
-  return match[1]
+  const required = match[1]
     .split(",")
-    .map((value) => AuthorityRefSchema.parse(value.trim()))
-    .filter((authorityRef) => reachable.has(authorityRef));
+    .map((value) => AuthorityRefSchema.parse(value.trim()));
+  for (const authorityRef of required) {
+    if (!reachable.has(authorityRef)) {
+      throw new TypeError(
+        "stage template AuthorityRef is not reachable in " + stage + " context: " + authorityRef,
+      );
+    }
+  }
+  return required;
 };
 
 const explicitUpstreamAuthorityRefs = (
