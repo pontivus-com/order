@@ -2308,14 +2308,19 @@ describe("architecture fitness", () => {
     const designAtoms = [...design.matchAll(/^\| `(PL-C[^\`]+)` \|/gm)].map(
       (match) => match[1],
     );
-    if (designAtoms.length !== 25 || duplicates(designAtoms).length > 0) {
+    if (designAtoms.length !== 27 || duplicates(designAtoms).length > 0) {
       violations.push(
-        "DESIGN package-local atom inventory must be 25 unique rows; found " +
+        "DESIGN package-local atom inventory must be 27 unique rows; found " +
           designAtoms.length,
       );
     }
     if (!designAtoms.includes("PL-C12-02")) {
       violations.push("DESIGN must trace current R2 package-local consequence PL-C12-02");
+    }
+    for (const atom of ["PL-C19-02", "PL-C20-03"]) {
+      if (!designAtoms.includes(atom)) {
+        violations.push("DESIGN must trace rendered-reconstruction package atom " + atom);
+      }
     }
 
     const phaseRequirementRows: { requirement: string; disposition: string }[] = [];
