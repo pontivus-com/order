@@ -5,7 +5,7 @@
 
 > **CURRENT STATUS — SUPERSEDED / R3 REVALIDATION REQUIRED.**
 >
-> This artifact records the historical R3 review of R1 `a22200e...`, R2 `332cc0a...`, DESIGN `bf3cbb...` and PLAN `b4d4d9d...`. Exact-candidate rendered evidence subsequently exposed C19-F02/C20-F05: the Workbench presentation foundation was not actually reconstructed and rendered UX/UI fidelity was not proved. Current package authority is R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `6bea86efd799e08cb63849d528cfca24e98d283e`, DESIGN `0e319daa743fad33b9fd4ba08fb543ca1a151482`, PLAN `7364756aef0e87445e55a013b6e5637c81e371ab`. G2-G6 are reopened/blocked as recorded by the campaign. The historical verdict below cannot authorize current sign-off, implementation completion or merge.
+> This artifact records the historical R3 review of R1 `a22200e...`, R2 `332cc0a...`, DESIGN `bf3cbb...` and PLAN `b4d4d9d...`. Exact-candidate rendered evidence subsequently exposed C19-F02/C20-F05: the Workbench presentation foundation was not actually reconstructed and rendered UX/UI fidelity was not proved. Current package authority is R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `6bea86efd799e08cb63849d528cfca24e98d283e`, DESIGN `0e319daa743fad33b9fd4ba08fb543ca1a151482`, PLAN `824d71692da37be27fcc8fb25ea71fa38bc8f0cf`. G2-G6 are reopened/blocked as recorded by the campaign. The historical verdict below cannot authorize current sign-off, implementation completion or merge.
 
 ## Historical readiness verdict
 
