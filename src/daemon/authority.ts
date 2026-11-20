@@ -312,13 +312,13 @@ export const resolveCurrentStageAuthority = async (
 };
 
 
-const authorityRefTokenPattern = (authorityRef: AuthorityRef): RegExp =>
-  new RegExp(
-    "(?:^|[^A-Za-z0-9_-])" +
-      authorityRef.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\authorityRef.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\export type StageContextResolution = Readonly<{")") +
-      "(?=$|[^A-Za-z0-9_-])",
-    "m",
-  );
+const bodyContainsAuthorityRef = (
+  body: string,
+  authorityRef: AuthorityRef,
+): boolean =>
+  body
+    .split(/[^A-Za-z0-9_-]+/)
+    .some((token) => token === authorityRef);
 
 const stageTemplateAuthorityRefs = (
   workItem: WorkItem,
@@ -352,7 +352,7 @@ const explicitUpstreamAuthorityRefs = (
   return authority.authorityRefs
     .map(([authorityRef]) => authorityRef)
     .filter((authorityRef) =>
-      bodies.some((body) => authorityRefTokenPattern(authorityRef).test(body))
+      bodies.some((body) => bodyContainsAuthorityRef(body, authorityRef))
     );
 };
 
