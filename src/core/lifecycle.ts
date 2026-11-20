@@ -14,6 +14,11 @@ import {
   type WorkItem,
   type WorkStage,
 } from "./contracts.ts";
+import {
+  isPreSignoffStage,
+  permanentAuthorityProposalIsAdmitted,
+  type ResolvedProjectAuthority,
+} from "./governance.ts";
 export type { UpstreamReturnStage } from "./contracts.ts";
 
 export const directlyEditableArtifactRoles = [
@@ -489,19 +494,13 @@ export const stageInputIsAdmitted = (
   }
 };
 
-const lifecycleProposalPayload = (
+const artifactProposalPayload = (
   run: Run,
   payload: RunEventPayload,
 ): payload is Extract<RunEventPayload, { tag: "ARTIFACT_PROPOSAL_CREATED" }> => {
   if (payload.tag !== "ARTIFACT_PROPOSAL_CREATED") return false;
-  if (
-    run.stage !== "R1" &&
-    run.stage !== "R2" &&
-    run.stage !== "DESIGN" &&
-    run.stage !== "PLAN" &&
-    run.stage !== "R3"
-  ) {
-    throw new TypeError("lifecycle proposal requires a lifecycle artifact-owning stage");
+  if (!isPreSignoffStage(run.stage)) {
+    throw new TypeError("artifact proposal requires a lifecycle artifact-owning stage");
   }
   return true;
 };
@@ -622,6 +621,7 @@ export const stageProviderBatchRejectionCode = (
   run: Run,
   priorEvents: readonly RunEvent[],
   payloads: readonly RunEventPayload[],
+  resolvedAuthority: ResolvedProjectAuthority | null = null,
 ): StageProviderBatchRejectionCode | null => {
   if (payloads.length === 0) return "EMPTY_BATCH";
 
@@ -629,7 +629,7 @@ export const stageProviderBatchRejectionCode = (
   const input = payloads.filter((payload) => payload.tag === "HUMAN_INPUT_REQUESTED");
   const blocked = payloads.filter((payload) => payload.tag === "STAGE_BLOCKED");
   const completed = payloads.filter((payload) => payload.tag === "STAGE_COMPLETED");
-  const proposals = payloads.filter((payload) => lifecycleProposalPayload(run, payload));
+  const proposals = payloads.filter((payload) => artifactProposalPayload(run, payload));
 
   if (messages.length > 1) return "MULTIPLE_AGENT_MESSAGES";
   if (input.length > 1) return "MULTIPLE_REQUIRED_INPUT";
@@ -648,8 +648,19 @@ export const stageProviderBatchRejectionCode = (
   }
 
   const proposal = proposals[0];
-  if (proposal?.tag === "ARTIFACT_PROPOSAL_CREATED" && proposal.role !== run.stage) {
-    return "PROPOSAL_ROLE_MISMATCH";
+  if (proposal?.tag === "ARTIFACT_PROPOSAL_CREATED") {
+    const lifecycleProposal = proposal.role === run.stage;
+    const permanentAuthorityProposal =
+      resolvedAuthority !== null &&
+      isPreSignoffStage(run.stage) &&
+      permanentAuthorityProposalIsAdmitted(
+        run.stage,
+        proposal,
+        resolvedAuthority,
+      );
+    if (!lifecycleProposal && !permanentAuthorityProposal) {
+      return "PROPOSAL_ROLE_MISMATCH";
+    }
   }
 
   const completion = completed[0];
@@ -693,17 +704,54 @@ const stageProviderBatchRejectionMessage = (
     case "MULTIPLE_LIFECYCLE_PROPOSALS": return "STAGE provider turn contains multiple lifecycle proposals";
     case "PROPOSAL_WITH_CONTROL": return "lifecycle proposal cannot coexist with a controlling event";
     case "UNRESOLVED_LIFECYCLE_PROPOSAL": return "Run already has an unresolved lifecycle proposal";
-    case "PROPOSAL_ROLE_MISMATCH": return "lifecycle proposal role must equal owning Run stage";
+    case "PROPOSAL_ROLE_MISMATCH": return "lifecycle proposal role must equal owning Run stage or be an admitted permanent authority target";
     case "COMPLETION_STAGE_MISMATCH": return "STAGE_COMPLETED stage must equal owning Run stage";
     case "BLOCK_STAGE_MISMATCH": return "STAGE_BLOCKED owner must equal owning Run stage";
     case "OPEN_REQUIRES_AGENT_MESSAGE": return "OPEN STAGE provider turn requires exactly one non-blank agent message";
   }
 };
 
+export const durableDecisionCompletionIsAdmitted = (
+  run: Run,
+  events: readonly RunEvent[],
+): boolean => {
+  const history = orderedEvents(run, events);
+  const durableRequests = new Set<RunEventId>();
+  let latestAnsweredDurableSequence: number | null = null;
+  for (const event of history) {
+    if (
+      event.event.tag === "HUMAN_INPUT_REQUESTED" &&
+      (
+        event.event.category === "STAGE_CHOICE" ||
+        event.event.category === "AUTHORITY_DECISION" ||
+        event.event.category === "AUTHORITY_CONFLICT"
+      )
+    ) {
+      durableRequests.add(event.id);
+      continue;
+    }
+    if (
+      event.event.tag === "HUMAN_INPUT_RECEIVED" &&
+      event.event.requestEventId !== null &&
+      durableRequests.has(event.event.requestEventId)
+    ) {
+      latestAnsweredDurableSequence = event.sequence;
+    }
+  }
+  if (latestAnsweredDurableSequence === null) return true;
+  return history.some(
+    (event) =>
+      event.sequence > latestAnsweredDurableSequence &&
+      event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+      event.event.disposition === "ADOPTED",
+  );
+};
+
 export const validateStageProviderTurn = (
   run: Run,
   priorEvents: readonly RunEvent[],
   payloads: readonly RunEventPayload[],
+  resolvedAuthority: ResolvedProjectAuthority | null = null,
 ): void => {
   if (run.role !== "STAGE" || run.status !== "RUNNING") {
     throw new TypeError("provider turn requires RUNNING STAGE Run");
@@ -712,9 +760,22 @@ export const validateStageProviderTurn = (
     throw new TypeError("STAGE provider result requires PROCESSING interaction");
   }
 
-  const rejection = stageProviderBatchRejectionCode(run, priorEvents, payloads);
+  const rejection = stageProviderBatchRejectionCode(
+    run,
+    priorEvents,
+    payloads,
+    resolvedAuthority,
+  );
   if (rejection !== null) {
     throw new TypeError(stageProviderBatchRejectionMessage(rejection));
+  }
+  if (
+    payloads.some((payload) => payload.tag === "STAGE_COMPLETED") &&
+    !durableDecisionCompletionIsAdmitted(run, priorEvents)
+  ) {
+    throw new TypeError(
+      "stage completion after durable decision input requires a later adopted canonical authority proposal",
+    );
   }
 };
 

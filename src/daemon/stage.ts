@@ -21,6 +21,7 @@ import {
   artifactRoleForStage,
   evaluateStageConformance,
   isPreSignoffStage,
+  permanentAuthorityProposalIsAdmitted,
   type PreSignoffStage,
 } from "../core/governance.ts";
 import { parseSignedTaskBlockFromPlan } from "../core/execution.ts";
@@ -104,6 +105,7 @@ import {
   currentStageDraftArtifacts,
   getArtifact,
   getWorkItem,
+  resolveCurrentStageAuthority,
   resolveStageContextState,
   validateTaskDefinitions,
   type ResolvedContext,
@@ -211,7 +213,17 @@ export const stagePrompt = async (
     `Order lifecycle stage: ${stage}`,
     stageDecisionText[stage],
     `Canonical output path for this stage: ${expectedOutputPath}. Any ARTIFACT_PROPOSAL_CREATED for role ${stage} must target exactly this path.`,
+    stage === "R2"
+      ? "Permanent authority proposal boundary: role GOVERNANCE may target only an existing current resolved P2/P3 authority path, must declare its exact layer and current baseSha256, and is re-resolved before adoption."
+      : stage === "DESIGN"
+        ? "Permanent authority proposal boundary: role GOVERNANCE may target only an existing current resolved P4/P5/P6 authority path, must declare its exact layer and current baseSha256, and is re-resolved before adoption."
+        : "",
     `WorkItem: ${canonicalJson(workItem)}`,
+    [
+      "Resolved project authority projection:",
+      "Only each precedence list is semantic same-layer precedence; remaining source ordering is deterministic processing order only.",
+      canonicalJson(context.authority),
+    ].join("\n"),
     stage === "R1" || stage === "R2"
       ? `Canonical WorkItem source Markdown:\n${context.source.markdown}`
       : "",
@@ -497,11 +509,50 @@ const persistAndReactStageBatch = async (
   if (currentRun.status === "CANCELLED") {
     return { run: currentRun, persisted: [] };
   }
+  if (!isPreSignoffStage(currentRun.stage)) {
+    throw new TypeError("STAGE proposal admission requires a pre-signoff stage");
+  }
+  const currentWorkItem = getWorkItem(runtime, currentRun.workItemId);
+  const [, currentAuthority] = await resolveCurrentStageAuthority(
+    currentWorkItem,
+    currentRun.stage,
+  );
   validateStageProviderTurn(
     currentRun,
     listRunEvents(runtime, currentRun.id),
     payloads,
+    currentAuthority,
   );
+  for (const payload of payloads) {
+    if (
+      payload.tag !== "ARTIFACT_PROPOSAL_CREATED" ||
+      payload.role !== "GOVERNANCE"
+    ) {
+      continue;
+    }
+    if (
+      !permanentAuthorityProposalIsAdmitted(
+        currentRun.stage,
+        payload,
+        currentAuthority,
+      )
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target is not admitted by current resolved authority",
+      );
+    }
+    if (payload.baseSha256 === null) {
+      throw new TypeError(
+        "permanent authority proposal requires the current target baseSha256",
+      );
+    }
+    const currentSha256 = sha256(
+      readWorkingTreeFile(currentWorkItem.repositoryRoot, payload.targetPath),
+    );
+    if (currentSha256 !== payload.baseSha256) {
+      throw new TypeError("permanent authority proposal baseSha256 is stale");
+    }
+  }
   for (const payload of payloads) {
     validatePayloadEvidence(runtime, currentRun.id, payload);
   }
@@ -691,6 +742,7 @@ export const runStageTurn = async (
       getRun(runtime, run.id),
       listRunEvents(runtime, run.id),
       events,
+      context.authority,
     );
     if (rejection !== null) {
       const admissionEvidence = recordStageProviderBatchAdmissionDiagnostic(
@@ -1042,6 +1094,38 @@ const adoptArtifactProposalUnlocked = async (
   }
 
   const project = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  if (proposal.event.role === "GOVERNANCE") {
+    if (proposal.event.baseSha256 === null) {
+      throw new TypeError(
+        "permanent authority proposal requires the current target baseSha256",
+      );
+    }
+    const [, currentAuthority] = await resolveCurrentStageAuthority(
+      workItem,
+      run.stage,
+    );
+    if (
+      !permanentAuthorityProposalIsAdmitted(
+        run.stage,
+        proposal.event,
+        currentAuthority,
+      )
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target is not admitted by current resolved authority",
+      );
+    }
+    if (
+      sha256(
+        readWorkingTreeFile(
+          workItem.repositoryRoot,
+          proposal.event.targetPath,
+        ),
+      ) !== proposal.event.baseSha256
+    ) {
+      throw new TypeError("permanent authority proposal baseSha256 is stale");
+    }
+  }
   if (lifecycleProposalRole(proposal.event.role)) {
     const expectedPath = workItemDocumentPath(
       project.workItems.root,
@@ -1102,6 +1186,36 @@ const adoptArtifactProposalUnlocked = async (
     proposal.event.unifiedDiff,
     adoptionRequested,
   );
+  if (proposal.event.role === "GOVERNANCE") {
+    const [, currentAuthority] = await resolveCurrentStageAuthority(
+      workItem,
+      run.stage,
+    );
+    if (
+      !permanentAuthorityProposalIsAdmitted(
+        run.stage,
+        proposal.event,
+        currentAuthority,
+      )
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target stopped being admitted before disposition",
+      );
+    }
+    if (
+      sha256(
+        readWorkingTreeFile(
+          workItem.repositoryRoot,
+          proposal.event.targetPath,
+        ),
+      ) !== resultingHash
+    ) {
+      throw new TypeError(
+        "permanent authority proposal target changed before disposition",
+      );
+    }
+  }
+
   const artifact = ArtifactRefSchema.parse({
     id: newArtifactRefId(),
     workItemId: workItem.id,

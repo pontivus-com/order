@@ -36,7 +36,11 @@ import {
   authorityLayerForManifestLayer,
   authorityLayersForStage,
   deduplicateArtifacts,
+  deduplicateArtifactsPreservingOrder,
+  projectAuthorityForLayers,
+  resolveProjectAuthority,
   type PreSignoffStage,
+  type ResolvedProjectAuthority,
   priorStagesForStage,
   sortedMaterialProjection,
 } from "../core/governance.ts";
@@ -255,6 +259,7 @@ export const currentFileArtifact = async (
 
 export type ResolvedContext = Readonly<{
   source: WorkItemSourceSnapshot;
+  authority: ResolvedProjectAuthority;
   artifacts: readonly ArtifactRef[];
   p1Paths: readonly RepositoryPath[];
   contextHash: Sha256;
@@ -264,11 +269,13 @@ const resolvedContext = (
   workItem: WorkItem,
   source: WorkItemSourceSnapshot,
   stage: PreSignoffStage,
+  authority: ResolvedProjectAuthority,
   artifacts: readonly ArtifactRef[],
 ): ResolvedContext => {
-  const resolved = deduplicateArtifacts(artifacts);
+  const resolved = deduplicateArtifactsPreservingOrder(artifacts);
   return {
     source,
+    authority,
     artifacts: resolved,
     p1Paths: resolved
       .filter((artifact) => artifact.authorityLayer === "P1")
@@ -278,10 +285,29 @@ const resolvedContext = (
         stage,
         workItemId: workItem.id,
         sourceSha256: workItem.sourceSha256,
+        resolvedAuthority: authority,
         materialArtifacts: sortedMaterialProjection(resolved),
       }),
     ),
   };
+};
+
+export const resolveCurrentStageAuthority = async (
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+): Promise<readonly [ProjectManifest, ResolvedProjectAuthority]> => {
+  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
+  if (manifest.projectId !== workItem.projectId) {
+    throw new TypeError("WorkItem projectId no longer matches pontivus-order.toml");
+  }
+  const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
+  return [
+    manifest,
+    projectAuthorityForLayers(
+      resolveProjectAuthority(manifest, sources),
+      authorityLayersForStage(stage),
+    ),
+  ];
 };
 
 export type StageContextResolution = Readonly<{
@@ -528,12 +554,7 @@ export const resolveStageContextState = async (
   const validated = await revalidateWorkItemSource(runtime, workItem.id);
   workItem = validated.workItem;
   const source = validated.source;
-  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  if (manifest.projectId !== workItem.projectId) {
-    throw new TypeError("WorkItem projectId no longer matches pontivus-order.toml");
-  }
-
-  const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
+  const [manifest, authority] = await resolveCurrentStageAuthority(workItem, stage);
   const resolveCurrentArtifact = (
     path: RepositoryPath,
     role: ArtifactRef["role"],
@@ -543,13 +564,13 @@ export const resolveStageContextState = async (
       ? currentFileArtifact(runtime, workItem, path, role, authorityLayer)
       : inspectCurrentFileArtifact(workItem, path, role, authorityLayer);
   const artifacts: ArtifactRef[] = [];
-  for (const layer of authorityLayersForStage(stage)) {
-    for (const path of sources[layer]) {
+  for (const layer of authority.layers) {
+    for (const path of layer.sources) {
       artifacts.push(
         await resolveCurrentArtifact(
           path,
           "GOVERNANCE",
-          authorityLayerForManifestLayer(layer),
+          authorityLayerForManifestLayer(layer.layer),
         ),
       );
     }
@@ -599,7 +620,7 @@ export const resolveStageContextState = async (
     );
     if (conformance.staleStage !== null) {
       return {
-        context: resolvedContext(workItem, source, stage, artifacts),
+        context: resolvedContext(workItem, source, stage, authority, artifacts),
         staleStage: conformance.staleStage,
       };
     }
@@ -607,7 +628,7 @@ export const resolveStageContextState = async (
   }
 
   return {
-    context: resolvedContext(workItem, source, stage, artifacts),
+    context: resolvedContext(workItem, source, stage, authority, artifacts),
     staleStage: null,
   };
 };
@@ -859,21 +880,17 @@ const currentApprovalMaterialSet = async (
     ];
   }
 
-  const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  if (manifest.projectId !== workItem.projectId) {
-    throw new TypeError("WorkItem projectId no longer matches pontivus-order.toml");
-  }
+  const [manifest, authority] = await resolveCurrentStageAuthority(workItem, "R3");
 
   const current: ArtifactRef[] = [];
-  const sources = await resolveAuthoritySources(workItem.repositoryRoot, manifest);
-  for (const layer of authorityLayersForStage("R3")) {
-    for (const path of sources[layer]) {
+  for (const layer of authority.layers) {
+    for (const path of layer.sources) {
       current.push(
         await inspectCurrentFileArtifact(
           workItem,
           path,
           "GOVERNANCE",
-          authorityLayerForManifestLayer(layer),
+          authorityLayerForManifestLayer(layer.layer),
         ),
       );
     }

@@ -43,13 +43,17 @@ import {
   conformanceEventMatchesRun,
   evaluateStageConformance,
   invalidatedArtifactIds,
+  permanentAuthorityProposalIsAdmitted,
+  projectAuthorityForLayers,
   resolveApplicableArtifactIds,
   resolveConcernIds,
+  resolveProjectAuthority,
 } from "../src/core/governance.ts";
 import {
   artifactReturnOwner,
   deriveCurrentAttention,
   deriveExecutionOwner,
+  durableDecisionCompletionIsAdmitted,
   artifactHasCurrentStageConformance,
   deriveMaterialPresentationState,
   materialCurrentnessForStage,
@@ -796,6 +800,258 @@ describe("functional lifecycle and execution policy", () => {
       `artifact_${uuidB}`,
       `artifact_${uuidC}`,
     ]);
+  });
+
+  it("resolves project authority before provider inference without implicit same-layer precedence", () => {
+    const manifest = ProjectManifestSchema.parse({
+      version: 1,
+      projectId: "example",
+      authority: {
+        p1: ["AGENTS.md", "docs/principles.md"],
+        p2: ["docs/product.md"],
+        p3: ["docs/requirements.md"],
+        p4: ["docs/legacy-architecture.md", "docs/architecture.md"],
+        p5: [],
+        p6: [],
+      },
+      refs: {
+        "P1-STRICT": "docs/principles.md",
+        "P1-FCIS-EXT": "AGENTS.md",
+        "P2-PRODUCT": "docs/product.md",
+        "P4-CURRENT": "docs/architecture.md",
+      },
+      precedence: {
+        p4: ["docs/architecture.md", "docs/legacy-architecture.md"],
+      },
+      governance: {
+        overrides: [{
+          defaultRuleId: "GW-P1-STRICT-TYPING",
+          source: "docs/principles.md",
+          authorityRef: "P1-STRICT",
+          gates: ["architecture"],
+        }],
+        extensions: [{
+          defaultRuleId: "GW-P1-FCIS",
+          source: "AGENTS.md",
+          authorityRef: "P1-FCIS-EXT",
+          gates: ["test"],
+        }],
+        fitness: {
+          "GW-P1-FCIS": ["architecture"],
+        },
+      },
+      verification: {
+        architecture: {
+          argv: ["node", "architecture.js"],
+          timeoutSeconds: 10,
+          inheritEnv: [],
+          materialRefs: [],
+        },
+        test: {
+          argv: ["node", "test.js"],
+          timeoutSeconds: 10,
+          inheritEnv: [],
+          materialRefs: [],
+        },
+      },
+    });
+    const sources = {
+      p1: ["docs/principles.md", "AGENTS.md"],
+      p2: ["docs/product.md"],
+      p3: ["docs/requirements.md"],
+      p4: ["docs/legacy-architecture.md", "docs/architecture.md"],
+      p5: [],
+      p6: [],
+    } as const;
+    const resolved = resolveProjectAuthority(manifest, sources);
+    expect(resolved.layers.find((entry) => entry.layer === "p1")).toEqual({
+      layer: "p1",
+      sources: ["AGENTS.md", "docs/principles.md"],
+      precedence: [],
+    });
+    expect(resolved.layers.find((entry) => entry.layer === "p4")).toEqual({
+      layer: "p4",
+      sources: ["docs/architecture.md", "docs/legacy-architecture.md"],
+      precedence: ["docs/architecture.md", "docs/legacy-architecture.md"],
+    });
+    expect(resolved.inheritedDefaultRuleIds).toContain("GW-P1-FCIS");
+    expect(resolved.inheritedDefaultRuleIds).not.toContain("GW-P1-STRICT-TYPING");
+    expect(
+      resolved.fitnessGateIdsByDefaultRuleId.find(
+        ([ruleId]) => ruleId === "GW-P1-FCIS",
+      )?.[1],
+    ).toEqual(["architecture", "test"]);
+    expect(resolved.fitnessGateIds).toEqual(["architecture", "test"]);
+
+    const r2Authority = projectAuthorityForLayers(
+      resolved,
+      ["p1", "p2", "p3"],
+    );
+    expect(r2Authority.layers.map((entry) => entry.layer))
+      .toEqual(["p1", "p2", "p3"]);
+    expect(r2Authority.authorityRefs).not.toContainEqual(
+      ["P4-CURRENT", "docs/architecture.md"],
+    );
+
+    expect(() =>
+      resolveProjectAuthority(manifest, {
+        ...sources,
+        p4: ["docs/architecture.md"],
+      })
+    ).toThrow(/precedence\.p4 path is not selected/);
+    expect(() =>
+      resolveProjectAuthority(manifest, {
+        ...sources,
+        p1: ["AGENTS.md"],
+      })
+    ).toThrow(/governance source is not selected/);
+
+    expect(permanentAuthorityProposalIsAdmitted(
+      "R2",
+      {
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        targetPath: "docs/product.md",
+      },
+      r2Authority,
+    )).toBe(true);
+    expect(permanentAuthorityProposalIsAdmitted(
+      "R2",
+      {
+        role: "GOVERNANCE",
+        authorityLayer: "P4",
+        targetPath: "docs/architecture.md",
+      },
+      r2Authority,
+    )).toBe(false);
+  });
+
+  it("requires adopted authority after answered durable decision input before completion", () => {
+    const run = RunSchema.parse({ ...stageRun(), stage: "R2" });
+    const started = stageStarted(run);
+    const request = RunEventSchema.parse({
+      id: `event_${uuidB}`,
+      runId: run.id,
+      sequence: 2,
+      occurredAt: "2026-11-11T03:30:01.000Z",
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "AUTHORITY_DECISION",
+        question: "Which authority should govern?",
+      },
+    });
+    const answer = RunEventSchema.parse({
+      id: `event_${uuidC}`,
+      runId: run.id,
+      sequence: 3,
+      occurredAt: "2026-11-11T03:30:02.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: request.id,
+        text: "Use the canonical P2 owner.",
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, request, answer],
+    )).toBe(false);
+
+    const proposal = RunEventSchema.parse({
+      id: `event_${uuidD}`,
+      runId: run.id,
+      sequence: 4,
+      occurredAt: "2026-11-11T03:30:03.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_CREATED",
+        targetPath: "docs/product.md",
+        baseSha256: hashA,
+        role: "GOVERNANCE",
+        authorityLayer: "P2",
+        unifiedDiff: "--- a/docs/product.md\n+++ b/docs/product.md\n@@ -1 +1 @@\n-old\n+new\n",
+        rationale: "Persist the decision in canonical authority",
+      },
+    });
+    const adoptionRequested = RunEventSchema.parse({
+      id: "event_55555555-5555-4555-8555-555555555555",
+      runId: run.id,
+      sequence: 5,
+      occurredAt: "2026-11-11T03:30:04.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: proposal.id,
+      },
+    });
+    const adopted = RunEventSchema.parse({
+      id: "event_66666666-6666-4666-8666-666666666666",
+      runId: run.id,
+      sequence: 6,
+      occurredAt: "2026-11-11T03:30:05.000Z",
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "ADOPTED",
+        adoptedArtifactRefId: `artifact_${uuidA}`,
+      },
+    });
+    const continuation = RunEventSchema.parse({
+      id: "event_77777777-7777-4777-8777-777777777777",
+      runId: run.id,
+      sequence: 7,
+      occurredAt: "2026-11-11T03:30:06.000Z",
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: null,
+        text: "Continue after adoption.",
+      },
+    });
+    const adoptedHistory = [
+      started,
+      request,
+      answer,
+      proposal,
+      adoptionRequested,
+      adopted,
+      continuation,
+    ];
+    expect(durableDecisionCompletionIsAdmitted(run, adoptedHistory)).toBe(true);
+    expect(() =>
+      validateStageProviderTurn(
+        run,
+        adoptedHistory,
+        [{
+          tag: "STAGE_COMPLETED",
+          completion: { stage: "R2", outcome: "ACCEPTED" },
+          artifactRefIds: [],
+        }],
+      )
+    ).not.toThrow();
+
+    const rejected = RunEventSchema.parse({
+      ...adopted,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: proposal.id,
+        disposition: "REJECTED",
+        adoptedArtifactRefId: null,
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, request, answer, proposal, rejected, continuation],
+    )).toBe(false);
+
+    const informationalRequest = RunEventSchema.parse({
+      ...request,
+      event: {
+        tag: "HUMAN_INPUT_REQUESTED",
+        category: "INFORMATION",
+        question: "What evidence is available?",
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [started, informationalRequest, answer],
+    )).toBe(true);
   });
 
   it("computes approval freshness from semantic source identity and bytes, not generated ids or commit id", () => {

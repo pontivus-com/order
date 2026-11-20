@@ -6,7 +6,7 @@ const gitCommitPattern = /^[0-9a-f]{40}$/;
 const sha256Pattern = /^sha256:[0-9a-f]{64}$/;
 const isoDateTimePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 const envNamePattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
-const defaultRuleIds = [
+export const defaultRuleIds = [
   "GW-P1-DOD",
   "GW-P1-FCIS",
   "GW-P1-SOC",
@@ -1210,7 +1210,8 @@ const precedenceShape = {
   p6: z.array(RepositoryPathSchema).readonly().optional(),
 } as const;
 
-const DefaultRuleIdSchema = z.enum(defaultRuleIds);
+export const DefaultRuleIdSchema = z.enum(defaultRuleIds);
+export type DefaultRuleId = z.infer<typeof DefaultRuleIdSchema>;
 
 const GovernanceRuleSchema = z.strictObject({
   defaultRuleId: DefaultRuleIdSchema,
