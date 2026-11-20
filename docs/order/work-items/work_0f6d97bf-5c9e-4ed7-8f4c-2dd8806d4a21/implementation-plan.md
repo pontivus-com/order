@@ -6,21 +6,21 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 after G4 closure from current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a` and DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
+This PLAN is reconstructed under G-F12 after G4 closure from current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937` and DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
 
-This PLAN consumes current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`, current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a` and current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+This PLAN consumes current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`, current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937` and current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
 
-## Post-A09 plan revalidation
+## Current post-C20 certification revalidation
 
-This PLAN is re-bound to R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`, R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`, DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and corrected P3 Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+This PLAN is re-bound to R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`, R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`, DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44` and corrected P3 Installation Readiness `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 
-The authority repair does not create a new execution task or broaden T1. It changes A09 traceability in one place: corrected FR079 now consumes the same SD19/IA25 installer mutation as FR007. Existing Settings/update/recovery behavior remains positive reuse. The exact signed scope/exclusions and 28-path `changeSurface` forecast are unchanged.
+C20-F04 proves that `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` was incorrectly treated as already satisfied: permanent productive-turn tests use a fake OpenCode executable, while the removed temporary branch scaffold only demonstrated a viable exact-process simulation technique. SD20 therefore adds one verification-only delta owned by IA23: `tests/opencode.test.ts` permanently exercises the actual supported OpenCode 2.2.6 process through Order's production boundary, and `.github/workflows/ci.yml` installs exact isolated `opencode-drive@2.4.1` + `effect@4.0.1` verification tooling. No production behavior, runtime dependency, package/lock surface, configuration/state model or alternate provider path is added. The signed forecast is consequently 30 paths.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `ca89e1f60490c2efe8b9454757f50df2ba83a718` |
+| `implementation-plan/00-governance.md` | `5e3d40883106535cd41bec754cff16780f758e30` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `8f3598e3a9232c6e0e60ae0180f3bf2a8cc8baee` |
 | `implementation-plan/02-a02-governance-intake.md` | `0772711a624ef90c167681b6f20c23442ceff639` |
 | `implementation-plan/03-a03-queue-source.md` | `9ab7d11745dfb04f3e0691e3c1f538d4ba6508ad` |
@@ -31,9 +31,9 @@ The authority repair does not create a new execution task or broaden T1. It chan
 | `implementation-plan/08-a08-complete-materials.md` | `32ae17acbecd025a0de2dd527bbc68c205f3518a` |
 | `implementation-plan/09-a09-provider-settings.md` | `fd0467b0997e31dd0d59cd4d5dbba175abfe0375` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `583b1b5b17e3ba26eeceea242936d5d1cfe0f1b8` |
-| `implementation-plan/11-a11-component-certification.md` | `33ff5e560258232649595b272ed509fede40b8a9` |
-| `implementation-plan/12-action-catalog.md` | `4be3eb66958c09439c3edcde2270b59837fecd15` |
-| `implementation-plan/13-verification-closeout.md` | `c90368373e7a07f46f7bcdd5c8a39bec852b62eb` |
+| `implementation-plan/11-a11-component-certification.md` | `40da8996d3c0274ec8312ba971aee0284f5c81b4` |
+| `implementation-plan/12-action-catalog.md` | `0204b5bd98d653e9391d9140e1d8fd805c610052` |
+| `implementation-plan/13-verification-closeout.md` | `ac694a8994111a311922cbcec1f1328ef8d0c178` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -50,6 +50,7 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 - `src/shell/**`
 - `ui/src/**`
 - `tests/**`
+- `.github/workflows/ci.yml`
 - `CHANGELOG.md`
 
 ### Explicit exclusions
@@ -98,18 +99,22 @@ The signed scope is the hard repository-reach envelope. P1-P6 material, project-
 - `ui/src/app.tsx`
 - `ui/src/workbench-presentation.ts`
 
-### Verification (6)
+### Verification (7)
 - `tests/certification.test.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
 - `tests/browser.spec.ts`
 - `tests/workbench-presentation.test.ts`
 - `tests/installer.test.ts`
+- `tests/opencode.test.ts`
+
+### Permanent verification infrastructure (1)
+- `.github/workflows/ci.yml`
 
 ### Delivery metadata (1)
 - `CHANGELOG.md`
 
-Total signed T1 `changeSurface`: **28 paths**.
+Total signed T1 `changeSurface`: **30 paths**.
 
 `src/daemon/execution.ts`, `src/daemon/validation.ts` and `src/shell/opencode.ts` are execution-foundation baseline owners and are excluded from T1. `tests/architecture.test.ts` is pre-signoff verification material and is excluded from T1.
 
@@ -124,7 +129,7 @@ Total signed T1 `changeSurface`: **28 paths**.
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
 - every technical/verification delta maps to one or more exact IA actions;
 - every IA01-IA25 is defined exactly once; IA23/IA24 are explicit cross-solution/final actions rather than orphan work;
-- the immutable forecast is the exact 28-path `changeSurface`; actual variance is admissible only inside signed scope/exclusions and only through positive V4/V5/V6 minimum same-layer proof;
+- the immutable forecast is the exact 30-path `changeSurface`; actual variance is admissible only inside signed scope/exclusions and only through positive V4/V5/V6 minimum same-layer proof;
 - required signed `architecture` checkpoints pass after Waves 1-6 before the next wave begins;
 - current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
 - a disproved positive-no-change/baseline-reuse proposition or newly required semantic decision causes an upstream return; a merely unforecast but otherwise admissible same-layer path does not.
@@ -143,9 +148,9 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ##### Exact upstream package
 
-- R1 `research.md`: `aa287cb5aa37fbb0fe68742362ade9e949f43352`.
-- R2 `requirements.md`: `36f886d8ea3418a23be9a67239ab943e891c6c3a`.
-- DESIGN `solution-design.md`: `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+- R1 `research.md`: `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`.
+- R2 `requirements.md`: `bf8699df1349fcf977a3e2d7690d78f83736d937`.
+- DESIGN `solution-design.md`: `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -171,13 +176,15 @@ A semantic phase may reference an IA action owned by another phase. That referen
 
 SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current execution capabilities positively proven by DESIGN. IA07/IA08 therefore prove/reuse those capabilities and authorize **no T1 production mutation** to their existing owners.
 
+SD20 is a verification-only delta. IA23 owns its permanent realization through `tests/opencode.test.ts` and `.github/workflows/ci.yml`: the actual supported OpenCode 2.2.6 process is exercised through Order's production OpenCode boundary while deterministic model responses are provided by exact isolated CI tooling `opencode-drive@2.4.1` + `effect@4.0.1`. These verification tools are not product/runtime dependencies and do not enter `package.json`, lockfiles, release bundles, Order configuration or runtime state.
+
 ##### Signed scope and forecast law
 
 The one signed T1 uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
 - explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
-- exact 28-path `changeSurface` as the immutable expected physical forecast.
+- exact 30-path `changeSurface` as the immutable expected physical forecast.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
 
@@ -201,7 +208,7 @@ Do **not** return upstream solely because an otherwise admissible path is absent
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -260,7 +267,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -315,7 +322,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -384,7 +391,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -450,7 +457,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -491,7 +498,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -535,7 +542,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -590,7 +597,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -636,7 +643,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -699,7 +706,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -746,7 +753,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`; current R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`; current DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`.
+**Upstream:** current R1 `d97f8c3c0174a312e7a7328ad0d8f9d21599b488`; current R2 `bf8699df1349fcf977a3e2d7690d78f83736d937`; current DESIGN `67a55fcd476edfbfc905af7c4e828812de7aae44`.
 
 ##### Stable requirement execution dispositions
 
@@ -754,7 +761,7 @@ Package atoms in phase: **1**.
 |---|---|---|---|---|---|---|
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE` | `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `DIRECT-FR103` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `DIRECT-FR103` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `DIRECT-FR103`, `C20-F04` | `VERIFICATION_DELTA` | `SD20` | `IA23` | — | Permanently prove the actual OpenCode 2.2.6 process/session boundary through `tests/opencode.test.ts` and `.github/workflows/ci.yml`, using exact isolated `opencode-drive@2.4.1` + `effect@4.0.1` deterministic model simulation; retain existing daemon/certification fake-provider fixtures as complementary proof and explicitly exclude remote-provider/OAuth/model-quality claims + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-227-CERTIFICATION-MATRIX` | `C20-O12` | `VERIFICATION_DELTA` | `SD15`, `SD16`, `SD17`, `SD18` | `IA15`, `IA20`, `IA21`, `IA22` | — | Recheck `C20-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11`, `SD12`, `SD14`, `SD16` | `IA16`, `IA17`, `IA18`, `IA20` | — | Recheck `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `VERIFICATION_DELTA` | `SD16` | `IA20` | — | Recheck `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -798,7 +805,7 @@ Package atoms in phase: **3**.
 
 #### 0.6.0 implementation action catalog
 
-Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD19 under G-F12; historical action existence is not justification for retaining an action.
+Each IA action below has one execution owner. Semantic phase files may reference the action as consumers; they never duplicate implementation responsibility. The catalog is revalidated against current DESIGN SD01-SD20 under G-F12; historical action existence is not justification for retaining an action.
 
 ##### Execution waves
 
@@ -983,10 +990,10 @@ The signed `architecture` gate is requested through the existing SD13 coordinato
 
 ##### IA23 — cross-solution regression closure
 
-**Upstream:** all SD01-SD19.  
-**Owners:** existing targeted core/daemon/presentation/browser/certification suites.  
-**Required mutation:** fill any integration-level positive/negative gaps needed to prove the composed solutions without duplicating action-specific tests. Explicitly prove no compatibility fallback, shadow owner or implementation-derived semantics.  
-**Proof:** all targeted suites green and V4/V5/V6 trace every added assertion to an SD/requirement/atom.
+**Upstream:** all SD01-SD20.  
+**Owners:** existing targeted core/daemon/presentation/browser/certification suites plus `tests/opencode.test.ts` and `.github/workflows/ci.yml` for SD20.  
+**Required mutation:** fill any integration-level positive/negative gaps needed to prove the composed solutions without duplicating action-specific tests. Explicitly prove no compatibility fallback, shadow owner or implementation-derived semantics. For SD20 specifically, add one permanent exact-pin OpenCode integration tier: PR verification installs exact `opencode-drive@2.4.1` + `effect@4.0.1` into runner-temporary verification space, `tests/opencode.test.ts` launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode environment/admission/session path, and deterministic model responses are supplied through the Drive simulation provider/controller. Existing `fake-opencode` fixtures remain lower-level doubles and do not satisfy this exact-pin proposition. Do not add the simulation tooling to Order's product/runtime package graph, lockfiles, release bundle, configuration or state, and do not claim remote-provider availability, Console OAuth/account connectivity or model quality from simulated responses.  
+**Proof:** exact-pin SD20 integration case passes in permanent PR verification; all targeted suites green; V4/V5/V6 trace every added assertion/tooling change to an SD/requirement/atom.
 
 ##### IA24 — exact candidate closeout
 
@@ -1045,6 +1052,8 @@ A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof
 
 Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA24 runs the final validation contract.
 
+SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA24: permanent PR verification must execute the actual supported OpenCode 2.2.6 process through Order's production OpenCode boundary while deterministic model output is supplied by the exact isolated simulation tooling authorized by SD20. A fake OpenCode executable, a removed temporary workflow, or a simulated response path that does not launch the exact supported OpenCode process cannot satisfy this proposition. The evidence must state the simulation boundary and must not be reused as proof of remote provider availability, Console OAuth/account connectivity or model quality.
+
 ##### 0.6.0 implementation delivery branch
 
 T1's public implementation candidate must continue on the existing current 0.6.0 work branch and PR: `fix/0.6.0-r2-p3-authority-layer-conformance` / PR #75. No replacement implementation branch is created. This is a repository-delivery constraint only; it does not change Order's Approval baseline, execution workspace, candidate-evidence or validation semantics.
@@ -1069,7 +1078,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- the signed 28-path `changeSurface` remains the immutable forecast;
+- the signed 30-path `changeSurface` remains the immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
@@ -1079,7 +1088,8 @@ V4/V5/V6 explicitly verify:
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
 - no implementation-derived product semantics.
 
-`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock/workflow metadata remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
+`tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
+
 
 ## Canonical order-tasks block
 
@@ -1089,7 +1099,7 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 current DESIGN as one cumulative verified candidate: execute SD01-SD19 through IA01-IA25 only where the current R1/R2/DESIGN package assigns a technical or verification delta; create no implementation mutation for any POSITIVE_NO_CHANGE or DESIGN-positive-reuse obligation and return upstream if its evidence is disproved; use the existing coordinator checkpoint and scope/forecast/V4-V6 capabilities rather than reimplementing them; retain the authority-required published v1 task semantics while adding only the current-v2 non-vacuity admission; and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
+      "objective": "Implement the complete authority-driven Order 0.6.0 current DESIGN as one cumulative verified candidate: execute SD01-SD20 through IA01-IA25 only where the current R1/R2/DESIGN package assigns a technical or verification delta, including SD20 exact-pin OpenCode certification through permanent test/CI verification only; create no implementation mutation for any POSITIVE_NO_CHANGE or DESIGN-positive-reuse obligation and return upstream if its evidence is disproved; use the existing coordinator checkpoint and scope/forecast/V4-V6 capabilities rather than reimplementing them; retain the authority-required published v1 task semantics while adding only the current-v2 non-vacuity admission; and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
       "dependsOn": [],
       "scope": [
         "README.md",
@@ -1098,6 +1108,7 @@ V4/V5/V6 explicitly verify:
         "src/shell/**",
         "ui/src/**",
         "tests/**",
+        ".github/workflows/ci.yml",
         "CHANGELOG.md"
       ],
       "exclusions": [
@@ -1127,6 +1138,8 @@ V4/V5/V6 explicitly verify:
         "GW-DOC-SPECIFICATION-STANDARD-V2",
         "GW-DOC-VALIDATION-STANDARD-V1",
         "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION",
+        "GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE",
+        "GW-DOC-EXTERNAL-FACTS",
         "GW-DOC-INSTALLATION-READINESS-V1",
         "GW-DOC-PRODUCT-IDENTITY-V1",
         "GW-DOC-SYSTEM-BRIEF-V1",
@@ -1160,6 +1173,8 @@ V4/V5/V6 explicitly verify:
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts",
         "tests/installer.test.ts",
+        "tests/opencode.test.ts",
+        ".github/workflows/ci.yml",
         "CHANGELOG.md"
       ],
       "gateIds": [
