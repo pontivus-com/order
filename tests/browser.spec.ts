@@ -1715,7 +1715,7 @@ test("historical inspection preserves current attention reason, return and curre
     await backToQueue(page);
   }
 
-  await openWorkItem(page, "Stale approval recovery");
+  await openWorkItem(page, "Stale approval inspection matrix");
   const staleSummary = page.getByTestId("workflow-step-summary");
   await expect(staleSummary).toContainText("Package stale");
   await selectWorkflowStep(page, "Work request");
@@ -2603,7 +2603,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   ).toBeVisible();
   await backToQueue(page);
 
-  await openWorkItem(page, "Stale approval recovery");
+  await openWorkItem(page, "Stale approval inspection matrix");
   await expect(page.getByTestId("workflow-step-summary")).toContainText("Package stale");
   await selectWorkflowStep(page, "Readiness review");
   const staleReview = page.getByTestId("review-workspace");

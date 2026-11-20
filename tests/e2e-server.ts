@@ -1504,6 +1504,18 @@ await seedLifecycle(
   "docs/stale-approval-plan.md",
 );
 
+const staleInspectionItem = workItem(
+  "Stale approval inspection matrix",
+  "AWAITING_SIGNOFF",
+  "ACTIVE",
+  null,
+);
+storeWorkItem(database, staleInspectionItem);
+await seedLifecycle(
+  staleInspectionItem,
+  "docs/stale-approval-plan.md",
+);
+
 const sourceEditorItem = workItem(
   "Source editing workbench",
   "AWAITING_SIGNOFF",
