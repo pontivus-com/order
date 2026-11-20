@@ -6,13 +6,13 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 after G4 closure from current R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
+This PLAN is reconstructed under G-F12 after G4 closure from current R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and DESIGN `0e319daa743fad33b9fd4ba08fb543ca1a151482`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
 
-This PLAN consumes current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, current R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+This PLAN consumes current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, current R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and current DESIGN `0e319daa743fad33b9fd4ba08fb543ca1a151482`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
 
 ## Current post-rendered-evidence reconstruction
 
-This PLAN is bound to current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`. R1 C19-F02/C20-F05 and the exact-candidate Queue/Create evidence invalidate the prior assumption that the existing Workbench presentation was already conforming.
+This PLAN is bound to current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `6bea86efd799e08cb63849d528cfca24e98d283e` and DESIGN `0e319daa743fad33b9fd4ba08fb543ca1a151482`. R1 C19-F02/C20-F05 and the exact-candidate Queue/Create evidence invalidate the prior assumption that the existing Workbench presentation was already conforming.
 
 R2 product semantics remain unchanged. Corrected DESIGN SD21-SD30 now requires a foundation-first Workbench reconstruction: rebuild the closed primitive/theme owner, migrate every renderer family, delete competing feature-era presentation systems, re-prove responsive/theme semantics, then run exact-candidate rendered acceptance. Existing non-UI SD01-SD20 corrections remain part of the cumulative candidate and are preserved/revalidated by T1.
 
@@ -23,17 +23,17 @@ The signed execution representation is now an 11-task dependency graph rather th
 | Source component | Git blob |
 |---|---|
 | `implementation-plan/00-governance.md` | `1496f321bde9733dfc945310575a743ee6d97ae0` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `41253868d40275a8b5380ba544a2c60110a32295` |
-| `implementation-plan/02-a02-governance-intake.md` | `8d02082a732e67ec6ff2a827138513a4c1a4e54c` |
-| `implementation-plan/03-a03-queue-source.md` | `2965ab2d6599be375ba03c60b9513375b1de6412` |
-| `implementation-plan/04-a04-workbench-research.md` | `72283eeafc82a70967732e54ecda9b4e6537933b` |
-| `implementation-plan/05-a05-requirements-design.md` | `f366d0110bee20a9cdfc60f81f99e0f97b8fe049` |
-| `implementation-plan/06-a06-plan-readiness.md` | `3d50c563e46508a380a917c7196ee37c7a5ef00d` |
-| `implementation-plan/07-a07-approval-execution.md` | `207d3651457d22a0bc497db41235adfb31525ba3` |
-| `implementation-plan/08-a08-complete-materials.md` | `79ac12fa22650d980a25390647710adce45f6a35` |
-| `implementation-plan/09-a09-provider-settings.md` | `bfd715be3a5dff9f31969b788576c0137578be0d` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
-| `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `ff216ddcbce8ab25ff95295432e29c5db971014c` |
+| `implementation-plan/02-a02-governance-intake.md` | `fd89b5a191c924df30df798ef4e9ea94a1d98a60` |
+| `implementation-plan/03-a03-queue-source.md` | `238ca3a7aad54ceae87bc23f14e4633709151abd` |
+| `implementation-plan/04-a04-workbench-research.md` | `812a6e0a4ea201b2761b8576c5c1542ef76c6959` |
+| `implementation-plan/05-a05-requirements-design.md` | `f3f9e5f7ce321667900d6b5925999fcb116edbb7` |
+| `implementation-plan/06-a06-plan-readiness.md` | `e373151497948546a7f7e963feeb1e14229fdc6e` |
+| `implementation-plan/07-a07-approval-execution.md` | `ea6dd7602449bfc599b061fb0b5b58eaab2d30ae` |
+| `implementation-plan/08-a08-complete-materials.md` | `1f1a9062ab56195dab26531a25d6b40c1c9295a6` |
+| `implementation-plan/09-a09-provider-settings.md` | `852d42e411abe974273428b591740a1f506273f1` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `f8d52a73ae0860413feea4e84b1a64e06641d6d9` |
+| `implementation-plan/11-a11-component-certification.md` | `e87f5fce5eb758ab655b0e3bf5c0ccd9d88df16a` |
 | `implementation-plan/12-action-catalog.md` | `548fd314b2a85e2007d144c39124990505858cdd` |
 | `implementation-plan/13-verification-closeout.md` | `c707ce4b77d778bd960c6b337e491d98f6527c53` |
 
@@ -264,7 +264,7 @@ Do **not** return upstream solely because an otherwise admissible path is absent
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -296,13 +296,14 @@ No-code rows in phase: **5**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C21-01` | C21-F03/C21-F05 | `SD01` | `IA19` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim. |
+| `PL-C21-01` | C21-F03/C21-F05 | `SD01`, `SD27` | `IA19`, `IA33` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim; IA33 owns the rebuilt terminal-result composition. |
 
 Package atoms in phase: **1**.
 
 ##### Referenced actions
 
 - **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA33** — consume the single Complete/Evidence/Context migration definition for terminal-result composition.
 
 ##### Completion proof
 
@@ -322,7 +323,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -331,7 +332,7 @@ Package atoms in phase: **1**.
 | `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `C16-O02`, `C16-O05`, `C22-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O02`, `C16-O05`, `C22-O10` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-010-GOVERNED-WORK-KIND-CATALOG` | `C02-O01` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C02-O01` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-011-VERSIONED-AUTHORING-SCHEMAS` | `C02-O02`, `C02-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C02-O02`, `C02-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | `C02-O04`, `C02-O05`, `C02-O07` | `MIXED_TECHNICAL_DELTA` | `SD03` | `IA11` | — | Recheck `C02-O04`, `C02-O05`, `C02-O07` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-012-CATALOG-DRIVEN-AUTHORING` | `C02-O04`, `C02-O05`, `C02-O07` | `MIXED_TECHNICAL_DELTA` | `SD03`, `SD22` | `IA11`, `IA28` | — | Preserve catalog/body/metadata semantics while rebuilding Create onto the canonical Form/configuration composition; verify daemon/browser plus rendered acceptance. |
 | `GW-FR-029-NO-IDE-SCOPE` | `C04-O15` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-087-WORKITEM-AUTHORING-OWNERSHIP` | `C02-O07`, `C02-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C02-O07`, `C02-O08` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-100-COMPLETE-REPOSITORY-INSTRUCTION-CLOSURE` | `C22-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C22-O09` via tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -344,8 +345,8 @@ Stable rows in phase: **8**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C22-01` | C22-F01/C22-F02 | `SD02` | `IA01`, `IA02` | — | Resolve same-layer precedence/default/override/extension and fitness bindings over the reachable graph, then derive stage materiality from the pinned schema/stage/explicit refs so retained semantic versions remain live by exact versioned ref without leaking into unrelated current-schema context; IA02 owns the production-path proof. |
-| `PL-C02-01` | C02-F01 | `SD03` | `IA11` | — | Ordinary Create language is Concerns, not raw Concern IDs. |
-| `PL-C02-02` | C02-F02 | `SD03` | `IA11` | — | Linked remediation project is fixed to parent project and not offered as invalid editable choice. |
+| `PL-C02-01` | C02-F01 | `SD03`, `SD22` | `IA11`, `IA28` | — | Ordinary Create language is Concerns and the rebuilt Create composition realizes the controlled authoring hierarchy. |
+| `PL-C02-02` | C02-F02 | `SD03`, `SD22` | `IA11`, `IA28` | — | Linked remediation project is fixed to parent project and the rebuilt remediation task panel exposes no editable cross-project choice. |
 | `PL-C02-03` | C02-F03/C04-F01 | `SD04` | `IA09`, `IA10` | — | Created and discovered sources share one productive admission/persistence owner. |
 
 Package atoms in phase: **4**.
@@ -357,6 +358,7 @@ Package atoms in phase: **4**.
 - **IA02** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA09** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA28** — consume the single Queue/Create renderer migration definition; C02 owns authoring semantics, not shared primitive implementation.
 
 ##### Completion proof
 
@@ -376,7 +378,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -414,9 +416,9 @@ Stable rows in phase: **25**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C03-01` | C03-F01 | `SD05` | `IA12` | — | Including archived work expands the candidate set without bypassing project/search filters. |
+| `PL-C03-01` | C03-F01 | `SD05`, `SD22` | `IA12`, `IA28` | — | Including archived work expands the candidate set without bypassing project/search filters; IA28 owns the rebuilt Operational-scan presentation. |
 | `PL-C04-01` | C04-F01 | `SD04` | `IA09`, `IA10` | — | Source-admission owner is singular across creation/discovery. |
-| `PL-C04-02` | C04-F02 | `SD06` | `IA13` | — | Documentation-Git confirmation shows the exact governed paths/states before commit. |
+| `PL-C04-02` | C04-F02 | `SD06`, `SD23` | `IA13`, `IA29` | — | Documentation-Git confirmation shows the exact governed paths/states before commit inside the rebuilt WorkItem/document composition. |
 
 Package atoms in phase: **3**.
 
@@ -426,6 +428,8 @@ Package atoms in phase: **3**.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA12** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA13** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA28** — consume the single Queue/Create renderer migration definition for the Queue operational-scan surface.
+- **IA29** — consume the WorkItem/document migration definition for source/document/Git presentation.
 
 ##### Completion proof
 
@@ -444,13 +448,13 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
-| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD29`, `SD30` | `IA27`, `IA29`, `IA26` | — | Re-prove the local Workbench after foundation/shell reconstruction via core/daemon/browser/certification plus rendered acceptance. |
 | `GW-FR-015-SOURCE-CONTEXT-PROJECTION` | `C06-O02`, `C22-O06` | `DEPENDENCY_DELTA` | `SD02` | — | `IA01`, `IA02` | Recheck `C06-O02`, `C22-O06` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-019-SOURCE-CLARIFICATION-DURABILITY` | `C06-O13` | `TECHNICAL_DELTA` | `SD08` | `IA04` | `IA03` | Recheck `C06-O13` via tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-021-MARKDOWN-WORKSPACE` | `C04-O15`, `C05-O02`, `C05-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15`, `C05-O02`, `C05-O10` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -458,14 +462,14 @@ Package atoms in phase: **3**.
 | `GW-FR-200-CANONICAL-WORKFLOW-OBSERVATION` | `C05-O05`, `C05-O06`, `C05-O11` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-201-OBSERVATIONAL-READS` | `C05-O03`, `C05-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O03`, `C05-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-204-EXACT-HUMAN-INPUT-OWNERSHIP` | `C06-O09` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C06-O09` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD24`, `SD26`, `SD29`, `SD30` | `IA27`, `IA29`, `IA30`, `IA32`, `IA26` | — | Primitive-owned geometry must replace feature/container presentation and pass semantic + rendered geometry proof. |
 | `GW-FR-215-STABLE-WORKFLOW-RAIL` | `C05-O01`, `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O01`, `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL` | `C05-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `MIXED_TECHNICAL_DELTA` | `SD11`, `SD12`, `SD14` | `IA16`, `IA17`, `IA18` | — | Recheck `C05-O10`, `C05-O12`, `C19-O03` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O12`, `C19-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `TECHNICAL_DELTA` | `SD21`, `SD22`, `SD23`, `SD24`, `SD25`, `SD26`, `SD27`, `SD28` | `IA27`-`IA34` | — | Recompose Primary/Supporting/Technical hierarchy in every interaction class; local SD11/12/14 semantics remain inputs to the owning domain migration. |
+| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Rebuild shared spatial grammar at primitive level and migrate every renderer family; rendered evidence required. |
 | `GW-FR-219-EXPLICIT-CONTEXT` | `C05-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-220-PRESIGNOFF-CONTINUITY` | `C05-O05`, `C05-O06`, `C05-O12` | `MIXED_TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C05-O05`, `C05-O06`, `C05-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O08`, `C05-O12`, `C19-O01` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Every renderer must resolve to its P4 interaction class; old recurring feature-owned UI grammar is deleted. |
 | `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `C05-O01`, `C05-O02` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C05-O01`, `C05-O02` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` | `VERIFICATION_DELTA` | `SD17` | `IA21` | — | Recheck `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
@@ -491,6 +495,11 @@ Package atoms in phase: **2**.
 - **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA21** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA27** — consume the single Workbench foundation reconstruction definition.
+- **IA29** — consume the single WorkItem shell/Work request migration definition.
+- **IA30** — consume the single productive pre-signoff renderer migration definition.
+- **IA32** — consume the single Implementation geometry migration definition where C05 geometry is shared.
+- **IA26** — consume the rendered acceptance owner; this phase does not produce screenshots independently.
 
 ##### Completion proof
 
@@ -509,7 +518,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -528,9 +537,14 @@ Stable rows in phase: **1**.
 
 Package atoms in phase: **2**.
 
+##### Cross-domain presentation reconstruction dependency
+
+Requirements and Solution design retain their existing authority/proposal semantics, but their runtime surfaces are migrated by SD24/IA30 as part of PL-C19-02. This phase supplies stage-specific governed information; it does not own another layout grammar.
+
 ##### Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA30** — consume the single productive pre-signoff renderer migration definition for Requirements and Solution design.
 
 ##### Completion proof
 
@@ -549,7 +563,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -557,7 +571,7 @@ Package atoms in phase: **2**.
 |---|---|---|---|---|---|---|
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11` | `IA16` | — | Recheck `C10-O06`, `C10-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11`, `SD25` | `IA16`, `IA31` | — | Typed R3 verdict semantics and the rebuilt Review composition must jointly make readiness/findings/return owner dominant; verify semantic + rendered evidence. |
 
 Stable rows in phase: **3**.
 
@@ -566,7 +580,7 @@ Stable rows in phase: **3**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
-| `PL-C10-01` | C10-F01 | `SD11` | `IA16` | — | Readiness dominant verdict is typed R3 outcome. |
+| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is typed R3 outcome and IA31 owns its canonical Review presentation. |
 
 Package atoms in phase: **2**.
 
@@ -574,6 +588,8 @@ Package atoms in phase: **2**.
 
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA30** — consume the shared pre-signoff renderer migration for the Implementation plan surface.
+- **IA31** — consume the single Readiness/Approval Review migration definition for R3 presentation.
 
 ##### Completion proof
 
@@ -592,7 +608,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -605,7 +621,7 @@ Package atoms in phase: **2**.
 | `GW-FR-027-READONLY-EXECUTION-EDITOR-BOUNDARY` | `C04-O15`, `C12-O03`, `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C04-O15`, `C12-O03`, `C12-O17` via tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `C12-O17`, `C17-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O17`, `C17-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_DELTA` | `SD12` | `IA17` | — | Recheck `C11-O06`, `C11-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED_TECHNICAL_DELTA` | `SD12`, `SD25` | `IA17`, `IA31` | — | Preserve Approval identity/currentness semantics while rebuilding the Review composition so readiness/task meaning precede technical identity; semantic + rendered proof required. |
 | `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `C12-O17` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O17` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-239-TASK-SCOPED-MANUAL-IMPLEMENTATION` | `C12-O16` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O16` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
@@ -615,7 +631,7 @@ Stable rows in phase: **10**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C11-01` | C11-F01 | `SD12` | `IA17` | — | Approval presents readiness and package currentness before technical identity. |
+| `PL-C11-01` | C11-F01 | `SD12`, `SD25` | `IA17`, `IA31` | — | Approval presents readiness/currentness before technical identity and IA31 owns the rebuilt Review composition. |
 | `PL-C11-02` | C11-F02 | `SD12` | `IA06` | — | Canonical approval identity is trimmed/nonblank at ingress. |
 | `PL-C12-01` | C12-F01 | `SD13` | `IA07` — DESIGN-positive-reuse proof only | — | Signed in-task architecture checkpoint remains coordinator-executable without provider shell permission; T1 consumes the existing capability and does not implement it. |
 | `PL-C12-02` | C12-F02 | `SD10` | `IA08` — DESIGN-positive-reuse proof only | — | Signed scope/exclusions remain the hard execution boundary; `changeSurface` is exact forecast evidence; admissible in-scope unforecast decomposition is governed by existing V4/V5/V6 and is not reimplemented by T1. |
@@ -628,6 +644,8 @@ Package atoms in phase: **4**.
 - **IA06** — consume the single implementation definition in `12-action-catalog.md`.
 - **IA07** — consume the single baseline-checkpoint proof definition; authorize no checkpoint-protocol production edit.
 - **IA08** — consume the single scope/forecast/V4-V6 baseline proof definition; authorize no execution-foundation production edit.
+- **IA31** — consume the Readiness/Approval Review migration definition for C11 presentation.
+- **IA32** — consume the Implementation operational master/detail migration definition for C12 presentation; execution semantics remain owned by existing core/daemon contracts.
 
 ##### Completion proof
 
@@ -646,7 +664,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -670,9 +688,13 @@ Stable rows in phase: **7**.
 
 Package atoms in phase: **0**.
 
+##### Cross-domain presentation reconstruction dependency
+
+C13/C14 domain semantics remain stable, but Complete, Evidence and Context/material presentation is rebuilt by SD27/IA33 under PL-C19-02. This phase does not preserve the current feature-card/layout implementation as a baseline.
+
 ##### Referenced actions
 
-- No IA action is owned by this phase; all stable requirements are positive no-change.
+- **IA33** — consume the single Complete/Evidence/Context migration definition; C13/C14 remain the semantic owners of outcome/material meaning.
 
 ##### Completion proof
 
@@ -691,7 +713,7 @@ Package atoms in phase: **0**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -725,7 +747,7 @@ Stable rows in phase: **21**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C16-01` | C16-F01 | `SD14` | `IA18` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required. |
+| `PL-C16-01` | C16-F01 | `SD14`, `SD28` | `IA18`, `IA34` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required; IA34 owns the rebuilt Settings/account/configuration presentation. |
 | `PL-C16-02` | C16-F02 | `SD19` | `IA25` | — | Fresh productive install cannot succeed with mandatory repository/account/model setup deferred to Settings. |
 | `PL-C16-03` | C16-F03 | `SD19` | `IA25` | `PRE_T1_P6_CORRECTION_DONE` | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. |
 
@@ -735,6 +757,7 @@ Package atoms in phase: **3**.
 
 - **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA34** — consume the single Settings/OpenCode/account/configuration renderer migration definition; provider/configuration semantics remain with existing owners.
 
 ##### Completion proof
 
@@ -753,7 +776,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -764,7 +787,7 @@ Package atoms in phase: **3**.
 | `GW-FR-202-ATOMIC-COMMAND-OUTCOME` | `C17-O04`, `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O04`, `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE` | `C17-O05` | `TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C17-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | `C17-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C18-O01`, `C18-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD29`, `SD30` | `IA27`-`IA34`, `IA26` | — | Preserve semantic continuity while re-owning wide/medium/narrow topology in structural primitives; certify every domain with rendered responsive evidence. |
 | `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
 Stable rows in phase: **7**.
@@ -781,6 +804,8 @@ Package atoms in phase: **1**.
 
 - **IA14** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA15** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA27**-**IA34** — consume the foundation/domain migration owners for responsive/accessibility re-composition; no phase-local layout implementation.
+- **IA26** — consume the exact-candidate responsive rendered acceptance owner.
 
 ##### Completion proof
 
@@ -799,7 +824,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `6bea86efd799e08cb63849d528cfca24e98d283e`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
 
 ##### Stable requirement execution dispositions
 
@@ -808,10 +833,10 @@ Package atoms in phase: **1**.
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` via tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-097-STAGE-CONFORMANCE-OUTPUT-CLOSURE` | `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C06-O14`, `C07-O07`, `C08-O09`, `C09-O09`, `C10-O03` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` | `DIRECT-FR103`, `C20-F04` | `VERIFICATION_DELTA` | `SD20` | `IA23` | — | Permanently prove the actual OpenCode 2.2.6 process/session boundary through `tests/opencode.test.ts` and `.github/workflows/ci.yml`, using exact isolated `opencode-drive@2.4.1` + `effect@4.0.1` deterministic model simulation; retain existing daemon/certification fake-provider fixtures as complementary proof and explicitly exclude remote-provider/OAuth/model-quality claims + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-227-CERTIFICATION-MATRIX` | `C20-O12` | `VERIFICATION_DELTA` | `SD15`, `SD16`, `SD17`, `SD18` | `IA15`, `IA20`, `IA21`, `IA22` | — | Recheck `C20-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11`, `SD12`, `SD14`, `SD16` | `IA16`, `IA17`, `IA18`, `IA20` | — | Recheck `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `VERIFICATION_DELTA` | `SD16` | `IA20` | — | Recheck `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-235-GLOBAL-THEME-PARITY` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `VERIFICATION_DELTA` | `SD18` | `IA22` | — | Recheck `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-227-CERTIFICATION-MATRIX` | `C20-O12` | `VERIFICATION_DELTA` | `SD15`, `SD16`, `SD17`, `SD18`, `SD30` | `IA15`, `IA20`, `IA21`, `IA22`, `IA26` | — | Existing semantic/state certification remains mandatory and exact-candidate rendered acceptance is added across the complete governed UI surface. |
+| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Rebuild the primitive/theme foundation, migrate every renderer family and delete competing feature-era presentation ownership; rendered proof required. |
+| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `TECHNICAL_DELTA` | `SD21`-`SD29` | `IA27`-`IA34` | — | Equivalent roles must resolve through the rebuilt shared primitives rather than feature-specific presentation; certify only after migration. |
+| `GW-FR-235-GLOBAL-THEME-PARITY` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD29`, `SD30` | `IA27`, `IA28`-`IA34`, `IA26` | — | Root theme activation remains, but presentation parity is re-realized through the rebuilt primitive/theme system and re-proved through semantic + rendered evidence. |
 
 Stable rows in phase: **7**.
 
@@ -820,10 +845,12 @@ Stable rows in phase: **7**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C19-01` | C19-F01 | `SD16` | `IA20` | — | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. |
+| `PL-C19-02` | C19-F02 | `SD21`-`SD29` | `IA27`-`IA34` | — | Recompose the complete presentation layer from the canonical primitive/theme system and delete old recurring feature-era UI/CSS ownership rather than wrapping it. |
 | `PL-C20-01` | C20-F02 | `SD17` | `IA21` | — | Permanent browser certification proves complete four-kind Research/downstream scenario 41. |
 | `PL-C20-02` | C20-F03 | `SD18` | `IA22` | — | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. |
+| `PL-C20-03` | C20-F05 | `SD30` | `IA26` | — | Exact-candidate GitHub Actions evidence covers every governed screen/state and all three acceptance dimensions with no unresolved FAIL. |
 
-Package atoms in phase: **3**.
+Package atoms in phase: **5**.
 
 ##### Referenced actions
 
@@ -834,6 +861,8 @@ Package atoms in phase: **3**.
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA27**-**IA34** — consume the single foundation/domain migration definitions for PL-C19-02; A11 owns cross-domain closure, not duplicate renderer implementation.
+- **IA26** — consume the exact-candidate rendered acceptance definition for PL-C20-03.
 
 ##### Completion proof
 
@@ -1288,7 +1317,7 @@ Any failed row blocks closeout, opens remediation at the defective implementatio
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
-- all 27 package-local atoms, including `PL-C12-02`, `PL-C19-02` and `PL-C20-03`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
+- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
 - each signed task retains its exact `changeSurface`; the union remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
