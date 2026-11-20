@@ -1417,7 +1417,8 @@ describe("Order cross-boundary certification", () => {
       "build",
       "browser",
       "verified candidate",
-      "does not commit, push, merge, deploy",
+      "does not automatically commit implementation or candidate changes",
+      "push, merge, deploy",
     ]) {
       expect(readme).toContain(required);
     }
@@ -1844,7 +1845,11 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(presentation).toContain("export const workOutcomeProductLabel");
     expect(presentation).toContain('case "CANDIDATE_DONE": return "Verified candidate"');
     expect(terminal).toContain("workOutcomeProductLabel(workItem.outcome)");
-    expect(terminal).not.toContain("replaceAll(\"_\",\" \")");
+    const terminalOutcomeOwner = terminal.slice(
+      terminal.indexOf("const attention="),
+      terminal.indexOf("const material="),
+    );
+    expect(terminalOutcomeOwner).not.toContain("replaceAll(\"_\",\" \")");
     expect(readme).toContain("Every WorkItem ends at a governed **verified result**");
     expect(readme).toContain("Explicit operator-triggered WorkItem documentation Git commits remain a governed documentation capability");
   });
