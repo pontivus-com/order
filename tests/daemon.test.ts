@@ -302,6 +302,10 @@ if (currentV2PlanTemplate === null) {
 const vacuousCurrentV2Plan =
   currentV2PlanTemplate +
   '\n```order-tasks\n{"version":1,"tasks":[]}\n```\n';
+const currentV2R3Template = stageTemplateForSchema("change-v2", "R3");
+if (currentV2R3Template === null) {
+  throw new TypeError("missing current-v2 R3 template");
+}
 
 const fixtureManifest = `version = 1
 projectId = "fixture"
@@ -3249,7 +3253,10 @@ describe("daemon control plane", () => {
         path.join(repositoryRoot, files.PLAN),
         ${JSON.stringify(vacuousCurrentV2Plan)},
       );
-      fs.writeFileSync(path.join(repositoryRoot, files.R3), "# READY_FOR_SIGNOFF\\n");
+      fs.writeFileSync(
+        path.join(repositoryRoot, files.R3),
+        ${JSON.stringify(currentV2R3Template)},
+      );
 
       const outputs = {
         R1: await authority.currentFileArtifact(runtime, workItem, files.R1, "R1", "P1"),
