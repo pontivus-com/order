@@ -4509,7 +4509,7 @@ describe("daemon control plane", () => {
 
       const discoveredId = rt.newWorkItemId();
       sourceShell.createWorkItemSourceFile(
-        repository,
+        ${JSON.stringify(repository)},
         "docs/order/work-items",
         discoveredId,
         sourceCore.renderWorkItemSourceMarkdown({
