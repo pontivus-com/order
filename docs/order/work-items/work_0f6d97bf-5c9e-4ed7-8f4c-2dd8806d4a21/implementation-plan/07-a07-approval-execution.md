@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e01ce75ee0ece676c195a46f810186c24814e11f`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
 
 ## Stable requirement execution dispositions
 
@@ -38,8 +38,8 @@ Package atoms in phase: **4**.
 - **IA06** — consume the single implementation definition in `12-action-catalog.md`.
 - **IA07** — consume the single baseline-checkpoint proof definition; authorize no checkpoint-protocol production edit.
 - **IA08** — consume the single scope/forecast/V4-V6 baseline proof definition; authorize no execution-foundation production edit.
-- **IA31** — consume the Readiness/Approval Review migration definition for C11 presentation.
-- **IA32** — consume the Implementation operational master/detail migration definition for C12 presentation; execution semantics remain owned by existing core/daemon contracts.
+- **IA31** — consume the Readiness/Approval destructive Review replacement definition for C11 presentation.
+- **IA32** — consume the Implementation destructive operational master/detail replacement definition for C12 presentation; execution semantics remain owned by existing core/daemon contracts.
 
 ## Completion proof
 
