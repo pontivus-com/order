@@ -8,19 +8,19 @@
 
 `READY_FOR_SIGNOFF`.
 
-This is a fresh adversarial R3 review performed only after the byte-exact normalized repaired package passed current final vertical alignment. The prior readiness artifacts `a89133fd27c7838b1fcab440255531cc45d4077c`, `6045107daaaf3b777d86eefad9ee8ad06729ced6`, and `d822634d057e17a162403f588dc27f56435a9f50` are stale historical evidence: the first was falsified by `ALIGN-A09-F01`; the latter two were superseded by permanent-sensor normalization, culminating in the final root/modular PLAN byte-compilation correction. No earlier R3 conclusion is inherited, and this R3 performs no repair.
+This is a fresh adversarial R3 review performed only after the byte-exact normalized repaired package passed current final vertical alignment. The prior readiness artifacts `a89133fd27c7838b1fcab440255531cc45d4077c`, `6045107daaaf3b777d86eefad9ee8ad06729ced6`, `d822634d057e17a162403f588dc27f56435a9f50`, and `84cf4d17e9f662b1ab86895ac806277e027a20dc` are stale historical evidence: the first was falsified by `ALIGN-A09-F01`; the latter two were superseded by permanent-sensor normalization, culminating in the final root/modular PLAN byte-compilation correction. No earlier R3 conclusion is inherited, and this R3 performs no repair.
 
 ## Exact reviewed package
 
-- repository evidence baseline: `58be95a445ead83d0641de40d0bc3d31167e30a5`;
+- repository evidence baseline: `fc6a0d98d6b65c401e8a89fcff643a28921f8b68`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - WorkItem source `work-request.md`: `0786b08f8bb4e8400523ee92eb5cdcd60fd9dec7`;
 - R1 `research.md`: `aa287cb5aa37fbb0fe68742362ade9e949f43352`;
 - R2 `requirements.md`: `36f886d8ea3418a23be9a67239ab943e891c6c3a`;
 - DESIGN `solution-design.md`: `9098ed2e8036d3ecf195f863c731c95c7cdbad8e`;
-- PLAN `implementation-plan.md`: `e112bb74575ab4eb705a572f98a7581215c33f04`;
-- campaign/evidence owner before this R3 consequence: `ef0d7d413cef960e75381a33c6cff5185de0b689`;
-- final vertical-alignment evidence baseline: `1f655332ecb03d267398896f1042bcce03ceb140`;
+- PLAN `implementation-plan.md`: `d7f3381be0ea246d428d4496b93c1e7b5d5f2ad8`;
+- campaign/evidence owner before this R3 consequence: `b235dc106c4d1dba3ed15cca6144ccb9376c86cd`;
+- final vertical-alignment evidence baseline: `fc6a0d98d6b65c401e8a89fcff643a28921f8b68`;
 - project manifest `pontivus-order.toml`: `8250e5f79d06862bdb92ffcd2fd98e3da9f44237`;
 - corrected P3 Installation Readiness: `9c2ec83a9552b7583f90e91080c014df4d6870df`;
 - lifecycle-context authority: `4ce2b49b9eb57e60ddd2b1e3664fdd4e11cbbbc7`;
@@ -37,7 +37,7 @@ The only repository mutations produced by this R3 are this verdict artifact and 
 
 The final R1 reconstruction was performed on repository baseline `789e962bfa4d6cbbe6c6243b963f4c43f3dfff85`. Comparing that baseline with the reviewed head changes only this WorkItem's downstream `requirements.md`, `solution-design.md`, `implementation-plan.md`, modular PLAN authoring sources and campaign evidence. No production, UI, runtime, provider, test, manifest or permanent P1-P6 authority file changed after R1 reconstruction. Therefore no later repository mutation makes the current R1 realization evidence stale.
 
-The final vertical-alignment records bind exactly to R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`, R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`, DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `e112bb74575ab4eb705a572f98a7581215c33f04`; all eleven domain audits and the integrated audit are PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
+The final vertical-alignment records bind exactly to R1 `aa287cb5aa37fbb0fe68742362ade9e949f43352`, R2 `36f886d8ea3418a23be9a67239ab943e891c6c3a`, DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `d7f3381be0ea246d428d4496b93c1e7b5d5f2ad8`; all eleven domain audits and the integrated audit were freshly revalidated after the P7-only delivery-branch addition and remain PASS with Q1-Q12 PROVEN. Current implementation, UI, tests, prior releases and historical design are used only as evidence, never as desired-state, compatibility, fallback or preservation authority.
 
 ## S1-S12 package challenge
 
@@ -95,7 +95,8 @@ The exact normalized package is structurally closed before readiness is judged: 
 
 **PASS.**
 
-The exact current root PLAN `e112bb74575ab4eb705a572f98a7581215c33f04` is challenged against all 14 modular authoring sources before readiness is judged. The final permanent-sensor defect was a one-word root/source mismatch in the compiled IA25 authority sentence; commit `1f655332ecb03d267398896f1042bcce03ceb140` removes that mismatch. The modular manifest remains exact, the compiled action catalog is byte-equivalent after canonical heading demotion, FR079 remains TECHNICAL_DELTA / SD19 / IA25 in source and root, and signed scope/exclusions/changeSurface are unchanged.
+The exact current root PLAN `d7f3381be0ea246d428d4496b93c1e7b5d5f2ad8` is challenged against all 14 modular authoring sources. The updated `implementation-plan/13-verification-closeout.md` blob `55edfe8e39e4ba88faf5bdd26d12689a2c5ef698` is pinned in the root manifest and its complete content is byte-equivalent after canonical heading demotion. The added delivery-branch section changes no SD/IA mapping, task definition, signed scope, exclusions, 28-path `changeSurface`, logical gate union or implementation behavior. FR079 remains TECHNICAL_DELTA / SD19 / IA25 in source and root.
+
 
 ## A09 authority-repair challenge
 
@@ -107,7 +108,7 @@ The exact repaired authority graph was challenged rather than assuming that the 
 - Work Lifecycle FR007 owns successful fresh-install completion: installer success requires the required repository, provider/model, OpenCode-account and daemon/readiness bootstrap to be complete.
 - Installation Readiness blob `9c2ec83a9552b7583f90e91080c014df4d6870df` now limits incomplete-readiness semantics to already-installed/update/recovery conditions and explicitly forbids successful fresh-install completion with mandatory setup outstanding.
 - R1 blob `aa287cb5aa37fbb0fe68742362ade9e949f43352` correctly attributes FR007 to Work Lifecycle and records `C16-F04`.
-- R2 blob `36f886d8ea3418a23be9a67239ab943e891c6c3a` owns the product decision and canonical P3 mutation; DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `e112bb74575ab4eb705a572f98a7581215c33f04` map both FR007 and corrected FR079 through SD19/IA25.
+- R2 blob `36f886d8ea3418a23be9a67239ab943e891c6c3a` owns the product decision and canonical P3 mutation; DESIGN `9098ed2e8036d3ecf195f863c731c95c7cdbad8e` and PLAN `d7f3381be0ea246d428d4496b93c1e7b5d5f2ad8` map both FR007 and corrected FR079 through SD19/IA25.
 - No lower-layer implementation, test, P4/P6 wording or historical package is used as semantic precedence.
 
 The previous `CONTRADICTORY_AUTHORITY` condition is therefore removed by compatible canonical P3 semantics, not hidden by an inferred winner.
@@ -132,7 +133,7 @@ No new WorkStage/status/outcome family, persistence/API family, DTO/OOP/service/
 
 **PASS.**
 
-PLAN `e112bb74575ab4eb705a572f98a7581215c33f04` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
+PLAN `d7f3381be0ea246d428d4496b93c1e7b5d5f2ad8` independently reproduces the DESIGN sets: 112 stable identities and 25 package atoms. All 14 modular source SHA pins match their current source blobs. IA01-IA25 are each defined once.
 
 The sole canonical `order-tasks` block contains one cumulative `T1` with:
 
@@ -224,6 +225,16 @@ PR Verification #1487 / run `44632779685` is fully green on exact reviewed head 
 NONE.
 
 No finding requires return to R1, R2, DESIGN or PLAN.
+
+
+## 0.6.0 implementation delivery-branch challenge
+
+**PASS.**
+
+The current PLAN requires the public T1 implementation candidate to be accumulated as one cohesive short-lived `feat/0.6.0-implementation` branch/PR. This is compatible with `GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V2`: `feat/` is an allowed work-branch prefix, direct `master` delivery remains prohibited, and `release/v0.6.0` remains reserved for the later metadata-only release PR. The branch requirement governs repository delivery organization only; it does not alter Approval baseline semantics, Order execution workspaces/candidate evidence, T1 scope, SD/IA ownership, validation contracts or product behavior.
+
+The implementation branch must be created from the then-current `master` after the approved design package is present there. Splitting the one signed T1 into multiple work PRs merely for convenience is prohibited; any material need to change signed scope/design/ownership/task semantics returns upstream.
+
 
 ## Final R3 disposition
 
