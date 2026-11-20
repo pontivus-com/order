@@ -11,9 +11,10 @@ Each IA action below has one execution owner. Semantic phase files may reference
 4. **Wave 4 — Workbench/product presentation:** IA14-IA19.
 5. **Wave 5 — productive installer:** IA25.
 6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
-7. **Wave 7 — candidate closeout:** IA24.
+7. **Wave 7 — rendered product acceptance:** IA26.
+8. **Wave 8 — candidate closeout:** IA24.
 
-Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`; this prepares the fresh isolated workspace using the project-owned exact `bun ci` verification command before any Node-based architecture/test/build/typecheck checkpoint can execute. The signed `architecture` gate is then requested after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast/V4-V6 realizations identified by current DESIGN; it does not bootstrap or modify them. The execution harness must provision the exact Playwright-owned Chromium runtime required by P6 before T1 begins, because the signed `browser` gate intentionally runs the project test command and does not install its browser dependency. Wave 7 uses the ordinary final validation path and does not substitute any intermediate checkpoint for V3/V5/V7.
+Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`; this prepares the fresh isolated workspace using the project-owned exact `bun ci` verification command before any Node-based architecture/test/build/typecheck checkpoint can execute. The signed `architecture` gate is then requested after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast/V4-V6 realizations identified by current DESIGN; it does not bootstrap or modify them. The execution harness must provision the exact Playwright-owned Chromium runtime required by P6 before T1 begins, because the signed `browser` gate intentionally runs the project test command and does not install its browser dependency. Wave 7 runs only after the ordinary permanent gates are green and produces the exact-candidate rendered acceptance evidence through GitHub Actions. Wave 8 performs ordinary final validation/closeout only after IA26 is complete and does not substitute rendered evidence for V3/V5/V7.
 
 ## IA01 — pure project-authority resolution
 
@@ -192,9 +193,9 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 ## IA24 — exact candidate closeout
 
-**Upstream:** complete T1.  
+**Upstream:** complete T1 with IA26 rendered UX/UI acceptance PASS.  
 **Owner:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
-**Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6.  
+**Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6, and bind closeout to the exact GitHub Actions rendered-acceptance run/evidence package accepted under IA26.  
 **Terminal:** only CANDIDATE_DONE or valid ALREADY_SATISFIED. PR merge/release/version bump remain outside T1.
 
 ## IA25 — guided productive installer completion
@@ -205,3 +206,28 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Required mutation:** remove/replace the fresh `configured === null` success/defer branch so installer-owned setup continues through existing private OpenCode login, model selection, exact target repository validation/selection and reference-root choices before returning success and proving productive daemon/readiness. Preserve valid incomplete v4 only as post-install/update daemon/Settings recovery and transient rollback-safe installer state. Preserve existing upgrade/migration retention and rollback.  
 **Forbidden:** new config schema; second setup owner; mandatory post-install Settings/provider-login step; speculative `src/installer.ts` edit. If setup.ts alone cannot realize SD19, return to DESIGN/PLAN.  
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
+
+## IA26 — rendered 0.6.0 UX/UI acceptance evidence
+
+**Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and the reviewed derived visual reference pack at `docs/references/workbench-ui/README.md`. Current R2/DESIGN/P3-P6 authority wins over any 0.5.0 SVG reference on conflict.  
+**Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication.  
+**Required mutation:** extend the existing Playwright/GitHub Actions verification path so the exact PR merge candidate renders and captures the complete governed Workbench surface/state set after the ordinary `browser` gate is green. The implementation must:
+- capture every one of the nine lifecycle steps — Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete — from populated deterministic canonical fixtures, not empty shells;
+- capture every `SURF-*` entry in the `docs/references/workbench-ui/README.md` complete audited surface table, including Queue, Create, Settings/repositories, Settings/OpenCode/accounts, model/runtime Settings, Context, document authoring/read-only, dialogue/activity, proposal review, evidence, approval-task detail, execution-task detail and all confirmation/destructive overlays;
+- capture all materially distinct reference/state sheets listed by that README: current-attention precedence, dialogue interaction, proposal, document, Implementation task, Queue, application notices, installation readiness, linked-remediation Create/Complete branches, OpenCode login terminal states, safety confirmations, responsive composition and theme parity;
+- prove all four WorkItem kinds represented by the reference pack — Change, Defect, Investigation and Audit — at the information-contract surfaces where the kinds materially differ;
+- capture every primary workflow step at a wide desktop viewport and at a narrow viewport; additionally capture Light and Dark representatives for every primary interaction class and System against both mocked effective schemes, preserving the existing semantic theme assertions;
+- emit an evidence manifest for every capture containing exact checked-out commit SHA, WorkItem kind, workflow step/surface/state, fixture identity, viewport, effective theme, runtime route/selection, corresponding SVG reference path and governing current authority refs;
+- place the actual PNG captures, the manifest and a generated index that pairs each actual capture with its SVG reference path into one GitHub Actions artifact for review;
+- fail the Actions acceptance step when a required surface/state/reference mapping is missing or duplicated, a fixture cannot reach the declared canonical state, the page emits an uncaught browser/runtime error, the capture is absent/empty, or the manifest/capture set is not exhaustive.
+
+**Acceptance review:** the Actions artifact is evidence, not authority. Every manifest row must receive an explicit `PASS` or `FAIL` against three independent dimensions before IA24:
+1. **schema/information fidelity** — required current information is present, correctly named/grouped/prioritized, and no required schema information is silently absent;
+2. **UX/interaction fidelity** — the owning interaction grammar, current-attention owner, action precedence, navigation/material hierarchy, state/recovery semantics and responsive composition match current authority;
+3. **visual/UI fidelity** — hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, truncation/wrapping, overlays and theme behavior materially conform to current authority and, where not superseded, the reviewed SVG composition.
+
+Any `FAIL` creates a blocking remediation item owned by the defective implementation/authority layer and requires a fresh post-fix exact-candidate Actions capture for the affected row plus regression revalidation. No aggregate pass may hide a failed row.
+
+**Forbidden:** treating the 0.5.0 SVG pack as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
+**Proof:** required PR Verification rendered-acceptance step succeeds on the exact candidate, publishes the exhaustive evidence artifact, and the screen-by-screen acceptance ledger has no unresolved `FAIL`. IA24 may not close before that evidence/review is complete.
+
