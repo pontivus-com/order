@@ -319,6 +319,18 @@ p5 = []
 p6 = []
 
 [refs]
+GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"
+GW-DOC-SPECIFICATION-STANDARD-V1 = "AGENTS.md"
+GW-DOC-SPECIFICATION-STANDARD-V2 = "AGENTS.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V1 = "AGENTS.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V2 = "AGENTS.md"
+GW-DOC-CANONICAL-CONTRACTS-V1 = "AGENTS.md"
+GW-DOC-CANONICAL-CONTRACTS-V2 = "AGENTS.md"
+GW-DOC-VALIDATION-STANDARD-V1 = "AGENTS.md"
+GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION = "AGENTS.md"
+GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW = "AGENTS.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]
@@ -5500,14 +5512,16 @@ describe("daemon control plane", () => {
           'p3 = ["docs/work-lifecycle.md", "docs/lifecycle-context-current.md", "docs/lifecycle-context-v1.md"]',
         )
         .replace(
-          "[refs]\n",
-          [
-            "[refs]",
-            'GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"',
-            'GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"',
-            'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"',
-            "",
-          ].join("\n"),
+          'GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"',
+          'GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"',
+        )
+        .replace(
+          'GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"',
+          'GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"',
+        )
+        .replace(
+          'GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"',
+          'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"',
         );
       writeFileSync(manifestPath, manifest);
       runGit(repository, "add", ".");
@@ -5542,7 +5556,7 @@ describe("daemon control plane", () => {
           const resolved = await authority.resolveStageContextState(
             runtime,
             current,
-            "R2",
+            "R1",
           );
           const p3Paths = resolved.context.artifacts
             .filter((artifact) => artifact.authorityLayer === "P3")
@@ -5560,14 +5574,14 @@ describe("daemon control plane", () => {
     };
 
     const current = resolve("change-v2");
-    expect(current.staleStage).toBe("R1");
+    expect(current.staleStage).toBeNull();
     expect(current.p3Paths).toEqual([
       "docs/lifecycle-context-current.md",
       "docs/work-lifecycle.md",
     ]);
 
     const retained = resolve("change-v1");
-    expect(retained.staleStage).toBe("R1");
+    expect(retained.staleStage).toBeNull();
     expect(retained.p3Paths).toEqual([
       "docs/lifecycle-context-v1.md",
       "docs/work-lifecycle.md",
