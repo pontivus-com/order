@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Implement the authority-driven 0.6.0 candidate across the existing canonical owners: resolve project authority into productive context, govern permanent-authority and durable-decision admission, add current-v2 Change/Defect task non-vacuity and normalized Approval identity without changing published v1 task semantics, converge created/discovered WorkItem registration and queue/create/documentation-Git behavior, align Workbench attention/readiness/Approval/Settings/result semantics and work-kind/theme certification, and require fresh installation to complete productive guided setup while retaining incomplete-v4 recovery, upgrade continuity, and the explicit operator-triggered WorkItem documentation-Git exception.
+
 - Reopen the 0.6.0 design campaign after an adversarial gate audit disproved the former G0-G6 closure: add a separately governed Phase-0 correction for single-owned campaign state, mandatory pair-audit evidence/progression, and exhaustive stable-P3 R2 disposition coverage; strengthen permanent campaign fitness before any new readiness/sign-off attempt.
 
 - Establish WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21` as the sole governed 0.6.0 design-campaign work point: exhaustive concern/requirement inventory, explicit concern START/END investigation boundaries, cross-concern finding tracking, integrated functional-design and technical-design gates, complete P1→P7 traceability, and adversarial readiness before implementation authority.
