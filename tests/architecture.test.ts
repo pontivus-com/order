@@ -1299,6 +1299,20 @@ describe("architecture fitness", () => {
       }
     }
 
+    const authorityBody =
+      manifest.match(/\[authority\]\r?\n([\s\S]*?)(?=\r?\n\[|$)/)?.[1] ?? "";
+    const authorityPatterns = ["p1", "p2", "p3", "p4", "p5", "p6"].flatMap((layer) => [
+      ...(authorityBody.match(new RegExp("^" + layer + "\\s*=\\s*\\[(.*)\\]\\s*$", "m"))?.[1]
+        ?.matchAll(/"([^"]+)"/g) ?? []),
+    ].map((match) => match[1]).filter((value): value is string => value !== undefined));
+    for (const [authorityRef, sourcePath] of refs) {
+      if (!authorityPatterns.some((pattern) => matchesGlob(sourcePath, pattern))) {
+        violations.push(
+          `${authorityRef}: manifest ref source must be selected by authority.p1-p6: ${sourcePath}`,
+        );
+      }
+    }
+
     for (const metadata of concernByPath.values()) {
       if (
         !retainedSemanticVersionPath(metadata.path) &&
