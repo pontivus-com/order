@@ -40,9 +40,9 @@ Stable rows in phase: **25**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C03-01` | C03-F01 | `SD05` | `IA12` | — | Including archived work expands the candidate set without bypassing project/search filters. |
+| `PL-C03-01` | C03-F01 | `SD05`, `SD22` | `IA12`, `IA28` | — | Including archived work expands the candidate set without bypassing project/search filters; IA28 owns the rebuilt Operational-scan presentation. |
 | `PL-C04-01` | C04-F01 | `SD04` | `IA09`, `IA10` | — | Source-admission owner is singular across creation/discovery. |
-| `PL-C04-02` | C04-F02 | `SD06` | `IA13` | — | Documentation-Git confirmation shows the exact governed paths/states before commit. |
+| `PL-C04-02` | C04-F02 | `SD06`, `SD23` | `IA13`, `IA29` | — | Documentation-Git confirmation shows the exact governed paths/states before commit inside the rebuilt WorkItem/document composition. |
 
 Package atoms in phase: **3**.
 
@@ -52,6 +52,8 @@ Package atoms in phase: **3**.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA12** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA13** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA28** — consume the single Queue/Create renderer migration definition for the Queue operational-scan surface.
+- **IA29** — consume the WorkItem/document migration definition for source/document/Git presentation.
 
 ## Completion proof
 
