@@ -904,7 +904,7 @@ describe("functional lifecycle and execution policy", () => {
         ...sources,
         p1: ["AGENTS.md"],
       })
-    ).toThrow(/governance source is not selected/);
+    ).toThrow(/source is not selected/);
 
     expect(permanentAuthorityProposalIsAdmitted(
       "R2",
