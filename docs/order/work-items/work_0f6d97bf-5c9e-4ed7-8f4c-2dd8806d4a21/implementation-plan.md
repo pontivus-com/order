@@ -35,7 +35,7 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 | `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
 | `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
 | `implementation-plan/12-action-catalog.md` | `0fd2c4e440b1b0201f39b6f749f1ed026fcb556a` |
-| `implementation-plan/13-verification-closeout.md` | `aea17b9efab459f3629dd2d7fd14f929c89a17e0` |
+| `implementation-plan/13-verification-closeout.md` | `1d7df1d78af0462d58214fccf6ba89afbb3a58cf` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -1080,7 +1080,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 Current `tests/architecture.test.ts` is stale against the corrected package: its permanent PLAN fitness check still requires exactly 28 signed `changeSurface` paths even though current DESIGN/PLAN now require 30. This is a pre-signoff verification-material defect, not T1 implementation surface.
 
-Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the current 30-path DESIGN/PLAN set without creating a second package registry. The sensor should continue proving uniqueness plus exact set equality between DESIGN forecast and signed T1 surface; it must not preserve the obsolete literal 28 as authority. Re-run the architecture gate and root/modular compilation checks on the exact corrected package before Approval. `tests/architecture.test.ts` remains excluded from T1 after this pre-Approval correction.
+Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the current 30-path DESIGN/PLAN set without creating a second package registry. The sensor should continue proving uniqueness plus exact set equality between DESIGN forecast and signed T1 surface; it must not preserve the obsolete literal 28 as authority. The same sensor currently enumerates exactly IA01-IA25 and treats only IA23/IA24 as cross-solution/final actions; after this PLAN correction it must instead structurally require the exact IA01-IA26 catalog and govern IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it must not turn IA26 into a semantic phase owner or move `tests/architecture.test.ts` into T1. Re-run the architecture gate and root/modular compilation checks on the exact corrected package before G5 may return to PASS. `tests/architecture.test.ts` remains excluded from T1 after this pre-Approval correction.
 
 ##### 0.6.0 implementation delivery branch
 
