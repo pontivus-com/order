@@ -431,6 +431,17 @@ Certification is layered:
 
 Tests must exercise the actual production functions. Copying the intended algorithm into a test helper and proving the copy is prohibited.
 
+#### Deterministic exact-pin simulation certification
+
+The permanent integration tier must distinguish a **real OpenCode process** from a simulated model. Exact-pin certification therefore launches the actual Order-supported OpenCode `2.2.6` CLI/server process through Order's production OpenCode shell boundary. Deterministic model responses may be supplied by the verification-only `opencode-drive@2.4.1` simulation provider/controller grounded in `GW-DOC-EXTERNAL-FACTS`, provided the simulation tooling is isolated from Order's product/runtime dependency graph.
+
+This tier proves the Order/OpenCode process and protocol boundary: exact server version/readiness, authenticated client/session creation, model binding, permission binding, prompt/turn transport, tool/event behavior, provider diagnostics, coordinator continuation and any scripted execution-checkpoint chronology that depends on those real OpenCode session transitions. A `fake-opencode` executable remains valid for fast unit/shell/daemon fixtures, but it **cannot** satisfy the exact-pinned OpenCode integration tier merely by emulating the expected API or version string.
+
+Deterministic simulation is not evidence for behavior it intentionally replaces. In particular it does not prove remote model availability or quality, OpenCode Console device OAuth/account connectivity, or provider-side policy outside the simulated request/response path. Where those external semantics are separately required, they need their own applicable evidence and must not be inferred from the simulation result.
+
+Temporary GitHub Actions scaffolding may execute an already-authorized exact-pin simulation during branch work, but temporary workflow history is not permanent certification. The corresponding exact-pin proposition must remain represented in the permanent test/CI surface required by `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE`.
+
+
 
 ### GW-TR-080-EFFECTIVE-INSTRUCTION-PREFLIGHT
 
