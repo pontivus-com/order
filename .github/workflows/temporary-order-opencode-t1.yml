@@ -561,6 +561,7 @@ jobs:
           fi
 
           cat > "${ORDER_CI_DRIVE_ROOT}/order-controller.ts" <<'TS'
+          import * as Cause from "effect/Cause";
           import * as Effect from "effect/Effect";
           import * as Exit from "effect/Exit";
           import * as Stream from "effect/Stream";
@@ -671,6 +672,14 @@ jobs:
 
           const serveRequest = (request: { body: unknown }) => {
             role ??= detectRole(request.body);
+            process.stderr.write(JSON.stringify({
+              kind: "llm-request",
+              role,
+              waveIndex,
+              pathIndex,
+              closeoutIndex,
+              callIndex,
+            }) + "\n");
 
             if (role === "BUILDER") {
               if (waveIndex < waves.length) {
@@ -678,10 +687,19 @@ jobs:
                 if (pathIndex < paths.length) {
                   const path = paths[pathIndex];
                   pathIndex += 1;
+                  process.stderr.write(JSON.stringify({
+                    kind: "builder-write",
+                    wave: waveIndex + 1,
+                    path,
+                  }) + "\n");
                   return writeResponse(path);
                 }
                 pathIndex = 0;
                 waveIndex += 1;
+                process.stderr.write(JSON.stringify({
+                  kind: "checkpoint-request",
+                  ordinal: waveIndex,
+                }) + "\n");
                 return textResponse([
                   { tag: "GATE_CHECKPOINT_REQUESTED", gateId: "architecture" },
                 ]);
@@ -690,6 +708,10 @@ jobs:
               if (closeoutIndex < closeout.length) {
                 const path = closeout[closeoutIndex];
                 closeoutIndex += 1;
+                process.stderr.write(JSON.stringify({
+                  kind: "builder-closeout-write",
+                  path,
+                }) + "\n");
                 return writeResponse(path);
               }
 
@@ -746,6 +768,14 @@ jobs:
                 );
                 const outcome = yield* Effect.exit(cycle);
                 if (Exit.isFailure(outcome)) {
+                  yield* Effect.sync(() =>
+                    process.stderr.write(
+                      JSON.stringify({
+                        kind: "controller-cycle-failure",
+                        detail: Cause.pretty(outcome.cause),
+                      }) + "\n",
+                    )
+                  );
                   yield* Effect.sleep("100 millis");
                 }
               }
@@ -1161,7 +1191,7 @@ jobs:
           cookie="${RUNNER_TEMP}/order-cookie.txt"
 
           terminal=""
-          for _ in $(seq 1 2160); do
+          for poll in $(seq 1 60); do
             curl -fsS -b "${cookie}" \
               "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks-current.json"
             terminal="$("${RUNNER_TEMP}/bun-bin/bun" -e '
@@ -1175,13 +1205,34 @@ jobs:
                 break
                 ;;
             esac
+            if (( poll % 3 == 0 )); then
+              echo "T1 still ${terminal} at poll ${poll}"
+              curl -fsS -b "${cookie}"                 "${origin}/api/work-items/${WORK_ITEM_ID}/runs"                 > "${RUNNER_TEMP}/runs-progress.json" || true
+              cat "${RUNNER_TEMP}/runs-progress.json" 2>/dev/null || true
+              echo
+            fi
             sleep 10
           done
 
           echo "T1 terminal state: ${terminal}"
           [[ "${terminal}" == "CANDIDATE_DONE" ]] || {
-            tail -n 250 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
-            tail -n 250 "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+            echo "=== persisted runs at terminal watchdog ===" >&2
+            curl -sS -b "${cookie}"               "${origin}/api/work-items/${WORK_ITEM_ID}/runs"               > "${RUNNER_TEMP}/runs-watchdog.json" || true
+            cat "${RUNNER_TEMP}/runs-watchdog.json" >&2 2>/dev/null || true
+            if [[ -s "${RUNNER_TEMP}/runs-watchdog.json" ]]; then
+              "${RUNNER_TEMP}/bun-bin/bun" -e '
+                const runs = JSON.parse(await Bun.file(process.env.RUNNER_TEMP + "/runs-watchdog.json").text());
+                for (const run of runs) console.log(run.id);
+              ' | while read -r run_id; do
+                echo "=== events ${run_id} ===" >&2
+                curl -sS -b "${cookie}"                   "${origin}/api/runs/${run_id}/events?afterSequence=0" >&2 || true
+                echo >&2
+              done
+            fi
+            echo "=== daemon tail ===" >&2
+            tail -n 300 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
+            echo "=== Drive controller tail ===" >&2
+            tail -n 300 "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
             exit 1
           }
 
