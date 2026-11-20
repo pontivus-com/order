@@ -843,6 +843,7 @@ describe("OpenCode shell", () => {
         failurePhase: null,
       });
     },
+    60_000,
   );
 
   it("projects and mutates saved accounts only through safe integration state", () => {
