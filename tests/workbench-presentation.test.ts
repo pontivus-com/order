@@ -412,6 +412,41 @@ describe("workflow presentation policy", () => {
     });
   });
 
+  it("preserves explicit historical inspection across current attention categories", () => {
+    const current = stageRun("PLAN", "WAITING_FOR_INPUT", 2, uuidB);
+    const historical = stageRun("PLAN", "COMPLETED", 1, uuidC);
+    const historicalSelection = { kind: "STAGE_RUN", runId: historical.id } as const;
+    const base = {
+      reachedStages: reachedAll,
+      workItem: workItem("PLAN"),
+      selectedStep: "PLAN" as const,
+      runs: [historical, current],
+      artifacts: [artifact("PLAN", uuidD)],
+      currentStageRunId: current.id,
+      explicitSelection: historicalSelection,
+    };
+    for (const currentAttention of [
+      "REQUIRED_INPUT",
+      "PROPOSAL_DECISION",
+      "BLOCKER",
+      "RECOVERY",
+      "MUTATION_CONFLICT",
+    ] as const) {
+      expect(resolveFixtureMaterial({
+        ...base,
+        currentAttention,
+        stageInteraction:
+          currentAttention === "REQUIRED_INPUT"
+            ? { tag: "REQUIRED_INPUT", requestEventId: `event_${uuidI}` }
+            : { tag: "OPEN" },
+        pendingProposal:
+          currentAttention === "PROPOSAL_DECISION"
+            ? { runId: current.id, eventId: `event_${uuidF}` }
+            : null,
+      })).toEqual(historicalSelection);
+    }
+  });
+
   it("resolves Readiness, Approval, Implementation and Complete without generic modes", () => {
     const blocked = stageRun("R3", "BLOCKED", 1, uuidB);
     expect(resolveFixtureMaterial({

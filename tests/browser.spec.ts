@@ -1120,6 +1120,107 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 });
 
 
+test("queue filtering composes archive dataset, project and search exactly once", async ({
+  page,
+  request,
+}) => {
+  const activeId = "work_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const archivedId = "work_bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+
+  await page.route("**/api/work-items**", async (route) => {
+    const url = new URL(route.request().url());
+    if (route.request().method() !== "GET" || url.pathname !== "/api/work-items") {
+      await route.fallback();
+      return;
+    }
+    const upstream = await route.fetch();
+    const rows = WorkItemSchema.array().parse(await upstream.json());
+    const template = rows[0];
+    if (template === undefined) throw new Error("queue matrix requires one WorkItem fixture");
+    const active = WorkItemSchema.parse({
+      ...template,
+      id: activeId,
+      projectId: "other-e2e",
+      repositoryRoot: repositoryRoot + "-other",
+      title: "Matrix active other",
+      archived: false,
+    });
+    const archived = WorkItemSchema.parse({
+      ...template,
+      id: archivedId,
+      projectId: "other-e2e",
+      repositoryRoot: repositoryRoot + "-other",
+      title: "Matrix archived other",
+      archived: true,
+    });
+    const includeArchived = url.searchParams.get("includeArchived") === "true";
+    await route.fulfill({
+      status: upstream.status(),
+      contentType: "application/json",
+      body: JSON.stringify([
+        ...rows,
+        active,
+        ...(includeArchived ? [archived] : []),
+      ]),
+    });
+  });
+
+  await page.route("**/api/settings/repositories", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    const upstream = await route.fetch();
+    const repositories = await upstream.json() as Array<Record<string, unknown>>;
+    const first = repositories[0];
+    if (first === undefined) throw new Error("queue matrix requires one repository fixture");
+    await route.fulfill({
+      status: upstream.status(),
+      contentType: "application/json",
+      body: JSON.stringify([
+        ...repositories,
+        {
+          ...first,
+          repositoryRoot: repositoryRoot + "-other",
+          projectId: "other-e2e",
+        },
+      ]),
+    });
+  });
+
+  await authenticate(page, request);
+  await expect(rowFor(page, "Matrix active other")).toBeVisible();
+  await expect(rowFor(page, "Matrix archived other")).toHaveCount(0);
+
+  await page.getByRole("link", { name: "Settings", exact: true }).click();
+  const repositories = page.getByTestId("settings-repositories");
+  const projectContext = repositories.getByRole("combobox", {
+    name: "Queue and creation context",
+  });
+  await projectContext.click();
+  await page.getByRole("option", { name: "other-e2e", exact: true }).click();
+  await page.getByRole("link", { name: "Back to work queue", exact: true }).click();
+
+  await expect(rowFor(page, "Matrix active other")).toBeVisible();
+  await expect(rowFor(page, "Change work type")).toHaveCount(0);
+
+  const search = page.getByLabel("Search work items");
+  await search.fill("Matrix");
+  await expect(rowFor(page, "Matrix active other")).toBeVisible();
+  await expect(rowFor(page, "Matrix archived other")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Show archived" }).click();
+  await expect(rowFor(page, "Matrix active other")).toBeVisible();
+  await expect(rowFor(page, "Matrix archived other")).toBeVisible();
+
+  await search.fill("archived");
+  await expect(rowFor(page, "Matrix active other")).toHaveCount(0);
+  await expect(rowFor(page, "Matrix archived other")).toBeVisible();
+
+  await page.getByRole("button", { name: "Hide archived" }).click();
+  await expect(rowFor(page, "Matrix archived other")).toHaveCount(0);
+});
+
 test("repository-native WorkItem management keeps project, Git, title, and archive state explicit", async ({
   page,
   request,
@@ -1189,6 +1290,62 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await expect(rowFor(page, "Repository-native management renamed"))
     .toContainText("browser");
 });
+test("documentation Git blockers remain canonical and visible in the browser", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+  const item = await workItemForTitle(page, "Source editing workbench");
+  const statusResponse = await page.context().request.get(
+    "/api/work-items/" + item.id + "/documentation-git-status",
+  );
+  expect(statusResponse.status()).toBe(200);
+  const baseStatus = await statusResponse.json() as {
+    workItemId: string;
+    headCommit: string;
+    branch: string | null;
+    authorName: string | null;
+    authorEmail: string | null;
+    blockers: string[];
+    paths: Array<Record<string, unknown>>;
+  };
+  let blocker = "MISSING_GIT_IDENTITY";
+  const statusPath = "**/api/work-items/" + item.id + "/documentation-git-status";
+  await page.route(statusPath, async (route) => {
+    const paths = baseStatus.paths.map((path, index) =>
+      index === 0 ? { ...path, state: "MODIFIED" } : path);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...baseStatus,
+        branch: blocker === "DETACHED_HEAD" ? null : baseStatus.branch,
+        authorName: blocker === "MISSING_GIT_IDENTITY" ? null : baseStatus.authorName,
+        authorEmail: blocker === "MISSING_GIT_IDENTITY" ? null : baseStatus.authorEmail,
+        blockers: [blocker],
+        paths,
+      }),
+    });
+  });
+
+  await openWorkItem(page, "Source editing workbench");
+  await selectWorkflowStep(page, "Work request");
+
+  for (const [nextBlocker, message] of [
+    ["MISSING_GIT_IDENTITY", "Set repository-local Git user.name and user.email before saving documentation to Git."],
+    ["DETACHED_HEAD", "Check out a local branch before saving documentation to Git."],
+    ["GIT_OPERATION_ACTIVE", "Finish the in-progress Git operation before saving documentation to Git."],
+  ] as const) {
+    blocker = nextBlocker;
+    await page.reload();
+    await expect(page.getByText("Documentation cannot be saved to Git", { exact: true }))
+      .toBeVisible();
+    await expect(page.getByText(message, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save documentation to Git" }))
+      .toBeDisabled();
+  }
+});
+
 test("long Source and lifecycle Markdown keep the final line editable, savable, and persistent at wide and narrow widths", async ({
   page,
   request,
@@ -1521,6 +1678,47 @@ test("completed pre-signoff history never suppresses the canonical next-stage ac
   }
 });
 
+test("historical inspection preserves current attention reason, return and current action", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  for (const [title, status, currentAction] of [
+    ["Workflow input required", "Waiting for you", null],
+    ["Proposal review", "Proposal review required", null],
+    ["Workflow resume action", "Blocked", "Resume resolved blocker"],
+    ["Workflow retry action", "Recovery required", "Retry Implementation plan"],
+  ] as const) {
+    await openWorkItem(page, title);
+    await selectWorkflowStep(page, "Work request");
+    const summary = page.getByTestId("workflow-step-summary");
+    await expect(summary.getByText(status, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", {
+      name: "Return to Implementation plan",
+      exact: true,
+    })).toBeVisible();
+    if (currentAction !== null) {
+      await expect(page.getByRole("button", {
+        name: currentAction,
+        exact: true,
+      })).toBeVisible();
+    }
+    await backToQueue(page);
+  }
+
+  await openWorkItem(page, "Stale approval recovery");
+  await selectWorkflowStep(page, "Work request");
+  const staleSummary = page.getByTestId("workflow-step-summary");
+  await expect(staleSummary.getByText("Stale authority", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Return to Approval", exact: true }))
+    .toBeVisible();
+  await expect(page.getByRole("button", {
+    name: "Return to Implementation plan",
+    exact: true,
+  })).toBeVisible();
+});
+
 test("canonical Run feedback remains visible in the owning workflow context without synthetic progress", async ({
   page,
   request,
@@ -1549,6 +1747,19 @@ test("canonical Run feedback remains visible in the owning workflow context with
       .getByText("Which constraint should the plan prioritize?", { exact: true }),
   ).toHaveCount(0);
   await expect(page.getByRole("progressbar")).toHaveCount(0);
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await selectWorkflowStep(page, "Work request");
+  await selectWorkflowStep(page, "Implementation plan");
+  const remountedComposer = page.getByTestId("activity-composer");
+  await expect(remountedComposer).toBeVisible();
+  await expect(remountedComposer).not.toBeFocused();
+  const remountContextControl = page.getByRole("button", { name: "Context", exact: true });
+  await remountContextControl.focus();
+  await page.waitForTimeout(500);
+  await expect(remountContextControl).toBeFocused();
+  await page.setViewportSize({ width: 1280, height: 720 });
+
   await backToQueue(page);
 
   await openWorkItem(page, "Workflow failure feedback");
@@ -2340,6 +2551,54 @@ test("work-type variants preserve their canonical Work request information contr
   await expect(defectPlan).not.toContainText("Proven current-state / absence basis");
 });
 
+test("Readiness verdict follows typed R3 outcome independently from material currentness", async ({
+  page,
+  request,
+}) => {
+  await authenticate(page, request);
+
+  for (const [title, verdict] of [
+    ["Readiness returned to Research", "Return to Research"],
+    ["Readiness returned to Requirements", "Return to Requirements"],
+    ["Readiness returned to Design", "Return to Solution design"],
+    ["Readiness returned to Plan", "Return to Implementation plan"],
+  ] as const) {
+    await openWorkItem(page, title);
+    await selectWorkflowStep(page, "Readiness review");
+    const review = page.getByTestId("review-workspace");
+    await expect(
+      review.locator(".order-readiness-verdict").getByText(verdict, { exact: true }),
+    ).toBeVisible();
+    await backToQueue(page);
+  }
+
+  await openWorkItem(page, "Readiness blocked");
+  await expect(
+    page.getByTestId("review-workspace")
+      .locator(".order-readiness-verdict")
+      .getByText("Blocked", { exact: true }),
+  ).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Awaiting sign-off");
+  await selectWorkflowStep(page, "Readiness review");
+  await expect(
+    page.getByTestId("review-workspace")
+      .locator(".order-readiness-verdict")
+      .getByText("Ready for sign-off", { exact: true }),
+  ).toBeVisible();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Stale approval recovery");
+  await selectWorkflowStep(page, "Readiness review");
+  const staleReview = page.getByTestId("review-workspace");
+  await expect(
+    staleReview.locator(".order-readiness-verdict")
+      .getByText("Ready for sign-off", { exact: true }),
+  ).toBeVisible();
+  await expect(staleReview.getByText("Stale", { exact: true })).toBeVisible();
+});
+
 test("Readiness required input owns the action without replacing Review", async ({
   page,
   request,
@@ -2522,8 +2781,13 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeHidden();
   await page.getByRole("button", { name: "Task technical details", exact: true }).click();
   await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Approved by")).toBeVisible();
-  await page.getByLabel("Approved by").fill("browser-approver");
+  const approvedBy = page.getByLabel("Approved by");
+  const signoff = page.getByRole("button", { name: "Sign off exact package" });
+  await expect(approvedBy).toBeVisible();
+  await approvedBy.fill("   ");
+  await expect(signoff).toBeDisabled();
+  await approvedBy.fill("browser-approver");
+  await expect(signoff).toBeEnabled();
 
   const signoff = page.getByRole("button", { name: "Sign off exact package" });
   let releaseSignoff = (): void => {};

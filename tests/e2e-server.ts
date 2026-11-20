@@ -1059,6 +1059,121 @@ const seedCurrentStageDocumentItem = async (
   return item;
 };
 
+const seedReadinessOutcomeItem = async (
+  title: string,
+  currentStage: "R1" | "R2" | "DESIGN" | "PLAN",
+  outcome:
+    | "RETURN_TO_RESEARCH"
+    | "RETURN_TO_REQUIREMENTS"
+    | "RETURN_TO_DESIGN"
+    | "RETURN_TO_PLAN",
+): Promise<void> => {
+  const item = workItem(title, currentStage, "ACTIVE", null);
+  storeWorkItem(database, item);
+  const output = await currentFileArtifact(
+    seedRuntime,
+    item,
+    "docs/r3.md",
+    "R3",
+    "P7",
+  );
+  const contextHash = sha256Text("readiness-outcome-" + title);
+  const run = RunSchema.parse({
+    id: newRunId(),
+    workItemId: item.id,
+    executionTaskId: null,
+    stage: "R3",
+    mode: "INTERACTIVE",
+    role: "STAGE",
+    triggerEventId: null,
+    status: "COMPLETED",
+    attempt: 1,
+    baselineCommit,
+    contextHash,
+    providerSessionId: null,
+    terminalClassification: null,
+    startedAt: stamp,
+    endedAt: stamp,
+  });
+  storeRun(database, run);
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_STARTED",
+    stage: "R3",
+    mode: "INTERACTIVE",
+    contextHash,
+  });
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "CONFORMANCE_PASSED",
+    stage: "R3",
+    outputArtifactRefIds: [output.id],
+    contextHash,
+    evidence: [],
+  });
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_COMPLETED",
+    completion: { stage: "R3", outcome },
+    artifactRefIds: [output.id],
+  });
+};
+
+const seedBlockedReadinessItem = async (): Promise<void> => {
+  const item = workItem("Readiness blocked", "R3", "ACTIVE", null);
+  storeWorkItem(database, item);
+  await currentFileArtifact(seedRuntime, item, "docs/r3.md", "R3", "P7");
+  const contextHash = sha256Text("readiness-blocked");
+  const run = RunSchema.parse({
+    id: newRunId(),
+    workItemId: item.id,
+    executionTaskId: null,
+    stage: "R3",
+    mode: "INTERACTIVE",
+    role: "STAGE",
+    triggerEventId: null,
+    status: "BLOCKED",
+    attempt: 1,
+    baselineCommit,
+    contextHash,
+    providerSessionId: null,
+    terminalClassification: "TEST_FAILURE",
+    startedAt: stamp,
+    endedAt: stamp,
+  });
+  storeRun(database, run);
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_STARTED",
+    stage: "R3",
+    mode: "INTERACTIVE",
+    contextHash,
+  });
+  appendRunEvent(seedRuntime, run.id, {
+    tag: "STAGE_BLOCKED",
+    reason: "Readiness review is blocked by a canonical finding.",
+    owningStage: "R3",
+  });
+};
+
+await seedReadinessOutcomeItem(
+  "Readiness returned to Research",
+  "R1",
+  "RETURN_TO_RESEARCH",
+);
+await seedReadinessOutcomeItem(
+  "Readiness returned to Requirements",
+  "R2",
+  "RETURN_TO_REQUIREMENTS",
+);
+await seedReadinessOutcomeItem(
+  "Readiness returned to Design",
+  "DESIGN",
+  "RETURN_TO_DESIGN",
+);
+await seedReadinessOutcomeItem(
+  "Readiness returned to Plan",
+  "PLAN",
+  "RETURN_TO_PLAN",
+);
+await seedBlockedReadinessItem();
+
 await seedProgressionReadyItem(
   "Requirements ready after Research",
   "R2",
