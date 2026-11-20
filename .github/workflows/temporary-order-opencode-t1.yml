@@ -951,6 +951,12 @@ jobs:
           curl -fsS -L -c "${cookie}" -o /dev/null "${connect_url}"
 
           curl -fsS -b "${cookie}" \
+            "${origin}/api/settings/readiness" > "${RUNNER_TEMP}/readiness.json"
+          echo "=== execution readiness immediately before T1 start ==="
+          cat "${RUNNER_TEMP}/readiness.json"
+          echo
+
+          curl -fsS -b "${cookie}" \
             "${origin}/api/work-items/${WORK_ITEM_ID}/tasks" > "${RUNNER_TEMP}/tasks.json"
 
           task_id="$("${RUNNER_TEMP}/bun-bin/bun" -e '
@@ -968,12 +974,22 @@ jobs:
           echo "ORDER_CI_TASK_ID=${task_id}" >> "${GITHUB_ENV}"
 
           if [[ "${task_state}" == "TODO" ]]; then
-            curl -fsS -b "${cookie}" \
+            start_status="$(curl -sS -o "${RUNNER_TEMP}/start-task.json" -w '%{http_code}' -b "${cookie}" \
               -H "Origin: ${origin}" \
               -H "Content-Type: application/json" \
               -X POST \
               "${origin}/api/work-items/${WORK_ITEM_ID}/tasks/${task_id}/start" \
-              -d '{}' > "${RUNNER_TEMP}/start-task.json"
+              -d '{}')"
+            if [[ "${start_status}" != "201" ]]; then
+              echo "T1 start failed with HTTP ${start_status}" >&2
+              cat "${RUNNER_TEMP}/start-task.json" >&2 || true
+              echo >&2
+              echo "=== daemon tail ===" >&2
+              tail -n 250 "${ORDER_CI_STATE_ROOT}/ci-daemon.log" >&2 || true
+              echo "=== Drive controller tail ===" >&2
+              tail -n 250 "${RUNNER_TEMP}/order-drive-controller.log" >&2 || true
+              exit 1
+            fi
           elif [[ "${task_state}" != "RUNNING" ]]; then
             echo "T1 entered unexpected state before certification start: ${task_state}" >&2
             exit 1
