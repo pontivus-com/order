@@ -1,6 +1,8 @@
 import {
   type Approval,
   ApprovalSchema,
+  type AuthorityRef,
+  AuthorityRefSchema,
   type ArtifactRef,
   type ArtifactRefId,
   ArtifactRefSchema,
@@ -49,7 +51,10 @@ import {
   materializeExecutionTasks,
   parseSignedTaskBlockFromPlan,
 } from "../core/execution.ts";
-import { workItemDocumentPath } from "../core/work-item-source.ts";
+import {
+  stageTemplateForSchema,
+  workItemDocumentPath,
+} from "../core/work-item-source.ts";
 import {
   expandRepositoryPatterns,
   loadValidatedProjectManifest,
@@ -311,6 +316,118 @@ export const resolveCurrentStageAuthority = async (
   ];
 };
 
+
+const authorityRefTokenPattern = (authorityRef: AuthorityRef): RegExp =>
+  new RegExp(
+    "(?:^|[^A-Za-z0-9_-])" +
+      authorityRef.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\export type StageContextResolution = Readonly<{") +
+      "(?=$|[^A-Za-z0-9_-])",
+    "m",
+  );
+
+const stageTemplateAuthorityRefs = (
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+  authority: ResolvedProjectAuthority,
+): readonly AuthorityRef[] => {
+  const template = stageTemplateForSchema(workItem.schemaId, stage);
+  if (template === null) return [];
+  const firstLine = template.split("\n", 1)[0] ?? "";
+  const match = /^<!-- Order template: [^;]+; authority: (.*) -->$/.exec(firstLine);
+  if (match === null) {
+    throw new TypeError("stage template is missing its canonical authority identity");
+  }
+  const reachable = new Set(authority.authorityRefs.map(([authorityRef]) => authorityRef));
+  return match[1]
+    .split(",")
+    .map((value) => AuthorityRefSchema.parse(value.trim()))
+    .filter((authorityRef) => reachable.has(authorityRef));
+};
+
+const explicitUpstreamAuthorityRefs = (
+  workItem: WorkItem,
+  authority: ResolvedProjectAuthority,
+  upstreamArtifacts: readonly ArtifactRef[],
+): readonly AuthorityRef[] => {
+  const bodies = upstreamArtifacts.map((artifact) =>
+    new TextDecoder().decode(
+      readWorkingTreeFile(workItem.repositoryRoot, artifact.repositoryPath),
+    )
+  );
+  return authority.authorityRefs
+    .map(([authorityRef]) => authorityRef)
+    .filter((authorityRef) =>
+      bodies.some((body) => authorityRefTokenPattern(authorityRef).test(body))
+    );
+};
+
+const applicableAuthorityPaths = async (
+  workItem: WorkItem,
+  stage: PreSignoffStage,
+  manifest: ProjectManifest,
+  authority: ResolvedProjectAuthority,
+  upstreamArtifacts: readonly ArtifactRef[],
+): Promise<Readonly<{
+  resolved: readonly Readonly<{
+    path: RepositoryPath;
+    authorityLayer: NonNullable<ArtifactRef["authorityLayer"]>;
+  }>[];
+  concernOnly: readonly RepositoryPath[];
+}>> => {
+  const applicableRefs = new Set<AuthorityRef>([
+    ...stageTemplateAuthorityRefs(workItem, stage, authority),
+    ...explicitUpstreamAuthorityRefs(workItem, authority, upstreamArtifacts),
+    ...authority.overrides.map((rule) => rule.authorityRef),
+    ...authority.extensions.map((rule) => rule.authorityRef),
+  ]);
+  const reachableRefs = new Map(authority.authorityRefs);
+  for (const defaultRuleId of authority.inheritedDefaultRuleIds) {
+    const parsed = AuthorityRefSchema.safeParse(defaultRuleId);
+    if (parsed.success && reachableRefs.has(parsed.data)) {
+      applicableRefs.add(parsed.data);
+    }
+  }
+
+  const applicablePaths = new Set<RepositoryPath>();
+  for (const authorityRef of applicableRefs) {
+    const path = reachableRefs.get(authorityRef);
+    if (path === undefined) {
+      throw new TypeError(
+        "applicable AuthorityRef is not reachable in " + stage + " context: " + authorityRef,
+      );
+    }
+    applicablePaths.add(path);
+  }
+
+  const concernPaths = await resolveConcernAuthoritySources(
+    workItem.repositoryRoot,
+    manifest,
+    workItem.concernIds,
+  );
+  concernPaths.forEach((path) => applicablePaths.add(path));
+
+  const resolved: Array<Readonly<{
+    path: RepositoryPath;
+    authorityLayer: NonNullable<ArtifactRef["authorityLayer"]>;
+  }>> = [];
+  const resolvedPaths = new Set<RepositoryPath>();
+  for (const layer of authority.layers) {
+    for (const path of layer.sources) {
+      if (!applicablePaths.has(path)) continue;
+      resolved.push({
+        path,
+        authorityLayer: authorityLayerForManifestLayer(layer.layer),
+      });
+      resolvedPaths.add(path);
+    }
+  }
+
+  return {
+    resolved,
+    concernOnly: concernPaths.filter((path) => !resolvedPaths.has(path)),
+  };
+};
+
 export type StageContextResolution = Readonly<{
   context: ResolvedContext;
   staleStage: PreSignoffStage | null;
@@ -564,17 +681,44 @@ export const resolveStageContextState = async (
     materializeArtifacts
       ? currentFileArtifact(runtime, workItem, path, role, authorityLayer)
       : inspectCurrentFileArtifact(workItem, path, role, authorityLayer);
-  const artifacts: ArtifactRef[] = [];
-  for (const layer of authority.layers) {
-    for (const path of layer.sources) {
-      artifacts.push(
-        await resolveCurrentArtifact(
-          path,
-          "GOVERNANCE",
-          authorityLayerForManifestLayer(layer.layer),
-        ),
-      );
+
+  const priorOutputs: ArtifactRef[] = [];
+  let staleStage: PreSignoffStage | null = null;
+  for (const priorStage of priorStagesForStage(stage)) {
+    const conformance = await resolveStageConformanceState(
+      runtime,
+      workItem,
+      priorStage,
+      materializeArtifacts,
+    );
+    if (conformance.staleStage !== null) {
+      staleStage = conformance.staleStage;
+      break;
     }
+    priorOutputs.push(...conformance.outputs);
+  }
+
+  const artifacts: ArtifactRef[] = [];
+  const applicable = await applicableAuthorityPaths(
+    workItem,
+    stage,
+    manifest,
+    authority,
+    priorOutputs,
+  );
+  for (const entry of applicable.resolved) {
+    artifacts.push(
+      await resolveCurrentArtifact(
+        entry.path,
+        "GOVERNANCE",
+        entry.authorityLayer,
+      ),
+    );
+  }
+  for (const path of applicable.concernOnly) {
+    artifacts.push(
+      await resolveCurrentArtifact(path, "GOVERNANCE", null),
+    );
   }
 
   artifacts.push(
@@ -584,16 +728,6 @@ export const resolveStageContextState = async (
       null,
     ),
   );
-
-  for (const path of await resolveConcernAuthoritySources(
-    workItem.repositoryRoot,
-    manifest,
-    workItem.concernIds,
-  )) {
-    artifacts.push(
-      await resolveCurrentArtifact(path, "GOVERNANCE", null),
-    );
-  }
 
   if (stage === "PLAN" || stage === "R3") {
     for (const gate of Object.values(manifest.verification)) {
@@ -612,28 +746,12 @@ export const resolveStageContextState = async (
     }
   }
 
-  for (const priorStage of priorStagesForStage(stage)) {
-    const conformance = await resolveStageConformanceState(
-      runtime,
-      workItem,
-      priorStage,
-      materializeArtifacts,
-    );
-    if (conformance.staleStage !== null) {
-      return {
-        context: resolvedContext(workItem, source, stage, authority, artifacts),
-        staleStage: conformance.staleStage,
-      };
-    }
-    artifacts.push(...conformance.outputs);
-  }
-
+  artifacts.push(...priorOutputs);
   return {
     context: resolvedContext(workItem, source, stage, authority, artifacts),
-    staleStage: null,
+    staleStage,
   };
 };
-
 export const resolveStageConformanceState = async (
   runtime: CoordinatorRuntime,
   workItem: WorkItem,
@@ -891,53 +1009,13 @@ const currentApprovalMaterialSet = async (
     ];
   }
 
-  const [manifest, authority] = await resolveCurrentStageAuthority(workItem, "R3");
-
-  const current: ArtifactRef[] = [];
-  for (const layer of authority.layers) {
-    for (const path of layer.sources) {
-      current.push(
-        await inspectCurrentFileArtifact(
-          workItem,
-          path,
-          "GOVERNANCE",
-          authorityLayerForManifestLayer(layer.layer),
-        ),
-      );
-    }
-  }
-  current.push(
-    await inspectCurrentFileArtifact(
-      workItem,
-      normalizeRepositoryPath("pontivus-order.toml"),
-      "PROJECT_MANIFEST",
-      null,
-    ),
+  const currentState = await resolveStageContextState(
+    runtime,
+    workItem,
+    "R3",
+    false,
   );
-  for (const path of await resolveConcernAuthoritySources(
-    workItem.repositoryRoot,
-    manifest,
-    workItem.concernIds,
-  )) {
-    current.push(
-      await inspectCurrentFileArtifact(workItem, path, "GOVERNANCE", null),
-    );
-  }
-  for (const gate of Object.values(manifest.verification)) {
-    for (const path of await expandRepositoryPatterns(
-      workItem.repositoryRoot,
-      gate.materialRefs,
-    )) {
-      current.push(
-        await inspectCurrentFileArtifact(
-          workItem,
-          path,
-          "VERIFICATION_MATERIAL",
-          null,
-        ),
-      );
-    }
-  }
+  const current: ArtifactRef[] = [...currentState.context.artifacts];
 
   for (const artifact of signed) {
     if (
