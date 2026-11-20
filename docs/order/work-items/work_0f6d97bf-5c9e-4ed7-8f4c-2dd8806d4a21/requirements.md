@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `aa287cb5aa37fbb0fe68742362ade9e949f43352`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `d2eb1627e2b9a145f785b04829b56c623b7431e9`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
