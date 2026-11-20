@@ -677,17 +677,17 @@ describe("OpenCode shell", () => {
         import { existsSync } from "node:fs";
         const order = await import("./src/shell/opencode.ts");
 
-        const stateRoot = \${JSON.stringify(state)};
-        const workspace = \${JSON.stringify(workspace)};
+        const stateRoot = ${JSON.stringify(state)};
+        const workspace = ${JSON.stringify(workspace)};
         const controller = Bun.spawn(
-          ["bun", \${JSON.stringify(controllerPath)}],
+          ["bun", ${JSON.stringify(controllerPath)}],
           {
             cwd: process.cwd(),
             env: {
               ...process.env,
               PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT:
-                \${JSON.stringify(pinnedOpenCodeDriveRoot!)},
-              ORDER_SD20_COMPATIBLE: \${JSON.stringify(compatibleMarker)},
+                ${JSON.stringify(pinnedOpenCodeDriveRoot!)},
+              ORDER_SD20_COMPATIBLE: ${JSON.stringify(compatibleMarker)},
             },
             stdout: "ignore",
             stderr: "inherit",
@@ -696,7 +696,7 @@ describe("OpenCode shell", () => {
 
         const sourceEnvironment = {
           ...process.env,
-          PONTIVUS_ORDER_OPENCODE_BIN: \${JSON.stringify(wrapper)},
+          PONTIVUS_ORDER_OPENCODE_BIN: ${JSON.stringify(wrapper)},
         };
 
         const retryProjection = async (operation) => {
@@ -787,7 +787,7 @@ describe("OpenCode shell", () => {
               model: session.model,
               permissions: session.permissions,
               trustedAccountId: admission.trustedAccountId,
-              compatible: existsSync(\${JSON.stringify(compatibleMarker)}),
+              compatible: existsSync(${JSON.stringify(compatibleMarker)}),
               events,
               diagnostic,
             }));
