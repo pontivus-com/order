@@ -36,7 +36,7 @@ Stable rows in phase: **21**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C16-01` | C16-F01 | `SD14` | `IA18` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required. |
+| `PL-C16-01` | C16-F01 | `SD14`, `SD28` | `IA18`, `IA34` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required; IA34 owns the rebuilt Settings/account/configuration presentation. |
 | `PL-C16-02` | C16-F02 | `SD19` | `IA25` | — | Fresh productive install cannot succeed with mandatory repository/account/model setup deferred to Settings. |
 | `PL-C16-03` | C16-F03 | `SD19` | `IA25` | `PRE_T1_P6_CORRECTION_DONE` | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. |
 
@@ -46,6 +46,7 @@ Package atoms in phase: **3**.
 
 - **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA34** — consume the single Settings/OpenCode/account/configuration renderer migration definition; provider/configuration semantics remain with existing owners.
 
 ## Completion proof
 
