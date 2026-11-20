@@ -624,63 +624,64 @@ jobs:
             throw new TypeError("unrecognized Order productive LLM request");
           };
 
+          const serveRequest = (request: { body: unknown }) => {
+            role ??= detectRole(request.body);
+
+            if (role === "BUILDER") {
+              if (waveIndex < waves.length) {
+                const paths = waves[waveIndex];
+                if (pathIndex < paths.length) {
+                  const path = paths[pathIndex];
+                  pathIndex += 1;
+                  return writeResponse(path);
+                }
+                pathIndex = 0;
+                waveIndex += 1;
+                return textResponse([
+                  { tag: "GATE_CHECKPOINT_REQUESTED", gateId: "architecture" },
+                ]);
+              }
+
+              if (closeoutIndex < closeout.length) {
+                const path = closeout[closeoutIndex];
+                closeoutIndex += 1;
+                return writeResponse(path);
+              }
+
+              return textResponse([
+                {
+                  tag: "AGENT_MESSAGE_FINAL",
+                  text: "Exact authority-driven candidate assembled through OpenCode simulation.",
+                  evidence: [],
+                },
+              ]);
+            }
+
+            if (role === "REVIEWER") {
+              return textResponse([
+                {
+                  tag: "REVIEW_PASSED",
+                  minimumChange: "MINIMUM_SUFFICIENT",
+                  minimumChangeSummary: null,
+                  evidence: [],
+                },
+              ]);
+            }
+
+            throw new TypeError("unexpected REMEDIATOR request for exact corrected candidate");
+          };
+
           const controllerProgram = Effect.scoped(
             Effect.gen(function* () {
-              const controller = yield* LlmController.make({
-                requestTimeout: 60_000,
-                settlementTimeout: 60_000,
-              });
-
-              yield* controller.serve((request) => {
-                role ??= detectRole(request.body);
-
-                if (role === "BUILDER") {
-                  if (waveIndex < waves.length) {
-                    const paths = waves[waveIndex];
-                    if (pathIndex < paths.length) {
-                      const path = paths[pathIndex];
-                      pathIndex += 1;
-                      return writeResponse(path);
-                    }
-                    pathIndex = 0;
-                    waveIndex += 1;
-                    return textResponse([
-                      { tag: "GATE_CHECKPOINT_REQUESTED", gateId: "architecture" },
-                    ]);
-                  }
-
-                  if (closeoutIndex < closeout.length) {
-                    const path = closeout[closeoutIndex];
-                    closeoutIndex += 1;
-                    return writeResponse(path);
-                  }
-
-                  return textResponse([
-                    {
-                      tag: "AGENT_MESSAGE_FINAL",
-                      text: "Exact authority-driven candidate assembled through OpenCode simulation.",
-                      evidence: [],
-                    },
-                  ]);
-                }
-
-                if (role === "REVIEWER") {
-                  return textResponse([
-                    {
-                      tag: "REVIEW_PASSED",
-                      minimumChange: "MINIMUM_SUFFICIENT",
-                      minimumChangeSummary: null,
-                      evidence: [],
-                    },
-                  ]);
-                }
-
-                throw new TypeError("unexpected REMEDIATOR request for exact corrected candidate");
-              });
-
               while (true) {
                 const cycle = Effect.scoped(
                   Effect.gen(function* () {
+                    const controller = yield* LlmController.make({
+                      requestTimeout: 60_000,
+                      settlementTimeout: 60_000,
+                    });
+                    yield* controller.serve(serveRequest);
+
                     const backend = yield* SimulationConnector.backend(
                       "ws://127.0.0.1:40950",
                       {
@@ -749,9 +750,38 @@ jobs:
             throw new TypeError("OpenCode simulation environment is incomplete");
           }
 
+          const isPluginActivationPending = (error: unknown): boolean => {
+            if (error instanceof Error && error.message.includes("Location plugins did not finish activating")) {
+              return true;
+            }
+            if (typeof error !== "object" || error === null) return false;
+            const value = error as { _tag?: unknown; service?: unknown };
+            return value._tag === "ServiceUnavailableError" && value.service === "plugin";
+          };
+
+          const retryProjection = async <T>(
+            label: string,
+            operation: () => Promise<T>,
+          ): Promise<T> => {
+            let lastError: unknown = null;
+            for (let attempt = 0; attempt < 120; attempt += 1) {
+              try {
+                return await operation();
+              } catch (error) {
+                if (!isPluginActivationPending(error)) throw error;
+                lastError = error;
+                await Bun.sleep(250);
+              }
+            }
+            throw new TypeError(label + " did not become ready", { cause: lastError });
+          };
+
           const control = await startOpenCodeAccountControl(stateRoot, process.env);
           try {
-            let accounts = await listOpenCodeAccounts(control);
+            let accounts = await retryProjection(
+              "OpenCode account projection",
+              () => listOpenCodeAccounts(control),
+            );
             if (!accounts.some((account) => account.active && account.status.status === "READY")) {
               await control.client.credential.create({
                 integrationID: "opencode",
@@ -766,7 +796,10 @@ jobs:
                 },
                 activate: true,
               });
-              accounts = await listOpenCodeAccounts(control);
+              accounts = await retryProjection(
+                "OpenCode account projection after credential creation",
+                () => listOpenCodeAccounts(control),
+              );
             }
             const active = accounts.find(
               (account) => account.active && account.status.status === "READY",
@@ -778,10 +811,13 @@ jobs:
             await stopOpenCodeAccountControl(control);
           }
 
-          const models = await listAvailableOpenCodeModels(
-            stateRoot,
-            targetRoot,
-            process.env,
+          const models = await retryProjection(
+            "OpenCode model projection",
+            () => listAvailableOpenCodeModels(
+              stateRoot,
+              targetRoot,
+              process.env,
+            ),
           );
           const selected = models.find(
             (model) =>
