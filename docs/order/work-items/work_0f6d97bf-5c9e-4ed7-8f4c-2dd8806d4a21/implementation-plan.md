@@ -1155,3 +1155,126 @@ V4/V5/V6 explicitly verify:
 - IA26 exact-candidate rendered acceptance evidence is exhaustive, the GitHub Actions artifact identity is bound to the reviewed candidate, and every required schema/information, UX/interaction and visual/UI verdict is PASS with no unresolved rendered discrepancy.
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
+
+## Canonical order-tasks block
+
+```order-tasks
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "T1",
+      "objective": "Implement the complete authority-driven Order 0.6.0 current DESIGN as one cumulative verified candidate: execute SD01-SD20 through IA01-IA26 only where the current R1/R2/DESIGN package assigns a technical or verification delta, including SD20 exact-pin OpenCode certification through permanent test/CI verification only and IA26 exact-candidate rendered UX/UI acceptance through the existing browser/CI verification owners; create no implementation mutation for any POSITIVE_NO_CHANGE or DESIGN-positive-reuse obligation and return upstream if its evidence is disproved; use the existing coordinator checkpoint and scope/forecast/V4-V6 capabilities rather than reimplementing them; retain the authority-required published v1 task semantics while adding only the current-v2 non-vacuity admission; and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
+      "dependsOn": [],
+      "scope": [
+        "README.md",
+        "src/core/**",
+        "src/daemon/**",
+        "src/shell/**",
+        "ui/src/**",
+        "tests/**",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md"
+      ],
+      "exclusions": [
+        "src/daemon/execution.ts",
+        "src/daemon/validation.ts",
+        "src/daemon/server.ts",
+        "src/shell/config.ts",
+        "src/shell/file-write.ts",
+        "src/shell/opencode.ts",
+        "src/shell/process.ts",
+        "src/shell/project-config.ts",
+        "src/shell/project.ts",
+        "src/shell/repository.ts",
+        "src/shell/runtime.ts",
+        "src/shell/sqlite.ts",
+        "src/shell/work-item-source.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/theme.css",
+        "tests/architecture.test.ts"
+      ],
+      "acceptanceRefs": [
+        "GW-DOC-WORK-LIFECYCLE-V1",
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2",
+        "GW-DOC-WORKBENCH-UX-V2",
+        "GW-DOC-SPECIFICATION-STANDARD-V2",
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION",
+        "GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE",
+        "GW-DOC-EXTERNAL-FACTS",
+        "GW-DOC-INSTALLATION-READINESS-V1",
+        "GW-DOC-PRODUCT-IDENTITY-V1",
+        "GW-DOC-SYSTEM-BRIEF-V1",
+        "GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP"
+      ],
+      "changeSurface": [
+        "README.md",
+        "src/core/contracts.ts",
+        "src/core/execution.ts",
+        "src/core/governance.ts",
+        "src/core/lifecycle.ts",
+        "src/daemon/authority.ts",
+        "src/daemon/stage.ts",
+        "src/daemon/work-item-source.ts",
+        "src/shell/setup.ts",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/CreateWorkItem.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/SettingsWorkspace.tsx",
+        "ui/src/SignoffReview.tsx",
+        "ui/src/TerminalResult.tsx",
+        "ui/src/WorkItemQueue.tsx",
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/app.tsx",
+        "ui/src/workbench-presentation.ts",
+        "tests/certification.test.ts",
+        "tests/core.test.ts",
+        "tests/daemon.test.ts",
+        "tests/browser.spec.ts",
+        "tests/workbench-presentation.test.ts",
+        "tests/installer.test.ts",
+        "tests/opencode.test.ts",
+        ".github/workflows/ci.yml",
+        "CHANGELOG.md"
+      ],
+      "gateIds": [
+        "dependency-lock",
+        "typecheck",
+        "architecture",
+        "test",
+        "build",
+        "browser"
+      ],
+      "authorityRefs": [
+        "GW-P1-FCIS",
+        "GW-P1-SOC",
+        "GW-P1-DRY",
+        "GW-P1-STRICT-TYPING",
+        "GW-P1-CANONICAL-OWNERSHIP",
+        "GW-P1-MINIMUM-CHANGE",
+        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
+        "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
+        "GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP",
+        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-EXECUTION-CONTROL-PLANE-V1",
+        "GW-DOC-OPENCODE-INTEGRATION-V1",
+        "GW-DOC-CANONICAL-CONTRACTS-V2"
+      ],
+      "concernIds": [
+        "core",
+        "daemon",
+        "foundation",
+        "shell",
+        "ui",
+        "verification"
+      ]
+    }
+  ]
+}
+```
