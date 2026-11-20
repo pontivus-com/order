@@ -2367,7 +2367,7 @@ describe("architecture fitness", () => {
       (match) => match[1],
     );
     const expectedActions = Array.from(
-      { length: 25 },
+      { length: 26 },
       (_, index) => "IA" + String(index + 1).padStart(2, "0"),
     );
     exactSet("PLAN action catalog", actionIds, expectedActions);
@@ -2379,7 +2379,7 @@ describe("architecture fitness", () => {
       ),
     );
     for (const action of expectedActions.filter(
-      (value) => value !== "IA23" && value !== "IA24",
+      (value) => value !== "IA23" && value !== "IA24" && value !== "IA26",
     )) {
       if (!phaseActionReferences.has(action)) {
         violations.push("PLAN action is not referenced by any semantic phase: " + action);
@@ -2388,7 +2388,7 @@ describe("architecture fitness", () => {
     const closeout = sourceText(
       workItemRoot + "/implementation-plan/13-verification-closeout.md",
     );
-    for (const action of ["IA23", "IA24"]) {
+    for (const action of ["IA23", "IA26", "IA24"]) {
       if (!closeout.includes(action) && !actionCatalog.includes(action)) {
         violations.push("Cross-solution/final action is not governed: " + action);
       }
