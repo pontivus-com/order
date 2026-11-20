@@ -6,6 +6,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-20
+
 ### Changed
 
 - Implement the authority-driven 0.6.0 candidate across the existing canonical owners: resolve project authority into productive context, govern permanent-authority and durable-decision admission, add current-v2 Change/Defect task non-vacuity and normalized Approval identity without changing published v1 task semantics, converge created/discovered WorkItem registration and queue/create/documentation-Git behavior, align Workbench attention/readiness/Approval/Settings/result semantics and work-kind/theme certification, and require fresh installation to complete productive guided setup while retaining incomplete-v4 recovery, upgrade continuity, and the explicit operator-triggered WorkItem documentation-Git exception.
