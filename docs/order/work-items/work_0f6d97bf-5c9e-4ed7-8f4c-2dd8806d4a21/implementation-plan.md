@@ -22,7 +22,7 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `2fa3896abcd351d3186ea4a4d04e3b65e786ecf1` |
+| `implementation-plan/00-governance.md` | `dc81f018ea2555a9112f78eb513ebc6981c53659` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `41253868d40275a8b5380ba544a2c60110a32295` |
 | `implementation-plan/02-a02-governance-intake.md` | `8d02082a732e67ec6ff2a827138513a4c1a4e54c` |
 | `implementation-plan/03-a03-queue-source.md` | `2965ab2d6599be375ba03c60b9513375b1de6412` |
@@ -34,14 +34,14 @@ C22-F02 proves that manifest layer selection is authority **reachability**, not 
 | `implementation-plan/09-a09-provider-settings.md` | `bfd715be3a5dff9f31969b788576c0137578be0d` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `89b77140b5428049285f3ea8f938857a003a22e9` |
 | `implementation-plan/11-a11-component-certification.md` | `774cbb6ca97493d36884b832a2dc2cecd3ba1394` |
-| `implementation-plan/12-action-catalog.md` | `3ae90e7145ef1066f5cf279cbe776a3d6888fee6` |
-| `implementation-plan/13-verification-closeout.md` | `3ea3aa178e7629f9a6b1929170622c6e18034021` |
+| `implementation-plan/12-action-catalog.md` | `0fd2c4e440b1b0201f39b6f749f1ed026fcb556a` |
+| `implementation-plan/13-verification-closeout.md` | `aea17b9efab459f3629dd2d7fd14f929c89a17e0` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
 ## Semantic coverage versus execution ownership
 
-A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA25 in the compiled action catalog are the single action definitions: production mutation, verification-only, DESIGN-positive-reuse/no-code proof, or closeout. Their continued presence is justified by current R2/DESIGN traceability, not historical PLAN continuity. A phase may consume an IA owned elsewhere without duplicating it.
+A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven independently executable tasks. IA01-IA26 in the compiled action catalog are the single action definitions: production mutation, verification-only, DESIGN-positive-reuse/no-code proof, or closeout. Their continued presence is justified by current R2/DESIGN traceability, not historical PLAN continuity. A phase may consume an IA owned elsewhere without duplicating it.
 
 ## Signed execution scope
 
@@ -130,7 +130,7 @@ Total signed T1 `changeSurface`: **30 paths**.
 - IA07/IA08 are DESIGN-positive-reuse/no-code proof owners for `PL-C12-01`/`PL-C12-02` and authorize no execution-foundation production edit;
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
 - every technical/verification delta maps to one or more exact IA actions;
-- every IA01-IA25 is defined exactly once; IA23/IA24 are explicit cross-solution/final actions rather than orphan work;
+- every IA01-IA26 is defined exactly once; IA23/IA26/IA24 are explicit cross-solution/rendered-acceptance/final actions rather than orphan work;
 - the immutable forecast is the exact 30-path `changeSurface`; actual variance is admissible only inside signed scope/exclusions and only through positive V4/V5/V6 minimum same-layer proof;
 - signed `dependency-lock` bootstrap checkpoint P passes before Wave 1, and required signed `architecture` checkpoints A-F pass after Waves 1-6 before the next wave begins;
 - current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
@@ -174,7 +174,9 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ##### Execution ownership
 
-A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA25 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, or final closeout; they do not create a second task representation.
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA26 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
+
+IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
 SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current execution capabilities positively proven by DESIGN. IA07/IA08 therefore prove/reuse those capabilities and authorize **no T1 production mutation** to their existing owners.
 
@@ -261,7 +263,6 @@ Package atoms in phase: **1**.
 5. every package atom is satisfied by its one execution owner;
 6. action-specific exact proof propositions plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
-
 
 ---
 
@@ -385,7 +386,6 @@ Package atoms in phase: **3**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
-
 ---
 
 ### Compiled component: `implementation-plan/04-a04-workbench-research.md`
@@ -491,7 +491,6 @@ Package atoms in phase: **2**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
-
 ---
 
 ### Compiled component: `implementation-plan/06-a06-plan-readiness.md`
@@ -534,7 +533,6 @@ Package atoms in phase: **2**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
-
 
 ---
 
@@ -590,7 +588,6 @@ Package atoms in phase: **4**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
-
 ---
 
 ### Compiled component: `implementation-plan/08-a08-complete-materials.md`
@@ -635,7 +632,6 @@ Package atoms in phase: **0**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
-
 
 ---
 
@@ -699,7 +695,6 @@ Package atoms in phase: **3**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
-
 ---
 
 ### Compiled component: `implementation-plan/10-a10-recovery-accessibility.md`
@@ -745,7 +740,6 @@ Package atoms in phase: **1**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
-
 
 ---
 
@@ -800,7 +794,6 @@ Package atoms in phase: **3**.
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
 
-
 ---
 
 ### Compiled component: `implementation-plan/12-action-catalog.md`
@@ -818,9 +811,10 @@ Each IA action below has one execution owner. Semantic phase files may reference
 4. **Wave 4 — Workbench/product presentation:** IA14-IA19.
 5. **Wave 5 — productive installer:** IA25.
 6. **Wave 6 — permanent certification/integration proof:** IA20-IA23.
-7. **Wave 7 — candidate closeout:** IA24.
+7. **Wave 7 — rendered product acceptance:** IA26.
+8. **Wave 8 — candidate closeout:** IA24.
 
-Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`; this prepares the fresh isolated workspace using the project-owned exact `bun ci` verification command before any Node-based architecture/test/build/typecheck checkpoint can execute. The signed `architecture` gate is then requested after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast/V4-V6 realizations identified by current DESIGN; it does not bootstrap or modify them. The execution harness must provision the exact Playwright-owned Chromium runtime required by P6 before T1 begins, because the signed `browser` gate intentionally runs the project test command and does not install its browser dependency. Wave 7 uses the ordinary final validation path and does not substitute any intermediate checkpoint for V3/V5/V7.
+Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`; this prepares the fresh isolated workspace using the project-owned exact `bun ci` verification command before any Node-based architecture/test/build/typecheck checkpoint can execute. The signed `architecture` gate is then requested after Waves 1-6 and must pass before the next wave begins. Preflight 0 re-proves the checkpoint and scope/forecast/V4-V6 realizations identified by current DESIGN; it does not bootstrap or modify them. The execution harness must provision the exact Playwright-owned Chromium runtime required by P6 before T1 begins, because the signed `browser` gate intentionally runs the project test command and does not install its browser dependency. Wave 7 runs only after the ordinary permanent gates are green and produces the exact-candidate rendered acceptance evidence through GitHub Actions. Wave 8 performs ordinary final validation/closeout only after IA26 is complete and does not substitute rendered evidence for V3/V5/V7.
 
 ##### IA01 — pure project-authority resolution
 
@@ -999,9 +993,9 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 ##### IA24 — exact candidate closeout
 
-**Upstream:** complete T1.  
+**Upstream:** complete T1 with IA26 rendered UX/UI acceptance PASS.  
 **Owner:** `CHANGELOG.md` plus coordinator-owned validation evidence.  
-**Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6.  
+**Required mutation:** record user-visible/correctness consequences under Unreleased; run exact final six-gate union and V0-V7 with fresh V4/V5/V6, and bind closeout to the exact GitHub Actions rendered-acceptance run/evidence package accepted under IA26.  
 **Terminal:** only CANDIDATE_DONE or valid ALREADY_SATISFIED. PR merge/release/version bump remain outside T1.
 
 ##### IA25 — guided productive installer completion
@@ -1012,6 +1006,30 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Required mutation:** remove/replace the fresh `configured === null` success/defer branch so installer-owned setup continues through existing private OpenCode login, model selection, exact target repository validation/selection and reference-root choices before returning success and proving productive daemon/readiness. Preserve valid incomplete v4 only as post-install/update daemon/Settings recovery and transient rollback-safe installer state. Preserve existing upgrade/migration retention and rollback.  
 **Forbidden:** new config schema; second setup owner; mandatory post-install Settings/provider-login step; speculative `src/installer.ts` edit. If setup.ts alone cannot realize SD19, return to DESIGN/PLAN.  
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
+
+##### IA26 — rendered 0.6.0 UX/UI acceptance evidence
+
+**Solution/authority:** existing SD16-SD18 verification and Workbench realization, current `GW-DOC-WORKBENCH-UX`, `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, `GW-DOC-WORKBENCH-THEME-V1`, and the reviewed derived visual reference pack at `docs/references/workbench-ui/README.md`. Current R2/DESIGN/P3-P6 authority wins over any 0.5.0 SVG reference on conflict.  
+**Owners/anchors:** `tests/browser.spec.ts` for deterministic rendered-state capture and coverage assertions; `.github/workflows/ci.yml` for exact-candidate execution and evidence publication.  
+**Required mutation:** extend the existing Playwright/GitHub Actions verification path so the exact PR merge candidate renders and captures the complete governed Workbench surface/state set after the ordinary `browser` gate is green. The implementation must:
+- capture every one of the nine lifecycle steps — Work request, Research, Requirements, Solution design, Implementation plan, Readiness review, Approval, Implementation and Complete — from populated deterministic canonical fixtures, not empty shells;
+- capture every `SURF-*` entry in the `docs/references/workbench-ui/README.md` complete audited surface table, including Queue, Create, Settings/repositories, Settings/OpenCode/accounts, model/runtime Settings, Context, document authoring/read-only, dialogue/activity, proposal review, evidence, approval-task detail, execution-task detail and all confirmation/destructive overlays;
+- capture all materially distinct reference/state sheets listed by that README: current-attention precedence, dialogue interaction, proposal, document, Implementation task, Queue, application notices, installation readiness, linked-remediation Create/Complete branches, OpenCode login terminal states, safety confirmations, responsive composition and theme parity;
+- prove all four WorkItem kinds represented by the reference pack — Change, Defect, Investigation and Audit — at the information-contract surfaces where the kinds materially differ;
+- capture every primary workflow step at a wide desktop viewport and at a narrow viewport; additionally capture Light and Dark representatives for every primary interaction class and System against both mocked effective schemes, preserving the existing semantic theme assertions;
+- emit an evidence manifest for every capture containing exact checked-out commit SHA, WorkItem kind, workflow step/surface/state, fixture identity, viewport, effective theme, runtime route/selection, corresponding SVG reference path and governing current authority refs;
+- place the actual PNG captures, the manifest and a generated index that pairs each actual capture with its SVG reference path into one GitHub Actions artifact for review;
+- fail the Actions acceptance step when a required surface/state/reference mapping is missing or duplicated, a fixture cannot reach the declared canonical state, the page emits an uncaught browser/runtime error, the capture is absent/empty, or the manifest/capture set is not exhaustive.
+
+**Acceptance review:** the Actions artifact is evidence, not authority. Every manifest row must receive an explicit `PASS` or `FAIL` against three independent dimensions before IA24:
+1. **schema/information fidelity** — required current information is present, correctly named/grouped/prioritized, and no required schema information is silently absent;
+2. **UX/interaction fidelity** — the owning interaction grammar, current-attention owner, action precedence, navigation/material hierarchy, state/recovery semantics and responsive composition match current authority;
+3. **visual/UI fidelity** — hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, truncation/wrapping, overlays and theme behavior materially conform to current authority and, where not superseded, the reviewed SVG composition.
+
+Any `FAIL` creates a blocking remediation item owned by the defective implementation/authority layer and requires a fresh post-fix exact-candidate Actions capture for the affected row plus regression revalidation. No aggregate pass may hide a failed row.
+
+**Forbidden:** treating the 0.5.0 SVG pack as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
+**Proof:** required PR Verification rendered-acceptance step succeeds on the exact candidate, publishes the exhaustive evidence artifact, and the screen-by-screen acceptance ledger has no unresolved `FAIL`. IA24 may not close before that evidence/review is complete.
 
 ---
 
@@ -1035,7 +1053,7 @@ Before the first implementation wave, the execution harness must already provide
 | C | Wave 3 IA09-IA13 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 4 |
 | D | Wave 4 IA14-IA19 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 5 |
 | E | Wave 5 IA25 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 6 |
-| F | Wave 6 IA20-IA23 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 7 closeout |
+| F | Wave 6 IA20-IA23 | signed `architecture` checkpoint -> `GATE_PASSED` before Wave 7 rendered acceptance |
 
 Each checkpoint is requested by BUILDER as the terminal action of that provider turn and is executed by the coordinator in the same Run/provider session. Bootstrap checkpoint P exists only to make the fresh workspace capable of running the signed verification commands; checkpoints A-F remain architecture-feedback checkpoints. A failed checkpoint permits only correction inside the already signed design/scope or an explicit execution block; it does not grant provider shell/execute or authorize redesign. Checkpoints never substitute for final V3/V5/V7 or the task's complete logical gate union.
 
@@ -1054,9 +1072,9 @@ A01 corrected-upstream no-code rows `A01-NC01`-`A01-NC05` are also binding proof
 
 ##### Exact proof owners
 
-Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA24 runs the final validation contract.
+Action-specific proof is defined in `12-action-catalog.md`. Cross-solution IA23 may add only missing integration assertions. IA26 owns the terminal exact-candidate rendered UX/UI acceptance evidence and review. IA24 runs the final validation contract only after IA26 PASS.
 
-SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA24: permanent PR verification must execute the actual supported OpenCode 2.2.6 process through Order's production OpenCode boundary while deterministic model output is supplied by the exact isolated simulation tooling authorized by SD20. A fake OpenCode executable, a removed temporary workflow, or a simulated response path that does not launch the exact supported OpenCode process cannot satisfy this proposition. The evidence must state the simulation boundary and must not be reused as proof of remote provider availability, Console OAuth/account connectivity or model quality.
+SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24: permanent PR verification must execute the actual supported OpenCode 2.2.6 process through Order's production OpenCode boundary while deterministic model output is supplied by the exact isolated simulation tooling authorized by SD20. A fake OpenCode executable, a removed temporary workflow, or a simulated response path that does not launch the exact supported OpenCode process cannot satisfy this proposition. The evidence must state the simulation boundary and must not be reused as proof of remote provider availability, Console OAuth/account connectivity or model quality.
 
 ###### Pre-Approval structural-sensor correction
 
@@ -1084,6 +1102,41 @@ The signed task's `gateIds` order is executable order for each fresh REVIEWER wo
 5. build
 6. browser
 
+The six logical gates remain the canonical signed task gate union. IA26 is an additional terminal PR acceptance obligation executed by GitHub Actions after those gates; it does not introduce a seventh P6 gate or replace any V0-V7 proposition.
+
+##### Rendered 0.6.0 UX/UI acceptance
+
+The exact PR merge candidate must pass a dedicated GitHub Actions rendered-acceptance step before IA24 closeout. This step uses the existing Playwright production Workbench harness and the reviewed derived SVG pack at `docs/references/workbench-ui/README.md`; it does not create a second visual specification.
+
+###### Evidence generation contract
+
+GitHub Actions must:
+
+1. execute only after dependency-lock, typecheck, architecture, test, build and the ordinary browser suite have passed;
+2. run the IA26 capture cases in `tests/browser.spec.ts` against the exact checked-out PR merge candidate;
+3. capture actual PNG output for every IA26-required workflow/surface/state/view/theme row;
+4. generate a machine-readable manifest and human-readable index containing the exact candidate SHA and, for every capture, WorkItem kind, workflow step/surface/state, fixture identity, viewport, effective theme, route/selection, current authority refs and corresponding `docs/references/workbench-ui/*.svg` reference;
+5. prove exhaustive one-to-one coverage against the complete audited `SURF-*` table, nine workflow-step reference set, work-type variants and materially distinct state/reference sheets in `docs/references/workbench-ui/README.md`;
+6. fail on missing/duplicate mappings, unreachable declared state, uncaught browser/runtime errors, missing/empty captures, or incomplete manifest/index;
+7. upload the actual captures plus manifest/index as one PR-run artifact using `actions/upload-artifact` pinned to commit `ea165f8d65b6e75b540449e92b4886f43607fa02` (the current `v4` ref at PLAN correction time), with artifact identity including the exact checked-out candidate SHA.
+
+The capture harness may add deterministic fixture setup and screenshot calls inside the already signed `tests/browser.spec.ts` verification owner. The CI mutation remains inside the already signed `.github/workflows/ci.yml` owner. No new T1 path is required, so the exact 30-path `changeSurface` remains unchanged.
+
+###### Acceptance review contract
+
+The GitHub Actions artifact is then reviewed row by row against current authority and the paired SVG reference. The SVG is derived 0.5.0 visual comparison material only; a current 0.6.0 authority difference wins and must be recorded as an intentional authority delta rather than forced into a pixel match.
+
+Every manifest row records three independent verdicts:
+
+- `schema_information`: all authority-required information is present with correct labels, grouping, hierarchy and prominence;
+- `ux_interaction`: the correct interaction class, current-attention/action precedence, workflow/material navigation, recovery semantics and responsive composition are realized;
+- `visual_ui`: rendered hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, clipping/wrapping, overlays and theme behavior materially conform.
+
+Each dimension is `PASS` or `FAIL`; no `PARTIAL`, aggregate-only pass or unreviewed row may reach IA24. An unexplained material divergence from the SVG/reference composition is `FAIL`. A divergence required by newer current authority is `PASS` only when the exact superseding authority is recorded.
+
+Any failed row blocks closeout, opens remediation at the defective implementation/authority owner, and requires a fresh exact-candidate GitHub Actions capture and review for the affected row after correction. Existing semantic/browser tests remain mandatory and cannot be replaced by screenshot acceptance.
+
+
 ##### V0-V7 final review obligations
 
 V4/V5/V6 explicitly verify:
@@ -1099,129 +1152,6 @@ V4/V5/V6 explicitly verify:
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
 - no implementation-derived product semantics.
+- IA26 exact-candidate rendered acceptance evidence is exhaustive, the GitHub Actions artifact identity is bound to the reviewed candidate, and every required schema/information, UX/interaction and visual/UI verdict is PASS with no unresolved rendered discrepancy.
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
-
-
-## Canonical order-tasks block
-
-```order-tasks
-{
-  "version": 1,
-  "tasks": [
-    {
-      "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 current DESIGN as one cumulative verified candidate: execute SD01-SD20 through IA01-IA25 only where the current R1/R2/DESIGN package assigns a technical or verification delta, including SD20 exact-pin OpenCode certification through permanent test/CI verification only; create no implementation mutation for any POSITIVE_NO_CHANGE or DESIGN-positive-reuse obligation and return upstream if its evidence is disproved; use the existing coordinator checkpoint and scope/forecast/V4-V6 capabilities rather than reimplementing them; retain the authority-required published v1 task semantics while adding only the current-v2 non-vacuity admission; and introduce no parallel semantic owner, state model, DTO/OOP/service/repository/controller family, persistence/API family, dependency or implementation-derived product behavior.",
-      "dependsOn": [],
-      "scope": [
-        "README.md",
-        "src/core/**",
-        "src/daemon/**",
-        "src/shell/**",
-        "ui/src/**",
-        "tests/**",
-        ".github/workflows/ci.yml",
-        "CHANGELOG.md"
-      ],
-      "exclusions": [
-        "src/daemon/execution.ts",
-        "src/daemon/validation.ts",
-        "src/daemon/server.ts",
-        "src/shell/config.ts",
-        "src/shell/file-write.ts",
-        "src/shell/opencode.ts",
-        "src/shell/process.ts",
-        "src/shell/project-config.ts",
-        "src/shell/project.ts",
-        "src/shell/repository.ts",
-        "src/shell/runtime.ts",
-        "src/shell/sqlite.ts",
-        "src/shell/work-item-source.ts",
-        "ui/src/http.ts",
-        "ui/src/query-keys.ts",
-        "ui/src/theme.css",
-        "tests/architecture.test.ts"
-      ],
-      "acceptanceRefs": [
-        "GW-DOC-WORK-LIFECYCLE-V1",
-        "GW-DOC-LIFECYCLE-CONTEXT-V2",
-        "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V2",
-        "GW-DOC-WORKBENCH-UX-V2",
-        "GW-DOC-SPECIFICATION-STANDARD-V2",
-        "GW-DOC-VALIDATION-STANDARD-V1",
-        "GW-DOC-PROJECT-GOVERNANCE-INTEGRATION",
-        "GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE",
-        "GW-DOC-EXTERNAL-FACTS",
-        "GW-DOC-INSTALLATION-READINESS-V1",
-        "GW-DOC-PRODUCT-IDENTITY-V1",
-        "GW-DOC-SYSTEM-BRIEF-V1",
-        "GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP"
-      ],
-      "changeSurface": [
-        "README.md",
-        "src/core/contracts.ts",
-        "src/core/execution.ts",
-        "src/core/governance.ts",
-        "src/core/lifecycle.ts",
-        "src/daemon/authority.ts",
-        "src/daemon/stage.ts",
-        "src/daemon/work-item-source.ts",
-        "src/shell/setup.ts",
-        "ui/src/ActivityComposer.tsx",
-        "ui/src/ActivityWorkspace.tsx",
-        "ui/src/CreateWorkItem.tsx",
-        "ui/src/DocumentWorkspace.tsx",
-        "ui/src/ReadinessWorkspace.tsx",
-        "ui/src/SettingsWorkspace.tsx",
-        "ui/src/SignoffReview.tsx",
-        "ui/src/TerminalResult.tsx",
-        "ui/src/WorkItemQueue.tsx",
-        "ui/src/WorkItemWorkspace.tsx",
-        "ui/src/app.tsx",
-        "ui/src/workbench-presentation.ts",
-        "tests/certification.test.ts",
-        "tests/core.test.ts",
-        "tests/daemon.test.ts",
-        "tests/browser.spec.ts",
-        "tests/workbench-presentation.test.ts",
-        "tests/installer.test.ts",
-        "tests/opencode.test.ts",
-        ".github/workflows/ci.yml",
-        "CHANGELOG.md"
-      ],
-      "gateIds": [
-        "dependency-lock",
-        "typecheck",
-        "architecture",
-        "test",
-        "build",
-        "browser"
-      ],
-      "authorityRefs": [
-        "GW-P1-FCIS",
-        "GW-P1-SOC",
-        "GW-P1-DRY",
-        "GW-P1-STRICT-TYPING",
-        "GW-P1-CANONICAL-OWNERSHIP",
-        "GW-P1-MINIMUM-CHANGE",
-        "GW-P1-AUTHORITY-BEFORE-INFERENCE",
-        "GW-DOC-TECHNICAL-ARCHITECTURE-V2",
-        "GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP",
-        "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
-        "GW-DOC-WORKBENCH-THEME-V1",
-        "GW-DOC-EXECUTION-CONTROL-PLANE-V1",
-        "GW-DOC-OPENCODE-INTEGRATION-V1",
-        "GW-DOC-CANONICAL-CONTRACTS-V2"
-      ],
-      "concernIds": [
-        "core",
-        "daemon",
-        "foundation",
-        "shell",
-        "ui",
-        "verification"
-      ]
-    }
-  ]
-}
-```
