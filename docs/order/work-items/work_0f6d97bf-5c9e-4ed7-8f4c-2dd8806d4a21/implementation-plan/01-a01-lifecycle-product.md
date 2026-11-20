@@ -34,13 +34,14 @@ No-code rows in phase: **5**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C21-01` | C21-F03/C21-F05 | `SD01` | `IA19` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim. |
+| `PL-C21-01` | C21-F03/C21-F05 | `SD01`, `SD27` | `IA19`, `IA33` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim; IA33 owns the rebuilt terminal-result composition. |
 
 Package atoms in phase: **1**.
 
 ## Referenced actions
 
 - **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA33** — consume the single Complete/Evidence/Context migration definition for terminal-result composition.
 
 ## Completion proof
 
