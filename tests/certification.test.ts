@@ -1810,6 +1810,38 @@ materialRefs = []
   });
 });
 
+describe("0.6.0 Wave 2 contract certification", () => {
+  it("keeps one task parser with schema-aware v2 admission and canonical Approval identity", () => {
+    const contracts = read("src/core/contracts.ts");
+    const execution = read("src/core/execution.ts");
+    const stage = read("src/daemon/stage.ts");
+    const authority = read("src/daemon/authority.ts");
+
+    expect(execution).toContain("export const admitSignedTaskBlockForSchema");
+    expect(execution).toContain('schemaId !== "change-v2" && schemaId !== "defect-v2"');
+    expect(execution.match(/SignedTaskBlockSchema\.parse/g) ?? []).toHaveLength(1);
+
+    const signedSchema = contracts.slice(
+      contracts.indexOf("const SignedTaskDefinitionSchema"),
+      contracts.indexOf("export const SignedTaskBlockJsonSchemaText"),
+    );
+    expect(signedSchema).not.toContain(".min(1");
+    expect(signedSchema).not.toContain(".trim()");
+    expect(stage).toContain("admitSignedTaskBlockForSchema(");
+    expect(stage).toContain("Current v2 Change/Defect task admission also requires at least one task.");
+    expect(authority).toContain("const block = admitSignedTaskBlockForSchema(");
+    expect(authority).toContain("const taskBlock = await validateTaskDefinitions(");
+
+    const approvalSchema = contracts.slice(
+      contracts.indexOf("export const ApprovalSchema"),
+      contracts.indexOf("export type Approval"),
+    );
+    expect(approvalSchema).toContain(".trim()");
+    expect(approvalSchema).toContain('approvedBy must be non-empty');
+    expect(approvalSchema).toContain('approvedBy must not contain NUL');
+  });
+});
+
 describe("A06 execution-foundation certification", () => {
   it("permanently wires forecast variance and coordinator-owned builder checkpoints", () => {
     const contracts = read("src/core/contracts.ts");

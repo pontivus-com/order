@@ -45,6 +45,7 @@ import {
   sortedMaterialProjection,
 } from "../core/governance.ts";
 import {
+  admitSignedTaskBlockForSchema,
   materializeExecutionTasks,
   parseSignedTaskBlockFromPlan,
 } from "../core/execution.ts";
@@ -778,9 +779,12 @@ export const validateTaskDefinitions = async (
   manifest: ProjectManifest,
   closureArtifacts: readonly ArtifactRef[],
   planBytes: Uint8Array,
-): Promise<void> => {
+): Promise<ReturnType<typeof parseSignedTaskBlockFromPlan>> => {
   await validateProjectManifestResolution(workItem.repositoryRoot, manifest);
-  const block = parseSignedTaskBlockFromPlan(planBytes);
+  const block = admitSignedTaskBlockForSchema(
+    workItem.schemaId,
+    parseSignedTaskBlockFromPlan(planBytes),
+  );
   const materialPaths = new Set(
     closureArtifacts.map((artifact) => artifact.repositoryPath),
   );
@@ -817,6 +821,7 @@ export const validateTaskDefinitions = async (
       }
     }
   }
+  return block;
 };
 
 export const approvalContext = async (
@@ -1244,7 +1249,7 @@ export const computeSignoffPackage = async (
     plan.repositoryPath,
   );
   const manifest = await loadValidatedProjectManifest(workItem.repositoryRoot);
-  await validateTaskDefinitions(
+  const taskBlock = await validateTaskDefinitions(
     workItem,
     manifest,
     [plan, r3, ...material],
@@ -1260,7 +1265,6 @@ export const computeSignoffPackage = async (
       materialArtifacts: material,
     }),
   );
-  const taskBlock = parseSignedTaskBlockFromPlan(planBytes);
   return {
     baselineCommit,
     packageHash,
@@ -1413,7 +1417,6 @@ const signOffWorkItemUnlocked = async (
   expectedPackageHash: Sha256,
   approvedBy: string,
 ): Promise<Approval> => {
-  if (approvedBy.length === 0) throw new TypeError("approvedBy must be non-empty");
   const prepared = await computeSignoffPackage(runtime, workItemId);
   if (prepared.packageHash !== expectedPackageHash) {
     throw new TypeError("expectedPackageHash does not match the current sign-off package");

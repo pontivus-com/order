@@ -661,6 +661,7 @@ const seedSignoffScript = (
   repositoryRoot: string,
   stateRoot: string,
   beforeSignoff = "",
+  approvedBy = "human",
 ): string => {
   const workItemRoot = join(repositoryRoot, "docs", "order", "work-items");
   mkdirSync(workItemRoot, { recursive: true });
@@ -797,7 +798,12 @@ const seedSignoffScript = (
   ${beforeSignoff}
 
   const prepared = await coord.computeSignoffPackage(runtime, work);
-  const approval = await coord.signOffWorkItem(runtime, work, prepared.packageHash, "human");
+  const approval = await coord.signOffWorkItem(
+    runtime,
+    work,
+    prepared.packageHash,
+    ${JSON.stringify(approvedBy)},
+  );
 `;
 };
 
@@ -2938,6 +2944,56 @@ describe("daemon control plane", () => {
     expect(output.failure?.evidence.some((ref) =>
       ref.relativePath.endsWith("/order-stage-batch-admission.json")
     )).toBe(true);
+  }, 30_000);
+
+  it("applies current-v2 task admission in the daemon task-validation owner without changing v1", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-v2-task-admission-");
+    const output = bunEval(`
+      const authority = await import("./src/daemon/authority.ts");
+      const project = await import("./src/shell/project.ts");
+      const repositoryRoot = ${JSON.stringify(repository)};
+      const manifest = await project.loadValidatedProjectManifest(repositoryRoot);
+      const planBytes = new TextEncoder().encode(
+        "# plan\\n\\n\`\`\`order-tasks\\n{\\\"version\\\":1,\\\"tasks\\\":[]}\\n\`\`\`\\n",
+      );
+      const workItem = { repositoryRoot, schemaId: "change-v2" };
+      let v2Error = null;
+      try {
+        await authority.validateTaskDefinitions(workItem, manifest, [], planBytes);
+      } catch (error) {
+        v2Error = error instanceof Error ? error.message : String(error);
+      }
+      let v1Error = null;
+      try {
+        await authority.validateTaskDefinitions(
+          { repositoryRoot, schemaId: "change-v1" },
+          manifest,
+          [],
+          planBytes,
+        );
+      } catch (error) {
+        v1Error = error instanceof Error ? error.message : String(error);
+      }
+      console.log(JSON.stringify({ v2Error, v1Error }));
+    `) as { v2Error: string | null; v1Error: string | null };
+
+    expect(output.v2Error).toMatch(/at least one signed task/);
+    expect(output.v1Error).toBeNull();
+  }, 30_000);
+
+  it("normalizes approval identity before daemon persistence", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-approval-identity-");
+    const output = bunEval(
+      seedSignoffScript(repository, state, "", "  Human Operator  ") +
+        `
+          console.log(JSON.stringify({ approvedBy: approval.approvedBy }));
+          database.close();
+        `,
+    ) as { approvedBy: string };
+
+    expect(output.approvedBy).toBe("Human Operator");
   }, 30_000);
 
   it("blocks R3 READY_FOR_SIGNOFF when signed task definitions are mechanically invalid", () => {

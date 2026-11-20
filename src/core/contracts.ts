@@ -679,7 +679,10 @@ export const ApprovalSchema = z.strictObject({
   planArtifactRefId: ArtifactRefIdSchema,
   r3ArtifactRefId: ArtifactRefIdSchema,
   sourceSha256: Sha256Schema,
-  approvedBy: z.string(),
+  approvedBy: z.string()
+    .trim()
+    .min(1, "approvedBy must be non-empty")
+    .refine((value) => !value.includes("\0"), "approvedBy must not contain NUL"),
   approvedAt: IsoDateTimeSchema,
 });
 

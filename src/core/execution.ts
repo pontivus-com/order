@@ -271,3 +271,35 @@ export const parseSignedTaskBlockFromPlan = (planBytes: Uint8Array) => {
   }
   return SignedTaskBlockSchema.parse(parsed);
 };
+
+export const admitSignedTaskBlockForSchema = (
+  schemaId: WorkItem["schemaId"],
+  block: SignedTaskBlock,
+): SignedTaskBlock => {
+  if (schemaId !== "change-v2" && schemaId !== "defect-v2") return block;
+
+  if (block.tasks.length === 0) {
+    throw new TypeError("current v2 Change/Defect PLAN requires at least one signed task");
+  }
+  for (const task of block.tasks) {
+    if (task.id.length === 0 || task.id !== task.id.trim()) {
+      throw new TypeError("current v2 signed task id must be trimmed and non-empty");
+    }
+    if (task.objective.length === 0 || task.objective !== task.objective.trim()) {
+      throw new TypeError("current v2 signed task objective must be trimmed and non-empty");
+    }
+    for (const [field, count] of [
+      ["scope", task.scope.length],
+      ["acceptanceRefs", task.acceptanceRefs.length],
+      ["changeSurface", task.changeSurface.length],
+      ["gateIds", task.gateIds.length],
+      ["authorityRefs", task.authorityRefs.length],
+      ["concernIds", task.concernIds.length],
+    ] as const) {
+      if (count === 0) {
+        throw new TypeError(`current v2 signed task ${task.id} requires non-empty ${field}`);
+      }
+    }
+  }
+  return block;
+};

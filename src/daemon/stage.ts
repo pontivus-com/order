@@ -24,7 +24,10 @@ import {
   permanentAuthorityProposalIsAdmitted,
   type PreSignoffStage,
 } from "../core/governance.ts";
-import { parseSignedTaskBlockFromPlan } from "../core/execution.ts";
+import {
+  admitSignedTaskBlockForSchema,
+  parseSignedTaskBlockFromPlan,
+} from "../core/execution.ts";
 import {
   artifactReturnOwner,
   deriveProposalDecision,
@@ -132,22 +135,37 @@ const cancelledStageRun = (
   return null;
 };
 
-const signedTaskBlockPromptContract = (stage: PreSignoffStage): string =>
-  stage === "PLAN"
+const signedTaskBlockPromptContract = (
+  stage: PreSignoffStage,
+  schemaId: WorkItem["schemaId"],
+): string => {
+  const currentV2NonVacuity =
+    schemaId === "change-v2" || schemaId === "defect-v2"
+      ? [
+          "Current v2 Change/Defect task admission also requires at least one task.",
+          "Every task id and objective must be trimmed and non-empty.",
+          "Every task must have non-empty scope, acceptanceRefs, changeSurface, gateIds, authorityRefs and concernIds; dependsOn and exclusions may be empty.",
+        ].join("\n")
+      : "";
+
+  return stage === "PLAN"
     ? [
         "PLAN machine-readable contract:",
         "The PLAN artifact must contain exactly one fenced block opened by ```order-tasks.",
         "The fence body must be one JSON object satisfying the canonical SignedTaskBlock JSON Schema below.",
         "Do not rename fields or replace the outer object with a bare task array.",
+        currentV2NonVacuity,
         `Canonical SignedTaskBlock JSON Schema: ${SignedTaskBlockJsonSchemaText}`,
-      ].join("\n")
+      ].filter((value) => value.length > 0).join("\n")
     : stage === "R3"
       ? [
           "R3 task-contract check:",
           "Before READY_FOR_SIGNOFF, verify the PLAN contains exactly one ```order-tasks fenced JSON object satisfying the canonical SignedTaskBlock JSON Schema below.",
+          currentV2NonVacuity,
           `Canonical SignedTaskBlock JSON Schema: ${SignedTaskBlockJsonSchemaText}`,
-        ].join("\n")
+        ].filter((value) => value.length > 0).join("\n")
       : "";
+};
 
 export const stageDecisionText: Record<PreSignoffStage, string> = {
   R1: "Establish facts/root cause only. Do not invent product behavior, architecture, or implementation.",
@@ -231,7 +249,7 @@ export const stagePrompt = async (
     stage === "R1"
       ? `Allowed successful R1 completion outcomes for schema ${workItem.schemaId}: ${allowedR1CompletionsForSchema(workItem.schemaId).join(", ")}`
       : "",
-    signedTaskBlockPromptContract(stage),
+    signedTaskBlockPromptContract(stage, workItem.schemaId),
     [
       "Stage conformance questions:",
       ...stageConformanceQuestions[stage].map((question) => "- " + question),
@@ -333,7 +351,10 @@ const persistStageCompletionBatch = async (
           }
         }
         if (run.stage === "PLAN") {
-          parseSignedTaskBlockFromPlan(bytes);
+          admitSignedTaskBlockForSchema(
+            workItem.schemaId,
+            parseSignedTaskBlockFromPlan(bytes),
+          );
         }
         if (
           run.stage === "R3" &&

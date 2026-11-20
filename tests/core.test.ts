@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { orderVersion } from "../src/version.ts";
 
 import {
+  ApprovalSchema,
   ArtifactRefSchema,
   EvidencePathSchema,
   ExecutionTaskSchema,
@@ -95,6 +96,7 @@ import {
   workItemSchemaCatalog,
 } from "../src/core/work-item-source.ts";
 import {
+  admitSignedTaskBlockForSchema,
   aggregateTaskCompletion,
   builderCheckpointRequestForTurn,
   decideOperationalRecovery,
@@ -1163,6 +1165,82 @@ describe("functional lifecycle and execution policy", () => {
     const completed = [{ ...tasks[0]!, state: "CANDIDATE_DONE" as const }, tasks[1]!];
     expect(executionTaskIsEligible(completed[1]!, completed)).toBe(true);
     expect("candidate" in completed[1]!).toBe(false);
+  });
+
+  it("enforces signed-task non-vacuity only for current v2 Change/Defect", () => {
+    const legacyVacuous = SignedTaskBlockSchema.parse({ version: 1, tasks: [] });
+    expect(admitSignedTaskBlockForSchema("change-v1", legacyVacuous)).toBe(legacyVacuous);
+    expect(admitSignedTaskBlockForSchema("defect-v1", legacyVacuous)).toBe(legacyVacuous);
+    expect(() => admitSignedTaskBlockForSchema("change-v2", legacyVacuous))
+      .toThrow(/at least one signed task/);
+
+    const currentTask = {
+      id: "T1",
+      objective: "Implement the governed change",
+      dependsOn: [],
+      scope: ["src/**"],
+      exclusions: [],
+      acceptanceRefs: ["FR-1"],
+      changeSurface: ["src/a.ts"],
+      gateIds: ["test"],
+      authorityRefs: ["ADR-1"],
+      concernIds: ["core"],
+    };
+    const admitted = SignedTaskBlockSchema.parse({
+      version: 1,
+      tasks: [currentTask],
+    });
+    expect(admitSignedTaskBlockForSchema("change-v2", admitted)).toBe(admitted);
+    expect(admitSignedTaskBlockForSchema("defect-v2", admitted)).toBe(admitted);
+
+    for (const [field, value] of [
+      ["scope", []],
+      ["acceptanceRefs", []],
+      ["changeSurface", []],
+      ["gateIds", []],
+      ["authorityRefs", []],
+      ["concernIds", []],
+    ] as const) {
+      const block = SignedTaskBlockSchema.parse({
+        version: 1,
+        tasks: [{ ...currentTask, [field]: value }],
+      });
+      expect(() => admitSignedTaskBlockForSchema("change-v2", block))
+        .toThrow(new RegExp("non-empty " + field));
+    }
+
+    for (const [field, value] of [
+      ["id", "  "],
+      ["id", " T1"],
+      ["objective", "  "],
+      ["objective", "Implement the governed change "],
+    ] as const) {
+      const block = SignedTaskBlockSchema.parse({
+        version: 1,
+        tasks: [{ ...currentTask, [field]: value }],
+      });
+      expect(() => admitSignedTaskBlockForSchema("change-v2", block))
+        .toThrow(new RegExp(field + " must be trimmed and non-empty"));
+    }
+  });
+
+  it("normalizes and validates Approval identity in the canonical schema", () => {
+    const input = {
+      id: `approval_${uuidA}`,
+      workItemId: `work_${uuidA}`,
+      baselineCommit: commitA,
+      packageHash: hashA,
+      planArtifactRefId: `artifact_${uuidA}`,
+      r3ArtifactRefId: `artifact_${uuidB}`,
+      sourceSha256: hashB,
+      approvedAt: "2026-11-11T03:30:00.000Z",
+    };
+    expect(ApprovalSchema.parse({
+      ...input,
+      approvedBy: "  Human Operator  ",
+    }).approvedBy).toBe("Human Operator");
+    expect(ApprovalSchema.safeParse({ ...input, approvedBy: "   " }).success).toBe(false);
+    expect(ApprovalSchema.safeParse({ ...input, approvedBy: "human\0operator" }).success).toBe(false);
   });
 
   it("computes aggregate completion exactly from successful terminal task states", () => {
