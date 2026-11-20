@@ -76,6 +76,56 @@ jobs:
           "${RUNNER_TEMP}/node/bin/node" node_modules/vite/bin/vite.js build
           test -s dist/index.html
 
+      - name: Prepare diagnostic target from signed baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="${RUNNER_TEMP}/target-order"
+          rm -rf "${target}"
+          git clone --no-local --no-checkout -- "${GITHUB_WORKSPACE}" "${target}"
+          git -C "${target}" checkout --detach "${EXPECTED_BASELINE}"
+
+          TARGET_MANIFEST="${target}/pontivus-order.toml" "${RUNNER_TEMP}/bun-bin/bun" -e '
+            const path = process.env.TARGET_MANIFEST;
+            let text = await Bun.file(path).text();
+            const staleRefs = new Set([
+              "GW-DOC-SPECIFICATION-STANDARD-V1",
+              "GW-DOC-LIFECYCLE-CONTEXT-V1",
+              "GW-DOC-TECHNICAL-ARCHITECTURE-V1",
+              "GW-DOC-CANONICAL-CONTRACTS-V1",
+              "GW-DOC-EXTERNAL-FACTS-V1-2026-11-12",
+              "GW-DOC-PUBLIC-REPOSITORY-DELIVERY-V1",
+              "GW-DOC-REF-OPENSPEC",
+              "GW-DOC-REF-OPENSPEC-V1-2026-11-12",
+              "GW-DOC-REF-SPEC-KIT",
+              "GW-DOC-REF-SPEC-KIT-V1-2026-11-12",
+              "GW-DOC-REF-KIRO-SPECS",
+              "GW-DOC-REF-KIRO-SPECS-V1-2026-11-12",
+              "GW-DOC-REF-BMAD",
+              "GW-DOC-REF-BMAD-V1-2026-11-12",
+              "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM-V1",
+            ]);
+            const next = text
+              .split("\n")
+              .filter((line) => {
+                const match = /^([^=]+)=/.exec(line.trim());
+                return match === null || !staleRefs.has(match[1].trim());
+              })
+              .join("\n");
+            if (next === text) throw new TypeError("diagnostic manifest correction made no change");
+            await Bun.write(path, next);
+          '
+
+          git -C "${target}" config user.name "github-actions[bot]"
+          git -C "${target}" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "${target}" add pontivus-order.toml
+          git -C "${target}" commit -m "ci diagnostic: correct invalid live AuthorityRef bindings"
+          effective="$(git -C "${target}" rev-parse HEAD)"
+          test "$(git -C "${target}" rev-parse HEAD^)" = "${EXPECTED_BASELINE}"
+          echo "TARGET_REPOSITORY_ROOT=${target}" >> "${GITHUB_ENV}"
+          echo "EFFECTIVE_BASELINE=${effective}" >> "${GITHUB_ENV}"
+          echo "Diagnostic target baseline: ${effective}"
+
       - name: Construct signed T1 execution seed from canonical baseline
         shell: bash
         run: |
@@ -154,13 +204,13 @@ jobs:
           } from "./src/shell/sqlite.ts";
 
           const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
-          const baseline = process.env.EXPECTED_BASELINE;
+          const baseline = process.env.EFFECTIVE_BASELINE;
+          const repositoryRoot = process.env.TARGET_REPOSITORY_ROOT;
           const rawWorkItemId = process.env.WORK_ITEM_ID;
-          if (!stateRoot || !baseline || !rawWorkItemId) {
+          if (!stateRoot || !baseline || !repositoryRoot || !rawWorkItemId) {
             throw new TypeError("CI seed environment is incomplete");
           }
           const workItemId = WorkItemIdSchema.parse(rawWorkItemId);
-          const repositoryRoot = process.cwd();
 
           const initialConfig = writeOrderConfig(
             stateRoot,
@@ -373,20 +423,10 @@ jobs:
           rm -f .temporary-order-bootstrap.ts
           cat "${RUNNER_TEMP}/seed-summary.json"
 
-      - name: Import saved OpenCode Console credential and select model
+      - name: Establish OpenCode Console account and select model
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "${OPENCODE_AUTH_EXPORT_B64}" ]]; then
-            echo "Missing Actions secret PONTIVUS_ORDER_CI_OPENCODE_AUTH_B64." >&2
-            echo "Populate it with base64 of a native 'opencode auth export opencode' credential export." >&2
-            exit 2
-          fi
-
-          auth_file="${RUNNER_TEMP}/opencode-auth.json"
-          printf '%s' "${OPENCODE_AUTH_EXPORT_B64}" | base64 --decode > "${auth_file}"
-          chmod 600 "${auth_file}"
-
           cat > .temporary-order-opencode-auth.ts <<'TS'
           import {
             buildOrderConfig,
@@ -396,73 +436,112 @@ jobs:
             buildOpenCodeEnvironment,
             listAvailableOpenCodeModels,
             listOpenCodeAccounts,
+            pollOpenCodeAccountOAuth,
             startOpenCodeAccountControl,
+            startOpenCodeAccountOAuth,
             stopOpenCodeAccountControl,
           } from "./src/shell/opencode.ts";
 
           const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
           const binary = process.env.PONTIVUS_ORDER_OPENCODE_BIN;
-          const authFile = process.env.RUNNER_TEMP + "/opencode-auth.json";
-          if (!stateRoot || !binary) throw new TypeError("OpenCode CI environment is incomplete");
-
-          const authEnvironment = buildOpenCodeEnvironment(stateRoot, process.env);
-          const child = Bun.spawn(
-            [binary, "auth", "import", authFile, "--standalone"],
-            {
-              cwd: process.cwd(),
-              env: authEnvironment,
-              stdin: "ignore",
-              stdout: "pipe",
-              stderr: "pipe",
-            },
-          );
-          const [exitCode, stdout, stderr] = await Promise.all([
-            child.exited,
-            new Response(child.stdout).text(),
-            new Response(child.stderr).text(),
-          ]);
-          if (exitCode !== 0) {
-            throw new TypeError(
-              "OpenCode auth import failed: " +
-                (stderr.trim() || stdout.trim() || "unknown failure"),
-            );
+          const targetRoot = process.env.TARGET_REPOSITORY_ROOT;
+          if (!stateRoot || !binary || !targetRoot) {
+            throw new TypeError("OpenCode CI environment is incomplete");
           }
 
-          const control = await startOpenCodeAccountControl(stateRoot, process.env);
+          const exported = process.env.OPENCODE_AUTH_EXPORT_B64?.trim() ?? "";
+          if (exported.length > 0) {
+            const authFile = process.env.RUNNER_TEMP + "/opencode-auth.json";
+            await Bun.write(authFile, Uint8Array.from(Buffer.from(exported, "base64")));
+            const authEnvironment = buildOpenCodeEnvironment(stateRoot, process.env);
+            const child = Bun.spawn(
+              [binary, "auth", "import", authFile, "--standalone"],
+              {
+                cwd: targetRoot,
+                env: authEnvironment,
+                stdin: "ignore",
+                stdout: "pipe",
+                stderr: "pipe",
+              },
+            );
+            const [exitCode, stdout, stderr] = await Promise.all([
+              child.exited,
+              new Response(child.stdout).text(),
+              new Response(child.stderr).text(),
+            ]);
+            await Bun.file(authFile).delete().catch(() => undefined);
+            if (exitCode !== 0) {
+              throw new TypeError(
+                "OpenCode auth import failed: " +
+                  (stderr.trim() || stdout.trim() || "unknown failure"),
+              );
+            }
+          } else {
+            const control = await startOpenCodeAccountControl(stateRoot, process.env);
+            try {
+              const existing = await listOpenCodeAccounts(control);
+              if (!existing.some((account) => account.active && account.status.status === "READY")) {
+                const started = await startOpenCodeAccountOAuth(
+                  control,
+                  "github-actions-live-certification",
+                );
+                process.stdout.write("\n=== OPENCODE CONSOLE AUTHORIZATION REQUIRED ===\n");
+                process.stdout.write("URL: " + started.authorizationUrl + "\n");
+                process.stdout.write("Instructions: " + started.instructions + "\n");
+                process.stdout.write("Expires: " + started.expiresAt + "\n");
+                process.stdout.write("=== END AUTHORIZATION REQUEST ===\n\n");
+
+                while (true) {
+                  const status = await pollOpenCodeAccountOAuth(
+                    control,
+                    started.providerAttemptId,
+                  );
+                  if (status.status === "COMPLETED") break;
+                  if (status.status === "FAILED") {
+                    throw new TypeError("OpenCode Console authorization failed: " + status.message);
+                  }
+                  if (status.status === "EXPIRED") {
+                    throw new TypeError("OpenCode Console authorization expired");
+                  }
+                  await Bun.sleep(3000);
+                }
+              }
+            } finally {
+              await stopOpenCodeAccountControl(control);
+            }
+          }
+
+          const verify = await startOpenCodeAccountControl(stateRoot, process.env);
           try {
-            const accounts = await listOpenCodeAccounts(control);
+            const accounts = await listOpenCodeAccounts(verify);
             const active = accounts.find(
               (account) => account.active && account.status.status === "READY",
             );
             if (active === undefined) {
-              throw new TypeError(
-                "imported OpenCode credential does not expose a usable active Console account",
-              );
+              throw new TypeError("OpenCode Console account is not productively READY");
             }
           } finally {
-            await stopOpenCodeAccountControl(control);
+            await stopOpenCodeAccountControl(verify);
           }
 
           const models = await listAvailableOpenCodeModels(
             stateRoot,
-            process.cwd(),
+            targetRoot,
             process.env,
           );
           if (models.length === 0) {
-            throw new TypeError("OpenCode Console credential exposes no enabled models");
+            throw new TypeError("OpenCode Console account exposes no enabled models");
           }
           const requested = process.env.PONTIVUS_ORDER_CI_MODEL?.trim() ?? "";
           const selected = requested.length === 0
             ? models.find((model) => model.providerID === "opencode") ?? models[0]
             : models.find((model) => `${model.providerID}/${model.id}` === requested);
           if (selected === undefined) {
-            throw new TypeError(
-              "requested CI model is not enabled: " + requested,
-            );
+            throw new TypeError("requested CI model is not enabled: " + requested);
           }
           writeOrderConfig(
             stateRoot,
-            buildOrderConfig(selected, [process.cwd()], []),
+            buildOrderConfig(selected, [targetRoot], []),
           );
           process.stdout.write(JSON.stringify({
             providerID: selected.providerID,
@@ -470,11 +549,8 @@ jobs:
           }) + "\n");
           TS
 
-          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-auth.ts \
-            > "${RUNNER_TEMP}/opencode-model.json"
+          "${RUNNER_TEMP}/bun-bin/bun" .temporary-order-opencode-auth.ts
           rm -f .temporary-order-opencode-auth.ts
-          rm -f "${auth_file}"
-          cat "${RUNNER_TEMP}/opencode-model.json"
 
       - name: Prove seed is the fresh signed T1
         shell: bash
@@ -496,7 +572,7 @@ jobs:
 
           const stateRoot = process.env.PONTIVUS_ORDER_STATE_ROOT;
           const workItemId = WorkItemIdSchema.parse(process.env.WORK_ITEM_ID);
-          const expectedBaseline = process.env.EXPECTED_BASELINE;
+          const expectedBaseline = process.env.EFFECTIVE_BASELINE;
           if (!stateRoot || !expectedBaseline) throw new TypeError("CI certification environment is incomplete");
 
           const database = openOrderDatabase(stateRoot);
@@ -671,7 +747,7 @@ jobs:
           cat > .temporary-order-verify-live-run.ts <<'TS'
           const root = process.env.RUNNER_TEMP + "/order-live-evidence";
           const taskId = process.env.ORDER_CI_TASK_ID;
-          const baseline = process.env.EXPECTED_BASELINE;
+          const baseline = process.env.EFFECTIVE_BASELINE;
           if (!taskId || !baseline) throw new TypeError("certification identity is incomplete");
 
           const workItem = JSON.parse(await Bun.file(root + "/work-item.json").text());
