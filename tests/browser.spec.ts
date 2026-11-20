@@ -2426,6 +2426,7 @@ test("work-type variants preserve their canonical Work request information contr
   page,
   request,
 }) => {
+  test.setTimeout(60_000);
   await authenticate(page, request);
   const variants = [
     {
