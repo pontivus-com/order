@@ -21,16 +21,16 @@ C20-F04 proves that `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE` was 
 | Source component | Git blob |
 |---|---|
 | `implementation-plan/00-governance.md` | `5e3d40883106535cd41bec754cff16780f758e30` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `8f3598e3a9232c6e0e60ae0180f3bf2a8cc8baee` |
-| `implementation-plan/02-a02-governance-intake.md` | `0772711a624ef90c167681b6f20c23442ceff639` |
-| `implementation-plan/03-a03-queue-source.md` | `9ab7d11745dfb04f3e0691e3c1f538d4ba6508ad` |
-| `implementation-plan/04-a04-workbench-research.md` | `2bea14fc069b0b4988998870a593b4d2e48849b4` |
-| `implementation-plan/05-a05-requirements-design.md` | `a705e7659b9488257bdbc2fd938ddecf08e4361e` |
-| `implementation-plan/06-a06-plan-readiness.md` | `2dc003ff0f7eae6cebeae3c035bbea09cacfe741` |
-| `implementation-plan/07-a07-approval-execution.md` | `c22b2dc6edc9fb77490e6a279351348d7f56dc03` |
-| `implementation-plan/08-a08-complete-materials.md` | `32ae17acbecd025a0de2dd527bbc68c205f3518a` |
-| `implementation-plan/09-a09-provider-settings.md` | `fd0467b0997e31dd0d59cd4d5dbba175abfe0375` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `583b1b5b17e3ba26eeceea242936d5d1cfe0f1b8` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `adcaefc1636ddb895b684b7216f17795cd2d04a2` |
+| `implementation-plan/02-a02-governance-intake.md` | `6112441000d73d862cfedbb14c163bd1aa3f66be` |
+| `implementation-plan/03-a03-queue-source.md` | `90c512f2380235dab09532304ffc01634ff3032d` |
+| `implementation-plan/04-a04-workbench-research.md` | `c91f0ea24cff90e9c1f635df9915d2f07ad93f4f` |
+| `implementation-plan/05-a05-requirements-design.md` | `9a11b4c121e055d398e843b45bcbca9970096e83` |
+| `implementation-plan/06-a06-plan-readiness.md` | `ccdc9aa6cc7fb2f8f77dc18e6393e8a8c7b3d403` |
+| `implementation-plan/07-a07-approval-execution.md` | `16aaf5973234ef3132207cb7da760b973e1be9db` |
+| `implementation-plan/08-a08-complete-materials.md` | `3cbccab5618e32b4ed2ce70fb7b5d3e2e5aae8ba` |
+| `implementation-plan/09-a09-provider-settings.md` | `05b3d10cfe98c069e6f467af028170f468d734a4` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `9703ab2b0058b5b4c8637b8f400c58fb9e6296ea` |
 | `implementation-plan/11-a11-component-certification.md` | `40da8996d3c0274ec8312ba971aee0284f5c81b4` |
 | `implementation-plan/12-action-catalog.md` | `0204b5bd98d653e9391d9140e1d8fd805c610052` |
 | `implementation-plan/13-verification-closeout.md` | `ac694a8994111a311922cbcec1f1328ef8d0c178` |
