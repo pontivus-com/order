@@ -1431,43 +1431,49 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T2",
-      "objective": "Rebuild the closed Workbench primitive/theme foundation for SD21 before any screen migration. Rewrite primitive implementations as necessary while preserving their canonical responsibilities; establish Astryx-first geometry, control/form/table/status/notice/dialogue/review/master-detail/context/settings behavior, responsive ownership and theme semantics; remove duplicate/obsolete feature-era recurring presentation systems. This task owns the shared presentation foundation exclusively.",
+      "objective": "Preserve and certify the existing canonical Workbench primitives while purging legacy screen presentation support (SD21, IA27). Do not modify ui/src/primitives/**. Remove obsolete screen-specific/compatibility selectors from theme.css/styles.css, prove the primitive/Astryx/leaf boundaries remain current, and establish the destructive screen-replacement boundary before any new screen is authored.",
       "dependsOn": [
         "T1"
       ],
       "scope": [
-        "ui/src/primitives/**",
         "ui/src/styles.css",
         "ui/src/theme.css",
         "tests/browser.spec.ts",
         "tests/certification.test.ts"
       ],
       "exclusions": [
+        "ui/src/primitives/**",
         "ui/src/app.tsx",
-        "ui/src/ActivityComposer.tsx",
-        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/WorkItemQueue.tsx",
         "ui/src/CreateWorkItem.tsx",
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/WorkItemIdentityRow.tsx",
+        "ui/src/WorkflowRail.tsx",
+        "ui/src/WorkflowStepFrame.tsx",
         "ui/src/DocumentWorkspace.tsx",
-        "ui/src/EvidenceViewer.tsx",
+        "ui/src/PreSignoffStageWorkspace.tsx",
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/WorkflowMaterialSelector.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/SignoffReview.tsx",
         "ui/src/ExecutionWorkspace.tsx",
-        "ui/src/MarkdownEditor.tsx",
-        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/TerminalResult.tsx",
+        "ui/src/EvidenceViewer.tsx",
+        "ui/src/WorkItemContext.tsx",
+        "ui/src/SettingsWorkspace.tsx",
         "ui/src/OpenCodeAccountControl.tsx",
         "ui/src/OpenCodeAccountSettings.tsx",
-        "ui/src/PreSignoffStageWorkspace.tsx",
-        "ui/src/ProposalReview.tsx",
-        "ui/src/ReadinessWorkspace.tsx",
-        "ui/src/RunEventTimeline.tsx",
-        "ui/src/SettingsWorkspace.tsx",
-        "ui/src/SignoffReview.tsx",
-        "ui/src/TerminalResult.tsx",
-        "ui/src/WorkItemContext.tsx",
-        "ui/src/WorkItemIdentityRow.tsx",
-        "ui/src/WorkItemQueue.tsx",
-        "ui/src/WorkItemWorkspace.tsx",
-        "ui/src/WorkflowMaterialSelector.tsx",
-        "ui/src/WorkflowRail.tsx",
-        "ui/src/WorkflowStepFrame.tsx"
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1476,33 +1482,6 @@ V4/V5/V6 explicitly verify:
         "GW-DOC-VALIDATION-STANDARD-V1"
       ],
       "changeSurface": [
-        "ui/src/primitives/WorkbenchAction.tsx",
-        "ui/src/primitives/WorkbenchAttention.tsx",
-        "ui/src/primitives/WorkbenchConfirmation.tsx",
-        "ui/src/primitives/WorkbenchContextPanel.tsx",
-        "ui/src/primitives/WorkbenchDialogue.tsx",
-        "ui/src/primitives/WorkbenchDisclosure.tsx",
-        "ui/src/primitives/WorkbenchField.tsx",
-        "ui/src/primitives/WorkbenchForm.tsx",
-        "ui/src/primitives/WorkbenchIcon.tsx",
-        "ui/src/primitives/WorkbenchIdentity.tsx",
-        "ui/src/primitives/WorkbenchLayout.tsx",
-        "ui/src/primitives/WorkbenchMasterDetail.tsx",
-        "ui/src/primitives/WorkbenchNotice.tsx",
-        "ui/src/primitives/WorkbenchRail.tsx",
-        "ui/src/primitives/WorkbenchResourceRow.tsx",
-        "ui/src/primitives/WorkbenchReview.tsx",
-        "ui/src/primitives/WorkbenchSectionHeader.tsx",
-        "ui/src/primitives/WorkbenchSelector.tsx",
-        "ui/src/primitives/WorkbenchSettingsLayout.tsx",
-        "ui/src/primitives/WorkbenchState.tsx",
-        "ui/src/primitives/WorkbenchStatus.tsx",
-        "ui/src/primitives/WorkbenchSurface.tsx",
-        "ui/src/primitives/WorkbenchTable.tsx",
-        "ui/src/primitives/WorkbenchTaskPanel.tsx",
-        "ui/src/primitives/WorkbenchTimeline.tsx",
-        "ui/src/primitives/WorkbenchToolbar.tsx",
-        "ui/src/primitives/WorkbenchUtilityLink.tsx",
         "ui/src/styles.css",
         "ui/src/theme.css",
         "tests/browser.spec.ts",
@@ -1535,7 +1514,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T3",
-      "objective": "Migrate Queue and Create WorkItem onto the rebuilt foundation (SD22, IA11, IA12, IA28). Queue must be the canonical Operational scan with normal, empty, search, archive and source-diagnostic states distinct; Create/remediation must use the canonical task-panel/form hierarchy with controlled Project/kind/Concerns/title and subordinate derived metadata. Delete the old Queue/Create presentation grammar; do not modify T2 foundation files.",
+      "objective": "Destructively replace Queue and Create WorkItem (SD22, IA11, IA12, IA28). First commit a purge deleting app.tsx, WorkItemQueue.tsx and CreateWorkItem.tsx with no replacement JSX; then recreate them from the current R2 screen-information schemas using retained primitives. No old screen layout, field grouping, table-column design, CSS/class structure or responsive composition may be copied or incrementally transformed.",
       "dependsOn": [
         "T2"
       ],
@@ -1548,7 +1527,15 @@ V4/V5/V6 explicitly verify:
       "exclusions": [
         "ui/src/primitives/**",
         "ui/src/styles.css",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1588,7 +1575,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T4",
-      "objective": "Migrate the selected WorkItem shell, Work request and governed document surfaces onto the rebuilt foundation (SD23, IA13, IA14, IA29). Establish one stable identity/rail/current-attention/primary-material/Context shell, preserve observational selection and exact current-attention reachability, render Work request as the canonical Document interaction, and retain exact documentation-Git review. Delete generic-frame and document/identity/rail legacy presentation ownership.",
+      "objective": "Destructively replace the WorkItem shell, Work request and governed document screens (SD23, IA13, IA14, IA29). Purge the five old screen/composition paths first, then recreate the shell/document screens from current R2 using retained primitives and retained Markdown editors as content leaves only. No old shell/frame/rail/document composition may survive.",
       "dependsOn": [
         "T3"
       ],
@@ -1598,16 +1585,21 @@ V4/V5/V6 explicitly verify:
         "ui/src/WorkflowRail.tsx",
         "ui/src/WorkflowStepFrame.tsx",
         "ui/src/DocumentWorkspace.tsx",
-        "ui/src/MarkdownEditor.tsx",
-        "ui/src/MarkdownSourceEditor.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
       "exclusions": [
         "ui/src/primitives/**",
         "ui/src/styles.css",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1621,9 +1613,6 @@ V4/V5/V6 explicitly verify:
         "ui/src/WorkflowRail.tsx",
         "ui/src/WorkflowStepFrame.tsx",
         "ui/src/DocumentWorkspace.tsx",
-        "ui/src/MarkdownEditor.tsx",
-        "ui/src/MarkdownSourceEditor.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
@@ -1653,7 +1642,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T5",
-      "objective": "Migrate Research, Requirements, Solution design and Implementation plan onto the single pre-signoff interaction grammar (SD24, IA15, IA30). Current required input/proposal/blocker/processing owns attention; current governed document is primary otherwise; history, evidence and bounded activity remain subordinate. Stage-specific schema information changes content only, never the structural grammar. Delete stage-local dialogue/proposal/timeline/layout systems.",
+      "objective": "Destructively replace Research, Requirements, Solution design and Implementation plan screens (SD24, IA15, IA30). Purge all six old productive-stage screen/adapters first, then recreate the family from fresh R2 screen-information schemas using one retained primitive grammar. Old dialogue/proposal/timeline/layout composition is forbidden reuse.",
       "dependsOn": [
         "T4"
       ],
@@ -1664,14 +1653,21 @@ V4/V5/V6 explicitly verify:
         "ui/src/WorkflowMaterialSelector.tsx",
         "ui/src/ProposalReview.tsx",
         "ui/src/RunEventTimeline.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
       "exclusions": [
         "ui/src/primitives/**",
         "ui/src/styles.css",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1686,7 +1682,6 @@ V4/V5/V6 explicitly verify:
         "ui/src/WorkflowMaterialSelector.tsx",
         "ui/src/ProposalReview.tsx",
         "ui/src/RunEventTimeline.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
@@ -1716,21 +1711,28 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T6",
-      "objective": "Migrate Readiness and Approval to canonical Review compositions (SD25, IA16, IA17, IA31). Readiness must make the typed R3 verdict/findings/return owner dominant; Approval must make readiness/currentness/task meaning dominant with package identity subordinate and exact sign-off as the sole primary mutation. Delete generic stage/card review presentation.",
+      "objective": "Destructively replace Readiness and Approval (SD25, IA16, IA17, IA31). Purge both old review screens first, then recreate fresh Review-class screens from R2. Old stage/card review composition and technical-identity-first hierarchy are forbidden reuse.",
       "dependsOn": [
         "T5"
       ],
       "scope": [
         "ui/src/ReadinessWorkspace.tsx",
         "ui/src/SignoffReview.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
       "exclusions": [
         "ui/src/primitives/**",
         "ui/src/styles.css",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1741,7 +1743,6 @@ V4/V5/V6 explicitly verify:
       "changeSurface": [
         "ui/src/ReadinessWorkspace.tsx",
         "ui/src/SignoffReview.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
@@ -1771,7 +1772,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T7",
-      "objective": "Migrate Implementation to the canonical operational master/detail topology (SD26, IA32). Wide uses one fixed master width; constrained uses the primitive-owned start Drawer while detail remains primary. Present the current execution owner/action, attempt, blocker, validation and chronology without allowing historical selection to steal attention. Delete stacked/card/task-count-driven execution alternatives.",
+      "objective": "Destructively replace the Implementation screen (SD26, IA32). Purge ExecutionWorkspace.tsx first, then recreate it from the fresh C12 screen-information schema using retained primitives and the replacement RunEventTimeline from T5. No old stacked/card/task-count-driven execution layout may survive.",
       "dependsOn": [
         "T6"
       ],
@@ -1783,7 +1784,15 @@ V4/V5/V6 explicitly verify:
         "ui/src/primitives/**",
         "ui/src/styles.css",
         "ui/src/theme.css",
-        "ui/src/RunEventTimeline.tsx"
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1822,7 +1831,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T8",
-      "objective": "Migrate Complete, Evidence and Context/material surfaces (SD27, IA19, IA33). Complete must use canonical terminal-result hierarchy with correct verified-result/verified-candidate language and resources only when applicable; Evidence remains an Evidence-class surface; Context is supporting/technical only and uses docked-wide/Drawer-constrained behavior. Delete result/evidence/context feature-card systems.",
+      "objective": "Destructively replace Complete, Evidence and Context (SD27, IA19, IA33). Purge all three old screens first, then recreate fresh Terminal result, Evidence and Compact context screens from R2 using retained primitives/approved content leaves. Old result/evidence/context screen hierarchy is forbidden reuse.",
       "dependsOn": [
         "T7"
       ],
@@ -1830,14 +1839,21 @@ V4/V5/V6 explicitly verify:
         "ui/src/TerminalResult.tsx",
         "ui/src/EvidenceViewer.tsx",
         "ui/src/WorkItemContext.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
       "exclusions": [
         "ui/src/primitives/**",
         "ui/src/styles.css",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1850,7 +1866,6 @@ V4/V5/V6 explicitly verify:
         "ui/src/TerminalResult.tsx",
         "ui/src/EvidenceViewer.tsx",
         "ui/src/WorkItemContext.tsx",
-        "ui/src/workbench-presentation.ts",
         "tests/browser.spec.ts",
         "tests/workbench-presentation.test.ts"
       ],
@@ -1881,7 +1896,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T9",
-      "objective": "Migrate Settings, repository/account/model configuration and OpenCode account surfaces (SD28, IA18, IA34). Readiness, meaning and available operator actions are primary; exact paths/endpoints/account/credential-like identity are subordinate unless task-required. Reuse the same Form/Table/Status/Notice/Confirmation grammar as the rest of Workbench and delete bespoke admin/account component systems.",
+      "objective": "Destructively replace Settings and OpenCode/account configuration screens (SD28, IA18, IA34). Purge the three old screen implementations first, then recreate fresh operator-first Settings/configuration screens from R2 using retained primitives. Old admin/card/account/repository/model screen grammar is forbidden reuse.",
       "dependsOn": [
         "T8"
       ],
@@ -1894,7 +1909,15 @@ V4/V5/V6 explicitly verify:
       "exclusions": [
         "ui/src/primitives/**",
         "ui/src/styles.css",
-        "ui/src/theme.css"
+        "ui/src/theme.css",
+        "ui/src/MarkdownEditor.tsx",
+        "ui/src/MarkdownSourceEditor.tsx",
+        "ui/src/workbench-presentation.ts",
+        "ui/src/http.ts",
+        "ui/src/query-keys.ts",
+        "ui/src/markdown-source-formatting.ts",
+        "ui/src/theme.ts",
+        "ui/src/main.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1935,7 +1958,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T10",
-      "objective": "Certify the fully migrated Workbench as one component/theme/interaction system (SD16-SD18, SD29, IA20-IA23). Prove exhaustive renderer classification, no foundation bypass or feature-local recurring presentation ownership, scenario-41 work-kind behavior, responsive semantic continuity, System/Light/Dark component parity and cross-solution regression closure. This task may change verification only; production UI defects return to their owning T2-T9 task.",
+      "objective": "Certify the fully replaced Workbench screen layer as one component/theme/interaction system (SD16-SD18, SD29, IA20-IA23). Prove exhaustive screen classification, primitive containment, absence of pre-reconstruction screen grammar/compatibility CSS, scenario-41 behavior, responsive semantic continuity, System/Light/Dark parity and cross-solution regression closure. Production defects return to their owning T2-T9 task or DESIGN for a primitive defect.",
       "dependsOn": [
         "T9"
       ],
@@ -1997,7 +2020,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T11",
-      "objective": "Produce and review the exhaustive exact-candidate rendered acceptance package (SD30, IA26) and close only when every governed screen/state has PASS for schema/information fidelity, UX/interaction fidelity and visual/UI fidelity. GitHub Actions captures PNGs and manifest/index against the reviewed SVG set plus current authority; any FAIL routes back to its owning T2-T9 task and requires fresh post-fix evidence. After zero unresolved FAIL, record closeout metadata and run the complete final gates/V0-V7.",
+      "objective": "Produce and review the exhaustive exact-candidate rendered acceptance package (SD30, IA26) and close only when every governed replacement screen/state has PASS for schema/information fidelity, UX/interaction fidelity and visual/UI fidelity. Any screen FAIL returns to T3-T9; shared stylesheet purge defects return to T2; a primitive defect returns to DESIGN. After zero unresolved FAIL, record closeout metadata and run final gates/V0-V7.",
       "dependsOn": [
         "T10"
       ],
