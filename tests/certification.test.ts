@@ -1586,7 +1586,7 @@ describe("Order cross-boundary certification", () => {
 
 
 describe("0.6.0 Wave 1 authority-governance certification", () => {
-  it("keeps reachable authority distinct from material STAGE context", () => {
+  it("certifies schema-pinned material authority through the production STAGE path", () => {
     const repository = mkdtempSync(join(tmpdir(), "order-cert-authority-repo-"));
     const state = mkdtempSync(join(tmpdir(), "order-cert-authority-state-"));
     try {
@@ -1596,6 +1596,9 @@ describe("0.6.0 Wave 1 authority-governance certification", () => {
       writeFileSync(join(repository, "docs", "principles.md"), "# principles\n");
       writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
       writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+      writeFileSync(join(repository, "docs", "work-lifecycle.md"), "# work lifecycle\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-current.md"), "# lifecycle context current\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-v1.md"), "# lifecycle context v1\n");
       writeFileSync(
         join(repository, "pontivus-order.toml"),
         `version = 1
@@ -1604,7 +1607,7 @@ projectId = "certification"
 [authority]
 p1 = ["AGENTS.md", "docs/principles.md"]
 p2 = ["docs/product-a.md", "docs/product-b.md"]
-p3 = []
+p3 = ["docs/work-lifecycle.md", "docs/lifecycle-context-current.md", "docs/lifecycle-context-v1.md"]
 p4 = []
 p5 = []
 p6 = []
@@ -1612,11 +1615,13 @@ p6 = []
 [refs]
 P1-STRICT = "docs/principles.md"
 P1-FCIS-EXT = "AGENTS.md"
-GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"
-GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"
+GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"
 
 [precedence]
 p2 = ["docs/product-b.md", "docs/product-a.md"]
+p3 = ["docs/lifecycle-context-v1.md", "docs/lifecycle-context-current.md", "docs/work-lifecycle.md"]
 
 [[governance.overrides]]
 defaultRuleId = "GW-P1-STRICT-TYPING"
@@ -1666,9 +1671,7 @@ materialRefs = []
           encoding: "utf8",
         });
         if (result.status !== 0) {
-          throw new Error(
-            `git ${args.join(" ")} failed: ${result.stderr}`,
-          );
+          throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
         }
       }
 
@@ -1692,29 +1695,42 @@ materialRefs = []
             referenceRoots: [],
           },
         );
-        const created = await coord.createWorkItem(runtime, {
+        const currentCreated = await coord.createWorkItem(runtime, {
           projectId: "certification",
-          schemaId: "change-v1",
-          title: "authority certification",
+          schemaId: "change-v2",
+          title: "current authority certification",
           concernIds: ["shell"],
         });
-        const workItem = coord.getWorkItem(runtime, created.id);
-        const stateResolution = await authority.resolveStageContextState(
-          runtime,
-          workItem,
-          "R1",
+        const retainedCreated = await coord.createWorkItem(runtime, {
+          projectId: "certification",
+          schemaId: "change-v1",
+          title: "retained authority certification",
+          concernIds: ["shell"],
+        });
+        const currentWork = coord.getWorkItem(runtime, currentCreated.id);
+        const retainedWork = coord.getWorkItem(runtime, retainedCreated.id);
+        const current = await authority.resolveStageContextState(
+          runtime, currentWork, "R1",
         );
-        const prompt = await stage.stagePrompt(
-          workItem,
-          "R1",
-          stateResolution.context,
-          [],
-          [],
+        const retained = await authority.resolveStageContextState(
+          runtime, retainedWork, "R1",
         );
-        const p2 = stateResolution.context.authority.layers.find(
+        const currentPrompt = await stage.stagePrompt(
+          currentWork, "R1", current.context, [], [],
+        );
+        const retainedPrompt = await stage.stagePrompt(
+          retainedWork, "R1", retained.context, [], [],
+        );
+        const p2 = current.context.authority.layers.find(
           (entry) => entry.layer === "p2",
         );
-        const p2Artifacts = stateResolution.context.artifacts
+        const p3 = current.context.authority.layers.find(
+          (entry) => entry.layer === "p3",
+        );
+        const materialP3 = (context) => context.artifacts
+          .filter((artifact) => artifact.authorityLayer === "P3")
+          .map((artifact) => artifact.repositoryPath);
+        const materialP2 = current.context.artifacts
           .filter((artifact) => artifact.authorityLayer === "P2")
           .map((artifact) => artifact.repositoryPath);
 
@@ -1722,30 +1738,30 @@ materialRefs = []
         fs.writeFileSync(
           manifestPath,
           fs.readFileSync(manifestPath, "utf8").replace(
-            'p2 = ["docs/product-b.md", "docs/product-a.md"]',
-            'p2 = ["docs/product-b.md", "docs/missing.md"]',
+            'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"\\n',
+            "",
           ),
         );
         let blockedBeforeProvider = false;
         let rejection = "";
         try {
-          await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+          await coord.startStageRun(runtime, currentCreated.id, "INTERACTIVE");
         } catch (error) {
           rejection = error instanceof Error ? error.message : String(error);
-          blockedBeforeProvider =
-            coord.listRuns(runtime, created.id).length === 0;
+          blockedBeforeProvider = coord.listRuns(runtime, currentCreated.id).length === 0;
         }
         console.log(JSON.stringify({
           p2,
-          p2Artifacts,
-          inherited:
-            stateResolution.context.authority.inheritedDefaultRuleIds,
-          fitness: stateResolution.context.authority.fitnessGateIds,
-          promptHasProjection:
-            prompt.includes("Resolved project authority projection:"),
-          promptOrder:
-            prompt.indexOf("docs/product-b.md") <
-            prompt.indexOf("docs/product-a.md"),
+          p3,
+          materialP2,
+          currentP3: materialP3(current.context),
+          retainedP3: materialP3(retained.context),
+          inherited: current.context.authority.inheritedDefaultRuleIds,
+          fitness: current.context.authority.fitnessGateIds,
+          currentPromptHasProjection:
+            currentPrompt.includes("Resolved project authority projection:"),
+          retainedPromptHasProjection:
+            retainedPrompt.includes("Resolved project authority projection:"),
           blockedBeforeProvider,
           rejection,
         }));
@@ -1757,21 +1773,18 @@ materialRefs = []
         env: process.env,
       });
       if (result.status !== 0) {
-        throw new Error(
-          `production authority certification failed: ${result.stderr}`,
-        );
+        throw new Error(`production authority certification failed: ${result.stderr}`);
       }
       const output = JSON.parse(result.stdout.trim()) as {
-        p2: {
-          layer: string;
-          sources: string[];
-          precedence: string[];
-        };
-        p2Artifacts: string[];
+        p2: { layer: string; sources: string[]; precedence: string[] };
+        p3: { layer: string; sources: string[]; precedence: string[] };
+        materialP2: string[];
+        currentP3: string[];
+        retainedP3: string[];
         inherited: string[];
         fitness: string[];
-        promptHasProjection: boolean;
-        promptOrder: boolean;
+        currentPromptHasProjection: boolean;
+        retainedPromptHasProjection: boolean;
         blockedBeforeProvider: boolean;
         rejection: string;
       };
@@ -1780,22 +1793,42 @@ materialRefs = []
         sources: ["docs/product-b.md", "docs/product-a.md"],
         precedence: ["docs/product-b.md", "docs/product-a.md"],
       });
-      expect(output.p2Artifacts).toEqual([]);
-      // Both P2 sources remain reachable in the resolved authority projection,
-      // but neither is stage-applicable merely because it shares the layer.
+      expect(output.p3).toEqual({
+        layer: "p3",
+        sources: [
+          "docs/lifecycle-context-v1.md",
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+        precedence: [
+          "docs/lifecycle-context-v1.md",
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+      });
+      expect(output.materialP2).toEqual([]);
+      expect(output.currentP3).toEqual([
+        "docs/lifecycle-context-current.md",
+        "docs/work-lifecycle.md",
+      ]);
+      expect(output.retainedP3).toEqual([
+        "docs/lifecycle-context-v1.md",
+        "docs/work-lifecycle.md",
+      ]);
       expect(output.inherited).toContain("GW-P1-FCIS");
       expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
       expect(output.fitness).toEqual(["architecture", "test"]);
-      expect(output.promptHasProjection).toBe(true);
-      expect(output.promptOrder).toBe(true);
+      expect(output.currentPromptHasProjection).toBe(true);
+      expect(output.retainedPromptHasProjection).toBe(true);
       expect(output.blockedBeforeProvider).toBe(true);
-      expect(output.rejection).toMatch(/precedence\.p2/);
+      expect(output.rejection).toContain(
+        "stage template AuthorityRef is not reachable in R1 context: GW-DOC-LIFECYCLE-CONTEXT-V2",
+      );
     } finally {
       rmSync(repository, { recursive: true, force: true });
       rmSync(state, { recursive: true, force: true });
     }
   }, 30_000);
-
   it("binds resolved authority, governed proposals and durable decisions to the production STAGE path", () => {
     const governance = read("src/core/governance.ts");
     expect(governance).toContain("export const resolveProjectAuthority");
