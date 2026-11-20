@@ -2594,6 +2594,16 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   ).toBeVisible();
   await backToQueue(page);
 
+  await openWorkItem(page, "Readiness blocked after prior ready");
+  const blockedAfterPriorReady = page.getByTestId("review-workspace")
+    .locator(".order-readiness-verdict");
+  await expect(blockedAfterPriorReady.getByText("Blocked", { exact: true }))
+    .toBeVisible();
+  await expect(
+    blockedAfterPriorReady.getByText("Ready for sign-off", { exact: true }),
+  ).toHaveCount(0);
+  await backToQueue(page);
+
   await openWorkItem(page, "Awaiting sign-off");
   await selectWorkflowStep(page, "Readiness review");
   await expect(

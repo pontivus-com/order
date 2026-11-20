@@ -1116,11 +1116,60 @@ const seedReadinessOutcomeItem = async (
   });
 };
 
-const seedBlockedReadinessItem = async (): Promise<void> => {
-  const item = workItem("Readiness blocked", "R3", "ACTIVE", null);
+const seedBlockedReadinessItem = async (
+  title = "Readiness blocked",
+  priorReady = false,
+): Promise<void> => {
+  const item = workItem(title, "R3", "ACTIVE", null);
   storeWorkItem(database, item);
-  await currentFileArtifact(seedRuntime, item, "docs/r3.md", "R3", "P7");
-  const contextHash = sha256Text("readiness-blocked");
+  const output = await currentFileArtifact(
+    seedRuntime,
+    item,
+    "docs/r3.md",
+    "R3",
+    "P7",
+  );
+  if (priorReady) {
+    const priorContextHash = sha256Text("readiness-prior-ready-" + title);
+    const prior = RunSchema.parse({
+      id: newRunId(),
+      workItemId: item.id,
+      executionTaskId: null,
+      stage: "R3",
+      mode: "INTERACTIVE",
+      role: "STAGE",
+      triggerEventId: null,
+      status: "COMPLETED",
+      attempt: 1,
+      baselineCommit,
+      contextHash: priorContextHash,
+      providerSessionId: null,
+      terminalClassification: null,
+      startedAt: stamp,
+      endedAt: stamp,
+    });
+    storeRun(database, prior);
+    appendRunEvent(seedRuntime, prior.id, {
+      tag: "STAGE_STARTED",
+      stage: "R3",
+      mode: "INTERACTIVE",
+      contextHash: priorContextHash,
+    });
+    appendRunEvent(seedRuntime, prior.id, {
+      tag: "CONFORMANCE_PASSED",
+      stage: "R3",
+      outputArtifactRefIds: [output.id],
+      contextHash: priorContextHash,
+      evidence: [],
+    });
+    appendRunEvent(seedRuntime, prior.id, {
+      tag: "STAGE_COMPLETED",
+      completion: { stage: "R3", outcome: "READY_FOR_SIGNOFF" },
+      artifactRefIds: [output.id],
+    });
+  }
+
+  const contextHash = sha256Text("readiness-blocked-" + title);
   const run = RunSchema.parse({
     id: newRunId(),
     workItemId: item.id,
@@ -1130,7 +1179,7 @@ const seedBlockedReadinessItem = async (): Promise<void> => {
     role: "STAGE",
     triggerEventId: null,
     status: "BLOCKED",
-    attempt: 1,
+    attempt: priorReady ? 2 : 1,
     baselineCommit,
     contextHash,
     providerSessionId: null,
@@ -1173,6 +1222,7 @@ await seedReadinessOutcomeItem(
   "RETURN_TO_PLAN",
 );
 await seedBlockedReadinessItem();
+await seedBlockedReadinessItem("Readiness blocked after prior ready", true);
 
 await seedProgressionReadyItem(
   "Requirements ready after Research",

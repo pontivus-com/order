@@ -98,16 +98,16 @@ export const ReadinessWorkspace = ({
     .filter((artifact) => packageRoles.has(artifact.role))
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
-  const readinessCompletion = stageRuns
-    .flatMap((run) => {
-      const event = [...runEvents]
+  const latestReadinessRun = stageRuns[0] ?? null;
+  const readinessCompletion =
+    latestReadinessRun === null
+      ? null
+      : [...runEvents]
         .filter((candidate) =>
-          candidate.runId === run.id &&
+          candidate.runId === latestReadinessRun.id &&
           candidate.event.tag === "STAGE_COMPLETED" &&
           candidate.event.completion.stage === "R3")
-        .sort((left, right) => right.sequence - left.sequence)[0];
-      return event === undefined ? [] : [event];
-    })[0] ?? null;
+        .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
   const readinessOutcome =
     readinessCompletion?.event.tag === "STAGE_COMPLETED" &&
       readinessCompletion.event.completion.stage === "R3"
@@ -116,9 +116,9 @@ export const ReadinessWorkspace = ({
   const readinessVerdict =
     readinessOutcome !== null
       ? readinessOutcomeLabel(readinessOutcome)
-      : stageRuns[0]?.status === "BLOCKED"
+      : latestReadinessRun?.status === "BLOCKED"
         ? "Blocked"
-        : stageRuns[0]?.status === "FAILED"
+        : latestReadinessRun?.status === "FAILED"
           ? "Review failed"
           : "Review in progress";
 

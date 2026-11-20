@@ -744,12 +744,28 @@ export const durableDecisionCompletionIsAdmitted = (
     }
   }
   if (latestAnsweredDurableSequence === null) return true;
-  return history.some(
+
+  const proposals = history.filter(
     (event) =>
       event.sequence > latestAnsweredDurableSequence &&
-      event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
-      event.event.disposition === "ADOPTED",
+      event.event.tag === "ARTIFACT_PROPOSAL_CREATED",
   );
+  return proposals.some((proposal) => {
+    const adoption = history.find(
+      (event) =>
+        event.sequence > proposal.sequence &&
+        event.event.tag === "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED" &&
+        event.event.proposalEventId === proposal.id,
+    );
+    if (adoption === undefined) return false;
+    return history.some(
+      (event) =>
+        event.sequence > adoption.sequence &&
+        event.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED" &&
+        event.event.proposalEventId === proposal.id &&
+        event.event.disposition === "ADOPTED",
+    );
+  });
 };
 
 export const validateStageProviderTurn = (

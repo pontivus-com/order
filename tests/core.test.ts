@@ -1081,6 +1081,62 @@ describe("functional lifecycle and execution policy", () => {
       [started, request, answer, proposal, adoptionRequested],
     )).toBe(false);
 
+    // An unrelated proposal that predates the durable answer cannot become the
+    // decision's durable authority merely because it is adopted afterwards.
+    const priorProposal = RunEventSchema.parse({
+      ...proposal,
+      id: "event_66666666-6666-4666-8666-666666666666",
+      sequence: 2,
+    });
+    const laterRequest = RunEventSchema.parse({
+      ...request,
+      id: "event_77777777-7777-4777-8777-777777777777",
+      sequence: 3,
+    });
+    const laterAnswer = RunEventSchema.parse({
+      ...answer,
+      id: "event_88888888-8888-4888-8888-888888888888",
+      sequence: 4,
+      event: {
+        tag: "HUMAN_INPUT_RECEIVED",
+        requestEventId: laterRequest.id,
+        text: "Use the canonical P2 owner.",
+      },
+    });
+    const priorAdoptionRequested = RunEventSchema.parse({
+      ...adoptionRequested,
+      id: "event_99999999-9999-4999-8999-999999999999",
+      sequence: 5,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_ADOPTION_REQUESTED",
+        proposalEventId: priorProposal.id,
+      },
+    });
+    const priorAdopted = RunEventSchema.parse({
+      ...adopted,
+      id: "event_aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      sequence: 6,
+      event: {
+        tag: "ARTIFACT_PROPOSAL_DISPOSITIONED",
+        proposalEventId: priorProposal.id,
+        disposition: "ADOPTED",
+        adoptedArtifactRefId: adopted.event.tag === "ARTIFACT_PROPOSAL_DISPOSITIONED"
+          ? adopted.event.adoptedArtifactRefId
+          : null,
+      },
+    });
+    expect(durableDecisionCompletionIsAdmitted(
+      run,
+      [
+        started,
+        priorProposal,
+        laterRequest,
+        laterAnswer,
+        priorAdoptionRequested,
+        priorAdopted,
+      ],
+    )).toBe(false);
+
     const cancelledRun = RunSchema.parse({
       ...run,
       status: "CANCELLED",
