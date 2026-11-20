@@ -5488,7 +5488,7 @@ describe("daemon control plane", () => {
 
 
   it("binds current-v2 and historical schema pins to their exact lifecycle authority refs", () => {
-    const prepare = (schema: "change-v1" | "change-v2") => {
+    const resolve = (schema: "change-v1" | "change-v2") => {
       const repository = createRepository("fixture");
       writeFileSync(join(repository, "docs", "work-lifecycle.md"), "# work lifecycle\n");
       writeFileSync(join(repository, "docs", "lifecycle-context-current.md"), "# current lifecycle context\n");
@@ -5512,43 +5512,67 @@ describe("daemon control plane", () => {
       writeFileSync(manifestPath, manifest);
       runGit(repository, "add", ".");
       runGit(repository, "commit", "--amend", "--no-edit");
+
       const state = tempDir("order-daemon-authority-pin-");
-      const output = bunEval(
-        seedSignoffScript(
-          repository,
-          state,
-          `
-            const r2Context = await authority.resolveStageContext(
-              runtime,
-              seedWorkItem,
-              "R2",
-            );
-            const p3Paths = r2Context.artifacts
-              .filter((artifact) => artifact.authorityLayer === "P3")
-              .map((artifact) => artifact.repositoryPath);
-          `,
-          "human",
-          schema,
-        ) + `
-          console.log(JSON.stringify({ p3Paths }));
+      try {
+        return bunEval(`
+          const sql = await import("./src/shell/sqlite.ts");
+          const coord = await import("./src/daemon/coordinator.ts");
+          const authority = await import("./src/daemon/authority.ts");
+          const database = sql.openOrderDatabase(${JSON.stringify(state)});
+          const repositoryRoot = ${JSON.stringify(repository)};
+          const runtime = coord.createCoordinatorRuntime(
+            database,
+            ${JSON.stringify(state)},
+            process.env,
+            {
+              version: 4,
+              model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+              repositoryRoots: [repositoryRoot],
+              referenceRoots: [],
+            },
+          );
+          const created = await coord.createWorkItem(runtime, {
+            projectId: "fixture",
+            schemaId: ${JSON.stringify(schema)},
+            title: "authority pin",
+            concernIds: [],
+          });
+          const current = coord.getWorkItem(runtime, created.id);
+          const resolved = await authority.resolveStageContextState(
+            runtime,
+            current,
+            "R2",
+          );
+          const p3Paths = resolved.context.artifacts
+            .filter((artifact) => artifact.authorityLayer === "P3")
+            .map((artifact) => artifact.repositoryPath);
+          console.log(JSON.stringify({
+            staleStage: resolved.staleStage,
+            p3Paths,
+          }));
           database.close();
-        `,
-      ) as { p3Paths: string[] };
-      rmSync(repository, { recursive: true, force: true });
-      rmSync(state, { recursive: true, force: true });
-      return output.p3Paths;
+        `) as { staleStage: string | null; p3Paths: string[] };
+      } finally {
+        rmSync(repository, { recursive: true, force: true });
+        rmSync(state, { recursive: true, force: true });
+      }
     };
 
-    expect(prepare("change-v2")).toEqual([
+    const current = resolve("change-v2");
+    expect(current.staleStage).toBe("R1");
+    expect(current.p3Paths).toEqual([
       "docs/lifecycle-context-current.md",
       "docs/work-lifecycle.md",
     ]);
-    expect(prepare("change-v1")).toEqual([
+
+    const retained = resolve("change-v1");
+    expect(retained.staleStage).toBe("R1");
+    expect(retained.p3Paths).toEqual([
       "docs/lifecycle-context-v1.md",
       "docs/work-lifecycle.md",
     ]);
   }, 60_000);
-
   it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
     const repository = createRepository();
     writeFileSync(join(repository, "docs", "product.md"), "# product\n");
@@ -5800,7 +5824,7 @@ describe("daemon control plane", () => {
     expect(output.message).toContain("current R3 conformance is missing or stale");
   }, 30_000);
 
-  it("routes newly resolved post-signoff authority through APPROVAL_STALE before provider mutation", () => {
+  it("does not stale an Approval for newly reachable but non-material authority", () => {
     const repository = createRepository();
     mkdirSync(join(repository, "docs", "governance"), { recursive: true });
     writeFileSync(
@@ -5813,45 +5837,32 @@ describe("daemon control plane", () => {
     runGit(repository, "add", "pontivus-order.toml");
     runGit(repository, "commit", "--amend", "--no-edit");
 
-    const state = tempDir("order-daemon-new-authority-stale-");
-    const binary = createFakeOpenCode("fix");
+    const state = tempDir("order-daemon-new-reachable-authority-");
     const output = bunEval(`
       ${seedSignoffScript(repository, state)}
-      await Bun.write(repositoryRoot + "/docs/governance/new.md", "# new P1 authority\\n");
-      const tick = await coord.runCoordinatorTick(runtime);
-      const task = (await coord.listExecutionTasks(runtime, work))[0];
-      const postRuns = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
-      const firstRun = postRuns[0];
-      const events = firstRun ? coord.listRunEvents(runtime, firstRun.id) : [];
-      console.log(JSON.stringify({
-        tick,
-        workItem: coord.getWorkItem(runtime, work),
-        taskState: task?.state ?? null,
-        providerSessionId: firstRun?.providerSessionId ?? null,
-        failures: events
-          .filter((event) => event.event.tag === "VALIDATION_FAILED")
-          .map((event) => event.event),
-      }));
+      await Bun.write(repositoryRoot + "/docs/governance/new.md", "# newly reachable but unreferenced P1 authority\\n");
+      const freshness = await authority.approvalFreshness(runtime, approval);
+      console.log(JSON.stringify(freshness));
       database.close();
-    `, providerEnvironment(binary, state), 180_000) as {
-      workItem: { stage: string; status: string };
-      taskState: string | null;
-      providerSessionId: string | null;
-      failures: Array<{ tag: string; stage: string; classification: string }>;
-    };
+    `) as { fresh: boolean; changedOwners: string[] };
 
-    expect(output.workItem).toMatchObject({ stage: "R2", status: "ACTIVE" });
-    expect(output.taskState).toBe("BLOCKED");
-    expect(output.providerSessionId).toBeNull();
-    expect(output.failures).toContainEqual(
-      expect.objectContaining({
-        tag: "VALIDATION_FAILED",
-        stage: "V1",
-        classification: "APPROVAL_STALE",
-      }),
-    );
+    expect(output).toEqual({ fresh: true, changedOwners: [] });
   }, 30_000);
 
+  it("stales an Approval when material P1 authority changes post-signoff", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-material-authority-stale-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await Bun.write(repositoryRoot + "/AGENTS.md", "# changed material P1 authority\\n");
+      const freshness = await authority.approvalFreshness(runtime, approval);
+      console.log(JSON.stringify(freshness));
+      database.close();
+    `) as { fresh: boolean; changedOwners: string[] };
+
+    expect(output.fresh).toBe(false);
+    expect(output.changedOwners).toContain("R1");
+  }, 30_000);
 
   it("does not let a running execution Run overwrite an observed source-drift return", () => {
     const repository = createRepository();
