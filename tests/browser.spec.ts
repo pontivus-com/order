@@ -268,6 +268,61 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await expect(page.getByRole("radio", { name: "System" })).toBeChecked();
 });
 
+test("System, Light and Dark preserve representative Workbench semantic roles", async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(180_000);
+  await page.emulateMedia({ colorScheme: "dark" });
+  await authenticate(page, request);
+  await page.setViewportSize({ width: 1280, height: 800 });
+
+  for (const theme of ["System", "Light", "Dark"] as const) {
+    await page.goto("/");
+    await page.getByRole("radio", { name: theme }).click();
+    await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
+    await page.getByRole("button", { name: "New work item" }).click();
+    await expect(page.getByRole("dialog", { name: "Create work item" })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+
+    await page.getByRole("link", { name: "Settings", exact: true }).click();
+    await expect(page.getByTestId("settings-workspace")).toBeVisible();
+
+    await page.goto("/");
+    await openWorkItem(page, "Implementation plan document visual");
+    await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+    await page.getByRole("button", { name: "Context", exact: true }).click();
+    await expect(page.getByTestId("work-item-context")).toBeVisible();
+
+    await page.goto("/");
+    await openWorkItem(page, "Research open continuation");
+    await expect(page.getByTestId("activity-detail")).toBeVisible();
+    await expect(page.getByTestId("activity-composer")).toBeVisible();
+
+    await page.goto("/");
+    await openWorkItem(page, "Readiness ready after Plan");
+    await expect(page.getByTestId("review-workspace")).toBeVisible();
+
+    await page.goto("/");
+    await openWorkItem(page, "Verified candidate");
+    await selectWorkflowStep(page, "Implementation");
+    await expect(page.getByTestId("execution-workspace")).toBeVisible();
+    await selectWorkflowMaterial(page, "Independent review · Attempt 1");
+    const reviewEvidence = page
+      .locator('[data-evidence-path="review.txt"]')
+      .first()
+      .getByRole("button", { name: "Evidence: review.txt" });
+    await reviewEvidence.scrollIntoViewIfNeeded();
+    await reviewEvidence.click();
+    await expect(page.getByRole("heading", { name: "Evidence", exact: true })).toBeVisible();
+    await expect(page.getByTestId("raw-content-view")).toBeVisible();
+    await page.getByRole("button", { name: "Back to workflow context" }).click();
+    await selectWorkflowStep(page, "Complete");
+    await expect(page.getByTestId("result-workspace")).toBeVisible();
+  }
+});
+
 test("Settings uses stable native-history destinations and daemon-owned readiness", async ({
   page,
   request,
@@ -2188,6 +2243,71 @@ test("work-type variants preserve their canonical Work request information contr
     await expect(page.getByRole("button", { name: "Start Research", exact: true })).toBeVisible();
     await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
   }
+
+  const researchVariants = [
+    {
+      title: "Change research contract",
+      kind: "Change",
+      headings: [
+        "Current state / absence",
+        "Evidence",
+        "Governing authority",
+        "Affected producer→consumer path",
+        "Downstream invariants",
+        "Unresolved facts",
+        "Verdict",
+      ],
+    },
+    {
+      title: "Defect research contract",
+      kind: "Defect",
+      headings: [
+        "Observed symptom / reproduction",
+        "Proven root cause",
+        "Producer→carrier→consumer path",
+        "Downstream effects / invariants",
+        "Governing authority",
+        "Unresolved facts",
+        "Verdict",
+      ],
+    },
+    {
+      title: "Investigation research contract",
+      kind: "Investigation",
+      headings: ["Question", "Evidence for / against", "Findings", "Unresolved questions", "Conclusion"],
+    },
+    {
+      title: "Audit research contract",
+      kind: "Audit",
+      headings: ["Target / criteria", "Evidence by criterion", "Findings", "Verdict"],
+    },
+  ] as const;
+
+  for (const variant of researchVariants) {
+    await page.goto("/");
+    await openWorkItem(page, variant.title);
+    await expect(page.locator(".order-workitem-kind")).toHaveText(variant.kind);
+    const research = page.getByTestId("lifecycle-document-material");
+    await expect(research).toBeVisible();
+    for (const heading of variant.headings) await expect(research).toContainText(heading);
+  }
+
+  await page.goto("/");
+  await openWorkItem(page, "Change requirements contract");
+  const changeRequirements = page.getByTestId("lifecycle-document-material");
+  await expect(changeRequirements).toContainText("Requested outcome");
+  await expect(changeRequirements).toContainText("Proven current-state / absence basis");
+  await expect(changeRequirements).toContainText("Required observable outcome / delta");
+  await expect(changeRequirements).not.toContainText("Proven defect / root cause");
+
+  await page.goto("/");
+  await openWorkItem(page, "Defect requirements contract");
+  const defectRequirements = page.getByTestId("lifecycle-document-material");
+  await expect(defectRequirements).toContainText("Proven defect / root cause");
+  await expect(defectRequirements).toContainText("Expected corrected behavior");
+  await expect(defectRequirements).toContainText("Behavior that must remain unchanged");
+  await expect(defectRequirements).toContainText("Regression / preservation acceptance");
+  await expect(defectRequirements).not.toContainText("Proven current-state / absence basis");
 });
 
 test("Readiness required input owns the action without replacing Review", async ({

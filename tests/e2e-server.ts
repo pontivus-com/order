@@ -132,6 +132,159 @@ The change is confirmed and the governing evidence is recorded.
 - repository state inspected
 - workflow ownership confirmed
 `;
+const changeResearchText = `# Research
+
+## Current state / absence
+
+The requested change is not currently realized.
+
+## Evidence
+
+Repository evidence proves the current state.
+
+## Governing authority
+
+Canonical product and functional authority define the requested change.
+
+## Affected producer→consumer path
+
+The producing and consuming boundaries are identified.
+
+## Downstream invariants
+
+Existing behavior outside the requested change remains governed.
+
+## Unresolved facts
+
+None.
+
+## Verdict
+
+CONFIRMED
+`;
+const defectResearchText = `# Research
+
+## Observed symptom / reproduction
+
+The defect is reproducible from the recorded evidence.
+
+## Proven root cause
+
+The producing boundary is proven.
+
+## Producer→carrier→consumer path
+
+The defect propagation path is explicit.
+
+## Downstream effects / invariants
+
+Regression and preservation effects are recorded.
+
+## Governing authority
+
+Expected behavior is grounded in canonical authority.
+
+## Unresolved facts
+
+None.
+
+## Verdict
+
+CONFIRMED
+`;
+const investigationResearchText = `# Research
+
+## Question
+
+What does the evidence establish?
+
+## Evidence for / against
+
+The material evidence is recorded on both sides.
+
+## Findings
+
+The investigation findings are explicit.
+
+## Unresolved questions
+
+None.
+
+## Conclusion
+
+The investigation can terminate from Research.
+`;
+const auditResearchText = `# Research
+
+## Target / criteria
+
+The audited target and governing criteria are explicit.
+
+## Evidence by criterion
+
+Evidence is organized against each criterion.
+
+## Findings
+
+Audit findings are recorded.
+
+## Verdict
+
+The audit can terminate from Research.
+`;
+const changeRequirementsContractText = `# Requirements
+
+## Requested outcome
+
+The requested outcome remains the governing change intent.
+
+## Proven current-state / absence basis
+
+Research proves the existing absence that motivates the change.
+
+## Required observable outcome / delta
+
+The exact required delta is defined.
+
+## Acceptance criteria
+
+The requested outcome must be observably satisfied.
+
+## Scope / exclusions
+
+Only the governed change is in scope.
+
+## Failure / negative behavior
+
+Invalid or incomplete realization must not be accepted.
+`;
+const defectRequirementsContractText = `# Requirements
+
+## Proven defect / root cause
+
+Requirements remain traceable to the reproduced defect and proven root cause.
+
+## Expected corrected behavior
+
+The original defect must be corrected.
+
+## Behavior that must remain unchanged
+
+Unrelated behavior is a preservation obligation.
+
+## Acceptance proving the original defect
+
+Verification must reproduce and close the original failure.
+
+## Regression / preservation acceptance
+
+Regression and preservation checks are mandatory.
+
+## Scope / exclusions
+
+Only the governed remediation is in scope.
+`;
+
 const requirementsText = `# Requirements
 
 ## Purpose / product model
@@ -257,7 +410,13 @@ gates = []
 
 writeFileSync(join(repositoryRoot, "pontivus-order.toml"), manifestText);
 writeFileSync(join(repositoryRoot, "docs", "r1.md"), researchText);
+writeFileSync(join(repositoryRoot, "docs", "change-r1.md"), changeResearchText);
+writeFileSync(join(repositoryRoot, "docs", "defect-r1.md"), defectResearchText);
+writeFileSync(join(repositoryRoot, "docs", "investigation-r1.md"), investigationResearchText);
+writeFileSync(join(repositoryRoot, "docs", "audit-r1.md"), auditResearchText);
 writeFileSync(join(repositoryRoot, "docs", "r2.md"), requirementsText);
+writeFileSync(join(repositoryRoot, "docs", "change-r2.md"), changeRequirementsContractText);
+writeFileSync(join(repositoryRoot, "docs", "defect-r2.md"), defectRequirementsContractText);
 writeFileSync(join(repositoryRoot, "docs", "design.md"), designText);
 writeFileSync(join(repositoryRoot, "docs", "plan.md"), planText);
 writeFileSync(
@@ -586,6 +745,26 @@ persistEvent(retryRun.id, 1, {
 });
 
 const seedRuntime = createCoordinatorRuntime(database, stateRoot, process.env, orderConfig);
+
+for (const [title, schemaId, path] of [
+  ["Change research contract", "change-v1", "docs/change-r1.md"],
+  ["Defect research contract", "defect-v1", "docs/defect-r1.md"],
+  ["Investigation research contract", "investigation-v1", "docs/investigation-r1.md"],
+  ["Audit research contract", "audit-v1", "docs/audit-r1.md"],
+] as const) {
+  const item = workItem(title, "R1", "ACTIVE", null, schemaId);
+  storeWorkItem(database, item);
+  await currentFileArtifact(seedRuntime, item, path, "R1", "P1");
+}
+
+for (const [title, schemaId, path] of [
+  ["Change requirements contract", "change-v1", "docs/change-r2.md"],
+  ["Defect requirements contract", "defect-v1", "docs/defect-r2.md"],
+] as const) {
+  const item = workItem(title, "R2", "ACTIVE", null, schemaId);
+  storeWorkItem(database, item);
+  await currentFileArtifact(seedRuntime, item, path, "R2", "P3");
+}
 
 const seedConformance = async (
   item: ReturnType<typeof workItem>,

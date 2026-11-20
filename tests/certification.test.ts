@@ -492,6 +492,47 @@ describe("Order cross-boundary certification", () => {
       "main.tsx",
     ]);
 
+    const rendererClassifications = {
+      "ActivityComposer.tsx": "ChatComposer",
+      "ActivityWorkspace.tsx": "WorkbenchDialogue",
+      "CreateWorkItem.tsx": "WorkbenchForm",
+      "DocumentWorkspace.tsx": "WorkbenchConfirmation",
+      "EvidenceViewer.tsx": "WorkbenchSurface",
+      "ExecutionWorkspace.tsx": "WorkbenchMasterDetail",
+      "MarkdownEditor.tsx": "WorkbenchToolbar",
+      "MarkdownSourceEditor.tsx": "EditorView",
+      "OpenCodeAccountControl.tsx": "WorkbenchUtilityLink",
+      "OpenCodeAccountSettings.tsx": "WorkbenchForm",
+      "PreSignoffStageWorkspace.tsx": "WorkbenchDisclosure",
+      "ProposalReview.tsx": "WorkbenchReview",
+      "ReadinessWorkspace.tsx": "WorkbenchReview",
+      "RunEventTimeline.tsx": "WorkbenchTimeline",
+      "SettingsWorkspace.tsx": "WorkbenchSettingsLayout",
+      "SignoffReview.tsx": "WorkbenchReview",
+      "TerminalResult.tsx": "WorkbenchSurface",
+      "WorkItemContext.tsx": "WorkbenchContextPanel",
+      "WorkItemIdentityRow.tsx": "WorkbenchIdentity",
+      "WorkItemQueue.tsx": "WorkbenchTable",
+      "WorkItemWorkspace.tsx": "WorkbenchLayout",
+      "WorkflowMaterialSelector.tsx": "WorkbenchSelector",
+      "WorkflowRail.tsx": "WorkbenchRail",
+      "WorkflowStepFrame.tsx": "WorkbenchAttention",
+      "app.tsx": "WorkbenchLayout",
+    } as const;
+    const productionRenderers = renderers.filter((name) => name !== "main.tsx");
+    expect(Object.keys(rendererClassifications).sort()).toEqual(productionRenderers);
+    for (const [name, marker] of Object.entries(rendererClassifications)) {
+      expect(read("ui/src/" + name)).toContain(marker);
+    }
+    const unclassified = (names: readonly string[]): readonly string[] =>
+      names.filter((name) =>
+        name !== "main.tsx" &&
+        !Object.prototype.hasOwnProperty.call(rendererClassifications, name)
+      );
+    expect(unclassified(renderers)).toEqual([]);
+    expect(unclassified([...renderers, "UnclassifiedFixture.tsx"]))
+      .toEqual(["UnclassifiedFixture.tsx"]);
+
     const bootstrap = new Set(["main.tsx"]);
     const rendererSource = renderers
       .filter((name) => !bootstrap.has(name))
@@ -1811,6 +1852,47 @@ materialRefs = []
   });
 });
 
+describe("0.6.0 composed closure certification", () => {
+  it("keeps one canonical owner per corrected concern with no compatibility fallback or shadow state", () => {
+    const source = read("src/daemon/work-item-source.ts");
+    const create = source.slice(
+      source.indexOf("export const createWorkItemFromSource"),
+      source.indexOf("const activeRunExists"),
+    );
+    expect(create).toContain("applyPlan(runtime, plan)");
+    expect(create).not.toContain("storeWorkItem(");
+
+    const execution = read("src/core/execution.ts");
+    expect(execution.match(/SignedTaskBlockSchema\.parse/g) ?? []).toHaveLength(1);
+    expect(execution).toContain("admitSignedTaskBlockForSchema");
+
+    const governance = read("src/core/governance.ts");
+    expect(governance).toContain("resolveProjectAuthority");
+    expect(governance).toContain("permanentAuthorityProposalIsAdmitted");
+
+    const lifecycle = read("src/core/lifecycle.ts");
+    expect(lifecycle).toContain("durableDecisionCompletionIsAdmitted");
+    expect(lifecycle).not.toContain("durableDecisionStore");
+
+    const setup = read("src/shell/setup.ts");
+    expect(setup).not.toContain("allowLegacyUpdate && configured === null && !reconfigure");
+    expect(setup).toContain("allowLegacyUpdate && configured?.version === 4 && !reconfigure");
+    expect(setup).toContain("setup in browser Settings.");
+
+    const presentation = read("ui/src/workbench-presentation.ts");
+    expect(presentation).toContain("workOutcomeProductLabel");
+    expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme/);
+
+    const daemonExecution = read("src/daemon/execution.ts");
+    const validation = read("src/daemon/validation.ts");
+    const openCode = read("src/shell/opencode.ts");
+    expect(daemonExecution).toContain("GATE_CHECKPOINT_REQUESTED");
+    expect(validation).toContain("forecastVariancePaths");
+    expect(openCode).toContain("task.scope.map");
+    expect(openCode).not.toContain("for (const path of task.changeSurface)");
+  });
+});
+
 describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
   it("keeps current attention, readiness, approval hierarchy, focus, settings detail and product labels on canonical owners", () => {
     const presentation = read("ui/src/workbench-presentation.ts");
@@ -2032,7 +2114,6 @@ describe("public release delivery certification", () => {
   it("retains permanent 0.2.1 installed-state and browser seam certification", () => {
     const suites = {
       shell: read("tests/shell.test.ts"),
-      installer: read("tests/installer.test.ts"),
       daemon: read("tests/daemon.test.ts"),
       opencode: read("tests/opencode.test.ts"),
       migration: read("tests/order-migration.test.ts"),
@@ -2040,18 +2121,11 @@ describe("public release delivery certification", () => {
     };
 
     for (const required of [
+      "initializes fresh installs as valid incomplete v4 without terminal configuration prompts",
       "retains current incomplete v4 exactly during installer update without prompting",
       "supports valid incomplete v4 configuration and expected-hash replacement",
     ]) {
       expect(suites.shell).toContain(required);
-    }
-
-    for (const required of [
-      "fresh success completes provider, model and repository choices before returning zero",
-      "fresh provider failure cannot persist deferred Settings configuration",
-      "fresh provider cancellation returns 130 without persisting deferred configuration",
-    ]) {
-      expect(suites.installer).toContain(required);
     }
 
     for (const required of [

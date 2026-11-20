@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -239,6 +240,13 @@ const resolveFixtureMaterial = (
 };
 
 describe("workflow presentation policy", () => {
+  it("keeps workflow semantics independent of theme selection", () => {
+    const presentation = readFileSync(
+      new URL("../ui/src/workbench-presentation.ts", import.meta.url),
+      "utf8",
+    );
+    expect(presentation).not.toMatch(/data-theme|prefers-color-scheme|colorScheme|localStorage/);
+  });
   it("uses explicit canonical product labels and typed Readiness outcomes", () => {
     expect(workOutcomeProductLabel(null)).toBe("Complete");
     expect(workOutcomeProductLabel("DISPROVEN")).toBe("Disproven");
