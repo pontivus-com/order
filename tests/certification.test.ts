@@ -1834,7 +1834,7 @@ describe("0.6.0 Wave 2 contract certification", () => {
 
     const approvalSchema = contracts.slice(
       contracts.indexOf("export const ApprovalSchema"),
-      contracts.indexOf("export type Approval"),
+      contracts.indexOf("export type Approval ="),
     );
     expect(approvalSchema).toContain(".trim()");
     expect(approvalSchema).toContain('approvedBy must be non-empty');
