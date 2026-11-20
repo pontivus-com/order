@@ -1811,11 +1811,17 @@ materialRefs = []
     );
     expect(stageAuthority).toContain("resolveAuthoritySources");
     expect(stageAuthority).toContain("resolveProjectAuthority(manifest, sources)");
+    const materiality = authority.slice(
+      authority.indexOf("const applicableAuthorityPaths"),
+      authority.indexOf("export type StageContextResolution"),
+    );
+    expect(materiality).toContain("for (const layer of authority.layers)");
+    expect(materiality).toContain("if (!applicablePaths.has(path)) continue");
     const stageContext = authority.slice(
       authority.indexOf("export const resolveStageContextState"),
       authority.indexOf("export const resolveStageConformanceState"),
     );
-    expect(stageContext).toContain("for (const layer of authority.layers)");
+    expect(stageContext).toContain("applicableAuthorityPaths");
     expect(stageContext).not.toContain("for (const path of sources[layer])");
     expect(stageContext).not.toContain("manifest.authority[");
 
