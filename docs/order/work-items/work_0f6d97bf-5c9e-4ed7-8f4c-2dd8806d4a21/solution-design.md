@@ -6,8 +6,8 @@
 
 This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
-- R1 `research.md`: blob `a22200e0765f740e89b2f05727e126fbf9e0b034` — G-F12 reconstructed factual package; 112/112 stable requirements retain exact evidence and the complete work-kind × workflow-step × information × OpenCode × Workbench realization analysis; material UNPROVEN = 0.
-- R2 `requirements.md`: blob `332cc0a0ebcbc317be3da8dbd4edc538695eab6d` — post-`ALIGN-A09-F01` functional package; 111/112 stable requirements retain canonical `REFERENCE` ownership and `GW-FR-079` is the single stable `DELTA` resolving the fresh-install contradiction at its existing P3 owner. Complete package behavior remains explicit for all four work kinds, every applicable workflow step, productive interaction, current attention/material selection, failure/return and terminal closure.
+- R1 `research.md`: blob `d2eb1627e2b9a145f785b04829b56c623b7431e9` — G-F12 factual package plus post-closeout rendered-evidence findings C19-F02/C20-F05. The first exact-candidate Queue/Create capture proves the Workbench presentation migration is incomplete; current UI remains defect evidence, not desired-state authority.
+- R2 `requirements.md`: blob `6bea86efd799e08cb63849d528cfca24e98d283e` — functional package unchanged in product semantics but now explicitly binds the rendered-evidence consequence: every UI domain must realize the already-defined Primary/Supporting/Technical hierarchy and canonical interaction class through one Workbench language; semantic/browser assertions alone cannot prove rendered fulfillment.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
 - P4 Workbench: `36b5628f5d54d168aed25f0af71226114266068a`.
@@ -141,17 +141,41 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 - SD19 remains the minimum technical realization: one installer-owned setup flow, one canonical configuration/provider owner, no second readiness state, and post-install/update recovery preserved in the existing Settings/daemon path.
 - No new P4/P5/P6 decision is required by `C16-F04`; the previous SD19 direction is retained because it now traces to non-contradictory P3 authority rather than because implementation/P4/P6 happened to converge on it.
 
-### G-F12 DESIGN closure decision
+### G-F12 DESIGN closure decision — corrected after rendered-evidence revalidation
 
-- Every applicable work kind and workflow step has an explicit schema/template applicability decision, canonical carrier chain, producer/consumer boundary, core/daemon/shell/UI ownership, failure/recovery/terminal path and proof consequence.
-- Investigation/Audit technical terminalization is explicit and has no synthetic delivery carrier.
-- Change/Defect technical divergence is explicit through R1/R2/DESIGN/PLAN while shared R3/Approval/Implementation/Complete machinery remains singular.
-- The complete OpenCode interaction model is mapped to Run/RunEvent/context/session/proposal/admission owners.
-- Current attention/material selection, primary/supporting/technical hierarchy, responsive semantics and focus ownership are mapped to the closed core derivations and Workbench primitive composition.
-- Existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new dependency is introduced.
-- Open technical questions: NONE.
-- Material technical UNPROVEN: 0.
-- PLAN may decompose only the explicit SD01-SD20 delta/verification obligations and the positive proof obligations attached to reused realization; it may not infer a missing technical decision from implementation.
+The previous DESIGN closure incorrectly treated the Workbench presentation foundation as already conforming. C19-F02/C20-F05 disprove that implementation assumption without changing R2 product semantics. This corrected DESIGN therefore distinguishes **semantic preservation** from **presentation replacement**:
+
+- canonical lifecycle/domain/query/daemon/persistence/provider owners remain unchanged unless another existing SD explicitly changes them;
+- the browser presentation layer is **not** preserved as a baseline: P4 already requires architecture-preserving re-composition around the closed Workbench primitive/theme system and deletion of superseded feature-era presentation mechanisms;
+- every applicable work kind and workflow step retains the R2 information/interaction contract, but its renderer must be migrated onto the exact interaction class and primitive composition in P4 §8.15;
+- the application shell, Queue/Create, WorkItem shell, pre-signoff Document/Dialogue/Review surfaces, Approval, Implementation, Complete, Context, Evidence and Settings are all covered by explicit technical solutions below;
+- responsive/accessibility/theme behavior is designed as primitive-owned composition, not feature-specific shrink/wrap logic;
+- old feature-owned recurring form/table/status/notice/overlay/layout styling is deleted as each domain migrates; compatibility wrappers, hidden old DOM, duplicate CSS systems and local override patches are prohibited;
+- exact-candidate rendered acceptance supplements semantic/browser certification and is required before final closeout;
+- existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
+- open technical questions: NONE;
+- material technical UNPROVEN: 0 **after** SD21-SD30 below are included as binding DESIGN;
+- PLAN must implement SD21 before domain migrations SD22-SD29, then permanent certification/SD30; it may not tune individual screens on the superseded presentation foundation.
+
+#### UI reconstruction preservation boundary
+
+The following are preserved and must not be redesigned by UI implementation:
+
+- `src/core/lifecycle.ts` lifecycle/current-attention/material/recovery/rail decisions;
+- WorkItem/ArtifactRef/Run/RunEvent/Approval/ExecutionTask canonical contracts and persistence;
+- daemon/API/TanStack Query producer→carrier→consumer ownership;
+- WorkItem schema/kind information obligations and stage-specific document semantics;
+- proposal/adoption, sign-off, execution and provider admission/recovery behavior;
+- exact source/Markdown/Git ownership and stale-write/freshness rules.
+
+The following are replaced/re-composed:
+
+- primitive implementations and their recurring geometry/presentation;
+- `theme.css` feature-era recurring visual/layout ownership;
+- application shell/toolbar/Queue/Create composition;
+- every renderer in the canonical P4 renderer matrix plus the identity/rail/material-selector adapters that feed primitive composition;
+- responsive composition and cross-service theme parity;
+- old presentation branches/selectors whose responsibility is now primitive-owned.
 
 ## Technical change solution catalog
 
