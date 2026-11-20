@@ -1612,6 +1612,8 @@ p6 = []
 [refs]
 P1-STRICT = "docs/principles.md"
 P1-FCIS-EXT = "AGENTS.md"
+GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"
 
 [precedence]
 p2 = ["docs/product-b.md", "docs/product-a.md"]
