@@ -20,6 +20,7 @@ jobs:
       CI: "1"
       PONTIVUS_ORDER_TEST_STATE_ROOT: /tmp/pontivus-order-browser-state
       PONTIVUS_ORDER_OPENCODE_BIN: /tmp/pontivus-order-opencode/bin/opencode
+      PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT: /tmp/pontivus-order-opencode-drive
     steps:
       - name: Checkout exact PR merge candidate
         shell: bash
@@ -65,6 +66,18 @@ jobs:
           rm -rf /tmp/pontivus-order-opencode
           BUN_INSTALL=/tmp/pontivus-order-opencode bun install -g --trust @opencode/cli@2.2.6
           test "$(/tmp/pontivus-order-opencode/bin/opencode --version)" = "opencode v2.2.6"
+
+      - name: Install exact OpenCode Drive verification tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf "${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}"
+          mkdir -p "${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}"
+          cd "${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}"
+          printf '{"private":true,"type":"module"}\n' > package.json
+          bun add --exact opencode-drive@2.4.1 effect@4.0.1
+          test "$(node -p "require('${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}/node_modules/opencode-drive/package.json').version")" = "2.4.1"
+          test "$(node -p "require('${PONTIVUS_ORDER_OPENCODE_DRIVE_ROOT}/node_modules/effect/package.json').version")" = "4.0.1"
 
       - name: Verify PR release metadata
         run: bun scripts/verify-release.ts --mode pr --base "refs/remotes/origin/${{ github.event.pull_request.base.ref }}"
