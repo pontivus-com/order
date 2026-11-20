@@ -5421,6 +5421,10 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
       });
       const current = coord.getWorkItem(runtime, created.id);
+      const [, reachable] = await authority.resolveCurrentStageAuthority(
+        current,
+        "R1",
+      );
       const resolved = await authority.resolveStageContextState(
         runtime,
         current,
@@ -5436,10 +5440,13 @@ describe("daemon control plane", () => {
       const p2Paths = resolved.context.artifacts
         .filter((artifact) => artifact.authorityLayer === "P2")
         .map((artifact) => artifact.repositoryPath);
-      const p1 = resolved.context.authority.layers.find(
+      const p1 = reachable.layers.find(
         (entry) => entry.layer === "p1",
       );
-      const p2 = resolved.context.authority.layers.find(
+      const p2 = reachable.layers.find(
+        (entry) => entry.layer === "p2",
+      );
+      const materialP2 = resolved.context.authority.layers.find(
         (entry) => entry.layer === "p2",
       );
 
@@ -5461,12 +5468,10 @@ describe("daemon control plane", () => {
         p1,
         p2,
         p2Paths,
+        materialP2,
         inherited: resolved.context.authority.inheritedDefaultRuleIds,
         fitness: resolved.context.authority.fitnessGateIds,
         promptHasProjection: prompt.includes("Resolved project authority projection:"),
-        promptUsesResolvedP2Order:
-          prompt.indexOf("docs/product-b.md") <
-          prompt.indexOf("docs/product-a.md"),
         blockedBeforeRun,
       }));
       database.close();
@@ -5474,10 +5479,10 @@ describe("daemon control plane", () => {
       p1: { layer: string; sources: string[]; precedence: string[] };
       p2: { layer: string; sources: string[]; precedence: string[] };
       p2Paths: string[];
+      materialP2: { layer: string; sources: string[]; precedence: string[] };
       inherited: string[];
       fitness: string[];
       promptHasProjection: boolean;
-      promptUsesResolvedP2Order: boolean;
       blockedBeforeRun: boolean;
     };
 
@@ -5488,13 +5493,17 @@ describe("daemon control plane", () => {
       precedence: ["docs/product-b.md", "docs/product-a.md"],
     });
     expect(output.p2Paths).toEqual([]);
-    // Reachability/precedence remain in the authority projection; material
-    // context excludes unrelated selected sources.
+    expect(output.materialP2).toEqual({
+      layer: "p2",
+      sources: [],
+      precedence: [],
+    });
+    // Reachability/precedence remain available to governance while the
+    // productive context excludes unrelated selected sources.
     expect(output.inherited).toContain("GW-P1-FCIS");
     expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
     expect(output.fitness).toEqual(["architecture", "test"]);
     expect(output.promptHasProjection).toBe(true);
-    expect(output.promptUsesResolvedP2Order).toBe(true);
     expect(output.blockedBeforeRun).toBe(true);
   }, 30_000);
 
