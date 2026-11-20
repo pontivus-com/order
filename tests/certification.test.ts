@@ -1899,7 +1899,11 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(workspace).toContain("materialIdentity !== canonicalCurrentMaterialIdentity");
     expect(workspace).toContain('label={"Return to " + workflow.label}');
 
-    expect(composer).toContain("focusedRequestEventId.current === requiredInputEventId");
+    expect(workspace).toContain("focusedRequiredInputEventId, setFocusedRequiredInputEventId");
+    expect(workspace).toContain("onRequiredInputFocused={setFocusedRequiredInputEventId}");
+    expect(composer).toContain("focusedRequiredInputEventId === requiredInputEventId");
+    expect(composer).toContain("onRequiredInputFocused(requiredInputEventId)");
+    expect(composer).not.toContain("focusedRequestEventId.current");
     expect(composer).toContain("composerRegionRef.current?.focus({ preventScroll: true })");
     expect(composer).toContain("ref={composerRegionRef}");
     expect(composer).toContain("tabIndex={-1}");

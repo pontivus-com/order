@@ -3110,9 +3110,9 @@ describe("daemon control plane", () => {
         PLAN: root + "/implementation-plan.md",
       };
       fs.mkdirSync(path.join(repositoryRoot, root), { recursive: true });
-      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\n");
-      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R1), "# R1\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.R2), "# R2\\n");
+      fs.writeFileSync(path.join(repositoryRoot, files.DESIGN), "# DESIGN\\n");
       fs.writeFileSync(
         path.join(repositoryRoot, files.PLAN),
         ${JSON.stringify(vacuousCurrentV2Plan)},
