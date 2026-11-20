@@ -313,9 +313,16 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const repositoryTable = repositories.getByRole("table", {
     name: "Connected repositories",
   });
-  const repositoryRow = repositoryTable
-    .getByRole("row")
-    .filter({ hasText: repositoryRoot });
+  const technicalDetails = repositories.getByRole("button", {
+    name: "Technical details",
+    exact: true,
+  });
+  await technicalDetails.click();
+  await expect(repositories.getByTestId("repository-technical-details"))
+    .toContainText(repositoryRoot);
+  await expect(repositories.getByTestId("repository-technical-details"))
+    .toContainText("docs/order/work-items");
+  const repositoryRow = repositoryTable.getByRole("row").nth(1);
   await expect(repositoryRow).toBeVisible();
   const moveDocuments = repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / });
   await moveDocuments.click();
@@ -1477,8 +1484,7 @@ test("canonical Run feedback remains visible in the owning workflow context with
   await expect(
     requiredInputComposer.getByText("Answer the question above", { exact: true }),
   ).toBeVisible();
-  const requiredInputField = requiredInputComposer.getByLabel("Message input");
-  await expect(requiredInputField).toBeFocused();
+  await expect(requiredInputComposer).toBeFocused();
   const contextControl = page.getByRole("button", { name: "Context", exact: true });
   await contextControl.focus();
   await page.waitForTimeout(1_000);

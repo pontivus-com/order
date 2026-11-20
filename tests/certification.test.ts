@@ -1825,10 +1825,12 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(workspace).toContain("materialIdentity !== canonicalCurrentMaterialIdentity");
     expect(workspace).toContain('label={"Return to " + workflow.label}');
 
-    expect(composer).toContain("ChatComposerInputHandle");
     expect(composer).toContain("focusedRequestEventId.current === requiredInputEventId");
-    expect(composer).toContain("composerInputRef.current?.focus()");
-    expect(composer).toContain("handleRef={composerInputRef}");
+    expect(composer).toContain("composerRegionRef.current?.focus({ preventScroll: true })");
+    expect(composer).toContain("ref={composerRegionRef}");
+    expect(composer).toContain("tabIndex={-1}");
+    expect(composer).not.toContain("ChatComposerInputHandle");
+    expect(composer).not.toContain("handleRef=");
 
     expect(readiness).toContain("readinessOutcomeLabel(readinessOutcome)");
     expect(readiness).not.toContain("Derived from governed readiness-review material when present");
