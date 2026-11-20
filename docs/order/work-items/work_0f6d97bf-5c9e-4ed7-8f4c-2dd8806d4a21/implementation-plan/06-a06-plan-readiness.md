@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e01ce75ee0ece676c195a46f810186c24814e11f`; current DESIGN `8a6a5e19758da1701e22111b295d19cae77e8057`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
 
 ## Stable requirement execution dispositions
 
@@ -27,8 +27,8 @@ Package atoms in phase: **2**.
 
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the shared pre-signoff renderer migration for the Implementation plan surface.
-- **IA31** — consume the single Readiness/Approval Review migration definition for R3 presentation.
+- **IA30** — consume the shared pre-signoff destructive screen replacement for the Implementation plan surface.
+- **IA31** — consume the single Readiness/Approval destructive Review replacement definition for R3 presentation.
 
 ## Completion proof
 
