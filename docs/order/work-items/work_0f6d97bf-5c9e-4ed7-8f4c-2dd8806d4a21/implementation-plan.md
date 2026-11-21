@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `938406e7300f0a958fa487c6180cb0eb240557af` |
+| `implementation-plan/00-governance.md` | `c4d545d2d72ff42f92eeacc5a231301105d3e4d8` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `1909d1a9d93c6aa06b27b6caa79731e85784ba2b` |
 | `implementation-plan/02-a02-governance-intake.md` | `b5bfab4d1fb895d3cd62a9804a85725646c6db89` |
 | `implementation-plan/03-a03-queue-source.md` | `54b547df892c9f517bbadcec4130bf31366b881f` |
@@ -245,7 +245,7 @@ For IA28-IA34, current screen implementation is defect evidence only.
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Do **not** return upstream solely because an otherwise admissible path is absent from `changeSurface`; that case follows the governed V4/V5/V6 variance proof.
+Because this exact T1 deliberately sets signed `scope` equal to the same exact 66-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
 
 ---
 
