@@ -426,7 +426,7 @@ export const SignoffReview = ({
 
     if (currentApproval && packageStale) {
       return (
-        <section className="order-review-approval-overview" data-testid="review-workspace">
+        <section className="order-review-approval-overview">
           <h3>Package no longer current</h3>
           <p>Prior governed package material remains inspection-only.</p>
           <p>
@@ -449,7 +449,7 @@ export const SignoffReview = ({
 
     if (!currentApproval) {
       return (
-        <section className="order-review-approval-overview" data-testid="review-workspace">
+        <section className="order-review-approval-overview">
           <h3>{approvalCompleted ? "Approved package history" : "Approval history"}</h3>
           <p>
             {approvalCompleted
@@ -469,7 +469,7 @@ export const SignoffReview = ({
     }
 
     return (
-      <section className="order-review-approval-overview" data-testid="review-workspace">
+      <section className="order-review-approval-overview">
         <h3>Signed task meaning / scope / gates</h3>
         <div className="order-review-approval-resources">
           {currentTasks.map((task) => (
