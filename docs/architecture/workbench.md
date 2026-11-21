@@ -1170,7 +1170,7 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
 | `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
 | `WorkItemContext.tsx` | ContextPanel + Status/Notice + Disclosure + approved MetadataList leaf | bespoke context panel/technical disclosure |
-| existing `ui/src/primitives/*.tsx` | migrate/expand to exactly the closed §8.12 contracts | current primitive set is incomplete and WorkbenchLayout exports feature-visible responsive policy |
+| existing `ui/src/primitives/*.tsx` | consume exactly the closed §8.12 contracts; current destructive screen reconstruction treats the canonical primitive set as retained read-only capability | PR #59 baseline evidence showed incomplete primitive coverage and feature-visible responsive policy; that historical mechanism is superseded and is not permission to modify primitive source during the current reconstruction |
 
 Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
 
@@ -1845,3 +1845,12 @@ Browser certification extends the existing scenario matrix rather than creating 
 - scenarios 26 and 33-36 exercise representative Queue/Create/Settings/document/dialogue/review/Execution/evidence/result/Context/overlay semantic roles under System, Light and Dark activation.
 
 No feature-local visual baseline or screenshot-as-authority mechanism is introduced.
+
+### 16.6 Current destructive-reconstruction ownership boundary
+
+The PR #59 baseline language in §8.17 is historical evidence of the migration that established the closed primitive vocabulary; it is not a current instruction to expand primitive source. For the current authority-driven destructive screen reconstruction, the canonical `ui/src/primitives/**` vocabulary is positively revalidated as complete retained capability and is read-only. If a replacement screen cannot be expressed through that vocabulary and the approved specialist leaves, execution returns to DESIGN instead of modifying primitives or creating feature-local structural ownership.
+
+The application shell owns the globally visible active saved OpenCode-account status/quick-access affordance required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`. That affordance routes management to the one Settings owner; it is not itself account-management UI. Full repository/account/model configuration remains in Settings.
+
+`RunEventTimeline.tsx` is the one shared chronology presentation adapter over `WorkbenchTimeline`. Productive-stage reconstruction establishes that adapter once; the Implementation renderer consumes it and does not create or claim a second chronology implementation owner.
+

@@ -23,6 +23,8 @@ Permanent references follow this rule:
 
 Each schematic SVG is visibly marked as a **Reference composition** or **Reference state sheet** and must not be interpreted as persisted runtime evidence.
 
+The application-toolbar references use the canonical field placeholder `OpenCodeAccount.label` wherever a saved account is present. This is a non-fabricated typed-field label under the evidence rule above: it represents the globally visible active saved account required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`, while full account management remains in Settings. A missing-account readiness reference may instead show the canonical missing/required status.
+
 ## Governing source basis
 
 The reference pack is derived from and checked against:
