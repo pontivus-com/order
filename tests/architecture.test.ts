@@ -2606,6 +2606,107 @@ describe("architecture fitness", () => {
         );
         exactSet("PLAN destructive screen replacement set", replacementSurface, expectedReplacementScreens);
 
+        const expectedReplacementByTask = new Map<string, readonly string[]>([
+          ["T3", [
+            "ui/src/app.tsx",
+            "ui/src/OpenCodeAccountControl.tsx",
+            "ui/src/WorkItemQueue.tsx",
+            "ui/src/CreateWorkItem.tsx",
+          ]],
+          ["T4", [
+            "ui/src/WorkItemWorkspace.tsx",
+            "ui/src/WorkItemIdentityRow.tsx",
+            "ui/src/WorkflowRail.tsx",
+            "ui/src/WorkflowStepFrame.tsx",
+            "ui/src/DocumentWorkspace.tsx",
+          ]],
+          ["T5", [
+            "ui/src/PreSignoffStageWorkspace.tsx",
+            "ui/src/ActivityWorkspace.tsx",
+            "ui/src/ActivityComposer.tsx",
+            "ui/src/WorkflowMaterialSelector.tsx",
+            "ui/src/ProposalReview.tsx",
+            "ui/src/RunEventTimeline.tsx",
+          ]],
+          ["T6", [
+            "ui/src/ReadinessWorkspace.tsx",
+            "ui/src/SignoffReview.tsx",
+          ]],
+          ["T7", ["ui/src/ExecutionWorkspace.tsx"]],
+          ["T8", [
+            "ui/src/TerminalResult.tsx",
+            "ui/src/EvidenceViewer.tsx",
+            "ui/src/WorkItemContext.tsx",
+          ]],
+          ["T9", [
+            "ui/src/SettingsWorkspace.tsx",
+            "ui/src/OpenCodeAccountSettings.tsx",
+          ]],
+        ]);
+        for (const [id, expected] of expectedReplacementByTask) {
+          exactSet(
+            id + " destructive screen ownership",
+            byId.get(id)?.changeSurface?.filter((value) => value.startsWith("ui/src/")) ?? [],
+            expected,
+          );
+        }
+
+        const referenceSurfaceText = sourceText("docs/references/workbench-ui/README.md");
+        const referenceSurfaceIds = [
+          ...referenceSurfaceText.matchAll(/^\| \`(SURF-[^\`]+)\` \|/gm),
+        ].map((match) => match[1] ?? "");
+        if (referenceSurfaceIds.length !== 37 || duplicates(referenceSurfaceIds).length > 0) {
+          violations.push(
+            "Workbench reference registry must contain 37 unique SURF rows; found " +
+              referenceSurfaceIds.length,
+          );
+        }
+
+        const faceLedgerSection =
+          actionCatalog.match(
+            /### Exact T3-T9 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
+          )?.[1] ?? "";
+        const faceLedgerRows = faceLedgerSection
+          .split(/\r?\n/)
+          .filter((line) => /^\| T[3-9] \/ IA\d+ \|/.test(line))
+          .map((line) => {
+            const cells = line.trim().slice(1, -1).split("|").map((cell) => cell.trim());
+            const taskId = (cells[0] ?? "").split(" / ")[0] ?? "";
+            const surfaceIds = [...(cells[1] ?? "").matchAll(/\`(SURF-[^\`]+)\`/g)]
+              .map((match) => match[1] ?? "");
+            return { taskId, surfaceIds };
+          });
+        if (faceLedgerRows.length !== 7) {
+          violations.push("PLAN must allocate rendered faces across exactly T3-T9");
+        }
+        const faceSurfaceUnion = faceLedgerRows.flatMap((row) => row.surfaceIds);
+        const duplicateFaceSurfaces = duplicates(faceSurfaceUnion);
+        if (duplicateFaceSurfaces.length > 0) {
+          violations.push(
+            "PLAN rendered face allocation duplicates SURF rows: " +
+              duplicateFaceSurfaces.join(", "),
+          );
+        }
+        exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
+        for (const row of faceLedgerRows) {
+          const objective = byId.get(row.taskId)?.objective ?? "";
+          for (const surfaceId of row.surfaceIds) {
+            if (!objective.includes(surfaceId)) {
+              violations.push(
+                row.taskId + " signed objective must name owned rendered face " + surfaceId,
+              );
+            }
+          }
+        }
+        if (
+          !actionCatalog.includes("exact selector→owner ledger") ||
+          !actionCatalog.includes("no authority-backed browser/geometry assertion removed")
+        ) {
+          violations.push(
+            "PLAN must retain executable T2 CSS ownership and no-test-weakening boundary",
+          );
+        }
+
         for (const id of ["T3", "T4", "T5", "T6", "T7", "T8", "T9"]) {
           const task = byId.get(id);
           if (task === undefined) continue;

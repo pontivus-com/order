@@ -8,6 +8,8 @@ Versioning and release governance are owned by `GW-DOC-PUBLIC-REPOSITORY-DELIVER
 
 ### Changed
 
+- Correct the governed 0.6.0 destructive Workbench reconstruction package face-by-face: move the global OpenCode-account quick-access renderer into the application-shell/Queue/Create replacement, keep Settings as the sole account-management owner, make Implementation consume the one shared chronology adapter, split legacy CSS deletion into an executable T2 boundary plus task-owned purge deletion, bind T3-T9 to an exact 37/37 rendered-surface allocation, and refresh the reviewed SVG references without restoring compatibility with the discarded screen grammar.
+
 - Implement the authority-driven 0.6.0 candidate across the existing canonical owners: resolve project authority into productive context, govern permanent-authority and durable-decision admission, add current-v2 Change/Defect task non-vacuity and normalized Approval identity without changing published v1 task semantics, converge created/discovered WorkItem registration and queue/create/documentation-Git behavior, align Workbench attention/readiness/Approval/Settings/result semantics and work-kind/theme certification, and require fresh installation to complete productive guided setup while retaining incomplete-v4 recovery, upgrade continuity, and the explicit operator-triggered WorkItem documentation-Git exception.
 
 - Reopen the 0.6.0 design campaign after an adversarial gate audit disproved the former G0-G6 closure: add a separately governed Phase-0 correction for single-owned campaign state, mandatory pair-audit evidence/progression, and exhaustive stable-P3 R2 disposition coverage; strengthen permanent campaign fitness before any new readiness/sign-off attempt.
