@@ -13,7 +13,7 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | Completed task | Before dependent task | Required retained evidence |
 |---|---|---|
 | T1 | T2 | non-UI baseline gates PASS; no protected execution-foundation mutation |
-| T2 | T3 | exact 18-path old design-bearing primitive set purged before fresh authorship; old `WorkbenchLayout` absent; fresh `WorkbenchAppShell` + `WorkbenchWorkItemShell` + one responsive owner and reconstructed composition primitives accepted; nine retained atomic adapters unchanged; foundation structural CSS/tests replaced from current authority; exact surviving legacy-screen-selector→T3-T9 ledger audited |
+| T2 | T3 | exact 20-path old design-bearing primitive set purged before fresh authorship; old `WorkbenchLayout` absent; fresh `WorkbenchAppShell` + `WorkbenchWorkItemShell` + one responsive owner and reconstructed composition primitives accepted; seven retained atomic adapters unchanged; foundation structural CSS/tests replaced from current authority; exact surviving legacy-screen-selector→T3-T9 ledger audited |
 | T3 | T4 | `architecture` + all 3 T3 face-ledger rows PASS |
 | T4 | T5 | `architecture` + all 9 T4 face-ledger rows PASS |
 | T5 | T6 | `architecture` + all 6 T5 face-ledger rows PASS |
@@ -36,7 +36,7 @@ For T2, verification must retain both sides of the foundation replacement bounda
 - proof that the purge checkpoint contains no replacement primitive JSX/DOM;
 - the fresh foundation composition-schema review from current P3/P4 and reviewed new-design references;
 - replacement commits creating `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts` and reconstructing the other design-bearing primitives;
-- proof that the nine retained atomic adapters remained narrow and unchanged;
+- proof that the seven retained atomic adapters remained narrow and unchanged;
 - architecture proof for exactly one AppShell owner and one structural responsive owner;
 - foundation theme/accessibility/responsive/browser/rendered acceptance before T3 begins.
 
@@ -73,7 +73,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **64-path** DESIGN/PLAN forecast union; the exact 18 destructive design-bearing primitive paths, nine positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T2-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves T2 owns its declared shell face and each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **66-path** DESIGN/PLAN forecast union; the exact 18 destructive design-bearing primitive paths, seven positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T2-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves T2 owns its declared shell face and each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
