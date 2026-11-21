@@ -479,7 +479,7 @@ export const SourceDocumentMaterial = ({
             selectedRepositoryPath={selectedRepositoryPath}
             projection={git}
           >
-            <section className="order-document-source-bytes">
+            <section className="order-document-source-bytes" aria-label="Complete portable source">
               <strong>Complete portable source</strong>
               <pre><code>{git.sourceQuery.data.markdown}</code></pre>
             </section>
