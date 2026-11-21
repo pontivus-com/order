@@ -1870,18 +1870,20 @@ The following current primitive implementations are **design-bearing composition
 - `WorkbenchTable.tsx`;
 - `WorkbenchTaskPanel.tsx`;
 - `WorkbenchTimeline.tsx`;
-- `WorkbenchToolbar.tsx`.
+- `WorkbenchToolbar.tsx`;
+- `WorkbenchState.tsx` — whole-region/compact state composition is design-bearing;
+- `WorkbenchUtilityLink.tsx` — custom application-toolbar utility structure is design-bearing.
 
 The replacement foundation introduces `WorkbenchAppShell.tsx` and `WorkbenchWorkItemShell.tsx` so application-global chrome and selected-WorkItem chrome have separate cohesive owners. It also introduces one internal responsive-class owner `workbench-responsive.ts`; structural primitives consume that owner rather than duplicating `matchMedia`/breakpoint decisions. The old `WorkbenchLayout.tsx` API and its conditional application-vs-WorkItem topology are not a compatibility target.
 
-The following current primitives are **positively retained atomic adapters** because their audited responsibility does not establish screen topology or responsive composition: `WorkbenchAction.tsx`, `WorkbenchConfirmation.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchState.tsx`, `WorkbenchStatus.tsx`, and `WorkbenchUtilityLink.tsx`. Their current bytes remain reusable only while permanent fitness continues to prove the narrow §8.12 responsibility and Astryx-public-API containment; a contradiction returns to DESIGN rather than silently broadening them.
+The following current primitives are **positively retained atomic adapters** because their audited responsibility is a narrow public-Astryx/semantic adapter and does not establish screen, region or toolbar composition: `WorkbenchAction.tsx`, `WorkbenchConfirmation.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, and `WorkbenchStatus.tsx`. Their current bytes remain reusable only while permanent fitness continues to prove the narrow §8.12 responsibility and Astryx-public-API containment; a contradiction returns to DESIGN rather than silently broadening them.
 
 The destructive foundation task also removes the old structural selectors and implementation-specific geometry assertions associated with the design-bearing set before fresh primitive authorship. `GW-DOC-WORKBENCH-THEME-V1` remains the token/stylesheet owner, but current `theme.css` declarations are not preservation targets merely because a current primitive consumes them. No browser/certification assertion that encodes the superseded primitive implementation (for example a particular component tag, old `WorkbenchLayout` API, duplicate responsive hook, or old structural selector) may survive as compatibility authority; it is replaced by assertions against the corrected P3/P4 responsibility and rendered-design contract.
 
 Foundation phasing is mandatory:
 
 1. record the exact retained-atomic versus destructive-composition ledger above;
-2. purge the destructive primitive files/old `WorkbenchLayout`, their structural selectors and implementation-specific compatibility assertions in one checkpoint with **no replacement primitive JSX authored in that checkpoint**;
+2. purge the exact twenty destructive primitive files/old `WorkbenchLayout`, their structural selectors and implementation-specific compatibility assertions in one checkpoint with **no replacement primitive JSX authored in that checkpoint**;
 3. derive the fresh foundation information/composition schema from current P3 interaction classes, information hierarchy and reviewed visual references;
 4. create `WorkbenchAppShell`, `WorkbenchWorkItemShell`, the single responsive owner and the remaining reconstructed composition primitives from that schema over pinned Astryx public APIs;
 5. pass foundation architecture, theme, responsive, accessibility and representative rendered acceptance before any application/workflow screen reconstruction begins.
