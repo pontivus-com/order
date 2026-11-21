@@ -25,8 +25,8 @@ import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
 import { WorkbenchResourceRow } from "./primitives/WorkbenchResourceRow.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import {
-  WorkbenchEmptyState,
   WorkbenchErrorState,
+  WorkbenchState,
 } from "./primitives/WorkbenchState.tsx";
 
 type ApprovalSelection =
