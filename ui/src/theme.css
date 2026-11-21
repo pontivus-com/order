@@ -885,7 +885,7 @@
   gap: var(--spacing-4);
   min-width: 0;
 }
-.order-document-material {
+.order-document-screen {
   height: 100%;
   min-height: 0;
 }
@@ -932,23 +932,36 @@
 .order-section-heading p { margin: 0; }
 .order-section-heading span { color: var(--color-text-secondary); }
 
-.order-document-controls {
+.order-document-git-region {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-2);
+}
+.order-document-git-summary {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
   flex-wrap: wrap;
 }
-.order-source-technical {
+.order-document-technical,
+.order-document-source-bytes {
+  min-width: 0;
   display: grid;
   gap: var(--spacing-2);
 }
-.order-source-technical pre {
+.order-document-source-bytes pre {
   max-height: var(--order-context-max-width);
   overflow: auto;
   margin: 0;
   font-family: var(--font-family-code);
   font-size: var(--order-font-size-technical-xs);
 }
+.order-document-readonly-body {
+  min-height: 0;
+}
+.order-document-readonly-body :first-child { margin-top: 0; }
+.order-document-readonly-body :last-child { margin-bottom: 0; }
 
 .order-markdown-document-view {
   height: 100%;
@@ -972,40 +985,30 @@
 .order-markdown-document-view-aside {
   padding-block: var(--spacing-2);
 }
-.order-work-request-meta {
+.order-document-facts {
+  min-width: 0;
   display: grid;
   gap: var(--spacing-3);
   margin: 0;
 }
-.order-work-request-meta > div {
+.order-document-facts > div {
+  min-width: 0;
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   gap: var(--spacing-2);
-}
-.order-work-request-meta dt { font-weight: 700; }
-.order-work-request-meta dd { margin: 0; overflow-wrap: anywhere; }
-
-.order-lifecycle-authority-summary {
-  display: grid;
-  gap: var(--spacing-4);
-  margin: 0;
-}
-.order-lifecycle-authority-summary > div {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--spacing-3);
   align-items: start;
 }
-.order-lifecycle-authority-summary dt {
+.order-document-facts dt {
   font-weight: 700;
 }
-.order-lifecycle-authority-summary dd {
+.order-document-facts dd {
+  min-width: 0;
   margin: 0;
   display: grid;
   gap: var(--spacing-1);
   overflow-wrap: anywhere;
 }
-.order-lifecycle-authority-summary code {
+.order-document-facts code {
   color: var(--color-text-secondary);
   font-size: var(--order-font-size-technical-xs);
 }
