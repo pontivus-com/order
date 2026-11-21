@@ -3273,7 +3273,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
     await selectWorkflowStep(page, "Readiness review");
     const review = page.getByTestId("review-workspace");
     await expect(
-      review.locator(".order-readiness-verdict").getByText(verdict, { exact: true }),
+      review.getByTestId("readiness-verdict").getByText(verdict, { exact: true }),
     ).toBeVisible();
     await backToQueue(page);
   }
@@ -3281,14 +3281,14 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await openWorkItem(page, "Readiness blocked");
   await expect(
     page.getByTestId("review-workspace")
-      .locator(".order-readiness-verdict")
+      .getByTestId("readiness-verdict")
       .getByText("Blocked", { exact: true }),
   ).toBeVisible();
   await backToQueue(page);
 
   await openWorkItem(page, "Readiness blocked after prior ready");
   const blockedAfterPriorReady = page.getByTestId("review-workspace")
-    .locator(".order-readiness-verdict");
+    .getByTestId("readiness-verdict");
   await expect(blockedAfterPriorReady.getByText("Blocked", { exact: true }))
     .toBeVisible();
   await expect(
@@ -3300,7 +3300,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await selectWorkflowStep(page, "Readiness review");
   await expect(
     page.getByTestId("review-workspace")
-      .locator(".order-readiness-verdict")
+      .getByTestId("readiness-verdict")
       .getByText("Ready for sign-off", { exact: true }),
   ).toBeVisible();
   await backToQueue(page);
@@ -3310,7 +3310,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await selectWorkflowStep(page, "Readiness review");
   const staleReview = page.getByTestId("review-workspace");
   await expect(
-    staleReview.locator(".order-readiness-verdict")
+    staleReview.getByTestId("readiness-verdict")
       .getByText("Ready for sign-off", { exact: true }),
   ).toBeVisible();
   await expect(staleReview.getByText("Stale", { exact: true })).toBeVisible();
@@ -3325,7 +3325,7 @@ test("Readiness required input owns the action without replacing Review", async 
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toContainText("Waiting for you");
-  const interaction = page.locator(".order-readiness-current-interaction");
+  const interaction = page.getByTestId("readiness-current-attention");
   await expect(interaction).toBeVisible();
   await expect(interaction).toContainText(
     "Which readiness finding should be resolved before approval?",
@@ -3349,7 +3349,7 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   await expect(review).toBeVisible();
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
   await expect(
-    review.locator(".order-readiness-verdict").getByText("Review in progress", { exact: true }),
+    review.getByTestId("readiness-verdict").getByText("Review in progress", { exact: true }),
   ).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   const selector = page.getByRole("combobox", { name: "Readiness material" });

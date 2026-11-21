@@ -588,6 +588,126 @@
 
 /* 4. Specialist content and feature-semantic layout. */
 
+/* IA31 — verdict-first Readiness and currentness-first Approval reviews. */
+.order-review-readiness-body,
+.order-review-readiness-attention,
+.order-review-readiness-findings,
+.order-review-readiness-support,
+.order-review-readiness-selected,
+.order-review-approval-body,
+.order-review-approval-overview,
+.order-review-approval-task,
+.order-review-approval-task-sections,
+.order-review-approval-authorization,
+.order-review-approval-resources {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-3);
+}
+.order-review-readiness-verdict,
+.order-review-approval-context > section {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+.order-review-readiness-verdict > div,
+.order-review-approval-context > section > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-review-readiness-verdict span,
+.order-review-approval-context p,
+.order-review-approval-task header span,
+.order-review-approval-authorization p {
+  color: var(--color-text-secondary);
+}
+.order-review-readiness-attention {
+  padding-block: var(--spacing-2);
+  border-bottom: 1px solid var(--color-border-emphasized);
+}
+.order-review-readiness-attention h3,
+.order-review-readiness-findings h3,
+.order-review-readiness-support h3,
+.order-review-readiness-support p,
+.order-review-readiness-selected h3,
+.order-review-approval-overview h3,
+.order-review-approval-overview p,
+.order-review-approval-task h2,
+.order-review-approval-task header span,
+.order-review-approval-task-sections h3,
+.order-review-approval-authorization h3,
+.order-review-approval-authorization p,
+.order-review-approval-context h3,
+.order-review-approval-context p {
+  margin: 0;
+}
+.order-review-readiness-support-grid,
+.order-review-approval-context {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, var(--order-master-width)), 1fr)
+  );
+  gap: var(--spacing-4);
+}
+.order-review-readiness-support-grid > section {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-2);
+}
+.order-review-readiness-technical,
+.order-review-approval-technical {
+  display: grid;
+  gap: var(--spacing-2);
+  margin: 0;
+  font-size: var(--order-font-size-technical-xs);
+}
+.order-review-readiness-technical > div,
+.order-review-approval-technical > div {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--spacing-2);
+}
+.order-review-readiness-technical dt,
+.order-review-approval-technical dt {
+  color: var(--color-text-secondary);
+}
+.order-review-readiness-technical dd,
+.order-review-approval-technical dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.order-review-approval-task > header {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-review-approval-task-sections > section {
+  padding-block: var(--spacing-2);
+  border-top: 1px solid var(--color-border-emphasized);
+}
+.order-review-approval-authorization {
+  width: 100%;
+}
+.order-review-approval-authorization-controls {
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+.order-review-approval-authorization-controls > :first-child {
+  min-width: min(100%, var(--order-master-width));
+  flex: 1 1 var(--order-master-width);
+}
+
+
 /* IA30 — productive Research/Requirements/Design/Plan composition. */
 .order-productive-stage{height:100%;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto}
 .order-productive-primary{min-height:0;overflow:auto}
@@ -860,50 +980,22 @@
 .order-primary-material-frame > .order-primary-material-content:only-child {
   grid-row: 1 / -1;
 }
-.order-review-material-stack {
-  display: grid;
-  gap: var(--spacing-4);
-  min-width: 0;
-}
 .order-document-screen {
   height: 100%;
   min-height: 0;
 }
 .order-execution-task-material,
-.order-approval-task-detail,
-.order-approval-task-sections,
 .order-result-material-root {
   display: grid;
   gap: var(--spacing-3);
   min-width: 0;
 }
 .order-execution-task-material,
-.order-approval-task-detail,
 .order-result-material-root { padding: 0; }
-.order-review-supporting-disclosure {
-  flex: 0 0 auto;
-  padding: var(--spacing-2) var(--spacing-3);
-  border-top: 1px solid var(--color-border-emphasized);
-}
 
 .order-resource-list {
   display: grid;
   gap: var(--spacing-1);
-}
-.order-approval-task-sections > section {
-  padding-block: var(--spacing-2);
-  border-top: 1px solid var(--color-border-emphasized);
-}
-.order-approval-action-region {
-  width: 100%;
-  display: grid;
-  gap: var(--spacing-3);
-}
-.order-approval-authorization-controls {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--spacing-3);
 }
 .order-section-heading {
   display: flex;
@@ -1063,55 +1155,6 @@
 .order-editor-technical-content span { color: var(--color-text-secondary); }
 .order-editor-technical-content code { overflow-wrap: anywhere; }
 
-.order-readiness-review-body {
-  display: grid;
-  gap: var(--spacing-4);
-}
-.order-readiness-verdict {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--spacing-4);
-  align-items: center;
-}
-.order-readiness-current-interaction,
-.order-readiness-findings {
-  display: grid;
-  gap: var(--spacing-2);
-}
-.order-readiness-governed-material {
-  min-height: 0;
-}
-.order-readiness-governed-material :first-child { margin-top: 0; }
-.order-readiness-governed-material :last-child { margin-bottom: 0; }
-.order-readiness-technical {
-  display: grid;
-  gap: var(--spacing-2);
-  margin: 0;
-  font-size: var(--order-font-size-technical-xs);
-}
-.order-readiness-technical > div {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--spacing-2);
-}
-.order-readiness-technical dt { color: var(--color-text-secondary); }
-.order-readiness-technical dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.order-readiness-current-interaction {
-  padding-block: var(--spacing-2);
-}
-.order-readiness-findings h3,
-.order-readiness-support-grid h3,
-.order-readiness-support-grid p { margin: 0; }
-.order-readiness-support-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--spacing-4);
-}
-.order-readiness-support-grid > section {
-  display: grid;
-  align-content: start;
-  gap: var(--spacing-2);
-}
 .order-secondary-copy { color: var(--color-text-secondary); }
 
 .order-evidence-content {
@@ -1173,8 +1216,7 @@
   .order-workbench-identity-primary { justify-content: flex-start; }
   .order-workitem-identity-copy { text-align: start; }
   .order-toolbar-search-wrap { min-width: min-content; }
-  .order-markdown-document-view-with-aside,
-  .order-readiness-support-grid {
+  .order-markdown-document-view-with-aside {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -1228,7 +1270,6 @@
   }
   .order-workbench-attention-action { align-self: flex-start; }
   .order-workbench-review { padding: var(--spacing-3); }
-  .order-approval-authorization-controls { grid-template-columns: minmax(0, 1fr); }
   .order-app-readiness-item { align-items: stretch; flex-direction: column; }
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
   .order-workbench-review-currentness { justify-self: start; }

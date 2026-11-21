@@ -13,9 +13,7 @@ import type {
   StageRunInteraction,
 } from "../../src/core/lifecycle.ts";
 import { StageRunMaterial } from "./ActivityWorkspace.tsx";
-import {
-  ReadOnlyLifecycleDocumentMaterial,
-} from "./DocumentWorkspace.tsx";
+import { ReadOnlyLifecycleDocumentMaterial } from "./DocumentWorkspace.tsx";
 import { EvidenceViewer } from "./EvidenceViewer.tsx";
 import {
   lifecycleArtifactLabel,
@@ -25,15 +23,13 @@ import {
   type EvidenceSelection,
   type WorkflowMaterial,
 } from "./workbench-presentation.ts";
-import {
-  WorkflowStepFrame,
-} from "./WorkflowStepFrame.tsx";
+import { WorkflowStepFrame } from "./WorkflowStepFrame.tsx";
 import {
   WorkflowMaterialSelector,
   type WorkflowMaterialSelectorGroup,
 } from "./WorkflowMaterialSelector.tsx";
-import { WorkbenchEmptyState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchReview } from "./primitives/WorkbenchReview.tsx";
+import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
 import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 
 const packageRoles = new Set<ArtifactRef["role"]>([
@@ -42,6 +38,16 @@ const packageRoles = new Set<ArtifactRef["role"]>([
   "DESIGN",
   "PLAN",
 ]);
+
+const readinessTone = (
+  outcome: string | null,
+  runStatus: Run["status"] | null,
+): "success" | "warning" | "danger" | "info" => {
+  if (outcome === "READY_FOR_SIGNOFF") return "success";
+  if (outcome?.startsWith("RETURN_TO_")) return "warning";
+  if (runStatus === "BLOCKED" || runStatus === "FAILED") return "danger";
+  return "info";
+};
 
 export const ReadinessWorkspace = ({
   workItem,
@@ -90,37 +96,43 @@ export const ReadinessWorkspace = ({
     artifacts.find((artifact) => artifact.role === "R3") ?? null;
   const stageRuns = [...runs]
     .filter((run) => run.role === "STAGE" && run.stage === "R3")
-    .sort((left, right) =>
-      right.attempt - left.attempt ||
-      right.startedAt.localeCompare(left.startedAt) ||
-      right.id.localeCompare(left.id));
+    .sort(
+      (left, right) =>
+        right.attempt - left.attempt ||
+        right.startedAt.localeCompare(left.startedAt) ||
+        right.id.localeCompare(left.id),
+    );
+  const latestRun = stageRuns[0] ?? null;
+  const completion =
+    latestRun === null
+      ? null
+      : [...runEvents]
+        .filter(
+          (event) =>
+            event.runId === latestRun.id &&
+            event.event.tag === "STAGE_COMPLETED" &&
+            event.event.completion.stage === "R3",
+        )
+        .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
+  const outcome =
+    completion?.event.tag === "STAGE_COMPLETED" &&
+      completion.event.completion.stage === "R3"
+      ? completion.event.completion.outcome
+      : null;
+
+  const verdict =
+    outcome !== null
+      ? readinessOutcomeLabel(outcome)
+      : latestRun?.status === "BLOCKED"
+        ? "Blocked"
+        : latestRun?.status === "FAILED"
+          ? "Review failed"
+          : "Review in progress";
+
   const packageArtifacts = artifacts
     .filter((artifact) => packageRoles.has(artifact.role))
     .sort((left, right) =>
       left.repositoryPath.localeCompare(right.repositoryPath));
-  const latestReadinessRun = stageRuns[0] ?? null;
-  const readinessCompletion =
-    latestReadinessRun === null
-      ? null
-      : [...runEvents]
-        .filter((candidate) =>
-          candidate.runId === latestReadinessRun.id &&
-          candidate.event.tag === "STAGE_COMPLETED" &&
-          candidate.event.completion.stage === "R3")
-        .sort((left, right) => right.sequence - left.sequence)[0] ?? null;
-  const readinessOutcome =
-    readinessCompletion?.event.tag === "STAGE_COMPLETED" &&
-      readinessCompletion.event.completion.stage === "R3"
-      ? readinessCompletion.event.completion.outcome
-      : null;
-  const readinessVerdict =
-    readinessOutcome !== null
-      ? readinessOutcomeLabel(readinessOutcome)
-      : latestReadinessRun?.status === "BLOCKED"
-        ? "Blocked"
-        : latestReadinessRun?.status === "FAILED"
-          ? "Review failed"
-          : "Review in progress";
 
   const selectedSupportingArtifact =
     material.kind === "SUPPORTING_DOCUMENT"
@@ -128,16 +140,21 @@ export const ReadinessWorkspace = ({
       : null;
 
   const selectorItems: WorkflowMaterialSelectorGroup["items"] = [
-    ...(readinessArtifact ? [{
-      id: "readiness-" + readinessArtifact.id,
-      label: "Readiness review",
-      description: "Governed R3 review material",
-      statusLabel: materialState === null ? "Review in progress" : materialPresentationStateLabel(materialState),
-      selected: material.kind === "READINESS_REVIEW",
-      onSelect: () => onSelectMaterial({ kind: "READINESS_REVIEW" }),
-    }] : []),
+    ...(readinessArtifact === null
+      ? []
+      : [{
+        id: "review-" + readinessArtifact.id,
+        label: "Readiness review",
+        description: "Governed R3 review material",
+        statusLabel:
+          materialState === null
+            ? "Review in progress"
+            : materialPresentationStateLabel(materialState),
+        selected: material.kind === "READINESS_REVIEW",
+        onSelect: () => onSelectMaterial({ kind: "READINESS_REVIEW" }),
+      }]),
     ...stageRuns.map((run) => ({
-      id: "run-" + run.id,
+      id: "attempt-" + run.id,
       label: "Readiness attempt " + run.attempt,
       description: new Date(run.startedAt).toLocaleString(),
       statusLabel: runStatusLabel(run.status),
@@ -148,33 +165,51 @@ export const ReadinessWorkspace = ({
       id: "package-" + artifact.id,
       label: lifecycleArtifactLabel(artifact.role),
       description: "Read-only governed package material",
-      selected: material.kind === "SUPPORTING_DOCUMENT" && material.artifactId === artifact.id,
-      onSelect: () => onSelectMaterial({ kind: "SUPPORTING_DOCUMENT", artifactId: artifact.id }),
+      selected:
+        material.kind === "SUPPORTING_DOCUMENT" &&
+        material.artifactId === artifact.id,
+      onSelect: () =>
+        onSelectMaterial({
+          kind: "SUPPORTING_DOCUMENT",
+          artifactId: artifact.id,
+        }),
     })),
   ];
 
-  const selector = selectorItems.length > 1
-    ? <WorkflowMaterialSelector
-        groups={[{ id: "readiness", label: "Readiness material", items: selectorItems }]}
-        label="Readiness material"
-      />
-    : undefined;
+  const selector =
+    selectorItems.length > 1
+      ? (
+        <WorkflowMaterialSelector
+          groups={[
+            {
+              id: "readiness",
+              label: "Readiness material",
+              items: selectorItems,
+            },
+          ]}
+          label="Readiness material"
+        />
+      )
+      : null;
 
-  const readinessMaterial = readinessArtifact ? (
-    <ReadOnlyLifecycleDocumentMaterial
-      workItem={workItem}
-      artifactId={readinessArtifact.id}
-      onOpenArtifactEvidence={onOpenArtifactEvidence}
-      onContextDocumentChange={onContextDocumentChange}
-      embeddedReadOnly
-    />
-  ) : (
-    <WorkbenchEmptyState
-      compact
-      title="Readiness review is in progress"
-      description="The governed review findings will appear here when available."
-    />
-  );
+  const reviewMaterial =
+    readinessArtifact === null
+      ? (
+        <WorkbenchState
+          kind="empty"
+          title="Readiness review is in progress"
+          description="The governed review findings will appear here when available."
+        />
+      )
+      : (
+        <ReadOnlyLifecycleDocumentMaterial
+          workItem={workItem}
+          artifactId={readinessArtifact.id}
+          onOpenArtifactEvidence={onOpenArtifactEvidence}
+          onContextDocumentChange={onContextDocumentChange}
+          embeddedReadOnly
+        />
+      );
 
   const requiredInputOwnsAttention =
     workItem.stage === "R3" &&
@@ -182,7 +217,7 @@ export const ReadinessWorkspace = ({
     material.runId === currentRunId &&
     currentInteraction?.tag === "REQUIRED_INPUT";
 
-  const selectedSecondaryMaterial = (() => {
+  const selectedSecondary = (() => {
     switch (material.kind) {
       case "STAGE_RUN":
         return (
@@ -204,93 +239,174 @@ export const ReadinessWorkspace = ({
             onMutationError={onMutationError}
           />
         );
+
       case "SUPPORTING_DOCUMENT":
-        return selectedSupportingArtifact ? (
-          <ReadOnlyLifecycleDocumentMaterial
-            workItem={workItem}
-            artifactId={selectedSupportingArtifact.id}
-            onOpenArtifactEvidence={onOpenArtifactEvidence}
-            onContextDocumentChange={onContextDocumentChange}
-          />
-        ) : (
-          <WorkbenchEmptyState compact title="Supporting document is no longer current" />
-        );
+        return selectedSupportingArtifact === null
+          ? (
+            <WorkbenchState
+              kind="empty"
+              title="Supporting document is no longer current"
+            />
+          )
+          : (
+            <ReadOnlyLifecycleDocumentMaterial
+              workItem={workItem}
+              artifactId={selectedSupportingArtifact.id}
+              onOpenArtifactEvidence={onOpenArtifactEvidence}
+              onContextDocumentChange={onContextDocumentChange}
+            />
+          );
+
       case "EVIDENCE":
-        return <EvidenceViewer selection={material.selection} onBack={onReturnFromTransient} />;
+        return (
+          <EvidenceViewer
+            selection={material.selection}
+            onBack={onReturnFromTransient}
+          />
+        );
+
       default:
         return null;
     }
   })();
+
+  const currentness = (
+    <WorkbenchStatus
+      tone={
+        materialState?.tag === "STALE"
+          ? "warning"
+          : materialState?.tag === "CURRENT" ||
+              materialState?.tag === "SIGNED_LOCKED"
+            ? "success"
+            : "info"
+      }
+      label={
+        materialState === null
+          ? "Review in progress"
+          : materialPresentationStateLabel(materialState)
+      }
+    />
+  );
 
   return (
     <WorkflowStepFrame
       summary={summary}
       primary={
         <div data-testid="review-workspace">
-        <WorkbenchReview
-          currentness={<WorkbenchStatus
-            tone={
-              materialState?.tag === "STALE"
-                ? "warning"
-                : materialState?.tag === "CURRENT" || materialState?.tag === "SIGNED_LOCKED"
-                  ? "success"
-                  : "info"
-            }
-            label={
-              materialState === null
-                ? "Review in progress"
-                : materialPresentationStateLabel(materialState)
-            }
-          />}
-          summary={<div><h2>Readiness review</h2></div>}
-          selector={selector}
-          body={
-            <div className="order-readiness-review-body">
-              <section className="order-readiness-verdict">
-                <strong>Readiness verdict</strong>
-                <span>{readinessVerdict}</span>
-              </section>
-              {requiredInputOwnsAttention && selectedSecondaryMaterial ? (
-                <section className="order-readiness-current-interaction">
-                  <h3>Waiting for you</h3>
-                  {selectedSecondaryMaterial}
-                </section>
-              ) : null}
-              <section className="order-readiness-findings">
-                <h3>Findings / defective owner</h3>
-                {readinessMaterial}
-              </section>
-              <div className="order-readiness-support-grid">
-                <section>
-                  <h3>Package material needed to understand the verdict</h3>
-                  <p>{packageArtifacts.length === 0
-                    ? "No governed package material is currently available."
-                    : "Reached/current package material is available through the Readiness material selector. Unreached documents are not authority."}</p>
-                </section>
-                <section>
-                  <h3>Evidence / attempt history</h3>
-                  <p>{stageRuns.length === 0
-                    ? "No Readiness attempt history is currently available."
-                    : "Readiness attempts are available through the same subordinate selector. Required input may temporarily own attention. Sign-off is not available here."}</p>
-                </section>
+          <WorkbenchReview
+            currentness={currentness}
+            summary={
+              <div>
+                <h2>Readiness review</h2>
+                <p>Independent verdict and findings govern whether Approval may begin.</p>
               </div>
-              {!requiredInputOwnsAttention && selectedSecondaryMaterial ? (
-                <section className="order-readiness-secondary-material">
-                  <h3>Selected supporting material</h3>
-                  {selectedSecondaryMaterial}
+            }
+            body={
+              <div className="order-review-readiness-body">
+                {requiredInputOwnsAttention && selectedSecondary !== null ? (
+                  <section
+                    className="order-review-readiness-attention"
+                    data-testid="readiness-current-attention"
+                    aria-label="Readiness current attention"
+                  >
+                    <h3>Waiting for you</h3>
+                    {selectedSecondary}
+                  </section>
+                ) : null}
+
+                <section
+                  className="order-review-readiness-verdict"
+                  data-testid="readiness-verdict"
+                  aria-label="Readiness verdict"
+                >
+                  <div>
+                    <strong>Readiness verdict</strong>
+                    <span>
+                      {outcome?.startsWith("RETURN_TO_")
+                        ? "The typed R3 result returns workflow ownership to the named upstream stage."
+                        : outcome === "READY_FOR_SIGNOFF"
+                          ? "The typed R3 result admits the exact package to Approval."
+                          : "Verdict is derived only from the current canonical R3 result."}
+                    </span>
+                  </div>
+                  <WorkbenchStatus
+                    tone={readinessTone(outcome, latestRun?.status ?? null)}
+                    label={verdict}
+                  />
                 </section>
-              ) : null}
-            </div>
-          }
-          decisions={<></>}
-          technicalDetails={readinessArtifact ? (
-            <dl className="order-readiness-technical">
-              <div><dt>Artifact role</dt><dd>{readinessArtifact.role}</dd></div>
-              <div><dt>Repository path</dt><dd><code>{readinessArtifact.repositoryPath}</code></dd></div>
-              <div><dt>SHA-256</dt><dd><code>{readinessArtifact.sha256}</code></dd></div>
-            </dl>
-          ) : undefined}
-        />
+
+                <section
+                  className="order-review-readiness-findings"
+                  aria-label="Readiness findings"
+                >
+                  <h3>Findings / defective owner</h3>
+                  {reviewMaterial}
+                </section>
+
+                <section
+                  className="order-review-readiness-support"
+                  aria-label="Readiness package coherence and history"
+                >
+                  <div className="order-review-readiness-support-grid">
+                    <section>
+                      <h3>Package material needed to understand the verdict</h3>
+                      <p>
+                        {packageArtifacts.length === 0
+                          ? "No governed package material is currently available."
+                          : packageArtifacts.length +
+                            " reached/current governed package document" +
+                            (packageArtifacts.length === 1 ? "" : "s") +
+                            " available for read-only inspection."}
+                      </p>
+                    </section>
+                    <section>
+                      <h3>Evidence / attempt history</h3>
+                      <p>
+                        {stageRuns.length === 0
+                          ? "No Readiness attempt history is currently available."
+                          : stageRuns.length +
+                            " Readiness attempt" +
+                            (stageRuns.length === 1 ? "" : "s") +
+                            " available. Sign-off is never available in Readiness."}
+                      </p>
+                    </section>
+                  </div>
+                  {selector}
+                </section>
+
+                {!requiredInputOwnsAttention && selectedSecondary !== null ? (
+                  <section
+                    className="order-review-readiness-selected"
+                    aria-label="Selected Readiness supporting material"
+                  >
+                    <h3>Selected supporting material</h3>
+                    {selectedSecondary}
+                  </section>
+                ) : null}
+              </div>
+            }
+            decisions={<></>}
+            technicalDetails={
+              readinessArtifact === null
+                ? undefined
+                : (
+                  <dl className="order-review-readiness-technical">
+                    <div>
+                      <dt>Artifact role</dt>
+                      <dd>{readinessArtifact.role}</dd>
+                    </div>
+                    <div>
+                      <dt>Repository path</dt>
+                      <dd><code>{readinessArtifact.repositoryPath}</code></dd>
+                    </div>
+                    <div>
+                      <dt>SHA-256</dt>
+                      <dd><code>{readinessArtifact.sha256}</code></dd>
+                    </div>
+                  </dl>
+                )
+            }
+          />
         </div>
       }
     />
