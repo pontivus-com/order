@@ -2026,7 +2026,9 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
     expect(composer).not.toContain("ChatComposerInputHandle");
     expect(composer).not.toContain("handleRef=");
 
-    expect(readiness).toContain("readinessOutcomeLabel(readinessOutcome)");
+    expect(readiness).toContain('event.event.completion.stage === "R3"');
+    expect(readiness).toContain("readinessOutcomeLabel(outcome)");
+    expect(readiness).toContain('data-testid="readiness-verdict"');
     expect(readiness).not.toContain("Derived from governed readiness-review material when present");
     expect(approval).toContain('data-testid="approval-readiness-summary"');
     expect(approval).toContain('label="Ready for sign-off"');
