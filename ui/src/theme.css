@@ -609,12 +609,9 @@
 .order-settings-layout-content-surface { padding: var(--spacing-5); }
 
 /* 4. Specialist content and feature-semantic layout. */
-.order-queue-page,
 .order-settings-workspace {
   height: 100%;
   min-height: 0;
-}
-.order-settings-workspace {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: var(--spacing-4);
@@ -636,29 +633,86 @@
   height: 100%;
   min-height: 0;
 }
-.order-queue-page {
+
+/* IA28 — application Queue/Create screen composition. */
+.order-queue-workspace {
+  height: 100%;
+  min-height: 0;
   overflow: auto;
-  padding: var(--spacing-4);
+  display: grid;
+  align-content: start;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-6) var(--spacing-6);
 }
-.order-queue-title {
+.order-queue-commandbar {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+.order-queue-scan {
+  min-height: 0;
+}
+.order-queue-scan-content,
+.order-app-notice-stack {
   min-width: 0;
   display: grid;
+  gap: var(--spacing-3);
 }
-.order-queue-title span {
+.order-queue-primary,
+.order-queue-progress {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-queue-primary > strong {
+  overflow-wrap: anywhere;
+}
+.order-queue-primary-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
-
-
-.order-create-location,
-.order-create-derived {
-  display: grid;
-  gap: var(--spacing-1);
-  min-width: 0;
+.order-queue-progress > span {
+  font-weight: 600;
+}
+.order-queue-concerns {
   color: var(--color-text-secondary);
 }
-.order-create-location code,
-.order-create-derived code {
+
+.order-create-form-fields {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-4);
+}
+.order-create-supporting,
+.order-create-context {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-create-supporting {
+  padding-block: var(--spacing-2);
+  border-block: 1px solid var(--color-border-emphasized);
+  color: var(--color-text-secondary);
+}
+.order-create-context {
+  padding: var(--spacing-3);
+  border-radius: var(--radius-container);
+  background: var(--color-background-muted);
+  color: var(--color-text-secondary);
+}
+.order-create-context strong {
+  color: var(--color-text-primary);
+}
+.order-create-supporting code,
+.order-create-context code {
   overflow-wrap: anywhere;
   color: var(--color-text-primary);
 }
@@ -696,35 +750,36 @@
   margin-top: var(--spacing-1);
   color: var(--color-text-secondary);
 }
-.order-queue-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4) var(--spacing-6) 0;
-}
-.order-installation-readiness {
+.order-app-readiness {
+  min-width: 0;
   display: grid;
   gap: var(--spacing-2);
-  padding-inline: var(--spacing-6);
 }
-.order-installation-readiness-blockers {
+.order-app-readiness-list {
   display: grid;
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-surface);
+  border-block: 1px solid var(--color-border-emphasized);
 }
-.order-installation-readiness-row {
+.order-app-readiness-item {
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-3);
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) 0;
   border-bottom: 1px solid var(--color-border-emphasized);
 }
-.order-installation-readiness-row:last-child { border-bottom: 0; }
-.order-installation-readiness-row > div { display: grid; gap: var(--spacing-1); }
-.order-installation-readiness-row span { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+.order-app-readiness-item:last-child {
+  border-bottom: 0;
+}
+.order-app-readiness-item > div {
+  min-width: 0;
+  display: grid;
+  gap: var(--spacing-1);
+}
+.order-app-readiness-item span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
 .order-settings-add-repository { padding-top: var(--spacing-2); }
 .order-visually-hidden {
   position: absolute;
@@ -1200,10 +1255,7 @@
   .order-workbench-attention-action { align-self: flex-start; }
   .order-workbench-review { padding: var(--spacing-3); }
   .order-approval-authorization-controls { grid-template-columns: minmax(0, 1fr); }
-  .order-queue-controls,
-  .order-installation-readiness-row { align-items: stretch; flex-direction: column; }
-  .order-queue-controls { padding-inline: var(--spacing-3); }
-  .order-installation-readiness { padding-inline: var(--spacing-3); }
+  .order-app-readiness-item { align-items: stretch; flex-direction: column; }
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
   .order-workbench-review-currentness { justify-self: start; }
   .order-workitem-title-edit {

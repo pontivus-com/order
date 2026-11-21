@@ -1208,7 +1208,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 });
 
 
-test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
+test("rendered acceptance phase 1 captures application, Queue and Create states", async ({
   page,
   request,
 }) => {
@@ -1225,14 +1225,58 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     }
   });
 
+  await page.route("**/api/opencode/accounts", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        accounts: [{
+          id: "cred_rendered_acceptance",
+          label: "operator@example.com",
+          active: true,
+          status: { status: "READY" },
+        }],
+        activeAccountId: "cred_rendered_acceptance",
+        mutationBlockers: [],
+      }),
+    });
+  });
+
   await page.setViewportSize({ width: 1440, height: 900 });
   await authenticate(page, request);
   await page.getByRole("radio", { name: "Light" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(rowFor(page, "Proposal review")).toBeVisible();
+  await expect(page.getByTestId("opencode-account-trigger"))
+    .toContainText("operator@example.com");
 
   const entries: RenderedAcceptanceEntry[] = [];
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-wide-light-active-account",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "active-account-visible",
+    fixture: "application shell with deterministic active OpenCode account",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-INSTALLATION-READINESS",
+    ],
+  }));
+
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-wide-light-populated",
     workItemKind: "QUEUE",
@@ -1253,6 +1297,30 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  await expect(page.getByTestId("opencode-account-trigger")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-narrow-light-populated",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "active-list-populated-narrow",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
@@ -1284,14 +1352,41 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await openWorkItem(page, "Completed investigation");
+  await page.getByRole("button", { name: "Create linked remediation" }).click();
+  const linkedDialog = page.getByRole("dialog", { name: "Create linked remediation" });
+  await expect(linkedDialog).toBeVisible();
+  await linkedDialog.getByRole("radio", { name: "DEFECT" }).click();
+  await linkedDialog.getByLabel("Title").fill("Rendered acceptance remediation");
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "create-linked-remediation-wide-light",
+    workItemKind: "DEFECT",
+    workflowStep: "Complete",
+    surface: "SURF-CREATE-001",
+    state: "linked-remediation",
+    fixture: "Completed investigation linked-remediation creation",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/?workItem=completed-investigation",
+    references: [
+      "docs/references/workbench-ui/create-linked-remediation.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+
   writeRenderedAcceptanceEvidence(entries);
-  expect(entries.map((entry) => entry.surface)).toEqual([
-    "SURF-QUEUE-001",
+  expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
+    "SURF-APP-001",
     "SURF-CREATE-001",
+    "SURF-QUEUE-001",
   ]);
   expect(runtimeErrors).toEqual([]);
 });
-
 
 test("queue filtering composes archive dataset, project and search exactly once", async ({
   page,
