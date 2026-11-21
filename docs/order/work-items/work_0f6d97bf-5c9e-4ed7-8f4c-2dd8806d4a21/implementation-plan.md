@@ -6,36 +6,36 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 after G4 closure from current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` and DESIGN `f21d1530b01a43e28be47742236b339770022059`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
+This PLAN is reconstructed under G-F12 after G4 closure from current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` and DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. The executable package below exists only where current DESIGN assigns a technical/verification delta or an explicit positive-reuse proof.
 
-This PLAN consumes current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` and current DESIGN `f21d1530b01a43e28be47742236b339770022059`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
+This PLAN consumes current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` and current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`. Current implementation/tests are evidence only and never preservation authority. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN is the authority for the no-change disposition and current implementation/tests are only the positive evidence that the authoritative realization is already satisfied.
 
 ## Current destructive screen-replacement reconstruction
 
-This PLAN is bound to current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` and DESIGN `f21d1530b01a43e28be47742236b339770022059`. Exact-candidate Queue/Create evidence invalidated the old screen layer, not the canonical primitives or underlying domain/query architecture.
+This PLAN is bound to current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`, R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` and DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`. Exact-candidate Queue/Create evidence invalidated the old screen layer, not the canonical primitives or underlying domain/query architecture.
 
 R2 defines a fresh screen-information-schema law. DESIGN preserves the canonical Workbench primitives and approved non-screen helpers/content leaves, purges legacy screen-support CSS, and requires destructive replacement of the complete 23-path screen/composition set. The pre-reconstruction screen blobs are defect evidence only.
 
-The signed execution representation remains an 11-task dependency graph. Each task has its own exact `changeSurface`; the cumulative mutable forecast is **43 paths**. T2 may change only shared stylesheets plus verification to purge legacy screen support and certify retained primitives. T3-T9 must record purge commits before recreating their owned screens from current R2. No signed task may mutate `ui/src/primitives/**`, Markdown editors, `workbench-presentation.ts` or the other retained helpers merely for screen replacement.
+The signed execution representation remains an 11-task dependency graph. Each task has its own exact `changeSurface`; the cumulative mutable forecast is **43 paths**. T2 may change only shared stylesheets plus verification to certify retained primitives, remove cross-cutting obsolete compatibility CSS and record the exact surviving legacy-selector→T3-T9 owner ledger. T3-T9 must delete their owned remaining legacy selectors in the same purge commits that delete their old screens before recreating those screens from current R2. No signed task may mutate `ui/src/primitives/**`, Markdown editors, `workbench-presentation.ts` or the other retained helpers merely for screen replacement.
 
 ## Exact modular source manifest
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `c5fa990291b4994e44fec64a4682f6ee617ce9ec` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `709ed8191ddf45ae196dc51886891cd4ba4fee33` |
-| `implementation-plan/02-a02-governance-intake.md` | `d0819ceeea155416c116789633a1cabd1ab14159` |
-| `implementation-plan/03-a03-queue-source.md` | `fe6bfc99c2cc8426e70a7f8af260f5bb3f1dfd73` |
-| `implementation-plan/04-a04-workbench-research.md` | `717beb4337b20c3c4011f526b29a61c39dfa4232` |
-| `implementation-plan/05-a05-requirements-design.md` | `11637c802ddd5e5cbd7469fc0da65dbfa0b3a182` |
-| `implementation-plan/06-a06-plan-readiness.md` | `36e2f45727d6e382a93c5e764882412d1663940a` |
-| `implementation-plan/07-a07-approval-execution.md` | `59ede446574ec820f4c19afce032067a857b8799` |
-| `implementation-plan/08-a08-complete-materials.md` | `27e7d7ea6e23eeb117e06edf8e38769396c71581` |
-| `implementation-plan/09-a09-provider-settings.md` | `1ccabf2c87afaa1fc22ed6e2b66f8f752ac6abac` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `2e1239e9ef0225568e35cbafd321cc1ab829c009` |
-| `implementation-plan/11-a11-component-certification.md` | `9bb5b7a1784e545074cc00043e08c27a9fa15c56` |
-| `implementation-plan/12-action-catalog.md` | `2eb0b00c51f414e4134eb14f466fef0646634d46` |
-| `implementation-plan/13-verification-closeout.md` | `5aad8ed84ab3306f767472789beb10813ae9445a` |
+| `implementation-plan/00-governance.md` | `1c576055691e35e6de32f12adf8b00d8fe1d3f82` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `d12bec9f898b382392135112766d077a8183b01c` |
+| `implementation-plan/02-a02-governance-intake.md` | `a05ad5b7bc15264e11a9bdc12f877f01721e0a75` |
+| `implementation-plan/03-a03-queue-source.md` | `02710331c68bcb902ef1a9556a68f340cc590932` |
+| `implementation-plan/04-a04-workbench-research.md` | `d87cba6eb698da5a8fe1d9cee6b0e42f7158bf0e` |
+| `implementation-plan/05-a05-requirements-design.md` | `3c54f0ae095772ac050a8dfbc4ed035a1e0d8400` |
+| `implementation-plan/06-a06-plan-readiness.md` | `eb500d9adbbb9aa9a4af47b25907588cf388bd3b` |
+| `implementation-plan/07-a07-approval-execution.md` | `b72be4038769cf28985b068bc5374d3307bf77b8` |
+| `implementation-plan/08-a08-complete-materials.md` | `558b58395b683d5811162dd08f296f847e95c5f8` |
+| `implementation-plan/09-a09-provider-settings.md` | `0ce9760ebd24ef9879b8a0fd08a380a4416da2cf` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `6086c26a71de45e72088ebe7b5b58eece3304044` |
+| `implementation-plan/11-a11-component-certification.md` | `39cd0f425daf31ca0b2c8b25d976fbcd76a60773` |
+| `implementation-plan/12-action-catalog.md` | `3b75987b96c4986a79606e2bec95327813a1eaf6` |
+| `implementation-plan/13-verification-closeout.md` | `156601790b40299aad35239b301d893a3c3dc08c` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -61,7 +61,7 @@ The root repository envelope supports the cumulative 0.6.0 candidate, but mutati
 
 `ui/src/primitives/**`, `ui/src/MarkdownEditor.tsx`, `ui/src/MarkdownSourceEditor.tsx`, `ui/src/workbench-presentation.ts`, `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` are not screen-replacement change surfaces. A primitive/helper defect requires an upstream DESIGN/PLAN correction; V4/V5/V6 variance cannot be used to edit them for convenience.
 
-T2 owns only `ui/src/theme.css`/`ui/src/styles.css` purge work plus verification. T3-T9 own the exact old screen paths they must delete then recreate.
+T2 owns only `ui/src/theme.css`/`ui/src/styles.css` cross-cutting reset/selector-ledger work plus verification. T3-T9 own the exact old screen paths they must delete then recreate and the remaining legacy selectors assigned to those screens.
 
 ## Exact signed implementation surface
 
@@ -134,7 +134,7 @@ Task-local ownership is authoritative. The 23 screen/composition paths are destr
 - every technical/verification delta maps to one or more exact IA actions;
 - every IA01-IA34 is defined exactly once; IA27-IA34/IA23/IA26/IA24 are explicit cross-solution/rendered-acceptance/final actions rather than orphan work;
 - the immutable cumulative mutable forecast is the exact 43-path union of task-local `changeSurface` entries; retained primitives/helpers are outside screen replacement and may not be admitted through same-layer variance;
-- signed `dependency-lock` passes before implementation; T2 must prove primitive preservation and legacy screen-style purge; each T3-T9 task must retain purge-before-rebuild Git evidence, fresh screen-schema review and task-specific browser/rendered proof before the next screen family begins; T10/T11 own final semantic/rendered closure;
+- signed `dependency-lock` passes before implementation; T2 must prove primitive preservation, executable CSS ownership and no test weakening; each T3-T9 task must retain purge-before-rebuild Git evidence, delete its assigned legacy selectors, review a fresh screen schema and PASS every exact owned rendered face before the next screen family begins; T10/T11 own final semantic/rendered closure;
 - current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
 - a disproved positive-no-change/baseline-reuse proposition or newly required semantic decision causes an upstream return; a merely unforecast but otherwise admissible same-layer path does not.
 
@@ -154,7 +154,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `d2eb1627e2b9a145f785b04829b56c623b7431e9`.
 - R2 `requirements.md`: `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`.
-- DESIGN `solution-design.md`: `f21d1530b01a43e28be47742236b339770022059`.
+- DESIGN `solution-design.md`: `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -178,7 +178,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
-IA27-IA34 are the presentation reconstruction owners. The existing canonical `ui/src/primitives/**` implementation is retained read-only capability for this campaign. IA27 owns only certification of that primitive boundary plus deletion of obsolete screen-specific/compatibility rules from shared stylesheets; it does not redesign primitives. IA28-IA34 own destructive screen replacement. Each must record a purge checkpoint deleting its old owned screen files before replacement authorship, and may not copy or incrementally transform the pre-purge screen implementation. If the retained primitives are insufficient, execution returns to DESIGN rather than changing primitives or creating local presentation ownership.
+IA27-IA34 are the presentation reconstruction owners. The existing canonical `ui/src/primitives/**` implementation is retained read-only capability for this campaign. IA27 certifies that primitive boundary, classifies shared CSS into retained foundation, T2-owned cross-cutting obsolete compatibility rules and one T3-T9 screen owner, deletes only the cross-cutting obsolete rules at T2, and records the exact selector→task ledger. Screen-owned legacy selectors remain solely to keep unreplaced screens executable and must be deleted in the owning IA28-IA34 purge checkpoint; they may not survive that task. IA27 does not redesign primitives or weaken authority-backed browser assertions. IA28-IA34 own destructive screen replacement. Each must record a purge checkpoint deleting its old owned screen files plus its remaining legacy selectors before replacement authorship, and may not copy or incrementally transform the pre-purge screen implementation. If the retained primitives are insufficient, execution returns to DESIGN rather than changing primitives or creating local presentation ownership.
 
 IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
@@ -209,7 +209,7 @@ Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may ad
 For IA28-IA34, current screen implementation is defect evidence only.
 
 - pre-reconstruction screen blobs are not preservation targets, compatibility targets, migration sources or implementation templates;
-- the purge checkpoint must precede replacement authorship in Git history;
+- the purge checkpoint must precede replacement authorship in Git history and delete the task-owned legacy screen selectors together with the old screen files;
 - a replacement task may reuse only retained primitives, approved leaf/content mechanisms and canonical non-screen domain/query/policy owners;
 - copying old JSX/DOM structure, screen-local state branching, field grouping, table-column design, card/panel composition, action placement, responsive markup, CSS classes or visual hierarchy is a task breach;
 - a screen-information schema is design-time trace material only and must not become a DTO/browser state family;
@@ -229,7 +229,7 @@ Do **not** return upstream solely because an otherwise admissible path is absent
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -288,7 +288,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -343,7 +343,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -413,7 +413,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -483,7 +483,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -528,7 +528,7 @@ Requirements and Solution design retain their existing authority/proposal semant
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -573,7 +573,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -629,7 +629,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -678,14 +678,14 @@ C13/C14 domain semantics remain stable, but Complete, Evidence and Context/mater
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
 | `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `DIRECT-FR007` | `TECHNICAL_DELTA` | `SD19` | `IA25` | — | Recheck `DIRECT-FR007` via new `tests/installer.test.ts`; existing `tests/order-migration.test.ts` + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `DEPENDENCY_DELTA` | `SD22` | `IA28` | `IA34` owns full account management only | Rebuild the global active-account quick-access renderer with the application shell; prove `SURF-APP-001` active-account visibility/routes to Settings plus tests/browser.spec.ts and tests/certification.test.ts; no second account-management owner |
 | `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `C16-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O07` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -722,7 +722,8 @@ Package atoms in phase: **3**.
 
 - **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA34** — consume the single Settings/OpenCode/account/configuration destructive replacement definition; provider/configuration semantics remain with existing owners.
+- **IA28** — consume the application-shell destructive replacement for the globally visible active OpenCode-account quick-access affordance; full account management remains IA34-owned.
+- **IA34** — consume the single Settings/OpenCode/account-management/configuration destructive replacement definition; provider/configuration semantics remain with existing owners.
 
 ##### Completion proof
 
@@ -741,7 +742,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -789,7 +790,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `f21d1530b01a43e28be47742236b339770022059`.
+**Upstream:** current R1 `d2eb1627e2b9a145f785b04829b56c623b7431e9`; current R2 `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`; current DESIGN `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
 
 ##### Stable requirement execution dispositions
 
@@ -853,14 +854,14 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
 | T1 | SD01-SD20 non-UI remainder; IA01-IA10/IA25/SD20 portion of IA23 | — | core/daemon/shell + exact-pin verification | no reintroduction of execution-foundation or provider compatibility paths | all ordinary gates + targeted non-UI regressions |
-| T2 | SD21; IA27 | T1 | `theme.css`, `styles.css` + verification; primitives are read-only retained capability | obsolete screen-specific/compatibility selectors removed; primitive source unchanged | primitive ownership/Astryx containment + CSS purge audit PASS |
-| T3 | SD22 + SD03/SD05; IA11/IA12/IA28 | T2 | Queue/Create/application entry screens | purge commit deletes old screens before clean recreation; no old JSX/layout reuse | fresh screen-schema review + Queue/Create functional/rendered PASS |
+| T2 | SD21; IA27 | T1 | `theme.css`, `styles.css` + verification; primitives are read-only retained capability | cross-cutting obsolete compatibility CSS removed; exact remaining legacy-selector→T3-T9 owner ledger recorded; no authority-backed browser assertion weakened | primitive ownership/Astryx containment + CSS ownership/purge audit + unchanged browser gate PASS |
+| T3 | SD22 + SD03/SD05; IA11/IA12/IA28 | T2 | application shell/account quick-access + Queue/Create | purge commit deletes owned old screens and owned legacy selectors before clean recreation; no old JSX/layout reuse | fresh screen-schema review + exact T3 face rows PASS |
 | T4 | SD23; IA13/IA14/IA29 | T3 | WorkItem shell, rail, Work request/document screens | purge commit deletes old screen compositions; Markdown editors remain retained leaves | fresh screen-schema review + Work request/document/current-attention/Git rendered PASS |
 | T5 | SD24; IA15/IA30 | T4 | pre-signoff screen/adapters | purge commit deletes old productive-stage screens/adapters before clean recreation | fresh per-stage information-schema review + semantic/rendered PASS |
 | T6 | SD25; IA16/IA17/IA31 | T5 | Readiness + Approval screens | purge commit deletes both old review screens before clean recreation | fresh review-schema + readiness/return/currentness/sign-off rendered PASS |
 | T7 | SD26; IA32 | T6 | Implementation screen | purge commit deletes old Implementation screen before clean recreation | fresh implementation-schema + task/attempt/blocker/validation/master-detail rendered PASS |
 | T8 | SD27 + SD01 projection; IA19/IA33 | T7 | Complete/Evidence/Context screens | purge commit deletes old terminal/material screens before clean recreation | fresh terminal/material schemas + candidate/non-candidate/evidence/context rendered PASS |
-| T9 | SD28 + SD14; IA18/IA34 | T8 | Settings/account/configuration screens | purge commit deletes old Settings/account screens before clean recreation | fresh configuration schema + settings/readiness/account/model rendered PASS |
+| T9 | SD28 + SD14; IA18/IA34 | T8 | Settings/account-management/configuration screens | purge commit deletes old Settings/account-management screens and owned legacy selectors before clean recreation | fresh configuration schema + exact T9 face rows PASS |
 | T10 | SD16-SD18/SD29; IA20-IA23 | T9 | verification only | no production mutation; any production defect routes to T2-T9 | exhaustive renderer/theme/responsive/scenario/regression certification PASS |
 | T11 | SD30; IA26/IA24 | T10 | rendered evidence + CI + closeout metadata | no screenshot-driven production patch inside acceptance task | exhaustive manifest + row-level schema/UX/visual PASS + final V0-V7 |
 
@@ -870,20 +871,20 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
 1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
-2. **Wave 2 — primitive preservation + legacy screen reset boundary:** IA27. No screen replacement may begin until retained primitives are certified and shared screen-specific CSS/compatibility rules are purged.
-3. **Wave 3 — destructive Queue/Create replacement:** IA11, IA12, IA28.
+2. **Wave 2 — primitive preservation + executable CSS reset boundary:** IA27. No screen replacement may begin until retained primitives are certified, cross-cutting obsolete compatibility CSS is purged, and every remaining legacy screen selector is assigned to exactly one T3-T9 purge owner without weakening authority-backed browser assertions.
+3. **Wave 3 — destructive application-shell/Queue/Create replacement:** IA11, IA12, IA28, including the global OpenCode-account quick-access renderer.
 4. **Wave 4 — destructive WorkItem shell + Work request/document replacement:** IA13, IA14, IA29.
 5. **Wave 5 — destructive productive pre-signoff screen replacement:** IA15, IA30.
 6. **Wave 6 — destructive Readiness/Approval replacement:** IA16, IA17, IA31.
 7. **Wave 7 — destructive Implementation replacement:** IA32.
 8. **Wave 8 — destructive Complete/Evidence/Context replacement:** IA19, IA33.
-9. **Wave 9 — destructive Settings/account/configuration replacement:** IA18, IA34.
+9. **Wave 9 — destructive Settings/account-management/configuration replacement:** IA18, IA34; the global shell account quick-access renderer is already owned by Wave 3.
 10. **Wave 10 — permanent semantic/component certification:** IA20-IA22.
 11. **Wave 11 — cross-solution regression closure:** IA23.
 12. **Wave 12 — rendered product acceptance:** IA26.
 13. **Wave 13 — candidate closeout:** IA24.
 
-Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`. After Wave 2 and after each presentation wave 3-9, the signed `architecture` gate and task-specific browser/rendered proof must pass before the dependent screen family begins. `ui/src/primitives/**`, approved leaf/content mechanisms and non-screen query/policy helpers are retained and are not screen-task mutation surfaces. IA27 may modify `theme.css`/`styles.css` only to remove obsolete screen-specific/compatibility presentation rules; it does not redesign primitives. Every IA28-IA34 task must create a purge checkpoint commit deleting its owned old screen files before any replacement screen code is authored, then recreate those paths from the current R2 screen-information schema. A downstream task may not patch or copy the pre-purge screen implementation. If retained primitive capability is insufficient, execution returns to DESIGN instead of modifying primitives locally. Wave 10 proves the replacement renderer/component/theme system semantically. Wave 12 produces exact-candidate rendered evidence only after ordinary gates are green. Wave 13 closes only after every rendered row is accepted.
+Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through the existing SD13 coordinator checkpoint and it must `GATE_PASSED`. After Wave 2 and after each presentation wave 3-9, the signed `architecture` gate and task-specific browser/rendered proof must pass before the dependent screen family begins. `ui/src/primitives/**`, approved leaf/content mechanisms and non-screen query/policy helpers are retained and are not screen-task mutation surfaces. IA27 may modify `theme.css`/`styles.css` only to remove T2-owned cross-cutting obsolete compatibility rules and to establish the selector-ownership boundary; screen-owned legacy selectors may remain only until their exact T3-T9 purge owner runs. IA27 does not redesign primitives and may not delete/weaken authority-backed browser assertions merely to make old screens tolerate the reset. Every IA28-IA34 task must create a purge checkpoint commit deleting its owned old screen files and its remaining legacy selectors before any replacement screen code is authored, then recreate those paths from the current R2 screen-information schema. A downstream task may not patch or copy the pre-purge screen implementation. If retained primitive capability is insufficient, execution returns to DESIGN instead of modifying primitives locally. Every T3-T9 task owns an exact non-overlapping subset of the 37 audited `SURF-*` rows below and cannot advance until all its rows pass schema/information, UX/interaction and visual/UI review. Wave 10 proves the replacement renderer/component/theme system semantically. Wave 12 produces exact-candidate rendered evidence only after ordinary gates are green. Wave 13 closes only after every rendered row is accepted.
 
 ##### IA01 — pure project-authority resolution
 
@@ -1077,14 +1078,14 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 **Proof:** create `tests/installer.test.ts` covering fresh productive setup success/failure/cancel and deferred-Settings rejection; existing `tests/order-migration.test.ts` must continue proving migration/rollback/continuity.
 
 
-##### IA27 — preserve primitives and purge legacy screen presentation
+##### IA27 — preserve primitives and establish executable legacy-CSS ownership
 
 **Solution:** SD21, with SD29 containment rules.
 **Owners:** `ui/src/theme.css`; `ui/src/styles.css`; `tests/certification.test.ts`; `tests/browser.spec.ts`. `ui/src/primitives/**` is an explicitly retained, read-only implementation dependency for this campaign.
-**Required mutation:** certify the existing canonical P4 primitive vocabulary and approved leaf boundaries without redesigning primitive source. Remove from shared stylesheets every obsolete screen-specific selector, compatibility presentation rule, feature-era topology rule or descendant override whose only purpose is to support the discarded screen implementations. Retain primitive/theme/global rules required by current P4/P5.
-**Hard audit boundary:** no `ui/src/primitives/*.tsx` mutation; no WorkItem/Run/domain/query policy moved into primitives; no new primitive responsibility; no replacement screen authored in IA27.
-**Deletion proof:** CSS/stylesheet audit identifies retained primitive/global rules versus deleted screen-specific rules; no compatibility selector remains for a pre-reconstruction screen class/DOM hierarchy.
-**Proof:** primitive ownership/Astryx containment certification; stylesheet selector audit; primitive smoke/browser proof. IA28-IA34 are blocked until IA27 PASS.
+**Required mutation:** certify the existing canonical P4 primitive vocabulary and approved leaf boundaries without redesigning primitive source. Audit every legacy screen/compatibility selector in the shared stylesheets and classify it as exactly one of: retained primitive/global foundation; T2-owned cross-cutting obsolete compatibility rule; or a selector owned by exactly one destructive screen task T3-T9. Delete the T2-owned cross-cutting rules now. A task-owned selector may remain only because its old screen has not yet been purged and must be deleted in that task's purge checkpoint.
+**Hard audit boundary:** no `ui/src/primitives/*.tsx` mutation; no WorkItem/Run/domain/query policy moved into primitives; no new primitive responsibility; no replacement screen authored in IA27; no authority-backed browser/geometry assertion removed, weakened or conditionally bypassed to make the reset pass.
+**Deletion proof:** the stylesheet audit retains an exact selector→owner ledger; T2-owned cross-cutting rules are absent; every surviving legacy selector maps to exactly one T3-T9 owner and has no permission to survive that owner task.
+**Proof:** primitive ownership/Astryx containment certification; stylesheet selector ownership/purge audit; unchanged authority-backed primitive/browser proof. IA28-IA34 are blocked until IA27 PASS.
 
 ###### Destructive screen replacement protocol for IA28-IA34
 
@@ -1098,13 +1099,29 @@ Every screen task follows the same non-negotiable sequence:
 
 If required non-visual behavior exists only inside an old screen file, the task may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision.
 
+###### Exact T3-T9 rendered face ownership
+
+The 37 audited `SURF-*` rows in `docs/references/workbench-ui/README.md` are partitioned exactly once across the destructive screen tasks. This table is the PLAN owner of task-local rendered acceptance allocation; T11 independently rechecks the union against the reference registry.
+
+| Task | Exact owned SURF rows | Required state/reference sheets before dependency advance |
+|---|---|---|
+| T3 / IA28 | `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` | Queue states; application notices; installation readiness; linked-remediation Create; application-shell active-account visibility |
+| T4 / IA29 | `SURF-WI-001`, `SURF-STEP-WR-001`, `SURF-MAT-SOURCE-001`, `SURF-MAT-DOC-001`, `SURF-MAT-DOC-RO-001`, `SURF-CONF-DIRTY-DEST-001`, `SURF-CONF-DIRTY-MATERIAL-001`, `SURF-CONF-ARCHIVE-001`, `SURF-CONF-DOC-GIT-001` | WorkItem shell controls; current-attention states; document states; owned safety confirmations |
+| T5 / IA30 | `SURF-STEP-R1-001`, `SURF-STEP-R2-001`, `SURF-STEP-DESIGN-001`, `SURF-STEP-PLAN-001`, `SURF-MAT-ACTIVITY-001`, `SURF-MAT-PROPOSAL-001` | Research/Requirements/Solution design/Plan references; dialogue states; proposal states; four-kind Research information differences |
+| T6 / IA31 | `SURF-STEP-R3-001`, `SURF-STEP-APPROVAL-001`, `SURF-MAT-APPROVAL-TASK-001` | Readiness legitimate-input state; Approval current/stale/currentness states; approval-task detail |
+| T7 / IA32 | `SURF-STEP-EXEC-001`, `SURF-MAT-EXEC-TASK-001` | Implementation states; current-vs-historical selection; blocker/action/validation boundaries |
+| T8 / IA33 | `SURF-STEP-COMPLETE-001`, `SURF-WI-CONTEXT-001`, `SURF-MAT-EVIDENCE-001` | Complete linked-remediation branch; candidate/non-candidate terminal states; Evidence; Context |
+| T9 / IA34 | `SURF-SET-001`, `SURF-SET-REPO-001`, `SURF-SET-REPO-ADD-001`, `SURF-SET-REPO-MOVE-001`, `SURF-SET-OC-001`, `SURF-SET-OC-RENAME-001`, `SURF-SET-OC-ADD-001`, `SURF-SET-OC-LOGIN-001`, `SURF-SET-MODEL-001`, `SURF-CONF-REPO-DISCONNECT-001`, `SURF-CONF-OC-REMOVE-001` | repository/account/model readiness; OpenCode login terminal states; repository/account destructive confirmations |
+
+The union is exactly **37 unique SURF rows** with no duplicate or unowned row. For each owned row, the task-local rendered review uses the same three binary verdict dimensions as IA26 — `schema_information`, `ux_interaction`, `visual_ui`. Any `FAIL` blocks dependency advance and requires correction inside the owning task/design before recapture.
+
 ##### IA28 — destructively replace Queue and Create
 
 **Solutions:** SD22 plus existing SD03/SD05 semantic deltas through IA11/IA12.
-**Owners:** `ui/src/app.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.
-**Required mutation:** execute the destructive screen replacement protocol for the three owned paths. Build a fresh Queue Operational scan and Create/remediation TaskPanel→Form/configuration from R2. Keep normal populated Queue separate from source-diagnostic, empty, search and archive states. Create presents controlled Project/kind/Concerns/title plus subordinate derived context and one dominant Create action.
+**Owners:** `ui/src/app.tsx`, `ui/src/OpenCodeAccountControl.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.
+**Required mutation:** execute the destructive screen replacement protocol for the four owned paths. Build a fresh application shell/Queue Operational scan and Create/remediation TaskPanel→Form/configuration from R2/current P3. Rebuild `OpenCodeAccountControl` as global active-account status/quick-access that routes to the one Settings management owner. Keep normal populated Queue separate from source-diagnostic, empty, search and archive states. Create presents controlled Project/kind/Concerns/title plus subordinate derived context and one dominant Create action.
 **Forbidden:** primitive mutation; feature-local structural CSS; copying old queue/modal/form/table composition; using SVGs as product authority.
-**Proof:** purge commit + fresh screen-schema review + Queue/Create functional browser matrix + wide/narrow and theme rendered comparison to `queue*.svg`, `create-work-item.svg`, `create-linked-remediation.svg`.
+**Proof:** purge commit + fresh screen-schema review + Queue/Create/account-visibility functional browser matrix + all T3 face-ledger rows PASS at wide/narrow as applicable against `queue*.svg`, `create-work-item.svg`, `create-linked-remediation.svg` and the application readiness/state references.
 
 ##### IA29 — destructively replace WorkItem shell, Work request and document screens
 
@@ -1113,7 +1130,7 @@ If required non-visual behavior exists only inside an old screen file, the task 
 **Retained dependencies:** `ui/src/MarkdownEditor.tsx`, `ui/src/MarkdownSourceEditor.tsx`, `ui/src/workbench-presentation.ts`, query/API/domain owners.
 **Required mutation:** delete the five owned old screen/composition paths at the purge checkpoint and recreate them from the fresh WorkItem-shell/document information schema. Compose one identity/nine-stage rail/current-attention/primary-material/optional-Context shell. Work request is a fresh Document-class screen. Markdown editors remain content leaves and do not contribute outer screen grammar.
 **Forbidden:** primitive/retained-leaf mutation for screen convenience; copying old shell/frame/identity/rail/document markup or classes.
-**Proof:** purge commit + fresh screen-schema review + Work request/document/Git/current-attention tests + wide/narrow rendered comparison.
+**Proof:** purge commit + fresh screen-schema review + Work request/document/Git/current-attention tests + all nine T4 face-ledger rows PASS at wide/narrow as applicable.
 
 ##### IA30 — destructively replace Research, Requirements, Solution design and Plan screens
 
@@ -1122,7 +1139,7 @@ If required non-visual behavior exists only inside an old screen file, the task 
 **Retained dependencies:** `ui/src/workbench-presentation.ts`, query/API/domain owners, Workbench primitives.
 **Required mutation:** delete all six owned old paths at the purge checkpoint, then recreate the productive-stage family from fresh R2 schemas. Research/Requirements/Solution design/Plan share one current-attention/Document/Dialogue/Review grammar while retaining stage-specific information obligations. Current required input/proposal/blocker/processing owns attention; current governed document is primary otherwise; history/evidence/activity is subordinate.
 **Forbidden:** old stage layout reuse; primitive mutation; feature-owned responsive topology; copying prior dialogue/proposal/timeline composition.
-**Proof:** purge commit + four fresh stage-schema reviews + four-kind Research/Change/Defect downstream browser matrix + required-input/proposal/document/dialogue rendered review.
+**Proof:** purge commit + four fresh stage-schema reviews + four-kind Research/Change/Defect downstream browser matrix + all six T5 face-ledger rows and their dialogue/proposal state sheets PASS.
 
 ##### IA31 — destructively replace Readiness and Approval
 
@@ -1130,7 +1147,7 @@ If required non-visual behavior exists only inside an old screen file, the task 
 **Owners:** `ui/src/ReadinessWorkspace.tsx`, `ui/src/SignoffReview.tsx`.
 **Required mutation:** delete both old screens at the purge checkpoint, then recreate them as fresh Review-class screens from R2. Readiness makes typed R3 verdict/findings/return owner dominant. Approval makes readiness/currentness/task meaning dominant and sign-off the sole primary mutation; technical identity is subordinate.
 **Forbidden:** old generic stage/card review markup; primitive mutation; technical-identity-first hierarchy.
-**Proof:** purge commit + fresh Readiness/Approval schemas + readiness return/blocked/ready and Approval current/stale/sign-off tests + wide/narrow rendered review.
+**Proof:** purge commit + fresh Readiness/Approval schemas + readiness return/blocked/ready and Approval current/stale/sign-off tests + all three T6 face-ledger rows PASS, including Approval task detail and legitimate Readiness input.
 
 ##### IA32 — destructively replace Implementation
 
@@ -1139,7 +1156,7 @@ If required non-visual behavior exists only inside an old screen file, the task 
 **Retained dependencies:** replacement `RunEventTimeline` from IA30, Workbench primitives, canonical execution/query owners.
 **Required mutation:** delete the old Implementation screen at the purge checkpoint, then recreate it from the fresh C12 screen schema as the canonical operational master/detail topology. Detail presents current task/owner/action, attempt, blocker, validation and chronology; historical selection never steals current attention.
 **Forbidden:** old stacked/card/task-count-driven layout; primitive mutation; copying prior execution markup/classes.
-**Proof:** purge commit + fresh Implementation schema + execution task/attempt/blocker/validation tests + wide/narrow rendered comparison.
+**Proof:** purge commit + fresh Implementation schema + execution task/attempt/blocker/validation tests + both T7 face-ledger rows and `implementation-states.svg` PASS at wide/narrow.
 
 ##### IA33 — destructively replace Complete, Evidence and Context
 
@@ -1148,15 +1165,15 @@ If required non-visual behavior exists only inside an old screen file, the task 
 **Retained dependencies:** approved raw-content leaves, `ui/src/workbench-presentation.ts`, canonical material/query owners.
 **Required mutation:** delete all three old screens at the purge checkpoint, then recreate fresh Terminal result, Evidence and Compact context screens from R2. Complete makes final outcome primary, candidate resources only when applicable, and linked remediation a separate authoring action. Context remains supporting/technical only.
 **Forbidden:** old result/evidence/context card systems; primitive mutation; copying prior screen hierarchy.
-**Proof:** purge commit + fresh terminal/evidence/context schemas + candidate/non-candidate/linked-remediation/material tests + wide/narrow rendered review.
+**Proof:** purge commit + fresh terminal/evidence/context schemas + candidate/non-candidate/linked-remediation/material tests + all three T8 face-ledger rows and linked-remediation state reference PASS.
 
 ##### IA34 — destructively replace Settings and OpenCode/account configuration
 
 **Solution:** SD28 plus IA18.
-**Owners:** `ui/src/SettingsWorkspace.tsx`, `ui/src/OpenCodeAccountControl.tsx`, `ui/src/OpenCodeAccountSettings.tsx`.
-**Required mutation:** delete all three old screen implementations at the purge checkpoint, then recreate fresh operator-first Settings/configuration screens from R2. Readiness/meaning/actions are primary; exact paths/endpoints/account identifiers are subordinate unless the active task requires them.
+**Owners:** `ui/src/SettingsWorkspace.tsx`, `ui/src/OpenCodeAccountSettings.tsx`.
+**Required mutation:** delete both old Settings/account-management screen implementations at the purge checkpoint, then recreate fresh operator-first Settings/configuration screens from R2. Readiness/meaning/actions are primary; exact paths/endpoints/account identifiers are subordinate unless the active task requires them. `OpenCodeAccountControl` is an IA28 application-shell dependency and must not be recreated or restyled here.
 **Forbidden:** old admin/card/account/repository/model screen grammar; primitive mutation; feature-local structural CSS.
-**Proof:** purge commit + fresh Settings/account/configuration schemas + readiness/repository/account/model/login/confirmation tests + wide/narrow/theme rendered review.
+**Proof:** purge commit + fresh Settings/account/configuration schemas + readiness/repository/account/model/login/confirmation tests + all eleven T9 face-ledger rows PASS at wide/narrow/theme as applicable.
 
 ##### IA26 — rendered 0.6.0 UX/UI acceptance evidence
 
@@ -1201,17 +1218,17 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | Completed task | Before dependent task | Required retained evidence |
 |---|---|---|
 | T1 | T2 | non-UI baseline gates PASS; no protected execution-foundation mutation |
-| T2 | T3 | retained primitives certified unchanged; legacy screen-specific/compatibility CSS purge audited; no screen replacement authored yet |
-| T3 | T4 | `architecture` + Queue/Create functional/rendered row review PASS |
-| T4 | T5 | `architecture` + WorkItem shell/Work request/document review PASS |
-| T5 | T6 | `architecture` + productive pre-signoff semantic/rendered review PASS |
-| T6 | T7 | `architecture` + Readiness/Approval semantic/rendered review PASS |
-| T7 | T8 | `architecture` + Implementation master/detail semantic/rendered review PASS |
-| T8 | T9 | `architecture` + Complete/Evidence/Context semantic/rendered review PASS |
-| T9 | T10 | `architecture` + Settings/account semantic/rendered review PASS |
+| T2 | T3 | retained primitives certified unchanged; T2-owned cross-cutting compatibility CSS removed; exact surviving legacy-selector→T3-T9 ledger audited; authority-backed browser gate unchanged; no screen replacement authored yet |
+| T3 | T4 | `architecture` + all 3 T3 face-ledger rows PASS |
+| T4 | T5 | `architecture` + all 9 T4 face-ledger rows PASS |
+| T5 | T6 | `architecture` + all 6 T5 face-ledger rows PASS |
+| T6 | T7 | `architecture` + all 3 T6 face-ledger rows PASS |
+| T7 | T8 | `architecture` + both T7 face-ledger rows PASS |
+| T8 | T9 | `architecture` + all 3 T8 face-ledger rows PASS |
+| T9 | T10 | `architecture` + all 11 T9 face-ledger rows PASS; 37/37 task-local SURF union complete |
 | T10 | T11 | complete semantic/component/theme/responsive regression suite PASS |
 
-A dependent task must not start merely because the previous task compiled. For T3-T9, the task evidence must include a purge checkpoint commit deleting the owned old screen files before any replacement authorship, a fresh screen-information-schema review, and the task-specific semantic/rendered proof. Pre-purge screen blobs are defect evidence only and cannot be accepted as implementation ancestry. If a downstream task discovers a genuine primitive defect, execution returns to DESIGN; neither T2 nor the screen task may rewrite primitives as a convenience fix. Local CSS/primitive bypass is not an admissible repair.
+A dependent task must not start merely because the previous task compiled. T2 must retain the exact CSS selector→owner ledger defined by IA27, may delete only its cross-cutting obsolete rules, and may not weaken an authority-backed browser assertion to obtain PASS. For T3-T9, the task evidence must include a purge checkpoint commit deleting the owned old screen files and the task-owned remaining legacy selectors before any replacement authorship, a fresh screen-information-schema review, and PASS for every exact task-owned face row allocated by `12-action-catalog.md`. Pre-purge screen blobs are defect evidence only and cannot be accepted as implementation ancestry. If a downstream task discovers a genuine primitive defect, execution returns to DESIGN; neither T2 nor the screen task may rewrite primitives as a convenience fix. Local CSS/primitive bypass is not an admissible repair.
 
 A failed checkpoint permits only correction inside the owning signed task/design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Task-boundary checkpoints never substitute for V3/V5/V7 or the task's complete logical gate union.
 
@@ -1219,13 +1236,13 @@ A failed checkpoint permits only correction inside the owning signed task/design
 
 For T3-T9, verification must retain both sides of the replacement boundary:
 
-- the purge checkpoint Git commit and exact deleted screen paths;
+- the purge checkpoint Git commit, exact deleted screen paths and exact task-owned legacy selectors removed in the same purge;
 - proof that the purge commit contains no replacement screen JSX/DOM;
 - the fresh screen-information-schema review derived from current R2;
 - replacement commits authored after the purge checkpoint;
 - a diff/audit proving retained primitives and approved non-screen helpers were not modified for screen convenience;
 - task-specific semantic/browser evidence;
-- task-specific rendered comparison and row-level PASS/FAIL.
+- task-specific rendered comparison with explicit `schema_information`, `ux_interaction` and `visual_ui` PASS/FAIL for every exact task-owned SURF row; the task may not advance with an unreviewed or failed owned row.
 
 A final screen that looks correct is insufficient if the task cannot prove the old screen implementation was removed before replacement. Conversely, deletion alone is insufficient without fresh schema and rendered proof.
 
@@ -1250,9 +1267,9 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ###### Pre-Approval structural-sensor correction
 
-Current `tests/architecture.test.ts` is stale against the corrected package: its permanent PLAN fitness check still requires exactly 28 signed `changeSurface` paths even though current DESIGN/PLAN now require 30. This is a pre-signoff verification-material defect, not T1 implementation surface.
+The permanent package sensor is pre-signoff campaign material, not T1 implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **43-path** DESIGN/PLAN forecast union, exact task-local destructive-screen ownership, the corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`, and the exact 37-row T3-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each T3-T9 task owns its declared replacement screen set. It also retains the exact IA01-IA34 catalog/one-definition checks and recognizes IA27-IA34 plus IA23/IA26/IA24 as reconstruction/cross-solution/rendered-acceptance/final actions.
 
-Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the corrected DESIGN/PLAN task-local forecast union without creating a second package registry. The sensor must prove uniqueness plus exact set equality between DESIGN forecast and the union of signed task `changeSurface` entries; it must not preserve historical literal path counts as authority. It must structurally require the exact IA01-IA34 catalog, enforce one definition per IA, and recognize IA27-IA34 as the presentation reconstruction owners plus IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it does not move `tests/architecture.test.ts` into signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
+This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
 ##### 0.6.0 implementation delivery branch
 
@@ -1313,7 +1330,7 @@ Any failed row blocks closeout, opens remediation at the defective implementatio
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
-- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
+- all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
 - each signed task retains its exact `changeSurface`; the union remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
@@ -1420,7 +1437,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T2",
-      "objective": "Preserve and certify the existing canonical Workbench primitives while purging legacy screen presentation support (SD21, IA27). Do not modify ui/src/primitives/**. Remove obsolete screen-specific/compatibility selectors from theme.css/styles.css, prove the primitive/Astryx/leaf boundaries remain current, and establish the destructive screen-replacement boundary before any new screen is authored.",
+      "objective": "Preserve and certify the existing canonical Workbench primitives while establishing an executable legacy-CSS reset boundary (SD21, IA27). Do not modify ui/src/primitives/**. Classify shared CSS as retained foundation, T2-owned cross-cutting obsolete compatibility rules, or exactly one T3-T9 screen owner; delete only T2-owned cross-cutting rules now, retain an exact selector→task ledger for the remainder, weaken no authority-backed browser assertion, and author no replacement screen.",
       "dependsOn": [
         "T1"
       ],
@@ -1503,12 +1520,13 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T3",
-      "objective": "Destructively replace Queue and Create WorkItem (SD22, IA11, IA12, IA28). First commit a purge deleting app.tsx, WorkItemQueue.tsx and CreateWorkItem.tsx with no replacement JSX; then recreate them from the current R2 screen-information schemas using retained primitives. No old screen layout, field grouping, table-column design, CSS/class structure or responsive composition may be copied or incrementally transformed.",
+      "objective": "Destructively replace the application shell, global OpenCode-account quick-access, Queue and Create WorkItem (SD22, IA11, IA12, IA28). First commit a purge deleting app.tsx, OpenCodeAccountControl.tsx, WorkItemQueue.tsx and CreateWorkItem.tsx plus their assigned legacy selectors with no replacement JSX; then recreate them from the current R2/P3 screen-information schemas using retained primitives. The shell must expose the active saved OpenCode account and route management to Settings. No old screen layout, field grouping, table-column design, CSS/class structure, toolbar/account chrome or responsive composition may be copied or incrementally transformed. Owned rendered faces: SURF-APP-001, SURF-QUEUE-001, SURF-CREATE-001.",
       "dependsOn": [
         "T2"
       ],
       "scope": [
         "ui/src/app.tsx",
+        "ui/src/OpenCodeAccountControl.tsx",
         "ui/src/WorkItemQueue.tsx",
         "ui/src/CreateWorkItem.tsx",
         "tests/browser.spec.ts"
@@ -1530,10 +1548,12 @@ V4/V5/V6 explicitly verify:
         "GW-DOC-WORKBENCH-UX-V2",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
         "GW-DOC-WORKBENCH-THEME-V1",
-        "GW-DOC-VALIDATION-STANDARD-V1"
+        "GW-DOC-VALIDATION-STANDARD-V1",
+        "GW-DOC-INSTALLATION-READINESS-V1"
       ],
       "changeSurface": [
         "ui/src/app.tsx",
+        "ui/src/OpenCodeAccountControl.tsx",
         "ui/src/WorkItemQueue.tsx",
         "ui/src/CreateWorkItem.tsx",
         "tests/browser.spec.ts"
@@ -1555,7 +1575,8 @@ V4/V5/V6 explicitly verify:
         "GW-P1-MINIMUM-CHANGE",
         "GW-P1-AUTHORITY-BEFORE-INFERENCE",
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
-        "GW-DOC-WORKBENCH-THEME-V1"
+        "GW-DOC-WORKBENCH-THEME-V1",
+        "GW-DOC-INSTALLATION-READINESS-V1"
       ],
       "concernIds": [
         "ui",
@@ -1564,7 +1585,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T4",
-      "objective": "Destructively replace the WorkItem shell, Work request and governed document screens (SD23, IA13, IA14, IA29). Purge the five old screen/composition paths first, then recreate the shell/document screens from current R2 using retained primitives and retained Markdown editors as content leaves only. No old shell/frame/rail/document composition may survive.",
+      "objective": "Destructively replace the WorkItem shell, Work request and governed document screens (SD23, IA13, IA14, IA29). Purge the five old screen/composition paths and their assigned legacy selectors first, then recreate the shell/document screens from current R2 using retained primitives and retained Markdown editors as content leaves only. No old shell/frame/rail/document composition may survive. Owned rendered faces: SURF-WI-001, SURF-STEP-WR-001, SURF-MAT-SOURCE-001, SURF-MAT-DOC-001, SURF-MAT-DOC-RO-001, SURF-CONF-DIRTY-DEST-001, SURF-CONF-DIRTY-MATERIAL-001, SURF-CONF-ARCHIVE-001, SURF-CONF-DOC-GIT-001.",
       "dependsOn": [
         "T3"
       ],
@@ -1631,7 +1652,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T5",
-      "objective": "Destructively replace Research, Requirements, Solution design and Implementation plan screens (SD24, IA15, IA30). Purge all six old productive-stage screen/adapters first, then recreate the family from fresh R2 screen-information schemas using one retained primitive grammar. Old dialogue/proposal/timeline/layout composition is forbidden reuse.",
+      "objective": "Destructively replace Research, Requirements, Solution design and Implementation plan screens (SD24, IA15, IA30). Purge all six old productive-stage screen/adapters and their assigned legacy selectors first, then recreate the family from fresh R2 screen-information schemas using one retained primitive grammar. Old dialogue/proposal/timeline/layout composition is forbidden reuse. Owned rendered faces: SURF-STEP-R1-001, SURF-STEP-R2-001, SURF-STEP-DESIGN-001, SURF-STEP-PLAN-001, SURF-MAT-ACTIVITY-001, SURF-MAT-PROPOSAL-001.",
       "dependsOn": [
         "T4"
       ],
@@ -1700,7 +1721,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T6",
-      "objective": "Destructively replace Readiness and Approval (SD25, IA16, IA17, IA31). Purge both old review screens first, then recreate fresh Review-class screens from R2. Old stage/card review composition and technical-identity-first hierarchy are forbidden reuse.",
+      "objective": "Destructively replace Readiness and Approval (SD25, IA16, IA17, IA31). Purge both old review screens and their assigned legacy selectors first, then recreate fresh Review-class screens from R2. Old stage/card review composition and technical-identity-first hierarchy are forbidden reuse. Owned rendered faces: SURF-STEP-R3-001, SURF-STEP-APPROVAL-001, SURF-MAT-APPROVAL-TASK-001.",
       "dependsOn": [
         "T5"
       ],
@@ -1761,7 +1782,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T7",
-      "objective": "Destructively replace the Implementation screen (SD26, IA32). Purge ExecutionWorkspace.tsx first, then recreate it from the fresh C12 screen-information schema using retained primitives and the replacement RunEventTimeline from T5. No old stacked/card/task-count-driven execution layout may survive.",
+      "objective": "Destructively replace the Implementation screen (SD26, IA32). Purge ExecutionWorkspace.tsx and its assigned legacy selectors first, then recreate it from the fresh C12 screen-information schema using retained primitives and the single replacement RunEventTimeline produced by T5/IA30. No old stacked/card/task-count-driven execution layout may survive. Owned rendered faces: SURF-STEP-EXEC-001, SURF-MAT-EXEC-TASK-001.",
       "dependsOn": [
         "T6"
       ],
@@ -1820,7 +1841,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T8",
-      "objective": "Destructively replace Complete, Evidence and Context (SD27, IA19, IA33). Purge all three old screens first, then recreate fresh Terminal result, Evidence and Compact context screens from R2 using retained primitives/approved content leaves. Old result/evidence/context screen hierarchy is forbidden reuse.",
+      "objective": "Destructively replace Complete, Evidence and Context (SD27, IA19, IA33). Purge all three old screens and their assigned legacy selectors first, then recreate fresh Terminal result, Evidence and Compact context screens from R2 using retained primitives/approved content leaves. Old result/evidence/context screen hierarchy is forbidden reuse. Owned rendered faces: SURF-STEP-COMPLETE-001, SURF-WI-CONTEXT-001, SURF-MAT-EVIDENCE-001.",
       "dependsOn": [
         "T7"
       ],
@@ -1885,13 +1906,12 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T9",
-      "objective": "Destructively replace Settings and OpenCode/account configuration screens (SD28, IA18, IA34). Purge the three old screen implementations first, then recreate fresh operator-first Settings/configuration screens from R2 using retained primitives. Old admin/card/account/repository/model screen grammar is forbidden reuse.",
+      "objective": "Destructively replace Settings and OpenCode account-management/configuration screens (SD28, IA18, IA34). Purge SettingsWorkspace.tsx and OpenCodeAccountSettings.tsx plus their assigned legacy selectors first, then recreate fresh operator-first Settings/configuration screens from R2 using retained primitives. The global OpenCodeAccountControl is already replaced by T3 and is excluded here. Old admin/card/account/repository/model screen grammar is forbidden reuse. Owned rendered faces: SURF-SET-001, SURF-SET-REPO-001, SURF-SET-REPO-ADD-001, SURF-SET-REPO-MOVE-001, SURF-SET-OC-001, SURF-SET-OC-RENAME-001, SURF-SET-OC-ADD-001, SURF-SET-OC-LOGIN-001, SURF-SET-MODEL-001, SURF-CONF-REPO-DISCONNECT-001, SURF-CONF-OC-REMOVE-001.",
       "dependsOn": [
         "T8"
       ],
       "scope": [
         "ui/src/SettingsWorkspace.tsx",
-        "ui/src/OpenCodeAccountControl.tsx",
         "ui/src/OpenCodeAccountSettings.tsx",
         "tests/browser.spec.ts"
       ],
@@ -1906,7 +1926,8 @@ V4/V5/V6 explicitly verify:
         "ui/src/query-keys.ts",
         "ui/src/markdown-source-formatting.ts",
         "ui/src/theme.ts",
-        "ui/src/main.tsx"
+        "ui/src/main.tsx",
+        "ui/src/OpenCodeAccountControl.tsx"
       ],
       "acceptanceRefs": [
         "GW-DOC-WORKBENCH-UX-V2",
@@ -1917,7 +1938,6 @@ V4/V5/V6 explicitly verify:
       ],
       "changeSurface": [
         "ui/src/SettingsWorkspace.tsx",
-        "ui/src/OpenCodeAccountControl.tsx",
         "ui/src/OpenCodeAccountSettings.tsx",
         "tests/browser.spec.ts"
       ],
@@ -1947,7 +1967,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T10",
-      "objective": "Certify the fully replaced Workbench screen layer as one component/theme/interaction system (SD16-SD18, SD29, IA20-IA23). Prove exhaustive screen classification, primitive containment, absence of pre-reconstruction screen grammar/compatibility CSS, scenario-41 behavior, responsive semantic continuity, System/Light/Dark parity and cross-solution regression closure. Production defects return to their owning T2-T9 task or DESIGN for a primitive defect.",
+      "objective": "Certify the fully replaced Workbench screen layer as one component/theme/interaction system (SD16-SD18, SD29, IA20-IA23). Prove exhaustive screen classification, primitive containment, absence of pre-reconstruction screen grammar/compatibility CSS, scenario-41 behavior, responsive semantic continuity, System/Light/Dark parity and cross-solution regression closure. Prove the T3-T9 rendered-face ledger is exactly 37 unique SURF rows with no duplicate or unowned row and every task-owned row passed before dependency advance. Production defects return to their owning T2-T9 task or DESIGN for a primitive defect.",
       "dependsOn": [
         "T9"
       ],
@@ -2009,7 +2029,7 @@ V4/V5/V6 explicitly verify:
     },
     {
       "id": "T11",
-      "objective": "Produce and review the exhaustive exact-candidate rendered acceptance package (SD30, IA26) and close only when every governed replacement screen/state has PASS for schema/information fidelity, UX/interaction fidelity and visual/UI fidelity. Any screen FAIL returns to T3-T9; shared stylesheet purge defects return to T2; a primitive defect returns to DESIGN. After zero unresolved FAIL, record closeout metadata and run final gates/V0-V7.",
+      "objective": "Produce and review the exhaustive exact-candidate rendered acceptance package (SD30, IA26) and close only when all 37 governed SURF rows plus required workflow/state/theme/responsive references have PASS for schema/information fidelity, UX/interaction fidelity and visual/UI fidelity. Any screen FAIL returns to T3-T9; shared stylesheet-purge defects return to T2; a primitive defect returns to DESIGN. After zero unresolved FAIL, record closeout metadata and run final gates/V0-V7.",
       "dependsOn": [
         "T10"
       ],
@@ -2029,8 +2049,7 @@ V4/V5/V6 explicitly verify:
         "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
         "GW-DOC-WORKBENCH-THEME-V1",
         "GW-DOC-VALIDATION-STANDARD-V1",
-        "GW-DOC-SPECIFICATION-STANDARD-V2",
-        "GW-DOC-VALIDATION-STANDARD-V1"
+        "GW-DOC-SPECIFICATION-STANDARD-V2"
       ],
       "changeSurface": [
         "tests/browser.spec.ts",
