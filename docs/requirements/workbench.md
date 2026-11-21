@@ -613,6 +613,32 @@ Provider/runtime mechanics such as OpenCode session identity/status are technica
 
 This is a binding stability and information-hierarchy requirement.
 
+### 11.4A Information visibility and progressive disclosure
+
+Every datum/action available to a Workbench surface has exactly one ordinary presentation class. This classification is semantic and does not depend on whether the runtime happens to expose the value conveniently.
+
+| Class | Meaning | Default presentation |
+|---|---|---|
+| **Primary task information** | required to understand or perform the current operator task | visible in the owning primary interaction surface and allowed to dominate |
+| **Supporting operator information** | useful to judge or orient the current task but not itself the task | visible subordinately or through the owning supporting-material/history control |
+| **Operational detail** | low-frequency operator-facing history, resource or status detail | subordinate and collapsed/selected when persistent display would compete with primary work |
+| **Technical detail** | exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal-role identity and comparable mechanics | hidden by default; available only through the owning **Technical details** disclosure or explicitly opened **Context** |
+| **Diagnostic/console detail** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence | absent from ordinary product presentation; available only through an explicitly technical/evidence inspection surface when legitimate operator inspection requires it |
+
+A normally subordinate technical condition may become the current blocker without promoting its raw representation. The primary surface promotes only the **human-readable meaning, consequence and valid action**. Raw code/path/hash/session/payload detail remains in its technical/evidence owner.
+
+The progressive-disclosure owners are closed:
+
+- **Supporting material/history** — operator-facing workflow material and history;
+- **Context** — explicitly opened compact secondary/technical orientation for the selected WorkItem/material;
+- **Technical details** — local exact identity/mechanics associated with the current primary surface;
+- **Evidence** — exact evidence/resource identity and bytes after intentional inspection;
+- **Safety/confirmation** — exact facts required to consent safely to the pending mutation, for example the exact documentation-Git changed paths.
+
+No feature may create another persistent technical rail, diagnostics dashboard, metadata card stack or local disclosure system. A datum has one ordinary owner; duplicate exposure is permitted only where a second current decision genuinely requires the same semantic fact.
+
+Primary information may never be available **only** through Context or Technical details. Conversely, Technical/Diagnostic information may not become persistently visible merely because a viewport changes or because a failure currently owns attention.
+
 ### 11.5 Master/detail is reserved for real master/detail work
 
 A persistent master column is appropriate only when the interaction is canonically classified as **Operational master/detail**. In the current Workbench that means **Implementation**.
@@ -1556,7 +1582,9 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-217-PRIMARY-INFORMATION-ECONOMY
 
-**Required behavior:** primary task content dominates; secondary/technical information cannot create card/chrome accumulation.
+**Required behavior:** primary task content dominates; secondary/technical information cannot create card/chrome accumulation. Every datum/action follows the closed §11.4A presentation classes and disclosure owners.
+
+**Acceptance:** required Primary information is visible without opening technical inspection; Technical/Diagnostic information is absent from the ordinary surface unless the active task requires that exact value; opening the authorized disclosure exposes only its owned information; closing/returning restores the ordinary hierarchy without losing current attention.
 
 ### GW-FR-218-SPACE-CLASS-CONSISTENCY
 
@@ -1737,6 +1765,7 @@ At minimum, downstream implementation must prove these scenarios end to end:
 43. Every free-form continuation fixture shows the preceding substantive agent message and prior accepted operator/agent turns in the same Dialogue surface; removing that conversational anchor makes the composer unavailable.
 44. Every required-input fixture shows the exact agent question inline with the selected attempt transcript and binds the composer to that question while preserving any additional agent explanation from the same turn.
 45. Agent/user messages remain visually distinguishable from workflow events, operational activity, evidence and technical diagnostics even when all are present for the same attempt.
+46. Every governed surface proves its §11.4A visibility contract in both directions: Primary information is visible by default; Technical/Diagnostic information is absent by default; the authorized Technical details/Context/Evidence/confirmation owner exposes the exact value only after explicit entry; a technical blocker promotes human-readable meaning/action without leaking raw diagnostic identity.
 
 ## 24. Downstream technical-design obligations
 
