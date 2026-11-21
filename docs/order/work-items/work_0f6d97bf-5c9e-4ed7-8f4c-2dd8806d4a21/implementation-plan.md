@@ -24,7 +24,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `cfa0000200cd158a7b04360065f703c7d74d16d6` |
+| `implementation-plan/00-governance.md` | `4469deb975d62a37e87adad2be06609799384917` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `e4ea752b6b67709e3f0f7db2128936d3e353885d` |
 | `implementation-plan/02-a02-governance-intake.md` | `ae76f19b5d4880f4aadf28d37395e43ca9d43f3a` |
 | `implementation-plan/03-a03-queue-source.md` | `b18ed80eccc24f216cd9c37b3af5b5be8ac626ac` |
@@ -37,7 +37,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/10-a10-recovery-accessibility.md` | `8bd153757e9004112cdbac7fcfc49b7bd3b571d1` |
 | `implementation-plan/11-a11-component-certification.md` | `645d4b62577baf5476d0831e3f0ddfcd645db1e2` |
 | `implementation-plan/12-action-catalog.md` | `a6942be7c0285ff23d0d0cf3f1f75ee8bbd85bcd` |
-| `implementation-plan/13-verification-closeout.md` | `babdc4c96808a18032661c6aa4e979c00567bae7` |
+| `implementation-plan/13-verification-closeout.md` | `5ff66b3f8a472ee4623b500cc6e71d990d83b74a` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -208,7 +208,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
-IA27-IA34 are the presentation reconstruction owners. IA27 is the **foundation reconstruction owner**: it positively retains only the exact nine atomic adapters named by SD21/P4 §16.6, destructively removes the exact 20 design-bearing composition primitive implementations plus the five old application/WorkItem shell-integration files and their structural selectors/implementation-specific geometry assertions, permanently removes the old `WorkbenchLayout.tsx` API, and then authors the fresh `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts`, reconstructed composition primitives, and fresh application/WorkItem shell integration from current P3/P4 and reviewed new-design references. Its purge checkpoint contains no replacement primitive JSX; IA27 itself closes only after the fresh foundation passes architecture/theme/responsive/accessibility/rendered proof. IA28-IA34 are blocked until that PASS, then own destructive screen replacement. Each screen task records its own purge checkpoint deleting old owned screen files plus remaining task-local legacy selectors before replacement authorship and may not copy or incrementally transform pre-purge screen implementation. Later screens consume the accepted foundation and may not redesign it locally.
+IA27-IA34 are the presentation reconstruction owners. IA27 is the **foundation reconstruction owner**: it positively retains only the exact seven atomic adapters named by SD21/P4 §16.6, destructively removes the exact 20 design-bearing composition primitive implementations plus the five old application/WorkItem shell-integration files and their structural selectors/implementation-specific geometry assertions, permanently removes the old `WorkbenchLayout.tsx` API, and then authors the fresh `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts`, reconstructed composition primitives, and fresh application/WorkItem shell integration from current P3/P4 and reviewed new-design references. Its purge checkpoint contains no replacement primitive JSX; IA27 itself closes only after the fresh foundation passes architecture/theme/responsive/accessibility/rendered proof. IA28-IA34 are blocked until that PASS, then own destructive screen replacement. Each screen task records its own purge checkpoint deleting old owned screen files plus remaining task-local legacy selectors before replacement authorship and may not copy or incrementally transform pre-purge screen implementation. Later screens consume the accepted foundation and may not redesign it locally.
 
 IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
@@ -1307,7 +1307,7 @@ A failed checkpoint permits only correction inside the owning signed task/design
 
 For T2, verification must retain both sides of the foundation replacement boundary:
 
-- the purge checkpoint Git commit and exact 18 deleted design-bearing primitive paths;
+- the purge checkpoint Git commit and exact 20 deleted design-bearing primitive paths;
 - proof that `WorkbenchLayout.tsx`, its old API, the old structural selectors and implementation-specific geometry assertions are absent at that checkpoint;
 - proof that the purge checkpoint contains no replacement primitive JSX/DOM;
 - the fresh foundation composition-schema review from current P3/P4 and reviewed new-design references;
@@ -1349,7 +1349,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ###### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **66-path** DESIGN/PLAN forecast union; the exact 18 destructive design-bearing primitive paths, seven positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T2-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves T2 owns its declared shell face and each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **66-path** DESIGN/PLAN forecast union; the exact 20 destructive design-bearing primitive paths, seven positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T2-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves T2 owns its declared shell face and each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -1426,7 +1426,6 @@ V4/V5/V6 explicitly verify:
 - IA26 exact-candidate rendered acceptance evidence is exhaustive, the GitHub Actions artifact identity is bound to the reviewed candidate, and every required schema/information, UX/interaction and visual/UI verdict is PASS with no unresolved rendered discrepancy.
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
-
 ## Canonical order-tasks block
 
 ```order-tasks
