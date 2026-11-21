@@ -2494,20 +2494,13 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          exactSet(
-            "T1 cumulative scope",
-            task.scope ?? [],
-            [
-              "README.md",
-              "src/core/**",
-              "src/daemon/**",
-              "src/shell/**",
-              "ui/src/**",
-              "tests/**",
-              ".github/workflows/ci.yml",
-              "CHANGELOG.md",
-            ],
-          );
+          if ((task.scope ?? []).length !== 66 || duplicates(task.scope ?? []).length > 0) {
+            violations.push(
+              "T1 hard scope must contain the exact 66 unique forecast paths; found " +
+                (task.scope ?? []).length,
+            );
+          }
+          exactSet("T1 hard scope", task.scope ?? [], designSurface);
         }
 
         const signedSurface = task?.changeSurface ?? [];
