@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `1e9365dc412cb012bb49bc3dcb58eaa34001e369` |
+| `implementation-plan/00-governance.md` | `b19fbf0ac0c2cfa2a170b5ed74a846f612428a88` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `e4ea752b6b67709e3f0f7db2128936d3e353885d` |
 | `implementation-plan/02-a02-governance-intake.md` | `ae76f19b5d4880f4aadf28d37395e43ca9d43f3a` |
 | `implementation-plan/03-a03-queue-source.md` | `b18ed80eccc24f216cd9c37b3af5b5be8ac626ac` |
@@ -214,12 +214,11 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 
 The canonical PLAN contains exactly one signed execution task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes into later task baselines. That task uses:
 
-- bounded `scope` patterns as the hard repository-reach envelope for the complete cumulative candidate;
+- the exact same **66 repository paths** for signed `scope` and `changeSurface`; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
 - explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
-- one exact 66-path `changeSurface` forecast for the cumulative candidate;
 - IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
-A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
+The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 66-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
 ##### Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
