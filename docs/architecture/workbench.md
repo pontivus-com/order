@@ -863,6 +863,25 @@ The exact filenames may be combined only when two rows remain one independently 
 
 Adding a new Order-owned Workbench primitive is an architecture change. It requires an upstream DESIGN amendment proving that the mechanic is not already expressible by this vocabulary and that it represents a reusable interaction responsibility rather than feature convenience.
 
+### 8.12A Information-visibility and progressive-disclosure ownership
+
+This section technically realizes the closed presentation classes in `GW-DOC-WORKBENCH-UX-V2 §11.4A`. It does not create another semantic classification.
+
+| P3 presentation class | Canonical technical owner | Technical constraint |
+|---|---|---|
+| Primary task information | owning primary interaction composition: `WorkbenchSurface`, `WorkbenchDialogue`, `WorkbenchReview`, `WorkbenchMasterDetail`, `WorkbenchSettingsLayout`, `WorkbenchTaskPanel -> WorkbenchForm`, Evidence or Terminal result composition as applicable | must be reachable without opening Context/Technical details; no technical inspector may be the only owner of a current blocker/action |
+| Supporting operator information | `WorkbenchSelector`, `WorkbenchResourceRow`, `WorkbenchTimeline` or a bounded supporting region inside the owning primary composition | cannot create another persistent navigation axis or displace current attention/primary material |
+| Operational detail | the same supporting owners, ordinarily selected/collapsed when persistent display would compete with the task | remains operator-language content; raw implementation identity does not become ordinary row metadata |
+| Technical detail | local `WorkbenchDisclosure` labelled **Technical details** or explicit `WorkbenchContextPanel` when the information is cross-material WorkItem orientation | collapsed/closed by default; code/identity typography; no auto-open; no primary command owner; no duplicate persistent metadata panel |
+| Diagnostic/console detail | only an already-authorized Technical details, Context or Evidence inspection surface when legitimate operator inspection requires the raw value | absent from ordinary UI; raw diagnostic/event/provider payloads never become primary merely because the underlying condition blocks progress |
+| Mutation-consent exact facts | `WorkbenchConfirmation` only when the exact fact is necessary to consent safely to the mutation | this is not a general escape hatch for persistent technical identity; the exact fact disappears with the confirmation |
+
+When a technical/diagnostic condition owns attention, domain/presentation policy supplies a human-readable blocker/recovery description to `WorkbenchAttention`, `WorkbenchNotice` or the owning primary state. The primitive layer does not derive that meaning from raw codes. Raw identifiers remain in the authorized technical/evidence owner.
+
+`WorkbenchDisclosure` is therefore the local **technical inspection lane**, not a generic place to hide arbitrary product information. `WorkbenchContextPanel` is explicit cross-material technical/secondary orientation, not another disclosure substitute. Evidence is used when the operator intentionally inspects exact resource identity/bytes. These owners are not interchangeable by feature preference.
+
+Responsive representation may move Context or subordinate selection according to the single responsive owner, but it never changes a datum's P3 classification or default visibility. A narrow layout cannot expose Technical/Diagnostic information persistently merely to avoid another interaction.
+
 ### 8.12.1 Astryx foundation-conformance law
 
 Order's semantic primitive boundary does not authorize rebuilding behavior that the pinned foundation already owns. For every §8.12 primitive, P7 first resolves the exact `@astryxdesign/core@0.7.13` component documentation recorded by `GW-DOC-EXTERNAL-FACTS`, then applies this precedence:
@@ -885,7 +904,7 @@ Pinned Astryx guidance is incorporated as follows:
 
 | Order concern | Pinned Astryx realization / best-practice consequence |
 |---|---|
-| application shell | `WorkbenchLayout` composes one outer `AppShell`; it does not recreate the viewport shell/skip-to-content/responsive app-frame mechanics in raw containers |
+| application shell | `WorkbenchAppShell` composes the one outer `AppShell`; `WorkbenchWorkItemShell` composes selected-WorkItem identity/rail/primary/Context beneath it; neither recreates viewport shell/skip-to-content/responsive app-frame mechanics in raw containers |
 | named sub-page regions | use `Layout` for genuine named header/start/content/end/footer regions; use HStack/VStack/Grid-style layout primitives for simple stacking rather than a five-slot layout |
 | action | `WorkbenchAction` delegates to `Button` or `IconButton`; one primary action per view, explicit verb/object labels, loading state for asynchronous actions, accessible label/tooltip for icon-only actions |
 | navigation | pure navigation uses Astryx `Link`/native link semantics in the owning Toolbar/Identity/content slot; application history interception may preserve SPA behavior, but the rendered affordance is not a command Button |
@@ -1077,7 +1096,7 @@ Terminal result
      + result content/evidence/resources
 
 Compact context
-  -> WorkbenchContextPanel hosted only by WorkbenchLayout
+  -> WorkbenchContextPanel hosted only by WorkbenchWorkItemShell
 
 Task panel
   -> WorkbenchTaskPanel
@@ -1436,7 +1455,7 @@ Proposal, Readiness and Approval map into `WorkbenchReview`; they do not reuse a
 
 Implementation maps into `WorkbenchMasterDetail`; feature code does not create its own persistent grid columns.
 
-`WorkbenchLayout` owns responsive outer topology/Context hosting; `WorkbenchContextPanel` owns the Context body/close affordance. `App.tsx` owns only the open/close boolean and supplies a true toggle.
+`WorkbenchAppShell` owns application-global outer topology. `WorkbenchWorkItemShell` owns selected-WorkItem identity/rail/primary/Context placement and consumes the single responsive-class owner; `WorkbenchContextPanel` owns only the Context body/close affordance. `WorkItemWorkspace.tsx` owns the Context open/close boolean and supplies a true toggle. No deleted `WorkbenchLayout` responsibility survives as a hidden compatibility owner.
 
 Dirty/destructive navigation confirmation uses `WorkbenchConfirmation`; the navigation guard owns the policy/state while the primitive owns modal interaction mechanics.
 
