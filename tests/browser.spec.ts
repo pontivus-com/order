@@ -1277,6 +1277,45 @@ test("rendered acceptance phase 1 captures application, Queue and Create states"
     ],
   }));
 
+  await page.route("**/api/settings/readiness", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ready: false,
+        blockers: ["REPOSITORY_REQUIRED", "OPENCODE_ACCOUNT_REQUIRED"],
+      }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("installation-readiness")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-wide-light-installation-readiness",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "installation-readiness-blocked",
+    fixture: "application shell with deterministic readiness blockers",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/installation-readiness.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-INSTALLATION-READINESS",
+    ],
+  }));
+  await page.unroute("**/api/settings/readiness");
+  await page.reload();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-wide-light-populated",
     workItemKind: "QUEUE",
@@ -1360,6 +1399,8 @@ test("rendered acceptance phase 1 captures application, Queue and Create states"
   await linkedDialog.getByRole("radio", { name: "DEFECT" }).click();
   await linkedDialog.getByLabel("Title").fill("Rendered acceptance remediation");
 
+  const linkedRoute = new URL(page.url());
+
   entries.push(await captureRenderedAcceptance(page, {
     id: "create-linked-remediation-wide-light",
     workItemKind: "DEFECT",
@@ -1369,7 +1410,7 @@ test("rendered acceptance phase 1 captures application, Queue and Create states"
     fixture: "Completed investigation linked-remediation creation",
     viewport: { width: 1440, height: 900 },
     theme: "Light",
-    route: "/?workItem=completed-investigation",
+    route: linkedRoute.pathname + linkedRoute.search,
     references: [
       "docs/references/workbench-ui/create-linked-remediation.svg",
     ],
