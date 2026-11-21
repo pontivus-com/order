@@ -38,7 +38,7 @@ import {
 } from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchConfirmation } from "./primitives/WorkbenchConfirmation.tsx";
-import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchWorkItemShell } from "./primitives/WorkbenchWorkItemShell.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkItemIdentityRow } from "./WorkItemIdentityRow.tsx";
 import { WorkflowRail } from "./WorkflowRail.tsx";
@@ -128,7 +128,6 @@ export const WorkItemWorkspace = ({
   selectedWorkItemFetching,
   selectedWorkItemUpdatedAt,
   selectedWorkItemError,
-  toolbar,
   contextOpen,
   onContextOpenChange,
   contextContent,
@@ -142,7 +141,6 @@ export const WorkItemWorkspace = ({
   selectedWorkItemFetching: boolean;
   selectedWorkItemUpdatedAt: number;
   selectedWorkItemError: unknown;
-  toolbar: ReactNode;
   contextOpen: boolean;
   onContextOpenChange: (open: boolean) => void;
   contextContent: ReactNode;
@@ -1597,17 +1595,14 @@ export const WorkItemWorkspace = ({
 
   return (
     <>
-      <WorkbenchLayout
-        toolbar={toolbar}
+      <WorkbenchWorkItemShell
+        identity={identity}
+        workflowRail={workflowRail}
         primary={primary}
-        workItemChrome={{
-          identity,
-          workflowRail,
-          context: {
-            open: contextOpen,
-            onOpenChange: onContextOpenChange,
-            content: contextContent,
-          },
+        context={{
+          open: contextOpen,
+          onOpenChange: onContextOpenChange,
+          content: contextContent,
         }}
       />
 

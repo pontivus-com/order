@@ -383,6 +383,7 @@ describe("Order cross-boundary certification", () => {
     const names = readdirSync(primitiveDirectory).sort();
     expect(names).toEqual([
       "WorkbenchAction.tsx",
+      "WorkbenchAppShell.tsx",
       "WorkbenchAttention.tsx",
       "WorkbenchConfirmation.tsx",
       "WorkbenchContextPanel.tsx",
@@ -392,7 +393,6 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchForm.tsx",
       "WorkbenchIcon.tsx",
       "WorkbenchIdentity.tsx",
-      "WorkbenchLayout.tsx",
       "WorkbenchMasterDetail.tsx",
       "WorkbenchNotice.tsx",
       "WorkbenchRail.tsx",
@@ -409,6 +409,8 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchTimeline.tsx",
       "WorkbenchToolbar.tsx",
       "WorkbenchUtilityLink.tsx",
+      "WorkbenchWorkItemShell.tsx",
+      "workbench-responsive.ts",
     ]);
 
     const source = names.map((name) => read("ui/src/primitives/" + name)).join("\n");
@@ -421,12 +423,20 @@ describe("Order cross-boundary certification", () => {
     expect(source).not.toContain("@stylexjs/stylex");
     expect(source).not.toContain("RichTextEditor");
 
-    const layout = read("ui/src/primitives/WorkbenchLayout.tsx");
-    expect(layout).toContain('"(min-width: 1280px)"');
-    expect(layout).toContain("<AppShell");
-    expect(layout).toContain("<Layout");
-    expect(layout).toContain("<Drawer");
-    expect(layout).not.toContain("inspector-fallback");
+    expect(names).not.toContain("WorkbenchLayout.tsx");
+    const appShell = read("ui/src/primitives/WorkbenchAppShell.tsx");
+    const workItemShell = read("ui/src/primitives/WorkbenchWorkItemShell.tsx");
+    const responsive = read("ui/src/primitives/workbench-responsive.ts");
+    expect(appShell).toContain("<AppShell");
+    expect(appShell).not.toContain("<Drawer");
+    expect(workItemShell).toContain("<Layout");
+    expect(workItemShell).toContain("<Drawer");
+    expect(responsive).toContain('"(min-width: 1280px)"');
+    expect(responsive).toContain('"(min-width: 800px)"');
+    expect(appShell).not.toContain("matchMedia");
+    expect(workItemShell).not.toContain("matchMedia");
+    expect(read("ui/src/primitives/WorkbenchMasterDetail.tsx")).not.toContain("matchMedia");
+    expect(read("ui/src/primitives/WorkbenchSettingsLayout.tsx")).not.toContain("matchMedia");
 
     const theme = read("ui/src/theme.css");
     expect(theme).toContain("--color-background-body: #FFFFFF");
@@ -925,7 +935,15 @@ describe("Order cross-boundary certification", () => {
 
     const activity = read("ui/src/ActivityWorkspace.tsx");
     expect(activity).toContain("onMutationError?.(error)");
-    expect(activity).toContain('currentAttention !== "MUTATION_CONFLICT"');
+    expect(activity).toContain("stageRunCancellationIsAdmitted");
+    for (const competingOwner of [
+      "PROPOSAL_DECISION",
+      "PROPOSAL_ADOPTION",
+      "MUTATION_CONFLICT",
+      "CONVERGING",
+    ]) {
+      expect(activity).toContain(competingOwner);
+    }
     expect(activity).toContain("currentRunId");
     expect(activity).toContain("currentInteraction");
     expect(activity).toContain("runs: readonly Run[]");
@@ -1586,7 +1604,7 @@ describe("Order cross-boundary certification", () => {
 
 
 describe("0.6.0 Wave 1 authority-governance certification", () => {
-  it("exercises resolved authority through the production core-daemon-STAGE context", () => {
+  it("certifies schema-pinned material authority through the production STAGE path", () => {
     const repository = mkdtempSync(join(tmpdir(), "order-cert-authority-repo-"));
     const state = mkdtempSync(join(tmpdir(), "order-cert-authority-state-"));
     try {
@@ -1596,6 +1614,9 @@ describe("0.6.0 Wave 1 authority-governance certification", () => {
       writeFileSync(join(repository, "docs", "principles.md"), "# principles\n");
       writeFileSync(join(repository, "docs", "product-a.md"), "# product A\n");
       writeFileSync(join(repository, "docs", "product-b.md"), "# product B\n");
+      writeFileSync(join(repository, "docs", "work-lifecycle.md"), "# work lifecycle\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-current.md"), "# lifecycle context current\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-v1.md"), "# lifecycle context v1\n");
       writeFileSync(
         join(repository, "pontivus-order.toml"),
         `version = 1
@@ -1604,7 +1625,7 @@ projectId = "certification"
 [authority]
 p1 = ["AGENTS.md", "docs/principles.md"]
 p2 = ["docs/product-a.md", "docs/product-b.md"]
-p3 = []
+p3 = ["docs/work-lifecycle.md", "docs/lifecycle-context-current.md", "docs/lifecycle-context-v1.md"]
 p4 = []
 p5 = []
 p6 = []
@@ -1612,9 +1633,13 @@ p6 = []
 [refs]
 P1-STRICT = "docs/principles.md"
 P1-FCIS-EXT = "AGENTS.md"
+GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"
 
 [precedence]
 p2 = ["docs/product-b.md", "docs/product-a.md"]
+p3 = ["docs/lifecycle-context-v1.md", "docs/lifecycle-context-current.md", "docs/work-lifecycle.md"]
 
 [[governance.overrides]]
 defaultRuleId = "GW-P1-STRICT-TYPING"
@@ -1664,9 +1689,7 @@ materialRefs = []
           encoding: "utf8",
         });
         if (result.status !== 0) {
-          throw new Error(
-            `git ${args.join(" ")} failed: ${result.stderr}`,
-          );
+          throw new Error(`git ${args.join(" ")} failed: ${result.stderr}`);
         }
       }
 
@@ -1690,29 +1713,52 @@ materialRefs = []
             referenceRoots: [],
           },
         );
-        const created = await coord.createWorkItem(runtime, {
+        const currentCreated = await coord.createWorkItem(runtime, {
           projectId: "certification",
-          schemaId: "change-v1",
-          title: "authority certification",
+          schemaId: "change-v2",
+          title: "current authority certification",
           concernIds: ["shell"],
         });
-        const workItem = coord.getWorkItem(runtime, created.id);
-        const stateResolution = await authority.resolveStageContextState(
-          runtime,
-          workItem,
+        const retainedCreated = await coord.createWorkItem(runtime, {
+          projectId: "certification",
+          schemaId: "change-v1",
+          title: "retained authority certification",
+          concernIds: ["shell"],
+        });
+        const currentWork = coord.getWorkItem(runtime, currentCreated.id);
+        const retainedWork = coord.getWorkItem(runtime, retainedCreated.id);
+        const [, reachable] = await authority.resolveCurrentStageAuthority(
+          currentWork,
           "R1",
         );
-        const prompt = await stage.stagePrompt(
-          workItem,
-          "R1",
-          stateResolution.context,
-          [],
-          [],
+        const current = await authority.resolveStageContextState(
+          runtime, currentWork, "R1",
         );
-        const p2 = stateResolution.context.authority.layers.find(
+        const retained = await authority.resolveStageContextState(
+          runtime, retainedWork, "R1",
+        );
+        const currentPrompt = await stage.stagePrompt(
+          currentWork, "R1", current.context, [], [],
+        );
+        const retainedPrompt = await stage.stagePrompt(
+          retainedWork, "R1", retained.context, [], [],
+        );
+        const p2 = reachable.layers.find(
           (entry) => entry.layer === "p2",
         );
-        const p2Artifacts = stateResolution.context.artifacts
+        const p3 = reachable.layers.find(
+          (entry) => entry.layer === "p3",
+        );
+        const currentMaterialP3 = current.context.authority.layers.find(
+          (entry) => entry.layer === "p3",
+        );
+        const retainedMaterialP3 = retained.context.authority.layers.find(
+          (entry) => entry.layer === "p3",
+        );
+        const materialP3 = (context) => context.artifacts
+          .filter((artifact) => artifact.authorityLayer === "P3")
+          .map((artifact) => artifact.repositoryPath);
+        const materialP2 = current.context.artifacts
           .filter((artifact) => artifact.authorityLayer === "P2")
           .map((artifact) => artifact.repositoryPath);
 
@@ -1720,30 +1766,34 @@ materialRefs = []
         fs.writeFileSync(
           manifestPath,
           fs.readFileSync(manifestPath, "utf8").replace(
-            'p2 = ["docs/product-b.md", "docs/product-a.md"]',
-            'p2 = ["docs/product-b.md", "docs/missing.md"]',
+            'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"\\n',
+            "",
           ),
         );
         let blockedBeforeProvider = false;
         let rejection = "";
         try {
-          await coord.startStageRun(runtime, created.id, "INTERACTIVE");
+          await coord.startStageRun(runtime, currentCreated.id, "INTERACTIVE");
         } catch (error) {
           rejection = error instanceof Error ? error.message : String(error);
-          blockedBeforeProvider =
-            coord.listRuns(runtime, created.id).length === 0;
+          blockedBeforeProvider = coord.listRuns(runtime, currentCreated.id).length === 0;
         }
         console.log(JSON.stringify({
           p2,
-          p2Artifacts,
-          inherited:
-            stateResolution.context.authority.inheritedDefaultRuleIds,
-          fitness: stateResolution.context.authority.fitnessGateIds,
-          promptHasProjection:
-            prompt.includes("Resolved project authority projection:"),
-          promptOrder:
-            prompt.indexOf("docs/product-b.md") <
-            prompt.indexOf("docs/product-a.md"),
+          p3,
+          materialP2,
+          currentMaterialP3,
+          retainedMaterialP3,
+          currentP3: materialP3(current.context),
+          retainedP3: materialP3(retained.context),
+          currentAuthorityRefs: current.context.authority.authorityRefs,
+          retainedAuthorityRefs: retained.context.authority.authorityRefs,
+          inherited: current.context.authority.inheritedDefaultRuleIds,
+          fitness: current.context.authority.fitnessGateIds,
+          currentPromptHasProjection:
+            currentPrompt.includes("Resolved project authority projection:"),
+          retainedPromptHasProjection:
+            retainedPrompt.includes("Resolved project authority projection:"),
           blockedBeforeProvider,
           rejection,
         }));
@@ -1755,21 +1805,22 @@ materialRefs = []
         env: process.env,
       });
       if (result.status !== 0) {
-        throw new Error(
-          `production authority certification failed: ${result.stderr}`,
-        );
+        throw new Error(`production authority certification failed: ${result.stderr}`);
       }
       const output = JSON.parse(result.stdout.trim()) as {
-        p2: {
-          layer: string;
-          sources: string[];
-          precedence: string[];
-        };
-        p2Artifacts: string[];
+        p2: { layer: string; sources: string[]; precedence: string[] };
+        p3: { layer: string; sources: string[]; precedence: string[] };
+        materialP2: string[];
+        currentMaterialP3: { layer: string; sources: string[]; precedence: string[] };
+        retainedMaterialP3: { layer: string; sources: string[]; precedence: string[] };
+        currentP3: string[];
+        retainedP3: string[];
+        currentAuthorityRefs: Array<[string, string]>;
+        retainedAuthorityRefs: Array<[string, string]>;
         inherited: string[];
         fitness: string[];
-        promptHasProjection: boolean;
-        promptOrder: boolean;
+        currentPromptHasProjection: boolean;
+        retainedPromptHasProjection: boolean;
         blockedBeforeProvider: boolean;
         rejection: string;
       };
@@ -1778,23 +1829,80 @@ materialRefs = []
         sources: ["docs/product-b.md", "docs/product-a.md"],
         precedence: ["docs/product-b.md", "docs/product-a.md"],
       });
-      expect(output.p2Artifacts).toEqual([
-        "docs/product-b.md",
-        "docs/product-a.md",
+      expect(output.p3).toEqual({
+        layer: "p3",
+        sources: [
+          "docs/lifecycle-context-v1.md",
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+        precedence: [
+          "docs/lifecycle-context-v1.md",
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+      });
+      expect(output.materialP2).toEqual([]);
+      expect(output.currentMaterialP3).toEqual({
+        layer: "p3",
+        sources: [
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+        precedence: [
+          "docs/lifecycle-context-current.md",
+          "docs/work-lifecycle.md",
+        ],
+      });
+      expect(output.retainedMaterialP3).toEqual({
+        layer: "p3",
+        sources: [
+          "docs/lifecycle-context-v1.md",
+          "docs/work-lifecycle.md",
+        ],
+        precedence: [
+          "docs/lifecycle-context-v1.md",
+          "docs/work-lifecycle.md",
+        ],
+      });
+      expect(output.currentAuthorityRefs).toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "docs/lifecycle-context-current.md",
+      ]);
+      expect(output.currentAuthorityRefs).not.toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V1",
+        "docs/lifecycle-context-v1.md",
+      ]);
+      expect(output.retainedAuthorityRefs).toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V1",
+        "docs/lifecycle-context-v1.md",
+      ]);
+      expect(output.retainedAuthorityRefs).not.toContainEqual([
+        "GW-DOC-LIFECYCLE-CONTEXT-V2",
+        "docs/lifecycle-context-current.md",
+      ]);
+      expect(output.currentP3).toEqual([
+        "docs/lifecycle-context-current.md",
+        "docs/work-lifecycle.md",
+      ]);
+      expect(output.retainedP3).toEqual([
+        "docs/lifecycle-context-v1.md",
+        "docs/work-lifecycle.md",
       ]);
       expect(output.inherited).toContain("GW-P1-FCIS");
       expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
       expect(output.fitness).toEqual(["architecture", "test"]);
-      expect(output.promptHasProjection).toBe(true);
-      expect(output.promptOrder).toBe(true);
+      expect(output.currentPromptHasProjection).toBe(true);
+      expect(output.retainedPromptHasProjection).toBe(true);
       expect(output.blockedBeforeProvider).toBe(true);
-      expect(output.rejection).toMatch(/precedence\.p2/);
+      expect(output.rejection).toContain(
+        "stage template AuthorityRef is not reachable in R1 context: GW-DOC-LIFECYCLE-CONTEXT-V2",
+      );
     } finally {
       rmSync(repository, { recursive: true, force: true });
       rmSync(state, { recursive: true, force: true });
     }
   }, 30_000);
-
   it("binds resolved authority, governed proposals and durable decisions to the production STAGE path", () => {
     const governance = read("src/core/governance.ts");
     expect(governance).toContain("export const resolveProjectAuthority");
@@ -1802,6 +1910,7 @@ materialRefs = []
     expect(governance).toContain("inheritedDefaultRuleIds");
     expect(governance).toContain("fitnessGateIdsByDefaultRuleId");
     expect(governance).toContain("permanentAuthorityProposalIsAdmitted");
+    expect(governance).toContain("export const projectAuthorityForSources");
     expect(governance).not.toContain("readFileSync");
     expect(governance).not.toContain("Bun.Glob");
 
@@ -1812,11 +1921,17 @@ materialRefs = []
     );
     expect(stageAuthority).toContain("resolveAuthoritySources");
     expect(stageAuthority).toContain("resolveProjectAuthority(manifest, sources)");
+    const materiality = authority.slice(
+      authority.indexOf("const applicableAuthorityPaths"),
+      authority.indexOf("export type StageContextResolution"),
+    );
+    expect(materiality).toContain("for (const layer of authority.layers)");
+    expect(materiality).toContain("if (!applicablePaths.has(path)) continue");
     const stageContext = authority.slice(
       authority.indexOf("export const resolveStageContextState"),
       authority.indexOf("export const resolveStageConformanceState"),
     );
-    expect(stageContext).toContain("for (const layer of authority.layers)");
+    expect(stageContext).toContain("applicableAuthorityPaths");
     expect(stageContext).not.toContain("for (const path of sources[layer])");
     expect(stageContext).not.toContain("manifest.authority[");
 
@@ -1901,16 +2016,19 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
 
     expect(workspace).toContain("focusedRequiredInputEventId, setFocusedRequiredInputEventId");
     expect(workspace).toContain("onRequiredInputFocused={setFocusedRequiredInputEventId}");
-    expect(composer).toContain("focusedRequiredInputEventId === requiredInputEventId");
-    expect(composer).toContain("onRequiredInputFocused(requiredInputEventId)");
+    expect(composer).toContain('pending?.event.tag === "HUMAN_INPUT_REQUESTED"');
+    expect(composer).toContain("requestId === focusedRequiredInputEventId");
+    expect(composer).toContain("onRequiredInputFocused(requestId)");
     expect(composer).not.toContain("focusedRequestEventId.current");
-    expect(composer).toContain("composerRegionRef.current?.focus({ preventScroll: true })");
-    expect(composer).toContain("ref={composerRegionRef}");
+    expect(composer).toContain("region.focus({ preventScroll: true })");
+    expect(composer).toContain("ref={regionRef}");
     expect(composer).toContain("tabIndex={-1}");
     expect(composer).not.toContain("ChatComposerInputHandle");
     expect(composer).not.toContain("handleRef=");
 
-    expect(readiness).toContain("readinessOutcomeLabel(readinessOutcome)");
+    expect(readiness).toContain('event.event.completion.stage === "R3"');
+    expect(readiness).toContain("readinessOutcomeLabel(outcome)");
+    expect(readiness).toContain('data-testid="readiness-verdict"');
     expect(readiness).not.toContain("Derived from governed readiness-review material when present");
     expect(approval).toContain('data-testid="approval-readiness-summary"');
     expect(approval).toContain('label="Ready for sign-off"');
@@ -1957,7 +2075,11 @@ describe("0.6.0 Wave 3 source and queue ownership certification", () => {
     expect(createWorkItem).toContain('data-testid="linked-remediation-project"');
 
     const documents = read("ui/src/DocumentWorkspace.tsx");
-    expect(documents).toContain("state.changedGitPaths.map");
+    expect(documents).toContain("api.getWorkItemDocumentationGitStatus");
+    expect(documents).toContain("api.commitWorkItemDocumentation");
+    expect(documents).toContain(
+      "Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.",
+    );
     expect(documents).toContain("path.repositoryPath");
     expect(documents).toContain("path.state");
   });
@@ -2069,7 +2191,11 @@ describe("public release delivery certification", () => {
     expect(ci).toContain("pull_request:");
     expect(ci).toContain("name: verify");
     expect(ci).toContain("scripts/verify-release.ts --mode pr");
-    expect(ci).not.toContain("uses:");
+    expect(
+      [...ci.matchAll(/^\s*uses:\s*(\S+)\s*$/gm)].map((match) => match[1]),
+    ).toEqual([
+      "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+    ]);
 
     expect(release).toContain("name: Release");
     expect(release).toContain("scripts/verify-release.ts --mode release-commit");

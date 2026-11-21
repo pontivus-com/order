@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `aa287cb5aa37fbb0fe68742362ade9e949f43352`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `99f6932e582bde949de72716f29ea0868eba16a0`. It contains the G-F12 reconstruction across all C01-C22 plus the governed post-IA31 C19-F03/C20-F06 information-hierarchy audit, with zero material `UNPROVEN`. Current canonical Workbench P3 is `GW-DOC-WORKBENCH-UX-V2` blob `114226b7b30657fd334b47a9c74f5e24479564a1`; its §11.4A and amended `GW-FR-217`/scenario 46 now own the permanent Primary/Supporting/Operational/Technical/Diagnostic visibility and progressive-disclosure semantics discovered by that audit. R2 owns only the complete 0.6.0 package-specific functional consequence and disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
@@ -352,6 +352,69 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 - material functional UNPROVEN: 0.
 - DESIGN may choose technical realization only within these functional boundaries.
 
+## Post-rendered-evidence functional revalidation
+
+The exact-candidate screenshot audit does **not** introduce new product behavior. It disproves the downstream assumption that the existing browser realization already satisfied the complete Workbench presentation contract. R2 therefore keeps the functional model above unchanged and makes the following downstream consequence explicit:
+
+- every screen must realize the same Primary / Supporting / Technical hierarchy already defined by the work-kind × workflow-step contract;
+- Queue/Create/Settings and every lifecycle surface must use one recognizable component/action/form/status/notice/collection language rather than a feature-specific or historical grammar;
+- the interaction class is functionally significant: Operational scan, Form/configuration, Document, Dialogue, Review, Operational master/detail, Evidence, Terminal result, Context and Safety/exception must remain distinct and must not collapse into generic cards/forms/panels merely because the underlying controls function;
+- the actual user-facing information required by each work kind/stage must be present and legible in the rendered composition; technically correct hidden/collapsed/mis-prioritized information is not functional fulfillment;
+- responsive recomposition preserves the same semantic ordering and current-action ownership; it may not rescue an incorrect wide composition by shrinking/wrapping the old layout;
+- System/Light/Dark parity means the same hierarchy/component meaning is retained, not merely that theme tokens switch;
+- exact-candidate rendered evidence is required to prove these obligations because semantic DOM/component assertions alone cannot demonstrate information hierarchy, density, geometry or visual affordance fidelity.
+
+The functional domains requiring fresh technical realization are exhaustive across the UI surface, even where their underlying domain/state behavior remains valid:
+
+| Functional domain | Preserved functional owner | Required downstream realization consequence |
+|---|---|---|
+| C02 intake/Create | controlled Project/kind/Concerns + derived metadata | Form/configuration composition must expose those concepts with the intended hierarchy and no legacy/raw metadata grammar. |
+| C03 Queue | one active/archive/project/search derivation + explicit diagnostics | Operational-scan composition must keep normal Queue, diagnostics, empty/search/archive states as distinct readable states. |
+| C04 source/document Git | exact Markdown/source/Git ownership | Document and confirmation surfaces must retain canonical source primacy and exact-path review without feature-local chrome. |
+| C05/C17 workspace/current attention | current attention wins while inspection remains observational | WorkItem shell, rail, selector, Context and material surface must preserve one stable hierarchy across every stage. |
+| C06/C07/C08/C09 productive pre-signoff | one Dialogue/Document/Proposal interaction grammar with stage-specific information | Research, Requirements, Solution design and Plan must reuse the same structural grammar while rendering different governed information obligations. |
+| C10 Readiness | typed R3 verdict + findings/return owner | Review composition must make the verdict and defect owner dominant. |
+| C11 Approval | readiness/currentness + exact package/sign-off | Review composition must keep package judgment primary and technical identity subordinate. |
+| C12 Implementation | current task/attempt/blocker/validation/evidence | Operational master/detail must be the stable execution topology. |
+| C13 Complete | final governed outcome + valid resources/remediation | Terminal-result composition must make outcome primary and preserve kind-specific terminal behavior. |
+| C14 governed materials | documents/proposals/evidence/dialogue remain distinct | Material renderers must retain distinct semantics inside the common Workbench language. |
+| C15 provider interaction | bounded session/activity/input/failure | Dialogue/activity presentation must keep provider plumbing secondary except when it owns recovery. |
+| C16 Settings | readiness/meaning/action primary; technical identity secondary | Settings must use the same configuration/form language and must not revert to diagnostic/admin-page hierarchy. |
+| C18 responsive/accessibility | semantic continuity + safe focus/keyboard | Every primitive/surface must have an explicit wide/medium/narrow and focus contract. |
+| C19 component/theme | one Workbench/Astryx language | All recurring structure/visual semantics must be owned by the canonical primitive/theme system; feature-era alternatives are nonconforming. |
+| C20 certification | authority-complete proof | Acceptance must include actual rendered screen/state evidence in addition to semantic/browser assertions. |
+
+No R2 product decision is reopened by this evidence. DESIGN is reopened because the technical realization must now implement these already-defined functional obligations instead of preserving the current presentation.
+
+
+### Screen-replacement functional law
+
+The current screen implementations are **not** preservation targets, compatibility targets, migration templates or information-design baselines. Their only permitted role in the reconstruction is defect evidence showing what must not be carried forward.
+
+For this campaign, a **screen information schema** means the design-time functional mapping from the current R2 contract into:
+
+- required Primary information and its ordering;
+- required Supporting information and its relationship to the primary task;
+- Technical information and the exact condition under which it becomes visible;
+- current action owner and permitted secondary actions;
+- empty/loading/processing/input/proposal/blocker/failure/stale/recovery/terminal states that materially change the screen;
+- interaction class and responsive semantic order;
+- work-kind or lifecycle-stage differences that change information content.
+
+It is **not** a DTO, transport shape, persisted model, browser state object or second semantic owner. Runtime values continue to come from the existing canonical contracts, lifecycle derivations, daemon/API/query owners and approved presentation-policy functions.
+
+The replacement implementation law is destructive:
+
+1. UI primitives and approved non-screen content mechanisms are retained as reusable implementation capability.
+2. The old application/screen composition is removed before the replacement screen is authored.
+3. No old screen JSX/DOM hierarchy, field grouping, table-column selection, card/panel arrangement, control placement, screen-local CSS, responsive branch or visual hierarchy is presumed correct or copied forward.
+4. Replacement screen structure is derived only from the current functional contract, current P4/P5/P6 authority and the reviewed SVG composition where it is not superseded.
+5. Existing underlying query/mutation/domain code may be reused only through its canonical owner. Logic embedded only inside an old screen is not automatically reusable; it must be re-derived or extracted only when its non-visual responsibility is independently authorized and contains no screen-composition policy.
+6. A replacement is nonconforming if it can be described as the old screen with renamed classes, new wrappers, changed spacing, different tokens or rearranged cards.
+7. Every replacement screen must have a fresh screen-information-schema review and rendered comparison before its task may close.
+
+This law intentionally makes the new screen layer incompatible with the old screen grammar. Functional/domain compatibility is preserved below the screen boundary; presentation compatibility is neither required nor desired.
+
 ## Required observable outcome/delta
 
 ### A01 — C01 product model + C21 product identity
@@ -431,7 +494,27 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 
 **C19.** The application has one Workbench/Astryx component and theme language. Every production renderer must be classifiable against the canonical renderer-to-primitive ownership matrix; an unclassified renderer is an architecture defect, not permission for a feature-local visual system.
 
+Canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A` now owns the permanent information-visibility classes, default visibility, human-meaning-only promotion rule and closed disclosure owners. This R2 does not restate or redefine that policy. Its 0.6.0 package-specific consequence is the following exhaustive mapping of the governed surface families to that canonical policy.
+
+The per-family visibility contract is:
+
+| Surface family | Primary/default-visible | Supporting / operational disclosure | Technical / diagnostic default-hidden | Promotion / exception |
+|---|---|---|---|---|
+| Queue / application | actionable WorkItems, human lifecycle/status meaning, human-readable app-level blocker/recovery | project/search/archive controls, concerns/useful scan context | raw source diagnostic code/path/parser detail, WorkItem ids, source internals | blocking source/readiness state promotes only human meaning + inspect/recovery action |
+| Create / linked remediation | Project identity, kind, human title, Concerns, Create; linked parent meaning/title and fixed project | non-editable derived-field explanation | repository documentation root, parent WorkItem id, schema/version/internal metadata | exact value becomes visible only when the active task actually requires choosing/entering it; Create does not |
+| WorkItem shell / rail | WorkItem title/meaning, current lifecycle step, current attention, true WorkItem-level utilities | reached/historical navigation; Context entry | ids/hashes/paths/project-schema dumps/Run-task-provider identity | none; shell never becomes a technical dashboard |
+| Work request / documents | governed content and current authoring/reading action | selector/upstream material, maturity/currentness, compact Git state | exact repository path, SHA/hash/schema/source internals | exact changed paths are primary inside the explicit Git confirmation because consent is path-specific |
+| Research / Requirements / Design / Plan | current Dialogue, governed Document or Proposal Review according to attention precedence | attempts/history/upstream material, bounded agent activity, evidence/resource links | provider/session/baseline/context identity, raw Run/event tags, repository paths where document labels suffice | provider failure may promote human blocker/recovery; raw provider mechanics stay technical |
+| Readiness | typed R3 verdict/readiness, findings/defective owner, exact return action | package material needed for judgment, evidence, attempt history | artifact/package role/path/hash and technical identity | legitimate REQUIRED_INPUT temporarily owns the task without promoting unrelated technical identity |
+| Approval | readiness/currentness, signed task meaning/scope/gates, approver identity and sign-off | governed documents/task collection/detail needed for judgment | package hash/baseline/commit identity, Approval/ExecutionTask ids and other exact identity | stale/currentness state is primary meaning; raw freshness identity stays technical |
+| Implementation | current task objective/state/action/blocker, current attempt meaning, current/recorded validation boundary | task master/history, chronology, evidence/resources | task/approval/plan/Run ids, baseline/context/provider session, raw execution diagnostics | blocker promotes human meaning/action only; raw execution mechanics remain technical |
+| Complete | canonical final governed outcome and valid next action | applicable result evidence/resources and linked-remediation action | internal event tags/role codes, ids/hashes/raw result identity | none; evidence becomes exact only after explicit Evidence inspection |
+| Evidence / Context | exact evidence identity+bytes when Evidence is intentionally opened; selected-view orientation when Context is intentionally opened | related resource metadata | raw technical values are allowed here because these are explicit inspection surfaces | neither auto-opens and neither may become sole owner of current blocker/action |
+| Settings / account / repository / model | readiness, configuration meaning and productive action; exact value only when actively selecting/entering it | inventory/status and configuration context | exact roots/endpoints/account ids/provider mechanics outside the active configuration field; raw enum/status codes | active Add/Move/model/account configuration may legitimately make the exact configured value primary |
+
 **C20.** Certification proves the reconstructed authority, not historical behavior. Permanent verification must cover the complete required scenario matrix, including all four WorkItem kinds' Research information contracts and the Change/Defect downstream distinction (scenario 41), plus representative cross-application component/semantic-role parity under System/Light/Dark modes (scenarios 26 and 33-36). It must also satisfy `GW-FR-103` at the actual productive OpenCode process boundary: a fake OpenCode executable may support lower-level deterministic fixtures but cannot by itself prove the exact supported OpenCode process/session contract. Deterministic model simulation is admissible for repeatable integration proof only when the OpenCode process under test is the exact supported pin and the evidence states which external provider/account semantics are intentionally not proved by the simulation. Temporary branch-only scaffolding is not a substitute for retained permanent certification. Green adjacent tests do not imply untested obligations.
+
+For every governed rendered surface/state, certification must additionally prove the C19 visibility contract in both directions: **required ordinary information is visible without opening technical inspection; Technical/Diagnostic information is absent from the ordinary surface; opening the authorized disclosure exposes the exact information that belongs there; closing/returning restores the ordinary hierarchy without losing the current task.** Tests that merely assert technical text is present on the page are insufficient and must not force a raw implementation identifier into the product-facing layer.
 
 ## Acceptance criteria
 
@@ -455,8 +538,8 @@ The reconstructed R2 contains the complete applicable functional consequence of 
 | C16 | Fresh installation completes required guided repository/OpenCode-account/model setup before reporting success; supported configuration continuity remains intact; Settings keeps operator readiness/meaning/actions primary and technical identity secondary unless task-required. |
 | C17 | Canonical current attention/recovery remains visible/reachable through selection, failure and asynchronous convergence. |
 | C18 | Responsive/focus/keyboard semantics hold; each new required-input request receives one non-repeating focus transition. |
-| C19 | Every production renderer is covered by the canonical primitive ownership rule and one theme/component system. |
-| C20 | Permanent certification covers the full kind/stage and representative cross-application theme/semantic-role matrices required by P3, plus the exact-pin productive OpenCode process/session boundary required by `GW-FR-103`; fake-process fixtures and temporary scaffolding alone are insufficient. |
+| C19 | Every production renderer is covered by the canonical primitive ownership rule and one theme/component system; every datum/action on every governed surface has one deterministic Primary/Supporting/Operational/Technical/Diagnostic classification, default visibility and authorized disclosure owner, with raw technical identity hidden from ordinary UX unless the active task requires that exact value. |
+| C20 | Permanent certification covers the full kind/stage and representative cross-application theme/semantic-role matrices required by P3, the exact-pin productive OpenCode process/session boundary required by `GW-FR-103`, and negative/positive progressive-disclosure proof that technical/diagnostic values are hidden by default and exposed only through their authorized owner; fake-process fixtures, temporary scaffolding and presence-only UI assertions are insufficient. |
 | C21 | Public/product surfaces consistently use verified result/verified candidate and do not overclaim automatic delivery commits or universal execution. |
 | C22 | Authority precedence/default/override/extension semantics resolve before provider interpretation and unresolved contradiction blocks. |
 

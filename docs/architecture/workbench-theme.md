@@ -300,7 +300,7 @@ The Astryx layout law is binding inside Workbench composition: the container own
 
 Astryx element-size/density props own ordinary controls and collections. Pinned foundation sizes (`--size-element-*`) are used through component `size`/`density` props before CSS.
 
-Order owns only the structural/readability dimensions that the foundation cannot infer:
+Order owns only the structural/readability dimensions that the foundation cannot infer. These are **target semantic geometry values**, not evidence that the current selectors/component APIs implementing them are reusable:
 
 ```css
 --order-toolbar-height: 3.25rem;
@@ -311,6 +311,8 @@ Order owns only the structural/readability dimensions that the foundation cannot
 --order-prose-max-width: 52rem;
 --order-review-max-width: 72rem;
 ```
+
+During the current 0.6.0 destructive foundation reconstruction, the old structural selectors that consume these tokens are removed before fresh composition primitives are authored. A token value may reappear only because this canonical theme owner requires it for the reconstructed P3/P4 geometry; no current CSS rule, class name, DOM hierarchy or primitive API is preserved merely because it currently consumes the same token.
 
 Operational tables/lists choose foundation `compact | balanced | spacious` density from the interaction frequency; they do not invent per-feature row heights. The Workbench target normally uses compact for high-volume operational/event data and balanced for ordinary review/settings collections unless the owning P3 interaction requires otherwise.
 
@@ -444,7 +446,7 @@ The target stylesheet is ordered:
 
 1. **root public-Astryx-token bridge** containing only the exact Order brand/base overrides in §6.2 plus the system/light/dark selector mapping;
 2. **Order-only structural/readability tokens** from §§7-8 that have no equivalent foundation role;
-3. **closed Workbench primitive selectors** consuming component props/public Astryx tokens/Order-only tokens;
+3. **reconstructed closed Workbench primitive selectors** consuming component props/public Astryx tokens/Order-only tokens; current design-bearing primitive selectors are not migration baselines;
 4. **specialist content/editor selectors** consuming the same semantic roles;
 5. **responsive overrides at canonical Workbench breakpoints only**.
 
@@ -485,7 +487,7 @@ Architecture fitness keeps an explicit allowlist of the public token names Order
 
 ### 13.5 Selector ownership
 
-Reusable recurring visual mechanics belong to primitive selectors.
+Reusable recurring visual mechanics belong to primitive selectors owned by the **current canonical primitive responsibilities**. Existing selector names/declarations have no preservation authority: when their owning design-bearing primitive is in the §16.6 destructive set of `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`, those selectors are removed at the foundation purge checkpoint and recreated only as required by the new primitive implementation.
 
 Feature/service selectors are permitted only for semantic content layout that is genuinely feature-specific and not already primitive-owned. Such selectors:
 
@@ -513,18 +515,18 @@ At the design head audited for this document it contains approximately 1,480 lin
 - the obsolete `999px`/content-era layout system and feature-era visual selectors remain alongside newer Workbench styles;
 - `styles.css` still contains Order feature styling that belongs in `theme.css`.
 
-P7 therefore replaces these mechanisms rather than preserving them behind aliases.
+P7 therefore replaces these mechanisms rather than preserving them behind aliases. For 0.6.0 this includes the old design-bearing Workbench structural/composition selectors themselves: they are purged with the old primitive implementation and are not retained as hidden compatibility CSS for the reconstructed foundation.
 
 The implementation migration must:
 
 1. establish the §6.2 public-Astryx-token bridge over the already-installed built Neutral theme;
 2. establish only the Order-specific typography/structural/readability tokens retained by §§7-8;
-3. migrate primitives to pinned Astryx props/variants/density/layout first, then public token styling only for residual Order semantics;
+3. destructively reconstruct the design-bearing primitive subset defined by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §16.6` over pinned Astryx props/variants/density/layout, then add public-token styling only for residual Order semantics; the retained atomic subset is positively revalidated rather than rewritten;
 4. migrate specialist Markdown/CodeMirror/evidence rendering onto the same public semantic roles;
 5. migrate every renderer in the component-architecture coverage matrix;
 6. remove legacy raw palette variables, raw selector colors and one-to-one `--order-color-*` aliases;
 7. remove ad-hoc type/spacing/radius/control values that duplicate foundation props/public tokens;
-8. remove duplicate/dead/obsolete visual selectors and any targeting of Astryx internals;
+8. remove duplicate/dead/obsolete visual selectors, every superseded structural selector owned by the destructive primitive set, and any targeting of Astryx internals;
 9. reduce `styles.css` to its §13.1 ownership;
 10. prove light/dark/system and cross-component parity on the real SPA.
 

@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 
 ## Stable requirement execution dispositions
 
@@ -13,7 +13,7 @@
 | `GW-FR-202-ATOMIC-COMMAND-OUTCOME` | `C17-O04`, `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O04`, `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-206-CURRENT-ATTENTION-PRECEDENCE` | `C17-O05` | `TECHNICAL_DELTA` | `SD07` | `IA14` | — | Recheck `C17-O05` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-210-ASYNC-WORKFLOW-CONVERGENCE` | `C17-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O07` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C18-O01`, `C18-O04` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD29`, `SD30` | `IA27`-`IA34`, `IA26` | — | Preserve semantic continuity by revalidating/remediating the already-realized single foundation-owned responsive topology in IA27, revalidating IA28-IA31 consumers, then freshly reconstructing IA32-IA34 consumers; certify every domain with rendered responsive evidence. |
 | `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `C17-O08` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C17-O08` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 
 Stable rows in phase: **7**.
@@ -30,6 +30,8 @@ Package atoms in phase: **1**.
 
 - **IA14** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA15** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA27**-**IA34** — consume the resumed IA27-IA31 revalidation/remediation owners followed by fresh IA32-IA34 reconstruction for responsive/accessibility realization; IA27 remains the single structural responsive owner and no later phase owns local layout policy.
+- **IA26** — consume the exact-candidate responsive rendered acceptance owner.
 
 ## Completion proof
 

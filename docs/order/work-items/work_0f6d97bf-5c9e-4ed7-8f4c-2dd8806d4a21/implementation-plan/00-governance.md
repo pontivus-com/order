@@ -6,10 +6,12 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `a22200e0765f740e89b2f05727e126fbf9e0b034`.
-- R2 `requirements.md`: `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`.
-- DESIGN `solution-design.md`: `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+- R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`.
+- R2 `requirements.md`: `27faa1a67321c8091deb27a4fd70ae912209c30a`.
+- DESIGN `solution-design.md`: `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `7263c890f3705ddd55fdadb98767b62acb7fc56d` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
@@ -30,7 +32,11 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ## Execution ownership
 
-A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA25 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, or final closeout; they do not create a second task representation.
+A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
+
+IA27-IA34 remain the presentation owners inside the one signed cumulative task, but the fresh post-C19-F03/C20-F06 Approval baseline is a **resumed implementation baseline**: it already contains the previously completed IA27-IA31 replacement bytes from the superseded package. Those bytes are implementation evidence only; they do not become design authority or preservation targets. IA27 therefore revalidates the already-realized foundation/shell against current P3/P4/SD21 and remediates only proven residual nonconformance. IA28-IA31 independently revalidate their already-realized screen families against current R2/P3/SD22-SD25, including the new visibility/disclosure contract, and remediate only proven residual deltas. Their historical purge-before-fresh-authorship observations remain provenance of the earlier reconstruction and are not repeated or represented as new T1 work. IA32-IA34 have not yet been reconstructed on this campaign line and therefore retain the original purge-before-fresh-authorship protocol. IA27-IA31 must each pass their owned semantic/browser/rendered proof on the fresh task candidate before IA32 begins; later phases consume the conforming foundation and may not redesign it locally.
+
+IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
 SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current execution capabilities positively proven by DESIGN. IA07/IA08 therefore prove/reuse those capabilities and authorize **no T1 production mutation** to their existing owners.
 
@@ -38,14 +44,13 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 
 ## Signed scope and forecast law
 
-The one signed T1 uses:
+The canonical PLAN contains exactly one signed execution task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes into later task baselines. That task uses:
 
-- bounded `scope` patterns as the hard repository-reach envelope;
-- explicit `exclusions` to protect known non-T1/DESIGN-positive-reuse paths inside that envelope;
-- exact 30-path `changeSurface` as the immutable expected physical forecast.
+- the exact same **66 repository paths** for signed `scope` and `changeSurface`; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
+- explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
+- IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
-A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
-
+The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 66-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
 ## Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
@@ -54,8 +59,47 @@ For SD02, manifest authority selection is the reachable source set; IA02 must pr
 
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
 
+## Resumed-baseline presentation realization law
+
+The authority-driven target remains SD21-SD29; the current resumed-baseline bytes never define desired behavior.
+
+**IA27 foundation/shell revalidation.** The original pre-reconstruction foundation and shell were already purged and replaced before this fresh Approval baseline. The exact historical destructive set remains useful provenance, but T1 must not manufacture a second purge checkpoint. IA27 must instead:
+
+- prove the deleted `WorkbenchLayout` compatibility API/ownership remains absent;
+- prove exactly one `WorkbenchAppShell`, one `WorkbenchWorkItemShell` and one structural responsive owner remain;
+- derive/review the current P3/P4 foundation composition and disclosure schema without inferring it from current JSX/CSS;
+- compare the current foundation bytes against that schema and current SD21;
+- remediate only exact residual nonconformance inside IA27-owned paths; a conforming path is not rewritten merely to replay history;
+- re-run architecture/theme/accessibility/responsive/browser/rendered proof including `SURF-WI-001`.
+
+**IA28-IA31 resumed screen revalidation/remediation.** Their current replacement bytes are inspected only as evidence of whether the already-authorized SD22-SD25 target is satisfied. Each phase must derive its fresh current R2/P3 information schema first, then compare the current implementation to that authority and correct every proven delta. Historical purge evidence is not a current completion condition. Current JSX/DOM/classes may survive only when they independently conform; their existence is never a preservation argument.
+
+**IA32-IA34 fresh reconstruction.** These screen families remain unreconstructed for the campaign target. They retain the destructive screen replacement law: delete each owned old screen implementation and exact legacy selectors at a bounded procedural purge checkpoint, then recreate from the current schema using the accepted IA27 foundation. The purge checkpoint is not a Git commit, candidate or validation result.
+
+`ui/src/styles.css` and `ui/src/theme.css` remain shared physical owners: IA27 owns foundation/theme/structural selectors; IA28-IA31 may change only their screen-specific selectors to close proven residual deltas; IA32-IA34 may delete/recreate only their exact owned screen selectors. No later phase may redesign IA27 through shared styles.
+
+No IA27-IA34 phase may resurrect `WorkbenchLayout`, create a second AppShell/application toolbar, duplicate structural `matchMedia` ownership, introduce a DTO/browser state family, or treat current implementation/SVG shape as product authority.
+
+## Information visibility / disclosure execution law
+
+Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
+
+For every rendered datum/action in IA27-IA34, the fresh design-time screen schema records: semantic datum/action, P3 class, default visibility, one ordinary presentation owner, authorized progressive-disclosure owner when any, and promotion condition when a technical cause can own current attention. This trace is implementation evidence only and must not become a DTO/browser state model.
+
+The implementation rule is exact:
+
+- Primary information is visible without entering Context/Technical details;
+- Supporting/Operational information remains subordinate and cannot create another persistent navigation axis;
+- Technical information is absent from the ordinary surface and appears only through the authorized local Technical details or explicit Context owner;
+- Diagnostic/console detail is absent from ordinary UX and appears only through an already-authorized Technical/Context/Evidence inspection surface where legitimate inspection requires it;
+- when a technical condition blocks progress, only its human-readable meaning/consequence/action is promoted; raw code/path/hash/session/payload remains technical/evidence-owned;
+- exact mutation-consent facts may become decision-primary only inside the owning confirmation;
+- responsive recomposition never changes classification/default visibility.
+
+Presence-only browser assertions are nonconforming when they force technical/diagnostic text into ordinary UI. Every affected test is rewritten to prove both default-hidden and authorized post-disclosure visibility.
+
 ## Stop conditions
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Do **not** return upstream solely because an otherwise admissible path is absent from `changeSurface`; that case follows the governed V4/V5/V6 variance proof.
+Because this exact T1 deliberately sets signed `scope` equal to the same exact 66-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.

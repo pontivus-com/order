@@ -2,14 +2,14 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 
 ## Stable requirement execution dispositions
 
 | Requirement | R1 evidence | DESIGN disposition | Solution(s) | Execution owner | Consumer dependency | Required proof |
 |---|---|---|---|---|---|---|
 | `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `DIRECT-FR007` | `TECHNICAL_DELTA` | `SD19` | `IA25` | — | Recheck `DIRECT-FR007` via new `tests/installer.test.ts`; existing `tests/order-migration.test.ts` + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
+| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `DEPENDENCY_DELTA` | `SD22` | `IA28` | `IA34` owns full account management only | Rebuild the global active-account quick-access renderer with the application shell; prove `SURF-APP-001` active-account visibility/routes to Settings plus tests/browser.spec.ts and tests/certification.test.ts; no second account-management owner |
 | `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `C16-O06` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O06` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `C16-O07` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C16-O07` via tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts + V4/V5/V6 requirement-specific semantic review |
@@ -36,7 +36,7 @@ Stable rows in phase: **21**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C16-01` | C16-F01 | `SD14` | `IA18` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required. |
+| `PL-C16-01` | C16-F01 | `SD14`, `SD28` | `IA18`, `IA34` | — | Settings primary hierarchy is operator readiness/meaning/action, with exact technical identity secondary except task-required; IA34 owns the rebuilt Settings/account/configuration presentation. |
 | `PL-C16-02` | C16-F02 | `SD19` | `IA25` | — | Fresh productive install cannot succeed with mandatory repository/account/model setup deferred to Settings. |
 | `PL-C16-03` | C16-F03 | `SD19` | `IA25` | `PRE_T1_P6_CORRECTION_DONE` | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. |
 
@@ -46,6 +46,8 @@ Package atoms in phase: **3**.
 
 - **IA25** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA28** — consume the application-shell resumed-baseline revalidation/remediation for the globally visible active OpenCode-account quick-access affordance; full account management remains IA34-owned.
+- **IA34** — consume the single Settings/OpenCode/account-management/configuration destructive replacement definition; provider/configuration semantics remain with existing owners.
 
 ## Completion proof
 

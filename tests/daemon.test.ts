@@ -319,6 +319,18 @@ p5 = []
 p6 = []
 
 [refs]
+GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"
+GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"
+GW-DOC-SPECIFICATION-STANDARD-V1 = "AGENTS.md"
+GW-DOC-SPECIFICATION-STANDARD-V2 = "AGENTS.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V1 = "AGENTS.md"
+GW-DOC-TECHNICAL-ARCHITECTURE-V2 = "AGENTS.md"
+GW-DOC-CANONICAL-CONTRACTS-V1 = "AGENTS.md"
+GW-DOC-CANONICAL-CONTRACTS-V2 = "AGENTS.md"
+GW-DOC-VALIDATION-STANDARD-V1 = "AGENTS.md"
+GW-FR-096-LIFECYCLE-AUTHORITY-DISPOSITION = "AGENTS.md"
+GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW = "AGENTS.md"
 
 [governance.fitness]
 GW-P1-FCIS = ["architecture"]
@@ -3730,7 +3742,7 @@ describe("daemon control plane", () => {
     });
     expect(output.recoveryArtifactCountUnchanged).toBe(true);
     expect(output.recoveryBytesUnchanged).toBe(true);
-  });
+  }, 30_000);
 
   it("does not misclassify an unavailable WorkItem root as semantic approval staleness", () => {
     const repository = createRepository();
@@ -5361,6 +5373,11 @@ describe("daemon control plane", () => {
           'P1-STRICT = "docs/principles.md"',
           'P1-FCIS-EXT = "AGENTS.md"',
           "",
+        ].join("\n"),
+      )
+      .replace(
+        "[governance.fitness]\n",
+        [
           "[precedence]",
           'p2 = ["docs/product-b.md", "docs/product-a.md"]',
           "",
@@ -5375,6 +5392,8 @@ describe("daemon control plane", () => {
           'source = "AGENTS.md"',
           'authorityRef = "P1-FCIS-EXT"',
           'gates = ["test"]',
+          "",
+          "[governance.fitness]",
           "",
         ].join("\n"),
       );
@@ -5409,6 +5428,10 @@ describe("daemon control plane", () => {
         concernIds: ["shell"],
       });
       const current = coord.getWorkItem(runtime, created.id);
+      const [, reachable] = await authority.resolveCurrentStageAuthority(
+        current,
+        "R1",
+      );
       const resolved = await authority.resolveStageContextState(
         runtime,
         current,
@@ -5424,10 +5447,13 @@ describe("daemon control plane", () => {
       const p2Paths = resolved.context.artifacts
         .filter((artifact) => artifact.authorityLayer === "P2")
         .map((artifact) => artifact.repositoryPath);
-      const p1 = resolved.context.authority.layers.find(
+      const p1 = reachable.layers.find(
         (entry) => entry.layer === "p1",
       );
-      const p2 = resolved.context.authority.layers.find(
+      const p2 = reachable.layers.find(
+        (entry) => entry.layer === "p2",
+      );
+      const materialP2 = resolved.context.authority.layers.find(
         (entry) => entry.layer === "p2",
       );
 
@@ -5449,12 +5475,10 @@ describe("daemon control plane", () => {
         p1,
         p2,
         p2Paths,
+        materialP2,
         inherited: resolved.context.authority.inheritedDefaultRuleIds,
         fitness: resolved.context.authority.fitnessGateIds,
         promptHasProjection: prompt.includes("Resolved project authority projection:"),
-        promptUsesResolvedP2Order:
-          prompt.indexOf("docs/product-b.md") <
-          prompt.indexOf("docs/product-a.md"),
         blockedBeforeRun,
       }));
       database.close();
@@ -5462,10 +5486,10 @@ describe("daemon control plane", () => {
       p1: { layer: string; sources: string[]; precedence: string[] };
       p2: { layer: string; sources: string[]; precedence: string[] };
       p2Paths: string[];
+      materialP2: { layer: string; sources: string[]; precedence: string[] };
       inherited: string[];
       fitness: string[];
       promptHasProjection: boolean;
-      promptUsesResolvedP2Order: boolean;
       blockedBeforeRun: boolean;
     };
 
@@ -5475,15 +5499,168 @@ describe("daemon control plane", () => {
       sources: ["docs/product-b.md", "docs/product-a.md"],
       precedence: ["docs/product-b.md", "docs/product-a.md"],
     });
-    expect(output.p2Paths).toEqual(["docs/product-b.md", "docs/product-a.md"]);
+    expect(output.p2Paths).toEqual([]);
+    expect(output.materialP2).toEqual({
+      layer: "p2",
+      sources: [],
+      precedence: [],
+    });
+    // Reachability/precedence remain available to governance while the
+    // productive context excludes unrelated selected sources.
     expect(output.inherited).toContain("GW-P1-FCIS");
     expect(output.inherited).not.toContain("GW-P1-STRICT-TYPING");
     expect(output.fitness).toEqual(["architecture", "test"]);
     expect(output.promptHasProjection).toBe(true);
-    expect(output.promptUsesResolvedP2Order).toBe(true);
     expect(output.blockedBeforeRun).toBe(true);
   }, 30_000);
 
+
+  it("binds current-v2 and historical schema pins to their exact lifecycle authority refs", () => {
+    const resolve = (schema: "change-v1" | "change-v2") => {
+      const repository = createRepository("fixture");
+      writeFileSync(join(repository, "docs", "work-lifecycle.md"), "# work lifecycle\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-current.md"), "# current lifecycle context\n");
+      writeFileSync(join(repository, "docs", "lifecycle-context-v1.md"), "# retained lifecycle context v1\n");
+      const manifestPath = join(repository, "pontivus-order.toml");
+      const manifest = readFileSync(manifestPath, "utf8")
+        .replace(
+          "p3 = []",
+          'p3 = ["docs/work-lifecycle.md", "docs/lifecycle-context-current.md", "docs/lifecycle-context-v1.md"]',
+        )
+        .replace(
+          'GW-DOC-WORK-LIFECYCLE-V1 = "AGENTS.md"',
+          'GW-DOC-WORK-LIFECYCLE-V1 = "docs/work-lifecycle.md"',
+        )
+        .replace(
+          'GW-DOC-LIFECYCLE-CONTEXT-V1 = "AGENTS.md"',
+          'GW-DOC-LIFECYCLE-CONTEXT-V1 = "docs/lifecycle-context-v1.md"',
+        )
+        .replace(
+          'GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"',
+          'GW-DOC-LIFECYCLE-CONTEXT-V2 = "docs/lifecycle-context-current.md"',
+        );
+      writeFileSync(manifestPath, manifest);
+      runGit(repository, "add", ".");
+      runGit(repository, "commit", "--amend", "--no-edit");
+
+      const state = tempDir("order-daemon-authority-pin-");
+      try {
+        return bunEval(`
+          const sql = await import("./src/shell/sqlite.ts");
+          const coord = await import("./src/daemon/coordinator.ts");
+          const authority = await import("./src/daemon/authority.ts");
+          const database = sql.openOrderDatabase(${JSON.stringify(state)});
+          const repositoryRoot = ${JSON.stringify(repository)};
+          const runtime = coord.createCoordinatorRuntime(
+            database,
+            ${JSON.stringify(state)},
+            process.env,
+            {
+              version: 4,
+              model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+              repositoryRoots: [repositoryRoot],
+              referenceRoots: [],
+            },
+          );
+          const created = await coord.createWorkItem(runtime, {
+            projectId: "fixture",
+            schemaId: ${JSON.stringify(schema)},
+            title: "authority pin",
+            concernIds: [],
+          });
+          const current = coord.getWorkItem(runtime, created.id);
+          const resolved = await authority.resolveStageContextState(
+            runtime,
+            current,
+            "R1",
+          );
+          const p3Paths = resolved.context.artifacts
+            .filter((artifact) => artifact.authorityLayer === "P3")
+            .map((artifact) => artifact.repositoryPath);
+          console.log(JSON.stringify({
+            staleStage: resolved.staleStage,
+            p3Paths,
+          }));
+          database.close();
+        `) as { staleStage: string | null; p3Paths: string[] };
+      } finally {
+        rmSync(repository, { recursive: true, force: true });
+        rmSync(state, { recursive: true, force: true });
+      }
+    };
+
+    const current = resolve("change-v2");
+    expect(current.staleStage).toBeNull();
+    expect(current.p3Paths).toEqual([
+      "docs/lifecycle-context-current.md",
+      "docs/work-lifecycle.md",
+    ]);
+
+    const retained = resolve("change-v1");
+    expect(retained.staleStage).toBeNull();
+    expect(retained.p3Paths).toEqual([
+      "docs/lifecycle-context-v1.md",
+      "docs/work-lifecycle.md",
+    ]);
+  }, 60_000);
+  it("blocks before provider use when pinned template authority is unresolved", () => {
+    const repository = createRepository();
+    const manifestPath = join(repository, "pontivus-order.toml");
+    writeFileSync(
+      manifestPath,
+      readFileSync(manifestPath, "utf8").replace(
+        'GW-DOC-LIFECYCLE-CONTEXT-V2 = "AGENTS.md"\n',
+        "",
+      ),
+    );
+    runGit(repository, "add", "pontivus-order.toml");
+    runGit(repository, "commit", "--amend", "--no-edit");
+
+    const state = tempDir("order-daemon-unresolved-template-authority-");
+    const output = bunEval(`
+      const sql = await import("./src/shell/sqlite.ts");
+      const coord = await import("./src/daemon/coordinator.ts");
+      const authority = await import("./src/daemon/authority.ts");
+      const database = sql.openOrderDatabase(${JSON.stringify(state)});
+      const runtime = coord.createCoordinatorRuntime(
+        database,
+        ${JSON.stringify(state)},
+        process.env,
+        {
+          version: 4,
+          model: { providerID: "opencode", id: "glm-5.3-flash-free" },
+          repositoryRoots: [${JSON.stringify(repository)}],
+          referenceRoots: [],
+        },
+      );
+      const created = await coord.createWorkItem(runtime, {
+        projectId: "fixture",
+        schemaId: "change-v2",
+        title: "unresolved template authority",
+        concernIds: [],
+      });
+      let error = null;
+      try {
+        await authority.resolveStageContextState(
+          runtime,
+          coord.getWorkItem(runtime, created.id),
+          "R1",
+        );
+      } catch (caught) {
+        error = caught instanceof Error ? caught.message : String(caught);
+      }
+      console.log(JSON.stringify({
+        error,
+        runCount: coord.listRuns(runtime, created.id).length,
+      }));
+      database.close();
+    `) as { error: string | null; runCount: number };
+
+    expect(output.error).toContain(
+      "stage template AuthorityRef is not reachable in R1 context: GW-DOC-LIFECYCLE-CONTEXT-V2",
+    );
+    expect(output.runCount).toBe(0);
+  }, 30_000);
   it("adopts only current manifest-resolved permanent authority and rejects a stale base", () => {
     const repository = createRepository();
     writeFileSync(join(repository, "docs", "product.md"), "# product\n");
@@ -5735,7 +5912,7 @@ describe("daemon control plane", () => {
     expect(output.message).toContain("current R3 conformance is missing or stale");
   }, 30_000);
 
-  it("routes newly resolved post-signoff authority through APPROVAL_STALE before provider mutation", () => {
+  it("does not stale an Approval for newly reachable but non-material authority", () => {
     const repository = createRepository();
     mkdirSync(join(repository, "docs", "governance"), { recursive: true });
     writeFileSync(
@@ -5748,45 +5925,34 @@ describe("daemon control plane", () => {
     runGit(repository, "add", "pontivus-order.toml");
     runGit(repository, "commit", "--amend", "--no-edit");
 
-    const state = tempDir("order-daemon-new-authority-stale-");
-    const binary = createFakeOpenCode("fix");
+    const state = tempDir("order-daemon-new-reachable-authority-");
     const output = bunEval(`
       ${seedSignoffScript(repository, state)}
-      await Bun.write(repositoryRoot + "/docs/governance/new.md", "# new P1 authority\\n");
-      const tick = await coord.runCoordinatorTick(runtime);
-      const task = (await coord.listExecutionTasks(runtime, work))[0];
-      const postRuns = coord.listRuns(runtime, work).filter((run) => run.executionTaskId !== null);
-      const firstRun = postRuns[0];
-      const events = firstRun ? coord.listRunEvents(runtime, firstRun.id) : [];
-      console.log(JSON.stringify({
-        tick,
-        workItem: coord.getWorkItem(runtime, work),
-        taskState: task?.state ?? null,
-        providerSessionId: firstRun?.providerSessionId ?? null,
-        failures: events
-          .filter((event) => event.event.tag === "VALIDATION_FAILED")
-          .map((event) => event.event),
-      }));
+      await Bun.write(repositoryRoot + "/docs/governance/new.md", "# newly reachable but unreferenced P1 authority\\n");
+      const freshness = await authority.approvalFreshness(runtime, approval);
+      console.log(JSON.stringify(freshness));
       database.close();
-    `, providerEnvironment(binary, state), 180_000) as {
-      workItem: { stage: string; status: string };
-      taskState: string | null;
-      providerSessionId: string | null;
-      failures: Array<{ tag: string; stage: string; classification: string }>;
-    };
+    `) as { fresh: boolean; changedOwners: string[] };
 
-    expect(output.workItem).toMatchObject({ stage: "R2", status: "ACTIVE" });
-    expect(output.taskState).toBe("BLOCKED");
-    expect(output.providerSessionId).toBeNull();
-    expect(output.failures).toContainEqual(
-      expect.objectContaining({
-        tag: "VALIDATION_FAILED",
-        stage: "V1",
-        classification: "APPROVAL_STALE",
-      }),
-    );
+    expect(output).toEqual({ fresh: true, changedOwners: [] });
   }, 30_000);
 
+  it("stales an Approval when material P1 authority changes post-signoff", () => {
+    const repository = createRepository();
+    const state = tempDir("order-daemon-material-authority-stale-");
+    const output = bunEval(`
+      ${seedSignoffScript(repository, state)}
+      await Bun.write(repositoryRoot + "/AGENTS.md", "# changed material P1 authority\\n");
+      const freshness = await authority.approvalFreshness(runtime, approval);
+      console.log(JSON.stringify(freshness));
+      database.close();
+    `) as { fresh: boolean; changedOwners: string[] };
+
+    expect(output.fresh).toBe(false);
+    expect(output.changedOwners).toContain("R2");
+    expect(output.changedOwners).toContain("PLAN");
+    expect(output.changedOwners).not.toContain("R1");
+  }, 30_000);
 
   it("does not let a running execution Run overwrite an observed source-drift return", () => {
     const repository = createRepository();

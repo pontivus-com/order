@@ -3,10 +3,9 @@ import type { WorkflowRailItem } from "../../src/core/lifecycle.ts";
 import { workflowPresentation } from "./workbench-presentation.ts";
 import { WorkbenchRail } from "./primitives/WorkbenchRail.tsx";
 
-export const WorkflowRail = ({ items, onSelect }: Readonly<{
-  items: readonly WorkflowRailItem[];
-  onSelect: (stage: WorkStage) => void;
-}>) => (
+export const WorkflowRail = ({
+  items, onSelect,
+}: Readonly<{ items: readonly WorkflowRailItem[]; onSelect: (stage: WorkStage) => void }>) => (
   <WorkbenchRail
     items={items.map((item) => ({
       id: item.stage,
@@ -17,9 +16,7 @@ export const WorkflowRail = ({ items, onSelect }: Readonly<{
           ? "reached"
           : "unreached",
       selected: item.selected,
-      statusLabel: item.marker === null
-        ? undefined
-        : item.marker.replaceAll("_", " ").toLowerCase(),
+      statusLabel: item.marker === null ? undefined : item.marker.replaceAll("_", " ").toLowerCase(),
       onSelect: () => onSelect(item.stage),
     }))}
   />

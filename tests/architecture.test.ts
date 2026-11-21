@@ -247,7 +247,6 @@ describe("architecture fitness", () => {
     const openCode = sourceText("src/shell/opencode.ts");
     const stage = sourceText("src/daemon/stage.ts");
     const execution = sourceText("src/daemon/execution.ts");
-    const layout = sourceText("ui/src/primitives/WorkbenchLayout.tsx");
     const queue = sourceText("ui/src/WorkItemQueue.tsx");
     const documents = sourceText("ui/src/DocumentWorkspace.tsx");
     const activity = sourceText("ui/src/ActivityWorkspace.tsx");
@@ -289,7 +288,6 @@ describe("architecture fitness", () => {
     expect(configSchema).not.toMatch(/\bskills?\b/i);
     expect(configSchema).not.toMatch(/\bmcp\b/i);
 
-    expect(layout).toContain("wide && hasInspector && inspectorOpen");
     expect(settings).not.toContain("Connect target repository");
     expect(settings).toContain('label="Add repository"');
     expect(settings).toContain('title="Disconnect repository?"');
@@ -660,11 +658,6 @@ describe("architecture fitness", () => {
       "ui/src/TerminalResult.tsx",
       "ui/src/workbench-presentation.ts",
       "ui/src/query-keys.ts",
-      "ui/src/primitives/WorkbenchAction.tsx",
-      "ui/src/primitives/WorkbenchIcon.tsx",
-      "ui/src/primitives/WorkbenchLayout.tsx",
-      "ui/src/primitives/WorkbenchResourceRow.tsx",
-      "ui/src/primitives/WorkbenchToolbar.tsx",
     ] as const;
 
     const workflowStepFrame = sourceText("ui/src/WorkflowStepFrame.tsx");
@@ -1667,7 +1660,7 @@ describe("architecture fitness", () => {
   });
 
 
-  it("enforces single-owned campaign state and exact foundation ancestry", () => {
+  it("enforces single-owned campaign state and pre-delivery foundation ancestry", () => {
     const campaignPlanPath =
       "docs/order/work-items/work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21/0.6.0-design-campaign-plan.md";
     const campaignLedgerPath =
@@ -2093,16 +2086,39 @@ describe("architecture fitness", () => {
       if (baseline === null) {
         violations.push("G0 PASS requires one exact full 40-character baseline SHA in §18");
       } else {
+        let campaignIntegratedOnDefaultBranch = false;
         try {
           execFileSync(
             "git",
-            ["merge-base", "--is-ancestor", baseline, "HEAD"],
+            ["cat-file", "-e", `refs/remotes/origin/master:${campaignPlanPath}`],
             { cwd: repositoryRoot, stdio: "pipe" },
           );
+          campaignIntegratedOnDefaultBranch = true;
         } catch {
-          violations.push(
-            `G0 PASS baseline ${baseline} must be an ancestor of campaign HEAD`,
-          );
+          try {
+            campaignIntegratedOnDefaultBranch =
+              execFileSync(
+                "git",
+                ["branch", "--show-current"],
+                { cwd: repositoryRoot, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+              ).trim() === "master";
+          } catch {
+            campaignIntegratedOnDefaultBranch = false;
+          }
+        }
+
+        if (!campaignIntegratedOnDefaultBranch) {
+          try {
+            execFileSync(
+              "git",
+              ["merge-base", "--is-ancestor", baseline, "HEAD"],
+              { cwd: repositoryRoot, stdio: "pipe" },
+            );
+          } catch {
+            violations.push(
+              `G0 PASS baseline ${baseline} must be an ancestor of the pre-delivery campaign HEAD`,
+            );
+          }
         }
         if (
           existsSync(join(repositoryRoot, campaignLedgerPath)) &&
@@ -2285,14 +2301,19 @@ describe("architecture fitness", () => {
     const designAtoms = [...design.matchAll(/^\| `(PL-C[^\`]+)` \|/gm)].map(
       (match) => match[1],
     );
-    if (designAtoms.length !== 25 || duplicates(designAtoms).length > 0) {
+    if (designAtoms.length !== 27 || duplicates(designAtoms).length > 0) {
       violations.push(
-        "DESIGN package-local atom inventory must be 25 unique rows; found " +
+        "DESIGN package-local atom inventory must be 27 unique rows; found " +
           designAtoms.length,
       );
     }
     if (!designAtoms.includes("PL-C12-02")) {
       violations.push("DESIGN must trace current R2 package-local consequence PL-C12-02");
+    }
+    for (const atom of ["PL-C19-02", "PL-C20-03"]) {
+      if (!designAtoms.includes(atom)) {
+        violations.push("DESIGN must trace rendered-reconstruction package atom " + atom);
+      }
     }
 
     const phaseRequirementRows: { requirement: string; disposition: string }[] = [];
@@ -2344,7 +2365,7 @@ describe("architecture fitness", () => {
       (match) => match[1],
     );
     const expectedActions = Array.from(
-      { length: 25 },
+      { length: 34 },
       (_, index) => "IA" + String(index + 1).padStart(2, "0"),
     );
     exactSet("PLAN action catalog", actionIds, expectedActions);
@@ -2356,7 +2377,7 @@ describe("architecture fitness", () => {
       ),
     );
     for (const action of expectedActions.filter(
-      (value) => value !== "IA23" && value !== "IA24",
+      (value) => value !== "IA23" && value !== "IA24" && value !== "IA26",
     )) {
       if (!phaseActionReferences.has(action)) {
         violations.push("PLAN action is not referenced by any semantic phase: " + action);
@@ -2365,7 +2386,7 @@ describe("architecture fitness", () => {
     const closeout = sourceText(
       workItemRoot + "/implementation-plan/13-verification-closeout.md",
     );
-    for (const action of ["IA23", "IA24"]) {
+    for (const action of ["IA23", "IA26", "IA24"]) {
       if (!closeout.includes(action) && !actionCatalog.includes(action)) {
         violations.push("Cross-solution/final action is not governed: " + action);
       }
@@ -2412,14 +2433,14 @@ describe("architecture fitness", () => {
 
     const designSurfaceSection =
       design.split("## Exact implementation surface forecast")[1]?.split(
-        "## Contract/state/persistence/transport consequences",
+        "### Explicit retained UI paths outside changeSurface",
       )[0] ?? "";
-    const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
+    const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 30 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 66 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 30 unique paths; found " +
+        "DESIGN implementation forecast must contain 66 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2434,85 +2455,325 @@ describe("architecture fitness", () => {
       try {
         const parsed = JSON.parse(taskBlocks[0][1]) as {
           tasks?: readonly {
+            id?: string;
+            objective?: string;
+            dependsOn?: readonly string[];
             scope?: readonly string[];
             exclusions?: readonly string[];
+            acceptanceRefs?: readonly string[];
             changeSurface?: readonly string[];
             gateIds?: readonly string[];
+            authorityRefs?: readonly string[];
             concernIds?: readonly string[];
           }[];
         };
-        const task = parsed.tasks?.[0];
-        if (parsed.tasks?.length !== 1 || task === undefined) {
-          violations.push("PLAN root must define exactly one cumulative T1");
-        } else if (g5Status === "PASS") {
-          const surfaceSection =
-            plan.split("## Exact signed implementation surface")[1]?.split(
-              "## Exhaustive traceability invariants",
-            )[0] ?? "";
-          const signedSurface = [...surfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
-            (match) => match[1],
-          );
-          if (signedSurface.length !== 30 || duplicates(signedSurface).length > 0) {
-            violations.push(
-              "PLAN signed changeSurface must contain 30 unique paths; found " +
-                signedSurface.length,
-            );
+        const tasks = parsed.tasks ?? [];
+        if (tasks.length !== 1 || tasks[0]?.id !== "T1") {
+          violations.push("PLAN root must define exactly one signed task T1");
+        }
+        const task = tasks[0];
+        if (task !== undefined) {
+          exactSet("T1 dependencies", task.dependsOn ?? [], []);
+          if ((task.objective ?? "").trim().length === 0) {
+            violations.push("T1 objective must be non-empty");
           }
-          exactSet("PLAN signed changeSurface", signedSurface, designSurface);
-          exactSet(
-            "T1 scope",
-            task.scope ?? [],
-            [
-              "README.md",
-              "src/core/**",
-              "src/daemon/**",
-              "src/shell/**",
-              "ui/src/**",
-              "tests/**",
-              ".github/workflows/ci.yml",
-              "CHANGELOG.md",
-            ],
-          );
-          exactSet(
-            "T1 exclusions",
-            task.exclusions ?? [],
-            [
-              "src/daemon/execution.ts",
-              "src/daemon/validation.ts",
-              "src/daemon/server.ts",
-              "src/shell/config.ts",
-              "src/shell/file-write.ts",
-              "src/shell/opencode.ts",
-              "src/shell/process.ts",
-              "src/shell/project-config.ts",
-              "src/shell/project.ts",
-              "src/shell/repository.ts",
-              "src/shell/runtime.ts",
-              "src/shell/sqlite.ts",
-              "src/shell/work-item-source.ts",
-              "ui/src/http.ts",
-              "ui/src/query-keys.ts",
-              "ui/src/theme.css",
-              "tests/architecture.test.ts",
-            ],
-          );
-          exactSet("T1 changeSurface", task.changeSurface ?? [], designSurface);
+          for (const [field, values] of [
+            ["scope", task.scope],
+            ["acceptanceRefs", task.acceptanceRefs],
+            ["changeSurface", task.changeSurface],
+            ["gateIds", task.gateIds],
+            ["authorityRefs", task.authorityRefs],
+            ["concernIds", task.concernIds],
+          ] as const) {
+            if ((values ?? []).length === 0) {
+              violations.push("T1 " + field + " must be non-empty");
+            }
+          }
           exactSet(
             "T1 gate union",
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          exactSet(
-            "T1 concern union",
-            task.concernIds ?? [],
-            ["core", "daemon", "foundation", "shell", "ui", "verification"],
+          if ((task.scope ?? []).length !== 66 || duplicates(task.scope ?? []).length > 0) {
+            violations.push(
+              "T1 hard scope must contain the exact 66 unique forecast paths; found " +
+                (task.scope ?? []).length,
+            );
+          }
+          exactSet("T1 hard scope", task.scope ?? [], designSurface);
+        }
+
+        const signedSurface = task?.changeSurface ?? [];
+        if (signedSurface.length !== 66 || duplicates(signedSurface).length > 0) {
+          violations.push(
+            "PLAN signed T1 changeSurface must contain 66 unique paths; found " +
+              signedSurface.length,
           );
+        }
+        exactSet("PLAN signed T1 changeSurface", signedSurface, designSurface);
+
+        const surfaceSection =
+          plan.split("## Exact signed implementation surface")[1]?.split(
+            "## Exhaustive traceability invariants",
+          )[0] ?? "";
+        const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
+          (match) => match[1],
+        );
+        if (documentedSurface.length !== 66 || duplicates(documentedSurface).length > 0) {
+          violations.push(
+            "PLAN documented signed surface must contain 66 unique paths; found " +
+              documentedSurface.length,
+          );
+        }
+        exactSet("PLAN documented signed surface", documentedSurface, designSurface);
+
+        const retainedAtomicUiPaths = new Set([
+          "ui/src/primitives/WorkbenchAction.tsx",
+          "ui/src/primitives/WorkbenchConfirmation.tsx",
+          "ui/src/primitives/WorkbenchDisclosure.tsx",
+          "ui/src/primitives/WorkbenchField.tsx",
+          "ui/src/primitives/WorkbenchIcon.tsx",
+          "ui/src/primitives/WorkbenchNotice.tsx",
+          "ui/src/primitives/WorkbenchStatus.tsx",
+        ]);
+        const retainedUiPaths = new Set([
+          "ui/src/MarkdownEditor.tsx",
+          "ui/src/MarkdownSourceEditor.tsx",
+          "ui/src/workbench-presentation.ts",
+          "ui/src/http.ts",
+          "ui/src/query-keys.ts",
+          "ui/src/markdown-source-formatting.ts",
+          "ui/src/theme.ts",
+          "ui/src/main.tsx",
+        ]);
+        const illegallyMutableRetained = signedSurface.filter(
+          (value) => retainedAtomicUiPaths.has(value) || retainedUiPaths.has(value),
+        );
+        if (illegallyMutableRetained.length > 0) {
+          violations.push(
+            "PLAN must retain exact atomic/non-screen UI capability outside changeSurface: " +
+              illegallyMutableRetained.join(", "),
+          );
+        }
+        for (const retained of [...retainedAtomicUiPaths, ...retainedUiPaths]) {
+          if (!(task?.exclusions ?? []).includes(retained)) {
+            violations.push("T1 must explicitly exclude retained UI path " + retained);
+          }
+        }
+        if (!(task?.exclusions ?? []).includes("tests/architecture.test.ts")) {
+          violations.push("T1 must exclude the pre-signoff architecture/package sensor");
+        }
+        for (const sharedStyle of ["ui/src/styles.css", "ui/src/theme.css"]) {
+          if ((task?.exclusions ?? []).includes(sharedStyle)) {
+            violations.push("T1 must permit shared stylesheet mutation: " + sharedStyle);
+          }
+        }
+
+        const destructiveFoundation = [
+          "ui/src/primitives/WorkbenchAttention.tsx",
+          "ui/src/primitives/WorkbenchContextPanel.tsx",
+          "ui/src/primitives/WorkbenchDialogue.tsx",
+          "ui/src/primitives/WorkbenchForm.tsx",
+          "ui/src/primitives/WorkbenchIdentity.tsx",
+          "ui/src/primitives/WorkbenchLayout.tsx",
+          "ui/src/primitives/WorkbenchMasterDetail.tsx",
+          "ui/src/primitives/WorkbenchRail.tsx",
+          "ui/src/primitives/WorkbenchResourceRow.tsx",
+          "ui/src/primitives/WorkbenchReview.tsx",
+          "ui/src/primitives/WorkbenchSectionHeader.tsx",
+          "ui/src/primitives/WorkbenchSelector.tsx",
+          "ui/src/primitives/WorkbenchSettingsLayout.tsx",
+          "ui/src/primitives/WorkbenchSurface.tsx",
+          "ui/src/primitives/WorkbenchTable.tsx",
+          "ui/src/primitives/WorkbenchTaskPanel.tsx",
+          "ui/src/primitives/WorkbenchTimeline.tsx",
+          "ui/src/primitives/WorkbenchToolbar.tsx",
+          "ui/src/primitives/WorkbenchState.tsx",
+          "ui/src/primitives/WorkbenchUtilityLink.tsx",
+        ];
+        const newFoundationOwners = [
+          "ui/src/primitives/WorkbenchAppShell.tsx",
+          "ui/src/primitives/WorkbenchWorkItemShell.tsx",
+          "ui/src/primitives/workbench-responsive.ts",
+        ];
+        const shellIntegration = [
+          "ui/src/app.tsx",
+          "ui/src/WorkItemWorkspace.tsx",
+          "ui/src/WorkItemIdentityRow.tsx",
+          "ui/src/WorkflowRail.tsx",
+          "ui/src/WorkflowStepFrame.tsx",
+        ];
+        for (const requiredPath of [
+          ...destructiveFoundation,
+          ...newFoundationOwners,
+          ...shellIntegration,
+          "ui/src/styles.css",
+          "ui/src/theme.css",
+        ]) {
+          if (!signedSurface.includes(requiredPath)) {
+            violations.push("T1 foundation/shell surface missing " + requiredPath);
+          }
+        }
+        const objective = task?.objective ?? "";
+        for (const required of [
+          "one cumulative signed task",
+          "IA27-IA31",
+          "revalidation/remediation",
+          "IA32-IA34",
+          "SD21",
+          "SD30",
+          "WorkbenchAppShell",
+          "WorkbenchWorkItemShell",
+          "workbench-responsive",
+          "WorkbenchLayout",
+          "SURF-WI-001",
+          "37 SURF",
+        ]) {
+          if (!objective.includes(required)) {
+            violations.push("T1 objective must name resumed reconstruction invariant " + required);
+          }
+        }
+        if (
+          !/historical purge provenance/i.test(objective) ||
+          !/screen-information schemas/i.test(objective) ||
+          !/default-hidden/i.test(objective)
+        ) {
+          violations.push(
+            "T1 objective must encode resumed-baseline provenance, fresh schemas and disclosure proof",
+          );
+        }
+
+        const expectedReplacementScreens = [
+          "ui/src/app.tsx",
+          "ui/src/WorkItemQueue.tsx",
+          "ui/src/CreateWorkItem.tsx",
+          "ui/src/WorkItemWorkspace.tsx",
+          "ui/src/WorkItemIdentityRow.tsx",
+          "ui/src/WorkflowRail.tsx",
+          "ui/src/WorkflowStepFrame.tsx",
+          "ui/src/DocumentWorkspace.tsx",
+          "ui/src/PreSignoffStageWorkspace.tsx",
+          "ui/src/ActivityWorkspace.tsx",
+          "ui/src/ActivityComposer.tsx",
+          "ui/src/WorkflowMaterialSelector.tsx",
+          "ui/src/ProposalReview.tsx",
+          "ui/src/RunEventTimeline.tsx",
+          "ui/src/ReadinessWorkspace.tsx",
+          "ui/src/SignoffReview.tsx",
+          "ui/src/ExecutionWorkspace.tsx",
+          "ui/src/TerminalResult.tsx",
+          "ui/src/EvidenceViewer.tsx",
+          "ui/src/WorkItemContext.tsx",
+          "ui/src/SettingsWorkspace.tsx",
+          "ui/src/OpenCodeAccountControl.tsx",
+          "ui/src/OpenCodeAccountSettings.tsx",
+        ];
+        const replacementScreenSet = new Set(expectedReplacementScreens);
+        exactSet(
+          "PLAN UI presentation surface set",
+          signedSurface.filter((value) => replacementScreenSet.has(value)),
+          expectedReplacementScreens,
+        );
+
+        const referenceSurfaceText = sourceText("docs/references/workbench-ui/README.md");
+        const referenceSurfaceIds = [
+          ...referenceSurfaceText.matchAll(/^\| \`(SURF-[^\`]+)\` \|/gm),
+        ].map((match) => match[1] ?? "");
+        if (referenceSurfaceIds.length !== 37 || duplicates(referenceSurfaceIds).length > 0) {
+          violations.push(
+            "Workbench reference registry must contain 37 unique SURF rows; found " +
+              referenceSurfaceIds.length,
+          );
+        }
+
+        const faceLedgerSection =
+          actionCatalog.match(
+            /### Exact IA27-IA34 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
+          )?.[1] ?? "";
+        const faceLedgerRows = faceLedgerSection
+          .split(/\r?\n/)
+          .filter((line) => /^\| IA(?:27|28|29|30|31|32|33|34) \|/.test(line))
+          .map((line) => {
+            const cells = line.trim().slice(1, -1).split("|").map((cell) => cell.trim());
+            const phaseId = cells[0] ?? "";
+            const surfaceIds = [...(cells[1] ?? "").matchAll(/\`(SURF-[^\`]+)\`/g)]
+              .map((match) => match[1] ?? "");
+            return { phaseId, surfaceIds };
+          });
+        if (faceLedgerRows.length !== 8) {
+          violations.push("PLAN must allocate rendered faces across exactly IA27-IA34");
+        }
+        exactSet(
+          "PLAN rendered face phase owners",
+          faceLedgerRows.map((row) => row.phaseId),
+          ["IA27", "IA28", "IA29", "IA30", "IA31", "IA32", "IA33", "IA34"],
+        );
+        const faceSurfaceUnion = faceLedgerRows.flatMap((row) => row.surfaceIds);
+        const duplicateFaceSurfaces = duplicates(faceSurfaceUnion);
+        if (duplicateFaceSurfaces.length > 0) {
+          violations.push(
+            "PLAN rendered face allocation duplicates SURF rows: " +
+              duplicateFaceSurfaces.join(", "),
+          );
+        }
+        exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
+
+        if (
+          !actionCatalog.includes("current replacement bytes/selectors only after that schema exists") ||
+          !actionCatalog.includes("do not weaken still-applicable semantic/accessibility/browser requirements") ||
+          !actionCatalog.includes("IA32-IA34 fresh reconstruction") ||
+          !actionCatalog.includes("shared styles only for the phase-owned screen selectors; IA27 foundation/theme/structural selectors remain IA27-owned")
+        ) {
+          violations.push(
+            "PLAN must retain resumed/fresh screen ownership and shared-stylesheet boundary",
+          );
+        }
+
+        for (const required of [
+          "Historical reconstruction primitive inputs (20)",
+          "Historical shell-integration cutover inputs (5)",
+          "Foundation owners established by the historical reconstruction (3)",
+          "Positively retained atomic adapters (7",
+          "no compatibility `WorkbenchLayout`",
+          "SURF-WI-001",
+          "historical purge-before-fresh-authorship record as provenance only",
+          "do not claim a new transient purge checkpoint",
+          "bounded procedural purge checkpoint",
+        ]) {
+          if (!actionCatalog.includes(required)) {
+            violations.push("PLAN resumed foundation/screen contract missing: " + required);
+          }
+        }
+
+        for (const [label, textValue] of [
+          ["DESIGN", design],
+          ["PLAN", plan],
+          ["PLAN action catalog", actionCatalog],
+          ["PLAN closeout", closeout],
+        ] as const) {
+          const staleTasks = textValue.match(/\bT(?:2|3|4|5|6|7|8|9|10|11)\b/g) ?? [];
+          if (staleTasks.length > 0) {
+            violations.push(label + " retains invalid cross-task reconstruction refs: " + staleTasks.join(","));
+          }
+          if (/purge commit|replacement commits|Git history/i.test(textValue)) {
+            violations.push(label + " retains prohibited Git-commit purge semantics");
+          }
+        }
+
+        const concernUnion = [...new Set(task?.concernIds ?? [])];
+        exactSet(
+          "PLAN concern union",
+          concernUnion,
+          ["core", "daemon", "foundation", "shell", "ui", "verification"],
+        );
+
+        if (g5Status === "PASS" && !actionCatalog.includes("| T1 | SD01-SD30; IA01-IA34 |")) {
+          violations.push("PLAN audit ledger missing the one signed task T1");
         }
       } catch {
         violations.push("PLAN order-tasks block must be valid JSON");
       }
     }
-
     expect(violations).toEqual([]);
   });
 

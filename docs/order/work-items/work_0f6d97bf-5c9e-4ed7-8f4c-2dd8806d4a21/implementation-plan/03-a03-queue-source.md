@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 
 ## Stable requirement execution dispositions
 
@@ -40,9 +40,9 @@ Stable rows in phase: **25**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C03-01` | C03-F01 | `SD05` | `IA12` | — | Including archived work expands the candidate set without bypassing project/search filters. |
+| `PL-C03-01` | C03-F01 | `SD05`, `SD22` | `IA12`, `IA28` | — | Including archived work expands the candidate set without bypassing project/search filters; IA28 owns the rebuilt Operational-scan presentation. |
 | `PL-C04-01` | C04-F01 | `SD04` | `IA09`, `IA10` | — | Source-admission owner is singular across creation/discovery. |
-| `PL-C04-02` | C04-F02 | `SD06` | `IA13` | — | Documentation-Git confirmation shows the exact governed paths/states before commit. |
+| `PL-C04-02` | C04-F02 | `SD06`, `SD23` | `IA13`, `IA29` | — | Documentation-Git confirmation shows the exact governed paths/states before commit inside the rebuilt WorkItem/document composition. |
 
 Package atoms in phase: **3**.
 
@@ -52,6 +52,8 @@ Package atoms in phase: **3**.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA12** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA13** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA28** — consume the Queue/Create resumed-baseline revalidation/remediation definition for the Queue operational-scan surface.
+- **IA29** — consume the WorkItem/document resumed-baseline revalidation/remediation definition for source/document/Git presentation.
 
 ## Completion proof
 

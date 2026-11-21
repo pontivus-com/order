@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import {
@@ -22,6 +22,94 @@ if (stateRoot === undefined || stateRoot.length === 0) {
 const daemonToken = readFileSync(join(stateRoot, "daemon-token"), "utf8").trim();
 const repositoryRoot = stateRoot + "-e2e-project";
 const fixtureControlURL = "http://127.0.0.1:17348";
+
+const renderedAcceptanceDir = process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR;
+const renderedAcceptanceCandidateSha =
+  process.env.PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA;
+
+type RenderedAcceptanceEntry = Readonly<{
+  id: string;
+  workItemKind: "QUEUE" | "CHANGE" | "DEFECT" | "INVESTIGATION" | "AUDIT";
+  workflowStep: string | null;
+  surface: string;
+  state: string;
+  fixture: string;
+  viewport: Readonly<{ width: number; height: number }>;
+  theme: "Light" | "Dark" | "System/light" | "System/dark";
+  route: string;
+  references: readonly string[];
+  authorityRefs: readonly string[];
+  screenshot: string;
+}>;
+
+const writeRenderedAcceptanceEvidence = (
+  entries: readonly RenderedAcceptanceEntry[],
+): void => {
+  if (renderedAcceptanceDir === undefined) {
+    throw new TypeError("PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR is required");
+  }
+  if (
+    renderedAcceptanceCandidateSha === undefined ||
+    renderedAcceptanceCandidateSha.length === 0
+  ) {
+    throw new TypeError(
+      "PONTIVUS_ORDER_RENDERED_ACCEPTANCE_CANDIDATE_SHA is required",
+    );
+  }
+  mkdirSync(renderedAcceptanceDir, { recursive: true });
+  writeFileSync(
+    join(renderedAcceptanceDir, "manifest.json"),
+    JSON.stringify(
+      {
+        schemaVersion: 1,
+        candidateSha: renderedAcceptanceCandidateSha,
+        entries,
+      },
+      null,
+      2,
+    ) + "\n",
+  );
+  writeFileSync(
+    join(renderedAcceptanceDir, "index.md"),
+    [
+      "# Order 0.6.0 rendered acceptance — phase 1",
+      "",
+      "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
+      "",
+      "| Capture | Surface/state | Reference | Authority |",
+      "|---|---|---|---|",
+      ...entries.map((entry) =>
+        "| \`" + entry.screenshot + "\` | " + entry.surface + " / " + entry.state +
+        " | " + entry.references.map((value) => "\`" + value + "\`").join(", ") +
+        " | " + entry.authorityRefs.map((value) => "\`" + value + "\`").join(", ") +
+        " |"
+      ),
+      "",
+      "These captures are runtime evidence only. Current canonical authority wins over a derived SVG reference on conflict.",
+      "",
+    ].join("\n"),
+  );
+};
+
+const captureRenderedAcceptance = async (
+  page: Page,
+  entry: Omit<RenderedAcceptanceEntry, "screenshot">,
+): Promise<RenderedAcceptanceEntry> => {
+  if (renderedAcceptanceDir === undefined) {
+    throw new TypeError("PONTIVUS_ORDER_RENDERED_ACCEPTANCE_DIR is required");
+  }
+  mkdirSync(renderedAcceptanceDir, { recursive: true });
+  const screenshot = entry.id + ".png";
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+  await page.screenshot({
+    path: join(renderedAcceptanceDir, screenshot),
+    fullPage: false,
+    animations: "disabled",
+  });
+  return { ...entry, screenshot };
+};
 
 const fixtureMutation = async (
   request: APIRequestContext,
@@ -226,7 +314,7 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await authenticate(page, request);
 
   const root = page.locator("html");
-  const layout = page.getByTestId("workbench-layout");
+  const layout = page.getByTestId("workbench-app-shell");
   const toolbar = page.locator(".order-toolbar").first();
   const system = page.getByRole("radio", { name: "System" });
   const light = page.getByRole("radio", { name: "Light" });
@@ -1120,6 +1208,618 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 });
 
 
+test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
+  page,
+  request,
+}) => {
+  test.skip(
+    renderedAcceptanceDir === undefined,
+    "rendered acceptance capture runs only in its GitHub Actions evidence step",
+  );
+
+  const runtimeErrors: string[] = [];
+  page.on("pageerror", (error) => runtimeErrors.push("pageerror: " + error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") {
+      runtimeErrors.push("console: " + message.text());
+    }
+  });
+
+  await page.route("**/api/opencode/accounts", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        accounts: [{
+          id: "cred_rendered_acceptance",
+          label: "operator@example.com",
+          active: true,
+          status: { status: "READY" },
+        }],
+        activeAccountId: "cred_rendered_acceptance",
+        mutationBlockers: [],
+      }),
+    });
+  });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await authenticate(page, request);
+  await page.getByRole("radio", { name: "Light" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  await expect(rowFor(page, "Proposal review")).toBeVisible();
+  await expect(page.getByTestId("opencode-account-trigger"))
+    .toContainText("operator@example.com");
+
+  const entries: RenderedAcceptanceEntry[] = [];
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-wide-light-active-account",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "active-account-visible",
+    fixture: "application shell with deterministic active OpenCode account",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-INSTALLATION-READINESS",
+    ],
+  }));
+
+  await page.route("**/api/settings/readiness", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ready: false,
+        blockers: ["REPOSITORY_REQUIRED", "OPENCODE_ACCOUNT_REQUIRED"],
+      }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("installation-readiness")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-wide-light-installation-readiness",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "installation-readiness-blocked",
+    fixture: "application shell with deterministic readiness blockers",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/installation-readiness.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-INSTALLATION-READINESS",
+    ],
+  }));
+  await page.unroute("**/api/settings/readiness");
+  await page.reload();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-populated",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "active-list-populated",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/queue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  await expect(page.getByTestId("opencode-account-trigger")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-narrow-light-populated",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "active-list-populated-narrow",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole("button", { name: "New work item" }).click();
+  const createDialog = page.getByRole("dialog", { name: "Create work item" });
+  await expect(createDialog).toBeVisible();
+  await createDialog.getByRole("combobox", { name: "Project Required" }).click();
+  await page.getByRole("option", { name: "order-e2e", exact: true }).click();
+  await createDialog.getByRole("radio", { name: "CHANGE" }).click();
+  await createDialog.getByLabel("Title").fill("Rendered acceptance change");
+  await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
+  await page.getByRole("option", { name: "browser" }).click();
+  await page.keyboard.press("Escape");
+  await expect(createDialog.getByLabel("Title")).toHaveValue(
+    "Rendered acceptance change",
+  );
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "create-work-item-wide-light-change",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CREATE-001",
+    state: "ordinary-change-populated",
+    fixture: "Create WorkItem deterministic CHANGE input",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: ["docs/references/workbench-ui/create-work-item.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+
+  await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await openWorkItem(page, "Completed investigation");
+  await page.getByRole("button", { name: "Create linked remediation" }).click();
+  const linkedDialog = page.getByRole("dialog", { name: "Create linked remediation" });
+  await expect(linkedDialog).toBeVisible();
+  await linkedDialog.getByRole("radio", { name: "DEFECT" }).click();
+  await linkedDialog.getByLabel("Title").fill("Rendered acceptance remediation");
+
+  const linkedRoute = new URL(page.url());
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "create-linked-remediation-wide-light",
+    workItemKind: "DEFECT",
+    workflowStep: "Complete",
+    surface: "SURF-CREATE-001",
+    state: "linked-remediation",
+    fixture: "Completed investigation linked-remediation creation",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: linkedRoute.pathname + linkedRoute.search,
+    references: [
+      "docs/references/workbench-ui/create-linked-remediation.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+
+  await linkedDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Source editing workbench");
+  await selectWorkflowStep(page, "Work request");
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  const workRequestRoute = new URL(page.url());
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "work-request-wide-light-current",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-STEP-WR-001",
+    state: "current-work-request",
+    fixture: "Source editing workbench",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: workRequestRoute.pathname + workRequestRoute.search,
+    references: ["docs/references/workbench-ui/work-request.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-MARKDOWN-WORKBENCH",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "source-document-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "editable-source-narrow",
+    fixture: "Source editing workbench",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: workRequestRoute.pathname + workRequestRoute.search,
+    references: [
+      "docs/references/workbench-ui/document-authoring.svg",
+      "docs/references/workbench-ui/document-states.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const sourceItem = await workItemForTitle(page, "Source editing workbench");
+  const gitStatusResponse = await page.context().request.get(
+    "/api/work-items/" + sourceItem.id + "/documentation-git-status",
+  );
+  expect(gitStatusResponse.status()).toBe(200);
+  const baseGitStatus = await gitStatusResponse.json() as {
+    workItemId: string;
+    headCommit: string;
+    branch: string | null;
+    authorName: string | null;
+    authorEmail: string | null;
+    blockers: string[];
+    paths: Array<Record<string, unknown>>;
+  };
+  const gitStatusPath =
+    "**/api/work-items/" + sourceItem.id + "/documentation-git-status";
+  await page.route(gitStatusPath, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...baseGitStatus,
+        blockers: [],
+        paths: baseGitStatus.paths.map((path, index) =>
+          index === 0 ? { ...path, state: "MODIFIED" } : path),
+      }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("work-item-workspace")).toBeVisible();
+  await selectWorkflowStep(page, "Work request");
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  await page.getByRole("button", { name: "Save documentation to Git" }).click();
+  const documentationGitReview = page.getByRole("alertdialog", {
+    name: "Save WorkItem documentation to Git?",
+  });
+  await expect(documentationGitReview).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "documentation-git-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-DOC-GIT-001",
+    state: "exact-governed-path-review",
+    fixture: "Source editing workbench with deterministic modified governed path",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await documentationGitReview.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.unroute(gitStatusPath);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await selectWorkflowStep(page, "Implementation plan");
+  await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+  const planRoute = new URL(page.url());
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "governed-document-wide-light-editable",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-DOC-001",
+    state: "editable-current-governed-document",
+    fixture: "Lifecycle editing workbench",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: planRoute.pathname + planRoute.search,
+    references: [
+      "docs/references/workbench-ui/document-authoring.svg",
+      "docs/references/workbench-ui/document-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+
+  const planEditor = await openMarkdownEditor(
+    page,
+    "Implementation plan document Markdown source",
+  );
+  const planMarkdown = await markdownSourceValue(planEditor);
+  await replaceMarkdownSource(
+    page,
+    planEditor,
+    planMarkdown + "\nrendered acceptance dirty buffer\n",
+  );
+
+  await page.getByTestId("workflow-rail")
+    .getByRole("button", { name: "Approval" })
+    .click();
+  const materialGuard = page.getByRole("alertdialog", {
+    name: "Discard unsaved Markdown?",
+  });
+  await expect(materialGuard).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "dirty-material-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-CONF-DIRTY-MATERIAL-001",
+    state: "dirty-material-navigation-guard",
+    fixture: "Lifecycle editing workbench with unsaved plan buffer",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+  await materialGuard.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  await page.getByRole("link", { name: "Back to queue" }).click();
+  const destinationGuard = page.getByRole("alertdialog", {
+    name: "Discard unsaved Markdown?",
+  });
+  await expect(destinationGuard).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "dirty-destination-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-CONF-DIRTY-DEST-001",
+    state: "dirty-destination-navigation-guard",
+    fixture: "Lifecycle editing workbench with unsaved plan buffer",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+  await destinationGuard.getByRole("button", { name: "Discard unsaved changes" }).click();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  const archiveReview = page.getByRole("alertdialog", { name: "Archive work item?" });
+  await expect(archiveReview).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "archive-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-CONF-ARCHIVE-001",
+    state: "archive-work-item",
+    fixture: "Lifecycle editing workbench",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await archiveReview.getByRole("button", { name: "Cancel", exact: true }).click();
+  await backToQueue(page);
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await openWorkItem(page, "Completed investigation");
+  await selectWorkflowStep(page, "Research");
+  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
+  const readonlyRoute = new URL(page.url());
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "governed-document-narrow-light-readonly",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-MAT-DOC-RO-001",
+    state: "completed-readonly-governed-document",
+    fixture: "Completed investigation",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: readonlyRoute.pathname + readonlyRoute.search,
+    references: [
+      "docs/references/workbench-ui/document-readonly.svg",
+      "docs/references/workbench-ui/document-states.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+
+  await backToQueue(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  await openWorkItem(page, "Research open continuation");
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
+  const researchRoute = new URL(page.url());
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "research-stage-wide-light-open",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-STEP-R1-001",
+    state: "open-continuation",
+    fixture: "Research open continuation",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: researchRoute.pathname + researchRoute.search,
+    references: [
+      "docs/references/workbench-ui/research.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "research-activity-wide-light-open",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-MAT-ACTIVITY-001",
+    state: "open-continuation-dialogue",
+    fixture: "Research open continuation",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: researchRoute.pathname + researchRoute.search,
+    references: [
+      "docs/references/workbench-ui/research.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Requirements ready after Research");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Requirements");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "requirements-stage-wide-light-ready",
+    workItemKind: "CHANGE",
+    workflowStep: "Requirements",
+    surface: "SURF-STEP-R2-001",
+    state: "ready-to-start",
+    fixture: "Requirements ready after Research",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/requirements.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Solution design ready after Requirements");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Solution design");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "solution-design-stage-wide-light-ready",
+    workItemKind: "CHANGE",
+    workflowStep: "Solution design",
+    surface: "SURF-STEP-DESIGN-001",
+    state: "ready-to-start",
+    fixture: "Solution design ready after Requirements",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/solution-design.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Implementation plan ready after Design");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation plan");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "implementation-plan-stage-wide-light-ready",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-STEP-PLAN-001",
+    state: "ready-to-start",
+    fixture: "Implementation plan ready after Design",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/implementation-plan.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Proposal review");
+  const proposalWorkspace = page.getByTestId("proposal-review-workspace");
+  await expect(proposalWorkspace).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "proposal-review-wide-light-pending",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "pending-review",
+    fixture: "Proposal review",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/proposal-review.svg",
+      "docs/references/workbench-ui/proposal-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-CANONICAL-CONTRACTS-V2",
+    ],
+  }));
+
+  writeRenderedAcceptanceEvidence(entries);
+  expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
+    "SURF-APP-001",
+    "SURF-CONF-ARCHIVE-001",
+    "SURF-CONF-DIRTY-DEST-001",
+    "SURF-CONF-DIRTY-MATERIAL-001",
+    "SURF-CONF-DOC-GIT-001",
+    "SURF-CREATE-001",
+    "SURF-MAT-ACTIVITY-001",
+    "SURF-MAT-DOC-001",
+    "SURF-MAT-DOC-RO-001",
+    "SURF-MAT-PROPOSAL-001",
+    "SURF-MAT-SOURCE-001",
+    "SURF-QUEUE-001",
+    "SURF-STEP-DESIGN-001",
+    "SURF-STEP-PLAN-001",
+    "SURF-STEP-R1-001",
+    "SURF-STEP-R2-001",
+    "SURF-STEP-WR-001",
+  ]);
+  expect(runtimeErrors).toEqual([]);
+});
+
 test("queue filtering composes archive dataset, project and search exactly once", async ({
   page,
   request,
@@ -1440,22 +2140,13 @@ test("workflow-step geometry gives the selected task the canvas and recomposes n
   await page.setViewportSize({ width: 1600, height: 900 });
   await authenticate(page, request);
 
-  const loadingItem = await workItemForTitle(page, "Lifecycle editing workbench");
-  await page.route(
-    "**/api/work-items/" + loadingItem.id + "/lifecycle-artifacts",
-    async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 700));
-      await route.continue();
-    },
-  );
-
   await openWorkItem(page, "Lifecycle editing workbench");
   await selectWorkflowStep(page, "Implementation plan");
-  const loadingWorkspace = page.getByTestId("lifecycle-document-material");
-  await expect(loadingWorkspace).toBeVisible();
-  const loadingBox = await loadingWorkspace.boundingBox();
-  expect(loadingBox).not.toBeNull();
-  expect(loadingBox!.height).toBeGreaterThan(500);
+  const stepWorkspace = page.getByTestId("workflow-step-workspace");
+  await expect(stepWorkspace).toBeVisible();
+  const stepWorkspaceBox = await stepWorkspace.boundingBox();
+  expect(stepWorkspaceBox).not.toBeNull();
+  expect(stepWorkspaceBox!.height).toBeGreaterThan(500);
 
   await expect(page.getByRole("button", { name: "Context" })).toBeVisible();
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
@@ -2582,7 +3273,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
     await selectWorkflowStep(page, "Readiness review");
     const review = page.getByTestId("review-workspace");
     await expect(
-      review.locator(".order-readiness-verdict").getByText(verdict, { exact: true }),
+      review.getByTestId("readiness-verdict").getByText(verdict, { exact: true }),
     ).toBeVisible();
     await backToQueue(page);
   }
@@ -2590,14 +3281,14 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await openWorkItem(page, "Readiness blocked");
   await expect(
     page.getByTestId("review-workspace")
-      .locator(".order-readiness-verdict")
+      .getByTestId("readiness-verdict")
       .getByText("Blocked", { exact: true }),
   ).toBeVisible();
   await backToQueue(page);
 
   await openWorkItem(page, "Readiness blocked after prior ready");
   const blockedAfterPriorReady = page.getByTestId("review-workspace")
-    .locator(".order-readiness-verdict");
+    .getByTestId("readiness-verdict");
   await expect(blockedAfterPriorReady.getByText("Blocked", { exact: true }))
     .toBeVisible();
   await expect(
@@ -2609,7 +3300,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await selectWorkflowStep(page, "Readiness review");
   await expect(
     page.getByTestId("review-workspace")
-      .locator(".order-readiness-verdict")
+      .getByTestId("readiness-verdict")
       .getByText("Ready for sign-off", { exact: true }),
   ).toBeVisible();
   await backToQueue(page);
@@ -2619,7 +3310,7 @@ test("Readiness verdict follows typed R3 outcome independently from material cur
   await selectWorkflowStep(page, "Readiness review");
   const staleReview = page.getByTestId("review-workspace");
   await expect(
-    staleReview.locator(".order-readiness-verdict")
+    staleReview.getByTestId("readiness-verdict")
       .getByText("Ready for sign-off", { exact: true }),
   ).toBeVisible();
   await expect(staleReview.getByText("Stale", { exact: true })).toBeVisible();
@@ -2634,7 +3325,7 @@ test("Readiness required input owns the action without replacing Review", async 
   const review = page.getByTestId("review-workspace");
   await expect(review).toBeVisible();
   await expect(page.getByTestId("workflow-step-summary")).toContainText("Waiting for you");
-  const interaction = page.locator(".order-readiness-current-interaction");
+  const interaction = page.getByTestId("readiness-current-attention");
   await expect(interaction).toBeVisible();
   await expect(interaction).toContainText(
     "Which readiness finding should be resolved before approval?",
@@ -2658,7 +3349,7 @@ test("Readiness keeps verdict and findings primary while subordinate material ch
   await expect(review).toBeVisible();
   await expect(review.getByText("Readiness verdict", { exact: true })).toBeVisible();
   await expect(
-    review.locator(".order-readiness-verdict").getByText("Review in progress", { exact: true }),
+    review.getByTestId("readiness-verdict").getByText("Review in progress", { exact: true }),
   ).toBeVisible();
   await expect(review.getByText("Findings / defective owner", { exact: true })).toBeVisible();
   const selector = page.getByRole("combobox", { name: "Readiness material" });
@@ -2873,7 +3564,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
     .getByRole("button", { name: "Technical details", exact: true });
   await expect(technicalSource).toBeVisible();
   await technicalSource.click();
-  await expect(page.getByTestId("source-document-material").locator(".order-source-technical pre"))
+  await expect(page.getByTestId("source-document-material").locator('[aria-label="Complete portable source"] pre'))
     .toContainText('"formatVersion": 1');
   await technicalSource.click();
 
@@ -3032,7 +3723,7 @@ test("Requirements document keeps status and authority secondary beside the gove
   await authenticate(page, request);
   await openWorkItem(page, "Requirements document visual");
   await expect(page.getByText("Requirements document", { exact: true }).first()).toBeVisible();
-  const authority = page.locator(".order-lifecycle-authority-summary");
+  const authority = page.locator('[aria-label="Requirements authority"]');
   await expect(authority).toBeVisible();
   await expect(authority).toContainText("Status");
   await expect(authority).toContainText("Authority");

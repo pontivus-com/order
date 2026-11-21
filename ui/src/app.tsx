@@ -28,7 +28,7 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchAppShell } from "./primitives/WorkbenchAppShell.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
 import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
@@ -426,7 +426,7 @@ export const App = () => {
   );
 
   const queueControls = (
-    <div className="order-queue-controls">
+    <div className="order-queue-commandbar">
       <WorkbenchToolbarGroup>
         <WorkbenchAction label="New work item" tone="primary" icon={<WorkbenchIcon name="add" />} onClick={() => { resetCreate(); setCreateOpen(true); }} />
         <WorkbenchAction label={refresh.isPending ? "Refreshing…" : "Refresh sources"} icon={<WorkbenchIcon name="refresh" />} loading={refresh.isPending} onClick={() => refresh.mutate()} />
@@ -476,7 +476,6 @@ export const App = () => {
         selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
         selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
         selectedWorkItemError={selectedWorkItemQuery.error}
-        toolbar={toolbar}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
         contextContent={
@@ -507,16 +506,16 @@ export const App = () => {
       action={<WorkbenchAction label="Retry" onClick={() => void selectedWorkItemQuery.refetch()} />}
     />
   ) : (
-    <div className="order-queue-page">
+    <div className="order-queue-workspace">
       {queueControls}
       {readinessQuery.data && !readinessQuery.data.ready ? (
-        <section className="order-installation-readiness" data-testid="installation-readiness">
+        <section className="order-app-readiness" data-testid="installation-readiness">
           <WorkbenchNotice tone="warning" title="Setup requires attention" description="Productive readiness is derived from canonical installation state. Each unresolved concern links directly to its owning Settings area; the queue never appears mysteriously empty." />
-          <div className="order-installation-readiness-blockers">
+          <div className="order-app-readiness-list">
             {readinessQuery.data.blockers.map((blocker) => {
               const section = settingsDestinationForReadinessBlocker(blocker);
               const destination = section === "repositories" ? "Repositories" : section === "opencode" ? "OpenCode accounts" : "Model & runtime";
-              return <div className="order-installation-readiness-row" key={blocker}>
+              return <div className="order-app-readiness-item" key={blocker}>
                 <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>InstallationReadiness blocker</span></div>
                 <Link href={"/settings/" + section} isStandalone onClick={(event) => { event.preventDefault(); navigateSettings(section); }}>{"Open " + destination}</Link>
               </div>;
@@ -525,7 +524,7 @@ export const App = () => {
         </section>
       ) : null}
       {(diagnosticsQuery.data ?? []).length > 0 ? (
-        <div data-testid="source-diagnostics">
+        <div className="order-app-notice-stack" data-testid="source-diagnostics">
           <WorkbenchNotice
             tone="danger"
             title="Source diagnostics require attention"
@@ -549,31 +548,21 @@ export const App = () => {
     </div>
   );
 
-  const body = workItemsQuery.isError ? (
-    <WorkbenchLayout
-      toolbar={toolbar}
-      primary={
-        <WorkbenchErrorState
-          title="Local browser session required"
-          description={
-            errorText(workItemsQuery.error).includes("browser session required")
-              ? "Run order open and open the one-time URL to establish the local session."
-              : errorText(workItemsQuery.error)
-          }
-          action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
-        />
+  const destination = workItemsQuery.isError ? (
+    <WorkbenchErrorState
+      title="Local browser session required"
+      description={
+        errorText(workItemsQuery.error).includes("browser session required")
+          ? "Run order open and open the one-time URL to establish the local session."
+          : errorText(workItemsQuery.error)
       }
-      workItemChrome={null}
+      action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
     />
-  ) : selectedWorkItem ? (
-    main
-  ) : (
-    <WorkbenchLayout toolbar={toolbar} primary={main} workItemChrome={null} />
-  );
+  ) : main;
 
   return (
     <Theme theme={neutralTheme} mode={themePreference}>
-      {body}
+      <WorkbenchAppShell toolbar={toolbar} destination={destination} />
 
       <WorkbenchTaskPanel
         open={createOpen}

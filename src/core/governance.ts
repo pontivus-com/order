@@ -264,6 +264,37 @@ export const projectAuthorityForLayers = (
   };
 };
 
+export const projectAuthorityForSources = (
+  authority: ResolvedProjectAuthority,
+  sources: readonly RepositoryPath[],
+): ResolvedProjectAuthority => {
+  const included = new Set(sources);
+  const layers = authority.layers.map((entry) => ({
+    layer: entry.layer,
+    sources: entry.sources.filter((path) => included.has(path)),
+    precedence: entry.precedence.filter((path) => included.has(path)),
+  }));
+  const sourcePaths = new Set(layers.flatMap((entry) => entry.sources));
+  for (const rule of [...authority.overrides, ...authority.extensions]) {
+    if (!sourcePaths.has(rule.source)) {
+      throw new TypeError(
+        `material authority projection omitted applicable governance source: ${rule.source}`,
+      );
+    }
+  }
+  return {
+    layers,
+    inheritedDefaultRuleIds: authority.inheritedDefaultRuleIds,
+    overrides: authority.overrides,
+    extensions: authority.extensions,
+    fitnessGateIdsByDefaultRuleId: authority.fitnessGateIdsByDefaultRuleId,
+    fitnessGateIds: authority.fitnessGateIds,
+    authorityRefs: authority.authorityRefs.filter(([, path]) =>
+      sourcePaths.has(path)
+    ),
+  };
+};
+
 export const resolvedAuthoritySourcePaths = (
   authority: ResolvedProjectAuthority,
   layer: ManifestAuthorityLayer,

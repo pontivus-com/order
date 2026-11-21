@@ -8,10 +8,7 @@ import {
 } from "@astryxdesign/core/Chat";
 
 export const WorkbenchDialogueMessage = ({
-  sender,
-  children,
-  timestamp,
-  name,
+  sender, children, timestamp, name,
 }: Readonly<{
   sender: "assistant" | "user";
   children: ReactNode;
@@ -26,21 +23,12 @@ export const WorkbenchDialogueMessage = ({
   </ChatMessage>
 );
 
-export const WorkbenchDialogueMessages = ({
-  children,
-}: Readonly<{ children: ReactNode }>) => (
-  <ChatMessageList density="compact" gap={2} align="top">
-    {children}
-  </ChatMessageList>
+export const WorkbenchDialogueMessages = ({ children }: Readonly<{ children: ReactNode }>) => (
+  <ChatMessageList density="compact" gap={2} align="top">{children}</ChatMessageList>
 );
 
 export const WorkbenchDialogue = ({
-  transcript,
-  activity,
-  composer,
-  state,
-  header,
-  technical,
+  transcript, activity, composer, state, header, technical,
 }: Readonly<{
   transcript: ReactNode;
   activity?: ReactNode;
@@ -51,24 +39,20 @@ export const WorkbenchDialogue = ({
 }>) => (
   <section className="order-workbench-dialogue">
     <div className="order-workbench-dialogue-main">
-      {header ? <div className="order-workbench-dialogue-header">{header}</div> : null}
+      {header === undefined ? null : <div className="order-workbench-dialogue-header">{header}</div>}
       <ChatLayout
         density="compact"
-        composer={composer ? <div className="order-workbench-dialogue-composer">{composer}</div> : null}
+        composer={composer === undefined ? null : <div className="order-workbench-dialogue-composer">{composer}</div>}
         scrollButton={null}
         emptyState={null}
       >
         {transcript}
       </ChatLayout>
-      {state ? <div className="order-workbench-dialogue-state">{state}</div> : null}
+      {state === undefined ? null : <div className="order-workbench-dialogue-state">{state}</div>}
     </div>
-    {activity ? (
-      <aside className="order-workbench-dialogue-activity" aria-label="Agent activity">
-        {activity}
-      </aside>
-    ) : null}
-    {technical ? (
-      <div className="order-workbench-dialogue-technical">{technical}</div>
-    ) : null}
+    {activity === undefined ? null : (
+      <aside className="order-workbench-dialogue-activity" aria-label="Agent activity">{activity}</aside>
+    )}
+    {technical === undefined ? null : <div className="order-workbench-dialogue-technical">{technical}</div>}
   </section>
 );

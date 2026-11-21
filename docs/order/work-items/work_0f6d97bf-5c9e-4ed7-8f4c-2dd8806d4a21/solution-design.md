@@ -6,12 +6,13 @@
 
 This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
-- R1 `research.md`: blob `a22200e0765f740e89b2f05727e126fbf9e0b034` — G-F12 reconstructed factual package; 112/112 stable requirements retain exact evidence and the complete work-kind × workflow-step × information × OpenCode × Workbench realization analysis; material UNPROVEN = 0.
-- R2 `requirements.md`: blob `332cc0a0ebcbc317be3da8dbd4edc538695eab6d` — post-`ALIGN-A09-F01` functional package; 111/112 stable requirements retain canonical `REFERENCE` ownership and `GW-FR-079` is the single stable `DELTA` resolving the fresh-install contradiction at its existing P3 owner. Complete package behavior remains explicit for all four work kinds, every applicable workflow step, productive interaction, current attention/material selection, failure/return and terminal closure.
+- R1 `research.md`: blob `99f6932e582bde949de72716f29ea0868eba16a0` — G-F12 factual package plus post-closeout rendered-evidence findings C19-F02/C20-F05 and the governed post-IA31 information-hierarchy audit C19-F03/C20-F06. Current UI/SVG/tests remain realization evidence only; the audit proves that screen-family hierarchy without per-datum visibility/disclosure ownership is insufficient.
+- R2 `requirements.md`: blob `27faa1a67321c8091deb27a4fd70ae912209c30a` — functional package binds the C19-F03/C20-F06 surface-family consequences to canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A`; it does not create a second visibility policy.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P4 Workbench: `36b5628f5d54d168aed25f0af71226114266068a`.
-- P4 Workbench Theme: `ec4c59408485d86e7c64802fed983e2072d063b9`.
+- P3 Workbench UX: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the permanent visibility/disclosure taxonomy and human-meaning-only promotion rule.
+- P4 Workbench: `7263c890f3705ddd55fdadb98767b62acb7fc56d` — §8.12A owns the technical disclosure lanes and the shell/context responsibility statements are reconciled to the §16.6 AppShell/WorkItemShell reconstruction.
+- P4 Workbench Theme: `fffd1d202537dbd3f85f6b30ee745d2eae454c53`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
 - P6 Canonical Contracts: `71f829cff8824db18194689eccdec83da6f5d19f`.
@@ -130,7 +131,7 @@ Wide/medium/narrow presentation keeps the same canonical data and derived decisi
 
 The existing 112-row DESIGN ledger remains the requirement-level ownership/disposition index. Under G-F12 it is no longer permitted to stand alone: each row is interpreted through the explicit carrier/stage model above and its named P4-P6 owner. POSITIVE_NO_CHANGE therefore means the required package technical realization is the shared model above plus the row's exact evidence-backed owner/path; it never means preserve current code because tests are green.
 
-The 25 package-local atoms remain the exact non-stable corrections and the SD01-SD20 catalog remains the delta/verification solution set. The reconstruction adds no new product behavior and no new implementation solution. It makes explicit the technical realization that all those rows consume.
+The corrected package now contains 27 package-local atoms: the prior 25 plus `PL-C19-02` for the structurally missing presentation reconstruction and `PL-C20-03` for exact-candidate rendered acceptance. SD01-SD30 are the complete current delta/verification solution set. The two added atoms change no product semantics; they correct the technical/proof realization of existing C19/C20 functional authority.
 
 ### Post-A09 authority revalidation
 
@@ -141,17 +142,111 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 - SD19 remains the minimum technical realization: one installer-owned setup flow, one canonical configuration/provider owner, no second readiness state, and post-install/update recovery preserved in the existing Settings/daemon path.
 - No new P4/P5/P6 decision is required by `C16-F04`; the previous SD19 direction is retained because it now traces to non-contradictory P3 authority rather than because implementation/P4/P6 happened to converge on it.
 
-### G-F12 DESIGN closure decision
+### G-F12 DESIGN closure decision — corrected after rendered-evidence revalidation
 
-- Every applicable work kind and workflow step has an explicit schema/template applicability decision, canonical carrier chain, producer/consumer boundary, core/daemon/shell/UI ownership, failure/recovery/terminal path and proof consequence.
-- Investigation/Audit technical terminalization is explicit and has no synthetic delivery carrier.
-- Change/Defect technical divergence is explicit through R1/R2/DESIGN/PLAN while shared R3/Approval/Implementation/Complete machinery remains singular.
-- The complete OpenCode interaction model is mapped to Run/RunEvent/context/session/proposal/admission owners.
-- Current attention/material selection, primary/supporting/technical hierarchy, responsive semantics and focus ownership are mapped to the closed core derivations and Workbench primitive composition.
-- Existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new dependency is introduced.
-- Open technical questions: NONE.
-- Material technical UNPROVEN: 0.
-- PLAN may decompose only the explicit SD01-SD20 delta/verification obligations and the positive proof obligations attached to reused realization; it may not infer a missing technical decision from implementation.
+The previous DESIGN closure incorrectly treated the Workbench screen realization as reusable. C19-F02/C20-F05 disprove that assumption without changing R2 product semantics. This corrected DESIGN draws a hard boundary between **retained UI capability** and **discarded screen implementation**:
+
+- canonical lifecycle/domain/query/daemon/persistence/provider owners remain unchanged unless another existing SD explicitly changes them;
+- the canonical Order Workbench primitive vocabulary and its approved Astryx/leaf-content foundations are retained as implementation capability; they are not redesign targets for this campaign unless a primitive-specific defect is independently proven upstream;
+- the existing application/screen implementations are **not** preserved, migrated, refactored or used as layout/information-design templates;
+- before any screen replacement, the design-bearing Workbench composition foundation is destructively reconstructed from current P3/P4 authority and reviewed new-design references; every later replacement screen derives a fresh screen-information schema from current R2 and composes it only from that accepted reconstructed foundation plus the positively retained atomic adapters;
+- the old screen file is removed before replacement authorship begins; any valid underlying query/domain behavior is consumed again from its canonical owner rather than copied as screen code;
+- old screen JSX/DOM structure, field grouping, table columns, cards/panels, action placement, responsive branches, feature-local CSS and visual hierarchy are explicitly non-authoritative and may not be carried forward for compatibility;
+- shared stylesheets are reconstructed with the Workbench foundation and then mutated only for the exact screen-specific selector sets owned by IA28-IA34; no current structural selector, theme realization or feature-local layout rule is a preservation target merely because it exists today;
+- exact-candidate rendered acceptance supplements semantic/browser certification and is required before final closeout;
+- existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
+- open technical questions: NONE;
+- material technical UNPROVEN: 0 after SD21-SD30 below are included as binding DESIGN;
+- PLAN must establish the preservation/purge boundary first, then destructively replace each screen family, then run permanent certification/SD30. An implementation phase that edits the old screen into the new one is nonconforming.
+
+Execution packaging is constrained by `GW-DOC-CANONICAL-CONTRACTS-V2`: ExecutionTask dependencies control eligibility only, every Run starts from `Approval.baselineCommit`, and successful dependency candidate bytes are not promoted into a later task baseline. The cumulative SD01-SD30 0.6.0 candidate is therefore one signed execution task. IA01-IA34 are ordered implementation/proof phases inside that task; later phases consume bytes created earlier in the same task/Run and never rely on a separately completed task candidate.
+
+#### Retained UI capability boundary
+
+The following are retained and may be reused:
+
+- all canonical `ui/src/primitives/*.tsx` Workbench primitives under P4 §8.12-§8.14;
+- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/workbench-presentation.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` insofar as they retain their current non-screen responsibilities;
+- `ui/src/MarkdownEditor.tsx` and `ui/src/MarkdownSourceEditor.tsx` as approved specialized content/editor mechanisms under P4 §8.19, not as outer screen grammar;
+- `ui/src/theme.css` and `ui/src/styles.css` only as primitive/theme/global foundations after obsolete screen-specific selectors and compatibility presentation rules are purged;
+- `src/core/lifecycle.ts` lifecycle/current-attention/material/recovery/rail decisions;
+- WorkItem/ArtifactRef/Run/RunEvent/Approval/ExecutionTask canonical contracts and persistence;
+- daemon/API/TanStack Query producer→carrier→consumer ownership;
+- WorkItem schema/kind information obligations and stage-specific document semantics;
+- proposal/adoption, sign-off, execution and provider admission/recovery behavior;
+- exact source/Markdown/Git ownership and stale-write/freshness rules.
+
+Retained capability is not permission to preserve a screen. A retained helper may be consumed only for its existing non-screen responsibility.
+
+#### Destructive screen-replacement boundary
+
+The following existing screen/composition modules are replacement targets, not migration targets:
+
+- `ui/src/app.tsx`;
+- `ui/src/WorkItemQueue.tsx`;
+- `ui/src/CreateWorkItem.tsx`;
+- `ui/src/WorkItemWorkspace.tsx`;
+- `ui/src/WorkItemIdentityRow.tsx`;
+- `ui/src/WorkflowRail.tsx`;
+- `ui/src/WorkflowStepFrame.tsx`;
+- `ui/src/DocumentWorkspace.tsx`;
+- `ui/src/ActivityWorkspace.tsx`;
+- `ui/src/ActivityComposer.tsx`;
+- `ui/src/PreSignoffStageWorkspace.tsx`;
+- `ui/src/WorkflowMaterialSelector.tsx`;
+- `ui/src/ProposalReview.tsx`;
+- `ui/src/RunEventTimeline.tsx`;
+- `ui/src/ReadinessWorkspace.tsx`;
+- `ui/src/SignoffReview.tsx`;
+- `ui/src/ExecutionWorkspace.tsx`;
+- `ui/src/TerminalResult.tsx`;
+- `ui/src/EvidenceViewer.tsx`;
+- `ui/src/WorkItemContext.tsx`;
+- `ui/src/SettingsWorkspace.tsx`;
+- `ui/src/OpenCodeAccountControl.tsx`;
+- `ui/src/OpenCodeAccountSettings.tsx`.
+
+For each owned reconstruction phase, the pre-reconstruction blob of every target above is defect evidence only. Replacement implementation must not copy or incrementally edit its screen composition. The phase must first delete its owned old screen files and assigned legacy selectors before replacement authorship, record the exact deleted path/selector set as bounded in-task observational evidence, and only then author the replacement from the current screen-information schema. This purge checkpoint is a procedural boundary inside the one signed task, not a Git commit, candidate boundary or validation result.
+
+If non-visual logic exists only inside a discarded screen file, that does not create reuse authority. The implementation must either consume the already-canonical underlying owner directly or return upstream for an architecture-preserving extraction decision. Copying screen-local hooks/state/branching merely because they existed is prohibited.
+
+#### Fresh screen-information-schema matrix
+
+These are design-time screen contracts, not DTOs or runtime state shapes. They are the technical projection of the exact R2 visibility contract; implementation may not infer another placement from available fields, historical UI or the SVG pack.
+
+| Screen/service family | Primary/default-visible | Supporting / operational detail | Technical / diagnostic default-hidden | Authorized disclosure / promotion rule | Required interaction class | Legacy-screen compatibility |
+|---|---|---|---|---|---|---|
+| Queue / application shell | actionable WorkItems; New work item; human lifecycle/status meaning; human-readable blocker/recovery | project/search/archive filtering; concerns/useful scan context; active saved OpenCode account quick-access | raw source/readiness diagnostic codes/paths/parser details; WorkItem ids/source internals | blocking condition promotes only human meaning + valid inspect/recovery action; raw evidence remains technical/evidence-owned | Operational scan | NONE — old table/banner/application-toolbar composition is discarded |
+| Create/remediation | Project identity, work kind, human title, Concerns, Create; linked parent meaning/title + fixed project | non-editable derived-field explanation | repository documentation root, parent WorkItem id, schema/version/internal metadata | no raw technical value is ordinary Create content; exact values surface only if the active input requires choosing/entering them | Task panel → Form/configuration | NONE — old modal/form grouping is discarded |
+| WorkItem shell | WorkItem title/meaning, current lifecycle step, current attention, true WorkItem-level utilities | reached/historical navigation; explicit Context entry | hashes/paths/ids/project-schema dumps/Run-task-provider identity | technical values only after explicit Context/Technical details; never promoted into identity row | Workbench shell + owning material class | NONE — old shell/frame structure is discarded |
+| Work request/document | governed intent/document content and current document action | selector/upstream material, maturity/currentness, compact Git state | exact path/hash/schema/source internals | local Technical details; exact changed paths become primary only inside the explicit documentation-Git confirmation | Document | NONE |
+| Research/Requirements/Design/Plan | current Dialogue, governed Document or Proposal Review according to attention precedence | attempts/history/upstream material, bounded agent activity, evidence/resource links | provider/session/baseline/context identity, raw Run/event tags, repository paths where semantic labels suffice | Supporting material/history for operator material; Technical details for exact mechanics; Evidence only after explicit open; provider failure promotes human blocker/recovery only | Document / Dialogue / Review using one productive-stage grammar | NONE |
+| Readiness | typed R3 verdict/current readiness, findings/defective owner, exact return action | package material needed for judgment, evidence, attempt history | artifact/package role/path/hash and technical identity | Technical details only; legitimate REQUIRED_INPUT may temporarily own the task without promoting unrelated technical identity | Review | NONE |
+| Approval | readiness/currentness, signed task meaning/scope/gates, approver identity + sign-off | governed documents/task collection/detail needed for judgment | package hash/baseline/commit identity, Approval/ExecutionTask ids | Technical details / Task technical details only; stale/currentness promotes meaning, not raw freshness identity | Review | NONE |
+| Implementation | current task objective/state/action/blocker, current attempt meaning, current/recorded validation boundary | task master/history, chronology, evidence/resources | task/approval/plan/Run ids, baseline/context/provider session, raw execution diagnostics | Technical details for exact identity; Evidence after explicit resource open; blocker promotes human meaning/action only | Operational master/detail | NONE |
+| Complete | canonical final governed outcome + valid next action | applicable result evidence/resources; linked-remediation action | internal event tags/role codes, ids/hashes/raw result identity | ordinary resource labels are human-facing; exact bytes/identity only after Evidence open | Terminal result | NONE |
+| Evidence/Context | exact evidence identity+bytes when explicitly selected; selected-view technical orientation when Context explicitly opened | related resource metadata | raw technical values are allowed because these surfaces explicitly own inspection | neither auto-opens; neither may become sole owner of current blocker/action; close/return restores primary hierarchy | Evidence / Compact context | NONE |
+| Settings/account/configuration | readiness, configuration meaning/action; exact value only while actively selecting/entering it | repository/account/model inventory + ordinary status | exact roots/endpoints/account ids/provider mechanics outside active field; raw enum codes | active Add/Move/model/account fields may show exact configured value; otherwise Technical details | Settings + Form/configuration | NONE |
+
+##### Closed progressive-disclosure realization
+
+The implementation uses only existing canonical interaction owners:
+
+- operator-facing workflow history/material -> `WorkbenchSelector` / Supporting material/history;
+- compact selected-WorkItem technical orientation -> explicit `WorkbenchContextPanel`;
+- local exact identity/mechanics -> `WorkbenchDisclosure` labelled **Technical details** (or the task-specific technical-detail label already owned by the Review);
+- exact raw bytes/resource -> explicit Evidence surface;
+- mutation-consent facts -> `WorkbenchConfirmation` only when those exact facts are necessary to consent safely.
+
+There is no new persisted disclosure state, DTO/view-model, diagnostic dashboard, second Context system or feature-specific technical panel. Diagnostic/console facts that have no legitimate operator inspection use remain absent from the product UI.
+
+A replacement screen is technically invalid when any of the following is true:
+
+- a raw id/hash/path/session/event/enum is persistently visible although a semantic label suffices;
+- a blocking technical condition promotes its raw representation rather than its human meaning/action;
+- the same technical datum is duplicated across ordinary primary/supporting space and a technical owner without a second decision need;
+- a datum that R2 classifies as Primary can be reached only by opening Context/Technical details;
+- implementation or a derived SVG chooses a different disclosure owner from this matrix.
 
 ## Technical change solution catalog
 
@@ -159,24 +254,34 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 |---|---|---|---|---|---|
 | SD01 | C21 product-language realization | P2 Product Identity + P4 Workbench presentation | README.md; ui/src/TerminalResult.tsx; ui/src/workbench-presentation.ts | Use verified result as umbrella product outcome and Verified candidate only for executed delivery; reuse the canonical P4 terminal-result projection and replace local enum prettification; no lifecycle/state/contract change. | tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
 | SD02 | C22 authority resolution and stage materiality | GW-DOC-LIFECYCLE-CONTEXT-V2 + GW-DOC-TECHNICAL-ARCHITECTURE-V2 §35.1 + GW-DOC-OPENCODE-INTEGRATION-V1 | src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Reuse the permanent P3/P4 contract: pure same-layer precedence plus P1 default/override/extension/fitness resolution over the reachable authority graph, then derive the stage-material subset from pinned schema/template, mandatory stage policy and explicit upstream/signed refs. Stable refs select current owners; explicit versioned refs select exact retained snapshots. Retained versions must remain reachable without entering an unrelated current-schema context. Unresolved material relation blocks before inference. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts — exact propositions below |
-| SD03 | C02 authoring presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/CreateWorkItem.tsx | Ordinary label is Concerns; linked remediation project is fixed parent-project context. Preserve canonical kind/schema/body/metadata owners. | tests/browser.spec.ts |
+| SD03 | C02 authoring presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/CreateWorkItem.tsx | Ordinary label is Concerns; linked remediation project is fixed parent-project context. Preserve canonical kind/schema/body/metadata owners. Project/kind/title/Concerns and human lineage meaning are ordinary content; repository root, parent WorkItem id, schema/version/internal metadata are not persistently exposed when semantic labels suffice. | tests/browser.spec.ts proves both authoring semantics and default-hidden technical identity |
 | SD04 | C02/C04 singular source admission | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/daemon/work-item-source.ts | Factor one new-source QueuePlan producer and persist both created/discovered sources through existing applyPlan; remove direct create-path WorkItem store. | tests/daemon.test.ts |
-| SD05 | C03 archived queue filtering | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/app.tsx; ui/src/WorkItemQueue.tsx | App selects active/include-archived canonical dataset then applies project/search once; queue does not replace filtering semantics. | tests/browser.spec.ts |
-| SD06 | C04 documentation-Git exact review | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | ui/src/DocumentWorkspace.tsx | Render exact canonical changed-path/state set in confirmation before existing bounded commit command; no second Git-status owner. | tests/browser.spec.ts |
-| SD07 | C05/C17 current-attention visibility | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ActivityWorkspace.tsx; ui/src/WorkItemWorkspace.tsx; ui/src/workbench-presentation.ts | Keep historical/supporting inspection while exact higher-priority current owner/reason/action remains visible and directly reachable; do not create browser workflow state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts |
+| SD05 | C03 archived queue filtering | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/app.tsx; ui/src/WorkItemQueue.tsx | App selects active/include-archived canonical dataset then applies project/search once; queue does not replace filtering semantics. Source/readiness diagnostics use human-readable operator meaning/action in ordinary Queue/application space; raw diagnostic code/path remains technical/evidence-owned. | tests/browser.spec.ts includes filter semantics plus negative raw-diagnostic visibility |
+| SD06 | C04 documentation-Git exact review | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 + R2 C19 visibility contract | ui/src/DocumentWorkspace.tsx | Render exact canonical changed-path/state set in confirmation before existing bounded commit command; this is the explicit safe-consent exception where exact paths become decision-primary. Outside that confirmation, path/hash/schema identity remains Technical details. No second Git-status owner. | tests/browser.spec.ts proves default-hidden document identity plus exact confirmation paths |
+| SD07 | C05/C17 current-attention visibility | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ActivityWorkspace.tsx; ui/src/WorkItemWorkspace.tsx; ui/src/workbench-presentation.ts | Keep historical/supporting inspection while the exact higher-priority current owner/reason/action remains visible and directly reachable; when the owning cause is technical, promote only its human-readable meaning/consequence/action while raw code/path/session/payload remains in Technical details/Evidence. Do not create browser workflow state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including human-meaning-only promotion |
 | SD08 | C06 durable authority-changing input | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/lifecycle.ts; src/daemon/stage.ts | After answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, stage completion requires later adopted canonical authority; INFORMATION/EVIDENCE unchanged. | tests/core.test.ts; tests/daemon.test.ts |
 | SD09 | C07/C08 permanent authority proposal/adoption | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/contracts.ts; src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Extend the one proposal/adoption owner: R2 admits current P2/P3 targets; DESIGN current P4/P5/P6 targets; re-resolve role/layer/path/base hash before adoption. No new proposal model. | tests/core.test.ts; tests/daemon.test.ts |
 | SD10 | C09 signed task contract, non-vacuity and execution-surface semantics | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-SPECIFICATION-STANDARD | **Remaining T1 delta:** src/core/execution.ts; src/daemon/stage.ts; src/daemon/authority.ts. **Baseline reuse/no T1 edit for execution-foundation semantics:** src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Keep the one canonical `SignedTaskBlockSchema` and existing `parseSignedTaskBlockFromPlan` structural parser unchanged so published `change-v1`/`defect-v1` semantics are not silently reinterpreted. Add one pure schema-aware task-admission function over the already parsed `SignedTaskBlock`: for `change-v2`/`defect-v2` only, enforce P6 §37.4 (non-empty tasks; trimmed non-empty id/objective; non-empty scope/acceptance/changeSurface/gates/authority/concerns); for v1, preserve the historical contract. The existing PLAN/R3 prompt contract in `src/daemon/stage.ts` must become schema-aware and state the same v2-only non-vacuity clauses in addition to the unchanged shared JSON Schema, so authoring and deterministic admission agree. The existing PLAN semantic conformance questions remain the owner of **material** task sufficiency: each task must trace upward/downward and close objective/dependencies, module ownership/decomposition, required architecture-feedback checkpoints, production/test surfaces, deletions/replacements, completion evidence, minimum-change forecast and verification contract without delegating a P1-P6 decision. R3 independently challenges complete bidirectional P1-P7 traceability/current readiness. PLAN conformance must call the v2-aware mechanical admission, and R3/sign-off `validateTaskDefinitions` must call the same owner so a syntactically vacuous v2 package cannot bypass those semantic reviews. No second task DTO/schema/parser or second semantic-review owner is introduced. The corrected baseline already owns signed scope/exclusions as the hard repository boundary, changeSurface as immutable forecast, V2 true-boundary rejection, V4/V5/V6 minimum same-layer variance review and coordinator-owned V6 CHANGE_BLOAT; T1 must reuse rather than reimplement those semantics. | tests/core.test.ts proves v1 parse/admission compatibility plus v2 non-vacuity positives/negatives; tests/daemon.test.ts proves v2 PLAN and READY_FOR_SIGNOFF/sign-off rejection cannot bypass the rule; tests/certification.test.ts binds the singular schema-aware admission/prompt path and rejects a duplicate task schema/parser |
-| SD11 | C10 Readiness judgment | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ReadinessWorkspace.tsx; ui/src/workbench-presentation.ts | Dominant verdict derives from typed R3 completion outcome; material maturity/currentness is supporting state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts |
-| SD12 | C11 Approval identity and hierarchy | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | src/core/contracts.ts; src/daemon/authority.ts; ui/src/SignoffReview.tsx | Trim/reject blank approvedBy at canonical ingress and show readiness/currentness before technical package identity; browser validation remains feedback. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts |
+| SD11 | C10 Readiness judgment | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ReadinessWorkspace.tsx; ui/src/workbench-presentation.ts | Dominant verdict derives from typed R3 completion outcome; findings/return owner remain primary, package/material context is supporting, and artifact role/path/hash/package identity is Technical details only. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including hidden-before-disclosure technical identity |
+| SD12 | C11 Approval identity and hierarchy | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | src/core/contracts.ts; src/daemon/authority.ts; ui/src/SignoffReview.tsx | Trim/reject blank approvedBy at canonical ingress and show readiness/currentness/task meaning before technical package identity; package hash/baseline/commit plus approval/task ids remain behind their owning Technical details disclosure while browser validation remains feedback. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts proves hidden/default/disclosed identity |
 | SD13 | C12 signed in-task checkpoint | GW-DOC-EXECUTION-CONTROL-PLANE-V1 + GW-DOC-CANONICAL-CONTRACTS-V2 | **Baseline capability already integrated; no T1 production edit:** src/core/contracts.ts; src/core/execution.ts; src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Current baseline satisfies P6 §37.6: BUILDER alone may request exactly one signed-task gate checkpoint as terminal turn action; the coordinator verifies freshness/signed gate/current V2 scope before effect, executes the existing gate owner, records GATE_PASSED/GATE_FAILED evidence and continues the same Run/provider session; provider shell/execute remains denied. Final PLAN may schedule/use this capability but must not bootstrap or reimplement it. | existing tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts are baseline proof; final PLAN may add only task-specific usage/cadence proof where required |
-| SD14 | C16 Settings hierarchy | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/SettingsWorkspace.tsx | Keep one canonical Settings/config owner but demote exact roots/endpoints/credential-like identities to Technical details except active configuration input. | tests/browser.spec.ts |
+| SD14 | C16 Settings hierarchy | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/SettingsWorkspace.tsx | Keep one canonical Settings/config owner. Readiness/meaning/action is ordinary content; exact roots/endpoints/account/credential-like/provider identity stays in Technical details except when the active Add/Move/model/account task requires that exact value as an input/selection. Raw enum/status codes are mapped to operator language. | tests/browser.spec.ts proves ordinary-vs-active-input-vs-technical placement |
 | SD15 | C18 required-input focus | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ActivityComposer.tsx; ui/src/ActivityWorkspace.tsx | Focus Workbench-owned composer once for each newly current required-input event id; rerender/polling does not refocus; no private Astryx DOM policy. | tests/browser.spec.ts |
-| SD16 | C19 exhaustive renderer fitness | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | tests/certification.test.ts | Under immutable architecture-gate material rule, add exhaustive production-renderer classification proof to existing test gate, including ActivityComposer; do not mutate tests/architecture.test.ts inside T1. | tests/certification.test.ts |
-| SD17 | C20 scenario-41 certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | tests/browser.spec.ts | Certify all four work-kind Work request + Research information contracts and distinct Change/Defect downstream obligations. | tests/browser.spec.ts |
-| SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
+| SD16 | C19 exhaustive renderer fitness | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | tests/certification.test.ts | Keep exhaustive production-renderer classification proof, and certify that each renderer family consumes only the disclosure owner(s) authorized by the R2 matrix; the check remains structural/semantic and does not create a second field registry or mutate tests/architecture.test.ts inside T1. | tests/certification.test.ts |
+| SD17 | C20 scenario-41 certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19/C20 visibility contract | tests/browser.spec.ts | Certify all four work-kind Work request + Research information contracts and distinct Change/Defect downstream obligations, including that kind-specific operator information is visible while common technical identity remains default-hidden. | tests/browser.spec.ts |
+| SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 + R2 C19/C20 visibility contract | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark, including identical Primary/Supporting/Technical disclosure semantics in every effective theme. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
 | SD19 | C16 guided productive installer | corrected P3 `GW-FR-007` + `GW-FR-079`; GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices and daemon/readiness conditions exist. Preserve incomplete v4 as post-install/update daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
 | SD20 | C20 exact-pin OpenCode integration certification | `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE`; `GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION`; `GW-DOC-EXTERNAL-FACTS` | `tests/opencode.test.ts`; `.github/workflows/ci.yml` | Add one permanent verification-only exact-pin tier: CI installs isolated `opencode-drive@2.4.1` + `effect@4.0.1` tooling outside Order's package/runtime dependency graph; the test launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode shell/session boundary and drives deterministic model responses through the simulation provider/controller. Existing fake OpenCode fixtures remain fast unit/shell/daemon doubles only and cannot satisfy the exact-pin proposition. No production source, runtime dependency, config/state model or alternate provider path is introduced. | permanent exact-pin integration case in `tests/opencode.test.ts`, executed by PR verification; existing fake/adversarial tests remain complementary |
+| SD21 | C05/C18/C19-F02/C19-F03 Workbench foundation + shell destructive reconstruction boundary | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §16.6 + GW-DOC-WORKBENCH-THEME-V1 + current R2/P3 interaction/information contracts | design-bearing composition primitives under `ui/src/primitives/`; new `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts`; `ui/src/app.tsx`; `ui/src/WorkItemWorkspace.tsx`; `ui/src/WorkItemIdentityRow.tsx`; `ui/src/WorkflowRail.tsx`; `ui/src/WorkflowStepFrame.tsx`; `ui/src/theme.css`; `ui/src/styles.css`; `tests/certification.test.ts`; `tests/browser.spec.ts` | Reconstruct the same foundation boundary as before, but its fresh composition schema must now explicitly carry the R2 Primary/Supporting/Operational/Technical/Diagnostic slots and closed disclosure owners. AppShell/WorkItemShell/Attention/Surface/Review/Dialogue/MasterDetail/Context/Selector/Disclosure composition must make it structurally possible for screens to keep ordinary task content separate from technical/diagnostic inspection without creating another layout axis. No primitive invents product classification; it receives already-classified content. | prior purge/one-owner architecture proof remains required; fresh foundation schema additionally proves the closed disclosure channels, no auto-open technical surface, and no primitive forces technical identity into ordinary content |
+| SD22 | C02/C03/C16/C19-F03 — fresh Queue/Create/application utilities | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-INSTALLATION-READINESS-V1 + R2 C02/C03/C16/C19 | `ui/src/OpenCodeAccountControl.tsx`; `ui/src/WorkItemQueue.tsx`; `ui/src/CreateWorkItem.tsx` | Queue renders human-readable source/readiness attention and an inspect/recovery action, never raw diagnostic code/path in the ordinary notice. Create/remediation renders project/kind/title/Concerns and human lineage meaning; repository documentation root, parent WorkItem id and other internal derived identity are hidden behind the authorized technical owner rather than persistently shown. Active saved-account status remains global quick-access, not management detail. | browser/rendered proof includes absence of raw Queue diagnostic code/path and Create root/parent-id from default view plus positive authorized disclosure where applicable |
+| SD23 | C04/C05/C19-F03 fresh Work request/document screens on reconstructed WorkItem shell | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C04/C05/C17/C19 | `ui/src/DocumentWorkspace.tsx` | Governed content/action stays primary; maturity/currentness and compact Git state stay supporting; repository path/SHA/schema/source identity stay inside Technical details. The existing documentation-Git confirmation is the explicit exception where exact changed paths become decision-primary because consent is path-specific. | browser/rendered proof checks default absence of path/hash/schema, positive Technical-details disclosure, and exact changed-path visibility inside confirmation |
+| SD24 | C06/C07/C08/C09/C19-F03 fresh productive-stage screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 productive interaction/visibility contract | `PreSignoffStageWorkspace.tsx`; `ActivityWorkspace.tsx`; `ActivityComposer.tsx`; `WorkflowMaterialSelector.tsx`; `ProposalReview.tsx`; `RunEventTimeline.tsx` | Dialogue/Document/Proposal current task remains primary; attempts/upstream material/activity/evidence remain supporting. Provider session, baseline/context hash, raw Run/event tags and repository paths are Technical details and cannot appear in the ordinary companion/history surface. Proposal uses human target/rationale/diff labels; raw event/schema identity remains technical. Provider failure may promote only its human blocker/recovery meaning. | per-stage browser/rendered review proves hidden technical identity by default, positive Technical/Timeline disclosure, and no raw Research repository path/event-tag leakage |
+| SD25 | C10/C11/C19-F03 fresh Readiness + Approval screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C10/C11/C19 | `ReadinessWorkspace.tsx`; `SignoffReview.tsx` | Preserve the Review hierarchies, with artifact/package role/path/hash, package hash/baseline/commit and approval/task ids explicitly bound to Technical details / Task technical details. Currentness/readiness/task meaning remains visible while technical disclosure opens. | browser proof must assert those identities hidden before disclosure and visible only after the owning disclosure, while verdict/currentness/sign-off hierarchy remains present |
+| SD26 | C12/C19-F03 fresh Implementation screen | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C12/C19 | `ExecutionWorkspace.tsx`; consumes the already-reconstructed `RunEventTimeline.tsx` from SD24/IA30 and reconstructed `WorkbenchMasterDetail` from SD21 | Current task/action/blocker/attempt meaning/validation stay primary; task master/history/chronology/evidence stay supporting. Task/approval/plan/Run ids, baseline/context/provider session and raw execution diagnostics are Technical details. Evidence resource labels use operator-facing resource meaning; raw technical identity moves to Evidence after explicit open. | execution browser/rendered proof includes negative default visibility for ids/session/baseline and positive technical/evidence disclosure |
+| SD27 | C13/C14/C19-F03 fresh Complete/Evidence/Context screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C13/C14/C19 | `TerminalResult.tsx`; `EvidenceViewer.tsx`; `WorkItemContext.tsx` | Complete uses only product-facing outcome/resource language; raw event tags/role codes/ids/hashes do not become ordinary result copy. Evidence is the explicit owner where exact evidence identity/bytes become primary. Context remains explicitly opened compact technical orientation and may contain raw exact values because the operator requested that surface; neither Evidence nor Context auto-opens or hides current attention. | terminal proof rejects internal event/role vocabulary in default result; Evidence/Context proof confirms exact values only after explicit open and correct return/close behavior |
+| SD28 | C15/C16/C19-F03 fresh Settings/account/configuration management screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-INSTALLATION-READINESS-V1 + R2 C15/C16/C19 | `SettingsWorkspace.tsx`; `OpenCodeAccountSettings.tsx` | Readiness/meaning/action remain primary. Exact roots/endpoints/account ids/provider mechanics are Technical details unless the active Add/Move/model/account task requires that exact value as its input/selection. Internal enum/status codes are mapped to product language rather than rendered literally. | Settings browser/rendered matrix proves ordinary-vs-active-input-vs-Technical-details placement for repository/account/model values |
+| SD29 | C18/C19-F03 responsive/accessibility on reconstructed foundation and replacement screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | SD21 reconstructed composition primitives/responsive owner plus replacement screen files from SD22-SD28 | Structural responsive behavior remains singular. Responsive recomposition may change placement but never classification/default visibility: Technical/Diagnostic information cannot become persistently visible merely because the viewport changes, and Primary content cannot be pushed behind technical disclosure. Required-input focus-once remains SD15. | wide/medium/narrow proof includes semantic order plus disclosure parity and absence of viewport-specific technical leakage |
+| SD30 | C20-F05/C20-F06 rendered and semantic UI acceptance | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 + R2 C19/C20 | `tests/browser.spec.ts`; `tests/certification.test.ts`; `.github/workflows/ci.yml` | Keep the three rendered verdict dimensions, but `schema_information` now explicitly includes visibility correctness: required Primary information present; technical/diagnostic information absent by default; authorized disclosure reveals its exact owned values; closing/return restores hierarchy. The SVG is comparison material only and must be corrected/overridden when it conflicts with R2. Presence-only assertions cannot satisfy the contract and stale assertions that force raw technical text into ordinary UI must be removed/replaced. | permanent CI artifact + per-row PASS for schema/information including hidden/default/disclosed states + zero unresolved rendered acceptance FAIL |
 
 ## A06 execution-foundation prerequisite — satisfied baseline, retained as causal design evidence
 
@@ -268,7 +373,7 @@ P2 Product Identity canonical reusable descriptions
 | `GW-FR-002-REPRODUCIBLE-AUTHORITY` | `C01-O01`, `C01-O07` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
 | `GW-FR-003-DURABLE-BOUNDED-EXECUTION` | `C12-O01`, `C12-O02`, `C12-O07` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-EXECUTION-CONTROL-PLANE-V1; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
 | `GW-FR-004-INDEPENDENT-VALIDATION` | `C12-O08`, `C12-O09`, `C12-O10`, `C12-O11`, `C12-O12`, `C20-O10` | `CONFORMS_WITH_DEPENDENCY` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
-| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
+| `GW-FR-005-LOCAL-WORKBENCH` | `C05-O01`, `C05-O04`, `C05-O12`, `C19-O06`, `C19-O08` | `MIXED` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD29`, `SD30` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Domain/lifecycle capabilities remain, but the rendered Workbench realization is not accepted as conforming. Recompose the presentation foundation/shell and re-prove the resulting local Workbench through exact rendered evidence. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance |
 | `GW-FR-006-MINIMUM-VERIFIED-CANDIDATE` | `C12-O12`, `C12-O13`, `C12-O19` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-EXECUTION-CONTROL-PLANE-V1; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
 | `GW-FR-007-GUIDED-PRODUCTIVE-BOOTSTRAP` | `DIRECT-FR007`, `C16-F04` | `CONTRADICTORY_AUTHORITY + REALIZATION_VIOLATION` | `TECHNICAL_DELTA` | `SD19` | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2; corrected GW-DOC-INSTALLATION-READINESS | R2 has removed the P3 contradiction; implementation still violates the now-singular fresh-install contract. Remove deferred-Settings success branch while preserving post-install/update recovery capability. | new `tests/installer.test.ts`; existing `tests/order-migration.test.ts` |
 | `GW-FR-008-GOVERNED-REPOSITORY-ACCESS` | `C16-O02`, `C16-O05`, `C22-O10` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
@@ -305,7 +410,7 @@ P2 Product Identity canonical reusable descriptions
 | `GW-FR-070-REPOSITORY-LIFECYCLE-DRAFT-REDISCOVERY` | `C04-O05` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/daemon.test.ts; tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts |
 | `GW-FR-071-DOCUMENTATION-GIT-ELIGIBILITY` | `C04-O12`, `C04-O13` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts |
 | `GW-FR-072-REPOSITORY-LOCAL-GIT-IDENTITY` | `C04-O12` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/markdown-source-formatting.test.ts; tests/certification.test.ts |
-| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts |
+| `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY` | `C16-O06` | `CONFORMS` | `DEPENDENCY_DELTA` | `SD22` | GW-DOC-INSTALLATION-READINESS-V1; GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | The canonical account projection/query semantics remain positively conforming, but the old shell renderer is inside the destructive screen layer. Re-realize global active-account visibility and Settings quick-access in the fresh application shell under SD22; do not preserve/copy the old control or create another account-management owner. | tests/browser.spec.ts; tests/certification.test.ts; rendered `SURF-APP-001` acceptance |
 | `GW-FR-074-OPENCODE-SAVED-ACCOUNT-SWITCHING` | `C16-O06` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts |
 | `GW-FR-075-OPENCODE-ACCOUNT-LOGIN` | `C16-O06` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts |
 | `GW-FR-076-OPENCODE-ACCOUNT-MUTATION-SAFETY` | `C16-O07` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/certification.test.ts; tests/order-migration.test.ts |
@@ -347,28 +452,28 @@ P2 Product Identity canonical reusable descriptions
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-212-APPROVAL-PURITY-AND-CURRENTNESS` | `C11-O02`, `C11-O03`, `C11-O10`, `C11-O11` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-213-EXECUTION-BLOCKER-PRECEDENCE` | `C12-O17`, `C17-O10` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-EXECUTION-CONTROL-PLANE-V1; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
+| `GW-FR-214-STABLE-WORKBENCH-GEOMETRY` | `C05-O08` | `MIXED` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD23`, `SD24`, `SD26`, `SD29`, `SD30` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Semantic stability remains authoritative; the old primitive and feature/container geometry are both non-authoritative implementation evidence. Reconstructed foundation-owned geometry must be derived from P3/P4/new-design references and re-proved across workflow classes. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + rendered acceptance |
 | `GW-FR-215-STABLE-WORKFLOW-RAIL` | `C05-O01`, `C05-O08` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-216-NO-CONDITIONAL-PRESIGNOFF-RAIL` | `C05-O08` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `MIXED` | `MIXED_TECHNICAL_DELTA` | `SD11`, `SD12`, `SD14` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | General geometry remains; Readiness, Approval and Settings local hierarchies must stop promoting maturity/technical identity over the governed judgment/action. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
+| `GW-FR-217-PRIMARY-INFORMATION-ECONOMY` | `C05-O10`, `C05-O12`, `C19-O03` | `VIOLATES` | `TECHNICAL_DELTA` | `SD21`, `SD22`, `SD23`, `SD24`, `SD25`, `SD26`, `SD27`, `SD28` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Rendered evidence proves information hierarchy is not a few local exceptions. Every interaction class must recompose Primary/Supporting/Technical hierarchy on the rebuilt foundation; SD11/12/14 semantics feed their owning domain solutions. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + rendered acceptance |
+| `GW-FR-218-SPACE-CLASS-CONSISTENCY` | `C05-O12`, `C19-O04` | `VIOLATES` | `TECHNICAL_DELTA` | `SD21`-`SD29` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | The current presentation is not an acceptable shared spatial grammar. Space-class composition is rebuilt at primitive level and every renderer family migrates onto it. | tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance |
 | `GW-FR-219-EXPLICIT-CONTEXT` | `C05-O04` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-220-PRESIGNOFF-CONTINUITY` | `C05-O05`, `C05-O06`, `C05-O12` | `MIXED` | `MIXED_TECHNICAL_DELTA` | `SD07` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Shared interaction grammar remains; current-attention visibility must remain continuous through explicit material selection. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `VIOLATES` | `TECHNICAL_DELTA` | `SD11` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Typed R3 outcome becomes dominant Readiness verdict; maturity/currentness remains supporting state. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-222-APPROVAL-REVIEW-HIERARCHY` | `C11-O06`, `C11-O07` | `MIXED` | `MIXED_TECHNICAL_DELTA` | `SD12` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Package/task semantics remain; readiness/currentness becomes primary before technical identity. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-223-IMPLEMENTATION-MASTER-DETAIL` | `C12-O17` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-EXECUTION-CONTROL-PLANE-V1; GW-DOC-CANONICAL-CONTRACTS-V2; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-224-TERMINAL-RESULT-PRIMACY` | `C13-O04` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
+| `GW-FR-225-RESPONSIVE-SEMANTIC-CONTINUITY` | `C18-O01`, `C18-O04` | `MIXED` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD29`, `SD30` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | Semantic continuity remains authoritative, but the UI rebuild invalidates current responsive realization as preservation proof. Structural primitives own recomposition and exact rendered evidence re-proves it. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + rendered acceptance |
 | `GW-FR-226-WORKFLOW-CRITICAL-FEEDBACK` | `C17-O08` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-227-CERTIFICATION-MATRIX` | `C20-O12` | `VERIFICATION_GAP` | `VERIFICATION_DELTA` | `SD15`, `SD16`, `SD17`, `SD18` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Permanent certification must add required-input focus, renderer completeness, scenario-41 and cross-application theme/component parity coverage. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
+| `GW-FR-227-CERTIFICATION-MATRIX` | `C20-O12` | `VERIFICATION_GAP` | `VERIFICATION_DELTA` | `SD15`, `SD16`, `SD17`, `SD18`, `SD30` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1; GW-DOC-TECHNICAL-ARCHITECTURE-V2 | Permanent certification retains semantic/state matrices and additionally requires exact-candidate rendered evidence plus row-level acceptance across the governed UI surface. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts; GitHub Actions rendered acceptance |
 | `GW-FR-228-FUNCTIONAL-STATE-TRANSITION-CLOSURE` | `C01-O05` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-229-PROVIDER-TURN-CONTROL-EXCLUSIVITY` | `C15-O05`, `C15-O07`, `C15-O11` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `MIXED` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD11`, `SD12`, `SD14`, `SD16` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Canonical component/theme system remains; local information-hierarchy violations and missing exhaustive renderer fitness are corrected. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
+| `GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR` | `C05-O08`, `C05-O12`, `C19-O01` | `VIOLATES` | `TECHNICAL_DELTA` | `SD21`-`SD29` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Primitive filenames/wrappers do not prove a closed grammar. Every renderer is re-composed to its P4 interaction class and old recurring feature-owned grammar is removed. | tests/certification.test.ts; tests/browser.spec.ts + rendered acceptance |
+| `GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE` | `C19-O01`, `C19-O03`, `C19-O04`, `C19-O07`, `C19-O09`, `C19-O10`, `C19-O12` | `VIOLATES` | `TECHNICAL_DELTA` | `SD21`-`SD29` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | C19-F02 proves the visual language is not fully realized. Rebuild the primitive/theme foundation, migrate every renderer family and delete competing feature-era presentation ownership. | tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance |
 | `GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE` | `C01-O03`, `C01-O11` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-TECHNICAL-ARCHITECTURE-V2; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-233-CANONICAL-WORKFLOW-RAIL-PROJECTION` | `C05-O01`, `C05-O02` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `CONFORMS_WITH_VERIFICATION_GAP` | `VERIFICATION_DELTA` | `SD16` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Current presentation behavior is positively conforming; exhaustive renderer-to-primitive certification is incomplete. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
-| `GW-FR-235-GLOBAL-THEME-PARITY` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `CONFORMS_WITH_VERIFICATION_GAP` | `VERIFICATION_DELTA` | `SD18` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Theme behavior is positively conforming; required representative cross-application parity certification is incomplete. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
+| `GW-FR-234-UNIFIED-WORKBENCH-COMPONENT-PRESENTATION` | `C19-O04`, `C19-O10`, `C19-O11`, `C19-O12` | `VIOLATES` | `TECHNICAL_DELTA` | `SD21`-`SD29` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Runtime evidence demonstrates equivalent roles do not yet produce the intended unified presentation. Structural primitive/theme migration is required before renderer certification. | tests/browser.spec.ts; tests/certification.test.ts + rendered acceptance |
+| `GW-FR-235-GLOBAL-THEME-PARITY` | `C19-O06`, `C19-O08`, `C19-O11`, `C20-O12` | `MIXED` | `MIXED_TECHNICAL_AND_VERIFICATION_DELTA` | `SD21`, `SD29`, `SD30` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Root theme activation is reusable, but cross-service presentation parity must be re-proved after primitive/CSS reconstruction; feature-semantic CSS is not preserved as baseline. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + rendered acceptance |
 | `GW-FR-236-WORK-TYPE-AWARE-TASK-INFORMATION` | `C06-O03`, `C06-O04`, `C06-O05`, `C06-O06`, `C20-O07` | `CONFORMS_WITH_VERIFICATION_GAP` | `VERIFICATION_DELTA` | `SD17` | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-WORKBENCH-THEME-V1 | Kind-specific behavior is structurally conforming; scenario-41 end-to-end Research/downstream proof is incomplete. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-237-BOUNDED-AGENT-ACTIVITY` | `C15-O09`, `C15-O10` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-OPENCODE-INTEGRATION-V1; GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
 | `GW-FR-238-PROPOSAL-CANCEL-CLOSURE` | `C14-O05`, `C14-O06` | `CONFORMS` | `POSITIVE_NO_CHANGE` | — | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2; GW-DOC-CANONICAL-CONTRACTS-V2 | Exact R1 realization is positively conforming; preserve the current canonical producer→carrier→consumer owner/path and do not create implementation work for this requirement. | tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts |
@@ -408,8 +513,10 @@ Every `POSITIVE_NO_CHANGE` row explicitly consumes its named R1 producer→carri
 | `PL-C16-03` | C16-F03 | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. | `SD19` |
 | `PL-C18-01` | C18-F01 | New required input moves focus once to its Workbench composer and polling does not steal it repeatedly. | `SD15` |
 | `PL-C19-01` | C19-F01 | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. | `SD16` |
+| `PL-C19-02` | C19-F02/C19-F03 | Recompose the presentation layer from the canonical primitive/theme system and apply one deterministic per-surface datum visibility/disclosure contract: Primary/Supporting/Operational/Technical/Diagnostic classification, default visibility, one disclosure owner and human-meaning-only promotion. Delete old recurring feature-era presentation ownership rather than wrapping it. | `SD21`-`SD29` |
 | `PL-C20-01` | C20-F02 | Permanent browser certification proves complete four-kind Research/downstream scenario 41. | `SD17` |
 | `PL-C20-02` | C20-F03 | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. | `SD18` |
+| `PL-C20-03` | C20-F05/C20-F06 | Exact-candidate rendered acceptance covers every governed screen/state and records independent schema/information, UX/interaction and visual/UI verdicts with no unresolved FAIL; schema/information proof includes required-visible, default-hidden and authorized-post-disclosure assertions so raw technical/diagnostic leakage cannot pass. | `SD30` |
 
 These atoms are the non-stable/package-local obligations that the earlier 22-row concern summary compressed too aggressively. They are downstream of R2 and do not create new permanent P3 identifiers.
 
@@ -421,7 +528,7 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C02 | Stable rows + PL-C02-01/02/03 -> SD03/SD04. |
 | C03 | Stable rows + PL-C03-01 -> SD05. |
 | C04 | Stable rows + PL-C04-01/02 -> SD04/SD06. |
-| C05 | Stable rows + PL-C05-01 -> SD07. |
+| C05 | Stable current-attention semantics + PL-C05-01 -> SD07; rendered shell/geometry realization -> SD21/SD23/SD24/SD29. |
 | C06 | Stable rows + PL-C06-01 -> SD08. |
 | C07 | Stable FR096 + PL-C07-01 -> SD09. |
 | C08 | PL-C08-01 -> SD09; package technical consequence only. |
@@ -432,11 +539,11 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C13 | Stable rows; positive no technical delta. |
 | C14 | Stable rows; positive no technical delta, with SD09 affecting only newly admitted permanent-governance proposal targets. |
 | C15 | Stable rows; positive no provider/session technical delta. |
-| C16 | Stable rows + PL-C16-01 -> SD14; PL-C16-02/03 -> SD19; P6 contradiction already corrected in canonical owner. |
+| C16 | `GW-FR-073` global shell account visibility -> SD22; PL-C16-01 operator hierarchy -> SD14 plus Settings management reconstruction SD21/SD28/SD29; PL-C16-02/03 -> SD19; P6 contradiction already corrected in canonical owner. |
 | C17 | Stable rows + imported PL-C05-01 -> SD07. |
-| C18 | Stable FR225 + PL-C18-01 -> SD15. |
-| C19 | Stable rows + PL-C19-01 -> SD16; local hierarchy dependencies SD11/12/14. |
-| C20 | Stable rows + PL-C20-01/02 -> SD17/SD18; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
+| C18 | PL-C18-01 -> SD15; presentation-wide responsive/accessibility re-composition -> SD21/SD29/SD30. |
+| C19 | PL-C19-01 -> SD16; C19-F02/C19-F03 through PL-C19-02 require foundational primitive/theme reconstruction, exhaustive renderer migration and deterministic per-datum visibility/disclosure realization SD21-SD29; rendered acceptance SD30. |
+| C20 | PL-C20-01/02 -> SD17/SD18; C20-F05/C20-F06 through PL-C20-03 -> SD30 rendered acceptance including negative/default-hidden and positive/post-disclosure proof; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
 | C21 | PL-C21-01 -> SD01 plus explicit A01-NC03 corrected-upstream no-code disposition. |
 | C22 | Stable dependency rows + PL-C22-01 -> SD02. |
 
@@ -515,9 +622,57 @@ repository discovery --------------------+
 
 `origin=CREATED|DISCOVERED` remains provenance only.
 
-### F6 — queue/presentation (SD05-SD07, SD11-SD15)
+### F6 — Workbench presentation reconstruction (SD05-SD07, SD11-SD18, SD21-SD30)
 
 Canonical daemon facts are projected once; browser selection never becomes workflow authority. Include-archived selects a dataset before project/search filtering. Historical/supporting material selection never hides current attention. Readiness/Approval/Settings/product labels/focus are projections of existing typed state.
+
+The presentation path is reconstructed in dependency order:
+
+```text
+canonical browser/domain/query facts
+ -> SD21 purge old design-bearing Workbench foundation
+ -> SD21 fresh WorkbenchAppShell + WorkbenchWorkItemShell + shared responsive owner + reconstructed composition primitives
+ -> SD21 foundation acceptance gate
+ -> SD22 application shell/Queue/Create services
+ -> SD23 WorkItem shell + Work request/document
+ -> SD24 Research/Requirements/Design/Plan shared productive-stage grammar
+ -> SD25 Readiness/Approval review grammar
+ -> SD26 Implementation master/detail
+ -> SD27 Complete/Evidence/Context
+ -> SD28 Settings/account/configuration
+ -> SD29 primitive-owned responsive/accessibility recomposition
+ -> SD16/SD17/SD18 semantic certification
+ -> SD30 exact-candidate rendered acceptance
+```
+
+No domain renderer owns recurring component chrome, structural breakpoint policy, generic form/table/status/notice grammar or overlay topology after migration. The old design-bearing primitive layer and its structural selectors/tests are purged before fresh foundation authorship; later old screen selectors/branches are deleted at their owning screen purge. Neither layer may retain a compatibility presentation path.
+
+### F6A — Workbench foundation reconstruction (SD21)
+
+```text
+current P3 information hierarchy + interaction classes + reviewed new-design references
+ -> classify primitive responsibilities
+ -> retain only proven atomic semantic/foundation adapters
+ -> PURGE implementation checkpoint (not a Git commit):
+      old WorkbenchLayout
+      + 19 other design-bearing composition primitive implementations
+      + their structural selectors
+      + implementation-specific geometry assertions
+      + no replacement primitive JSX
+ -> fresh foundation composition schema
+ -> WorkbenchAppShell (one root application chrome)
+ -> WorkbenchWorkItemShell (one selected-WorkItem chrome)
+ -> one workbench-responsive owner
+ -> fresh app.tsx root-shell/destination integration
+ -> fresh WorkItemWorkspace / IdentityRow / WorkflowRail / WorkflowStepFrame shell integration
+ -> reconstructed Toolbar / Identity / Rail / Surface / Attention /
+    Dialogue / Review / MasterDetail / Context / Settings / Form /
+    Selector / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
+ -> foundation architecture + theme + accessibility + responsive + rendered acceptance
+ -> admit SD22-SD28 screen reconstruction
+```
+
+This is one ordered implementation phase inside the single signed 0.6.0 task. Its purge checkpoint is a procedural in-task boundary, not a purge-only candidate or Git commit: the old foundation/shell implementation is removed and observed before replacement authorship, then the fresh foundation is completed and accepted before IA28 begins. Because the old `WorkbenchLayout` API is deleted, its application/selected-WorkItem shell consumers are destructively cut over in the same phase; no compatibility facade or temporary second shell is permitted. The existing primitive directory, class names, DOM hierarchy, component APIs, structural CSS and implementation-specific tests are evidence only. A reconstructed component may reach a superficially similar result only when current P3/P4 authority and the reviewed new-design references independently require it.
 
 ### F7 — productive installer closure (SD19)
 
@@ -551,7 +706,9 @@ The real OpenCode process remains the subject under test; only the model side is
 
 ## Exact implementation surface forecast
 
-### Production paths expected to change
+The corrected DESIGN forecast is the exact `changeSurface` of the one signed cumulative implementation task: **66 unique paths**. The increase from the superseded 43-path package is exactly the 20 destructive design-bearing primitive paths plus three new cohesive foundation owners. Positively retained atomic primitives and retained non-screen UI helpers remain outside the forecast.
+
+### Non-UI production
 - `README.md`
 - `src/core/contracts.ts`
 - `src/core/execution.ts`
@@ -561,27 +718,67 @@ The real OpenCode process remains the subject under test; only the model side is
 - `src/daemon/stage.ts`
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
+
+### UI foundation destructive reconstruction surface
+- `ui/src/primitives/WorkbenchAttention.tsx`
+- `ui/src/primitives/WorkbenchContextPanel.tsx`
+- `ui/src/primitives/WorkbenchDialogue.tsx`
+- `ui/src/primitives/WorkbenchForm.tsx`
+- `ui/src/primitives/WorkbenchIdentity.tsx`
+- `ui/src/primitives/WorkbenchLayout.tsx` — delete; no same-API recreation
+- `ui/src/primitives/WorkbenchMasterDetail.tsx`
+- `ui/src/primitives/WorkbenchRail.tsx`
+- `ui/src/primitives/WorkbenchResourceRow.tsx`
+- `ui/src/primitives/WorkbenchReview.tsx`
+- `ui/src/primitives/WorkbenchSectionHeader.tsx`
+- `ui/src/primitives/WorkbenchSelector.tsx`
+- `ui/src/primitives/WorkbenchSettingsLayout.tsx`
+- `ui/src/primitives/WorkbenchSurface.tsx`
+- `ui/src/primitives/WorkbenchTable.tsx`
+- `ui/src/primitives/WorkbenchTaskPanel.tsx`
+- `ui/src/primitives/WorkbenchTimeline.tsx`
+- `ui/src/primitives/WorkbenchToolbar.tsx`
+- `ui/src/primitives/WorkbenchState.tsx`
+- `ui/src/primitives/WorkbenchUtilityLink.tsx`
+- `ui/src/primitives/WorkbenchAppShell.tsx` — new
+- `ui/src/primitives/WorkbenchWorkItemShell.tsx` — new
+- `ui/src/primitives/workbench-responsive.ts` — new
+
+### UI production replacement/purge surface
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
 - `ui/src/DocumentWorkspace.tsx`
+- `ui/src/EvidenceViewer.tsx`
+- `ui/src/ExecutionWorkspace.tsx`
+- `ui/src/OpenCodeAccountControl.tsx`
+- `ui/src/OpenCodeAccountSettings.tsx`
+- `ui/src/PreSignoffStageWorkspace.tsx`
+- `ui/src/ProposalReview.tsx`
 - `ui/src/ReadinessWorkspace.tsx`
+- `ui/src/RunEventTimeline.tsx`
 - `ui/src/SettingsWorkspace.tsx`
 - `ui/src/SignoffReview.tsx`
 - `ui/src/TerminalResult.tsx`
+- `ui/src/WorkItemContext.tsx`
+- `ui/src/WorkItemIdentityRow.tsx`
 - `ui/src/WorkItemQueue.tsx`
 - `ui/src/WorkItemWorkspace.tsx`
+- `ui/src/WorkflowMaterialSelector.tsx`
+- `ui/src/WorkflowRail.tsx`
+- `ui/src/WorkflowStepFrame.tsx`
 - `ui/src/app.tsx`
-- `ui/src/workbench-presentation.ts`
+- `ui/src/styles.css`
+- `ui/src/theme.css`
 
-### Verification paths expected to change/create
+### Verification
+- `tests/browser.spec.ts`
 - `tests/certification.test.ts`
 - `tests/core.test.ts`
 - `tests/daemon.test.ts`
-- `tests/browser.spec.ts`
-- `tests/workbench-presentation.test.ts`
 - `tests/installer.test.ts`
 - `tests/opencode.test.ts`
+- `tests/workbench-presentation.test.ts`
 
 ### Permanent verification infrastructure
 - `.github/workflows/ci.yml`
@@ -589,9 +786,14 @@ The real OpenCode process remains the subject under test; only the model side is
 ### Delivery metadata
 - `CHANGELOG.md`
 
-Total P7 candidate surface forecast after exact-pin OpenCode certification reconciliation: **30 paths** (21 production + 7 verification + 1 permanent verification-infrastructure + 1 delivery). `src/core/execution.ts` remains because it is the existing task-block parsing/admission core and is the minimum owner for schema-aware v2 non-vacuity. `src/daemon/execution.ts` and `src/daemon/validation.ts` are removed from T1: their SD10/SD13 execution-foundation behavior already conforms and must not be reimplemented.
+### Explicit retained UI paths outside changeSurface
 
-`docs/**`, `pontivus-order.toml`, package/lock metadata, workflow metadata other than the explicitly authorized `.github/workflows/ci.yml` SD20 verification change, and `tests/architecture.test.ts` are not T1 implementation surface. P6 was corrected during DESIGN. G-F10 structural campaign fitness may update immutable architecture verification material **before sign-off**, followed by downstream revalidation; it is not an implementation task.
+- `ui/src/primitives/WorkbenchAction.tsx`, `WorkbenchConfirmation.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx` — positively revalidated atomic adapters only; no region/topology/responsive ownership;
+- `ui/src/MarkdownEditor.tsx` and `ui/src/MarkdownSourceEditor.tsx` — approved specialized content/editor leaves;
+- `ui/src/workbench-presentation.ts` — pure presentation-policy mapping owner;
+- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts`, `ui/src/main.tsx` — non-screen infrastructure/helpers.
+
+Same-layer decomposition outside this exact forecast is not automatically authorized. IA27 owns the complete authorized structural-foundation mutation. Later screen phases may not use V4/V5/V6 variance to mutate the retained atomic adapters or reconstructed foundation merely because doing so would simplify a screen; a newly discovered foundation responsibility/semantic defect returns to DESIGN/PLAN.
 
 ## Contract/state/persistence/transport consequences
 
@@ -621,10 +823,14 @@ Total P7 candidate surface forecast after exact-pin OpenCode certification recon
 - preserving deferred-Settings fresh-install success because current P6/code did so — rejected by higher P3/P4 authority; P6 is corrected;
 - changing OrderConfig schema to solve FR007 — unnecessary; existing incomplete-config state remains useful for recovery;
 - modifying `src/installer.ts` preemptively — unnecessary under current evidence because it already calls the canonical guided setup owner; if SD19 cannot be realized solely in `src/shell/setup.ts`, return to DESIGN rather than broadening scope;
-- modifying `tests/architecture.test.ts` inside T1 — rejected because it is signed verification material.
+- modifying `tests/architecture.test.ts` merely to bless the old presentation — rejected; pre-sign-off campaign fitness may update stale structural enumerations only after corrected DESIGN/PLAN requires it.
+- screen-by-screen CSS tuning on the existing presentation foundation — rejected by P4 structural remediation boundary and C19-F02.
+- preserving the current design-bearing primitive implementation as the substrate for new screens — rejected. P3/P4 responsibility is authoritative, not current primitive bytes; SD21 destructively reconstructs the structural/compositional foundation before screen work.
+- allowing later screen phases to redesign reconstructed foundation primitives — rejected. Foundation design and implementation are completed under SD21/IA27; later defects return to that owner or upstream DESIGN rather than being patched locally.
+- retaining feature-era screen/component/layout CSS behind higher-specificity primitive overrides or hidden compatibility DOM — rejected; old screen presentation support is purged before replacement.
 
 ## Open technical questions
 
-NONE.
+NONE **after the C19-F03/C20-F06 amendment above**. The prior declaration of NONE was superseded when the post-IA31 audit proved that the family-level screen-information matrix did not determine field-level visibility/disclosure. R2 now closes that semantic question and SD21-SD30 above bind its technical realization and proof.
 
-Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. PLAN must decompose only the delta solutions above and must carry exact positive-no-change proof obligations without inventing implementation work for conforming requirements.
+Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: destructively reconstruct and certify the shared Workbench composition foundation first; destructively replace every consuming screen family second; semantic/rendered certification last. PLAN must preserve domain/state semantic owners and only the positively retained atomic adapters, while requiring purge-before-fresh-authorship for both the compromised foundation and the superseded screen implementations. Incremental structural or screen migration is prohibited.

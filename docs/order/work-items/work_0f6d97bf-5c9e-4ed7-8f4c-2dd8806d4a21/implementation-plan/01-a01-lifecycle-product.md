@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 
 ## Stable requirement execution dispositions
 
@@ -34,13 +34,14 @@ No-code rows in phase: **5**.
 
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
-| `PL-C21-01` | C21-F03/C21-F05 | `SD01` | `IA19` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim. |
+| `PL-C21-01` | C21-F03/C21-F05 | `SD01`, `SD27` | `IA19`, `IA33` | — | Public README and terminal result must realize verified-result/Verified-candidate product language without universal execution/delivery overclaim; IA33 owns the rebuilt terminal-result composition. |
 
 Package atoms in phase: **1**.
 
 ## Referenced actions
 
 - **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA33** — consume the single Complete/Evidence/Context destructive replacement definition for terminal-result composition.
 
 ## Completion proof
 

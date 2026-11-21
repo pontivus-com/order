@@ -1,6 +1,6 @@
 # Order Workbench 0.5.0 visual reference pack
 
-**Status:** Reviewed derived visual reference set — application-wide Phase 2A UX/UI baseline  
+**Status:** Reviewed derived visual reference set — application-wide baseline, corrected against current 0.6.0 information-visibility authority  
 **Scope:** every application/workflow/material/confirmation surface identified by the completed Phase 1 `SURF-*` registry, plus materially distinct interaction/state grammars  
 **Authority:** derived visual reference only; semantic authority remains with the canonical owners below
 
@@ -14,14 +14,16 @@ Permanent references follow this rule:
 
 1. **Repository-backed value where one exists.**  
    Example: the Queue reference uses the actual repository WorkItems/titles/kinds; Work request/Research/Requirements references use the actual linked Change material.
-2. **Canonical typed/template field name where no runtime value exists.**  
-   Example: Proposal review shows `ARTIFACT_PROPOSAL_CREATED.targetPath/rationale/unifiedDiff`; Approval task detail shows `SignedTaskDefinition` fields.
+2. **Canonical semantic placeholder where no runtime value exists.**  
+   The reference may describe the meaning supplied by a canonical typed/template field, but raw type/property/event identifiers are not ordinary operator copy. Exact field identity may appear only in a visibly technical/reference annotation or an authorized Technical details/Context/Evidence surface.
 3. **Canonical state pattern where the reference demonstrates a condition.**  
    Example: PROCESSING / open-for-continuation / required-input dialogue states come directly from the closed interaction algebra.
 4. **Never invent lifecycle history or business evidence.**  
    The pack does not invent Runs, agent conclusions, proposals, findings, signed tasks, evidence resources, approvals, deployment claims, validation results or terminal outcomes.
 
 Each schematic SVG is visibly marked as a **Reference composition** or **Reference state sheet** and must not be interpreted as persisted runtime evidence.
+
+The application-toolbar references use the canonical field placeholder `OpenCodeAccount.label` wherever a saved account is present. This is a non-fabricated typed-field label under the evidence rule above: it represents the globally visible active saved account required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`, while full account management remains in Settings. A missing-account readiness reference may instead show the canonical missing/required status.
 
 ## Governing source basis
 
@@ -62,6 +64,9 @@ The references preserve:
 - deep navy / Order-blue identity;
 - border/spacing hierarchy rather than decorative card-dashboard styling;
 - technical identity on demand;
+- every depicted operator-facing datum follows `GW-DOC-WORKBENCH-UX-V2 §11.4A`: Primary information is visible by default; Supporting/Operational information is subordinate; Technical/Diagnostic information is hidden by default behind its authorized Technical details/Context/Evidence owner;
+- when a technical/diagnostic condition owns attention, only human-readable meaning/consequence/action is promoted; raw code/path/hash/session/payload is not promoted;
+- exact technical values may be primary only where the active task requires that exact value (for example an Add/Move configuration input or mutation-confirmation path list);
 - one primary command per current task;
 - no persistent second pre-signoff navigation rail;
 - supporting material subordinate to current work;
@@ -189,7 +194,7 @@ The application-wide reference baseline is complete only while all of the follow
 | all confirmation/dirty/destructive overlays are represented | PASS |
 | responsive recomposition is represented | PASS |
 | light/dark semantic parity is represented | PASS |
-| references use repository-backed values or canonical field/template/state labels only | PASS |
+| references use repository-backed values or semantic placeholders without leaking raw technical field/event identity into ordinary operator presentation | PASS |
 | no reference claims unobserved lifecycle/runtime facts | PASS |
 
 ## Technical realization
@@ -198,4 +203,4 @@ Phase 2B is closed in `work_2778105b-d919-4fcd-91e7-dd9b23812aac/solution-design
 
 The technical design binds these references to the existing Workbench primitives, pinned Astryx Chat leaves, canonical Run/RunEvent/material projections and exact command boundaries without introducing a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme.
 
-The SVGs continue to constrain **presentation, hierarchy and interaction composition**; canonical P3/P4/P6 owners remain semantic and technical authority.
+The SVGs continue to constrain **presentation, hierarchy and interaction composition** only after applying canonical P3/P4 visibility/disclosure ownership. A field/path/code shown in an explicit developer annotation is not runtime operator copy; the depicted operator surface itself must obey the same default-hidden/authorized-disclosure contract as implementation.

@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 
 ## Stable requirement execution dispositions
 
@@ -26,9 +26,13 @@ Stable rows in phase: **7**.
 
 Package atoms in phase: **0**.
 
+## Cross-domain presentation reconstruction dependency
+
+C13/C14 domain semantics remain stable, but Complete, Evidence and Context/material presentation is rebuilt by SD27/IA33 under PL-C19-02. This phase does not preserve the current feature-card/layout implementation as a baseline.
+
 ## Referenced actions
 
-- No IA action is owned by this phase; all stable requirements are positive no-change.
+- **IA33** — consume the single Complete/Evidence/Context destructive replacement definition; C13/C14 remain the semantic owners of outcome/material meaning.
 
 ## Completion proof
 

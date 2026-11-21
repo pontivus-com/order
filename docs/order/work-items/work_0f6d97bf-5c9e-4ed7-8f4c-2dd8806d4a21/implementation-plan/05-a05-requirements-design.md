@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `a22200e0765f740e89b2f05727e126fbf9e0b034`; current R2 `332cc0a0ebcbc317be3da8dbd4edc538695eab6d`; current DESIGN `bf3cbbebba2b0fd0cbc780c6139c3c161f6ad728`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 
 ## Stable requirement execution dispositions
 
@@ -21,9 +21,14 @@ Stable rows in phase: **1**.
 
 Package atoms in phase: **2**.
 
+## Cross-domain presentation reconstruction dependency
+
+Requirements and Solution design retain their authority/proposal semantics. Their already-replaced IA30 runtime screens on the fresh Approval baseline are evidence only and must be revalidated/remediated against SD24/current authority; this phase supplies stage-specific governed information and does not own another layout grammar.
+
 ## Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
+- **IA30** — consume the productive pre-signoff resumed-baseline revalidation/remediation definition for Requirements and Solution design.
 
 ## Completion proof
 
