@@ -13,7 +13,7 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | Completed task | Before dependent task | Required retained evidence |
 |---|---|---|
 | T1 | T2 | non-UI baseline gates PASS; no protected execution-foundation mutation |
-| T2 | T3 | retained primitives certified unchanged; T2-owned cross-cutting compatibility CSS removed; exact surviving legacy-selector→T3-T9 ledger audited; authority-backed browser gate unchanged; no screen replacement authored yet |
+| T2 | T3 | exact 18-path old design-bearing primitive set purged before fresh authorship; old `WorkbenchLayout` absent; fresh `WorkbenchAppShell` + `WorkbenchWorkItemShell` + one responsive owner and reconstructed composition primitives accepted; nine retained atomic adapters unchanged; foundation structural CSS/tests replaced from current authority; exact surviving legacy-screen-selector→T3-T9 ledger audited |
 | T3 | T4 | `architecture` + all 3 T3 face-ledger rows PASS |
 | T4 | T5 | `architecture` + all 9 T4 face-ledger rows PASS |
 | T5 | T6 | `architecture` + all 6 T5 face-ledger rows PASS |
@@ -23,19 +23,30 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | T9 | T10 | `architecture` + all 11 T9 face-ledger rows PASS; 37/37 task-local SURF union complete |
 | T10 | T11 | complete semantic/component/theme/responsive regression suite PASS |
 
-A dependent task must not start merely because the previous task compiled. T2 must retain the exact CSS selector→owner ledger defined by IA27, may delete only its cross-cutting obsolete rules, and may not weaken an authority-backed browser assertion to obtain PASS. For T3-T9, the task evidence must include a purge checkpoint commit deleting the owned old screen files and the task-owned remaining legacy selectors before any replacement authorship, a fresh screen-information-schema review, and PASS for every exact task-owned face row allocated by `12-action-catalog.md`. Pre-purge screen blobs are defect evidence only and cannot be accepted as implementation ancestry. If a downstream task discovers a genuine primitive defect, execution returns to DESIGN; neither T2 nor the screen task may rewrite primitives as a convenience fix. Local CSS/primitive bypass is not an admissible repair.
+A dependent task must not start merely because the previous task compiled. T2 is one atomic foundation reconstruction task with an internal purge checkpoint: that checkpoint must delete the exact old design-bearing primitive set, its structural selectors and implementation-specific compatibility assertions before any replacement primitive JSX is authored; T2 then creates the fresh foundation and must pass its own architecture/theme/responsive/accessibility/rendered proof before T3. T2 also retains the exact surviving legacy-screen-selector→T3-T9 ledger. For T3-T9, task evidence includes a purge checkpoint deleting owned old screen files plus task-owned remaining legacy selectors before replacement authorship, a fresh screen-information-schema review, and PASS for every exact task-owned face row allocated by `12-action-catalog.md`. Pre-purge foundation and screen blobs are defect evidence only and cannot be accepted as implementation ancestry. A later screen discovering a foundation defect reopens T2/DESIGN; local CSS/primitive bypass is not an admissible repair.
 
 A failed checkpoint permits only correction inside the owning signed task/design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Task-boundary checkpoints never substitute for V3/V5/V7 or the task's complete logical gate union.
 
-## Screen purge/rebuild evidence law
+## Foundation and screen purge/rebuild evidence law
 
-For T3-T9, verification must retain both sides of the replacement boundary:
+For T2, verification must retain both sides of the foundation replacement boundary:
+
+- the purge checkpoint Git commit and exact 18 deleted design-bearing primitive paths;
+- proof that `WorkbenchLayout.tsx`, its old API, the old structural selectors and implementation-specific geometry assertions are absent at that checkpoint;
+- proof that the purge checkpoint contains no replacement primitive JSX/DOM;
+- the fresh foundation composition-schema review from current P3/P4 and reviewed new-design references;
+- replacement commits creating `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts` and reconstructing the other design-bearing primitives;
+- proof that the nine retained atomic adapters remained narrow and unchanged;
+- architecture proof for exactly one AppShell owner and one structural responsive owner;
+- foundation theme/accessibility/responsive/browser/rendered acceptance before T3 begins.
+
+For T3-T9, verification must retain both sides of the screen replacement boundary:
 
 - the purge checkpoint Git commit, exact deleted screen paths and exact task-owned legacy selectors removed in the same purge;
 - proof that the purge commit contains no replacement screen JSX/DOM;
 - the fresh screen-information-schema review derived from current R2;
 - replacement commits authored after the purge checkpoint;
-- a diff/audit proving retained primitives and approved non-screen helpers were not modified for screen convenience;
+- a diff/audit proving T3-T9 consume the accepted T2 foundation and that positively retained atomic adapters/approved non-screen helpers were not modified for screen convenience;
 - task-specific semantic/browser evidence;
 - task-specific rendered comparison with explicit `schema_information`, `ux_interaction` and `visual_ui` PASS/FAIL for every exact task-owned SURF row; the task may not advance with an unreviewed or failed owned row.
 
@@ -62,7 +73,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not T1 implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **43-path** DESIGN/PLAN forecast union, exact task-local destructive-screen ownership, the corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`, and the exact 37-row T3-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each T3-T9 task owns its declared replacement screen set. It also retains the exact IA01-IA34 catalog/one-definition checks and recognizes IA27-IA34 plus IA23/IA26/IA24 as reconstruction/cross-solution/rendered-acceptance/final actions.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **64-path** DESIGN/PLAN forecast union; the exact 18 destructive design-bearing primitive paths, nine positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T3-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -131,7 +142,7 @@ V4/V5/V6 explicitly verify:
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
-- bootstrap `dependency-lock` passed before T1 and every T1-T10 dependency boundary retained its required architecture/semantic/rendered stop-go evidence before the dependent task began;
+- bootstrap `dependency-lock` passed before T1; T2 retained its foundation purge checkpoint and fresh-foundation acceptance before T3; and every later T3-T10 dependency boundary retained its required architecture/semantic/rendered stop-go evidence before the dependent task began;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
