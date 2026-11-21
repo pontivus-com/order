@@ -31,7 +31,7 @@ A failed checkpoint permits only correction inside the owning signed task/design
 
 For T2, verification must retain both sides of the foundation replacement boundary:
 
-- the purge checkpoint Git commit and exact 18 deleted design-bearing primitive paths;
+- the purge checkpoint Git commit and exact 20 deleted design-bearing primitive paths;
 - proof that `WorkbenchLayout.tsx`, its old API, the old structural selectors and implementation-specific geometry assertions are absent at that checkpoint;
 - proof that the purge checkpoint contains no replacement primitive JSX/DOM;
 - the fresh foundation composition-schema review from current P3/P4 and reviewed new-design references;
@@ -73,7 +73,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **66-path** DESIGN/PLAN forecast union; the exact 18 destructive design-bearing primitive paths, seven positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T2-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves T2 owns its declared shell face and each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **66-path** DESIGN/PLAN forecast union; the exact 20 destructive design-bearing primitive paths, seven positively retained atomic adapters and three new foundation-owner paths; T2's purge-before-foundation-authorship ordering; exactly one application-shell and structural-responsive owner; exact task-local destructive-screen ownership; corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`; and the exact 37-row T2-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves T2 owns its declared shell face and each T3-T9 task owns its declared replacement screen set. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA27 as foundation reconstruction, IA28-IA34 as screen reconstruction, and IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
