@@ -7,10 +7,11 @@
 This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
 - R1 `research.md`: blob `99f6932e582bde949de72716f29ea0868eba16a0` — G-F12 factual package plus post-closeout rendered-evidence findings C19-F02/C20-F05 and the governed post-IA31 information-hierarchy audit C19-F03/C20-F06. Current UI/SVG/tests remain realization evidence only; the audit proves that screen-family hierarchy without per-datum visibility/disclosure ownership is insufficient.
-- R2 `requirements.md`: blob `9b1dec349cd3c86fcde1065904f916ad0defc6f8` — functional package now closes the C19-F03/C20-F06 ambiguity: every datum/action on every governed surface has one Primary/Supporting/Operational/Technical/Diagnostic classification, one default visibility and one authorized disclosure owner; promotion raises only human-readable meaning/action, never raw technical representation; certification must prove hidden-before-disclosure and visible-after-disclosure behavior.
+- R2 `requirements.md`: blob `27faa1a67321c8091deb27a4fd70ae912209c30a` — functional package binds the C19-F03/C20-F06 surface-family consequences to canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A`; it does not create a second visibility policy.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P4 Workbench: `2964c187259feff51abff0b88f716b8624e43804`.
+- P3 Workbench UX: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the permanent visibility/disclosure taxonomy and human-meaning-only promotion rule.
+- P4 Workbench: `7263c890f3705ddd55fdadb98767b62acb7fc56d` — §8.12A owns the technical disclosure lanes and the shell/context responsibility statements are reconciled to the §16.6 AppShell/WorkItemShell reconstruction.
 - P4 Workbench Theme: `fffd1d202537dbd3f85f6b30ee745d2eae454c53`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
