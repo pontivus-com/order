@@ -1498,6 +1498,8 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     });
   });
   await page.reload();
+  await expect(page.getByTestId("work-item-workspace")).toBeVisible();
+  await selectWorkflowStep(page, "Work request");
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
   const documentationGitReview = page.getByRole("alertdialog", {
