@@ -1659,6 +1659,144 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await backToQueue(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+
+  await openWorkItem(page, "Research open continuation");
+  await expect(page.getByTestId("stage-run-material")).toBeVisible();
+  const researchRoute = new URL(page.url());
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "research-stage-wide-light-open",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-STEP-R1-001",
+    state: "open-continuation",
+    fixture: "Research open continuation",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: researchRoute.pathname + researchRoute.search,
+    references: [
+      "docs/references/workbench-ui/research.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "research-activity-wide-light-open",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-MAT-ACTIVITY-001",
+    state: "open-continuation-dialogue",
+    fixture: "Research open continuation",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: researchRoute.pathname + researchRoute.search,
+    references: [
+      "docs/references/workbench-ui/research.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Requirements ready after Research");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Requirements");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "requirements-stage-wide-light-ready",
+    workItemKind: "CHANGE",
+    workflowStep: "Requirements",
+    surface: "SURF-STEP-R2-001",
+    state: "ready-to-start",
+    fixture: "Requirements ready after Research",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/requirements.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Solution design ready after Requirements");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Solution design");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "solution-design-stage-wide-light-ready",
+    workItemKind: "CHANGE",
+    workflowStep: "Solution design",
+    surface: "SURF-STEP-DESIGN-001",
+    state: "ready-to-start",
+    fixture: "Solution design ready after Requirements",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/solution-design.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Implementation plan ready after Design");
+  await expect(page.getByTestId("workflow-step-summary")).toContainText("Implementation plan");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "implementation-plan-stage-wide-light-ready",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-STEP-PLAN-001",
+    state: "ready-to-start",
+    fixture: "Implementation plan ready after Design",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/implementation-plan.svg",
+      "docs/references/workbench-ui/dialogue-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await backToQueue(page);
+
+  await openWorkItem(page, "Proposal review");
+  const proposalWorkspace = page.getByTestId("proposal-review-workspace");
+  await expect(proposalWorkspace).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "proposal-review-wide-light-pending",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-PROPOSAL-001",
+    state: "pending-review",
+    fixture: "Proposal review",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/proposal-review.svg",
+      "docs/references/workbench-ui/proposal-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-CANONICAL-CONTRACTS-V2",
+    ],
+  }));
+
   writeRenderedAcceptanceEvidence(entries);
   expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
     "SURF-APP-001",
@@ -1670,7 +1808,13 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "SURF-MAT-DOC-001",
     "SURF-MAT-DOC-RO-001",
     "SURF-MAT-SOURCE-001",
+    "SURF-MAT-ACTIVITY-001",
+    "SURF-MAT-PROPOSAL-001",
     "SURF-QUEUE-001",
+    "SURF-STEP-DESIGN-001",
+    "SURF-STEP-PLAN-001",
+    "SURF-STEP-R1-001",
+    "SURF-STEP-R2-001",
     "SURF-STEP-WR-001",
   ]);
   expect(runtimeErrors).toEqual([]);
