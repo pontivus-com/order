@@ -8,7 +8,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `d2eb1627e2b9a145f785b04829b56c623b7431e9`.
 - R2 `requirements.md`: `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`.
-- DESIGN `solution-design.md`: `1bf09de0e125601c07f1112d5b5c217646c73ddc`.
+- DESIGN `solution-design.md`: `a6cc191bf0ea9243efe251494a48eebdf4a2efbf`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -32,7 +32,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
-IA27-IA34 are the presentation reconstruction owners. The existing canonical `ui/src/primitives/**` implementation is retained read-only capability for this campaign. IA27 certifies that primitive boundary, classifies shared CSS into retained foundation, T2-owned cross-cutting obsolete compatibility rules and one T3-T9 screen owner, deletes only the cross-cutting obsolete rules at T2, and records the exact selector→task ledger. Screen-owned legacy selectors remain solely to keep unreplaced screens executable and must be deleted in the owning IA28-IA34 purge checkpoint; they may not survive that task. IA27 does not redesign primitives or weaken authority-backed browser assertions. IA28-IA34 own destructive screen replacement. Each must record a purge checkpoint deleting its old owned screen files plus its remaining legacy selectors before replacement authorship, and may not copy or incrementally transform the pre-purge screen implementation. If the retained primitives are insufficient, execution returns to DESIGN rather than changing primitives or creating local presentation ownership.
+IA27-IA34 are the presentation reconstruction owners. IA27 is the **foundation reconstruction owner**: it positively retains only the exact nine atomic adapters named by SD21/P4 §16.6, destructively removes the exact 18 design-bearing composition primitive implementations plus their structural selectors/implementation-specific geometry assertions, permanently removes the old `WorkbenchLayout.tsx` API, and then authors the fresh `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts` and reconstructed composition primitives from current P3/P4 and reviewed new-design references. Its purge checkpoint contains no replacement primitive JSX; IA27 itself closes only after the fresh foundation passes architecture/theme/responsive/accessibility/rendered proof. IA28-IA34 are blocked until that PASS, then own destructive screen replacement. Each screen task records its own purge checkpoint deleting old owned screen files plus remaining task-local legacy selectors before replacement authorship and may not copy or incrementally transform pre-purge screen implementation. Later screens consume the accepted foundation and may not redesign it locally.
 
 IA26 is a verification-only terminal acceptance action. It uses the reviewed `docs/references/workbench-ui/` SVG pack only as derived visual comparison material, with current R2/DESIGN/P3-P6 authority prevailing on any conflict. It does not create a screenshot-as-authority mechanism, a second UI specification, or a new product/runtime dependency.
 
@@ -45,7 +45,7 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 The canonical signed T1-T11 task graph uses:
 
 - bounded `scope` patterns as the hard repository-reach envelope;
-- explicit `exclusions` to protect paths outside the current task owner, including retained UI capability and DESIGN-positive-reuse paths inside the cumulative envelope;
+- explicit `exclusions` to protect paths outside the current task owner, including positively retained atomic UI adapters/reconstructed-foundation ownership boundaries and DESIGN-positive-reuse paths inside the cumulative envelope;
 - task-local exact `changeSurface` forecasts whose union is the immutable expected physical forecast for the cumulative candidate.
 
 A path absent from `changeSurface` is not automatically authorized and is not automatically a scope breach. If it is inside signed scope, outside exclusions and not protected material, it may proceed only when V4/V5/V6 positively prove the minimum same-layer physical decomposition required to preserve an already-resolved responsibility/effect boundary. Any semantic expansion remains outside the signed task.
@@ -58,16 +58,19 @@ For SD02, manifest authority selection is the reachable source set; IA02 must pr
 
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
 
-## Screen replacement non-reuse law
+## Foundation and screen replacement non-reuse law
+
+For IA27, the current design-bearing Workbench primitive implementation, structural CSS and implementation-specific geometry assertions are defect evidence only. The exact P4 §16.6 destructive set must be purged before replacement primitive authorship; only the exact positively retained atomic set may cross that checkpoint unchanged. The purge and rebuild are ordered checkpoints inside one atomic T2 task, not separate completed tasks.
 
 For IA28-IA34, current screen implementation is defect evidence only.
 
 - pre-reconstruction screen blobs are not preservation targets, compatibility targets, migration sources or implementation templates;
 - the purge checkpoint must precede replacement authorship in Git history and delete the task-owned legacy screen selectors together with the old screen files;
-- a replacement task may reuse only retained primitives, approved leaf/content mechanisms and canonical non-screen domain/query/policy owners;
+- a replacement screen task may reuse only the accepted IA27 reconstructed foundation, positively retained atomic adapters, approved leaf/content mechanisms and canonical non-screen domain/query/policy owners;
 - copying old JSX/DOM structure, screen-local state branching, field grouping, table-column design, card/panel composition, action placement, responsive markup, CSS classes or visual hierarchy is a task breach;
 - a screen-information schema is design-time trace material only and must not become a DTO/browser state family;
 - screen task completion requires both deletion evidence and fresh semantic/rendered evidence.
+- no IA28-IA34 task may resurrect `WorkbenchLayout`, create a second AppShell/application toolbar, duplicate structural `matchMedia` ownership, or mutate the accepted foundation for screen convenience.
 
 ## Stop conditions
 
