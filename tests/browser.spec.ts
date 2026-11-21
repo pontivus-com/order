@@ -1420,11 +1420,256 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await linkedDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  await backToQueue(page);
+
+  await openWorkItem(page, "Source editing workbench");
+  await selectWorkflowStep(page, "Work request");
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  const workRequestRoute = new URL(page.url());
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "work-request-wide-light-current",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-STEP-WR-001",
+    state: "current-work-request",
+    fixture: "Source editing workbench",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: workRequestRoute.pathname + workRequestRoute.search,
+    references: ["docs/references/workbench-ui/work-request.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-MARKDOWN-WORKBENCH",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "source-document-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "editable-source-narrow",
+    fixture: "Source editing workbench",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: workRequestRoute.pathname + workRequestRoute.search,
+    references: [
+      "docs/references/workbench-ui/document-authoring.svg",
+      "docs/references/workbench-ui/document-states.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const sourceItem = await workItemForTitle(page, "Source editing workbench");
+  const gitStatusResponse = await page.context().request.get(
+    "/api/work-items/" + sourceItem.id + "/documentation-git-status",
+  );
+  expect(gitStatusResponse.status()).toBe(200);
+  const baseGitStatus = await gitStatusResponse.json() as {
+    workItemId: string;
+    headCommit: string;
+    branch: string | null;
+    authorName: string | null;
+    authorEmail: string | null;
+    blockers: string[];
+    paths: Array<Record<string, unknown>>;
+  };
+  const gitStatusPath =
+    "**/api/work-items/" + sourceItem.id + "/documentation-git-status";
+  await page.route(gitStatusPath, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...baseGitStatus,
+        blockers: [],
+        paths: baseGitStatus.paths.map((path, index) =>
+          index === 0 ? { ...path, state: "MODIFIED" } : path),
+      }),
+    });
+  });
+  await page.reload();
+  await expect(page.getByTestId("source-document-material")).toBeVisible();
+  await page.getByRole("button", { name: "Save documentation to Git" }).click();
+  const documentationGitReview = page.getByRole("alertdialog", {
+    name: "Save WorkItem documentation to Git?",
+  });
+  await expect(documentationGitReview).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "documentation-git-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-CONF-DOC-GIT-001",
+    state: "exact-governed-path-review",
+    fixture: "Source editing workbench with deterministic modified governed path",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await documentationGitReview.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.unroute(gitStatusPath);
+  await backToQueue(page);
+
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await selectWorkflowStep(page, "Implementation plan");
+  await expect(page.getByTestId("lifecycle-document-material")).toBeVisible();
+  const planRoute = new URL(page.url());
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "governed-document-wide-light-editable",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-MAT-DOC-001",
+    state: "editable-current-governed-document",
+    fixture: "Lifecycle editing workbench",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: planRoute.pathname + planRoute.search,
+    references: [
+      "docs/references/workbench-ui/document-authoring.svg",
+      "docs/references/workbench-ui/document-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+
+  const planEditor = await openMarkdownEditor(
+    page,
+    "Implementation plan document Markdown source",
+  );
+  const planMarkdown = await markdownSourceValue(planEditor);
+  await replaceMarkdownSource(
+    page,
+    planEditor,
+    planMarkdown + "\nrendered acceptance dirty buffer\n",
+  );
+
+  await page.getByTestId("workflow-rail")
+    .getByRole("button", { name: "Approval" })
+    .click();
+  const materialGuard = page.getByRole("alertdialog", {
+    name: "Discard unsaved Markdown?",
+  });
+  await expect(materialGuard).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "dirty-material-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-CONF-DIRTY-MATERIAL-001",
+    state: "dirty-material-navigation-guard",
+    fixture: "Lifecycle editing workbench with unsaved plan buffer",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+  await materialGuard.getByRole("button", { name: "Cancel", exact: true }).click();
+
+  await page.getByRole("link", { name: "Back to queue" }).click();
+  const destinationGuard = page.getByRole("alertdialog", {
+    name: "Discard unsaved Markdown?",
+  });
+  await expect(destinationGuard).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "dirty-destination-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-CONF-DIRTY-DEST-001",
+    state: "dirty-destination-navigation-guard",
+    fixture: "Lifecycle editing workbench with unsaved plan buffer",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+  await destinationGuard.getByRole("button", { name: "Discard unsaved changes" }).click();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
+  await openWorkItem(page, "Lifecycle editing workbench");
+  await page.getByRole("button", { name: "Archive", exact: true }).click();
+  const archiveReview = page.getByRole("alertdialog", { name: "Archive work item?" });
+  await expect(archiveReview).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "archive-confirmation-wide-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Implementation plan",
+    surface: "SURF-CONF-ARCHIVE-001",
+    state: "archive-work-item",
+    fixture: "Lifecycle editing workbench",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/safety-confirmations.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await archiveReview.getByRole("button", { name: "Cancel", exact: true }).click();
+  await backToQueue(page);
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await openWorkItem(page, "Completed investigation");
+  await selectWorkflowStep(page, "Research");
+  await expect(page.getByTestId("markdown-readonly")).toBeVisible();
+  const readonlyRoute = new URL(page.url());
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "governed-document-narrow-light-readonly",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Research",
+    surface: "SURF-MAT-DOC-RO-001",
+    state: "completed-readonly-governed-document",
+    fixture: "Completed investigation",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: readonlyRoute.pathname + readonlyRoute.search,
+    references: [
+      "docs/references/workbench-ui/document-readonly.svg",
+      "docs/references/workbench-ui/document-states.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH",
+      "GW-DOC-WORKBENCH-UX",
+    ],
+  }));
+
   writeRenderedAcceptanceEvidence(entries);
   expect([...new Set(entries.map((entry) => entry.surface))].sort()).toEqual([
     "SURF-APP-001",
+    "SURF-CONF-ARCHIVE-001",
+    "SURF-CONF-DIRTY-DEST-001",
+    "SURF-CONF-DIRTY-MATERIAL-001",
+    "SURF-CONF-DOC-GIT-001",
     "SURF-CREATE-001",
+    "SURF-MAT-DOC-001",
+    "SURF-MAT-DOC-RO-001",
+    "SURF-MAT-SOURCE-001",
     "SURF-QUEUE-001",
+    "SURF-STEP-WR-001",
   ]);
   expect(runtimeErrors).toEqual([]);
 });
