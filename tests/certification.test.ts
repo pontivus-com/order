@@ -2064,7 +2064,11 @@ describe("0.6.0 Wave 3 source and queue ownership certification", () => {
     expect(createWorkItem).toContain('data-testid="linked-remediation-project"');
 
     const documents = read("ui/src/DocumentWorkspace.tsx");
-    expect(documents).toContain("state.changedGitPaths.map");
+    expect(documents).toContain("api.getWorkItemDocumentationGitStatus");
+    expect(documents).toContain("api.commitWorkItemDocumentation");
+    expect(documents).toContain(
+      "Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.",
+    );
     expect(documents).toContain("path.repositoryPath");
     expect(documents).toContain("path.state");
   });
