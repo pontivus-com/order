@@ -314,7 +314,7 @@ test("appearance uses a direct compact mode switcher, follows system mode, and p
   await authenticate(page, request);
 
   const root = page.locator("html");
-  const layout = page.getByTestId("workbench-layout");
+  const layout = page.getByTestId("workbench-app-shell");
   const toolbar = page.locator(".order-toolbar").first();
   const system = page.getByRole("radio", { name: "System" });
   const light = page.getByRole("radio", { name: "Light" });

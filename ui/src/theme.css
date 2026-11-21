@@ -145,8 +145,13 @@
   background: var(--color-background-muted);
   color: var(--color-text-primary);
 }
-.order-workitem-layout {
+.order-workbench-app-destination {
   height: calc(100dvh - var(--order-toolbar-height));
+  min-height: 0;
+  background: var(--color-background-body);
+}
+.order-workbench-workitem-shell {
+  height: 100%;
   min-height: 0;
   background: var(--color-background-body);
 }

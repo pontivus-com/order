@@ -383,6 +383,7 @@ describe("Order cross-boundary certification", () => {
     const names = readdirSync(primitiveDirectory).sort();
     expect(names).toEqual([
       "WorkbenchAction.tsx",
+      "WorkbenchAppShell.tsx",
       "WorkbenchAttention.tsx",
       "WorkbenchConfirmation.tsx",
       "WorkbenchContextPanel.tsx",
@@ -392,7 +393,6 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchForm.tsx",
       "WorkbenchIcon.tsx",
       "WorkbenchIdentity.tsx",
-      "WorkbenchLayout.tsx",
       "WorkbenchMasterDetail.tsx",
       "WorkbenchNotice.tsx",
       "WorkbenchRail.tsx",
@@ -409,6 +409,8 @@ describe("Order cross-boundary certification", () => {
       "WorkbenchTimeline.tsx",
       "WorkbenchToolbar.tsx",
       "WorkbenchUtilityLink.tsx",
+      "WorkbenchWorkItemShell.tsx",
+      "workbench-responsive.ts",
     ]);
 
     const source = names.map((name) => read("ui/src/primitives/" + name)).join("\n");
@@ -421,12 +423,20 @@ describe("Order cross-boundary certification", () => {
     expect(source).not.toContain("@stylexjs/stylex");
     expect(source).not.toContain("RichTextEditor");
 
-    const layout = read("ui/src/primitives/WorkbenchLayout.tsx");
-    expect(layout).toContain('"(min-width: 1280px)"');
-    expect(layout).toContain("<AppShell");
-    expect(layout).toContain("<Layout");
-    expect(layout).toContain("<Drawer");
-    expect(layout).not.toContain("inspector-fallback");
+    expect(names).not.toContain("WorkbenchLayout.tsx");
+    const appShell = read("ui/src/primitives/WorkbenchAppShell.tsx");
+    const workItemShell = read("ui/src/primitives/WorkbenchWorkItemShell.tsx");
+    const responsive = read("ui/src/primitives/workbench-responsive.ts");
+    expect(appShell).toContain("<AppShell");
+    expect(appShell).not.toContain("<Drawer");
+    expect(workItemShell).toContain("<Layout");
+    expect(workItemShell).toContain("<Drawer");
+    expect(responsive).toContain('"(min-width: 1280px)"');
+    expect(responsive).toContain('"(min-width: 800px)"');
+    expect(appShell).not.toContain("matchMedia");
+    expect(workItemShell).not.toContain("matchMedia");
+    expect(read("ui/src/primitives/WorkbenchMasterDetail.tsx")).not.toContain("matchMedia");
+    expect(read("ui/src/primitives/WorkbenchSettingsLayout.tsx")).not.toContain("matchMedia");
 
     const theme = read("ui/src/theme.css");
     expect(theme).toContain("--color-background-body: #FFFFFF");

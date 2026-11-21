@@ -28,7 +28,7 @@ import { workbenchQueryKeys } from "./query-keys.ts";
 
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchIcon } from "./primitives/WorkbenchIcon.tsx";
-import { WorkbenchLayout } from "./primitives/WorkbenchLayout.tsx";
+import { WorkbenchAppShell } from "./primitives/WorkbenchAppShell.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchTaskPanel } from "./primitives/WorkbenchTaskPanel.tsx";
 import { WorkbenchUtilityLink } from "./primitives/WorkbenchUtilityLink.tsx";
@@ -476,7 +476,6 @@ export const App = () => {
         selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
         selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
         selectedWorkItemError={selectedWorkItemQuery.error}
-        toolbar={toolbar}
         contextOpen={contextOpen}
         onContextOpenChange={setContextOpen}
         contextContent={
@@ -549,31 +548,21 @@ export const App = () => {
     </div>
   );
 
-  const body = workItemsQuery.isError ? (
-    <WorkbenchLayout
-      toolbar={toolbar}
-      primary={
-        <WorkbenchErrorState
-          title="Local browser session required"
-          description={
-            errorText(workItemsQuery.error).includes("browser session required")
-              ? "Run order open and open the one-time URL to establish the local session."
-              : errorText(workItemsQuery.error)
-          }
-          action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
-        />
+  const destination = workItemsQuery.isError ? (
+    <WorkbenchErrorState
+      title="Local browser session required"
+      description={
+        errorText(workItemsQuery.error).includes("browser session required")
+          ? "Run order open and open the one-time URL to establish the local session."
+          : errorText(workItemsQuery.error)
       }
-      workItemChrome={null}
+      action={<WorkbenchAction label="Retry" onClick={() => void workItemsQuery.refetch()} />}
     />
-  ) : selectedWorkItem ? (
-    main
-  ) : (
-    <WorkbenchLayout toolbar={toolbar} primary={main} workItemChrome={null} />
-  );
+  ) : main;
 
   return (
     <Theme theme={neutralTheme} mode={themePreference}>
-      {body}
+      <WorkbenchAppShell toolbar={toolbar} destination={destination} />
 
       <WorkbenchTaskPanel
         open={createOpen}
