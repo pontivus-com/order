@@ -2438,9 +2438,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 64 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 66 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 64 unique paths; found " +
+        "DESIGN implementation forecast must contain 66 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2513,9 +2513,9 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = [...new Set(tasks.flatMap((task) => task.changeSurface ?? []))];
-        if (signedSurface.length !== 64) {
+        if (signedSurface.length !== 66) {
           violations.push(
-            "PLAN signed changeSurface union must contain 64 unique paths; found " +
+            "PLAN signed changeSurface union must contain 66 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2528,9 +2528,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 64 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 66 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented signed surface must contain 64 unique paths; found " +
+            "PLAN documented signed surface must contain 66 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2544,9 +2544,7 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchField.tsx",
           "ui/src/primitives/WorkbenchIcon.tsx",
           "ui/src/primitives/WorkbenchNotice.tsx",
-          "ui/src/primitives/WorkbenchState.tsx",
           "ui/src/primitives/WorkbenchStatus.tsx",
-          "ui/src/primitives/WorkbenchUtilityLink.tsx",
         ]);
         const retainedUiPaths = new Set([
           "ui/src/MarkdownEditor.tsx",
@@ -2587,6 +2585,8 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchTaskPanel.tsx",
           "ui/src/primitives/WorkbenchTimeline.tsx",
           "ui/src/primitives/WorkbenchToolbar.tsx",
+          "ui/src/primitives/WorkbenchState.tsx",
+          "ui/src/primitives/WorkbenchUtilityLink.tsx",
         ];
         const newFoundationOwners = [
           "ui/src/primitives/WorkbenchAppShell.tsx",
@@ -2768,10 +2768,10 @@ describe("architecture fitness", () => {
         }
 
         for (const required of [
-          "Exact destructive primitive inputs (18)",
+          "Exact destructive primitive inputs (20)",
           "Exact shell-integration cutover inputs (5)",
           "New foundation owners (3)",
-          "Positively retained atomic adapters (9",
+          "Positively retained atomic adapters (7",
           "no compatibility `WorkbenchLayout`",
           "SURF-WI-001",
         ]) {
