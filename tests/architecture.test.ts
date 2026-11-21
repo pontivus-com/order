@@ -2435,7 +2435,7 @@ describe("architecture fitness", () => {
       design.split("## Exact implementation surface forecast")[1]?.split(
         "### Explicit retained UI paths outside changeSurface",
       )[0] ?? "";
-    const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
+    const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
     if (designSurface.length !== 64 || duplicates(designSurface).length > 0) {
