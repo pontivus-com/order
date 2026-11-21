@@ -44,11 +44,11 @@ For IA28-IA34, verification retains the same authority-derived replacement disci
 
 - bounded in-task purge observation/evidence records the exact deleted old screen paths and exact ledgered legacy selectors before replacement authorship;
 - the procedural purge boundary contains no replacement screen JSX/DOM and is not a Git commit/candidate/validation result;
-- a fresh screen-information-schema review is derived from current R2 plus the phase's SD22-SD28 solution;
+- a fresh screen-information-schema review is derived from current R2/P3 plus the phase's SD22-SD28 solution and records each datum/action's P3 class, default visibility, ordinary owner, authorized disclosure owner and promotion condition;
 - the recreated screen consumes the accepted IA27 foundation and canonical domain/query owners rather than old screen composition;
 - `ui/src/styles.css`/`ui/src/theme.css` mutations are limited to the phase's exact ledgered screen selectors; IA27 foundation/theme/structural selectors remain owned by IA27;
 - phase-specific semantic/browser evidence passes;
-- phase-specific rendered comparison records explicit `schema_information`, `ux_interaction` and `visual_ui` PASS/FAIL for every exact owned SURF row before phase advance.
+- phase-specific rendered comparison records explicit `schema_information`, `ux_interaction` and `visual_ui` PASS/FAIL for every exact owned SURF row before phase advance; `schema_information` proves required-visible, default-hidden and authorized post-disclosure behavior rather than information presence alone.
 
 A final screen that looks correct is insufficient if obsolete presentation ownership or compatibility structure remains. The purge observation is process evidence, not independent acceptance proof; final V4/V5/V6 plus semantic/browser/rendered verification must independently prove the resulting candidate is authority-derived and minimum.
 ## Requirement-level proof law
@@ -122,7 +122,7 @@ The GitHub Actions artifact is then reviewed row by row against current authorit
 
 Every manifest row records three independent verdicts:
 
-- `schema_information`: all authority-required information is present with correct labels, grouping, hierarchy and prominence;
+- `schema_information`: all authority-required Primary information is present with correct labels/grouping/hierarchy/prominence; Technical/Diagnostic information is absent by default; the authorized disclosure owner exposes exactly its information after explicit entry; close/return restores ordinary hierarchy;
 - `ux_interaction`: the correct interaction class, current-attention/action precedence, workflow/material navigation, recovery semantics and responsive composition are realized;
 - `visual_ui`: rendered hierarchy, density, spacing, alignment, geometry, typography, component consistency, affordances, clipping/wrapping, overlays and theme behavior materially conform.
 
@@ -146,6 +146,6 @@ V4/V5/V6 explicitly verify:
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
 - no implementation-derived product semantics.
-- IA26 exact-candidate rendered acceptance evidence is exhaustive, the GitHub Actions artifact identity is bound to the reviewed candidate, and every required schema/information, UX/interaction and visual/UI verdict is PASS with no unresolved rendered discrepancy.
+- IA26 exact-candidate rendered acceptance evidence is exhaustive, the GitHub Actions artifact identity is bound to the reviewed candidate, and every required schema/information, UX/interaction and visual/UI verdict is PASS with no unresolved rendered discrepancy; default-hidden and authorized post-disclosure proof is present for every applicable surface.
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.

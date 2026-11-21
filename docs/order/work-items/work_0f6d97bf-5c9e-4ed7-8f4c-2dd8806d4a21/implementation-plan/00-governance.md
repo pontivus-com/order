@@ -6,10 +6,12 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 ## Exact upstream package
 
-- R1 `research.md`: `d2eb1627e2b9a145f785b04829b56c623b7431e9`.
-- R2 `requirements.md`: `e6f656f070bb3952d2ffde9368a5caa256ce9c1d`.
-- DESIGN `solution-design.md`: `42368052dfbd117882947cbf651a8509f3bcb54c`.
+- R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`.
+- R2 `requirements.md`: `27faa1a67321c8091deb27a4fd70ae912209c30a`.
+- DESIGN `solution-design.md`: `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
+- P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `7263c890f3705ddd55fdadb98767b62acb7fc56d` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
@@ -71,6 +73,24 @@ For IA28-IA34, current screen implementation is defect evidence only.
 - a screen-information schema is design-time trace material only and must not become a DTO/browser state family;
 - phase completion requires deletion evidence plus fresh schema, semantic, interaction and rendered evidence;
 - no IA28-IA34 phase may resurrect `WorkbenchLayout`, create a second AppShell/application toolbar, duplicate structural `matchMedia` ownership, or mutate the accepted foundation for screen convenience.
+## Information visibility / disclosure execution law
+
+Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
+
+For every rendered datum/action in IA27-IA34, the fresh design-time screen schema records: semantic datum/action, P3 class, default visibility, one ordinary presentation owner, authorized progressive-disclosure owner when any, and promotion condition when a technical cause can own current attention. This trace is implementation evidence only and must not become a DTO/browser state model.
+
+The implementation rule is exact:
+
+- Primary information is visible without entering Context/Technical details;
+- Supporting/Operational information remains subordinate and cannot create another persistent navigation axis;
+- Technical information is absent from the ordinary surface and appears only through the authorized local Technical details or explicit Context owner;
+- Diagnostic/console detail is absent from ordinary UX and appears only through an already-authorized Technical/Context/Evidence inspection surface where legitimate inspection requires it;
+- when a technical condition blocks progress, only its human-readable meaning/consequence/action is promoted; raw code/path/hash/session/payload remains technical/evidence-owned;
+- exact mutation-consent facts may become decision-primary only inside the owning confirmation;
+- responsive recomposition never changes classification/default visibility.
+
+Presence-only browser assertions are nonconforming when they force technical/diagnostic text into ordinary UI. Every affected test is rewritten to prove both default-hidden and authorized post-disclosure visibility.
+
 ## Stop conditions
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
