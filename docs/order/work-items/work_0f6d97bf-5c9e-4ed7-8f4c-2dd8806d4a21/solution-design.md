@@ -10,8 +10,8 @@ This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic directio
 - R2 `requirements.md`: blob `e6f656f070bb3952d2ffde9368a5caa256ce9c1d` — functional package unchanged in product semantics but now explicitly binds the rendered-evidence consequence: every UI domain must realize the already-defined Primary/Supporting/Technical hierarchy and canonical interaction class through one Workbench language; semantic/browser assertions alone cannot prove rendered fulfillment.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P4 Workbench: `36b5628f5d54d168aed25f0af71226114266068a`.
-- P4 Workbench Theme: `ec4c59408485d86e7c64802fed983e2072d063b9`.
+- P4 Workbench: `2964c187259feff51abff0b88f716b8624e43804`.
+- P4 Workbench Theme: `fffd1d202537dbd3f85f6b30ee745d2eae454c53`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
 - P6 Canonical Contracts: `71f829cff8824db18194689eccdec83da6f5d19f`.
@@ -151,7 +151,7 @@ The previous DESIGN closure incorrectly treated the Workbench screen realization
 - before any screen replacement, the design-bearing Workbench composition foundation is destructively reconstructed from current P3/P4 authority and reviewed new-design references; every later replacement screen derives a fresh screen-information schema from current R2 and composes it only from that accepted reconstructed foundation plus the positively retained atomic adapters;
 - the old screen file is removed before replacement authorship begins; any valid underlying query/domain behavior is consumed again from its canonical owner rather than copied as screen code;
 - old screen JSX/DOM structure, field grouping, table columns, cards/panels, action placement, responsive branches, feature-local CSS and visual hierarchy are explicitly non-authoritative and may not be carried forward for compatibility;
-- shared stylesheets may change only to purge obsolete screen-specific selectors/compatibility rules and retain the primitive/theme foundation; downstream screen tasks may not create new feature-local structural CSS;
+- shared stylesheets are reconstructed with the Workbench foundation and then mutated only for the exact screen-specific selector sets owned by IA28-IA34; no current structural selector, theme realization or feature-local layout rule is a preservation target merely because it exists today;
 - exact-candidate rendered acceptance supplements semantic/browser certification and is required before final closeout;
 - existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
 - open technical questions: NONE;
