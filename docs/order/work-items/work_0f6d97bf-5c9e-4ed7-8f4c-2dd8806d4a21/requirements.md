@@ -6,7 +6,7 @@ This R2 artifact is rebuilt from the fresh post-corrective-foundation R1 record 
 
 Current implementation, UI, tests, 0.5.0 behavior, historical design and prior R2/DESIGN/PLAN text are evidence only. They do not define 0.6.0 behavior, preservation scope, compatibility fallback or regression semantics.
 
-The current R1 basis is `research.md` blob `d2eb1627e2b9a145f785b04829b56c623b7431e9`. It contains the G-F12 reconstruction across all C01-C22, including the explicit work-kind × workflow-step × information × OpenCode-interaction × Workbench-consumer factual matrix. C12 is `FACTS_CLOSED`; C12-F01/F02 are historical causal records only; and every material realization is classified with zero material `UNPROVEN`. R2 owns the complete package-specific functional consequence of canonical authority and the explicit disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
+The current R1 basis is `research.md` blob `99f6932e582bde949de72716f29ea0868eba16a0`. It contains the G-F12 reconstruction across all C01-C22 plus the governed post-IA31 C19-F03/C20-F06 information-hierarchy audit, with zero material `UNPROVEN`. Current canonical Workbench P3 is `GW-DOC-WORKBENCH-UX-V2` blob `114226b7b30657fd334b47a9c74f5e24479564a1`; its §11.4A and amended `GW-FR-217`/scenario 46 now own the permanent Primary/Supporting/Operational/Technical/Diagnostic visibility and progressive-disclosure semantics discovered by that audit. R2 owns only the complete 0.6.0 package-specific functional consequence and disposition of those facts. Technical owner selection, data/control flow, provider implementation mechanics, module boundaries and implementation scope remain DESIGN/PLAN decisions.
 
 ## Functional authority disposition ledger
 
@@ -494,25 +494,7 @@ This law intentionally makes the new screen layer incompatible with the old scre
 
 **C19.** The application has one Workbench/Astryx component and theme language. Every production renderer must be classifiable against the canonical renderer-to-primitive ownership matrix; an unclassified renderer is an architecture defect, not permission for a feature-local visual system.
 
-The 0.6.0 Workbench also has one **deterministic information-visibility contract**. Every datum/action available to a rendered surface is classified at design time into exactly one of these presentation levels:
-
-1. **Primary task information** — required to understand or perform the current operator task; visible in the owning primary surface and allowed to dominate.
-2. **Supporting operator information** — useful to understand/judge the task but not itself the current task; visible subordinately or under the owning Supporting material/history mechanism.
-3. **Operational detail** — low-frequency operator-facing history/resource/status detail; hidden by default when persistent display would compete with the task and exposed through the owning subordinate selector/disclosure/resource action.
-4. **Technical detail** — exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal role identifiers and similar mechanics; hidden by default and available only through the owning **Technical details** disclosure or explicitly opened **Technical Context**.
-5. **Diagnostic/console detail** — raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence that is not ordinary product language; absent from the normal UX. It may be exposed only through an existing explicitly technical/evidence inspection surface when an operator has a legitimate inspection need. No new persistent diagnostic dashboard/rail is introduced.
-
-A normally subordinate or technical condition may become operationally important without promoting its raw representation. When it blocks or owns attention, the primary surface promotes only the **human-readable meaning, consequence and valid action**. The raw code/path/hash/session/payload remains in its technical/evidence owner.
-
-The permitted progressive-disclosure owners are closed for this package:
-
-- **Supporting material/history** — operator-facing workflow material/history;
-- **Context** — explicitly opened compact secondary/technical orientation;
-- **Technical details** — exact local identity/mechanics associated with the current surface;
-- **Evidence** — intentionally opened exact evidence/resource bytes and identity;
-- **Safety/confirmation** — exact facts required to consent safely to that mutation (for example exact documentation-Git changed paths).
-
-No implementation may choose among these owners ad hoc. A datum has one ordinary owner; duplicate exposure is permitted only when another current interaction requires the same semantic fact to make a safe decision.
+Canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A` now owns the permanent information-visibility classes, default visibility, human-meaning-only promotion rule and closed disclosure owners. This R2 does not restate or redefine that policy. Its 0.6.0 package-specific consequence is the following exhaustive mapping of the governed surface families to that canonical policy.
 
 The per-family visibility contract is:
 
