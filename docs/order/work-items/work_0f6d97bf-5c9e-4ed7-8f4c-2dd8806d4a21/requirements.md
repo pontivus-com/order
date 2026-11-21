@@ -494,7 +494,45 @@ This law intentionally makes the new screen layer incompatible with the old scre
 
 **C19.** The application has one Workbench/Astryx component and theme language. Every production renderer must be classifiable against the canonical renderer-to-primitive ownership matrix; an unclassified renderer is an architecture defect, not permission for a feature-local visual system.
 
+The 0.6.0 Workbench also has one **deterministic information-visibility contract**. Every datum/action available to a rendered surface is classified at design time into exactly one of these presentation levels:
+
+1. **Primary task information** — required to understand or perform the current operator task; visible in the owning primary surface and allowed to dominate.
+2. **Supporting operator information** — useful to understand/judge the task but not itself the current task; visible subordinately or under the owning Supporting material/history mechanism.
+3. **Operational detail** — low-frequency operator-facing history/resource/status detail; hidden by default when persistent display would compete with the task and exposed through the owning subordinate selector/disclosure/resource action.
+4. **Technical detail** — exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal role identifiers and similar mechanics; hidden by default and available only through the owning **Technical details** disclosure or explicitly opened **Technical Context**.
+5. **Diagnostic/console detail** — raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence that is not ordinary product language; absent from the normal UX. It may be exposed only through an existing explicitly technical/evidence inspection surface when an operator has a legitimate inspection need. No new persistent diagnostic dashboard/rail is introduced.
+
+A normally subordinate or technical condition may become operationally important without promoting its raw representation. When it blocks or owns attention, the primary surface promotes only the **human-readable meaning, consequence and valid action**. The raw code/path/hash/session/payload remains in its technical/evidence owner.
+
+The permitted progressive-disclosure owners are closed for this package:
+
+- **Supporting material/history** — operator-facing workflow material/history;
+- **Context** — explicitly opened compact secondary/technical orientation;
+- **Technical details** — exact local identity/mechanics associated with the current surface;
+- **Evidence** — intentionally opened exact evidence/resource bytes and identity;
+- **Safety/confirmation** — exact facts required to consent safely to that mutation (for example exact documentation-Git changed paths).
+
+No implementation may choose among these owners ad hoc. A datum has one ordinary owner; duplicate exposure is permitted only when another current interaction requires the same semantic fact to make a safe decision.
+
+The per-family visibility contract is:
+
+| Surface family | Primary/default-visible | Supporting / operational disclosure | Technical / diagnostic default-hidden | Promotion / exception |
+|---|---|---|---|---|
+| Queue / application | actionable WorkItems, human lifecycle/status meaning, human-readable app-level blocker/recovery | project/search/archive controls, concerns/useful scan context | raw source diagnostic code/path/parser detail, WorkItem ids, source internals | blocking source/readiness state promotes only human meaning + inspect/recovery action |
+| Create / linked remediation | Project identity, kind, human title, Concerns, Create; linked parent meaning/title and fixed project | non-editable derived-field explanation | repository documentation root, parent WorkItem id, schema/version/internal metadata | exact value becomes visible only when the active task actually requires choosing/entering it; Create does not |
+| WorkItem shell / rail | WorkItem title/meaning, current lifecycle step, current attention, true WorkItem-level utilities | reached/historical navigation; Context entry | ids/hashes/paths/project-schema dumps/Run-task-provider identity | none; shell never becomes a technical dashboard |
+| Work request / documents | governed content and current authoring/reading action | selector/upstream material, maturity/currentness, compact Git state | exact repository path, SHA/hash/schema/source internals | exact changed paths are primary inside the explicit Git confirmation because consent is path-specific |
+| Research / Requirements / Design / Plan | current Dialogue, governed Document or Proposal Review according to attention precedence | attempts/history/upstream material, bounded agent activity, evidence/resource links | provider/session/baseline/context identity, raw Run/event tags, repository paths where document labels suffice | provider failure may promote human blocker/recovery; raw provider mechanics stay technical |
+| Readiness | typed R3 verdict/readiness, findings/defective owner, exact return action | package material needed for judgment, evidence, attempt history | artifact/package role/path/hash and technical identity | legitimate REQUIRED_INPUT temporarily owns the task without promoting unrelated technical identity |
+| Approval | readiness/currentness, signed task meaning/scope/gates, approver identity and sign-off | governed documents/task collection/detail needed for judgment | package hash/baseline/commit identity, Approval/ExecutionTask ids and other exact identity | stale/currentness state is primary meaning; raw freshness identity stays technical |
+| Implementation | current task objective/state/action/blocker, current attempt meaning, current/recorded validation boundary | task master/history, chronology, evidence/resources | task/approval/plan/Run ids, baseline/context/provider session, raw execution diagnostics | blocker promotes human meaning/action only; raw execution mechanics remain technical |
+| Complete | canonical final governed outcome and valid next action | applicable result evidence/resources and linked-remediation action | internal event tags/role codes, ids/hashes/raw result identity | none; evidence becomes exact only after explicit Evidence inspection |
+| Evidence / Context | exact evidence identity+bytes when Evidence is intentionally opened; selected-view orientation when Context is intentionally opened | related resource metadata | raw technical values are allowed here because these are explicit inspection surfaces | neither auto-opens and neither may become sole owner of current blocker/action |
+| Settings / account / repository / model | readiness, configuration meaning and productive action; exact value only when actively selecting/entering it | inventory/status and configuration context | exact roots/endpoints/account ids/provider mechanics outside the active configuration field; raw enum/status codes | active Add/Move/model/account configuration may legitimately make the exact configured value primary |
+
 **C20.** Certification proves the reconstructed authority, not historical behavior. Permanent verification must cover the complete required scenario matrix, including all four WorkItem kinds' Research information contracts and the Change/Defect downstream distinction (scenario 41), plus representative cross-application component/semantic-role parity under System/Light/Dark modes (scenarios 26 and 33-36). It must also satisfy `GW-FR-103` at the actual productive OpenCode process boundary: a fake OpenCode executable may support lower-level deterministic fixtures but cannot by itself prove the exact supported OpenCode process/session contract. Deterministic model simulation is admissible for repeatable integration proof only when the OpenCode process under test is the exact supported pin and the evidence states which external provider/account semantics are intentionally not proved by the simulation. Temporary branch-only scaffolding is not a substitute for retained permanent certification. Green adjacent tests do not imply untested obligations.
+
+For every governed rendered surface/state, certification must additionally prove the C19 visibility contract in both directions: **required ordinary information is visible without opening technical inspection; Technical/Diagnostic information is absent from the ordinary surface; opening the authorized disclosure exposes the exact information that belongs there; closing/returning restores the ordinary hierarchy without losing the current task.** Tests that merely assert technical text is present on the page are insufficient and must not force a raw implementation identifier into the product-facing layer.
 
 ## Acceptance criteria
 
@@ -518,8 +556,8 @@ This law intentionally makes the new screen layer incompatible with the old scre
 | C16 | Fresh installation completes required guided repository/OpenCode-account/model setup before reporting success; supported configuration continuity remains intact; Settings keeps operator readiness/meaning/actions primary and technical identity secondary unless task-required. |
 | C17 | Canonical current attention/recovery remains visible/reachable through selection, failure and asynchronous convergence. |
 | C18 | Responsive/focus/keyboard semantics hold; each new required-input request receives one non-repeating focus transition. |
-| C19 | Every production renderer is covered by the canonical primitive ownership rule and one theme/component system. |
-| C20 | Permanent certification covers the full kind/stage and representative cross-application theme/semantic-role matrices required by P3, plus the exact-pin productive OpenCode process/session boundary required by `GW-FR-103`; fake-process fixtures and temporary scaffolding alone are insufficient. |
+| C19 | Every production renderer is covered by the canonical primitive ownership rule and one theme/component system; every datum/action on every governed surface has one deterministic Primary/Supporting/Operational/Technical/Diagnostic classification, default visibility and authorized disclosure owner, with raw technical identity hidden from ordinary UX unless the active task requires that exact value. |
+| C20 | Permanent certification covers the full kind/stage and representative cross-application theme/semantic-role matrices required by P3, the exact-pin productive OpenCode process/session boundary required by `GW-FR-103`, and negative/positive progressive-disclosure proof that technical/diagnostic values are hidden by default and exposed only through their authorized owner; fake-process fixtures, temporary scaffolding and presence-only UI assertions are insufficient. |
 | C21 | Public/product surfaces consistently use verified result/verified candidate and do not overclaim automatic delivery commits or universal execution. |
 | C22 | Authority precedence/default/override/extension semantics resolve before provider interpretation and unresolved contradiction blocks. |
 
