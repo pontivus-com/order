@@ -198,7 +198,7 @@ const ApprovalContext = ({
           <h3>Approval history</h3>
           <p>
             {approvalCompleted
-              ? "The approved task/document set remains inspectable as reached history."
+              ? "The approved task/document set remains inspectable within reached history."
               : "Approval was reached without creating sign-off authority before workflow returned upstream."}
           </p>
         </div>
