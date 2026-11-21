@@ -3173,7 +3173,7 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
     .getByRole("button", { name: "Technical details", exact: true });
   await expect(technicalSource).toBeVisible();
   await technicalSource.click();
-  await expect(page.getByTestId("source-document-material").locator(".order-source-technical pre"))
+  await expect(page.getByTestId("source-document-material").locator('[aria-label="Complete portable source"] pre'))
     .toContainText('"formatVersion": 1');
   await technicalSource.click();
 
@@ -3332,7 +3332,7 @@ test("Requirements document keeps status and authority secondary beside the gove
   await authenticate(page, request);
   await openWorkItem(page, "Requirements document visual");
   await expect(page.getByText("Requirements document", { exact: true }).first()).toBeVisible();
-  const authority = page.locator(".order-lifecycle-authority-summary");
+  const authority = page.locator('[aria-label="Requirements authority"]');
   await expect(authority).toBeVisible();
   await expect(authority).toContainText("Status");
   await expect(authority).toContainText("Authority");
