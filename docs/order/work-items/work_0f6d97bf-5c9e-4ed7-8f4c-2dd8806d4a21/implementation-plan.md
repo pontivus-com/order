@@ -50,17 +50,9 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 
 ## Signed execution scope
 
-T1 owns the cumulative 0.6.0 repository envelope and produces one verified candidate from the Approval baseline. IA phase ownership below constrains internal sequencing and semantic responsibility; it is not a second scope/task model.
+T1 owns the cumulative 0.6.0 repository envelope and produces one verified candidate from the Approval baseline. To preserve minimum-change and prevent the one-task correction from broadening mutation authority, the signed hard `scope` is the **same exact 66 repository paths** as `changeSurface`. There is no directory-wide `src/**`, `ui/src/**` or `tests/**` variance envelope.
 
-### Cumulative scope patterns
-- `README.md`
-- `src/core/**`
-- `src/daemon/**`
-- `src/shell/**`
-- `ui/src/**`
-- `tests/**`
-- `.github/workflows/ci.yml`
-- `CHANGELOG.md`
+IA phase ownership below further constrains internal sequencing and semantic responsibility; it is not a second scope/task model. A newly required physical path is therefore an out-of-scope discovery and returns upstream for DESIGN/PLAN correction rather than being absorbed through forecast variance.
 
 ### Positively retained UI capability
 
@@ -1442,12 +1434,70 @@ V4/V5/V6 explicitly verify:
       "dependsOn": [],
       "scope": [
         "README.md",
-        "src/core/**",
-        "src/daemon/**",
-        "src/shell/**",
-        "ui/src/**",
-        "tests/**",
+        "src/core/contracts.ts",
+        "src/core/execution.ts",
+        "src/core/governance.ts",
+        "src/core/lifecycle.ts",
+        "src/daemon/authority.ts",
+        "src/daemon/stage.ts",
+        "src/daemon/work-item-source.ts",
+        "src/shell/setup.ts",
+        "tests/core.test.ts",
+        "tests/daemon.test.ts",
+        "tests/installer.test.ts",
+        "tests/opencode.test.ts",
         ".github/workflows/ci.yml",
+        "ui/src/primitives/WorkbenchAttention.tsx",
+        "ui/src/primitives/WorkbenchContextPanel.tsx",
+        "ui/src/primitives/WorkbenchDialogue.tsx",
+        "ui/src/primitives/WorkbenchForm.tsx",
+        "ui/src/primitives/WorkbenchIdentity.tsx",
+        "ui/src/primitives/WorkbenchLayout.tsx",
+        "ui/src/primitives/WorkbenchMasterDetail.tsx",
+        "ui/src/primitives/WorkbenchRail.tsx",
+        "ui/src/primitives/WorkbenchResourceRow.tsx",
+        "ui/src/primitives/WorkbenchReview.tsx",
+        "ui/src/primitives/WorkbenchSectionHeader.tsx",
+        "ui/src/primitives/WorkbenchSelector.tsx",
+        "ui/src/primitives/WorkbenchSettingsLayout.tsx",
+        "ui/src/primitives/WorkbenchSurface.tsx",
+        "ui/src/primitives/WorkbenchTable.tsx",
+        "ui/src/primitives/WorkbenchTaskPanel.tsx",
+        "ui/src/primitives/WorkbenchTimeline.tsx",
+        "ui/src/primitives/WorkbenchToolbar.tsx",
+        "ui/src/primitives/WorkbenchState.tsx",
+        "ui/src/primitives/WorkbenchUtilityLink.tsx",
+        "ui/src/primitives/WorkbenchAppShell.tsx",
+        "ui/src/primitives/WorkbenchWorkItemShell.tsx",
+        "ui/src/primitives/workbench-responsive.ts",
+        "ui/src/app.tsx",
+        "ui/src/WorkItemWorkspace.tsx",
+        "ui/src/WorkItemIdentityRow.tsx",
+        "ui/src/WorkflowRail.tsx",
+        "ui/src/WorkflowStepFrame.tsx",
+        "ui/src/styles.css",
+        "ui/src/theme.css",
+        "tests/browser.spec.ts",
+        "tests/certification.test.ts",
+        "ui/src/OpenCodeAccountControl.tsx",
+        "ui/src/WorkItemQueue.tsx",
+        "ui/src/CreateWorkItem.tsx",
+        "ui/src/DocumentWorkspace.tsx",
+        "tests/workbench-presentation.test.ts",
+        "ui/src/PreSignoffStageWorkspace.tsx",
+        "ui/src/ActivityWorkspace.tsx",
+        "ui/src/ActivityComposer.tsx",
+        "ui/src/WorkflowMaterialSelector.tsx",
+        "ui/src/ProposalReview.tsx",
+        "ui/src/RunEventTimeline.tsx",
+        "ui/src/ReadinessWorkspace.tsx",
+        "ui/src/SignoffReview.tsx",
+        "ui/src/ExecutionWorkspace.tsx",
+        "ui/src/TerminalResult.tsx",
+        "ui/src/EvidenceViewer.tsx",
+        "ui/src/WorkItemContext.tsx",
+        "ui/src/SettingsWorkspace.tsx",
+        "ui/src/OpenCodeAccountSettings.tsx",
         "CHANGELOG.md"
       ],
       "exclusions": [
