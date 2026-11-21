@@ -17,16 +17,24 @@ export const WorkbenchSelector = ({
 }: Readonly<{ label: string; groups: readonly WorkbenchSelectorGroup[] }>) => {
   const items = groups.flatMap((group) => group.items);
   const selectedId = items.find((item) => item.selected)?.id;
-  const options: SelectorOptionType[] = groups.flatMap((group) => {
+  const options: SelectorOptionType[] = [];
+
+  for (const group of groups) {
     const groupOptions = group.items.map((item) => ({
       value: item.id,
       label: item.label,
       description: item.detail,
     }));
-    return group.label === undefined
-      ? groupOptions
-      : [{ type: "section" as const, title: group.label, options: groupOptions }];
-  });
+    if (group.label === undefined) {
+      options.push(...groupOptions);
+    } else {
+      options.push({
+        type: "section",
+        title: group.label,
+        options: groupOptions,
+      });
+    }
+  }
 
   return (
     <Selector
@@ -38,7 +46,11 @@ export const WorkbenchSelector = ({
         <SelectorOption
           icon={option.icon}
           label={option.label ?? option.value}
-          description={option.description === undefined ? undefined : <span aria-hidden="true">{option.description}</span>}
+          description={
+            option.description === undefined
+              ? undefined
+              : <span aria-hidden="true">{option.description}</span>
+          }
         />
       )}
       variant="secondary"
