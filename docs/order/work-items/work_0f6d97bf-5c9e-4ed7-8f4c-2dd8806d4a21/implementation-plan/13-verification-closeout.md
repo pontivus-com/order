@@ -13,17 +13,17 @@ Every signed task carries the same six logical gate IDs. In addition to the task
 | Completed task | Before dependent task | Required retained evidence |
 |---|---|---|
 | T1 | T2 | non-UI baseline gates PASS; no protected execution-foundation mutation |
-| T2 | T3 | retained primitives certified unchanged; legacy screen-specific/compatibility CSS purge audited; no screen replacement authored yet |
-| T3 | T4 | `architecture` + Queue/Create functional/rendered row review PASS |
-| T4 | T5 | `architecture` + WorkItem shell/Work request/document review PASS |
-| T5 | T6 | `architecture` + productive pre-signoff semantic/rendered review PASS |
-| T6 | T7 | `architecture` + Readiness/Approval semantic/rendered review PASS |
-| T7 | T8 | `architecture` + Implementation master/detail semantic/rendered review PASS |
-| T8 | T9 | `architecture` + Complete/Evidence/Context semantic/rendered review PASS |
-| T9 | T10 | `architecture` + Settings/account semantic/rendered review PASS |
+| T2 | T3 | retained primitives certified unchanged; T2-owned cross-cutting compatibility CSS removed; exact surviving legacy-selector→T3-T9 ledger audited; authority-backed browser gate unchanged; no screen replacement authored yet |
+| T3 | T4 | `architecture` + all 3 T3 face-ledger rows PASS |
+| T4 | T5 | `architecture` + all 9 T4 face-ledger rows PASS |
+| T5 | T6 | `architecture` + all 6 T5 face-ledger rows PASS |
+| T6 | T7 | `architecture` + all 3 T6 face-ledger rows PASS |
+| T7 | T8 | `architecture` + both T7 face-ledger rows PASS |
+| T8 | T9 | `architecture` + all 3 T8 face-ledger rows PASS |
+| T9 | T10 | `architecture` + all 11 T9 face-ledger rows PASS; 37/37 task-local SURF union complete |
 | T10 | T11 | complete semantic/component/theme/responsive regression suite PASS |
 
-A dependent task must not start merely because the previous task compiled. For T3-T9, the task evidence must include a purge checkpoint commit deleting the owned old screen files before any replacement authorship, a fresh screen-information-schema review, and the task-specific semantic/rendered proof. Pre-purge screen blobs are defect evidence only and cannot be accepted as implementation ancestry. If a downstream task discovers a genuine primitive defect, execution returns to DESIGN; neither T2 nor the screen task may rewrite primitives as a convenience fix. Local CSS/primitive bypass is not an admissible repair.
+A dependent task must not start merely because the previous task compiled. T2 must retain the exact CSS selector→owner ledger defined by IA27, may delete only its cross-cutting obsolete rules, and may not weaken an authority-backed browser assertion to obtain PASS. For T3-T9, the task evidence must include a purge checkpoint commit deleting the owned old screen files and the task-owned remaining legacy selectors before any replacement authorship, a fresh screen-information-schema review, and PASS for every exact task-owned face row allocated by `12-action-catalog.md`. Pre-purge screen blobs are defect evidence only and cannot be accepted as implementation ancestry. If a downstream task discovers a genuine primitive defect, execution returns to DESIGN; neither T2 nor the screen task may rewrite primitives as a convenience fix. Local CSS/primitive bypass is not an admissible repair.
 
 A failed checkpoint permits only correction inside the owning signed task/design or an explicit execution block. It does not grant provider shell/execute or authorize redesign. Task-boundary checkpoints never substitute for V3/V5/V7 or the task's complete logical gate union.
 
@@ -31,13 +31,13 @@ A failed checkpoint permits only correction inside the owning signed task/design
 
 For T3-T9, verification must retain both sides of the replacement boundary:
 
-- the purge checkpoint Git commit and exact deleted screen paths;
+- the purge checkpoint Git commit, exact deleted screen paths and exact task-owned legacy selectors removed in the same purge;
 - proof that the purge commit contains no replacement screen JSX/DOM;
 - the fresh screen-information-schema review derived from current R2;
 - replacement commits authored after the purge checkpoint;
 - a diff/audit proving retained primitives and approved non-screen helpers were not modified for screen convenience;
 - task-specific semantic/browser evidence;
-- task-specific rendered comparison and row-level PASS/FAIL.
+- task-specific rendered comparison with explicit `schema_information`, `ux_interaction` and `visual_ui` PASS/FAIL for every exact task-owned SURF row; the task may not advance with an unreviewed or failed owned row.
 
 A final screen that looks correct is insufficient if the task cannot prove the old screen implementation was removed before replacement. Conversely, deletion alone is insufficient without fresh schema and rendered proof.
 
@@ -62,9 +62,9 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ### Pre-Approval structural-sensor correction
 
-Current `tests/architecture.test.ts` is stale against the corrected package: its permanent PLAN fitness check still requires exactly 28 signed `changeSurface` paths even though current DESIGN/PLAN now require 30. This is a pre-signoff verification-material defect, not T1 implementation surface.
+The permanent package sensor is pre-signoff campaign material, not T1 implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **43-path** DESIGN/PLAN forecast union, exact task-local destructive-screen ownership, the corrected T3/T9 ownership of `OpenCodeAccountControl.tsx`, and the exact 37-row T3-T9 rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each T3-T9 task owns its declared replacement screen set. It also retains the exact IA01-IA34 catalog/one-definition checks and recognizes IA27-IA34 plus IA23/IA26/IA24 as reconstruction/cross-solution/rendered-acceptance/final actions.
 
-Before G5/G5A/R3 may return to PASS, correct the existing architecture sensor so it validates the corrected DESIGN/PLAN task-local forecast union without creating a second package registry. The sensor must prove uniqueness plus exact set equality between DESIGN forecast and the union of signed task `changeSurface` entries; it must not preserve historical literal path counts as authority. It must structurally require the exact IA01-IA34 catalog, enforce one definition per IA, and recognize IA27-IA34 as the presentation reconstruction owners plus IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions. This is campaign/package-fitness repair only: it does not move `tests/architecture.test.ts` into signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
+This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
 ## 0.6.0 implementation delivery branch
 
@@ -125,7 +125,7 @@ Any failed row blocks closeout, opens remediation at the defective implementatio
 
 V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
-- all 25 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
+- all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
 - each signed task retains its exact `changeSurface`; the union remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
