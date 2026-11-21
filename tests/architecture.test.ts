@@ -247,7 +247,6 @@ describe("architecture fitness", () => {
     const openCode = sourceText("src/shell/opencode.ts");
     const stage = sourceText("src/daemon/stage.ts");
     const execution = sourceText("src/daemon/execution.ts");
-    const layout = sourceText("ui/src/primitives/WorkbenchLayout.tsx");
     const queue = sourceText("ui/src/WorkItemQueue.tsx");
     const documents = sourceText("ui/src/DocumentWorkspace.tsx");
     const activity = sourceText("ui/src/ActivityWorkspace.tsx");
@@ -289,7 +288,6 @@ describe("architecture fitness", () => {
     expect(configSchema).not.toMatch(/\bskills?\b/i);
     expect(configSchema).not.toMatch(/\bmcp\b/i);
 
-    expect(layout).toContain("wide && hasInspector && inspectorOpen");
     expect(settings).not.toContain("Connect target repository");
     expect(settings).toContain('label="Add repository"');
     expect(settings).toContain('title="Disconnect repository?"');
@@ -660,11 +658,6 @@ describe("architecture fitness", () => {
       "ui/src/TerminalResult.tsx",
       "ui/src/workbench-presentation.ts",
       "ui/src/query-keys.ts",
-      "ui/src/primitives/WorkbenchAction.tsx",
-      "ui/src/primitives/WorkbenchIcon.tsx",
-      "ui/src/primitives/WorkbenchLayout.tsx",
-      "ui/src/primitives/WorkbenchResourceRow.tsx",
-      "ui/src/primitives/WorkbenchToolbar.tsx",
     ] as const;
 
     const workflowStepFrame = sourceText("ui/src/WorkflowStepFrame.tsx");
@@ -2445,9 +2438,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 43 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 64 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 43 unique paths; found " +
+        "DESIGN implementation forecast must contain 64 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2520,9 +2513,9 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = [...new Set(tasks.flatMap((task) => task.changeSurface ?? []))];
-        if (signedSurface.length !== 43) {
+        if (signedSurface.length !== 64) {
           violations.push(
-            "PLAN signed changeSurface union must contain 43 unique paths; found " +
+            "PLAN signed changeSurface union must contain 64 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2535,15 +2528,26 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 43 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 64 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented signed surface must contain 43 unique paths; found " +
+            "PLAN documented signed surface must contain 64 unique paths; found " +
               documentedSurface.length,
           );
         }
         exactSet("PLAN documented signed surface", documentedSurface, designSurface);
 
-        const retainedPrimitivePrefix = "ui/src/primitives/";
+        const foundationPrimitivePrefix = "ui/src/primitives/";
+        const retainedAtomicUiPaths = new Set([
+          "ui/src/primitives/WorkbenchAction.tsx",
+          "ui/src/primitives/WorkbenchConfirmation.tsx",
+          "ui/src/primitives/WorkbenchDisclosure.tsx",
+          "ui/src/primitives/WorkbenchField.tsx",
+          "ui/src/primitives/WorkbenchIcon.tsx",
+          "ui/src/primitives/WorkbenchNotice.tsx",
+          "ui/src/primitives/WorkbenchState.tsx",
+          "ui/src/primitives/WorkbenchStatus.tsx",
+          "ui/src/primitives/WorkbenchUtilityLink.tsx",
+        ]);
         const retainedUiPaths = new Set([
           "ui/src/MarkdownEditor.tsx",
           "ui/src/MarkdownSourceEditor.tsx",
@@ -2555,24 +2559,79 @@ describe("architecture fitness", () => {
           "ui/src/main.tsx",
         ]);
         const illegallyMutableRetained = signedSurface.filter(
-          (value) => value.startsWith(retainedPrimitivePrefix) || retainedUiPaths.has(value),
+          (value) => retainedAtomicUiPaths.has(value) || retainedUiPaths.has(value),
         );
         if (illegallyMutableRetained.length > 0) {
           violations.push(
-            "PLAN must retain primitives/non-screen helpers outside changeSurface: " +
+            "PLAN must retain exact atomic/non-screen UI capability outside changeSurface: " +
               illegallyMutableRetained.join(", "),
           );
         }
 
+        const destructiveFoundation = [
+          "ui/src/primitives/WorkbenchAttention.tsx",
+          "ui/src/primitives/WorkbenchContextPanel.tsx",
+          "ui/src/primitives/WorkbenchDialogue.tsx",
+          "ui/src/primitives/WorkbenchForm.tsx",
+          "ui/src/primitives/WorkbenchIdentity.tsx",
+          "ui/src/primitives/WorkbenchLayout.tsx",
+          "ui/src/primitives/WorkbenchMasterDetail.tsx",
+          "ui/src/primitives/WorkbenchRail.tsx",
+          "ui/src/primitives/WorkbenchResourceRow.tsx",
+          "ui/src/primitives/WorkbenchReview.tsx",
+          "ui/src/primitives/WorkbenchSectionHeader.tsx",
+          "ui/src/primitives/WorkbenchSelector.tsx",
+          "ui/src/primitives/WorkbenchSettingsLayout.tsx",
+          "ui/src/primitives/WorkbenchSurface.tsx",
+          "ui/src/primitives/WorkbenchTable.tsx",
+          "ui/src/primitives/WorkbenchTaskPanel.tsx",
+          "ui/src/primitives/WorkbenchTimeline.tsx",
+          "ui/src/primitives/WorkbenchToolbar.tsx",
+        ];
+        const newFoundationOwners = [
+          "ui/src/primitives/WorkbenchAppShell.tsx",
+          "ui/src/primitives/WorkbenchWorkItemShell.tsx",
+          "ui/src/primitives/workbench-responsive.ts",
+        ];
+        const t2ShellIntegration = [
+          "ui/src/app.tsx",
+          "ui/src/WorkItemWorkspace.tsx",
+          "ui/src/WorkItemIdentityRow.tsx",
+          "ui/src/WorkflowRail.tsx",
+          "ui/src/WorkflowStepFrame.tsx",
+        ];
         const t2 = byId.get("T2");
         if (t2 !== undefined) {
           exactSet(
             "T2 UI production surface",
             (t2.changeSurface ?? []).filter((value) => value.startsWith("ui/src/")),
-            ["ui/src/styles.css", "ui/src/theme.css"],
+            [
+              ...destructiveFoundation,
+              ...newFoundationOwners,
+              ...t2ShellIntegration,
+              "ui/src/styles.css",
+              "ui/src/theme.css",
+            ],
           );
-          if (!(t2.exclusions ?? []).includes("ui/src/primitives/**")) {
-            violations.push("T2 must explicitly exclude primitive source mutation");
+          for (const retained of retainedAtomicUiPaths) {
+            if (!(t2.exclusions ?? []).includes(retained)) {
+              violations.push("T2 must explicitly exclude retained atomic adapter " + retained);
+            }
+          }
+          const objective = t2.objective ?? "";
+          for (const required of [
+            "WorkbenchAppShell",
+            "WorkbenchWorkItemShell",
+            "workbench-responsive",
+            "WorkbenchLayout",
+            "SURF-WI-001",
+          ]) {
+            if (!objective.includes(required)) {
+              violations.push("T2 objective must name foundation invariant " + required);
+            }
+          }
+          if (!/purge/i.test(objective) || !/no replacement foundation\/shell JSX/i.test(objective)) {
+            violations.push("T2 objective must require purge checkpoint before fresh foundation authorship");
           }
         }
 
@@ -2601,25 +2660,26 @@ describe("architecture fitness", () => {
           "ui/src/OpenCodeAccountControl.tsx",
           "ui/src/OpenCodeAccountSettings.tsx",
         ];
-        const replacementSurface = ["T3", "T4", "T5", "T6", "T7", "T8", "T9"].flatMap(
-          (id) => byId.get(id)?.changeSurface?.filter((value) => value.startsWith("ui/src/")) ?? [],
+        const replacementScreenSet = new Set(expectedReplacementScreens);
+        const replacementSurface = ["T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9"].flatMap(
+          (id) => byId.get(id)?.changeSurface?.filter((value) => replacementScreenSet.has(value)) ?? [],
         );
         exactSet("PLAN destructive screen replacement set", replacementSurface, expectedReplacementScreens);
 
         const expectedReplacementByTask = new Map<string, readonly string[]>([
-          ["T3", [
+          ["T2", [
             "ui/src/app.tsx",
-            "ui/src/OpenCodeAccountControl.tsx",
-            "ui/src/WorkItemQueue.tsx",
-            "ui/src/CreateWorkItem.tsx",
-          ]],
-          ["T4", [
             "ui/src/WorkItemWorkspace.tsx",
             "ui/src/WorkItemIdentityRow.tsx",
             "ui/src/WorkflowRail.tsx",
             "ui/src/WorkflowStepFrame.tsx",
-            "ui/src/DocumentWorkspace.tsx",
           ]],
+          ["T3", [
+            "ui/src/OpenCodeAccountControl.tsx",
+            "ui/src/WorkItemQueue.tsx",
+            "ui/src/CreateWorkItem.tsx",
+          ]],
+          ["T4", ["ui/src/DocumentWorkspace.tsx"]],
           ["T5", [
             "ui/src/PreSignoffStageWorkspace.tsx",
             "ui/src/ActivityWorkspace.tsx",
@@ -2646,7 +2706,7 @@ describe("architecture fitness", () => {
         for (const [id, expected] of expectedReplacementByTask) {
           exactSet(
             id + " destructive screen ownership",
-            byId.get(id)?.changeSurface?.filter((value) => value.startsWith("ui/src/")) ?? [],
+            byId.get(id)?.changeSurface?.filter((value) => replacementScreenSet.has(value)) ?? [],
             expected,
           );
         }
@@ -2664,11 +2724,11 @@ describe("architecture fitness", () => {
 
         const faceLedgerSection =
           actionCatalog.match(
-            /### Exact T3-T9 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
+            /### Exact T2-T9 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
           )?.[1] ?? "";
         const faceLedgerRows = faceLedgerSection
           .split(/\r?\n/)
-          .filter((line) => /^\| T[3-9] \/ IA\d+ \|/.test(line))
+          .filter((line) => /^\| T[2-9] \/ IA\d+ \|/.test(line))
           .map((line) => {
             const cells = line.trim().slice(1, -1).split("|").map((cell) => cell.trim());
             const taskId = (cells[0] ?? "").split(" / ")[0] ?? "";
@@ -2676,8 +2736,8 @@ describe("architecture fitness", () => {
               .map((match) => match[1] ?? "");
             return { taskId, surfaceIds };
           });
-        if (faceLedgerRows.length !== 7) {
-          violations.push("PLAN must allocate rendered faces across exactly T3-T9");
+        if (faceLedgerRows.length !== 8) {
+          violations.push("PLAN must allocate rendered faces across exactly T2-T9");
         }
         const faceSurfaceUnion = faceLedgerRows.flatMap((row) => row.surfaceIds);
         const duplicateFaceSurfaces = duplicates(faceSurfaceUnion);
@@ -2699,12 +2759,25 @@ describe("architecture fitness", () => {
           }
         }
         if (
-          !actionCatalog.includes("exact selector→owner ledger") ||
-          !actionCatalog.includes("no authority-backed browser/geometry assertion removed")
+          !actionCatalog.includes("classify every surviving old screen selector to exactly one IA28-IA34 owner") ||
+          !actionCatalog.includes("do not weaken still-applicable semantic/accessibility/browser requirements")
         ) {
           violations.push(
-            "PLAN must retain executable T2 CSS ownership and no-test-weakening boundary",
+            "PLAN must retain executable foundation/screen selector ownership and authority-backed test boundary",
           );
+        }
+
+        for (const required of [
+          "Exact destructive primitive inputs (18)",
+          "Exact shell-integration cutover inputs (5)",
+          "New foundation owners (3)",
+          "Positively retained atomic adapters (9",
+          "no compatibility `WorkbenchLayout`",
+          "SURF-WI-001",
+        ]) {
+          if (!actionCatalog.includes(required)) {
+            violations.push("PLAN IA27 foundation contract missing: " + required);
+          }
         }
 
         for (const id of ["T3", "T4", "T5", "T6", "T7", "T8", "T9"]) {
@@ -2712,19 +2785,19 @@ describe("architecture fitness", () => {
           if (task === undefined) continue;
           const illegal = (task.changeSurface ?? []).filter(
             (value) =>
-              value.startsWith(retainedPrimitivePrefix) ||
+              value.startsWith(foundationPrimitivePrefix) ||
               retainedUiPaths.has(value) ||
               value === "ui/src/styles.css" ||
               value === "ui/src/theme.css",
           );
           if (illegal.length > 0) {
             violations.push(
-              id + " must not modify retained primitive/helper/shared-style paths: " +
+              id + " must not modify T2 foundation/retained-helper/shared-style paths: " +
                 illegal.join(", "),
             );
           }
           if (!(task.exclusions ?? []).includes("ui/src/primitives/**")) {
-            violations.push(id + " must explicitly exclude primitive source mutation");
+            violations.push(id + " must explicitly exclude T2 foundation primitive mutation");
           }
           const objective = task.objective ?? "";
           if (!/purge|delete/i.test(objective) || !/replace|recreat/i.test(objective)) {
