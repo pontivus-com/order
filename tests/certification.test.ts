@@ -935,7 +935,15 @@ describe("Order cross-boundary certification", () => {
 
     const activity = read("ui/src/ActivityWorkspace.tsx");
     expect(activity).toContain("onMutationError?.(error)");
-    expect(activity).toContain('currentAttention !== "MUTATION_CONFLICT"');
+    expect(activity).toContain("stageRunCancellationIsAdmitted");
+    for (const competingOwner of [
+      "PROPOSAL_DECISION",
+      "PROPOSAL_ADOPTION",
+      "MUTATION_CONFLICT",
+      "CONVERGING",
+    ]) {
+      expect(activity).toContain(competingOwner);
+    }
     expect(activity).toContain("currentRunId");
     expect(activity).toContain("currentInteraction");
     expect(activity).toContain("runs: readonly Run[]");
@@ -2008,11 +2016,12 @@ describe("0.6.0 Wave 4 Workbench and product-language certification", () => {
 
     expect(workspace).toContain("focusedRequiredInputEventId, setFocusedRequiredInputEventId");
     expect(workspace).toContain("onRequiredInputFocused={setFocusedRequiredInputEventId}");
-    expect(composer).toContain("focusedRequiredInputEventId === requiredInputEventId");
-    expect(composer).toContain("onRequiredInputFocused(requiredInputEventId)");
+    expect(composer).toContain('pending?.event.tag === "HUMAN_INPUT_REQUESTED"');
+    expect(composer).toContain("requestId === focusedRequiredInputEventId");
+    expect(composer).toContain("onRequiredInputFocused(requestId)");
     expect(composer).not.toContain("focusedRequestEventId.current");
-    expect(composer).toContain("composerRegionRef.current?.focus({ preventScroll: true })");
-    expect(composer).toContain("ref={composerRegionRef}");
+    expect(composer).toContain("region.focus({ preventScroll: true })");
+    expect(composer).toContain("ref={regionRef}");
     expect(composer).toContain("tabIndex={-1}");
     expect(composer).not.toContain("ChatComposerInputHandle");
     expect(composer).not.toContain("handleRef=");
