@@ -2468,30 +2468,14 @@ describe("architecture fitness", () => {
           }[];
         };
         const tasks = parsed.tasks ?? [];
-        const expectedTaskIds = Array.from(
-          { length: 11 },
-          (_, index) => "T" + String(index + 1),
-        );
-        exactSet(
-          "PLAN signed task ids",
-          tasks.flatMap((task) => task.id === undefined ? [] : [task.id]),
-          expectedTaskIds,
-        );
-        if (tasks.length !== 11) {
-          violations.push("PLAN root must define exactly 11 signed tasks");
+        if (tasks.length !== 1 || tasks[0]?.id !== "T1") {
+          violations.push("PLAN root must define exactly one signed task T1");
         }
-
-        const byId = new Map(
-          tasks.flatMap((task) => task.id === undefined ? [] : [[task.id, task] as const]),
-        );
-        for (let index = 0; index < expectedTaskIds.length; index += 1) {
-          const id = expectedTaskIds[index];
-          const task = byId.get(id);
-          if (task === undefined) continue;
-          const expectedDependencies = index === 0 ? [] : [expectedTaskIds[index - 1]];
-          exactSet(id + " dependencies", task.dependsOn ?? [], expectedDependencies);
+        const task = tasks[0];
+        if (task !== undefined) {
+          exactSet("T1 dependencies", task.dependsOn ?? [], []);
           if ((task.objective ?? "").trim().length === 0) {
-            violations.push(id + " objective must be non-empty");
+            violations.push("T1 objective must be non-empty");
           }
           for (const [field, values] of [
             ["scope", task.scope],
@@ -2502,24 +2486,38 @@ describe("architecture fitness", () => {
             ["concernIds", task.concernIds],
           ] as const) {
             if ((values ?? []).length === 0) {
-              violations.push(id + " " + field + " must be non-empty");
+              violations.push("T1 " + field + " must be non-empty");
             }
           }
           exactSet(
-            id + " gate union",
+            "T1 gate union",
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
+          exactSet(
+            "T1 cumulative scope",
+            task.scope ?? [],
+            [
+              "README.md",
+              "src/core/**",
+              "src/daemon/**",
+              "src/shell/**",
+              "ui/src/**",
+              "tests/**",
+              ".github/workflows/ci.yml",
+              "CHANGELOG.md",
+            ],
+          );
         }
 
-        const signedSurface = [...new Set(tasks.flatMap((task) => task.changeSurface ?? []))];
-        if (signedSurface.length !== 66) {
+        const signedSurface = task?.changeSurface ?? [];
+        if (signedSurface.length !== 66 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed changeSurface union must contain 66 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 66 unique paths; found " +
               signedSurface.length,
           );
         }
-        exactSet("PLAN signed changeSurface union", signedSurface, designSurface);
+        exactSet("PLAN signed T1 changeSurface", signedSurface, designSurface);
 
         const surfaceSection =
           plan.split("## Exact signed implementation surface")[1]?.split(
@@ -2536,7 +2534,6 @@ describe("architecture fitness", () => {
         }
         exactSet("PLAN documented signed surface", documentedSurface, designSurface);
 
-        const foundationPrimitivePrefix = "ui/src/primitives/";
         const retainedAtomicUiPaths = new Set([
           "ui/src/primitives/WorkbenchAction.tsx",
           "ui/src/primitives/WorkbenchConfirmation.tsx",
@@ -2564,6 +2561,19 @@ describe("architecture fitness", () => {
             "PLAN must retain exact atomic/non-screen UI capability outside changeSurface: " +
               illegallyMutableRetained.join(", "),
           );
+        }
+        for (const retained of [...retainedAtomicUiPaths, ...retainedUiPaths]) {
+          if (!(task?.exclusions ?? []).includes(retained)) {
+            violations.push("T1 must explicitly exclude retained UI path " + retained);
+          }
+        }
+        if (!(task?.exclusions ?? []).includes("tests/architecture.test.ts")) {
+          violations.push("T1 must exclude the pre-signoff architecture/package sensor");
+        }
+        for (const sharedStyle of ["ui/src/styles.css", "ui/src/theme.css"]) {
+          if ((task?.exclusions ?? []).includes(sharedStyle)) {
+            violations.push("T1 must permit shared stylesheet mutation: " + sharedStyle);
+          }
         }
 
         const destructiveFoundation = [
@@ -2593,46 +2603,44 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchWorkItemShell.tsx",
           "ui/src/primitives/workbench-responsive.ts",
         ];
-        const t2ShellIntegration = [
+        const shellIntegration = [
           "ui/src/app.tsx",
           "ui/src/WorkItemWorkspace.tsx",
           "ui/src/WorkItemIdentityRow.tsx",
           "ui/src/WorkflowRail.tsx",
           "ui/src/WorkflowStepFrame.tsx",
         ];
-        const t2 = byId.get("T2");
-        if (t2 !== undefined) {
-          exactSet(
-            "T2 UI production surface",
-            (t2.changeSurface ?? []).filter((value) => value.startsWith("ui/src/")),
-            [
-              ...destructiveFoundation,
-              ...newFoundationOwners,
-              ...t2ShellIntegration,
-              "ui/src/styles.css",
-              "ui/src/theme.css",
-            ],
-          );
-          for (const retained of retainedAtomicUiPaths) {
-            if (!(t2.exclusions ?? []).includes(retained)) {
-              violations.push("T2 must explicitly exclude retained atomic adapter " + retained);
-            }
+        for (const requiredPath of [
+          ...destructiveFoundation,
+          ...newFoundationOwners,
+          ...shellIntegration,
+          "ui/src/styles.css",
+          "ui/src/theme.css",
+        ]) {
+          if (!signedSurface.includes(requiredPath)) {
+            violations.push("T1 foundation/shell surface missing " + requiredPath);
           }
-          const objective = t2.objective ?? "";
-          for (const required of [
-            "WorkbenchAppShell",
-            "WorkbenchWorkItemShell",
-            "workbench-responsive",
-            "WorkbenchLayout",
-            "SURF-WI-001",
-          ]) {
-            if (!objective.includes(required)) {
-              violations.push("T2 objective must name foundation invariant " + required);
-            }
+        }
+        const objective = task?.objective ?? "";
+        for (const required of [
+          "one cumulative signed task",
+          "IA27",
+          "IA28-IA34",
+          "SD21",
+          "SD30",
+          "WorkbenchAppShell",
+          "WorkbenchWorkItemShell",
+          "workbench-responsive",
+          "WorkbenchLayout",
+          "SURF-WI-001",
+          "37 SURF",
+        ]) {
+          if (!objective.includes(required)) {
+            violations.push("T1 objective must name reconstruction invariant " + required);
           }
-          if (!/purge/i.test(objective) || !/no replacement foundation\/shell JSX/i.test(objective)) {
-            violations.push("T2 objective must require purge checkpoint before fresh foundation authorship");
-          }
+        }
+        if (!/not Git commits/i.test(objective) || !/screen-information schemas/i.test(objective)) {
+          violations.push("T1 objective must encode in-task purge evidence and fresh schema reconstruction");
         }
 
         const expectedReplacementScreens = [
@@ -2661,55 +2669,11 @@ describe("architecture fitness", () => {
           "ui/src/OpenCodeAccountSettings.tsx",
         ];
         const replacementScreenSet = new Set(expectedReplacementScreens);
-        const replacementSurface = ["T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9"].flatMap(
-          (id) => byId.get(id)?.changeSurface?.filter((value) => replacementScreenSet.has(value)) ?? [],
+        exactSet(
+          "PLAN destructive screen replacement set",
+          signedSurface.filter((value) => replacementScreenSet.has(value)),
+          expectedReplacementScreens,
         );
-        exactSet("PLAN destructive screen replacement set", replacementSurface, expectedReplacementScreens);
-
-        const expectedReplacementByTask = new Map<string, readonly string[]>([
-          ["T2", [
-            "ui/src/app.tsx",
-            "ui/src/WorkItemWorkspace.tsx",
-            "ui/src/WorkItemIdentityRow.tsx",
-            "ui/src/WorkflowRail.tsx",
-            "ui/src/WorkflowStepFrame.tsx",
-          ]],
-          ["T3", [
-            "ui/src/OpenCodeAccountControl.tsx",
-            "ui/src/WorkItemQueue.tsx",
-            "ui/src/CreateWorkItem.tsx",
-          ]],
-          ["T4", ["ui/src/DocumentWorkspace.tsx"]],
-          ["T5", [
-            "ui/src/PreSignoffStageWorkspace.tsx",
-            "ui/src/ActivityWorkspace.tsx",
-            "ui/src/ActivityComposer.tsx",
-            "ui/src/WorkflowMaterialSelector.tsx",
-            "ui/src/ProposalReview.tsx",
-            "ui/src/RunEventTimeline.tsx",
-          ]],
-          ["T6", [
-            "ui/src/ReadinessWorkspace.tsx",
-            "ui/src/SignoffReview.tsx",
-          ]],
-          ["T7", ["ui/src/ExecutionWorkspace.tsx"]],
-          ["T8", [
-            "ui/src/TerminalResult.tsx",
-            "ui/src/EvidenceViewer.tsx",
-            "ui/src/WorkItemContext.tsx",
-          ]],
-          ["T9", [
-            "ui/src/SettingsWorkspace.tsx",
-            "ui/src/OpenCodeAccountSettings.tsx",
-          ]],
-        ]);
-        for (const [id, expected] of expectedReplacementByTask) {
-          exactSet(
-            id + " destructive screen ownership",
-            byId.get(id)?.changeSurface?.filter((value) => replacementScreenSet.has(value)) ?? [],
-            expected,
-          );
-        }
 
         const referenceSurfaceText = sourceText("docs/references/workbench-ui/README.md");
         const referenceSurfaceIds = [
@@ -2724,21 +2688,26 @@ describe("architecture fitness", () => {
 
         const faceLedgerSection =
           actionCatalog.match(
-            /### Exact T2-T9 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
+            /### Exact IA27-IA34 rendered face ownership\r?\n([\s\S]*?)(?=\r?\n## IA28)/,
           )?.[1] ?? "";
         const faceLedgerRows = faceLedgerSection
           .split(/\r?\n/)
-          .filter((line) => /^\| T[2-9] \/ IA\d+ \|/.test(line))
+          .filter((line) => /^\| IA(?:27|28|29|30|31|32|33|34) \|/.test(line))
           .map((line) => {
             const cells = line.trim().slice(1, -1).split("|").map((cell) => cell.trim());
-            const taskId = (cells[0] ?? "").split(" / ")[0] ?? "";
+            const phaseId = cells[0] ?? "";
             const surfaceIds = [...(cells[1] ?? "").matchAll(/\`(SURF-[^\`]+)\`/g)]
               .map((match) => match[1] ?? "");
-            return { taskId, surfaceIds };
+            return { phaseId, surfaceIds };
           });
         if (faceLedgerRows.length !== 8) {
-          violations.push("PLAN must allocate rendered faces across exactly T2-T9");
+          violations.push("PLAN must allocate rendered faces across exactly IA27-IA34");
         }
+        exactSet(
+          "PLAN rendered face phase owners",
+          faceLedgerRows.map((row) => row.phaseId),
+          ["IA27", "IA28", "IA29", "IA30", "IA31", "IA32", "IA33", "IA34"],
+        );
         const faceSurfaceUnion = faceLedgerRows.flatMap((row) => row.surfaceIds);
         const duplicateFaceSurfaces = duplicates(faceSurfaceUnion);
         if (duplicateFaceSurfaces.length > 0) {
@@ -2748,22 +2717,14 @@ describe("architecture fitness", () => {
           );
         }
         exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
-        for (const row of faceLedgerRows) {
-          const objective = byId.get(row.taskId)?.objective ?? "";
-          for (const surfaceId of row.surfaceIds) {
-            if (!objective.includes(surfaceId)) {
-              violations.push(
-                row.taskId + " signed objective must name owned rendered face " + surfaceId,
-              );
-            }
-          }
-        }
+
         if (
           !actionCatalog.includes("classify every surviving old screen selector to exactly one IA28-IA34 owner") ||
-          !actionCatalog.includes("do not weaken still-applicable semantic/accessibility/browser requirements")
+          !actionCatalog.includes("do not weaken still-applicable semantic/accessibility/browser requirements") ||
+          !actionCatalog.includes("IA28-IA34 may mutate `ui/src/styles.css`/`ui/src/theme.css` only for their exact ledgered screen selectors")
         ) {
           violations.push(
-            "PLAN must retain executable foundation/screen selector ownership and authority-backed test boundary",
+            "PLAN must retain executable foundation/screen selector ownership and shared-stylesheet boundary",
           );
         }
 
@@ -2772,62 +2733,48 @@ describe("architecture fitness", () => {
           "Exact shell-integration cutover inputs (5)",
           "New foundation owners (3)",
           "Positively retained atomic adapters (7",
+
           "no compatibility `WorkbenchLayout`",
+
           "SURF-WI-001",
+
+          "Purge checkpoint (procedural, not a Git commit)",
+
         ]) {
           if (!actionCatalog.includes(required)) {
             violations.push("PLAN IA27 foundation contract missing: " + required);
           }
         }
 
-        for (const id of ["T3", "T4", "T5", "T6", "T7", "T8", "T9"]) {
-          const task = byId.get(id);
-          if (task === undefined) continue;
-          const illegal = (task.changeSurface ?? []).filter(
-            (value) =>
-              value.startsWith(foundationPrimitivePrefix) ||
-              retainedUiPaths.has(value) ||
-              value === "ui/src/styles.css" ||
-              value === "ui/src/theme.css",
-          );
-          if (illegal.length > 0) {
-            violations.push(
-              id + " must not modify T2 foundation/retained-helper/shared-style paths: " +
-                illegal.join(", "),
-            );
+        for (const [label, textValue] of [
+          ["DESIGN", design],
+          ["PLAN", plan],
+          ["PLAN action catalog", actionCatalog],
+          ["PLAN closeout", closeout],
+        ] as const) {
+          const staleTasks = textValue.match(/\bT(?:2|3|4|5|6|7|8|9|10|11)\b/g) ?? [];
+          if (staleTasks.length > 0) {
+            violations.push(label + " retains invalid cross-task reconstruction refs: " + staleTasks.join(","));
           }
-          if (!(task.exclusions ?? []).includes("ui/src/primitives/**")) {
-            violations.push(id + " must explicitly exclude T2 foundation primitive mutation");
-          }
-          const objective = task.objective ?? "";
-          if (!/purge|delete/i.test(objective) || !/replace|recreat/i.test(objective)) {
-            violations.push(id + " objective must require purge-before-replacement");
+          if (/purge commit|replacement commits|Git history/i.test(textValue)) {
+            violations.push(label + " retains prohibited Git-commit purge semantics");
           }
         }
 
-        if (!actionCatalog.includes("Destructive screen replacement protocol for IA28-IA34")) {
-          violations.push("PLAN action catalog must define the destructive screen replacement protocol");
-        }
-
-        const concernUnion = [...new Set(tasks.flatMap((task) => task.concernIds ?? []))];
+        const concernUnion = [...new Set(task?.concernIds ?? [])];
         exactSet(
           "PLAN concern union",
           concernUnion,
           ["core", "daemon", "foundation", "shell", "ui", "verification"],
         );
 
-        if (g5Status === "PASS") {
-          for (const id of expectedTaskIds) {
-            if (!actionCatalog.includes("| " + id + " |")) {
-              violations.push("PLAN audit ledger missing signed task: " + id);
-            }
-          }
+        if (g5Status === "PASS" && !actionCatalog.includes("| T1 | SD01-SD30; IA01-IA34 |")) {
+          violations.push("PLAN audit ledger missing the one signed task T1");
         }
       } catch {
         violations.push("PLAN order-tasks block must be valid JSON");
       }
     }
-
     expect(violations).toEqual([]);
   });
 
