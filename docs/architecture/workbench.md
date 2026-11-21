@@ -824,9 +824,12 @@ This closure is intentionally not a wrapper around every leaf widget. Complete c
 
 The target Order-local primitive vocabulary under `ui/src/primitives/` is:
 
+The table defines **target responsibilities, not preservation of current component bytes or APIs**. The current 0.6.0 reconstruction rule is §16.6: design-bearing composition primitives are deleted/recreated from these responsibilities and current P3/reference design; only the exact audited atomic subset may be retained.
+
 | Primitive | Sole Order-owned responsibility | Deliberately absent flexibility |
 |---|---|---|
-| `WorkbenchLayout` | one application topology over one Astryx `AppShell`; toolbar + primary destination, with selected WorkItem mode additionally owning identity, workflow rail and optional Context; named internal regions use `Layout`/stack primitives rather than raw grid recreation | no SideNav merely because AppShell supports it; no arbitrary sidebar/column slots; no caller breakpoint/width values; no domain/query logic |
+| `WorkbenchAppShell` | the one application-global topology over one Astryx `AppShell`; mounted once at the application root and owns the global toolbar plus exactly one current destination slot | no WorkItem-specific identity/rail/context logic; no SideNav merely because AppShell supports it; no arbitrary caller shell geometry; no domain/query logic |
+| `WorkbenchWorkItemShell` | selected-WorkItem structural composition inside `WorkbenchAppShell`: identity, workflow rail, primary workflow destination and optional Context placement | no second AppShell/toolbar; no feature-owned sidebar/columns; no caller breakpoint/width values; no workflow/domain policy |
 | `WorkbenchToolbar` | application/local toolbar grouping, search and compact utilities | no workflow policy; no arbitrary structural row creation |
 | `WorkbenchUtilityLink` | compact toolbar navigation affordance over Astryx `Link`, with primary label + optional secondary state for destinations such as Settings/account management | navigation only; no command mutation semantics; no feature-owned button chrome or popover/drawer geometry |
 | `WorkbenchIdentity` | stable three-group WorkItem identity row: navigation, identity/status, utilities | no fourth placeholder/action column; no content-driven topology |
@@ -916,18 +919,16 @@ A library recommendation cannot silently change P3 information hierarchy, lifecy
 The primitive APIs are intentionally narrow. P7 may adjust React typing syntax without adding another structural or interaction degree of freedom.
 
 ```ts
-WorkbenchLayout({
-  toolbar,
+WorkbenchAppShell({ toolbar, destination })
+WorkbenchWorkItemShell({
+  identity,
+  workflowRail,
   primary,
-  workItemChrome: {
-    identity,
-    workflowRail,
-    context: { open, onOpenChange, content } | null,
-  } | null,
+  context: { open, onOpenChange, content } | null,
 })
 ```
 
-Queue and Settings are application destinations in `primary`; selected WorkItem mode additionally enables the named WorkItem chrome. There is no generic `children` shell, `start`, `left`, `sidebar` or caller-defined grid.
+`WorkbenchAppShell` is mounted exactly once by `app.tsx`; Queue, Settings and the selected WorkItem workspace are destinations inside that one application frame. `WorkbenchWorkItemShell` is mounted only for a selected WorkItem and owns the recurring WorkItem chrome beneath the application shell. Neither API exposes generic `children`, `start`, `left`, `sidebar`, caller-defined columns, width or breakpoint configuration.
 
 ```ts
 WorkbenchToolbar({ start, end })
@@ -1091,10 +1092,10 @@ Canonical application services resolve as:
 
 | Service/material | Required primitive composition |
 |---|---|
-| Work queue | `WorkbenchLayout -> WorkbenchSurface -> WorkbenchTable`; readiness/source diagnostics use `WorkbenchNotice` |
-| Create WorkItem/remediation | `WorkbenchTaskPanel -> WorkbenchForm` + Astryx field-owning controls; `WorkbenchField` only for a control without its own field shell |
-| Settings | `WorkbenchLayout -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
-| WorkItem shell | `WorkbenchLayout -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
+| Work queue | `WorkbenchAppShell -> WorkbenchSurface -> WorkbenchTable`; readiness/source diagnostics use `WorkbenchNotice` |
+| Create WorkItem/remediation | `WorkbenchAppShell` hosts the current destination and `WorkbenchTaskPanel -> WorkbenchForm` contains the transient creation/configuration task; Astryx field-owning controls are leaves and `WorkbenchField` is only for a control without its own field shell |
+| Settings | `WorkbenchAppShell -> WorkbenchSettingsLayout -> WorkbenchForm` + Astryx field-owning controls / `WorkbenchField` fallback + Status/Notice/Confirmation |
+| WorkItem shell | `WorkbenchAppShell -> WorkbenchWorkItemShell -> WorkbenchIdentity + WorkbenchRail + one primary composition + optional WorkbenchContextPanel` |
 | Work request/lifecycle document | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + document renderer` |
 | Active/historical STAGE Run | `WorkbenchSurface -> WorkbenchAttention + optional WorkbenchSelector + WorkbenchDialogue` |
 | Proposal / Readiness / Approval | `WorkbenchReview` (+ selector/disclosure/field where explicitly required) |
@@ -1102,7 +1103,7 @@ Canonical application services resolve as:
 | Run chronology | `WorkbenchTimeline` |
 | Evidence/raw material | `WorkbenchSurface` + approved raw-content leaf |
 | Complete/result | `WorkbenchSurface + WorkbenchStatus + result content` |
-| Context | `WorkbenchContextPanel` only through `WorkbenchLayout` |
+| Context | `WorkbenchContextPanel` only through `WorkbenchWorkItemShell` |
 | Dirty/destructive confirmation | `WorkbenchConfirmation` |
 
 A feature/service therefore classifies its interaction under P3, chooses the fixed composition above, maps canonical state into generic primitive values, then supplies domain content. It does not design a new UI grammar.
@@ -1127,7 +1128,7 @@ DOM/CSS
 
 Examples:
 
-- `app.tsx` supplies application destination state to `WorkbenchLayout`, creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; it does not import Drawer/AlertDialog directly.
+- `app.tsx` mounts the one `WorkbenchAppShell`, supplies its global toolbar and current application destination, routes creation to `WorkbenchTaskPanel`, dirty navigation to `WorkbenchConfirmation` and toolbar utility state to `WorkbenchUtilityLink`; no destination mounts another AppShell or application toolbar.
 - `WorkItemIdentityRow.tsx` maps identity/status/utilities to `WorkbenchIdentity`.
 - `WorkflowRail.tsx` maps reached/current presentation into `WorkbenchRail`.
 - `WorkflowStepFrame.tsx` maps already-derived attention into `WorkbenchAttention + WorkbenchSurface`.
@@ -1170,7 +1171,7 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `EvidenceViewer.tsx` | Surface + SectionHeader + State + approved CodeBlock leaf | bespoke section heading |
 | `TerminalResult.tsx` | Surface + Status + SectionHeader + ResourceRow + approved Markdown/CodeBlock/peer-view leaves | bespoke result status/heading grammar |
 | `WorkItemContext.tsx` | ContextPanel + Status/Notice + Disclosure + approved MetadataList leaf | bespoke context panel/technical disclosure |
-| existing `ui/src/primitives/*.tsx` | consume exactly the closed §8.12 contracts; current destructive screen reconstruction treats the canonical primitive set as retained read-only capability | PR #59 baseline evidence showed incomplete primitive coverage and feature-visible responsive policy; that historical mechanism is superseded and is not permission to modify primitive source during the current reconstruction |
+| existing `ui/src/primitives/*.tsx` | implementation evidence only. The §8.12 responsibility vocabulary is authority; current primitive bytes are not. For 0.6.0, the exact design-bearing composition subset is destructively reconstructed under §16.6 while the exact atomic retained subset is positively revalidated there. | PR #59/current primitive implementation may reveal useful capability or defects but may not define topology, geometry, responsive behavior, component API shape or preservation targets |
 
 Every production renderer added later must be added to this matrix (or its canonical successor) in the same DESIGN/P7 authority that introduces it. An unclassified production renderer is an architecture failure.
 
@@ -1848,9 +1849,46 @@ No feature-local visual baseline or screenshot-as-authority mechanism is introdu
 
 ### 16.6 Current destructive-reconstruction ownership boundary
 
-The PR #59 baseline language in §8.17 is historical evidence of the migration that established the closed primitive vocabulary; it is not a current instruction to expand primitive source. For the current authority-driven destructive screen reconstruction, the canonical `ui/src/primitives/**` vocabulary is positively revalidated as complete retained capability and is read-only. If a replacement screen cannot be expressed through that vocabulary and the approved specialist leaves, execution returns to DESIGN instead of modifying primitives or creating feature-local structural ownership.
+The §8.12 **responsibility vocabulary** is canonical authority; the current files under `ui/src/primitives/**` are implementation evidence only. The 0.6.0 campaign therefore classifies primitives by responsibility instead of preserving the directory wholesale.
 
-The application shell owns the globally visible active saved OpenCode-account status/quick-access affordance required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`. That affordance routes management to the one Settings owner; it is not itself account-management UI. Full repository/account/model configuration remains in Settings.
+The following current primitive implementations are **design-bearing composition surfaces** and are destructive-reconstruction scope because their APIs/markup select topology, hierarchy, density, responsive form or recurring alignment:
 
-`RunEventTimeline.tsx` is the one shared chronology presentation adapter over `WorkbenchTimeline`. Productive-stage reconstruction establishes that adapter once; the Implementation renderer consumes it and does not create or claim a second chronology implementation owner.
+- `WorkbenchAttention.tsx`;
+- `WorkbenchContextPanel.tsx`;
+- `WorkbenchDialogue.tsx`;
+- `WorkbenchForm.tsx`;
+- `WorkbenchIdentity.tsx`;
+- `WorkbenchLayout.tsx` — deleted, not recreated under that API;
+- `WorkbenchMasterDetail.tsx`;
+- `WorkbenchRail.tsx`;
+- `WorkbenchResourceRow.tsx`;
+- `WorkbenchReview.tsx`;
+- `WorkbenchSectionHeader.tsx`;
+- `WorkbenchSelector.tsx`;
+- `WorkbenchSettingsLayout.tsx`;
+- `WorkbenchSurface.tsx`;
+- `WorkbenchTable.tsx`;
+- `WorkbenchTaskPanel.tsx`;
+- `WorkbenchTimeline.tsx`;
+- `WorkbenchToolbar.tsx`.
+
+The replacement foundation introduces `WorkbenchAppShell.tsx` and `WorkbenchWorkItemShell.tsx` so application-global chrome and selected-WorkItem chrome have separate cohesive owners. It also introduces one internal responsive-class owner `workbench-responsive.ts`; structural primitives consume that owner rather than duplicating `matchMedia`/breakpoint decisions. The old `WorkbenchLayout.tsx` API and its conditional application-vs-WorkItem topology are not a compatibility target.
+
+The following current primitives are **positively retained atomic adapters** because their audited responsibility does not establish screen topology or responsive composition: `WorkbenchAction.tsx`, `WorkbenchConfirmation.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchState.tsx`, `WorkbenchStatus.tsx`, and `WorkbenchUtilityLink.tsx`. Their current bytes remain reusable only while permanent fitness continues to prove the narrow §8.12 responsibility and Astryx-public-API containment; a contradiction returns to DESIGN rather than silently broadening them.
+
+The destructive foundation task also removes the old structural selectors and implementation-specific geometry assertions associated with the design-bearing set before fresh primitive authorship. `GW-DOC-WORKBENCH-THEME-V1` remains the token/stylesheet owner, but current `theme.css` declarations are not preservation targets merely because a current primitive consumes them. No browser/certification assertion that encodes the superseded primitive implementation (for example a particular component tag, old `WorkbenchLayout` API, duplicate responsive hook, or old structural selector) may survive as compatibility authority; it is replaced by assertions against the corrected P3/P4 responsibility and rendered-design contract.
+
+Foundation phasing is mandatory:
+
+1. record the exact retained-atomic versus destructive-composition ledger above;
+2. purge the destructive primitive files/old `WorkbenchLayout`, their structural selectors and implementation-specific compatibility assertions in one checkpoint with **no replacement primitive JSX authored in that checkpoint**;
+3. derive the fresh foundation information/composition schema from current P3 interaction classes, information hierarchy and reviewed visual references;
+4. create `WorkbenchAppShell`, `WorkbenchWorkItemShell`, the single responsive owner and the remaining reconstructed composition primitives from that schema over pinned Astryx public APIs;
+5. pass foundation architecture, theme, responsive, accessibility and representative rendered acceptance before any application/workflow screen reconstruction begins.
+
+Every consuming screen task is downstream of that foundation checkpoint. A screen may not patch around a foundation defect, resurrect the deleted `WorkbenchLayout`, recreate application/WorkItem chrome locally, or add feature-owned structural CSS/responsive branches.
+
+The application-global shell owns the globally visible active saved OpenCode-account status/quick-access affordance required by `GW-FR-073-OPENCODE-ACCOUNT-VISIBILITY`. That affordance routes management to the one Settings owner; it is not itself account-management UI. Full repository/account/model configuration remains in Settings.
+
+`RunEventTimeline.tsx` is the one shared chronology presentation adapter over the reconstructed `WorkbenchTimeline`. Productive-stage reconstruction establishes that adapter once; the Implementation renderer consumes it and does not create or claim a second chronology implementation owner.
 
