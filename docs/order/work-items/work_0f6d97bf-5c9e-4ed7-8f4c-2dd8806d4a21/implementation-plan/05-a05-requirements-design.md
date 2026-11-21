@@ -23,12 +23,12 @@ Package atoms in phase: **2**.
 
 ## Cross-domain presentation reconstruction dependency
 
-Requirements and Solution design retain their existing authority/proposal semantics, but their old runtime screens are discarded and replaced by SD24/IA30 as part of PL-C19-02. This phase supplies stage-specific governed information; it does not own another layout grammar.
+Requirements and Solution design retain their authority/proposal semantics. Their already-replaced IA30 runtime screens on the fresh Approval baseline are evidence only and must be revalidated/remediated against SD24/current authority; this phase supplies stage-specific governed information and does not own another layout grammar.
 
 ## Referenced actions
 
 - **IA03** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the single productive pre-signoff destructive screen replacement definition for Requirements and Solution design.
+- **IA30** — consume the productive pre-signoff resumed-baseline revalidation/remediation definition for Requirements and Solution design.
 
 ## Completion proof
 

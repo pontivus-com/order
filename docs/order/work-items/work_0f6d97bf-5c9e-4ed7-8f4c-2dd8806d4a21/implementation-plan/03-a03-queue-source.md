@@ -52,8 +52,8 @@ Package atoms in phase: **3**.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA12** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA13** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA28** — consume the single Queue/Create destructive screen replacement definition for the Queue operational-scan surface.
-- **IA29** — consume the WorkItem/document destructive screen replacement definition for source/document/Git presentation.
+- **IA28** — consume the Queue/Create resumed-baseline revalidation/remediation definition for the Queue operational-scan surface.
+- **IA29** — consume the WorkItem/document resumed-baseline revalidation/remediation definition for source/document/Git presentation.
 
 ## Completion proof
 

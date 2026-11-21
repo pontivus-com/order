@@ -2617,8 +2617,9 @@ describe("architecture fitness", () => {
         const objective = task?.objective ?? "";
         for (const required of [
           "one cumulative signed task",
-          "IA27",
-          "IA28-IA34",
+          "IA27-IA31",
+          "revalidation/remediation",
+          "IA32-IA34",
           "SD21",
           "SD30",
           "WorkbenchAppShell",
@@ -2629,11 +2630,17 @@ describe("architecture fitness", () => {
           "37 SURF",
         ]) {
           if (!objective.includes(required)) {
-            violations.push("T1 objective must name reconstruction invariant " + required);
+            violations.push("T1 objective must name resumed reconstruction invariant " + required);
           }
         }
-        if (!/not Git commits/i.test(objective) || !/screen-information schemas/i.test(objective)) {
-          violations.push("T1 objective must encode in-task purge evidence and fresh schema reconstruction");
+        if (
+          !/historical purge provenance/i.test(objective) ||
+          !/screen-information schemas/i.test(objective) ||
+          !/default-hidden/i.test(objective)
+        ) {
+          violations.push(
+            "T1 objective must encode resumed-baseline provenance, fresh schemas and disclosure proof",
+          );
         }
 
         const expectedReplacementScreens = [
@@ -2663,7 +2670,7 @@ describe("architecture fitness", () => {
         ];
         const replacementScreenSet = new Set(expectedReplacementScreens);
         exactSet(
-          "PLAN destructive screen replacement set",
+          "PLAN UI presentation surface set",
           signedSurface.filter((value) => replacementScreenSet.has(value)),
           expectedReplacementScreens,
         );
@@ -2712,30 +2719,29 @@ describe("architecture fitness", () => {
         exactSet("PLAN rendered face allocation", faceSurfaceUnion, referenceSurfaceIds);
 
         if (
-          !actionCatalog.includes("classify every surviving old screen selector to exactly one IA28-IA34 owner") ||
+          !actionCatalog.includes("current replacement bytes/selectors only after that schema exists") ||
           !actionCatalog.includes("do not weaken still-applicable semantic/accessibility/browser requirements") ||
-          !actionCatalog.includes("IA28-IA34 may mutate `ui/src/styles.css`/`ui/src/theme.css` only for their exact ledgered screen selectors")
+          !actionCatalog.includes("IA32-IA34 fresh reconstruction") ||
+          !actionCatalog.includes("shared styles only for the phase-owned screen selectors; IA27 foundation/theme/structural selectors remain IA27-owned")
         ) {
           violations.push(
-            "PLAN must retain executable foundation/screen selector ownership and shared-stylesheet boundary",
+            "PLAN must retain resumed/fresh screen ownership and shared-stylesheet boundary",
           );
         }
 
         for (const required of [
-          "Exact destructive primitive inputs (20)",
-          "Exact shell-integration cutover inputs (5)",
-          "New foundation owners (3)",
+          "Historical reconstruction primitive inputs (20)",
+          "Historical shell-integration cutover inputs (5)",
+          "Foundation owners established by the historical reconstruction (3)",
           "Positively retained atomic adapters (7",
-
           "no compatibility `WorkbenchLayout`",
-
           "SURF-WI-001",
-
-          "Purge checkpoint (procedural, not a Git commit)",
-
+          "historical purge-before-fresh-authorship record as provenance only",
+          "do not claim a new transient purge checkpoint",
+          "bounded procedural purge checkpoint",
         ]) {
           if (!actionCatalog.includes(required)) {
-            violations.push("PLAN IA27 foundation contract missing: " + required);
+            violations.push("PLAN resumed foundation/screen contract missing: " + required);
           }
         }
 

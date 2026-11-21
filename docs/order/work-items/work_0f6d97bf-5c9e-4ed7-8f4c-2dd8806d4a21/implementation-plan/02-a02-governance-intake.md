@@ -37,7 +37,7 @@ Package atoms in phase: **4**.
 - **IA02** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA09** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA10** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA28** — consume the single Queue/Create destructive screen replacement definition; C02 owns authoring semantics, not shared primitive implementation.
+- **IA28** — consume the single Queue/Create resumed-baseline revalidation/remediation definition; C02 owns authoring semantics, not shared primitive implementation.
 
 ## Completion proof
 

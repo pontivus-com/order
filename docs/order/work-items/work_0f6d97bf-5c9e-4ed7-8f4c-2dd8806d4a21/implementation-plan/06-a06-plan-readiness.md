@@ -27,8 +27,8 @@ Package atoms in phase: **2**.
 
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the shared pre-signoff destructive screen replacement for the Implementation plan surface.
-- **IA31** — consume the single Readiness/Approval destructive Review replacement definition for R3 presentation.
+- **IA30** — consume the resumed-baseline pre-signoff revalidation/remediation phase for the Implementation plan surface.
+- **IA31** — consume the Readiness/Approval resumed-baseline Review revalidation/remediation definition for R3 presentation.
 
 ## Completion proof
 
