@@ -2316,6 +2316,68 @@ describe("architecture fitness", () => {
       }
     }
 
+    const detailedSurfaceContract =
+      design.split("##### Detailed SURF contracts")[1]?.split(
+        "##### Cross-surface action and placement laws",
+      )[0] ?? "";
+    const detailedSurfaceIds = [...detailedSurfaceContract.matchAll(
+      /^#{5,6} (SURF-[A-Z0-9-]+)(?:\s|$)/gm,
+    )].map((match) => match[1]);
+    if (
+      detailedSurfaceIds.length !== 37 ||
+      duplicates(detailedSurfaceIds).length > 0
+    ) {
+      violations.push(
+        "DESIGN detailed information contract must contain 37 unique SURF sections; found " +
+          detailedSurfaceIds.length,
+      );
+    }
+    for (const forbidden of [
+      "| canonical records |",
+      "| exact records |",
+      "| package records |",
+      "| account/provider records |",
+      "| model records |",
+    ]) {
+      if (detailedSurfaceContract.includes(forbidden)) {
+        violations.push(
+          "DESIGN detailed information contract retains non-field-exact source cell " +
+            forbidden,
+        );
+      }
+    }
+    for (const required of [
+      "Refresh sources",
+      "Settings navigation / Back to queue",
+      "resolved repository-relative WorkItem documentation root",
+      "WorkItemSourceDiagnostic.path",
+      "WorkItemSourceSnapshot.metadata.projectId",
+      "upstream-return/staleness consequence before Save",
+      "ARTIFACT_PROPOSAL_CREATED.targetPath/baseSha256/authorityLayer",
+      "changeSurface forecast",
+      "Run.role/attempt/status/startedAt/endedAt",
+      "WorkItemDocumentationGitPathStatus.repositoryPath/state",
+    ]) {
+      if (!detailedSurfaceContract.includes(required)) {
+        violations.push(
+          "DESIGN detailed information contract missing required field/action closure " +
+            required,
+        );
+      }
+    }
+    for (const requiredR2 of [
+      "resolved repository-relative WorkItem documentation root is default-visible supporting task context",
+      "diagnostic's source path is ordinary operator information",
+      "current repository path is default-visible supporting document identity",
+      "Each connected-repository entry default-visibly shows project identity",
+    ]) {
+      if (!r2.includes(requiredR2)) {
+        violations.push(
+          "R2 information-visibility correction missing " + requiredR2,
+        );
+      }
+    }
+
     const phaseRequirementRows: { requirement: string; disposition: string }[] = [];
     const phaseAtoms: string[] = [];
     for (const relativePath of semanticPhasePaths) {
@@ -2635,11 +2697,12 @@ describe("architecture fitness", () => {
         }
         if (
           !/historical purge provenance/i.test(objective) ||
-          !/screen-information schemas/i.test(objective) ||
+          !/field-exact 37-surface information contract/i.test(objective) ||
+          !/consume the exact phase-owned rows/i.test(objective) ||
           !/default-hidden/i.test(objective)
         ) {
           violations.push(
-            "T1 objective must encode resumed-baseline provenance, fresh schemas and disclosure proof",
+            "T1 objective must encode resumed-baseline provenance, signed field-exact DESIGN consumption and disclosure proof",
           );
         }
 
