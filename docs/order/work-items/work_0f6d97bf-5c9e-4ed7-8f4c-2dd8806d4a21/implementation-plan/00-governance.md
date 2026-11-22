@@ -8,11 +8,11 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `9f99a885da3757afad112dfd5d9d5e26782c41f9`.
 - R2 `requirements.md`: `7a279895bd57a2ec7080e1404927ce0668f1dbaf`.
-- DESIGN `solution-design.md`: `e616f0936e00e81347e82134e4e9c0cc9d1b71c1`.
+- DESIGN `solution-design.md`: `d79e69e7013485f52df3780a85c5cda6e65ec328`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `c673bfa22ffe305e05b27feb7b92c70d796b726d` — §11.4A/§12 own semantic information classes, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `70ad77e720a5b99bcde4c64773056b54a4b129e9` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `0c042fd76d4ba6f5ff4d3afa5ce915dc14eb96ae` — §8.12/§8.12A own singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel header/body/footer anatomy and renderer composition responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `f501ac7eb79dfffd34ee32a1d3e10f11f7f515ee` — §8.12/§8.12A own singular Context/Settings technical inspection, same-task-only Disclosure, Review without automatic technical slot, TaskPanel header/body/footer anatomy and renderer composition responsibilities.
 - P4 `GW-DOC-WORKBENCH-THEME-V1`: `43b81a61291841d827a47f392e0149ace5c8351f` — owns the corrected semantic-disclosure, technical-inspection and task-panel visual roles.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
@@ -72,7 +72,7 @@ The canonical PLAN contains exactly one signed execution task because `GW-DOC-CA
 - explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
 - IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
-The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 69-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
+The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 68-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
 ## Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
@@ -136,4 +136,4 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because this exact T1 deliberately sets signed `scope` equal to the same exact 69-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
+Because this exact T1 deliberately sets signed `scope` equal to the same exact 68-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
