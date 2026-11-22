@@ -2028,8 +2028,11 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await expect(documentState).toContainText("Saved to Git");
 
   await page.getByRole("button", { name: "Edit title" }).click();
+  await expect(page.getByRole("button", { name: "Start Research", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Save title", exact: true })).toBeVisible();
   await page.getByLabel("Work item title").fill("Repository-native management renamed");
   await page.getByRole("button", { name: "Save title" }).click();
+  await expect(page.getByRole("button", { name: "Start Research", exact: true })).toBeVisible();
   await expect(page.getByTestId("work-item-heading"))
     .toHaveText("Repository-native management renamed");
   await expect(documentState).toContainText("Saved to project, not Git");
