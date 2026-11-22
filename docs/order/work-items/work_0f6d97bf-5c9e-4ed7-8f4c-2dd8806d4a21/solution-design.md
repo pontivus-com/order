@@ -560,7 +560,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | task/change-surface summaries derived from PLAN | parsed signed-task block | support inspection | Supporting | subordinate selector/detail; never second plan authority |
 | supporting DESIGN/R2/R1/source/evidence | artifacts/source/evidence | trace plan basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| provider/session/path/hash/event mechanics | exact records | audit/debug | Technical/Diagnostic | Technical details/Evidence |
+| provider/session/path/hash identity | exact records | audit exact mechanics | Technical | Technical details/Context |
+| raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence |
 | Start Readiness / retry/recovery as canonically admitted | lifecycle/current attention | progress or recover | Primary | attention action region; visually primary current command |
 
 ##### SURF-STEP-R3-001 — Readiness review
