@@ -1676,7 +1676,7 @@ describe("architecture fitness", () => {
     const gitBlobSha = (path: string): string => {
       const bytes = readFileSync(join(repositoryRoot, path));
       return createHash("sha1")
-        .update("blob " + bytes.length + "\\0")
+        .update("blob " + bytes.length + "\0")
         .update(bytes)
         .digest("hex");
     };
@@ -1969,7 +1969,7 @@ describe("architecture fitness", () => {
       }
       for (const [label, expectedBlob] of exactAlignPackageBlobs) {
         const match = record.match(
-          new RegExp("\\\*\\\*" + label + " blob:\\\*\\\*\\s*`([0-9a-f]{40})`", "i"),
+          new RegExp("\\*\\*" + label + " blob:\\*\\*\\s*`([0-9a-f]{40})`", "i"),
         );
         if (match?.[1] !== expectedBlob) {
           violations.push(
