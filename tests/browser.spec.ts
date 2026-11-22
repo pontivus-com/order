@@ -1566,6 +1566,16 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
+  const createPanel = createDialog.locator(".order-workbench-task-panel");
+  const createHeader = createPanel.locator(".order-workbench-task-panel-header");
+  const createBody = createPanel.locator(".order-workbench-task-panel-body");
+  const createFooter = createPanel.locator(".order-workbench-task-panel-footer");
+  await expect(createHeader).toBeVisible();
+  await expect(createBody).toBeVisible();
+  await expect(createFooter).toBeVisible();
+  await expect(createFooter.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
+  await expect(createFooter.getByRole("button", { name: "Create work item", exact: true })).toBeVisible();
+  await expect(createBody.getByRole("button", { name: "Create work item", exact: true })).toHaveCount(0);
   await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await createDialog.getByRole("radio", { name: "Change" }).click();
@@ -1625,6 +1635,35 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORKBENCH-THEME-V1",
     ],
   }));
+
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  const renderedContext = page.getByTestId("work-item-context");
+  await expect(renderedContext).toBeVisible();
+  await expect(renderedContext.getByRole("heading", {
+    name: "WorkItem identity",
+    exact: true,
+  })).toBeVisible();
+  await expect(renderedContext.getByRole("button", {
+    name: "WorkItem technical details",
+  })).toHaveCount(0);
+  await expect(renderedContext).toContainText(completedInvestigation.id);
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "workitem-context-wide-light-selected-workitem",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Complete",
+    surface: "SURF-WI-CONTEXT-001",
+    state: "selected-workitem-technical-inspection",
+    fixture: "Completed investigation explicit WorkItem Context",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: ["docs/references/workbench-ui/workitem-context.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }));
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
 
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("workbench-workitem-shell")).toHaveAttribute(
@@ -1702,6 +1741,9 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const linkedDialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(linkedDialog).toBeVisible();
+  const linkedFooter = linkedDialog.locator(".order-workbench-task-panel-footer");
+  await expect(linkedFooter.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
+  await expect(linkedFooter.getByRole("button", { name: "Create linked remediation", exact: true })).toBeVisible();
   await linkedDialog.getByRole("radio", { name: "Defect" }).click();
   await expect(linkedDialog).toContainText("Completed parent Investigation · same project");
   await expect(linkedDialog).not.toContainText(completedInvestigation.id);
