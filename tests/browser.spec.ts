@@ -1491,6 +1491,12 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await expect(page.getByTestId("opencode-account-trigger")).toBeVisible();
   const narrowQueueTable = page.getByRole("table", { name: "Work items" });
   await expect(narrowQueueTable).toHaveCSS("table-layout", "auto");
+  const concernsHeader = narrowQueueTable.getByRole("columnheader", {
+    name: "Concerns",
+  });
+  await expect(concernsHeader).toBeVisible();
+  await expect(concernsHeader).toHaveCSS("text-overflow", "clip");
+  await expect(concernsHeader).toHaveCSS("white-space", "normal");
   const narrowQueueCellWrapping = await narrowQueueTable
     .locator("tbody td")
     .evaluateAll((cells) =>

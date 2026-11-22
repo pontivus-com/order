@@ -667,7 +667,10 @@ describe("Order cross-boundary certification", () => {
     expect(table).toContain('wordBreak: "normal"');
     expect(table).toContain('maxWidth: "none"');
     expect(table).toContain('tableLayout: "auto"');
+    expect(table).toContain('textOverflow: "clip"');
+    expect(table).toContain('whiteSpace: "normal"');
     expect(table).toContain("style={WORKBENCH_TABLE_STYLE}");
+    expect(table).toContain("style={WORKBENCH_TABLE_HEADER_CELL_STYLE}");
     expect(table).toContain("style={WORKBENCH_TABLE_CELL_STYLE}");
 
     const theme = read("ui/src/theme.css");

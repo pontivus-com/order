@@ -18,6 +18,15 @@ const WORKBENCH_TABLE_STYLE = {
   tableLayout: "auto",
 } as const;
 
+const WORKBENCH_TABLE_HEADER_CELL_STYLE = {
+  overflow: "visible",
+  textOverflow: "clip",
+  whiteSpace: "normal",
+  maxWidth: "none",
+  overflowWrap: "normal",
+  wordBreak: "normal",
+} as const;
+
 export type WorkbenchTableColumn = Readonly<{ key: string; label: string }>;
 export type WorkbenchTableRow = Readonly<{
   id: string;
@@ -45,7 +54,15 @@ export const WorkbenchTable = ({
   >
     <TableHeader>
       <TableRow isHeaderRow>
-        {columns.map((column) => <TableHeaderCell key={column.key} scope="col">{column.label}</TableHeaderCell>)}
+        {columns.map((column) => (
+          <TableHeaderCell
+            key={column.key}
+            scope="col"
+            style={WORKBENCH_TABLE_HEADER_CELL_STYLE}
+          >
+            {column.label}
+          </TableHeaderCell>
+        ))}
       </TableRow>
     </TableHeader>
     <TableBody>
