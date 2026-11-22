@@ -7,7 +7,7 @@
 This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
 - R1 `research.md`: blob `99f6932e582bde949de72716f29ea0868eba16a0` — G-F12 factual package plus post-closeout rendered-evidence findings C19-F02/C20-F05 and the governed post-IA31 information-hierarchy audit C19-F03/C20-F06. Current UI/SVG/tests remain realization evidence only; the audit proves that screen-family hierarchy without per-datum visibility/disclosure ownership is insufficient.
-- R2 `requirements.md`: blob `27faa1a67321c8091deb27a4fd70ae912209c30a` — functional package binds the C19-F03/C20-F06 surface-family consequences to canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A`; it does not create a second visibility policy.
+- R2 `requirements.md`: blob `da85563fe8ebd8f348a6dcf14900eab04c5f19de` — functional package binds the C19-F03/C20-F06 surface-family consequences to canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A`; it does not create a second visibility policy.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
 - P3 Workbench UX: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the permanent visibility/disclosure taxonomy and human-meaning-only promotion rule.
@@ -218,17 +218,17 @@ Implementation consumes that contract. It may not infer another placement from a
 
 | Screen/service family | Primary/default-visible | Supporting / operational detail | Technical / diagnostic default-hidden | Authorized disclosure / promotion rule | Required interaction class | Legacy-screen compatibility |
 |---|---|---|---|---|---|---|
-| Queue / application shell | actionable WorkItems; New work item; human lifecycle/status meaning; human-readable blocker/recovery | project/search/archive filtering; concerns/useful scan context; active saved OpenCode account quick-access | raw source/readiness diagnostic codes/paths/parser details; WorkItem ids/source internals | blocking condition promotes only human meaning + valid inspect/recovery action; raw evidence remains technical/evidence-owned | Operational scan | NONE — old table/banner/application-toolbar composition is discarded |
-| Create/remediation | Project identity, work kind, human title, Concerns, Create; linked parent meaning/title + fixed project | non-editable derived-field explanation | repository documentation root, parent WorkItem id, schema/version/internal metadata | no raw technical value is ordinary Create content; exact values surface only if the active input requires choosing/entering them | Task panel → Form/configuration | NONE — old modal/form grouping is discarded |
+| Queue / application shell | actionable WorkItems; New work item; Refresh sources; human lifecycle/status/outcome meaning; human-readable blocker/recovery; invalid-source path when it is the only usable source identity | project/search/archive filtering; concerns/useful scan context; active saved OpenCode account quick-access; Settings navigation | raw source/readiness diagnostic codes/parser payloads; WorkItem ids/source hashes/schema internals | blocking condition promotes human meaning + valid action; source path remains ordinary only when required to identify the defective source | Operational scan | NONE — old table/banner/application-toolbar composition is discarded |
+| Create/remediation | Project identity, work kind, human title, Concerns, Create; linked parent meaning/title + fixed project | resolved repository-relative WorkItem documentation root; non-editable derived-field explanation; Cancel | parent WorkItem id, schema/version/internal metadata | the documentation root is default-visible because project selection determines the durable creation boundary; raw parent/schema identity remains technical | Task panel → Form/configuration | NONE — old modal/form grouping is discarded |
 | WorkItem shell | WorkItem title/meaning, current lifecycle step, current attention, true WorkItem-level utilities | reached/historical navigation; explicit Context entry | hashes/paths/ids/project-schema dumps/Run-task-provider identity | technical values only after explicit Context/Technical details; never promoted into identity row | Workbench shell + owning material class | NONE — old shell/frame structure is discarded |
-| Work request/document | governed intent/document content and current document action | selector/upstream material, maturity/currentness, compact Git state | exact path/hash/schema/source internals | local Technical details; exact changed paths become primary only inside the explicit documentation-Git confirmation | Document | NONE |
+| Work request/document | governed intent/document content and current document action; pre-Save upstream-return/staleness consequence when applicable | selector/upstream material, maturity/currentness, current repository path, WorkItem document directory, compact Git state | hashes/schema/source/artifact ids, authority-layer/internal-role and commit identity | local Technical details; exact changed paths plus per-path Git state become primary only inside the explicit documentation-Git confirmation | Document | NONE |
 | Research/Requirements/Design/Plan | current Dialogue, governed Document or Proposal Review according to attention precedence | attempts/history/upstream material, bounded agent activity, evidence/resource links | provider/session/baseline/context identity, raw Run/event tags, repository paths where semantic labels suffice | Supporting material/history for operator material; Technical details for exact mechanics; Evidence only after explicit open; provider failure promotes human blocker/recovery only | Document / Dialogue / Review using one productive-stage grammar | NONE |
 | Readiness | typed R3 verdict/current readiness, findings/defective owner, exact return action | package material needed for judgment, evidence, attempt history | artifact/package role/path/hash and technical identity | Technical details only; legitimate REQUIRED_INPUT may temporarily own the task without promoting unrelated technical identity | Review | NONE |
 | Approval | readiness/currentness, signed task meaning/scope/gates, approver identity + sign-off | governed documents/task collection/detail needed for judgment | package hash/baseline/commit identity, Approval/ExecutionTask ids | Technical details / Task technical details only; stale/currentness promotes meaning, not raw freshness identity | Review | NONE |
 | Implementation | current task objective/state/action/blocker, current attempt meaning, current/recorded validation boundary | task master/history, chronology, evidence/resources | task/approval/plan/Run ids, baseline/context/provider session, raw execution diagnostics | Technical details for exact identity; Evidence after explicit resource open; blocker promotes human meaning/action only | Operational master/detail | NONE |
 | Complete | canonical final governed outcome + valid next action | applicable result evidence/resources; linked-remediation action | internal event tags/role codes, ids/hashes/raw result identity | ordinary resource labels are human-facing; exact bytes/identity only after Evidence open | Terminal result | NONE |
 | Evidence/Context | exact evidence identity+bytes when explicitly selected; selected-view technical orientation when Context explicitly opened | related resource metadata | raw technical values are allowed because these surfaces explicitly own inspection | neither auto-opens; neither may become sole owner of current blocker/action; close/return restores primary hierarchy | Evidence / Compact context | NONE |
-| Settings/account/configuration | readiness, configuration meaning/action; exact value only while actively selecting/entering it | repository/account/model inventory + ordinary status | exact roots/endpoints/account ids/provider mechanics outside active field; raw enum codes | active Add/Move/model/account fields may show exact configured value; otherwise Technical details | Settings + Form/configuration | NONE |
+| Settings/account/configuration | readiness, configuration meaning/action; exact value while actively selecting/entering it | repository/account/model inventory + ordinary status; connected-repository Git root, resolved WorkItem-document root and current queue/creation-context state are default-visible repository facts | manifest/config hashes, endpoints, account ids/provider mechanics outside active field; raw enum codes | active Add/Move/model/account fields may show exact task-required values; repository inventory roots remain Supporting because P3 requires them to be shown | Settings + Form/configuration | NONE |
 
 #### Exhaustive 37-surface information contract
 
@@ -279,7 +279,7 @@ Primary information may never exist only behind disclosure. Technical/Diagnostic
 Every detailed row below binds:
 
 - **datum/action** — semantic operator concept, not a UI property name;
-- **source** — canonical typed fact, pure derivation or governed document;
+- **source** — exact canonical typed fact(s), pure derivation or governed document; when the source is a typed record, the row names the exact admitted field(s), not a wildcard such as “canonical records” or “exact records”;
 - **intent** — why the operator needs it;
 - **class** — one of the five closed classes;
 - **default placement** — its ordinary UI owner;
@@ -287,6 +287,8 @@ Every detailed row below binds:
 - **negative rule** — what implementation must not render ordinarily.
 
 Local query loading/error/pending states inherit the owning datum/action's semantic surface. They use `WorkbenchState`/`WorkbenchNotice` and never expose raw transport/provider internals.
+
+A typed field not enumerated for a surface is **not authorized to appear on that surface** merely because the client already has it. Where a field is intentionally omitted from both ordinary and Technical-details presentation, the surface contract states that exclusion or leaves the field owned by another named surface. Grouped rows are exhaustive only for the exact field names listed.
 
 ##### Complete surface registry and interaction class
 
@@ -341,40 +343,46 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | Datum/action | Canonical source | Intent | Class | Default placement | Disclosure / promotion | Negative rule |
 |---|---|---|---|---|---|---|
 | Product identity + current destination meaning | application destination state | orient the operator globally | Primary | application toolbar | none | do not expose route/internal state names |
-| Queue search utility | browser-local search | find work while Queue is current | Supporting | toolbar utility on Queue only | none | must not displace WorkItem identity/current action |
-| New WorkItem entry | local create action | begin governed authoring | Primary | toolbar/action region | opens `SURF-CREATE-001` | not shown as workflow mutation on selected WorkItem |
-| Installation readiness human meaning + Settings recovery destination | `InstallationReadiness` | make setup blocker actionable | Primary | global notice/current attention only while blocking | raw blocker mechanics stay Technical; promote meaning + action only | no raw readiness enum/transport detail |
-| Source diagnostic human meaning + inspect/recovery action | `WorkItemSourceDiagnostic[]` | explain why productive work is blocked | Primary | global notice/current attention only while relevant/blocking | code/path/parser detail only Technical/Evidence | ordinary notice must not print raw diagnostic code/path |
-| Active saved OpenCode account label/readiness utility | `OpenCodeAccountState` | global provider-account orientation and Settings quick access | Supporting | toolbar utility | account id/provider mechanics stay Technical/Settings | no account-management detail in toolbar |
+| Settings navigation / Back to queue | application destination state + local navigation | enter/leave the single application Settings area | Supporting | application toolbar utility | dirty destination uses `SURF-CONF-DIRTY-DEST-001` | no second Settings/navigation system |
+| Installation readiness human meaning + Settings recovery destination | `InstallationReadiness.ready/blockers` mapped by presentation policy | make installation blocker actionable | Primary | global notice/current attention while blocking | raw blocker enum stays Technical/Diagnostic; promote meaning + owning Settings action only | no raw readiness enum/transport detail |
+| Active saved OpenCode account label/readiness utility | `OpenCodeAccountState.accounts[].label/active/status` mapped to product language | global provider-account orientation and Settings quick access | Supporting | toolbar utility | `OpenCodeAccount.id`, `activeAccountId` and raw status mechanics stay Settings/Technical | no account-management implementation in toolbar |
 | System/Light/Dark choice | local theme preference | appearance selection | Supporting | toolbar utility | none | theme never changes semantic hierarchy |
 | dirty-navigation decision | local dirty/pending destination | protect unsaved work | Primary | `SURF-CONF-DIRTY-DEST-001` | exact destination meaning only as needed | no silent discard |
+
+Queue-local search, New WorkItem, Refresh sources and source diagnostics are owned only by `SURF-QUEUE-001`; the application shell must not duplicate them.
 
 ##### SURF-QUEUE-001 — WorkItem queue
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion | Negative rule |
 |---|---|---|---|---|---|---|
 | WorkItem title | `WorkItem.title` | scan/select work | Primary | row identity | none | no id substitute |
-| work kind | schema catalog → kind | understand task kind | Supporting | row metadata | schema id Technical | do not show schema id as ordinary kind |
-| project identity | `WorkItem.projectId` | disambiguate work | Supporting | row metadata/filter | exact repo root Technical elsewhere | no repository path |
-| human lifecycle stage/status meaning | `WorkItem.stage/status` + presentation policy | understand current state | Primary | row status | internal enum value not required as raw text | no raw enum/internal code |
-| Concerns | `WorkItem.concernIds` mapped to governed concern identity | useful task context/filtering | Supporting | subordinate row metadata | internal representation Technical if different from human label | no UUID-like/internal-only representation |
-| archived state | `WorkItem.archived` | distinguish historical work | Supporting | row/state treatment | archive/restore decision uses confirmation | no second archive navigation grammar |
-| project/search/archive filters | local filter state over canonical list | control scan set | Supporting | Queue controls | none | inclusion of archived rows cannot replace project/search semantics |
+| work kind | `WorkItem.schemaId` resolved through `WorkItemSchemaCatalogEntry.kind` | understand task kind | Supporting | row metadata | raw schema id stays Technical | do not show schema id as ordinary kind |
+| project identity | `WorkItem.projectId` | disambiguate work | Supporting | row metadata/filter | repository root is owned by Settings | no repository path in ordinary row |
+| human lifecycle stage/status/outcome meaning | `WorkItem.stage/status/outcome` mapped by presentation policy | understand current/terminal state | Primary | row status | raw enum values stay Technical | no raw enum/internal code |
+| Concerns | `WorkItem.concernIds` mapped to governed concern identity | useful task context/filtering | Supporting | subordinate row metadata | raw/internal representation stays Technical if different from human label | no UUID-like/internal-only representation |
+| archived state + Restore | `WorkItem.archived` + archive mutation | inspect/recover archived work | Supporting | row state/action when archived | Restore is a direct row action; selected-WorkItem Archive/Restore confirmation is owned by `SURF-CONF-ARCHIVE-001` | no second archive navigation grammar and no invented queue confirmation |
+| project/search/archive filters | browser-local filter state over canonical list | control scan set | Supporting | Queue controls | none | inclusion of archived rows cannot replace project/search semantics |
+| New WorkItem | local Create entry | begin governed authoring | Primary | Queue command region | opens `SURF-CREATE-001` | no lifecycle mutation |
+| Refresh sources | canonical source-reconciliation command | explicitly reconcile configured repository WorkItem sources | Supporting | Queue command region | failure remains human-readable Queue notice | UI does not scan/parse repository files independently |
 | open WorkItem | row navigation | inspect selected work | Primary | row | enters `SURF-WI-001` | no lifecycle mutation |
-| source/readiness blocker associated with queue | canonical diagnostics/readiness | explain inability to proceed | Primary | human-readable notice | raw code/path in Technical/Evidence | no diagnostic dump in queue |
+| source diagnostic human reason | `WorkItemSourceDiagnostic.detail` mapped/escaped as operator text | explain why a source cannot become/remain productive | Primary when blocking | Queue diagnostic notice | technical cause does not promote raw code/parser payload | no raw `code` as ordinary heading |
+| defective source identity | `WorkItemSourceDiagnostic.path` when non-null, otherwise human WorkItem/project identity from `workItemId/projectId` | identify the defective source named by the recovery task | Supporting, default-visible with the diagnostic | same Queue diagnostic notice | exact path is ordinary here because no semantic WorkItem label may exist | do not hide the only actionable source identity |
+| raw source diagnostic mechanics | `WorkItemSourceDiagnostic.code` and parser/provider payload mechanics | implementation-facing diagnosis | Diagnostic | Technical/Evidence inspection only | never promoted by blocker state | no raw diagnostic dump in Queue |
 
 ##### SURF-CREATE-001 — Create / linked remediation
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion | Negative rule |
 |---|---|---|---|---|---|---|
-| Project identity | project manifest | choose governing project | Primary | form field; fixed semantic label for linked remediation | repository root remains Technical | no persistent repo root |
-| work kind | schema catalog | choose Change/Defect/Investigation/Audit; linked remediation limited to Change/Defect | Supporting | form field | schema id/version Technical | no schema id as primary label |
-| title | local authoring state | human task identity | Primary | form field | none | no generated technical identity substitute |
-| Concerns | project concern catalog | classify governed concern set | Primary | form control | underlying ids not shown when human names exist | no raw ids as ordinary labels |
-| linked parent meaning/title | completed parent WorkItem | explain remediation lineage | Supporting | fixed linked-remediation context | parent WorkItem id Technical | no persistent raw parent id |
-| derived/fixed-field explanation | governing lineage/project rules | explain non-editable choices | Supporting | form help | none | must not compete with form task |
-| Create | validated form state | create one governed source-backed WorkItem | Primary | action region; visually primary command | failure shown as owning notice | no duplicate create command |
-| repository documentation root / schema/version/internal metadata | manifest/catalog/internal state | exact implementation identity | Technical | Technical details only if legitimate inspection is needed | never promoted merely for creation | must be absent from ordinary form |
+| Project identity | `ProjectManifest.projectId` | choose governing project | Primary | form field; fixed semantic label for linked remediation | exact Git root belongs Settings, not Create | no installation-global source directory |
+| resolved repository-relative WorkItem documentation root | `ProjectManifest.workItems.root` | show the durable creation boundary selected by Project | Supporting, default-visible | form supporting context immediately after Project selection | path is intentionally visible because P3 requires it before creation | must not be hidden behind Technical details |
+| work kind | `WorkItemSchemaCatalogEntry.kind` for `authoringDefault` entries | choose Change/Defect/Investigation/Audit; linked remediation limited to Change/Defect | Supporting | form field | `schemaId` remains Technical | no schema id as primary label |
+| title | local authoring state validated by `WorkItemTitleSchema` | human task identity | Primary | form field | none | no generated technical identity substitute |
+| Concerns | selected `ProjectManifest.concerns` keys presented as governed concern labels | classify governed concern set | Primary | form control | raw/internal representation not substituted for human label | no free-text process identifiers |
+| linked parent meaning/title | completed parent `WorkItem.title` + resolved work kind | explain remediation lineage | Supporting | fixed linked-remediation context | `WorkItem.derivedFromWorkItemId` / parent `WorkItem.id` stay Technical | no persistent raw parent id |
+| derived/fixed-field explanation | governing creation/lineage rules | explain system-owned identity, schema version, lifecycle state and artifact roles | Supporting | form help | none | must not compete with form task |
+| Create | validated Project/kind/title/Concerns state | create one governed source-backed WorkItem | Primary | action region; visually primary command | failure shown as owning notice | no duplicate create command |
+| Cancel | local panel action | abandon creation without mutation | Supporting | action region; secondary command | closes/reset bounded task | no source mutation |
+| schema/version/internal creation identity | selected `WorkItemSchemaCatalogEntry.schemaId`, future WorkItem id, metadata format/version and raw parent id | exact system identity | Technical | not rendered in ordinary Create; Context/created WorkItem owners only after creation | no creation-state promotion | documentation root is explicitly **not** part of this hidden set |
 
 ##### SURF-SET-001 — Settings frame/readiness/navigation
 
@@ -389,14 +397,18 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion | Negative rule |
 |---|---|---|---|---|---|---|
-| connected project/repository semantic identity | `ConnectedRepositoryState.projectId` + repository record | identify configured repository | Primary | repository row | exact filesystem root Technical except active task | do not make raw root the only row identity |
-| readiness/attention meaning | `status/attention[]` mapped to product language | show required repository action | Supporting | row status/notice | raw codes/details Technical | no raw enum |
-| WorkItem-document configuration meaning | repository config | show where governed documents live | Supporting | row/config summary | exact root Technical until Move task | no persistent full path where semantic label suffices |
-| reference-root configuration | `config.referenceRoots` | configure productive context sources | Primary | bounded configuration region | exact values are primary because this is the active configuration task | not repeated as general metadata |
-| Add repository | local task action | connect repository | Primary | task entry | opens `SURF-SET-REPO-ADD-001` | no inline second form grammar |
-| Move documents | repository action | relocate WorkItem document root safely | Supporting | task entry | opens `SURF-SET-REPO-MOVE-001` | no silent move |
-| Disconnect | repository action | remove connected repository | Supporting | row action with destructive priority | `SURF-CONF-REPO-DISCONNECT-001` | no immediate destructive mutation |
-| repositoryRoot/workItemsRoot/manifestSha256/config sha | settings/config records | exact identity/concurrency mechanics | Technical | Technical details | exact root becomes Primary only when the active configuration input/confirmation requires it | no ordinary metadata wall |
+| connected project identity | `ConnectedRepositoryState.projectId` | identify configured repository | Primary | repository row | fallback human “needs attention” when unresolved | raw root is not the sole identity |
+| readiness/attention meaning | `ConnectedRepositoryState.status/attention` mapped to product language | show required repository action | Primary when attention exists, otherwise Supporting | row status/notice | raw attention enums stay Diagnostic | no raw enum list |
+| exact connected Git root | `ConnectedRepositoryState.repositoryRoot` | identify/disambiguate the configured repository required by P3 | Supporting, default-visible | repository detail/row secondary identity | path is intentionally shown in repository inventory | not an editable field after connection |
+| resolved WorkItem document root | `ConnectedRepositoryState.workItemsRoot` | show where governed WorkItem/lifecycle documents live | Supporting, default-visible | repository detail/row | null state gets human unavailable meaning | do not hide the effective root behind Technical details |
+| current queue/creation context | browser `queueProjectId` resolved against READY repository `projectId` | show which repository/project scopes Queue/Create when a context is selected | Supporting | repository inventory/context selector | selector appears when multiple READY projects make a choice meaningful | no second persisted repository-selection authority |
+| reference-root configuration | `OrderConfig.referenceRoots` | configure read-only productive context sources | Primary | bounded configuration region | exact paths are task-required here | not repeated as general repository metadata |
+| Save reference roots | `UpdateReferenceRoots` command | persist the configured reference-root set | Primary | configuration action region | expected config hash remains hidden optimistic precondition | no silent save |
+| Add repository | local task action | connect another repository | Primary | task entry | opens `SURF-SET-REPO-ADD-001` | no always-open competing connect form |
+| Move documents | selected READY repository | relocate WorkItem document root safely | Supporting | row action | opens `SURF-SET-REPO-MOVE-001` | no silent move |
+| Disconnect | selected repository | remove productive connection without deleting repository data | Supporting | row action | `SURF-CONF-REPO-DISCONNECT-001` | no immediate destructive mutation |
+| manifest/config concurrency identity | `ConnectedRepositoryState.manifestSha256` + `OrderConfigState.sha256` | exact optimistic/audit identity | Technical | Technical details only if legitimate inspection is needed | never ordinary repository state | no SHA wall |
+| raw repository attention codes | `ConnectedRepositoryState.attention[]` enum values | implementation-facing diagnosis | Diagnostic | Technical/Evidence only | human meaning may promote, raw code does not | no raw code in row status |
 
 ##### SURF-SET-REPO-ADD-001 — Add repository
 
@@ -421,13 +433,15 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion |
 |---|---|---|---|---|---|
-| saved account label | account state | identify account | Primary | account row | exact account id Technical |
-| active/authentication human state | discriminated account status mapped to product language | understand readiness | Supporting | row status; promote human meaning/action to Primary only when it blocks the current account task | raw provider/status internals Technical |
-| needs-auth human instruction/action | account status | restore productive account | Primary | row/notice | raw provider mechanics remain Technical |
-| mutation blocker human meaning | mutation blockers | explain why account mutation is unsafe | Primary | Settings notice | raw Run/provider identity Technical |
+| saved account label | `OpenCodeAccount.label` | identify account | Primary | account row | `OpenCodeAccount.id` stays Technical |
+| active/authentication human state | `OpenCodeAccount.active` + `status` mapped to product language | understand readiness | Supporting | row status; promote human meaning/action to Primary only when it blocks the current account task | raw status enum stays Technical/Diagnostic |
+| needs-auth human instruction/action | `OpenCodeAccount.status.message/url` when status is NEEDS_AUTH | restore productive account | Primary | row/notice | URL is task-required; provider transport mechanics remain Technical |
+| mutation blocker human meaning | `OpenCodeAccountState.mutationBlockers` mapped by canonical presentation | explain why account mutation is unsafe | Primary | Settings notice | raw blocker enum and Run/provider identity stay Diagnostic/Technical |
 | Add account | account command | create a saved account | Primary | section action; visually primary when no bounded account task is open | opens Add/login task |
-| Activate/Rename/Remove | account commands | manage an existing saved account | Supporting | row actions; Remove uses destructive priority | Rename bounded task; Remove confirmation |
-| provider/account ids/transport mechanics | account/provider records | exact integration identity | Technical | Technical details | absent ordinarily |
+| Activate / Rename / Remove | account commands | manage an existing saved account | Supporting | row actions; Remove uses destructive priority | Rename bounded task; Remove confirmation |
+| configuration separation fact | canonical Settings contract | prevent false coupling assumptions | Supporting | concise section footnote/help | state explicitly that account changes affect login identity only and do not change repository selection or configured model/provider | no duplicated configuration authority |
+| exact account identity | `OpenCodeAccount.id` + `OpenCodeAccountState.activeAccountId` | audit account identity/concurrency | Technical | Technical details only | absent ordinarily |
+| raw account status/blocker enums | `OpenCodeAccount.status.status` + `OpenCodeAccountState.mutationBlockers[]` | implementation-facing state identity | Diagnostic | Technical/Evidence only | ordinary rows use human mappings |
 
 ##### SURF-SET-OC-RENAME-001 — Rename OpenCode account
 
@@ -452,49 +466,57 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion |
 |---|---|---|---|---|---|
 | authorization instructions | `OpenCodeAccountLoginAttempt.instructions` | tell operator what to do | Primary | task body | none |
-| authorization URL | login attempt | perform explicit external authorization | Primary | task action/link | exact protocol/provider mechanics Technical |
-| human status/result message | attempt status/message mapped to product meaning | show progress/terminal state | Primary | task status | raw enum Technical |
-| expiry when useful to task | `expiresAt` | time-bound action awareness | Supporting | task detail | exact internal attempt id Technical |
-| Done / retry as admitted | attempt state | complete or recover the current login task | Primary | action region; current admitted command | no hidden competing action |
-| Cancel | local/login command as admitted | abandon the login task | Supporting | action region; secondary command when admitted | no competing current command |
-| attempt id/provider transport details | attempt record | exact integration identity | Technical | Technical details | absent ordinarily |
+| authorization URL | `OpenCodeAccountLoginAttempt.authorizationUrl` | perform explicit external authorization | Primary | task action/link | exact URL is task-required; protocol/provider mechanics beyond it stay Technical |
+| human status/result message | `status/message` mapped to product meaning | show progress/terminal state | Primary | task status/body | raw enum stays Technical |
+| expiry | `OpenCodeAccountLoginAttempt.expiresAt` | show the time bound on the current authorization | Supporting | task detail **while status is PENDING** | terminal states do not retain it as current-task information |
+| Done | terminal login-attempt state | close the bounded login task after COMPLETED/FAILED/EXPIRED/CANCELLED | Primary | action region in terminal state | no hidden competing command |
+| Cancel | pending login command | abandon a PENDING login attempt | Supporting | action region in PENDING state | not shown after terminalization |
+| attempt identity | `OpenCodeAccountLoginAttempt.id` | exact integration identity | Technical | Technical details only if explicit inspection is needed | absent ordinarily |
+| raw login status/transport mechanics | raw `status` enum and provider transport/process detail | implementation-facing diagnosis | Diagnostic | Technical/Evidence only | ordinary state uses human status/result copy |
 
 ##### SURF-SET-MODEL-001 — model/runtime settings
 
 | Datum/action | Source | Intent | Class | Default placement | Rule |
 |---|---|---|---|---|---|
-| configured model human/provider selection | config + available models | choose productive model | Primary | form/configuration | exact provider/model value is task-required and may be Primary while selecting |
-| availability/readiness human state | model query/config comparison | explain unusable or unavailable selection | Primary | notice/status | raw fetch/provider mechanics Technical |
-| Save/update | configuration mutation | commit model selection | Primary | action region; visually primary command | config SHA is hidden optimistic precondition |
-| provider ids/model ids outside active selection mechanics | model records | exact integration identity | Technical | Technical details | do not create provider-debug panel |
+| configured model selection | `OrderConfig.model.providerID/id` + available `OpenCodeModelRef.providerID/id` | choose productive model | Primary | form/configuration | exact provider/model values are task-required selection labels here |
+| availability/readiness human state | available-model query + configured selection comparison | explain unusable/unavailable selection | Primary | notice/status | raw fetch/provider mechanics stay Diagnostic |
+| Save model | `UpdateConfiguredModel` command | commit model selection | Primary | action region; visually primary command | `expectedConfigSha256` stays hidden optimistic precondition |
+| configuration concurrency identity | `OrderConfigState.sha256` | exact optimistic/audit identity | Technical | Technical details only if explicit inspection is needed | absent ordinarily |
+| raw model-fetch/provider mechanics | transport/provider failure detail beyond operator message | implementation-facing diagnosis | Diagnostic | Technical/Evidence only | no provider-debug panel |
 
 ##### SURF-WI-001 — selected WorkItem shell / rail / current attention
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion | Negative rule |
 |---|---|---|---|---|---|---|
-| WorkItem title | `WorkItem.title` | stable human identity | Primary | identity row | title edit is local WorkItem utility | no WorkItem id |
-| work kind / concise status where needed | schema catalog + WorkItem state | orient operator | Supporting | identity/status | schema id Technical | no metadata dump |
-| current lifecycle step | `deriveWorkflowRail` / current stage | orientation | Primary | rail/current marker | none | no raw enum |
+| Back to queue | application navigation | leave selected WorkItem while preserving safe dirty-navigation behavior | Supporting | identity-row navigation region | dirty state interposes `SURF-CONF-DIRTY-DEST-001` | required by P3 §11.2; not hidden in Context |
+| WorkItem title | `WorkItem.title` | stable human identity | Primary | identity row | title edit is local WorkItem utility | no WorkItem id substitute |
+| work kind / concise overall status where needed | catalog `kind` + human mapping of `WorkItem.status/outcome` | orient operator | Supporting | identity/status | `schemaId` and raw enums stay Technical | no metadata dump |
+| current lifecycle step | `deriveWorkflowRail` from `WorkItem.stage` | orientation | Primary | rail/current marker | none | no raw enum |
 | reached/historical/unreached navigation | `deriveReachedStages/deriveWorkflowRail` | inspect legitimate history | Supporting | rail | none | history selection cannot steal current attention |
 | current attention human meaning | `deriveCurrentAttention` + recovery/currentness/coherence | answer “what needs action now?” | Primary | stable attention region | technical cause promotes meaning/consequence/action only | no raw diagnostic/session/path |
 | current valid action | canonical attention/recovery owner | operate current workflow | Primary | attention action region; exactly one visually primary mutation owner | none | no generic Start beside higher-priority action |
 | Context open/close | local state | inspect technical orientation | Supporting | identity/utility region | opens `SURF-WI-CONTEXT-001`; never auto-open | Context not sole blocker/action owner |
-| archive/restore | WorkItem utility | manage queue visibility | Supporting | identity/utility region | confirmation required | no immediate destructive mutation |
-| title edit | title mutation contract | maintain human identity | Supporting | identity row | mutation error stays with title | no technical metadata edit surface |
-| hashes, paths, ids, project/schema dumps, Run/task/provider identity | canonical records | exact mechanics | Technical | Context/Technical details only | never promoted to identity row |
+| Archive / Restore selected WorkItem | WorkItem archive mutation | manage active-queue visibility | Supporting | identity/utility region | always interposes `SURF-CONF-ARCHIVE-001` on selected WorkItem | no immediate destructive mutation |
+| title edit / Save / Cancel | title mutation contract | maintain human identity | Supporting; Save becomes Primary inside edit mode | identity row | mutation error stays with title | unavailable in EXECUTION/COMPLETE |
+| exact WorkItem carrier/provenance fields | `WorkItem.id/repositoryRoot/origin/schemaId/sourcePath/sourceSha256/derivedFromWorkItemId/createdAt` plus raw `stage/status/outcome` | exact audit/mechanical identity | Technical | explicit Context/local Technical owner only where separately enumerated | never promoted into identity row | presence in the WorkItem object is not authorization to render all fields here |
+| project/concern identity | `WorkItem.projectId/concernIds` | compact selected-work orientation | Supporting only in explicit Context | `SURF-WI-CONTEXT-001` | not ordinary identity-row metadata | no project/schema dump in identity row |
 
 ##### SURF-WI-CONTEXT-001 — explicit technical Context
 
-Context is intentionally an explicit inspection surface. Exact technical values may be visible here because the operator requested them.
+Context is intentionally an explicit inspection surface. Exact technical values may be visible here because the operator requested them, but it is **not** a wildcard dump of every WorkItem/Run field.
 
 | Datum/action | Source | Intent | Class | Placement | Rule |
 |---|---|---|---|---|---|
 | selected workflow step/material label | current browser selection + presentation policy | orient technical inspection | Primary | Context header | human label first |
-| selected document path/SHA | selected document | exact document identity | Technical | metadata | allowed only because Context is open |
-| selected Run id/role/status/attempt/start time | canonical Run | exact attempt identity | Technical | metadata | no provider raw payload |
-| source issue count | source diagnostics | corroborating orientation | Supporting | metadata | blocker/action remains on primary surface |
-| WorkItem stage/status/outcome/project/kind/schema/concerns | WorkItem + catalog | compact exact orientation | Technical | metadata | no duplicate policy/current-action logic |
-| Close Context | local | restore primary width | Primary | predictable close/toggle | Context never auto-opens; close restores focus/primary hierarchy |
+| selected document path/SHA | selected document `repositoryPath/path` + `sha256` | exact selected-document identity | Technical | metadata | allowed because Context is explicit; path may also have its ordinary document owner |
+| selected Run id/role/status/attempt/start time | `Run.id/role/status/attempt/startedAt` for the selected material Run | exact attempt orientation | Technical | metadata | human status treatment may accompany raw identity |
+| source issue count | matching `WorkItemSourceDiagnostic[]` | corroborating orientation | Supporting | metadata/notice | blocker/action remains on primary surface |
+| WorkItem id | `WorkItem.id` | exact selected WorkItem identity | Technical | metadata | explicit Context owner |
+| WorkItem stage/status/outcome/schema | raw `WorkItem.stage/status/outcome/schemaId` | exact canonical state/schema orientation | Technical | metadata | does not duplicate current-action policy |
+| Project/kind/Concerns | `WorkItem.projectId`, catalog `kind`, `WorkItem.concernIds` | compact semantic orientation | Supporting | metadata | Context is the shell owner for these non-primary identity facts |
+| excluded WorkItem carrier fields | `WorkItem.repositoryRoot/origin/sourcePath/sourceSha256/derivedFromWorkItemId/createdAt` | avoid indiscriminate metadata dumping | Technical but **not rendered by this Context contract** | owned by Settings/document/technical evidence as applicable | implementation may not add them here without DESIGN amendment |
+| Run mechanics owned elsewhere | `Run.baselineCommit/contextHash/providerSessionId/terminalClassification/mode/triggerEventId/endedAt` | prevent duplicate technical ownership | Technical but **not rendered by Context** | local Activity/Implementation Technical details or Evidence only | one ordinary technical owner |
+| Close Context | local | restore primary width/focus | Primary | predictable close/toggle | Context never auto-opens; close restores primary hierarchy |
 
 ##### SURF-STEP-WR-001 — Work request step
 
@@ -518,7 +540,7 @@ Research document semantics are work-kind specific and remain owned by the selec
 | proposal review | proposal state | review a proposed governed change | Primary | `SURF-MAT-PROPOSAL-001` | free-form continuation suppressed |
 | upstream source/document/evidence links | artifacts/source/evidence | inspect supporting authority/material | Supporting | `WorkbenchSelector` / supporting material | cannot change primary canvas width |
 | attempts/history/activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector | subordinate when persistent display would compete |
-| provider/session/baseline/context/Run identity | Run | exact execution/provider mechanics | Technical | Technical details / Context | provider failure promotes only human meaning/action |
+| exact Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` plus raw `Run.stage/role/status/terminalClassification` | exact execution/provider mechanics | Technical | local Technical details; `Run.id/role/status/attempt/startedAt` may also appear in explicit Context as separately enumerated | provider failure promotes only human meaning/action |
 | raw event tags/payloads/parser-provider diagnostics | RunEvents/diagnostics | implementation-facing failure evidence | Diagnostic | Timeline Technical details / Evidence | never ordinary productive-stage content |
 | Start/Retry/Resume/Reconcile/Cancel/Input/Adopt/Reject | canonical attention/interaction/recovery | operate Research | Primary | owning material | never competing equal-weight mutations |
 
@@ -533,7 +555,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed Requirements Markdown | R2 ArtifactRef/content | inspect required behavior, acceptance, scope/exclusions | Primary | document surface |
 | supporting Research/source/evidence | artifacts/source/evidence | judge current functional-design basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| provider/session/path/hash identity | exact records | audit exact mechanics | Technical | Technical details/Context |
+| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | local Technical details/Context only where separately enumerated |
 | raw event/payload diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence only |
 | proposal disposition | proposal events | adopt/reject governed authority proposal | Primary | Proposal Review; suppress continuation |
 
@@ -546,7 +568,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed DESIGN Markdown | DESIGN ArtifactRef/content | inspect technical realization | Primary | document |
 | supporting R2/R1/source/evidence | artifacts/source/evidence | trace design basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| provider/session/path/hash identity | exact records | audit exact mechanics | Technical | Technical details/Context |
+| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | local Technical details/Context only where separately enumerated |
 | raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence |
 | proposal disposition | proposal events | govern P4-P6 change | Primary | Proposal Review |
 
@@ -560,7 +582,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | task/change-surface summaries derived from PLAN | parsed signed-task block | support inspection | Supporting | subordinate selector/detail; never second plan authority |
 | supporting DESIGN/R2/R1/source/evidence | artifacts/source/evidence | trace plan basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| provider/session/path/hash identity | exact records | audit exact mechanics | Technical | Technical details/Context |
+| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | local Technical details/Context only where separately enumerated |
 | raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence |
 | Start Readiness / retry/recovery as canonically admitted | lifecycle/current attention | progress or recover | Primary | attention action region; visually primary current command |
 
@@ -575,7 +597,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | package evidence links | evidence | inspect readiness basis | Supporting | selector/resource list | exact evidence identity in Evidence |
 | attempt history | R3 Runs | inspect readiness chronology | Operational | selector/history | exact Run/session identity Technical |
 | legitimate REQUIRED_INPUT | current R3 Run interaction | answer exact readiness question | Primary | Dialogue/attention | unrelated technical identity not promoted |
-| artifact/package role/path/hash/technical identity | package records | exact audit identity | Technical | Technical details | hidden before explicit disclosure |
+| exact R3 package/artifact/Run identity | `ArtifactRef.id/workItemId/repositoryPath/sha256/gitCommit/authorityLayer` + `Run.id/baselineCommit/contextHash/providerSessionId` | exact audit identity | Technical | Technical details | semantic document labels stay ordinary; exact values hidden before disclosure |
 | Return/Retry/Input actions | canonical attention/recovery | progress/recover | Primary | Review/Dialogue | one owner only |
 
 ##### SURF-STEP-APPROVAL-001 — Approval
@@ -596,13 +618,13 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 
 | Datum/action | Source | Intent | Class | Default placement | Rule |
 |---|---|---|---|---|---|
-| task objective/state meaning | SignedTaskDefinition / ExecutionTask | understand authorized work | Primary | task detail | exact task id Technical unless human task label is meaningful |
-| scope/exclusions | signed task | understand hard semantic/repository boundary | Primary | task detail | exact paths are task-required here and may be visible |
-| dependencies | signed task | understand execution eligibility | Supporting | task detail | no graph UI required |
-| acceptance/gates/authority/concerns | signed task | judge verification and traceability | Primary | task detail | internal ids that have no operator meaning belong Technical |
-| changeSurface forecast | signed task | understand expected physical change | Supporting | task detail | it is forecast, not hard scope |
-| approval/task/internal ids | task records | exact audit identity | Technical | Task technical details | hidden by default |
-| Back/select another task | local selection | continue package review | Supporting | task selector | no mutation |
+| task objective / historical execution state | `SignedTaskDefinition.objective` or `ExecutionTask.objective/state` | understand authorized work and historical disposition | Primary | task detail/header | exact task id remains Technical |
+| scope / exclusions | `SignedTaskDefinition.scope/exclusions` or ExecutionTask equivalents | understand hard semantic/repository boundary | Primary | task detail | exact paths/patterns are task-required here |
+| dependencies | `dependsOn` | understand execution eligibility | Supporting | task detail | no graph UI required |
+| acceptance / gates / authority / concerns | `acceptanceRefs/gateIds/authorityRefs/concernIds` | judge verification and traceability | Primary | task detail | these are signed task semantics, not generic metadata |
+| changeSurface forecast | `changeSurface` | understand expected physical change | Supporting | task detail | explicitly forecast, not hard semantic scope |
+| exact task/approval ids | signed task `id`; historical `ExecutionTask.id/planTaskId/approvalId` | audit exact identity | Technical | Task Technical details | hidden by default |
+| Back / select another task | local review selection | continue package review | Supporting | task selector/review navigation | no mutation |
 
 ##### SURF-STEP-EXEC-001 — Implementation master/detail
 
@@ -615,22 +637,26 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | chronology | RunEvents mapped to product presentation | inspect operational history | Operational | Timeline | raw event tags/payload Diagnostic |
 | evidence/resources | EvidenceRefs/artifacts | inspect supporting proof | Supporting | resource list | exact bytes/identity in Evidence |
 | Start current task / Retry / Resume / Cancel | canonical execution owner/recovery | operate current approved task | Primary | attention/action region | historical selection cannot retarget action |
-| task/approval/plan/Run ids; baseline/context/provider session | exact execution records | audit mechanics | Technical | Technical details | absent ordinarily |
+| exact task/Run identity | `ExecutionTask.id/approvalId/planTaskId` + `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | audit mechanics | Technical | Technical details | absent ordinarily |
 | raw execution diagnostics | diagnostics/events/provider evidence | debug failure | Diagnostic | Technical details/Evidence | never ordinary chronology copy |
 
 ##### SURF-MAT-EXEC-TASK-001 — execution task/attempt detail
 
 | Datum/action | Source | Intent | Class | Placement / rule |
 |---|---|---|---|---|
-| selected task objective/state | ExecutionTask | understand selected task | Primary | detail |
-| signed scope/gates/dependencies/change forecast when needed | ExecutionTask | understand execution contract | Supporting | detail sections |
-| selected attempt role/number/human status | Run | inspect attempt | Operational | attempt detail |
-| current validation boundary | pure validation-boundary derivation | understand the current verification position | Primary | current boundary visible in task detail |
-| recorded validation results/history | validation RunEvents | inspect completed verification history | Operational | subordinate validation history; complete matrix disclosed |
-| timeline | RunEvents | inspect execution history | Operational | timeline with product labels |
-| evidence resources | EvidenceRefs | inspect proof | Supporting | resource rows; opens Evidence |
-| task/approval/Run/baseline/context/session/internal classification | exact records | audit mechanics | Technical | Technical details |
-| raw event/payload/diagnostic data | RunEvents/provider diagnostics | debug | Diagnostic | Timeline Technical details/Evidence |
+| selected task objective/state | `ExecutionTask.objective/state` | understand selected approved task | Primary | detail header |
+| signed scope | `ExecutionTask.scope` | understand authorized repository/semantic reach | Primary | task contract detail |
+| signed exclusions / acceptance / authority / concerns | `ExecutionTask.exclusions/acceptanceRefs/authorityRefs/concernIds` | understand non-goals, success authority and traceability | Supporting | subordinate task-contract detail; not Technical |
+| gates / dependencies / changeSurface forecast | `ExecutionTask.gateIds/dependsOn/changeSurface` | understand execution ordering/checkpoints and expected physical change | Supporting | task-contract detail; forecast is not hard scope |
+| selected attempt role/number/human status/start/end time | `Run.role/attempt/status/startedAt/endedAt` mapped to product language | inspect attempt chronology | Operational | attempt detail/history |
+| current validation boundary | pure validation-boundary derivation | understand current verification position | Primary | current boundary visible in task detail |
+| recorded validation results/history | validation RunEvents mapped to product meaning | inspect completed verification history | Operational | subordinate validation history; complete matrix disclosed |
+| timeline | RunEvents mapped through product presentation | inspect execution history | Operational | timeline with product labels |
+| evidence resources | EvidenceRefs / governed artifacts | inspect proof | Supporting | resource rows; explicit open enters Evidence |
+| exact ExecutionTask identity | `ExecutionTask.id/approvalId/planTaskId` | audit task mechanics | Technical | Technical details |
+| exact selected Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | audit attempt/provider mechanics | Technical | Technical details |
+| excluded redundant Run carrier fields | `Run.workItemId/executionTaskId/stage/mode/triggerEventId` | prevent duplicate low-value identity | Technical but **not rendered by this task-detail contract** | owning selection/event evidence already establishes these facts |
+| raw event/payload/diagnostic data | `RunEvent.id/runId/sequence/event.tag/event` + provider diagnostics | debug | Diagnostic | Timeline Technical details/Evidence |
 
 ##### SURF-STEP-COMPLETE-001 — terminal result
 
@@ -640,7 +666,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed result material | terminal ArtifactRefs/content | present investigation/audit result where applicable | Primary | result body | exact artifact identity Technical |
 | candidate evidence/resources | successful execution Runs/RunEvents/EvidenceRefs | support verified candidate | Supporting | resource list | human resource labels ordinarily; exact identity in Evidence |
 | linked remediation action | eligible Audit/Investigation outcome | create separately governed Change/Defect | Primary | result action | opens `SURF-CREATE-001` |
-| ids/hashes/internal role identity | exact records | audit exact result identity | Technical | Technical details/Evidence if needed | never ordinary result copy |
+| exact terminal artifact/Run identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` + relevant `Run.id/baselineCommit/contextHash/providerSessionId` | audit exact result identity | Technical | Technical details/Evidence if explicitly needed | never ordinary result copy |
 | raw event tags/payloads | RunEvents | debug implementation evidence | Diagnostic | Evidence only when explicitly inspected | never ordinary result copy |
 | result loading/error state | content/evidence query | explain unavailable supporting material | Supporting | owning result notice | raw transport internals hidden |
 
@@ -648,39 +674,52 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion |
 |---|---|---|---|---|---|
-| canonical source Markdown/body | WorkItemSourceSnapshot | author originating intent | Primary | document/editor | internal template/schema identity hidden |
-| Edit/Preview/Split | local editor mode | author/inspect safely | Supporting | document toolbar | does not alter authority until Save |
+| canonical source Markdown/body | `WorkItemSourceSnapshot.bodyMarkdown` | author originating intent | Primary | document/editor | complete portable source is Technical inspection |
+| work type | `WorkItemSourceSnapshot.metadata.schemaId` resolved through schema catalog `kind` | preserve selected work semantics while authoring | Supporting, default-visible | document facts/aside | raw schema id remains Technical |
+| Project | `WorkItemSourceSnapshot.metadata.projectId` | show governing project of the source | Supporting, default-visible | document facts/aside | repository root belongs Settings |
+| Concerns | `WorkItemSourceSnapshot.metadata.concernIds` mapped to governed concern identity | preserve governed concern context | Supporting, default-visible | document facts/aside | raw/internal representation is not substituted for human label |
+| current repository path | `WorkItemSourceSnapshot.path` | make current document identity/location clear | Supporting, default-visible | document header/facts | path is ordinary here because Markdown P3 requires current path |
+| WorkItem document directory | deterministic repository-relative WorkItem directory derived from source/document contract | orient repository-local document location and Git status | Supporting, default-visible | document/Git supporting region | required by Markdown Git-placement contract |
+| Edit / Preview / Split | local editor mode | author/inspect safely | Supporting | document toolbar | does not alter authority until Save |
 | local dirty/current state | buffer vs loaded source | protect unsaved work | Supporting | toolbar/notice | confirmation on destructive navigation |
+| upstream-return/staleness consequence before Save | canonical source freshness/lifecycle reaction when current downstream material may be invalidated | ensure informed authority mutation | Primary while such a Save is available | editor notice/action context before Save | show human consequence/possible owner return, not raw hashes |
 | Save | source mutation | persist source authoring | Primary | editor actions; visually primary command while editing | expected-hash conflict shown as human recovery |
 | Cancel | local editor action | abandon local source edits | Supporting | editor actions; secondary command | preserves canonical bytes |
-| compact documentation-Git state/action | Git status | optionally persist governed docs | Supporting | document toolbar | exact branch/HEAD/paths Technical except confirmation |
-| source blocker human meaning | source diagnostics | explain inability to progress | Primary | document/attention notice | raw code/path Technical |
-| path/SHA/schema/source internals, WorkItem directory, branch, HEAD | source/Git state | audit identity | Technical | Technical details | hidden by default |
-| exact changed paths | Git status | consent to documentation commit | Primary | confirmation | path-specific decision exception |
+| compact documentation-Git state/action | `WorkItemDocumentationGitStatus.blockers/paths[].state` mapped to product status | optionally persist governed docs | Supporting | document toolbar | exact commit path set moves to confirmation |
+| source blocker human meaning | source diagnostics | explain inability to progress | Primary | document/attention notice | raw diagnostic code stays Diagnostic; document path already has ordinary owner |
+| source metadata/hash identity | `WorkItemSourceSnapshot.sha256`, `metadata.formatVersion/id/schemaId/derivedFromWorkItemId` | exact portable-source identity | Technical | Technical details | hidden by default |
+| Git exact mechanics | `WorkItemDocumentationGitStatus.headCommit/branch/authorName/authorEmail` + `paths[].workingTreeSha256/headSha256` | exact repository state | Technical | Technical details | human blocker/status remains ordinary |
+| complete portable source bytes | `WorkItemSourceSnapshot.markdown` | exact envelope inspection | Technical | Technical details | body authoring remains Primary |
+| exact changed paths + per-path Git state | `WorkItemDocumentationGitStatus.paths[].repositoryPath/state` for changed governed paths | consent to documentation commit | Primary | `SURF-CONF-DOC-GIT-001` | path-specific safe-decision exception |
 
 ##### SURF-MAT-DOC-001 — editable lifecycle document
 
 | Datum/action | Source | Intent | Class | Default placement | Rule |
 |---|---|---|---|---|---|
-| governed Markdown content | ArtifactRef + exact bytes | author current governed artifact | Primary | document/editor | semantic internal content remains owned by selected stage schema/template |
-| human document role/title | ArtifactRef role mapped to product label | orient current material | Supporting | document header | repository path not subtitle |
-| maturity/currentness | lifecycle/currentness derivation | understand whether material is current/editable | Supporting | status/notice | exact hash Technical |
-| Edit/Preview/Split | editor mode | author/inspect | Supporting | toolbar | no new authority |
+| governed Markdown content | selected `ArtifactRef` + exact content bytes | author current governed artifact | Primary | document/editor | semantic content remains owned by selected stage schema/template |
+| human document role/title | `ArtifactRef.role` mapped to product label | orient current material | Supporting | document header | raw role enum not used as unexplained code |
+| current repository path | `ArtifactRef.repositoryPath` | make current lifecycle-document location clear | Supporting, default-visible | document header/facts | required by Markdown P3; not hidden as generic technical path |
+| maturity/currentness | lifecycle/currentness derivation | understand whether material is current/editable | Supporting | status/notice | exact hash remains Technical |
+| WorkItem document directory + compact Git state | deterministic directory + `WorkItemDocumentationGitStatus.blockers/paths[].state` mapped to product status | orient repository persistence | Supporting | document/Git region | exact hashes remain Technical |
+| Edit / Preview / Split | editor mode | author/inspect | Supporting | toolbar | no new authority |
+| upstream-return/staleness consequence before Save | canonical artifact freshness/lifecycle reaction when editing already-reached upstream authority | ensure informed authority mutation | Primary while such a Save is available | editor notice/action context before Save | state possible owner return/staleness in human terms |
 | Save | artifact mutation | persist allowed direct edit | Primary | editor actions; visually primary command while editing | exact expected hash remains mechanics |
 | Cancel | local editor action | abandon local artifact edits | Supporting | editor actions; secondary command | preserves canonical bytes |
-| documentation-Git state/action | Git status | optional governed docs commit | Supporting | toolbar | exact paths in confirmation |
+| documentation-Git state/action | Git status | optional governed docs commit | Supporting | toolbar | exact paths + states in confirmation |
 | non-canonical Markdown incompatibility | decode/format validation | explain why ordinary editor cannot own bytes | Primary | notice + inspect exact bytes action | exact bytes in Evidence |
-| repository path/SHA/git commit/branch/HEAD | ArtifactRef/Git status | audit identity | Technical | Technical details | absent ordinary heading |
+| ArtifactRef exact identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` | exact artifact/audit identity | Technical | Technical details | `authorityLayer` is not ordinary Requirements copy |
+| Git exact mechanics | `WorkItemDocumentationGitStatus.headCommit/branch/authorName/authorEmail` + `paths[].workingTreeSha256/headSha256` | exact repository state | Technical | Technical details | absent ordinary heading |
 
 ##### SURF-MAT-DOC-RO-001 — read-only lifecycle/supporting document
 
 | Datum/action | Source | Intent | Class | Placement / rule |
 |---|---|---|---|---|
-| governed Markdown content | ArtifactRef + content bytes | inspect supporting/historical/R3/Approval material | Primary | read-only document |
-| human document role/currentness | ArtifactRef + lifecycle currentness | orient material | Supporting | header/status |
-| exact path/SHA/git commit/internal role identity | ArtifactRef | audit identity | Technical | Technical details |
+| governed Markdown content | selected `ArtifactRef` + content bytes | inspect supporting/historical/R3/Approval material | Primary | read-only document |
+| human document role/currentness | `ArtifactRef.role` mapped to product label + lifecycle currentness | orient material | Supporting | header/status |
+| current repository path | `ArtifactRef.repositoryPath` | identify the current governed document location | Supporting, default-visible | document facts/header; required by Markdown P3 |
+| exact ArtifactRef identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` | audit identity | Technical | Technical details; raw authority layer/internal ids hidden by default |
 | inspect exact bytes if ordinary Markdown decode cannot represent content | content validation | preserve source fidelity | Supporting | opens Evidence |
-| Back/selector navigation | local selection | return to owning task | Supporting | selector/history |
+| Back / selector navigation | local selection | return to owning task | Supporting | selector/history |
 
 ##### SURF-MAT-ACTIVITY-001 — STAGE dialogue/activity
 
@@ -695,21 +734,23 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | workflow/system event labels | RunEvents through product presentation | understand persisted workflow history | Operational | timeline | raw tags/payloads Diagnostic |
 | evidence resource labels | EvidenceRefs | inspect proof | Supporting | timeline/resource row | exact identity/bytes in Evidence |
 | Cancel | canonical interaction eligibility | stop current Run | Supporting | Dialogue action | suppressed by proposal/adoption/current-owner rules |
-| provider session/baseline/context/Run ids/raw role/status/terminal classification | Run | exact mechanics | Technical | Technical details | absent ordinary header |
-| raw event tag/sequence/JSON payload | RunEvent | debug | Diagnostic | Timeline Technical details/Evidence | absent ordinary timeline |
+| exact Run mechanics | `Run.id/stage/role/status/baselineCommit/contextHash/providerSessionId/terminalClassification` | exact attempt/provider mechanics | Technical | Technical details | `attempt/startedAt` retain their Supporting owner; unused carrier fields are not added merely because present |
+| raw RunEvent identity/payload | `RunEvent.id/runId/sequence/event.tag` + complete `event` payload | debug exact persisted workflow event | Diagnostic | Timeline Technical details/Evidence | absent ordinary timeline |
 
 ##### SURF-MAT-PROPOSAL-001 — proposal review
 
 | Datum/action | Source | Intent | Class | Default placement | Rule |
 |---|---|---|---|---|---|
 | proposal currentness/state | proposal/adoption/disposition events | know whether decision is pending/applying/complete | Primary | Review header/status | human labels only |
-| human target meaning | proposal target mapped to governed document/authority meaning | know what changes | Primary | Review body | raw path may be shown only where exact target identity is necessary to review the mutation; do not use as sole label |
-| rationale | proposal event | understand why | Primary | Review body | none |
-| unified diff | proposal event | inspect exact proposed bytes | Primary | CodeBlock/review body | exact mutation content is task-required |
-| Adopt/Reject | current proposal decision state | dispose proposal | Primary | decision region | continuation/cancel competition follows canonical control exclusivity |
-| adoption/decision failure | mutation state | recover decision | Primary | Review notice | raw transport mechanics hidden |
-| provider/session/schema identity | Run/typed proposal context | audit exact mechanics | Technical | Technical details | absent ordinary review |
-| raw event tags/payloads | RunEvents | debug | Diagnostic | Evidence/Timeline Technical details | absent ordinary review |
+| human target meaning | `ARTIFACT_PROPOSAL_CREATED.role` mapped to governed document/authority meaning | know what changes | Primary | Review body | raw target path is not the sole label |
+| rationale | `ARTIFACT_PROPOSAL_CREATED.rationale` | understand why | Primary | Review body | none |
+| unified diff | `ARTIFACT_PROPOSAL_CREATED.unifiedDiff` | inspect exact proposed bytes | Primary | CodeBlock/review body | exact mutation content is task-required |
+| Adopt / Reject | current proposal decision state | dispose proposal | Primary | decision region | continuation/cancel competition follows canonical control exclusivity |
+| Back to workflow attempt | recorded proposal origin selection | return without mutation | Supporting | decision/navigation region | restores owning attempt/focus |
+| adoption/decision failure | proposal mutation result | recover decision | Primary | Review notice | raw transport mechanics hidden |
+| exact proposal target/base/authority identity | `ARTIFACT_PROPOSAL_CREATED.targetPath/baseSha256/authorityLayer` | audit exact proposal mechanics | Technical | Technical details | target role remains ordinary; raw path/hash/layer hidden by default |
+| exact proposal event ownership | proposal selection `runId/eventId` + disposition `proposalEventId/adoptedArtifactRefId` | audit persisted proposal identity | Technical | Technical details/Evidence only | absent ordinary review |
+| raw event tags/payloads | proposal RunEvents beyond the semantic fields above | debug | Diagnostic | Evidence/Timeline Technical details | absent ordinary review |
 
 ##### SURF-MAT-EVIDENCE-001 — exact Evidence
 
@@ -757,8 +798,10 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 | Datum/action | Source | Class | Placement rule |
 |---|---|---|---|
 | documentation-commit purpose/consequence | Git/document contract | Primary | explain explicit repository persistence |
-| exact governed changed paths | Git status paths | Primary | exact paths are required for informed path-scoped consent |
-| branch/HEAD/author where necessary to understand the commit | Git status | Technical | subordinate; must not swamp path scope |
+| exact governed changed path + Git state | `WorkItemDocumentationGitPathStatus.repositoryPath/state` for every changed governed path | Primary | both are required for informed path-scoped consent |
+| branch | `WorkItemDocumentationGitStatus.branch` | Supporting when attached | identify the branch receiving the documentation commit without competing with changed paths |
+| repository-local commit author | `authorName/authorEmail` | Supporting when available; blocker meaning becomes Primary when missing | show human attribution when useful to consent/recovery |
+| exact HEAD/hash mechanics | `headCommit` + each path's `workingTreeSha256/headSha256` | Technical | remain outside ordinary confirmation unless explicit technical inspection is separately opened |
 | Commit | documentation-Git command | Primary | visually primary confirmation command; no commit without explicit confirmation |
 | Cancel | local | Supporting | secondary command; close without repository mutation |
 
@@ -923,10 +966,10 @@ A replacement screen is technically invalid when any of the following is true:
 |---|---|---|---|---|---|
 | SD01 | C21 product-language realization | P2 Product Identity + P4 Workbench presentation | README.md; ui/src/TerminalResult.tsx; ui/src/workbench-presentation.ts | Use verified result as umbrella product outcome and Verified candidate only for executed delivery; reuse the canonical P4 terminal-result projection and replace local enum prettification; no lifecycle/state/contract change. | tests/workbench-presentation.test.ts; tests/browser.spec.ts; tests/certification.test.ts |
 | SD02 | C22 authority resolution and stage materiality | GW-DOC-LIFECYCLE-CONTEXT-V2 + GW-DOC-TECHNICAL-ARCHITECTURE-V2 §35.1 + GW-DOC-OPENCODE-INTEGRATION-V1 | src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Reuse the permanent P3/P4 contract: pure same-layer precedence plus P1 default/override/extension/fitness resolution over the reachable authority graph, then derive the stage-material subset from pinned schema/template, mandatory stage policy and explicit upstream/signed refs. Stable refs select current owners; explicit versioned refs select exact retained snapshots. Retained versions must remain reachable without entering an unrelated current-schema context. Unresolved material relation blocks before inference. | tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts — exact propositions below |
-| SD03 | C02 authoring presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/CreateWorkItem.tsx | Ordinary label is Concerns; linked remediation project is fixed parent-project context. Preserve canonical kind/schema/body/metadata owners. Project/kind/title/Concerns and human lineage meaning are ordinary content; repository root, parent WorkItem id, schema/version/internal metadata are not persistently exposed when semantic labels suffice. | tests/browser.spec.ts proves both authoring semantics and default-hidden technical identity |
+| SD03 | C02 authoring presentation | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/CreateWorkItem.tsx | Ordinary label is Concerns; linked remediation project is fixed parent-project context. Preserve canonical kind/schema/body/metadata owners. Project/kind/title/Concerns and human lineage meaning are ordinary content, and the selected project's repository-relative WorkItem documentation root is default-visible supporting context before Create. Parent WorkItem id, schema/version and internal metadata remain hidden. | tests/browser.spec.ts proves the required documentation root is visible while parent/schema/internal identity remains default-hidden |
 | SD04 | C02/C04 singular source admission | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/daemon/work-item-source.ts | Factor one new-source QueuePlan producer and persist both created/discovered sources through existing applyPlan; remove direct create-path WorkItem store. | tests/daemon.test.ts |
-| SD05 | C03 archived queue filtering | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/app.tsx; ui/src/WorkItemQueue.tsx | App selects active/include-archived canonical dataset then applies project/search once; queue does not replace filtering semantics. Source/readiness diagnostics use human-readable operator meaning/action in ordinary Queue/application space; raw diagnostic code/path remains technical/evidence-owned. | tests/browser.spec.ts includes filter semantics plus negative raw-diagnostic visibility |
-| SD06 | C04 documentation-Git exact review | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 + R2 C19 visibility contract | ui/src/DocumentWorkspace.tsx | Render exact canonical changed-path/state set in confirmation before existing bounded commit command; this is the explicit safe-consent exception where exact paths become decision-primary. Outside that confirmation, path/hash/schema identity remains Technical details. No second Git-status owner. | tests/browser.spec.ts proves default-hidden document identity plus exact confirmation paths |
+| SD05 | C03 archived queue filtering | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/app.tsx; ui/src/WorkItemQueue.tsx | App selects active/include-archived canonical dataset then applies project/search once; Queue owns New WorkItem, Refresh sources, search/filter controls and source diagnostics. Diagnostics show human reason plus the source path when that path is the only usable identity of an invalid/unmaterialized source; raw diagnostic code/parser payload remains technical/evidence-owned. | tests/browser.spec.ts includes filter semantics, Refresh sources ownership, visible defective-source path and negative raw-code/payload visibility |
+| SD06 | C04 documentation-Git exact review | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 + R2 C19 visibility contract | ui/src/DocumentWorkspace.tsx | Render the current repository path and WorkItem document directory as supporting document identity, show the governed pre-Save upstream-return/staleness consequence whenever applicable, and render the exact changed-path/state set in confirmation before the bounded commit command. SHA/schema/ArtifactRef/commit identity remains Technical. No second Git-status owner. | tests/browser.spec.ts proves visible current path/directory and pre-Save consequence, default-hidden hashes/internal identity, and exact confirmation path+state rows |
 | SD07 | C05/C17 current-attention visibility | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ActivityWorkspace.tsx; ui/src/WorkItemWorkspace.tsx; ui/src/workbench-presentation.ts | Keep historical/supporting inspection while the exact higher-priority current owner/reason/action remains visible and directly reachable; when the owning cause is technical, promote only its human-readable meaning/consequence/action while raw code/path/session/payload remains in Technical details/Evidence. Do not create browser workflow state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including human-meaning-only promotion |
 | SD08 | C06 durable authority-changing input | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/lifecycle.ts; src/daemon/stage.ts | After answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, stage completion requires later adopted canonical authority; INFORMATION/EVIDENCE unchanged. | tests/core.test.ts; tests/daemon.test.ts |
 | SD09 | C07/C08 permanent authority proposal/adoption | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/contracts.ts; src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Extend the one proposal/adoption owner: R2 admits current P2/P3 targets; DESIGN current P4/P5/P6 targets; re-resolve role/layer/path/base hash before adoption. No new proposal model. | tests/core.test.ts; tests/daemon.test.ts |
@@ -934,7 +977,7 @@ A replacement screen is technically invalid when any of the following is true:
 | SD11 | C10 Readiness judgment | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ReadinessWorkspace.tsx; ui/src/workbench-presentation.ts | Dominant verdict derives from typed R3 completion outcome; findings/return owner remain primary, package/material context is supporting, and artifact role/path/hash/package identity is Technical details only. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including hidden-before-disclosure technical identity |
 | SD12 | C11 Approval identity and hierarchy | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | src/core/contracts.ts; src/daemon/authority.ts; ui/src/SignoffReview.tsx | Trim/reject blank approvedBy at canonical ingress and show readiness/currentness/task meaning before technical package identity; package hash/baseline/commit plus approval/task ids remain behind their owning Technical details disclosure while browser validation remains feedback. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts proves hidden/default/disclosed identity |
 | SD13 | C12 signed in-task checkpoint | GW-DOC-EXECUTION-CONTROL-PLANE-V1 + GW-DOC-CANONICAL-CONTRACTS-V2 | **Baseline capability already integrated; no T1 production edit:** src/core/contracts.ts; src/core/execution.ts; src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Current baseline satisfies P6 §37.6: BUILDER alone may request exactly one signed-task gate checkpoint as terminal turn action; the coordinator verifies freshness/signed gate/current V2 scope before effect, executes the existing gate owner, records GATE_PASSED/GATE_FAILED evidence and continues the same Run/provider session; provider shell/execute remains denied. Final PLAN may schedule/use this capability but must not bootstrap or reimplement it. | existing tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts are baseline proof; final PLAN may add only task-specific usage/cadence proof where required |
-| SD14 | C16 Settings hierarchy | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/SettingsWorkspace.tsx | Keep one canonical Settings/config owner. Readiness/meaning/action is ordinary content; exact roots/endpoints/account/credential-like/provider identity stays in Technical details except when the active Add/Move/model/account task requires that exact value as an input/selection. Raw enum/status codes are mapped to operator language. | tests/browser.spec.ts proves ordinary-vs-active-input-vs-technical placement |
+| SD14 | C16 Settings hierarchy | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/SettingsWorkspace.tsx | Keep one canonical Settings/config owner. Readiness/meaning/action is ordinary content. Each connected repository default-visibly shows project identity, exact Git root, resolved WorkItem-document root and current queue/creation-context state as required by Installation Readiness; manifest/config hashes, endpoints/account ids/provider mechanics remain Technical unless an active bounded task requires an exact value. Raw enum/status codes are mapped to operator language. | tests/browser.spec.ts proves required repository facts visible, active-input exact values, and unrelated technical identity default-hidden |
 | SD15 | C18 required-input focus | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ActivityComposer.tsx; ui/src/ActivityWorkspace.tsx | Focus Workbench-owned composer once for each newly current required-input event id; rerender/polling does not refocus; no private Astryx DOM policy. | tests/browser.spec.ts |
 | SD16 | C19 exhaustive renderer fitness | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract + this DESIGN's exhaustive 37-surface information contract | tests/certification.test.ts | Keep exhaustive production-renderer classification proof against the **actual rows of P4 §8.17**; incidental `.tsx` mentions in surrounding prose do not satisfy renderer-matrix membership. Certify that each renderer family consumes only the disclosure owner(s) authorized by the exhaustive surface contract. The check remains structural/semantic and does not create a second field registry or mutate tests/architecture.test.ts inside T1. | tests/certification.test.ts |
 | SD17 | C20 scenario-41 certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19/C20 visibility contract | tests/browser.spec.ts | Certify all four work-kind Work request + Research information contracts and distinct Change/Defect downstream obligations, including that kind-specific operator information is visible while common technical identity remains default-hidden. | tests/browser.spec.ts |
@@ -942,13 +985,13 @@ A replacement screen is technically invalid when any of the following is true:
 | SD19 | C16 guided productive installer | corrected P3 `GW-FR-007` + `GW-FR-079`; GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices and daemon/readiness conditions exist. Preserve incomplete v4 as post-install/update daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
 | SD20 | C20 exact-pin OpenCode integration certification | `GW-FR-103-OPENCODE-INTEGRATION-CERTIFICATION-COVERAGE`; `GW-TR-079-OPENCODE-INSTRUCTION-BOUNDARY-CERTIFICATION`; `GW-DOC-EXTERNAL-FACTS` | `tests/opencode.test.ts`; `.github/workflows/ci.yml` | Add one permanent verification-only exact-pin tier: CI installs isolated `opencode-drive@2.4.1` + `effect@4.0.1` tooling outside Order's package/runtime dependency graph; the test launches the actual supported OpenCode `2.2.6` process through Order's production OpenCode shell/session boundary and drives deterministic model responses through the simulation provider/controller. Existing fake OpenCode fixtures remain fast unit/shell/daemon doubles only and cannot satisfy the exact-pin proposition. No production source, runtime dependency, config/state model or alternate provider path is introduced. | permanent exact-pin integration case in `tests/opencode.test.ts`, executed by PR verification; existing fake/adversarial tests remain complementary |
 | SD21 | C05/C18/C19-F02/C19-F03 Workbench foundation + shell destructive reconstruction boundary | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 §16.6 + GW-DOC-WORKBENCH-THEME-V1 + current R2/P3 interaction/information contracts + this DESIGN's exhaustive 37-surface information contract | design-bearing composition primitives under `ui/src/primitives/`; new `WorkbenchAppShell.tsx`, `WorkbenchWorkItemShell.tsx`, `workbench-responsive.ts`; `ui/src/app.tsx`; `ui/src/WorkItemWorkspace.tsx`; `ui/src/WorkItemIdentityRow.tsx`; `ui/src/WorkflowRail.tsx`; `ui/src/WorkflowStepFrame.tsx`; `ui/src/theme.css`; `ui/src/styles.css`; `tests/certification.test.ts`; `tests/browser.spec.ts` | Reconstruct the same foundation boundary as before, using the already-closed surface information contract to prove the foundation can realize Primary/Supporting/Operational/Technical/Diagnostic slots and the closed disclosure owners. AppShell/WorkItemShell/Attention/Surface/Review/Dialogue/MasterDetail/Context/Selector/Disclosure composition must make it structurally possible for screens to keep ordinary task content separate from technical/diagnostic inspection without creating another layout axis. No primitive invents product classification; it receives already-classified content. | prior purge/one-owner architecture proof remains required; foundation review additionally proves the closed disclosure channels, no auto-open technical surface, and no primitive forces technical identity into ordinary content |
-| SD22 | C02/C03/C16/C19-F03 — fresh Queue/Create/application utilities | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-INSTALLATION-READINESS-V1 + R2 C02/C03/C16/C19 | `ui/src/OpenCodeAccountControl.tsx`; `ui/src/WorkItemQueue.tsx`; `ui/src/CreateWorkItem.tsx` | Queue renders human-readable source/readiness attention and an inspect/recovery action, never raw diagnostic code/path in the ordinary notice. Create/remediation renders project/kind/title/Concerns and human lineage meaning; repository documentation root, parent WorkItem id and other internal derived identity are hidden behind the authorized technical owner rather than persistently shown. Active saved-account status remains global quick-access, not management detail. | browser/rendered proof includes absence of raw Queue diagnostic code/path and Create root/parent-id from default view plus positive authorized disclosure where applicable |
-| SD23 | C04/C05/C19-F03 fresh Work request/document screens on reconstructed WorkItem shell | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C04/C05/C17/C19 | `ui/src/DocumentWorkspace.tsx` | Governed content/action stays primary; maturity/currentness and compact Git state stay supporting; repository path/SHA/schema/source identity stay inside Technical details. The existing documentation-Git confirmation is the explicit exception where exact changed paths become decision-primary because consent is path-specific. | browser/rendered proof checks default absence of path/hash/schema, positive Technical-details disclosure, and exact changed-path visibility inside confirmation |
+| SD22 | C02/C03/C16/C19-F03 — fresh Queue/Create/application utilities | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-INSTALLATION-READINESS-V1 + R2 C02/C03/C16/C19 | `ui/src/OpenCodeAccountControl.tsx`; `ui/src/WorkItemQueue.tsx`; `ui/src/CreateWorkItem.tsx` | Application shell owns only global navigation/readiness/account/theme utilities; Queue owns search/New WorkItem/Refresh sources and source diagnostics. Queue diagnostics render human reason plus source path when needed to identify an invalid/unmaterialized source while hiding raw code/parser payload. Create/remediation renders project/kind/title/Concerns, human lineage meaning and the resolved repository-relative WorkItem documentation root; parent WorkItem id and schema/internal identity remain hidden. | browser/rendered proof includes Queue-control ownership, visible defective-source path with hidden raw code, visible Create documentation root and hidden parent/schema identity |
+| SD23 | C04/C05/C19-F03 fresh Work request/document screens on reconstructed WorkItem shell | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C04/C05/C17/C19 | `ui/src/DocumentWorkspace.tsx` | Governed content/action stays primary. Work request type/Project/Concerns, current repository path, WorkItem document directory, maturity/currentness and compact Git state are supporting/default-visible where applicable. Before an upstream Save that can invalidate downstream authority, show the human return/staleness consequence. SHA/schema/ArtifactRef/authority-layer/commit identity stays in Technical details. Git confirmation makes exact changed path + Git state decision-primary. | browser/rendered proof checks required supporting facts/path/directory/save consequence, hidden hashes/internal identity, and exact changed-path+state confirmation |
 | SD24 | C06/C07/C08/C09/C19-F03 fresh productive-stage screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 productive interaction/visibility contract | `PreSignoffStageWorkspace.tsx`; `ActivityWorkspace.tsx`; `ActivityComposer.tsx`; `WorkflowMaterialSelector.tsx`; `ProposalReview.tsx`; `RunEventTimeline.tsx` | Dialogue/Document/Proposal current task remains primary; attempts/upstream material/activity/evidence remain supporting. Provider session, baseline/context hash, raw Run/event tags and repository paths are Technical details and cannot appear in the ordinary companion/history surface. Proposal uses human target/rationale/diff labels; raw event/schema identity remains technical. Provider failure may promote only its human blocker/recovery meaning. | per-stage browser/rendered review proves hidden technical identity by default, positive Technical/Timeline disclosure, and no raw Research repository path/event-tag leakage |
 | SD25 | C10/C11/C19-F03 fresh Readiness + Approval screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C10/C11/C19 | `ReadinessWorkspace.tsx`; `SignoffReview.tsx` | Preserve the Review hierarchies, with artifact/package role/path/hash, package hash/baseline/commit and approval/task ids explicitly bound to Technical details / Task technical details. Currentness/readiness/task meaning remains visible while technical disclosure opens. | browser proof must assert those identities hidden before disclosure and visible only after the owning disclosure, while verdict/currentness/sign-off hierarchy remains present |
 | SD26 | C12/C19-F03 fresh Implementation screen | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C12/C19 | `ExecutionWorkspace.tsx`; consumes the already-reconstructed `RunEventTimeline.tsx` from SD24/IA30 and reconstructed `WorkbenchMasterDetail` from SD21 | Current task/action/blocker/attempt meaning/validation stay primary; task master/history/chronology/evidence stay supporting. Task/approval/plan/Run ids, baseline/context/provider session and raw execution diagnostics are Technical details. Evidence resource labels use operator-facing resource meaning; raw technical identity moves to Evidence after explicit open. | execution browser/rendered proof includes negative default visibility for ids/session/baseline and positive technical/evidence disclosure |
 | SD27 | C13/C14/C19-F03 fresh Complete/Evidence/Context screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C13/C14/C19 | `TerminalResult.tsx`; `EvidenceViewer.tsx`; `WorkItemContext.tsx` | Complete uses only product-facing outcome/resource language; raw event tags/role codes/ids/hashes do not become ordinary result copy. Evidence is the explicit owner where exact evidence identity/bytes become primary. Context remains explicitly opened compact technical orientation and may contain raw exact values because the operator requested that surface; neither Evidence nor Context auto-opens or hides current attention. | terminal proof rejects internal event/role vocabulary in default result; Evidence/Context proof confirms exact values only after explicit open and correct return/close behavior |
-| SD28 | C15/C16/C19-F03 fresh Settings/account/configuration management screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-INSTALLATION-READINESS-V1 + R2 C15/C16/C19 | `SettingsWorkspace.tsx`; `OpenCodeAccountSettings.tsx` | Readiness/meaning/action remain primary. Exact roots/endpoints/account ids/provider mechanics are Technical details unless the active Add/Move/model/account task requires that exact value as its input/selection. Internal enum/status codes are mapped to product language rather than rendered literally. | Settings browser/rendered matrix proves ordinary-vs-active-input-vs-Technical-details placement for repository/account/model values |
+| SD28 | C15/C16/C19-F03 fresh Settings/account/configuration management screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-INSTALLATION-READINESS-V1 + R2 C15/C16/C19 | `SettingsWorkspace.tsx`; `OpenCodeAccountSettings.tsx` | Readiness/meaning/action remain primary. Connected-repository Git root, resolved WorkItem-document root and current queue/creation context are default-visible Supporting repository facts; Add/Move fields make their exact values Primary. Manifest/config hashes, account ids, endpoints/provider mechanics and raw enums remain Technical/Diagnostic outside their explicit task owner. | Settings browser/rendered matrix proves required repository facts, exact active inputs, account/login state predicates and hidden technical identity |
 | SD29 | C18/C19-F03 responsive/accessibility on reconstructed foundation and replacement screens | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 | SD21 reconstructed composition primitives/responsive owner plus replacement screen files from SD22-SD28 | Structural responsive behavior remains singular. Responsive recomposition may change placement but never classification/default visibility: Technical/Diagnostic information cannot become persistently visible merely because the viewport changes, and Primary content cannot be pushed behind technical disclosure. Required-input focus-once remains SD15. | wide/medium/narrow proof includes semantic order plus disclosure parity and absence of viewport-specific technical leakage |
 | SD30 | C20-F05/C20-F06 rendered and semantic UI acceptance | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 + R2 C19/C20 | `tests/browser.spec.ts`; `tests/certification.test.ts`; `.github/workflows/ci.yml` | Keep the three rendered verdict dimensions, but `schema_information` now explicitly includes visibility correctness: required Primary information present; technical/diagnostic information absent by default; authorized disclosure reveals its exact owned values; closing/return restores hierarchy. The SVG is comparison material only and must be corrected/overridden when it conflicts with R2. Presence-only assertions cannot satisfy the contract and stale assertions that force raw technical text into ordinary UI must be removed/replaced. | permanent CI artifact + per-row PASS for schema/information including hidden/default/disclosed states + zero unresolved rendered acceptance FAIL |
 
