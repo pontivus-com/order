@@ -1191,7 +1191,7 @@
 
 @media (max-width: 799px) {
   .order-queue-table-scroll > * {
-    min-width: 46rem;
+    min-width: max-content;
   }
   .order-workbench-attention {
     align-items: stretch;
