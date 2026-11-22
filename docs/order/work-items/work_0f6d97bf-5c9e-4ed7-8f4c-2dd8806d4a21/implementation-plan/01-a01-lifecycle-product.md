@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `6203d3d578aa6d1384f61a2566fa920967c8e9fa`.
+**Upstream:** current R1 `9f99a885da3757afad112dfd5d9d5e26782c41f9`; current R2 `7a279895bd57a2ec7080e1404927ce0668f1dbaf`; current DESIGN `e616f0936e00e81347e82134e4e9c0cc9d1b71c1`.
 
 ## Stable requirement execution dispositions
 
@@ -41,7 +41,7 @@ Package atoms in phase: **1**.
 ## Referenced actions
 
 - **IA19** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA33** — consume the single Complete/Evidence/Context destructive replacement definition for terminal-result composition.
+- **IA33** — consume the single Complete/Evidence destructive replacement definition for terminal-result composition.
 
 ## Completion proof
 
