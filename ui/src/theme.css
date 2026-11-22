@@ -756,10 +756,6 @@
   display: grid;
   gap: var(--spacing-3);
 }
-.order-queue-table-scroll {
-  min-width: 0;
-  overflow-x: auto;
-}
 .order-queue-primary,
 .order-queue-progress {
   min-width: 0;
@@ -1190,10 +1186,9 @@
 }
 
 @media (max-width: 799px) {
-  .order-queue-table-scroll table {
-    width: max-content;
-    min-width: 100%;
-    white-space: nowrap;
+  .order-queue-primary > strong {
+    overflow-wrap: normal;
+    word-break: normal;
   }
   .order-workbench-attention {
     align-items: stretch;
