@@ -1175,6 +1175,9 @@ The following matrix is exhaustive for the production TSX renderers present on t
 | `CreateWorkItem.tsx` | Form + Astryx field-owning controls / Field fallback + Status/Notice + Action inside TaskPanel | raw feature-styled select/input/form spacing |
 | `WorkItemQueue.tsx` | Surface + Table + Status + Action | direct table grammar plus feature-owned responsive row styling |
 | `WorkItemWorkspace.tsx` | Identity + Rail + Confirmation + canonical primary composition | native workflow buttons, identity grid and direct AlertDialog |
+| `WorkItemIdentityRow.tsx` | thin identity adapter -> `WorkbenchIdentity` | no independent identity grid/chrome; adapter remains state/policy-free |
+| `WorkflowRail.tsx` | thin workflow-navigation adapter -> `WorkbenchRail` | no independent rail geometry/status styling or responsive ownership |
+| `WorkflowMaterialSelector.tsx` | thin material-selection adapter -> `WorkbenchSelector` | no feature-selected overlay/persistent side-index or material-count topology |
 | `WorkflowStepFrame.tsx` | Attention + Surface only | generic side-index Layout/Drawer |
 | `PreSignoffStageWorkspace.tsx` | Selector + canonical Document/Dialogue/Review/Evidence composition | count-selected side index and bespoke supporting-context disclosure |
 | `ActivityWorkspace.tsx` | Dialogue + Status/Notice + Disclosure + Timeline + Action | bespoke dialogue heading/composer geometry and technical details |
