@@ -6,15 +6,7 @@ import {
   TableHeaderCell,
   TableRow,
 } from "@astryxdesign/core/Table";
-import * as stylex from "@stylexjs/stylex";
 import type { ReactNode } from "react";
-
-const workbenchTableStyles = stylex.create({
-  cell: {
-    overflowWrap: "normal",
-    wordBreak: "normal",
-  },
-});
 
 export type WorkbenchTableColumn = Readonly<{ key: string; label: string }>;
 export type WorkbenchTableRow = Readonly<{
@@ -63,7 +55,7 @@ export const WorkbenchTable = ({
             }}
           >
             {columns.map((column) => (
-              <TableCell key={column.key} xstyle={workbenchTableStyles.cell}>
+              <TableCell className="order-workbench-table-cell" key={column.key}>
                 {row.cells[column.key]}
               </TableCell>
             ))}

@@ -555,6 +555,11 @@
 }
 .order-settings-layout-content-surface { padding: var(--spacing-5); }
 
+.order-workbench-table-cell {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 /* 4. Specialist content and feature-semantic layout. */
 
 /* IA31 — verdict-first Readiness and currentness-first Approval reviews. */
