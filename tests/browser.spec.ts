@@ -1158,7 +1158,8 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await page.getByRole("button", { name: "Context" }).click();
   await expect(context).toBeVisible();
   await expect(page.getByTestId("selected-view-context")).toBeVisible();
-  await page.getByRole("button", { name: "WorkItem technical details" }).click();
+  await expect(context.getByRole("heading", { name: "WorkItem identity", exact: true })).toBeVisible();
+  await expect(context.getByRole("button", { name: "WorkItem technical details" })).toHaveCount(0);
   await expect(context).toContainText(proposalItem.id);
   await expect(page.getByTestId("workbench-search")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh sources" })).toHaveCount(0);
@@ -3777,12 +3778,13 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   );
   await expect(approvalReview.getByTestId("approval-readiness-summary"))
     .toContainText("Ready for sign-off");
-  const packageHash = page.getByTestId("signoff-package-hash");
+  await expect(approvalReview.getByTestId("signoff-package-hash")).toHaveCount(0);
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  const packageHash = page.getByTestId("context-signoff-package-hash");
   await expect(packageHash).toHaveText(/^sha256:[0-9a-f]{64}$/);
-  await expect(packageHash).toBeHidden();
-  await page.getByRole("button", { name: "Technical details", exact: true }).click();
   await expect(packageHash).toBeVisible();
   await expect(page.getByTestId("workflow-step-index")).toHaveCount(0);
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
 
   await openDisclosureResource(
     page,

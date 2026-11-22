@@ -17,10 +17,36 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
   const selectedRunId=workflowMaterialRunId(material);
   const schemasQuery=useQuery({queryKey:workbenchQueryKeys.workItemSchemas,queryFn:api.listWorkItemSchemas});
   const runsQuery=useQuery({queryKey:workbenchQueryKeys.runs(workItem.id),queryFn:()=>api.listRuns(workItem.id),enabled:selectedRunId!==null});
+  const proposalRunId=material.kind==="PROPOSAL"?material.runId:null;
+  const proposalEventsQuery=useQuery({
+    queryKey:workbenchQueryKeys.runEvents(proposalRunId),
+    queryFn:()=>proposalRunId===null?Promise.resolve([]):api.listRunEvents(proposalRunId,0),
+    enabled:proposalRunId!==null,
+  });
+  const signoffPackageQuery=useQuery({
+    queryKey:workbenchQueryKeys.signoffPackage(workItem.id),
+    queryFn:()=>api.getSignoffPackage(workItem.id),
+    enabled:material.kind==="APPROVAL_PACKAGE"&&workItem.stage==="AWAITING_SIGNOFF",
+    retry:false,
+  });
+  const tasksQuery=useQuery({
+    queryKey:workbenchQueryKeys.tasks(workItem.id),
+    queryFn:()=>api.listExecutionTasks(workItem.id),
+    enabled:material.kind==="EXECUTION_TASK",
+  });
   const diagnosticsQuery=useQuery({queryKey:workbenchQueryKeys.workItemSourceDiagnostics,queryFn:api.listWorkItemSourceDiagnostics});
   const diagnostics=(diagnosticsQuery.data??[]).filter((item)=>item.workItemId===workItem.id||item.path===workItem.sourcePath);
   const kind=schemasQuery.data?.find((schema)=>schema.schemaId===workItem.schemaId)?.kind??workItem.schemaId;
   const selectedRun=(runsQuery.data??[]).find((run)=>run.id===selectedRunId)??null;
+  const selectedProposalEvent=material.kind==="PROPOSAL"
+    ?(proposalEventsQuery.data??[]).find((event)=>event.id===material.eventId)??null
+    :null;
+  const selectedTask=material.kind==="EXECUTION_TASK"
+    ?(tasksQuery.data??[]).find((task)=>task.id===material.taskId)??null
+    :null;
+  const selectedPackage=material.kind==="APPROVAL_PACKAGE"
+    ?signoffPackageQuery.data??null
+    :null;
   const selectedDocumentIsRelevant=material.kind==="SOURCE_DOCUMENT"||material.kind==="STAGE_DOCUMENT"||material.kind==="SUPPORTING_DOCUMENT"||step==="AWAITING_SIGNOFF";
   return <WorkbenchContextPanel title="Technical context" onClose={onClose}>
     <div data-testid="selected-view-context">
@@ -61,12 +87,29 @@ export const WorkItemContext=({workItem,selectedStep,selectedMaterial,selectedDo
       <MetadataList columns="single">
         <MetadataListItem label="Run id"><code>{material.runId}</code></MetadataListItem>
         <MetadataListItem label="Proposal event id"><code>{material.eventId}</code></MetadataListItem>
+        {selectedProposalEvent?.event.tag==="ARTIFACT_PROPOSAL_CREATED"?<>
+          <MetadataListItem label="Target path"><code>{selectedProposalEvent.event.targetPath}</code></MetadataListItem>
+          <MetadataListItem label="Base SHA"><code>{selectedProposalEvent.event.baseSha256??"—"}</code></MetadataListItem>
+          <MetadataListItem label="Authority layer"><code>{selectedProposalEvent.event.authorityLayer}</code></MetadataListItem>
+        </>:null}
+      </MetadataList>
+    </section>:null}
+    {material.kind==="APPROVAL_PACKAGE"&&selectedPackage!==null?<section className="order-workbench-context-group" aria-label="Selected approval package identity">
+      <h3>Selected approval package identity</h3>
+      <MetadataList columns="single">
+        <MetadataListItem label="Package hash"><code data-testid="context-signoff-package-hash">{selectedPackage.packageHash}</code></MetadataListItem>
+        <MetadataListItem label="Source SHA"><code>{selectedPackage.sourceSha256}</code></MetadataListItem>
+        <MetadataListItem label="Baseline"><code>{selectedPackage.baselineCommit}</code></MetadataListItem>
       </MetadataList>
     </section>:null}
     {material.kind==="EXECUTION_TASK"?<section className="order-workbench-context-group" aria-label="Selected execution identity">
       <h3>Selected execution identity</h3>
       <MetadataList columns="single">
         <MetadataListItem label="Execution task id"><code>{material.taskId}</code></MetadataListItem>
+        {selectedTask===null?null:<>
+          <MetadataListItem label="Plan task id"><code>{selectedTask.planTaskId}</code></MetadataListItem>
+          <MetadataListItem label="Approval id"><code>{selectedTask.approvalId}</code></MetadataListItem>
+        </>}
         {material.runId===null?null:<MetadataListItem label="Selected Run id"><code>{material.runId}</code></MetadataListItem>}
       </MetadataList>
     </section>:null}

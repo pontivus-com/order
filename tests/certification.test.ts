@@ -471,9 +471,38 @@ describe("Order cross-boundary certification", () => {
     expect(confirmationPrimitive).not.toContain("cancelLabel");
 
     const taskPanel = read("ui/src/primitives/WorkbenchTaskPanel.tsx");
+    expect(taskPanel).toContain("order-workbench-task-panel-header");
+    expect(taskPanel).toContain("order-workbench-task-panel-body");
+    expect(taskPanel).toContain("order-workbench-task-panel-footer");
+    expect(taskPanel).toContain("footer: ReactNode");
+    expect(taskPanel).toContain("<form");
     expect(taskPanel).not.toContain('width="42rem"');
     expect(taskPanel).not.toContain("100vw");
     expect(taskPanel).not.toContain("calc(");
+
+    const reviewPrimitive = read("ui/src/primitives/WorkbenchReview.tsx");
+    expect(reviewPrimitive).not.toContain("technicalDetails");
+    expect(reviewPrimitive).not.toContain("WorkbenchDisclosure");
+
+    const context = read("ui/src/WorkItemContext.tsx");
+    expect(context).toContain('aria-label="WorkItem identity"');
+    expect(context).toContain('aria-label="Selected proposal identity"');
+    expect(context).toContain('aria-label="Selected approval package identity"');
+    expect(context).toContain('aria-label="Selected execution identity"');
+    expect(context).toContain('data-testid="context-signoff-package-hash"');
+    expect(context).not.toContain("WorkbenchDisclosure");
+    expect(context).not.toContain("WorkItem technical details");
+
+    const activityWorkspace = read("ui/src/ActivityWorkspace.tsx");
+    expect(activityWorkspace).not.toContain("WorkbenchDisclosure");
+    expect(activityWorkspace).not.toContain('label="Technical details"');
+
+    const createWorkItem = read("ui/src/CreateWorkItem.tsx");
+    expect(createWorkItem).not.toContain("WorkbenchForm");
+    expect(createWorkItem).not.toContain("WorkbenchAction");
+    const appSource = read("ui/src/app.tsx");
+    expect(appSource).toContain("footer={");
+    expect(appSource).toContain('type="submit"');
     expect(theme).not.toContain("--pontivus-plugin-panel-inspector-width-standard: 26.25rem");
     expect(theme.split("/* 2. Order-only structural/readability roles. */")[1]).not.toMatch(/#[0-9A-Fa-f]{3,8}\b/);
 
