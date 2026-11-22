@@ -56,14 +56,14 @@ IA phase ownership below further constrains internal sequencing and semantic res
 
 ### Positively retained UI capability
 
-The following atomic adapters remain positively retained: `ui/src/primitives/WorkbenchAction.tsx`, `ui/src/primitives/WorkbenchDisclosure.tsx`, `ui/src/primitives/WorkbenchField.tsx`, `ui/src/primitives/WorkbenchIcon.tsx`, `ui/src/primitives/WorkbenchNotice.tsx`, `ui/src/primitives/WorkbenchStatus.tsx`. `ui/src/primitives/WorkbenchConfirmation.tsx` has been independently disproved as a retained adapter and is now an IA27 design-bearing destructive-replacement owner.
+The following five atomic adapters remain positively retained: `ui/src/primitives/WorkbenchAction.tsx`, `ui/src/primitives/WorkbenchField.tsx`, `ui/src/primitives/WorkbenchIcon.tsx`, `ui/src/primitives/WorkbenchNotice.tsx`, `ui/src/primitives/WorkbenchStatus.tsx`. `ui/src/primitives/WorkbenchDisclosure.tsx` and `ui/src/primitives/WorkbenchConfirmation.tsx` are design-bearing IA27 owners under the corrected P3/P4 contracts.
 
 The retained content/infrastructure helpers `ui/src/MarkdownSourceEditor.tsx`, `ui/src/workbench-presentation.ts`, `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` remain outside the foundation/screen replacement surfaces. `ui/src/MarkdownEditor.tsx` is now inside IA29/SD23 because its composition is itself design-bearing.
 
 IA27 owns foundation/shell authority classification, bounded remediation or targeted destructive replacement and the foundation/theme/structural selector set. IA28 consumes the resulting foundation candidate and is the first rendered acceptance checkpoint; IA29-IA31 may proceed only after that acceptance and may mutate shared styles only for proven residual defects in their exact screen selectors. IA32-IA34 may delete/recreate only their exact owned screen selectors. After IA28 acceptance, later phases treat the IA27 foundation as frozen; a newly discovered foundation responsibility/semantic defect returns to IA27/DESIGN.
 ## Exact signed implementation surface
 
-The exact cumulative mutable forecast is T1's single `changeSurface`: **67 unique paths**.
+The exact cumulative mutable forecast is T1's single `changeSurface`: **69 unique paths**.
 
 ### Non-UI production (9)
 - `README.md`
@@ -76,9 +76,10 @@ The exact cumulative mutable forecast is T1's single `changeSurface`: **67 uniqu
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 
-### UI foundation/shell revalidation/remediation surface (31)
+### UI foundation/shell revalidation/remediation surface (32)
 - `ui/src/primitives/WorkbenchAttention.tsx`
 - `ui/src/primitives/WorkbenchConfirmation.tsx`
+- `ui/src/primitives/WorkbenchDisclosure.tsx`
 - `ui/src/primitives/WorkbenchContextPanel.tsx`
 - `ui/src/primitives/WorkbenchDialogue.tsx`
 - `ui/src/primitives/WorkbenchForm.tsx`
@@ -109,11 +110,12 @@ The exact cumulative mutable forecast is T1's single `changeSurface`: **67 uniqu
 - `ui/src/styles.css`
 - `ui/src/theme.css`
 
-### UI material-screen owners (18; IA28-IA31 resumed, IA32-IA34 fresh)
+### UI material-screen owners (19; IA28-IA31 resumed, IA32-IA34 fresh)
 - `ui/src/OpenCodeAccountControl.tsx`
 - `ui/src/WorkItemQueue.tsx`
 - `ui/src/CreateWorkItem.tsx`
 - `ui/src/DocumentWorkspace.tsx`
+- `ui/src/MarkdownEditor.tsx`
 - `ui/src/PreSignoffStageWorkspace.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/ActivityComposer.tsx`
