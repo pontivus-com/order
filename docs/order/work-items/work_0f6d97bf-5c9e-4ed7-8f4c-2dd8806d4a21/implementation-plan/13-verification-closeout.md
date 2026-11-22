@@ -41,7 +41,7 @@ Each resumed phase retains:
 - semantic/browser/rendered proof including P3 §11.4A default visibility/disclosure behavior;
 - applicable signed gate feedback.
 
-Current bytes do not pass because they already exist; they pass only when the fresh authority/schema/proof independently demonstrates conformance. Minimum change forbids deleting/recreating conforming paths merely to replay historical process evidence.
+Current bytes do not pass because they already exist; they pass only when the signed DESIGN contract and current authority/proof independently demonstrate conformance. Minimum change forbids deleting/recreating conforming paths merely to replay historical process evidence.
 
 For IA32-IA34, verification retains the original purge/rebuild discipline:
 
