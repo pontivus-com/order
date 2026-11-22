@@ -1393,6 +1393,61 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
 
   await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await openWorkItem(page, "Completed investigation");
+  await expect(page.getByTestId("workbench-workitem-shell")).toBeVisible();
+  await expect(page.getByTestId("workflow-rail")).toBeVisible();
+  await expect(page.getByTestId("workflow-step-summary")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create linked remediation" })).toBeVisible();
+
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "workitem-shell-wide-light-current-attention",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Complete",
+    surface: "SURF-WI-001",
+    state: "selected-complete-current-attention",
+    fixture: "Completed investigation selected WorkItem",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/workitem-shell-controls.svg",
+      "docs/references/workbench-ui/current-attention-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+  }));
+
+  await page.setViewportSize({ width: 700, height: 800 });
+  await expect(page.getByTestId("workbench-workitem-shell")).toHaveAttribute(
+    "data-responsive-class",
+    "narrow",
+  );
+  await expect(page.getByRole("button", { name: "Create linked remediation" })).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "workitem-shell-narrow-light-current-attention",
+    workItemKind: "INVESTIGATION",
+    workflowStep: "Complete",
+    surface: "SURF-WI-001",
+    state: "selected-complete-current-attention-narrow",
+    fixture: "Completed investigation selected WorkItem",
+    viewport: { width: 700, height: 800 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/workitem-shell-controls.svg",
+      "docs/references/workbench-ui/current-attention-states.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+  }));
+  await page.setViewportSize({ width: 1440, height: 900 });
+
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const linkedDialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(linkedDialog).toBeVisible();
@@ -1816,6 +1871,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "SURF-STEP-R1-001",
     "SURF-STEP-R2-001",
     "SURF-STEP-WR-001",
+    "SURF-WI-001",
   ]);
   expect(runtimeErrors).toEqual([]);
 });
