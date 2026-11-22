@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 const WORKBENCH_TABLE_CELL_STYLE = {
   overflowWrap: "normal",
   wordBreak: "normal",
+  maxWidth: "none",
 } as const;
 
 const WORKBENCH_TABLE_STYLE = {
