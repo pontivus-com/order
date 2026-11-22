@@ -181,18 +181,20 @@ export const WorkItemQueue = ({
                 description={emptyDescription}
               />
             ) : (
-              <WorkbenchTable
-                label="Work items"
-                selection="single"
-                columns={[
-                  { key: "workItem", label: "Work item" },
-                  { key: "kind", label: "Kind" },
-                  { key: "progress", label: "Lifecycle" },
-                  { key: "concerns", label: "Concerns" },
-                  { key: "action", label: "" },
-                ]}
-                rows={rows}
-              />
+              <div className="order-queue-table-scroll">
+                <WorkbenchTable
+                  label="Work items"
+                  selection="single"
+                  columns={[
+                    { key: "workItem", label: "Work item" },
+                    { key: "kind", label: "Kind" },
+                    { key: "progress", label: "Lifecycle" },
+                    { key: "concerns", label: "Concerns" },
+                    { key: "action", label: "" },
+                  ]}
+                  rows={rows}
+                />
+              </div>
             )}
           </div>
         }

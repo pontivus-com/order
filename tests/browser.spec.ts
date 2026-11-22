@@ -1308,6 +1308,8 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   });
   await page.reload();
   await expect(page.getByTestId("installation-readiness")).toBeVisible();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+  await expect(rowFor(page, "Proposal review")).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "application-wide-light-installation-readiness",
     workItemKind: "QUEUE",
@@ -1438,15 +1440,20 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     });
   });
   await page.getByRole("button", { name: "Show archived" }).click();
+  const archivedSearch = page.getByLabel("Search work items");
+  await archivedSearch.fill("Rendered archived work item");
   const renderedArchivedRow = rowFor(page, "Rendered archived work item");
   await expect(renderedArchivedRow).toContainText("Archived");
+  await expect(renderedArchivedRow.getByRole("button", {
+    name: "Restore Rendered archived work item",
+  })).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-wide-light-archived",
     workItemKind: "QUEUE",
     workflowStep: null,
     surface: "SURF-QUEUE-001",
     state: "archived-visible",
-    fixture: "deterministic archived WorkItem",
+    fixture: "deterministic archived WorkItem filtered for explicit archived-state review",
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
@@ -1456,6 +1463,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
   }));
+  await archivedSearch.fill("");
   await page.getByRole("button", { name: "Hide archived" }).click();
   await page.unroute("**/api/work-items**");
 
@@ -1481,6 +1489,13 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(page.getByTestId("opencode-account-trigger")).toBeVisible();
+  const narrowQueueScan = page.locator(".order-queue-table-scroll");
+  await expect(narrowQueueScan).toBeVisible();
+  const narrowQueueGeometry = await narrowQueueScan.evaluate((node) => ({
+    clientWidth: node.clientWidth,
+    scrollWidth: node.scrollWidth,
+  }));
+  expect(narrowQueueGeometry.scrollWidth).toBeGreaterThan(narrowQueueGeometry.clientWidth);
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-narrow-light-populated",
     workItemKind: "QUEUE",
