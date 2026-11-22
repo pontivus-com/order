@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `6203d3d578aa6d1384f61a2566fa920967c8e9fa`.
+**Upstream:** current R1 `9f99a885da3757afad112dfd5d9d5e26782c41f9`; current R2 `7a279895bd57a2ec7080e1404927ce0668f1dbaf`; current DESIGN `e616f0936e00e81347e82134e4e9c0cc9d1b71c1`.
 
 ## Stable requirement execution dispositions
 
@@ -28,11 +28,12 @@ Package atoms in phase: **0**.
 
 ## Cross-domain presentation reconstruction dependency
 
-C13/C14 domain semantics remain stable, but Complete, Evidence and Context/material presentation is rebuilt by SD27/IA33 under PL-C19-02. This phase does not preserve the current feature-card/layout implementation as a baseline.
+C13/C14 domain semantics remain stable. Complete and Evidence are rebuilt by SD27/IA33 under PL-C19-02. WorkItem technical Context is no longer deferred to IA33: SD21/IA27 establishes the singular selection-aware Context inspection owner before document/productive/review/execution consumers migrate. This phase consumes that owner and does not preserve the current feature-card/layout implementation as a baseline.
 
 ## Referenced actions
 
-- **IA33** — consume the single Complete/Evidence/Context destructive replacement definition; C13/C14 remain the semantic owners of outcome/material meaning.
+- **IA27** — consume the already-established singular WorkItem Context/technical-inspection owner as a dependency only.
+- **IA33** — consume the single Complete/Evidence destructive replacement definition; C13/C14 remain the semantic owners of outcome/material meaning.
 
 ## Completion proof
 
