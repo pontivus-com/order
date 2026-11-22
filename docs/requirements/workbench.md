@@ -210,7 +210,7 @@ Opening or refreshing any of the following is non-mutating:
 - execution task;
 - evidence;
 - terminal result;
-- Context or Technical details.
+- explicit technical inspection (WorkItem Context for selected-work scope; Settings diagnostics for configuration scope).
 
 A read may report that reconciliation is required. It must not secretly perform a lifecycle transition and then report the read as failed.
 
@@ -1147,7 +1147,7 @@ The following are non-compliant:
 17. changing workflow-cell width because current/status styling changes;
 18. stacking equal-weight cards/panels for primary and secondary information;
 19. exposing hashes/ids/paths as dominant persistent content;
-20. placing the only blocker/recovery action inside Context or Technical details;
+20. placing the only blocker/recovery action inside technical inspection;
 21. auto-opening Context or another rail because state changed;
 22. allowing stale/historical task selection to hide the current execution blocker.
 
