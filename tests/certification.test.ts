@@ -662,6 +662,9 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).not.toContain("{toolbarAccessory}\n            <WorkbenchDisclosure");
     expect(markdownEditor).toContain("      />\n\n      <WorkbenchDisclosure");
 
+    const table = read("ui/src/primitives/WorkbenchTable.tsx");
+    expect(table).toContain('className="order-workbench-table-cell"');
+
     const theme = read("ui/src/theme.css");
     const sectionMarkers = [
       "/* 1. Root public Astryx token bridge. Exact Order color literals live only here. */",
@@ -688,6 +691,11 @@ describe("Order cross-boundary certification", () => {
     }
 
     expect(specialistSection).not.toContain(".order-workbench-");
+    expect(primitiveSection).toContain(".order-workbench-table-cell");
+    const tableCellRule = primitiveSection.match(/\.order-workbench-table-cell\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(tableCellRule).toContain("overflow-wrap: normal;");
+    expect(tableCellRule).toContain("word-break: normal;");
+    expect(specialistSection).not.toContain("order-workbench-table-cell");
 
     for (const forbidden of [
       ".order-evidence-viewer",

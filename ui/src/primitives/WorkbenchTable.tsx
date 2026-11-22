@@ -54,7 +54,11 @@ export const WorkbenchTable = ({
               onSelect();
             }}
           >
-            {columns.map((column) => <TableCell key={column.key}>{row.cells[column.key]}</TableCell>)}
+            {columns.map((column) => (
+              <TableCell className="order-workbench-table-cell" key={column.key}>
+                {row.cells[column.key]}
+              </TableCell>
+            ))}
           </TableRow>
         );
       })}
