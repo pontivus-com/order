@@ -397,7 +397,7 @@ export const App = () => {
       end={
         <>
           <WorkbenchToolbarUtilities>
-            {selectedWorkItem ? null : <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />}
+            <OpenCodeAccountControl onOpenSettings={() => navigateSettings("opencode")} />
             <WorkbenchUtilityLink
               label="Settings"
               href={"/settings/" + (settingsSection ?? "repositories")}
@@ -517,7 +517,7 @@ export const App = () => {
               const section = settingsDestinationForReadinessBlocker(blocker);
               const destination = section === "repositories" ? "Repositories" : section === "opencode" ? "OpenCode accounts" : "Model & runtime";
               return <div className="order-app-readiness-item" key={blocker}>
-                <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>InstallationReadiness blocker</span></div>
+                <div><strong>{installationReadinessBlockerText(blocker)}</strong><span>Required before productive work</span></div>
                 <Link href={"/settings/" + section} isStandalone onClick={(event) => { event.preventDefault(); navigateSettings(section); }}>{"Open " + destination}</Link>
               </div>;
             })}
@@ -533,9 +533,7 @@ export const App = () => {
               <ul>
                 {(diagnosticsQuery.data ?? []).map((item, index) => (
                   <li key={item.code + "-" + (item.path ?? String(index))}>
-                    <strong>{item.code}</strong>
-                    {" · "}
-                    {item.path ?? item.workItemId ?? "unmaterialized source"}
+                    <strong>{item.path ?? item.projectId}</strong>
                     {" — "}
                     {item.detail}
                   </li>

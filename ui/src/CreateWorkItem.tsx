@@ -15,6 +15,13 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchForm } from "./primitives/WorkbenchForm.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 
+const humanKindLabel = (
+  kind: WorkItemSchemaCatalogEntry["kind"] | undefined,
+): string =>
+  kind === undefined
+    ? "Work item"
+    : kind.charAt(0) + kind.slice(1).toLowerCase();
+
 export const CreateWorkItem = ({
   projects,
   schemas,
@@ -63,8 +70,10 @@ export const CreateWorkItem = ({
     projects.find((project) => project.projectId === projectId) ?? null;
   const parentKind = derivedFromWorkItem === null
     ? null
-    : schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)
-        ?.kind ?? derivedFromWorkItem.schemaId;
+    : humanKindLabel(
+      schemas.find((schema) => schema.schemaId === derivedFromWorkItem.schemaId)
+        ?.kind,
+    );
 
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -101,15 +110,25 @@ export const CreateWorkItem = ({
               width="100%"
             />
           ) : (
-            <section
-              className="order-create-context"
-              data-testid="linked-remediation-project"
-              aria-label="Linked remediation project"
-            >
-              <strong>Project</strong>
-              <span>{derivedFromWorkItem.projectId}</span>
-              <small>Fixed to the completed parent WorkItem.</small>
-            </section>
+            <>
+              <section
+                className="order-create-context"
+                aria-label="Linked remediation parent"
+              >
+                <strong>Parent</strong>
+                <span>{derivedFromWorkItem.title}</span>
+                <small>{"Completed parent " + parentKind + " · same project"}</small>
+              </section>
+              <section
+                className="order-create-context"
+                data-testid="linked-remediation-project"
+                aria-label="Linked remediation project"
+              >
+                <strong>Project</strong>
+                <span>{derivedFromWorkItem.projectId}</span>
+                <small>Fixed to the completed parent WorkItem.</small>
+              </section>
+            </>
           )}
 
           {selectedProject === null ? null : (
@@ -137,7 +156,7 @@ export const CreateWorkItem = ({
               <RadioListItem
                 key={schema.schemaId}
                 value={schema.schemaId}
-                label={schema.kind}
+                label={humanKindLabel(schema.kind)}
               />
             ))}
           </RadioList>
@@ -172,12 +191,9 @@ export const CreateWorkItem = ({
           ) : (
             <section className="order-create-context" aria-label="Canonical lineage">
               <strong>Canonical lineage</strong>
-              <span>{"Parent " + parentKind}</span>
-              <span>{derivedFromWorkItem.title}</span>
-              <code>{derivedFromWorkItem.id}</code>
-              <small>
-                Parent linkage is system-owned and cannot point to an arbitrary parent.
-              </small>
+              <span>
+                Parent linkage is system-owned and cannot be changed to another WorkItem.
+              </span>
             </section>
           )}
         </div>

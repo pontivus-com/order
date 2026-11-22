@@ -10,7 +10,10 @@ import {
   invalidateWorkbenchMutation,
   workbenchQueryKeys,
 } from "./query-keys.ts";
-import { workflowPresentation } from "./workbench-presentation.ts";
+import {
+  workOutcomeProductLabel,
+  workflowPresentation,
+} from "./workbench-presentation.ts";
 import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
@@ -19,10 +22,19 @@ import { WorkbenchStatus } from "./primitives/WorkbenchStatus.tsx";
 import { WorkbenchSurface } from "./primitives/WorkbenchSurface.tsx";
 import { WorkbenchTable } from "./primitives/WorkbenchTable.tsx";
 
-const statusLabel = (workItem: WorkItem): string =>
-  workItem.status === "ACTIVE"
-    ? "Active"
-    : workItem.status.toLowerCase().replaceAll("_", " ");
+const humanKindLabel = (
+  kind: WorkItemSchemaCatalogEntry["kind"] | undefined,
+): string =>
+  kind === undefined
+    ? "Work item"
+    : kind.charAt(0) + kind.slice(1).toLowerCase();
+
+const statusLabel = (workItem: WorkItem): string => {
+  if (workItem.stage === "COMPLETE") {
+    return workOutcomeProductLabel(workItem.outcome);
+  }
+  return workItem.status === "BLOCKED" ? "Blocked" : "Active";
+};
 
 export const WorkItemQueue = ({
   workItems,
@@ -67,9 +79,9 @@ export const WorkItemQueue = ({
   });
 
   const rows = workItems.map((item) => {
-    const kind =
-      schemas.find((schema) => schema.schemaId === item.schemaId)?.kind ??
-      item.schemaId;
+    const kind = humanKindLabel(
+      schemas.find((schema) => schema.schemaId === item.schemaId)?.kind,
+    );
     const selectable = !item.archived;
 
     return {
@@ -94,7 +106,13 @@ export const WorkItemQueue = ({
           <div className="order-queue-progress">
             <span>{workflowPresentation(item.stage).label}</span>
             <WorkbenchStatus
-              tone={item.status === "ACTIVE" ? "info" : "neutral"}
+              tone={
+                item.status === "BLOCKED"
+                  ? "warning"
+                  : item.stage === "COMPLETE"
+                    ? "neutral"
+                    : "info"
+              }
               label={statusLabel(item)}
             />
           </div>

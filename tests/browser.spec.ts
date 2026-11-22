@@ -1192,7 +1192,7 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
   await expect(createDialog.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
   await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
-  await createDialog.getByRole("radio", { name: "CHANGE" }).click();
+  await createDialog.getByRole("radio", { name: "Change" }).click();
   await createDialog.getByLabel("Title").fill("Created in browser");
   await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
@@ -1316,6 +1316,52 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.reload();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
 
+  await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([{
+        projectId: "order-e2e",
+        path: "docs/order/work-items/broken/work-request.md",
+        workItemId: null,
+        code: "INVALID_SOURCE",
+        detail: "The WorkItem source could not be parsed.",
+      }]),
+    });
+  });
+  await page.reload();
+  const diagnostics = page.getByTestId("source-diagnostics");
+  await expect(diagnostics).toBeVisible();
+  await expect(diagnostics).toContainText("docs/order/work-items/broken/work-request.md");
+  await expect(diagnostics).toContainText("The WorkItem source could not be parsed.");
+  await expect(diagnostics).not.toContainText("INVALID_SOURCE");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-source-diagnostic",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "source-diagnostic-human-recovery",
+    fixture: "deterministic invalid WorkItem source diagnostic",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue-states.svg",
+      "docs/references/workbench-ui/application-notices-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await page.unroute("**/api/work-item-sources/diagnostics");
+  await page.reload();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
+
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-wide-light-populated",
     workItemKind: "QUEUE",
@@ -1335,6 +1381,45 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
       "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
     ],
   }));
+
+  await page.getByRole("button", { name: "Show archived" }).click();
+  await expect(page.getByText("Archived", { exact: true }).first()).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-archived",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "archived-visible",
+    fixture: "order-e2e queue including archived WorkItems",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: ["docs/references/workbench-ui/queue-states.svg"],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORK-ITEM-DOCUMENT-SYSTEM",
+    ],
+  }));
+  await page.getByRole("button", { name: "Hide archived" }).click();
+
+  const renderedSearch = page.getByLabel("Search work items");
+  await renderedSearch.fill("no rendered acceptance match");
+  await expect(page.getByText("No matching work items", { exact: true })).toBeVisible();
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "queue-wide-light-no-matches",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-QUEUE-001",
+    state: "no-search-matches",
+    fixture: "order-e2e queue filtered to no matches",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: "/",
+    references: ["docs/references/workbench-ui/queue-states.svg"],
+    authorityRefs: ["GW-DOC-WORKBENCH-UX"],
+  }));
+  await renderedSearch.fill("");
+  await expect(rowFor(page, "Proposal review")).toBeVisible();
 
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
@@ -1360,12 +1445,40 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   }));
 
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole("radio", { name: "Dark" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "application-queue-wide-dark",
+    workItemKind: "QUEUE",
+    workflowStep: null,
+    surface: "SURF-APP-001",
+    state: "queue-dark-theme-parity",
+    fixture: "order-e2e populated queue",
+    viewport: { width: 1440, height: 900 },
+    theme: "Dark",
+    route: "/",
+    references: [
+      "docs/references/workbench-ui/queue.svg",
+      "docs/references/workbench-ui/theme-parity.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+  }));
+  await page.getByRole("radio", { name: "Light" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("button", { name: "New work item" }).click();
   const createDialog = page.getByRole("dialog", { name: "Create work item" });
   await expect(createDialog).toBeVisible();
   await createDialog.getByRole("combobox", { name: "Project Required" }).click();
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
-  await createDialog.getByRole("radio", { name: "CHANGE" }).click();
+  await createDialog.getByRole("radio", { name: "Change" }).click();
+  await expect(createDialog.getByTestId("create-work-item-location"))
+    .toContainText("docs/order/work-items");
+  await expect(createDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\d/i);
   await createDialog.getByLabel("Title").fill("Rendered acceptance change");
   await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
@@ -1393,6 +1506,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
 
   await createDialog.getByRole("button", { name: "Cancel", exact: true }).click();
   await openWorkItem(page, "Completed investigation");
+  const completedInvestigation = await workItemForTitle(page, "Completed investigation");
   await expect(page.getByTestId("workbench-workitem-shell")).toBeVisible();
   await expect(page.getByTestId("workflow-rail")).toBeVisible();
   await expect(page.getByRole("heading", { name: /^Current attention:/ })).toBeVisible();
@@ -1495,7 +1609,10 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const linkedDialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(linkedDialog).toBeVisible();
-  await linkedDialog.getByRole("radio", { name: "DEFECT" }).click();
+  await linkedDialog.getByRole("radio", { name: "Defect" }).click();
+  await expect(linkedDialog).toContainText("Completed parent Investigation · same project");
+  await expect(linkedDialog).not.toContainText(completedInvestigation.id);
+  await expect(linkedDialog).not.toContainText(/(?:change|defect|investigation|audit)-v\d/i);
   await linkedDialog.getByLabel("Title").fill("Rendered acceptance remediation");
 
   const linkedRoute = new URL(page.url());
@@ -2034,7 +2151,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await page.getByRole("option", { name: "order-e2e", exact: true }).click();
   await expect(createDialog.getByTestId("create-work-item-location"))
     .toContainText("docs/order/work-items");
-  await createDialog.getByRole("radio", { name: "CHANGE" }).click();
+  await createDialog.getByRole("radio", { name: "Change" }).click();
   await createDialog.getByLabel("Title").fill("Repository-native management");
   await createDialog.getByRole("button", { name: "Concerns", exact: true }).click();
   await page.getByRole("option", { name: "browser" }).click();
@@ -3903,13 +4020,13 @@ test("terminal investigation and audit results remain closed and linked remediat
   await expect(dialog).toContainText(parent.id);
   await expect(dialog.getByTestId("linked-remediation-project")).toContainText(parent.projectId);
   await expect(dialog.getByRole("combobox", { name: "Project Required" })).toHaveCount(0);
-  await expect(dialog.getByRole("radio", { name: "CHANGE" })).toBeVisible();
-  await expect(dialog.getByRole("radio", { name: "DEFECT" })).toBeVisible();
+  await expect(dialog.getByRole("radio", { name: "Change" })).toBeVisible();
+  await expect(dialog.getByRole("radio", { name: "Defect" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "INVESTIGATION" })).toHaveCount(0);
   await expect(dialog.getByRole("radio", { name: "AUDIT" })).toHaveCount(0);
   await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
 
-  await dialog.getByRole("radio", { name: "DEFECT" }).click();
+  await dialog.getByRole("radio", { name: "Defect" }).click();
   await dialog.getByLabel("Title").fill("Remediate investigation finding");
 
   let releaseRemediation = (): void => {};
