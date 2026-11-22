@@ -257,7 +257,7 @@ Git save is a documentation operation, not implementation authority. It does not
 The Git status/action belongs to the selected WorkItem's Documents/workflow context rather than the global application toolbar.
 
 - the Documents surface shows the resolved project-relative WorkItem directory and current Git status;
-- **Save documentation to Git** is a WorkItem-level secondary/primary mutation when repository changes exist, placed near document/workflow state rather than hidden in Technical details;
+- **Save documentation to Git** is a WorkItem-level secondary/primary mutation when repository changes exist, placed near document/workflow state rather than hidden in technical inspection;
 - the confirmation/review material lists exact governed paths and uses Review/safety space when necessary;
 - compact Context may mirror `Saved to Git` / `Not saved to Git`, but it must not become the only place from which the operator can understand or perform the operation.
 
