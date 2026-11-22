@@ -6,87 +6,96 @@
 
 `READY_FOR_SIGNOFF`.
 
-This is a fresh adversarial R3 for the exact current **field-exact, disclosure-aware and visual-language/foundation-closed resumed-implementation package**. It does not inherit either the superseded family-level information-contract verdict or the prior R3 that predated the SD21/IA27 visual-language amendment.
+This is a fresh adversarial R3 for the exact corrected **67-path authority-driven Workbench package**. It does not inherit the superseded 66-path R3 or its ALIGN conclusions.
 
-The package now closes two distinct presentation-design layers before implementation:
+The review treats R1/R2/DESIGN/PLAN, the current implementation, tests, screenshots and prior review text as untrusted evidence. The controlling question is whether the exact current authority/package is coherent, traceable, executable and free of implementation-time product, information-design, visual-language or architecture decisions.
 
-- the exhaustive 37-SURF DESIGN contract decides every admitted datum/action's source, intent, Primary / Supporting / Operational / Technical / Diagnostic class, ordinary placement, progressive-disclosure owner, promotion rule and negative ordinary-rendering rule;
-- SD21/IA27 then deterministically derives the **canonical visual language into the shared Workbench foundation** before any current JSX/CSS is accepted: P4 owns interaction/composition/primitive responsibilities, the Workbench theme authority owns color/type/spacing/density/geometry/action/status/focus/style roles, and the reviewed SVG pack remains derived composition/hierarchy evidence only;
-- IA27 must prove a complete/no-duplicate/no-unowned visual-language → foundation realization ledger and cross-service same-role parity before IA28 may begin;
-- IA28-IA34 may compose classified screen information through that accepted foundation but may not create or locally vary recurring color/token meaning, typography/spacing/density scales, action/button treatment, status/notice chrome, progressive-disclosure lanes, overlay mechanics, shell/region hierarchy, foundation geometry or responsive grammar;
-- IA27-IA31 remain resumed-baseline authority revalidation/residual remediation; historical purge/reconstruction is provenance only and is not replayed;
-- IA32-IA34 remain the still-unrealized fresh destructive reconstruction of Implementation, Complete/Evidence/Context and Settings/account/configuration;
-- final UI acceptance remains IA26/SD30 over all 37 governed rendered faces.
+The corrected package closes the IA27 foundation boundary as follows:
 
-`READY_FOR_SIGNOFF` therefore means the current P1-P7 package is coherent, current, traceable and executable from the actual resumed baseline with **no implementation-time information-design or recurring visual-language design authority**. It does not mean the remaining UI remediation/reconstruction is complete.
+- P3 and the 37-SURF DESIGN contract own semantic information/action classification, placement, progressive disclosure and negative ordinary-rendering rules;
+- P4 and the Workbench theme own recurring composition, primitive responsibility and visual-language roles;
+- IA27 derives/revalidates the foundation against those authorities before current JSX/CSS is accepted as evidence;
+- exactly three present IA27 owners are current `DESTRUCTIVE_REPLACEMENT` obligations: `WorkbenchAttention`, `WorkbenchDialogue` and `WorkbenchConfirmation`;
+- conforming owners remain no-edit, and bounded residuals receive only local correction;
+- the historical whole-foundation purge/reconstruction is provenance only and is not replayed;
+- IA28-IA31 remain resumed screen revalidation/remediation through the accepted foundation;
+- IA32-IA34 remain fresh reconstruction for the still-unrealized screen families;
+- IA26/SD30 remains final rendered acceptance over all 37 governed faces.
+
+`READY_FOR_SIGNOFF` therefore means the corrected P1-P7 package is semantically closed and executable from the resumed baseline. It does **not** mean IA28+ work is complete or authorize execution without the separate human sign-off lifecycle action.
 
 ## Exact reviewed package
 
-- repository evidence baseline: `eb2ebce37272e3523ff7d8261268b1e75844698b`;
+- repository evidence baseline: `6c574987c68f31cacb29ac74bd1607e0b2bec522`;
 - WorkItem: `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`, project `order`, schema `change-v2`;
 - R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`;
 - R2 `requirements.md`: `da85563fe8ebd8f348a6dcf14900eab04c5f19de`;
-- DESIGN `solution-design.md`: `7d6a6f5a3f6e62060ccf305f486d6602e733e8b5`;
-- PLAN `implementation-plan.md`: `beb3120d5c43bb96ab7eaf02ad2ffe5651cd1739`;
-- pre-R3 campaign state: `1fec7141d79cafcdfb33d57f4b72414ed7c54563`;
+- DESIGN `solution-design.md`: `6203d3d578aa6d1384f61a2566fa920967c8e9fa`;
+- PLAN `implementation-plan.md`: `84f058209eef3eb775588721669d3395a4d4ddbe`;
+- pre-R3 campaign state: `3de5d5bd3d8d4a30402d4ffacafb268b88c80466`;
 - canonical P3 Workbench: `114226b7b30657fd334b47a9c74f5e24479564a1`;
-- canonical P4 Workbench: `916add5e528447a6509746b95b947c50eff3d232`;
-- Workbench theme authority: `fffd1d202537dbd3f85f6b30ee745d2eae454c53`;
-- derived Workbench reference registry: `c4266cb8eff65a1eadf497e3ee102b2fc22d76f1`;
-- permanent architecture/campaign/package sensor: `756e8fcc8ebfe8f741caa1337cd2c546a83890ce`;
-- PR Verification run `44977049543`: the exact G5A head passed dependency-lock, typecheck and the strengthened permanent architecture/campaign/package fitness before this R3 was authored. Downstream test/build/browser execution remains delivery evidence and is not substituted for R3 semantic closure.
+- canonical P4 Workbench: `44e6b9943521f403ee943079d2eb26a07b8aa13d`;
+- Workbench theme authority: `1c4bf8f6e259783f0e29b84284fd6ae3506bdf7f`;
+- permanent architecture/campaign/package sensor: `b788a31ed67422e7ad83b7cce90e3f47d9d34330`;
+- exact pre-G4/G5/G5A candidate `869e9c45346cbc8fd503e61a6f724d92474c46e9` passed PR Verification run `44987818918` through dependency-lock, typecheck, architecture, tests, build, packaging, browser, rendered capture, rendered acceptance and artifact upload;
+- current G5A head `6c574987c68f31cacb29ac74bd1607e0b2bec522` has passed dependency-lock, typecheck and the strengthened architecture/campaign/package sensor in PR Verification run `44988454430` before this R3 was authored. Downstream execution of that CI run is delivery evidence and is not substituted for this semantic readiness review.
 
 ## Adversarial challenge summary
 
 | Challenge | Result | R3 disposition |
 |---|---|---|
-| R3-F01 — G5A freshness | PASS | ALIGN-A01-A11 and ALIGN-H1 were freshly reopened against R1 `99f6932e...`, R2 `da85563f...`, DESIGN `7d6a6f5a...` and PLAN `beb3120d...`; Q1-Q12 are PROVEN. Prior exact-package ALIGN conclusions were not inherited. |
-| R3-F02 — concern/register completeness | PASS | The sole §7 register still contains exactly C01-C22 and the campaign retains one current owner for concern, ALIGN and gate state. No competing status projection was introduced by this amendment. |
-| R3-F03 — authority/version lineage | PASS | P3 owns semantic information hierarchy and closed progressive-disclosure policy; R2 states package-specific consequences; DESIGN owns the exact 37-SURF technical projection; P4 owns recurring Workbench composition/primitive responsibility; the theme document solely owns visual-token/style semantics. No lifecycle artifact creates a competing permanent owner. |
-| R3-F04 — SVG/reference authority boundary | PASS | The SVG pack is derived presentation/hierarchy/interaction-composition evidence. It may inform the SD21 realization ledger only where consistent with current P3/R2/DESIGN/P4/theme authority; a reference discrepancy is corrected in the reference, not promoted over canonical semantics. |
-| R3-F05 — field-exact screen information closure | PASS | DESIGN still contains exactly 37 unique detailed SURF sections. Every admitted datum/action is bound to exact typed source/derivation/document, operator intent, information class, ordinary placement/disclosure owner and negative rule. Wildcard source cells remain absent. |
-| R3-F06 — visual-language derivation is first-class | PASS | SD21 explicitly owns the package-local derivation from canonical semantics/P4/theme/reference evidence into the 0.6.0 foundation. Its closed ledger covers semantic hierarchy, interaction composition, shell/chrome, actions/confirmations, status/notices/states, supporting/operational material, progressive disclosure, color/theme, typography, spacing/density/geometry/boundaries, responsive composition, accessibility/focus/overlay mechanics and specialized content. |
-| R3-F07 — IA27 ordering is deterministic | PASS | PLAN requires IA27 to derive/revalidate the SD21 visual-language → foundation ledger **before inspecting current JSX/CSS**, prove it complete/no-duplicate/no-unowned, then judge current foundation bytes against it. Current implementation cannot define the ledger or become a preservation baseline. |
-| R3-F08 — foundation is generative and singular | PASS | Every recurring visual/composition concern must resolve to exactly one Workbench primitive/approved leaf, Astryx substrate/variant where applicable, canonical theme/token/geometry source, placement/disclosure behavior, responsive/accessibility behavior and verification owner. Cross-service proof requires the same semantic role to resolve to the same primitive/token/variant/hierarchy/disclosure treatment. |
-| R3-F09 — downstream screens cannot extend the design language | PASS | After IA27 PASS, IA28-IA34 consume the accepted foundation. A screen that appears to require a new recurring color/token, type/spacing/density scale, action/status treatment, disclosure lane, overlay mechanic, shared hierarchy/geometry or responsive rule returns to IA27/DESIGN rather than implementing a feature-local exception. |
-| R3-F10 — progressive disclosure remains closed | PASS | Technical details, Context, Evidence and Safety/confirmation remain distinct authorized owners. Primary information cannot be hidden behind technical inspection; Technical/Diagnostic information remains default-hidden/absent from ordinary UX; responsive recomposition cannot change classification or disclosure state. |
-| R3-F11 — resumed-baseline executability | PASS | IA27-IA31 do not repeat historical purge/reconstruction. They load signed DESIGN/foundation authority first, treat current bytes only as evidence and edit only proven residual nonconformance. Minimum change forbids both preservation-by-existence and reconstruction-by-ritual. |
-| R3-F12 — remaining fresh reconstruction boundary | PASS | IA32 Implementation, IA33 Complete/Evidence/Context and IA34 Settings/account/configuration remain purge-before-fresh-authorship. They reconstruct through the already-closed SURF contracts and accepted IA27 foundation rather than deriving information or visual design locally. |
-| R3-F13 — hard scope and one-task execution | PASS | The one signed T1 retains `dependsOn: []`, exactly 66 unique `scope` paths and the same exact 66 unique `changeSurface` paths. The IA27 foundation/theme/structural ownership and all later screen families remain inside the signed envelope; a newly required path remains an upstream return. |
-| R3-F14 — compiled PLAN integrity | PASS | PLAN `beb3120d...` compiles all 14 exact modular sources, including the corrected `13-verification-closeout.md` IA27 stop/go evidence. 112 stable requirements and 27 package atoms remain singly owned; IA01-IA34 are defined once; the 37-SURF rendered-face allocation remains exact. |
-| R3-F15 — permanent fitness protects the new invariant | PASS | Sensor `756e8fcc...` now fails if SD21 loses the visual-language realization ledger/dimensions, IA27 stops deriving it before current-byte inspection, the T1 objective loses the derivation invariant, or later screen phases regain permission to extend visual language locally. Exact-head run `44977049543` passed typecheck and architecture. |
-| R3-F16 — theme/component consistency is not advisory | PASS | Canonical theme roles remain single-owned and foundation primitives consume them; feature surfaces cannot choose raw colors or local token systems. IA27 proof explicitly includes cross-service component/theme parity, so visual consistency is a foundation acceptance condition rather than a final screenshot preference. |
-| R3-F17 — responsive/accessibility consistency | PASS | One structural responsive owner remains. IA27 binds responsive recomposition, geometry, focus and disclosure to the foundation ledger; viewport changes may alter composition but not semantic priority, primary-action ownership, classification or progressive-disclosure rules. |
-| R3-F18 — architecture integrity | PASS | No DTO/view-model/state family, service/repository/controller graph, second AppShell, second Context/disclosure system, feature-owned breakpoint system or parallel visual-language layer is introduced. FCIS/SoC/DRY/canonical ownership/strict typing/minimum change remain binding. |
-| R3-F19 — implementation ambiguity is closed | PASS | An implementation worker does not decide what information appears, its class/placement/disclosure, what recurring visual language means, which primitive owns a recurring role, or whether a screen may invent a local visual convention. Missing semantic or foundation ownership returns upstream. |
-| R3-F20 — readiness is not implementation acceptance | PASS | This review authorizes only explicit human sign-off of the exact package. IA27 foundation revalidation/remediation, IA28-IA34 screen work, IA20-IA23 integrated certification, IA26/SD30 rendered acceptance and IA24/V0-V7 remain execution-time obligations. |
+| R3-F01 — exact G5A freshness | PASS | §8.4 R1/R2/DESIGN/PLAN A01-A11 and §13A ALIGN-A01-A11/H1 are freshly bound to the current exact package rather than inherited from the superseded 66-path package. |
+| R3-F02 — campaign state ownership | PASS | §7, §13A and §18 remain the sole current-state owners for concerns, ALIGN and gates. The accidental out-of-§13A ALIGN row and lost campaign H1 were corrected. |
+| R3-F03 — permanent stale-state prevention | PASS | Sensor `b788a31ed67422e7ad83b7cce90e3f47d9d34330` requires the canonical campaign H1, rejects competing ALIGN current-state rows, binds pair PASS records to current phase blobs and binds ALIGN PASS/FAIL records to exact current R1/R2/DESIGN/PLAN/P3/P4 Git blobs. |
+| R3-F04 — authority-before-inference | PASS | Current implementation/UI/tests are evidence only. P3/R2/DESIGN/P4/theme determine desired semantics and foundation responsibility; no current JSX/CSS shape becomes a preservation or compatibility target by existence. |
+| R3-F05 — field-exact information closure | PASS | DESIGN retains the exhaustive 37-SURF datum/action contract. No screen phase is authorized to infer visibility or placement from available runtime fields. |
+| R3-F06 — IA27 foundation derivation | PASS | SD21 closes the visual-language → foundation dimensions before current foundation inspection, including information hierarchy, interaction composition, shell/chrome, actions/confirmations, statuses/notices/states, disclosure, color/theme, typography, spacing/geometry, responsive composition and accessibility/focus. |
+| R3-F07 — Attention correction | PASS | The unauthorized caller-selected whole-surface `tone` / `data-tone` grammar is removed. Current Attention is the narrow `title + purpose? + status? + blocker? + action?` owner; semantic state treatment remains Status/Notice/theme-owned. |
+| R3-F08 — Dialogue correction | PASS | The primitive is narrowed to `transcript + activity? + composer? + state?`. Material heading/status and Technical details are outside Dialogue through their canonical owners. |
+| R3-F09 — Safety/confirmation correction | PASS | `kind="safety"` deterministically selects Dialog + primary confirmation; `kind="destructive"` selects AlertDialog + destructive confirmation. Callers cannot choose substrate or arbitrary action tone. |
+| R3-F10 — bounded residual discipline | PASS | TaskPanel's unauthorized `42rem` geometry is removed; WorkflowStepFrame, theme selectors and consumer call sites were changed only where required by the corrected foundation APIs/responsive contract. |
+| R3-F11 — consumer integration boundary | PASS | Activity, Document, Settings, OpenCode account, app and WorkItem shell edits are mechanically attributable to foundation API correction. No Queue/Create/document/productive-stage/Readiness/Approval family was redesigned under IA27. |
+| R3-F12 — responsive semantic continuity | PASS | Narrow Attention recomposes rather than compressing/overflowing the wide composition; viewport changes do not change information class, disclosure ownership or current-action priority. |
+| R3-F13 — singular foundation ownership | PASS | One AppShell, one WorkItem shell, one structural responsive owner and one closed primitive vocabulary remain. `WorkbenchLayout` remains absent; no compatibility shell or second visual-language layer is introduced. |
+| R3-F14 — retained-atom boundary | PASS | Exactly six retained atomic adapters remain outside the mutable foundation surface: Action, Disclosure, Field, Icon, Notice and Status. Confirmation is correctly no longer classified as retained. |
+| R3-F15 — one-task execution | PASS | PLAN contains one cumulative T1 with `dependsOn: []` and exact **67-path scope = 67-path changeSurface**. IA01-IA34 remain ordered implementation/proof phases rather than shadow tasks. |
+| R3-F16 — downstream screen authority | PASS | IA28-IA34 may compose only through the accepted foundation. A new recurring visual-language responsibility is an IA27/DESIGN return condition, not permission for feature-local CSS/primitive invention. |
+| R3-F17 — resumed/fresh boundary | PASS | IA27-IA31 use authority revalidation/no-edit/residual remediation; IA32-IA34 retain fresh reconstruction. Historical purge evidence cannot be replayed as current task completion. |
+| R3-F18 — architecture integrity | PASS | No DTO/view-model/state family, duplicate Context/disclosure system, second responsive owner, OOP service graph or parallel semantic representation is introduced. FCIS/SoC/DRY/canonical ownership/strict typing/minimum-change remain binding. |
+| R3-F19 — proof topology | PASS | Fresh DESIGN/PLAN pair records, H4 and ALIGN Q1-Q12 close the exact current package. G4/G5/G5A are PASS only after the exact package and strengthened permanent sensor passed the required verification boundary. |
+| R3-F20 — foundation implementation evidence | PASS | Exact candidate `869e9c...` is fully green through browser/rendered acceptance, and there have been no production-UI mutations after the narrow Attention responsive correction at `045719df...`; subsequent work is authority/PLAN/campaign/sensor correction only. |
+| R3-F21 — implementation ambiguity | PASS | An implementation worker does not decide information visibility, disclosure, recurring visual language, primitive ownership, confirmation substrate or responsive semantics. Missing authority returns upstream. |
+| R3-F22 — readiness is not execution acceptance | PASS | This R3 authorizes only the separate human sign-off decision on the exact package. IA28-IA34, integrated certification, IA26/SD30 and final V0-V7 remain implementation obligations. |
 
 ## Exact implementation meaning after sign-off
 
-The signed implementation remains one cumulative candidate from the fresh Approval baseline:
+The signed implementation remains one cumulative candidate from the approved baseline:
 
-1. execute/revalidate the exact IA01-IA25 non-UI obligations and proof owned by T1;
-2. **IA27 first derives/revalidates the complete SD21 visual-language → foundation realization ledger** from current P3/DESIGN, P4, theme authority and reviewed derived SVG evidence, before current foundation bytes are treated as evidence;
-3. IA27 proves the ledger complete/no-duplicate/no-unowned, proves same-role cross-service parity, then revalidates/remediates the Workbench shells, primitives, theme/structural selectors, responsive owner and `SURF-WI-001`; IA28 remains blocked until this foundation passes;
-4. IA28-IA31 consume their exact field/action SURF rows **through the accepted IA27 foundation**, correcting only residual nonconformance without replaying historical purge;
-5. IA32-IA34 freshly purge/reconstruct Implementation, Complete/Evidence/Context and Settings/account/configuration from the same closed SURF contract and accepted foundation;
-6. no IA28-IA34 phase may introduce or locally vary recurring visual-language grammar; such a need is an IA27/DESIGN return condition;
-7. IA20-IA23 complete integrated semantic/component/theme/responsive/provider certification;
-8. IA26/SD30 independently accepts all 37 final rendered faces on schema/information, UX/interaction and visual/UI, including default-hidden and authorized post-disclosure proof;
-9. IA24/final V0-V7 closes the candidate.
+1. preserve all already-proven non-UI and IA27 foundation results unless current authority proves a defect;
+2. treat the accepted IA27 foundation as frozen for downstream composition;
+3. IA28 revalidates/remediates Queue/Create/application utilities against their exact SD22/SURF rows through that foundation;
+4. IA29 revalidates/remediates Work request/governed-document material through the same foundation;
+5. IA30 revalidates/remediates Research/Requirements/Solution design/Plan;
+6. IA31 revalidates/remediates Readiness/Approval;
+7. IA32 freshly reconstructs Implementation;
+8. IA33 freshly reconstructs Complete/Evidence/Context;
+9. IA34 freshly reconstructs Settings/account/configuration;
+10. IA20-IA23 complete integrated semantic/component/theme/responsive/provider certification;
+11. IA26/SD30 independently accepts all 37 final rendered faces on `schema_information`, `ux_interaction` and `visual_ui`;
+12. IA24/V0-V7 closes the exact candidate.
 
-No implementation phase may preserve a current presentation merely because it already exists. Conversely, minimum change forbids deleting/recreating conforming resumed bytes merely to reenact historical reconstruction.
+No downstream phase may modify the accepted foundation to make one screen convenient. A newly discovered shared-foundation responsibility or semantic contradiction returns to IA27/DESIGN.
 
 ## Findings
 
 No blocking R3 finding remains.
 
-The previous `readiness-review.md` blob `41e5cc86c29715b03d81ebd5e2d75622e7f3126f` is superseded historical evidence. It correctly closed the field-exact information-contract defect but predates the explicit SD21/IA27 visual-language → foundation derivation contract and cannot authorize this amended package.
+The prior readiness review was correct for its then-current package but is stale because it predates the corrected Dialogue/Safety-confirmation authority, the 67-path PLAN, the three-owner IA27 destructive-replacement classification, and the strengthened exact-blob campaign sensors.
 
 ## Final R3 disposition
 
 **Verdict:** `READY_FOR_SIGNOFF`.
 
-The exact current P1-P7 package is coherent, current, bidirectionally traceable, minimum-sufficient and executable from the actual resumed baseline. All 37 governed screens have explicit DESIGN-owned field/action information contracts, and the shared Workbench foundation now has an explicit DESIGN/PLAN-owned derivation from canonical visual language before any screen implementation may consume it.
+The exact corrected P1-P7 package is coherent, current, bidirectionally traceable, minimum-sufficient and executable from the resumed baseline. The IA27 foundation is sufficiently closed to be treated as the shared downstream UI foundation; further screen work must consume it rather than redesign it.
 
-Human sign-off remains a separate lifecycle action. This R3 verdict does not itself authorize T1 execution and does not claim the remaining UI remediation/reconstruction is complete.
+Human sign-off remains a separate lifecycle action. This R3 verdict does not itself authorize T1/IA28+ execution.
