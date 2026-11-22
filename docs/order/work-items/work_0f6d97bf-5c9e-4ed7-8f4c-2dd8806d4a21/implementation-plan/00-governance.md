@@ -41,7 +41,7 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Authorization id:** `IA28-RZ1`  
 **State:** `SUSPENDED_PENDING_REVALIDATION`  
 **Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
-**Start condition:** **not currently satisfied**. C19-F04/C19-F05/C20-F07 materially changed R2/P3/DESIGN/P4/theme authority after the prior IA28 evidence. IA28-RZ1 remains suspended until the corrected exact PLAN/alignment/R3 package is current and a fresh bounded-realization authorization explicitly cites those identities.  
+**Start condition:** **not currently satisfied**. C19-F04/C19-F05/C20-F07 materially changed R2/P3/DESIGN/P4/theme authority after the prior IA28 evidence. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
 **Authorized primary owners while suspended:** NONE. The previously listed IA28 owners are historical scope evidence only until reauthorization.  
 **IA27 shell-integration exception:** `ui/src/app.tsx` may be changed only to close a proven `SURF-APP-001` residual exposed by this tranche (global account utility, readiness/diagnostic presentation, Queue/Create entry composition); no selected-WorkItem/material-screen redesign is authorized.  
 **Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; other IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
@@ -51,7 +51,7 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Failure routing:** recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27; Queue/Create/application-utility-local defect → IA28; missing/contradictory product or information classification → DESIGN.  
 **Mandatory stop:** once the complete IA28 rendered evidence package exists and is ready for human review, all implementation stops before IA29 regardless of verdict. Human acceptance/sign-off is the next action.
 
-`IA28-RZ1` is currently suspended and authorizes no production mutation. If freshly reauthorized, it remains evidence-production authority only: it is not Approval, does not materialize T1, and cannot authorize post-IA28 work.
+`IA28-RZ1` is currently suspended and authorizes no production mutation. Any fresh bounded grant after G5A remains evidence-production authority only: it is not Approval, does not materialize ordinary T1 execution, and cannot authorize post-IA28 work. The mandatory order is G5/G5A PASS → explicit exact-package bounded authorization → IA27/IA28 evidence → R3/G6 → normal human sign-off → IA29+.
 
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
