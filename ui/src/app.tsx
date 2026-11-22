@@ -570,7 +570,18 @@ export const App = () => {
           if (!open) resetCreate();
         }}
         title={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
-        content={
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (
+            projectId.length > 0 &&
+            schemaId !== "" &&
+            title.trim().length > 0 &&
+            !create.isPending
+          ) {
+            create.mutate();
+          }
+        }}
+        body={
           <Suspense fallback={<WorkbenchEmptyState compact title="Loading creation controls…" />}>
             <CreateWorkItem
               projects={projectsQuery.data ?? []}
@@ -581,19 +592,45 @@ export const App = () => {
               concernIds={concernIds}
               availableConcernIds={availableConcernIds}
               derivedFromWorkItem={derivedFromWorkItem}
-              pending={create.isPending}
-              error={create.error ? errorText(create.error) : null}
               onProjectChange={setProjectId}
               onSchemaChange={setSchemaId}
               onTitleChange={setTitle}
               onConcernIdsChange={setConcernIds}
-              onSubmit={() => create.mutate()}
-              onCancel={() => {
+            />
+          </Suspense>
+        }
+        feedback={
+          create.error ? (
+            <WorkbenchNotice
+              tone="danger"
+              title="Work item could not be created"
+              description={errorText(create.error)}
+            />
+          ) : undefined
+        }
+        footer={
+          <>
+            <WorkbenchAction
+              label="Cancel"
+              disabled={create.isPending}
+              onClick={() => {
                 setCreateOpen(false);
                 resetCreate();
               }}
             />
-          </Suspense>
+            <WorkbenchAction
+              type="submit"
+              label={derivedFromWorkItemId === null ? "Create work item" : "Create linked remediation"}
+              tone="primary"
+              loading={create.isPending}
+              disabled={
+                projectId.length === 0 ||
+                schemaId === "" ||
+                title.trim().length === 0 ||
+                create.isPending
+              }
+            />
+          </>
         }
       />
 

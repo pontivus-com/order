@@ -1,14 +1,16 @@
 import { Dialog } from "@astryxdesign/core/Dialog";
-import { Layout, LayoutContent, LayoutHeader } from "@astryxdesign/core/Layout";
-import type { ReactNode } from "react";
+import type { FormEventHandler, ReactNode } from "react";
 
 export const WorkbenchTaskPanel = ({
-  open, title, onOpenChange, content,
+  open, title, onOpenChange, body, footer, feedback, onSubmit,
 }: Readonly<{
   open: boolean;
   title: string;
   onOpenChange: (open: boolean) => void;
-  content: ReactNode;
+  body: ReactNode;
+  footer: ReactNode;
+  feedback?: ReactNode;
+  onSubmit?: FormEventHandler<HTMLFormElement>;
 }>) => (
   <Dialog
     isOpen={open}
@@ -17,13 +19,19 @@ export const WorkbenchTaskPanel = ({
     aria-label={title}
     padding={0}
   >
-    <div className="order-workbench-task-panel">
-      <Layout
-        height="auto"
-        padding={0}
-        header={<LayoutHeader hasDivider><h2 className="order-workbench-task-title">{title}</h2></LayoutHeader>}
-        content={<LayoutContent isScrollable={false}>{content}</LayoutContent>}
-      />
-    </div>
+    <form className="order-workbench-task-panel" onSubmit={onSubmit}>
+      <header className="order-workbench-task-panel-header">
+        <h2 className="order-workbench-task-title">{title}</h2>
+      </header>
+      <div className="order-workbench-task-panel-body">
+        {body}
+        {feedback === undefined ? null : (
+          <div className="order-workbench-task-panel-feedback">{feedback}</div>
+        )}
+      </div>
+      <footer className="order-workbench-task-panel-footer">
+        {footer}
+      </footer>
+    </form>
   </Dialog>
 );

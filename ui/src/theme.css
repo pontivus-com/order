@@ -367,11 +367,40 @@
 .order-workbench-section-header p,
 .order-workbench-task-title { margin: 0; }
 .order-workbench-task-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
   background: var(--color-background-surface);
   color: var(--color-text-primary);
   border-radius: var(--radius-container);
   overflow: hidden;
 }
+.order-workbench-task-panel-header {
+  padding: var(--spacing-4);
+  border-bottom: 1px solid var(--color-border-emphasized);
+}
+.order-workbench-task-panel-body {
+  min-width: 0;
+  overflow: auto;
+  padding: var(--spacing-4);
+}
+.order-workbench-task-panel-feedback { margin-top: var(--spacing-3); }
+.order-workbench-task-panel-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-2);
+  flex-wrap: wrap;
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--color-border-emphasized);
+}
+.order-workbench-context-group {
+  display: grid;
+  gap: var(--spacing-2);
+}
+.order-workbench-context-group + .order-workbench-context-group {
+  margin-top: var(--spacing-4);
+}
+.order-workbench-context-group h3 { margin: 0; }
 .order-workbench-section-header p { color: var(--color-text-secondary); }
 
 .order-workbench-section-header {

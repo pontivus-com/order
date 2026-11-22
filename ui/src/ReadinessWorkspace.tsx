@@ -386,26 +386,6 @@ export const ReadinessWorkspace = ({
               </div>
             }
             decisions={<></>}
-            technicalDetails={
-              readinessArtifact === null
-                ? undefined
-                : (
-                  <dl className="order-review-readiness-technical">
-                    <div>
-                      <dt>Artifact role</dt>
-                      <dd>{readinessArtifact.role}</dd>
-                    </div>
-                    <div>
-                      <dt>Repository path</dt>
-                      <dd><code>{readinessArtifact.repositoryPath}</code></dd>
-                    </div>
-                    <div>
-                      <dt>SHA-256</dt>
-                      <dd><code>{readinessArtifact.sha256}</code></dd>
-                    </div>
-                  </dl>
-                )
-            }
           />
         </div>
       }

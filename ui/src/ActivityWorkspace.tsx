@@ -16,7 +16,6 @@ import { WorkbenchAction } from "./primitives/WorkbenchAction.tsx";
 import {
   WorkbenchDialogue, WorkbenchDialogueMessage, WorkbenchDialogueMessages,
 } from "./primitives/WorkbenchDialogue.tsx";
-import { WorkbenchDisclosure } from "./primitives/WorkbenchDisclosure.tsx";
 import { WorkbenchNotice } from "./primitives/WorkbenchNotice.tsx";
 import { WorkbenchSectionHeader } from "./primitives/WorkbenchSectionHeader.tsx";
 import { WorkbenchState } from "./primitives/WorkbenchState.tsx";
@@ -40,15 +39,6 @@ const interactionLabel = (run: Run, interaction: StageRunInteraction | null): st
   interaction?.tag === "OPEN" ? "Open for continuation" :
   interaction?.tag === "REQUIRED_INPUT" ? "Waiting for you" :
   runStatusLabel(run.status);
-
-const providerStatus = (run: Run): string => {
-  if (runIsActive(run)) return run.providerSessionId === null
-    ? "Starting OpenCode session…" : "OpenCode session is processing this turn…";
-  if (run.providerSessionId === null) return "OpenCode session was not admitted";
-  if (run.status === "CANCELLED") return "OpenCode session cancelled";
-  if (run.status === "FAILED") return "OpenCode session failed";
-  return "OpenCode session completed";
-};
 
 export const StageRunMaterial = ({
   stage, runs, runEvents, companion, selectedRunId, currentRunId,
@@ -144,17 +134,6 @@ export const StageRunMaterial = ({
     <WorkbenchStatus tone={statusTone(selectedRun.status)} label={interactionLabel(selectedRun,interaction)} />
   </div>;
 
-  const technical=<dl className="order-activity-technical">
-    <div><dt>Run id</dt><dd><code>{selectedRun.id}</code></dd></div>
-    <div><dt>Stage</dt><dd><code>{selectedRun.stage}</code></dd></div>
-    <div><dt>Role</dt><dd><code>{selectedRun.role}</code></dd></div>
-    <div><dt>Status</dt><dd><code>{selectedRun.status}</code></dd></div>
-    <div><dt>Baseline</dt><dd><code>{selectedRun.baselineCommit}</code></dd></div>
-    <div><dt>Context</dt><dd><code>{selectedRun.contextHash}</code></dd></div>
-    <div><dt>Provider session</dt><dd><code>{selectedRun.providerSessionId ?? "—"}</code></dd></div>
-    <div><dt>Provider status</dt><dd>{providerStatus(selectedRun)}</dd></div>
-    <div><dt>Terminal classification</dt><dd><code>{selectedRun.terminalClassification ?? "—"}</code></dd></div>
-  </dl>;
 
   return <section className="order-activity-material" data-testid="stage-run-material">
     <div className="order-activity-detail" data-testid="activity-detail">
@@ -175,9 +154,6 @@ export const StageRunMaterial = ({
           onError={async (error) => { setInputError(error); onMutationError?.(error); await onMutationRefresh(); }}
         /> : undefined}
       />
-      <div className="order-activity-technical-disclosure">
-        <WorkbenchDisclosure label="Technical details" content={technical} />
-      </div>
     </div>
   </section>;
 };

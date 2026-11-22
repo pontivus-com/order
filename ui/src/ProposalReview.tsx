@@ -92,9 +92,6 @@ export const ProposalReview = ({
             disabled={mutationsDisabled || decision.isPending} onClick={() => decision.mutate("ADOPT")} />
         </div> : null}
       </>}
-      technicalDetails={<dl className="order-proposal-technical">
-        <div><dt>Target repository path</dt><dd><code>{proposal.targetPath}</code></dd></div>
-      </dl>}
     />
   </section>;
 };

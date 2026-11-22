@@ -617,31 +617,6 @@ export const SignoffReview = ({
               </div>
             }
             decisions={approvalAction ?? <></>}
-            technicalDetails={
-              currentApproval &&
-              !packageStale &&
-              packageValue !== null
-                ? (
-                  <MetadataList
-                    columns="multi"
-                    title="Technical identity"
-                    data-testid="approval-package-metadata"
-                  >
-                    <MetadataListItem label="Package">
-                      <code data-testid="signoff-package-hash">
-                        {packageValue.packageHash}
-                      </code>
-                    </MetadataListItem>
-                    <MetadataListItem label="Source">
-                      <code>{packageValue.sourceSha256}</code>
-                    </MetadataListItem>
-                    <MetadataListItem label="Baseline">
-                      <code>{packageValue.baselineCommit}</code>
-                    </MetadataListItem>
-                  </MetadataList>
-                )
-                : undefined
-            }
           />
         </div>
       }
