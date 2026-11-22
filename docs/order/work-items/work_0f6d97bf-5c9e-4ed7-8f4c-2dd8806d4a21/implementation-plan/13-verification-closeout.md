@@ -13,7 +13,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
-| IA27 | IA28 | current foundation independently revalidated against P3/P4/SD21; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; residual-delta/no-edit ledger complete; seven retained atomic adapters remain narrow; foundation/disclosure/theme/accessibility/responsive proof + `SURF-WI-001` PASS |
+| IA27 | IA28 | SD21 visual-language → foundation realization ledger complete/no-duplicate/no-unowned before current-byte judgment; current foundation independently revalidated against that ledger and P3/P4/theme; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; residual-delta/no-edit ledger complete; seven retained atomic adapters remain narrow; cross-service component/theme parity + foundation/disclosure/accessibility/responsive proof + `SURF-WI-001` PASS |
 | IA28 | IA29 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA28 face-ledger rows PASS |
 | IA29 | IA30 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
 | IA30 | IA31 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
@@ -35,7 +35,7 @@ For IA27-IA31, the fresh T1 baseline already contains the historically completed
 Each resumed phase retains:
 
 - historical purge/reconstruction provenance only as evidence that the old implementation was previously displaced;
-- the applicable already-closed foundation/surface rows from the exhaustive 37-surface information contract in `solution-design.md` are loaded before current bytes are judged;
+- IA27 derives/revalidates the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived references before current foundation bytes are judged; IA28-IA31 then load their applicable already-closed surface rows from the exhaustive 37-surface information contract in `solution-design.md` through that accepted foundation before current screen bytes are judged;
 - an exact residual-delta ledger classifying each inspected owner/selector as conforming-no-edit or requiring correction;
 - final current-state absence/singularity proof for obsolete/duplicate ownership;
 - semantic/browser/rendered proof including P3 §11.4A default visibility/disclosure behavior;
