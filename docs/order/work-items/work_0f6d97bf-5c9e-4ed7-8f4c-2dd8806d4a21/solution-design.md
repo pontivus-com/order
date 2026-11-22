@@ -501,8 +501,6 @@ Context is the **single WorkItem-scoped technical-inspection surface**. It is se
 | excluded unrelated carrier fields | any technical field not applicable to the current selected object | prevent metadata dumping | Technical/Diagnostic but absent | none | adding another field requires DESIGN amendment |
 | Close Context | local | restore primary width/focus | Primary | predictable close/toggle | never auto-opens; close restores owning task |
 
-##### SURF-STEP-WR-001
-
 ##### SURF-STEP-WR-001 — Work request step
 
 | Datum/action | Source | Intent | Class | Default placement | Rule |
