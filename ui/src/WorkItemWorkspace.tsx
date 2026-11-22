@@ -3,7 +3,7 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import { Link } from "@astryxdesign/core/Link";
 import { TextInput } from "@astryxdesign/core/TextInput";
 
-import type { ArtifactRef, Run, RunEvent, Sha256, WorkItem } from "../../src/core/contracts.ts";
+import type { ArtifactRef, Run, RunEvent, Sha256, WorkItem, WorkItemSchemaCatalogEntry } from "../../src/core/contracts.ts";
 import {
   artifactHasCurrentStageConformance,
   deriveCurrentAttention,
@@ -125,6 +125,7 @@ const startLabelForStage = (stage: WorkItem["stage"]): string =>
 
 export const WorkItemWorkspace = ({
   workItem,
+  schemas,
   selectedWorkItemFetching,
   selectedWorkItemUpdatedAt,
   selectedWorkItemError,
@@ -138,6 +139,7 @@ export const WorkItemWorkspace = ({
   onDirtyChange,
 }: Readonly<{
   workItem: WorkItem;
+  schemas: readonly WorkItemSchemaCatalogEntry[];
   selectedWorkItemFetching: boolean;
   selectedWorkItemUpdatedAt: number;
   selectedWorkItemError: unknown;
@@ -1335,6 +1337,13 @@ export const WorkItemWorkspace = ({
     />
   );
 
+  const semanticWorkItemKind = schemas.find(
+    (schema) => schema.schemaId === workItem.schemaId,
+  )?.kind;
+  const workItemKindLabel = semanticWorkItemKind === undefined
+    ? "Work item"
+    : semanticWorkItemKind.charAt(0) + semanticWorkItemKind.slice(1).toLowerCase();
+
   const identity = (
     <WorkItemIdentityRow
       navigation={
@@ -1367,7 +1376,7 @@ export const WorkItemWorkspace = ({
       }
       utilities={
         <>
-          <span className="order-workitem-kind">{workItem.schemaId.replace("-v1", "").replace(/^./, (value) => value.toUpperCase())}</span>
+          <span className="order-workitem-kind">{workItemKindLabel}</span>
           <WorkbenchAction
             label="Context"
             tone="secondary"
