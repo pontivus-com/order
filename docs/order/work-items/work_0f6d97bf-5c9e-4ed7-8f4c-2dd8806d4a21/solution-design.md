@@ -7,11 +7,11 @@
 This DESIGN is the corrected technical-design candidate for the reopened C19/C20 remediation. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. It does not project G4 closure; current gate state remains owned by the campaign registers until fresh DESIGN pair/H3 audit passes. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
 - R1 `research.md`: blob `9f99a885da3757afad112dfd5d9d5e26782c41f9` — includes C19-F04/C19-F05/C20-F07 proving disclosure-container accumulation, incomplete foundation anatomy and acceptance/detection gaps. Current UI/tests remain evidence only.
-- R2 `requirements.md`: blob `7a279895bd57a2ec7080e1404927ce0668f1dbaf` — binds singular material/history ownership, explicit technical-inspection ownership, no disclosure accumulation, modal anatomy and Markdown editor-control→canvas adjacency.
+- R2 `requirements.md`: blob `50e717a814b2710f25748a0bbe81552819946e64` — binds singular material/history ownership, explicit technical-inspection ownership, no disclosure accumulation, modal anatomy and Markdown editor-control→canvas adjacency.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P3 Workbench UX: `c673bfa22ffe305e05b27feb7b92c70d796b726d` — §11.4A/§12 own the semantic classes, prominence bands, singular owners and composition invariants.
-- P3 Markdown Workbench: `70ad77e720a5b99bcde4c64773056b54a4b129e9` — §17.4 owns the compact editor-control region, overflow-before-wrap behavior and control→canvas adjacency.
+- P3 Workbench UX: `497029fca2b7dc7cdd7f15a6947acab42358be9e` — §11.4A/§12 own the semantic classes, prominence bands, singular owners and composition invariants.
+- P3 Markdown Workbench: `1cc5a28eff8d180f88106d89990f7b89aa27a132` — §17.4 owns the compact editor-control region, overflow-before-wrap behavior and control→canvas adjacency.
 - P4 Workbench: `f501ac7eb79dfffd34ee32a1d3e10f11f7f515ee` — §8.12/§8.12A own singular Context/Settings technical inspection, same-task-only Disclosure, Review without an automatic technical slot and TaskPanel header/body/footer anatomy.
 - P4 Workbench Theme: `43b81a61291841d827a47f392e0149ace5c8351f`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
