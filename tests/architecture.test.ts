@@ -2020,6 +2020,85 @@ describe("architecture fitness", () => {
       violations.push("G5A PASS requires ALIGN-A01-A11 and ALIGN-H1 PASS");
     }
 
+    if (gates.get("G6")?.status === "PASS") {
+      const auditStartToken = "### IA27 IMPLEMENTATION AUDIT START";
+      const auditEndToken = "### IA27 IMPLEMENTATION AUDIT END";
+      const auditStart = source.lastIndexOf(auditStartToken);
+      const auditEnd = source.indexOf(auditEndToken, auditStart + auditStartToken.length);
+      if (auditStart < 0 || auditEnd < auditStart) {
+        violations.push("G6 PASS requires a retained IA27 implementation audit record");
+      } else {
+        const audit = source.slice(auditStart, auditEnd + auditEndToken.length + 400);
+        const candidate = audit.match(/\*\*Implementation candidate:\*\*\s*`([0-9a-f]{40})`/i)?.[1];
+        const requiredAuditPatterns = [
+          ["IA27 PASS verdict", /\*\*IA27 verdict:\*\*\s*`PASS`/i],
+          ["owner disposition closure", /\*\*Owner disposition closure:\*\*\s*PASS/i],
+          ["destructive replacement provenance", /\*\*Destructive replacement provenance:\*\*\s*PASS/i],
+          ["SD21 realization ledger verdict", /\*\*SD21 realization ledger verdict:\*\*\s*PASS/i],
+          ["PR verification run", /\*\*PR Verification run:\*\*\s*`\d+`/i],
+          ["rendered artifact candidate", /\*\*Rendered artifact candidate:\*\*\s*`[0-9a-f]{40}`/i],
+          ["rendered artifact id", /\*\*Rendered artifact id:\*\*\s*`\d+`/i],
+          ["SURF-WI-001 three-dimensional PASS", /\|\s*SURF-WI-001\s*\|\s*PASS\s*\|\s*PASS\s*\|\s*PASS\s*\|/i],
+        ] as const;
+        for (const [label, pattern] of requiredAuditPatterns) {
+          if (!pattern.test(audit)) violations.push("G6 IA27 audit missing " + label);
+        }
+        const sd21Dimensions = [
+          "semantic information hierarchy",
+          "interaction-class composition",
+          "application and WorkItem chrome",
+          "actions and confirmations",
+          "status, notices and states",
+          "supporting and operational material",
+          "progressive disclosure",
+          "color and theme",
+          "typography",
+          "spacing, density, geometry and boundaries",
+          "responsive composition",
+          "accessibility/focus/overlay mechanics",
+          "specialized content",
+        ] as const;
+        for (const dimension of sd21Dimensions) {
+          const row = audit.split(/\r?\n/).find((line) =>
+            line.includes("| " + dimension + " |") && /\|\s*PASS\s*\|\s*$/.test(line)
+          );
+          if (row === undefined) {
+            violations.push("G6 IA27 audit missing PASS for SD21 dimension " + dimension);
+          }
+        }
+        if (candidate === undefined) {
+          violations.push("G6 IA27 audit missing implementation candidate");
+        } else {
+          let changedAfterAudit: readonly string[] = [];
+          try {
+            changedAfterAudit = execFileSync(
+              "git",
+              ["diff", "--name-only", candidate + "..HEAD"],
+              { cwd: repositoryRoot, encoding: "utf8" },
+            )
+              .split(/\r?\n/)
+              .filter((line) => line.length > 0);
+          } catch {
+            violations.push("G6 IA27 audit implementation candidate is not diffable from HEAD");
+          }
+          const implementationMutation = changedAfterAudit.find((file) =>
+            file.startsWith("src/") ||
+            file.startsWith("ui/") ||
+            file.startsWith("tests/") ||
+            file === ".github/workflows/ci.yml" ||
+            file === "package.json" ||
+            file === "bun.lock"
+          );
+          if (implementationMutation !== undefined) {
+            violations.push(
+              "G6 IA27 audit is stale after implementation/verification mutation: " +
+                implementationMutation,
+            );
+          }
+        }
+      }
+    }
+
     for (
       const entry of readdirSync(join(repositoryRoot, campaignDirectory), {
         withFileTypes: true,
