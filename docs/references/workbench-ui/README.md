@@ -1,6 +1,6 @@
 # Order Workbench 0.5.0 visual reference pack
 
-**Status:** Reviewed derived visual reference set — application-wide baseline, corrected against current 0.6.0 information-visibility authority  
+**Status:** Reviewed derived visual reference set — application-wide baseline, corrected against current 0.6.0 information/composition authority  
 **Scope:** every application/workflow/material/confirmation surface identified by the completed Phase 1 `SURF-*` registry, plus materially distinct interaction/state grammars  
 **Authority:** derived visual reference only; semantic authority remains with the canonical owners below
 
@@ -15,7 +15,7 @@ Permanent references follow this rule:
 1. **Repository-backed value where one exists.**  
    Example: the Queue reference uses the actual repository WorkItems/titles/kinds; Work request/Research/Requirements references use the actual linked Change material.
 2. **Canonical semantic placeholder where no runtime value exists.**  
-   The reference may describe the meaning supplied by a canonical typed/template field, but raw type/property/event identifiers are not ordinary operator copy. Exact field identity may appear only in a visibly technical/reference annotation or an authorized Technical details/Context/Evidence surface.
+   The reference may describe the meaning supplied by a canonical typed/template field, but raw type/property/event identifiers are not ordinary operator copy. Exact field identity appears only in a visibly technical/reference annotation or an authorized Context/Settings-diagnostics/Evidence surface; productive screens do not add local `Technical details` bars.
 3. **Canonical state pattern where the reference demonstrates a condition.**  
    Example: PROCESSING / open-for-continuation / required-input dialogue states come directly from the closed interaction algebra.
 4. **Never invent lifecycle history or business evidence.**  
@@ -63,13 +63,16 @@ The references preserve:
 - flat, neutral-first, low-chrome presentation;
 - deep navy / Order-blue identity;
 - border/spacing hierarchy rather than decorative card-dashboard styling;
-- technical identity on demand;
-- every depicted operator-facing datum follows `GW-DOC-WORKBENCH-UX-V2 §11.4A`: Primary information is visible by default; Supporting/Operational information is subordinate; Technical/Diagnostic information is hidden by default behind its authorized Technical details/Context/Evidence owner;
+- technical identity is available only through the explicit inspection owner for the current scope;
+- every depicted operator-facing datum follows `GW-DOC-WORKBENCH-UX-V2 §11.4A/§12`: Primary information is visible by default; Supporting/Operational information uses one semantic selector/resource/history owner; Technical/Diagnostic information is absent from productive surfaces and appears only in WorkItem Context, the single Settings diagnostics area, or Evidence after intentional inspection;
 - when a technical/diagnostic condition owns attention, only human-readable meaning/consequence/action is promoted; raw code/path/hash/session/payload is not promoted;
 - exact technical values may be primary only where the active task requires that exact value (for example an Add/Move configuration input or mutation-confirmation path list);
 - one primary command per current task;
 - no persistent second pre-signoff navigation rail;
-- supporting material subordinate to current work;
+- supporting material subordinate to current work and owned by one material/history selector rather than a second generic disclosure strip;
+- no adjacent/nested generic `Technical details`, `Supporting material/history`, `Details` or equivalent disclosure bars;
+- bounded task dialogs use a clear header/body/footer composition with Cancel + the one primary task action in the footer;
+- Markdown authoring uses one compact editor-control region directly adjacent to the source/preview canvas; lower-frequency formatting commands move to overflow before the toolbar becomes multiple stacked rows;
 - Evidence exact-byte/code material uses the pinned Astryx `CodeBlock` standalone card presentation and the root theme's muted surface/text roles; it does not introduce a dedicated dark palette or theme island in Light mode;
 - human/agent dialogue distinct from workflow events and operational activity;
 - Implementation as the only persistent workflow master/detail geometry.
@@ -195,6 +198,9 @@ The application-wide reference baseline is complete only while all of the follow
 | responsive recomposition is represented | PASS |
 | light/dark semantic parity is represented | PASS |
 | references use repository-backed values or semantic placeholders without leaking raw technical field/event identity into ordinary operator presentation | PASS |
+| references contain no generic local Technical-details/Supporting-material-history disclosure grammar | PASS |
+| Create/remediation references show header/body/footer modal anatomy | PASS |
+| document-authoring reference preserves compact editor controls directly adjacent to the canvas | PASS |
 | no reference claims unobserved lifecycle/runtime facts | PASS |
 
 ## Technical realization
@@ -203,4 +209,4 @@ Phase 2B is closed in `work_2778105b-d919-4fcd-91e7-dd9b23812aac/solution-design
 
 The technical design binds these references to the existing Workbench primitives, pinned Astryx Chat leaves, canonical Run/RunEvent/material projections and exact command boundaries without introducing a second state model, DTO/view-model family, browser workflow store, event bus, parallel document owner or feature-local theme.
 
-The SVGs continue to constrain **presentation, hierarchy and interaction composition** only after applying canonical P3/P4 visibility/disclosure ownership. A field/path/code shown in an explicit developer annotation is not runtime operator copy; the depicted operator surface itself must obey the same default-hidden/authorized-disclosure contract as implementation.
+The SVGs continue to constrain **presentation, hierarchy and interaction composition** only after applying canonical P3/P4 information/inspection ownership. A field/path/code shown in an explicit developer annotation is not runtime operator copy; the depicted operator surface itself must obey the same default-hidden/explicit-inspection contract as implementation. The pack does not use a generic local `Technical details` or `Supporting material/history` bar as a presentation primitive.
