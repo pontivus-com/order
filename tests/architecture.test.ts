@@ -2039,6 +2039,7 @@ describe("architecture fitness", () => {
           ["rendered artifact candidate", /\*\*Rendered artifact candidate:\*\*\s*`[0-9a-f]{40}`/i],
           ["rendered artifact id", /\*\*Rendered artifact id:\*\*\s*`\d+`/i],
           ["SURF-WI-001 three-dimensional PASS", /\|\s*SURF-WI-001\s*\|\s*PASS\s*\|\s*PASS\s*\|\s*PASS\s*\|/i],
+          ["SURF-WI-CONTEXT-001 three-dimensional PASS", /\|\s*SURF-WI-CONTEXT-001\s*\|\s*PASS\s*\|\s*PASS\s*\|\s*PASS\s*\|/i],
         ] as const;
         for (const [label, pattern] of requiredAuditPatterns) {
           if (!pattern.test(audit)) violations.push("G6 IA27 audit missing " + label);
@@ -2050,7 +2051,7 @@ describe("architecture fitness", () => {
           "actions and confirmations",
           "status, notices and states",
           "supporting and operational material",
-          "progressive disclosure",
+          "subordinate expansion and technical inspection",
           "color and theme",
           "typography",
           "spacing, density, geometry and boundaries",
@@ -2528,7 +2529,7 @@ describe("architecture fitness", () => {
       "interaction-class composition",
       "actions and confirmations",
       "status, notices and states",
-      "progressive disclosure",
+      "subordinate expansion and technical inspection",
       "color and theme",
       "typography",
       "spacing, density, geometry and boundaries",
@@ -2978,7 +2979,7 @@ describe("architecture fitness", () => {
         for (const required of [
           "SD21 visual-language → foundation realization ledger before inspecting current JSX/CSS",
           "complete/no-duplicate/no-unowned visual-language → foundation realization ledger",
-          "same semantic role → same primitive + token/variant + hierarchy/disclosure behavior",
+          "same semantic role → same primitive + token/variant + hierarchy/inspection behavior",
           "may compose the accepted foundation but may not extend the visual language locally",
           "`CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`",
           "Do not refactor through, wrap or compatibility-shim the superseded structure",
