@@ -1250,6 +1250,17 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     });
   });
 
+  await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: "[]",
+    });
+  });
   await page.setViewportSize({ width: 1440, height: 900 });
   await authenticate(page, request);
   await page.getByRole("radio", { name: "Light" }).click();
@@ -1320,6 +1331,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.reload();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
 
+  await page.unroute("**/api/work-item-sources/diagnostics");
   await page.route("**/api/work-item-sources/diagnostics", async (route) => {
     if (route.request().method() !== "GET") {
       await route.fallback();
@@ -1340,6 +1352,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.reload();
   const diagnostics = page.getByTestId("source-diagnostics");
   await expect(diagnostics).toBeVisible();
+  await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(diagnostics).toContainText("docs/order/work-items/broken/work-request.md");
   await expect(diagnostics).toContainText("The WorkItem source could not be parsed.");
   await expect(diagnostics).not.toContainText("INVALID_SOURCE");
@@ -1363,6 +1376,17 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
   await page.unroute("**/api/work-item-sources/diagnostics");
+  await page.route("**/api/work-item-sources/diagnostics", async (route) => {
+    if (route.request().method() !== "GET") {
+      await route.fallback();
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: "[]",
+    });
+  });
   await page.reload();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
 
