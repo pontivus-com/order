@@ -2723,7 +2723,11 @@ describe("architecture fitness", () => {
           !/consume the exact phase-owned rows/i.test(objective) ||
           !/default-hidden/i.test(objective) ||
           !/visual-language → foundation realization ledger/i.test(objective) ||
-          !/no duplicate\/unowned\/screen-delegated role/i.test(objective)
+          !/no duplicate\/unowned\/screen-delegated role/i.test(objective) ||
+          !objective.includes("CONFORMING_NO_EDIT") ||
+          !objective.includes("BOUNDED_RESIDUAL") ||
+          !objective.includes("DESTRUCTIVE_REPLACEMENT") ||
+          !/refactor-through-superseded-foundation path/i.test(objective)
         ) {
           violations.push(
             "T1 objective must encode resumed-baseline provenance, signed field-exact DESIGN consumption, visual-language foundation derivation and disclosure proof",
@@ -2821,6 +2825,10 @@ describe("architecture fitness", () => {
           "complete/no-duplicate/no-unowned visual-language → foundation realization ledger",
           "same semantic role → same primitive + token/variant + hierarchy/disclosure behavior",
           "may compose the accepted foundation but may not extend the visual language locally",
+          "`CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`",
+          "Do not refactor through, wrap or compatibility-shim the superseded structure",
+          "current mandatory destructive replacement: `ui/src/primitives/WorkbenchAttention.tsx`",
+          "Remove the caller-selected `tone` / `data-tone` whole-surface status-color channel",
         ]) {
           if (!actionCatalog.includes(required)) {
             violations.push(

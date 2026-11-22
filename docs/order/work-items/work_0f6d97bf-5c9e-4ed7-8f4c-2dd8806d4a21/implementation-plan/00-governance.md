@@ -94,7 +94,7 @@ After IA27 PASS, later screen phases consume that accepted foundation. They may 
 
 Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
 
-For every rendered datum/action in IA27-IA34, the exhaustive DESIGN contract in `solution-design.md` already records semantic datum/action, P3 class, default visibility, ordinary presentation owner, authorized progressive-disclosure owner when any, promotion condition, responsive invariance and negative ordinary-rendering rules. Implementation records only a conformance trace (`CONFORMING_NO_EDIT` or `RESIDUAL_DELTA`) against those pre-existing rows. That trace is evidence only and must not become a DTO/browser state model.
+For every rendered datum/action in IA27-IA34, the exhaustive DESIGN contract in `solution-design.md` already records semantic datum/action, P3 class, default visibility, ordinary presentation owner, authorized progressive-disclosure owner when any, promotion condition, responsive invariance and negative ordinary-rendering rules. Implementation records only an authority-conformance trace against those pre-existing rows. Screen-family IA28-IA34 evidence remains `CONFORMING_NO_EDIT` or `RESIDUAL_DELTA`; design-bearing IA27 foundation owners use exactly `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`. These traces are evidence only and must not become DTOs, browser state or a parallel runtime model.
 
 The implementation rule is exact:
 
