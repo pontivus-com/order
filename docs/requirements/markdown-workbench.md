@@ -460,7 +460,7 @@ On constrained widths, Split may be unavailable or collapse to Edit/Preview swit
 
 Read-only documents open in Preview by default and may expose exact-source inspection where useful, but no editing action is added.
 
-### 17.4 Source-editing ergonomics and formatting toolbar
+### 17.4 Source-editing ergonomics, toolbar and authoring composition
 
 The editor must provide the following ordinary Markdown-authoring behavior:
 
@@ -473,7 +473,7 @@ The editor must provide the following ordinary Markdown-authoring behavior:
 - fenced-code and inline-code syntax recognition;
 - accessible focus and keyboard operation.
 
-The editable source surface also provides a compact **Markdown formatting toolbar**. The toolbar is a source-editing affordance, not a rich-text model. Its actions transform the exact current Markdown buffer and selection directly.
+The editable source surface provides one compact **Markdown formatting toolbar**. The toolbar is a source-editing affordance, not a rich-text model. Its actions transform the exact current Markdown buffer and selection directly.
 
 The required toolbar actions are:
 
@@ -492,7 +492,20 @@ The required toolbar actions are:
 - Fenced code block;
 - Horizontal rule.
 
-The toolbar may group structurally related actions and may collapse lower-frequency actions into an overflow/menu treatment on constrained widths, but the actions remain keyboard accessible and discoverable.
+The toolbar may group structurally related commands. On a width that cannot support all commands, lower-frequency commands move into one discoverable overflow/menu treatment **before** the toolbar is allowed to become multiple independent stacked formatting rows. All commands remain keyboard accessible and discoverable.
+
+The Markdown authoring composition is binding:
+
+~~~text
+document identity / current state
+one editor-control region
+task-relevant warning/error/conflict feedback when present
+source / preview / split canvas
+~~~
+
+The editor-control region owns the Edit/Preview/Split mode, formatting commands and Save/Cancel state/actions in a deliberate compact composition. A control that operates on the document must remain visually and structurally adjacent to the document canvas it controls.
+
+No generic Technical-details, Supporting-material/history, repository-inspection or other unrelated progressive-disclosure bar may be inserted between the editor-control region and the source/preview canvas. Supporting workflow-material selection remains outside the editor chrome in its semantic material owner. Exact SHA/commit/provider/schema/other technical identity belongs to the explicit WorkItem Context/technical-inspection surface rather than an inline editor disclosure.
 
 Formatting behavior must be deterministic and reversible:
 

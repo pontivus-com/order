@@ -613,31 +613,41 @@ Provider/runtime mechanics such as OpenCode session identity/status are technica
 
 This is a binding stability and information-hierarchy requirement.
 
-### 11.4A Information visibility and progressive disclosure
+### 11.4A Information visibility, ownership and progressive disclosure
 
-Every datum/action available to a Workbench surface has exactly one ordinary presentation class. This classification is semantic and does not depend on whether the runtime happens to expose the value conveniently.
+Every datum/action available to a Workbench surface has exactly one **semantic presentation class**. Classification is determined by the operator task and canonical meaning; it is not inferred from current JSX, storage shape, transport convenience or whether a value happens to be easy to render.
+
+The class does **not** authorize a generic container. Progressive disclosure is an interaction rule for subordinate information, not permission to accumulate collapsed bars around primary work.
 
 | Class | Meaning | Default presentation |
 |---|---|---|
 | **Primary task information** | required to understand or perform the current operator task | visible in the owning primary interaction surface and allowed to dominate |
-| **Supporting operator information** | useful to judge or orient the current task but not itself the task | visible subordinately or through the owning supporting-material/history control |
-| **Operational detail** | low-frequency operator-facing history, resource or status detail | subordinate and collapsed/selected when persistent display would compete with primary work |
-| **Technical detail** | exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal-role identity and comparable mechanics | hidden by default; available only through the owning **Technical details** disclosure or explicitly opened **Context** |
-| **Diagnostic/console detail** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence | absent from ordinary product presentation; available only through an explicitly technical/evidence inspection surface when legitimate operator inspection requires it |
+| **Supporting operator information** | useful to judge or orient the current task but not itself the task | visible subordinately or reachable through the one semantic selector/resource owner for that information |
+| **Operational detail** | low-frequency operator-facing history, resource or status detail | subordinate and selected/inspected through the owning history/material/resource interaction when persistent display would compete with primary work |
+| **Technical detail** | exact implementation/audit identity such as UUIDs, hashes, commit/baseline identity, raw repository paths where a semantic label suffices, provider/session identity, schema/internal-role identity and comparable mechanics | absent from the productive task flow by default; available only through the explicit technical-inspection destination for the current scope |
+| **Diagnostic/console detail** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and other implementation-facing failure evidence | absent from ordinary product presentation; available only through intentional technical/evidence inspection when legitimate operator inspection requires it |
 
-A normally subordinate technical condition may become the current blocker without promoting its raw representation. The primary surface promotes only the **human-readable meaning, consequence and valid action**. Raw code/path/hash/session/payload detail remains in its technical/evidence owner.
+A normally subordinate technical condition may become the current blocker without promoting its raw representation. The primary surface promotes only the **human-readable meaning, consequence and valid action**. Raw code/hash/session/payload detail remains in its inspection owner. A raw path may become ordinary Supporting or decision-primary information only when the path itself is required to identify the object or consent to the exact mutation; that exception is surface-specific authority, not a general path rule.
 
-The progressive-disclosure owners are closed:
+The ordinary ownership model is closed:
 
-- **Supporting material/history** — operator-facing workflow material and history;
-- **Context** — explicitly opened compact secondary/technical orientation for the selected WorkItem/material;
-- **Technical details** — local exact identity/mechanics associated with the current primary surface;
-- **Evidence** — exact evidence/resource identity and bytes after intentional inspection;
-- **Safety/confirmation** — exact facts required to consent safely to the pending mutation, for example the exact documentation-Git changed paths.
+- **material/history selection** — attempts, upstream/current governed material and other operator-facing workflow history use the owning semantic selector/resource interaction; there is no second generic **Supporting material/history** strip;
+- **technical inspection** — each application scope has at most one explicit technical-inspection destination. For a selected WorkItem/material this is **Context**. Technical identity is grouped there by the selected object/material rather than repeated as local **Technical details** bars throughout productive surfaces;
+- **Evidence** — exact evidence/resource identity and bytes become primary only after intentional Evidence inspection;
+- **Safety/confirmation** — exact facts required to consent safely to the pending mutation may become decision-primary only for the life of that confirmation.
 
-No feature may create another persistent technical rail, diagnostics dashboard, metadata card stack or local disclosure system. A datum has one ordinary owner; duplicate exposure is permitted only where a second current decision genuinely requires the same semantic fact.
+A productive surface therefore must not create a local generic **Technical details** accordion merely because technical fields exist. Nor may a feature create another persistent technical rail, diagnostics dashboard, metadata card stack or local disclosure system. Application/configuration diagnostics that are not WorkItem-scoped must have one explicit Settings/diagnostics inspection owner rather than per-section technical accordions.
 
-Primary information may never be available **only** through Context or Technical details. Conversely, Technical/Diagnostic information may not become persistently visible merely because a viewport changes or because a failure currently owns attention.
+The following composition invariants are binding:
+
+1. **one semantic owner** — the same supporting/history information is not exposed through both a selector/navigation owner and a generic disclosure bar;
+2. **no disclosure accumulation** — adjacent or nested generic collapsed containers whose purpose is only “technical”, “supporting”, “history”, “details” or equivalent are prohibited;
+3. **primary adjacency** — controls that directly operate on primary content remain adjacent to that content. Unrelated technical/supporting inspection cannot be inserted between an editor toolbar and its canvas, between a task form body and its governed action region, or otherwise interrupt the active task relationship;
+4. **inspection is intentional** — technical/diagnostic content never auto-opens, never becomes persistent because viewport geometry changes and never becomes the only owner of a current blocker/action;
+5. **container count is not information architecture** — adding more collapsed containers cannot satisfy progressive disclosure. If information lacks a semantic selector/resource/inspection owner, the design returns upstream rather than inventing another accordion;
+6. **decision exceptions are bounded** — Evidence and Safety/confirmation may temporarily elevate exact technical facts only because the operator intentionally selected the evidence or must consent to the exact mutation.
+
+Primary information may never be available **only** through Context, Evidence or technical inspection. Conversely, Technical/Diagnostic information may not occupy ordinary productive space merely because it is hidden inside a collapsed control.
 
 ### 11.5 Master/detail is reserved for real master/detail work
 
@@ -786,11 +796,11 @@ Every semantic role required to operate the Workbench must remain readable and d
 
 ## 12. Information hierarchy
 
-Every visible item belongs to one of three levels.
+The semantic presentation classes are the five classes in §11.4A. This section defines their **visual prominence bands**; it does not create a competing three-class taxonomy.
 
-### 12.1 Primary
+### 12.1 Primary prominence
 
-Primary information is necessary to understand or perform the current task.
+**Primary task information** is necessary to understand or perform the current task and dominates the owning interaction.
 
 Examples:
 
@@ -802,21 +812,22 @@ Examples:
 - current execution task and blocker;
 - terminal result.
 
-### 12.2 Secondary
+### 12.2 Secondary prominence
 
-Secondary information supports the current task without dominating it.
+**Supporting operator information** and **Operational detail** remain subordinate to the primary task. They use their semantic selector, resource, timeline or bounded supporting owner rather than generic container accumulation.
 
 Examples:
 
-- attempt selection;
+- attempt/material selection;
 - supporting upstream document;
-- evidence/resource links;
+- evidence/resource links before Evidence is explicitly opened;
 - compact source status;
-- current document Git state.
+- current document Git state;
+- bounded agent/workflow activity.
 
-### 12.3 Technical
+### 12.3 Inspection-only prominence
 
-Technical information is exact implementation/audit identity that ordinary operation does not require.
+**Technical detail** and **Diagnostic/console detail** are not ordinary productive hierarchy. They are absent by default and appear only after intentional entry into the authorized technical-inspection or Evidence surface, except for the exact bounded decision exceptions in §11.4A.
 
 Examples:
 
@@ -828,7 +839,7 @@ Examples:
 - raw RunEvent tags/payloads;
 - raw paths where ordinary labels suffice.
 
-Technical information is available on demand and does not occupy persistent premium space.
+Technical/Diagnostic information does not gain legitimacy merely by being placed in a collapsed bar inside the primary surface.
 
 ## 13. Interaction-space classes
 
@@ -1582,13 +1593,15 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-217-PRIMARY-INFORMATION-ECONOMY
 
-**Required behavior:** primary task content dominates; secondary/technical information cannot create card/chrome accumulation. Every datum/action follows the closed §11.4A presentation classes and disclosure owners.
+**Required behavior:** primary task content dominates; Supporting/Operational information uses one semantic selector/resource/history owner; Technical/Diagnostic information is removed from the productive task flow into the explicit inspection owner. Progressive disclosure cannot be satisfied by accumulating generic collapsed containers.
 
-**Acceptance:** required Primary information is visible without opening technical inspection; Technical/Diagnostic information is absent from the ordinary surface unless the active task requires that exact value; opening the authorized disclosure exposes only its owned information; closing/returning restores the ordinary hierarchy without losing current attention.
+**Acceptance:** required Primary information is visible without opening inspection; Technical/Diagnostic information is absent from the ordinary productive surface unless the active decision explicitly requires that exact value; no adjacent/nested generic technical/supporting/history disclosure bars exist; opening the authorized Context/technical-inspection or Evidence owner exposes only its owned information; closing/returning restores the ordinary hierarchy without losing current attention.
 
 ### GW-FR-218-SPACE-CLASS-CONSISTENCY
 
-**Required behavior:** equivalent Document, Dialogue, Review, Operational, Evidence and Result interactions use the same functional geometry.
+**Required behavior:** equivalent Document, Dialogue, Review, Operational, Evidence and Result interactions use the same functional geometry. Task Dialogs use a stable header/body/footer anatomy; Markdown authoring preserves editor-control→canvas adjacency; supporting/technical inspection cannot insert another structural band into those relationships.
+
+**Acceptance:** equivalent interaction classes preserve the same region order and action ownership across services; a feature cannot add a local disclosure row, action row or metadata band that changes the canonical task anatomy.
 
 ### GW-FR-219-EXPLICIT-CONTEXT
 
@@ -1640,15 +1653,15 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 ### GW-FR-230-CLOSED-WORKBENCH-INTERACTION-GRAMMAR
 
-**Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, context, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation grammar.
+**Required behavior:** every rendered Order Workbench service is classified under exactly one primary interaction-space class from §13; subordinate selection, explicit technical inspection, task-panel and safety/exception behavior use only the declared auxiliary classes and cannot create another persistent layout/navigation/disclosure grammar.
 
-**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry by implementation convenience. If none of the §13 classes can express the required user interaction, the change returns to DESIGN before implementation.
+**Acceptance:** adding a new feature, material type, Run/document/task count, configuration service or technical detail does not create a new screen geometry or generic disclosure lane by implementation convenience. Supporting/history information retains one selector/resource owner; technical information retains one explicit inspection owner. If none of the §13 classes can express the required interaction, the change returns to DESIGN before implementation.
 
 ### GW-FR-231-CANONICAL-WORKBENCH-VISUAL-LANGUAGE
 
 **Required behavior:** every rendered Workbench service uses the single visual language in §11 for hierarchy, semantic color, typography, density, controls/forms, operational scanning, feedback, themes, focus and responsive continuity.
 
-**Acceptance:** equivalent UI meaning is rendered equivalently across queue, creation, Settings and every WorkItem workflow surface; no feature/service owns a competing palette, typography scale, form/control grammar, status treatment, notice treatment, table/list density, timeline grammar or overlay style.
+**Acceptance:** equivalent UI meaning is rendered equivalently across queue, creation, Settings and every WorkItem workflow surface; no feature/service owns a competing palette, typography scale, form/control grammar, status treatment, notice treatment, table/list density, timeline grammar, disclosure grammar or overlay style. Modal header/body/footer anatomy and editor control/canvas composition remain visually and structurally consistent wherever those interaction classes apply.
 
 ### GW-FR-232-CLOSED-WORKFLOW-STATE-LANGUAGE
 
@@ -1666,7 +1679,7 @@ The detailed current-attention/recovery value remains owned by the primary mater
 
 **Required behavior:** equivalent semantic UI roles use the same component presentation language everywhere in the application under §11.12.
 
-**Acceptance:** representative primary/secondary/destructive actions, fields, statuses, notices, operational rows, headings, disclosures and overlays are recognizably the same component family across Queue, Create, Settings and WorkItem workflow services; feature-local visual variants cannot redefine an already-owned role.
+**Acceptance:** representative primary/secondary/destructive actions, fields, statuses, notices, operational rows, headings, explicit inspection surfaces and overlays are recognizably the same component family across Queue, Create, Settings and WorkItem workflow services; feature-local visual variants cannot redefine an already-owned role. A generic local Technical-details or Supporting-material/history accordion is not an equivalent component role and fails this requirement.
 
 ### GW-FR-235-GLOBAL-THEME-PARITY
 
