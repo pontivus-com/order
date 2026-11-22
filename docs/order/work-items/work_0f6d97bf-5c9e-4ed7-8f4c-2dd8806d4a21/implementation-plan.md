@@ -6,9 +6,9 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 from current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a` and DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
+This PLAN is reconstructed under G-F12 from current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a` and DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
 
-This PLAN consumes current R1 `99f6932e582bde949de72716f29ea0868eba16a0`, current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a` and current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
+This PLAN consumes current R1 `99f6932e582bde949de72716f29ea0868eba16a0`, current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a` and current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
 
 ## Current resumed Workbench implementation plan
 
@@ -178,10 +178,10 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`.
 - R2 `requirements.md`: `27faa1a67321c8091deb27a4fd70ae912209c30a`.
-- DESIGN `solution-design.md`: `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+- DESIGN `solution-design.md`: `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `7263c890f3705ddd55fdadb98767b62acb7fc56d` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `916add5e528447a6509746b95b947c50eff3d232` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
@@ -282,7 +282,7 @@ Because this exact T1 deliberately sets signed `scope` equal to the same exact 6
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -341,7 +341,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -396,7 +396,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -466,7 +466,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -536,7 +536,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -581,7 +581,7 @@ Requirements and Solution design retain their authority/proposal semantics. Thei
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -626,7 +626,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -682,7 +682,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -731,7 +731,7 @@ C13/C14 domain semantics remain stable, but Complete, Evidence and Context/mater
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -795,7 +795,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -843,7 +843,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `e0c9a4704fb63af6ac55b4ff2df60f641b6d64d5`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
 
 ##### Stable requirement execution dispositions
 
@@ -1164,7 +1164,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 **Hard boundaries:** no domain/query/current-attention/lifecycle policy moves into primitives; no DTO/view-model/state family; no compatibility `WorkbenchLayout`; no temporary second shell; no old primitive DOM/CSS/API copied as implementation template; no old shell files retained merely to keep gates green; no screen-family redesign beyond the five shell-integration owners in IA27.
 
-**Proof:** historical reconstruction provenance + fresh authority-derived foundation-schema review + current absence/singularity proof + exact residual-delta ledger (including explicit no-edit revalidation where conforming) + architecture/certification/browser gates + representative application chrome/current-attention/disclosure/responsive evidence + `SURF-WI-001` row PASS. IA28-IA34 are blocked until IA27 PASS.
+**Proof:** historical reconstruction provenance + signed DESIGN surface-contract/foundation-responsibility review + current absence/singularity proof + exact residual-delta ledger (including explicit no-edit revalidation where conforming) + architecture/certification/browser gates + representative application chrome/current-attention/disclosure/responsive evidence + `SURF-WI-001` row PASS. IA28-IA34 are blocked until IA27 PASS.
 
 ###### Resumed IA28-IA31 revalidation/remediation protocol and fresh IA32-IA34 reconstruction protocol
 
@@ -1335,7 +1335,7 @@ Each resumed phase retains:
 - semantic/browser/rendered proof including P3 §11.4A default visibility/disclosure behavior;
 - applicable signed gate feedback.
 
-Current bytes do not pass because they already exist; they pass only when the fresh authority/schema/proof independently demonstrates conformance. Minimum change forbids deleting/recreating conforming paths merely to replay historical process evidence.
+Current bytes do not pass because they already exist; they pass only when the signed DESIGN contract and current authority/proof independently demonstrate conformance. Minimum change forbids deleting/recreating conforming paths merely to replay historical process evidence.
 
 For IA32-IA34, verification retains the original purge/rebuild discipline:
 
