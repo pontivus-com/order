@@ -1452,7 +1452,7 @@ The real OpenCode process remains the subject under test; only the model side is
 
 ## Exact implementation surface forecast
 
-The corrected DESIGN forecast is the exact `changeSurface` of the one signed cumulative implementation task: **66 unique paths**. The increase from the superseded 43-path package is exactly the 20 destructive design-bearing primitive paths plus three new cohesive foundation owners. Positively retained atomic primitives and retained non-screen UI helpers remain outside the forecast.
+The corrected DESIGN forecast is the exact `changeSurface` of the one signed cumulative implementation task: **67 unique paths**. The increase from the superseded 43-path package is the historical 20 design-bearing primitive paths plus three new cohesive foundation owners plus the newly disproved `WorkbenchConfirmation.tsx` retained-adapter assumption. The remaining six positively retained atomic primitives and retained non-screen UI helpers stay outside the forecast.
 
 ### Non-UI production
 - `README.md`
@@ -1467,6 +1467,7 @@ The corrected DESIGN forecast is the exact `changeSurface` of the one signed cum
 
 ### UI foundation destructive reconstruction surface
 - `ui/src/primitives/WorkbenchAttention.tsx`
+- `ui/src/primitives/WorkbenchConfirmation.tsx` — newly reclassified from retained atomic adapter after the Safety/confirmation authority audit
 - `ui/src/primitives/WorkbenchContextPanel.tsx`
 - `ui/src/primitives/WorkbenchDialogue.tsx`
 - `ui/src/primitives/WorkbenchForm.tsx`
@@ -1534,7 +1535,7 @@ The corrected DESIGN forecast is the exact `changeSurface` of the one signed cum
 
 ### Explicit retained UI paths outside changeSurface
 
-- `ui/src/primitives/WorkbenchAction.tsx`, `WorkbenchConfirmation.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx` — positively revalidated atomic adapters only; no region/topology/responsive ownership;
+- `ui/src/primitives/WorkbenchAction.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx` — positively revalidated atomic adapters only; no region/topology/responsive ownership;
 - `ui/src/MarkdownEditor.tsx` and `ui/src/MarkdownSourceEditor.tsx` — approved specialized content/editor leaves;
 - `ui/src/workbench-presentation.ts` — pure presentation-policy mapping owner;
 - `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts`, `ui/src/main.tsx` — non-screen infrastructure/helpers.

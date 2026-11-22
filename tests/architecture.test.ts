@@ -2522,9 +2522,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 66 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 67 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 66 unique paths; found " +
+        "DESIGN implementation forecast must contain 67 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2578,9 +2578,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 66 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 67 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 66 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 67 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2588,9 +2588,9 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = task?.changeSurface ?? [];
-        if (signedSurface.length !== 66 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 67 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 66 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 67 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2603,9 +2603,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 66 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 67 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented signed surface must contain 66 unique paths; found " +
+            "PLAN documented signed surface must contain 67 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2613,7 +2613,6 @@ describe("architecture fitness", () => {
 
         const retainedAtomicUiPaths = new Set([
           "ui/src/primitives/WorkbenchAction.tsx",
-          "ui/src/primitives/WorkbenchConfirmation.tsx",
           "ui/src/primitives/WorkbenchDisclosure.tsx",
           "ui/src/primitives/WorkbenchField.tsx",
           "ui/src/primitives/WorkbenchIcon.tsx",
@@ -2655,6 +2654,7 @@ describe("architecture fitness", () => {
 
         const destructiveFoundation = [
           "ui/src/primitives/WorkbenchAttention.tsx",
+          "ui/src/primitives/WorkbenchConfirmation.tsx",
           "ui/src/primitives/WorkbenchContextPanel.tsx",
           "ui/src/primitives/WorkbenchDialogue.tsx",
           "ui/src/primitives/WorkbenchForm.tsx",
@@ -2841,7 +2841,7 @@ describe("architecture fitness", () => {
           "Historical reconstruction primitive inputs (20)",
           "Historical shell-integration cutover inputs (5)",
           "Foundation owners established by the historical reconstruction (3)",
-          "Positively retained atomic adapters (7",
+          "Positively retained atomic adapters (6",
           "no compatibility `WorkbenchLayout`",
           "SURF-WI-001",
           "historical purge-before-fresh-authorship record as provenance only",

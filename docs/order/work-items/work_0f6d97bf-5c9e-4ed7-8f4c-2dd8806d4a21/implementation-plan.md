@@ -14,7 +14,7 @@ This PLAN consumes current R1 `99f6932e582bde949de72716f29ea0868eba16a0`, curren
 
 The authority-driven target remains the corrected P3/P4 and SD21-SD30 package. The fresh post-C19-F03/C20-F06 Approval baseline, however, already contains the historically completed IA27-IA31 replacement bytes from the superseded execution package. Those bytes are implementation evidence only; they do not define desired state or become preservation targets.
 
-`GW-DOC-CANONICAL-CONTRACTS-V2` makes task dependencies eligibility-only: every execution Run starts from `Approval.baselineCommit` and successful dependency candidate bytes are not promoted into a later task baseline. The signed execution representation therefore remains exactly **one task, T1**, with the same exact mutable forecast/hard scope of **66 unique paths**. IA01-IA34 remain ordered implementation/proof phases inside T1, not separate ExecutionTasks.
+`GW-DOC-CANONICAL-CONTRACTS-V2` makes task dependencies eligibility-only: every execution Run starts from `Approval.baselineCommit` and successful dependency candidate bytes are not promoted into a later task baseline. The signed execution representation therefore remains exactly **one task, T1**, with the same exact mutable forecast/hard scope of **67 unique paths**. IA01-IA34 remain ordered implementation/proof phases inside T1, not separate ExecutionTasks.
 
 IA27 first derives/revalidates the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references, then classifies every current design-bearing foundation/shell owner as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`. Conforming owners remain untouched; bounded residuals receive only minimum local correction where the canonical owner/topology is already correct; structurally divergent owners are removed together with their exact owned structural selectors and implementation-shaped assertions, then freshly authored from the closed ledger rather than refactored through superseded structure. The historical 20-primitive/five-shell whole-foundation purge and creation of `WorkbenchAppShell`, `WorkbenchWorkItemShell` and `workbench-responsive` remain provenance and are not replayed merely to reproduce history, but a newly proven destructive replacement is current IA27 work. IA28-IA31 similarly consume the exact owned `SURF-*` datum/action rows from the exhaustive 37-surface information contract embedded in `solution-design.md` through the accepted IA27 foundation, independently revalidate their already-realized screen families and correct only proven residual deltas, including the C19-F03/C20-F06 visibility/disclosure defects.
 
@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `01546988cf36c8bbf06841e57d6182bcf7d19242` |
+| `implementation-plan/00-governance.md` | `4f84fcb0cdace33d8f2ff3ec4c82ea19863be254` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `18f009aa3513231bb0446ecedc76380a60b6f236` |
 | `implementation-plan/02-a02-governance-intake.md` | `c6c9bcff5e29140e419eba7faa07a73fb42e0887` |
 | `implementation-plan/03-a03-queue-source.md` | `b10f636126567634f27528e50f6858c481909f12` |
@@ -39,7 +39,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/09-a09-provider-settings.md` | `ae6b5004d71cb4e32fd59db4a2968fda4831ff4a` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `0aa0dd7b54353e5eb485fcf705097d96b5511df6` |
 | `implementation-plan/11-a11-component-certification.md` | `cf71bd1965c6af57926b969ae2d1e8bed943c81f` |
-| `implementation-plan/12-action-catalog.md` | `e244d1452dc6d5060d645b93cd25280ada3de5ef` |
+| `implementation-plan/12-action-catalog.md` | `6db3dc5ee8755e9242cde5009ba8242523a499d3` |
 | `implementation-plan/13-verification-closeout.md` | `fc9c71f3f30e7c84d76e5ef6fbeadd27e1b2e6f5` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -50,20 +50,20 @@ A01-A11 are exhaustive semantic coverage phases. They do **not** define eleven i
 
 ## Signed execution scope
 
-T1 owns the cumulative 0.6.0 repository envelope and produces one verified candidate from the Approval baseline. To preserve minimum-change and prevent the one-task correction from broadening mutation authority, the signed hard `scope` is the **same exact 66 repository paths** as `changeSurface`. There is no directory-wide `src/**`, `ui/src/**` or `tests/**` variance envelope.
+T1 owns the cumulative 0.6.0 repository envelope and produces one verified candidate from the Approval baseline. To preserve minimum-change and prevent the one-task correction from broadening mutation authority, the signed hard `scope` is the **same exact 67 repository paths** as `changeSurface`. There is no directory-wide `src/**`, `ui/src/**` or `tests/**` variance envelope.
 
 IA phase ownership below further constrains internal sequencing and semantic responsibility; it is not a second scope/task model. A newly required physical path is therefore an out-of-scope discovery and returns upstream for DESIGN/PLAN correction rather than being absorbed through forecast variance.
 
 ### Positively retained UI capability
 
-The following atomic adapters are retained unless their narrow responsibility is independently disproved: `ui/src/primitives/WorkbenchAction.tsx`, `ui/src/primitives/WorkbenchConfirmation.tsx`, `ui/src/primitives/WorkbenchDisclosure.tsx`, `ui/src/primitives/WorkbenchField.tsx`, `ui/src/primitives/WorkbenchIcon.tsx`, `ui/src/primitives/WorkbenchNotice.tsx`, `ui/src/primitives/WorkbenchStatus.tsx`.
+The following atomic adapters remain positively retained: `ui/src/primitives/WorkbenchAction.tsx`, `ui/src/primitives/WorkbenchDisclosure.tsx`, `ui/src/primitives/WorkbenchField.tsx`, `ui/src/primitives/WorkbenchIcon.tsx`, `ui/src/primitives/WorkbenchNotice.tsx`, `ui/src/primitives/WorkbenchStatus.tsx`. `ui/src/primitives/WorkbenchConfirmation.tsx` has been independently disproved as a retained adapter and is now an IA27 design-bearing destructive-replacement owner.
 
 The approved content/infrastructure helpers `ui/src/MarkdownEditor.tsx`, `ui/src/MarkdownSourceEditor.tsx`, `ui/src/workbench-presentation.ts`, `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` remain outside the foundation/screen replacement surfaces.
 
 IA27 owns foundation/shell authority classification, bounded remediation or targeted destructive replacement and the foundation/theme/structural selector set. IA28-IA31 may mutate shared styles only for proven residual defects in their exact screen selectors; IA32-IA34 may delete/recreate only their exact owned screen selectors. All later phases treat the accepted IA27 foundation as immutable; a newly discovered foundation responsibility/semantic defect returns to IA27/DESIGN.
 ## Exact signed implementation surface
 
-The exact cumulative mutable forecast is T1's single `changeSurface`: **66 unique paths**.
+The exact cumulative mutable forecast is T1's single `changeSurface`: **67 unique paths**.
 
 ### Non-UI production (9)
 - `README.md`
@@ -76,8 +76,9 @@ The exact cumulative mutable forecast is T1's single `changeSurface`: **66 uniqu
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 
-### UI foundation/shell revalidation/remediation surface (30)
+### UI foundation/shell revalidation/remediation surface (31)
 - `ui/src/primitives/WorkbenchAttention.tsx`
+- `ui/src/primitives/WorkbenchConfirmation.tsx`
 - `ui/src/primitives/WorkbenchContextPanel.tsx`
 - `ui/src/primitives/WorkbenchDialogue.tsx`
 - `ui/src/primitives/WorkbenchForm.tsx`
@@ -156,7 +157,7 @@ IA-phase ownership is authoritative inside T1. IA27 owns the five shell-integrat
 - every dependency-only row names the IA it consumes without duplicate edit ownership;
 - every technical/verification delta maps to one or more exact IA actions;
 - every IA01-IA34 is defined exactly once;
-- the immutable cumulative mutable forecast is T1's exact 66-path `changeSurface`;
+- the immutable cumulative mutable forecast is T1's exact 67-path `changeSurface`;
 - signed `dependency-lock` passes before T1 mutation; IA27 consumes the signed foundation contract and records exact `CONFORMING_NO_EDIT` / `BOUNDED_RESIDUAL` / `DESTRUCTIVE_REPLACEMENT` dispositions plus semantic/rendered acceptance before advance, while IA28-IA31 consume the signed DESIGN surface contract and retain exact residual-delta/no-edit plus semantic/rendered acceptance; IA32-IA34 retain purge-before-fresh-authorship evidence, realize that same pre-existing contract and pass every exact owned rendered face; IA20-IA23/SD29 and IA26/SD30 own integrated/final semantic and rendered closure;
 - the IA27-IA34 rendered-face ledger is exactly 37 unique `SURF-*` rows;
 - current-v2 task mechanical non-vacuity uses one schema-aware admission owner while published v1 task semantics and the one SignedTaskBlock schema/parser remain unchanged;
@@ -216,11 +217,11 @@ SD20 is a verification-only delta. IA23 owns its permanent realization through `
 
 The canonical PLAN contains exactly one signed execution task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes into later task baselines. That task uses:
 
-- the exact same **66 repository paths** for signed `scope` and `changeSurface`; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
+- the exact same **67 repository paths** for signed `scope` and `changeSurface`; no directory-wide `src/**`, `ui/src/**` or `tests/**` mutation envelope is authorized;
 - explicit `exclusions` for DESIGN-positive-reuse paths, positively retained atomic UI adapters and approved non-screen helpers that must remain unchanged;
 - IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
-The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 66-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
+The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 67-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
 ## Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
@@ -282,7 +283,7 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because this exact T1 deliberately sets signed `scope` equal to the same exact 66-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
+Because this exact T1 deliberately sets signed `scope` equal to the same exact 67-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
 
 ---
 
@@ -916,7 +917,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 | Task | DESIGN / IA ownership | Depends on | Primary implementation owner | Mandatory removal/replacement evidence | Closure evidence |
 |---|---|---|---|---|---|
-| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 66-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | resumed baseline: IA27 classifies every design-bearing foundation owner as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`; IA28-IA31 independently revalidate/remediate already-realized screens; IA32-IA34 retain purge-before-fresh-authorship; historical purge provenance is not replayed merely to reproduce history | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF acceptance |
+| T1 | SD01-SD30; IA01-IA34 | — | one cumulative 67-path 0.6.0 candidate; internal waves below own ordered mutation/proof responsibilities | resumed baseline: IA27 classifies every design-bearing foundation owner as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`; IA28-IA31 independently revalidate/remediate already-realized screens; IA32-IA34 retain purge-before-fresh-authorship; historical purge provenance is not replayed merely to reproduce history | final V0-V7 + SD16-SD18/SD29 certification + IA26/SD30 exact-candidate 37-SURF acceptance |
 
 **Audit rule:** T1 is the only P6 ExecutionTask. Wave/IA ordering below is internal implementation sequencing and never relies on candidate-byte promotion between tasks. A later phase discovering a foundation defect returns to IA27/DESIGN rather than patching around it; T1 cannot close until every owned phase obligation and final candidate proof is satisfied.
 
@@ -1160,23 +1161,66 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 **Foundation owners established by the historical reconstruction (3):** `ui/src/primitives/WorkbenchAppShell.tsx`, `ui/src/primitives/WorkbenchWorkItemShell.tsx`, `ui/src/primitives/workbench-responsive.ts`.
 
-**Positively retained atomic adapters (7, read-only throughout T1):** `WorkbenchAction.tsx`, `WorkbenchConfirmation.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx`.
+**Positively retained atomic adapters (6, read-only throughout T1):** `WorkbenchAction.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx`.
+
+**Newly disproved retained adapter (1; now IA27 design-bearing):** `ui/src/primitives/WorkbenchConfirmation.tsx`. Current authority requires a P3/DESIGN-derived `kind="safety" | "destructive"` that fixes Dialog versus AlertDialog and primary versus destructive confirm role; the old AlertDialog-only `actionTone`/`cancelLabel` API is not a preservation target.
 
 **Other physical owners:** `ui/src/theme.css`, `ui/src/styles.css`, `tests/certification.test.ts`, `tests/browser.spec.ts`.
+
+**IA27 current-baseline authority classification ledger.** This is an execution disposition over current authority, not a preservation inventory. `REQUIRED_ABSENT` is used only for the already-deleted compatibility owner; every present design-bearing owner uses exactly one of the three IA27 dispositions.
+
+| Current path / owner | Disposition | Authority-grounded consequence |
+|---|---|---|
+| `ui/src/primitives/WorkbenchAttention.tsx` | `DESTRUCTIVE_REPLACEMENT` | old caller-selected whole-surface tone/status-color grammar was unauthorized; old file/selectors are already purged; fresh exact P4 API only |
+| `ui/src/primitives/WorkbenchConfirmation.tsx` | `DESTRUCTIVE_REPLACEMENT` | old AlertDialog-only + arbitrary `actionTone`/custom-cancel API contradicts P3 Safety/confirmation, P4 and pinned Astryx facts; fresh semantic `kind="safety" | "destructive"` chooses fixed Dialog/AlertDialog substrate and primary/destructive confirm role |
+| `ui/src/primitives/WorkbenchContextPanel.tsx` | `CONFORMING_NO_EDIT` | exact body/title/close responsibility; WorkItemShell owns responsive placement |
+| `ui/src/primitives/WorkbenchDialogue.tsx` | `DESTRUCTIVE_REPLACEMENT` | old generic `header`/`technical` slots exceed the clarified P4 API; fresh owner is transcript + optional bounded activity + composer/state only |
+| `ui/src/primitives/WorkbenchForm.tsx` | `CONFORMING_NO_EDIT` | one form/content/actions/feedback owner; no validation/domain policy |
+| `ui/src/primitives/WorkbenchIdentity.tsx` | `CONFORMING_NO_EDIT` | exact navigation/identity/utilities topology |
+| `ui/src/primitives/WorkbenchLayout.tsx` | `REQUIRED_ABSENT` | compatibility mega-layout remains deleted and may not be recreated |
+| `ui/src/primitives/WorkbenchMasterDetail.tsx` | `CONFORMING_NO_EDIT` | canonical wide docked master + constrained start Drawer with central responsive owner |
+| `ui/src/primitives/WorkbenchRail.tsx` | `CONFORMING_NO_EDIT` | custom nine-stage equal-cell rail responsibility remains canonical |
+| `ui/src/primitives/WorkbenchResourceRow.tsx` | `CONFORMING_NO_EDIT` | ListItem-backed resource row with separate command owner |
+| `ui/src/primitives/WorkbenchReview.tsx` | `CONFORMING_NO_EDIT` | currentness/summary/body/decisions + canonical Technical-details disclosure |
+| `ui/src/primitives/WorkbenchSectionHeader.tsx` | `CONFORMING_NO_EDIT` | narrow heading/description/action alignment |
+| `ui/src/primitives/WorkbenchSelector.tsx` | `CONFORMING_NO_EDIT` | secondary + adaptive Astryx Selector; item count does not select topology |
+| `ui/src/primitives/WorkbenchSettingsLayout.tsx` | `CONFORMING_NO_EDIT` | Settings-only wide/constrained composition over central responsive owner |
+| `ui/src/primitives/WorkbenchSurface.tsx` | `CONFORMING_NO_EDIT` | exact attention/optional selector/material composition |
+| `ui/src/primitives/WorkbenchTable.tsx` | `CONFORMING_NO_EDIT` | compact Astryx Table, stable row identity, bounded single-selection/focus behavior |
+| `ui/src/primitives/WorkbenchTaskPanel.tsx` | `BOUNDED_RESIDUAL` | Dialog/purpose/topology are correct; hard-coded `42rem` and its implementation-shaped assertion are unauthorized geometry and must be removed |
+| `ui/src/primitives/WorkbenchTimeline.tsx` | `CONFORMING_NO_EDIT` | compact List-backed chronological rhythm with feature-owned event content |
+| `ui/src/primitives/WorkbenchToolbar.tsx` | `CONFORMING_NO_EDIT` | toolbar grouping/search/utilities remain within the canonical toolbar responsibility |
+| `ui/src/primitives/WorkbenchState.tsx` | `CONFORMING_NO_EDIT` | empty/loading/error/pending whole-region/compact state family is the declared design-bearing state owner |
+| `ui/src/primitives/WorkbenchUtilityLink.tsx` | `CONFORMING_NO_EDIT` | Link-backed navigation-only utility semantics |
+| `ui/src/primitives/WorkbenchAppShell.tsx` | `CONFORMING_NO_EDIT` | one root Astryx AppShell with toolbar + destination only |
+| `ui/src/primitives/WorkbenchWorkItemShell.tsx` | `CONFORMING_NO_EDIT` | one selected-WorkItem shell; canonical identity/rail/primary/Context placement |
+| `ui/src/primitives/workbench-responsive.ts` | `CONFORMING_NO_EDIT` | sole structural 1280/800 breakpoint owner |
+| `ui/src/app.tsx` IA27 shell integration | `BOUNDED_RESIDUAL` | AppShell ownership is correct; dirty-discard confirmation call must mechanically consume the new destructive Confirmation API |
+| `ui/src/WorkItemWorkspace.tsx` IA27 shell integration | `BOUNDED_RESIDUAL` | WorkItemShell ownership is correct; replace raw `.order-state` Suspense fallbacks with WorkbenchState and mechanically classify archive/restore as safety confirmation and dirty-discard as destructive |
+| `ui/src/WorkItemIdentityRow.tsx` | `CONFORMING_NO_EDIT` | thin Identity adapter only |
+| `ui/src/WorkflowRail.tsx` | `CONFORMING_NO_EDIT` | thin lifecycle-to-Rail adapter only |
+| `ui/src/WorkflowStepFrame.tsx` | `BOUNDED_RESIDUAL` | Surface/Attention topology is correct; remove superseded Attention-tone derivation/prop only |
+| `ui/src/theme.css` foundation selectors | `BOUNDED_RESIDUAL` | canonical token bridge/sections/breakpoints remain correct; fresh Attention/Dialogue/Confirmation selectors and removal of obsolete Dialogue header/technical selectors are localized IA27 work |
+| `ui/src/styles.css` | `CONFORMING_NO_EDIT` | import/reset/body bridge only; no feature structural selector |
+| `tests/certification.test.ts` | `BOUNDED_RESIDUAL` verification | remove `42rem` compatibility assertion and certify exact Attention/Dialogue/Confirmation APIs/substrates plus retained-atom count |
+| `tests/browser.spec.ts` | `BOUNDED_RESIDUAL` verification | retain semantic tests and add/adjust only proof required for Dialogue supporting activity and safety-vs-destructive confirmation mechanics |
+| `WorkbenchAction.tsx`, `WorkbenchDisclosure.tsx`, `WorkbenchField.tsx`, `WorkbenchIcon.tsx`, `WorkbenchNotice.tsx`, `WorkbenchStatus.tsx` | `CONFORMING_NO_EDIT` retained atoms | audited narrow public-Astryx/semantic adapters; remain outside signed mutation surface |
+
+**Mechanical consumer-integration exception inside IA27.** Destructive foundation API replacement may update an already-signed screen path only to remove an obsolete primitive call shape and compose the replacement primitive exactly as current P3/DESIGN already requires; it may not redesign that screen family or pre-empt its later IA phase. Current authorized adaptations are: `ActivityWorkspace.tsx` for Dialogue (move material heading/status and Technical-details disclosure outside the primitive while preserving content); `DocumentWorkspace.tsx` for `Confirmation kind="safety"`; `SettingsWorkspace.tsx` and `OpenCodeAccountSettings.tsx` for `kind="destructive"`; plus the IA27-owned `app.tsx` and `WorkItemWorkspace.tsx` confirmation call sites above.
 
 **Required ordered revalidation/remediation:**
 1. derive/revalidate the **SD21 visual-language → foundation realization ledger before inspecting current JSX/CSS**. For every SD21 design-language dimension record: exact canonical authority reference; relevant non-superseded SVG reference(s) where useful; exactly one owning Workbench primitive or approved content leaf; Astryx substrate/variant where applicable; canonical theme token/typography/spacing/density/geometry/action/status role; ordinary placement/progressive-disclosure behavior; responsive/accessibility/focus behavior; and exact verification owner;
 2. prove the ledger is closed: every recurring visual/composition concern required by P3/P4/theme and the reviewed reference set has exactly one realization owner, equivalent semantic roles resolve to the same primitive/token/variant treatment, and there is no duplicate, unowned or screen-delegated recurring role. A missing/ambiguous role blocks IA27 and returns to DESIGN/P4 rather than being inferred from current code;
 3. consume/review the applicable foundation/shell obligations and `SURF-WI-001` datum/action rows from the exhaustive 37-surface information contract in `solution-design.md` against that ledger: one application-global shell, one selected-WorkItem shell, canonical interaction-class compositions, the closed Primary/Supporting/Operational/Technical/Diagnostic hierarchy and disclosure lanes, responsive semantic order and accessibility/focus responsibilities;
-4. inspect the current foundation only after steps 1-3 and prove historical replacement invariants still hold: all exact historical destructive primitive/shell paths that were meant to disappear remain absent where deleted, `WorkbenchLayout` remains absent, the seven retained atomic adapters remain narrow, and exactly one `WorkbenchAppShell`, one `WorkbenchWorkItemShell` and one structural responsive owner exist;
+4. inspect the current foundation only after steps 1-3 and prove historical replacement invariants still hold: all exact historical destructive primitive/shell paths that were meant to disappear remain absent where deleted, `WorkbenchLayout` remains absent, the six retained atomic adapters remain narrow, and exactly one `WorkbenchAppShell`, one `WorkbenchWorkItemShell` and one structural responsive owner exist;
 5. treat the **historical purge-before-fresh-authorship record as provenance only**; **do not claim a new transient purge checkpoint** merely to replay the superseded whole-foundation task. Instead classify every current IA27 design-bearing owner as `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT` before editing;
 6. use `BOUNDED_RESIDUAL` only when the canonical owner, responsibility, topology and interaction model are already correct and the delta is local to a prop, token, isolated geometry value or accessibility behavior. Use `DESTRUCTIVE_REPLACEMENT` when ownership/topology/API structural freedom/responsive composition/recurring visual-language structure materially contradicts P4/SD21/theme authority. For that class, remove the implementation plus its exact owned selectors and implementation-shaped assertions at a bounded procedural replacement checkpoint, then fresh-author from the ledger. Do not refactor through, wrap or compatibility-shim the superseded structure;
-7. current mandatory destructive replacement: `ui/src/primitives/WorkbenchAttention.tsx` plus its `.order-workbench-attention*` foundation selectors. Remove the caller-selected `tone` / `data-tone` whole-surface status-color channel because the exact P4 API is `WorkbenchAttention({ title, purpose?, status?, blocker?, action? })`. Recreate that exact responsibility over canonical theme roles; status/error/warning/success emphasis remains in `WorkbenchStatus` and `WorkbenchNotice`. `WorkflowStepFrame.tsx` must stop deriving/passing an Attention tone;
+7. current mandatory destructive replacements are exactly the three ledgered owners: (a) `WorkbenchAttention.tsx` plus old `.order-workbench-attention*` tone selectors — recreate only `WorkbenchAttention({ title, purpose?, status?, blocker?, action? })`; (b) `WorkbenchDialogue.tsx` plus obsolete generic header/technical selectors — recreate only `WorkbenchDialogue({ transcript, activity?, composer?, state? })`; and (c) `WorkbenchConfirmation.tsx` — recreate the P3/DESIGN-derived `kind="safety" | "destructive"` contract so safety uses Dialog + primary confirm and destructive uses AlertDialog + destructive confirm. No removed DOM/API/CSS is an implementation template;
 8. compare every remaining IA27-owned primitive/shell/theme/structural selector/assertion against the closed ledger and current authority. Record `CONFORMING_NO_EDIT`, bounded residual correction or destructive replacement evidence explicitly; do not manufacture churn for conforming owners;
 9. update `theme.css`/`styles.css` and tests only for proven IA27 defects. Remove obsolete compatibility/implementation-shaped assertions and selectors; do not weaken still-applicable semantic/accessibility/browser requirements and do not add feature-level visual-language ownership;
 10. prove exactly one production AppShell owner, one WorkItem shell owner, one structural responsive owner, no `WorkbenchLayout`, no feature structural CSS/breakpoint owner, narrow retained atom responsibilities, Astryx containment, theme parity, component visual parity, keyboard/focus behavior, disclosure-lane fitness and representative rendered alignment. Cross-service representatives must prove **same semantic role → same primitive + token/variant + hierarchy/disclosure behavior**. `SURF-WI-001` receives all three phase-local rendered verdicts before IA28.
 
-**Hard boundaries:** no refactor-through-superseded-structure for a `DESTRUCTIVE_REPLACEMENT`; no domain/query/current-attention/lifecycle policy moves into primitives; no DTO/view-model/state family; no compatibility `WorkbenchLayout`; no temporary second shell; no old primitive DOM/CSS/API copied as implementation template; no old shell files retained merely to keep gates green; no screen-family redesign beyond the five shell-integration owners in IA27; no new recurring color/token meaning, typography/spacing/density scale, button/action treatment, status/notice chrome, disclosure lane, overlay mechanic, hierarchy convention, foundation geometry or breakpoint/responsive grammar delegated to IA28-IA34.
+**Hard boundaries:** no refactor-through-superseded-structure for a `DESTRUCTIVE_REPLACEMENT`; mechanical consumer integration is limited to removing an obsolete primitive call shape and may not redesign the consuming screen; no domain/query/current-attention/lifecycle policy moves into primitives; no DTO/view-model/state family; no compatibility `WorkbenchLayout`; no temporary second shell; no old primitive DOM/CSS/API copied as implementation template; no old shell files retained merely to keep gates green; no screen-family redesign beyond the five shell-integration owners in IA27; no new recurring color/token meaning, typography/spacing/density scale, button/action treatment, status/notice chrome, disclosure lane, overlay mechanic, hierarchy convention, foundation geometry or breakpoint/responsive grammar delegated to IA28-IA34.
 
 **Proof:** historical reconstruction provenance + signed DESIGN surface-contract/foundation-responsibility review + **complete/no-duplicate/no-unowned visual-language → foundation realization ledger** + current absence/singularity proof + explicit `CONFORMING_NO_EDIT` / `BOUNDED_RESIDUAL` / `DESTRUCTIVE_REPLACEMENT` ledger with bounded procedural removal/fresh-authorship evidence for every destructive owner + architecture/certification/browser gates + cross-service component/theme parity + representative application chrome/current-attention/disclosure/responsive evidence + `SURF-WI-001` row PASS. IA28-IA34 are blocked until IA27 PASS.
 
@@ -1321,7 +1365,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 | Completed phase | Before next phase | Required retained evidence |
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
-| IA27 | IA28 | SD21 visual-language → foundation realization ledger complete/no-duplicate/no-unowned before current-byte judgment; current foundation independently revalidated against that ledger and P3/P4/theme; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; residual-delta/no-edit ledger complete; seven retained atomic adapters remain narrow; cross-service component/theme parity + foundation/disclosure/accessibility/responsive proof + `SURF-WI-001` PASS |
+| IA27 | IA28 | SD21 visual-language → foundation realization ledger complete/no-duplicate/no-unowned before current-byte judgment; current foundation independently revalidated against that ledger and P3/P4/theme; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; residual-delta/no-edit ledger complete; six retained atomic adapters remain narrow; cross-service component/theme parity + foundation/disclosure/accessibility/responsive proof + `SURF-WI-001` PASS |
 | IA28 | IA29 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA28 face-ledger rows PASS |
 | IA29 | IA30 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
 | IA30 | IA31 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
@@ -1383,7 +1427,7 @@ SD20 exact-pin OpenCode proof is a mandatory IA23 precondition to IA26 and IA24:
 
 ###### Pre-Approval structural-sensor correction
 
-The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **66-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one signed task with empty `dependsOn`; the historical 20-path foundation replacement boundary, seven positively retained atomic adapters and three foundation-owner paths; the resumed-baseline split where IA27-IA31 independently revalidate/remediate current bytes without replaying historical purge and IA32-IA34 retain purge-before-fresh-authorship; exactly one application-shell, WorkItem-shell and structural-responsive owner; exact IA27-IA34 screen/selector ownership including shared stylesheet access; and the exact 37-row rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each IA27-IA34 phase owns its declared replacement surface/face set inside T1. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
+The permanent package sensor is pre-signoff campaign material, not signed implementation surface. Before G5/G5A/R3 may return to PASS it must validate the current **67-path** DESIGN forecast against the exact one-task PLAN `changeSurface`; exactly one signed task with empty `dependsOn`; the historical 20-path foundation replacement boundary, six positively retained atomic adapters and three foundation-owner paths; the resumed-baseline split where IA27-IA31 independently revalidate/remediate current bytes without replaying historical purge and IA32-IA34 retain purge-before-fresh-authorship; exactly one application-shell, WorkItem-shell and structural-responsive owner; exact IA27-IA34 screen/selector ownership including shared stylesheet access; and the exact 37-row rendered-face allocation without creating a second semantic UI registry. It derives the surface universe from `docs/references/workbench-ui/README.md`, proves the PLAN ledger union is exactly equal with no duplicate/unowned row, and proves each IA27-IA34 phase owns its declared replacement surface/face set inside T1. It also retains exact IA01-IA34 catalog/one-definition checks and recognizes IA23/IA26/IA24 as cross-solution/rendered-acceptance/final actions.
 
 This sensor correction is campaign/package fitness only: `tests/architecture.test.ts` remains outside signed implementation tasks. Re-run architecture and root/modular compilation checks on the corrected package before G5 may return to PASS.
 
@@ -1448,7 +1492,7 @@ V4/V5/V6 explicitly verify:
 - all 112 stable rows retain their exact current R1 evidence and DESIGN disposition;
 - all 27 package-local atoms, including `PL-C12-02`, are satisfied by their one implementation or DESIGN-positive-reuse proof owner;
 - every `POSITIVE_NO_CHANGE` and DESIGN-positive-reuse obligation remains true;
-- T1 retains the exact 66-path `changeSurface`; it remains the cumulative immutable forecast;
+- T1 retains the exact 67-path `changeSurface`; it remains the cumulative immutable forecast;
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
@@ -1470,7 +1514,7 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 candidate as one cumulative signed task from the fresh Approval baseline. Preserve/revalidate exact SD01-SD20 non-UI deltas and positive-reuse obligations. Execute IA27-IA31 as the resumed-baseline presentation revalidation/remediation span: realize SD21 through IA27 by first deriving/revalidating the complete visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references, proving every recurring role has exactly one canonical primitive/token/variant/hierarchy/disclosure/responsive realization and no duplicate/unowned/screen-delegated role, then classify each current design-bearing foundation owner as CONFORMING_NO_EDIT, BOUNDED_RESIDUAL or DESTRUCTIVE_REPLACEMENT before editing. Leave conforming owners unchanged, minimally correct bounded residuals only where canonical responsibility/topology already matches, and remove/fresh-author structurally divergent owners rather than refactoring through superseded structure; WorkbenchAttention is the current mandatory destructive replacement because P4 exposes no caller-selected whole-surface tone channel. Execute IA28-IA31 for the already-realized screen families: consume the exact phase-owned rows of the exhaustive, field-exact 37-surface information contract already embedded in `solution-design.md` through the accepted IA27 foundation before inspecting existing bytes; treat the already-realized foundation/screens only as evidence, retain historical purge provenance without replaying it, prove WorkbenchAppShell / WorkbenchWorkItemShell / workbench-responsive singular ownership and WorkbenchLayout absence including SURF-WI-001, and remediate only exact residual nonconformance including Primary-visible and Technical/Diagnostic default-hidden authorized-disclosure behavior. Execute IA32-IA34 as fresh destructive reconstruction of the remaining Implementation, Complete/Evidence/Context and Settings/account screen families using purge-before-fresh-authorship inside the same task. Then complete SD29 plus IA20-IA23 semantic/component/theme/responsive certification, SD30/IA26 exact-candidate acceptance for all 37 SURF rows, and IA24/final V0-V7 closeout. No second AppShell, structural responsive owner, DTO/view-model/state family, compatibility presentation path, implementation-derived product semantics, refactor-through-superseded-foundation path or fabricated repeat purge is authorized.",
+      "objective": "Implement the complete authority-driven Order 0.6.0 candidate as one cumulative signed task from the fresh Approval baseline. Preserve/revalidate exact SD01-SD20 non-UI deltas and positive-reuse obligations. Execute IA27-IA31 as the resumed-baseline presentation revalidation/remediation span: realize SD21 through IA27 by first deriving/revalidating the complete visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references, proving every recurring role has exactly one canonical primitive/token/variant/hierarchy/disclosure/responsive realization and no duplicate/unowned/screen-delegated role, then classify each current design-bearing foundation owner as CONFORMING_NO_EDIT, BOUNDED_RESIDUAL or DESTRUCTIVE_REPLACEMENT before editing. Leave conforming owners unchanged, minimally correct bounded residuals only where canonical responsibility/topology already matches, and remove/fresh-author structurally divergent owners rather than refactoring through superseded structure; WorkbenchAttention, WorkbenchDialogue and WorkbenchConfirmation are the current mandatory destructive replacements: Attention removes its unauthorized whole-surface tone channel; Dialogue removes generic header/technical slots and realizes the bounded activity slot; Confirmation realizes the P3/DESIGN-derived safety-vs-destructive substrate/action contract. Execute IA28-IA31 for the already-realized screen families: consume the exact phase-owned rows of the exhaustive, field-exact 37-surface information contract already embedded in `solution-design.md` through the accepted IA27 foundation before inspecting existing bytes; treat the already-realized foundation/screens only as evidence, retain historical purge provenance without replaying it, prove WorkbenchAppShell / WorkbenchWorkItemShell / workbench-responsive singular ownership and WorkbenchLayout absence including SURF-WI-001, and remediate only exact residual nonconformance including Primary-visible and Technical/Diagnostic default-hidden authorized-disclosure behavior. Execute IA32-IA34 as fresh destructive reconstruction of the remaining Implementation, Complete/Evidence/Context and Settings/account screen families using purge-before-fresh-authorship inside the same task. Then complete SD29 plus IA20-IA23 semantic/component/theme/responsive certification, SD30/IA26 exact-candidate acceptance for all 37 SURF rows, and IA24/final V0-V7 closeout. No second AppShell, structural responsive owner, DTO/view-model/state family, compatibility presentation path, implementation-derived product semantics, refactor-through-superseded-foundation path or fabricated repeat purge is authorized.",
       "dependsOn": [],
       "scope": [
         "README.md",
@@ -1488,6 +1532,7 @@ V4/V5/V6 explicitly verify:
         "tests/opencode.test.ts",
         ".github/workflows/ci.yml",
         "ui/src/primitives/WorkbenchAttention.tsx",
+        "ui/src/primitives/WorkbenchConfirmation.tsx",
         "ui/src/primitives/WorkbenchContextPanel.tsx",
         "ui/src/primitives/WorkbenchDialogue.tsx",
         "ui/src/primitives/WorkbenchForm.tsx",
@@ -1555,7 +1600,6 @@ V4/V5/V6 explicitly verify:
         "src/shell/sqlite.ts",
         "src/shell/work-item-source.ts",
         "ui/src/primitives/WorkbenchAction.tsx",
-        "ui/src/primitives/WorkbenchConfirmation.tsx",
         "ui/src/primitives/WorkbenchDisclosure.tsx",
         "ui/src/primitives/WorkbenchField.tsx",
         "ui/src/primitives/WorkbenchIcon.tsx",
@@ -1607,6 +1651,7 @@ V4/V5/V6 explicitly verify:
         "tests/opencode.test.ts",
         ".github/workflows/ci.yml",
         "ui/src/primitives/WorkbenchAttention.tsx",
+        "ui/src/primitives/WorkbenchConfirmation.tsx",
         "ui/src/primitives/WorkbenchContextPanel.tsx",
         "ui/src/primitives/WorkbenchDialogue.tsx",
         "ui/src/primitives/WorkbenchForm.tsx",
