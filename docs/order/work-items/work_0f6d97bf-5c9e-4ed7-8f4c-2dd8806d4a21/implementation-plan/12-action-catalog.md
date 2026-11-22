@@ -340,7 +340,7 @@ For IA28 specifically, step 6 is also the **first rendered foundation acceptance
 5. mutate shared styles only for the phase-owned screen selectors; IA27 foundation/theme/structural selectors remain IA27-owned;
 6. pass semantic/browser/rendered proof for every exact owned SURF row.
 
-If required non-visual behavior exists only inside a superseded screen file, the phase may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision. Likewise, if any IA28-IA34 screen appears to require a new recurring visual role, control treatment, disclosure mechanic, shared layout/hierarchy rule, theme token or responsive behavior, that is an IA27/DESIGN return condition; IA28 composes the foundation candidate and may expose a defect that returns to IA27; after IA28 acceptance, later screen phases may compose the accepted/frozen foundation but may not extend the visual language locally.
+If required non-visual behavior exists only inside a superseded screen file, the phase may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision. Likewise, if any IA28-IA34 screen appears to require a new recurring visual role, control treatment, disclosure mechanic, shared layout/hierarchy rule, theme token or responsive behavior, that is an IA27/DESIGN return condition; IA28 composes the foundation candidate and may expose a defect that returns to IA27; after IA28 acceptance, later screen phases may compose the accepted foundation but may not extend the visual language locally.
 
 ### Exact IA27-IA34 rendered face ownership
 

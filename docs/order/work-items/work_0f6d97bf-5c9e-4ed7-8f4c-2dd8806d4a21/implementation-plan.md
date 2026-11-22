@@ -39,7 +39,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/09-a09-provider-settings.md` | `7a56f305df761cf787b43cbfa77ff1423091658f` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `96af19549f43a2029711b4a6ff47db547907758b` |
 | `implementation-plan/11-a11-component-certification.md` | `717241ffee57b3de81ece03e3a684c58c9601afd` |
-| `implementation-plan/12-action-catalog.md` | `4c970e7573c2c53911ea944e94a9aec5bf5ec378` |
+| `implementation-plan/12-action-catalog.md` | `58693068fa41d572891978d5d14520d6a1dcb912` |
 | `implementation-plan/13-verification-closeout.md` | `cbaa18819dcf42900962643d2b8c66f8194d07de` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -203,7 +203,7 @@ A positive no-change or baseline-reuse disposition is an implementation instruct
 
 ##### Execution ownership
 
-## IA28 bounded pre-sign-off realization authorization
+##### IA28 bounded pre-sign-off realization authorization
 
 This campaign invokes the P0 bounded acceptance-evidence realization control solely because the Workbench foundation cannot be meaningfully accepted from IA27 primitives/ledger in isolation. The operator explicitly authorized this exact tranche on **2026-11-22** with the instruction to govern the boundary and implement only until the first rendered sign-off point.
 
@@ -1271,7 +1271,7 @@ For IA28 specifically, step 6 is also the **first rendered foundation acceptance
 5. mutate shared styles only for the phase-owned screen selectors; IA27 foundation/theme/structural selectors remain IA27-owned;
 6. pass semantic/browser/rendered proof for every exact owned SURF row.
 
-If required non-visual behavior exists only inside a superseded screen file, the phase may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision. Likewise, if any IA28-IA34 screen appears to require a new recurring visual role, control treatment, disclosure mechanic, shared layout/hierarchy rule, theme token or responsive behavior, that is an IA27/DESIGN return condition; IA28 composes the foundation candidate and may expose a defect that returns to IA27; after IA28 acceptance, later screen phases may compose the accepted/frozen foundation but may not extend the visual language locally.
+If required non-visual behavior exists only inside a superseded screen file, the phase may not copy it automatically. It must consume the canonical underlying owner or return upstream for an architecture-preserving extraction decision. Likewise, if any IA28-IA34 screen appears to require a new recurring visual role, control treatment, disclosure mechanic, shared layout/hierarchy rule, theme token or responsive behavior, that is an IA27/DESIGN return condition; IA28 composes the foundation candidate and may expose a defect that returns to IA27; after IA28 acceptance, later screen phases may compose the accepted foundation but may not extend the visual language locally.
 
 ###### Exact IA27-IA34 rendered face ownership
 
@@ -1372,6 +1372,8 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 
 **Forbidden:** treating the 0.5.0 SVG pack as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
 **Proof:** required PR Verification rendered-acceptance step succeeds on the exact candidate, publishes the exhaustive evidence artifact, and the screen-by-screen acceptance ledger has no unresolved `FAIL`; every applicable row includes default-hidden and authorized post-disclosure evidence/assertions without creating additional semantic SURF rows. IA24 may not close before that evidence/review is complete.
+
+
 
 ---
 
@@ -1506,7 +1508,7 @@ Failure routing is exact:
 
 Only this checkpoint accepts/freezes IA27 for later screen families. IA26 remains the separate final exhaustive 37-SURF exact-candidate acceptance and can still reopen any defective owner.
 
-## Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
+##### Final exhaustive rendered 0.6.0 UX/UI acceptance — IA26
 
 The exact PR merge candidate must pass a dedicated GitHub Actions rendered-acceptance step before IA24 closeout. This step uses the existing Playwright production Workbench harness and the reviewed derived SVG pack at `docs/references/workbench-ui/README.md`; it does not create a second visual specification.
 
@@ -1558,6 +1560,9 @@ V4/V5/V6 explicitly verify:
 
 `tests/architecture.test.ts`, `pontivus-order.toml`, P1-P6 docs, package/lock metadata and workflow metadata other than the explicitly signed `.github/workflows/ci.yml` SD20 verification change remain outside T1. The pre-signoff campaign/traceability sensor may change only before Approval; any such change must be included in the exact G5/G5A/R3 evidence package before sign-off and is never a T1 candidate edit.
 
+
+---
+
 ## Canonical order-tasks block
 
 ```order-tasks
@@ -1566,7 +1571,7 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 candidate as one cumulative signed task from the fresh Approval baseline. Preserve/revalidate exact SD01-SD20 non-UI deltas and positive-reuse obligations. Execute IA27-IA31 as the resumed-baseline presentation revalidation/remediation span: realize SD21 through IA27 by first deriving/revalidating the complete visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references, proving every recurring role has exactly one canonical primitive/token/variant/hierarchy/disclosure/responsive realization and no duplicate/unowned/screen-delegated role, then classify each current design-bearing foundation owner as CONFORMING_NO_EDIT, BOUNDED_RESIDUAL or DESTRUCTIVE_REPLACEMENT before editing. Leave conforming owners unchanged, minimally correct bounded residuals only where canonical responsibility/topology already matches, and remove/fresh-author structurally divergent owners rather than refactoring through superseded structure; WorkbenchAttention, WorkbenchDialogue and WorkbenchConfirmation are the current mandatory destructive replacements: Attention removes its unauthorized whole-surface tone channel; Dialogue removes generic header/technical slots and realizes the bounded activity slot; Confirmation realizes the P3/DESIGN-derived safety-vs-destructive substrate/action contract. Execute IA28-IA31 for the already-realized screen families: IA27 first ends at foundation-readiness only; IA28 consumes the foundation candidate and the exact `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001` rows to realize the first reviewable application-shell/Queue/Create screens, then performs the first rendered acceptance of the foundation using current authority plus paired non-superseded SVG comparison, requiring independent `schema_information`, `ux_interaction`, `visual_ui` and foundation-realization PASS before IA29. Only then do IA29-IA31 consume the accepted/frozen IA27 foundation and their exact phase-owned rows of the exhaustive, field-exact 37-surface information contract. Treat already-realized foundation/screens only as evidence, retain historical purge provenance without replaying it, prove WorkbenchAppShell / WorkbenchWorkItemShell / workbench-responsive singular ownership and WorkbenchLayout absence including SURF-WI-001, and remediate only exact residual nonconformance including Primary-visible and Technical/Diagnostic default-hidden authorized-disclosure behavior. Execute IA32-IA34 as fresh destructive reconstruction of the remaining Implementation, Complete/Evidence/Context and Settings/account screen families using purge-before-fresh-authorship inside the same task. Then complete SD29 plus IA20-IA23 semantic/component/theme/responsive certification, SD30/IA26 exact-candidate acceptance for all 37 SURF rows, and IA24/final V0-V7 closeout. No second AppShell, structural responsive owner, DTO/view-model/state family, compatibility presentation path, implementation-derived product semantics, refactor-through-superseded-foundation path or fabricated repeat purge is authorized.",
+      "objective": "Implement the complete authority-driven Order 0.6.0 candidate as one cumulative signed task from the fresh Approval baseline. Preserve/revalidate exact SD01-SD20 non-UI deltas and positive-reuse obligations. Execute IA27-IA31 as the resumed-baseline presentation revalidation/remediation span: realize SD21 through IA27 by first deriving/revalidating the complete visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references, proving every recurring role has exactly one canonical primitive/token/variant/hierarchy/disclosure/responsive realization and no duplicate/unowned/screen-delegated role, then classify each current design-bearing foundation owner as CONFORMING_NO_EDIT, BOUNDED_RESIDUAL or DESTRUCTIVE_REPLACEMENT before editing. Leave conforming owners unchanged, minimally correct bounded residuals only where canonical responsibility/topology already matches, and remove/fresh-author structurally divergent owners rather than refactoring through superseded structure; WorkbenchAttention, WorkbenchDialogue and WorkbenchConfirmation are the current mandatory destructive replacements: Attention removes its unauthorized whole-surface tone channel; Dialogue removes generic header/technical slots and realizes the bounded activity slot; Confirmation realizes the P3/DESIGN-derived safety-vs-destructive substrate/action contract. Execute IA28-IA31 for the already-realized screen families: IA27 first ends at foundation-readiness only; IA28 consumes the foundation candidate and the exact `SURF-APP-001`, `SURF-QUEUE-001` and `SURF-CREATE-001` rows to realize the first reviewable application-shell/Queue/Create screens, then performs the first rendered acceptance of the foundation using current authority plus paired non-superseded SVG comparison, requiring independent `schema_information`, `ux_interaction`, `visual_ui` and foundation-realization PASS before IA29. Only then do IA29-IA31 consume the exact phase-owned rows of the exhaustive, field-exact 37-surface information contract through the accepted/frozen IA27 foundation. Treat already-realized foundation/screens only as evidence, retain historical purge provenance without replaying it, prove WorkbenchAppShell / WorkbenchWorkItemShell / workbench-responsive singular ownership and WorkbenchLayout absence including SURF-WI-001, and remediate only exact residual nonconformance including Primary-visible and Technical/Diagnostic default-hidden authorized-disclosure behavior. Execute IA32-IA34 as fresh destructive reconstruction of the remaining Implementation, Complete/Evidence/Context and Settings/account screen families using purge-before-fresh-authorship inside the same task. Then complete SD29 plus IA20-IA23 semantic/component/theme/responsive certification, SD30/IA26 exact-candidate acceptance for all 37 SURF rows, and IA24/final V0-V7 closeout. No second AppShell, structural responsive owner, DTO/view-model/state family, compatibility presentation path, implementation-derived product semantics, refactor-through-superseded-foundation path or fabricated repeat purge is authorized.",
       "dependsOn": [],
       "scope": [
         "README.md",
