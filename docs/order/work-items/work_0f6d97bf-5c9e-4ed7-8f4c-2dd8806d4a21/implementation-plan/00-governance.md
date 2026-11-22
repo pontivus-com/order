@@ -67,14 +67,14 @@ The authority-driven target remains SD21-SD29; the current resumed-baseline byte
 
 - prove the deleted `WorkbenchLayout` compatibility API/ownership remains absent;
 - prove exactly one `WorkbenchAppShell`, one `WorkbenchWorkItemShell` and one structural responsive owner remain;
-- derive/review the current P3/P4 foundation composition and disclosure schema without inferring it from current JSX/CSS;
+- consume the applicable foundation/shell obligations and `SURF-WI-001` rows from the exhaustive 37-surface information contract in `solution-design.md`, together with current P3/P4 primitive responsibilities, before using current JSX/CSS as evidence;
 - compare the current foundation bytes against that schema and current SD21;
 - remediate only exact residual nonconformance inside IA27-owned paths; a conforming path is not rewritten merely to replay history;
 - re-run architecture/theme/accessibility/responsive/browser/rendered proof including `SURF-WI-001`.
 
-**IA28-IA31 resumed screen revalidation/remediation.** Their current replacement bytes are inspected only as evidence of whether the already-authorized SD22-SD25 target is satisfied. Each phase must derive its fresh current R2/P3 information schema first, then compare the current implementation to that authority and correct every proven delta. Historical purge evidence is not a current completion condition. Current JSX/DOM/classes may survive only when they independently conform; their existence is never a preservation argument.
+**IA28-IA31 resumed screen revalidation/remediation.** Their current replacement bytes are inspected only as evidence of whether the already-authorized SD22-SD25 target is satisfied. Each phase must load the exact owned `SURF-*` datum/action rows from the exhaustive 37-surface information contract in `solution-design.md` before inspecting implementation, then compare current bytes to that closed DESIGN contract and correct every proven delta. Historical purge evidence is not a current completion condition. Current JSX/DOM/classes may survive only when they independently conform; their existence is never a preservation argument. A missing classification returns to DESIGN; implementation does not derive it.
 
-**IA32-IA34 fresh reconstruction.** These screen families remain unreconstructed for the campaign target. They retain the destructive screen replacement law: delete each owned old screen implementation and exact legacy selectors at a bounded procedural purge checkpoint, then recreate from the current schema using the accepted IA27 foundation. The purge checkpoint is not a Git commit, candidate or validation result.
+**IA32-IA34 fresh reconstruction.** These screen families remain unreconstructed for the campaign target. They retain the destructive screen replacement law: delete each owned old screen implementation and exact legacy selectors at a bounded procedural purge checkpoint, then recreate from the exact owned rows of the exhaustive 37-surface information contract in `solution-design.md` using the accepted IA27 foundation. The purge checkpoint is not a Git commit, candidate or validation result. No field/action classification is authored during implementation.
 
 `ui/src/styles.css` and `ui/src/theme.css` remain shared physical owners: IA27 owns foundation/theme/structural selectors; IA28-IA31 may change only their screen-specific selectors to close proven residual deltas; IA32-IA34 may delete/recreate only their exact owned screen selectors. No later phase may redesign IA27 through shared styles.
 
@@ -84,7 +84,7 @@ No IA27-IA34 phase may resurrect `WorkbenchLayout`, create a second AppShell/app
 
 Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
 
-For every rendered datum/action in IA27-IA34, the fresh design-time screen schema records: semantic datum/action, P3 class, default visibility, one ordinary presentation owner, authorized progressive-disclosure owner when any, and promotion condition when a technical cause can own current attention. This trace is implementation evidence only and must not become a DTO/browser state model.
+For every rendered datum/action in IA27-IA34, the exhaustive DESIGN contract in `solution-design.md` already records semantic datum/action, P3 class, default visibility, ordinary presentation owner, authorized progressive-disclosure owner when any, promotion condition, responsive invariance and negative ordinary-rendering rules. Implementation records only a conformance trace (`CONFORMING_NO_EDIT` or `RESIDUAL_DELTA`) against those pre-existing rows. That trace is evidence only and must not become a DTO/browser state model.
 
 The implementation rule is exact:
 
