@@ -1489,6 +1489,16 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await page.setViewportSize({ width: 700, height: 800 });
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(page.getByTestId("opencode-account-trigger")).toBeVisible();
+  const narrowQueueTable = page.getByRole("table", { name: "Work items" });
+  await expect(narrowQueueTable).toHaveCSS("table-layout", "auto");
+  const narrowQueueScroll = page.getByRole("group", { name: "Work items" });
+  const narrowQueueGeometry = await narrowQueueScroll.evaluate((node) => ({
+    clientWidth: node.clientWidth,
+    scrollWidth: node.scrollWidth,
+  }));
+  expect(narrowQueueGeometry.scrollWidth).toBeGreaterThan(
+    narrowQueueGeometry.clientWidth,
+  );
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-narrow-light-populated",
     workItemKind: "QUEUE",

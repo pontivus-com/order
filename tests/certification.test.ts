@@ -665,6 +665,8 @@ describe("Order cross-boundary certification", () => {
     const table = read("ui/src/primitives/WorkbenchTable.tsx");
     expect(table).toContain('overflowWrap: "normal"');
     expect(table).toContain('wordBreak: "normal"');
+    expect(table).toContain('tableLayout: "auto"');
+    expect(table).toContain("style={WORKBENCH_TABLE_STYLE}");
     expect(table).toContain("style={WORKBENCH_TABLE_CELL_STYLE}");
 
     const theme = read("ui/src/theme.css");

@@ -13,6 +13,10 @@ const WORKBENCH_TABLE_CELL_STYLE = {
   wordBreak: "normal",
 } as const;
 
+const WORKBENCH_TABLE_STYLE = {
+  tableLayout: "auto",
+} as const;
+
 export type WorkbenchTableColumn = Readonly<{ key: string; label: string }>;
 export type WorkbenchTableRow = Readonly<{
   id: string;
@@ -36,6 +40,7 @@ export const WorkbenchTable = ({
     dividers="rows"
     hasHover={rows.some((row) => row.onSelect !== undefined)}
     aria-label={label}
+    style={WORKBENCH_TABLE_STYLE}
   >
     <TableHeader>
       <TableRow isHeaderRow>
