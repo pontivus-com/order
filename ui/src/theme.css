@@ -331,46 +331,6 @@
   font-size: var(--order-font-size-section);
 }
 
-.order-workbench-dialogue {
-  display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 0.9fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  border: 1px solid var(--color-border-emphasized);
-  border-radius: var(--radius-container);
-  background: var(--color-background-surface);
-  overflow: hidden;
-}
-.order-workbench-dialogue-main {
-  min-height: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-}
-.order-workbench-dialogue-header {
-  padding: var(--spacing-3) var(--spacing-4);
-  border-bottom: 1px solid var(--color-border-emphasized);
-}
-.order-workbench-dialogue-state {
-  flex: 0 0 auto;
-  padding: var(--spacing-2) var(--spacing-3);
-  border-top: 1px solid var(--color-border-emphasized);
-}
-.order-workbench-dialogue-activity {
-  min-width: 0;
-  overflow: auto;
-  padding: var(--spacing-4);
-  border-inline-start: 1px solid var(--color-border-emphasized);
-  background: var(--color-background-muted);
-}
-.order-workbench-dialogue-technical {
-  grid-column: 1 / -1;
-  border-top: 1px solid var(--color-border-emphasized);
-}
-.order-workbench-dialogue-composer {
-  padding: var(--spacing-3);
-  border-top: 1px solid var(--color-border-emphasized);
-}
-
 .order-workbench-review {
   width: min(100%, var(--order-review-max-width));
   margin-inline: auto;
@@ -1153,15 +1113,6 @@
 
 /* 5. Canonical Workbench breakpoint overrides only. */
 @media (max-width: 1279px) {
-  .order-workbench-dialogue {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto auto;
-  }
-  .order-workbench-dialogue-activity {
-    border-inline-start: 0;
-    border-top: 1px solid var(--color-border-emphasized);
-  }
-  .order-workbench-dialogue-technical { grid-column: 1; }
   .order-workbench-rail ol {
     grid-template-columns: none;
     grid-auto-flow: column;
