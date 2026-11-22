@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `26fef3a5a655f8c3145ba97815e2421b35b4f2da` |
+| `implementation-plan/00-governance.md` | `5b912379788147b1be06a2d4bbec9e3b48bd512c` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `43634c52c453d39957416dc45152fbb9530b2a39` |
 | `implementation-plan/02-a02-governance-intake.md` | `6aabf5556e679c3dcbbb63d898248c0c6c4178c4` |
 | `implementation-plan/03-a03-queue-source.md` | `31e37f66c80e03fb9d3e06bf97ea62dff7ca9324` |
@@ -169,24 +169,24 @@ IA-phase ownership is authoritative inside T1. IA27 owns the five shell-integrat
 
 ### Compiled component: `implementation-plan/00-governance.md`
 
-#### 0.6.0 modular PLAN governance
+# 0.6.0 modular PLAN governance
 
 This directory is the maintainable authoring decomposition of the **single** canonical P7 artifact at `../implementation-plan.md`. The root PLAN compiles these files in full and lists their exact Git blob SHAs. Directory files own no independent lifecycle state, Approval material or executable task block.
 
 This decomposition is reconstructed under G-F12 after G4 closure. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts. An action remains here only when the current R2/DESIGN package requires that delta or an explicit positive-reuse proof.
 
-##### Exact upstream package
+## Exact upstream package
 
 - R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`.
 - R2 `requirements.md`: `da85563fe8ebd8f348a6dcf14900eab04c5f19de`.
 - DESIGN `solution-design.md`: `6203d3d578aa6d1384f61a2566fa920967c8e9fa`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `2f740a17bfc6629b95e48834ccb0bfc84d1320fd` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `44e6b9943521f403ee943079d2eb26a07b8aa13d` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
-##### Traceability law
+## Traceability law
 
 Every stable P3 requirement and every package-local atomic obligation follows:
 
@@ -201,7 +201,7 @@ canonical P3 / package consequence
 
 A positive no-change or baseline-reuse disposition is an implementation instruction: **do not edit for that obligation** and revalidate the named evidence/proof. If execution disproves it, return upstream.
 
-##### Execution ownership
+## Execution ownership
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
@@ -213,7 +213,7 @@ SD13 checkpoint protocol and SD10 scope/forecast/V4-V6 behavior are current exec
 
 SD20 is a verification-only delta. IA23 owns its permanent realization through `tests/opencode.test.ts` and `.github/workflows/ci.yml`: the actual supported OpenCode 2.2.6 process is exercised through Order's production OpenCode boundary while deterministic model responses are provided by exact isolated CI tooling `opencode-drive@2.4.1` + `effect@4.0.1`. These verification tools are not product/runtime dependencies and do not enter `package.json`, lockfiles, release bundles, Order configuration or runtime state.
 
-##### Signed scope and forecast law
+## Signed scope and forecast law
 
 The canonical PLAN contains exactly one signed execution task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes into later task baselines. That task uses:
 
@@ -222,7 +222,7 @@ The canonical PLAN contains exactly one signed execution task because `GW-DOC-CA
 - IA01-IA34 as ordered internal implementation/proof phases. IA phase ownership constrains what a phase may change but is not a second P6 task/scope representation.
 
 The baseline V4/V5/V6 forecast-variance capability remains canonical execution machinery, but this exact package deliberately does not use a broader scope to admit new physical paths. A path absent from the 67-path forecast is also absent from signed scope and therefore returns upstream for DESIGN/PLAN correction. This prevents the one-task packaging correction from becoming implicit authorization for unrelated cleanup, speculative decomposition or presentation-layer drift.
-##### Architecture constraints
+## Architecture constraints
 
 FCIS, SoC, DRY/canonical ownership, strict typing, no OOP/DTO/service/repository/controller families, authority-before-inference and minimum change remain binding. Current implementation/tests are evidence only.
 
@@ -230,7 +230,7 @@ For SD02, manifest authority selection is the reachable source set; IA02 must pr
 
 Published `change-v1`/`defect-v1` schema semantics remain immutable. SD10 may add only the current-v2 mechanical non-vacuity admission and matching PLAN/R3 authoring instruction while reusing the one existing SignedTaskBlock shape/parser. Material task sufficiency remains owned by PLAN semantic conformance and independent R3.
 
-##### Resumed-baseline presentation realization law
+## Resumed-baseline presentation realization law
 
 The authority-driven target remains SD21-SD29; the current resumed-baseline bytes never define desired behavior.
 
@@ -255,13 +255,13 @@ The authority-driven target remains SD21-SD29; the current resumed-baseline byte
 
 No IA27-IA34 phase may resurrect `WorkbenchLayout`, create a second AppShell/application toolbar, duplicate structural `matchMedia` ownership, introduce a DTO/browser state family, or treat current implementation/SVG shape as product authority.
 
-##### Visual-language → foundation execution law
+## Visual-language → foundation execution law
 
 SD21's realization ledger is implementation evidence over canonical authority, not a runtime schema or second design-system specification. IA27 may accept a recurring visual/composition role only when it traces to current P3/DESIGN semantics, the canonical P4 primitive/composition owner, the canonical theme/token/style owner and any non-superseded derived SVG reference used for composition evidence.
 
 After IA27 PASS, later screen phases consume that accepted foundation. They may not add or locally vary recurring color/token meaning, typography/spacing/density scales, control/button/action treatments, status/notice chrome, progressive-disclosure lanes, overlay mechanics, shell/region hierarchy, foundation geometry or breakpoint/responsive grammar. A screen that appears to require a new recurring role returns to IA27/DESIGN; it is not solved with feature CSS, a new wrapper or an SVG-shaped local composition.
 
-##### Information visibility / disclosure execution law
+## Information visibility / disclosure execution law
 
 Every UI phase consumes the canonical P3 §11.4A classification and P4 §8.12A technical ownership. The implementation may not infer visibility from whichever fields are available in a query or from historical UI/SVG layout.
 
@@ -279,7 +279,7 @@ The implementation rule is exact:
 
 Presence-only browser assertions are nonconforming when they force technical/diagnostic text into ordinary UI. Every affected test is rewritten to prove both default-hidden and authorized post-disclosure visibility.
 
-##### Stop conditions
+## Stop conditions
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 

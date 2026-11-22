@@ -11,7 +11,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 - DESIGN `solution-design.md`: `6203d3d578aa6d1384f61a2566fa920967c8e9fa`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
-- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `2f740a17bfc6629b95e48834ccb0bfc84d1320fd` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
+- P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `44e6b9943521f403ee943079d2eb26a07b8aa13d` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
 - P6 `GW-DOC-CANONICAL-CONTRACTS-V2`: `71f829cff8824db18194689eccdec83da6f5d19f`.
 - SD13 checkpoint and SD10 scope/forecast/V4-V6 realization are consumed only because current DESIGN positively proves those canonical capabilities; T1 does not reimplement them.
 
