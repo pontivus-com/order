@@ -1383,6 +1383,8 @@ The IA27 realization ledger is closed over these dimensions:
 
 For each row the IA27 ledger records the exact permanent authority reference, relevant SVG reference(s) where useful, owning Workbench primitive/approved leaf, Astryx substrate/variant where applicable, theme token/geometry role, responsive/disclosure behavior and verification owner. A recurring design concern that cannot be mapped without invention is an unresolved DESIGN/P4 issue and blocks IA27; it is not delegated to a screen phase.
 
+**Dialogue closure.** P4's canonical Dialogue composition is `WorkbenchDialogue({ transcript, activity?, composer?, state? })`: `activity` is the single bounded Supporting/Operational region required by the P4 RunEvent presentation planes. Material heading/status remain outside the primitive through the owning surface/section composition, and Technical/Diagnostic identity remains outside through the authorized `WorkbenchDisclosure` lane. `header` and `technical` are therefore not Dialogue API degrees of freedom.
+
 ```text
 P3 information hierarchy + this DESIGN's 37-SURF contract
  + P4 closed interaction/composition/primitive grammar

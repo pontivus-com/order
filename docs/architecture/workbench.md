@@ -838,7 +838,7 @@ The table defines **target responsibilities, not preservation of current compone
 | `WorkbenchAttention` | stable current-attention presentation: title/purpose/status, one blocker/feedback region and one current action region | no lifecycle/current-attention derivation; no competing action owner |
 | `WorkbenchSectionHeader` | consistent material/subsection heading, description and local action alignment | no independent page/surface topology |
 | `WorkbenchSelector` | compact subordinate single-material selection over Astryx `Selector`; uses the `secondary` visual variant and `presentation="adaptive"` so the same control owns anchored-pointer versus compact-touch bottom-sheet presentation | item count never changes surrounding columns; no persistent rail mode; no feature-selected Drawer/Popover/BottomSheet substrate |
-| `WorkbenchDialogue` | transcript scrolling, anchored composer region, focus/keyboard continuity and empty/pending slots | no Run/RunEvent/query ownership; no input-admission policy |
+| `WorkbenchDialogue` | transcript scrolling, one bounded supporting-activity region, anchored composer region, focus/keyboard continuity and empty/pending slots | no generic header/technical-detail slots; no Run/RunEvent/query ownership; no input-admission policy |
 | `WorkbenchReview` | review hierarchy: currentness/verdict, substantive body, decision actions and subordinate technical detail | no generic persistent navigation column; no domain-specific package/task semantics |
 | `WorkbenchMasterDetail` | the one legal operational master/detail topology: fixed docked master on wide; medium/narrow master uses Astryx `Drawer side="start" hasScrim={false}` with visible close/focus return while detail remains primary | no caller master width/presentation choice; no collection-count activation; no stacked alternative |
 | `WorkbenchContextPanel` | secondary metadata/diagnostic body + explicit close; wide mode is a docked `LayoutPanel`-class region, constrained mode is an Astryx `Drawer` with caller-owned open state/focus return | no current-action/blocker ownership; no Drawer when content is meant to reflow wide layout; no independent responsive/sidebar behavior |
@@ -971,7 +971,7 @@ WorkbenchSelector({
 `WorkbenchSurface` exposes no persistent start/aside/master/columns/breakpoint props. `WorkbenchSelector` is single-selection presentation: exactly one item may be selected when a current selection exists, item `onSelect` is the only selection action, groups are labeling/organization only, and item count never selects topology.
 
 ```ts
-WorkbenchDialogue({ transcript, composer?, state? })
+WorkbenchDialogue({ transcript, activity?, composer?, state? })
 WorkbenchReview({
   currentness,
   summary,
@@ -983,7 +983,7 @@ WorkbenchReview({
 WorkbenchMasterDetail({ master, detail, masterLabel })
 ```
 
-Dialogue owns transcript/composer mechanics but not send eligibility. Review technical detail uses the shared disclosure behavior. Master/detail exposes no master width/collapse/count configuration.
+Dialogue owns transcript/supporting-activity/composer mechanics but not send eligibility. Its narrow API has no generic header or technical-detail slot: material heading/status compose outside the Dialogue through the owning surface/section composition, and raw technical identity remains in the shared `WorkbenchDisclosure` lane. Review technical detail uses the shared disclosure behavior. Master/detail exposes no master width/collapse/count configuration.
 
 ```ts
 WorkbenchContextPanel({ title, onClose, children })
