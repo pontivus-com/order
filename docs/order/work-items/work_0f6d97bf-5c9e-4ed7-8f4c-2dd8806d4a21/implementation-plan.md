@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `f98dae2fec4cc544a28a3dc6b08b539f38c0137f` |
+| `implementation-plan/00-governance.md` | `a673024516873948adb8b24fff350bfc6adc8db1` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `06f199405b3b5b03bbae6bcd2e4cc511cb8abd5c` |
 | `implementation-plan/02-a02-governance-intake.md` | `d55a6c4a08660b3b083c4279f4e3f74a355f383b` |
 | `implementation-plan/03-a03-queue-source.md` | `6c6c40eae2422a94fb125b88d79154b447fb1acc` |
@@ -39,8 +39,8 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/09-a09-provider-settings.md` | `cf7455f3de3d77a6c71f49052587e120fc451d2c` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `5983dd0d8404ac063b3e80cc01fb38c56a411e4e` |
 | `implementation-plan/11-a11-component-certification.md` | `4330545d7f6c7529cc6588214502af2c444792f3` |
-| `implementation-plan/12-action-catalog.md` | `c7a7912551978437cb3650252feb10004c875efd` |
-| `implementation-plan/13-verification-closeout.md` | `c57be31fb0eb01096a33a971d5f9975091ee0272` |
+| `implementation-plan/12-action-catalog.md` | `de9af9f954fa7926899dad139bbe942b10d24aa5` |
+| `implementation-plan/13-verification-closeout.md` | `6dc927967b0e4cec16be6c064caef06e9bd533dd` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -213,7 +213,7 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Authorization id:** `IA28-RZ1`  
 **State:** `SUSPENDED_PENDING_REVALIDATION`  
 **Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
-**Start condition:** **not currently satisfied**. C19-F04/C19-F05/C20-F07 materially changed R2/P3/DESIGN/P4/theme authority after the prior IA28 evidence. IA28-RZ1 remains suspended until the corrected exact PLAN/alignment/R3 package is current and a fresh bounded-realization authorization explicitly cites those identities.  
+**Start condition:** **not currently satisfied**. C19-F04/C19-F05/C20-F07 materially changed R2/P3/DESIGN/P4/theme authority after the prior IA28 evidence. The historical IA28-RZ1 grant remains suspended. A fresh exact-package bounded-realization authorization may be issued **only after G5 and G5A PASS** against the corrected R1/R2/DESIGN/PLAN/P3/P4/theme package and must explicitly cite those exact identities plus the operator authorization. Fresh IA27/IA28 evidence then becomes an input to R3/G6; requiring G6 before that evidence would be circular.  
 **Authorized primary owners while suspended:** NONE. The previously listed IA28 owners are historical scope evidence only until reauthorization.  
 **IA27 shell-integration exception:** `ui/src/app.tsx` may be changed only to close a proven `SURF-APP-001` residual exposed by this tranche (global account utility, readiness/diagnostic presentation, Queue/Create entry composition); no selected-WorkItem/material-screen redesign is authorized.  
 **Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; other IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
@@ -223,7 +223,7 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Failure routing:** recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27; Queue/Create/application-utility-local defect → IA28; missing/contradictory product or information classification → DESIGN.  
 **Mandatory stop:** once the complete IA28 rendered evidence package exists and is ready for human review, all implementation stops before IA29 regardless of verdict. Human acceptance/sign-off is the next action.
 
-`IA28-RZ1` is currently suspended and authorizes no production mutation. If freshly reauthorized, it remains evidence-production authority only: it is not Approval, does not materialize T1, and cannot authorize post-IA28 work.
+`IA28-RZ1` is currently suspended and authorizes no production mutation. Any fresh bounded grant after G5A remains evidence-production authority only: it is not Approval, does not materialize ordinary T1 execution, and cannot authorize post-IA28 work. The mandatory order is G5/G5A PASS → explicit exact-package bounded authorization → IA27/IA28 evidence → R3/G6 → normal human sign-off → IA29+.
 
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
@@ -925,7 +925,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ##### Execution waves
 
-**Pre-sign-off realization boundary:** `IA28-RZ1` is **SUSPENDED_PENDING_REVALIDATION** in `00-governance.md` and currently authorizes no production mutation. IA27/IA28 execution resumes only under a fresh exact-package authorization after G5/G5A/G6 revalidation. IA29 or any later wave remains forbidden until fresh IA28 rendered evidence is accepted and normal sign-off occurs.
+**Pre-sign-off realization boundary:** `IA28-RZ1` is **SUSPENDED_PENDING_REVALIDATION** in `00-governance.md` and currently authorizes no production mutation. After exact G5 and G5A PASS, and only after explicit operator authorization bound to that exact package, a fresh bounded grant may authorize IA27/IA28 evidence realization **before R3/G6**. R3/G6 consumes that evidence. IA29 or any later wave remains forbidden until fresh IA28 evidence is accepted, G6 is READY_FOR_SIGNOFF, and normal human sign-off occurs.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
@@ -1361,7 +1361,7 @@ This component allocates proof across the one canonical signed task T1 and its o
 
 ##### In-task architecture and reconstruction checkpoints
 
-Before ordinary signed-task execution exists, `IA28-RZ1` is currently `SUSPENDED_PENDING_REVALIDATION`; it permits no production mutation until freshly reauthorized against the corrected exact package. The checkpoint table below also governs that tranche's stop boundary: IA27 readiness may admit IA28, but IA28 → IA29 is a **human sign-off boundary**, not an automatic phase advance while `IA28-RZ1` is active.
+Before ordinary signed-task execution exists, `IA28-RZ1` is currently `SUSPENDED_PENDING_REVALIDATION`; it permits no production mutation. A fresh bounded IA27/IA28 evidence grant may be issued only after exact G5/G5A PASS plus explicit operator authorization against that exact package. The resulting evidence is reviewed by R3/G6. IA28 → IA29 remains a **human sign-off boundary** after G6, never an automatic phase advance.
 
 
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
@@ -1374,7 +1374,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
 | IA27 | IA28 | SD21 visual-language → foundation realization ledger complete/no-duplicate/no-unowned before current-byte judgment; every current design-bearing owner has one `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT` disposition; targeted purge/fresh-authorship evidence exists for Attention, Dialogue and Confirmation; bounded residuals are closed without structural refactor; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; six retained atomic adapters remain narrow; cross-service component/theme parity + foundation/disclosure/accessibility/responsive proof + `SURF-WI-001` readiness PASS; this authorizes IA28 consumption but is not foundation acceptance/freeze |
-| IA28 | **HUMAN SIGN-OFF; IA29 only after sign-off** | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable checkpoints + actual production-browser IA28 capture set + all 3 IA28 rows independently reviewed for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization verdict against current authority and paired non-superseded SVGs. `IA28-RZ1` stops here regardless of PASS/FAIL; no IA29 mutation is authorized until the operator accepts the evidence and performs the normal sign-off. |
+| IA28 | **R3/G6 REVIEW → HUMAN SIGN-OFF; IA29 only after sign-off** | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable checkpoints + actual production-browser IA28 capture set + all 3 IA28 rows independently reviewed for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization verdict against current authority and paired non-superseded SVGs. The bounded grant stops here regardless of PASS/FAIL. Fresh R3/G6 must consume this evidence; no IA29 mutation is authorized until G6 is READY_FOR_SIGNOFF and the operator performs normal sign-off. |
 | IA29 | IA30 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
 | IA30 | IA31 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
 | IA31 | IA32 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA31 face-ledger rows PASS |
