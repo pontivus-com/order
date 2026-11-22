@@ -4,15 +4,16 @@
 
 ## Exact design basis
 
-This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. Current implementation/tests are realization evidence only and never supply missing design semantics.
+This DESIGN is the corrected technical-design candidate for the reopened C19/C20 remediation. Its semantic direction is canonical authority -> current R1 facts -> current R2 functional consequences -> explicit package technical realization. It does not project G4 closure; current gate state remains owned by the campaign registers until fresh DESIGN pair/H3 audit passes. Current implementation/tests are realization evidence only and never supply missing design semantics.
 
-- R1 `research.md`: blob `99f6932e582bde949de72716f29ea0868eba16a0` — G-F12 factual package plus post-closeout rendered-evidence findings C19-F02/C20-F05 and the governed post-IA31 information-hierarchy audit C19-F03/C20-F06. Current UI/SVG/tests remain realization evidence only; the audit proves that screen-family hierarchy without per-datum visibility/disclosure ownership is insufficient.
-- R2 `requirements.md`: blob `da85563fe8ebd8f348a6dcf14900eab04c5f19de` — functional package binds the C19-F03/C20-F06 surface-family consequences to canonical `GW-DOC-WORKBENCH-UX-V2 §11.4A`; it does not create a second visibility policy.
+- R1 `research.md`: blob `9f99a885da3757afad112dfd5d9d5e26782c41f9` — includes C19-F04/C19-F05/C20-F07 proving disclosure-container accumulation, incomplete foundation anatomy and acceptance/detection gaps. Current UI/tests remain evidence only.
+- R2 `requirements.md`: blob `7a279895bd57a2ec7080e1404927ce0668f1dbaf` — binds singular material/history ownership, explicit technical-inspection ownership, no disclosure accumulation, modal anatomy and Markdown editor-control→canvas adjacency.
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
-- P3 Workbench UX: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the permanent visibility/disclosure taxonomy and human-meaning-only promotion rule.
-- P4 Workbench: `916add5e528447a6509746b95b947c50eff3d232` — §8.12A owns the technical disclosure lanes, §8.17 now explicitly enumerates the complete production-renderer matrix, and the shell/context responsibility statements are reconciled to the §16.6 AppShell/WorkItemShell reconstruction.
-- P4 Workbench Theme: `fffd1d202537dbd3f85f6b30ee745d2eae454c53`.
+- P3 Workbench UX: `c673bfa22ffe305e05b27feb7b92c70d796b726d` — §11.4A/§12 own the semantic classes, prominence bands, singular owners and composition invariants.
+- P3 Markdown Workbench: `70ad77e720a5b99bcde4c64773056b54a4b129e9` — §17.4 owns the compact editor-control region, overflow-before-wrap behavior and control→canvas adjacency.
+- P4 Workbench: `f501ac7eb79dfffd34ee32a1d3e10f11f7f515ee` — §8.12/§8.12A own singular Context/Settings technical inspection, same-task-only Disclosure, Review without an automatic technical slot and TaskPanel header/body/footer anatomy.
+- P4 Workbench Theme: `43b81a61291841d827a47f392e0149ace5c8351f`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
 - P6 Canonical Contracts: `71f829cff8824db18194689eccdec83da6f5d19f`.
@@ -142,94 +143,69 @@ R1 `C16-F04` and R2's adopted Installation Readiness blob `9c2ec83a9552b7583f90e
 - SD19 remains the minimum technical realization: one installer-owned setup flow, one canonical configuration/provider owner, no second readiness state, and post-install/update recovery preserved in the existing Settings/daemon path.
 - No new P4/P5/P6 decision is required by `C16-F04`; the previous SD19 direction is retained because it now traces to non-contradictory P3 authority rather than because implementation/P4/P6 happened to converge on it.
 
-### G-F12 DESIGN closure decision — corrected after rendered-evidence revalidation
+### G-F12 DESIGN closure decision — reopened C19/C20 composition remediation
 
-The previous DESIGN closure incorrectly treated the Workbench screen realization as reusable. C19-F02/C20-F05 disprove that assumption without changing R2 product semantics. This corrected DESIGN draws a hard boundary between **retained UI capability** and **discarded screen implementation**:
+C19-F04/C19-F05/C20-F07 disprove the previous assumption that datum-level visibility classification plus local disclosure bars constituted a complete Workbench design. The corrected boundary is authority-driven and minimum-change:
 
 - canonical lifecycle/domain/query/daemon/persistence/provider owners remain unchanged unless another existing SD explicitly changes them;
-- the canonical Order Workbench primitive vocabulary and its approved Astryx/leaf-content foundations are retained as implementation capability; they are not redesign targets for this campaign unless a primitive-specific defect is independently proven upstream;
-- the existing application/screen implementations are **not** preserved, migrated, refactored or used as layout/information-design templates;
-- before any screen replacement, the design-bearing Workbench composition foundation is destructively reconstructed from current P3/P4 authority and reviewed new-design references; every later replacement screen **consumes** the exhaustive 37-surface information contract embedded below in this `solution-design.md` rather than deriving information placement during implementation, and composes that closed contract only from the accepted reconstructed foundation plus the positively retained atomic adapters;
-- the old screen file is removed before replacement authorship begins; any valid underlying query/domain behavior is consumed again from its canonical owner rather than copied as screen code;
-- old screen JSX/DOM structure, field grouping, table columns, cards/panels, action placement, responsive branches, feature-local CSS and visual hierarchy are explicitly non-authoritative and may not be carried forward for compatibility;
-- shared stylesheets are reconstructed with the Workbench foundation and then mutated only for the exact screen-specific selector sets owned by IA28-IA34; no current structural selector, theme realization or feature-local layout rule is a preservation target merely because it exists today;
-- exact-candidate rendered acceptance supplements semantic/browser certification and is required before final closeout;
-- existing canonical P4-P6 owners remain singular. No LOCAL technical authority, DTO/model/service layer, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
+- the six narrow atomic adapters `WorkbenchAction`, `WorkbenchDisclosure`, `WorkbenchField`, `WorkbenchIcon`, `WorkbenchNotice` and `WorkbenchStatus` remain reusable. `WorkbenchDisclosure` is reusable only as a low-level Astryx Collapsible for a specifically named expansion of the **same operator task**; it owns no technical/supporting inspection semantics;
+- IA27 re-derives the design-bearing foundation from corrected P3/P4. Current foundation bytes are evidence only. A design-bearing owner is left unchanged only when authority proves it conforming, receives a bounded residual correction only when its responsibility/topology is already correct, and is destructively replaced when its API/topology materially contradicts the corrected foundation contract;
+- `WorkbenchReview` must lose its automatic technical-details slot; `WorkbenchTaskPanel` must own header/body/footer with footer actions; `WorkItemContext` + `WorkbenchContextPanel` become the singular selection-aware WorkItem technical-inspection owner;
+- IA28-IA31 are **resumed authority-first revalidation/remediation** phases. They inspect current screen bytes only after loading their exact corrected surface contract, retain independently conforming behavior under minimum change and correct only proven residual deltas. They do not replay a historical purge merely to reproduce process history;
+- IA32-IA34 retain purge-before-fresh-authorship because those screen families remain structurally superseded under the campaign reconstruction;
+- `MarkdownEditor.tsx` is not a retained read-only leaf: IA29 owns its composition correction while `MarkdownSourceEditor.tsx` remains the reusable CodeMirror leaf;
+- shared stylesheets may change only for the exact foundation or phase-owned selectors required by the corrected contract; current selectors have no preservation authority by existence alone;
+- exact-candidate rendered acceptance supplements semantic/browser certification and must include materially active editor/modal/inspection states, not passive substitutes;
+- no LOCAL technical authority, DTO/model/service family, alternate workflow state, alternate task/proposal model or new runtime dependency is introduced;
 - open technical questions: NONE;
-- material technical UNPROVEN: 0 after SD21-SD30 below are included as binding DESIGN;
-- PLAN must establish the preservation/purge boundary first, then destructively replace each screen family, then run permanent certification/SD30. An implementation phase that edits the old screen into the new one is nonconforming.
+- material technical UNPROVEN: 0 **as a design candidate** after SD21-SD30 and the corrected 37-surface contract below; G4 remains REVALIDATION until fresh DESIGN pair/H3 evidence passes.
 
-Execution packaging is constrained by `GW-DOC-CANONICAL-CONTRACTS-V2`: ExecutionTask dependencies control eligibility only, every Run starts from `Approval.baselineCommit`, and successful dependency candidate bytes are not promoted into a later task baseline. The cumulative SD01-SD30 0.6.0 candidate is therefore one signed execution task. IA01-IA34 are ordered implementation/proof phases inside that task; later phases consume bytes created earlier in the same task/Run and never rely on a separately completed task candidate.
+Execution packaging remains one cumulative signed task because `GW-DOC-CANONICAL-CONTRACTS-V2` does not promote dependency candidate bytes between ExecutionTasks. IA01-IA34 are ordered implementation/proof phases inside that task.
 
 #### Retained UI capability boundary
 
-The following are retained and may be reused:
+Reusable current bytes are limited to capabilities independently proved compatible with their corrected responsibility:
 
-- all canonical `ui/src/primitives/*.tsx` Workbench primitives under P4 §8.12-§8.14;
-- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/workbench-presentation.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` insofar as they retain their current non-screen responsibilities;
-- `ui/src/MarkdownEditor.tsx` and `ui/src/MarkdownSourceEditor.tsx` as approved specialized content/editor mechanisms under P4 §8.19, not as outer screen grammar;
-- `ui/src/theme.css` and `ui/src/styles.css` only as primitive/theme/global foundations after obsolete screen-specific selectors and compatibility presentation rules are purged;
-- `src/core/lifecycle.ts` lifecycle/current-attention/material/recovery/rail decisions;
-- WorkItem/ArtifactRef/Run/RunEvent/Approval/ExecutionTask canonical contracts and persistence;
+- the six atomic adapters listed above; Disclosure has no technical/supporting-inspection ownership;
+- `ui/src/MarkdownSourceEditor.tsx` as the CodeMirror exact-source leaf;
+- `ui/src/http.ts`, `ui/src/query-keys.ts`, `ui/src/workbench-presentation.ts`, `ui/src/markdown-source-formatting.ts`, `ui/src/theme.ts` and `ui/src/main.tsx` insofar as they retain their non-screen responsibilities;
+- canonical lifecycle/current-attention/material/recovery/rail decisions and WorkItem/ArtifactRef/Run/RunEvent/Approval/ExecutionTask contracts;
 - daemon/API/TanStack Query producer→carrier→consumer ownership;
-- WorkItem schema/kind information obligations and stage-specific document semantics;
-- proposal/adoption, sign-off, execution and provider admission/recovery behavior;
-- exact source/Markdown/Git ownership and stale-write/freshness rules.
+- proposal/adoption, sign-off, execution, provider admission/recovery and source/Markdown/Git mutation semantics.
 
-Retained capability is not permission to preserve a screen. A retained helper may be consumed only for its existing non-screen responsibility.
+Retained capability is not permission to preserve presentation. `MarkdownEditor.tsx`, TaskPanel/Review composition and all phase-owned screen renderers are judged from current authority, not from their existing bytes.
 
-#### Destructive screen-replacement boundary
+#### Resumed and destructive screen boundaries
 
-The following existing screen/composition modules are replacement targets, not migration targets:
+**IA27 foundation/shell:** `app.tsx`, `WorkItemWorkspace.tsx`, `WorkItemIdentityRow.tsx`, `WorkflowRail.tsx`, `WorkflowStepFrame.tsx`, `WorkItemContext.tsx` and the design-bearing primitive/theme owners are classified and remediated from the corrected foundation ledger.
 
-- `ui/src/app.tsx`;
-- `ui/src/WorkItemQueue.tsx`;
-- `ui/src/CreateWorkItem.tsx`;
-- `ui/src/WorkItemWorkspace.tsx`;
-- `ui/src/WorkItemIdentityRow.tsx`;
-- `ui/src/WorkflowRail.tsx`;
-- `ui/src/WorkflowStepFrame.tsx`;
-- `ui/src/DocumentWorkspace.tsx`;
-- `ui/src/ActivityWorkspace.tsx`
-- `ui/src/MarkdownEditor.tsx`;
-- `ui/src/ActivityComposer.tsx`;
-- `ui/src/PreSignoffStageWorkspace.tsx`;
-- `ui/src/WorkflowMaterialSelector.tsx`;
-- `ui/src/ProposalReview.tsx`;
-- `ui/src/RunEventTimeline.tsx`;
-- `ui/src/ReadinessWorkspace.tsx`;
-- `ui/src/SignoffReview.tsx`;
-- `ui/src/ExecutionWorkspace.tsx`;
-- `ui/src/TerminalResult.tsx`;
-- `ui/src/EvidenceViewer.tsx`;
-- `ui/src/WorkItemContext.tsx`;
-- `ui/src/SettingsWorkspace.tsx`;
-- `ui/src/OpenCodeAccountControl.tsx`;
-- `ui/src/OpenCodeAccountSettings.tsx`.
+**IA28-IA31 resumed consumers:** `OpenCodeAccountControl.tsx`, `WorkItemQueue.tsx`, `CreateWorkItem.tsx`, `DocumentWorkspace.tsx`, `MarkdownEditor.tsx`, `PreSignoffStageWorkspace.tsx`, `ActivityWorkspace.tsx`, `ActivityComposer.tsx`, `WorkflowMaterialSelector.tsx`, `ProposalReview.tsx`, `RunEventTimeline.tsx`, `ReadinessWorkspace.tsx`, and `SignoffReview.tsx`. Their current implementation is evidence only; conforming bytes may remain, but no historical layout/disclosure pattern is a compatibility target.
 
-For each owned reconstruction phase, the pre-reconstruction blob of every target above is defect evidence only. Replacement implementation must not copy or incrementally edit its screen composition. The phase must first delete its owned old screen files and assigned legacy selectors before replacement authorship, record the exact deleted path/selector set as bounded in-task observational evidence, and only then author the replacement from the already-closed exhaustive 37-surface information contract in this `solution-design.md`. This purge checkpoint is a procedural boundary inside the one signed task, not a Git commit, candidate boundary or validation result. A datum/action missing from that contract is a DESIGN defect and returns upstream; implementation may not classify it locally.
+**IA32-IA34 destructive consumers:** `ExecutionWorkspace.tsx`, `TerminalResult.tsx`, `EvidenceViewer.tsx`, `SettingsWorkspace.tsx`, and `OpenCodeAccountSettings.tsx`. These phases retain bounded purge-before-fresh-authorship for their owned screen/selectors.
 
-If non-visual logic exists only inside a discarded screen file, that does not create reuse authority. The implementation must either consume the already-canonical underlying owner directly or return upstream for an architecture-preserving extraction decision. Copying screen-local hooks/state/branching merely because they existed is prohibited.
+For every phase, a datum/action missing from the contract below is a DESIGN defect. Implementation may not classify or invent its placement locally. 
 
 #### Screen-information summary and exhaustive surface contract
 
-The family matrix below is a summary of the design direction. The exhaustive datum/action-level DESIGN contract is embedded below in this `solution-design.md` and covers all 37 governed `SURF-*` surfaces. This section is package-local DESIGN, not a permanent P3 policy owner or runtime shape. It binds semantic intent, P3 class, default visibility, ordinary placement owner, authorized disclosure, promotion exception, responsive invariance and negative ordinary-rendering requirements for every admitted operator-visible datum/action.
+#### Screen-information summary and exhaustive surface contract
+
+The family matrix below is a summary of the design direction. The exhaustive datum/action-level DESIGN contract is embedded below in this `solution-design.md` and covers all 37 governed `SURF-*` surfaces. This section is package-local DESIGN, not a permanent P3 policy owner or runtime shape. It binds semantic intent, P3 class, default visibility, ordinary placement owner, authorized inspection, promotion exception, responsive invariance and negative ordinary-rendering requirements for every admitted operator-visible datum/action.
 
 Implementation consumes that contract. It may not infer another placement from available fields, historical UI, current tests or the SVG pack, and PLAN may not instruct IA27-IA34 to derive a fresh screen schema.
 
-| Screen/service family | Primary/default-visible | Supporting / operational detail | Technical / diagnostic default-hidden | Authorized disclosure / promotion rule | Required interaction class | Legacy-screen compatibility |
+| Screen/service family | Primary/default-visible | Supporting / operational owner | Technical / diagnostic inspection owner | Composition / promotion rule | Required interaction class | Legacy-screen compatibility |
 |---|---|---|---|---|---|---|
-| Queue / application shell | actionable WorkItems; New work item; Refresh sources; human lifecycle/status/outcome meaning; human-readable blocker/recovery; invalid-source path when it is the only usable source identity | project/search/archive filtering; concerns/useful scan context; active saved OpenCode account quick-access; Settings navigation | raw source/readiness diagnostic codes/parser payloads; WorkItem ids/source hashes/schema internals | blocking condition promotes human meaning + valid action; source path remains ordinary only when required to identify the defective source | Operational scan | NONE — old table/banner/application-toolbar composition is discarded |
-| Create/remediation | Project identity, work kind, human title, Concerns, Create; linked parent meaning/title + fixed project | resolved repository-relative WorkItem documentation root; non-editable derived-field explanation; Cancel | parent WorkItem id, schema/version/internal metadata | the documentation root is default-visible because project selection determines the durable creation boundary; raw parent/schema identity remains technical | Task panel → Form/configuration | NONE — old modal/form grouping is discarded |
-| WorkItem shell | WorkItem title/meaning, current lifecycle step, current attention, true WorkItem-level utilities | reached/historical navigation; explicit Context entry | hashes/paths/ids/project-schema dumps/Run-task-provider identity | technical values only after explicit Context/Technical details; never promoted into identity row | Workbench shell + owning material class | NONE — old shell/frame structure is discarded |
-| Work request/document | governed intent/document content and current document action; pre-Save upstream-return/staleness consequence when applicable | selector/upstream material, maturity/currentness, current repository path, WorkItem document directory, compact Git state | hashes/schema/source/artifact ids, authority-layer/internal-role and commit identity | local Technical details; exact changed paths plus per-path Git state become primary only inside the explicit documentation-Git confirmation | Document | NONE |
-| Research/Requirements/Design/Plan | current Dialogue, governed Document or Proposal Review according to attention precedence | attempts/history/upstream material, bounded agent activity, evidence/resource links | provider/session/baseline/context identity, raw Run/event tags, repository paths where semantic labels suffice | Supporting material/history for operator material; Technical details for exact mechanics; Evidence only after explicit open; provider failure promotes human blocker/recovery only | Document / Dialogue / Review using one productive-stage grammar | NONE |
-| Readiness | typed R3 verdict/current readiness, findings/defective owner, exact return action | package material needed for judgment, evidence, attempt history | artifact/package role/path/hash and technical identity | Technical details only; legitimate REQUIRED_INPUT may temporarily own the task without promoting unrelated technical identity | Review | NONE |
-| Approval | readiness/currentness, signed task meaning/scope/gates, approver identity + sign-off | governed documents/task collection/detail needed for judgment | package hash/baseline/commit identity, Approval/ExecutionTask ids | Technical details / Task technical details only; stale/currentness promotes meaning, not raw freshness identity | Review | NONE |
-| Implementation | current task objective/state/action/blocker, current attempt meaning, current/recorded validation boundary | task master/history, chronology, evidence/resources | task/approval/plan/Run ids, baseline/context/provider session, raw execution diagnostics | Technical details for exact identity; Evidence after explicit resource open; blocker promotes human meaning/action only | Operational master/detail | NONE |
-| Complete | canonical final governed outcome + valid next action | applicable result evidence/resources; linked-remediation action | internal event tags/role codes, ids/hashes/raw result identity | ordinary resource labels are human-facing; exact bytes/identity only after Evidence open | Terminal result | NONE |
-| Evidence/Context | exact evidence identity+bytes when explicitly selected; selected-view technical orientation when Context explicitly opened | related resource metadata | raw technical values are allowed because these surfaces explicitly own inspection | neither auto-opens; neither may become sole owner of current blocker/action; close/return restores primary hierarchy | Evidence / Compact context | NONE |
-| Settings/account/configuration | readiness, configuration meaning/action; exact value while actively selecting/entering it | repository/account/model inventory + ordinary status; connected-repository Git root, resolved WorkItem-document root and current queue/creation-context state are default-visible repository facts | manifest/config hashes, endpoints, account ids/provider mechanics outside active field; raw enum codes | active Add/Move/model/account fields may show exact task-required values; repository inventory roots remain Supporting because P3 requires them to be shown | Settings + Form/configuration | NONE |
+| Queue / application shell | actionable WorkItems; Queue commands; human lifecycle/status/outcome meaning; human-readable blocker/recovery; source path only when it is the only usable defective-source identity | Queue filters/scan context; global account/Settings/theme utilities | one explicit application/Settings diagnostics owner; Evidence only when exact evidence exists | blocker promotes human meaning/action, never raw code; no generic technical strip | Operational scan | NONE |
+| Create/remediation | Project, kind, title, Concerns, Create; linked parent meaning/title | documentation root, derived/fixed-field explanation, Cancel | no local technical inspection; created WorkItem technical identity is later inspectable through Context | one TaskPanel header/body/footer; footer owns Cancel + primary Create | Task panel → Form/configuration | NONE |
+| WorkItem shell | WorkItem title/meaning, current lifecycle step, current attention/action | reached/historical rail navigation; explicit Context entry | **Context** is the one WorkItem-scoped technical-inspection destination | Context never auto-opens and never becomes sole blocker/action owner | Workbench shell + owning material | NONE |
+| Work request/document/editor | governed content and current authoring/reading action | one material selector, maturity/currentness, repository path/document directory, compact Git state | selected document/source technical identity in Context; exact incompatible bytes in Evidence | editor controls stay adjacent to canvas; exact changed paths become decision-primary only in Git confirmation | Document | NONE |
+| Research/Requirements/Design/Plan | current Dialogue/Document/Proposal by current-attention precedence | one material/history selector; bounded activity/timeline; evidence/resource links | selected Run/document/proposal technical identity in Context; exact evidence/payload inspection in Evidence | no Supporting-material/history strip; no local/Timeline Technical-details bar | Document / Dialogue / Review | NONE |
+| Readiness | typed R3 verdict/readiness, findings/defective owner, return action | package material, evidence, attempt history through semantic review/material owners | selected R3/package/Run technical identity in Context | Review has no automatic technical-details slot | Review | NONE |
+| Approval | readiness/currentness, signed task meaning/scope/gates, approver/sign-off | governed package/task selection/detail | package/approval/task technical identity in Context | no local Task-technical-details drawer | Review | NONE |
+| Implementation | current task/action/blocker/attempt meaning and validation boundary | task master/history, chronology, evidence/resources | selected task/Run technical identity in Context; exact evidence in Evidence | same-task expansion such as Complete validation matrix may use Disclosure; generic technical drawer forbidden | Operational master/detail | NONE |
+| Complete | canonical outcome and valid next action | result evidence/resources; linked remediation | selected result/Run identity in Context; exact evidence in Evidence | no local technical drawer | Terminal result | NONE |
+| Evidence / Context | exact evidence identity+bytes when Evidence is selected; selected-view technical orientation when Context opens | related semantic metadata | these are explicit inspection surfaces | neither auto-opens; close/back restores owning task | Evidence / Compact context | NONE |
+| Settings/account/configuration | readiness, configuration meaning/action; exact value while actively editing it | inventory/status; connected repository facts | one explicit Settings diagnostics/technical-inspection region | per-section Technical-details accordions forbidden | Settings + Form/configuration | NONE |
 
 #### Exhaustive 37-surface information contract
 
@@ -243,7 +219,7 @@ No implementation phase may:
 
 - derive a new information class;
 - decide that an exact id/path/hash/session/event field is useful enough to expose ordinarily;
-- move a datum to another disclosure owner because the current component makes that convenient;
+- move a datum to another inspection owner because the current component makes that convenient;
 - promote raw technical or diagnostic representation when its underlying condition owns current attention;
 - create a second Context, diagnostics rail, metadata stack or feature-local disclosure system;
 - change classification because of viewport, theme, loading density, collection count or historical/current selection;
@@ -253,27 +229,31 @@ If an implementation owner encounters an operator-visible datum/action not class
 
 ##### Closed information classes
 
-| Class | Meaning | Default visibility |
+| Class | Meaning | Default presentation |
 |---|---|---|
 | **Primary** | required to understand or perform the current operator task | visible in the owning primary interaction and allowed to dominate |
-| **Supporting** | useful to judge/orient the current task but not itself the task | subordinate, selectable or secondary |
-| **Operational** | low-frequency operator-facing history/resource/status detail | subordinate and collapsed/selected when persistent display would compete |
-| **Technical** | exact implementation/audit identity: ids, hashes, commits, raw paths where a semantic label suffices, provider/session/schema/internal-role identity | hidden by default behind the authorized local **Technical details** or explicit **Context** |
-| **Diagnostic** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and equivalent implementation-facing failure evidence | absent from ordinary product presentation; explicit technical/Evidence inspection only |
+| **Supporting** | useful to judge/orient the current task but not itself the task | subordinate or reachable through the one semantic selector/resource owner |
+| **Operational** | low-frequency operator-facing history/resource/status detail | subordinate and selected/expanded through the owning history/material/task interaction when persistent display would compete |
+| **Technical** | exact implementation/audit identity: ids, hashes, commits, raw paths where a semantic label suffices, provider/session/schema/internal-role identity | absent from productive surfaces; available only in the explicit Context or Settings diagnostics owner for the current scope |
+| **Diagnostic** | raw diagnostic codes, raw event tags/payloads, parser/provider mechanics and equivalent implementation-facing evidence | absent from ordinary product presentation; Context/Settings diagnostics/Evidence only when intentional inspection legitimately requires it |
 
-A Technical/Diagnostic cause may own current attention, but only its **human-readable meaning, consequence and valid action** are promoted. Raw code/path/hash/session/payload remains in its technical/evidence owner.
+A Technical/Diagnostic cause may own current attention, but only its **human-readable meaning, consequence and valid action** are promoted. Raw code/hash/session/payload remains in the applicable inspection owner. A raw path may be ordinary only where canonical authority says the path itself identifies the object or is necessary for exact consent.
 
-##### Closed disclosure owners
+##### Closed inspection and subordinate-information owners
 
-Only these progressive-disclosure owners are valid:
+Only these owners are valid:
 
-1. **Supporting material/history** — operator-facing workflow material/history selection.
-2. **Context** — explicitly opened compact WorkItem/material orientation, including appropriate exact identity.
-3. **Technical details** — local exact mechanics/identity associated with the current surface.
-4. **Evidence** — explicitly selected exact evidence identity and bytes.
-5. **Safety/confirmation** — exact target/scope only when required to make the pending decision safely and knowingly.
+1. **Material/history selector/resource owner** — attempts, upstream/current governed material and operator-facing history use the one semantic selector/resource/timeline owner for that task. There is no generic Supporting material/history bar.
+2. **WorkItem Context** — the one explicitly opened, selection-aware WorkItem technical-inspection destination.
+3. **Settings diagnostics** — the one explicit application/configuration technical-inspection region for Settings-scoped mechanics.
+4. **Evidence** — exact evidence identity/bytes after intentional selection.
+5. **Safety/confirmation** — exact target/scope only while required to make the pending mutation decision safely.
 
-Primary information may never exist only behind disclosure. Technical/Diagnostic information may never become persistently visible because of responsive recomposition or a current failure.
+`WorkbenchDisclosure` is **not** an inspection owner. It may be used only for a specifically named expansion of the same operator task, such as a complete validation matrix.
+
+Primary information may never exist only behind inspection. Technical/Diagnostic information may never become persistently visible merely because it sits inside a collapsed control or because responsive composition changes. Adjacent/nested generic technical/supporting/history disclosure bars are prohibited.
+
+##### Contract fields
 
 ##### Contract fields
 
@@ -308,7 +288,7 @@ A typed field not enumerated for a surface is **not authorized to appear on that
 | `SURF-SET-OC-LOGIN-001` | OpenCode sign-in | Form/configuration / current task | IA34 |
 | `SURF-SET-MODEL-001` | model/runtime settings | Settings + Form/configuration | IA34 |
 | `SURF-WI-001` | selected WorkItem shell / identity / rail / current attention | Workbench shell + owning material | IA27 |
-| `SURF-WI-CONTEXT-001` | explicit technical Context | Compact context | IA33 |
+| `SURF-WI-CONTEXT-001` | explicit technical Context | Compact context | IA27 |
 | `SURF-STEP-WR-001` | Work request | Document | IA29 |
 | `SURF-STEP-R1-001` | Research | Dialogue / Document / Review by current attention | IA30 |
 | `SURF-STEP-R2-001` | Requirements | Dialogue / Document / Review by current attention | IA30 |
@@ -346,7 +326,7 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | Product identity + current destination meaning | application destination state | orient the operator globally | Primary | application toolbar | none | do not expose route/internal state names |
 | Settings navigation / Back to queue | application destination state + local navigation | enter/leave the single application Settings area | Supporting | application toolbar utility | dirty destination uses `SURF-CONF-DIRTY-DEST-001` | no second Settings/navigation system |
 | Installation readiness human meaning + Settings recovery destination | `InstallationReadiness.ready/blockers` mapped by presentation policy | make installation blocker actionable | Primary | global notice/current attention while blocking | raw blocker enum stays Technical/Diagnostic; promote meaning + owning Settings action only | no raw readiness enum/transport detail |
-| Active saved OpenCode account label/readiness utility | `OpenCodeAccountState.accounts[].label/active/status` mapped to product language | global provider-account orientation and Settings quick access | Supporting | toolbar utility | `OpenCodeAccount.id`, `activeAccountId` and raw status mechanics stay Settings/Technical | no account-management implementation in toolbar |
+| Active saved OpenCode account label/readiness utility | `OpenCodeAccountState.accounts[].label/active/status` mapped to product language | global provider-account orientation and Settings quick access | Supporting | toolbar utility | `OpenCodeAccount.id`, `activeAccountId` and raw status mechanics stay in Settings diagnostics | no account-management implementation in toolbar |
 | System/Light/Dark choice | local theme preference | appearance selection | Supporting | toolbar utility | none | theme never changes semantic hierarchy |
 | dirty-navigation decision | local dirty/pending destination | protect unsaved work | Primary | `SURF-CONF-DIRTY-DEST-001` | exact destination meaning only as needed | no silent discard |
 
@@ -368,14 +348,14 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | open WorkItem | row navigation | inspect selected work | Primary | row | enters `SURF-WI-001` | no lifecycle mutation |
 | source diagnostic human reason | `WorkItemSourceDiagnostic.detail` mapped/escaped as operator text | explain why a source cannot become/remain productive | Primary when blocking | Queue diagnostic notice | technical cause does not promote raw code/parser payload | no raw `code` as ordinary heading |
 | defective source identity | `WorkItemSourceDiagnostic.path` when non-null, otherwise human WorkItem/project identity from `workItemId/projectId` | identify the defective source named by the recovery task | Supporting, default-visible with the diagnostic | same Queue diagnostic notice | exact path is ordinary here because no semantic WorkItem label may exist | do not hide the only actionable source identity |
-| raw source diagnostic mechanics | `WorkItemSourceDiagnostic.code` and parser/provider payload mechanics | implementation-facing diagnosis | Diagnostic | Technical/Evidence inspection only | never promoted by blocker state | no raw diagnostic dump in Queue |
+| raw source diagnostic mechanics | `WorkItemSourceDiagnostic.code` and parser/provider payload mechanics | implementation-facing diagnosis | Diagnostic | Settings diagnostics/Evidence inspection only | never promoted by blocker state | no raw diagnostic dump in Queue |
 
 ##### SURF-CREATE-001 — Create / linked remediation
 
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion | Negative rule |
 |---|---|---|---|---|---|---|
 | Project identity | `ProjectManifest.projectId` | choose governing project | Primary | form field; fixed semantic label for linked remediation | exact Git root belongs Settings, not Create | no installation-global source directory |
-| resolved repository-relative WorkItem documentation root | `ProjectManifest.workItems.root` | show the durable creation boundary selected by Project | Supporting, default-visible | form supporting context immediately after Project selection | path is intentionally visible because P3 requires it before creation | must not be hidden behind Technical details |
+| resolved repository-relative WorkItem documentation root | `ProjectManifest.workItems.root` | show the durable creation boundary selected by Project | Supporting, default-visible | form supporting context immediately after Project selection | path is intentionally visible because P3 requires it before creation | must remain Supporting and cannot be moved into technical inspection |
 | work kind | `WorkItemSchemaCatalogEntry.kind` for `authoringDefault` entries | choose Change/Defect/Investigation/Audit; linked remediation limited to Change/Defect | Supporting | form field | `schemaId` remains Technical | no schema id as primary label |
 | title | local authoring state validated by `WorkItemTitleSchema` | human task identity | Primary | form field | none | no generated technical identity substitute |
 | Concerns | selected `ProjectManifest.concerns` keys presented as governed concern labels | classify governed concern set | Primary | form control | raw/internal representation not substituted for human label | no free-text process identifiers |
@@ -392,7 +372,7 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | installation readiness meaning | `InstallationReadiness` | show whether installation is productive and where action is required | Primary | Settings summary/notice | blocker mechanics Technical; human blocker action may dominate | no raw blocker code |
 | Settings sections | local destination | navigate repositories/accounts/model configuration | Supporting | `WorkbenchSettingsLayout` | none | no second app sidebar grammar |
 | blocker destination/action | blocker→section policy | take operator to owning configuration task | Primary | readiness region | none | no dead-end blocker |
-| exact config hashes/internal transport state | config/query mechanics | optimistic/concurrency identity | Technical | Technical details only | never ordinary readiness content | no raw SHA/status dump |
+| exact config hashes/internal transport state | config/query mechanics | optimistic/concurrency identity | Technical | Settings diagnostics inspection | never ordinary readiness content | no raw SHA/status dump |
 
 ##### SURF-SET-REPO-001 — repositories/reference roots
 
@@ -408,8 +388,8 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | Add repository | local task action | connect another repository | Primary | task entry | opens `SURF-SET-REPO-ADD-001` | no always-open competing connect form |
 | Move documents | selected READY repository | relocate WorkItem document root safely | Supporting | row action | opens `SURF-SET-REPO-MOVE-001` | no silent move |
 | Disconnect | selected repository | remove productive connection without deleting repository data | Supporting | row action | `SURF-CONF-REPO-DISCONNECT-001` | no immediate destructive mutation |
-| manifest/config concurrency identity | `ConnectedRepositoryState.manifestSha256` + `OrderConfigState.sha256` | exact optimistic/audit identity | Technical | Technical details only if legitimate inspection is needed | never ordinary repository state | no SHA wall |
-| raw repository attention codes | `ConnectedRepositoryState.attention[]` enum values | implementation-facing diagnosis | Diagnostic | Technical/Evidence only | human meaning may promote, raw code does not | no raw code in row status |
+| manifest/config concurrency identity | `ConnectedRepositoryState.manifestSha256` + `OrderConfigState.sha256` | exact optimistic/audit identity | Technical | Settings diagnostics inspection only when legitimate inspection is needed | never ordinary repository state | no SHA wall |
+| raw repository attention codes | `ConnectedRepositoryState.attention[]` enum values | implementation-facing diagnosis | Diagnostic | Settings diagnostics/Evidence only | human meaning may promote, raw code does not | no raw code in row status |
 
 ##### SURF-SET-REPO-ADD-001 — Add repository
 
@@ -441,8 +421,8 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | Add account | account command | create a saved account | Primary | section action; visually primary when no bounded account task is open | opens Add/login task |
 | Activate / Rename / Remove | account commands | manage an existing saved account | Supporting | row actions; Remove uses destructive priority | Rename bounded task; Remove confirmation |
 | configuration separation fact | canonical Settings contract | prevent false coupling assumptions | Supporting | concise section footnote/help | state explicitly that account changes affect login identity only and do not change repository selection or configured model/provider | no duplicated configuration authority |
-| exact account identity | `OpenCodeAccount.id` + `OpenCodeAccountState.activeAccountId` | audit account identity/concurrency | Technical | Technical details only | absent ordinarily |
-| raw account status/blocker enums | `OpenCodeAccount.status.status` + `OpenCodeAccountState.mutationBlockers[]` | implementation-facing state identity | Diagnostic | Technical/Evidence only | ordinary rows use human mappings |
+| exact account identity | `OpenCodeAccount.id` + `OpenCodeAccountState.activeAccountId` | audit account identity/concurrency | Technical | Settings diagnostics inspection | absent ordinarily |
+| raw account status/blocker enums | `OpenCodeAccount.status.status` + `OpenCodeAccountState.mutationBlockers[]` | implementation-facing state identity | Diagnostic | Settings diagnostics/Evidence only | ordinary rows use human mappings |
 
 ##### SURF-SET-OC-RENAME-001 — Rename OpenCode account
 
@@ -472,8 +452,8 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | expiry | `OpenCodeAccountLoginAttempt.expiresAt` | show the time bound on the current authorization | Supporting | task detail **while status is PENDING** | terminal states do not retain it as current-task information |
 | Done | terminal login-attempt state | close the bounded login task after COMPLETED/FAILED/EXPIRED/CANCELLED | Primary | action region in terminal state | no hidden competing command |
 | Cancel | pending login command | abandon a PENDING login attempt | Supporting | action region in PENDING state | not shown after terminalization |
-| attempt identity | `OpenCodeAccountLoginAttempt.id` | exact integration identity | Technical | Technical details only if explicit inspection is needed | absent ordinarily |
-| raw login status/transport mechanics | raw `status` enum and provider transport/process detail | implementation-facing diagnosis | Diagnostic | Technical/Evidence only | ordinary state uses human status/result copy |
+| attempt identity | `OpenCodeAccountLoginAttempt.id` | exact integration identity | Technical | Settings diagnostics inspection only when explicit inspection is needed | absent ordinarily |
+| raw login status/transport mechanics | raw `status` enum and provider transport/process detail | implementation-facing diagnosis | Diagnostic | Settings diagnostics/Evidence only | ordinary state uses human status/result copy |
 
 ##### SURF-SET-MODEL-001 — model/runtime settings
 
@@ -482,8 +462,8 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | configured model selection | `OrderConfig.model.providerID/id` + available `OpenCodeModelRef.providerID/id` | choose productive model | Primary | form/configuration | exact provider/model values are task-required selection labels here |
 | availability/readiness human state | available-model query + configured selection comparison | explain unusable/unavailable selection | Primary | notice/status | raw fetch/provider mechanics stay Diagnostic |
 | Save model | `UpdateConfiguredModel` command | commit model selection | Primary | action region; visually primary command | `expectedConfigSha256` stays hidden optimistic precondition |
-| configuration concurrency identity | `OrderConfigState.sha256` | exact optimistic/audit identity | Technical | Technical details only if explicit inspection is needed | absent ordinarily |
-| raw model-fetch/provider mechanics | transport/provider failure detail beyond operator message | implementation-facing diagnosis | Diagnostic | Technical/Evidence only | no provider-debug panel |
+| configuration concurrency identity | `OrderConfigState.sha256` | exact optimistic/audit identity | Technical | Settings diagnostics inspection only when explicit inspection is needed | absent ordinarily |
+| raw model-fetch/provider mechanics | transport/provider failure detail beyond operator message | implementation-facing diagnosis | Diagnostic | Settings diagnostics/Evidence only | no provider-debug panel |
 
 ##### SURF-WI-001 — selected WorkItem shell / rail / current attention
 
@@ -499,25 +479,29 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | Context open/close | local state | inspect technical orientation | Supporting | identity/utility region | opens `SURF-WI-CONTEXT-001`; never auto-open | Context not sole blocker/action owner |
 | Archive / Restore selected WorkItem | WorkItem archive mutation | manage active-queue visibility | Supporting | identity/utility region | always interposes `SURF-CONF-ARCHIVE-001` on selected WorkItem | no immediate destructive mutation |
 | title edit / Save / Cancel | title mutation contract | maintain human identity | Supporting; Save becomes Primary inside edit mode | identity row | mutation error stays with title | unavailable in EXECUTION/COMPLETE |
-| exact WorkItem carrier/provenance fields | `WorkItem.id/repositoryRoot/origin/schemaId/sourcePath/sourceSha256/derivedFromWorkItemId/createdAt` plus raw `stage/status/outcome` | exact audit/mechanical identity | Technical | explicit Context/local Technical owner only where separately enumerated | never promoted into identity row | presence in the WorkItem object is not authorization to render all fields here |
+| exact WorkItem carrier/provenance fields | `WorkItem.id/repositoryRoot/origin/schemaId/sourcePath/sourceSha256/derivedFromWorkItemId/createdAt` plus raw `stage/status/outcome` | exact audit/mechanical identity | Technical | `SURF-WI-CONTEXT-001` when applicable to the selected object | never promoted into identity row | presence in the WorkItem object is not authorization to render all fields here |
 | project/concern identity | `WorkItem.projectId/concernIds` | compact selected-work orientation | Supporting only in explicit Context | `SURF-WI-CONTEXT-001` | not ordinary identity-row metadata | no project/schema dump in identity row |
 
 ##### SURF-WI-CONTEXT-001 — explicit technical Context
 
-Context is intentionally an explicit inspection surface. Exact technical values may be visible here because the operator requested them, but it is **not** a wildcard dump of every WorkItem/Run field.
+Context is the **single WorkItem-scoped technical-inspection surface**. It is selection-aware: it shows only the exact technical identity applicable to the currently selected WorkItem/material/Run/proposal/approval/task. It is not a wildcard object dump and never owns the current mutation/blocker.
 
 | Datum/action | Source | Intent | Class | Placement | Rule |
 |---|---|---|---|---|---|
-| selected workflow step/material label | current browser selection + presentation policy | orient technical inspection | Primary | Context header | human label first |
-| selected document path/SHA | selected document `repositoryPath/path` + `sha256` | exact selected-document identity | Technical | metadata | allowed because Context is explicit; path may also have its ordinary document owner |
-| selected Run id/role/status/attempt/start time | `Run.id/role/status/attempt/startedAt` for the selected material Run | exact attempt orientation | Technical | metadata | human status treatment may accompany raw identity |
-| source issue count | matching `WorkItemSourceDiagnostic[]` | corroborating orientation | Supporting | metadata/notice | blocker/action remains on primary surface |
-| WorkItem id | `WorkItem.id` | exact selected WorkItem identity | Technical | metadata | explicit Context owner |
-| WorkItem stage/status/outcome/schema | raw `WorkItem.stage/status/outcome/schemaId` | exact canonical state/schema orientation | Technical | metadata | does not duplicate current-action policy |
-| Project/kind/Concerns | `WorkItem.projectId`, catalog `kind`, `WorkItem.concernIds` | compact semantic orientation | Supporting | metadata | Context is the shell owner for these non-primary identity facts |
-| excluded WorkItem carrier fields | `WorkItem.repositoryRoot/origin/sourcePath/sourceSha256/derivedFromWorkItemId/createdAt` | avoid indiscriminate metadata dumping | Technical but **not rendered by this Context contract** | owned by Settings/document/technical evidence as applicable | implementation may not add them here without DESIGN amendment |
-| Run mechanics owned elsewhere | `Run.baselineCommit/contextHash/providerSessionId/terminalClassification/mode/triggerEventId/endedAt` | prevent duplicate technical ownership | Technical but **not rendered by Context** | local Activity/Implementation Technical details or Evidence only | one ordinary technical owner |
-| Close Context | local | restore primary width/focus | Primary | predictable close/toggle | Context never auto-opens; close restores primary hierarchy |
+| selected workflow step/material label | current browser selection + presentation policy | orient inspection | Primary | Context header | human label first |
+| WorkItem id + raw stage/status/outcome/schema | `WorkItem.id/stage/status/outcome/schemaId` | exact selected-work identity | Technical | WorkItem identity group | ordinary shell continues to use human labels |
+| Project/kind/Concerns | `WorkItem.projectId`, catalog kind, `concernIds` | semantic orientation | Supporting | WorkItem identity group | not duplicated into the primary identity row unless separately required |
+| selected document/source identity | selected source/ArtifactRef path + `sha256/gitCommit/authorityLayer` where applicable | inspect exact selected-document identity | Technical | selected material group | repository path may also remain Supporting on document surfaces where P3 requires it |
+| selected Run identity | `Run.id/role/status/attempt/startedAt/endedAt/baselineCommit/contextHash/providerSessionId/terminalClassification` | inspect exact attempt/provider mechanics | Technical | selected Run group | human attempt/status remains Supporting in productive surfaces; no local Run technical drawer |
+| selected proposal identity | proposal `targetPath/baseSha256/authorityLayer` plus selected `runId/eventId` and recorded disposition ids when present | inspect exact proposal mechanics | Technical | selected proposal group | diff/rationale/semantic target remain in Proposal Review |
+| selected approval/package identity | package hash/source SHA/baseline/commit plus Approval/task ids available for the selected approval material | inspect exact sign-off identity | Technical | selected approval group | readiness/task meaning remains in Approval Review |
+| selected execution-task identity | `ExecutionTask.id/approvalId/planTaskId` plus selected attempt Run identity | inspect exact execution mechanics | Technical | selected execution group | scope/gates/validation semantics remain in the execution task surface |
+| matching source issue count | matching `WorkItemSourceDiagnostic[]` | corroborating orientation | Supporting | notice/metadata | human blocker/action stays in primary task |
+| raw event/payload diagnostics | selected RunEvent/provider diagnostic material when explicit inspection is legitimate | inspect implementation-facing evidence | Diagnostic | bounded selected-run diagnostics or Evidence | do not dump all events merely because a Run is selected; exact evidence bytes remain Evidence-owned |
+| excluded unrelated carrier fields | any technical field not applicable to the current selected object | prevent metadata dumping | Technical/Diagnostic but absent | none | adding another field requires DESIGN amendment |
+| Close Context | local | restore primary width/focus | Primary | predictable close/toggle | never auto-opens; close restores owning task |
+
+##### SURF-STEP-WR-001
 
 ##### SURF-STEP-WR-001 — Work request step
 
@@ -541,8 +525,8 @@ Research document semantics are work-kind specific and remain owned by the selec
 | proposal review | proposal state | review a proposed governed change | Primary | `SURF-MAT-PROPOSAL-001` | free-form continuation suppressed |
 | upstream source/document/evidence links | artifacts/source/evidence | inspect supporting authority/material | Supporting | `WorkbenchSelector` / supporting material | cannot change primary canvas width |
 | attempts/history/activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector | subordinate when persistent display would compete |
-| exact Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` plus raw `Run.stage/role/status/terminalClassification` | exact execution/provider mechanics | Technical | local Technical details; `Run.id/role/status/attempt/startedAt` may also appear in explicit Context as separately enumerated | provider failure promotes only human meaning/action |
-| raw event tags/payloads/parser-provider diagnostics | RunEvents/diagnostics | implementation-facing failure evidence | Diagnostic | Timeline Technical details / Evidence | never ordinary productive-stage content |
+| exact Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` plus raw `Run.stage/role/status/terminalClassification` | exact execution/provider mechanics | Technical | WorkItem Context for the selected Run | provider failure promotes only human meaning/action |
+| raw event tags/payloads/parser-provider diagnostics | RunEvents/diagnostics | implementation-facing failure evidence | Diagnostic | WorkItem Context / Evidence | never ordinary productive-stage content |
 | Start/Retry/Resume/Reconcile/Cancel/Input/Adopt/Reject | canonical attention/interaction/recovery | operate Research | Primary | owning material | never competing equal-weight mutations |
 
 ##### SURF-STEP-R2-001 — Requirements
@@ -556,8 +540,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed Requirements Markdown | R2 ArtifactRef/content | inspect required behavior, acceptance, scope/exclusions | Primary | document surface |
 | supporting Research/source/evidence | artifacts/source/evidence | judge current functional-design basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | local Technical details/Context only where separately enumerated |
-| raw event/payload diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence only |
+| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | WorkItem Context for the selected Run/document |
+| raw event/payload diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | WorkItem Context / Evidence |
 | proposal disposition | proposal events | adopt/reject governed authority proposal | Primary | Proposal Review; suppress continuation |
 
 ##### SURF-STEP-DESIGN-001 — Solution design
@@ -569,8 +553,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed DESIGN Markdown | DESIGN ArtifactRef/content | inspect technical realization | Primary | document |
 | supporting R2/R1/source/evidence | artifacts/source/evidence | trace design basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | local Technical details/Context only where separately enumerated |
-| raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence |
+| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | WorkItem Context for the selected Run/document |
+| raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | WorkItem Context / Evidence |
 | proposal disposition | proposal events | govern P4-P6 change | Primary | Proposal Review |
 
 ##### SURF-STEP-PLAN-001 — Implementation plan
@@ -583,8 +567,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | task/change-surface summaries derived from PLAN | parsed signed-task block | support inspection | Supporting | subordinate selector/detail; never second plan authority |
 | supporting DESIGN/R2/R1/source/evidence | artifacts/source/evidence | trace plan basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | local Technical details/Context only where separately enumerated |
-| raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence |
+| exact Run/artifact mechanics | `Run.id/baselineCommit/contextHash/providerSessionId` + selected `ArtifactRef.id/sha256/gitCommit/authorityLayer` | audit exact mechanics | Technical | WorkItem Context for the selected Run/document |
+| raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | WorkItem Context / Evidence |
 | Start Readiness / retry/recovery as canonically admitted | lifecycle/current attention | progress or recover | Primary | attention action region; visually primary current command |
 
 ##### SURF-STEP-R3-001 — Readiness review
@@ -598,7 +582,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | package evidence links | evidence | inspect readiness basis | Supporting | selector/resource list | exact evidence identity in Evidence |
 | attempt history | R3 Runs | inspect readiness chronology | Operational | selector/history | exact Run/session identity Technical |
 | legitimate REQUIRED_INPUT | current R3 Run interaction | answer exact readiness question | Primary | Dialogue/attention | unrelated technical identity not promoted |
-| exact R3 package/artifact/Run identity | `ArtifactRef.id/workItemId/repositoryPath/sha256/gitCommit/authorityLayer` + `Run.id/baselineCommit/contextHash/providerSessionId` | exact audit identity | Technical | Technical details | semantic document labels stay ordinary; exact values hidden before disclosure |
+| exact R3 package/artifact/Run identity | `ArtifactRef.id/workItemId/repositoryPath/sha256/gitCommit/authorityLayer` + `Run.id/baselineCommit/contextHash/providerSessionId` | exact audit identity | Technical | WorkItem Context | semantic document labels stay ordinary; exact values hidden before disclosure |
 | Return/Retry/Input actions | canonical attention/recovery | progress/recover | Primary | Review/Dialogue | one owner only |
 
 ##### SURF-STEP-APPROVAL-001 — Approval
@@ -611,8 +595,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | approver human identity | local input subject to canonical ingress validation | identify explicit human sign-off | Primary | decision region | internal approval id Technical |
 | Sign off exact package | current package + approvedBy | authorize exact package | Primary | decision region; sole visually primary mutation | absent/disabled when package not current |
 | historical approval/task state | ExecutionTasks/history | inspect prior approval | Operational | review history | exact approval/task ids Technical |
-| package hash/source SHA/baseline commit/commit identity | SignoffPackage | exact audit identity | Technical | Technical details | absent by default |
-| task/approval ids | package/task records | exact identity | Technical | Task technical details | absent from ordinary task meaning |
+| package hash/source SHA/baseline commit/commit identity | SignoffPackage | exact audit identity | Technical | WorkItem Context | absent by default |
+| task/approval ids | package/task records | exact identity | Technical | WorkItem Context | absent from ordinary task meaning |
 | stale/error/loading state | package query/currentness | explain inability to sign | Primary | Review notice | raw transport error not ordinary copy |
 
 ##### SURF-MAT-APPROVAL-TASK-001 — Approval task detail
@@ -624,7 +608,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | dependencies | `dependsOn` | understand execution eligibility | Supporting | task detail | no graph UI required |
 | acceptance / gates / authority / concerns | `acceptanceRefs/gateIds/authorityRefs/concernIds` | judge verification and traceability | Primary | task detail | these are signed task semantics, not generic metadata |
 | changeSurface forecast | `changeSurface` | understand expected physical change | Supporting | task detail | explicitly forecast, not hard semantic scope |
-| exact task/approval ids | signed task `id`; historical `ExecutionTask.id/planTaskId/approvalId` | audit exact identity | Technical | Task Technical details | hidden by default |
+| exact task/approval ids | signed task `id`; historical `ExecutionTask.id/planTaskId/approvalId` | audit exact identity | Technical | WorkItem Context | hidden by default |
 | Back / select another task | local review selection | continue package review | Supporting | task selector/review navigation | no mutation |
 
 ##### SURF-STEP-EXEC-001 — Implementation master/detail
@@ -638,8 +622,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | chronology | RunEvents mapped to product presentation | inspect operational history | Operational | Timeline | raw event tags/payload Diagnostic |
 | evidence/resources | EvidenceRefs/artifacts | inspect supporting proof | Supporting | resource list | exact bytes/identity in Evidence |
 | Start current task / Retry / Resume / Cancel | canonical execution owner/recovery | operate current approved task | Primary | attention/action region | historical selection cannot retarget action |
-| exact task/Run identity | `ExecutionTask.id/approvalId/planTaskId` + `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | audit mechanics | Technical | Technical details | absent ordinarily |
-| raw execution diagnostics | diagnostics/events/provider evidence | debug failure | Diagnostic | Technical details/Evidence | never ordinary chronology copy |
+| exact task/Run identity | `ExecutionTask.id/approvalId/planTaskId` + `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | audit mechanics | Technical | WorkItem Context | absent ordinarily |
+| raw execution diagnostics | diagnostics/events/provider evidence | debug failure | Diagnostic | WorkItem Context / Evidence | never ordinary chronology copy |
 
 ##### SURF-MAT-EXEC-TASK-001 — execution task/attempt detail
 
@@ -654,10 +638,10 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | recorded validation results/history | validation RunEvents mapped to product meaning | inspect completed verification history | Operational | subordinate validation history; complete matrix disclosed |
 | timeline | RunEvents mapped through product presentation | inspect execution history | Operational | timeline with product labels |
 | evidence resources | EvidenceRefs / governed artifacts | inspect proof | Supporting | resource rows; explicit open enters Evidence |
-| exact ExecutionTask identity | `ExecutionTask.id/approvalId/planTaskId` | audit task mechanics | Technical | Technical details |
-| exact selected Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | audit attempt/provider mechanics | Technical | Technical details |
+| exact ExecutionTask identity | `ExecutionTask.id/approvalId/planTaskId` | audit task mechanics | Technical | WorkItem Context |
+| exact selected Run mechanics | `Run.id/baselineCommit/contextHash/providerSessionId/terminalClassification` | audit attempt/provider mechanics | Technical | WorkItem Context |
 | excluded redundant Run carrier fields | `Run.workItemId/executionTaskId/stage/mode/triggerEventId` | prevent duplicate low-value identity | Technical but **not rendered by this task-detail contract** | owning selection/event evidence already establishes these facts |
-| raw event/payload/diagnostic data | `RunEvent.id/runId/sequence/event.tag/event` + provider diagnostics | debug | Diagnostic | Timeline Technical details/Evidence |
+| raw event/payload/diagnostic data | `RunEvent.id/runId/sequence/event.tag/event` + provider diagnostics | debug | Diagnostic | WorkItem Context / Evidence |
 
 ##### SURF-STEP-COMPLETE-001 — terminal result
 
@@ -667,7 +651,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed result material | terminal ArtifactRefs/content | present investigation/audit result where applicable | Primary | result body | exact artifact identity Technical |
 | candidate evidence/resources | successful execution Runs/RunEvents/EvidenceRefs | support verified candidate | Supporting | resource list | human resource labels ordinarily; exact identity in Evidence |
 | linked remediation action | eligible Audit/Investigation outcome | create separately governed Change/Defect | Primary | result action | opens `SURF-CREATE-001` |
-| exact terminal artifact/Run identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` + relevant `Run.id/baselineCommit/contextHash/providerSessionId` | audit exact result identity | Technical | Technical details/Evidence if explicitly needed | never ordinary result copy |
+| exact terminal artifact/Run identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` + relevant `Run.id/baselineCommit/contextHash/providerSessionId` | audit exact result identity | Technical | WorkItem Context / Evidence after explicit inspection | never ordinary result copy |
 | raw event tags/payloads | RunEvents | debug implementation evidence | Diagnostic | Evidence only when explicitly inspected | never ordinary result copy |
 | result loading/error state | content/evidence query | explain unavailable supporting material | Supporting | owning result notice | raw transport internals hidden |
 
@@ -688,9 +672,9 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | Cancel | local editor action | abandon local source edits | Supporting | editor actions; secondary command | preserves canonical bytes |
 | compact documentation-Git state/action | `WorkItemDocumentationGitStatus.blockers/paths[].state` mapped to product status | optionally persist governed docs | Supporting | document toolbar | exact commit path set moves to confirmation |
 | source blocker human meaning | source diagnostics | explain inability to progress | Primary | document/attention notice | raw diagnostic code stays Diagnostic; document path already has ordinary owner |
-| source metadata/hash identity | `WorkItemSourceSnapshot.sha256`, `metadata.formatVersion/id/schemaId/derivedFromWorkItemId` | exact portable-source identity | Technical | Technical details | hidden by default |
-| Git exact mechanics | `WorkItemDocumentationGitStatus.headCommit/branch/authorName/authorEmail` + `paths[].workingTreeSha256/headSha256` | exact repository state | Technical | Technical details | human blocker/status remains ordinary |
-| complete portable source bytes | `WorkItemSourceSnapshot.markdown` | exact envelope inspection | Technical | Technical details | body authoring remains Primary |
+| source metadata/hash identity | `WorkItemSourceSnapshot.sha256`, `metadata.formatVersion/id/schemaId/derivedFromWorkItemId` | exact portable-source identity | Technical | WorkItem Context | hidden by default |
+| Git exact mechanics | `WorkItemDocumentationGitStatus.headCommit/branch/authorName/authorEmail` + `paths[].workingTreeSha256/headSha256` | exact repository state | Technical | WorkItem Context | human blocker/status remains ordinary |
+| complete portable source bytes | `WorkItemSourceSnapshot.markdown` | exact envelope inspection | Technical | explicit Evidence/exact-source inspection | body authoring remains Primary; compact Context does not become a byte viewer |
 | exact changed paths + per-path Git state | `WorkItemDocumentationGitStatus.paths[].repositoryPath/state` for changed governed paths | consent to documentation commit | Primary | `SURF-CONF-DOC-GIT-001` | path-specific safe-decision exception |
 
 ##### SURF-MAT-DOC-001 — editable lifecycle document
@@ -708,8 +692,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | Cancel | local editor action | abandon local artifact edits | Supporting | editor actions; secondary command | preserves canonical bytes |
 | documentation-Git state/action | Git status | optional governed docs commit | Supporting | toolbar | exact paths + states in confirmation |
 | non-canonical Markdown incompatibility | decode/format validation | explain why ordinary editor cannot own bytes | Primary | notice + inspect exact bytes action | exact bytes in Evidence |
-| ArtifactRef exact identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` | exact artifact/audit identity | Technical | Technical details | `authorityLayer` is not ordinary Requirements copy |
-| Git exact mechanics | `WorkItemDocumentationGitStatus.headCommit/branch/authorName/authorEmail` + `paths[].workingTreeSha256/headSha256` | exact repository state | Technical | Technical details | absent ordinary heading |
+| ArtifactRef exact identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` | exact artifact/audit identity | Technical | WorkItem Context | `authorityLayer` is not ordinary Requirements copy |
+| Git exact mechanics | `WorkItemDocumentationGitStatus.headCommit/branch/authorName/authorEmail` + `paths[].workingTreeSha256/headSha256` | exact repository state | Technical | WorkItem Context | absent ordinary heading |
 
 ##### SURF-MAT-DOC-RO-001 — read-only lifecycle/supporting document
 
@@ -718,7 +702,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed Markdown content | selected `ArtifactRef` + content bytes | inspect supporting/historical/R3/Approval material | Primary | read-only document |
 | human document role/currentness | `ArtifactRef.role` mapped to product label + lifecycle currentness | orient material | Supporting | header/status |
 | current repository path | `ArtifactRef.repositoryPath` | identify the current governed document location | Supporting, default-visible | document facts/header; required by Markdown P3 |
-| exact ArtifactRef identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` | audit identity | Technical | Technical details; raw authority layer/internal ids hidden by default |
+| exact ArtifactRef identity | `ArtifactRef.id/workItemId/sha256/gitCommit/authorityLayer` | audit identity | Technical | WorkItem Context; raw authority layer/internal ids hidden by default |
 | inspect exact bytes if ordinary Markdown decode cannot represent content | content validation | preserve source fidelity | Supporting | opens Evidence |
 | Back / selector navigation | local selection | return to owning task | Supporting | selector/history |
 
@@ -735,8 +719,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | workflow/system event labels | RunEvents through product presentation | understand persisted workflow history | Operational | timeline | raw tags/payloads Diagnostic |
 | evidence resource labels | EvidenceRefs | inspect proof | Supporting | timeline/resource row | exact identity/bytes in Evidence |
 | Cancel | canonical interaction eligibility | stop current Run | Supporting | Dialogue action | suppressed by proposal/adoption/current-owner rules |
-| exact Run mechanics | `Run.id/stage/role/status/baselineCommit/contextHash/providerSessionId/terminalClassification` | exact attempt/provider mechanics | Technical | Technical details | `attempt/startedAt` retain their Supporting owner; unused carrier fields are not added merely because present |
-| raw RunEvent identity/payload | `RunEvent.id/runId/sequence/event.tag` + complete `event` payload | debug exact persisted workflow event | Diagnostic | Timeline Technical details/Evidence | absent ordinary timeline |
+| exact Run mechanics | `Run.id/stage/role/status/baselineCommit/contextHash/providerSessionId/terminalClassification` | exact attempt/provider mechanics | Technical | WorkItem Context | `attempt/startedAt` retain their Supporting owner; unused carrier fields are not added merely because present |
+| raw RunEvent identity/payload | `RunEvent.id/runId/sequence/event.tag` + complete `event` payload | debug exact persisted workflow event | Diagnostic | WorkItem Context / Evidence | absent ordinary timeline |
 
 ##### SURF-MAT-PROPOSAL-001 — proposal review
 
@@ -749,9 +733,9 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | Adopt / Reject | current proposal decision state | dispose proposal | Primary | decision region | continuation/cancel competition follows canonical control exclusivity |
 | Back to workflow attempt | recorded proposal origin selection | return without mutation | Supporting | decision/navigation region | restores owning attempt/focus |
 | adoption/decision failure | proposal mutation result | recover decision | Primary | Review notice | raw transport mechanics hidden |
-| exact proposal target/base/authority identity | `ARTIFACT_PROPOSAL_CREATED.targetPath/baseSha256/authorityLayer` | audit exact proposal mechanics | Technical | Technical details | target role remains ordinary; raw path/hash/layer hidden by default |
-| exact proposal event ownership | proposal selection `runId/eventId` + disposition `proposalEventId/adoptedArtifactRefId` | audit persisted proposal identity | Technical | Technical details/Evidence only | absent ordinary review |
-| raw event tags/payloads | proposal RunEvents beyond the semantic fields above | debug | Diagnostic | Evidence/Timeline Technical details | absent ordinary review |
+| exact proposal target/base/authority identity | `ARTIFACT_PROPOSAL_CREATED.targetPath/baseSha256/authorityLayer` | audit exact proposal mechanics | Technical | WorkItem Context | target role remains ordinary; raw path/hash/layer hidden by default |
+| exact proposal event ownership | proposal selection `runId/eventId` + disposition `proposalEventId/adoptedArtifactRefId` | audit persisted proposal identity | Technical | WorkItem Context / Evidence only | absent ordinary review |
+| raw event tags/payloads | proposal RunEvents beyond the semantic fields above | debug | Diagnostic | Evidence / WorkItem Context | absent ordinary review |
 
 ##### SURF-MAT-EVIDENCE-001 — exact Evidence
 
@@ -850,7 +834,7 @@ Only the highest-precedence mutation owner is presented as the current workflow 
 
 Wide/medium/narrow may change composition, not classification.
 
-- Primary remains directly reachable and is never moved behind Context/Technical details.
+- Primary remains directly reachable and is never moved behind Context.
 - Technical/Diagnostic remains hidden by default and never becomes persistent to “fill” narrow/wide layouts.
 - Context is explicit and closeable.
 - Implementation remains the only persistent workflow master/detail class.
@@ -869,11 +853,11 @@ Exact internal identity is shown only where:
 
 - the active task literally requires choosing/entering that exact value;
 - a confirmation requires the exact target to make an informed decision;
-- Context/Technical details/Evidence is explicitly opened.
+- Context/Settings diagnostics/Evidence as applicable is explicitly opened.
 
 ##### Resource-label law
 
-Ordinary resource lists use human-facing role/meaning. Exact repository/evidence identity moves to Evidence or Technical details unless the exact target is itself the decision being made.
+Ordinary resource lists use human-facing role/meaning. Exact repository/evidence identity moves to Evidence or the applicable explicit technical-inspection owner unless the exact target is itself the decision being made.
 
 ##### Failure law
 
@@ -898,7 +882,7 @@ For each owned `SURF-*` row, implementation must:
 5. prove Primary information is present and correctly prioritized;
 6. prove Supporting/Operational information remains subordinate;
 7. prove Technical/Diagnostic information is absent by default;
-8. prove the authorized disclosure owner reveals the exact owned value after explicit entry;
+8. prove the singular authorized inspection/material owner reveals the exact owned value only after explicit entry;
 9. prove closing/return restores the ordinary hierarchy and current attention;
 10. prove responsive/theme variants preserve the same classification and action priority.
 
@@ -919,9 +903,11 @@ Phase-local rendered review and final IA26 acceptance use three independent bina
 - required Primary information is visible;
 - required Supporting/Operational information is correctly subordinate;
 - Technical/Diagnostic values are absent from the ordinary surface;
-- the authorized disclosure/confirmation/Evidence owner exposes the value only when explicitly entered;
+- the authorized Context/Settings-diagnostics/Evidence/confirmation owner exposes exact technical values only after explicit entry;
 - close/return restores ordinary hierarchy;
-- no current action is lost behind disclosure.
+- no current action is lost behind inspection or subordinate material selection;
+- no adjacent/nested generic technical/supporting/history disclosure bars exist;
+- TaskPanel header/body/footer and Markdown editor-control→canvas adjacency are preserved where applicable.
 
 Presence-only assertions are insufficient.
 
@@ -932,34 +918,40 @@ This contract is complete only while all of the following remain true:
 - the registry contains exactly the 37 current governed `SURF-*` ids;
 - every production renderer is classified by the canonical P4 renderer matrix;
 - every operator-visible canonical datum/action admitted by the Phase-1 typed-input/interaction inventories maps to a row here or to the rendered governed Markdown body;
-- every exact-id/path/hash/session/event/provider value has an explicit default-visibility/disclosure decision;
+- every exact-id/path/hash/session/event/provider value has an explicit default-visibility/inspection decision;
 - every destructive/dirty/configuration decision has an explicit target-information rule;
 - every work-kind/stage difference remains preserved through the selected canonical document/schema semantics;
 - responsive/theme variants do not create new information classes or placements;
 - no implementation task is instructed to “derive”, “choose” or “infer” a screen information schema.
 
-Any future new surface, datum/action class, disclosure owner or interaction grammar requires DESIGN/P3 amendment before implementation.
+Any future new surface, datum/action class, inspection/material owner or interaction grammar requires DESIGN/P3 amendment before implementation.
 
 
-##### Closed progressive-disclosure realization
+##### Closed inspection / subordinate-information realization
 
-The implementation uses only existing canonical interaction owners:
+Implementation uses only the canonical interaction owners:
 
-- operator-facing workflow history/material -> `WorkbenchSelector` / Supporting material/history;
-- compact selected-WorkItem technical orientation -> explicit `WorkbenchContextPanel`;
-- local exact identity/mechanics -> `WorkbenchDisclosure` labelled **Technical details** (or the task-specific technical-detail label already owned by the Review);
-- exact raw bytes/resource -> explicit Evidence surface;
-- mutation-consent facts -> `WorkbenchConfirmation` only when those exact facts are necessary to consent safely.
+- operator-facing workflow material/history -> one `WorkbenchSelector` / resource / timeline owner appropriate to the task; there is no separate generic Supporting-material/history bar;
+- selected-WorkItem technical identity -> explicit `WorkbenchContextPanel` populated by selection-aware `WorkItemContext`;
+- Settings/application technical identity -> one explicit Settings diagnostics/technical-inspection region;
+- same-task optional expansion -> retained `WorkbenchDisclosure` only when the label names the same semantic task content (for example **Complete validation matrix**);
+- exact raw evidence/bytes -> explicit Evidence surface;
+- mutation-consent exact facts -> `WorkbenchConfirmation` only when those facts are necessary to consent safely.
 
-There is no new persisted disclosure state, DTO/view-model, diagnostic dashboard, second Context system or feature-specific technical panel. Diagnostic/console facts that have no legitimate operator inspection use remain absent from the product UI.
+There is no new persisted inspection state, DTO/view-model, diagnostics dashboard, second Context system or feature-specific technical panel. Diagnostic/console facts with no legitimate operator inspection use remain absent from product UI.
 
-A replacement screen is technically invalid when any of the following is true:
+A screen is technically invalid when any of the following is true:
 
 - a raw id/hash/path/session/event/enum is persistently visible although a semantic label suffices;
-- a blocking technical condition promotes its raw representation rather than its human meaning/action;
-- the same technical datum is duplicated across ordinary primary/supporting space and a technical owner without a second decision need;
-- a datum that R2 classifies as Primary can be reached only by opening Context/Technical details;
-- implementation or a derived SVG chooses a different disclosure owner from this matrix.
+- a blocking technical condition promotes raw representation instead of human meaning/action;
+- a local **Technical details**, **Task technical details**, **Timeline technical details**, **Supporting material/history** or equivalent generic disclosure bar is present in a productive surface;
+- the same supporting/history information has both a selector/resource owner and another generic inspection owner;
+- editor controls are separated from the source/preview canvas by unrelated inspection/supporting chrome;
+- a TaskPanel does not preserve header/body/footer with footer-owned actions;
+- Primary information is reachable only by opening Context/technical inspection;
+- implementation or a derived SVG chooses a different inspection/material owner from this contract.
+
+## Technical change solution catalog
 
 ## Technical change solution catalog
 
@@ -971,16 +963,16 @@ A replacement screen is technically invalid when any of the following is true:
 | SD04 | C02/C04 singular source admission | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/daemon/work-item-source.ts | Factor one new-source QueuePlan producer and persist both created/discovered sources through existing applyPlan; remove direct create-path WorkItem store. | tests/daemon.test.ts |
 | SD05 | C03 archived queue filtering | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/app.tsx; ui/src/WorkItemQueue.tsx | App selects active/include-archived canonical dataset then applies project/search once; Queue owns New WorkItem, Refresh sources, search/filter controls and source diagnostics. Diagnostics show human reason plus the source path when that path is the only usable identity of an invalid/unmaterialized source; raw diagnostic code/parser payload remains technical/evidence-owned. | tests/browser.spec.ts includes filter semantics, Refresh sources ownership, visible defective-source path and negative raw-code/payload visibility |
 | SD06 | C04 documentation-Git exact review | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 + R2 C19 visibility contract | ui/src/DocumentWorkspace.tsx | Render the current repository path and WorkItem document directory as supporting document identity, show the governed pre-Save upstream-return/staleness consequence whenever applicable, and render the exact changed-path/state set in confirmation before the bounded commit command. SHA/schema/ArtifactRef/commit identity remains Technical. No second Git-status owner. | tests/browser.spec.ts proves visible current path/directory and pre-Save consequence, default-hidden hashes/internal identity, and exact confirmation path+state rows |
-| SD07 | C05/C17 current-attention visibility | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ActivityWorkspace.tsx; ui/src/WorkItemWorkspace.tsx; ui/src/workbench-presentation.ts | Keep historical/supporting inspection while the exact higher-priority current owner/reason/action remains visible and directly reachable; when the owning cause is technical, promote only its human-readable meaning/consequence/action while raw code/path/session/payload remains in Technical details/Evidence. Do not create browser workflow state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including human-meaning-only promotion |
+| SD07 | C05/C17 current-attention visibility | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ActivityWorkspace.tsx; ui/src/WorkItemWorkspace.tsx; ui/src/workbench-presentation.ts | Keep historical/supporting inspection while the exact higher-priority current owner/reason/action remains visible and directly reachable; when the owning cause is technical, promote only its human-readable meaning/consequence/action while raw code/path/session/payload remains in Context/Settings diagnostics/Evidence as applicable. Do not create browser workflow state. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including human-meaning-only promotion |
 | SD08 | C06 durable authority-changing input | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/lifecycle.ts; src/daemon/stage.ts | After answered STAGE_CHOICE/AUTHORITY_DECISION/AUTHORITY_CONFLICT that changes durable authority, stage completion requires later adopted canonical authority; INFORMATION/EVIDENCE unchanged. | tests/core.test.ts; tests/daemon.test.ts |
 | SD09 | C07/C08 permanent authority proposal/adoption | GW-DOC-TECHNICAL-ARCHITECTURE-V2 + GW-DOC-CANONICAL-CONTRACTS-V2 | src/core/contracts.ts; src/core/governance.ts; src/daemon/authority.ts; src/daemon/stage.ts | Extend the one proposal/adoption owner: R2 admits current P2/P3 targets; DESIGN current P4/P5/P6 targets; re-resolve role/layer/path/base hash before adoption. No new proposal model. | tests/core.test.ts; tests/daemon.test.ts |
 | SD10 | C09 signed task contract, non-vacuity and execution-surface semantics | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-SPECIFICATION-STANDARD | **Remaining T1 delta:** src/core/execution.ts; src/daemon/stage.ts; src/daemon/authority.ts. **Baseline reuse/no T1 edit for execution-foundation semantics:** src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Keep the one canonical `SignedTaskBlockSchema` and existing `parseSignedTaskBlockFromPlan` structural parser unchanged so published `change-v1`/`defect-v1` semantics are not silently reinterpreted. Add one pure schema-aware task-admission function over the already parsed `SignedTaskBlock`: for `change-v2`/`defect-v2` only, enforce P6 §37.4 (non-empty tasks; trimmed non-empty id/objective; non-empty scope/acceptance/changeSurface/gates/authority/concerns); for v1, preserve the historical contract. The existing PLAN/R3 prompt contract in `src/daemon/stage.ts` must become schema-aware and state the same v2-only non-vacuity clauses in addition to the unchanged shared JSON Schema, so authoring and deterministic admission agree. The existing PLAN semantic conformance questions remain the owner of **material** task sufficiency: each task must trace upward/downward and close objective/dependencies, module ownership/decomposition, required architecture-feedback checkpoints, production/test surfaces, deletions/replacements, completion evidence, minimum-change forecast and verification contract without delegating a P1-P6 decision. R3 independently challenges complete bidirectional P1-P7 traceability/current readiness. PLAN conformance must call the v2-aware mechanical admission, and R3/sign-off `validateTaskDefinitions` must call the same owner so a syntactically vacuous v2 package cannot bypass those semantic reviews. No second task DTO/schema/parser or second semantic-review owner is introduced. The corrected baseline already owns signed scope/exclusions as the hard repository boundary, changeSurface as immutable forecast, V2 true-boundary rejection, V4/V5/V6 minimum same-layer variance review and coordinator-owned V6 CHANGE_BLOAT; T1 must reuse rather than reimplement those semantics. | tests/core.test.ts proves v1 parse/admission compatibility plus v2 non-vacuity positives/negatives; tests/daemon.test.ts proves v2 PLAN and READY_FOR_SIGNOFF/sign-off rejection cannot bypass the rule; tests/certification.test.ts binds the singular schema-aware admission/prompt path and rejects a duplicate task schema/parser |
-| SD11 | C10 Readiness judgment | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ReadinessWorkspace.tsx; ui/src/workbench-presentation.ts | Dominant verdict derives from typed R3 completion outcome; findings/return owner remain primary, package/material context is supporting, and artifact role/path/hash/package identity is Technical details only. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including hidden-before-disclosure technical identity |
-| SD12 | C11 Approval identity and hierarchy | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | src/core/contracts.ts; src/daemon/authority.ts; ui/src/SignoffReview.tsx | Trim/reject blank approvedBy at canonical ingress and show readiness/currentness/task meaning before technical package identity; package hash/baseline/commit plus approval/task ids remain behind their owning Technical details disclosure while browser validation remains feedback. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts proves hidden/default/disclosed identity |
+| SD11 | C10 Readiness judgment | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/ReadinessWorkspace.tsx; ui/src/workbench-presentation.ts | Dominant verdict derives from typed R3 completion outcome; findings/return owner remain primary, package/material context is supporting, and artifact role/path/hash/package identity is inspected only through WorkItem Context. | tests/workbench-presentation.test.ts; tests/browser.spec.ts including productive-surface absence + explicit Context inspection |
+| SD12 | C11 Approval identity and hierarchy | GW-DOC-CANONICAL-CONTRACTS-V2 + GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | src/core/contracts.ts; src/daemon/authority.ts; ui/src/SignoffReview.tsx | Trim/reject blank approvedBy at canonical ingress and show readiness/currentness/task meaning before technical package identity; package hash/baseline/commit plus approval/task ids remain absent from Review and are inspectable through WorkItem Context. | tests/core.test.ts; tests/daemon.test.ts; tests/browser.spec.ts proves productive-surface absence + Context inspection |
 | SD13 | C12 signed in-task checkpoint | GW-DOC-EXECUTION-CONTROL-PLANE-V1 + GW-DOC-CANONICAL-CONTRACTS-V2 | **Baseline capability already integrated; no T1 production edit:** src/core/contracts.ts; src/core/execution.ts; src/daemon/execution.ts; src/daemon/validation.ts; src/shell/opencode.ts | Current baseline satisfies P6 §37.6: BUILDER alone may request exactly one signed-task gate checkpoint as terminal turn action; the coordinator verifies freshness/signed gate/current V2 scope before effect, executes the existing gate owner, records GATE_PASSED/GATE_FAILED evidence and continues the same Run/provider session; provider shell/execute remains denied. Final PLAN may schedule/use this capability but must not bootstrap or reimplement it. | existing tests/core.test.ts; tests/daemon.test.ts; tests/certification.test.ts are baseline proof; final PLAN may add only task-specific usage/cadence proof where required |
 | SD14 | C16 Settings hierarchy | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract | ui/src/SettingsWorkspace.tsx | Keep one canonical Settings/config owner. Readiness/meaning/action is ordinary content. Each connected repository default-visibly shows project identity, exact Git root, resolved WorkItem-document root and current queue/creation-context state as required by Installation Readiness; manifest/config hashes, endpoints/account ids/provider mechanics remain Technical unless an active bounded task requires an exact value. Raw enum/status codes are mapped to operator language. | tests/browser.spec.ts proves required repository facts visible, active-input exact values, and unrelated technical identity default-hidden |
 | SD15 | C18 required-input focus | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 | ui/src/ActivityComposer.tsx; ui/src/ActivityWorkspace.tsx | Focus Workbench-owned composer once for each newly current required-input event id; rerender/polling does not refocus; no private Astryx DOM policy. | tests/browser.spec.ts |
-| SD16 | C19 exhaustive renderer fitness | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract + this DESIGN's exhaustive 37-surface information contract | tests/certification.test.ts | Keep exhaustive production-renderer classification proof against the **actual rows of P4 §8.17**; incidental `.tsx` mentions in surrounding prose do not satisfy renderer-matrix membership. Certify that each renderer family consumes only the disclosure owner(s) authorized by the exhaustive surface contract. The check remains structural/semantic and does not create a second field registry or mutate tests/architecture.test.ts inside T1. | tests/certification.test.ts |
+| SD16 | C19 exhaustive renderer fitness | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19 visibility contract + this DESIGN's exhaustive 37-surface information contract | tests/certification.test.ts | Keep exhaustive production-renderer classification proof against the **actual rows of P4 §8.17**; incidental `.tsx` mentions in surrounding prose do not satisfy renderer-matrix membership. Certify that each renderer family consumes only the singular material/history and technical-inspection owner(s) authorized by the exhaustive surface contract and cannot recreate generic technical/supporting inspection/material lanes. The check remains structural/semantic and does not create a second field registry or mutate tests/architecture.test.ts inside T1. | tests/certification.test.ts |
 | SD17 | C20 scenario-41 certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + R2 C19/C20 visibility contract | tests/browser.spec.ts | Certify all four work-kind Work request + Research information contracts and distinct Change/Defect downstream obligations, including that kind-specific operator information is visible while common technical identity remains default-hidden. | tests/browser.spec.ts |
 | SD18 | C20 component/theme parity certification | GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2 + GW-DOC-WORKBENCH-THEME-V1 + R2 C19/C20 visibility contract | tests/browser.spec.ts; tests/workbench-presentation.test.ts | Certify representative Queue/Create/Settings/document/dialogue/review/Implementation/evidence/result/Context/overlay semantic roles under System/Light/Dark, including identical Primary/Supporting/Technical disclosure semantics in every effective theme. | tests/browser.spec.ts; tests/workbench-presentation.test.ts |
 | SD19 | C16 guided productive installer | corrected P3 `GW-FR-007` + `GW-FR-079`; GW-TR-007-GUIDED-PRODUCTIVE-BOOTSTRAP + corrected GW-DOC-CANONICAL-CONTRACTS-V2 | src/shell/setup.ts; new tests/installer.test.ts | Remove fresh-install success/defer branch. `runInstallerGuidedSetup` reuses existing login/model/repository/reference collection and returns success only after productive choices and daemon/readiness conditions exist. Preserve incomplete v4 as post-install/update daemon/Settings recovery state and preserve update/migration/rollback behavior. No config schema or installer-orchestrator duplication. | new tests/installer.test.ts; tests/order-migration.test.ts |
@@ -1226,7 +1218,7 @@ Every `POSITIVE_NO_CHANGE` row explicitly consumes its named R1 producer→carri
 | `PL-C16-03` | C16-F03 | P6 must preserve incomplete-v4 recovery capability while forbidding productive installer success at that state. | `SD19` |
 | `PL-C18-01` | C18-F01 | New required input moves focus once to its Workbench composer and polling does not steal it repeatedly. | `SD15` |
 | `PL-C19-01` | C19-F01 | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. | `SD16` |
-| `PL-C19-02` | C19-F02/C19-F03/C19-F04/C19-F05 | Recompose the presentation layer from the canonical primitive/theme system and apply one deterministic per-surface datum visibility/disclosure contract: Primary/Supporting/Operational/Technical/Diagnostic classification, default visibility, one disclosure owner and human-meaning-only promotion. Delete old recurring feature-era presentation ownership rather than wrapping it. | `SD21`-`SD29` |
+| `PL-C19-02` | C19-F02/C19-F03/C19-F04/C19-F05 | Recompose the presentation layer from the canonical primitive/theme system and apply one deterministic per-surface datum visibility/inspection contract: Primary/Supporting/Operational/Technical/Diagnostic classification, default visibility, one inspection owner and human-meaning-only promotion. Delete old recurring feature-era presentation ownership rather than wrapping it. | `SD21`-`SD29` |
 | `PL-C20-01` | C20-F02 | Permanent browser certification proves complete four-kind Research/downstream scenario 41. | `SD17` |
 | `PL-C20-02` | C20-F03 | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. | `SD18` |
 | `PL-C20-03` | C20-F05/C20-F06/C20-F07 | Exact-candidate rendered acceptance covers every governed screen/state and records independent schema/information, UX/interaction and visual/UI verdicts with no unresolved FAIL; schema/information proof includes required-visible, default-hidden and authorized-post-disclosure assertions so raw technical/diagnostic leakage cannot pass. | `SD30` |
@@ -1255,8 +1247,8 @@ These atoms are the non-stable/package-local obligations that the earlier 22-row
 | C16 | `GW-FR-073` global shell account visibility -> SD22; PL-C16-01 operator hierarchy -> SD14 plus Settings management reconstruction SD21/SD28/SD29; PL-C16-02/03 -> SD19; P6 contradiction already corrected in canonical owner. |
 | C17 | Stable rows + imported PL-C05-01 -> SD07. |
 | C18 | PL-C18-01 -> SD15; presentation-wide responsive/accessibility re-composition -> SD21/SD29/SD30. |
-| C19 | PL-C19-01 -> SD16; C19-F02/C19-F03 through PL-C19-02 require foundational primitive/theme reconstruction, exhaustive renderer migration and deterministic per-datum visibility/disclosure realization SD21-SD29; rendered acceptance SD30. |
-| C20 | PL-C20-01/02 -> SD17/SD18; C20-F05/C20-F06 through PL-C20-03 -> SD30 rendered acceptance including negative/default-hidden and positive/post-disclosure proof; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
+| C19 | PL-C19-01 -> SD16; C19-F02/C19-F03 through PL-C19-02 require foundational primitive/theme reconstruction, exhaustive renderer migration and deterministic per-datum visibility/inspection realization SD21-SD29; rendered acceptance SD30. |
+| C20 | PL-C20-01/02 -> SD17/SD18; C20-F05/C20-F06 through PL-C20-03 -> SD30 rendered acceptance including negative/default-hidden and positive/post-inspection/composition proof; stable `GW-FR-103` verification gap -> SD20; imported focus/renderer verification SD15/16. |
 | C21 | PL-C21-01 -> SD01 plus explicit A01-NC03 corrected-upstream no-code disposition. |
 | C22 | Stable dependency rows + PL-C22-01 -> SD02. |
 
@@ -1374,7 +1366,7 @@ The IA27 realization ledger is closed over these dimensions:
 | actions and confirmations | P4 Astryx-conformance/action rules + theme action roles | the same semantic primary/secondary/destructive/navigation role uses the same Workbench/Astryx primitive, variant, size family, focus/pending treatment and confirmation grammar everywhere |
 | status, notices and states | P4 Status/Notice/State responsibilities + theme semantic status roles | one semantic tone vocabulary and one recurring visual treatment; feature code supplies meaning/tone, never colors or alternate chrome |
 | supporting and operational material | P3 class/placement + P4 Selector/ResourceRow/Timeline rules | subordinate selection/history/resource treatment cannot displace current attention or introduce another navigation axis |
-| progressive disclosure | P3 closed disclosure owners + P4 §8.12A | local Technical details uses `WorkbenchDisclosure`; cross-material Context uses `WorkbenchContextPanel`; Evidence and Safety/confirmation remain distinct owners; no auto-open or interchangeable disclosure lane |
+| progressive disclosure | P3 closed inspection owners + P4 §8.12A | local Technical details uses `WorkbenchDisclosure`; cross-material Context uses `WorkbenchContextPanel`; Evidence and Safety/confirmation remain distinct owners; no auto-open or interchangeable disclosure lane |
 | color and theme | `GW-DOC-WORKBENCH-THEME-V1` §§5-6, 10-14 | primitives/specialist leaves consume canonical public Astryx semantic tokens and the bounded Order bridge; no feature palette/theme island |
 | typography | theme §7 | semantic text/code roles map once to canonical type roles; feature surfaces do not create local scales |
 | spacing, density, geometry and boundaries | theme §8 + P4 structural responsibilities | container-owned spacing, canonical density/control-size/geometry/border/radius rules are primitive-owned; callers do not pass feature geometry |
@@ -1412,7 +1404,7 @@ P3 information hierarchy + this DESIGN's 37-SURF contract
     Dialogue / Review / MasterDetail / Context / Settings / Form /
     Selector / TaskPanel / Table / Timeline / ResourceRow / SectionHeader
  -> prove visual-language realization across representative services:
-      same semantic role -> same primitive + token/variant + hierarchy/disclosure behavior
+      same semantic role -> same primitive + token/variant + hierarchy/inspection behavior
  -> foundation architecture + theme + accessibility + responsive + rendered acceptance
  -> freeze accepted foundation for IA28-IA34 consumption
 ```
@@ -1579,6 +1571,6 @@ Same-layer decomposition outside this exact forecast is not automatically author
 
 ## Open technical questions
 
-NONE **after the C19-F03/C20-F06 amendment and the exhaustive 37-surface information contract embedded in this `solution-design.md` above**. The post-IA31 audit proved that a family-level matrix alone did not determine field-level visibility/disclosure. P3/R2 own the semantics; the dedicated 37-surface DESIGN contract now closes the datum/action-level classification, placement, disclosure, promotion and negative-rendering decisions before PLAN/implementation. SD21-SD30 bind realization and proof.
+NONE **after the C19-F03/C20-F06 amendment and the exhaustive 37-surface information contract embedded in this `solution-design.md` above**. The post-IA31 audit proved that a family-level matrix alone did not determine field-level visibility/inspection. P3/R2 own the semantics; the dedicated 37-surface DESIGN contract now closes the datum/action-level classification, placement, disclosure, promotion and negative-rendering decisions before PLAN/implementation. SD21-SD30 bind realization and proof.
 
 Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: destructively reconstruct and certify the shared Workbench composition foundation first; destructively replace every consuming screen family second; semantic/rendered certification last. PLAN must preserve domain/state semantic owners and only the positively retained atomic adapters, while requiring purge-before-fresh-authorship for both the compromised foundation and the superseded screen implementations. Incremental structural or screen migration is prohibited.
