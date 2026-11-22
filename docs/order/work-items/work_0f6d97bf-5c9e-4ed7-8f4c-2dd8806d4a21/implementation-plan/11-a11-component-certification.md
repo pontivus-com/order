@@ -23,7 +23,7 @@ Stable rows in phase: **7**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C19-01` | C19-F01 | `SD16` | `IA20` | — | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. |
-| `PL-C19-02` | C19-F02/C19-F03 | `SD21`-`SD29` | `IA27`-`IA34` | — | From the fresh Approval baseline, independently revalidate/remediate the already-realized IA27 foundation and IA28-IA31 screens from explicit per-datum Primary/Supporting/Operational/Technical/Diagnostic schemas, then purge/reconstruct IA32-IA34. Historical purge provenance does not become current-task work and current bytes are never preservation authority. |
+| `PL-C19-02` | C19-F02/C19-F03 | `SD21`-`SD29` | `IA27`-`IA34` | — | From the fresh Approval baseline, independently revalidate/remediate the already-realized IA27 foundation and IA28-IA31 screens against the exhaustive per-datum 37-surface information contract already embedded in `solution-design.md`, then purge/reconstruct IA32-IA34 to that same closed contract. Historical purge provenance does not become current-task work, current bytes are never preservation authority, and implementation performs no information classification. |
 | `PL-C20-01` | C20-F02 | `SD17` | `IA21` | — | Permanent browser certification proves complete four-kind Research/downstream scenario 41. |
 | `PL-C20-02` | C20-F03 | `SD18` | `IA22` | — | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. |
 | `PL-C20-03` | C20-F05/C20-F06 | `SD30` | `IA26` | — | Exact-candidate GitHub Actions evidence covers every governed screen/state and all three acceptance dimensions with no unresolved FAIL; schema/information proof includes required-visible, default-hidden and authorized post-disclosure assertions. |
@@ -39,7 +39,7 @@ Package atoms in phase: **5**.
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA17** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA18** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA27**-**IA34** — consume the resumed-baseline IA27-IA31 revalidation/remediation and fresh IA32-IA34 reconstruction definitions for PL-C19-02; IA27 owns the shared foundation and all later phases consume it. A11 owns cross-domain closure, not duplicate renderer implementation.
+- **IA27**-**IA34** — consume the resumed-baseline IA27-IA31 revalidation/remediation and fresh IA32-IA34 reconstruction definitions for PL-C19-02 plus the exact phase-owned `SURF-*` rows from the exhaustive DESIGN information contract; IA27 owns the shared foundation and all later phases consume it. A11 owns cross-domain closure, not duplicate renderer implementation or field classification.
 - **IA26** — consume the exact-candidate rendered acceptance definition for PL-C20-03.
 
 ## Completion proof
