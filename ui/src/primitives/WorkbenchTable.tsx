@@ -8,6 +8,11 @@ import {
 } from "@astryxdesign/core/Table";
 import type { ReactNode } from "react";
 
+const WORKBENCH_TABLE_CELL_STYLE = {
+  overflowWrap: "normal",
+  wordBreak: "normal",
+} as const;
+
 export type WorkbenchTableColumn = Readonly<{ key: string; label: string }>;
 export type WorkbenchTableRow = Readonly<{
   id: string;
@@ -55,7 +60,7 @@ export const WorkbenchTable = ({
             }}
           >
             {columns.map((column) => (
-              <TableCell className="order-workbench-table-cell" key={column.key}>
+              <TableCell key={column.key} style={WORKBENCH_TABLE_CELL_STYLE}>
                 {row.cells[column.key]}
               </TableCell>
             ))}
