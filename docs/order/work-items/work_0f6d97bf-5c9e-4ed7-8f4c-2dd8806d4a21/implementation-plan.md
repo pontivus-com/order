@@ -6,9 +6,9 @@
 
 This file is the single deterministic P7 artifact and sole normative execution authority for WorkItem `work_0f6d97bf-5c9e-4ed7-8f4c-2dd8806d4a21`. The directory `implementation-plan/` is only its maintainable authoring decomposition. The complete source content is compiled below and Approval binds this root file's bytes.
 
-This PLAN is reconstructed under G-F12 from current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a` and DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
+This PLAN is reconstructed under G-F12 from current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de` and DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`. Historical PLAN structure, current implementation/UI/tests, prior releases and prior task forecasts are evidence only. They do not define 0.6.0 task scope, preservation targets, compatibility targets, fallback behavior or regression contracts.
 
-This PLAN consumes current R1 `99f6932e582bde949de72716f29ea0868eba16a0`, current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a` and current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
+This PLAN consumes current R1 `99f6932e582bde949de72716f29ea0868eba16a0`, current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de` and current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`. Where DESIGN records `POSITIVE_NO_CHANGE` or baseline reuse, DESIGN—not current implementation—is the authority for that disposition.
 
 ## Current resumed Workbench implementation plan
 
@@ -177,8 +177,8 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 ##### Exact upstream package
 
 - R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`.
-- R2 `requirements.md`: `27faa1a67321c8091deb27a4fd70ae912209c30a`.
-- DESIGN `solution-design.md`: `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+- R2 `requirements.md`: `da85563fe8ebd8f348a6dcf14900eab04c5f19de`.
+- DESIGN `solution-design.md`: `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `916add5e528447a6509746b95b947c50eff3d232` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
@@ -242,9 +242,9 @@ The authority-driven target remains SD21-SD29; the current resumed-baseline byte
 - remediate only exact residual nonconformance inside IA27-owned paths; a conforming path is not rewritten merely to replay history;
 - re-run architecture/theme/accessibility/responsive/browser/rendered proof including `SURF-WI-001`.
 
-**IA28-IA31 resumed screen revalidation/remediation.** Their current replacement bytes are inspected only as evidence of whether the already-authorized SD22-SD25 target is satisfied. Each phase must load the exact owned `SURF-*` datum/action rows from the exhaustive 37-surface information contract in `solution-design.md` before inspecting implementation, then compare current bytes to that closed DESIGN contract and correct every proven delta. Historical purge evidence is not a current completion condition. Current JSX/DOM/classes may survive only when they independently conform; their existence is never a preservation argument. A missing classification returns to DESIGN; implementation does not derive it.
+**IA28-IA31 resumed screen revalidation/remediation.** Their current replacement bytes are inspected only as evidence of whether the already-authorized SD22-SD25 target is satisfied. Each phase must load the exact owned `SURF-*` datum/action rows from the exhaustive 37-surface information contract in `solution-design.md` before inspecting implementation, then compare current bytes to that closed DESIGN contract and correct every proven delta. Historical purge evidence is not a current completion condition. Current JSX/DOM/classes may survive only when they independently conform; their existence is never a preservation argument. A missing classification returns to DESIGN; implementation does not derive it. A typed field/action absent from the owned SURF rows is equally a DESIGN return; implementation may not widen a grouped technical row, invent a display owner, or treat presence in a runtime object as presentation authorization.
 
-**IA32-IA34 fresh reconstruction.** These screen families remain unreconstructed for the campaign target. They retain the destructive screen replacement law: delete each owned old screen implementation and exact legacy selectors at a bounded procedural purge checkpoint, then recreate from the exact owned rows of the exhaustive 37-surface information contract in `solution-design.md` using the accepted IA27 foundation. The purge checkpoint is not a Git commit, candidate or validation result. No field/action classification is authored during implementation.
+**IA32-IA34 fresh reconstruction.** These screen families remain unreconstructed for the campaign target. They retain the destructive screen replacement law: delete each owned old screen implementation and exact legacy selectors at a bounded procedural purge checkpoint, then recreate from the exact owned rows of the exhaustive 37-surface information contract in `solution-design.md` using the accepted IA27 foundation. The purge checkpoint is not a Git commit, candidate or validation result. No field/action classification is authored during implementation. Every rendered value/action must trace to an exact field/action row in the signed DESIGN contract; unenumerated runtime fields remain unrendered and return upstream if newly required.
 
 `ui/src/styles.css` and `ui/src/theme.css` remain shared physical owners: IA27 owns foundation/theme/structural selectors; IA28-IA31 may change only their screen-specific selectors to close proven residual deltas; IA32-IA34 may delete/recreate only their exact owned screen selectors. No later phase may redesign IA27 through shared styles.
 
@@ -282,7 +282,7 @@ Because this exact T1 deliberately sets signed `scope` equal to the same exact 6
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C01 + C21.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -341,7 +341,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C22 + C02.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -396,7 +396,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C03 + C04.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -466,7 +466,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C05 + C06.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -536,7 +536,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C07 + C08.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -581,7 +581,7 @@ Requirements and Solution design retain their authority/proposal semantics. Thei
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -626,7 +626,7 @@ Package atoms in phase: **2**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C11 + C12.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -682,7 +682,7 @@ Package atoms in phase: **4**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C13 + C14.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -731,7 +731,7 @@ C13/C14 domain semantics remain stable, but Complete, Evidence and Context/mater
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C15 + C16.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -795,7 +795,7 @@ Package atoms in phase: **3**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C17 + C18.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -843,7 +843,7 @@ Package atoms in phase: **1**.
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C19 + C20.
-**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `27faa1a67321c8091deb27a4fd70ae912209c30a`; current DESIGN `6ac45b65b5741072edc580f74342a2e96f18b37e`.
+**Upstream:** current R1 `99f6932e582bde949de72716f29ea0868eba16a0`; current R2 `da85563fe8ebd8f348a6dcf14900eab04c5f19de`; current DESIGN `f4640a20c05a063d89f89472dc9a198c3196fd93`.
 
 ##### Stable requirement execution dispositions
 
@@ -1456,7 +1456,7 @@ V4/V5/V6 explicitly verify:
   "tasks": [
     {
       "id": "T1",
-      "objective": "Implement the complete authority-driven Order 0.6.0 candidate as one cumulative signed task from the fresh Approval baseline. Preserve/revalidate exact SD01-SD20 non-UI deltas and positive-reuse obligations. Execute IA27-IA31 as the resumed-baseline presentation revalidation/remediation span: realize SD21 through IA27 for the foundation/shell, and execute IA28-IA31 for the already-realized screen families: consume the exact phase-owned rows of the exhaustive 37-surface information contract already embedded in `solution-design.md` before inspecting existing bytes, treat the already-realized foundation/screens only as evidence, retain historical purge provenance without replaying it, prove WorkbenchAppShell / WorkbenchWorkItemShell / workbench-responsive singular ownership and WorkbenchLayout absence including SURF-WI-001, and remediate only exact residual nonconformance including Primary-visible and Technical/Diagnostic default-hidden authorized-disclosure behavior. Execute IA32-IA34 as fresh destructive reconstruction of the remaining Implementation, Complete/Evidence/Context and Settings/account screen families using purge-before-fresh-authorship inside the same task. Then complete SD29 plus IA20-IA23 semantic/component/theme/responsive certification, SD30/IA26 exact-candidate acceptance for all 37 SURF rows, and IA24/final V0-V7 closeout. No second AppShell, structural responsive owner, DTO/view-model/state family, compatibility presentation path, implementation-derived product semantics or fabricated repeat purge is authorized.",
+      "objective": "Implement the complete authority-driven Order 0.6.0 candidate as one cumulative signed task from the fresh Approval baseline. Preserve/revalidate exact SD01-SD20 non-UI deltas and positive-reuse obligations. Execute IA27-IA31 as the resumed-baseline presentation revalidation/remediation span: realize SD21 through IA27 for the foundation/shell, and execute IA28-IA31 for the already-realized screen families: consume the exact phase-owned rows of the exhaustive, field-exact 37-surface information contract already embedded in `solution-design.md` before inspecting existing bytes, treat the already-realized foundation/screens only as evidence, retain historical purge provenance without replaying it, prove WorkbenchAppShell / WorkbenchWorkItemShell / workbench-responsive singular ownership and WorkbenchLayout absence including SURF-WI-001, and remediate only exact residual nonconformance including Primary-visible and Technical/Diagnostic default-hidden authorized-disclosure behavior. Execute IA32-IA34 as fresh destructive reconstruction of the remaining Implementation, Complete/Evidence/Context and Settings/account screen families using purge-before-fresh-authorship inside the same task. Then complete SD29 plus IA20-IA23 semantic/component/theme/responsive certification, SD30/IA26 exact-candidate acceptance for all 37 SURF rows, and IA24/final V0-V7 closeout. No second AppShell, structural responsive owner, DTO/view-model/state family, compatibility presentation path, implementation-derived product semantics or fabricated repeat purge is authorized.",
       "dependsOn": [],
       "scope": [
         "README.md",
