@@ -27,18 +27,18 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `8ca449d7fba20297b8655ceefa14caa90281a6cb` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `32770d5eec49eeb38c2863aa86f6462077ba1e8f` |
-| `implementation-plan/02-a02-governance-intake.md` | `4ca6b2222127cc4306e3f55c937105971ddf0e6b` |
-| `implementation-plan/03-a03-queue-source.md` | `c6c47a66657489ad7d54688354b99512fb8f54d2` |
-| `implementation-plan/04-a04-workbench-research.md` | `81df41baf9ab3859ffe17b1ccbe9c7698c0843f0` |
-| `implementation-plan/05-a05-requirements-design.md` | `44e16b69a388f7e832465b3383f8c023e80dd132` |
-| `implementation-plan/06-a06-plan-readiness.md` | `705d69a083a3f2ebe30c727f44359f560e91cd9d` |
-| `implementation-plan/07-a07-approval-execution.md` | `19cb8e02dea3b8bffd1abb0513d968fc3bd60065` |
-| `implementation-plan/08-a08-complete-materials.md` | `39a82bc100386adf2e7f80d0beb9a0acd476faeb` |
-| `implementation-plan/09-a09-provider-settings.md` | `97368d0d83c5a3f58449c2d097c84a4f6af45b58` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `427f1f419567450767f36c4116355927930d072a` |
-| `implementation-plan/11-a11-component-certification.md` | `54807f2fce5df67575ab09cf665e846750254300` |
+| `implementation-plan/00-governance.md` | `05c8e524933f6ec071b0dd60d67e67b59b6fc25b` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `44def9bfb98320d10c9f8d2bac406a4e4e8fc453` |
+| `implementation-plan/02-a02-governance-intake.md` | `4f43dad83c4f175e54e6df7fc73f21812271ac0d` |
+| `implementation-plan/03-a03-queue-source.md` | `6a349acba2142d56fce1a84884a2df35d50edea3` |
+| `implementation-plan/04-a04-workbench-research.md` | `164ea5787bd7c0173bb24ecc528f663f52c0f511` |
+| `implementation-plan/05-a05-requirements-design.md` | `5b8ddaefc28ddbfcd1555d97afb019413370c2ba` |
+| `implementation-plan/06-a06-plan-readiness.md` | `e5a529967751ee1fa07a8f61278c46918381fd6e` |
+| `implementation-plan/07-a07-approval-execution.md` | `beffbd9607bef6788a1a5298cdddaa6c840ddd33` |
+| `implementation-plan/08-a08-complete-materials.md` | `f8a4a1abedd92c33a30299ca6b99c9bcbf412420` |
+| `implementation-plan/09-a09-provider-settings.md` | `eea992006f750b8b55559ff07f0b69af19da8dd1` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `c458f63b7c617fb4a3fa4c300bcd5b6033c2aec5` |
+| `implementation-plan/11-a11-component-certification.md` | `460b3b6ec64284e337df343afbba02a98ec0362e` |
 | `implementation-plan/12-action-catalog.md` | `937ad6d3bf2eb149872844e9f10d2146cd5dbb8c` |
 | `implementation-plan/13-verification-closeout.md` | `20611ec910271647bf13db0a3e2419942b7f4df9` |
 
