@@ -1073,7 +1073,7 @@ Dialogue
   -> WorkbenchSurface
      attention = WorkbenchAttention
      selector = optional WorkbenchSelector
-     material = WorkbenchDialogue(transcript, composer, state)
+     material = WorkbenchDialogue(transcript, activity?, composer, state)
 
 Review
   -> WorkbenchReview

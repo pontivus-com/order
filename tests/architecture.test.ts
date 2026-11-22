@@ -2821,6 +2821,16 @@ describe("architecture fitness", () => {
         }
 
         for (const required of [
+          "WorkbenchDialogue({ transcript, activity?, composer?, state? })",
+          "material = WorkbenchDialogue(transcript, activity?, composer, state)",
+          "no generic header/technical-detail slots",
+        ]) {
+          if (!p4Workbench.includes(required)) {
+            violations.push("P4 Dialogue closure missing " + required);
+          }
+        }
+
+        for (const required of [
           "SD21 visual-language → foundation realization ledger before inspecting current JSX/CSS",
           "complete/no-duplicate/no-unowned visual-language → foundation realization ledger",
           "same semantic role → same primitive + token/variant + hierarchy/disclosure behavior",
