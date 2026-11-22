@@ -1670,6 +1670,24 @@ describe("architecture fitness", () => {
     const source = sourceText(campaignPlanPath);
     const violations: string[] = [];
     const campaignDirectory = dirname(campaignPlanPath);
+    if (!source.startsWith("# Order 0.6.0 design campaign plan\n")) {
+      violations.push("campaign must retain its canonical H1 as the first line");
+    }
+    const gitBlobSha = (path: string): string => {
+      const bytes = readFileSync(join(repositoryRoot, path));
+      return createHash("sha1")
+        .update("blob " + bytes.length + "\\0")
+        .update(bytes)
+        .digest("hex");
+    };
+    const exactAlignPackageBlobs = new Map([
+      ["R1", gitBlobSha(join(campaignDirectory, "research.md"))],
+      ["R2", gitBlobSha(join(campaignDirectory, "requirements.md"))],
+      ["DESIGN", gitBlobSha(join(campaignDirectory, "solution-design.md"))],
+      ["PLAN", gitBlobSha(join(campaignDirectory, "implementation-plan.md"))],
+      ["P3 Workbench", gitBlobSha("docs/requirements/workbench.md")],
+      ["P4 Workbench", gitBlobSha("docs/architecture/workbench.md")],
+    ] as const);
     const currentGateProjection =
       /^(?:\*\*Status:\*\*[^\n]*\bG(?:5A|[0-6])\b[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED)\b|\s*(?:[-*]\s*)?(?:\*\*)?G(?:5A|[0-6])(?:\*\*)?\s*(?::|=|is\b)[^\n]*\b(?:PASS|IN_PROGRESS|BLOCKED|REVALIDATION|NOT_STARTED|complete|closed|ready)\b)/i;
     const currentGateVerdictHeading =
@@ -1710,6 +1728,20 @@ describe("architecture fitness", () => {
       source.match(/#### Current pair-audit status\r?\n([\s\S]*?)(?=\r?\n## 9\.)/)?.[1] ?? "";
     const alignSection =
       source.match(/## 13A\. Phase 3A — ALIGN final vertical domain completion\r?\n([\s\S]*?)(?=\r?\n## 14\.)/)?.[1] ?? "";
+    const alignHeading = "## 13A. Phase 3A — ALIGN final vertical domain completion";
+    const alignStart = source.indexOf(alignHeading);
+    const alignEnd = alignStart < 0 ? -1 : source.indexOf("\n## 14.", alignStart);
+    const outsideAlign = alignStart < 0 || alignEnd < 0
+      ? source
+      : source.slice(0, alignStart) + source.slice(alignEnd);
+    for (const [index, line] of outsideAlign.split(/\r?\n/).entries()) {
+      if (/^\| ALIGN-(?:A\d{2}|H1) \|\s*(?:NOT_STARTED|IN_REVIEW|PASS|FAIL|BLOCKED|REVALIDATION)\s*\|/.test(line)) {
+        violations.push(
+          "campaign:" + (index + 1) +
+            ": ALIGN current-state rows must exist only inside §13A",
+        );
+      }
+    }
     const gateSection =
       source.match(/## 18\. Phase\/gate status register\r?\n([\s\S]*?)(?=\r?\n## 19\.)/)?.[1] ?? "";
 
@@ -1921,6 +1953,8 @@ describe("architecture fitness", () => {
         ["R2 blob", /R2 blob:\*\*\s*`[0-9a-f]{40}`/i],
         ["DESIGN blob", /DESIGN blob:\*\*\s*`[0-9a-f]{40}`/i],
         ["PLAN blob", /PLAN blob:\*\*\s*`[0-9a-f]{40}`/i],
+        ["P3 Workbench blob", /P3 Workbench blob:\*\*\s*`[0-9a-f]{40}`/i],
+        ["P4 Workbench blob", /P4 Workbench blob:\*\*\s*`[0-9a-f]{40}`/i],
         ["atomic vertical matrix", /Atomic vertical matrix/i],
         ["reverse trace", /Reverse trace/i],
         ["cross-domain imports\/exports", /Cross-domain imports\/exports/i],
@@ -1931,6 +1965,17 @@ describe("architecture fitness", () => {
       for (const [label, pattern] of requiredRecordPatterns) {
         if (!pattern.test(record)) {
           violations.push(row.id + " " + row.status + " record missing " + label);
+        }
+      }
+      for (const [label, expectedBlob] of exactAlignPackageBlobs) {
+        const match = record.match(
+          new RegExp("\\\*\\\*" + label + " blob:\\\*\\\*\\s*`([0-9a-f]{40})`", "i"),
+        );
+        if (match?.[1] !== expectedBlob) {
+          violations.push(
+            row.id + " " + row.status + " must bind current " + label +
+              " blob " + expectedBlob + "; found " + (match?.[1] ?? "missing"),
+          );
         }
       }
       if (!record.includes("**Verdict:** `" + row.status + "`")) {
