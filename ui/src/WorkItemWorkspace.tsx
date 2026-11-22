@@ -1400,7 +1400,7 @@ export const WorkItemWorkspace = ({
       data-testid="workflow-step-workspace"
     >
       {sharedPreSignoffStage ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workflow step…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading workflow step…" />}>
           <PreSignoffStageWorkspace
             workItem={workItem}
             stage={sharedPreSignoffStage}
@@ -1434,7 +1434,7 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : selectedStep === "R3" ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading readiness review…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading readiness review…" />}>
           <ReadinessWorkspace
             workItem={workItem}
             runs={runs}
@@ -1463,7 +1463,7 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : selectedStep === "AWAITING_SIGNOFF" ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading approval package…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading approval package…" />}>
           <SignoffReview
             workItem={workItem}
             summary={stepSummary}
@@ -1492,7 +1492,7 @@ export const WorkItemWorkspace = ({
           />
         </Suspense>
       ) : selectedStep === "EXECUTION" ? (
-        <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading implementation…</strong></div>}>
+        <Suspense fallback={<WorkbenchState kind="loading" title="Loading implementation…" />}>
           <ExecutionWorkspace
             workItem={workItem}
             material={material}
@@ -1535,7 +1535,7 @@ export const WorkItemWorkspace = ({
           summary={stepSummary}
           primary={
           <PrimaryMaterialFrame title={materialTitle(material, selectedWorkflow.label)}>
-            <Suspense fallback={<div className="order-state order-state-compact"><strong>Loading workspace…</strong></div>}>
+            <Suspense fallback={<WorkbenchState kind="loading" title="Loading workspace…" />}>
         {material.kind === "SOURCE_DOCUMENT" ? (
           <SourceDocumentMaterial
             workItem={workItem}
@@ -1607,6 +1607,7 @@ export const WorkItemWorkspace = ({
       />
 
       <WorkbenchConfirmation
+        kind="safety"
         open={confirmArchive}
         onOpenChange={setConfirmArchive}
         title={workItem.archived ? "Restore work item?" : "Archive work item?"}
@@ -1631,6 +1632,7 @@ export const WorkItemWorkspace = ({
       ) : null}
 
       <WorkbenchConfirmation
+        kind="destructive"
         open={pendingSelection !== null}
         onOpenChange={(open) => {
           if (!open) {
@@ -1641,7 +1643,6 @@ export const WorkItemWorkspace = ({
         title="Discard unsaved Markdown?"
         description="Changing workflow step or material would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
-        cancelLabel="Cancel"
         pending={false}
         onConfirm={() => {
           const next = pendingSelection;

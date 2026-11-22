@@ -252,7 +252,7 @@ export const OpenCodeAccountSettings = () => {
       {activate.error ? <WorkbenchNotice tone="danger" title="Account switch failed" description={errorText(activate.error)} /> : null}
       {remove.error ? <WorkbenchNotice tone="danger" title="Account removal failed" description={errorText(remove.error)} /> : null}
       <p className="order-opencode-account-footnote">Account changes affect login identity only; the configured provider and model stay unchanged.</p>
-      <WorkbenchConfirmation open={removeAccountId !== null} onOpenChange={(open) => { if (!open) setRemoveAccountId(null); }} title="Remove saved OpenCode account?" description="Remove the selected saved OpenCode credential from this installation." confirmLabel="Remove account" pending={remove.isPending} onConfirm={() => { if (removeAccountId !== null) remove.mutate(removeAccountId); }} />
+      <WorkbenchConfirmation kind="destructive" open={removeAccountId !== null} onOpenChange={(open) => { if (!open) setRemoveAccountId(null); }} title="Remove saved OpenCode account?" description="Remove the selected saved OpenCode credential from this installation." confirmLabel="Remove account" pending={remove.isPending} onConfirm={() => { if (removeAccountId !== null) remove.mutate(removeAccountId); }} />
     </section>
   );
 };

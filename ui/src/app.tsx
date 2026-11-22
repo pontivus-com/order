@@ -599,12 +599,12 @@ export const App = () => {
       />
 
       <WorkbenchConfirmation
+        kind="destructive"
         open={pendingDestination !== undefined}
         onOpenChange={(open) => { if (!open) setPendingDestination(undefined); }}
         title="Discard unsaved Markdown?"
         description="Leaving this WorkItem would discard the current unsaved Markdown buffer."
         confirmLabel="Discard unsaved changes"
-        cancelLabel="Cancel"
         pending={false}
         onConfirm={() => {
           const next = pendingDestination;

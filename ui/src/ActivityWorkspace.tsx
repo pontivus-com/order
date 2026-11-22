@@ -157,8 +157,9 @@ export const StageRunMaterial = ({
   </dl>;
 
   return <section className="order-activity-material" data-testid="stage-run-material">
-    <div data-testid="activity-detail">
-      <WorkbenchDialogue header={header} transcript={transcript}
+    <div className="order-activity-detail" data-testid="activity-detail">
+      {header}
+      <WorkbenchDialogue transcript={transcript}
         activity={operational === undefined && companion === undefined ? undefined
           : <div className="order-activity-support">{operational}{companion}</div>}
         state={actionError === null && workflow === undefined ? undefined
@@ -167,7 +168,6 @@ export const StageRunMaterial = ({
                 description={actionError instanceof Error ? actionError.message : String(actionError)} /> : null}
               {workflow}
             </div>}
-        technical={<WorkbenchDisclosure label="Technical details" content={technical} />}
         composer={canReply ? <ActivityComposer run={selectedRun} pending={pending}
           focusedRequiredInputEventId={focusedRequiredInputEventId}
           mutationsDisabled={mutationsDisabled} onRequiredInputFocused={onRequiredInputFocused}
@@ -175,6 +175,9 @@ export const StageRunMaterial = ({
           onError={async (error) => { setInputError(error); onMutationError?.(error); await onMutationRefresh(); }}
         /> : undefined}
       />
+      <div className="order-activity-technical-disclosure">
+        <WorkbenchDisclosure label="Technical details" content={technical} />
+      </div>
     </div>
   </section>;
 };

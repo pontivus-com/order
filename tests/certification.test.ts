@@ -450,8 +450,28 @@ describe("Order cross-boundary certification", () => {
     expect(theme).not.toContain("!important");
     expect(theme).not.toContain("[data-testid=");
 
+    const attention = read("ui/src/primitives/WorkbenchAttention.tsx");
+    expect(attention).not.toContain("tone?:");
+    expect(attention).not.toContain("data-tone");
+    expect(read("ui/src/WorkflowStepFrame.tsx")).not.toContain("attentionTone");
+    expect(theme).not.toContain(".order-workbench-attention[data-tone=");
+
+    const dialoguePrimitive = read("ui/src/primitives/WorkbenchDialogue.tsx");
+    expect(dialoguePrimitive).toContain("activity?: ReactNode");
+    expect(dialoguePrimitive).not.toContain("header?: ReactNode");
+    expect(dialoguePrimitive).not.toContain("technical?: ReactNode");
+    expect(theme).not.toContain("order-workbench-dialogue-header");
+    expect(theme).not.toContain("order-workbench-dialogue-technical");
+
+    const confirmationPrimitive = read("ui/src/primitives/WorkbenchConfirmation.tsx");
+    expect(confirmationPrimitive).toContain('WorkbenchConfirmationKind = "safety" | "destructive"');
+    expect(confirmationPrimitive).toContain("<Dialog");
+    expect(confirmationPrimitive).toContain("<AlertDialog");
+    expect(confirmationPrimitive).not.toContain("actionTone");
+    expect(confirmationPrimitive).not.toContain("cancelLabel");
+
     const taskPanel = read("ui/src/primitives/WorkbenchTaskPanel.tsx");
-    expect(taskPanel).toContain('width="42rem"');
+    expect(taskPanel).not.toContain('width="42rem"');
     expect(taskPanel).not.toContain("100vw");
     expect(taskPanel).not.toContain("calc(");
     expect(theme).not.toContain("--pontivus-plugin-panel-inspector-width-standard: 26.25rem");

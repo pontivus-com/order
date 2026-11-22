@@ -2827,8 +2827,11 @@ describe("architecture fitness", () => {
           "may compose the accepted foundation but may not extend the visual language locally",
           "`CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`",
           "Do not refactor through, wrap or compatibility-shim the superseded structure",
-          "current mandatory destructive replacement: `ui/src/primitives/WorkbenchAttention.tsx`",
-          "Remove the caller-selected `tone` / `data-tone` whole-surface status-color channel",
+          "current mandatory destructive replacements are exactly the three ledgered owners",
+          "`WorkbenchAttention.tsx`",
+          "`WorkbenchDialogue.tsx`",
+          "`WorkbenchConfirmation.tsx`",
+          "mechanical consumer integration is limited to removing an obsolete primitive call shape"
         ]) {
           if (!actionCatalog.includes(required)) {
             violations.push(

@@ -15,7 +15,6 @@ export const WorkbenchTaskPanel = ({
     onOpenChange={onOpenChange}
     purpose="form"
     aria-label={title}
-    width="42rem"
     padding={0}
   >
     <div className="order-workbench-task-panel">

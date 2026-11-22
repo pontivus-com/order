@@ -288,7 +288,7 @@ const RepositorySettings = ({
           actions={<WorkbenchAction label="Save reference roots" loading={updateReferences.isPending} disabled={updateReferences.isPending || configQuery.data === undefined} onClick={() => updateReferences.mutate()} />}
         />
       </div>
-      <WorkbenchConfirmation open={disconnectRepositoryRoot !== null} onOpenChange={(open) => { if (!open) setDisconnectRepositoryRoot(null); }} title="Disconnect repository?" description="Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted." confirmLabel="Disconnect repository" pending={disconnect.isPending} onConfirm={() => { if (disconnectRepositoryRoot !== null) disconnect.mutate(disconnectRepositoryRoot); }} />
+      <WorkbenchConfirmation kind="destructive" open={disconnectRepositoryRoot !== null} onOpenChange={(open) => { if (!open) setDisconnectRepositoryRoot(null); }} title="Disconnect repository?" description="Remove only Order's connection. Repository files, WorkItem Markdown, Git history and authority documents are not deleted." confirmLabel="Disconnect repository" pending={disconnect.isPending} onConfirm={() => { if (disconnectRepositoryRoot !== null) disconnect.mutate(disconnectRepositoryRoot); }} />
       {[disconnect.error, updateReferences.error].filter((error) => error !== null).map((error, index) => <WorkbenchNotice key={index} tone="danger" title="Settings update failed" description={errorText(error)} />)}
     </section>
   );

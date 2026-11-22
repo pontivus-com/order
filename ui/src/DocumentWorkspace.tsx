@@ -275,6 +275,7 @@ const DocumentationGitReview = ({
   );
   return (
     <WorkbenchConfirmation
+      kind="safety"
       open={projection.reviewOpen}
       onOpenChange={projection.setReviewOpen}
       title="Save WorkItem documentation to Git?"
@@ -283,7 +284,6 @@ const DocumentationGitReview = ({
         ...reviewedPaths,
       ].join("\n")}
       confirmLabel="Save documentation to Git"
-      actionTone="primary"
       pending={projection.commit.isPending}
       onConfirm={() => projection.commit.mutate()}
     />
