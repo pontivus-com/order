@@ -2666,9 +2666,9 @@ describe("architecture fitness", () => {
     const designSurface = [...designSurfaceSection.matchAll(/^- `([^\`]+)`(?:\s+—.*)?$/gm)].map(
       (match) => match[1],
     );
-    if (designSurface.length !== 67 || duplicates(designSurface).length > 0) {
+    if (designSurface.length !== 68 || duplicates(designSurface).length > 0) {
       violations.push(
-        "DESIGN implementation forecast must contain 67 unique paths; found " +
+        "DESIGN implementation forecast must contain 68 unique paths; found " +
           designSurface.length,
       );
     }
@@ -2722,9 +2722,9 @@ describe("architecture fitness", () => {
             task.gateIds ?? [],
             ["architecture", "browser", "build", "dependency-lock", "test", "typecheck"],
           );
-          if ((task.scope ?? []).length !== 67 || duplicates(task.scope ?? []).length > 0) {
+          if ((task.scope ?? []).length !== 68 || duplicates(task.scope ?? []).length > 0) {
             violations.push(
-              "T1 hard scope must contain the exact 67 unique forecast paths; found " +
+              "T1 hard scope must contain the exact 68 unique forecast paths; found " +
                 (task.scope ?? []).length,
             );
           }
@@ -2732,9 +2732,9 @@ describe("architecture fitness", () => {
         }
 
         const signedSurface = task?.changeSurface ?? [];
-        if (signedSurface.length !== 67 || duplicates(signedSurface).length > 0) {
+        if (signedSurface.length !== 68 || duplicates(signedSurface).length > 0) {
           violations.push(
-            "PLAN signed T1 changeSurface must contain 67 unique paths; found " +
+            "PLAN signed T1 changeSurface must contain 68 unique paths; found " +
               signedSurface.length,
           );
         }
@@ -2747,9 +2747,9 @@ describe("architecture fitness", () => {
         const documentedSurface = [...surfaceSection.matchAll(/^- \`([^\`]+)\`$/gm)].map(
           (match) => match[1],
         );
-        if (documentedSurface.length !== 67 || duplicates(documentedSurface).length > 0) {
+        if (documentedSurface.length !== 68 || duplicates(documentedSurface).length > 0) {
           violations.push(
-            "PLAN documented signed surface must contain 67 unique paths; found " +
+            "PLAN documented signed surface must contain 68 unique paths; found " +
               documentedSurface.length,
           );
         }
@@ -2764,7 +2764,6 @@ describe("architecture fitness", () => {
           "ui/src/primitives/WorkbenchStatus.tsx",
         ]);
         const retainedUiPaths = new Set([
-          "ui/src/MarkdownEditor.tsx",
           "ui/src/MarkdownSourceEditor.tsx",
           "ui/src/workbench-presentation.ts",
           "ui/src/http.ts",
@@ -2845,36 +2844,37 @@ describe("architecture fitness", () => {
         const objective = task?.objective ?? "";
         for (const required of [
           "one cumulative signed task",
-          "IA27-IA31",
-          "revalidation/remediation",
-          "IA32-IA34",
           "SD21",
-          "SD30",
-          "WorkbenchAppShell",
-          "WorkbenchWorkItemShell",
-          "workbench-responsive",
-          "WorkbenchLayout",
-          "SURF-WI-001",
-          "37 SURF",
+          "WorkbenchDisclosure remains a retained thin Collapsible atom",
+          "WorkbenchReview has no automatic technical slot",
+          "WorkbenchTaskPanel owns header/body/footer",
+          "WorkItemContext/ContextPanel is the singular selection-aware WorkItem technical-inspection owner",
+          "IA28",
+          "IA29",
+          "MarkdownEditor",
+          "overflow-before-wrap",
+          "IA30",
+          "IA31",
+          "IA32",
+          "IA33",
+          "IA34",
+          "no disclosure accumulation",
+          "37-SURF",
         ]) {
           if (!objective.includes(required)) {
-            violations.push("T1 objective must name resumed reconstruction invariant " + required);
+            violations.push("T1 objective must name corrected Workbench reconstruction invariant " + required);
           }
         }
         if (
-          !/historical purge provenance/i.test(objective) ||
-          !/field-exact 37-surface information contract/i.test(objective) ||
-          !/consume the exact phase-owned rows/i.test(objective) ||
-          !/default-hidden/i.test(objective) ||
-          !/visual-language → foundation realization ledger/i.test(objective) ||
-          !/no duplicate\/unowned\/screen-delegated role/i.test(objective) ||
-          !objective.includes("CONFORMING_NO_EDIT") ||
-          !objective.includes("BOUNDED_RESIDUAL") ||
-          !objective.includes("DESTRUCTIVE_REPLACEMENT") ||
-          !/refactor-through-superseded-foundation path/i.test(objective)
+          !/corrected Approval baseline/i.test(objective) ||
+          !/one material\/history owner/i.test(objective) ||
+          !/direct control-to-canvas adjacency/i.test(objective) ||
+          !/active-state capture/i.test(objective) ||
+          !/modal\/editor anatomy/i.test(objective) ||
+          !/no second .*technical-inspection owner/i.test(objective)
         ) {
           violations.push(
-            "T1 objective must encode resumed-baseline provenance, signed field-exact DESIGN consumption, visual-language foundation derivation and disclosure proof",
+            "T1 objective must encode corrected inspection ownership, editor/modal composition and detection invariants",
           );
         }
 
@@ -2887,6 +2887,7 @@ describe("architecture fitness", () => {
           "ui/src/WorkflowRail.tsx",
           "ui/src/WorkflowStepFrame.tsx",
           "ui/src/DocumentWorkspace.tsx",
+          "ui/src/MarkdownEditor.tsx",
           "ui/src/PreSignoffStageWorkspace.tsx",
           "ui/src/ActivityWorkspace.tsx",
           "ui/src/ActivityComposer.tsx",
@@ -2981,10 +2982,12 @@ describe("architecture fitness", () => {
           "may compose the accepted foundation but may not extend the visual language locally",
           "`CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT`",
           "Do not refactor through, wrap or compatibility-shim the superseded structure",
-          "current mandatory destructive replacements are exactly the three ledgered owners",
+          "current mandatory destructive replacements are exactly the five ledgered design-bearing owners",
           "`WorkbenchAttention.tsx`",
           "`WorkbenchDialogue.tsx`",
           "`WorkbenchConfirmation.tsx`",
+          "`WorkbenchReview.tsx`",
+          "`WorkbenchTaskPanel.tsx`",
           "mechanical consumer integration is limited to removing an obsolete primitive call shape"
         ]) {
           if (!actionCatalog.includes(required)) {
@@ -2999,6 +3002,8 @@ describe("architecture fitness", () => {
           "Historical shell-integration cutover inputs (5)",
           "Foundation owners established by the historical reconstruction (3)",
           "Positively retained atomic adapters (6",
+          "WorkbenchDisclosure.tsx",
+          "specifically named same-task semantic expansion",
           "no compatibility `WorkbenchLayout`",
           "SURF-WI-001",
           "historical purge-before-fresh-authorship record as provenance only",
@@ -3022,6 +3027,73 @@ describe("architecture fitness", () => {
           }
           if (/purge commit|replacement commits|Git history/i.test(textValue)) {
             violations.push(label + " retains prohibited Git-commit purge semantics");
+          }
+        }
+
+        const p3Workbench = sourceText("docs/requirements/workbench.md");
+        const p3Markdown = sourceText("docs/requirements/markdown-workbench.md");
+        const referenceReadme = sourceText("docs/references/workbench-ui/README.md");
+        for (const required of [
+          "no disclosure accumulation",
+          "one semantic owner",
+          "primary adjacency",
+          "technical inspection",
+          "generic **Technical details** accordion",
+        ]) {
+          if (!p3Workbench.includes(required)) {
+            violations.push("P3 Workbench composition contract missing " + required);
+          }
+        }
+        for (const required of [
+          "overflow/menu treatment **before** the toolbar is allowed to become multiple independent stacked formatting rows",
+          "No generic Technical-details, Supporting-material/history",
+          "source / preview / split canvas",
+        ]) {
+          if (!p3Markdown.includes(required)) {
+            violations.push("P3 Markdown composition contract missing " + required);
+          }
+        }
+        for (const required of [
+          "WorkbenchTaskPanel",
+          "header → scrollable body → footer",
+          "WorkbenchReview",
+          "no automatic technical-details slot",
+          "WorkbenchDisclosure",
+          "same operator task",
+          "WorkbenchContextPanel",
+          "technical-inspection",
+        ]) {
+          if (!p4Workbench.includes(required)) {
+            violations.push("P4 Workbench corrected foundation contract missing " + required);
+          }
+        }
+        for (const required of [
+          "no adjacent/nested generic `Technical details`",
+          "header/body/footer",
+          "editor-control region directly adjacent",
+        ]) {
+          if (!referenceReadme.includes(required)) {
+            violations.push("Workbench reference-pack composition contract missing " + required);
+          }
+        }
+        const correctedReferencePaths = [
+          "docs/references/workbench-ui/work-request.svg",
+          "docs/references/workbench-ui/research.svg",
+          "docs/references/workbench-ui/requirements.svg",
+          "docs/references/workbench-ui/solution-design.svg",
+          "docs/references/workbench-ui/implementation-plan.svg",
+          "docs/references/workbench-ui/readiness-review.svg",
+          "docs/references/workbench-ui/approval.svg",
+          "docs/references/workbench-ui/approval-task-detail.svg",
+          "docs/references/workbench-ui/implementation.svg",
+          "docs/references/workbench-ui/create-work-item.svg",
+          "docs/references/workbench-ui/settings-model.svg",
+          "docs/references/workbench-ui/settings-repositories.svg",
+        ];
+        for (const referencePath of correctedReferencePaths) {
+          const reference = sourceText(referencePath);
+          if (/>(?:Technical details|Task technical details)\s*(?:›|▾)?</.test(reference)) {
+            violations.push(referencePath + ": reference retains prohibited local technical disclosure");
           }
         }
 
