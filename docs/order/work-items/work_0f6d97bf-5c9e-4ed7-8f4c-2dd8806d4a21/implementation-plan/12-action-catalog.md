@@ -266,7 +266,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 **Hard boundaries:** no domain/query/current-attention/lifecycle policy moves into primitives; no DTO/view-model/state family; no compatibility `WorkbenchLayout`; no temporary second shell; no old primitive DOM/CSS/API copied as implementation template; no old shell files retained merely to keep gates green; no screen-family redesign beyond the five shell-integration owners in IA27.
 
-**Proof:** historical reconstruction provenance + fresh authority-derived foundation-schema review + current absence/singularity proof + exact residual-delta ledger (including explicit no-edit revalidation where conforming) + architecture/certification/browser gates + representative application chrome/current-attention/disclosure/responsive evidence + `SURF-WI-001` row PASS. IA28-IA34 are blocked until IA27 PASS.
+**Proof:** historical reconstruction provenance + signed DESIGN surface-contract/foundation-responsibility review + current absence/singularity proof + exact residual-delta ledger (including explicit no-edit revalidation where conforming) + architecture/certification/browser gates + representative application chrome/current-attention/disclosure/responsive evidence + `SURF-WI-001` row PASS. IA28-IA34 are blocked until IA27 PASS.
 
 ### Resumed IA28-IA31 revalidation/remediation protocol and fresh IA32-IA34 reconstruction protocol
 
