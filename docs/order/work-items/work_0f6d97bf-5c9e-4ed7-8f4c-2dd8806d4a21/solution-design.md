@@ -1385,6 +1385,8 @@ For each row the IA27 ledger records the exact permanent authority reference, re
 
 **Dialogue closure.** P4's canonical Dialogue composition is `WorkbenchDialogue({ transcript, activity?, composer?, state? })`: `activity` is the single bounded Supporting/Operational region required by the P4 RunEvent presentation planes. Material heading/status remain outside the primitive through the owning surface/section composition, and Technical/Diagnostic identity remains outside through the authorized `WorkbenchDisclosure` lane. `header` and `technical` are therefore not Dialogue API degrees of freedom.
 
+**Safety-confirmation closure.** P3's Safety/confirmation disclosure class includes both destructive/irreversible consent and explicitly authorized non-destructive informed consent such as `SURF-CONF-DOC-GIT-001`. P4 therefore owns both through one `WorkbenchConfirmation` semantic API: `kind="destructive"` fixes Astryx `AlertDialog` plus destructive action role; `kind="safety"` fixes Astryx `Dialog` plus one primary confirm action and secondary Cancel. The caller supplies only the DESIGN-derived kind and decision copy; it cannot select substrate or arbitrary action tone. `SURF-CONF-DOC-GIT-001` and reversible archive/restore use `safety`; discard/disconnect/removal confirmations use `destructive`.
+
 ```text
 P3 information hierarchy + this DESIGN's 37-SURF contract
  + P4 closed interaction/composition/primitive grammar

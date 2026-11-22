@@ -362,7 +362,7 @@ Component structure is owned by `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`; th
 | section/material heading | heading token + stable subordinate description/action alignment |
 | workflow rail | component architecture owns geometry; theme owns accent/current/historical/unreached visual roles without changing cell size |
 | disclosure/technical detail | secondary/technical typography, muted role, bounded code treatment |
-| task panel / Context overlay / confirmation | Task panel = Dialog; medium/narrow Context = Drawer; destructive/irreversible confirmation = AlertDialog. Each inherits the pinned foundation focus/dismissal/elevation mechanics; no caller chooses among them as interchangeable variants |
+| task panel / Context overlay / confirmation | Task panel = Dialog; medium/narrow Context = Drawer; `WorkbenchConfirmation kind="safety"` = Dialog for explicitly authorized informed-consent safety mutations; `kind="destructive"` = AlertDialog for destructive/irreversible consent. The semantic kind fixes the substrate/action role; callers do not choose arbitrary variants. Each inherits pinned foundation focus/dismissal/elevation mechanics |
 | Markdown/code/evidence | content mechanics may differ; surrounding type/color/focus remains canonical |
 | source editor | specialist mechanics only; all colors/type/focus derive from canonical roles |
 

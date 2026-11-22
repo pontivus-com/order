@@ -852,7 +852,7 @@ The table defines **target responsibilities, not preservation of current compone
 | `WorkbenchTable` | Astryx `Table`-backed uniform row/column grammar with compact/balanced density selected by the owning interaction, dividers, stable row identity, selection/focus and overflow behavior; only required table capabilities/plugins are enabled | no heterogeneous content forced into columns; no plugin accumulation; no domain columns; no dashboard/card substitution |
 | `WorkbenchTimeline` | chronological event-list rhythm, event heading/meta/action alignment and evidence attachment region | no RunEvent meaning/derivation |
 | `WorkbenchDisclosure` | consistent collapsed/on-demand technical/supporting-detail mechanic | no primary action ownership; no nested navigation axis |
-| `WorkbenchConfirmation` | Astryx `AlertDialog` only for destructive/irreversible confirmation: specific action label, consequence description, least-destructive initial focus, loading state retained until the mutation settles, then explicit close | no AlertDialog for ordinary/non-destructive decisions; no early close while confirm mutation is pending; no mutation/admission policy; no domain-specific decision semantics |
+| `WorkbenchConfirmation` | the one modal Safety/exception confirmation owner. `kind="destructive"` uses Astryx `AlertDialog` for destructive/irreversible consent; `kind="safety"` uses Astryx `Dialog` for an explicitly DESIGN-authorized non-destructive mutation that requires exact facts for informed consent. Both own specific action/consequence copy, pending-state containment and explicit close | caller cannot choose Dialog versus AlertDialog or an arbitrary action variant; `kind` comes only from the P3/DESIGN interaction classification; no ordinary decision modal, early close while pending, mutation/admission policy or domain-specific decision semantics |
 | `WorkbenchAction` | **command-only** semantic wrapper over Astryx `Button`; `IconButton` is used for dedicated icon-only commands; one primary command per view, specific action labels, foundation loading/disabled/focus behavior | no pure navigation; no multiple primary commands in one view; no destructive irreversible action without Confirmation; no authorization/admission/current-action policy |
 | `WorkbenchResourceRow` | scan-efficient resource identity/detail/open-action row; repeated heterogeneous-but-related resources use Astryx `List`/`ListItem` semantics where they fit, without nested interactive targets | no resource query/mutation ownership; no interactive child inside an interactive row; no single-item pseudo-list or nested card system |
 | `WorkbenchIcon` | canonical icon mapping, size and decorative/accessibility handling | no action/domain semantics |
@@ -915,7 +915,8 @@ Pinned Astryx guidance is incorporated as follows:
 | meaningful resource collection | prefer `List`/`ListItem` semantics to a button styled as a card/row; never place interactive descendants inside an interactive row |
 | contextual overlay detail | constrained Context uses `Drawer`, with caller-owned `isOpen`, visible close action and focus return; a wide Context that must consume layout width is docked, not Drawer |
 | bounded task/form | `WorkbenchTaskPanel` always uses `Dialog purpose="form"`; backdrop dismissal therefore cannot discard task input; do not nest Dialogs; Drawer is not a generic form container |
-| destructive confirmation | `AlertDialog` only; specific consequence/action copy, Cancel remains least-destructive focus target, and pending confirm remains open/loading until the effect settles |
+| non-destructive safety confirmation | `WorkbenchConfirmation kind="safety"` owns an Astryx `Dialog`; use only when P3/DESIGN explicitly requires exact facts for informed consent to the pending non-destructive mutation; confirm is the one primary command and Cancel remains secondary |
+| destructive confirmation | `WorkbenchConfirmation kind="destructive"` owns Astryx `AlertDialog`; specific consequence/action copy, Cancel remains least-destructive focus target, and pending confirm remains open/loading until the effect settles |
 | persistent feedback | `Banner` semantics under `WorkbenchNotice`; combine related same-status feedback, keep actionable errors present, and do not infer a live region from visual status |
 | status emphasis | ordinary/common state is readable text/StatusDot; `Badge` is sparse emphasis for exceptional/actionable status, not metadata or every healthy row |
 | spacing/layout | container owns padding; child margins do not recreate the inset; token spacing is used inside regions; one control size per row; density matches use frequency |
@@ -1008,6 +1009,7 @@ WorkbenchTable({ label, columns, rows, selection? })
 WorkbenchTimeline({ label, items })
 WorkbenchDisclosure({ label, content })
 WorkbenchConfirmation({
+  kind,
   open,
   title,
   description,
@@ -1018,7 +1020,7 @@ WorkbenchConfirmation({
 })
 ```
 
-Table/timeline data remains feature-owned; the primitives own visual rhythm and interaction mechanics. Confirmation owns modal accessibility, not the decision to open or mutation executed.
+Table/timeline data remains feature-owned; the primitives own visual rhythm and interaction mechanics. Confirmation owns modal accessibility and the fixed substrate/action role implied by the P3/DESIGN `kind`, not the decision to open or mutation executed. `kind="safety"` is primary-action Dialog consent; `kind="destructive"` is destructive-action AlertDialog consent. Callers never pass an arbitrary visual action tone.
 
 The existing `WorkbenchAction`, `WorkbenchResourceRow`, `WorkbenchIcon` and toolbar groups remain narrow atoms under these contracts.
 
@@ -1123,7 +1125,7 @@ Canonical application services resolve as:
 | Evidence/raw material | `WorkbenchSurface` + approved raw-content leaf |
 | Complete/result | `WorkbenchSurface + WorkbenchStatus + result content` |
 | Context | `WorkbenchContextPanel` only through `WorkbenchWorkItemShell` |
-| Dirty/destructive confirmation | `WorkbenchConfirmation` |
+| Safety/confirmation | `WorkbenchConfirmation` with P3/DESIGN-derived `kind="safety" | "destructive"` |
 
 A feature/service therefore classifies its interaction under P3, chooses the fixed composition above, maps canonical state into generic primitive values, then supplies domain content. It does not design a new UI grammar.
 
