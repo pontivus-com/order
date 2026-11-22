@@ -1386,15 +1386,43 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
 
+  await page.route("**/api/work-items**", async (route) => {
+    const url = new URL(route.request().url());
+    if (route.request().method() !== "GET" || url.pathname !== "/api/work-items") {
+      await route.fallback();
+      return;
+    }
+    const upstream = await route.fetch();
+    const rows = WorkItemSchema.array().parse(await upstream.json());
+    const template = rows[0];
+    if (template === undefined) {
+      throw new Error("rendered Queue archived state requires one WorkItem fixture");
+    }
+    const archived = WorkItemSchema.parse({
+      ...template,
+      id: "work_c1a55e11-7ae0-4aac-9f0c-d5ff82f5c629",
+      title: "Rendered archived work item",
+      archived: true,
+    });
+    await route.fulfill({
+      status: upstream.status(),
+      contentType: "application/json",
+      body: JSON.stringify([
+        ...rows,
+        ...(url.searchParams.get("includeArchived") === "true" ? [archived] : []),
+      ]),
+    });
+  });
   await page.getByRole("button", { name: "Show archived" }).click();
-  await expect(page.getByText("Archived", { exact: true }).first()).toBeVisible();
+  const renderedArchivedRow = rowFor(page, "Rendered archived work item");
+  await expect(renderedArchivedRow).toContainText("Archived");
   entries.push(await captureRenderedAcceptance(page, {
     id: "queue-wide-light-archived",
     workItemKind: "QUEUE",
     workflowStep: null,
     surface: "SURF-QUEUE-001",
     state: "archived-visible",
-    fixture: "order-e2e queue including archived WorkItems",
+    fixture: "deterministic archived WorkItem",
     viewport: { width: 1440, height: 900 },
     theme: "Light",
     route: "/",
@@ -1405,6 +1433,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     ],
   }));
   await page.getByRole("button", { name: "Hide archived" }).click();
+  await page.unroute("**/api/work-items**");
 
   const renderedSearch = page.getByLabel("Search work items");
   await renderedSearch.fill("no rendered acceptance match");
