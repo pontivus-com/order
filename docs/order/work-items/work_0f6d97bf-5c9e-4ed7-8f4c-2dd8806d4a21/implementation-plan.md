@@ -31,7 +31,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/01-a01-lifecycle-product.md` | `8ff9ac60779e442d0432a7dbcf1ade75715355d3` |
 | `implementation-plan/02-a02-governance-intake.md` | `1e0ad8cfd1a6cf9254148f1b6e1f7e2d70a06542` |
 | `implementation-plan/03-a03-queue-source.md` | `891eaea44e335aa37777ef067e6369e83c3abe60` |
-| `implementation-plan/04-a04-workbench-research.md` | `3f95dcef5d93dadd3aba8919fec3b83e0e87adf5` |
+| `implementation-plan/04-a04-workbench-research.md` | `ad476ff39bb3adfcb7ac6af8adce5925f037c778` |
 | `implementation-plan/05-a05-requirements-design.md` | `fd56308401a7e65d60276c10c6f9fcec9ba5dc99` |
 | `implementation-plan/06-a06-plan-readiness.md` | `7759d56abb0d87d66d4fcc402a44f5db22334f50` |
 | `implementation-plan/07-a07-approval-execution.md` | `bb2140caeff465a43fb8db7dd81fdba9a9e21b46` |
