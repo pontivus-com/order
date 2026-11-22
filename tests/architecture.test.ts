@@ -2171,6 +2171,7 @@ describe("architecture fitness", () => {
     const requirements = sourceText(requirementsPath);
     const research = sourceText(researchPath);
     const design = sourceText(designPath);
+    const p4Workbench = sourceText("docs/architecture/workbench.md");
     const plan = sourceText(planPath);
     const campaign = sourceText(campaignPath);
     const g5Status = campaign.match(
