@@ -309,21 +309,6 @@
 }
 .order-workbench-surface-material:nth-child(2) { grid-row: 2 / -1; }
 
-.order-workbench-attention {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid transparent;
-  border-radius: var(--radius-container);
-  background: var(--color-accent-muted);
-}
-.order-workbench-attention[data-tone="success"] { background: var(--color-success-muted); }
-.order-workbench-attention[data-tone="warning"] { background: var(--color-warning-muted); }
-.order-workbench-attention[data-tone="danger"] { background: var(--color-error-muted); }
-.order-workbench-attention h2,
-.order-workbench-attention p,
 .order-workbench-section-header h3,
 .order-workbench-section-header p,
 .order-workbench-task-title { margin: 0; }
@@ -333,37 +318,7 @@
   border-radius: var(--radius-container);
   overflow: hidden;
 }
-.order-workbench-attention h2 {
-  font-size: var(--font-size-sm);
-  font-weight: 700;
-}
-.order-workbench-attention-copy {
-  min-width: 0;
-  flex: 1 1 auto;
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  align-items: center;
-  gap: var(--spacing-4);
-}
-.order-workbench-attention-heading {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-.order-workbench-attention-status {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  flex-wrap: wrap;
-}
-.order-workbench-attention p,
 .order-workbench-section-header p { color: var(--color-text-secondary); }
-.order-workbench-attention-blocker {
-  grid-column: 1 / -1;
-  margin-top: var(--spacing-1);
-}
-.order-workbench-attention-action { flex: 0 0 auto; }
 
 .order-workbench-section-header {
   display: flex;
@@ -1260,15 +1215,6 @@
     grid-column: 2;
     grid-row: 2;
   }
-  .order-workbench-attention {
-    align-items: stretch;
-    flex-direction: column;
-  }
-  .order-workbench-attention-copy {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--spacing-1);
-  }
-  .order-workbench-attention-action { align-self: flex-start; }
   .order-workbench-review { padding: var(--spacing-3); }
   .order-app-readiness-item { align-items: stretch; flex-direction: column; }
   .order-workbench-review-header { grid-template-columns: minmax(0, 1fr); }
