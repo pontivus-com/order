@@ -8,7 +8,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `9f99a885da3757afad112dfd5d9d5e26782c41f9`.
 - R2 `requirements.md`: `7a279895bd57a2ec7080e1404927ce0668f1dbaf`.
-- DESIGN `solution-design.md`: `d79e69e7013485f52df3780a85c5cda6e65ec328`.
+- DESIGN `solution-design.md`: `8b9acbf6533b576866b3eb5819a52aa7d2aa05c5`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `c673bfa22ffe305e05b27feb7b92c70d796b726d` — §11.4A/§12 own semantic information classes, singular material/technical-inspection ownership, disclosure-accumulation prohibitions, task anatomy and composition invariants.
 - P3 `GW-DOC-MARKDOWN-WORKBENCH-V1`: `70ad77e720a5b99bcde4c64773056b54a4b129e9` — §17.4 owns one compact Markdown editor-control region, overflow-before-wrap formatting and control→canvas adjacency.
