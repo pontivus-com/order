@@ -1463,6 +1463,35 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   }));
   await page.setViewportSize({ width: 1440, height: 900 });
 
+  await backToQueue(page);
+  await openWorkItem(page, "Change work type");
+  await page.getByRole("button", { name: "Edit title", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Save title", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start Research", exact: true })).toHaveCount(0);
+  entries.push(await captureRenderedAcceptance(page, {
+    id: "workitem-shell-wide-light-title-edit",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-WI-001",
+    state: "title-edit-single-primary",
+    fixture: "Change work type selected WorkItem",
+    viewport: { width: 1440, height: 900 },
+    theme: "Light",
+    route: new URL(page.url()).pathname + new URL(page.url()).search,
+    references: [
+      "docs/references/workbench-ui/workitem-shell-controls.svg",
+      "docs/references/workbench-ui/current-attention-states.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-WORKBENCH-UX",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+      "GW-DOC-WORKBENCH-THEME-V1",
+    ],
+  }));
+  await page.getByRole("button", { name: "Cancel title edit", exact: true }).click();
+  await backToQueue(page);
+  await openWorkItem(page, "Completed investigation");
+
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const linkedDialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(linkedDialog).toBeVisible();
