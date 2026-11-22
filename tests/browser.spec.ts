@@ -1395,7 +1395,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await openWorkItem(page, "Completed investigation");
   await expect(page.getByTestId("workbench-workitem-shell")).toBeVisible();
   await expect(page.getByTestId("workflow-rail")).toBeVisible();
-  await expect(page.getByTestId("workflow-step-summary")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Current attention:/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create linked remediation" })).toBeVisible();
 
   entries.push(await captureRenderedAcceptance(page, {
