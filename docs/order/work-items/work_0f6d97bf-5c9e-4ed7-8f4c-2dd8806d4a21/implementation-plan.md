@@ -38,7 +38,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/08-a08-complete-materials.md` | `cac0e381c76c1d91e440c978faa200bedff4f8f6` |
 | `implementation-plan/09-a09-provider-settings.md` | `cf7455f3de3d77a6c71f49052587e120fc451d2c` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `5983dd0d8404ac063b3e80cc01fb38c56a411e4e` |
-| `implementation-plan/11-a11-component-certification.md` | `79018d469b034097fff95dfbdd824cd497a81e34` |
+| `implementation-plan/11-a11-component-certification.md` | `4330545d7f6c7529cc6588214502af2c444792f3` |
 | `implementation-plan/12-action-catalog.md` | `c7a7912551978437cb3650252feb10004c875efd` |
 | `implementation-plan/13-verification-closeout.md` | `c57be31fb0eb01096a33a971d5f9975091ee0272` |
 
@@ -879,7 +879,7 @@ Stable rows in phase: **7**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C19-01` | C19-F01 | `SD16` | `IA20` | — | Permanent fitness proves exhaustive production-renderer classification without mutating signed architecture material during T1. |
-| `PL-C19-02` | C19-F02/C19-F03/C19-F04/C19-F05 | `SD21`-`SD29` | `IA27`-`IA34` | — | From the corrected Approval baseline, reconstruct IA27 against SD21 including design-bearing Disclosure/Review/TaskPanel and the early selection-aware Context owner; then revalidate/remediate IA28-IA31 and reconstruct IA32-IA34 against the exhaustive per-datum **and composition** contract in `solution-design.md`. Historical purge provenance does not become current-task work, current bytes are never preservation authority, and implementation performs no information classification. |
+| `PL-C19-02` | C19-F02/C19-F03/C19-F04/C19-F05 | `SD21`-`SD29` | `IA27`-`IA34` | — | From the corrected Approval baseline, reconstruct IA27 against SD21 including the retained-but-narrowed Disclosure consumer contract, design-bearing Review/TaskPanel and the early selection-aware Context owner; then revalidate/remediate IA28-IA31 and reconstruct IA32-IA34 against the exhaustive per-datum **and composition** contract in `solution-design.md`. Historical purge provenance does not become current-task work, current bytes are never preservation authority, and implementation performs no information classification. |
 | `PL-C20-01` | C20-F02 | `SD17` | `IA21` | — | Permanent browser certification proves complete four-kind Research/downstream scenario 41. |
 | `PL-C20-02` | C20-F03 | `SD18` | `IA22` | — | Permanent certification proves representative cross-application System/Light/Dark component/semantic-role parity. |
 | `PL-C20-03` | C20-F05/C20-F06/C20-F07 | `SD30` | `IA26` | — | Exact-candidate GitHub Actions evidence covers every governed screen/state and all three acceptance dimensions with no unresolved FAIL; proof includes required-visible information, productive-surface technical absence, singular inspection/material ownership, no disclosure accumulation, active editor capture, modal anatomy and authorized Context/Settings/Evidence/confirmation inspection. |
