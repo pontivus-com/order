@@ -663,7 +663,10 @@ describe("Order cross-boundary certification", () => {
     expect(markdownEditor).toContain("      />\n\n      <WorkbenchDisclosure");
 
     const table = read("ui/src/primitives/WorkbenchTable.tsx");
-    expect(table).toContain('className="order-workbench-table-cell"');
+    expect(table).toContain('import * as stylex from "@stylexjs/stylex";');
+    expect(table).toContain('overflowWrap: "normal"');
+    expect(table).toContain('wordBreak: "normal"');
+    expect(table).toContain("xstyle={workbenchTableStyles.cell}");
 
     const theme = read("ui/src/theme.css");
     const sectionMarkers = [
@@ -691,11 +694,7 @@ describe("Order cross-boundary certification", () => {
     }
 
     expect(specialistSection).not.toContain(".order-workbench-");
-    expect(primitiveSection).toContain(".order-workbench-table-cell");
-    const tableCellRule = primitiveSection.match(/\.order-workbench-table-cell\s*\{([^}]*)\}/)?.[1] ?? "";
-    expect(tableCellRule).toContain("overflow-wrap: normal;");
-    expect(tableCellRule).toContain("word-break: normal;");
-    expect(specialistSection).not.toContain("order-workbench-table-cell");
+    expect(theme).not.toContain(".order-workbench-table-cell");
 
     for (const forbidden of [
       ".order-evidence-viewer",
