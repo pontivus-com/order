@@ -1193,6 +1193,7 @@
   .order-queue-table-scroll table {
     width: max-content;
     min-width: 100%;
+    white-space: nowrap;
   }
   .order-workbench-attention {
     align-items: stretch;
