@@ -1313,7 +1313,7 @@ export const WorkItemWorkspace = ({
       statusVariant={currentAttentionVariant}
       blocker={summaryBlocker}
       action={
-        inspectedHistorical ? (
+        titleEditing ? undefined : inspectedHistorical ? (
           <WorkbenchAction
             label={"Return to " + workflow.label}
             tone="primary"
