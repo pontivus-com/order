@@ -27,20 +27,20 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `226ad18571ccc93c4dbbae82d821d8b40a3a4d92` |
-| `implementation-plan/01-a01-lifecycle-product.md` | `4ed4d570f25c2a859e9dbb20b3a0214ddc1fdcfa` |
-| `implementation-plan/02-a02-governance-intake.md` | `56a5700e20c92ec7ee48d0be635ec8b415905e64` |
-| `implementation-plan/03-a03-queue-source.md` | `e8031a884ad5ddc70d102c6537054b7e20cd10d6` |
-| `implementation-plan/04-a04-workbench-research.md` | `c64a79a09ee0ce579a1eb112cadf3fef38f42937` |
-| `implementation-plan/05-a05-requirements-design.md` | `74eb1494182388a2092df1269e829c9e8e68763e` |
-| `implementation-plan/06-a06-plan-readiness.md` | `cd086e213e524a1fa4dfe37bd1ca5a093526647f` |
-| `implementation-plan/07-a07-approval-execution.md` | `dffe1d1b7a9de1db92399a213eafffe303215863` |
-| `implementation-plan/08-a08-complete-materials.md` | `4efd642b0f9eb24cabcd043578f67072798ce6f6` |
-| `implementation-plan/09-a09-provider-settings.md` | `71685b54f3667406853e13e091a252b7fee91e5c` |
-| `implementation-plan/10-a10-recovery-accessibility.md` | `0b5a30b8f44981971f267e8111962bb3d528ab60` |
-| `implementation-plan/11-a11-component-certification.md` | `5bb20cc0f43b779008a74c379dcebafe6da9007e` |
-| `implementation-plan/12-action-catalog.md` | `f99fb7e33ffdf0fdce1f843054843fa3340d6245` |
-| `implementation-plan/13-verification-closeout.md` | `81819ac7326bda4c28526581ed693cdb33edce06` |
+| `implementation-plan/00-governance.md` | `fdd761ad5ebbe59a2559c4af42da435e8ca1009f` |
+| `implementation-plan/01-a01-lifecycle-product.md` | `8ff9ac60779e442d0432a7dbcf1ade75715355d3` |
+| `implementation-plan/02-a02-governance-intake.md` | `1e0ad8cfd1a6cf9254148f1b6e1f7e2d70a06542` |
+| `implementation-plan/03-a03-queue-source.md` | `891eaea44e335aa37777ef067e6369e83c3abe60` |
+| `implementation-plan/04-a04-workbench-research.md` | `3f95dcef5d93dadd3aba8919fec3b83e0e87adf5` |
+| `implementation-plan/05-a05-requirements-design.md` | `fd56308401a7e65d60276c10c6f9fcec9ba5dc99` |
+| `implementation-plan/06-a06-plan-readiness.md` | `7759d56abb0d87d66d4fcc402a44f5db22334f50` |
+| `implementation-plan/07-a07-approval-execution.md` | `bb2140caeff465a43fb8db7dd81fdba9a9e21b46` |
+| `implementation-plan/08-a08-complete-materials.md` | `55fa29a65250962be8e5f4fa7fe2f43cb6e69896` |
+| `implementation-plan/09-a09-provider-settings.md` | `8175838f64502c6e0420a776e8754e49f711e37e` |
+| `implementation-plan/10-a10-recovery-accessibility.md` | `713423e304201ca24e10495a52e3084f2bf848f2` |
+| `implementation-plan/11-a11-component-certification.md` | `080c3fb9c9a38c489d20112603cb23c127ad68e5` |
+| `implementation-plan/12-action-catalog.md` | `937ad6d3bf2eb149872844e9f10d2146cd5dbb8c` |
+| `implementation-plan/13-verification-closeout.md` | `20611ec910271647bf13db0a3e2419942b7f4df9` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
