@@ -2371,7 +2371,7 @@ describe("architecture fitness", () => {
       "current repository path is default-visible supporting document identity",
       "Each connected-repository entry default-visibly shows project identity",
     ]) {
-      if (!r2.includes(requiredR2)) {
+      if (!requirements.includes(requiredR2)) {
         violations.push(
           "R2 information-visibility correction missing " + requiredR2,
         );
