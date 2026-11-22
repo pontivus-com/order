@@ -11,7 +11,7 @@ This DESIGN is reconstructed under G-F12 after G3 closure. Its semantic directio
 - Corrected P3 Installation Readiness: blob `9c2ec83a9552b7583f90e91080c014df4d6870df` — §§2/4.2 and `GW-FR-079` now distinguish successful fresh-install completion from post-install/update recovery without adding `precedence.p3`.
 - P4 Technical Architecture: `868a73535b080bfeb5519865ffe21bad754315a3` — §35.1 now explicitly separates reachable authority selection from stage-material applicability for stable/versioned refs.
 - P3 Workbench UX: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the permanent visibility/disclosure taxonomy and human-meaning-only promotion rule.
-- P4 Workbench: `7263c890f3705ddd55fdadb98767b62acb7fc56d` — §8.12A owns the technical disclosure lanes and the shell/context responsibility statements are reconciled to the §16.6 AppShell/WorkItemShell reconstruction.
+- P4 Workbench: `916add5e528447a6509746b95b947c50eff3d232` — §8.12A owns the technical disclosure lanes, §8.17 now explicitly enumerates the complete production-renderer matrix, and the shell/context responsibility statements are reconciled to the §16.6 AppShell/WorkItemShell reconstruction.
 - P4 Workbench Theme: `fffd1d202537dbd3f85f6b30ee745d2eae454c53`.
 - P4 OpenCode Integration: `4416547cba749fc9a3fec62dd4be76ad94952527`.
 - P4 Execution Control Plane: `5348404854f317a017fa3efdc2436b06bcfeb9f2`.
