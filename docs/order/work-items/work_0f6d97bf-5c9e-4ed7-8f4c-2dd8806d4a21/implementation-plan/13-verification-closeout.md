@@ -14,10 +14,10 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
 | IA27 | IA28 | current foundation independently revalidated against P3/P4/SD21; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; residual-delta/no-edit ledger complete; seven retained atomic adapters remain narrow; foundation/disclosure/theme/accessibility/responsive proof + `SURF-WI-001` PASS |
-| IA28 | IA29 | resumed-baseline schema + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA28 face-ledger rows PASS |
-| IA29 | IA30 | resumed-baseline schema + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
-| IA30 | IA31 | resumed-baseline schema + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
-| IA31 | IA32 | resumed-baseline schema + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA31 face-ledger rows PASS |
+| IA28 | IA29 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA28 face-ledger rows PASS |
+| IA29 | IA30 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
+| IA30 | IA31 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
+| IA31 | IA32 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA31 face-ledger rows PASS |
 | IA32 | IA33 | applicable signed checkpoints + both IA32 face-ledger rows PASS |
 | IA33 | IA34 | applicable signed checkpoints + all 3 IA33 face-ledger rows PASS |
 | IA34 | IA20-IA23 integrated certification | applicable signed checkpoints + all 11 IA34 face-ledger rows PASS; 37/37 IA27-IA34 phase-local SURF union complete |
@@ -35,7 +35,7 @@ For IA27-IA31, the fresh T1 baseline already contains the historically completed
 Each resumed phase retains:
 
 - historical purge/reconstruction provenance only as evidence that the old implementation was previously displaced;
-- a fresh current authority-derived foundation/screen schema created before current bytes are judged;
+- the applicable already-closed foundation/surface rows from the exhaustive 37-surface information contract in `solution-design.md` are loaded before current bytes are judged;
 - an exact residual-delta ledger classifying each inspected owner/selector as conforming-no-edit or requiring correction;
 - final current-state absence/singularity proof for obsolete/duplicate ownership;
 - semantic/browser/rendered proof including P3 §11.4A default visibility/disclosure behavior;
@@ -47,7 +47,7 @@ For IA32-IA34, verification retains the original purge/rebuild discipline:
 
 - bounded in-task purge observation/evidence records exact deleted old screen paths/selectors before replacement authorship;
 - the procedural purge contains no replacement JSX/DOM and is not a Git commit/candidate/validation result;
-- a fresh screen-information schema records each datum/action's P3 class/default visibility/owner/disclosure/promotion rule;
+- the exhaustive 37-surface information contract in `solution-design.md` already records each datum/action's P3 class/default visibility/owner/disclosure/promotion rule; implementation records only its conformance/delta trace;
 - recreated screens consume the accepted IA27 foundation and canonical domain/query owners;
 - shared style mutation is limited to exact phase-owned selectors;
 - semantic/browser/rendered proof passes for each owned SURF row.
@@ -144,7 +144,7 @@ V4/V5/V6 explicitly verify:
 - every actual changed path is inside signed `scope`, outside exclusions/protected material, and either forecast or positively proven as minimum same-layer responsibility-preserving variance;
 - forecast variance changes no semantic owner, public contract, state meaning, effect boundary, dependency direction/external dependency, validation contract or authorized behavior;
 - current-v2 task non-vacuity is enforced without changing published v1 task semantics or creating a second task schema/parser/review owner;
-- bootstrap `dependency-lock` passed before T1 mutation; IA27-IA31 completed fresh authority/schema revalidation with exact residual-delta/no-edit evidence and required semantic/rendered stop-go proof; IA32-IA34 retained purge-before-fresh-authorship plus required schema/semantic/rendered evidence; and IA20-IA23/IA26 completed integrated/final acceptance before IA24;
+- bootstrap `dependency-lock` passed before T1 mutation; IA27-IA31 completed revalidation against the signed DESIGN surface contract with exact residual-delta/no-edit evidence and required semantic/rendered stop-go proof; IA32-IA34 retained purge-before-fresh-authorship and realized the same pre-existing DESIGN contract with required semantic/rendered evidence; and IA20-IA23/IA26 completed integrated/final acceptance before IA24;
 - FCIS/SoC/DRY/canonical ownership/strict typing/no-OOP/no-DTO;
 - no compatibility/fallback/shadow state/owner;
 - corrected productive installer semantics without loss of incomplete-config recovery or upgrade continuity;
