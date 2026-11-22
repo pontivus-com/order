@@ -39,7 +39,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/09-a09-provider-settings.md` | `7a56f305df761cf787b43cbfa77ff1423091658f` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `96af19549f43a2029711b4a6ff47db547907758b` |
 | `implementation-plan/11-a11-component-certification.md` | `717241ffee57b3de81ece03e3a684c58c9601afd` |
-| `implementation-plan/12-action-catalog.md` | `58693068fa41d572891978d5d14520d6a1dcb912` |
+| `implementation-plan/12-action-catalog.md` | `5cb6c9ca7990b24affa3bf4e4b01ef433744aea2` |
 | `implementation-plan/13-verification-closeout.md` | `cbaa18819dcf42900962643d2b8c66f8194d07de` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
@@ -1211,7 +1211,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 | `ui/src/primitives/WorkbenchSelector.tsx` | `CONFORMING_NO_EDIT` | secondary + adaptive Astryx Selector; item count does not select topology |
 | `ui/src/primitives/WorkbenchSettingsLayout.tsx` | `CONFORMING_NO_EDIT` | Settings-only wide/constrained composition over central responsive owner |
 | `ui/src/primitives/WorkbenchSurface.tsx` | `CONFORMING_NO_EDIT` | exact attention/optional selector/material composition |
-| `ui/src/primitives/WorkbenchTable.tsx` | `CONFORMING_NO_EDIT` | compact Astryx Table, stable row identity, bounded single-selection/focus behavior |
+| `ui/src/primitives/WorkbenchTable.tsx` | `BOUNDED_RESIDUAL` | IA28 rendered evidence proved pinned Astryx `Table` wrap mode breaks ordinary human Queue words mid-token at narrow width. Keep Astryx Table/overflow ownership and stable row identity; correct only the foundation cell wrapping policy to natural word boundaries, with no new geometry, caller-selected layout mode or feature-owned scroll owner. |
 | `ui/src/primitives/WorkbenchTaskPanel.tsx` | `BOUNDED_RESIDUAL` | Dialog/purpose/topology are correct; hard-coded `42rem` and its implementation-shaped assertion are unauthorized geometry and must be removed |
 | `ui/src/primitives/WorkbenchTimeline.tsx` | `CONFORMING_NO_EDIT` | compact List-backed chronological rhythm with feature-owned event content |
 | `ui/src/primitives/WorkbenchToolbar.tsx` | `CONFORMING_NO_EDIT` | toolbar grouping/search/utilities remain within the canonical toolbar responsibility |

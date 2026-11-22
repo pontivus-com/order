@@ -280,7 +280,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 | `ui/src/primitives/WorkbenchSelector.tsx` | `CONFORMING_NO_EDIT` | secondary + adaptive Astryx Selector; item count does not select topology |
 | `ui/src/primitives/WorkbenchSettingsLayout.tsx` | `CONFORMING_NO_EDIT` | Settings-only wide/constrained composition over central responsive owner |
 | `ui/src/primitives/WorkbenchSurface.tsx` | `CONFORMING_NO_EDIT` | exact attention/optional selector/material composition |
-| `ui/src/primitives/WorkbenchTable.tsx` | `CONFORMING_NO_EDIT` | compact Astryx Table, stable row identity, bounded single-selection/focus behavior |
+| `ui/src/primitives/WorkbenchTable.tsx` | `BOUNDED_RESIDUAL` | IA28 rendered evidence proved pinned Astryx `Table` wrap mode breaks ordinary human Queue words mid-token at narrow width. Keep Astryx Table/overflow ownership and stable row identity; correct only the foundation cell wrapping policy to natural word boundaries, with no new geometry, caller-selected layout mode or feature-owned scroll owner. |
 | `ui/src/primitives/WorkbenchTaskPanel.tsx` | `BOUNDED_RESIDUAL` | Dialog/purpose/topology are correct; hard-coded `42rem` and its implementation-shaped assertion are unauthorized geometry and must be removed |
 | `ui/src/primitives/WorkbenchTimeline.tsx` | `CONFORMING_NO_EDIT` | compact List-backed chronological rhythm with feature-owned event content |
 | `ui/src/primitives/WorkbenchToolbar.tsx` | `CONFORMING_NO_EDIT` | toolbar grouping/search/utilities remain within the canonical toolbar responsibility |
