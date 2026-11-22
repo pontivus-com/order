@@ -1458,7 +1458,7 @@ The corrected DESIGN forecast is the exact `changeSurface` of the one signed cum
 - `src/daemon/work-item-source.ts`
 - `src/shell/setup.ts`
 
-### UI foundation destructive reconstruction surface
+### UI foundation classification/remediation surface
 - `ui/src/primitives/WorkbenchAttention.tsx`
 - `ui/src/primitives/WorkbenchConfirmation.tsx` — design-bearing Safety/confirmation owner
 - `ui/src/primitives/WorkbenchContextPanel.tsx`
@@ -1484,11 +1484,12 @@ The corrected DESIGN forecast is the exact `changeSurface` of the one signed cum
 - `ui/src/primitives/WorkbenchWorkItemShell.tsx` — new
 - `ui/src/primitives/workbench-responsive.ts` — new
 
-### UI production replacement/purge surface
+### UI production consumer remediation/reconstruction surface
 - `ui/src/ActivityComposer.tsx`
 - `ui/src/ActivityWorkspace.tsx`
 - `ui/src/CreateWorkItem.tsx`
 - `ui/src/DocumentWorkspace.tsx`
+- `ui/src/MarkdownEditor.tsx`
 - `ui/src/EvidenceViewer.tsx`
 - `ui/src/ExecutionWorkspace.tsx`
 - `ui/src/OpenCodeAccountControl.tsx`
