@@ -1878,7 +1878,7 @@ describe("architecture fitness", () => {
             violations.push(`${auditId} PASS record missing ${label}`);
           }
         }
-        const expectedPairArtifacts: readonly [string, string][] = [
+        const expectedPairArtifacts: readonly (readonly [string, string])[] = [
           ["research", exactAlignPackageBlobs.get("R1")!],
           ...(phase === "R1" ? [] : [["requirements", exactAlignPackageBlobs.get("R2")!] as const]),
           ...((phase === "DESIGN" || phase === "PLAN")
