@@ -1131,10 +1131,14 @@ test("queue opens a primary workspace, keeps context compact, preserves URL hist
 
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(rowFor(page, "Discovered on startup")).toBeVisible();
-  await expect(page.getByTestId("source-diagnostics")).toContainText("INVALID_SOURCE");
+  await expect(page.getByTestId("source-diagnostics")).not.toContainText("INVALID_SOURCE");
   await expect(page.getByTestId("source-diagnostics")).toContainText("work-request.md");
+  await expect(page.getByTestId("source-diagnostics")).toContainText(
+    "WorkItem source must begin with ---",
+  );
   await page.getByRole("button", { name: "Refresh sources" }).click();
-  await expect(page.getByTestId("source-diagnostics")).toContainText("INVALID_SOURCE");
+  await expect(page.getByTestId("source-diagnostics")).not.toContainText("INVALID_SOURCE");
+  await expect(page.getByTestId("source-diagnostics")).toContainText("work-request.md");
 
   const proposalItem = await workItemForTitle(page, "Proposal review");
   const proposalRow = rowFor(page, "Proposal review");
@@ -4015,15 +4019,17 @@ test("terminal investigation and audit results remain closed and linked remediat
   await page.getByRole("button", { name: "Create linked remediation" }).click();
   const dialog = page.getByRole("dialog", { name: "Create linked remediation" });
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("Parent INVESTIGATION");
+  await expect(dialog).toContainText("Parent");
   await expect(dialog).toContainText("Completed investigation");
-  await expect(dialog).toContainText(parent.id);
+  await expect(dialog).toContainText("Completed parent Investigation · same project");
+  await expect(dialog).not.toContainText(parent.id);
+  await expect(dialog).not.toContainText("investigation-v1");
   await expect(dialog.getByTestId("linked-remediation-project")).toContainText(parent.projectId);
   await expect(dialog.getByRole("combobox", { name: "Project Required" })).toHaveCount(0);
   await expect(dialog.getByRole("radio", { name: "Change" })).toBeVisible();
   await expect(dialog.getByRole("radio", { name: "Defect" })).toBeVisible();
-  await expect(dialog.getByRole("radio", { name: "INVESTIGATION" })).toHaveCount(0);
-  await expect(dialog.getByRole("radio", { name: "AUDIT" })).toHaveCount(0);
+  await expect(dialog.getByRole("radio", { name: "Investigation" })).toHaveCount(0);
+  await expect(dialog.getByRole("radio", { name: "Audit" })).toHaveCount(0);
   await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeVisible();
 
   await dialog.getByRole("radio", { name: "Defect" }).click();
