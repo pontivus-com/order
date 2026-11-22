@@ -1878,6 +1878,25 @@ describe("architecture fitness", () => {
             violations.push(`${auditId} PASS record missing ${label}`);
           }
         }
+        const expectedPairArtifacts: readonly [string, string][] = [
+          ["research", exactAlignPackageBlobs.get("R1")!],
+          ...(phase === "R1" ? [] : [["requirements", exactAlignPackageBlobs.get("R2")!] as const]),
+          ...((phase === "DESIGN" || phase === "PLAN")
+            ? [["design", exactAlignPackageBlobs.get("DESIGN")!] as const]
+            : []),
+          ...(phase === "PLAN" ? [["plan", exactAlignPackageBlobs.get("PLAN")!] as const] : []),
+        ];
+        for (const [artifact, expectedBlob] of expectedPairArtifacts) {
+          const match = record.match(
+            new RegExp(artifact + "=`([0-9a-f]{40})`", "i"),
+          );
+          if (match?.[1] !== expectedBlob) {
+            violations.push(
+              auditId + " PASS must bind current " + artifact +
+                " blob " + expectedBlob + "; found " + (match?.[1] ?? "missing"),
+            );
+          }
+        }
       }
     }
 
