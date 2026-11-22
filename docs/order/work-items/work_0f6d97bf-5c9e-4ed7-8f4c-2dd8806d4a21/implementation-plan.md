@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `fc798d3cb6a0da31cc10b2b935a6118d1c1d426a` |
+| `implementation-plan/00-governance.md` | `01ee946c6dae718d6c3f540a24ccb825a9ca2261` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `43634c52c453d39957416dc45152fbb9530b2a39` |
 | `implementation-plan/02-a02-governance-intake.md` | `6aabf5556e679c3dcbbb63d898248c0c6c4178c4` |
 | `implementation-plan/03-a03-queue-source.md` | `31e37f66c80e03fb9d3e06bf97ea62dff7ca9324` |
@@ -212,7 +212,8 @@ This campaign invokes the P0 bounded acceptance-evidence realization control sol
 **Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
 **Start condition:** IA27 foundation-readiness evidence remains current; current R2/P3/DESIGN/P4/theme authority and the IA28 SURF rows are loaded before implementation is judged.  
 **Authorized primary owners:** `ui/src/OpenCodeAccountControl.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.  
-**Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
+**IA27 shell-integration exception:** `ui/src/app.tsx` may be changed only to close a proven `SURF-APP-001` residual exposed by this tranche (global account utility, readiness/diagnostic presentation, Queue/Create entry composition); no selected-WorkItem/material-screen redesign is authorized.  
+**Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; other IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
 **Verification owners:** existing `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` only as required to produce/verify the declared IA28 evidence package.  
 **Forbidden:** any IA29-IA34 screen-family mutation; unrelated non-UI mutation; new product/architecture/contract semantics; delivery/merge/release; treating current JSX/SVG as authority.  
 **Required evidence:** actual production-browser captures for `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` and their required IA28 state/reference sheets, reviewed against current authority and paired non-superseded SVGs with independent `schema_information`, `ux_interaction`, `visual_ui` verdicts plus one foundation-realization verdict.  
