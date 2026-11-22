@@ -2168,6 +2168,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "SURF-STEP-R2-001",
     "SURF-STEP-WR-001",
     "SURF-WI-001",
+    "SURF-WI-CONTEXT-001",
   ]);
   expect(runtimeErrors).toEqual([]);
 });
