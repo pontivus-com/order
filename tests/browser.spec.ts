@@ -1424,7 +1424,22 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
     "data-responsive-class",
     "narrow",
   );
-  await expect(page.getByRole("button", { name: "Create linked remediation" })).toBeVisible();
+  const narrowAttention = page.locator(".order-workbench-attention");
+  const narrowAction = page.getByRole("button", { name: "Create linked remediation" });
+  await expect(narrowAction).toBeVisible();
+  await expect(narrowAttention).toHaveCSS("flex-direction", "column");
+  const [attentionBox, actionBox] = await Promise.all([
+    narrowAttention.boundingBox(),
+    narrowAction.boundingBox(),
+  ]);
+  expect(attentionBox).not.toBeNull();
+  expect(actionBox).not.toBeNull();
+  if (attentionBox === null || actionBox === null) {
+    throw new TypeError("narrow current-attention geometry required");
+  }
+  expect(actionBox.x + actionBox.width).toBeLessThanOrEqual(
+    attentionBox.x + attentionBox.width + 1,
+  );
   entries.push(await captureRenderedAcceptance(page, {
     id: "workitem-shell-narrow-light-current-attention",
     workItemKind: "INVESTIGATION",

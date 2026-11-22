@@ -1186,6 +1186,21 @@
 }
 
 @media (max-width: 799px) {
+  .order-workbench-attention {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .order-workbench-attention-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-1);
+  }
+  .order-workbench-attention-heading {
+    flex-wrap: wrap;
+  }
+  .order-workbench-attention-action {
+    align-self: flex-start;
+    max-width: 100%;
+  }
   .order-toolbar {
     align-items: center;
     flex-direction: row;
