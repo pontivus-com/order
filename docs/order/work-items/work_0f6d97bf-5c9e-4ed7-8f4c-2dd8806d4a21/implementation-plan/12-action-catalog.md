@@ -14,7 +14,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ## Execution waves
 
-**Pre-sign-off realization boundary:** `IA28-RZ1` is **SUSPENDED_PENDING_REVALIDATION** in `00-governance.md` and currently authorizes no production mutation. IA27/IA28 execution resumes only under a fresh exact-package authorization after G5/G5A/G6 revalidation. IA29 or any later wave remains forbidden until fresh IA28 rendered evidence is accepted and normal sign-off occurs.
+**Pre-sign-off realization boundary:** `IA28-RZ1` is **SUSPENDED_PENDING_REVALIDATION** in `00-governance.md` and currently authorizes no production mutation. After exact G5 and G5A PASS, and only after explicit operator authorization bound to that exact package, a fresh bounded grant may authorize IA27/IA28 evidence realization **before R3/G6**. R3/G6 consumes that evidence. IA29 or any later wave remains forbidden until fresh IA28 evidence is accepted, G6 is READY_FOR_SIGNOFF, and normal human sign-off occurs.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
