@@ -165,7 +165,7 @@ Before Wave 1, BUILDER requests the signed `dependency-lock` gate once through t
 
 **Solution:** SD14.  
 **Anchors:** `ui/src/SettingsWorkspace.tsx::SettingsWorkspace/RepositorySettings/ModelRuntimeSettings`.  
-**Required mutation:** readiness/meaning/actions primary; exact roots/endpoints/model source/credential-like identity under Technical details except active configuration input.  
+**Required mutation:** readiness/meaning/actions primary; exact roots/endpoints/model source/credential-like identity in the one Settings diagnostics/technical-inspection region except when the exact value is the active configuration input.  
 **Proof:** browser normal Settings, blockers, Add/Move/configuration cases.
 
 ## IA19 — product-language projection
