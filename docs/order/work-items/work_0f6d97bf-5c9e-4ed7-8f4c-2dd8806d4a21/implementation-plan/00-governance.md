@@ -8,7 +8,7 @@ This decomposition is reconstructed under G-F12 after G4 closure. Historical PLA
 
 - R1 `research.md`: `99f6932e582bde949de72716f29ea0868eba16a0`.
 - R2 `requirements.md`: `27faa1a67321c8091deb27a4fd70ae912209c30a`.
-- DESIGN `solution-design.md`: `d38f2c69d7d35cc59bed0880d41eca2f5f9e31db`.
+- DESIGN `solution-design.md`: `33815a78e1fe1481d49fd781d56fd80cbe4df74e`.
 - Corrected P3 `GW-DOC-INSTALLATION-READINESS`: `9c2ec83a9552b7583f90e91080c014df4d6870df`.
 - P3 `GW-DOC-WORKBENCH-UX-V2`: `114226b7b30657fd334b47a9c74f5e24479564a1` — §11.4A owns the closed Primary/Supporting/Operational/Technical/Diagnostic visibility classes and promotion/disclosure semantics.
 - P4 `GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2`: `916add5e528447a6509746b95b947c50eff3d232` — §8.12A owns the technical disclosure lanes and AppShell/WorkItemShell/Context responsibilities.
