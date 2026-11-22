@@ -381,7 +381,7 @@ Queue-local search, New WorkItem, Refresh sources and source diagnostics are own
 | connected project identity | `ConnectedRepositoryState.projectId` | identify configured repository | Primary | repository row | fallback human “needs attention” when unresolved | raw root is not the sole identity |
 | readiness/attention meaning | `ConnectedRepositoryState.status/attention` mapped to product language | show required repository action | Primary when attention exists, otherwise Supporting | row status/notice | raw attention enums stay Diagnostic | no raw enum list |
 | exact connected Git root | `ConnectedRepositoryState.repositoryRoot` | identify/disambiguate the configured repository required by P3 | Supporting, default-visible | repository detail/row secondary identity | path is intentionally shown in repository inventory | not an editable field after connection |
-| resolved WorkItem document root | `ConnectedRepositoryState.workItemsRoot` | show where governed WorkItem/lifecycle documents live | Supporting, default-visible | repository detail/row | null state gets human unavailable meaning | do not hide the effective root behind Technical details |
+| resolved WorkItem document root | `ConnectedRepositoryState.workItemsRoot` | show where governed WorkItem/lifecycle documents live | Supporting, default-visible | repository detail/row | null state gets human unavailable meaning | keep the effective root default-visible; do not move it into Settings diagnostics |
 | current queue/creation context | browser `queueProjectId` resolved against READY repository `projectId` | show which repository/project scopes Queue/Create when a context is selected | Supporting | repository inventory/context selector | selector appears when multiple READY projects make a choice meaningful | no second persisted repository-selection authority |
 | reference-root configuration | `OrderConfig.referenceRoots` | configure read-only productive context sources | Primary | bounded configuration region | exact paths are task-required here | not repeated as general repository metadata |
 | Save reference roots | `UpdateReferenceRoots` command | persist the configured reference-root set | Primary | configuration action region | expected config hash remains hidden optimistic precondition | no silent save |
@@ -1343,14 +1343,14 @@ canonical browser/domain/query facts
  -> SD24 Research/Requirements/Design/Plan shared productive-stage grammar
  -> SD25 Readiness/Approval review grammar
  -> SD26 Implementation master/detail
- -> SD27 Complete/Evidence/Context
+ -> SD27 Complete/Evidence
  -> SD28 Settings/account/configuration
  -> SD29 primitive-owned responsive/accessibility recomposition
  -> SD16/SD17/SD18 semantic certification
  -> SD30 exact-candidate rendered acceptance
 ```
 
-No domain renderer owns recurring component chrome, structural breakpoint policy, generic form/table/status/notice grammar or overlay topology after migration. The old design-bearing primitive layer and its structural selectors/tests are purged before fresh foundation authorship; later old screen selectors/branches are deleted at their owning screen purge. Neither layer may retain a compatibility presentation path.
+No domain renderer owns recurring component chrome, structural breakpoint policy, generic form/table/status/notice grammar or overlay topology after remediation. IA27 classifies each design-bearing foundation owner from current authority before editing: only materially divergent owners are purged/re-authored; conforming owners remain and bounded residuals receive local correction. IA28-IA31 likewise retain only independently authority-proven bytes, while IA32-IA34 keep their explicit purge-before-fresh-authorship boundary. No layer retains a compatibility presentation path.
 
 ### F6A — Workbench foundation reconstruction (SD21)
 
@@ -1366,7 +1366,7 @@ The IA27 realization ledger is closed over these dimensions:
 | actions and confirmations | P4 Astryx-conformance/action rules + theme action roles | the same semantic primary/secondary/destructive/navigation role uses the same Workbench/Astryx primitive, variant, size family, focus/pending treatment and confirmation grammar everywhere |
 | status, notices and states | P4 Status/Notice/State responsibilities + theme semantic status roles | one semantic tone vocabulary and one recurring visual treatment; feature code supplies meaning/tone, never colors or alternate chrome |
 | supporting and operational material | P3 class/placement + P4 Selector/ResourceRow/Timeline rules | subordinate selection/history/resource treatment cannot displace current attention or introduce another navigation axis |
-| progressive disclosure | P3 closed inspection owners + P4 §8.12A | local Technical details uses `WorkbenchDisclosure`; cross-material Context uses `WorkbenchContextPanel`; Evidence and Safety/confirmation remain distinct owners; no auto-open or interchangeable disclosure lane |
+| subordinate expansion and technical inspection | P3 closed inspection/material owners + P4 §8.12A | same-task optional expansion may use retained `WorkbenchDisclosure`; WorkItem technical identity uses `WorkbenchContextPanel`; Settings diagnostics, Evidence and Safety/confirmation remain distinct owners; no generic local technical/supporting lane |
 | color and theme | `GW-DOC-WORKBENCH-THEME-V1` §§5-6, 10-14 | primitives/specialist leaves consume canonical public Astryx semantic tokens and the bounded Order bridge; no feature palette/theme island |
 | typography | theme §7 | semantic text/code roles map once to canonical type roles; feature surfaces do not create local scales |
 | spacing, density, geometry and boundaries | theme §8 + P4 structural responsibilities | container-owned spacing, canonical density/control-size/geometry/border/radius rules are primitive-owned; callers do not pass feature geometry |
@@ -1376,7 +1376,7 @@ The IA27 realization ledger is closed over these dimensions:
 
 For each row the IA27 ledger records the exact permanent authority reference, relevant SVG reference(s) where useful, owning Workbench primitive/approved leaf, Astryx substrate/variant where applicable, theme token/geometry role, responsive/disclosure behavior and verification owner. A recurring design concern that cannot be mapped without invention is an unresolved DESIGN/P4 issue and blocks IA27; it is not delegated to a screen phase.
 
-**Dialogue closure.** P4's canonical Dialogue composition is `WorkbenchDialogue({ transcript, activity?, composer?, state? })`: `activity` is the single bounded Supporting/Operational region required by the P4 RunEvent presentation planes. Material heading/status remain outside the primitive through the owning surface/section composition, and Technical/Diagnostic identity remains outside through the authorized `WorkbenchDisclosure` lane. `header` and `technical` are therefore not Dialogue API degrees of freedom.
+**Dialogue closure.** P4's canonical Dialogue composition is `WorkbenchDialogue({ transcript, activity?, composer?, state? })`: `activity` is the single bounded Supporting/Operational region required by the P4 RunEvent presentation planes. Material heading/status remain outside the primitive through the owning surface/section composition, and Technical/Diagnostic identity routes to the explicit WorkItem Context/Evidence owner rather than a Dialogue-local disclosure. `header` and `technical` are therefore not Dialogue API degrees of freedom.
 
 **Safety-confirmation closure.** P3's Safety/confirmation disclosure class includes both destructive/irreversible consent and explicitly authorized non-destructive informed consent such as `SURF-CONF-DOC-GIT-001`. P4 therefore owns both through one `WorkbenchConfirmation` semantic API: `kind="destructive"` fixes Astryx `AlertDialog` plus destructive action role; `kind="safety"` fixes Astryx `Dialog` plus one primary confirm action and secondary Cancel. The caller supplies only the DESIGN-derived kind and decision copy; it cannot select substrate or arbitrary action tone. `SURF-CONF-DOC-GIT-001` and reversible archive/restore use `safety`; discard/disconnect/removal confirmations use `destructive`.
 
@@ -1445,7 +1445,7 @@ The real OpenCode process remains the subject under test; only the model side is
 
 ## Exact implementation surface forecast
 
-The corrected DESIGN forecast is the exact `changeSurface` of the one signed cumulative implementation task: **68 unique paths**. Relative to the prior 67-path package, `WorkbenchDisclosure.tsx` is newly design-bearing because the generic technical/supporting-disclosure responsibility is disproved, and `MarkdownEditor.tsx` is newly mutable because the active editor composition itself is nonconforming. The remaining six positively retained atomic primitives and retained non-screen UI helpers stay outside the forecast.
+The corrected DESIGN forecast is the exact `changeSurface` of the one signed cumulative implementation task: **68 unique paths**. Relative to the prior 67-path package, only `MarkdownEditor.tsx` is newly mutable because the active editor composition itself is nonconforming. `WorkbenchDisclosure.tsx` remains outside `changeSurface` as a positively retained thin Collapsible adapter under its narrowed same-task-expansion responsibility. The six positively retained atomic primitives and retained non-screen UI helpers stay outside the forecast.
 
 ### Non-UI production
 - `README.md`
@@ -1565,7 +1565,7 @@ Same-layer decomposition outside this exact forecast is not automatically author
 - modifying `src/installer.ts` preemptively — unnecessary under current evidence because it already calls the canonical guided setup owner; if SD19 cannot be realized solely in `src/shell/setup.ts`, return to DESIGN rather than broadening scope;
 - modifying `tests/architecture.test.ts` merely to bless the old presentation — rejected; pre-sign-off campaign fitness may update stale structural enumerations only after corrected DESIGN/PLAN requires it.
 - screen-by-screen CSS tuning on the existing presentation foundation — rejected by P4 structural remediation boundary and C19-F02.
-- preserving the current design-bearing primitive implementation as the substrate for new screens — rejected. P3/P4 responsibility is authoritative, not current primitive bytes; SD21 destructively reconstructs the structural/compositional foundation before screen work.
+- preserving current design-bearing primitive bytes merely because they exist — rejected. P3/P4 responsibility is authoritative; SD21 classifies every foundation owner and destructively replaces only the materially divergent subset before consumer acceptance.
 - allowing later screen phases to redesign reconstructed foundation primitives — rejected. Foundation design and implementation are completed under SD21/IA27; later defects return to that owner or upstream DESIGN rather than being patched locally.
 - retaining feature-era screen/component/layout CSS behind higher-specificity primitive overrides or hidden compatibility DOM — rejected; old screen presentation support is purged before replacement.
 
@@ -1573,4 +1573,4 @@ Same-layer decomposition outside this exact forecast is not automatically author
 
 NONE **after the C19-F03/C20-F06 amendment and the exhaustive 37-surface information contract embedded in this `solution-design.md` above**. The post-IA31 audit proved that a family-level matrix alone did not determine field-level visibility/inspection. P3/R2 own the semantics; the dedicated 37-surface DESIGN contract now closes the datum/action-level classification, placement, disclosure, promotion and negative-rendering decisions before PLAN/implementation. SD21-SD30 bind realization and proof.
 
-Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: destructively reconstruct and certify the shared Workbench composition foundation first; destructively replace every consuming screen family second; semantic/rendered certification last. PLAN must preserve domain/state semantic owners and only the positively retained atomic adapters, while requiring purge-before-fresh-authorship for both the compromised foundation and the superseded screen implementations. Incremental structural or screen migration is prohibited.
+Every stable requirement and every material package-local outcome now has an explicit technical realization/no-change/verification disposition. The corrected UI scope is SD21-SD30: classify/remediate the shared foundation first; authority-first revalidate/remediate IA28-IA31 consumers second; destructively reconstruct IA32-IA34 consumers third; semantic/rendered certification last. PLAN preserves domain/state semantic owners and the six positively retained atomic adapters, requires purge-before-fresh-authorship only where DESIGN explicitly classifies destructive replacement, and forbids compatibility-driven migration from superseded structure.
