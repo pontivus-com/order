@@ -473,6 +473,7 @@ export const App = () => {
       <WorkItemWorkspace
         key={selectedWorkItem.id}
         workItem={selectedWorkItem}
+        schemas={schemasQuery.data ?? []}
         selectedWorkItemFetching={selectedWorkItemQuery.isFetching}
         selectedWorkItemUpdatedAt={selectedWorkItemQuery.dataUpdatedAt}
         selectedWorkItemError={selectedWorkItemQuery.error}
