@@ -359,7 +359,7 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | human lifecycle stage/status meaning | `WorkItem.stage/status` + presentation policy | understand current state | Primary scan datum | row status | internal enum value not required as raw text | no raw enum/internal code |
 | Concerns | `WorkItem.concernIds` mapped to governed concern identity | useful task context/filtering | Supporting | subordinate row metadata | internal representation Technical if different from human label | no UUID-like/internal-only representation |
 | archived state | `WorkItem.archived` | distinguish historical work | Supporting | row/state treatment | archive/restore decision uses confirmation | no second archive navigation grammar |
-| project/search/archive filters | local filter state over canonical list | control scan set | Supporting/Operational | Queue controls | none | inclusion of archived rows cannot replace project/search semantics |
+| project/search/archive filters | local filter state over canonical list | control scan set | Supporting | Queue controls | none | inclusion of archived rows cannot replace project/search semantics |
 | open WorkItem | row navigation | inspect selected work | Primary navigation action | row | enters `SURF-WI-001` | no lifecycle mutation |
 | source/readiness blocker associated with queue | canonical diagnostics/readiness | explain inability to proceed | Primary only when actionable | human-readable notice | raw code/path in Technical/Evidence | no diagnostic dump in queue |
 
@@ -371,9 +371,9 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | work kind | schema catalog | choose Change/Defect/Investigation/Audit; linked remediation limited to Change/Defect | Primary | form field | schema id/version Technical | no schema id as primary label |
 | title | local authoring state | human task identity | Primary | form field | none | no generated technical identity substitute |
 | Concerns | project concern catalog | classify governed concern set | Primary | form control | underlying ids not shown when human names exist | no raw ids as ordinary labels |
-| linked parent meaning/title | completed parent WorkItem | explain remediation lineage | Primary/supporting | fixed linked-remediation context | parent WorkItem id Technical | no persistent raw parent id |
+| linked parent meaning/title | completed parent WorkItem | explain remediation lineage | Supporting | fixed linked-remediation context | parent WorkItem id Technical | no persistent raw parent id |
 | derived/fixed-field explanation | governing lineage/project rules | explain non-editable choices | Supporting | form help | none | must not compete with form task |
-| Create | validated form state | create one governed source-backed WorkItem | Primary action | action region | failure shown as owning notice | no duplicate create command |
+| Create | validated form state | create one governed source-backed WorkItem | Primary | action region; visually primary command | failure shown as owning notice | no duplicate create command |
 | repository documentation root / schema/version/internal metadata | manifest/catalog/internal state | exact implementation identity | Technical | Technical details only if legitimate inspection is needed | never promoted merely for creation | must be absent from ordinary form |
 
 ##### SURF-SET-001 — Settings frame/readiness/navigation
@@ -395,7 +395,7 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | reference-root configuration | `config.referenceRoots` | configure productive context sources | Primary while editing | bounded configuration region | exact values are primary because this is the active configuration task | not repeated as general metadata |
 | Add repository | local task action | connect repository | Primary configuration action | task entry | opens `SURF-SET-REPO-ADD-001` | no inline second form grammar |
 | Move documents | repository action | relocate WorkItem document root safely | Primary task action for selected repository | task entry | opens `SURF-SET-REPO-MOVE-001` | no silent move |
-| Disconnect | repository action | remove connected repository | Destructive action | row action | `SURF-CONF-REPO-DISCONNECT-001` | no immediate destructive mutation |
+| Disconnect | repository action | remove connected repository | Supporting | row action with destructive priority | `SURF-CONF-REPO-DISCONNECT-001` | no immediate destructive mutation |
 | repositoryRoot/workItemsRoot/manifestSha256/config sha | settings/config records | exact identity/concurrency mechanics | Technical outside active Add/Move/reference-root task | Technical details | exact root becomes Primary only when the active configuration input/confirmation requires it | no ordinary metadata wall |
 
 ##### SURF-SET-REPO-ADD-001 — Add repository
@@ -404,8 +404,8 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 |---|---|---|---|---|---|
 | Git repository root input | local form | specify repository to connect | Primary | form field | exact path is task-required and therefore legitimately Primary here |
 | project/readiness result or validation failure | repository admission result | explain whether connection can proceed | Primary | form notice | show human meaning; raw parser/internal codes Technical |
-| Connect | validated form | perform connection | Primary action | action region | expected config identity remains hidden mechanics |
-| Cancel | local | abandon bounded task | Secondary action | action region | no mutation |
+| Connect | validated form | perform connection | Primary | action region; visually primary command | expected config identity remains hidden mechanics |
+| Cancel | local | abandon bounded task | Supporting | action region; secondary command | no mutation |
 
 ##### SURF-SET-REPO-MOVE-001 — Move WorkItem documents
 
@@ -413,7 +413,7 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 |---|---|---|---|---|---|
 | target repository/project semantic identity | selected repository | identify affected configuration | Primary | task header | exact current root may be shown because path-specific mutation is being configured |
 | current/new document root | repository config + local input | define exact migration | Primary | form | exact paths are decision-required |
-| migration consequence/preservation meaning | canonical migration contract | explain effect | Primary/Supporting | task body | no implementation-internal transport detail |
+| migration consequence/preservation meaning | canonical migration contract | explain effect | Primary | task body | no implementation-internal transport detail |
 | Move/Cancel | mutation/local | commit or abandon task | Primary/Secondary actions | action region | failure shown in owning task |
 
 ##### SURF-SET-OC-001 — saved OpenCode accounts
@@ -421,10 +421,11 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | Datum/action | Source | Intent | Class | Default placement | Disclosure / promotion |
 |---|---|---|---|---|---|
 | saved account label | account state | identify account | Primary | account row | exact account id Technical |
-| active/authentication human state | discriminated account status mapped to product language | understand readiness | Primary/Supporting | row status | raw provider/status internals Technical |
+| active/authentication human state | discriminated account status mapped to product language | understand readiness | Supporting | row status; promote human meaning/action to Primary only when it blocks the current account task | raw provider/status internals Technical |
 | needs-auth human instruction/action | account status | restore productive account | Primary when actionable | row/notice | raw provider mechanics remain Technical |
 | mutation blocker human meaning | mutation blockers | explain why account mutation is unsafe | Primary when blocking | Settings notice | raw Run/provider identity Technical |
-| Activate/Rename/Remove/Add | account commands | manage saved account | task actions | row/section | Rename/Add bounded tasks; Remove confirmation |
+| Add account | account command | create a saved account | Primary | section action; visually primary when no bounded account task is open | opens Add/login task |
+| Activate/Rename/Remove | account commands | manage an existing saved account | Supporting | row actions; Remove uses destructive priority | Rename bounded task; Remove confirmation |
 | provider/account ids/transport mechanics | account/provider records | exact integration identity | Technical | Technical details | absent ordinarily |
 
 ##### SURF-SET-OC-RENAME-001 — Rename OpenCode account
@@ -440,9 +441,9 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | Datum/action | Source | Intent | Class | Placement | Rule |
 |---|---|---|---|---|---|
 | new account label | local form | establish human saved-account identity | Primary | form | no account id yet |
-| sign-in start meaning | account login command | begin governed login | Primary action | action region | provider mechanics Technical |
+| sign-in start meaning | account login command | begin governed login | Primary | action region; visually primary command | provider mechanics Technical |
 | failure/retry | login-start result | recover current task | Primary when failed | notice | raw process/provider evidence Technical |
-| Cancel | local | abandon task | Secondary | action region | no mutation |
+| Cancel | local | abandon task | Supporting | action region; secondary command | no mutation |
 
 ##### SURF-SET-OC-LOGIN-001 — OpenCode sign-in
 
@@ -461,7 +462,7 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 |---|---|---|---|---|---|
 | configured model human/provider selection | config + available models | choose productive model | Primary | form/configuration | exact provider/model value is task-required and may be Primary while selecting |
 | availability/readiness human state | model query/config comparison | explain unusable or unavailable selection | Primary when actionable | notice/status | raw fetch/provider mechanics Technical |
-| Save/update | configuration mutation | commit model selection | Primary action | action region | config SHA is hidden optimistic precondition |
+| Save/update | configuration mutation | commit model selection | Primary | action region; visually primary command | config SHA is hidden optimistic precondition |
 | provider ids/model ids outside active selection mechanics | model records | exact integration identity | Technical when not required to choose the model | Technical details | do not create provider-debug panel |
 
 ##### SURF-WI-001 — selected WorkItem shell / rail / current attention
@@ -473,7 +474,7 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | current lifecycle step | `deriveWorkflowRail` / current stage | orientation | Primary | rail/current marker | none | no raw enum |
 | reached/historical/unreached navigation | `deriveReachedStages/deriveWorkflowRail` | inspect legitimate history | Supporting navigation | rail | none | history selection cannot steal current attention |
 | current attention human meaning | `deriveCurrentAttention` + recovery/currentness/coherence | answer “what needs action now?” | Primary | stable attention region | technical cause promotes meaning/consequence/action only | no raw diagnostic/session/path |
-| current valid action | canonical attention/recovery owner | operate current workflow | Primary action | attention action region | exactly one competing mutation owner | no generic Start beside higher-priority action |
+| current valid action | canonical attention/recovery owner | operate current workflow | Primary | attention action region; exactly one visually primary mutation owner | none | no generic Start beside higher-priority action |
 | Context open/close | local state | inspect technical orientation | Supporting utility | identity/utility region | opens `SURF-WI-CONTEXT-001`; never auto-open | Context not sole blocker/action owner |
 | archive/restore | WorkItem utility | manage queue visibility | Supporting/destructive utility | identity/utility region | confirmation required | no immediate destructive mutation |
 | title edit | title mutation contract | maintain human identity | Supporting utility | identity row | mutation error stays with title | no technical metadata edit surface |
@@ -512,8 +513,10 @@ Research document semantics are work-kind specific and remain owned by the selec
 | current Dialogue | current STAGE Run | converse/answer/continue when interaction owns attention | Primary when current interaction requires it | `SURF-MAT-ACTIVITY-001` | conversation never replaced by event dump |
 | current governed Research document | R1 ArtifactRef + bytes | inspect governed factual result | Primary when no higher attention owner | `SURF-MAT-DOC-001` | repository path/hash Technical |
 | proposal review | proposal state | review a proposed governed change | Primary while proposal decision owns attention | `SURF-MAT-PROPOSAL-001` | free-form continuation suppressed |
-| attempts/history/upstream source/evidence | Runs/artifacts/source/evidence | inspect supporting context | Supporting/Operational | `WorkbenchSelector` / history | cannot change primary canvas width |
-| provider/session/baseline/context/raw event identity | Run/RunEvents | exact mechanics | Technical/Diagnostic | Technical details / Evidence | provider failure promotes only human meaning/action |
+| upstream source/document/evidence links | artifacts/source/evidence | inspect supporting authority/material | Supporting | `WorkbenchSelector` / supporting material | cannot change primary canvas width |
+| attempts/history/activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector | subordinate when persistent display would compete |
+| provider/session/baseline/context/Run identity | Run | exact execution/provider mechanics | Technical | Technical details / Context | provider failure promotes only human meaning/action |
+| raw event tags/payloads/parser-provider diagnostics | RunEvents/diagnostics | implementation-facing failure evidence | Diagnostic | Timeline Technical details / Evidence | never ordinary productive-stage content |
 | Start/Retry/Resume/Reconcile/Cancel/Input/Adopt/Reject | canonical attention/interaction/recovery | operate Research | Primary action according to one current owner | owning material | never competing equal-weight mutations |
 
 ##### SURF-STEP-R2-001 — Requirements
@@ -525,8 +528,10 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | current Requirements attention/action | lifecycle/current-attention derivation | identify current functional-design task | Primary | attention region; one owner |
 | Dialogue when current | STAGE Run/events | resolve missing functional decision/input | Primary | Activity surface |
 | governed Requirements Markdown | R2 ArtifactRef/content | inspect required behavior, acceptance, scope/exclusions | Primary | document surface |
-| supporting Research/source/attempt/history/evidence | artifacts/runs/source | judge current work | Supporting/Operational | selector/history |
-| provider/session/path/hash/event mechanics | exact records | audit/debug | Technical/Diagnostic | Technical details/Evidence only |
+| supporting Research/source/evidence | artifacts/source/evidence | judge current functional-design basis | Supporting | selector/supporting material |
+| attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
+| provider/session/path/hash identity | exact records | audit exact mechanics | Technical | Technical details/Context |
+| raw event/payload diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence only |
 | proposal disposition | proposal events | adopt/reject governed authority proposal | Primary while pending | Proposal Review; suppress continuation |
 
 ##### SURF-STEP-DESIGN-001 — Solution design
@@ -536,7 +541,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | current Solution-design attention/action | lifecycle/current attention | identify current technical-design task | Primary | attention region |
 | Dialogue when current | STAGE Run/events | resolve technical design input | Primary | Activity |
 | governed DESIGN Markdown | DESIGN ArtifactRef/content | inspect technical realization | Primary | document |
-| supporting R2/R1/source/history/evidence | artifacts/runs/source | trace design basis | Supporting/Operational | selector/history |
+| supporting R2/R1/source/evidence | artifacts/source/evidence | trace design basis | Supporting | selector/supporting material |
+| attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
 | provider/session/path/hash/event mechanics | exact records | audit/debug | Technical/Diagnostic | Technical details/Evidence |
 | proposal disposition | proposal events | govern P4-P6 change | Primary while pending | Proposal Review |
 
@@ -548,9 +554,10 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | Dialogue when current | STAGE Run/events | resolve plan input | Primary | Activity |
 | governed PLAN Markdown | PLAN ArtifactRef/content | inspect executable signed-task plan | Primary | document |
 | task/change-surface summaries derived from PLAN | parsed signed-task block | support inspection | Supporting | subordinate selector/detail; never second plan authority |
-| supporting DESIGN/R2/R1/source/history/evidence | artifacts/runs/source | trace plan basis | Supporting/Operational | selector/history |
+| supporting DESIGN/R2/R1/source/evidence | artifacts/source/evidence | trace plan basis | Supporting | selector/supporting material |
+| attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
 | provider/session/path/hash/event mechanics | exact records | audit/debug | Technical/Diagnostic | Technical details/Evidence |
-| Start Readiness / retry/recovery as canonically admitted | lifecycle/current attention | progress or recover | Primary action | attention action region |
+| Start Readiness / retry/recovery as canonically admitted | lifecycle/current attention | progress or recover | Primary | attention action region; visually primary current command |
 
 ##### SURF-STEP-R3-001 — Readiness review
 
@@ -560,7 +567,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | findings / defective owner / exact return action | R3 governed content + lifecycle return | explain why not ready and where ownership returns | Primary | Review body/action | raw artifact identity remains Technical |
 | governed R3 material | R3 ArtifactRef/content | substantive readiness review | Primary | Review body/document | exact path/hash Technical |
 | package documents needed for judgment | current package artifacts | inspect basis | Supporting | selector/material list | role may be human label; path/hash hidden |
-| attempt history/evidence | R3 Runs/evidence | inspect review history | Supporting/Operational | selector/history | exact Run/session identity Technical |
+| package evidence links | evidence | inspect readiness basis | Supporting | selector/resource list | exact evidence identity in Evidence |
+| attempt history | R3 Runs | inspect readiness chronology | Operational | selector/history | exact Run/session identity Technical |
 | legitimate REQUIRED_INPUT | current R3 Run interaction | answer exact readiness question | Primary temporarily | Dialogue/attention | unrelated technical identity not promoted |
 | artifact/package role/path/hash/technical identity | package records | exact audit identity | Technical | Technical details | hidden before explicit disclosure |
 | Return/Retry/Input actions | canonical attention/recovery | progress/recover | Primary action according to current owner | Review/Dialogue | one owner only |
@@ -573,8 +581,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | package/task meaning | SignoffPackage task block | understand what will be authorized | Primary | Review body/task collection | exact package identity Technical |
 | governed package documents | package ArtifactRefs | inspect authority basis | Supporting | selector/list | paths/hashes hidden |
 | approver human identity | local input subject to canonical ingress validation | identify explicit human sign-off | Primary | decision region | internal approval id Technical |
-| Sign off exact package | current package + approvedBy | authorize exact package | Primary action | decision region | absent/disabled when package not current |
-| historical approval/task state | ExecutionTasks/history | inspect prior approval | Supporting/Operational | review history | exact approval/task ids Technical |
+| Sign off exact package | current package + approvedBy | authorize exact package | Primary | decision region; sole visually primary mutation | absent/disabled when package not current |
+| historical approval/task state | ExecutionTasks/history | inspect prior approval | Operational | review history | exact approval/task ids Technical |
 | package hash/source SHA/baseline commit/commit identity | SignoffPackage | exact audit identity | Technical | Technical details | absent by default |
 | task/approval ids | package/task records | exact identity | Technical | Task technical details | absent from ordinary task meaning |
 | stale/error/loading state | package query/currentness | explain inability to sign | Primary when blocking | Review notice | raw transport error not ordinary copy |
@@ -586,8 +594,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | task objective/state meaning | SignedTaskDefinition / ExecutionTask | understand authorized work | Primary | task detail | exact task id Technical unless human task label is meaningful |
 | scope/exclusions | signed task | understand hard semantic/repository boundary | Primary | task detail | exact paths are task-required here and may be visible |
 | dependencies | signed task | understand execution eligibility | Supporting | task detail | no graph UI required |
-| acceptance/gates/authority/concerns | signed task | judge verification and traceability | Primary/Supporting | task detail | internal ids that have no operator meaning belong Technical |
-| changeSurface forecast | signed task | understand expected physical change | Supporting/Operational | task detail | it is forecast, not hard scope |
+| acceptance/gates/authority/concerns | signed task | judge verification and traceability | Primary | task detail | internal ids that have no operator meaning belong Technical |
+| changeSurface forecast | signed task | understand expected physical change | Supporting | task detail | it is forecast, not hard scope |
 | approval/task/internal ids | task records | exact audit identity | Technical | Task technical details | hidden by default |
 | Back/select another task | local selection | continue package review | Supporting navigation | task selector | no mutation |
 
@@ -597,9 +605,9 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 |---|---|---|---|---|---|
 | task objective + human state | ExecutionTasks | scan approved work | Primary | fixed master list | exact task ids Technical |
 | current task owner/action/blocker | `deriveExecutionOwner` + recovery/current attention | know what requires action now | Primary | attention/detail header | blocker promotes human meaning/action only |
-| attempt human meaning/status | Runs mapped to product labels | inspect current/historical attempts | Supporting/Operational | subordinate attempt selector/list | Run id/session Technical |
+| attempt human meaning/status | Runs mapped to product labels | inspect current/historical attempts | Operational | subordinate attempt selector/list | Run id/session Technical |
 | current validation boundary | `deriveValidationBoundary` | understand verified progress/failure | Primary | task detail | unreached full matrix not primary |
-| chronology | RunEvents mapped to product presentation | inspect operational history | Supporting/Operational | Timeline | raw event tags/payload Diagnostic |
+| chronology | RunEvents mapped to product presentation | inspect operational history | Operational | Timeline | raw event tags/payload Diagnostic |
 | evidence/resources | EvidenceRefs/artifacts | inspect supporting proof | Supporting | resource list | exact bytes/identity in Evidence |
 | Start current task / Retry / Resume / Cancel | canonical execution owner/recovery | operate current approved task | Primary action according to current owner | attention/action region | historical selection cannot retarget action |
 | task/approval/plan/Run ids; baseline/context/provider session | exact execution records | audit mechanics | Technical | Technical details | absent ordinarily |
@@ -610,8 +618,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | Datum/action | Source | Intent | Class | Placement / rule |
 |---|---|---|---|---|
 | selected task objective/state | ExecutionTask | understand selected task | Primary | detail |
-| signed scope/gates/dependencies/change forecast when needed | ExecutionTask | understand execution contract | Supporting/Operational | detail sections |
-| selected attempt role/number/human status | Run | inspect attempt | Supporting/Operational | attempt detail |
+| signed scope/gates/dependencies/change forecast when needed | ExecutionTask | understand execution contract | Supporting | detail sections |
+| selected attempt role/number/human status | Run | inspect attempt | Operational | attempt detail |
 | current validation boundary/results | pure derivation + validation events | understand verification | Primary/current + Operational history | current boundary visible; complete matrix subordinate/disclosed |
 | timeline | RunEvents | inspect execution history | Operational | timeline with product labels |
 | evidence resources | EvidenceRefs | inspect proof | Supporting | resource rows; opens Evidence |
@@ -626,7 +634,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed result material | terminal ArtifactRefs/content | present investigation/audit result where applicable | Primary | result body | exact artifact identity Technical |
 | candidate evidence/resources | successful execution Runs/RunEvents/EvidenceRefs | support verified candidate | Supporting | resource list | human resource labels ordinarily; exact identity in Evidence |
 | linked remediation action | eligible Audit/Investigation outcome | create separately governed Change/Defect | Primary next action when applicable | result action | opens `SURF-CREATE-001` |
-| internal event tags/role codes/ids/hashes/raw result identity | exact records | audit mechanics | Technical/Diagnostic | Evidence/Technical details if needed | never ordinary result copy |
+| ids/hashes/internal role identity | exact records | audit exact result identity | Technical | Technical details/Evidence if needed | never ordinary result copy |
+| raw event tags/payloads | RunEvents | debug implementation evidence | Diagnostic | Evidence only when explicitly inspected | never ordinary result copy |
 | result loading/error state | content/evidence query | explain unavailable supporting material | Supporting/Primary if it prevents result inspection | owning result notice | raw transport internals hidden |
 
 ##### SURF-MAT-SOURCE-001 — Work request source document/editor
@@ -647,7 +656,7 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | Datum/action | Source | Intent | Class | Default placement | Rule |
 |---|---|---|---|---|---|
 | governed Markdown content | ArtifactRef + exact bytes | author current governed artifact | Primary | document/editor | semantic internal content remains owned by selected stage schema/template |
-| human document role/title | ArtifactRef role mapped to product label | orient current material | Primary/Supporting | document header | repository path not subtitle |
+| human document role/title | ArtifactRef role mapped to product label | orient current material | Supporting | document header | repository path not subtitle |
 | maturity/currentness | lifecycle/currentness derivation | understand whether material is current/editable | Supporting; Primary if stale blocks action | status/notice | exact hash Technical |
 | Edit/Preview/Split | editor mode | author/inspect | Supporting | toolbar | no new authority |
 | Save/Cancel | artifact mutation/local | persist/abandon direct edit where allowed | Primary/Secondary actions | editor | exact expected hash remains mechanics |
@@ -671,10 +680,10 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 |---|---|---|---|---|---|
 | human/agent conversation | persisted semantic RunEvents | understand/respond to stage work | Primary | Dialogue transcript | workflow/system events visually distinct |
 | exact required-input question | unresolved HUMAN_INPUT_REQUESTED | answer current question | Primary | Dialogue anchor/composer | focus once for newly current request |
-| free-form continuation guidance/composer | OPEN interaction + visible substantive agent message | continue current work | Primary action | anchored composer | absent while proposal/recovery/higher owner exists |
+| free-form continuation guidance/composer | OPEN interaction + visible substantive agent message | continue current work | Primary | anchored composer; visually primary current interaction | absent while proposal/recovery/higher owner exists |
 | human-readable processing/block/failure status | interaction/current attention | understand current state | Primary when it owns attention | Dialogue/attention notice | raw provider mechanics hidden |
 | attempt number/time/human status | Run | orient attempt | Supporting | Dialogue header/selector | Run id Technical |
-| bounded agent activity | AGENT_ACTIVITY_RECORDED | useful operational transparency | Supporting/Operational | activity region/timeline | does not replace conversation |
+| bounded agent activity | AGENT_ACTIVITY_RECORDED | useful operational transparency | Operational | activity region/timeline | does not replace conversation |
 | workflow/system event labels | RunEvents through product presentation | understand persisted workflow history | Operational | timeline | raw tags/payloads Diagnostic |
 | evidence resource labels | EvidenceRefs | inspect proof | Supporting | timeline/resource row | exact identity/bytes in Evidence |
 | Cancel | canonical interaction eligibility | stop current Run | Primary/Secondary current action when admitted | Dialogue action | suppressed by proposal/adoption/current-owner rules |
@@ -691,7 +700,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | unified diff | proposal event | inspect exact proposed bytes | Primary | CodeBlock/review body | exact mutation content is task-required |
 | Adopt/Reject | current proposal decision state | dispose proposal | Primary actions | decision region | continuation/cancel competition follows canonical control exclusivity |
 | adoption/decision failure | mutation state | recover decision | Primary when blocking | Review notice | raw transport mechanics hidden |
-| raw event/schema/provider identity | RunEvents | debug | Technical/Diagnostic | Technical details/Evidence | absent ordinary review |
+| provider/session/schema identity | Run/typed proposal context | audit exact mechanics | Technical | Technical details | absent ordinary review |
+| raw event tags/payloads | RunEvents | debug | Diagnostic | Evidence/Timeline Technical details | absent ordinary review |
 
 ##### SURF-MAT-EVIDENCE-001 — exact Evidence
 
@@ -715,7 +725,7 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 | unsaved-change meaning | local dirty state | Primary | confirmation body |
 | requested destination consequence | pending destination semantic label | Primary | enough context to decide safely; no internal route |
 | Continue editing | local | Primary safe action | close confirmation, preserve buffer |
-| Discard and navigate | local | destructive action | explicit confirmation; no silent discard |
+| Discard and navigate | local | Primary | destructive-priority confirmation command; explicit confirmation; no silent discard |
 
 ###### SURF-CONF-DIRTY-MATERIAL-001
 
@@ -731,7 +741,7 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 |---|---|---|---|
 | WorkItem human title + archive/restore consequence | WorkItem | Primary | identify affected work semantically |
 | archive/restore command | WorkItem mutation | destructive/primary confirmation action | exact WorkItem id remains Technical |
-| Cancel | local | Secondary | no mutation |
+| Cancel | local | Supporting | secondary confirmation command; no mutation |
 
 ###### SURF-CONF-DOC-GIT-001
 
