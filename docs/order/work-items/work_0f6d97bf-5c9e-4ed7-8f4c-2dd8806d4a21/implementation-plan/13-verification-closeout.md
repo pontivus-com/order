@@ -4,6 +4,9 @@ This component allocates proof across the one canonical signed task T1 and its o
 
 ## In-task architecture and reconstruction checkpoints
 
+Before ordinary signed-task execution exists, `IA28-RZ1` permits only the bounded pre-sign-off IA28 evidence realization declared in `00-governance.md`. The checkpoint table below also governs that tranche's stop boundary: IA27 readiness may admit IA28, but IA28 → IA29 is a **human sign-off boundary**, not an automatic phase advance while `IA28-RZ1` is active.
+
+
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
 
 Before T1 mutation begins, the execution harness provides the exact Playwright-owned Chromium runtime required by P6 and the BUILDER requests the signed `dependency-lock` gate. Exact `bun ci` must `GATE_PASSED`.
@@ -14,7 +17,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
 | IA27 | IA28 | SD21 visual-language → foundation realization ledger complete/no-duplicate/no-unowned before current-byte judgment; every current design-bearing owner has one `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT` disposition; targeted purge/fresh-authorship evidence exists for Attention, Dialogue and Confirmation; bounded residuals are closed without structural refactor; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; six retained atomic adapters remain narrow; cross-service component/theme parity + foundation/disclosure/accessibility/responsive proof + `SURF-WI-001` readiness PASS; this authorizes IA28 consumption but is not foundation acceptance/freeze |
-| IA28 | IA29 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + actual production-browser IA28 capture set + all 3 IA28 rows independently PASS for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization PASS against current authority and paired non-superseded SVGs; this is the first rendered foundation acceptance and IA29 remains blocked until it passes |
+| IA28 | **HUMAN SIGN-OFF; IA29 only after sign-off** | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable checkpoints + actual production-browser IA28 capture set + all 3 IA28 rows independently reviewed for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization verdict against current authority and paired non-superseded SVGs. `IA28-RZ1` stops here regardless of PASS/FAIL; no IA29 mutation is authorized until the operator accepts the evidence and performs the normal sign-off. |
 | IA29 | IA30 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
 | IA30 | IA31 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
 | IA31 | IA32 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA31 face-ledger rows PASS |

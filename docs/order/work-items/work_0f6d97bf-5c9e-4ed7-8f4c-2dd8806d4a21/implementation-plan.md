@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `3c309cf6ea488cc766c4d35b2726b2ff3478de2f` |
+| `implementation-plan/00-governance.md` | `fc798d3cb6a0da31cc10b2b935a6118d1c1d426a` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `43634c52c453d39957416dc45152fbb9530b2a39` |
 | `implementation-plan/02-a02-governance-intake.md` | `6aabf5556e679c3dcbbb63d898248c0c6c4178c4` |
 | `implementation-plan/03-a03-queue-source.md` | `31e37f66c80e03fb9d3e06bf97ea62dff7ca9324` |
@@ -39,8 +39,8 @@ No compatibility `WorkbenchLayout`, second AppShell, second structural responsiv
 | `implementation-plan/09-a09-provider-settings.md` | `7a56f305df761cf787b43cbfa77ff1423091658f` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `96af19549f43a2029711b4a6ff47db547907758b` |
 | `implementation-plan/11-a11-component-certification.md` | `717241ffee57b3de81ece03e3a684c58c9601afd` |
-| `implementation-plan/12-action-catalog.md` | `27bafc67abe785934e51e15e48dcf8917e553549` |
-| `implementation-plan/13-verification-closeout.md` | `cc0fb04ca8be1cfbd05103b393f8e1bf9576da7e` |
+| `implementation-plan/12-action-catalog.md` | `4c970e7573c2c53911ea944e94a9aec5bf5ec378` |
+| `implementation-plan/13-verification-closeout.md` | `cbaa18819dcf42900962643d2b8c66f8194d07de` |
 
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -202,6 +202,25 @@ canonical P3 / package consequence
 A positive no-change or baseline-reuse disposition is an implementation instruction: **do not edit for that obligation** and revalidate the named evidence/proof. If execution disproves it, return upstream.
 
 ##### Execution ownership
+
+## IA28 bounded pre-sign-off realization authorization
+
+This campaign invokes the P0 bounded acceptance-evidence realization control solely because the Workbench foundation cannot be meaningfully accepted from IA27 primitives/ledger in isolation. The operator explicitly authorized this exact tranche on **2026-11-22** with the instruction to govern the boundary and implement only until the first rendered sign-off point.
+
+**Authorization id:** `IA28-RZ1`  
+**State:** `AUTHORIZED`  
+**Purpose:** realize enough of the actual product to judge whether the IA27 foundation and first screen family satisfy current authority.  
+**Start condition:** IA27 foundation-readiness evidence remains current; current R2/P3/DESIGN/P4/theme authority and the IA28 SURF rows are loaded before implementation is judged.  
+**Authorized primary owners:** `ui/src/OpenCodeAccountControl.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/CreateWorkItem.tsx`.  
+**Shared-owner use:** `ui/src/styles.css` / `ui/src/theme.css` only for a proven IA28 screen-local residual or an IA28-observed recurring IA27 foundation defect; IA27 primitive/shell owners may be reopened only when the rendered first-screen evidence proves a recurring foundation defect.  
+**Verification owners:** existing `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` only as required to produce/verify the declared IA28 evidence package.  
+**Forbidden:** any IA29-IA34 screen-family mutation; unrelated non-UI mutation; new product/architecture/contract semantics; delivery/merge/release; treating current JSX/SVG as authority.  
+**Required evidence:** actual production-browser captures for `SURF-APP-001`, `SURF-QUEUE-001`, `SURF-CREATE-001` and their required IA28 state/reference sheets, reviewed against current authority and paired non-superseded SVGs with independent `schema_information`, `ux_interaction`, `visual_ui` verdicts plus one foundation-realization verdict.  
+**Failure routing:** recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27; Queue/Create/application-utility-local defect → IA28; missing/contradictory product or information classification → DESIGN.  
+**Mandatory stop:** once the complete IA28 rendered evidence package exists and is ready for human review, all implementation stops before IA29 regardless of verdict. Human acceptance/sign-off is the next action.
+
+`IA28-RZ1` is evidence-production authority only. It is not Approval, does not materialize T1, and cannot be cited as authorization for any post-IA28 work.
+
 
 A semantic phase may reference an IA action owned by another phase. That reference is a consumer dependency, not permission to re-implement the action. Each IA01-IA34 entry is defined exactly once in `12-action-catalog.md`. IA entries may own a production mutation, a verification-only delta, a DESIGN-positive-reuse/no-code proof obligation, rendered-product acceptance evidence, or final closeout; they do not create a second task representation.
 
@@ -925,6 +944,9 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ##### Execution waves
 
+**Pre-sign-off realization boundary:** `IA28-RZ1` authorizes only the IA28 first-screen evidence tranche defined in `00-governance.md`. Execution of Wave 4/IA29 or any later wave is forbidden until the rendered IA28 evidence is presented and the operator performs the subsequent normal sign-off. The authorization does not materialize T1.
+
+
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
 1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
 2. **Wave 2 — resumed foundation + shell authority classification/remediation, including targeted destructive replacement where required:** IA27. First derive/revalidate the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references; only then judge the already-realized foundation/shell against that ledger and correct residual nonconformance. IA27 closes at **foundation-ready-for-consumer**, not visual/product acceptance; the foundation is not frozen until IA28 proves it through the first real screen implementation.
@@ -1360,6 +1382,9 @@ This component allocates proof across the one canonical signed task T1 and its o
 
 ##### In-task architecture and reconstruction checkpoints
 
+Before ordinary signed-task execution exists, `IA28-RZ1` permits only the bounded pre-sign-off IA28 evidence realization declared in `00-governance.md`. The checkpoint table below also governs that tranche's stop boundary: IA27 readiness may admit IA28, but IA28 → IA29 is a **human sign-off boundary**, not an automatic phase advance while `IA28-RZ1` is active.
+
+
 Preflight IA07 re-proves the existing coordinator-owned signed-checkpoint capability; no candidate byte is relied upon to create it.
 
 Before T1 mutation begins, the execution harness provides the exact Playwright-owned Chromium runtime required by P6 and the BUILDER requests the signed `dependency-lock` gate. Exact `bun ci` must `GATE_PASSED`.
@@ -1370,7 +1395,7 @@ T1 carries the same six logical gate IDs through final validation. During the li
 |---|---|---|
 | applicable IA01-IA25 non-UI work | IA27 | non-UI baseline proof; no protected execution-foundation mutation |
 | IA27 | IA28 | SD21 visual-language → foundation realization ledger complete/no-duplicate/no-unowned before current-byte judgment; every current design-bearing owner has one `CONFORMING_NO_EDIT`, `BOUNDED_RESIDUAL` or `DESTRUCTIVE_REPLACEMENT` disposition; targeted purge/fresh-authorship evidence exists for Attention, Dialogue and Confirmation; bounded residuals are closed without structural refactor; `WorkbenchLayout` remains absent; exactly one `WorkbenchAppShell`, `WorkbenchWorkItemShell` and responsive owner; six retained atomic adapters remain narrow; cross-service component/theme parity + foundation/disclosure/accessibility/responsive proof + `SURF-WI-001` readiness PASS; this authorizes IA28 consumption but is not foundation acceptance/freeze |
-| IA28 | IA29 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + actual production-browser IA28 capture set + all 3 IA28 rows independently PASS for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization PASS against current authority and paired non-superseded SVGs; this is the first rendered foundation acceptance and IA29 remains blocked until it passes |
+| IA28 | **HUMAN SIGN-OFF; IA29 only after sign-off** | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable checkpoints + actual production-browser IA28 capture set + all 3 IA28 rows independently reviewed for `schema_information`, `ux_interaction`, `visual_ui` + explicit foundation-realization verdict against current authority and paired non-superseded SVGs. `IA28-RZ1` stops here regardless of PASS/FAIL; no IA29 mutation is authorized until the operator accepts the evidence and performs the normal sign-off. |
 | IA29 | IA30 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 8 IA29 face-ledger rows PASS |
 | IA30 | IA31 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 6 IA30 face-ledger rows PASS |
 | IA31 | IA32 | DESIGN surface-contract conformance + residual-delta/no-edit ledger + applicable signed checkpoints + all 3 IA31 face-ledger rows PASS |

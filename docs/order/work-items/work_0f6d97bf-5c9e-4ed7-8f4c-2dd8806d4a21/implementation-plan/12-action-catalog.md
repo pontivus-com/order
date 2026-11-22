@@ -14,6 +14,9 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ## Execution waves
 
+**Pre-sign-off realization boundary:** `IA28-RZ1` authorizes only the IA28 first-screen evidence tranche defined in `00-governance.md`. Execution of Wave 4/IA29 or any later wave is forbidden until the rendered IA28 evidence is presented and the operator performs the subsequent normal sign-off. The authorization does not materialize T1.
+
+
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
 1. **Wave 1 — authority/source/task/runtime corrections:** IA01-IA10 plus IA25 where still unsatisfied.
 2. **Wave 2 — resumed foundation + shell authority classification/remediation, including targeted destructive replacement where required:** IA27. First derive/revalidate the closed SD21 visual-language → foundation realization ledger from current P3/DESIGN, P4, theme authority and reviewed derived SVG references; only then judge the already-realized foundation/shell against that ledger and correct residual nonconformance. IA27 closes at **foundation-ready-for-consumer**, not visual/product acceptance; the foundation is not frozen until IA28 proves it through the first real screen implementation.

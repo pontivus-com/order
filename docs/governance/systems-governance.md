@@ -86,7 +86,7 @@ P0 includes:
 - authority must be resolved before implementation;
 - product behavior cannot be invented from missing requirements;
 - material decisions must be closed before execution;
-- implementation authority requires explicit sign-off;
+- implementation authority requires explicit human authorization;
 - signed work must be traceable through the pyramid;
 - implementation cannot self-expand scope;
 - implementation cannot self-certify completion;
@@ -98,6 +98,25 @@ P0 includes:
 - unrelated discoveries return to the work-refinery lifecycle.
 
 A project that removes these controls is no longer operating under Order semantics.
+
+### Bounded acceptance-evidence realization
+
+Ordinary P7 implementation proceeds only after the normal lifecycle sign-off/Approval boundary. One narrower P0 control exists for work whose acceptance cannot be meaningfully judged from P1-P7 artifacts alone because the acceptance question depends on observing a realized P8 artifact.
+
+A **bounded acceptance-evidence realization** is permitted only when all of the following are true before mutation:
+
+- current authority and R3 have closed the product, requirements, architecture and implementation decisions needed for the tranche;
+- the current P7/control artifact declares the exact realization objective, exact mutable owners/surface, required evidence, failure routing and mandatory stop boundary;
+- the operator explicitly authorizes that exact tranche;
+- the tranche exists solely to produce evidence needed for the next human acceptance/sign-off decision;
+- the tranche cannot materialize or execute downstream post-sign-off tasks, merge/deliver/release, broaden scope, or treat its own implementation as authority;
+- any newly required product behavior, semantic owner, architecture, contract, dependency, validation rule or out-of-bound path returns upstream before mutation;
+- the activity stops when the declared evidence package exists, regardless of whether the evidence passes or fails.
+
+This control is **not** WorkItem lifecycle sign-off, an `Approval`, an `ExecutionTask`, candidate completion, or a second lifecycle. The WorkItem remains pre-sign-off. If the evidence is accepted, the later normal sign-off binds the exact then-current package/baseline and authorizes only the remaining governed execution. If the evidence is rejected, correction is limited to the declared realization boundary or routed to the owning upstream layer.
+
+Lower-layer campaign/PLAN documents may record only their local realization boundary, authorization provenance, evidence requirement and stop condition while citing this P0 owner; they may not redefine this control.
+
 
 ## 4. P1 — System / project first principles
 
