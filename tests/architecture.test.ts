@@ -2378,6 +2378,28 @@ describe("architecture fitness", () => {
       }
     }
 
+    for (const required of [
+      "visual-language → foundation realization ledger",
+      "semantic information hierarchy",
+      "interaction-class composition",
+      "actions and confirmations",
+      "status, notices and states",
+      "progressive disclosure",
+      "color and theme",
+      "typography",
+      "spacing, density, geometry and boundaries",
+      "responsive composition",
+      "accessibility/focus/overlay mechanics",
+      "specialized content",
+      "may not introduce a recurring color/token",
+    ]) {
+      if (!design.includes(required)) {
+        violations.push(
+          "DESIGN SD21 visual-language/foundation contract missing " + required,
+        );
+      }
+    }
+
     const phaseRequirementRows: { requirement: string; disposition: string }[] = [];
     const phaseAtoms: string[] = [];
     for (const relativePath of semanticPhasePaths) {
@@ -2699,10 +2721,12 @@ describe("architecture fitness", () => {
           !/historical purge provenance/i.test(objective) ||
           !/field-exact 37-surface information contract/i.test(objective) ||
           !/consume the exact phase-owned rows/i.test(objective) ||
-          !/default-hidden/i.test(objective)
+          !/default-hidden/i.test(objective) ||
+          !/visual-language → foundation realization ledger/i.test(objective) ||
+          !/no duplicate\/unowned\/screen-delegated role/i.test(objective)
         ) {
           violations.push(
-            "T1 objective must encode resumed-baseline provenance, signed field-exact DESIGN consumption and disclosure proof",
+            "T1 objective must encode resumed-baseline provenance, signed field-exact DESIGN consumption, visual-language foundation derivation and disclosure proof",
           );
         }
 
@@ -2790,6 +2814,19 @@ describe("architecture fitness", () => {
           violations.push(
             "PLAN must retain resumed/fresh screen ownership and shared-stylesheet boundary",
           );
+        }
+
+        for (const required of [
+          "SD21 visual-language → foundation realization ledger before inspecting current JSX/CSS",
+          "complete/no-duplicate/no-unowned visual-language → foundation realization ledger",
+          "same semantic role → same primitive + token/variant + hierarchy/disclosure behavior",
+          "may compose the accepted foundation but may not extend the visual language locally",
+        ]) {
+          if (!actionCatalog.includes(required)) {
+            violations.push(
+              "PLAN IA27 visual-language/foundation execution contract missing " + required,
+            );
+          }
         }
 
         for (const required of [
