@@ -1502,7 +1502,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
   await selectWorkflowStep(page, "Work request");
   await expect(page.getByTestId("source-document-material")).toBeVisible();
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
-  const documentationGitReview = page.getByRole("alertdialog", {
+  const documentationGitReview = page.getByRole("dialog", {
     name: "Save WorkItem documentation to Git?",
   });
   await expect(documentationGitReview).toBeVisible();
@@ -1612,7 +1612,7 @@ test("rendered acceptance phase 1 captures Queue and Create WorkItem", async ({
 
   await openWorkItem(page, "Lifecycle editing workbench");
   await page.getByRole("button", { name: "Archive", exact: true }).click();
-  const archiveReview = page.getByRole("alertdialog", { name: "Archive work item?" });
+  const archiveReview = page.getByRole("dialog", { name: "Archive work item?" });
   await expect(archiveReview).toBeVisible();
   entries.push(await captureRenderedAcceptance(page, {
     id: "archive-confirmation-wide-light",
@@ -1947,7 +1947,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   const documentState = page.getByTestId("document-git-state");
   await expect(documentState).toContainText("Saved to project, not Git");
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
-  const gitDialog = page.getByRole("alertdialog", {
+  const gitDialog = page.getByRole("dialog", {
     name: "Save WorkItem documentation to Git?",
   });
   await expect(gitDialog).toContainText("Only the exact governed paths reviewed in WorkItemDocumentationGitStatus will be committed.");
@@ -1964,7 +1964,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await expect(documentState).toContainText("Saved to project, not Git");
 
   await page.getByRole("button", { name: "Save documentation to Git" }).click();
-  const renamedGitDialog = page.getByRole("alertdialog", {
+  const renamedGitDialog = page.getByRole("dialog", {
     name: "Save WorkItem documentation to Git?",
   });
   await expect(renamedGitDialog).toContainText("work-request.md");
@@ -1973,7 +1973,7 @@ test("repository-native WorkItem management keeps project, Git, title, and archi
   await expect(documentState).toContainText("Saved to Git");
 
   await page.getByRole("button", { name: "Archive", exact: true }).click();
-  await page.getByRole("alertdialog", { name: "Archive work item?" })
+  await page.getByRole("dialog", { name: "Archive work item?" })
     .getByRole("button", { name: "Archive work item" }).click();
   await expect(page.getByTestId("work-item-queue")).toBeVisible();
   await expect(rowFor(page, "Repository-native management renamed")).toHaveCount(0);
