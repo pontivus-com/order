@@ -343,8 +343,8 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | Product identity + current destination meaning | application destination state | orient the operator globally | Primary | application toolbar | none | do not expose route/internal state names |
 | Queue search utility | browser-local search | find work while Queue is current | Supporting | toolbar utility on Queue only | none | must not displace WorkItem identity/current action |
 | New WorkItem entry | local create action | begin governed authoring | Primary | toolbar/action region | opens `SURF-CREATE-001` | not shown as workflow mutation on selected WorkItem |
-| Installation readiness human meaning + Settings recovery destination | `InstallationReadiness` | make setup blocker actionable | Primary only while blocking | global notice/current attention | raw blocker mechanics stay Technical; promote meaning + action only | no raw readiness enum/transport detail |
-| Source diagnostic human meaning + inspect/recovery action | `WorkItemSourceDiagnostic[]` | explain why productive work is blocked | Primary only while relevant/blocking | global notice/current attention | code/path/parser detail only Technical/Evidence | ordinary notice must not print raw diagnostic code/path |
+| Installation readiness human meaning + Settings recovery destination | `InstallationReadiness` | make setup blocker actionable | Primary | global notice/current attention only while blocking | raw blocker mechanics stay Technical; promote meaning + action only | no raw readiness enum/transport detail |
+| Source diagnostic human meaning + inspect/recovery action | `WorkItemSourceDiagnostic[]` | explain why productive work is blocked | Primary | global notice/current attention only while relevant/blocking | code/path/parser detail only Technical/Evidence | ordinary notice must not print raw diagnostic code/path |
 | Active saved OpenCode account label/readiness utility | `OpenCodeAccountState` | global provider-account orientation and Settings quick access | Supporting | toolbar utility | account id/provider mechanics stay Technical/Settings | no account-management detail in toolbar |
 | System/Light/Dark choice | local theme preference | appearance selection | Supporting | toolbar utility | none | theme never changes semantic hierarchy |
 | dirty-navigation decision | local dirty/pending destination | protect unsaved work | Primary | `SURF-CONF-DIRTY-DEST-001` | exact destination meaning only as needed | no silent discard |
@@ -414,7 +414,8 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | target repository/project semantic identity | selected repository | identify affected configuration | Primary | task header | exact current root may be shown because path-specific mutation is being configured |
 | current/new document root | repository config + local input | define exact migration | Primary | form | exact paths are decision-required |
 | migration consequence/preservation meaning | canonical migration contract | explain effect | Primary | task body | no implementation-internal transport detail |
-| Move/Cancel | mutation/local | commit or abandon task | Primary/Secondary actions | action region | failure shown in owning task |
+| Move | migration mutation | commit the configured migration | Primary | action region; visually primary command | failure shown in owning task |
+| Cancel | local | abandon the bounded migration task | Supporting | action region; secondary command | no mutation |
 
 ##### SURF-SET-OC-001 — saved OpenCode accounts
 
@@ -434,7 +435,8 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 |---|---|---|---|---|---|
 | current human label | selected account | identify target | Primary | form context | account id Technical |
 | new label | local form validated by canonical label schema | set human-facing identity | Primary | form field | validation is product-facing, raw schema mechanics are not |
-| Save/Cancel | mutation/local | commit/abandon rename | Primary/Secondary | action region | failure remains in task |
+| Save | rename mutation | commit the new account label | Primary | action region; visually primary command | failure remains in task |
+| Cancel | local | abandon rename | Supporting | action region; secondary command | no mutation |
 
 ##### SURF-SET-OC-ADD-001 — Add OpenCode account
 
@@ -453,7 +455,8 @@ The registry cardinality is exactly **37**. No implementation phase may add a ne
 | authorization URL | login attempt | perform explicit external authorization | Primary | task action/link | exact protocol/provider mechanics Technical |
 | human status/result message | attempt status/message mapped to product meaning | show progress/terminal state | Primary | task status | raw enum Technical |
 | expiry when useful to task | `expiresAt` | time-bound action awareness | Supporting | task detail | exact internal attempt id Technical |
-| Cancel / Done / retry as admitted | attempt state | control current login task | Primary/Secondary | action region | no hidden competing action |
+| Done / retry as admitted | attempt state | complete or recover the current login task | Primary | action region; current admitted command | no hidden competing action |
+| Cancel | local/login command as admitted | abandon the login task | Supporting | action region; secondary command when admitted | no competing current command |
 | attempt id/provider transport details | attempt record | exact integration identity | Technical | Technical details | absent ordinarily |
 
 ##### SURF-SET-MODEL-001 — model/runtime settings
@@ -543,7 +546,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | governed DESIGN Markdown | DESIGN ArtifactRef/content | inspect technical realization | Primary | document |
 | supporting R2/R1/source/evidence | artifacts/source/evidence | trace design basis | Supporting | selector/supporting material |
 | attempt/history activity | Runs/RunEvents | inspect stage chronology | Operational | history/activity selector |
-| provider/session/path/hash/event mechanics | exact records | audit/debug | Technical/Diagnostic | Technical details/Evidence |
+| provider/session/path/hash identity | exact records | audit exact mechanics | Technical | Technical details/Context |
+| raw event/payload/provider diagnostics | RunEvents/diagnostics | debug implementation failure | Diagnostic | Timeline Technical details/Evidence |
 | proposal disposition | proposal events | govern P4-P6 change | Primary | Proposal Review |
 
 ##### SURF-STEP-PLAN-001 — Implementation plan
@@ -620,7 +624,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | selected task objective/state | ExecutionTask | understand selected task | Primary | detail |
 | signed scope/gates/dependencies/change forecast when needed | ExecutionTask | understand execution contract | Supporting | detail sections |
 | selected attempt role/number/human status | Run | inspect attempt | Operational | attempt detail |
-| current validation boundary/results | pure derivation + validation events | understand verification | Primary/current + Operational history | current boundary visible; complete matrix subordinate/disclosed |
+| current validation boundary | pure validation-boundary derivation | understand the current verification position | Primary | current boundary visible in task detail |
+| recorded validation results/history | validation RunEvents | inspect completed verification history | Operational | subordinate validation history; complete matrix disclosed |
 | timeline | RunEvents | inspect execution history | Operational | timeline with product labels |
 | evidence resources | EvidenceRefs | inspect proof | Supporting | resource rows; opens Evidence |
 | task/approval/Run/baseline/context/session/internal classification | exact records | audit mechanics | Technical | Technical details |
@@ -645,7 +650,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | canonical source Markdown/body | WorkItemSourceSnapshot | author originating intent | Primary | document/editor | internal template/schema identity hidden |
 | Edit/Preview/Split | local editor mode | author/inspect safely | Supporting | document toolbar | does not alter authority until Save |
 | local dirty/current state | buffer vs loaded source | protect unsaved work | Supporting | toolbar/notice | confirmation on destructive navigation |
-| Save/Cancel | source mutation/local | persist/abandon authoring | Primary/Secondary actions | editor actions | expected-hash conflict shown as human recovery |
+| Save | source mutation | persist source authoring | Primary | editor actions; visually primary command while editing | expected-hash conflict shown as human recovery |
+| Cancel | local editor action | abandon local source edits | Supporting | editor actions; secondary command | preserves canonical bytes |
 | compact documentation-Git state/action | Git status | optionally persist governed docs | Supporting | document toolbar | exact branch/HEAD/paths Technical except confirmation |
 | source blocker human meaning | source diagnostics | explain inability to progress | Primary | document/attention notice | raw code/path Technical |
 | path/SHA/schema/source internals, WorkItem directory, branch, HEAD | source/Git state | audit identity | Technical | Technical details | hidden by default |
@@ -659,7 +665,8 @@ Same productive-stage grammar as Research, with the governed Requirements docume
 | human document role/title | ArtifactRef role mapped to product label | orient current material | Supporting | document header | repository path not subtitle |
 | maturity/currentness | lifecycle/currentness derivation | understand whether material is current/editable | Supporting | status/notice | exact hash Technical |
 | Edit/Preview/Split | editor mode | author/inspect | Supporting | toolbar | no new authority |
-| Save/Cancel | artifact mutation/local | persist/abandon direct edit where allowed | Primary/Secondary actions | editor | exact expected hash remains mechanics |
+| Save | artifact mutation | persist allowed direct edit | Primary | editor actions; visually primary command while editing | exact expected hash remains mechanics |
+| Cancel | local editor action | abandon local artifact edits | Supporting | editor actions; secondary command | preserves canonical bytes |
 | documentation-Git state/action | Git status | optional governed docs commit | Supporting | toolbar | exact paths in confirmation |
 | non-canonical Markdown incompatibility | decode/format validation | explain why ordinary editor cannot own bytes | Primary | notice + inspect exact bytes action | exact bytes in Evidence |
 | repository path/SHA/git commit/branch/HEAD | ArtifactRef/Git status | audit identity | Technical | Technical details | absent ordinary heading |
@@ -733,7 +740,8 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 |---|---|---|---|
 | unsaved Markdown meaning | local dirty state | Primary | confirmation body |
 | requested step/material semantic target | pending selection | Primary | human label, not internal key |
-| Continue editing / Discard and switch | local | Primary safe / destructive | preserve or intentionally discard buffer |
+| Continue editing | local | Supporting | safe secondary command; close confirmation and preserve buffer |
+| Discard and switch | local | Primary | destructive-priority confirmation command; intentionally discard and switch |
 
 ###### SURF-CONF-ARCHIVE-001
 
@@ -750,7 +758,8 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 | documentation-commit purpose/consequence | Git/document contract | Primary | explain explicit repository persistence |
 | exact governed changed paths | Git status paths | Primary | exact paths are required for informed path-scoped consent |
 | branch/HEAD/author where necessary to understand the commit | Git status | Technical | subordinate; must not swamp path scope |
-| Commit / Cancel | Git command/local | Primary / Secondary actions | no commit without explicit confirmation |
+| Commit | documentation-Git command | Primary | visually primary confirmation command; no commit without explicit confirmation |
+| Cancel | local | Supporting | secondary command; close without repository mutation |
 
 ###### SURF-CONF-REPO-DISCONNECT-001
 
@@ -759,7 +768,8 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 | affected repository/project meaning | selected repository | Primary | semantic identity first |
 | exact repository root | selected repository | Primary | path-specific decision exception |
 | preservation/consequence statement | disconnect contract | Primary | state what is and is not removed |
-| Disconnect / Cancel | mutation/local | destructive / Secondary | explicit decision |
+| Disconnect | repository mutation | Primary | destructive-priority confirmation command; explicit decision |
+| Cancel | local | Supporting | secondary command; no mutation |
 
 ###### SURF-CONF-OC-REMOVE-001
 
@@ -768,7 +778,8 @@ Evidence is an explicit inspection surface; exact identity and exact bytes are i
 | account human label | selected account | Primary | identify target |
 | credential/removal consequence | account mutation contract | Primary | explain effect |
 | exact account id/provider mechanics | account record | Technical | hidden unless needed for technical inspection; not ordinary confirmation copy |
-| Remove / Cancel | mutation/local | destructive / Secondary | explicit decision |
+| Remove | account mutation | Primary | destructive-priority confirmation command; explicit decision |
+| Cancel | local | Supporting | secondary command; no mutation |
 
 ---
 
