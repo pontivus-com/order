@@ -27,7 +27,7 @@ No compatibility `WorkbenchLayout`, generic workflow-frame/material-selector equ
 
 | Source component | Git blob |
 |---|---|
-| `implementation-plan/00-governance.md` | `1a7a724f064b3147f982fbf60b6cffaa06064919` |
+| `implementation-plan/00-governance.md` | `1c437339d0454a14fdd82fa9e7830cf011d675c3` |
 | `implementation-plan/01-a01-lifecycle-product.md` | `5cffb6ad15c065e8251896b6fe19a572188e9f77` |
 | `implementation-plan/02-a02-governance-intake.md` | `d82784ad74355a3c73326e04f1edd804e4c8887b` |
 | `implementation-plan/03-a03-queue-source.md` | `7db94dfea827d835b988d1709d7e5a30ed6825a6` |
@@ -216,7 +216,7 @@ The bounded realization contract is:
 - IA27 purpose: reconstruct/close the shared foundation, delete required-absent generic workflow owners, migrate only the exact consumers necessary to consume the closed foundation, and produce foundation-readiness proof;
 - IA28 purpose: accept the corrected foundation through the actual application shell, Queue and Create consumers and produce the declared rendered evidence;
 - shared-owner use: `ui/src/styles.css` / `ui/src/theme.css` only for IA27 foundation or proven IA28 screen-local residuals;
-- verification owners: existing `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` only as required to produce/verify the declared evidence package;
+- verification owners: pre-sign-off `tests/architecture.test.ts` may be corrected only where the current P4 required-absence contract makes the prior sensor self-contradictory; `tests/browser.spec.ts`, `tests/certification.test.ts` and `.github/workflows/ci.yml` may be changed only as required to produce/verify the declared evidence package. `tests/architecture.test.ts` remains excluded from signed post-Approval T1 mutation and its corrected bytes become part of the exact R3/Approval baseline;
 - forbidden: IA29-IA34 production mutation, unrelated non-UI mutation, new product/architecture/contract semantics, compatibility aliases/wrappers/translators, hidden legacy DOM, dual paths, feature flags, CSS shims, DTO/view-model/state families, second shell/responsive ownership, delivery/merge/release, or treating current JSX/SVG as authority;
 - failure routing: recurring primitive/token/shell/hierarchy/disclosure/theme/responsive defect → IA27; Queue/Create/application-utility-local defect → IA28; missing/contradictory product or information classification → DESIGN;
 - mandatory stop: after the complete IA28 evidence package exists, stop before IA29 and route the exact package/evidence to R3/G6.
@@ -307,8 +307,7 @@ Presence-only browser assertions are nonconforming when they force technical/dia
 
 Return to DESIGN/PLAN before editing when execution requires a new semantic owner, public contract, state meaning, persistence/transport/effect boundary, dependency direction or external dependency, validation contract, provider capability, verification authority, authorized behavior, or any path outside signed scope/exclusions.
 
-Because this exact T1 deliberately sets signed `scope` equal to the same exact 68-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.
-### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
+Because this exact T1 deliberately sets signed `scope` equal to the same exact 68-path `changeSurface`, any newly required physical path absent from `changeSurface` is also outside signed scope and returns upstream for DESIGN/PLAN correction. The general V4/V5/V6 in-scope-unforecast mechanism remains canonical execution capability but has no admissible physical-path case inside this exact package.### Compiled component: `implementation-plan/01-a01-lifecycle-product.md`
 #### A01 — Lifecycle and product identity
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
