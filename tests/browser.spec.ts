@@ -2193,6 +2193,8 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX", "GW-DOC-MARKDOWN-WORKBENCH-V1"],
   });
   await page.setViewportSize(narrow);
+  await expect(sourceMaterial.getByText("Requested outcome", { exact: true }))
+    .toBeVisible({ timeout: 15_000 });
   await capture({
     id: "ia26-work-request-step-narrow-light",
     workItemKind: "CHANGE",
@@ -2803,6 +2805,9 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     authorityRefs: ["GW-DOC-WORKBENCH-UX"],
   }, approval);
   await page.setViewportSize(narrow);
+  await expect(
+    approval.getByRole("button", { name: "Sign off exact package", exact: true }),
+  ).toBeVisible({ timeout: 15_000 });
   await capture({
     id: "ia26-approval-narrow-light",
     workItemKind: "CHANGE",
