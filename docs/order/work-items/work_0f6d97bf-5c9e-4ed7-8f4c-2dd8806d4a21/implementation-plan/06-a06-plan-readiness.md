@@ -2,7 +2,7 @@
 
 **Role:** semantic coverage phase inside the single 0.6.0 P7 package.
 **Concerns:** C09 + C10.
-**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `7a434216611b87689af139c36e8e1a37f4b777ea`.
+**Upstream:** current R1 `e37ef7d7b54f6c344274d4dfb71a3992f92271a4`; current R2 `ff85e33876227ee76f37877252537ab958df4802`; current DESIGN `9103f30b09ea12e5cfc0e66db07f5945a3f8d9f2`.
 
 ## Stable requirement execution dispositions
 
@@ -10,7 +10,7 @@
 |---|---|---|---|---|---|---|
 | `GW-FR-098-READINESS-AUTHORITY-TOPOLOGY-REVIEW` | `C10-O01`, `C10-O09`, `C10-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O01`, `C10-O09`, `C10-O10` via tests/architecture.test.ts; tests/daemon.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
 | `GW-FR-211-READINESS-RETURN-CONTINUITY` | `C10-O04`, `C01-O10` | `POSITIVE_NO_CHANGE` | — | NONE — no implementation mutation; authority-backed realization already satisfied | — | Recheck `C10-O04`, `C01-O10` via tests/browser.spec.ts; tests/workbench-presentation.test.ts; tests/certification.test.ts + V4/V5/V6 requirement-specific semantic review |
-| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11`, `SD25` | `IA16`, `IA31` | — | Typed R3 verdict semantics and one direct `WorkbenchReview` composition must jointly make readiness/findings/return owner dominant; no outer `WorkflowStepFrame`/Surface/Attention is permitted; verify semantic + rendered evidence. |
+| `GW-FR-221-READINESS-REVIEW-HIERARCHY` | `C10-O06`, `C10-O07` | `TECHNICAL_DELTA` | `SD11`, `SD25` | `IA16`, `IA31` | — | Typed R3 outcome drives one human verdict inside direct Review. IA31 maps actual findings/return owner into the Review body, does not embed the full R3 Markdown document under Findings, does not duplicate Readiness/verdict headings, print raw `READY_FOR_SIGNOFF`, or expose a generic Readiness-material selector; REQUIRED_INPUT Dialogue replaces Review for that turn. |
 
 Stable rows in phase: **3**.
 
@@ -19,7 +19,7 @@ Stable rows in phase: **3**.
 | Atom | Finding | Solution | Execution owner | Consumer dependency | Required consequence |
 |---|---|---|---|---|---|
 | `PL-C09-01` | C09-F01 | `SD10` | `IA05` | — | Current-v2 Change/Defect task packages must satisfy P6 §37.4 mechanical non-vacuity through the one schema-aware admission owner while published v1 validation semantics remain unchanged; material task sufficiency remains owned by PLAN semantic conformance and independent R3. |
-| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is typed R3 outcome and IA31 owns its single direct Review presentation with no outer workflow Surface/Attention frame. |
+| `PL-C10-01` | C10-F01 | `SD11`, `SD25` | `IA16`, `IA31` | — | Readiness dominant verdict is the human projection of typed R3 outcome; findings/return owner are mapped once into direct Review, supporting package/history is subordinate, and no generic workflow frame/selector or raw typed enum is ordinary UI. |
 
 Package atoms in phase: **2**.
 
@@ -27,8 +27,8 @@ Package atoms in phase: **2**.
 
 - **IA16** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
 - **IA05** — consume the single definition in `12-action-catalog.md`; this phase does not redefine it.
-- **IA30** — consume the resumed-baseline pre-signoff revalidation/remediation phase for the Implementation plan surface.
-- **IA31** — consume the Readiness/Approval resumed-baseline Review revalidation/remediation definition for R3 presentation.
+- **IA30** — consume the direct Implementation-plan Document/Dialogue/Proposal composition; no generic workflow summary/material selector.
+- **IA31** — consume fresh Readiness/Approval direct Review reconstruction, including non-duplicated R3 verdict/findings and required-input Dialogue replacement.
 
 ## Completion proof
 
