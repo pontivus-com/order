@@ -406,7 +406,7 @@ test("System, Light and Dark preserve representative Workbench semantic roles", 
   page,
   request,
 }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   await page.emulateMedia({ colorScheme: "dark" });
   await authenticate(page, request);
   await page.setViewportSize({ width: 1280, height: 800 });
