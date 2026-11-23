@@ -5322,22 +5322,24 @@ test("dirty Markdown navigation is explicit, preserves the buffer when cancelled
   await expect(page.getByRole("button", { name: "Sign off exact package" })).toHaveCount(0);
 });
 
-test("Requirements document keeps status and authority secondary beside the governed material", async ({
+test("Requirements keeps governed content primary and routes artifact mechanics to Context", async ({
   page,
   request,
 }) => {
   await authenticate(page, request);
   await openWorkItem(page, "Requirements document visual");
   await expect(page.getByText("Requirements document", { exact: true }).first()).toBeVisible();
-  const authority = page.locator('[aria-label="Requirements authority"]');
-  await expect(authority).toBeVisible();
-  await expect(authority).toContainText("Status");
-  await expect(authority).toContainText("Authority");
-  await expect(authority).not.toContainText("docs/r2.md");
-
+  await expect(page.locator('[aria-label="Requirements authority"]')).toHaveCount(0);
+  await expect(page.getByText("P3 lifecycle authority", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);
+
   await page.getByRole("button", { name: "Context", exact: true }).click();
-  await expect(page.getByTestId("selected-view-context")).toContainText("docs/r2.md");
+  const context = page.getByTestId("selected-view-context");
+  await expect(context).toContainText("docs/r2.md");
+  await expect(context.getByText("Authority layer", { exact: true })).toBeVisible();
+  await expect(context.getByText("P3", { exact: true })).toBeVisible();
+  await expect(context.getByText("Artifact id", { exact: true })).toBeVisible();
+  await expect(context.getByText("Git commit", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Close context", exact: true }).click();
 });
 
