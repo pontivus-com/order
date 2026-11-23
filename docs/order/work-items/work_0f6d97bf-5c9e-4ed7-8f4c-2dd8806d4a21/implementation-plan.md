@@ -39,7 +39,7 @@ No compatibility `WorkbenchLayout`, generic workflow-frame/material-selector equ
 | `implementation-plan/09-a09-provider-settings.md` | `dc3ee6ad7aff1206d1f14c94120c2911e08354a6` |
 | `implementation-plan/10-a10-recovery-accessibility.md` | `3bb89a898b810d7607c79ef6b27ffd1170c49f81` |
 | `implementation-plan/11-a11-component-certification.md` | `179f5a345e2c22ede8280c8eb8703def1c9e6dc4` |
-| `implementation-plan/12-action-catalog.md` | `8ad5de41d04403c22c9945998063c7765c443161` |
+| `implementation-plan/12-action-catalog.md` | `1fd740c161774da231094c29368be1cdeda33240` |
 | `implementation-plan/13-verification-closeout.md` | `42104f93f027004f9ddd6fa22a7ac6d2e6012687` |
 A source component hash mismatch makes PLAN non-current until this root is regenerated. Directory files contain no `order-tasks` block and no independent lifecycle state.
 
@@ -900,7 +900,7 @@ This is a trace/readability view of the one canonical `order-tasks` block in the
 
 ##### Execution waves
 
-**Pre-sign-off realization boundary:** `IA28-RZ1` is **SUSPENDED_PENDING_REVALIDATION** in `00-governance.md` and currently authorizes no production mutation. After exact G5 and G5A PASS, and only after explicit operator authorization bound to that exact package, a fresh bounded grant may authorize IA27/IA28 evidence realization **before R3/G6**. R3/G6 consumes that evidence. IA29 or any later wave remains forbidden until fresh IA28 evidence is accepted, G6 is READY_FOR_SIGNOFF, and normal human sign-off occurs.
+**Pre-sign-off realization boundary:** current bounded-grant identity/state is owned only by `0.6.0-design-campaign-plan.md §17A/§18`. This catalog defines the sequence: exact G5/G5A PASS → explicit exact-package bounded authorization → IA27 → IA28 evidence → R3/G6 → normal human sign-off → IA29+. The bounded grant never authorizes IA29 or later work.
 
 
 0. **Preflight 0 — DESIGN-positive reuse proof:** IA07-IA08. No production mutation.
@@ -1331,9 +1331,6 @@ Any `FAIL` creates a blocking remediation item owned by the defective implementa
 
 **Forbidden:** treating the 0.5.0 SVG pack as semantic/product authority; pixel-diff threshold as the sole acceptance criterion; screenshot approval in place of existing semantic/browser assertions; generated screenshots blessed from the current implementation without comparison; a new visual-regression SaaS/platform dependency; committing runtime screenshots as a second design system; changing product behavior merely to match a superseded SVG.  
 **Proof:** required PR Verification rendered-evidence step succeeds on the exact candidate, publishes exhaustive scope-valid evidence, and the separately reviewable screen-by-screen acceptance ledger has no unresolved `FAIL`; capture generation/coverage alone cannot satisfy IA26.
-
-
-
 ### Compiled component: `implementation-plan/13-verification-closeout.md`
 #### 0.6.0 verification and closeout contract
 
