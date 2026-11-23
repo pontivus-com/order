@@ -153,6 +153,33 @@ This audit is exhaustive by the existing DESIGN screen/service-family partition.
 
 **Unresolved factual questions:** NONE. The next work is canonical P3/R2 correction, then P4/DESIGN reconstruction, derived-reference correction, PLAN regeneration and fresh alignment/readiness.
 
+## Post-G6 terminal-composition/foundation-acceptance audit
+
+**Evidence baseline:** PR #83 head `df6541febc756a5cd8ca1416dfe18e6f7c431f64`; rendered artifact `14778709723`; exact source inspected at that head in `ui/src/primitives/WorkbenchSurface.tsx`, `ui/src/WorkflowStepFrame.tsx`, `ui/src/WorkItemWorkspace.tsx`, `ui/src/WorkItemQueue.tsx`, `ui/src/EvidenceViewer.tsx`, `ui/src/TerminalResult.tsx`, `tests/browser.spec.ts` and `tests/certification.test.ts`. Corrective canonical authority is now P3 Workbench blob `d33801650ab237728a00b6023e1083ccb1d491ec` and P4 Workbench blob `0b3e8a3d5e2d42672de9e787c5fd6afd50713242`.
+
+**Observed evidence:**
+
+1. P3 already classified Queue as Operational scan, Evidence as Evidence and Complete as Terminal result, while P4 §8.13 required `WorkbenchSurface({ attention, selector?, material })`. The same P4 §8.15 grammar omitted `WorkbenchAttention` from Operational scan/Terminal result and allowed Evidence to use a heading. The primitive API therefore forced a semantic region that several interaction classes did not own.
+2. `WorkbenchSurface.tsx` made `attention` mandatory and always rendered `.order-workbench-surface-attention`. Queue and Evidence consequently passed `WorkbenchSectionHeader` through a slot named `attention` solely to obtain top-of-surface placement. This is not current-attention semantics.
+3. `TerminalResult.tsx` converted `WorkItem.outcome` into a `WorkbenchAttention` title and then rendered the same product outcome label/explanation again under `Final governed outcome`, followed by `Governed result material`. The lifecycle `deriveCurrentAttention` owner did not classify “Investigation complete” as current attention; the semantic fabrication occurred in the renderer.
+4. `WorkItemWorkspace.tsx` routes selected Evidence through the generic `WorkflowStepFrame` fallback outside Implementation. `WorkflowStepFrame` owns one `WorkbenchSurface`; `EvidenceViewer` then creates a second `WorkbenchSurface`. One selected material can therefore produce nested primary interaction compositions.
+5. The rendered acceptance harness explicitly required a heading matching `/^Current attention:/` on the Complete fixture before capturing `SURF-WI-001`. The screenshot visibly contained the unaccepted IA33 Terminal-result descendant while the manifest classified the image only as `SURF-WI-001`.
+6. IA27 classified `WorkbenchSurface.tsx` as `CONFORMING_NO_EDIT` and described its mandatory attention/selector/material composition as exact. The classification checked the local API declaration without proving that the primitive could realize every closed P3 interaction class without semantic fabrication.
+7. Current certification contains no negative renderer-composition proposition that rejects `TerminalResult -> WorkbenchAttention`, Queue/Evidence misuse of the attention slot, or a primary `WorkbenchSurface` nested inside another primary surface.
+
+**R1 conclusion amendment:**
+
+- **C19-F06 is proven — semantic-region/primitive-contract contradiction.** The canonical P4 `WorkbenchSurface` API and screen-construction grammar were internally inconsistent. A semantic attention region was encoded as mandatory structure, allowing/forcing non-attention interaction classes to populate it. This is a foundation architecture defect owned by P4/SD21/IA27, not a Terminal-result-local styling defect.
+- **C19-F07 is proven — primary-interaction nesting/routing defect.** The selected-material router can compose Evidence inside another primary `WorkbenchSurface`. P3’s exactly-one-primary-interaction rule therefore lacks a mechanically enforced routing/composition invariant in the current implementation/design realization.
+- **C19-F08 is proven — specification/container terminology leakage.** Current renderer copy can promote architecture/governance taxonomy into ordinary operator headings and duplicate a canonical product outcome. Existing product-language mapping is sufficient; implementation must consume it rather than invent container labels.
+- **C20-F08 is proven — composite rendered-evidence scope defect.** A parent `SURF-*` row can receive `visual_ui=PASS` while a visibly dominant descendant belongs to an unaccepted/nonconforming surface contract. Surface metadata alone cannot exclude visible composition from review.
+- **C20-F09 is proven — composition-certification defect.** Permanent tests assert presence and broad component use but do not enforce the allowed renderer→interaction-class composition or semantic-slot meaning; one browser assertion positively protected the noncanonical Complete attention band.
+- These findings remain within C19/C20 ownership and affected C03/C05/C13/C14 consumer integration. They do not create a new concern, primary interaction class, runtime DTO/view-model/state family or lifecycle status.
+- G1 remains valid: the concern inventory and 37-surface registry remain complete. The defect changes semantic/technical realization and proof, so G2 and every dependent gate must revalidate before any further implementation authority can exist.
+- IA27 foundation acceptance is disproven specifically for `WorkbenchSurface` and its consumer-composition proof. IA28 Queue acceptance and the `SURF-WI-001` rendered-evidence methodology are also stale. IA29+ remains forbidden until the corrected authority/design/PLAN package is reclosed and fresh bounded IA27/IA28 evidence is accepted.
+
+**Unresolved factual questions:** NONE. The required next work is P3/P4 correction, R2/DESIGN regeneration for affected surface contracts, PLAN/IA27/IA28/IA33/certification ownership correction, fresh ALIGN/R3, and only then a newly bound implementation authorization.
+
 ## G-F10 stable-requirement realization evidence ledger
 
 **Evidence baseline:** `ad4fabd1f9c13af1594059ec0520cf220620fb4d`.
