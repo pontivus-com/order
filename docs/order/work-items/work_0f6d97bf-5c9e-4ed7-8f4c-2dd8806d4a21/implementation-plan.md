@@ -830,8 +830,6 @@ Package atoms in phase: **1**.
 4. every package atom is satisfied by its one execution owner;
 5. action-specific tests plus `13-verification-closeout.md` pass;
 6. any evidence contradiction returns upstream rather than broadening scope.
-
-
 ### Compiled component: `implementation-plan/11-a11-component-certification.md`
 #### A11 — Component/theme consistency and certification
 
