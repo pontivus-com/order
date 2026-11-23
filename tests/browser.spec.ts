@@ -77,10 +77,11 @@ const writeRenderedAcceptanceEvidence = (
       "",
       "Exact candidate: \`" + renderedAcceptanceCandidateSha + "\`",
       "",
-      "| Capture | Surface/state | Reference | Authority |",
-      "|---|---|---|---|",
+      "| Capture | Surface/state | Scope | Reference | Authority |",
+      "|---|---|---|---|---|",
       ...entries.map((entry) =>
         "| \`" + entry.screenshot + "\` | " + entry.surface + " / " + entry.state +
+        " | " + (entry.captureScope ?? "viewport") +
         " | " + entry.references.map((value) => "\`" + value + "\`").join(", ") +
         " | " + entry.authorityRefs.map((value) => "\`" + value + "\`").join(", ") +
         " |"
