@@ -453,7 +453,12 @@ describe("Order cross-boundary certification", () => {
     const attention = read("ui/src/primitives/WorkbenchAttention.tsx");
     expect(attention).not.toContain("tone?:");
     expect(attention).not.toContain("data-tone");
-    expect(read("ui/src/WorkflowStepFrame.tsx")).not.toContain("attentionTone");
+    expect(attention).not.toContain("purpose?:");
+    expect(attention).not.toContain("status?:");
+    expect(attention).not.toContain("blocker?:");
+    expect(attention).not.toContain("Current attention:");
+    expect(existsSync(join(root, "ui", "src", "WorkflowStepFrame.tsx"))).toBe(false);
+    expect(existsSync(join(root, "ui", "src", "WorkflowMaterialSelector.tsx"))).toBe(false);
     expect(theme).not.toContain(".order-workbench-attention[data-tone=");
 
     const dialoguePrimitive = read("ui/src/primitives/WorkbenchDialogue.tsx");
@@ -483,12 +488,18 @@ describe("Order cross-boundary certification", () => {
     const reviewPrimitive = read("ui/src/primitives/WorkbenchReview.tsx");
     expect(reviewPrimitive).not.toContain("technicalDetails");
     expect(reviewPrimitive).not.toContain("WorkbenchDisclosure");
+    expect(reviewPrimitive).not.toContain("selector");
 
     const surfacePrimitive = read("ui/src/primitives/WorkbenchSurface.tsx");
     expect(surfacePrimitive).toContain("attention?: ReactNode");
-    expect(surfacePrimitive).toContain("attention == null ? null");
-    expect(surfacePrimitive).toContain("selector == null ? null");
+    expect(surfacePrimitive).toContain("material: ReactNode");
+    expect(surfacePrimitive).toContain("attention === undefined ? null");
+    expect(surfacePrimitive).not.toContain("selector");
     expect(theme).not.toContain(".order-workbench-surface-material:nth-child");
+    expect(theme).not.toContain("order-workbench-surface-selector");
+    expect(theme).not.toContain("order-workbench-review-selector");
+    expect(theme).not.toContain("order-primary-material-frame");
+    expect(theme).not.toContain("order-workflow-summary-status");
 
     const queueSurface = read("ui/src/WorkItemQueue.tsx");
     expect(queueSurface).toContain("<WorkbenchSurface");
@@ -500,13 +511,18 @@ describe("Order cross-boundary certification", () => {
       'material.kind === "EVIDENCE" && selectedStep !== "EXECUTION"',
     );
     expect(workItemRouter).toContain('title="Loading evidence…"');
-    const genericFrameStart = workItemRouter.indexOf(
-      "<WorkflowStepFrame\n          summary={stepSummary}",
-    );
-    expect(genericFrameStart).toBeGreaterThanOrEqual(0);
-    expect(workItemRouter.slice(genericFrameStart)).not.toContain(
-      'material.kind === "EVIDENCE"',
-    );
+    expect(workItemRouter).toContain("<WorkbenchSurface");
+    expect(workItemRouter).toContain("<WorkbenchAttention");
+    for (const forbidden of [
+      "WorkflowStepFrame",
+      "WorkflowStepSummary",
+      "WorkflowStepIndex",
+      "PrimaryMaterialFrame",
+      "WorkflowMaterialSelector",
+      "stepSummary",
+    ]) {
+      expect(workItemRouter).not.toContain(forbidden);
+    }
 
     const context = read("ui/src/WorkItemContext.tsx");
     expect(context).toContain('aria-label="WorkItem identity"');
@@ -568,15 +584,13 @@ describe("Order cross-boundary certification", () => {
       "WorkItemIdentityRow.tsx",
       "WorkItemQueue.tsx",
       "WorkItemWorkspace.tsx",
-      "WorkflowMaterialSelector.tsx",
       "WorkflowRail.tsx",
-      "WorkflowStepFrame.tsx",
       "app.tsx",
       "main.tsx",
     ]);
 
     const componentArchitecture = read("docs/architecture/workbench.md");
-    const rendererAuthorityStart = componentArchitecture.indexOf("### 8.16");
+    const rendererAuthorityStart = componentArchitecture.indexOf("### 8.17");
     const rendererAuthorityEnd = componentArchitecture.indexOf("### 8.18");
     expect(rendererAuthorityStart).toBeGreaterThanOrEqual(0);
     expect(rendererAuthorityEnd).toBeGreaterThan(rendererAuthorityStart);
@@ -631,11 +645,55 @@ describe("Order cross-boundary certification", () => {
 
     for (const adapter of [
       "WorkItemIdentityRow.tsx",
-      "WorkflowMaterialSelector.tsx",
       "WorkflowRail.tsx",
     ]) {
       expect(existsSync(join(root, "ui", "src", adapter))).toBe(true);
     }
+    for (const removed of [
+      "WorkflowStepFrame.tsx",
+      "WorkflowMaterialSelector.tsx",
+    ]) {
+      expect(existsSync(join(root, "ui", "src", removed))).toBe(false);
+    }
+
+    for (const forbidden of [
+      "WorkflowStepFrame",
+      "WorkflowStepSummary",
+      "WorkflowStepIndex",
+      "PrimaryMaterialFrame",
+      "WorkflowMaterialSelector",
+    ]) {
+      expect(rendererSource).not.toContain(forbidden);
+    }
+
+    const consumersOf = (primitive: string): readonly string[] =>
+      renderers
+        .filter((name) => name !== "main.tsx")
+        .filter((name) =>
+          read("ui/src/" + name).includes(
+            './primitives/' + primitive + '.tsx',
+          )
+        )
+        .sort();
+
+    expect(consumersOf("WorkbenchSurface")).toEqual([
+      "EvidenceViewer.tsx",
+      "ExecutionWorkspace.tsx",
+      "PreSignoffStageWorkspace.tsx",
+      "TerminalResult.tsx",
+      "WorkItemQueue.tsx",
+      "WorkItemWorkspace.tsx",
+    ]);
+    expect(consumersOf("WorkbenchAttention")).toEqual([
+      "ExecutionWorkspace.tsx",
+      "WorkItemWorkspace.tsx",
+    ]);
+    expect(consumersOf("WorkbenchReview")).toEqual([
+      "ProposalReview.tsx",
+      "ReadinessWorkspace.tsx",
+      "SignoffReview.tsx",
+    ]);
+    expect(consumersOf("WorkbenchSelector")).toEqual([]);
   });
 
   it("keeps reference-driven presentation subordinate to Workbench and Astryx ownership", () => {
