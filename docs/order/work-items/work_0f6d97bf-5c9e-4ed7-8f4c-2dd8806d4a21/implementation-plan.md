@@ -363,8 +363,6 @@ Package atoms in phase: **1**.
 5. every package atom is satisfied by its one execution owner;
 6. action-specific exact proof propositions plus `13-verification-closeout.md` pass;
 7. any evidence contradiction returns upstream rather than broadening scope.
-
-
 ### Compiled component: `implementation-plan/02-a02-governance-intake.md`
 #### A02 — Project governance and WorkItem intake
 
