@@ -2295,6 +2295,44 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
     references: ["docs/references/workbench-ui/document-authoring.svg", "docs/references/workbench-ui/document-states.svg"],
     authorityRefs: ["GW-DOC-MARKDOWN-WORKBENCH-V1"],
   }, page.locator("form.order-markdown-editor"));
+  const formattingButtonTops = await page.getByTestId("markdown-format-toolbar")
+    .getByRole("button")
+    .evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().top)));
+  expect(formattingButtonTops.length).toBeGreaterThan(0);
+  expect(Math.max(...formattingButtonTops) - Math.min(...formattingButtonTops))
+    .toBeLessThanOrEqual(2);
+
+  await page.setViewportSize(narrow);
+  const narrowFormattingButtonTops = await page.getByTestId("markdown-format-toolbar")
+    .getByRole("button")
+    .evaluateAll((nodes) =>
+      nodes.map((node) => Math.round(node.getBoundingClientRect().top)));
+  expect(narrowFormattingButtonTops.length).toBeGreaterThan(0);
+  expect(Math.max(...narrowFormattingButtonTops) - Math.min(...narrowFormattingButtonTops))
+    .toBeLessThanOrEqual(2);
+  await capture({
+    id: "ia26-source-document-editor-narrow-light",
+    workItemKind: "CHANGE",
+    workflowStep: "Work request",
+    surface: "SURF-MAT-SOURCE-001",
+    state: "active-editor-narrow-overflow",
+    fixture: "Source editing workbench active source editor",
+    viewport: narrow,
+    theme: "Light",
+    route: routeValue(),
+    references: [
+      "docs/references/workbench-ui/document-authoring.svg",
+      "docs/references/workbench-ui/document-states.svg",
+      "docs/references/workbench-ui/responsive-composition.svg",
+    ],
+    authorityRefs: [
+      "GW-DOC-MARKDOWN-WORKBENCH-V1",
+      "GW-DOC-WORKBENCH-COMPONENT-ARCHITECTURE-V2",
+    ],
+  }, page.locator("form.order-markdown-editor"));
+  await page.setViewportSize(light);
+
   await page.getByRole("radio", { name: "Dark" }).click();
   await capture({
     id: "ia26-source-document-editor-wide-dark",
@@ -3221,6 +3259,11 @@ test("rendered acceptance IA26 captures downstream Workbench", async ({
   expect(allEntries.some((entry) =>
     entry.viewport.width === 1000 &&
     entry.references.includes("docs/references/workbench-ui/responsive-composition.svg")
+  )).toBe(true);
+  expect(allEntries.some((entry) =>
+    entry.surface === "SURF-MAT-SOURCE-001" &&
+    entry.viewport.width === 700 &&
+    entry.state === "active-editor-narrow-overflow"
   )).toBe(true);
 
   const requiredReferencePaths = [
