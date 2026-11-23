@@ -466,17 +466,16 @@ test("Settings uses stable native-history destinations and daemon-owned readines
   const repositoryTable = repositories.getByRole("table", {
     name: "Connected repositories",
   });
-  const technicalDetails = repositories.getByRole("button", {
-    name: "Technical details",
-    exact: true,
-  });
-  await technicalDetails.click();
-  await expect(repositories.getByTestId("repository-technical-details"))
-    .toContainText(repositoryRoot);
-  await expect(repositories.getByTestId("repository-technical-details"))
-    .toContainText("docs/order/work-items");
   const repositoryRow = repositoryTable.getByRole("row").nth(1);
   await expect(repositoryRow).toBeVisible();
+  await expect(repositoryRow).toContainText(repositoryRoot);
+  await expect(repositoryRow).toContainText("docs/order/work-items");
+  await expect(repositories.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);
+  const settingsDiagnostics = settings.getByRole("button", { name: "Settings diagnostics", exact: true });
+  await settingsDiagnostics.click();
+  await expect(settings.getByTestId("settings-diagnostics")).toBeVisible();
+  await expect(settings.getByTestId("settings-diagnostics")).toContainText("Manifest SHA-256");
+  await settingsDiagnostics.click();
   const moveDocuments = repositoryRow.getByRole("button", { name: /^Move WorkItem documents for / });
   await moveDocuments.click();
   const movePanel = repositories.getByTestId("move-workitem-documents");
@@ -2209,10 +2208,8 @@ test("workflow step owns Run history, dialogue, responsive detail, and technical
 
   await expect(detail.getByText("Continue current work", { exact: true })).toHaveCount(0);
   await expect(page.getByLabel("Message input")).toHaveCount(0);
-  await expect(page.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeHidden();
-  const proposalTechnical = detail.getByText("Timeline technical details", { exact: true });
-  await proposalTechnical.click();
-  await expect(detail.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toBeVisible();
+  await expect(page.getByText("ARTIFACT_PROPOSAL_CREATED", { exact: true })).toHaveCount(0);
+  await expect(detail.getByText("Timeline technical details", { exact: true })).toHaveCount(0);
 
   await page.setViewportSize({ width: 1000, height: 800 });
   await expect(page.getByTestId("work-item-context")).toHaveCount(0);
@@ -2540,12 +2537,11 @@ test("workflow mutations lock their owning controls while pending and keep failu
   await expect(implementationDetail.getByText("Approved task", { exact: true })).toBeVisible();
   await expect(implementationDetail.getByText("No persisted attempt events", { exact: true })).toBeVisible();
   await expect(implementationDetail.getByText("Loading attempt timeline…", { exact: true })).toHaveCount(0);
-  await expect(implementationDetail.getByText("Change surface", { exact: true })).toBeHidden();
-  await expect(implementationDetail.getByText("Task id", { exact: true })).toBeHidden();
+  await expect(implementationDetail.getByText("Change surface forecast", { exact: true })).toBeVisible();
+  await expect(implementationDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+  await expect(implementationDetail.getByText("Provider session", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("table", { name: "Approved tasks" })).toBeVisible();
-  await page.getByRole("button", { name: "Technical details", exact: true }).click();
-  await expect(implementationDetail.getByText("Task id", { exact: true })).toBeVisible();
-  await expect(implementationDetail.getByText("Change surface", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);
   const implementationItem = await workItemForTitle(page, "Implementation action ready");
   const taskResponse = await page.context().request.get(
     "/api/work-items/" + implementationItem.id + "/tasks",
@@ -3427,9 +3423,8 @@ test("proposal decisions are primary, mutation-safe, and Approval keeps sign-off
   await expect(approvalTaskDetail).toContainText("Exclusions");
   await expect(approvalTaskDetail).toContainText("Change surface");
   await expect(approvalTaskDetail).toContainText("Authority");
-  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeHidden();
-  await page.getByRole("button", { name: "Task technical details", exact: true }).click();
-  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toBeVisible();
+  await expect(approvalTaskDetail.getByText("Task id", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Task technical details", exact: true })).toHaveCount(0);
   const approvedBy = page.getByLabel("Approved by");
   const signoff = page.getByRole("button", { name: "Sign off exact package" });
   await expect(approvedBy).toBeVisible();
@@ -3491,14 +3486,14 @@ test("source editor preserves stale buffers, never overwrites newer source, and 
   const original = await markdownSourceValue(sourceEditor);
   expect(original).toContain("# Source editing workbench");
   expect(original).not.toContain('"formatVersion"');
-  const technicalSource = page
-    .getByTestId("source-document-material")
-    .getByRole("button", { name: "Technical details", exact: true });
-  await expect(technicalSource).toBeVisible();
-  await technicalSource.click();
-  await expect(page.getByTestId("source-document-material").locator('[aria-label="Complete portable source"] pre'))
-    .toContainText('"formatVersion": 1');
-  await technicalSource.click();
+  await expect(
+    page.getByTestId("source-document-material")
+      .getByRole("button", { name: "Technical details", exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  await expect(page.getByTestId("selected-view-context")).toContainText("Work request");
+  await expect(page.getByTestId("selected-view-context")).toContainText("work-request.md");
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
 
   await replaceMarkdownSource(page, sourceEditor, original + "\nlocal unsaved buffer\n");
   const item = await workItemForTitle(page, "Source editing workbench");
@@ -3661,8 +3656,10 @@ test("Requirements document keeps status and authority secondary beside the gove
   await expect(authority).toContainText("Authority");
   await expect(authority).not.toContainText("docs/r2.md");
 
-  await page.getByRole("button", { name: "Technical details", exact: true }).click();
-  await expect(page.getByText("docs/r2.md", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Technical details", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Context", exact: true }).click();
+  await expect(page.getByTestId("selected-view-context")).toContainText("docs/r2.md");
+  await page.getByRole("button", { name: "Close context", exact: true }).click();
 });
 
 test("invalid lifecycle Markdown stays inspection-only and exact bytes open in the Evidence workspace", async ({
@@ -3849,7 +3846,7 @@ test("candidate Complete surface and reached Implementation expose V0-V7, exact 
     .toContainText("Reviewing candidate evidence");
   await expect(page.getByRole("region", { name: "Workflow activity" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Timeline technical details", exact: true }))
-    .toBeVisible();
+    .toHaveCount(0);
   await expect(
     page.getByText("Independent review passed", { exact: true }),
   ).toBeVisible();
